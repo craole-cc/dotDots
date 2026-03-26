@@ -1,13 +1,13 @@
 {lib, ...}: let
-  inherit (lib.attrsets) recursiveUpdate hasAttr;
-  inherit (lib.lists) elem;
+  inherit (lib.attrsets) attrNames recursiveUpdate hasAttr optionalAttrs;
+  inherit (lib.lists) elem head;
 
   __exports = {
     internal = {
       inherit
         mkUI
         defaults
-        loginManagers
+        displayManagers
         desktopEnvironments
         windowManagers
         normalizeInterface
@@ -53,12 +53,8 @@
     };
 
     registry = {
-      supportedProtocol = [];
-      preferredProtocol = "wayland";
-      displayManager = {
-        supported = [];
-        preferred = "ly";
-      };
+      displayProtocols = ["wayland" "xorg"];
+      displayManagers = attrNames displayManagers;
       desktopShell = null;
       notificationDaemon = null;
       fileManager = null;
@@ -67,44 +63,44 @@
     };
   };
 
-  loginManagers = {
+  displayManagers = {
     gdm = {
-      support = ["wayland" "xorg"];
+      supported = ["wayland" "xorg"];
       type = "gui";
       base = "c";
       maturity = "stable";
       vibe = "gnome-first";
     };
     greetd = {
-      support = ["wayland" "xorg" "tty"];
+      supported = ["wayland" "xorg" "tty"];
       type = "tui";
       base = "rust";
       maturity = "stable";
       vibe = "minimal-unixy";
     };
     lemurs = {
-      support = ["wayland" "xorg" "tty"];
+      supported = ["wayland" "xorg" "tty"];
       type = "tui";
       base = "rust";
       maturity = "young";
       vibe = "tui-fancy";
     };
     lightdm = {
-      support = ["wayland" "xorg"];
+      supported = ["wayland" "xorg"];
       type = "gui";
       base = "c";
       maturity = "legacy";
       vibe = "swiss-army";
     };
     ly = {
-      support = ["wayland" "xorg" "tty"];
+      supported = ["wayland" "xorg" "tty"];
       type = "tui";
       base = "zig";
       maturity = "niche";
       vibe = "aesthetic-min";
     };
     sddm = {
-      support = ["wayland" "xorg"];
+      supported = ["wayland" "xorg"];
       type = "gui";
       base = "cpp";
       maturity = "stable";
@@ -113,284 +109,324 @@
   };
 
   desktopEnvironments = {
-    gnome =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland" "xorg"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["gdm" "greetd" "lemurs" "lightdm" "ly" "sddm"];
-          preferred = "gdm";
-        };
-        desktopShell = "gnome-shell";
-        notificationDaemon = "gnome-shell";
-        fileManager = "nautilus";
-        terminal = "gnome-terminal";
-        appLauncher = "gnome-shell-overview";
+    gnome = {
+      displayProtocol = {
+        supported = ["wayland" "xorg"];
+        preferred = "wayland";
       };
+      displayManager = {
+        supported = ["gdm" "greetd" "lemurs" "lightdm" "ly" "sddm"];
+        preferred = "gdm";
+      };
+      desktopShell = "gnome-shell";
+      notificationDaemon = "gnome-shell";
+      fileManager = "nautilus";
+      terminal = "gnome-terminal";
+      appLauncher = "gnome-shell-overview";
+    };
 
-    plasma =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland" "xorg"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["sddm" "gdm" "lightdm" "greetd" "lemurs" "ly"];
-          preferred = "sddm";
-        };
-        desktopShell = "plasmashell";
-        notificationDaemon = "plasmashell";
-        fileManager = "dolphin";
-        terminal = "konsole";
-        appLauncher = "krunner";
+    plasma = {
+      displayProtocol = {
+        supported = ["wayland" "xorg"];
+        preferred = "wayland";
       };
+      displayManager = {
+        supported = ["sddm" "gdm" "lightdm" "greetd" "lemurs" "ly"];
+        preferred = "sddm";
+      };
+      desktopShell = "plasmashell";
+      notificationDaemon = "plasmashell";
+      fileManager = "dolphin";
+      terminal = "konsole";
+      appLauncher = "krunner";
+    };
 
-    cosmic =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["cosmic-greeter" "gdm" "greetd" "lemurs" "sddm" "ly"];
-          preferred = "cosmic-greeter";
-        };
-        desktopShell = "cosmic-shell";
-        notificationDaemon = "cosmic-notifications";
-        fileManager = "cosmic-files";
-        terminal = "cosmic-terminal";
-        appLauncher = "cosmic-launcher";
+    cosmic = {
+      displayProtocol = {
+        supported = ["wayland"];
+        preferred = "wayland";
       };
+      displayManager = {
+        supported = ["cosmic-greeter" "gdm" "greetd" "lemurs" "sddm" "ly"];
+        preferred = "cosmic-greeter";
+      };
+      desktopShell = "cosmic-shell";
+      notificationDaemon = "cosmic-notifications";
+      fileManager = "cosmic-files";
+      terminal = "cosmic-terminal";
+      appLauncher = "cosmic-launcher";
+    };
 
-    pantheon =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "gala";
-        notificationDaemon = "notification-daemon";
-        fileManager = "pantheon-files";
-        terminal = "pantheon-terminal";
-        appLauncher = "slingshot";
+    pantheon = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "gala";
+      notificationDaemon = "notification-daemon";
+      fileManager = "pantheon-files";
+      terminal = "pantheon-terminal";
+      appLauncher = "slingshot";
+    };
 
-    cinnamon =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "cinnamon";
-        notificationDaemon = "cinnamon";
-        fileManager = "nemo";
-        terminal = "gnome-terminal";
-        appLauncher = "cinnamon-menu";
+    cinnamon = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "cinnamon";
+      notificationDaemon = "cinnamon";
+      fileManager = "nemo";
+      terminal = "gnome-terminal";
+      appLauncher = "cinnamon-menu";
+    };
 
-    xfce =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "xfce4-panel";
-        notificationDaemon = "xfce4-notifyd";
-        fileManager = "thunar";
-        terminal = "xfce4-terminal";
-        appLauncher = "xfce4-appfinder";
+    xfce = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "xfce4-panel";
+      notificationDaemon = "xfce4-notifyd";
+      fileManager = "thunar";
+      terminal = "xfce4-terminal";
+      appLauncher = "xfce4-appfinder";
+    };
   };
 
-  windowManagers = {
-    hyprland =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["sddm" "gdm" "greetd" "lemurs" "ly"];
-          preferred = "sddm";
-        };
-        desktopShell = "hyprland";
-        notificationDaemon = "mako";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "wofi";
+  windowManagers = let
+    forWayland = {
+      displayProtocol = {
+        supported = ["wayland"];
+        preferred = "wayland";
       };
+      displayManager = {
+        supported = [
+          "dms-greeter"
+          "gdm"
+          "greetd"
+          "lemurs"
+          "lightdm"
+          "ly"
+          "sddm"
+        ];
+        preferred = "dms-greeter";
+      };
+      notificationDaemon = "mako";
+      fileManager = "thunar";
+      terminal = "kitty";
+      appLauncher = "vicinae";
+    };
+  in {
+    hyprland = {
+      inherit
+        (forWayland)
+        displayManager
+        displayProtocol
+        notificationDaemon
+        fileManager
+        terminal
+        appLauncher
+        ;
+      desktopShell = "hyprland";
+      defaultSession="hyprland-"
+    };
 
-    niri =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["dms-greeter" "sddm" "gdm" "greetd" "lemurs" "ly"];
-          preferred = "dms-greeter";
-        };
-        desktopShell = "niri";
-        notificationDaemon = "mako";
-        fileManager = "thunar";
-        terminal = "foot";
-        appLauncher = "fuzzel";
-      };
+    niri = {
+      inherit
+        (forWayland)
+        displayManager
+        displayProtocol
+        notificationDaemon
+        fileManager
+        terminal
+        appLauncher
+        ;
+      desktopShell = "niri";
+    };
 
-    sway =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["gdm" "sddm" "greetd" "lemurs" "ly"];
-          preferred = "gdm";
-        };
-        desktopShell = "sway";
-        notificationDaemon = "mako";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "wofi";
-      };
+    sway = {
+      inherit
+        (forWayland)
+        displayManager
+        displayProtocol
+        notificationDaemon
+        fileManager
+        terminal
+        appLauncher
+        ;
+      desktopShell = "sway";
+    };
 
-    river =
-      defaults.registry
-      // {
-        supportedProtocol = ["wayland"];
-        preferredProtocol = "wayland";
-        displayManager = {
-          supported = ["sddm" "greetd" "lemurs" "ly"];
-          preferred = "sddm";
-        };
-        desktopShell = "river";
-        notificationDaemon = "mako";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "fuzzel";
-      };
+    river = {
+      inherit
+        (forWayland)
+        displayManager
+        displayProtocol
+        notificationDaemon
+        fileManager
+        terminal
+        appLauncher
+        ;
+      desktopShell = "river";
+    };
 
-    i3 =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "i3";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "rofi";
+    i3 = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "i3";
+      notificationDaemon = "dunst";
+      fileManager = "thunar";
+      terminal = "kitty";
+      appLauncher = "rofi";
+    };
 
-    bspwm =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "bspwm";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "rofi";
+    bspwm = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "bspwm";
+      notificationDaemon = "dunst";
+      fileManager = "thunar";
+      terminal = "kitty";
+      appLauncher = "rofi";
+    };
 
-    qtile =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "qtile";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "rofi";
+    qtile = {
+      displayProtocol = {
+        supported = ["wayland" "xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "qtile";
+      notificationDaemon = "dunst";
+      fileManager = "thunar";
+      terminal = "alacritty";
+      appLauncher = "rofi";
+    };
 
-    awesome =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "awesome";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "rofi";
+    awesome = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "awesome";
+      notificationDaemon = "dunst";
+      fileManager = "thunar";
+      terminal = "alacritty";
+      appLauncher = "rofi";
+    };
 
-    xmonad =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "xmonad";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "alacritty";
-        appLauncher = "rofi";
+    xmonad = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "xmonad";
+      notificationDaemon = "dunst";
+      fileManager = "thunar";
+      terminal = "alacritty";
+      appLauncher = "rofi";
+    };
 
-    openbox =
-      defaults.registry
-      // {
-        supportedProtocol = ["xorg"];
-        preferredProtocol = "xorg";
-        displayManager = {
-          supported = ["lightdm" "gdm" "sddm"];
-          preferred = "lightdm";
-        };
-        desktopShell = "openbox";
-        notificationDaemon = "xfce4-notifyd";
-        fileManager = "thunar";
-        terminal = "xfce4-terminal";
-        appLauncher = "rofi";
+    openbox = {
+      displayProtocol = {
+        supported = ["xorg"];
+        preferred = "xorg";
       };
+      displayManager = {
+        supported = ["lightdm" "gdm" "sddm"];
+        preferred = "lightdm";
+      };
+      desktopShell = "openbox";
+      notificationDaemon = "xfce4-notifyd";
+      fileManager = "thunar";
+      terminal = "xfce4-terminal";
+      appLauncher = "rofi";
+    };
   };
 
   normalizeInterface = interface: let
-    base = defaults.interface // interface;
-    desktopEnvironment = base.desktopEnvironment;
-    windowManager = base.windowManager;
-    displayProtocolInput = base.displayProtocol;
-    # displayManagerInput = base.displayManager;
-    desktopShellInput = base.desktopShell;
-    notificationDaemonInput = base.notificationDaemon;
-    fileManagerInput = base.fileManager;
-    terminalInput = base.terminal;
-    appLauncherInput = base.appLauncher;
+    default = defaults.interface // interface;
 
-    defaultDisplayProtocol = "wayland";
-    defaultDisplayManager = "ly";
+    desktopEnvironment =
+      optionalAttrs (
+        (interface.desktopEnvironment != null)
+        && (hasAttr interface.desktopEnvironment desktopEnvironments)
+      )
+      {
+        name = interface.desktopEnvironment;
+        kind = "desktopEnvironment";
+        config = desktopEnvironments.${default.desktopEnvironment};
+      };
 
-    displayManagerInput =
-      if desktopEnvironment == "gnome"
-      then "gdm"
-      else base.displayManager;
+    windowManager =
+      optionalAttrs (
+        (interface.windowManager != null)
+        && (hasAttr interface.windowManager windowManagers)
+      )
+      {
+        name = interface.windowManager;
+        kind = "windowManager";
+        config = windowManagers.${interface.windowManager};
+      };
+
+    displayProtocol =
+      interface.displayProtocol or
+      desktopEnvironment.displayProtocol.preferred or
+      windowManager.displayProtocol.preferred or
+      default.displayProtocol;
+    #TODO: Validate against supported
+
+    desktopShell =
+      interface.desktopShell or
+      desktopEnvironment.desktopShell or
+      windowManager.desktopShell or
+      default.desktopShell;
+
+    notificationDaemon =
+      interface.notificationDaemon or
+      desktopEnvironment.notificationDaemon or
+      windowManager.notificationDaemon or
+      default.notificationDaemon;
+
+    fileManager = default.fileManager;
+    terminal = default.terminal;
+    appLauncher = default.appLauncher;
 
     defaultSession =
       if base.defaultSession != null
@@ -416,21 +452,21 @@
       }
       else null;
 
-    displayProtocol =
-      if selectedInterface != null
-      then
-        if displayProtocolInput != null && elem displayProtocolInput selectedInterface.config.supportedProtocol
-        then displayProtocolInput
-        else selectedInterface.config.preferredProtocol
-      else if displayProtocolInput != null
-      then displayProtocolInput
-      else defaultDisplayProtocol;
+    # displayProtocol =
+    #   if selectedInterface != null
+    #   then
+    #     if displayProtocolInput != null && elem displayProtocolInput selectedInterface.config.supportedProtocol
+    #     then displayProtocolInput
+    #     else selectedInterface.config.preferredProtocol
+    #   else if displayProtocolInput != null
+    #   then displayProtocolInput
+    #   else defaultDisplayProtocol;
 
     displayManager =
-      if displayManagerInput != null
-      then displayManagerInput
-      else if selectedInterface != null
-      then selectedInterface.config.displayManager.preferred
+      if desktopEnvironment ? displayManager
+      then desktopEnvironment.displayManager
+      else if windowManager ? displayManager
+      then windowManager.displayManager
       else defaultDisplayManager;
 
     desktopShell =
@@ -487,7 +523,7 @@
         inherit
           desktopEnvironments
           windowManagers
-          loginManagers
+          displayManagers
           ;
       };
     };

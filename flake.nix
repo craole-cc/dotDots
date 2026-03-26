@@ -88,9 +88,7 @@
       repo = "nyx";
       owner = "chaotic-cx";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     browserZen = {
@@ -107,45 +105,35 @@
       repo = "affinity-nix";
       owner = "mrshmllow";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     editorHelix = {
       repo = "helix";
       owner = "helix-editor";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     # editorFresh = {
     #   repo = "fresh";
     #   owner = "sinelaw";
     #   type = "github";
-    #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
-    #   };
+    #   inputs.nixpkgs.follows = "nixPackages";
     # };
 
     editorNeovim = {
       repo = "nvf";
       owner = "notashelf";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     editorTypix = {
       repo = "typix";
       owner = "loqusion";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     editorVSCode = {
@@ -166,18 +154,15 @@
       repo = "agenix";
       owner = "ryantm";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     shellDankMaterial = {
+      ref = "stable";
       repo = "DankMaterialShell";
       owner = "AvengeMedia";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     shellCaelestia = {
@@ -197,9 +182,7 @@
       repo = "noctalia-shell";
       owner = "noctalia-dev";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     shellPlasma = {
@@ -216,9 +199,7 @@
       repo = "quickshell";
       owner = "outfoxxed";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     styleManager = {
