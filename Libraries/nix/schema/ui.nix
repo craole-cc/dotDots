@@ -287,13 +287,13 @@
           };
           sec = {
             exec = "chromium";
-            class = "Chromium-browser";
+            class = "chromium-browser";
           };
         };
         visual = {
           pri = {
             exec = "code";
-            class = "code-url-handler";
+            class = "code";
           };
           sec = {
             exec = "zeditor";
@@ -354,12 +354,12 @@
             # visual.action = mkRunOrRaise "$VISUAL";
 
             # Specific apps (if not using variables)
-            visual.action = mkRunOrRaise visual.pri.exec;
-            visualSec.action = mkRunOrRaise visual.sec.exec;
-            browser.action = mkRunOrRaise browser.pri.exec;
-            browserSec.action = mkRunOrRaise browser.sec.exec;
-            terminal.action = mkRunOrRaise terminal.pri.exec;
-            terminalSec.action = mkRunOrRaise terminal.sec.exec;
+            visual.action = mkRunOrRaise visual.pri;
+            visualSec.action = mkRunOrRaise visual.sec;
+            browser.action = mkRunOrRaise browser.pri;
+            browserSec.action = mkRunOrRaise browser.sec;
+            terminal.action = mkRunOrRaise terminal.pri;
+            terminalSec.action = mkRunOrRaise terminal.sec;
 
             # --- Standard Hyprland Dispatches ---
             close.action = "hyprctl dispatch killactive";
