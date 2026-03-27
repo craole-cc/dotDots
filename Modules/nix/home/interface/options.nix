@@ -21,12 +21,17 @@
     ;
   inherit (lix.schema.ui) mkUI;
   iface = mkUI {inherit host user;};
+  inherit (iface) interfaces sessions;
 in {
   options.${top}.${dom} = {
     enable = mkTrue dom;
-    all = mkOption {
-      description = "mkUI Derivation";
-      default = iface;
+    interfaces = mkOption {
+      description = "Available interfaces";
+      default = interfaces;
+    };
+    sessions = mkOption {
+      description = "Available sessions";
+      default = sessions;
     };
 
     windowManager = mkOption {
