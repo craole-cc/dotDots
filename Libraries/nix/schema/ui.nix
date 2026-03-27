@@ -366,6 +366,7 @@
             #~@ Apps
             fileManager.action = mkRunOrRaise fileManager.pri;
             fileManagerSec.action = mkRunOrRaise fileManager.sec;
+            code.action = mkRunOrRaise "code";
             visual.action = mkRunOrRaise visual.pri;
             visualSec.action = mkRunOrRaise visual.sec;
             browser.action = mkRunOrRaise browser.pri;
