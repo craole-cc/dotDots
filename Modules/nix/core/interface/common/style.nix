@@ -125,6 +125,13 @@ in {
         size = cfg.cursorSize;
       };
 
+      icons = {
+        enable = true;
+        package = null;
+        light = pkgs.material-design-icons.name;
+        dark = pkgs.candy-icons.name;
+      };
+
       fonts = let
         fontCfg = config.${top}.interface.fonts;
       in {
