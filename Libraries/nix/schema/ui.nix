@@ -283,8 +283,8 @@
         browser = {
           pri = {
             exec = "zen-twilight";
-            class = "zen";
-          }; # Or "zen-alpha"
+            class = "zen-twilight";
+          };
           sec = {
             exec = "chromium";
             class = "Chromium-browser";
@@ -333,9 +333,19 @@
         bar = "hyprpanel";
         windowShell = "quickshell";
         keyboard = let
-          mkRunOrRaise = exec: ''
-            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
-          '';
+          # mkRunOrRaise = exec: ''
+          #   bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
+          # '';
+          mkRunOrRaise = app: let
+            e =
+              if isAttrs app
+              then app.exec
+              else app;
+            c =
+              if isAttrs app
+              then app.class
+              else app;
+          in "hyprctl dispatch focuswindow class:^(${c})$ || ${e}";
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
