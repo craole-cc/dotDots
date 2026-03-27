@@ -1,11 +1,14 @@
-# {lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
 {
   pkgs,
   lib,
   user,
+  config,
   lix,
+  top,
   ...
 }: let
+  dom = "interface";
+  cfg = config.${top}.${dom};
   inherit (lib.modules) mkForce;
   # inherit (lib.strings) toLower;
   getPackage = lix.attrsets.resolution.package;
@@ -38,8 +41,8 @@
     };
   };
 in {
-  _module.args = {inherit cursor icons;};
-  imports = lix.filesystem.importers.importAll ./.;
+  # _module.args = {inherit cursor icons;};
+  _module.args.${dom} = cfg;
 
   gtk = {
     enable = mkForce true;
