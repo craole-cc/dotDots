@@ -298,6 +298,7 @@
         windowShell = "quickshell";
         keyboard = {
           close.action = "hyprctl dispatch killactive";
+          code.action = "hyprctl dispatch focuswindow code || code";
           fullscreen.action = "hyprctl dispatch fullscreen 0";
           maximize.action = "hyprctl dispatch fullscreen 1";
           float.action = "hyprctl dispatch togglefloating";
