@@ -274,6 +274,10 @@
           pri = "foot";
           sec = "ghostty";
         };
+        browser = {
+          pri = "zen-twilight";
+          sec = "chromium";
+        };
         visual = {
           pri = "code";
           sec = "zeditor";
@@ -312,18 +316,21 @@
         windowShell = "quickshell";
         keyboard = let
           mkRunOrRaise = exec: ''
-            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
+            # bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
+            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:.*$cmd.*" || ${exec}'
           '';
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
-            browser.action = mkRunOrRaise "$BROWSER";
+            # browser.action = mkRunOrRaise "$BROWSER";
             fileManager.action = mkRunOrRaise "$FILE_MANAGER";
             # visual.action = mkRunOrRaise "$VISUAL";
 
             # Specific apps (if not using variables)
             visual.action = mkRunOrRaise visual.pri;
             visualSec.action = mkRunOrRaise visual.sec;
+            browser.action = mkRunOrRaise browser.pri;
+            browserSec.action = mkRunOrRaise browser.sec;
             terminal.action = mkRunOrRaise terminal.pri;
             terminalSec.action = mkRunOrRaise terminal.sec;
 
