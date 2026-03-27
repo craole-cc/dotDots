@@ -269,7 +269,16 @@
       apps = {
         bar = "waybar";
         notificationDaemon = "mako";
-        fileManager = "thunar";
+        fileManager = {
+          sec = {
+            exec = "yazi";
+            title = "yazi";
+          };
+          pri = {
+            exec = "doublecmd";
+            class = "doublecmd";
+          };
+        };
         terminal = {
           pri = {
             exec = "foot";
@@ -341,24 +350,32 @@
               if isAttrs app
               then app.exec
               else app;
-            c =
-              if isAttrs app
-              then app.class
-              else app;
+            type =
+              if isAttrs app && (app ? title)
+              then "title"
+              else "class";
+            value =
+              if type == "title"
+              then app.title
+              else
+                (
+                  if isAttrs app
+                  then app.class
+                  else app
+                );
           in
-            # We use sh -c to allow the 'if/then/else' logic.
-            # 1. Search for the class string in the client list.
-            # 2. If found, dispatch the focus command.
-            # 3. If not found, launch the executable.
-            "sh -c 'if hyprctl clients | grep -q \"class: ${c}\"; then hyprctl dispatch focuswindow \"class:${c}\"; else ${e}; fi'";
+            # Logic: grep for the specific type (class: or title:)
+            "sh -c 'if hyprctl clients | grep -q \"${type}: ${value}\"; then hyprctl dispatch focuswindow \"${type}:${value}\"; else ${e}; fi'";
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
             # browser.action = mkRunOrRaise "$BROWSER";
-            fileManager.action = mkRunOrRaise "$FILE_MANAGER";
+            # fileManager.action = mkRunOrRaise "$FILE_MANAGER";
             # visual.action = mkRunOrRaise "$VISUAL";
 
-            # Specific apps (if not using variables)
+            #~@ Apps
+            fileManager.action = mkRunOrRaise fileManager.pri;
+            fileManagerSec.action = mkRunOrRaise fileManager.sec;
             visual.action = mkRunOrRaise visual.pri;
             visualSec.action = mkRunOrRaise visual.sec;
             browser.action = mkRunOrRaise browser.pri;
@@ -366,7 +383,7 @@
             terminal.action = mkRunOrRaise terminal.pri;
             terminalSec.action = mkRunOrRaise terminal.sec;
 
-            # --- Standard Hyprland Dispatches ---
+            #~@ Standard Hyprland Dispatches
             close.action = "hyprctl dispatch killactive";
             fullscreen.action = "hyprctl dispatch fullscreen 0";
             maximize.action = "hyprctl dispatch fullscreen 1";
