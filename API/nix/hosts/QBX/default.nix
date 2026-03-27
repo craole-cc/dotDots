@@ -208,7 +208,7 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    # loginManager = "sddm";
+    loginManager = "regreet";
     # desktopEnvironment = null;
     windowManager = "hyprland";
     # displayProtocol = "wayland";
