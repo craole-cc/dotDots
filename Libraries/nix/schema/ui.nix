@@ -270,11 +270,11 @@
         bar = "waybar";
         notificationDaemon = "mako";
         fileManager = {
-          sec = {
+          pri = {
             exec = "yazi";
             title = "yazi";
           };
-          pri = {
+          sec = {
             exec = "doublecmd";
             class = "doublecmd";
           };

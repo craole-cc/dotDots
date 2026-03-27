@@ -59,6 +59,11 @@
       key = "E";
       action = "$FILE_MANAGER";
     };
+    fileManagerSec = {
+      mod = mod ++ ["SHIFT"];
+      key = "E";
+      action = "$FILE_MANAGER_SEC";
+    };
     launcher = {
       inherit mod;
       key = "SUPER_L";

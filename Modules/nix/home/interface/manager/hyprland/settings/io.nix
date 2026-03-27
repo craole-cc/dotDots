@@ -17,6 +17,7 @@
       browserSec
       close
       fileManager
+      fileManagerSec
       float
       fullscreen
       groupLock
