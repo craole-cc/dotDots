@@ -315,24 +315,25 @@
         bar = "hyprpanel";
         windowShell = "quickshell";
         keyboard = let
-          # mkRunOrRaise = exec: let
-          #   # 1. Get binary name (e.g. 'chromium' from '/path/to/chromium --flags')
-          #   # 2. Search for any window where Class or Title contains that name (case-insensitive)
-          #   # 3. If found, focus the first one. Else, launch.
-          #   script = ''
-          #     bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); \
-          #     target=$(hyprctl clients -j | jq -r ".[] | select((.class | ascii_downcase | contains(\"$cmd\")) or (.title | ascii_downcase | contains(\"$cmd\"))) | .address" | head -n1); \
-          #     if [ -n "$target" ] && [ "$target" != "null" ]; then \
-          #       hyprctl dispatch focuswindow address:$target; \
-          #     else \
-          #       ${exec} & \
-          #     fi'
-          #   '';
-          # in
-          #   script;
           mkRunOrRaise = exec: ''
-            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
+            bash -c '
+              # 1. Get the binary name (e.g., "ghostty")
+              CMD=$(basename "${exec}" | cut -d" " -f1 | tr "[:upper:]" "[:lower:]")
+
+              # 2. Get the address of the window that matches the class OR title
+              # We use -i for case-insensitive and -A2 to get the address line
+              ADDR=$(hyprctl clients | grep -iEi "class:.*$CMD|title:.*$CMD" -B2 | grep "Window" | awk "{print \$2}" | head -n1)
+
+              if [ -n "$ADDR" ]; then
+                hyprctl dispatch focuswindow address:$ADDR
+              else
+                ${exec} &
+              fi
+            '
           '';
+          # mkRunOrRaise = exec: ''
+          #   bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
+          # '';
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
