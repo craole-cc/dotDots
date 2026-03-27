@@ -9,7 +9,7 @@
 }: let
   dom = "interface";
   # cfg = config.${top}.${dom};
-  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lix.types.options) mkTrue mkOption;
   inherit (lib.types) attrs enum nullOr str;
   inherit
     (lix.enums)
@@ -19,14 +19,11 @@
     displayProtocols
     shells
     ;
-  # inherit (lix.filesystem.importers) importAll;
   inherit (lix.schema.ui) mkUI;
   iface = mkUI {inherit host user;};
 in {
-  # imports = importAll ./.;
-
   options.${top}.${dom} = {
-    enable = mkEnableOption dom // {default = true;};
+    enable = mkTrue dom;
     windowManager = mkOption {
       description = "Window manager";
       default = iface.windowManager;
@@ -72,21 +69,21 @@ in {
       default = iface.desktopShell;
       type = nullOr str;
     };
-    terminal = mkOption {
-      description = "Default terminal";
-      default = iface.terminal;
-      type = nullOr str;
-    };
+    # terminal = mkOption {
+    #   description = "Default terminal";
+    #   default = iface.terminal;
+    #   type = nullOr str;
+    # };
     appLauncher = mkOption {
       description = "Application launcher";
       default = iface.appLauncher;
       type = nullOr str;
     };
-    fileManager = mkOption {
-      description = "File manager";
-      default = iface.fileManager;
-      type = nullOr str;
-    };
+    # fileManager = mkOption {
+    #   description = "File manager";
+    #   default = iface.fileManager;
+    #   type = nullOr str;
+    # };
     notificationDaemon = mkOption {
       description = "Notification daemon";
       default = iface.notificationDaemon;
