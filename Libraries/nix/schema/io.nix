@@ -15,7 +15,7 @@
   mod = ["SUPER"];
 
   defaults.keyboard = {
-    modifier = mod;
+    modifier = concatStringsSep " " mod;
     swapCapsEscape = true;
 
     # ── Applications ─────────────────────────────────────────────────────────

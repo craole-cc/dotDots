@@ -587,7 +587,10 @@
       );
     };
   in
-    {inherit desktopEnvironment windowManager;}
+    {
+      desktopEnvironment = desktopEnvironment.name;
+      windowManager = windowManager.name;
+    }
     // composites
     // (genAttrs keys.resolution resolve)
     // (genAttrs keys.validation validate);

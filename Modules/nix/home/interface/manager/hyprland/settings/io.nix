@@ -3,14 +3,16 @@
   apps,
   lib,
   host,
-  keyboard,
+  user,
+  # keyboard,
   ...
 }: let
   inherit (lib.lists) filter;
   inherit (lib.modules) mkIf;
   inherit (lix.hardware.display) mkHyprlandMonitors;
-  inherit (lix.schema.io) mkHyprKeybinds;
+  inherit (lix.schema.io) mkKeyboard mkHyprKeybinds;
 
+  keyboard = mkKeyboard {inherit host user;};
   systemBinds = filter (x: x != null) (
     map mkHyprKeybinds (with keyboard; [
       browser
@@ -60,20 +62,21 @@ in {
 
   bind =
     systemBinds
-    ++ [
-      #~@ Window management (hyprland-specific, not in schema)
-      "${mod}, S, togglesplit"
-      "${mod}, P, pseudo"
-      "${mod}, F, fullscreen, 1"
-      "${mod}, G, togglegroup"
-      "${mod}, T, lockactivegroup, toggle"
-      "${mod}, TAB, workspace, previous"
-      "ALT, RETURN, fullscreen, 0"
-      "ALT SHIFT, RETURN, togglefloating"
-      "${mod} SHIFT, F, togglefloating"
-      "${mod} CTRL, F, pin"
-      "ALT, TAB, focuscurrentorlast"
-    ];
+    # ++ [
+    #   #~@ Window management (hyprland-specific, not in schema)
+    #   "${mod}, S, togglesplit"
+    #   "${mod}, P, pseudo"
+    #   "${mod}, F, fullscreen, 1"
+    #   "${mod}, G, togglegroup"
+    #   "${mod}, T, lockactivegroup, toggle"
+    #   "${mod}, TAB, workspace, previous"
+    #   "ALT, RETURN, fullscreen, 0"
+    #   "ALT SHIFT, RETURN, togglefloating"
+    #   "${mod} SHIFT, F, togglefloating"
+    #   "${mod} CTRL, F, pin"
+    #   "ALT, TAB, focuscurrentorlast"
+    # ]
+    ++ [];
 
   bindr = [
     "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"

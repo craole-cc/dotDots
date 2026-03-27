@@ -5,6 +5,7 @@
   lix,
   keyboard,
   mkMerge,
+  user,
   withRules ? true,
   ...
 }: let
@@ -12,7 +13,7 @@
 in {
   settings = mkMerge [
     (import ./core.nix {inherit apps keyboard;})
-    (import ./io.nix {inherit apps host lix lib keyboard;})
+    (import ./io.nix {inherit apps host lix lib keyboard user;})
     (mkIf withRules (import ./rules {
       inherit
         apps
