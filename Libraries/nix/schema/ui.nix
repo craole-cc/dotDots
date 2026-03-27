@@ -342,9 +342,6 @@
         bar = "hyprpanel";
         windowShell = "quickshell";
         keyboard = let
-          # mkRunOrRaise = exec: ''
-          #   bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
-          # '';
           mkRunOrRaise = app: let
             e =
               if isAttrs app
@@ -363,16 +360,9 @@
                   then app.class
                   else app
                 );
-          in
-            # Logic: grep for the specific type (class: or title:)
-            "sh -c 'if hyprctl clients | grep -q \"${type}: ${value}\"; then hyprctl dispatch focuswindow \"${type}:${value}\"; else ${e}; fi'";
+          in "sh -c 'if hyprctl clients | grep -q \"${type}: ${value}\"; then hyprctl dispatch focuswindow \"${type}:${value}\"; else ${e}; fi'";
         in
           with wayland.apps; {
-            # --- Run or Raise using Variables ---
-            # browser.action = mkRunOrRaise "$BROWSER";
-            # fileManager.action = mkRunOrRaise "$FILE_MANAGER";
-            # visual.action = mkRunOrRaise "$VISUAL";
-
             #~@ Apps
             fileManager.action = mkRunOrRaise fileManager.pri;
             fileManagerSec.action = mkRunOrRaise fileManager.sec;
