@@ -127,9 +127,9 @@ in {
 
       icons = {
         enable = true;
-        package = null;
-        light = "candy-icons";
-        dark = "candy-icons";
+        package = pkgs.candy-icons;
+        # light = "candy-icons";
+        # dark = "candy-icons";
       };
 
       fonts = let
