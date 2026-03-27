@@ -100,13 +100,4 @@ in {
       type = attrs;
     };
   };
-
-  config = {
-    programs.regreet = {
-      enable = true;
-    };
-    # services = {
-    #   displayManager.plasma-login-manager.enable = true;
-    # };
-  };
 }
