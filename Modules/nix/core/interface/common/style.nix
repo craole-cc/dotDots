@@ -128,8 +128,8 @@ in {
       icons = {
         enable = true;
         package = null;
-        light = pkgs.material-design-icons.name;
-        dark = pkgs.candy-icons.name;
+        light = "candy-icons";
+        dark = "candy-icons";
       };
 
       fonts = let
