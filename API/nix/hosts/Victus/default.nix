@@ -204,8 +204,8 @@ in {
     bootLoaderTimeout = 1;
     # defaultSession = "hyprland-uwsm";
     # loginManager = "sddm";
-    desktopEnvironment = "cosmic";
-    # windowManager = "hyprland";
+    # desktopEnvironment = "cosmic";
+    windowManager = "hyprland";
     # displayProtocol = "wayland";
     keyboard = {
       modifier = "SUPER";
