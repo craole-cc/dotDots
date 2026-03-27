@@ -274,7 +274,7 @@
           pri = "foot";
           sec = "ghostty";
         };
-        editor = {
+        visual = {
           pri = "code";
           sec = "zeditor";
         };
