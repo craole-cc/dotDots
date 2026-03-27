@@ -12,7 +12,7 @@
   inherit (lix.hardware.display) mkHyprlandMonitors;
   inherit (lix.schema.io) mkKeyboard mkHyprKeybinds;
 
-  inherit (mkKeyboard {inherit host user;}) keyboard;
+  keyboard = mkKeyboard {inherit host user;};
   systemBinds = filter (x: x != null) (
     map mkHyprKeybinds (with keyboard; [
       browser
