@@ -44,6 +44,11 @@
       key = "C";
       action = "code";
     };
+    foot = {
+      inherit mod;
+      key = "GRAVE";
+      action = "foot";
+    };
     visual = {
       inherit mod;
       key = "V";

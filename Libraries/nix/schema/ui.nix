@@ -309,6 +309,7 @@
 
           # Specific apps (if not using variables)
           code.action = mkRunOrRaise "code";
+          foot.action = mkRunOrRaise "foot";
 
           # --- Standard Hyprland Dispatches ---
           close.action = "hyprctl dispatch killactive";

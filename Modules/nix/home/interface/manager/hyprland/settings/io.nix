@@ -17,6 +17,7 @@
       browserSec
       close
       code
+      foot
       fileManager
       float
       fullscreen
