@@ -125,12 +125,12 @@ in {
         size = cfg.cursorSize;
       };
 
-      icons = {
-        enable = true;
-        package = pkgs.candy-icons;
-        # light = "candy-icons";
-        # dark = "candy-icons";
-      };
+      # icons = {
+      #   enable = true;
+      #   package = pkgs.candy-icons;
+      #   light = pkgs.material-icon-theme.name; # string
+      #   dark = pkgs.candy-icons.name;
+      # };
 
       fonts = let
         fontCfg = config.${top}.interface.fonts;
