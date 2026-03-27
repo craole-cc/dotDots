@@ -6,13 +6,16 @@
     genAttrs
     hasAttr
     isAttrs
+    mapAttrs
     recursiveUpdate
     ;
+  inherit (lib.strings) concatStringsSep;
   inherit
     (lib.lists)
     concatMap
     elem
     head
+    isList
     optional
     unique
     ;
@@ -487,7 +490,17 @@
       config = {};
     }
     else throw "Unknown ${kind}: ${name}.";
-
+  # Recursively converts any `mod` field that's a list into a space-separated string
+  normalizeKeyboard = kb:
+    mapAttrs (
+      k: v:
+        if k == "mod" && isList v
+        then concatStringsSep " " v
+        else if isAttrs v
+        then normalizeKeyboard v
+        else v
+    )
+    kb;
   normalizeInterface = interface: let
     #> Resolve the core selections first (de/wm) because everything else depends on them
     inherit
@@ -579,7 +592,7 @@
         inherit desktopEnvironments windowManagers displayManagers;
       };
 
-      keyboard =
+      keyboard = normalizeKeyboard (
         recursiveUpdate (
           recursiveUpdate (
             recursiveUpdate
@@ -588,7 +601,8 @@
           )
           (configs.wm.keyboard or {})
         )
-        (interface.keyboard or {});
+        (interface.keyboard or {})
+      );
     };
   in
     {
