@@ -39,6 +39,11 @@
       key = "B";
       action = "$BROWSER_SEC";
     };
+    code = {
+      inherit mod;
+      key = "C";
+      action = "code";
+    };
     visual = {
       inherit mod;
       key = "V";
