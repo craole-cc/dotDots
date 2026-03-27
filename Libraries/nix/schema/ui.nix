@@ -297,17 +297,9 @@
         bar = "hyprpanel";
         windowShell = "quickshell";
         keyboard = let
-          # This script extracts the binary name from the variable and
-          # tries to focus a window with a matching class.
-          mkRunOrRaise = exec: let
-            # We use a shell subshell to get the basename of the command
-            # e.g., if $BROWSER is /path/to/zen-twilight, cmd is "zen-twilight"
-            script = ''
-              cmd=$(basename "${exec}" | cut -d' ' -f1);
-              hyprctl dispatch focuswindow class:^($cmd)$ || ${exec}
-            '';
-          in
-            script;
+          mkRunOrRaise = exec: ''
+            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
+          '';
         in {
           # --- Run or Raise using Variables ---
           terminal.action = mkRunOrRaise "$TERMINAL";
