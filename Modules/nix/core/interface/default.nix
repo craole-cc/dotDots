@@ -9,7 +9,7 @@
   iface = host.interface;
 
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) enum nullOr str;
+  inherit (lib.types) attrs enum nullOr str;
   inherit (lix.filesystem.importers) importAllPaths;
   inherit
     (lix.enums)
@@ -93,6 +93,11 @@ in {
       description = "Status bar";
       default = iface.bar;
       type = nullOr str;
+    };
+    keyboard = mkOption {
+      description = "Keyboard config and bindings";
+      default = iface.keyboard;
+      type = attrs;
     };
   };
 }

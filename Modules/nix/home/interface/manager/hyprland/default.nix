@@ -8,12 +8,13 @@
   apps,
   keyboard,
   paths,
+  nixosConfig,
   ...
 }: let
   dom = "interface";
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
-
+  cfgTop = nixosConfig.${top};
   #> Use user.interface directly — already normalized per-user in mkUsers
   inherit (user.interface) windowManager;
 
@@ -42,6 +43,7 @@ in {
       (import ./settings {
         inherit host lib lix apps user keyboard mkMerge;
         withRules = cfg.withRules;
+        keys = cfgTop.interface.keyboard;
       })
       (import ./submaps {inherit mkMerge;})
     ];

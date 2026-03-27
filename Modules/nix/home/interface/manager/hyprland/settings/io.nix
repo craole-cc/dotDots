@@ -3,16 +3,14 @@
   apps,
   lib,
   host,
-  user,
-  # keyboard,
+  keyboard,
   ...
 }: let
   inherit (lib.lists) filter;
   inherit (lib.modules) mkIf;
   inherit (lix.hardware.display) mkHyprlandMonitors;
-  inherit (lix.schema.io) mkKeyboard mkHyprKeybinds;
+  inherit (lix.schema.io) mkHyprKeybinds;
 
-  keyboard = mkKeyboard {inherit host user;};
   systemBinds = filter (x: x != null) (
     map mkHyprKeybinds (with keyboard; [
       browser
