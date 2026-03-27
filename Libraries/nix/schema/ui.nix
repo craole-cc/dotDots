@@ -271,7 +271,7 @@
         notificationDaemon = "mako";
         fileManager = {
           pri = {
-            exec = "yazi";
+            exec = "foot --title yazi -e yazi";
             title = "yazi";
           };
           sec = {
