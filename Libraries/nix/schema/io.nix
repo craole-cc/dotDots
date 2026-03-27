@@ -46,8 +46,13 @@
     };
     foot = {
       inherit mod;
-      key = "GRAVE";
+      key = "F";
       action = "foot";
+    };
+    ghostty = {
+      inherit mod;
+      key = "G";
+      action = "ghostty";
     };
     visual = {
       inherit mod;

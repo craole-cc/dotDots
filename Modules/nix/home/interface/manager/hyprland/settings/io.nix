@@ -18,6 +18,7 @@
       close
       code
       foot
+      ghostty
       fileManager
       float
       fullscreen
