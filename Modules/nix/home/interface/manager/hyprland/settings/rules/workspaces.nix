@@ -76,24 +76,24 @@
   ];
 
   specialWorkspaces = with apps; {
-    browser = {
-      inherit (browser) primary secondary;
-      key = "B";
-    };
-    editor = {
-      inherit (editor) primary secondary;
-      key = "C";
-    };
-    explorer = {
-      inherit (explorer) primary secondary;
-      key = "E";
-      workdir = "$HOME";
-    };
-    terminal = {
-      inherit (terminal) primary secondary;
-      key = "GRAVE";
-      workdir = "$DOTS";
-    };
+    # browser = {
+    #   inherit (browser) primary secondary;
+    #   key = "B";
+    # };
+    # editor = {
+    #   inherit (editor) primary secondary;
+    #   key = "C";
+    # };
+    # explorer = {
+    #   inherit (explorer) primary secondary;
+    #   key = "E";
+    #   workdir = "$HOME";
+    # };
+    # terminal = {
+    #   inherit (terminal) primary secondary;
+    #   key = "GRAVE";
+    #   workdir = "$DOTS";
+    # };
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
