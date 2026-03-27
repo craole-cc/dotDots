@@ -271,16 +271,34 @@
         notificationDaemon = "mako";
         fileManager = "thunar";
         terminal = {
-          pri = "foot";
-          sec = "ghostty";
+          pri = {
+            exec = "foot";
+            class = "foot";
+          };
+          sec = {
+            exec = "ghostty";
+            class = "com.mitchellh.ghostty";
+          };
         };
         browser = {
-          pri = "zen-twilight";
-          sec = "chromium";
+          pri = {
+            exec = "zen-twilight";
+            class = "zen";
+          }; # Or "zen-alpha"
+          sec = {
+            exec = "chromium";
+            class = "Chromium-browser";
+          };
         };
         visual = {
-          pri = "code";
-          sec = "zeditor";
+          pri = {
+            exec = "code";
+            class = "code-url-handler";
+          };
+          sec = {
+            exec = "zeditor";
+            class = "dev.zed.Zed";
+          };
         };
         appLauncher = "vicinae";
       };
@@ -316,11 +334,8 @@
         windowShell = "quickshell";
         keyboard = let
           mkRunOrRaise = exec: ''
-            exec, bash -c 'C=$(basename "${exec}" | cut -d" " -f1 | tr "[:upper:]" "[:lower:]"); A=$(hyprctl clients | grep -iEi "class:.*$C|title:.*$C" -B2 | grep "Window" | awk "{print \$2}" | head -n1); [ -n "$A" ] && hyprctl dispatch focuswindow address:$A || ${exec} &'
+            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
           '';
-          # mkRunOrRaise = exec: ''
-          #   bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
-          # '';
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
@@ -329,12 +344,12 @@
             # visual.action = mkRunOrRaise "$VISUAL";
 
             # Specific apps (if not using variables)
-            visual.action = mkRunOrRaise visual.pri;
-            visualSec.action = mkRunOrRaise visual.sec;
-            browser.action = mkRunOrRaise browser.pri;
-            browserSec.action = mkRunOrRaise browser.sec;
-            terminal.action = mkRunOrRaise terminal.pri;
-            terminalSec.action = mkRunOrRaise terminal.sec;
+            visual.action = mkRunOrRaise visual.pri.exec;
+            visualSec.action = mkRunOrRaise visual.sec.exec;
+            browser.action = mkRunOrRaise browser.pri.exec;
+            browserSec.action = mkRunOrRaise browser.sec.exec;
+            terminal.action = mkRunOrRaise terminal.pri.exec;
+            terminalSec.action = mkRunOrRaise terminal.sec.exec;
 
             # --- Standard Hyprland Dispatches ---
             close.action = "hyprctl dispatch killactive";
