@@ -316,20 +316,7 @@
         windowShell = "quickshell";
         keyboard = let
           mkRunOrRaise = exec: ''
-            bash -c '
-              # 1. Get the binary name (e.g., "ghostty")
-              CMD=$(basename "${exec}" | cut -d" " -f1 | tr "[:upper:]" "[:lower:]")
-
-              # 2. Get the address of the window that matches the class OR title
-              # We use -i for case-insensitive and -A2 to get the address line
-              ADDR=$(hyprctl clients | grep -iEi "class:.*$CMD|title:.*$CMD" -B2 | grep "Window" | awk "{print \$2}" | head -n1)
-
-              if [ -n "$ADDR" ]; then
-                hyprctl dispatch focuswindow address:$ADDR
-              else
-                ${exec} &
-              fi
-            '
+            exec, bash -c 'C=$(basename "${exec}" | cut -d" " -f1 | tr "[:upper:]" "[:lower:]"); A=$(hyprctl clients | grep -iEi "class:.*$C|title:.*$C" -B2 | grep "Window" | awk "{print \$2}" | head -n1); [ -n "$A" ] && hyprctl dispatch focuswindow address:$A || ${exec} &'
           '';
           # mkRunOrRaise = exec: ''
           #   bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'c
