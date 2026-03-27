@@ -1,4 +1,8 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit
     (lib.attrsets)
     attrNames
@@ -6,19 +10,18 @@
     genAttrs
     hasAttr
     isAttrs
-    mapAttrs
     recursiveUpdate
     ;
-  inherit (lib.strings) concatStringsSep;
   inherit
     (lib.lists)
     concatMap
     elem
     head
-    isList
     optional
     unique
     ;
+
+  inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
 
   __exports = {
     internal = {
@@ -52,83 +55,6 @@
     terminal = "ghostty";
     windowManager = "hyprland";
     windowShell = null;
-    keyboard = let
-      mod = ["SUPER"];
-    in {
-      modifier = mod;
-      swapCapsEscape = true;
-      #? Base keyboard actions that can be overridden
-      terminal = {
-        inherit mod;
-        key = "RETURN";
-        action = "$TERMINAL";
-      };
-      terminalSec = {
-        mod = mod ++ ["SHIFT"];
-        key = "RETURN";
-        action = "$TERMINAL_SEC";
-      };
-      visual = {
-        inherit mod;
-        key = "V";
-        action = "$VISUAL";
-      };
-      visualSec = {
-        mod = mod ++ ["SHIFT"];
-        key = "V";
-        action = "$VISUAL_SEC";
-      };
-      fileManager = {
-        inherit mod;
-        key = "F";
-        action = "$FILE_MANAGER";
-      };
-      browser = {
-        inherit mod;
-        key = "B";
-        action = "$BROWSER";
-      };
-      browserSec = {
-        mod = mod ++ ["SHIFT"];
-        key = "B";
-        action = "$BROWSER_SEC";
-      };
-      close = {
-        inherit mod;
-        key = "Q";
-        action = "wmctrl -c :ACTIVE:";
-      };
-      lock = {
-        inherit mod;
-        key = "L";
-        action = "loginctl lock-session";
-      };
-      logout = {
-        mod = mod ++ ["CTRL"];
-        key = "L";
-        action = "loginctl terminate-session self";
-      };
-      sleep = {
-        mod = mod ++ ["CTRL"];
-        key = "S";
-        action = "systemctl suspend";
-      };
-      reboot = {
-        mod = mod ++ ["CTRL"];
-        key = "R";
-        action = "systemctl reboot";
-      };
-      reboot_soft = {
-        mod = mod ++ ["CTRL" "SHIFT"];
-        key = "R";
-        action = "systemctl soft-reboot";
-      };
-      shutdown = {
-        mod = mod ++ ["CTRL"];
-        key = "Q";
-        action = "systemctl poweroff";
-      };
-    };
   };
 
   displayManagers = {
@@ -138,6 +64,13 @@
       base = "rust";
       maturity = "young";
       vibe = "cosmic-native";
+    };
+    dms-greeter = {
+      supported = ["wayland"];
+      type = "gui";
+      base = "rust";
+      maturity = "young";
+      vibe = "uwsm-native";
     };
     gdm = {
       supported = ["wayland" "xorg"];
@@ -197,7 +130,6 @@
     };
   };
 
-  #> Pre-calculate DMs by protocol for faster lookup
   dmsByProtocol = genAttrs ["wayland" "xorg" "tty"] (
     p:
       attrNames (
@@ -246,6 +178,9 @@
         close.action = "dbus-send --type=method_call --dest=org.gnome.Shell /org/gnome/Shell org.gnome.Shell.Eval string:'global.display.get_focus_window().delete(global.get_current_time());'";
         lock.action = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock";
         logout.action = "gnome-session-quit --logout --no-prompt";
+        screenshot.action = "gnome-screenshot";
+        screenshotRegion.action = "gnome-screenshot -a";
+        screenshotWindow.action = "gnome-screenshot -w";
       };
     };
     plasma = mkEnv {
@@ -262,6 +197,9 @@
         close.action = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Window Close'";
         lock.action = "qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock";
         logout.action = "qdbus org.kde.Shutdown /Shutdown logout";
+        screenshot.action = "spectacle -f";
+        screenshotRegion.action = "spectacle -r";
+        screenshotWindow.action = "spectacle -a";
       };
     };
     cosmic = mkEnv {
@@ -290,7 +228,9 @@
       fileManager = "pantheon-files";
       terminal = "pantheon-terminal";
       appLauncher = "slingshot";
-      keyboard.lock.action = "io.elementary.desktop.agent-polkit --lock";
+      keyboard = {
+        lock.action = "io.elementary.desktop.agent-polkit --lock";
+      };
     };
     cinnamon = mkEnv {
       protocols = ["xorg"];
@@ -358,122 +298,187 @@
         windowShell = "quickshell";
         keyboard = {
           close.action = "hyprctl dispatch killactive";
+          fullscreen.action = "hyprctl dispatch fullscreen 0";
+          maximize.action = "hyprctl dispatch fullscreen 1";
+          float.action = "hyprctl dispatch togglefloating";
+          pin.action = "hyprctl dispatch pin";
+          split.action = "hyprctl dispatch togglesplit";
+          pseudo.action = "hyprctl dispatch pseudo";
+          groupToggle.action = "hyprctl dispatch togglegroup";
+          groupLock.action = "hyprctl dispatch lockactivegroup toggle";
+          workspacePrev.action = "hyprctl dispatch workspace previous";
+          windowCycle.action = "hyprctl dispatch focuscurrentorlast";
           lock.action = "hyprlock";
           logout.action = "hyprctl dispatch exit";
+          screenshot.action = "hyprshot -m output";
+          screenshotRegion.action = "hyprshot -m region";
+          screenshotWindow.action = "hyprshot -m window";
         };
       };
+
     niri =
       (waylandBase "niri")
       // {
         keyboard = {
           close.action = "niri msg action close-window";
+          fullscreen.action = "niri msg action fullscreen-window";
+          maximize.action = "niri msg action maximize-column";
+          float.action = "niri msg action toggle-window-floating";
+          workspacePrev.action = "niri msg action focus-workspace-previous";
+          windowCycle.action = "niri msg action focus-window-previous";
+          lock.action = "swaylock";
           logout.action = "niri msg action quit";
+          screenshot.action = "grim";
+          screenshotRegion.action = "grim -g \"$(slurp)\"";
+          screenshotWindow.action = "grim -g \"$(slurp -w 0)\"";
         };
       };
+
     sway =
       (waylandBase "sway")
       // {
         keyboard = {
           close.action = "swaymsg kill";
+          fullscreen.action = "swaymsg fullscreen toggle";
+          maximize.action = "swaymsg fullscreen toggle";
+          float.action = "swaymsg floating toggle";
+          pin.action = "swaymsg sticky toggle";
+          split.action = "swaymsg split toggle";
+          workspacePrev.action = "swaymsg workspace back_and_forth";
+          windowCycle.action = "swaymsg focus next";
           lock.action = "swaylock";
           logout.action = "swaymsg exit";
+          screenshot.action = "grim";
+          screenshotRegion.action = "grim -g \"$(slurp)\"";
+          screenshotWindow.action = "grim -g \"$(slurp -w 0)\"";
         };
       };
+
     river =
       (waylandBase "river")
       // {
         keyboard = {
           close.action = "riverctl close";
+          fullscreen.action = "riverctl toggle-fullscreen";
+          float.action = "riverctl toggle-float";
+          workspacePrev.action = "riverctl focus-previous-tags";
+          lock.action = "swaylock";
           logout.action = "riverctl exit";
+          screenshot.action = "grim";
+          screenshotRegion.action = "grim -g \"$(slurp)\"";
         };
       };
+
     i3 =
       (xorgBase "i3")
       // {
         keyboard = {
           close.action = "i3-msg kill";
+          fullscreen.action = "i3-msg fullscreen toggle";
+          float.action = "i3-msg floating toggle";
+          split.action = "i3-msg layout toggle split";
+          workspacePrev.action = "i3-msg workspace back_and_forth";
+          windowCycle.action = "i3-msg focus next";
           lock.action = "i3lock";
           logout.action = "i3-msg exit";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
         };
       };
+
     bspwm =
       (xorgBase "bspwm")
       // {
         keyboard = {
           close.action = "bspc node -c";
+          fullscreen.action = "bspc node -t fullscreen";
+          float.action = "bspc node -t floating";
+          pseudo.action = "bspc node -t pseudo_tiled";
+          split.action = "bspc node -t tiled";
+          workspacePrev.action = "bspc desktop -f last";
+          lock.action = "betterlockscreen -l";
           logout.action = "bspc quit";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
         };
       };
+
     qtile =
       (xorgBase "qtile")
       // {
         bar = "qtile";
         keyboard = {
           close.action = "qtile-cmd -o window -f kill";
+          fullscreen.action = "qtile-cmd -o window -f toggle_fullscreen";
+          float.action = "qtile-cmd -o window -f toggle_floating";
+          workspacePrev.action = "qtile-cmd -o screen -f prev_group";
+          windowCycle.action = "qtile-cmd -o screen -f next_group";
           logout.action = "qtile-cmd -o cmd -f shutdown";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
         };
       };
+
     awesome =
       (xorgBase "awesome")
       // {
         bar = "awesome";
         keyboard = {
           close.action = "awesome-client 'client.focus:kill()'";
+          fullscreen.action = "awesome-client 'client.focus.fullscreen = not client.focus.fullscreen; client.focus:raise()'";
+          float.action = "awesome-client 'client.focus.floating = not client.focus.floating'";
+          workspacePrev.action = "awesome-client 'awful.tag.history.restore()'";
           logout.action = "awesome-client 'awesome.quit()'";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
         };
       };
+
     xmonad =
       (xorgBase "xmonad")
       // {
         bar = "xmobar";
-        keyboard.close.action = "xmonadctl kill";
+        keyboard = {
+          close.action = "xmonadctl kill";
+          fullscreen.action = "xmonadctl full";
+          logout.action = "xmonadctl quit";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
+        };
       };
+
     openbox =
       (xorgBase "openbox")
       // {
         bar = "tint2";
         notificationDaemon = "xfce4-notifyd";
         terminal = "xfce4-terminal";
-        keyboard.logout.action = "openbox --exit";
+        keyboard = {
+          close.action = "openbox-msg close";
+          fullscreen.action = "openbox-msg fullscreen";
+          float.action = "openbox-msg undecorate toggle";
+          logout.action = "openbox --exit";
+          screenshot.action = "scrot";
+          screenshotRegion.action = "scrot -s";
+        };
       };
   };
 
   keys = {
-    #? Selection: Keys that pick an object from a predefined set
     selection = {
       desktopEnvironment = desktopEnvironments;
       windowManager = windowManagers;
     };
-
-    #? Validation: Keys that must check against a "supported" list
     validation = ["displayProtocol" "displayManager"];
-
-    #> Standardization: Keys that follow the simple User > WM > DE > Default chain
-    resolution = [
-      "appLauncher"
-      "bar"
-      "desktopShell"
-      "fileManager"
-      "notificationDaemon"
-      "shell"
-      "shellPrompt"
-      "terminal"
-      "windowShell"
-    ];
+    resolution = ["appLauncher" "bar" "desktopShell" "fileManager" "notificationDaemon" "shell" "shellPrompt" "terminal" "windowShell"];
   };
 
-  #? { name = string|null; config = set; }
   select = {
     key,
     set,
     interface,
   }: let
-    kind = key;
-    #> Get the raw value from the interface
-    rawVal = interface.${kind} or defaults.${kind};
-
-    #> If rawVal is a set (already normalized), extract the name.
-    #? Otherwise, use it as the name string.
+    rawVal = interface.${key} or defaults.${key};
     name =
       if isAttrs rawVal
       then rawVal.name or null
@@ -481,28 +486,19 @@
   in
     if name != null && hasAttr name set
     then {
-      inherit name kind;
+      inherit name;
+      kind = key;
       config = set.${name};
     }
     else if name == null
     then {
-      inherit name kind;
+      inherit name;
+      kind = key;
       config = {};
     }
-    else throw "Unknown ${kind}: ${name}.";
-  # Recursively converts any `mod` field that's a list into a space-separated string
-  normalizeKeyboard = kb:
-    mapAttrs (
-      k: v:
-        if k == "mod" && isList v
-        then concatStringsSep " " v
-        else if isAttrs v
-        then normalizeKeyboard v
-        else v
-    )
-    kb;
+    else throw "Unknown ${key}: ${name}.";
+
   normalizeInterface = interface: let
-    #> Resolve the core selections first (de/wm) because everything else depends on them
     inherit
       (genAttrs (attrNames keys.selection) (
         n:
@@ -516,55 +512,41 @@
       windowManager
       ;
 
-    #> Safe Configs: Grouped to prevent null-reference crashes
     configs = {
       de = desktopEnvironment.config;
       wm = windowManager.config;
     };
 
     sessions = {
-      #? The primary Window Manager or Desktop Environmntr (WM prioritized)
       environment =
         if windowManager.name != null
         then windowManager
         else desktopEnvironment;
 
-      #? The primary displayManager (DE prioritized)
       manager =
-        interface.displayManager or
-        configs.de.displayManager.preferred or
-        configs.wm.displayManager.preferred or
-        defaults.displayManager;
+        interface.displayManager
+        or configs.de.displayManager.preferred
+        or configs.wm.displayManager.preferred
+        or defaults.displayManager;
 
       enabled =
-        (
-          optional
-          (desktopEnvironment.name != null)
-          desktopEnvironment.name
-        )
-        ++ (
-          optional
-          (windowManager.name != null)
-          windowManager.name
-        );
+        (optional (desktopEnvironment.name != null) desktopEnvironment.name)
+        ++ (optional (windowManager.name != null) windowManager.name);
 
-      #? Primary startup session string (e.g., "hyprland-uwsm")
-      #? (User Explicit > WM Specific > DE Specific > WM Name > DE Name)
       default =
-        interface.defaultSession or
-        configs.wm.defaultSession or
-        configs.de.defaultSession or
-        windowManager.name or
-        desktopEnvironment.name or
-        null;
+        interface.defaultSession
+        or configs.wm.defaultSession
+        or configs.de.defaultSession
+        or windowManager.name
+        or desktopEnvironment.name
+        or null;
     };
 
-    #> Multi-tier lookup: prefer User Inputs > WM > DE > Defaults
     resolve = key:
-      interface.${key} or
-      configs.wm.${key} or
-      configs.de.${key} or
-      defaults.${key};
+      interface.${key}
+      or configs.wm.${key}
+      or configs.de.${key}
+      or defaults.${key};
 
     validate = key: let
       required =
@@ -577,9 +559,9 @@
         ++ [defaults.${key}]
       );
       fallback =
-        configs.wm.${key}.preferred or
-        configs.de.${key}.preferred or
-        defaults.${key};
+        configs.wm.${key}.preferred
+        or configs.de.${key}.preferred
+        or defaults.${key};
     in
       if elem required supported
       then required
@@ -588,15 +570,15 @@
     composites = {
       inherit sessions;
       defaultSession = sessions.default;
-      interfaces = {
-        inherit desktopEnvironments windowManagers displayManagers;
-      };
+      interfaces = {inherit desktopEnvironments windowManagers displayManagers;};
 
+      #? Merge order: io defaults → DE overrides → WM overrides → user overrides
+      #? normalizeKeyboard converts all mod lists to strings at the boundary
       keyboard = normalizeKeyboard (
         recursiveUpdate (
           recursiveUpdate (
             recursiveUpdate
-            defaults.keyboard
+            keyboardDefaults
             (configs.de.keyboard or {})
           )
           (configs.wm.keyboard or {})
@@ -605,10 +587,7 @@
       );
     };
   in
-    {
-      desktopEnvironment = desktopEnvironment.name;
-      windowManager = windowManager.name;
-    }
+    {inherit desktopEnvironment windowManager;}
     // composites
     // (genAttrs keys.resolution resolve)
     // (genAttrs keys.validation validate);

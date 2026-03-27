@@ -11,9 +11,10 @@
     internal = {
       inherit mkSchema;
       inherit (_.schema.applications) mkApplications;
-      inherit (_.schema.locale) mkLocale;
       inherit (_.schema.hardware) mkHardware;
       inherit (_.schema.home) mkHome;
+      inherit (_.schema.io) mkKeyboard mkHyprKeybinds;
+      inherit (_.schema.locale) mkLocale;
       inherit (_.schema.ui) mkUI;
     };
     external = {inherit mkSchema;};
