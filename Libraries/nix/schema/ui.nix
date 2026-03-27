@@ -296,9 +296,17 @@
         defaultSession = "hyprland-uwsm";
         bar = "hyprpanel";
         windowShell = "quickshell";
-        keyboard = {
+        keyboard = let
+          mkRunOrRaise = {
+            class,
+            exec,
+          }: "hyprctl dispatch focuswindow class:${class} || ${exec}";
+        in {
           close.action = "hyprctl dispatch killactive";
-          code.action = "hyprctl dispatch focuswindow code || code";
+          code.action = mkRunOrRaise {
+            class = "code";
+            exec = "code";
+          };
           fullscreen.action = "hyprctl dispatch fullscreen 0";
           maximize.action = "hyprctl dispatch fullscreen 1";
           float.action = "hyprctl dispatch togglefloating";
