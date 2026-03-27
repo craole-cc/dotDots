@@ -102,6 +102,11 @@ in {
   };
 
   config = {
-    services = {displayManager.plasma-login-manager.enable = true;};
+    programs.regreet = {
+      enable = true;
+    };
+    # services = {
+    #   displayManager.plasma-login-manager.enable = true;
+    # };
   };
 }
