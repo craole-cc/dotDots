@@ -100,4 +100,8 @@ in {
       type = attrs;
     };
   };
+
+  config = {
+    services = {displayManager.plasma-login-manager.enable = true;};
+  };
 }
