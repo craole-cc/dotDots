@@ -316,8 +316,8 @@
         windowShell = "quickshell";
         keyboard = let
           mkRunOrRaise = exec: ''
-            # bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
-            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:.*$cmd.*" || ${exec}'
+            bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
+            # bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:.*$cmd.*" || ${exec}'
           '';
         in
           with wayland.apps; {
