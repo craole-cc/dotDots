@@ -1,86 +1,105 @@
-# {lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
 {
-  pkgs,
+  host,
   lib,
-  user,
   lix,
+  user,
+  top,
   ...
 }: let
-  inherit (lib.modules) mkForce;
-  # inherit (lib.strings) toLower;
-  getPackage = lix.attrsets.resolution.package;
-  # get = lix.attrsets.resolution.get;
+  dom = "interface";
 
-  #~@ Style configuration from user API
-  # style = user.interface.style or {};
-  # current = style.current or "dark";
-
-  #~@ Cursor configuration
-  cursor = rec {
-    # name = toLower (get style.cursor current "material_light_cursors");
-    name = "material_light_cursors";
-    package = getPackage {
-      inherit pkgs;
-      target = name;
-      default = pkgs.material-cursors;
-    };
-    size = 32;
-  };
-
-  #~@ Icons configuration
-  icons = rec {
-    # name = toLower (get style.icons current "candy-icons");
-    name = "candy-icons";
-    package = getPackage {
-      inherit pkgs;
-      target = name;
-      default = pkgs.candy-icons;
-    };
-  };
+  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.types) attrs enum nullOr str;
+  inherit
+    (lix.enums)
+    desktopEnvironments
+    windowManagers
+    displayManagers
+    displayProtocols
+    shells
+    ;
+  inherit (lix.filesystem.importers) importAllPaths;
+  inherit (lix.schema.ui) mkUI;
+  iface = mkUI {inherit host user;};
 in {
-  _module.args = {inherit cursor icons;};
-  imports = lix.filesystem.importers.importAll ./.;
+  imports = importAllPaths ./.;
 
-  gtk = {
-    enable = mkForce true;
-    iconTheme = mkForce {
-      inherit (icons) package name;
+  options.${top}.${dom} = {
+    enable = mkEnableOption dom // {default = true;};
+    windowManager = mkOption {
+      description = "Window manager";
+      default = iface.windowManager;
+      type = nullOr (enum windowManagers.values);
     };
-    cursorTheme = mkForce {
-      inherit (cursor) package name size;
+    desktopEnvironment = mkOption {
+      description = "Desktop environment";
+      default = iface.desktopEnvironment;
+      type = nullOr (enum desktopEnvironments.values);
     };
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
-    gtk4 = {
-      theme = null;
-      # theme=config.gtk.theme;
-      extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+    displayManager = mkOption {
+      description = "Display manager";
+      default = iface.displayManager;
+      type = nullOr (enum displayManagers.values);
     };
-  };
-
-  home.pointerCursor = mkForce {
-    gtk.enable = true;
-    x11.enable = true;
-    inherit (cursor) package name size;
-  };
-
-  qt = mkForce {
-    enable = true;
-    platformTheme.name = "gtk";
-    style.name = "kvantum";
-  };
-
-  stylix = {
-    # enable = false;
-    # polarity = "light";
-    targets = {
-      qt.enable = mkForce false;
-      foot = {
-        enable = true;
-        colors.enable = false; # ? Stylix is using the deprecated [colors]
-        opacity.enable = false;
-        # fonts.enable = false;
-      };
-      zen-browser = {profileNames = [user.name];};
+    displayProtocol = mkOption {
+      description = "Display protocol";
+      default = iface.displayProtocol;
+      type = enum displayProtocols.values;
+    };
+    defaultSession = mkOption {
+      description = "Default display manager session";
+      default = iface.defaultSession;
+      type = nullOr str;
+    };
+    windowShell = mkOption {
+      description = "Status bar / window shell component";
+      default = iface.windowShell;
+      type = nullOr str;
+    };
+    shell = mkOption {
+      description = "Shell";
+      default = iface.shell;
+      type = nullOr (enum shells.values);
+    };
+    shellPrompt = mkOption {
+      description = "Shell prompt";
+      default = iface.shellPrompt;
+      type = nullOr str;
+    };
+    desktopShell = mkOption {
+      description = "Desktop manager UI shell";
+      default = iface.desktopShell;
+      type = nullOr str;
+    };
+    terminal = mkOption {
+      description = "Default terminal";
+      default = iface.terminal;
+      type = nullOr str;
+    };
+    appLauncher = mkOption {
+      description = "Application launcher";
+      default = iface.appLauncher;
+      type = nullOr str;
+    };
+    fileManager = mkOption {
+      description = "File manager";
+      default = iface.fileManager;
+      type = nullOr str;
+    };
+    notificationDaemon = mkOption {
+      description = "Notification daemon";
+      default = iface.notificationDaemon;
+      type = nullOr str;
+    };
+    bar = mkOption {
+      description = "Status bar";
+      default = iface.bar;
+      type = nullOr str;
+    };
+    keyboard = mkOption {
+      description = "Keyboard config and bindings";
+      default = iface.keyboard;
+      type = attrs;
     };
   };
 }
