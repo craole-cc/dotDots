@@ -21,12 +21,12 @@
     # ── Applications ─────────────────────────────────────────────────────────
     terminal = {
       inherit mod;
-      key = "RETURN";
+      key = "Grave";
       action = "$TERMINAL";
     };
     terminalSec = {
       mod = mod ++ ["SHIFT"];
-      key = "RETURN";
+      key = "Grave";
       action = "$TERMINAL_SEC";
     };
     browser = {
@@ -43,16 +43,6 @@
       inherit mod;
       key = "C";
       action = "code";
-    };
-    foot = {
-      inherit mod;
-      key = "F";
-      action = "foot";
-    };
-    ghostty = {
-      inherit mod;
-      key = "G";
-      action = "ghostty";
     };
     visual = {
       inherit mod;

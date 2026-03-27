@@ -265,18 +265,32 @@
   };
 
   windowManagers = let
-    waylandBase = name:
-      mkEnv {
-        protocols = ["wayland"];
-        preferredDM = "greetd";
+    wayland = let
+      apps = {
         bar = "waybar";
         notificationDaemon = "mako";
         fileManager = "thunar";
-        terminal = "kitty";
+        terminal = {
+          pri = "foot";
+          sec = "ghostty";
+        };
+        editor = {
+          pri = "code";
+          sec = "zeditor";
+        };
         appLauncher = "vicinae";
-        desktopShell = name;
-        defaultSession = name;
       };
+      base = name:
+        mkEnv {
+          protocols = ["wayland"];
+          inherit (apps) bar notificationDaemon fileManager appLauncher;
+          preferredDM = "greetd";
+          terminal = apps.terminal.pri;
+          desktopShell = name;
+          defaultSession = name;
+        };
+    in {inherit base apps;};
+
     xorgBase = name:
       mkEnv {
         protocols = ["xorg"];
@@ -291,7 +305,7 @@
       };
   in {
     hyprland =
-      (waylandBase "hyprland")
+      (wayland.base "hyprland")
       // {
         defaultSession = "hyprland-uwsm";
         bar = "hyprpanel";
@@ -300,40 +314,41 @@
           mkRunOrRaise = exec: ''
             bash -c 'cmd=$(basename "${exec}" | cut -d" " -f1); hyprctl dispatch focuswindow "class:^($cmd)$" || ${exec}'
           '';
-        in {
-          # --- Run or Raise using Variables ---
-          terminal.action = mkRunOrRaise "$TERMINAL";
-          browser.action = mkRunOrRaise "$BROWSER";
-          fileManager.action = mkRunOrRaise "$FILE_MANAGER";
-          visual.action = mkRunOrRaise "$VISUAL";
+        in
+          with wayland.apps; {
+            # --- Run or Raise using Variables ---
+            browser.action = mkRunOrRaise "$BROWSER";
+            fileManager.action = mkRunOrRaise "$FILE_MANAGER";
+            # visual.action = mkRunOrRaise "$VISUAL";
 
-          # Specific apps (if not using variables)
-          code.action = mkRunOrRaise "code";
-          foot.action = mkRunOrRaise "foot";
-          ghostty.action = mkRunOrRaise "ghostty";
+            # Specific apps (if not using variables)
+            visual.action = mkRunOrRaise visual.pri;
+            visualSec.action = mkRunOrRaise visual.sec;
+            terminal.action = mkRunOrRaise terminal.pri;
+            terminalSec.action = mkRunOrRaise terminal.sec;
 
-          # --- Standard Hyprland Dispatches ---
-          close.action = "hyprctl dispatch killactive";
-          fullscreen.action = "hyprctl dispatch fullscreen 0";
-          maximize.action = "hyprctl dispatch fullscreen 1";
-          float.action = "hyprctl dispatch togglefloating";
-          pin.action = "hyprctl dispatch pin";
-          split.action = "hyprctl dispatch togglesplit";
-          pseudo.action = "hyprctl dispatch pseudo";
-          groupToggle.action = "hyprctl dispatch togglegroup";
-          groupLock.action = "hyprctl dispatch lockactivegroup toggle";
-          workspacePrev.action = "hyprctl dispatch workspace previous";
-          windowCycle.action = "hyprctl dispatch focuscurrentorlast";
-          lock.action = "hyprlock";
-          logout.action = "hyprctl dispatch exit";
-          screenshot.action = "hyprshot -m output";
-          screenshotRegion.action = "hyprshot -m region";
-          screenshotWindow.action = "hyprshot -m window";
-        };
+            # --- Standard Hyprland Dispatches ---
+            close.action = "hyprctl dispatch killactive";
+            fullscreen.action = "hyprctl dispatch fullscreen 0";
+            maximize.action = "hyprctl dispatch fullscreen 1";
+            float.action = "hyprctl dispatch togglefloating";
+            pin.action = "hyprctl dispatch pin";
+            split.action = "hyprctl dispatch togglesplit";
+            pseudo.action = "hyprctl dispatch pseudo";
+            groupToggle.action = "hyprctl dispatch togglegroup";
+            groupLock.action = "hyprctl dispatch lockactivegroup toggle";
+            workspacePrev.action = "hyprctl dispatch workspace previous";
+            windowCycle.action = "hyprctl dispatch focuscurrentorlast";
+            lock.action = "hyprlock";
+            logout.action = "hyprctl dispatch exit";
+            screenshot.action = "hyprshot -m output";
+            screenshotRegion.action = "hyprshot -m region";
+            screenshotWindow.action = "hyprshot -m window";
+          };
       };
 
     niri =
-      (waylandBase "niri")
+      (wayland.base "niri")
       // {
         keyboard = {
           close.action = "niri msg action close-window";
@@ -351,7 +366,7 @@
       };
 
     sway =
-      (waylandBase "sway")
+      (wayland.base "sway")
       // {
         keyboard = {
           close.action = "swaymsg kill";
@@ -371,7 +386,7 @@
       };
 
     river =
-      (waylandBase "river")
+      (wayland.base "river")
       // {
         keyboard = {
           close.action = "riverctl close";
