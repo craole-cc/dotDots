@@ -1,5 +1,5 @@
-{...}: {
-  appCategories = [
+{
+  categories = [
     "browser"
     "communication"
     "editor"
@@ -15,7 +15,7 @@
     "terminal"
   ];
 
-  appChannels = [
+  channels = [
     "stable"
     "beta"
     "nightly"
@@ -25,7 +25,7 @@
     "legacy"
   ];
 
-  appFamilies = [
+  families = [
     "firefox"
     "chromium"
     "zen"

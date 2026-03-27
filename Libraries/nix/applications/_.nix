@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs;
   inherit (lib.lists) elem filter;
-  inherit (_.applications.enums) appCategories;
+  inherit (_.applications.enums) categories;
   inherit (_.applications) registry;
 
   __exports = {
@@ -28,7 +28,7 @@
   validated =
     mapAttrs (
       name: app: let
-        bad = filter (c: !elem c appCategories) app.categories;
+        bad = filter (c: !elem c categories) app.categories;
       in
         if bad != []
         then throw "Unknown categories in '${name}': ${toString bad}"
@@ -53,15 +53,15 @@
   # Produces the match expr a WM uses to find an existing window.
   # class takes priority over title; returns null for builtin/launcher-only apps.
   wmMatch = app:
-    if app.names ? class
+    if app.names ? title
+    then {
+      type = "title";
+      value = app.names.title; # Title then InitialTitle
+    }
+    else if app.names ? class
     then {
       type = "class";
       value = app.names.class;
-    }
-    else if app.names ? title
-    then {
-      type = "title";
-      value = app.names.title;
     }
     else null;
 
@@ -69,12 +69,14 @@
 
   # Wraps a terminal-mode app using the resolved terminal emulator.
   # e.g. yazi via foot → "foot --title yazi -e yazi"
-  resolveExec = terminalApp: app:
+  resolveExec = tty: app:
     if app.needsTerminal or false
     then
-      "${terminalApp.names.command}"
-      + " ${terminalApp.wrap.titleFlag} ${app.names.title or app.names.command}"
-      + " ${terminalApp.wrap.execFlag} ${app.exec}"
+      "${tty.names.command}"
+      + " ${tty.wrap.titleFlag} ${
+        app.names.title or app.names.command
+      }"
+      + " ${tty.wrap.execFlag} ${app.exec}"
     else app.exec;
 
   # ── Enrichment ───────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
   lib ? null,
   path ? ../.,
   name ? "lix",
-  paths ? {},
+  # paths ? {},
   collisionStrategy ? "warn",
   # enableCaching ? true,
   runTests ? true,
@@ -33,7 +33,6 @@
   ],
 }: let
   inherit (builtins) getFlake readDir pathExists;
-
   #? Self-bootstrapping logic (only runs if lib isn't passed)
   #> Determine if a flake.nix actually exists in the current source path
   hasFlake = pathExists (toString path + "/flake.nix");
@@ -121,7 +120,7 @@
         inherit
           path
           name
-          paths
+          # paths
           ;
         src = path;
         library = name;
@@ -280,7 +279,7 @@
                   module = rec {
                     name = concatStringsSep "." namespace;
                     path = filePath;
-                    directory = removePrefix (paths.store.libs.default + "/") (toString dir);
+                    directory = removePrefix ((toString ./.) + "/") (toString dir);
                     filename = entryName;
                     namespace = [env.library] ++ pathPrefix ++ [moduleName];
                   };
