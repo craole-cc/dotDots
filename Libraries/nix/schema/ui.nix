@@ -3,11 +3,29 @@
     (lib.attrsets)
     attrNames
     filterAttrs
+    genAttrs
     hasAttr
     optionalAttrs
     recursiveUpdate
     ;
-  inherit (lib.lists) any elem;
+  inherit (lib.lists) concatMap elem head optional unique;
+
+  __exports = {
+    internal = {
+      inherit
+        mkUI
+        defaults
+        displayManagers
+        desktopEnvironments
+        windowManagers
+        normalizeInterface
+        ;
+    };
+    external = {
+      mkUISchema = mkUI;
+      normalizeUISchema = normalizeInterface;
+    };
+  };
 
   defaults = {
     appLauncher = null;
@@ -26,19 +44,17 @@
     windowShell = null;
     keyboard = let
       mod = ["SUPER"];
-      modShift = mod ++ ["SHIFT"];
-      modCtrl = mod ++ ["CTRL"];
-      modCtrlShift = mod ++ ["CTRL" "SHIFT"];
     in {
       modifier = mod;
       swapCapsEscape = true;
+      #? Base keyboard actions that can be overridden
       terminal = {
         inherit mod;
         key = "RETURN";
         action = "$TERMINAL";
       };
       terminalSec = {
-        mod = modShift;
+        mod = mod ++ ["SHIFT"];
         key = "RETURN";
         action = "$TERMINAL_SEC";
       };
@@ -48,7 +64,7 @@
         action = "$VISUAL";
       };
       visualSec = {
-        mod = modShift;
+        mod = mod ++ ["SHIFT"];
         key = "V";
         action = "$VISUAL_SEC";
       };
@@ -63,7 +79,7 @@
         action = "$BROWSER";
       };
       browserSec = {
-        mod = modShift;
+        mod = mod ++ ["SHIFT"];
         key = "B";
         action = "$BROWSER_SEC";
       };
@@ -78,27 +94,27 @@
         action = "loginctl lock-session";
       };
       logout = {
-        mod = modCtrl;
+        mod = mod ++ ["CTRL"];
         key = "L";
         action = "loginctl terminate-session self";
       };
       sleep = {
-        mod = modCtrl;
+        mod = mod ++ ["CTRL"];
         key = "S";
         action = "systemctl suspend";
       };
       reboot = {
-        mod = modCtrl;
+        mod = mod ++ ["CTRL"];
         key = "R";
         action = "systemctl reboot";
       };
       reboot_soft = {
-        mod = modCtrlShift;
+        mod = mod ++ ["CTRL" "SHIFT"];
         key = "R";
         action = "systemctl soft-reboot";
       };
       shutdown = {
-        mod = modCtrl;
+        mod = mod ++ ["CTRL"];
         key = "Q";
         action = "systemctl poweroff";
       };
@@ -106,6 +122,13 @@
   };
 
   displayManagers = {
+    cosmic-greeter = {
+      supported = ["wayland"];
+      type = "gui";
+      base = "rust";
+      maturity = "young";
+      vibe = "cosmic-native";
+    };
     gdm = {
       supported = ["wayland" "xorg"];
       type = "gui";
@@ -141,6 +164,13 @@
       maturity = "niche";
       vibe = "aesthetic-min";
     };
+    regreet = {
+      supported = ["wayland" "xorg"];
+      type = "gui";
+      base = "rust";
+      maturity = "stable";
+      vibe = "clean-gtk";
+    };
     sddm = {
       supported = ["wayland" "xorg"];
       type = "gui";
@@ -148,28 +178,53 @@
       maturity = "stable";
       vibe = "qt-kde";
     };
+    tuigreet = {
+      supported = ["wayland" "tty"];
+      type = "tui";
+      base = "rust";
+      maturity = "stable";
+      vibe = "minimal-industrial";
+    };
   };
 
-  dmsFor = protocols:
-    attrNames (
-      filterAttrs (
-        _: dm: any (p: elem p dm.supported) protocols
+  #> Pre-calculate DMs by protocol for faster lookup
+  dmsByProtocol = genAttrs ["wayland" "xorg" "tty"] (
+    p:
+      attrNames (
+        filterAttrs
+        (_: dm: elem p dm.supported)
+        displayManagers
       )
-      displayManagers
+  );
+
+  dmsFor = protocols:
+    unique (
+      concatMap
+      (p: dmsByProtocol.${p} or [])
+      protocols
     );
 
-  desktopEnvironments = {
-    gnome = let
-      protocols = ["wayland" "xorg"];
-    in {
+  mkEnv = {
+    protocols,
+    preferredDM,
+    ...
+  } @ args:
+    {
       displayProtocol = {
         supported = protocols;
-        preferred = "wayland";
+        preferred = head protocols;
       };
       displayManager = {
         supported = dmsFor protocols;
-        preferred = "gdm";
+        preferred = preferredDM;
       };
+    }
+    // (removeAttrs args ["protocols" "preferredDM"]);
+
+  desktopEnvironments = {
+    gnome = mkEnv {
+      protocols = ["wayland" "xorg"];
+      preferredDM = "gdm";
       desktopShell = "gnome-shell";
       windowShell = "mutter";
       bar = "gnome-shell";
@@ -183,18 +238,9 @@
         logout.action = "gnome-session-quit --logout --no-prompt";
       };
     };
-
-    plasma = let
+    plasma = mkEnv {
       protocols = ["wayland" "xorg"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "wayland";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "sddm";
-      };
+      preferredDM = "sddm";
       desktopShell = "plasmashell";
       windowShell = "kwin";
       bar = "plasmashell";
@@ -208,18 +254,9 @@
         logout.action = "qdbus org.kde.Shutdown /Shutdown logout";
       };
     };
-
-    cosmic = let
+    cosmic = mkEnv {
       protocols = ["wayland"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "wayland";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "cosmic-greeter";
-      };
+      preferredDM = "cosmic-greeter";
       desktopShell = "cosmic-shell";
       windowShell = "cosmic-comp";
       bar = "cosmic-panel";
@@ -233,18 +270,9 @@
         logout.action = "cosmic-session-ctl logout";
       };
     };
-
-    pantheon = let
+    pantheon = mkEnv {
       protocols = ["xorg"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "xorg";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "lightdm";
-      };
+      preferredDM = "lightdm";
       desktopShell = "gala";
       windowShell = "gala";
       bar = "wingpanel";
@@ -252,23 +280,11 @@
       fileManager = "pantheon-files";
       terminal = "pantheon-terminal";
       appLauncher = "slingshot";
-      keyboard = {
-        close.action = "wmctrl -c :ACTIVE:";
-        lock.action = "io.elementary.desktop.agent-polkit --lock";
-      };
+      keyboard.lock.action = "io.elementary.desktop.agent-polkit --lock";
     };
-
-    cinnamon = let
+    cinnamon = mkEnv {
       protocols = ["xorg"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "xorg";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "lightdm";
-      };
+      preferredDM = "lightdm";
       desktopShell = "cinnamon";
       windowShell = "muffin";
       bar = "cinnamon";
@@ -277,23 +293,13 @@
       terminal = "gnome-terminal";
       appLauncher = "cinnamon-menu";
       keyboard = {
-        close.action = "wmctrl -c :ACTIVE:";
         lock.action = "cinnamon-screensaver-command --lock";
         logout.action = "cinnamon-session-quit --logout --no-prompt";
       };
     };
-
-    xfce = let
+    xfce = mkEnv {
       protocols = ["xorg"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "xorg";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "lightdm";
-      };
+      preferredDM = "lightdm";
       desktopShell = "xfce4-panel";
       windowShell = "xfwm4";
       bar = "xfce4-panel";
@@ -302,57 +308,40 @@
       terminal = "xfce4-terminal";
       appLauncher = "xfce4-appfinder";
       keyboard = {
-        close.action = "wmctrl -c :ACTIVE:";
         lock.action = "xflock4";
         logout.action = "xfce4-session-logout --logout --fast";
       };
     };
   };
-  windowManagers = let
-    forWayland = name: let
-      protocols = ["wayland"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "wayland";
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "greetd";
-      };
-      bar = "waybar";
-      windowShell = null;
-      notificationDaemon = "mako";
-      fileManager = "thunar";
-      terminal = "kitty";
-      appLauncher = "vicinae";
-      desktopShell = name;
-      defaultSession = name;
-    };
 
-    forXorg = name: let
-      protocols = ["xorg"];
-    in {
-      displayProtocol = {
-        supported = protocols;
-        preferred = "xorg";
+  windowManagers = let
+    waylandBase = name:
+      mkEnv {
+        protocols = ["wayland"];
+        preferredDM = "greetd";
+        bar = "waybar";
+        notificationDaemon = "mako";
+        fileManager = "thunar";
+        terminal = "kitty";
+        appLauncher = "vicinae";
+        desktopShell = name;
+        defaultSession = name;
       };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = "lightdm";
+    xorgBase = name:
+      mkEnv {
+        protocols = ["xorg"];
+        preferredDM = "lightdm";
+        bar = "polybar";
+        notificationDaemon = "dunst";
+        fileManager = "thunar";
+        terminal = "xterm";
+        appLauncher = "rofi";
+        desktopShell = name;
+        defaultSession = name;
       };
-      bar = "polybar";
-      windowShell = null;
-      notificationDaemon = "dunst";
-      fileManager = "thunar";
-      terminal = "xterm";
-      appLauncher = "rofi";
-      desktopShell = name;
-      defaultSession = name;
-    };
   in {
     hyprland =
-      forWayland "hyprland"
+      (waylandBase "hyprland")
       // {
         defaultSession = "hyprland-uwsm";
         bar = "hyprpanel";
@@ -364,16 +353,15 @@
         };
       };
     niri =
-      forWayland "niri"
+      (waylandBase "niri")
       // {
         keyboard = {
           close.action = "niri msg action close-window";
-          # lock.action = "niri msg action activate-tracker-lock-screen";
           logout.action = "niri msg action quit";
         };
       };
     sway =
-      forWayland "sway"
+      (waylandBase "sway")
       // {
         keyboard = {
           close.action = "swaymsg kill";
@@ -382,7 +370,7 @@
         };
       };
     river =
-      forWayland "river"
+      (waylandBase "river")
       // {
         keyboard = {
           close.action = "riverctl close";
@@ -390,7 +378,7 @@
         };
       };
     i3 =
-      forXorg "i3"
+      (xorgBase "i3")
       // {
         keyboard = {
           close.action = "i3-msg kill";
@@ -399,7 +387,7 @@
         };
       };
     bspwm =
-      forXorg "bspwm"
+      (xorgBase "bspwm")
       // {
         keyboard = {
           close.action = "bspc node -c";
@@ -407,7 +395,7 @@
         };
       };
     qtile =
-      forXorg "qtile"
+      (xorgBase "qtile")
       // {
         bar = "qtile";
         keyboard = {
@@ -416,7 +404,7 @@
         };
       };
     awesome =
-      forXorg "awesome"
+      (xorgBase "awesome")
       // {
         bar = "awesome";
         keyboard = {
@@ -425,189 +413,173 @@
         };
       };
     xmonad =
-      forXorg "xmonad"
+      (xorgBase "xmonad")
       // {
         bar = "xmobar";
         keyboard.close.action = "xmonadctl kill";
       };
     openbox =
-      forXorg "openbox"
+      (xorgBase "openbox")
       // {
         bar = "tint2";
         notificationDaemon = "xfce4-notifyd";
         terminal = "xfce4-terminal";
-        keyboard = {
-          close.action = "wmctrl -c :ACTIVE:";
-          logout.action = "openbox --exit";
-        };
+        keyboard.logout.action = "openbox --exit";
       };
   };
 
-  getConfig = {
-    name,
-    attr,
-    kind,
-  }:
-    if name == null
-    then {}
-    else if hasAttr name attr
-    then attr.${name}
-    else throw "Unknown ${kind}: ${name}. Available: ${toString (attrNames attr)}";
+  keys = {
+    #? Selection: Keys that pick an object from a predefined set
+    selection = {
+      desktopEnvironment = desktopEnvironments;
+      windowManager = windowManagers;
+    };
+
+    #? Validation: Keys that must check against a "supported" list
+    validation = ["displayProtocol" "displayManager"];
+
+    #> Standardization: Keys that follow the simple User > WM > DE > Default chain
+    resolution = [
+      "appLauncher"
+      "bar"
+      "desktopShell"
+      "fileManager"
+      "notificationDaemon"
+      "shell"
+      "shellPrompt"
+      "terminal"
+      "windowShell"
+    ];
+  };
+
+  #? { name = string|null; config = set; }
+  select = {
+    key,
+    set,
+    interface,
+  }: let
+    kind = key;
+    name = interface.${kind} or defaults.${kind};
+  in
+    if name != null && hasAttr name set
+    then {
+      inherit name kind;
+      config = set.${name};
+    }
+    else if name == null
+    then {
+      inherit name kind;
+      config = {}; #? Safe fallback
+    }
+    else throw "Unknown ${kind}: ${name}.";
 
   normalizeInterface = interface: let
-    _de = interface.desktopEnvironment or defaults.desktopEnvironment;
-    _wm = interface.windowManager or defaults.windowManager;
-
-    desktopEnvironment = let
-      name = _de;
-    in
-      optionalAttrs
-      (name != null && hasAttr name desktopEnvironments)
-      {
-        inherit name;
-        kind = "desktopEnvironment";
-        config = desktopEnvironments.${name};
-      };
-
-    windowManager = let
-      name = _wm;
-    in
-      optionalAttrs
-      (name != null && hasAttr name windowManagers)
-      {
-        inherit name;
-        kind = "windowManager";
-        config = windowManagers.${name};
-      };
-
-    configs = {
-      de={}
-    };
-    config =
-      recursiveUpdate
-      (getConfig {
-        inherit (desktopEnvironment) name kind;
-        attr = desktopEnvironments;
-      })
-      (getConfig {
-        inherit (windowManager) name kind;
-        attr = windowManagers;
-      });
-
-    displayProtocol = let
-      requested =
-        interface.displayProtocol or
-        config.displayProtocol.preferred or
-        defaults.displayProtocol;
-      supported =
-        config.displayProtocol.supported or
-        [requested];
-      fallback =
-        config.displayProtocol.preferred or
-        defaults.displayProtocol;
-    in
-      if elem requested supported
-      then requested
-      else fallback;
-
-    displayManager = let
-      requested =
-        interface.displayManager or
-        config.displayManager.preferred or
-        defaults.displayManager;
-      supported =
-        config.displayManager.supported or
-        [requested];
-      fallback =
-        config.displayManager.preferred or
-        defaults.displayManager;
-    in
-      if elem requested supported
-      then requested
-      else fallback;
-
-    desktopShell =
-      interface.desktopShell or
-      config.desktopShell or
-      defaults.desktopShell;
-
-    windowShell =
-      interface.windowShell or
-      config.windowShell or
-      defaults.windowShell;
-
-    bar =
-      interface.bar or
-      config.bar or
-      defaults.bar;
-
-    notificationDaemon =
-      interface.notificationDaemon or
-      config.notificationDaemon or
-      defaults.notificationDaemon;
-
-    fileManager =
-      interface.fileManager or
-      config.fileManager or
-      defaults.fileManager;
-
-    terminal =
-      interface.terminal or
-      config.terminal or
-      defaults.terminal;
-
-    appLauncher =
-      interface.appLauncher or
-      config.appLauncher or
-      defaults.appLauncher;
-
-    shell =
-      interface.shell or
-      defaults.shell;
-
-    shellPrompt =
-      interface.shellPrompt or
-      defaults.shellPrompt;
-
-    defaultSession =
-      interface.defaultSession or
-      config.defaultSession or
-      windowManager.name or
-      desktopEnvironment.name or
-      null;
-
-    #> Merge Global Defaults <- Environment Specifics <- User Inputs
-    keyboard = recursiveUpdate (
-      recursiveUpdate
-      defaults.keyboard
-      (config.keyboard or {})
-    ) (interface.keyboard or {});
-  in {
+    #> Resolve the core selections first (de/wm) because everything else depends on them
     inherit
+      (genAttrs (attrNames keys.selection) (
+        n:
+          select {
+            key = n;
+            set = keys.selection.${n};
+            inherit interface;
+          }
+      ))
       desktopEnvironment
       windowManager
-      displayProtocol
-      displayManager
-      desktopShell
-      windowShell
-      bar
-      notificationDaemon
-      fileManager
-      terminal
-      appLauncher
-      shell
-      shellPrompt
-      keyboard
-      defaultSession
       ;
-    interfaces = {
-      inherit
-        desktopEnvironments
-        windowManagers
-        displayManagers
-        ;
+
+    #> Safe Configs: Grouped to prevent null-reference crashes
+    configs = {
+      de = desktopEnvironment.config;
+      wm = windowManager.config;
     };
-  };
+
+    sessions = {
+      #? The primary Window Manager or Desktop Environmntr (WM prioritized)
+      environment =
+        if windowManager.name != null
+        then windowManager
+        else desktopEnvironment;
+
+      #? The primary displayManager (DE prioritized)
+      manager =
+        interface.displayManager or
+        configs.de.displayManager.preferred or
+        configs.wm.displayManager.preferred or
+        defaults.displayManager;
+
+      enabled =
+        (
+          optional
+          (desktopEnvironment.name != null)
+          desktopEnvironment.name
+        )
+        ++ (
+          optional
+          (windowManager.name != null)
+          windowManager.name
+        );
+
+      #? Primary startup session string (e.g., "hyprland-uwsm")
+      #? (User Explicit > WM Specific > DE Specific > WM Name > DE Name)
+      default =
+        interface.defaultSession or
+        configs.wm.defaultSession or
+        configs.de.defaultSession or
+        windowManager.name or
+        desktopEnvironment.name or
+        null;
+    };
+
+    #> Multi-tier lookup: prefer User Inputs > WM > DE > Defaults
+    resolve = key:
+      interface.${key} or
+      configs.wm.${key} or
+      configs.de.${key} or
+      defaults.${key};
+
+    validate = key: let
+      required =
+        if key == "displayManager"
+        then sessions.manager
+        else resolve key;
+      supported = unique (
+        (configs.de.${key}.supported or [])
+        ++ (configs.wm.${key}.supported or [])
+        ++ [defaults.${key}]
+      );
+      fallback =
+        configs.wm.${key}.preferred or
+        configs.de.${key}.preferred or
+        defaults.${key};
+    in
+      if elem required supported
+      then required
+      else fallback;
+
+    composites = {
+      inherit sessions;
+      defaultSession = sessions.default;
+      interfaces = {
+        inherit desktopEnvironments windowManagers displayManagers;
+      };
+
+      keyboard =
+        recursiveUpdate (
+          recursiveUpdate (
+            recursiveUpdate
+            defaults.keyboard
+            (configs.de.keyboard or {})
+          )
+          (configs.wm.keyboard or {})
+        )
+        (interface.keyboard or {});
+    };
+  in
+    {inherit desktopEnvironment windowManager;}
+    // composites
+    // (genAttrs keys.resolution resolve)
+    // (genAttrs keys.validation validate);
 
   mkUI = {
     user,
@@ -618,22 +590,5 @@
       (host.interface or {})
       (user.interface or {})
     );
-
-  __exports = {
-    internal = {
-      inherit
-        mkUI
-        defaults
-        displayManagers
-        desktopEnvironments
-        windowManagers
-        normalizeInterface
-        ;
-    };
-    external = {
-      mkUISchema = mkUI;
-      normalizeUISchema = normalizeInterface;
-    };
-  };
 in
   __exports.internal // {_rootAliases = __exports.external;}
