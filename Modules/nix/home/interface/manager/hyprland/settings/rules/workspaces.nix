@@ -65,12 +65,13 @@
       inherit (primary) command class;
       inherit key workdir;
       workspace = name;
+      extraMod = "CTRL";
     })
     (mkWorkspaceVariant {
       inherit (secondary) command class;
       inherit key workdir;
       workspace = "${name}Alt";
-      extraMod = "SHIFT";
+      extraMod = "CTRL SHIFT";
     })
   ];
 
