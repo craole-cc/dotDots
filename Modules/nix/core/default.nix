@@ -8,14 +8,16 @@
   config = {
     stylix.icons = {
       enable = true;
-      package = null;
+      package = pkgs.candy-icons;
       light = pkgs.candy-icons.name;
       dark = pkgs.candy-icons.name;
     };
     programs.regreet = {
       enable = true;
-      name = pkgs.candy-icons.name;
-      package = pkgs.candy-icons;
+      # iconTheme = lix.lib.mkDefault {
+      #   name = pkgs.candy-icons.name;
+      #   package = pkgs.candy-icons;
+      # };
     };
   };
 }
