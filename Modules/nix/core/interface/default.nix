@@ -26,67 +26,72 @@ in {
     enable = mkEnableOption dom // {default = true;};
     windowManager = mkOption {
       description = "Window manager";
-      default = iface.windowManager or null;
+      default = iface.windowManager;
       type = nullOr (enum windowManagers.values);
     };
     desktopEnvironment = mkOption {
       description = "Desktop environment";
-      default = iface.desktopEnvironment or null;
+      default = iface.desktopEnvironment;
       type = nullOr (enum desktopEnvironments.values);
     };
     displayManager = mkOption {
       description = "Display manager";
-      default = iface.displayManager or null;
+      default = iface.displayManager;
       type = nullOr (enum displayManagers.values);
     };
     displayProtocol = mkOption {
       description = "Display protocol";
-      default = iface.displayProtocol or "wayland";
+      default = iface.displayProtocol;
       type = enum displayProtocols.values;
     };
     defaultSession = mkOption {
       description = "Default display manager session";
-      default = iface.defaultSession or null;
+      default = iface.defaultSession;
       type = nullOr str;
     };
     windowShell = mkOption {
       description = "Status bar / window shell component";
-      default = iface.bar or null;
+      default = iface.windowShell;
       type = nullOr str;
     };
     shell = mkOption {
       description = "Shell";
-      default = iface.shell or null;
+      default = iface.shell;
       type = nullOr (enum shells.values);
     };
     shellPrompt = mkOption {
       description = "Shell prompt";
-      default = iface.prompt or null;
+      default = iface.shellPrompt;
       type = nullOr str;
     };
     desktopShell = mkOption {
       description = "Desktop manager UI shell";
-      default = iface.uiShell or null;
+      default = iface.desktopShell;
       type = nullOr str;
     };
     terminal = mkOption {
       description = "Default terminal";
-      default = iface.terminal or null;
+      default = iface.terminal;
       type = nullOr str;
     };
     appLauncher = mkOption {
       description = "Application launcher";
-      default = iface.launcher or null;
+      default = iface.appLauncher;
       type = nullOr str;
     };
     fileManager = mkOption {
       description = "File manager";
-      default = iface.fileManager or null;
+      default = iface.fileManager;
       type = nullOr str;
     };
     notificationDaemon = mkOption {
       description = "Notification daemon";
-      default = iface.notificationDaemon or null;
+      default = iface.notificationDaemon;
+      type = nullOr str;
+    };
+    bar = mkOption {
+      description = "Status bar";
+      default = iface.bar;
       type = nullOr str;
     };
   };

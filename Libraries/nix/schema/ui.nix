@@ -5,10 +5,17 @@
     filterAttrs
     genAttrs
     hasAttr
-    optionalAttrs
+    isAttrs
     recursiveUpdate
     ;
-  inherit (lib.lists) concatMap elem head optional unique;
+  inherit
+    (lib.lists)
+    concatMap
+    elem
+    head
+    optional
+    unique
+    ;
 
   __exports = {
     internal = {
@@ -459,7 +466,15 @@
     interface,
   }: let
     kind = key;
-    name = interface.${kind} or defaults.${kind};
+    #> Get the raw value from the interface
+    rawVal = interface.${kind} or defaults.${kind};
+
+    #> If rawVal is a set (already normalized), extract the name.
+    #? Otherwise, use it as the name string.
+    name =
+      if isAttrs rawVal
+      then rawVal.name or null
+      else rawVal;
   in
     if name != null && hasAttr name set
     then {
@@ -469,7 +484,7 @@
     else if name == null
     then {
       inherit name kind;
-      config = {}; #? Safe fallback
+      config = {};
     }
     else throw "Unknown ${kind}: ${name}.";
 
@@ -576,7 +591,10 @@
         (interface.keyboard or {});
     };
   in
-    {inherit desktopEnvironment windowManager;}
+    {
+      desktopEnvironment = desktopEnvironment.name;
+      windowManager = windowManager.name;
+    }
     // composites
     // (genAttrs keys.resolution resolve)
     // (genAttrs keys.validation validate);
