@@ -9,45 +9,41 @@
 }: let
   dom = "interface";
   # cfg = config.${top}.${dom};
+  inherit (lib.attrsets) attrNames;
+  inherit (lib.types) enum nullOr;
   inherit (lix.types.options) mkTrue mkOption;
-  inherit (lib.types) attrs enum nullOr str;
-  inherit
-    (lix.enums)
-    desktopEnvironments
-    windowManagers
-    displayManagers
-    displayProtocols
-    shells
-    ;
   inherit (lix.schema.ui) mkUI;
   iface = mkUI {inherit host user;};
-  inherit (iface) interfaces sessions;
+  inherit (iface.interfaces) desktopEnvironments displayManagers windowManagers;
+  inherit (iface) sessions;
 in {
   options.${top}.${dom} = {
     enable = mkTrue dom;
-    interfaces = mkOption {
+    available = mkOption {
       description = "Available interfaces";
-      default = interfaces;
-    };
-    sessions = mkOption {
-      description = "Available sessions";
-      default = sessions;
-    };
-
-    windowManager = mkOption {
-      description = "Window manager";
-      default = iface.windowManager;
-      type = nullOr (enum windowManagers.values);
+      default = {
+        inherit
+          desktopEnvironments
+          displayManagers
+          windowManagers
+          sessions
+          ;
+      };
     };
     desktopEnvironment = mkOption {
       description = "Desktop environment";
       default = iface.desktopEnvironment;
-      type = nullOr (enum desktopEnvironments.values);
+      type = nullOr (enum (attrNames desktopEnvironments));
+    };
+    windowManager = mkOption {
+      description = "Window manager";
+      default = iface.windowManager;
+      type = nullOr (enum (attrNames windowManagers));
     };
     displayManager = mkOption {
       description = "Display manager";
       default = iface.displayManager;
-      # type = nullOr (enum displayManagers.values);
+      type = nullOr (enum (attrNames displayManagers));
     };
     # displayProtocol = mkOption {
     #   description = "Display protocol";
