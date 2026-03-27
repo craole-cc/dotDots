@@ -345,7 +345,12 @@
               if isAttrs app
               then app.class
               else app;
-          in "hyprctl dispatch focuswindow class:^(${c})$ || ${e}";
+          in
+            # We use sh -c to allow the 'if/then/else' logic.
+            # 1. Search for the class string in the client list.
+            # 2. If found, dispatch the focus command.
+            # 3. If not found, launch the executable.
+            "sh -c 'if hyprctl clients | grep -q \"class: ${c}\"; then hyprctl dispatch focuswindow \"class:${c}\"; else ${e}; fi'";
         in
           with wayland.apps; {
             # --- Run or Raise using Variables ---
