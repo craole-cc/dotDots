@@ -13,8 +13,8 @@
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isList isString;
   inherit (_.content.empty) isEmpty;
-  inherit (lib.lists) any map;
-  inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
+  inherit (lib.lists) any genList map;
+  inherit (lib.strings) concatStringsSep hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   _str = lib.strings;
 
   #? Internal: apply a string transform to a string or each item in a list.
@@ -317,6 +317,8 @@
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (toLower s))
       input;
+
+  indent = n: concatStringsSep "" (genList (_: " ") n);
 in {
   inherit
     trim
@@ -326,6 +328,7 @@ in {
     normalize
     toUpper
     toLower
+    indent
     ;
 
   _rootAliases = {

@@ -10,7 +10,7 @@
   inherit (_.types.predicates) isAttrs isFunction isList;
   inherit (lib.attrsets) attrNames hasAttr;
   inherit (lib.lists) all any elem filter;
-  inherit (lib.strings) hasPrefix stringLength toLower;
+  inherit (lib.strings) concatStringsSep hasPrefix stringLength toLower;
 
   _debug = mkModuleDebug __moduleRef;
 
