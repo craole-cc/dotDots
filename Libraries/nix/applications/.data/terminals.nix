@@ -1,4 +1,4 @@
-{
+{...}: {
   foot = {
     names = {
       package = "foot";

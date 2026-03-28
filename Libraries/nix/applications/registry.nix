@@ -7,8 +7,7 @@
   inherit (lib.lists) elem filter;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.enums) categories;
-  # nested = _.importAllMerged ./.data {};
-  nested = _.importAll ./.data;
+  nested = _.filesystem.importers.importAllMerged ./.data {};
 
   __exports = {
     internal = {
