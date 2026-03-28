@@ -1,12 +1,12 @@
 {
-  browsers = import ./_registry/browsers.nix;
-  terminals = import ./_registry/terminals.nix;
-  editors = import ./_registry/editors.nix;
-  fileManagers = import ./_registry/file-managers.nix;
-  graphics = import ./_registry/graphics.nix;
-  launchers = import ./_registry/launchers.nix;
-  media = import ./_registry/media.nix;
-  office = import ./_registry/office.nix;
-  system = import ./_registry/system.nix;
-  communication = import ./_registry/communication.nix;
+  browsers = import ./browsers.nix;
+  terminals = import ./terminals.nix;
+  editors = import ./editors.nix;
+  fileManagers = import ./file-managers.nix;
+  graphics = import ./graphics.nix;
+  launchers = import ./launchers.nix;
+  media = import ./media.nix;
+  office = import ./office.nix;
+  system = import ./system.nix;
+  communication = import ./communication.nix;
 }
