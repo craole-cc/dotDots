@@ -1,11 +1,29 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames;
+{_, ...}: let
   inherit (_.lists.generators) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
+
+  __exports = {
+    internal = {
+      inherit enum;
+      inherit
+        (shells)
+        elvish
+        nushell
+        pwsh
+        tcsh
+        bash
+        dash
+        zsh
+        sh
+        fish
+        ;
+    };
+    external = {
+      shells = enum;
+    };
+  };
+
+  enum = mkEnum shells;
 
   shells = {
     # POSIX-compatible
@@ -74,22 +92,17 @@
       base = "c";
     };
   };
+in
+  __exports.internal
+  // {
+    _rootAliases = __exports.external;
 
-  enum = mkEnum (attrNames shells);
-in {
-  inherit shells;
-
-  _rootAliases = {
-    shellsList = enum;
-    shells = shells;
-  };
-
-  _tests = runTests {
-    shells = {
-      validatesBash = mkTest true (enum.validator.check "bash");
-      validatesZsh = mkTest true (enum.validator.check "zsh");
-      validatesFish = mkTest true (enum.validator.check "fish");
-      caseInsensitive = mkTest true (enum.validator.check "NUSHELL");
+    _tests = runTests {
+      shells = {
+        validatesBash = mkTest true (enum.validator.check "bash");
+        validatesZsh = mkTest true (enum.validator.check "zsh");
+        validatesFish = mkTest true (enum.validator.check "fish");
+        caseInsensitive = mkTest true (enum.validator.check "NUSHELL");
+      };
     };
-  };
-}
+  }
