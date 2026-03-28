@@ -98,5 +98,4 @@
       ))
     registry;
 in
-  registry
-# __exports.internal // {_rootAliases = __exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}
