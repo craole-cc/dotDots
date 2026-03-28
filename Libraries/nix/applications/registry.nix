@@ -3,32 +3,33 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues filterAttrs mapAttrs mergeAttrsList;
+  inherit (lib.attrsets) filterAttrs genAttrs mapAttrs;
   inherit (lib.lists) elem filter;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.enums) categories;
-  nested = _.filesystem.importers.importAllMerged ./.data {};
+  all = _.filesystem.importers.importAllMerged ./.data {};
 
   __exports = {
     internal = {
       inherit
-        nested
-        registry
-        appsWithCategory
+        # all
+        # validated
+        ofCategory
         lookupApp
         wmMatch
         resolveExec
         mkApps
         ;
+      all = validated;
     };
     external = {
-      appRegistry = registry;
+      appRegistry = validated;
     };
   };
 
   # ── Validation ──────────────────────────────────────────────────────────────
 
-  registry =
+  validated =
     mapAttrs (
       name: app: let
         bad = filter (c: !elem c categories) app.categories;
@@ -37,15 +38,15 @@
         then throw "Unknown categories in '${name}': ${toString bad}"
         else app
     )
-    (mergeAttrsList (attrValues nested));
+    all;
 
   # ── Lookup ───────────────────────────────────────────────────────────────────
-
-  appsWithCategory = cat:
-    filterAttrs (_: a: isIn cat a.categories) registry;
+  byCategory = genAttrs categories ofCategory;
+  ofCategory = cat:
+    filterAttrs (_: a: isIn cat a.categories) validated;
 
   lookupApp = name: category: let
-    app = registry.${name} or (throw "Unknown app '${name}' in registry.");
+    app = validated.${name} or (throw "Unknown app '${name}' in registry.");
   in
     if elem category app.categories
     then app
@@ -97,6 +98,6 @@
         then {version = pkg.version;}
         else {}
       ))
-    registry;
+    validated;
 in
   __exports.internal // {_rootAliases = __exports.external;}
