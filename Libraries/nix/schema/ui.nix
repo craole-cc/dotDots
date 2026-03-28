@@ -17,10 +17,11 @@
     concatMap
     elem
     head
+    isList
+    length
     optional
     unique
     ;
-
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
 
   __exports = {
@@ -40,23 +41,56 @@
     };
   };
 
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Defaults                                                  ║
+  #╚═══════════════════════════════════════════════════════════╝
   defaults = {
-    appLauncher = null;
-    bar = null;
-    defaultSession = null;
-    desktopEnvironment = null;
-    desktopShell = null;
-    displayManager = null;
-    displayProtocol = null;
-    fileManager = "yazi";
-    notificationDaemon = null;
-    shell = "bash";
-    shellPrompt = "starship";
-    terminal = "ghostty";
-    windowManager = "hyprland";
-    windowShell = null;
+    apps = {
+      launcher = {
+        pri = "vicinae";
+        sec = "vicinae";
+      };
+      terminal = {
+        pri = "kitty";
+        sec = "ghostty";
+      };
+      explorer = {
+        pri = "doublecmd";
+        sec = "yazi";
+      };
+      browser = {
+        pri = "zen-twilight";
+        sec = "chromium";
+      };
+      editor = {
+        pri = "vscode";
+        sec = "helix";
+      };
+    };
+    gui = {
+      desktop = null;
+      window = null;
+      bar = null;
+      notification = null;
+    };
+    display = {
+      manager = null;
+      protocol = null;
+    };
+    session = {
+      desktopEnvironment = null;
+      windowManager = null;
+      trigger = null;
+    };
+    shell = {
+      login = "bash";
+      prompt = "starship";
+    };
   };
 
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Display                                                   ║
+  #╚═══════════════════════════════════════════════════════════╝
   displayManagers = {
     cosmic-greeter = {
       supported = ["wayland"];
@@ -130,50 +164,71 @@
     };
   };
 
-  dmsByProtocol = genAttrs ["wayland" "xorg" "tty"] (
-    p:
-      attrNames (
-        filterAttrs
-        (_: dm: elem p dm.supported)
-        displayManagers
-      )
-  );
+  displayProtocols = [
+    "tty"
+    "wayland"
+    "xorg"
+  ];
+
+  dmsByProtocol = genAttrs displayProtocols (protocol:
+    attrNames
+    (
+      filterAttrs (_: displayManager:
+        elem protocol displayManager.supported)
+      displayManagers
+    ));
 
   dmsFor = protocols:
     unique (
       concatMap
-      (p: dmsByProtocol.${p} or [])
+      (protocol: dmsByProtocol.${protocol} or [])
       protocols
     );
 
-  mkEnv = {
-    protocols,
-    preferredDM,
-    ...
-  } @ args:
-    {
-      displayProtocol = {
-        supported = protocols;
-        preferred = head protocols;
-      };
-      displayManager = {
-        supported = dmsFor protocols;
-        preferred = preferredDM;
-      };
-    }
-    // (removeAttrs args ["protocols" "preferredDM"]);
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Environment                                               ║
+  #╚═══════════════════════════════════════════════════════════╝
+
+  mkEnv = {display, ...} @ args:
+    with display;
+      {
+        displayProtocol = {
+          supported = protocols;
+          preferred =
+            if display ? protocol
+            then protocol
+            else if isList protocols && length protocols != 0
+            then head protocols
+            else protocols;
+        };
+        displayManager = {
+          supported = dmsFor protocols;
+          preferred = manager;
+        };
+        defaultSession = display.session or null;
+      }
+      // (removeAttrs args ["display"]);
 
   desktopEnvironments = {
     gnome = mkEnv {
-      protocols = ["wayland" "xorg"];
-      preferredDM = "gdm";
-      desktopShell = "gnome-shell";
-      windowShell = "mutter";
-      bar = "gnome-shell";
-      notificationDaemon = "gnome-shell";
-      fileManager = "nautilus";
-      terminal = "gnome-terminal";
-      appLauncher = "gnome-shell-overview";
+      display = {
+        protocols = ["wayland" "xorg"];
+        manager = "gdm";
+      };
+      gui = {
+        desktop = "gnome-shell";
+        window = "mutter";
+        bar = "gnome-shell";
+        notification = "gnome-shell";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "gnome-shell-overview";
+          terminal.pri = "gnome-terminal";
+          explorer.pri = "nautilus";
+          editor.sec = "gedit";
+        };
       keyboard = {
         close.action = "dbus-send --type=method_call --dest=org.gnome.Shell /org/gnome/Shell org.gnome.Shell.Eval string:'global.display.get_focus_window().delete(global.get_current_time());'";
         lock.action = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock";
@@ -183,16 +238,27 @@
         screenshotWindow.action = "gnome-screenshot -w";
       };
     };
+
     plasma = mkEnv {
-      protocols = ["wayland" "xorg"];
-      preferredDM = "sddm";
-      desktopShell = "plasmashell";
-      windowShell = "kwin";
-      bar = "plasmashell";
-      notificationDaemon = "plasmashell";
-      fileManager = "dolphin";
-      terminal = "konsole";
-      appLauncher = "krunner";
+      display = {
+        protocols = ["wayland" "xorg"];
+        protocol = "wayland";
+        manager = "sddm";
+      };
+      gui = {
+        desktop = "plasmashell";
+        window = "kwin";
+        bar = "plasmashell";
+        notification = "plasmashell";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "krunner";
+          terminal.pri = "konsole";
+          explorer.pri = "dolphin";
+          editor.sec = "kate";
+        };
       keyboard = {
         close.action = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Window Close'";
         lock.action = "qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock";
@@ -202,61 +268,104 @@
         screenshotWindow.action = "spectacle -a";
       };
     };
+
     cosmic = mkEnv {
-      protocols = ["wayland"];
-      preferredDM = "cosmic-greeter";
-      desktopShell = "cosmic-shell";
-      windowShell = "cosmic-comp";
-      bar = "cosmic-panel";
-      notificationDaemon = "cosmic-notifications";
-      fileManager = "cosmic-files";
-      terminal = "cosmic-terminal";
-      appLauncher = "cosmic-launcher";
+      display = {
+        protocols = ["wayland" "xorg"];
+        manager = "cosmic-greeter";
+      };
+      gui = {
+        desktop = "cosmic-shell";
+        window = "cosmic-comp";
+        bar = "cosmic-panel";
+        notification = "cosmic-notifications";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "cosmic-launcher";
+          terminal.pri = "cosmic-terminal";
+          terminal.sec = "foot";
+          explorer.pri = "cosmic-files";
+          editor.sec = "cosmic-text-editor";
+        };
       keyboard = {
         close.action = "cosmic-comp-msg action close";
         lock.action = "cosmic-session-ctl lock";
         logout.action = "cosmic-session-ctl logout";
       };
     };
+
     pantheon = mkEnv {
-      protocols = ["xorg"];
-      preferredDM = "lightdm";
-      desktopShell = "gala";
-      windowShell = "gala";
-      bar = "wingpanel";
-      notificationDaemon = "notification-daemon";
-      fileManager = "pantheon-files";
-      terminal = "pantheon-terminal";
-      appLauncher = "slingshot";
+      display = {
+        protocol = "xorg";
+        manager = "lightdm";
+      };
+      gui = {
+        desktop = "gala";
+        window = "gala";
+        bar = "wingpanel";
+        notification = "notification-daemon";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "slingshot";
+          terminal.pri = "pantheon-terminal";
+          explorer.pri = "pantheon-files";
+          editor.sec = "mousepad";
+        };
       keyboard = {
         lock.action = "io.elementary.desktop.agent-polkit --lock";
       };
     };
+
     cinnamon = mkEnv {
-      protocols = ["xorg"];
-      preferredDM = "lightdm";
-      desktopShell = "cinnamon";
-      windowShell = "muffin";
-      bar = "cinnamon";
-      notificationDaemon = "cinnamon";
-      fileManager = "nemo";
-      terminal = "gnome-terminal";
-      appLauncher = "cinnamon-menu";
+      display = {
+        protocol = "xorg";
+        manager = "lightdm";
+      };
+      gui = {
+        desktop = "cinnamon";
+        window = "muffin";
+        bar = "cinnamon";
+        notification = "cinnamon";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "cinnamon-menu";
+          terminal.pri = "gnome-terminal";
+          terminal.sec = "xfce4-terminal";
+          explorer.pri = "nemo";
+          editor.sec = "mousepad";
+        };
       keyboard = {
         lock.action = "cinnamon-screensaver-command --lock";
         logout.action = "cinnamon-session-quit --logout --no-prompt";
       };
     };
+
     xfce = mkEnv {
-      protocols = ["xorg"];
-      preferredDM = "lightdm";
-      desktopShell = "xfce4-panel";
-      windowShell = "xfwm4";
-      bar = "xfce4-panel";
-      notificationDaemon = "xfce4-notifyd";
-      fileManager = "thunar";
-      terminal = "xfce4-terminal";
-      appLauncher = "xfce4-appfinder";
+      display = {
+        protocol = "xorg";
+        manager = "lightdm";
+      };
+      gui = {
+        desktop = "xfce4-panel";
+        window = "xfwm4";
+        bar = "xfce4-panel";
+        notification = "xfce4-notifyd";
+      };
+      apps =
+        defaults.apps
+        // {
+          launcher.pri = "xfce4-appfinder";
+          terminal.pri = "xfce4-terminal";
+          terminal.sec = "xterm";
+          explorer.pri = "thunar";
+          editor.sec = "mousepad";
+        };
       keyboard = {
         lock.action = "xflock4";
         logout.action = "xfce4-session-logout --logout --fast";
@@ -265,137 +374,74 @@
   };
 
   windowManagers = let
-    wayland = let
-      apps = {
-        bar = "waybar";
-        notificationDaemon = "mako";
-        fileManager = {
-          pri = {
-            exec = "foot --title yazi -e yazi";
-            title = "yazi";
-          };
-          sec = {
-            exec = "doublecmd";
-            class = "doublecmd";
-          };
-        };
-        terminal = {
-          pri = {
-            exec = "foot";
-            class = "foot";
-          };
-          sec = {
-            exec = "ghostty";
-            class = "com.mitchellh.ghostty";
-          };
-        };
-        browser = {
-          pri = {
-            exec = "zen-twilight";
-            class = "zen-twilight";
-          };
-          sec = {
-            exec = "chromium";
-            class = "chromium-browser";
-          };
-        };
-        visual = {
-          pri = {
-            exec = "code";
-            class = "code";
-          };
-          sec = {
-            exec = "zeditor";
-            class = "dev.zed.Zed";
-          };
-        };
-        appLauncher = "vicinae";
-      };
-      base = name:
-        mkEnv {
-          protocols = ["wayland"];
-          inherit (apps) bar notificationDaemon fileManager appLauncher;
-          preferredDM = "greetd";
-          terminal = apps.terminal.pri;
-          desktopShell = name;
-          defaultSession = name;
-        };
-    in {inherit base apps;};
-
-    xorgBase = name:
+    mkWayland = name:
       mkEnv {
-        protocols = ["xorg"];
-        preferredDM = "lightdm";
-        bar = "polybar";
-        notificationDaemon = "dunst";
-        fileManager = "thunar";
-        terminal = "xterm";
-        appLauncher = "rofi";
-        desktopShell = name;
-        defaultSession = name;
+        display = {
+          protocol = "wayland";
+          manager = "regreet";
+          session = name;
+        };
+        gui = {
+          desktop = name;
+          window = name;
+          bar = "waybar";
+          notification = "mako";
+        };
+        apps = defaults.apps // {terminal.pri = "foot";};
+      };
+
+    mkXorg = name:
+      mkEnv {
+        display = {
+          protocols = ["xorg"];
+          protocol = "xorg";
+          manager = "lightdm";
+        };
+        gui = {
+          desktop = name;
+          window = name;
+          bar = "polybar";
+          notification = "dunst";
+        };
+        apps =
+          defaults.apps
+          // {
+            launcher.sec = "rofi";
+            terminal.pri = "xfce4-terminal";
+            explorer.pri = "thunar";
+          };
       };
   in {
     hyprland =
-      (wayland.base "hyprland")
+      (mkWayland "hyprland")
       // {
-        defaultSession = "hyprland-uwsm";
-        bar = "hyprpanel";
-        windowShell = "quickshell";
-        keyboard = let
-          mkRunOrRaise = app: let
-            e =
-              if isAttrs app
-              then app.exec
-              else app;
-            type =
-              if isAttrs app && (app ? title)
-              then "title"
-              else "class";
-            value =
-              if type == "title"
-              then app.title
-              else
-                (
-                  if isAttrs app
-                  then app.class
-                  else app
-                );
-          in "sh -c 'if hyprctl clients | grep -q \"${type}: ${value}\"; then hyprctl dispatch focuswindow \"${type}:${value}\"; else ${e}; fi'";
-        in
-          with wayland.apps; {
-            #~@ Apps
-            fileManager.action = mkRunOrRaise fileManager.pri;
-            fileManagerSec.action = mkRunOrRaise fileManager.sec;
-            code.action = mkRunOrRaise "code";
-            visual.action = mkRunOrRaise visual.pri;
-            visualSec.action = mkRunOrRaise visual.sec;
-            browser.action = mkRunOrRaise browser.pri;
-            browserSec.action = mkRunOrRaise browser.sec;
-            terminal.action = mkRunOrRaise terminal.pri;
-            terminalSec.action = mkRunOrRaise terminal.sec;
-
-            #~@ Standard Hyprland Dispatches
-            close.action = "hyprctl dispatch killactive";
-            fullscreen.action = "hyprctl dispatch fullscreen 0";
-            maximize.action = "hyprctl dispatch fullscreen 1";
-            float.action = "hyprctl dispatch togglefloating";
-            pin.action = "hyprctl dispatch pin";
-            split.action = "hyprctl dispatch togglesplit";
-            pseudo.action = "hyprctl dispatch pseudo";
-            groupToggle.action = "hyprctl dispatch togglegroup";
-            groupLock.action = "hyprctl dispatch lockactivegroup toggle";
-            workspacePrev.action = "hyprctl dispatch workspace previous";
-            windowCycle.action = "hyprctl dispatch focuscurrentorlast";
-            lock.action = "hyprlock";
-            logout.action = "hyprctl dispatch exit";
-            screenshot.action = "hyprshot -m output";
-            screenshotRegion.action = "hyprshot -m region";
-            screenshotWindow.action = "hyprshot -m window";
+        gui =
+          (mkWayland "hyprland").gui
+          // {
+            bar = "hyprpanel";
+            window = "quickshell";
           };
+        keyboard = {
+          close.action = "hyprctl dispatch killactive";
+          fullscreen.action = "hyprctl dispatch fullscreen 0";
+          maximize.action = "hyprctl dispatch fullscreen 1";
+          float.action = "hyprctl dispatch togglefloating";
+          pin.action = "hyprctl dispatch pin";
+          split.action = "hyprctl dispatch togglesplit";
+          pseudo.action = "hyprctl dispatch pseudo";
+          groupToggle.action = "hyprctl dispatch togglegroup";
+          groupLock.action = "hyprctl dispatch lockactivegroup toggle";
+          workspacePrev.action = "hyprctl dispatch workspace previous";
+          windowCycle.action = "hyprctl dispatch focuscurrentorlast";
+          lock.action = "hyprlock";
+          logout.action = "hyprctl dispatch exit";
+          screenshot.action = "hyprshot -m output";
+          screenshotRegion.action = "hyprshot -m region";
+          screenshotWindow.action = "hyprshot -m window";
+        };
       };
-
     niri =
-      (wayland.base "niri")
+      (mkWayland "niri")
       // {
         keyboard = {
           close.action = "niri msg action close-window";
@@ -413,7 +459,7 @@
       };
 
     sway =
-      (wayland.base "sway")
+      (mkWayland "sway")
       // {
         keyboard = {
           close.action = "swaymsg kill";
@@ -433,7 +479,7 @@
       };
 
     river =
-      (wayland.base "river")
+      (mkWayland "river")
       // {
         keyboard = {
           close.action = "riverctl close";
@@ -448,7 +494,7 @@
       };
 
     i3 =
-      (xorgBase "i3")
+      (mkXorg "i3")
       // {
         keyboard = {
           close.action = "i3-msg kill";
@@ -465,7 +511,7 @@
       };
 
     bspwm =
-      (xorgBase "bspwm")
+      (mkXorg "bspwm")
       // {
         keyboard = {
           close.action = "bspc node -c";
@@ -482,9 +528,9 @@
       };
 
     qtile =
-      (xorgBase "qtile")
+      (mkXorg "qtile")
       // {
-        bar = "qtile";
+        gui = (mkXorg "qtile").gui // {bar = "qtile";};
         keyboard = {
           close.action = "qtile-cmd -o window -f kill";
           fullscreen.action = "qtile-cmd -o window -f toggle_fullscreen";
@@ -498,9 +544,9 @@
       };
 
     awesome =
-      (xorgBase "awesome")
+      (mkXorg "awesome")
       // {
-        bar = "awesome";
+        gui = (mkXorg "awesome").gui // {bar = "awesome";};
         keyboard = {
           close.action = "awesome-client 'client.focus:kill()'";
           fullscreen.action = "awesome-client 'client.focus.fullscreen = not client.focus.fullscreen; client.focus:raise()'";
@@ -513,9 +559,9 @@
       };
 
     xmonad =
-      (xorgBase "xmonad")
+      (mkXorg "xmonad")
       // {
-        bar = "xmobar";
+        gui = (mkXorg "xmonad").gui // {bar = "xmobar";};
         keyboard = {
           close.action = "xmonadctl kill";
           fullscreen.action = "xmonadctl full";
@@ -526,11 +572,26 @@
       };
 
     openbox =
-      (xorgBase "openbox")
+      (mkXorg "openbox")
       // {
-        bar = "tint2";
-        notificationDaemon = "xfce4-notifyd";
-        terminal = "xfce4-terminal";
+        gui =
+          (mkXorg "openbox").gui
+          // {
+            bar = "tint2";
+            notification = "xfce4-notifyd";
+          };
+        apps =
+          defaults.apps
+          // {
+            launcher.pri = "rofi";
+            terminal.pri = "xfce4-terminal";
+            terminal.sec = "xterm";
+            explorer.pri = "thunar";
+            explorer.sec = "pcmanfm";
+            browser.sec = "chromium";
+            editor.pri = "mousepad";
+            editor.sec = "vscode";
+          };
         keyboard = {
           close.action = "openbox-msg close";
           fullscreen.action = "openbox-msg fullscreen";
@@ -542,13 +603,21 @@
       };
   };
 
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Resolution                                                ║
+  #╚═══════════════════════════════════════════════════════════╝
+
   keys = {
     selection = {
       desktopEnvironment = desktopEnvironments;
       windowManager = windowManagers;
     };
-    validation = ["displayProtocol" "displayManager"];
-    resolution = ["appLauncher" "bar" "desktopShell" "fileManager" "notificationDaemon" "shell" "shellPrompt" "terminal" "windowShell"];
+    validation = ["display"];
+    resolution = [
+      "apps"
+      "gui"
+      "shell"
+    ];
   };
 
   select = {
@@ -556,7 +625,10 @@
     set,
     interface,
   }: let
-    rawVal = interface.${key} or defaults.${key};
+    rawVal =
+      interface.${key} 
+      or interface.session.${key}
+      or defaults.session.${key};
     name =
       if isAttrs rawVal
       then rawVal.name or null
@@ -570,11 +642,15 @@
     }
     else if name == null
     then {
-      inherit name;
+      name = null;
       kind = key;
       config = {};
     }
     else throw "Unknown ${key}: ${name}.";
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Normalization                                             ║
+  #╚═══════════════════════════════════════════════════════════╝
 
   normalizeInterface = interface: let
     inherit
@@ -599,13 +675,32 @@
       environment =
         if windowManager.name != null
         then windowManager
-        else desktopEnvironment;
+        else if desktopEnvironment.name != null
+        then desktopEnvironment
+        else let
+          env =
+            interface.session.environment 
+            or defaults.session.environment;
+        in
+          if hasAttr env windowManagers
+          then {
+            name = env;
+            kind = "windowManager";
+            config = windowManagers.${env};
+          }
+          else {
+            name = env;
+            kind = "desktopEnvironment";
+            config = desktopEnvironments.${env};
+          };
 
-      manager =
-        interface.displayManager
-        or configs.de.displayManager.preferred
-        or configs.wm.displayManager.preferred
-        or defaults.displayManager;
+      trigger =
+        interface.session
+        or configs.wm.defaultSession  
+        or configs.de.defaultSession  
+        or windowManager.name         
+        or desktopEnvironment.name    
+        or defaults.session.trigger;
 
       enabled =
         (optional (desktopEnvironment.name != null) desktopEnvironment.name)
@@ -617,7 +712,7 @@
         or configs.de.defaultSession
         or windowManager.name
         or desktopEnvironment.name
-        or null;
+        or defaults.session;
     };
 
     resolve = key:

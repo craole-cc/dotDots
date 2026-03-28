@@ -136,7 +136,7 @@
       title = "Zen Twilight";
     };
     exec = "zen-twilight";
-    categories = ["browser"];
+    categories = ["browsers"];
     family = "zen";
     channel = "twilight";
   };
@@ -148,7 +148,7 @@
       class = "zen-beta";
     };
     exec = "zen-beta";
-    categories = ["browser"];
+    categories = ["browsers" "firefox" "nothing"];
     family = "zen";
     channel = "beta";
   };

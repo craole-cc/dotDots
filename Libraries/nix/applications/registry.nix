@@ -4,10 +4,10 @@
   ...
 }: let
   inherit (lib.attrsets) filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) elem filter;
+  inherit (lib.lists) elem filter head init last length;
   inherit (lib.strings) concatStringsSep;
   inherit (_.lists.predicates) isIn;
-  inherit (_.lists.transform) indentedMsg;
+  inherit (_.lists.transform) indentedForError;
   inherit (_.applications.enums) categories;
   data = _.filesystem.importers.importAllMerged ./.data {};
 
@@ -17,8 +17,8 @@
         all
         byCategory
         ofCategory
-        lookupApp
-        wmMatch
+        lookup
+        identify
         resolveExec
         mkApps
         ;
@@ -29,66 +29,69 @@
   };
 
   # -- Resolution ──────────────────────────────────────────────────────────────
-  # catMsg = "\nValid categories: ${concatStringsSep ", " categories}";
-  # indent = n: concatStringsSep "" (genList (_: " ") n);
-  # bulletList = items: concatStringsSep "\n" (map (i: "${indent 9}- ${i}") items);
-  # catMsg = "\n${indent 7}Valid categories:\n${bulletList categories}";
-  catMsg = indentedMsg {
-    msg = "Valid categories";
+  listCategories = indentedForError {
+    title = "Valid Categories";
     items = categories;
   };
-  # catMsg =  "\n${indent 7}Valid categories:\n${
-  # indented {
-  #   size = 9;
-  #   bullet = "-";
-  #   items = categories;
-  # };
 
   all =
     mapAttrs (
       name: app: let
-        bad = filter (c: !elem c categories) app.categories;
+        invalid = filter (c: !elem c categories) app.categories;
+        count = length invalid;
+        quoted = map (c: "'${c}'") invalid;
+        humanJoin = items:
+          if count == 1
+          then head items
+          else "${concatStringsSep ", " (init items)} and ${last items}";
       in
-        if bad != []
-        then throw "App '${name}' has invalid categories [${concatStringsSep ", " bad}] — ${catMsg}"
+        if invalid != []
+        then
+          throw "${humanJoin quoted} ${
+            if count == 1
+            then "is an invalid category"
+            else "are invalid categories"
+          }. ${listCategories}"
         else app
     )
     data;
 
   ofCategory = cat:
     if !isIn cat categories
-    then throw "'${cat}' is not a valid category. ${catMsg}"
+    then throw "'${cat}' is not a valid category. ${listCategories}"
     else filterAttrs (_: a: isIn cat a.categories) all;
 
   byCategory = genAttrs categories ofCategory;
 
   # -- Lookup ───────────────────────────────────────────────────────────────────
 
-  lookupApp = name: category: let
+  lookup = name: category: let
     app = all.${name} or (throw "Unknown app '${name}' in registry.");
   in
     if elem category app.categories
     then app
     else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString app.categories}";
 
-  # -- WM Identity ──────────────────────────────────────────────────────────────
-
-  # Produces the match expr a WM uses to find an existing window.
-  # class takes priority over title; returns null for builtin/launcher-only apps.
-  wmMatch = app:
+  identify = app:
     if app.names ? title
-    then {
-      type = "title";
-      value = app.names.title; # Title then InitialTitle
-    }
+    then [
+      {
+        type = "title";
+        value = app.names.title;
+      }
+      {
+        type = "initialTitle";
+        value = app.names.title;
+      }
+    ]
     else if app.names ? class
-    then {
-      type = "class";
-      value = app.names.class;
-    }
+    then [
+      {
+        type = "class";
+        value = app.names.class;
+      }
+    ]
     else null;
-
-  # -- Exec Resolution ──────────────────────────────────────────────────────────
 
   # Wraps a terminal-mode app using the resolved terminal emulator.
   # e.g. yazi via foot → "foot --title yazi -e yazi"
