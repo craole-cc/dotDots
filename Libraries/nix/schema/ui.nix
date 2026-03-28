@@ -17,11 +17,11 @@
     concatMap
     elem
     head
-    isList
-    length
+    toList
     optional
     unique
     ;
+  inherit (lib.strings) optionalString;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
 
   __exports = {
@@ -73,13 +73,11 @@
       bar = null;
       notification = null;
     };
-    display = {
-      manager = null;
-      protocol = null;
-    };
     session = {
       desktopEnvironment = null;
       windowManager = null;
+      manager = null;
+      protocol = null;
       trigger = null;
     };
     shell = {
@@ -189,29 +187,30 @@
   #║ Environment                                               ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  mkEnv = {display, ...} @ args:
-    with display;
-      {
-        displayProtocol = {
-          supported = protocols;
-          preferred =
-            if display ? protocol
-            then protocol
-            else if isList protocols && length protocols != 0
-            then head protocols
-            else protocols;
-        };
-        displayManager = {
-          supported = dmsFor protocols;
-          preferred = manager;
-        };
-        defaultSession = display.session or null;
-      }
-      // (removeAttrs args ["display"]);
+  mkEnv = {session, ...} @ args: let
+    dp =
+      if session ? protocol
+      then toList session.protocol
+      else if session ? protocols
+      then toList session.protocols
+      else [];
+  in
+    {
+      displayProtocol = {
+        supported = dp;
+        preferred = optionalString (dp != []) (head dp);
+      };
+      displayManager = {
+        supported = dmsFor dp;
+        preferred = session.manager or null;
+      };
+      defaultSession = session.trigger or null;
+    }
+    // (removeAttrs args ["display"]);
 
   desktopEnvironments = {
     gnome = mkEnv {
-      display = {
+      session = {
         protocols = ["wayland" "xorg"];
         manager = "gdm";
       };
@@ -240,7 +239,7 @@
     };
 
     plasma = mkEnv {
-      display = {
+      session = {
         protocols = ["wayland" "xorg"];
         protocol = "wayland";
         manager = "sddm";
@@ -270,7 +269,7 @@
     };
 
     cosmic = mkEnv {
-      display = {
+      session = {
         protocols = ["wayland" "xorg"];
         manager = "cosmic-greeter";
       };
@@ -297,7 +296,7 @@
     };
 
     pantheon = mkEnv {
-      display = {
+      session = {
         protocol = "xorg";
         manager = "lightdm";
       };
@@ -321,7 +320,7 @@
     };
 
     cinnamon = mkEnv {
-      display = {
+      session = {
         protocol = "xorg";
         manager = "lightdm";
       };
@@ -347,7 +346,7 @@
     };
 
     xfce = mkEnv {
-      display = {
+      session = {
         protocol = "xorg";
         manager = "lightdm";
       };
@@ -376,10 +375,10 @@
   windowManagers = let
     mkWayland = name:
       mkEnv {
-        display = {
+        session = {
           protocol = "wayland";
           manager = "regreet";
-          session = name;
+          trigger = name;
         };
         gui = {
           desktop = name;
@@ -392,10 +391,10 @@
 
     mkXorg = name:
       mkEnv {
-        display = {
-          protocols = ["xorg"];
+        session = {
           protocol = "xorg";
           manager = "lightdm";
+          trigger = name;
         };
         gui = {
           desktop = name;
@@ -612,7 +611,6 @@
       desktopEnvironment = desktopEnvironments;
       windowManager = windowManagers;
     };
-    validation = ["display"];
     resolution = [
       "apps"
       "gui"
@@ -679,7 +677,7 @@
         then desktopEnvironment
         else let
           env =
-            interface.session.environment 
+            interface.session.environment
             or defaults.session.environment;
         in
           if hasAttr env windowManagers
@@ -693,6 +691,19 @@
             kind = "desktopEnvironment";
             config = desktopEnvironments.${env};
           };
+
+      manager =
+        interface.session.manager
+        or interface.display.manager
+        or sessions.environment.displayManager.preferred
+        or defaults.session.manager;
+
+      protocol =
+        interface.display.protocol
+        or interface.session.protocol
+        or configs.wm.displayProtocol.preferred
+        or configs.de.displayProtocol.preferred
+        or defaults.session.protocol;
 
       trigger =
         interface.session
@@ -712,7 +723,7 @@
         or configs.de.defaultSession
         or windowManager.name
         or desktopEnvironment.name
-        or defaults.session;
+        or defaults.session.trigger;
     };
 
     resolve = key:
@@ -721,29 +732,17 @@
       or configs.de.${key}
       or defaults.${key};
 
-    validate = key: let
-      required =
-        if key == "displayManager"
-        then sessions.manager
-        else resolve key;
-      supported = unique (
-        (configs.de.${key}.supported or [])
-        ++ (configs.wm.${key}.supported or [])
-        ++ [defaults.${key}]
-      );
-      fallback =
-        configs.wm.${key}.preferred
-        or configs.de.${key}.preferred
-        or defaults.${key};
-    in
-      if elem required supported
-      then required
-      else fallback;
-
     composites = {
       inherit sessions;
       defaultSession = sessions.default;
-      interfaces = {inherit desktopEnvironments windowManagers displayManagers;};
+      interfaces = {
+        inherit
+          desktopEnvironments
+          windowManagers
+          displayManagers
+          displayProtocols
+          ;
+      };
 
       #? Merge order: io defaults → DE overrides → WM overrides → user overrides
       #? normalizeKeyboard converts all mod lists to strings at the boundary
@@ -763,13 +762,14 @@
     {
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
+      displayManager = sessions.manager;
+      displayProtocol = sessions.protocol;
     }
     // composites
-    // (genAttrs keys.resolution resolve)
-    // (genAttrs keys.validation validate);
+    // (genAttrs keys.resolution resolve);
 
   mkUI = {
-    user,
+    user ? {},
     host,
   }:
     normalizeInterface (
