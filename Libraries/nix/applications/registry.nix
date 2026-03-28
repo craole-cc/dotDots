@@ -7,7 +7,7 @@
   inherit (lib.lists) elem filter;
   inherit (lib.strings) concatStringsSep;
   inherit (_.lists.predicates) isIn;
-  inherit (_.lists.transform) indented;
+  inherit (_.lists.transform) indentedMsg;
   inherit (_.applications.enums) categories;
   data = _.filesystem.importers.importAllMerged ./.data {};
 
@@ -33,11 +33,16 @@
   # indent = n: concatStringsSep "" (genList (_: " ") n);
   # bulletList = items: concatStringsSep "\n" (map (i: "${indent 9}- ${i}") items);
   # catMsg = "\n${indent 7}Valid categories:\n${bulletList categories}";
-  catMsg = indented {
-    size = 9;
-    bullet = "-";
+  catMsg = indentedMsg {
+    msg = "Valid categories";
     items = categories;
   };
+  # catMsg =  "\n${indent 7}Valid categories:\n${
+  # indented {
+  #   size = 9;
+  #   bullet = "-";
+  #   items = categories;
+  # };
 
   all =
     mapAttrs (

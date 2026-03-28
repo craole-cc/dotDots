@@ -12,10 +12,21 @@
     items,
   }:
     concatStringsSep "\n" (map (i: "${indent size}${bullet} ${i}") items);
+
+  indentedMsg = {
+    size ? 7,
+    bullet ? "-",
+    items,
+    msg,
+  }: "\n${indent 7}${msg}:\n${indented {
+    size = size + 2;
+    inherit items bullet;
+  }}";
 in {
-  inherit indented;
+  inherit indented indentedMsg;
 
   _rootAliases = {
     indentedList = indented;
+    indentedAfterError = indentedMsg;
   };
 }
