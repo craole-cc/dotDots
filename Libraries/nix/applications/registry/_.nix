@@ -7,19 +7,8 @@
   inherit (lib.lists) elem filter;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.enums) categories;
-  nest = ./.data;
-  nested = {
-    browsers = import (nest + "/browsers.nix");
-    terminals = import (nest + "/terminals.nix");
-    editors = import (nest + "/editors.nix");
-    fileManagers = import (nest + "/file-managers.nix");
-    graphics = import (nest + "/graphics.nix");
-    launchers = import (nest + "/launchers.nix");
-    media = import (nest + "/media.nix");
-    office = import (nest + "/office.nix");
-    system = import (nest + "/system.nix");
-    communication = import (nest + "/communication.nix");
-  };
+  # nested = _.importAllMerged ./.data {};
+  nested = _.importAll ./.data;
 
   __exports = {
     internal = {
