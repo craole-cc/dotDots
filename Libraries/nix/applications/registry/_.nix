@@ -7,11 +7,12 @@
   inherit (lib.lists) elem filter;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.enums) categories;
-  nestedRegistry = import ./.data;
+  nested = import ./.data;
 
   __exports = {
     internal = {
       inherit
+        nested
         registry
         appsWithCategory
         lookupApp
@@ -36,7 +37,7 @@
         then throw "Unknown categories in '${name}': ${toString bad}"
         else app
     )
-    (mergeAttrsList (attrValues nestedRegistry));
+    (mergeAttrsList (attrValues nested));
 
   # ── Lookup ───────────────────────────────────────────────────────────────────
 
