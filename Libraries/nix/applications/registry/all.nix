@@ -7,21 +7,21 @@
   inherit (lib.lists) elem filter;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.enums) categories;
-  nestedRegistry = _.applications.registry;
+  inherit (_.applications.registry) nested;
 
   __exports = {
     internal = {
-      inherit
-        registry
-        appsWithCategory
-        lookupApp
-        wmMatch
-        resolveExec
-        mkApps
-        ;
+      # inherit
+      #   registry
+      #   appsWithCategory
+      #   lookupApp
+      #   wmMatch
+      #   resolveExec
+      #   mkApps
+      #   ;
     };
     external = {
-      appRegistry = registry;
+      # appRegistry = registry;
     };
   };
 
@@ -36,7 +36,7 @@
         then throw "Unknown categories in '${name}': ${toString bad}"
         else app
     )
-    (mergeAttrsList (attrValues nestedRegistry));
+    (mergeAttrsList (attrValues nested));
 
   # ── Lookup ───────────────────────────────────────────────────────────────────
 
@@ -98,5 +98,5 @@
       ))
     registry;
 in
-  registry
-# __exports.internal // {_rootAliases = __exports.external;}
+  # registry
+  __exports.internal // {_rootAliases = __exports.external;}
