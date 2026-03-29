@@ -1,4 +1,5 @@
 {
+  # config,
   host,
   lib,
   lix,
@@ -6,7 +7,9 @@
   ...
 }: let
   dom = "interface";
+  # cfg = config.${top}.${dom};
 
+  inherit (lib.modules) mkIf;
   inherit (lib.types) nullOr str;
   inherit (lix.filesystem.importers) importAllPaths;
   inherit (lix.types.options) mkTrue mkOption mkEnumOption;
@@ -22,6 +25,7 @@
     displayProtocols
     windowManagers
     ;
+  isDank = ui.gui.bar == "dms-shell";
 in {
   imports = importAllPaths ./.;
 
@@ -91,5 +95,10 @@ in {
       default = ui.keyboard;
       type = types.keyboard;
     };
+  };
+
+  config = mkIf isDank {
+    programs.dms-shell.enable = true;
+    services.displayManager.dms-greeter.enable = true;
   };
 }
