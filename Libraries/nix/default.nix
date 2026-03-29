@@ -11,6 +11,7 @@
   excludedDirs ? [
     "review"
     "archive"
+    "internal"
     "test"
     # "tests"
     "tmp"
@@ -352,13 +353,20 @@
     ]
     // {
       inherit extend path;
+      src = path;
+      lib = lib';
+
+      options =
+        lib.options
+        // lib.modules
+        // customLib.types.options or {};
 
       types =
         customLib.types
+        // lib.types
+        // lib.options
         // customLib.types.options or {}
         // customLib.types.predicates or {};
-      src = path;
-      lib = lib';
     };
 in {
   ${name} = finalLib;
