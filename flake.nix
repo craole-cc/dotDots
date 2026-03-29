@@ -158,7 +158,7 @@
     };
 
     shellDankMaterial = {
-      ref = "stable";
+      # ref = "stable";
       repo = "DankMaterialShell";
       owner = "AvengeMedia";
       type = "github";
