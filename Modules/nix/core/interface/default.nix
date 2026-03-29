@@ -25,7 +25,7 @@
     displayProtocols
     windowManagers
     ;
-  inherit (gui) bar window;
+  inherit (ui.gui) bar window;
   compositor = window;
   isDank = bar == "dms-shell";
 in {
