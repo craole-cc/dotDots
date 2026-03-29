@@ -158,7 +158,8 @@
       primary = "vicinae";
       secondary = "fuzzel";
     };
-    bar = "caelestia";
+    # bar = "caelestia";
+    bar = "dank";
     prompt = "starship";
 
     allowed = [

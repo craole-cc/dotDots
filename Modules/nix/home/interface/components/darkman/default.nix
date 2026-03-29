@@ -48,6 +48,8 @@
     "Catppuccin Latte" = "Catppuccin Latte";
     "Catppuccin Macchiato" = "Catppuccin Macchiato";
     "Catppuccin Mocha" = "Catppuccin Mocha";
+    "Kaolin Temple" = "Kaolin Temple";
+    "Kaolin Valley Light" = "Kaolin Valley Light";
   };
 
   toggle = polarity:
@@ -64,8 +66,8 @@
             else lightTheme
           } or (
             if polarity == "dark"
-            then "Catppuccin Frappé"
-            else "Catppuccin Latte"
+            then "Kaolin Temple"
+            else "Kaolin Valley Light"
           );
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";

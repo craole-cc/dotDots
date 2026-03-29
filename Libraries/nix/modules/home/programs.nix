@@ -5,10 +5,10 @@
 }: let
   inherit (_.inputs.modules) mkModule;
   inherit (_.lists.predicates) isIn;
-  inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
-  inherit (lib.strings) hasInfix splitString toLower;
+  inherit (lib.attrsets) attrByPath isAttrs mapAttrs;
+  inherit (lib.strings) hasInfix replaceStrings splitString toLower;
 
-  exports = rec {
+  __exports = rec {
     internal = {
       inherit defaults mkApp mkApps mkPrograms;
       mkHomeApp = mkApp;
@@ -23,7 +23,7 @@
   normalizeName = value:
     if value == null
     then null
-    else builtins.replaceStrings [" " "_"] ["-" "-"] (toLower value);
+    else replaceStrings [" " "_"] ["-" "-"] (toLower value);
 
   normalizeNames = values: map normalizeName values;
 
@@ -38,6 +38,7 @@
 
       caelestia.aliases = normalizeNames ["caelestia-shell" "cls"];
       "dank-material-shell".aliases = normalizeNames ["dms" "dank"];
+      "dms-plugin-registry".aliases = normalizeNames ["dmsp" "dank-plugins"];
       "noctalia-shell".aliases = normalizeNames ["noctalia" "noctalia-dev"];
       nvf.aliases = normalizeNames ["nvim" "neovim"];
 
@@ -132,15 +133,21 @@
     ...
   }: let
     apps = user.applications or {};
-    appsAllowed = normalizeNames (attrByPath ["applications" "allowed"] [] user);
+    appsAllowed = normalizeNames (
+      attrByPath ["applications" "allowed"] [] user
+    );
     ui = user.interface or {};
-    de = normalizeName (attrByPath ["desktopEnvironment"] "" ui);
+    de = normalizeName (
+      attrByPath ["desktopEnvironment"] "" ui
+    );
+
     theme = let
       t = attrByPath ["style" "theme"] {} ui;
     in {
       light = normalizeName (t.light or "");
       dark = normalizeName (t.dark or "");
     };
+
     bar = normalizeName (attrByPath ["bar"] null apps);
     firefox = normalizeName (attrByPath ["browser" "firefox"] "" apps);
 
@@ -152,6 +159,18 @@
     };
     hasAnyApp = names: extras: isIn names (appsAllowed ++ normalizeNames extras);
     context = {inherit appsAllowed bar theme de firefox hasAnyApp tty;};
+
+    isDankAllowed = {
+      hasAnyApp,
+      bar,
+      ...
+    }: let
+      dankNames = normalizeNames (
+        ["dank-material-shell"]
+        ++ (defaults.apps."dank-material-shell".aliases or [])
+      );
+    in
+      hasAnyApp dankNames [bar];
 
     appSpecs = {
       plasma.condition = {
@@ -181,13 +200,21 @@
         ...
       }:
         hasAnyApp names [bar];
-      "dank-material-shell".condition = {
-        names,
-        hasAnyApp,
-        bar,
-        ...
-      }:
-        hasAnyApp names [bar];
+
+      "dank-material-shell".condition = isDankAllowed;
+      "dms-plugin-registry".condition = isDankAllowed;
+
+      # "dank-material-shell".condition = {
+      #   names,
+      #   hasAnyApp,
+      #   bar,
+      #   ...
+      # }:
+      #   hasAnyApp names [bar];
+
+      # "dms-plugin-registry".condition = args:
+      #   appSpecs."dank-material-shell".condition args;
+
       "noctalia-shell".condition = {
         names,
         hasAnyApp,
@@ -315,4 +342,4 @@
   in
     mapAttrs mkCategory programDefaults // {inherit resolveProgram;};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}

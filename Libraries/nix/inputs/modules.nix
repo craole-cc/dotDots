@@ -65,16 +65,18 @@
     (
       if class == "darwin"
       then [
+        (inputs.age.darwinModules.default or {})
         (inputs.home-manager.darwinModules.home-manager or {})
         (inputs.stylix.darwinModules.stylix or {})
-        (inputs.age.darwinModules.default or {})
       ]
       else [
-        (inputs.home-manager.nixosModules.home-manager or {})
         (inputs.age.nixosModules.age or {})
-        (inputs.stylix.nixosModules.stylix or {})
         (inputs.catppuccin.nixosModules.default or {})
         (inputs.chaotic.nixosModules.default or {})
+        (inputs.dank-material-shell.nixosModules.default or {})
+        (inputs.dms-plugin-registry.nixosModules.default or {})
+        (inputs.home-manager.nixosModules.home-manager or {})
+        (inputs.stylix.nixosModules.stylix or {})
       ]
     )
     ++ optionals (class == "darwin") [
@@ -100,6 +102,7 @@
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};
     };
+    dms-plugin-registry = inputs.dms-plugin-registry.homeModules or {};
     noctalia-shell = inputs.noctalia-shell.homeModules or {};
     caelestia = inputs.caelestia.homeManagerModules or {};
     catppuccin = inputs.catppuccin.homeModules or {};

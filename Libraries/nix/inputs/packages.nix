@@ -67,6 +67,7 @@
           "caelestia"
           "catppuccin"
           "dank-material-shell"
+          "dms-plugin-registry"
           "fresh-editor"
           "helix"
           "home-manager"

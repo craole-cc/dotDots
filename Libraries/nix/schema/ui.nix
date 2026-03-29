@@ -21,11 +21,11 @@
     optional
     unique
     ;
-  inherit (lib.options) mkOption;
   inherit (lib.strings) optionalString;
-  inherit (lib.types) submodule nullOr str attrsOf;
-  inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.lists.generators) mkEnum;
+  inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
+  inherit (_.schema) io;
+  inherit (_.types._) mkOption submodule nullOr str;
   sh = _.applications.shells;
 
   __exports = {
@@ -86,6 +86,8 @@
 
     #~@ Types
     types = rec {
+      inherit (io.types) keyboard;
+
       gui = submodule {
         options = {
           desktop = mkOption {
@@ -129,29 +131,11 @@
           editor = mkOption {type = app;};
         };
       };
-
-      keybind = submodule {
-        options = {
-          action = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          mods = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          key = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-        };
-      };
-
-      keyboard = attrsOf keybind;
     };
   };
 
   defaults = {
+    inherit (io.defaults) keyboard;
     apps = {
       launcher = {
         pri = "vicinae";
@@ -484,11 +468,23 @@
           notification = "dms-shell";
         };
         apps = recursiveUpdate defaults.apps {
-          launcher.sec = "dank";
+          launcher.sec = "dms-shell";
           terminal.pri = "foot";
         };
         keyboard = recursiveUpdate defaults.keyboard {
-          lock.action = "dms-shell lock";
+          lock.action = "dms ipc call lock lock";
+          screenshot.action = "dms ipc call niri screenshotScreen";
+          screenshotRegion.action = "dms ipc call niri screenshot";
+          screenshotWindow.action = "dms ipc call niri screenshotWindow";
+          launcher.action = "dms ipc call spotlight toggle";
+          clipboard.action = "dms ipc call clipboard toggle";
+          notifications.action = "dms ipc call notifications toggle";
+          controlCenter.action = "dms ipc call control-center toggle";
+          powerMenu.action = "dms ipc call powermenu toggle";
+          taskManager.action = "dms ipc call processlist toggle";
+          nightMode.action = "dms ipc call night toggle";
+          doNotDisturb.action = "dms ipc call notifications toggleDoNotDisturb";
+          dash.action = "dms ipc call dash toggle overview";
         };
       };
 
@@ -514,6 +510,9 @@
   in {
     hyprland = recursiveUpdate (mkWayland "hyprland") {
       keyboard = {
+        overview.action = "dms ipc call hypr toggleOverview";
+        workspaceRename.action = "dms ipc call workspace-rename open";
+        keybinds.action = "dms ipc call keybinds toggle hyprland";
         close.action = "hyprctl dispatch killactive";
         fullscreen.action = "hyprctl dispatch fullscreen 0";
         maximize.action = "hyprctl dispatch fullscreen 1";
@@ -525,7 +524,6 @@
         groupLock.action = "hyprctl dispatch lockactivegroup toggle";
         workspacePrev.action = "hyprctl dispatch workspace previous";
         windowCycle.action = "hyprctl dispatch focuscurrentorlast";
-        lock.action = "hyprlock";
         logout.action = "hyprctl dispatch exit";
         screenshot.action = "hyprshot -m output";
         screenshotRegion.action = "hyprshot -m region";
@@ -534,13 +532,14 @@
     };
     niri = recursiveUpdate (mkWayland "niri") {
       keyboard = {
+        workspaceRename.action = "dms ipc call workspace-rename open";
+        keybinds.action = "dms ipc call keybinds toggle niri";
         close.action = "niri msg action close-window";
         fullscreen.action = "niri msg action fullscreen-window";
         maximize.action = "niri msg action maximize-column";
         float.action = "niri msg action toggle-window-floating";
         workspacePrev.action = "niri msg action focus-workspace-previous";
         windowCycle.action = "niri msg action focus-window-previous";
-        lock.action = "swaylock";
         logout.action = "niri msg action quit";
         screenshot.action = "grim";
         screenshotRegion.action = "grim -g \"$(slurp)\"";
@@ -550,6 +549,7 @@
 
     sway = recursiveUpdate (mkWayland "sway") {
       keyboard = {
+        keybinds.action = "dms ipc call keybinds toggle sway";
         close.action = "swaymsg kill";
         fullscreen.action = "swaymsg fullscreen toggle";
         maximize.action = "swaymsg fullscreen toggle";
@@ -558,7 +558,7 @@
         split.action = "swaymsg split toggle";
         workspacePrev.action = "swaymsg workspace back_and_forth";
         windowCycle.action = "swaymsg focus next";
-        lock.action = "swaylock";
+        # lock.action = "swaylock";
         logout.action = "swaymsg exit";
         screenshot.action = "grim";
         screenshotRegion.action = "grim -g \"$(slurp)\"";
@@ -572,7 +572,7 @@
         fullscreen.action = "riverctl toggle-fullscreen";
         float.action = "riverctl toggle-float";
         workspacePrev.action = "riverctl focus-previous-tags";
-        lock.action = "swaylock";
+        # lock.action = "swaylock";
         logout.action = "riverctl exit";
         screenshot.action = "grim";
         screenshotRegion.action = "grim -g \"$(slurp)\"";

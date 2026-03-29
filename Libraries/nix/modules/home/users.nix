@@ -75,6 +75,7 @@
             caelestia.module
             catppuccin.module
             dank-material-shell.module
+            dms-plugin-registry.module
             noctalia-shell.module
             nvf.module
             plasma.module

@@ -1,15 +1,46 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) isAttrs mapAttrs recursiveUpdate;
   inherit (lib.lists) isList;
   inherit (lib.strings) concatStringsSep;
+  inherit (_.types._) attrsOf mkOption submodule nullOr str;
 
   __exports = {
-    internal = {
-      inherit defaults normalizeKeyboard mkKeyboard mkBind;
-      keyboardDefaults = defaults.keyboard;
-      mkHyprKeybinds = mkBind.hyprland;
-    };
+    internal =
+      composites
+      // {
+        inherit defaults normalizeKeyboard mkKeyboard mkBind;
+        keyboardDefaults = defaults.keyboard;
+        mkHyprKeybinds = mkBind.hyprland;
+      };
     external = {mkKeyboardSchema = mkKeyboard;};
+  };
+
+  composites = {
+    #~@ Types
+    types = rec {
+      keybind = submodule {
+        options = {
+          action = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+          mod = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+          key = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+        };
+      };
+
+      keyboard = attrsOf keybind;
+    };
   };
 
   mod = ["SUPER"];

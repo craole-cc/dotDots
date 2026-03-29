@@ -69,8 +69,8 @@ in {
 
     shell = mkEnumOption {
       description = "Login shell";
-      default = ui.shell.interactive;
-      input = shells;
+      default = ui.shell.system;
+      input = shells.system;
       nullable = true;
     };
 
@@ -91,56 +91,5 @@ in {
       default = ui.keyboard;
       type = types.keyboard;
     };
-
-    # windowShell = mkOption {
-    #   description = "Status bar / window shell component";
-    #   default = ui.windowShell;
-    #   type = nullOr str;
-    # };
-    #     # shell = mkOption {
-    #   description = "Shell";
-    #   default = ui.shell;
-    #   type = nullOr (enum shells.values);
-    # };
-    # shellPrompt = mkOption {
-    #   description = "Shell prompt";
-    #   default = ui.shellPrompt;
-    #   type = nullOr str;
-    # };
-    # desktopShell = mkOption {
-    #   description = "Desktop manager UI shell";
-    #   default = ui.desktopShell;
-    #   type = nullOr str;
-    # };
-    # terminal = mkOption {
-    #   description = "Default terminal";
-    #   default = ui.terminal;
-    #   type = nullOr str;
-    # };
-    # appLauncher = mkOption {
-    #   description = "Application launcher";
-    #   default = ui.appLauncher;
-    #   type = nullOr str;
-    # };
-    # fileManager = mkOption {
-    #   description = "File manager";
-    #   default = ui.fileManager;
-    #   type = nullOr str;
-    # };
-    # notificationDaemon = mkOption {
-    #   description = "Notification daemon";
-    #   default = ui.notificationDaemon;
-    #   type = nullOr str;
-    # };
-    # bar = mkOption {
-    #   description = "Status bar";
-    #   default = ui.bar;
-    #   type = nullOr str;
-    # };
-    # keyboard = mkOption {
-    #   description = "Keyboard config and bindings";
-    #   default = ui.keyboard;
-    #   type = attrs;
-    # };
   };
 }

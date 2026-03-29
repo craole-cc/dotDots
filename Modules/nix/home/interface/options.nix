@@ -1,109 +1,93 @@
 {
   host,
+  user,
   lib,
   lix,
-  user,
   top,
   ...
 }: let
   dom = "interface";
-  # cfg = config.${top}.${dom};
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.types) enum nullOr;
-  inherit (lix.types.options) mkTrue mkOption;
+
+  inherit (lib.types) nullOr str;
+  inherit (lix.types.options) mkTrue mkOption mkEnumOption;
   inherit (lix.schema.ui) mkUI;
 
   ui = mkUI {inherit host user;};
-  inherit (ui.interfaces) desktopEnvironments displayManagers windowManagers;
-  inherit (ui) sessions;
+  inherit
+    (ui.composites)
+    types
+    shells
+    desktopEnvironments
+    displayManagers
+    displayProtocols
+    windowManagers
+    ;
 in {
   options.${top}.${dom} = {
     enable = mkTrue dom;
+
     available = mkOption {
       description = "Available interfaces";
-      default = {
-        inherit
-          desktopEnvironments
-          displayManagers
-          windowManagers
-          sessions
-          ;
-      };
+      default = {inherit desktopEnvironments windowManagers;};
     };
-    desktopEnvironment = mkOption {
-      description = "Desktop environment";
+
+    desktopEnvironment = mkEnumOption {
+      description = "Desktop Environment";
       default = ui.desktopEnvironment;
-      type = nullOr (enum (attrNames desktopEnvironments));
+      input = desktopEnvironments;
+      nullable = true;
     };
-    windowManager = mkOption {
-      description = "Window manager";
+
+    windowManager = mkEnumOption {
+      description = "Window Manager";
       default = ui.windowManager;
-      type = nullOr (enum (attrNames windowManagers));
+      input = windowManagers;
+      nullable = true;
     };
-    displayManager = mkOption {
-      description = "Display manager";
+
+    displayManager = mkEnumOption {
+      description = "Display Manager";
       default = ui.displayManager;
-      type = nullOr (enum (attrNames displayManagers));
+      input = displayManagers;
+      nullable = true;
     };
-    # displayProtocol = mkOption {
-    #   description = "Display protocol";
-    #   default = ui.displayProtocol;
-    #   type = enum displayProtocols.values;
-    # };
-    # defaultSession = mkOption {
-    #   description = "Default display manager session";
-    #   default = iface.defaultSession;
-    #   type = nullOr str;
-    # };
-    # windowShell = mkOption {
-    #   description = "Status bar / window shell component";
-    #   default = iface.windowShell;
-    #   type = nullOr str;
-    # };
-    # shell = mkOption {
-    #   description = "Shell";
-    #   default = iface.shell;
-    #   type = nullOr (enum shells.values);
-    # };
-    # shellPrompt = mkOption {
-    #   description = "Shell prompt";
-    #   default = iface.shellPrompt;
-    #   type = nullOr str;
-    # };
-    # desktopShell = mkOption {
-    #   description = "Desktop manager UI shell";
-    #   default = iface.desktopShell;
-    #   type = nullOr str;
-    # };
-    # # terminal = mkOption {
-    # #   description = "Default terminal";
-    # #   default = iface.terminal;
-    # #   type = nullOr str;
-    # # };
-    # appLauncher = mkOption {
-    #   description = "Application launcher";
-    #   default = iface.appLauncher;
-    #   type = nullOr str;
-    # };
-    # # fileManager = mkOption {
-    # #   description = "File manager";
-    # #   default = iface.fileManager;
-    # #   type = nullOr str;
-    # # };
-    # notificationDaemon = mkOption {
-    #   description = "Notification daemon";
-    #   default = iface.notificationDaemon;
-    #   type = nullOr str;
-    # };
-    # bar = mkOption {
-    #   description = "Status bar";
-    #   default = iface.bar;
-    #   type = nullOr str;
-    # };
-    # keyboard = mkOption {
-    #   description = "Keyboard config and bindings";
-    #   default = iface.keyboard;
-    #   type = attrs;
-    # };
+
+    displayProtocol = mkEnumOption {
+      description = "Display Protocols";
+      default = ui.displayProtocol;
+      input = displayProtocols;
+      nullable = true;
+    };
+
+    defaultSession = mkOption {
+      description = "Default display manager session";
+      default = ui.defaultSession;
+      type = nullOr str;
+    };
+
+    shell = mkEnumOption {
+      description = "Interactive shell";
+      default = ui.shell.interactive;
+      input = shells.interactive;
+      nullable = true;
+    };
+
+    apps = mkOption {
+      description = "Default applications";
+      default = ui.apps;
+      type = types.apps;
+    };
+
+    gui = mkOption {
+      description = "GUI components";
+      default = ui.gui;
+      type = types.gui;
+    };
+
+    keyboard = mkOption {
+      description = "Keyboard config and bindings";
+      default = ui.keyboard;
+      type = types.keyboard;
+    };
   };
 }
