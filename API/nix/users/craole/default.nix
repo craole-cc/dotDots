@@ -38,71 +38,71 @@
     shell = "bash";
     prompt = "starship";
     keyboard = {
-      modifier = "SUPER";
+      # modifier = "SUPER";
       swapCapsEscape = false;
       vimKeybinds = false;
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
-      bindings = {
-        #~@ Quick Launch
-        launcher = {
-          # primary = {
-          # bind="Super";
-          # command =
-          # secondary = "Super+Space";
-          # }
-        };
-        terminal = "Meta+Return";
-        fileManager = "Meta+E";
+      # bindings = {
+      #   #~@ Quick Launch
+      #   launcher = {
+      #     # primary = {
+      #     # bind="Super";
+      #     # command =
+      #     # secondary = "Super+Space";
+      #     # }
+      #   };
+      #   terminal = "Meta+Return";
+      #   fileManager = "Meta+E";
 
-        #~@ Quake/Scratchpad Terminals
-        quake1 = "Meta+grave"; # Super + `
-        quake2 = "Meta+Shift+grave"; # Super + ~
+      #   #~@ Quake/Scratchpad Terminals
+      #   quake1 = "Meta+grave"; # Super + `
+      #   quake2 = "Meta+Shift+grave"; # Super + ~
 
-        #~@ Applications
-        browser = {
-          primary = "Meta+B";
-          secondary = "Meta+Shift+B";
-        };
+      #   #~@ Applications
+      #   browser = {
+      #     primary = "Meta+B";
+      #     secondary = "Meta+Shift+B";
+      #   };
 
-        editor = {
-          tty = {
-            primary = "Meta+C";
-            secondary = "Meta+Shift+C";
-          };
-          gui = {
-            primary = "Meta+V";
-            secondary = "Meta+Shift+V";
-          };
-        };
+      #   editor = {
+      #     tty = {
+      #       primary = "Meta+C";
+      #       secondary = "Meta+Shift+C";
+      #     };
+      #     gui = {
+      #       primary = "Meta+V";
+      #       secondary = "Meta+Shift+V";
+      #     };
+      #   };
 
-        #~@ Window Management
-        closeWindow = "Meta+Q";
-        fullscreen = "Meta+F";
-        floating = "Meta+Space";
+      #   #~@ Window Management
+      #   closeWindow = "Meta+Q";
+      #   fullscreen = "Meta+F";
+      #   floating = "Meta+Space";
 
-        #~@ Workspace Navigation
-        workspace = {
-          next = "Meta+Right";
-          prev = "Meta+Left";
-          # Or specific workspaces: "Meta+1" through "Meta+9"
-        };
+      #   #~@ Workspace Navigation
+      #   workspace = {
+      #     next = "Meta+Right";
+      #     prev = "Meta+Left";
+      #     # Or specific workspaces: "Meta+1" through "Meta+9"
+      #   };
 
-        #~@ System
-        lock = "Meta+L";
-        logout = "Meta+Shift+E";
-        screenshot = "Print";
-        screenshotArea = "Meta+Shift+S";
+      #   #~@ System
+      #   lock = "Meta+L";
+      #   logout = "Meta+Shift+E";
+      #   screenshot = "Print";
+      #   screenshotArea = "Meta+Shift+S";
 
-        #~@ Audio
-        volumeUp = "XF86AudioRaiseVolume";
-        volumeDown = "XF86AudioLowerVolume";
-        volumeMute = "XF86AudioMute";
+      #   #~@ Audio
+      #   volumeUp = "XF86AudioRaiseVolume";
+      #   volumeDown = "XF86AudioLowerVolume";
+      #   volumeMute = "XF86AudioMute";
 
-        #~@ Brightness
-        brightnessUp = "XF86MonBrightnessUp";
-        brightnessDown = "XF86MonBrightnessDown";
-      };
+      #   #~@ Brightness
+      #   brightnessUp = "XF86MonBrightnessUp";
+      #   brightnessDown = "XF86MonBrightnessDown";
+      # };
     };
     style = {
       autoSwitch = true;

@@ -15,7 +15,6 @@
     foldlAttrs
     isAttrs
     mapAttrs
-    # removeAttrs
     filterAttrs
     ;
   inherit

@@ -321,7 +321,7 @@
         explorer.pri = "nautilus";
         editor.sec = "gedit";
       };
-      keyboard = {
+      keyboard.bindings = {
         close.action = "dbus-send --type=method_call --dest=org.gnome.Shell /org/gnome/Shell org.gnome.Shell.Eval string:'global.display.get_focus_window().delete(global.get_current_time());'";
         lock.action = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock";
         logout.action = "gnome-session-quit --logout --no-prompt";
@@ -349,7 +349,7 @@
         explorer.pri = "dolphin";
         editor.sec = "kate";
       };
-      keyboard = {
+      keyboard.bindings = {
         close.action = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Window Close'";
         lock.action = "qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock";
         logout.action = "qdbus org.kde.Shutdown /Shutdown logout";
@@ -376,7 +376,7 @@
         explorer.pri = "cosmic-files";
         editor.sec = "cosmic-text-editor";
       };
-      keyboard = {
+      keyboard.bindings = {
         close.action = "cosmic-comp-msg action close";
         lock.action = "cosmic-session-ctl lock";
         logout.action = "cosmic-session-ctl logout";
@@ -400,7 +400,7 @@
         explorer.pri = "pantheon-files";
         editor.sec = "mousepad";
       };
-      keyboard = {
+      keyboard.bindings = {
         lock.action = "io.elementary.desktop.agent-polkit --lock";
       };
     };
@@ -423,7 +423,7 @@
         explorer.pri = "nemo";
         editor.sec = "mousepad";
       };
-      keyboard = {
+      keyboard.bindings = {
         lock.action = "cinnamon-screensaver-command --lock";
         logout.action = "cinnamon-session-quit --logout --no-prompt";
       };
@@ -446,7 +446,7 @@
         explorer.pri = "thunar";
         editor.sec = "mousepad";
       };
-      keyboard = {
+      keyboard.bindings = {
         lock.action = "xflock4";
         logout.action = "xfce4-session-logout --logout --fast";
       };
@@ -471,7 +471,7 @@
           launcher.sec = "dms-shell";
           terminal.pri = "foot";
         };
-        keyboard = recursiveUpdate defaults.keyboard {
+        keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
           lock.action = "dms ipc call lock lock";
           screenshot.action = "dms ipc call niri screenshotScreen";
           screenshotRegion.action = "dms ipc call niri screenshot";
@@ -509,7 +509,7 @@
       };
   in {
     hyprland = recursiveUpdate (mkWayland "hyprland") {
-      keyboard = {
+      keyboard.bindings = {
         overview.action = "dms ipc call hypr toggleOverview";
         workspaceRename.action = "dms ipc call workspace-rename open";
         keybinds.action = "dms ipc call keybinds toggle hyprland";
@@ -531,7 +531,7 @@
       };
     };
     niri = recursiveUpdate (mkWayland "niri") {
-      keyboard = {
+      keyboard.bindings = {
         workspaceRename.action = "dms ipc call workspace-rename open";
         keybinds.action = "dms ipc call keybinds toggle niri";
         close.action = "niri msg action close-window";
@@ -548,7 +548,7 @@
     };
 
     sway = recursiveUpdate (mkWayland "sway") {
-      keyboard = {
+      keyboard.bindings = {
         keybinds.action = "dms ipc call keybinds toggle sway";
         close.action = "swaymsg kill";
         fullscreen.action = "swaymsg fullscreen toggle";
@@ -567,7 +567,7 @@
     };
 
     river = recursiveUpdate (mkWayland "river") {
-      keyboard = {
+      keyboard.bindings = {
         close.action = "riverctl close";
         fullscreen.action = "riverctl toggle-fullscreen";
         float.action = "riverctl toggle-float";
@@ -580,7 +580,7 @@
     };
 
     i3 = recursiveUpdate (mkXorg "i3") {
-      keyboard = {
+      keyboard.bindings = {
         close.action = "i3-msg kill";
         fullscreen.action = "i3-msg fullscreen toggle";
         float.action = "i3-msg floating toggle";
@@ -595,7 +595,7 @@
     };
 
     bspwm = recursiveUpdate (mkXorg "bspwm") {
-      keyboard = {
+      keyboard.bindings = {
         close.action = "bspc node -c";
         fullscreen.action = "bspc node -t fullscreen";
         float.action = "bspc node -t floating";
@@ -611,7 +611,7 @@
 
     qtile = recursiveUpdate (mkXorg "qtile") {
       gui.bar = "qtile";
-      keyboard = {
+      keyboard.bindings = {
         close.action = "qtile-cmd -o window -f kill";
         fullscreen.action = "qtile-cmd -o window -f toggle_fullscreen";
         float.action = "qtile-cmd -o window -f toggle_floating";
@@ -625,7 +625,7 @@
 
     awesome = recursiveUpdate (mkXorg "awesome") {
       gui.bar = "awesome";
-      keyboard = {
+      keyboard.bindings = {
         close.action = "awesome-client 'client.focus:kill()'";
         fullscreen.action = "awesome-client 'client.focus.fullscreen = not client.focus.fullscreen; client.focus:raise()'";
         float.action = "awesome-client 'client.focus.floating = not client.focus.floating'";
@@ -638,7 +638,7 @@
 
     xmonad = recursiveUpdate (mkXorg "xmonad") {
       gui.bar = "xmobar";
-      keyboard = {
+      keyboard.bindings = {
         close.action = "xmonadctl kill";
         fullscreen.action = "xmonadctl full";
         logout.action = "xmonadctl quit";
@@ -659,7 +659,7 @@
         browser.sec = "chromium";
         editor.pri = "mousepad";
       };
-      keyboard = {
+      keyboard.bindings = {
         close.action = "openbox-msg close";
         fullscreen.action = "openbox-msg fullscreen";
         float.action = "openbox-msg undecorate toggle";

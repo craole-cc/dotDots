@@ -6,43 +6,9 @@
   keyboard,
   ...
 }: let
-  inherit (lib.lists) filter;
   inherit (lib.modules) mkIf;
   inherit (lix.hardware.display) mkHyprlandMonitors;
-  inherit (lix.schema.io) mkHyprKeybinds;
-
-  systemBinds = filter (x: x != null) (
-    map mkHyprKeybinds (with keyboard; [
-      browser
-      browserSec
-      close
-      fileManager
-      fileManagerSec
-      float
-      fullscreen
-      groupLock
-      groupToggle
-      lock
-      logout
-      maximize
-      pin
-      pseudo
-      reboot
-      reboot_soft
-      screenshot
-      screenshotRegion
-      screenshotWindow
-      shutdown
-      sleep
-      split
-      terminal
-      terminalSec
-      visual
-      visualSec
-      windowCycle
-      workspacePrev
-    ])
-  );
+  inherit (lix.schema.io) mkHyprKeybindings;
 
   mod = keyboard.modifier;
 in {
@@ -59,23 +25,7 @@ in {
     kb_options = mkIf keyboard.swapCapsEscape "caps:swapescape";
   };
 
-  bind =
-    systemBinds
-    # ++ [
-    #   #~@ Window management (hyprland-specific, not in schema)
-    #   "${mod}, S, togglesplit"
-    #   "${mod}, P, pseudo"
-    #   "${mod}, F, fullscreen, 1"
-    #   "${mod}, G, togglegroup"
-    #   "${mod}, T, lockactivegroup, toggle"
-    #   "${mod}, TAB, workspace, previous"
-    #   "ALT, RETURN, fullscreen, 0"
-    #   "ALT SHIFT, RETURN, togglefloating"
-    #   "${mod} SHIFT, F, togglefloating"
-    #   "${mod} CTRL, F, pin"
-    #   "ALT, TAB, focuscurrentorlast"
-    # ]
-    ++ [];
+  bind = mkHyprKeybindings keyboard;
 
   bindr = [
     "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"
