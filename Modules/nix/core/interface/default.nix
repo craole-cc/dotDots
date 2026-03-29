@@ -14,8 +14,7 @@
 
   ui = mkUI {inherit host;};
   inherit
-    (ui)
-    sessions
+    (ui.composites)
     shells
     desktopEnvironments
     displayManagers
@@ -27,15 +26,10 @@ in {
 
   options.${top}.${dom} = {
     enable = mkTrue dom;
+
     available = mkOption {
       description = "Available interfaces";
-      default = {
-        inherit
-          desktopEnvironments
-          windowManagers
-          ;
-        inherit sessions;
-      };
+      default = {inherit desktopEnvironments windowManagers;};
     };
 
     desktopEnvironment = mkEnumOption {

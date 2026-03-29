@@ -24,7 +24,7 @@
   inherit (lib.strings) optionalString;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.lists.generators) mkEnum;
-  sh = _.schema.applications.shells;
+  sh = _.applications.shells;
 
   __exports = {
     internal = {
@@ -34,12 +34,12 @@
         displayManagers
         desktopEnvironments
         windowManagers
-        normalizeInterface
+        normalize
         ;
     };
     external = {
       mkUISchema = mkUI;
-      normalizeUISchema = normalizeInterface;
+      normalizeUISchema = normalize;
     };
   };
 
@@ -70,7 +70,7 @@
       };
     };
     composites = {
-      shells = sh.all;
+      shells = sh.interactive;
       inherit
         desktopEnvironments
         windowManagers
@@ -78,7 +78,7 @@
         displayProtocols
         ;
       enums = {
-        shells = sh.enum;
+        shells = sh.enums.interactive;
         desktopEnvironments = mkEnum {
           values = desktopEnvironments;
           nullable = true;
