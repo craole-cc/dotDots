@@ -65,9 +65,9 @@
       // lib.modules
       // prev.types.modules or {};
 
-    options =
-      lib.options
-      // prev.types.options or {};
+    # options =
+    #   lib.options
+    #   // prev.types.options or {};
 
     types =
       prev.types or {}

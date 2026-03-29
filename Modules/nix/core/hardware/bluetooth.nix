@@ -33,6 +33,6 @@ in {
 
     services.blueman.enable = true;
 
-    environment.systemPackages = [pkgs.bluez];
+    # environment.systemPackages = [pkgs.bluez];
   };
 }

@@ -3,7 +3,33 @@
   lib,
   ...
 }: let
-  inherit (lib.options) mkEnableOption mkOption mergeUniqueOption;
+  __exports = {
+    internal = {
+      inherit
+        mkEnumOption
+        toOptionType
+        mkDefault
+        mkEnable
+        mkFalse
+        mkForce
+        mkIf
+        mkMerge
+        mkOption
+        mkTrue
+        ;
+      mkType = toOptionType;
+    };
+    external =
+      __exports.internal
+      // {
+        mkEnableOptionTrue = mkTrue;
+        mkEnableOptionFalse = mkFalse;
+        mkEnableOption' = mkEnable;
+      };
+  };
+
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.options) mkOption mergeUniqueOption;
   inherit (lib.modules) mkIf mkMerge mkDefault mkForce;
   inherit
     (lib.types)
@@ -21,31 +47,12 @@
   inherit (_.types.predicates) isString isAttrs;
   customTypes = _.types.checks;
 
-  __exports = {
-    internal = {
-      inherit
-        mkEnumOption
-        toOptionType
-        mkDefault
-        mkEnable
-        mkFalse
-        mkForce
-        mkIf
-        mkMerge
-        mkOption
-        mkTrue
-        ;
-      mkOptionType = toOptionType;
-      mkType = toOptionType;
-    };
-    external =
-      __exports.internal
-      // {
-        mkEnableOptionTrue = mkTrue;
-        mkEnableOptionFalse = mkFalse;
-        mkEnableOption' = mkEnable;
-      };
-  };
+  # Omits the `description` key entirely when null, so doc generators and
+  # `nixos-option` see an absent field rather than an explicit null.
+  optionalDesc = {description}:
+    optionalAttrs
+    (description != null)
+    {inherit description;};
 
   /**
   Bridges a `_.types.checks` type into a `lib.types`-compatible option type
@@ -58,6 +65,10 @@
 
   Primitive mappings: `"str"` | `"string"` → `str`, `"bool"` → `bool`,
   `"int"` → `int`, `"float"` → `float`, `"path"` → `path`.
+
+  Note: `customTypeOrName` must be a `_.types.checks` attrset or a string key
+  into it. Passing a bare `lib.types` value is not supported and will fail at
+  evaluation time.
 
   # Type
   `toOptionType :: (CustomType | String) -> OptionType`
@@ -104,11 +115,82 @@
         merge = mergeUniqueOption;
       };
 
+  /**
+  Creates a boolean enable option whose default is derived from a condition.
+  Useful when the default should depend on another value known at definition time.
+
+  `mkTrue` and `mkFalse` are convenience wrappers over this function for the
+  common `true` / `false` cases.
+
+  # Type
+  `mkEnable :: { description :: String?, condition :: Bool } -> Option`
+
+  # Arguments
+  - `description`: Human-readable description forwarded to `mkOption`. Optional.
+  - `condition`: Boolean expression used as the default value. Defaults to `true`.
+
+  # Examples
+  ```nix
+    mkEnable {
+      description = "hardware acceleration";
+      condition   = config.hardware.gpu.enable;
+    }
+
+    # With no condition, defaults to true
+    mkEnable { description = "some feature"; }
+  ```
+  */
+  mkEnable = {
+    description ? null,
+    condition ? true,
+  }:
+    mkOption {
+      default = condition;
+      type = bool;
+    }
+    // optionalDesc {inherit description;};
+
+  /**
+  Creates a `mkOption` backed by an enum type, with optional nullability.
+  Accepts either a pre-built enum attrset (from `mkEnum`) or a plain list of
+  values, which will be passed to `mkEnum` automatically.
+
+  When `input` is a pre-built enum attrset containing a `nullable` field, that
+  value takes precedence over the `nullable` argument.
+
+  # Type
+  `mkEnumOption :: { input :: ([String] | EnumType), description :: String?,
+                    default :: Any?, nullable :: Bool } -> Option`
+
+  # Arguments
+  - `input`: A list of valid string values, or a pre-built `mkEnum` attrset
+    with an `allValues` field.
+  - `description`: Option description forwarded to `mkOption`. Optional.
+  - `default`: Default value. Defaults to `null`.
+  - `nullable`: Whether to wrap the type in `nullOr`. Ignored when `input` is
+    a pre-built enum that already carries a `nullable` field. Defaults to `true`.
+
+  # Examples
+  ```nix
+    # From a plain list
+    mkEnumOption {
+      description = "log verbosity";
+      input       = [ "debug" "info" "warn" "error" ];
+      default     = "info";
+      nullable    = false;
+    }
+
+    # From a pre-built enum (nullable derived from the enum itself)
+    mkEnumOption {
+      input = mkEnum { values = [ "a" "b" "c" ]; nullable = false; };
+    }
+  ```
+  */
   mkEnumOption = {
-    description,
     input,
+    description ? null,
     default ? null,
-    nullable ? false,
+    nullable ? true,
   }: let
     e =
       if isAttrs input && input ? allValues
@@ -118,79 +200,57 @@
           values = input;
           inherit nullable;
         };
-
     isNullable = e.nullable or nullable;
   in
     mkOption {
-      inherit description default;
+      inherit default;
       type =
         if isNullable
         then nullOr (enum e.allValues)
         else enum e.allValues;
+    }
+    // optionalDesc {inherit description;};
+
+  /**
+  Creates a boolean enable option that defaults to `true`.
+
+  # Type
+  `mkTrue :: String? -> Option`
+
+  # Arguments
+  - `description`: Human-readable description forwarded to `mkOption`. Optional.
+
+  # Examples
+  ```nix
+    mkTrue "my feature"
+    # → mkOption { type = bool; default = true; description = "my feature"; }
+  ```
+  */
+  mkTrue = description:
+    mkEnable {
+      inherit description;
+      condition = true;
     };
 
   /**
-      Creates an enable option that defaults to `true`.
+  Creates a boolean enable option that defaults to `false`.
 
-      # Type
-      `mkTrue :: String -> Option`
+  # Type
+  `mkFalse :: String? -> Option`
 
-      # Arguments
-      - `description`: Description string passed to `mkEnableOption`.
+  # Arguments
+  - `description`: Human-readable description forwarded to `mkOption`. Optional.
 
-      # Examples
+  # Examples
   ```nix
-      mkTrue "my feature"
-      # → mkOption { type = bool; default = true; description = "Whether to enable my feature."; }
+    mkFalse "my feature"
+    # → mkOption { type = bool; default = false; description = "my feature"; }
   ```
   */
-  mkTrue = description: mkEnableOption description // {default = true;};
-
-  /**
-      Creates an enable option that defaults to `false`.
-      An alias of `mkEnableOption` provided for symmetry with `mkTrue`.
-
-      # Type
-      `mkFalse :: String -> Option`
-
-      # Arguments
-      - `description`: Description string passed to `mkEnableOption`.
-
-      # Examples
-  ```nix
-      mkFalse "my feature"
-      # → mkOption { type = bool; default = false; description = "Whether to enable my feature."; }
-  ```
-  */
-  mkFalse = description: mkEnableOption description;
-
-  /**
-      Creates an enable option with a dynamic default derived from a condition.
-      Useful when the default should depend on another value known at definition time.
-
-      # Type
-      `mkEnable :: { description :: String, condition :: Bool } -> Option`
-
-      # Arguments
-      - `description`: Description string passed to `mkEnableOption`.
-      - `condition`: Boolean expression used as the default value. Defaults to `true`.
-
-      # Examples
-  ```nix
-      mkEnable {
-        description = "hardware acceleration";
-        condition   = config.hardware.gpu.enable;
-      }
-
-      # With no condition, defaults to true
-      mkEnable { description = "some feature"; }
-  ```
-  */
-  mkEnable = {
-    description,
-    condition ? true,
-  }:
-    mkEnableOption description
-    // {default = condition;};
+  mkFalse = description:
+    mkEnable {
+      inherit description;
+      condition = false;
+    };
 in
   __exports.internal // {_rootAliases = __exports.external;}

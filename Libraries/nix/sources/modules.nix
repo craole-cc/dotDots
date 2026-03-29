@@ -11,7 +11,7 @@
     the system evaluation pipeline.
   '';
 
-  inherit (_.inputs.source) resolveInputs;
+  inherit (_.sources.source) resolveInputs;
   inherit (_.content.empty) isEmpty;
   inherit (lib.lists) optionals;
 

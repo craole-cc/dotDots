@@ -25,8 +25,8 @@
 
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
-  inherit (_.inputs.modules) mkModules;
-  inherit (_.inputs.packages) mkPackages;
+  inherit (_.sources.modules) mkModules;
+  inherit (_.sources.packages) mkPackages;
   inherit (_.modules.core._) mkCore;
   inherit (_.modules.home._) mkHome;
   inherit (lib.attrsets) attrNames genAttrs mapAttrs;

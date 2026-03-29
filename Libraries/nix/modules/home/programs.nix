@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.inputs.modules) mkModule;
+  inherit (_.sources.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs;
   inherit (lib.strings) hasInfix replaceStrings splitString toLower;

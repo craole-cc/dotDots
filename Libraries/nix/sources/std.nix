@@ -1,0 +1,20 @@
+{lib, ...}: {
+  inherit
+    (lib.sources)
+    canCleanSource
+    cleanSource
+    cleanSourceFilter
+    cleanSourceWith
+    commitIdFromGitRepo
+    filterSource
+    pathHasContext
+    pathIsGitRepo
+    repoRevToName
+    revOrTag
+    shortRev
+    sourceByRegex
+    sourceFilesBySuffices
+    trace
+    urlToName
+    ;
+}
