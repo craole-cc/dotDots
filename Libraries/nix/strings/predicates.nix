@@ -4,6 +4,37 @@
   lib,
   ...
 }: let
+  __exports = {
+    internal = {
+      inherit
+        contains
+        containsAll
+        endsWith
+        endsWithAll
+        isBinary
+        isPOSIX
+        isString
+        startsWith
+        startsWithAll
+        isConvertible
+        isLike
+        ;
+    };
+    external = {
+      inherit isString;
+      isStringLike = isLike;
+      isBinaryString = isBinary;
+      isStringConvertible = isConvertible;
+      isPOSIXString = isPOSIX;
+      stringContains = contains;
+      stringContainsAll = containsAll;
+      stringEndsWith = endsWith;
+      stringEndsWithAll = endsWithAll;
+      stringStartsWith = startsWith;
+      stringStartsWithAll = startsWithAll;
+    };
+  };
+
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.format) mkExample;
   inherit (_.debug.assertions) mkTest;
@@ -421,38 +452,10 @@
   ```
   */
   isPOSIX = lib.strings.isValidPosixName;
-
-  exports = {
-    inherit
-      contains
-      containsAll
-      endsWith
-      endsWithAll
-      isBinary
-      isPOSIX
-      isString
-      startsWith
-      startsWithAll
-      isConvertible
-      isLike
-      ;
-  };
 in
-  exports
+  __exports.internal
   // {
-    _rootAliases = {
-      inherit isString;
-      isStringLike = isLike;
-      isBinaryString = isBinary;
-      isStringConvertible = isConvertible;
-      isPOSIXString = isPOSIX;
-      stringContains = contains;
-      stringContainsAll = containsAll;
-      stringEndsWith = endsWith;
-      stringEndsWithAll = endsWithAll;
-      stringStartsWith = startsWith;
-      stringStartsWithAll = startsWithAll;
-    };
+    _rootAliases = __exports.external;
 
     _tests = runTests {
       contains = {

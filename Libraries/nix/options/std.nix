@@ -6,6 +6,9 @@
     mkOption
     mkPackageOption
     mkSinkUndeclaredOptions
+    showOption
+    showFiles
+    isOption
     ;
 
   inherit
@@ -51,6 +54,7 @@
   inherit
     (lib.types)
     mkOptionType
+    isOptionType
     str
     bool
     int

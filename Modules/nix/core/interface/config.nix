@@ -16,7 +16,7 @@
   inherit (ui.gui) bar window;
   isDank = bar == "dms-shell";
 in {
-  _module.args.${dom} = cfg // {inherit ui;};
+  # _module.args.${dom} = ui;
 
   config = mkIf isDank {
     programs.dms-shell.enable = true;

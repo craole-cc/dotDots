@@ -1,8 +1,47 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
+  __exports = {
+    internal =
+      {}
+      // std
+      // attrsets
+      // strings
+      // trivial
+      // {};
+    external = trivial;
+  };
+
+  std = _.std;
+
+  attrsets = {
+    inherit
+      (_)
+      isAllEnabledAttrs
+      isAnyEnabledAttrs
+      isWaylandEnabledAttrs
+      isTypedAttrs
+      ;
+  };
+
+  strings = {
+    inherit
+      (_)
+      isStringLike
+      isBinaryString
+      isStringConvertible
+      isPOSIXString
+      ;
+  };
+
+  trivial = {
+    inherit
+      isBool
+      isFloat
+      isFunction
+      isInt
+      typeOf
+      ;
+  };
+
   /**
   Return the Nix type of a value as a string.
 
@@ -23,7 +62,7 @@
   typeOf null         # => "null"
   ```
   */
-  typeOf = builtins.typeOf;
+  typeOf = x: std.typeOf x;
 
   /**
   Check whether a value is a boolean.
@@ -40,7 +79,7 @@
   isBool 1      # => false
   ```
   */
-  isBool = lib.trivial.isBool;
+  isBool = x: std.isBool x;
 
   /**
   Check whether a value is a floating point number.
@@ -56,7 +95,7 @@
   isFloat 1    # => false
   ```
   */
-  isFloat = lib.trivial.isFloat;
+  isFloat = x: std.isFloat x;
 
   /**
   Check whether a value is a function.
@@ -72,7 +111,7 @@
   isFunction "hello"  # => false
   ```
   */
-  isFunction = lib.trivial.isFunction;
+  isFunction = x: std.isFunction x;
 
   /**
   Check whether a value is an integer.
@@ -89,41 +128,31 @@
   isInt "1"  # => false
   ```
   */
-  isInt = lib.trivial.isInt;
-
-  exports = {
-    inherit
-      isBool
-      isFloat
-      isFunction
-      isInt
-      typeOf
-      ;
-  };
+  isInt = x: std.isInt x;
 in
-  exports
-  // {
-    inherit
-      (_)
-      #~@ Strings
-      isBinaryString
-      isString
-      isStringConvertible
-      isStringLike
-      isList
-      #~@ Attrsets
-      isAttrs
-      isDerivation
-      isTypedAttrs
-      isAllEnabledAttrs
-      isAnyEnabledAttrs
-      isWaylandEnabledAttrs
-      #~@ Filesystem
-      isPath
-      isPOSIXString
-      isStorePath
-      #~@ Debug
-      isTest
-      ;
-    _rootAliases = exports;
-  }
+  __exports.internal // {_rootAliases = __exports.external;}
+# // {
+#   inherit
+#     (_)
+#     #~@ Strings
+#     isBinaryString
+#     isString
+#     isStringConvertible
+#     isStringLike
+#     isList
+#     #~@ Attrsets
+#     isAttrs
+#     isDerivation
+#     isTypedAttrs
+#     isAllEnabledAttrs
+#     isAnyEnabledAttrs
+#     isWaylandEnabledAttrs
+#     #~@ Filesystem
+#     isPath
+#     isPOSIXString
+#     isStorePath
+#     #~@ Debug
+#     isTest
+#     ;
+#   # _rootAliases = exports;
+# }
