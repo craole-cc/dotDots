@@ -25,7 +25,9 @@
     displayProtocols
     windowManagers
     ;
-  isDank = ui.gui.bar == "dms-shell";
+  inherit (gui) bar window;
+  compositor = window;
+  isDank = bar == "dms-shell";
 in {
   imports = importAllPaths ./.;
 
@@ -99,6 +101,9 @@ in {
 
   config = mkIf isDank {
     programs.dms-shell.enable = true;
-    services.displayManager.dms-greeter.enable = true;
+    services.displayManager.dms-greeter = {
+      enable = true;
+      inherit compositor;
+    };
   };
 }
