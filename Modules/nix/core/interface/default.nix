@@ -7,21 +7,21 @@
 }: let
   dom = "interface";
 
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.types) attrs enum nullOr str;
+  inherit (lib.types) nullOr str;
   inherit (lix.filesystem.importers) importAllPaths;
-  inherit (lix.types.options) mkTrue mkOption;
+  inherit (lix.types.options) mkTrue mkOption mkEnumOption;
   inherit (lix.schema.ui) mkUI;
 
   ui = mkUI {inherit host;};
   inherit
-    (ui.interfaces)
+    (ui)
+    sessions
+    shells
     desktopEnvironments
     displayManagers
     displayProtocols
     windowManagers
     ;
-  inherit (ui) sessions;
 in {
   imports = importAllPaths ./.;
 
@@ -32,41 +32,51 @@ in {
       default = {
         inherit
           desktopEnvironments
-          displayManagers
           windowManagers
-          sessions
           ;
+        inherit sessions;
       };
     };
 
-    desktopEnvironment = mkOption {
-      description = "Desktop environment";
+    desktopEnvironment = mkEnumOption {
+      description = "Desktop Environment";
       default = ui.desktopEnvironment;
-      type = nullOr (enum (attrNames desktopEnvironments));
+      input = desktopEnvironments;
+      nullable = true;
     };
 
-    windowManager = mkOption {
-      description = "Window manager";
+    windowManager = mkEnumOption {
+      description = "Window Manager";
       default = ui.windowManager;
-      type = nullOr (enum (attrNames windowManagers));
+      input = windowManagers;
+      nullable = true;
     };
 
-    displayManager = mkOption {
-      description = "Display manager";
+    displayManager = mkEnumOption {
+      description = "Display Manager";
       default = ui.displayManager;
-      type = nullOr (enum (attrNames displayManagers));
+      input = displayManagers;
+      nullable = true;
     };
 
-    displayProtocol = mkOption {
-      description = "Display protocol";
+    displayProtocol = mkEnumOption {
+      description = "Display Protocols";
       default = ui.displayProtocol;
-      type = nullOr (enum (attrNames displayProtocols));
+      input = displayProtocols;
+      nullable = true;
     };
 
     defaultSession = mkOption {
       description = "Default display manager session";
       default = ui.defaultSession;
       type = nullOr str;
+    };
+
+    shell = mkEnumOption {
+      description = "Login shell";
+      default = ui.shell.login;
+      input = shells;
+      nullable = true;
     };
 
     # windowShell = mkOption {

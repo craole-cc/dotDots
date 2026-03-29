@@ -5,14 +5,26 @@
 }: let
   inherit (lib.options) mkEnableOption mkOption mergeUniqueOption;
   inherit (lib.modules) mkIf mkMerge mkDefault mkForce;
-  inherit (lib.types) mkOptionType str bool int float path;
+  inherit
+    (lib.types)
+    mkOptionType
+    enum
+    str
+    bool
+    int
+    float
+    path
+    nullOr
+    ;
 
-  inherit (_.types.predicates) isString;
+  inherit (_.lists.generators) mkEnum;
+  inherit (_.types.predicates) isString isAttrs;
   customTypes = _.types.checks;
 
   __exports = {
     internal = {
       inherit
+        mkEnumOption
         toOptionType
         mkDefault
         mkEnable
@@ -91,6 +103,31 @@
         check = customType.check;
         merge = mergeUniqueOption;
       };
+
+  mkEnumOption = {
+    description,
+    input,
+    default ? null,
+    nullable ? false,
+  }: let
+    e =
+      if isAttrs input && input ? allValues
+      then input
+      else
+        mkEnum {
+          values = input;
+          inherit nullable;
+        };
+
+    isNullable = e.nullable or nullable;
+  in
+    mkOption {
+      inherit description default;
+      type =
+        if isNullable
+        then nullOr (enum e.allValues)
+        else enum e.allValues;
+    };
 
   /**
       Creates an enable option that defaults to `true`.

@@ -351,25 +351,37 @@
     else let
       normalized =
         if isList input
-        then {
-          values = input;
-          aliases = {};
-        }
-        else if hasAttr "values" input
-        then input
-        else {
-          values = attrNames input;
-          aliases = {};
-        };
+        then {values = input;}
+        else if input ? values
+        then
+          input
+          // {
+            values =
+              if isList input.values
+              then input.values
+              else attrNames input.values;
+          }
+        else {values = attrNames input;};
+
       values = normalized.values;
       aliases = normalized.aliases or {};
-      aliasKeys = attrNames aliases;
-      allValues = values ++ aliasKeys;
+      nullable = normalized.nullable or false;
+      allValues = values ++ (attrNames aliases);
+      allValuesNullable = allValues ++ [null];
     in {
-      inherit values aliases allValues;
+      inherit
+        values
+        aliases
+        nullable
+        allValues
+        allValuesNullable
+        ;
       validator = mkCaseInsensitiveValidator allValues;
+      validatorNullable = mkCaseInsensitiveValidator allValuesNullable;
       resolve = value:
-        if hasAttr value aliases
+        if value == null
+        then null
+        else if hasAttr value aliases
         then aliases.${value}
         else value;
     };

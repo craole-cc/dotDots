@@ -6,7 +6,7 @@
     internal = {
       inherit enum;
       inherit
-        (shells)
+        (all)
         elvish
         nushell
         pwsh
@@ -14,18 +14,21 @@
         bash
         dash
         zsh
+        ksh
         sh
         fish
         ;
     };
     external = {
-      shells = enum;
     };
   };
 
-  enum = mkEnum shells;
+  enum = mkEnum {
+    values = all;
+    nullable = true;
+  };
 
-  shells = {
+  all = {
     # POSIX-compatible
     bash = {
       posix = true;
@@ -98,11 +101,9 @@ in
     _rootAliases = __exports.external;
 
     _tests = runTests {
-      shells = {
-        validatesBash = mkTest true (enum.validator.check "bash");
-        validatesZsh = mkTest true (enum.validator.check "zsh");
-        validatesFish = mkTest true (enum.validator.check "fish");
-        caseInsensitive = mkTest true (enum.validator.check "NUSHELL");
-      };
+      validatesBash = mkTest true (enum.validator.check "bash");
+      validatesZsh = mkTest true (enum.validator.check "zsh");
+      validatesFish = mkTest true (enum.validator.check "fish");
+      caseInsensitive = mkTest true (enum.validator.check "NUSHELL");
     };
   }

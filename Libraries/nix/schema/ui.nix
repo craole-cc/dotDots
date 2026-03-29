@@ -23,6 +23,8 @@
     ;
   inherit (lib.strings) optionalString;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
+  inherit (_.lists.generators) mkEnum;
+  sh = _.schema.applications.shells;
 
   __exports = {
     internal = {
@@ -65,6 +67,31 @@
       editor = {
         pri = "vscode";
         sec = "helix";
+      };
+    };
+    composites = {
+      shells = sh.all;
+      inherit
+        desktopEnvironments
+        windowManagers
+        displayManagers
+        displayProtocols
+        ;
+      enums = {
+        shells = sh.enum;
+        desktopEnvironments = mkEnum {
+          values = desktopEnvironments;
+          nullable = true;
+        };
+        windowManagers = mkEnum {
+          values = windowManagers;
+          nullable = true;
+        };
+        displayManagers = mkEnum displayManagers;
+        displayProtocols = mkEnum {
+          values = displayProtocols;
+          nullable = true;
+        };
       };
     };
     gui = {
@@ -649,8 +676,17 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Normalization                                             ║
   #╚═══════════════════════════════════════════════════════════╝
+  resolve = {
+    key,
+    interface,
+    configs,
+  }:
+    interface.${key}
+      or configs.wm.${key}
+      or configs.de.${key}
+      or defaults.${key};
 
-  normalizeInterface = interface: let
+  normalize = interface: let
     inherit
       (genAttrs (attrNames keys.selection) (
         n:
@@ -726,53 +762,43 @@
         or defaults.session.trigger;
     };
 
-    resolve = key:
-      interface.${key}
-      or configs.wm.${key}
-      or configs.de.${key}
-      or defaults.${key};
-
-    composites = {
-      inherit sessions;
-      defaultSession = sessions.default;
-      interfaces = {
-        inherit
-          desktopEnvironments
-          windowManagers
-          displayManagers
-          displayProtocols
-          ;
-      };
-
-      #? Merge order: io defaults → DE overrides → WM overrides → user overrides
-      #? normalizeKeyboard converts all mod lists to strings at the boundary
-      keyboard = normalizeKeyboard (
+    #? Merge order: io defaults → DE overrides → WM overrides → user overrides
+    #? normalizeKeyboard converts all mod lists to strings at the boundary
+    keyboard = normalizeKeyboard (
+      recursiveUpdate (
         recursiveUpdate (
-          recursiveUpdate (
-            recursiveUpdate
-            keyboardDefaults
-            (configs.de.keyboard or {})
-          )
-          (configs.wm.keyboard or {})
+          recursiveUpdate
+          keyboardDefaults
+          (configs.de.keyboard or {})
         )
-        (interface.keyboard or {})
-      );
-    };
+        (configs.wm.keyboard or {})
+      )
+      (interface.keyboard or {})
+    );
   in
     {
+      inherit defaults sessions keyboard;
+      inherit (defaults) composites;
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
       displayManager = sessions.manager;
       displayProtocol = sessions.protocol;
+      defaultSession = sessions.default;
     }
-    // composites
-    // (genAttrs keys.resolution resolve);
+    // (genAttrs keys.resolution (key:
+      resolve {
+        inherit
+          key
+          interface
+          configs
+          ;
+      }));
 
   mkUI = {
     user ? {},
     host,
   }:
-    normalizeInterface (
+    normalize (
       recursiveUpdate
       (host.interface or {})
       (user.interface or {})
