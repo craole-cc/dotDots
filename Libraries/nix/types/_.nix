@@ -1,11 +1,11 @@
-{
-  _,
-  lib,
-  ...
-}:
+# {
+#   _,
+#   lib,
+#   ...
+# }:
+# {}
+# // lib.types
+# // lib.options
+# // _.types.options
+# // _.types.predicates
 {}
-// lib.types
-// lib.options
-// _.types.options
-// _.types.predicates
-// {}

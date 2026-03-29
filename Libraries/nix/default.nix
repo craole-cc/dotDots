@@ -352,6 +352,11 @@
     ]
     // {
       inherit extend path;
+
+      types =
+        customLib.types
+        // customLib.types.options or {}
+        // customLib.types.predicates or {};
       src = path;
       lib = lib';
     };
