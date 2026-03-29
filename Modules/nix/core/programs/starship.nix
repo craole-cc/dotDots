@@ -7,13 +7,14 @@
   dom = "programs";
   mod = "starship";
   cfg = config.${top}.${dom}.${mod};
-  inherit (config.${top}.interface) shellPrompt;
+  # inherit (config.${top}.interface) shellPrompt;
   inherit (lix.types.options) mkEnable mkIf;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnable {
       description = "Starship Prompt";
-      condition = shellPrompt == "starship";
+      # condition = shellPrompt == "starship";
+      condition = true;
     };
   };
 
