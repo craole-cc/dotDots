@@ -1,19 +1,14 @@
-#TODO: Allow disabling root aliases
 {
   lib ? null,
   path ? ../.,
   name ? "lix",
-  # paths ? {},
   collisionStrategy ? "warn",
-  # enableCaching ? true,
   runTests ? true,
-  # debugMode ? false,
   excludedDirs ? [
     "review"
     "archive"
     "internal"
     "test"
-    # "tests"
     "tmp"
     "temp"
     "wip"
@@ -33,341 +28,39 @@
     ".old.nix"
   ],
 }: let
-  inherit (builtins) getFlake readDir pathExists;
-  #? Self-bootstrapping logic (only runs if lib isn't passed)
-  #> Determine if a flake.nix actually exists in the current source path
-  hasFlake = pathExists (toString path + "/flake.nix");
+  i = import ./internal;
 
-  #> Attempt to evaluate the flake if it exists
-  rawFlake =
-    if hasFlake
-    then getFlake (toString path)
-    else {};
+  lib' = i.bootstrap {inherit lib path;};
+  handle = i.collisions {inherit lib' collisionStrategy;};
 
-  #> Resolve `lib`. If the flake has nixpkgs, use its tightly pinned `lib` (pure).
-  #> If there is no flake, gracefully fall back to the system channel (impure).
-  lib' =
-    if lib != null
-    then lib
-    else if rawFlake ? inputs && rawFlake.inputs ? nixpkgs
-    then rawFlake.inputs.nixpkgs.lib
-    else import <nixpkgs/lib>;
-
-  inherit
-    (lib'.attrsets)
-    attrNames
-    foldlAttrs
-    isAttrs
-    mapAttrs
-    removeAttrs
-    filterAttrs
-    ;
-  inherit (lib'.debug) trace;
   inherit (lib'.fixedPoints) makeExtensible;
-  inherit
-    (lib'.lists)
-    elem
-    filter
-    foldl'
-    findFirst
-    ;
-  inherit
-    (lib'.strings)
-    concatStringsSep
-    hasPrefix
-    hasSuffix
-    removeSuffix
-    removePrefix
-    ;
-  inherit (lib'.trivial) isFunction;
+  inherit (lib'.attrsets) attrNames;
+  inherit (lib'.lists) elem filter;
+  inherit (lib'.debug) trace;
 
-  # Helper function to get relative path
-  getRelativePath = base: target: removePrefix (toString base + "/") (toString target);
-
-  #| Extensible Library Initializaton
-  customLib = makeExtensible (
-    self: let
-      #~@ Handle collisions based on strategy
-      handleCollisions = customAttrs: let
-        nixpkgsAttrs = attrNames lib';
-        customAttrNames = attrNames customAttrs;
-
-        collisions = filter (name: elem name nixpkgsAttrs) customAttrNames;
-        hasCollisions = collisions != [];
-
-        baseMessage = "Custom library has collisions with nixpkgs lib: ${toString collisions}";
-      in
-        if !hasCollisions
-        then lib' // customAttrs
-        else if collisionStrategy == "error"
-        then throw baseMessage
-        else if collisionStrategy == "warn"
-        then trace "WARNING: ${baseMessage}" (lib' // customAttrs)
-        else if collisionStrategy == "prefer-custom"
-        then lib' // customAttrs
-        else if collisionStrategy == "prefer-nixpkgs"
-        then customAttrs // lib'
-        else lib' // customAttrs; # Default to warn behavior
-
-      #~@ Create a safe merged library
-      safeLib = handleCollisions self;
-
-      #| The complete environment for all modules
-      env = {
-        #> Individual libraries
-        lib = lib'; # ? nixpkgs library
-        _ = self; # ? custom library
-        # safe = safeLib; #? merged library
-        inherit
-          path
-          name
-          # paths
-          ;
-        src = path;
-        library = name;
-
-        #> Short aliases
-        l = lib';
-        x = self;
-        s = safeLib;
-
-        #> Structured access
-        libs = {
-          nixpkgs = lib';
-          custom = self;
-          safe = safeLib;
-        };
-      };
-
-      # Helper to scan a directory and return its contents as an attrset
-      scanDir = dir: pathPrefix: let
-        entries = readDir dir;
-
-        #? Results accumulator
-        scanResults = {
-          modules = {}; # Module tree structure
-          rootAliases = {}; # Functions to expose at root level
-        };
-
-        #~@ Check if a directory should be excluded
-        isExcludedDir = dirName: elem dirName excludedDirs || (hasPrefix "." dirName);
-
-        #~@ Check if a file should be excluded
-        isExcludedFile = fileName:
-          elem fileName excludedFiles
-          || foldl' (acc: pattern: acc || hasSuffix pattern fileName) false excludedPatterns;
-
-        processEntry = entryName: entryType:
-        #~@ Skip excluded directories
-          if entryType == "directory" && isExcludedDir entryName
-          then scanResults
-          #~@ Process directories
-          else if entryType == "directory"
-          then let
-            subdir = dir + "/${entryName}";
-            processed = scanDir subdir (pathPrefix ++ [entryName]);
-          in {
-            modules =
-              if processed.modules != {}
-              then {${entryName} = processed.modules;}
-              else {};
-            rootAliases = processed.rootAliases;
-          }
-          #> Process .nix files
-          else if entryType == "regular" && hasSuffix ".nix" entryName && !isExcludedFile entryName
-          then let
-            moduleName = removeSuffix ".nix" entryName;
-            filePath = dir + "/${entryName}";
-
-            # Import the module
-            rawModule = import filePath;
-
-            importedModule =
-              if isFunction rawModule
-              then let
-                moduleEnv =
-                  env
-                  // rec {
-                    __moduleFile = filePath;
-                    __moduleName = moduleName;
-                    __modulePath = [env.library] ++ pathPrefix ++ [moduleName];
-                    __moduleRef = concatStringsSep "." __modulePath;
-                  };
-                result = rawModule moduleEnv;
-              in
-                if result == null || !(isAttrs result)
-                then throw "Module ${entryName} must return an attribute set, got ${builtins.typeOf result}"
-                else result
-              else if isAttrs rawModule
-              then rawModule
-              else throw "Module ${entryName} must be either a function or attribute set";
-
-            # Extract root aliases if present
-            rootAliases = importedModule._rootAliases or {};
-
-            #> Filter private functions (except metadata and docs)
-            allAttrs = attrNames importedModule;
-            attrsToRemove =
-              [
-                "_rootAliases"
-              ]
-              ++ (filter (
-                  name:
-                    hasPrefix "_" name
-                    && name != "_rootAliases"
-                    && name != "_tests"
-                    && name != "__meta"
-                    && name != "__doc"
-                )
-                allAttrs)
-              ++ (
-                if !runTests
-                then ["_tests"]
-                else []
-              );
-
-            cleanModule = removeAttrs importedModule attrsToRemove;
-
-            # Find documentation in multiple locations
-            # 1. First check for co-located docs
-            possibleDocFiles = [
-              #~@ Same directory as module
-              (dir + "/${moduleName}.md")
-              (dir + "/README.md")
-              (dir + "/readme.md")
-
-              #~@ Docs subdirectory
-              (dir + "/docs/${moduleName}.md")
-              (dir + "/docs/README.md")
-
-              #~@ Documentation tree mirror (relative to source dir)
-              (path + "/Documentation/${getRelativePath path dir}/${moduleName}.md")
-              (path + "/Documentation/${getRelativePath path dir}/README.md")
-            ];
-
-            docFile = findFirst (path: path != null && pathExists (toString path)) null possibleDocFiles;
-
-            # Determine documentation source
-            docsInfo =
-              if docFile != null
-              then {
-                type = "markdown";
-                source = docFile;
-                available = true;
-                # List all existing doc files for this module
-                locations = filter (path: pathExists (toString path)) possibleDocFiles;
-              }
-              else if cleanModule ? __doc
-              then {
-                type = "string";
-                source = cleanModule.__doc;
-                available = true;
-                locations = [];
-              }
-              else {
-                type = "none";
-                source = null;
-                available = false;
-                locations = [];
-              };
-
-            # Add comprehensive metadata to the module
-            moduleWithMeta =
-              cleanModule
-              // {
-                __meta = {
-                  # Module identity
-                  module = rec {
-                    name = concatStringsSep "." namespace;
-                    path = filePath;
-                    directory = removePrefix ((toString ./.) + "/") (toString dir);
-                    filename = entryName;
-                    namespace = [env.library] ++ pathPrefix ++ [moduleName];
-                  };
-
-                  # Documentation info
-                  docs = docsInfo;
-
-                  # Module structure
-                  exports = attrNames cleanModule;
-                  functions = attrNames (filterAttrs (_: value: isFunction value) cleanModule);
-                  values = attrNames (filterAttrs (_: value: !isFunction value) cleanModule);
-
-                  # Build info
-                  timestamp = builtins.currentTime;
-                };
-              };
-          in {
-            modules = {
-              ${moduleName} = moduleWithMeta;
-            };
-            rootAliases = rootAliases;
-          }
-          else scanResults;
-
-        processed = mapAttrs (name: type: processEntry name type) entries;
-
-        # Merge all results from this directory
-        merged =
-          foldlAttrs (acc: _: value: {
-            modules = acc.modules // value.modules;
-            rootAliases = acc.rootAliases // value.rootAliases;
-          })
-          scanResults
-          processed;
-      in
-        merged;
-
-      # Get the full scan results
-      results = scanDir ./. [];
-
-      # Check for collisions between root aliases and top-level module names
-      rootAliasNames = attrNames results.rootAliases;
-      moduleTopLevelNames = attrNames results.modules;
-      collisions = filter (name: elem name moduleTopLevelNames) rootAliasNames;
-
-      #> Handle root alias collisions based on strategy
-      library =
-        if collisions != []
-        then
-          if collisionStrategy == "error"
-          then throw "Root aliases collide with modules: ${toString collisions}"
-          else if collisionStrategy == "warn"
-          then
-            trace "WARNING: Root aliases override modules for: ${toString collisions}" (
-              results.modules // results.rootAliases
-            )
-          else results.modules // results.rootAliases
-        else results.modules // results.rootAliases;
-    in
-      library
-  );
-
-  extend = f: customLib.extend f;
-
-  finalLib =
-    removeAttrs customLib [
-      "__unfix__"
-      "unfix"
-      "extend"
-    ]
-    // {
-      inherit extend path;
-      src = path;
-      lib = lib';
-
-      options =
-        lib.options
-        // lib.modules
-        // customLib.types.options or {};
-
-      types =
-        customLib.types
-        // lib.types
-        // lib.options
-        // customLib.types.options or {}
-        // customLib.types.predicates or {};
+  customLib = makeExtensible (self: let
+    safeLib = handle self;
+    env = i.env {inherit lib' path name self safeLib;};
+    scanDir = i.scanner {
+      inherit lib' env path excludedDirs excludedFiles excludedPatterns runTests;
+      scanBase = toString ./.;
     };
-in {
-  ${name} = finalLib;
-}
+
+    results = scanDir ./. [];
+    rootAliasNames = attrNames results.rootAliases;
+    moduleTopLevelNames = attrNames results.modules;
+    collisions = filter (n: elem n moduleTopLevelNames) rootAliasNames;
+
+    library =
+      if collisions == []
+      then results.modules // results.rootAliases
+      else if collisionStrategy == "error"
+      then throw "Root aliases collide with modules: ${toString collisions}"
+      else if collisionStrategy == "warn"
+      then
+        trace "WARNING: Root aliases override modules for: ${toString collisions}"
+        (results.modules // results.rootAliases)
+      else results.modules // results.rootAliases;
+  in
+    library);
+in {${name} = i.assemble {inherit lib' customLib path;};}
