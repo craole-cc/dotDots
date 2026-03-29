@@ -205,6 +205,19 @@
         ];
       };
 
+      dms-plugin-registry = byPaths {
+        inherit attrset;
+        paths = [
+          ["shellDankMaterialPlugins"]
+          ["shellDankPlugins"]
+          ["dank-plugins"]
+          ["dank-plugin-registry"]
+          ["dms-plugins"]
+          ["dmsp"]
+          ["dank-plugin-registry"]
+        ];
+      };
+
       fresh-editor = byPaths {
         inherit attrset;
         paths = [

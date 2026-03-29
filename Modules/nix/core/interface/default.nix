@@ -15,6 +15,7 @@
   ui = mkUI {inherit host;};
   inherit
     (ui.composites)
+    types
     shells
     desktopEnvironments
     displayManagers
@@ -68,9 +69,27 @@ in {
 
     shell = mkEnumOption {
       description = "Login shell";
-      default = ui.shell.login;
+      default = ui.shell.interactive;
       input = shells;
       nullable = true;
+    };
+
+    apps = mkOption {
+      description = "Default applications";
+      default = ui.apps;
+      type = types.apps;
+    };
+
+    gui = mkOption {
+      description = "GUI components";
+      default = ui.gui;
+      type = types.gui;
+    };
+
+    keyboard = mkOption {
+      description = "Keyboard config and bindings";
+      default = ui.keyboard;
+      type = types.keyboard;
     };
 
     # windowShell = mkOption {
@@ -78,7 +97,7 @@ in {
     #   default = ui.windowShell;
     #   type = nullOr str;
     # };
-    # shell = mkOption {
+    #     # shell = mkOption {
     #   description = "Shell";
     #   default = ui.shell;
     #   type = nullOr (enum shells.values);

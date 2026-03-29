@@ -1,12 +1,12 @@
 {
-  settings.theme = "light";
+  # settings.theme = "light";
   themes = {
     light = {
-      "inherits" = "seoul256-light-hard";
+      "inherits" = "kaolin-light";
       "ui.background" = {};
     };
     dark = {
-      "inherits" = "seoul256-dark-soft";
+      "inherits" = "kaolin-light";
       "ui.background" = {};
     };
   };

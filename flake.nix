@@ -164,6 +164,12 @@
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
+    shellDankMaterialPlugins = {
+      repo = "dms-plugin-registry";
+      owner = "AvengeMedia";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
     shellCaelestia = {
       repo = "shell";
