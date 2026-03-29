@@ -26,7 +26,6 @@
     windowManagers
     ;
   inherit (ui.gui) bar window;
-  compositor = window;
   isDank = bar == "dms-shell";
 in {
   imports = importAllPaths ./.;
@@ -103,7 +102,7 @@ in {
     programs.dms-shell.enable = true;
     services.displayManager.dms-greeter = {
       enable = true;
-      inherit compositor;
+      compositor.name = window;
     };
   };
 }
