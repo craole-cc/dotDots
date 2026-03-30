@@ -13,6 +13,7 @@
   inherit (_.types.predicates) isList isString;
   inherit (lib.lists) all any filter head map;
   inherit (lib.strings) concatStringsSep splitString;
+  inherit (_.strings.transformation) indent;
 
   /**
   Convert a single string, or list of strings, into a cleaned list.
@@ -147,6 +148,27 @@
       })
     else all (v: any (p: checker p v) ps) vs;
 
+  indentedList = {
+    items,
+    title ? null,
+    size ? 2,
+    bullet ? "-",
+  }:
+    if title != null
+    then "\n${indent size}${title}:\n${concatStringsSep "\n" (
+      map (i: "${indent (size + 2)}${bullet} ${i}") items
+    )}"
+    else "\n${concatStringsSep "\n" (
+      map (i: "${indent size}${bullet} ${i}") items
+    )}";
+
+  indentedForError = {
+    items,
+    title ? null,
+    size ? 8,
+    bullet ? "-",
+  }:
+    indentedList {inherit items title size bullet;};
   exports = {
     inherit
       concat
@@ -154,6 +176,8 @@
       toList
       mkAnyPredicate
       mkAllPredicate
+      indentedList
+      indentedForError
       ;
   };
 in
