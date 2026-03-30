@@ -31,13 +31,14 @@
     inherit
       (lists)
       elemAt
+      count
+      findFirst
+      findFirstIndex
       head
       init
       last
       length
       tail
-      findFirst
-      findFirstIndex
       ;
   };
 
@@ -89,7 +90,6 @@
       (lists)
       concatLists
       concatMap
-      count
       foldl'
       foldr
       ;

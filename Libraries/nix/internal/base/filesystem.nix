@@ -7,6 +7,7 @@
     namespaced = {
       inherit
         access
+        construction
         transformation
         predicates
         traversal
@@ -15,6 +16,7 @@
     flattened =
       {}
       // access
+      // construction
       // transformation
       // predicates
       // traversal
@@ -38,9 +40,13 @@
     inherit (strings) fileContents;
   };
 
-  transformation = {
+  construction = {
     inherit (builtins) path toPath;
-    inherit (path) append removePrefix subpath;
+    inherit (path) subpath;
+  };
+
+  transformation = {
+    inherit (path) append removePrefix;
   };
 
   predicates = {

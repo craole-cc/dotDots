@@ -8,26 +8,53 @@
       inherit
         access
         combinators
-        opaque
         predicates
         primitives
-        submodules
         ;
     };
     flattened =
       {}
       // access
       // combinators
-      // opaque
       // predicates
       // primitives
-      // submodules
       // {};
+  };
+
+  inherit
+    (lib)
+    attrsets
+    filesystem
+    lists
+    strings
+    types
+    ;
+
+  access = {
+    inherit (builtins) typeOf;
+  };
+
+  combinators = {
+    inherit
+      (types)
+      attrs
+      attrsOf
+      either
+      enum
+      lazyAttrsOf
+      listOf
+      mkOptionType
+      nonEmptyListOf
+      nullOr
+      oneOf
+      submodule
+      submoduleWith
+      ;
   };
 
   primitives = {
     inherit
-      (lib.types)
+      (types)
       bool
       commas
       envVar
@@ -40,52 +67,18 @@
       separatedString
       str
       strMatching
-      ;
-  };
-
-  opaque = {
-    inherit
-      (lib.types)
       anything
       raw
       unspecified
       ;
   };
 
-  submodules = {
-    inherit
-      (lib.types)
-      submodule
-      submoduleWith
-      ;
-  };
-
-  combinators = {
-    inherit
-      (lib.types)
-      attrs
-      attrsOf
-      either
-      enum
-      lazyAttrsOf
-      listOf
-      mkOptionType
-      nonEmptyListOf
-      nullOr
-      oneOf
-      ;
-  };
-
-  access = {
-    inherit (builtins) typeOf;
-  };
-
   predicates = {
-    inherit (lib.attrsets) isAttrs isDerivation;
-    inherit (lib.filesystem) isPath isStorePath;
-    inherit (lib.lists) isList;
+    inherit (attrsets) isAttrs isDerivation;
+    inherit (filesystem) isPath isStorePath;
+    inherit (lists) isList;
     inherit
-      (lib.strings)
+      (strings)
       isString
       isConvertibleWithToString
       isStringLike
