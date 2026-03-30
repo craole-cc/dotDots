@@ -11,8 +11,8 @@
     };
   };
 
-  inherit (_.options.std) mkOption bool enum nullOr;
-  inherit (_.attrsets.std) optionalAttrs;
+  inherit (_.options) mkOption bool enum nullOr;
+  inherit (_.attrsets) optionalAttrs;
   inherit (_.lists.generators) mkEnum;
   inherit (_.types.predicates) isAttrs;
 

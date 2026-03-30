@@ -2,23 +2,22 @@
   __exports = {
     internal =
       {}
-      // std
+      # // _.types.predicates
       // attrsets
+      // debug
       // strings
       // trivial
       // {};
     external = trivial;
   };
-
-  std = _.std;
-
+  std = _.types.predicates;
   attrsets = {
     inherit
       (_)
       isAllEnabledAttrs
       isAnyEnabledAttrs
-      isWaylandEnabledAttrs
       isTypedAttrs
+      isWaylandEnabledAttrs
       ;
   };
 
@@ -30,6 +29,10 @@
       isStringConvertible
       isPOSIXString
       ;
+  };
+
+  debug = {
+    inherit (_.debug) isTest;
   };
 
   trivial = {
@@ -131,28 +134,3 @@
   isInt = x: std.isInt x;
 in
   __exports.internal // {_rootAliases = __exports.external;}
-# // {
-#   inherit
-#     (_)
-#     #~@ Strings
-#     isBinaryString
-#     isString
-#     isStringConvertible
-#     isStringLike
-#     isList
-#     #~@ Attrsets
-#     isAttrs
-#     isDerivation
-#     isTypedAttrs
-#     isAllEnabledAttrs
-#     isAnyEnabledAttrs
-#     isWaylandEnabledAttrs
-#     #~@ Filesystem
-#     isPath
-#     isPOSIXString
-#     isStorePath
-#     #~@ Debug
-#     isTest
-#     ;
-#   # _rootAliases = exports;
-# }

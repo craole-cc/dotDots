@@ -1,14 +1,8 @@
-# Libraries/types/schema.nix
-# Advanced type system that bridges predicates, generators, and schema validation
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames attrValues mapAttrs recursiveUpdate;
-  inherit (lib.lists) elem filter foldl';
-  inherit (lib.strings) concatStringsSep;
-  inherit (lib.types) nullOr;
+{_, ...}: let
+  inherit (_.attrsets) attrNames attrValues mapAttrs recursiveUpdate;
+  inherit (_.lists) elem filter foldl';
+  inherit (_.strings) concatStringsSep;
+  inherit (_.types) nullOr;
   inherit (_.types) generators;
 
   # Extract default values from a schema

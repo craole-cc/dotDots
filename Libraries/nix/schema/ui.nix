@@ -25,8 +25,8 @@
   inherit (_.lists.generators) mkEnum;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.schema) io;
-  inherit (_.options.std) mkOption;
-  inherit (_.types.std) submodule nullOr str;
+  inherit (_.options) mkOption;
+  inherit (_.types) submodule nullOr str;
   sh = _.applications.shells;
 
   __exports = {

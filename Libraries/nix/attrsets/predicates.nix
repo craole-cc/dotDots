@@ -23,9 +23,9 @@
     };
   };
 
-  inherit (_.attrsets.std) attrByPath;
+  inherit (_.attrsets) attrByPath;
   inherit (_.content.empty) isNotEmpty;
-  inherit (_.lists.std) all any elem isList;
+  inherit (_.lists) all any elem isList;
   inherit (_.types.generators) validate;
 
   /**

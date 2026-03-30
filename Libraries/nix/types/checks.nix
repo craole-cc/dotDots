@@ -1,13 +1,8 @@
-# Advanced type system that bridges predicates, generators, and schema validation
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames attrValues mapAttrs;
-  inherit (lib.lists) elem all head;
-  inherit (lib.types) anything oneOf;
-  inherit (lib.strings) concatStringsSep match;
+{_, ...}: let
+  inherit (_.attrsets) attrNames attrValues mapAttrs;
+  inherit (_.lists) elem all head;
+  inherit (_.types) anything oneOf;
+  inherit (_.strings) concatStringsSep match;
   inherit (_.types.generators) validate;
   inherit
     (_.types.predicates)

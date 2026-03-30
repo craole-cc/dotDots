@@ -1,12 +1,16 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.strings) concatStringsSep;
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.lists) take length;
-  inherit (_.types.predicates) typeOf isAttrs isBool isInt;
+{_, ...}: let
+  inherit (_.strings) concatStringsSep;
+  inherit (_.attrsets) attrNames;
+  inherit (_.lists) elem take length;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isBinaryString
+    isBool
+    isInt
+    isString
+    typeOf
+    ;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   normalizeType = t:
@@ -34,7 +38,7 @@
   };
 
   withArticle = noun:
-    if lib.lists.elem noun ["attribute set" "integer" "array" "object"]
+    if elem noun ["attribute set" "integer" "array" "object"]
     then "an ${noun}"
     else "a ${noun}";
 
@@ -273,7 +277,7 @@ in {
           fnName = "testFn";
           argName = "name";
           desired = "string";
-          predicate = lib.strings.isString;
+          predicate = isString;
           outcome = "ok";
         }
       );
@@ -313,7 +317,7 @@ in {
           fnName = "binFn";
           argName = "blob";
           desired = "binary";
-          predicate = lib.strings.isString; # pretend "binary" stored as string for demo
+          predicate = isString; # pretend "binary" stored as string for demo
           outcome = 10;
         }
       );
@@ -324,7 +328,7 @@ in {
         fnName = "testFn";
         argName = "flag";
         desired = "binary";
-        predicate = lib.strings.isBinaryString;
+        predicate = isBinaryString;
         outcome = "0";
       }
     );
@@ -334,7 +338,7 @@ in {
         fnName = "testFn";
         argName = "flag";
         desired = "binary";
-        predicate = lib.strings.isBinaryString;
+        predicate = isBinaryString;
         outcome = "1";
       }
     );
@@ -344,7 +348,7 @@ in {
         fnName = "testFn";
         argName = "flag";
         desired = "binary";
-        predicate = lib.strings.isBinaryString;
+        predicate = isBinaryString;
         outcome = "yes";
       }
     );
@@ -354,7 +358,7 @@ in {
         fnName = "testFn";
         argName = "flag";
         desired = "binary";
-        predicate = lib.strings.isBinaryString;
+        predicate = isBinaryString;
         outcome = 1;
       }
     );

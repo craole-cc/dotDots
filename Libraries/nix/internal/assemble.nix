@@ -3,79 +3,49 @@
   customLib,
   path,
 }: let
-  lib = {
-    modules = with lib'.modules; {
-      inherit
-        #~@ Conditional / merge helpers
-        mkIf
-        mkMerge
-        mkAfter
-        mkBefore
-        mkOrder
-        mkForce
-        mkDefault
-        mkOverride
-        mkOptionDefault
-        mkVMOverride
-        mkImageMediaOverride
-        mkDefinition
-        mkAssert
-        #~@ Option declaration
-        mkOption
-        mkEnableOption
-        mkPackageOption
-        mkSinkUndeclaredOptions
-        #~@ Option renaming / migration
-        mkAliasOptionModule
-        mkRenamedOptionModule
-        mkRenamedOptionModuleWith
-        mkRemovedOptionModule
-        mkChangedOptionModule
-        mkMergedOptionModule
-        mkAliasIfDef
-        mkAliasDefinitions
-        mkAliasAndWrapDefinitions
-        mkAliasAndWrapDefsWithPriority
-        #~@ Evaluation
-        evalModules
-        evalOptionValue
-        #~@ Misc
-        mkDerivedConfig
-        doRename
-        setDefaultModuleLocation
-        fixMergeModules
-        importApply
-        importJSON
-        importTOML
-        ;
-    };
+  inherit (lib'.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
+  inherit (lib'.lists) filter;
+  inherit (lib'.filesystem) readDir;
+  inherit (lib'.strings) hasSuffix removeSuffix;
 
-    options = lib'.options or {};
+  libDir = ./lib;
+  libImports = import libDir;
+  init = f: f {lib = lib';};
 
-    types = removeAttrs (lib'.types or {}) ["types"];
-  };
+  libs = let
+    # Read dir, filter to .nix files, exclude default.nix, strip extension
+    names =
+      filter
+      (name: name != "default")
+      (
+        map
+        (f: removeSuffix ".nix" f)
+        (
+          attrNames
+          (
+            filterAttrs
+            (n: t: t == "regular" && hasSuffix ".nix" n && n != "default.nix")
+            (readDir libDir)
+          )
+        )
+      );
+  in
+    genAttrs names (name: init libImports.${name});
 
-  lix = customLib.extend (_: prev: {
-    inherit path;
-    src = path;
-    lib = lib';
+  # Pass 1: Base libs available to all scanned lib functions via self
+  withLibs = customLib.extend (
+    _: prev: recursiveUpdate prev libs
+  );
 
-    modules =
-      prev.modules or {}
-      // lib.modules
-      // prev.types.modules or {};
-
-    # options =
-    #   lib.options
-    #   // prev.types.options or {};
-
-    types =
-      prev.types or {}
-      // lib.types
-      // lib.options
-      // prev.types.options or {}
-      // prev.types.predicates or {};
-  });
+  # Pass 2: Metadata only
+  lix = withLibs.extend (
+    _: prev:
+      recursiveUpdate prev {
+        inherit path;
+        src = path;
+        lib = lib';
+      }
+  );
 in
   removeAttrs lix ["__unfix__" "unfix" "extend"]
   // {extend = f: lix.extend f;}

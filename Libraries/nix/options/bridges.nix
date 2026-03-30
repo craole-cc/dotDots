@@ -8,7 +8,7 @@
   };
 
   inherit
-    (_.options.std)
+    (_.options)
     mkOptionType
     mergeUniqueOption
     str
