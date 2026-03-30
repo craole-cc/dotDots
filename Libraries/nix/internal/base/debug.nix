@@ -17,9 +17,11 @@
       // {};
   };
 
+  inherit (lib) debug;
+
   tracing = {
     inherit
-      (lib.debug)
+      (debug)
       traceIf
       traceVal
       traceValFn
@@ -33,7 +35,7 @@
 
   testing = {
     inherit
-      (lib.debug)
+      (debug)
       runTests
       testAllTrue
       ;

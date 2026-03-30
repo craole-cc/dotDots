@@ -7,7 +7,7 @@
   dom = "programs";
   mod = "direnv";
   cfg = config.${top}.${dom}.${mod};
-  inherit (lix.options.declaration) mkOption mkTrue mkType;
+  inherit (lix.options.construction) mkOption mkTrue mkType;
   inherit (lix.modules.merging) mkIf;
 in {
   options.${top}.${dom}.${mod} = {

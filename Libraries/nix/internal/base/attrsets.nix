@@ -6,41 +6,41 @@
   __exports = {
     namespaced = {
       inherit
+        access
         construction
-        folding
         merging
         predicates
-        resolution
         transformation
         ;
     };
     flattened =
       {}
+      // access
       // construction
-      // folding
       // merging
       // predicates
-      // resolution
       // transformation
       // {};
   };
 
-  resolution = {
+  inherit (lib) attrsets;
+
+  access = {
     inherit
-      (lib.attrsets)
-      attrByPath
+      (attrsets)
       attrNames
       attrValues
       getAttr
+      attrByPath
       getAttrByPath
-      removeAttrByPath
-      setAttrByPath
+      collect
+      foldlAttrs
       ;
   };
 
   construction = {
     inherit
-      (lib.attrsets)
+      (attrsets)
       genAttrs
       listToAttrs
       nameValuePair
@@ -50,7 +50,7 @@
 
   transformation = {
     inherit
-      (lib.attrsets)
+      (attrsets)
       concatMapAttrs
       filterAttrs
       filterAttrsRecursive
@@ -58,12 +58,14 @@
       mapAttrsRecursive
       mapAttrsToList
       removeAttrs
+      removeAttrByPath
+      setAttrByPath
       ;
   };
 
   merging = {
     inherit
-      (lib.attrsets)
+      (attrsets)
       intersectAttrs
       mergeAttrsList
       recursiveUpdate
@@ -72,17 +74,9 @@
       ;
   };
 
-  folding = {
-    inherit
-      (lib.attrsets)
-      collect
-      foldlAttrs
-      ;
-  };
-
   predicates = {
     inherit
-      (lib.attrsets)
+      (attrsets)
       hasAttr
       hasAttrByPath
       isAttrs

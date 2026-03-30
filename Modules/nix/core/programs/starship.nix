@@ -8,7 +8,7 @@
   mod = "starship";
   cfg = config.${top}.${dom}.${mod};
   # inherit (config.${top}.interface) shellPrompt;
-  inherit (lix.options.declaration) mkEnable;
+  inherit (lix.options.construction) mkEnable;
   inherit (lix.modules.merging) mkIf;
 in {
   options.${top}.${dom}.${mod} = {

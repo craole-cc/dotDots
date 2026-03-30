@@ -6,18 +6,23 @@
   __exports = {
     namespaced = {
       inherit
-        declaration
-        introspection
+        access
+        construction
+        predicates
         ;
     };
     flattened =
       {}
-      // declaration
-      // introspection
+      // access
+      // construction
+      // predicates
       // {};
   };
+  access = {
+    inherit (lib.options) showFiles showOption;
+  };
 
-  declaration = {
+  construction = {
     inherit
       (lib.options)
       mergeUniqueOption
@@ -28,18 +33,9 @@
       ;
   };
 
-  introspection = {
-    inherit
-      (lib.options)
-      isOption
-      showFiles
-      showOption
-      ;
-
-    inherit
-      (lib.types)
-      isOptionType
-      ;
+  predicates = {
+    inherit (lib.options) isOption;
+    inherit (lib.types) isOptionType;
   };
 in
   if flatten

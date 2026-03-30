@@ -8,7 +8,6 @@
       inherit
         access
         construction
-        formatting
         predicates
         transformation
         ;
@@ -17,38 +16,43 @@
       {}
       // access
       // construction
-      // formatting
       // predicates
       // transformation
       // {};
   };
 
+  inherit (lib) strings;
+
   access = {
     inherit
-      (lib.strings)
-      charToInt
-      intToChar
+      (strings)
+      match
+      split
       stringLength
       stringToCharacters
       substring
-      splitString
       ;
   };
 
   construction = {
     inherit
-      (lib.strings)
+      (strings)
+      charToInt
       concatImapStringsSep
       concatMapStrings
       concatStrings
       concatStringsSep
+      fixedWidthNumber
+      fixedWidthString
+      floatToString
+      intToChar
       optionalString
       ;
   };
 
   transformation = {
     inherit
-      (lib.strings)
+      (strings)
       escape
       escapeNixString
       escapeRegex
@@ -59,31 +63,21 @@
       removePrefix
       removeSuffix
       replaceStrings
+      splitString
       toLower
       toUpper
       trim
       ;
   };
 
-  formatting = {
-    inherit
-      (lib.strings)
-      fixedWidthNumber
-      fixedWidthString
-      floatToString
-      ;
-  };
-
   predicates = {
     inherit
-      (lib.strings)
+      (strings)
       hasInfix
       hasPrefix
       hasSuffix
-      isValidPosixName
       isString
-      match
-      split
+      isValidPosixName
       ;
   };
 in

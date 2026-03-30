@@ -11,7 +11,7 @@
   user = host.users.data.primary or {};
   inherit (config.${top}.interface) shell;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.options.declaration) mkEnable mkTrue;
+  inherit (lix.options.construction) mkEnable mkTrue;
   inherit (lix.modules.merging) mkIf;
 in {
   options.${top}.${dom}.${mod} = {

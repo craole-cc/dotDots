@@ -29,6 +29,8 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
 
+  pathHasPrefix = path.hasPrefix;
+  isStorePath = path.hasStorePathPrefix;
   /**
   Resolves and validates the filesystem path to a flake directory.
 

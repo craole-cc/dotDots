@@ -8,11 +8,9 @@
       inherit
         access
         construction
-        filtering
-        folding
+        reduction
         predicates
-        searching
-        slicing
+        selection
         transformation
         ;
     };
@@ -20,29 +18,32 @@
       {}
       // access
       // construction
-      // filtering
-      // folding
+      // reduction
       // predicates
-      // searching
-      // slicing
+      // selection
       // transformation
       // {};
   };
 
+  inherit (lib) lists;
+
   access = {
     inherit
-      (lib.lists)
+      (lists)
       elemAt
       head
       init
       last
+      length
       tail
+      findFirst
+      findFirstIndex
       ;
   };
 
   construction = {
     inherit
-      (lib.lists)
+      (lists)
       genList
       range
       replicate
@@ -53,7 +54,7 @@
 
   transformation = {
     inherit
-      (lib.lists)
+      (lists)
       flatten
       flattenDepth
       imap0
@@ -69,11 +70,13 @@
       ;
   };
 
-  slicing = {
+  selection = {
     inherit
-      (lib.lists)
+      (lists)
       drop
       dropWhile
+      filter
+      partition
       splitAt
       sublist
       take
@@ -81,25 +84,9 @@
       ;
   };
 
-  searching = {
+  reduction = {
     inherit
-      (lib.lists)
-      findFirst
-      findFirstIndex
-      ;
-  };
-
-  filtering = {
-    inherit
-      (lib.lists)
-      filter
-      partition
-      ;
-  };
-
-  folding = {
-    inherit
-      (lib.lists)
+      (lists)
       concatLists
       concatMap
       count
@@ -110,7 +97,7 @@
 
   predicates = {
     inherit
-      (lib.lists)
+      (lists)
       all
       any
       elem

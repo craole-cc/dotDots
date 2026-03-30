@@ -1,7 +1,6 @@
 {
   # __moduleRef,
   _,
-  lib,
   ...
 }: let
   __exports = {
@@ -20,10 +19,7 @@
         isList'
         mostFrequent
         ;
-
       has = isIn;
-      hasNot = !isIn;
-      isNotIn = !isIn;
     };
     external = {
       isListMember = isMember;
@@ -36,19 +32,23 @@
       hasAtMostInList = hasAtMost;
       isInExactList = isInExact;
       isInList = isIn;
-      isNotInList = !isIn;
       hasInList = isIn;
       isList = isList';
     };
   };
 
-  inherit (_.strings.generators) toList;
-  inherit (_.lists.construction) mkCheckList;
+  inherit (_.attrsets.access) attrValues;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
-  inherit (lib.lists) all any filter foldl' head length sort tail;
-  inherit (lib.attrsets) attrValues isAttrs;
-  inherit (lib.strings) stringLength;
+  inherit (_.lists.access) head tail length;
+  inherit (_.lists.construction) mkCheckList;
+  inherit (_.lists.filtering) filter;
+  inherit (_.lists.predicates) all any;
+  inherit (_.lists.reduction) foldl';
+  inherit (_.lists.transformation) sort;
+  inherit (_.strings.access) stringLength;
+  inherit (_.strings.construction) toList;
+  inherit (_.types.predicates) isList isAttrs;
 
   /**
   Check whether a value is a list.
@@ -65,7 +65,7 @@
   isList "foo"      # => false
   ```
   */
-  isList' = value: lib.lists.isList value;
+  isList' = value: isList value;
 
   /**
   Check if any input elements are members of the allowed list.

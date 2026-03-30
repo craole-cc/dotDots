@@ -7,7 +7,7 @@
   dom = "programs";
   mod = "git";
   cfg = config.${top}.${dom}.${mod};
-  inherit (lix.options.declaration) mkTrue;
+  inherit (lix.options.construction) mkTrue;
   inherit (lix.modules.merging) mkIf;
 in {
   options.${top}.${dom}.${mod} = {

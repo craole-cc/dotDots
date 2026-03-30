@@ -6,24 +6,24 @@
   __exports = {
     namespaced = {
       inherit
+        construction
         evaluation
-        merging
         migration
-        utils
         ;
     };
     flattened =
       {}
+      // construction
       // evaluation
-      // merging
       // migration
-      // utils
       // {};
   };
 
-  merging = {
+  inherit (lib) modules;
+
+  construction = {
     inherit
-      (lib.modules)
+      (modules)
       mkAfter
       mkAssert
       mkBefore
@@ -37,12 +37,26 @@
       mkOrder
       mkOverride
       mkVMOverride
+      fixMergeModules
+      mkDerivedConfig
+      setDefaultModuleLocation
+      ;
+  };
+
+  evaluation = {
+    inherit
+      (modules)
+      evalModules
+      evalOptionValue
+      importApply
+      importJSON
+      importTOML
       ;
   };
 
   migration = {
     inherit
-      (lib.modules)
+      (modules)
       doRename
       mkAliasAndWrapDefsWithPriority
       mkAliasAndWrapDefinitions
@@ -54,26 +68,6 @@
       mkRemovedOptionModule
       mkRenamedOptionModule
       mkRenamedOptionModuleWith
-      ;
-  };
-
-  evaluation = {
-    inherit
-      (lib.modules)
-      evalModules
-      evalOptionValue
-      ;
-  };
-
-  utils = {
-    inherit
-      (lib.modules)
-      fixMergeModules
-      importApply
-      importJSON
-      importTOML
-      mkDerivedConfig
-      setDefaultModuleLocation
       ;
   };
 in
