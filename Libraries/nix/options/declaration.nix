@@ -11,9 +11,11 @@
     };
   };
 
-  inherit (_.options) mkOption bool enum nullOr;
-  inherit (_.attrsets) optionalAttrs;
-  inherit (_.lists.generators) mkEnum;
+  inherit (_.options.declaration) mkOption;
+  inherit (_.types.predicates) bool;
+  inherit (_.types.combinators) enum nullOr;
+  inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.lists.construction) mkEnum;
   inherit (_.types.predicates) isAttrs;
 
   # Omits the `description` key entirely when null, so doc generators and

@@ -1,18 +1,25 @@
-{lib, ...}: let
-  __exports =
-    {
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
+  __exports = {
+    namespaced = {
       inherit
         evaluation
         merging
         migration
         utils
         ;
-    }
-    // evaluation
-    // merging
-    // migration
-    // utils
-    // {};
+    };
+    flattened =
+      {}
+      // evaluation
+      // merging
+      // migration
+      // utils
+      // {};
+  };
 
   merging = {
     inherit
@@ -70,4 +77,6 @@
       ;
   };
 in
-  __exports
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

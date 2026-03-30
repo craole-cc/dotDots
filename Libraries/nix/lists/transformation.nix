@@ -3,6 +3,14 @@
   lib,
   ...
 }: let
+  __exports = {
+    internal = {inherit indented indentedForError;};
+    external = {
+      indentedList = indented;
+      indentedListForError = indentedForError;
+    };
+  };
+
   inherit (_.strings.transform) indent;
   inherit (lib.strings) concatStringsSep;
 
@@ -43,11 +51,5 @@
     bullet ? "-",
   }:
     indented {inherit items title size bullet;};
-in {
-  inherit indented indentedForError;
-
-  _rootAliases = {
-    indentedList = indented;
-    indentedListForError = indentedForError;
-  };
-}
+in
+  __exports.internal // {_rootAliases = __exports.external;}

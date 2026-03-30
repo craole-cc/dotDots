@@ -10,10 +10,13 @@
 
   libDir = ./lib;
   libImports = import libDir;
-  init = f: f {lib = lib';};
+  init = f:
+    f {
+      lib = lib';
+      flatten = false;
+    };
 
   libs = let
-    # Read dir, filter to .nix files, exclude default.nix, strip extension
     names =
       filter
       (name: name != "default")

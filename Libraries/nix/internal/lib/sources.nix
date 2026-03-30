@@ -1,16 +1,23 @@
-{lib, ...}: let
-  __exports =
-    {
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
+  __exports = {
+    namespaced = {
       inherit
         filtering
         inspection
         utils
         ;
-    }
-    // filtering
-    // inspection
-    // utils
-    // {};
+    };
+    flattened =
+      {}
+      // filtering
+      // inspection
+      // utils
+      // {};
+  };
 
   filtering = {
     inherit
@@ -45,4 +52,6 @@
       ;
   };
 in
-  __exports
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

@@ -1,11 +1,49 @@
 {
-  __moduleRef,
+  # __moduleRef,
   _,
   lib,
   ...
 }: let
+  __exports = {
+    internal = {
+      inherit
+        isMember
+        countMatches
+        hasAll
+        hasAllExact
+        hasAtLeast
+        hasAtLeastExact
+        hasAtMost
+        hasAtMostExact
+        isIn
+        isInExact
+        isList'
+        mostFrequent
+        ;
+
+      has = isIn;
+      hasNot = !isIn;
+      isNotIn = !isIn;
+    };
+    external = {
+      isListMember = isMember;
+      countListMatches = countMatches;
+      hasAllExactInList = hasAllExact;
+      hasAllInList = hasAll;
+      hasAtLeastExactInList = hasAtLeastExact;
+      hasAtLeastInList = hasAtLeast;
+      hasAtMostExactInList = hasAtMostExact;
+      hasAtMostInList = hasAtMost;
+      isInExactList = isInExact;
+      isInList = isIn;
+      isNotInList = !isIn;
+      hasInList = isIn;
+      isList = isList';
+    };
+  };
+
   inherit (_.strings.generators) toList;
-  inherit (_.lists.generators) mkCheckList;
+  inherit (_.lists.construction) mkCheckList;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.lists) all any filter foldl' head length sort tail;
@@ -27,7 +65,7 @@
   isList "foo"      # => false
   ```
   */
-  isList = lib.lists.isList;
+  isList' = value: lib.lists.isList value;
 
   /**
   Check if any input elements are members of the allowed list.
@@ -36,18 +74,18 @@
 
   # Type
   ```nix
-  checkMembership :: { value :: a | [a], check :: a | [a], exact :: Bool } -> Bool
+  isMember :: { value :: a | [a], check :: a | [a], exact :: Bool } -> Bool
   ```
 
   # Examples
   ```nix
-  checkMembership { value = "foo"; check = ["foo" "bar"]; }           # => true
-  checkMembership { value = ["foo" "bar"]; check = ["foo" "baz"]; }   # => true
-  checkMembership { value = "FOO"; check = ["foo"]; exact = false; }  # => true
-  checkMembership { value = "FOO"; check = ["foo"]; exact = true; }   # => false
+  isMember { value = "foo"; check = ["foo" "bar"]; }           # => true
+  isMember { value = ["foo" "bar"]; check = ["foo" "baz"]; }   # => true
+  isMember { value = "FOO"; check = ["foo"]; exact = false; }  # => true
+  isMember { value = "FOO"; check = ["foo"]; exact = true; }   # => false
   ```
   */
-  checkMembership = {
+  isMember = {
     value,
     check,
     exact ? false,
@@ -87,12 +125,10 @@
   ```
   */
   isIn = value: check:
-    checkMembership {
+    isMember {
       inherit value check;
       exact = false;
     };
-
-  has = isIn;
 
   /**
   Check if any value(s) exist in the check list (case-sensitive).
@@ -105,7 +141,7 @@
   ```
   */
   isInExact = value: check:
-    checkMembership {
+    isMember {
       inherit value check;
       exact = true;
     };
@@ -269,356 +305,330 @@
       else if opts ? tiebreaker
       then foldl' (cur: nxt: opts.tiebreaker cur nxt) (head tiedItems) (tail tiedItems)
       else head tiedItems;
-in {
-  inherit
-    checkMembership
-    countMatches
-    has
-    hasAll
-    hasAllExact
-    hasAtLeast
-    hasAtLeastExact
-    hasAtMost
-    hasAtMostExact
-    isIn
-    isInExact
-    isList
-    mostFrequent
-    ;
+in
+  __exports.internal
+  // {
+    _rootAliases = __exports.external;
 
-  _rootAliases = {
-    inherit isList;
-    checkListMembership = checkMembership;
-    countListMatches = countMatches;
-    hasAllInList = hasAll;
-    hasAllExactInList = hasAllExact;
-    hasAtLeastInList = hasAtLeast;
-    hasAtLeastExactInList = hasAtLeastExact;
-    hasAtMostInList = hasAtMost;
-    hasAtMostExactInList = hasAtMostExact;
-    isInList = isIn;
-    isInExactList = isInExact;
-  };
+    _tests = runTests {
+      isMember = {
+        singleValueFound = mkTest {
+          desired = true;
+          command = ''isMember { value = "foo"; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = "foo";
+            check = ["foo" "bar"];
+          };
+        };
+        singleValueNotFound = mkTest {
+          desired = false;
+          command = ''isMember { value = "baz"; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = "baz";
+            check = ["foo" "bar"];
+          };
+        };
+        listWithOneMatch = mkTest {
+          desired = true;
+          command = ''isMember { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = ["foo" "qux"];
+            check = ["foo" "bar"];
+          };
+        };
+        listWithNoMatches = mkTest {
+          desired = false;
+          command = ''isMember { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = ["qux" "quux"];
+            check = ["foo" "bar"];
+          };
+        };
+        caseInsensitiveByDefault = mkTest {
+          desired = true;
+          command = ''isMember { value = "FOO"; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = "FOO";
+            check = ["foo" "bar"];
+          };
+        };
+        caseSensitiveWithExact = mkTest {
+          desired = false;
+          command = ''isMember { value = "FOO"; check = ["foo" "bar"]; exact = true; }'';
+          outcome = isMember {
+            value = "FOO";
+            check = ["foo" "bar"];
+            exact = true;
+          };
+        };
+        emptyValueList = mkTest {
+          desired = false;
+          command = ''isMember { value = []; check = ["foo" "bar"]; }'';
+          outcome = isMember {
+            value = [];
+            check = ["foo" "bar"];
+          };
+        };
+        singleCheckValue = mkTest {
+          desired = true;
+          command = ''isMember { value = ["foo" "bar"]; check = "foo"; }'';
+          outcome = isMember {
+            value = ["foo" "bar"];
+            check = "foo";
+          };
+        };
+      };
 
-  _tests = runTests {
-    checkMembership = {
-      singleValueFound = mkTest {
-        desired = true;
-        command = ''checkMembership { value = "foo"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "foo";
-          check = ["foo" "bar"];
+      countMatches = {
+        noMatches = mkTest {
+          desired = 0;
+          command = ''countMatches { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
+          outcome = countMatches {
+            value = ["qux" "quux"];
+            check = ["foo" "bar"];
+          };
+        };
+        oneMatch = mkTest {
+          desired = 1;
+          command = ''countMatches { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
+          outcome = countMatches {
+            value = ["foo" "qux"];
+            check = ["foo" "bar"];
+          };
+        };
+        allMatch = mkTest {
+          desired = 2;
+          command = ''countMatches { value = ["foo" "bar"]; check = ["foo" "bar" "baz"]; }'';
+          outcome = countMatches {
+            value = ["foo" "bar"];
+            check = ["foo" "bar" "baz"];
+          };
+        };
+        caseInsensitive = mkTest {
+          desired = 2;
+          command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; }'';
+          outcome = countMatches {
+            value = ["FOO" "Bar"];
+            check = ["foo" "bar"];
+          };
+        };
+        caseSensitive = mkTest {
+          desired = 0;
+          command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; exact = true; }'';
+          outcome = countMatches {
+            value = ["FOO" "Bar"];
+            check = ["foo" "bar"];
+            exact = true;
+          };
+        };
+        duplicateValues = mkTest {
+          desired = 2;
+          command = ''countMatches { value = ["foo" "foo"]; check = ["foo" "bar"]; }'';
+          outcome = countMatches {
+            value = ["foo" "foo"];
+            check = ["foo" "bar"];
+          };
         };
       };
-      singleValueNotFound = mkTest {
-        desired = false;
-        command = ''checkMembership { value = "baz"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "baz";
-          check = ["foo" "bar"];
+
+      isIn = {
+        found = mkTest {
+          desired = true;
+          command = ''isIn "foo" ["foo" "bar"]'';
+          outcome = isIn "foo" ["foo" "bar"];
+        };
+        notFound = mkTest {
+          desired = false;
+          command = ''isIn "qux" ["foo" "bar"]'';
+          outcome = isIn "qux" ["foo" "bar"];
+        };
+        caseInsensitive = mkTest {
+          desired = true;
+          command = ''isIn "FOO" ["foo" "bar"]'';
+          outcome = isIn "FOO" ["foo" "bar"];
+        };
+        listWithPartialMatch = mkTest {
+          desired = true;
+          command = ''isIn ["foo" "qux"] ["foo" "bar"]'';
+          outcome = isIn ["foo" "qux"] ["foo" "bar"];
+        };
+        checkAgainstSingleValue = mkTest {
+          desired = true;
+          command = ''isIn "foo" "foo"'';
+          outcome = isIn "foo" "foo";
         };
       };
-      listWithOneMatch = mkTest {
-        desired = true;
-        command = ''checkMembership { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = ["foo" "qux"];
-          check = ["foo" "bar"];
+
+      isInExact = {
+        caseSensitiveMatch = mkTest {
+          desired = true;
+          command = ''isInExact "foo" ["foo" "bar"]'';
+          outcome = isInExact "foo" ["foo" "bar"];
+        };
+        caseSensitiveNoMatch = mkTest {
+          desired = false;
+          command = ''isInExact "FOO" ["foo" "bar"]'';
+          outcome = isInExact "FOO" ["foo" "bar"];
+        };
+        listWithCaseMismatch = mkTest {
+          desired = true;
+          command = ''isInExact ["FOO" "bar"] ["foo" "bar"]'';
+          outcome = isInExact ["FOO" "bar"] ["foo" "bar"];
         };
       };
-      listWithNoMatches = mkTest {
-        desired = false;
-        command = ''checkMembership { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = ["qux" "quux"];
-          check = ["foo" "bar"];
+
+      hasAll = {
+        allElementsFound = mkTest {
+          desired = true;
+          command = ''hasAll ["foo" "bar"] ["foo" "bar" "baz"]'';
+          outcome = hasAll ["foo" "bar"] ["foo" "bar" "baz"];
+        };
+        notAllElementsFound = mkTest {
+          desired = false;
+          command = ''hasAll ["foo" "qux"] ["foo" "bar"]'';
+          outcome = hasAll ["foo" "qux"] ["foo" "bar"];
+        };
+        caseInsensitive = mkTest {
+          desired = true;
+          command = ''hasAll ["FOO" "BAR"] ["foo" "bar"]'';
+          outcome = hasAll ["FOO" "BAR"] ["foo" "bar"];
+        };
+        emptyList = mkTest {
+          desired = true;
+          command = ''hasAll [] ["foo" "bar"]'';
+          outcome = hasAll [] ["foo" "bar"];
         };
       };
-      caseInsensitiveByDefault = mkTest {
-        desired = true;
-        command = ''checkMembership { value = "FOO"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "FOO";
-          check = ["foo" "bar"];
+
+      hasAllExact = {
+        allMatchWithCorrectCase = mkTest {
+          desired = true;
+          command = ''hasAllExact ["foo" "bar"] ["foo" "bar" "baz"]'';
+          outcome = hasAllExact ["foo" "bar"] ["foo" "bar" "baz"];
+        };
+        caseMismatch = mkTest {
+          desired = false;
+          command = ''hasAllExact ["FOO" "bar"] ["foo" "bar"]'';
+          outcome = hasAllExact ["FOO" "bar"] ["foo" "bar"];
         };
       };
-      caseSensitiveWithExact = mkTest {
-        desired = false;
-        command = ''checkMembership { value = "FOO"; check = ["foo" "bar"]; exact = true; }'';
-        outcome = checkMembership {
-          value = "FOO";
-          check = ["foo" "bar"];
-          exact = true;
+
+      hasAtLeast = {
+        exactlyTheCount = mkTest {
+          desired = true;
+          command = ''hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2'';
+          outcome = hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2;
+        };
+        moreThanTheCount = mkTest {
+          desired = true;
+          command = ''hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1'';
+          outcome = hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1;
+        };
+        lessThanTheCount = mkTest {
+          desired = false;
+          command = ''hasAtLeast ["foo" "qux"] ["foo" "bar"] 2'';
+          outcome = hasAtLeast ["foo" "qux"] ["foo" "bar"] 2;
+        };
+        caseInsensitive = mkTest {
+          desired = true;
+          command = ''hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2'';
+          outcome = hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2;
         };
       };
-      emptyValueList = mkTest {
-        desired = false;
-        command = ''checkMembership { value = []; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = [];
-          check = ["foo" "bar"];
+
+      hasAtLeastExact = {
+        exactCaseMatch = mkTest {
+          desired = true;
+          command = ''hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2'';
+          outcome = hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2;
+        };
+        caseMismatch = mkTest {
+          desired = false;
+          command = ''hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2'';
+          outcome = hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2;
         };
       };
-      singleCheckValue = mkTest {
-        desired = true;
-        command = ''checkMembership { value = ["foo" "bar"]; check = "foo"; }'';
-        outcome = checkMembership {
-          value = ["foo" "bar"];
-          check = "foo";
+
+      hasAtMost = {
+        exactlyTheCount = mkTest {
+          desired = true;
+          command = ''hasAtMost ["foo" "bar"] ["foo" "baz"] 1'';
+          outcome = hasAtMost ["foo" "bar"] ["foo" "baz"] 1;
+        };
+        lessThanTheCount = mkTest {
+          desired = true;
+          command = ''hasAtMost ["foo"] ["foo" "bar"] 2'';
+          outcome = hasAtMost ["foo"] ["foo" "bar"] 2;
+        };
+        moreThanTheCount = mkTest {
+          desired = false;
+          command = ''hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1'';
+          outcome = hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1;
+        };
+        noMatchesReturnsFalse = mkTest {
+          desired = false;
+          command = ''hasAtMost ["qux" "quux"] ["foo" "bar"] 5'';
+          outcome = hasAtMost ["qux" "quux"] ["foo" "bar"] 5;
+        };
+        caseInsensitive = mkTest {
+          desired = true;
+          command = ''hasAtMost ["FOO"] ["foo" "bar"] 1'';
+          outcome = hasAtMost ["FOO"] ["foo" "bar"] 1;
+        };
+      };
+
+      hasAtMostExact = {
+        caseSensitiveMatch = mkTest {
+          desired = true;
+          command = ''hasAtMostExact ["foo"] ["foo" "bar"] 1'';
+          outcome = hasAtMostExact ["foo"] ["foo" "bar"] 1;
+        };
+        caseSensitiveNoMatch = mkTest {
+          desired = false;
+          command = ''hasAtMostExact ["FOO"] ["foo" "bar"] 1'';
+          outcome = hasAtMostExact ["FOO"] ["foo" "bar"] 1;
+        };
+      };
+
+      mostFrequent = {
+        singleWinner = mkTest {
+          desired = "b";
+          command = ''mostFrequent ["a" "b" "b"] {}'';
+          outcome = mostFrequent ["a" "b" "b"] {};
+        };
+        emptyListReturnsNull = mkTest' null (mostFrequent [] {});
+        singleElement = mkTest {
+          desired = "a";
+          command = ''mostFrequent ["a"] {}'';
+          outcome = mostFrequent ["a"] {};
+        };
+        tieBrokenByCompareItems = mkTest {
+          desired = "a";
+          command = ''mostFrequent ["a" "b" "b" "a"] { compareItems = a: b: if a < b then -1 else if a > b then 1 else 0; }'';
+          outcome = mostFrequent ["a" "b" "b" "a"] {
+            compareItems = a: b:
+              if a < b
+              then -1
+              else if a > b
+              then 1
+              else 0;
+          };
+        };
+        tieBrokenByTiebreaker = mkTest {
+          desired = "ab";
+          command = ''mostFrequent ["abc" "ab" "abc" "ab"] { tiebreaker = a: b: if stringLength a < stringLength b then a else b; }'';
+          outcome = mostFrequent ["abc" "ab" "abc" "ab"] {
+            tiebreaker = a: b:
+              if stringLength a < stringLength b
+              then a
+              else b;
+          };
+        };
+        allSameFrequency = mkTest {
+          desired = true;
+          command = ''builtins.isString (mostFrequent ["x" "y" "z"] {})'';
+          outcome = builtins.isString (mostFrequent ["x" "y" "z"] {});
         };
       };
     };
-
-    countMatches = {
-      noMatches = mkTest {
-        desired = 0;
-        command = ''countMatches { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["qux" "quux"];
-          check = ["foo" "bar"];
-        };
-      };
-      oneMatch = mkTest {
-        desired = 1;
-        command = ''countMatches { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["foo" "qux"];
-          check = ["foo" "bar"];
-        };
-      };
-      allMatch = mkTest {
-        desired = 2;
-        command = ''countMatches { value = ["foo" "bar"]; check = ["foo" "bar" "baz"]; }'';
-        outcome = countMatches {
-          value = ["foo" "bar"];
-          check = ["foo" "bar" "baz"];
-        };
-      };
-      caseInsensitive = mkTest {
-        desired = 2;
-        command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["FOO" "Bar"];
-          check = ["foo" "bar"];
-        };
-      };
-      caseSensitive = mkTest {
-        desired = 0;
-        command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; exact = true; }'';
-        outcome = countMatches {
-          value = ["FOO" "Bar"];
-          check = ["foo" "bar"];
-          exact = true;
-        };
-      };
-      duplicateValues = mkTest {
-        desired = 2;
-        command = ''countMatches { value = ["foo" "foo"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["foo" "foo"];
-          check = ["foo" "bar"];
-        };
-      };
-    };
-
-    isIn = {
-      found = mkTest {
-        desired = true;
-        command = ''isIn "foo" ["foo" "bar"]'';
-        outcome = isIn "foo" ["foo" "bar"];
-      };
-      notFound = mkTest {
-        desired = false;
-        command = ''isIn "qux" ["foo" "bar"]'';
-        outcome = isIn "qux" ["foo" "bar"];
-      };
-      caseInsensitive = mkTest {
-        desired = true;
-        command = ''isIn "FOO" ["foo" "bar"]'';
-        outcome = isIn "FOO" ["foo" "bar"];
-      };
-      listWithPartialMatch = mkTest {
-        desired = true;
-        command = ''isIn ["foo" "qux"] ["foo" "bar"]'';
-        outcome = isIn ["foo" "qux"] ["foo" "bar"];
-      };
-      checkAgainstSingleValue = mkTest {
-        desired = true;
-        command = ''isIn "foo" "foo"'';
-        outcome = isIn "foo" "foo";
-      };
-    };
-
-    isInExact = {
-      caseSensitiveMatch = mkTest {
-        desired = true;
-        command = ''isInExact "foo" ["foo" "bar"]'';
-        outcome = isInExact "foo" ["foo" "bar"];
-      };
-      caseSensitiveNoMatch = mkTest {
-        desired = false;
-        command = ''isInExact "FOO" ["foo" "bar"]'';
-        outcome = isInExact "FOO" ["foo" "bar"];
-      };
-      listWithCaseMismatch = mkTest {
-        desired = true;
-        command = ''isInExact ["FOO" "bar"] ["foo" "bar"]'';
-        outcome = isInExact ["FOO" "bar"] ["foo" "bar"];
-      };
-    };
-
-    hasAll = {
-      allElementsFound = mkTest {
-        desired = true;
-        command = ''hasAll ["foo" "bar"] ["foo" "bar" "baz"]'';
-        outcome = hasAll ["foo" "bar"] ["foo" "bar" "baz"];
-      };
-      notAllElementsFound = mkTest {
-        desired = false;
-        command = ''hasAll ["foo" "qux"] ["foo" "bar"]'';
-        outcome = hasAll ["foo" "qux"] ["foo" "bar"];
-      };
-      caseInsensitive = mkTest {
-        desired = true;
-        command = ''hasAll ["FOO" "BAR"] ["foo" "bar"]'';
-        outcome = hasAll ["FOO" "BAR"] ["foo" "bar"];
-      };
-      emptyList = mkTest {
-        desired = true;
-        command = ''hasAll [] ["foo" "bar"]'';
-        outcome = hasAll [] ["foo" "bar"];
-      };
-    };
-
-    hasAllExact = {
-      allMatchWithCorrectCase = mkTest {
-        desired = true;
-        command = ''hasAllExact ["foo" "bar"] ["foo" "bar" "baz"]'';
-        outcome = hasAllExact ["foo" "bar"] ["foo" "bar" "baz"];
-      };
-      caseMismatch = mkTest {
-        desired = false;
-        command = ''hasAllExact ["FOO" "bar"] ["foo" "bar"]'';
-        outcome = hasAllExact ["FOO" "bar"] ["foo" "bar"];
-      };
-    };
-
-    hasAtLeast = {
-      exactlyTheCount = mkTest {
-        desired = true;
-        command = ''hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2'';
-        outcome = hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2;
-      };
-      moreThanTheCount = mkTest {
-        desired = true;
-        command = ''hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1'';
-        outcome = hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1;
-      };
-      lessThanTheCount = mkTest {
-        desired = false;
-        command = ''hasAtLeast ["foo" "qux"] ["foo" "bar"] 2'';
-        outcome = hasAtLeast ["foo" "qux"] ["foo" "bar"] 2;
-      };
-      caseInsensitive = mkTest {
-        desired = true;
-        command = ''hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2'';
-        outcome = hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2;
-      };
-    };
-
-    hasAtLeastExact = {
-      exactCaseMatch = mkTest {
-        desired = true;
-        command = ''hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2'';
-        outcome = hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2;
-      };
-      caseMismatch = mkTest {
-        desired = false;
-        command = ''hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2'';
-        outcome = hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2;
-      };
-    };
-
-    hasAtMost = {
-      exactlyTheCount = mkTest {
-        desired = true;
-        command = ''hasAtMost ["foo" "bar"] ["foo" "baz"] 1'';
-        outcome = hasAtMost ["foo" "bar"] ["foo" "baz"] 1;
-      };
-      lessThanTheCount = mkTest {
-        desired = true;
-        command = ''hasAtMost ["foo"] ["foo" "bar"] 2'';
-        outcome = hasAtMost ["foo"] ["foo" "bar"] 2;
-      };
-      moreThanTheCount = mkTest {
-        desired = false;
-        command = ''hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1'';
-        outcome = hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1;
-      };
-      noMatchesReturnsFalse = mkTest {
-        desired = false;
-        command = ''hasAtMost ["qux" "quux"] ["foo" "bar"] 5'';
-        outcome = hasAtMost ["qux" "quux"] ["foo" "bar"] 5;
-      };
-      caseInsensitive = mkTest {
-        desired = true;
-        command = ''hasAtMost ["FOO"] ["foo" "bar"] 1'';
-        outcome = hasAtMost ["FOO"] ["foo" "bar"] 1;
-      };
-    };
-
-    hasAtMostExact = {
-      caseSensitiveMatch = mkTest {
-        desired = true;
-        command = ''hasAtMostExact ["foo"] ["foo" "bar"] 1'';
-        outcome = hasAtMostExact ["foo"] ["foo" "bar"] 1;
-      };
-      caseSensitiveNoMatch = mkTest {
-        desired = false;
-        command = ''hasAtMostExact ["FOO"] ["foo" "bar"] 1'';
-        outcome = hasAtMostExact ["FOO"] ["foo" "bar"] 1;
-      };
-    };
-
-    mostFrequent = {
-      singleWinner = mkTest {
-        desired = "b";
-        command = ''mostFrequent ["a" "b" "b"] {}'';
-        outcome = mostFrequent ["a" "b" "b"] {};
-      };
-      emptyListReturnsNull = mkTest' null (mostFrequent [] {});
-      singleElement = mkTest {
-        desired = "a";
-        command = ''mostFrequent ["a"] {}'';
-        outcome = mostFrequent ["a"] {};
-      };
-      tieBrokenByCompareItems = mkTest {
-        desired = "a";
-        command = ''mostFrequent ["a" "b" "b" "a"] { compareItems = a: b: if a < b then -1 else if a > b then 1 else 0; }'';
-        outcome = mostFrequent ["a" "b" "b" "a"] {
-          compareItems = a: b:
-            if a < b
-            then -1
-            else if a > b
-            then 1
-            else 0;
-        };
-      };
-      tieBrokenByTiebreaker = mkTest {
-        desired = "ab";
-        command = ''mostFrequent ["abc" "ab" "abc" "ab"] { tiebreaker = a: b: if stringLength a < stringLength b then a else b; }'';
-        outcome = mostFrequent ["abc" "ab" "abc" "ab"] {
-          tiebreaker = a: b:
-            if stringLength a < stringLength b
-            then a
-            else b;
-        };
-      };
-      allSameFrequency = mkTest {
-        desired = true;
-        command = ''builtins.isString (mostFrequent ["x" "y" "z"] {})'';
-        outcome = builtins.isString (mostFrequent ["x" "y" "z"] {});
-      };
-    };
-  };
-}
+  }

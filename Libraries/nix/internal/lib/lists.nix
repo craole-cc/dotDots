@@ -1,6 +1,10 @@
-{lib, ...}: let
-  __exports =
-    {
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
+  __exports = {
+    namespaced = {
       inherit
         access
         construction
@@ -11,16 +15,19 @@
         slicing
         transformation
         ;
-    }
-    // access
-    // construction
-    // filtering
-    // folding
-    // predicates
-    // searching
-    // slicing
-    // transformation
-    // {};
+    };
+    flattened =
+      {}
+      // access
+      // construction
+      // filtering
+      // folding
+      // predicates
+      // searching
+      // slicing
+      // transformation
+      // {};
+  };
 
   access = {
     inherit
@@ -111,4 +118,6 @@
       ;
   };
 in
-  __exports
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

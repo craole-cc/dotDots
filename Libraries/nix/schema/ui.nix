@@ -22,7 +22,7 @@
     unique
     ;
   inherit (lib.strings) optionalString;
-  inherit (_.lists.generators) mkEnum;
+  inherit (_.lists.construction) mkEnum;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.schema) io;
   inherit (_.options) mkOption;

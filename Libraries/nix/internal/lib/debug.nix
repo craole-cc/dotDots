@@ -1,14 +1,21 @@
-{lib, ...}: let
-  __exports =
-    {
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
+  __exports = {
+    namespaced = {
       inherit
         testing
         tracing
         ;
-    }
-    // testing
-    // tracing
-    // {};
+    };
+    flattened =
+      {}
+      // testing
+      // tracing
+      // {};
+  };
 
   tracing = {
     inherit
@@ -32,4 +39,6 @@
       ;
   };
 in
-  __exports
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

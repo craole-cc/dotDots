@@ -1,22 +1,25 @@
-{lib, ...}: let
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
   __exports = {
-    internal =
-      {
-        inherit
-          combinators
-          opaque
-          predicates
-          primitives
-          submodules
-          ;
-      }
+    namespaced = {
+      inherit
+        combinators
+        opaque
+        predicates
+        primitives
+        ;
+    };
+    flattened =
+      {}
       // combinators
       // opaque
       // predicates
       // primitives
       // submodules
       // {};
-    external = {};
   };
 
   primitives = {
@@ -84,4 +87,6 @@
       ;
   };
 in
-  __exports.internal
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

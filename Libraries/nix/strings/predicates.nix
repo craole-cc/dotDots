@@ -39,7 +39,7 @@
   inherit (_.debug.format) mkExample;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
-  inherit (_.lists.generators) toList;
+  inherit (_.lists.construction) toList;
   inherit (_.lists.predicates) isList;
   inherit (_.types.predicates) typeOf;
   inherit (lib.attrsets) isAttrs;

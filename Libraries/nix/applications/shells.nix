@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.lists.generators) mkEnum;
+  inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.attrsets) filterAttrs;
 

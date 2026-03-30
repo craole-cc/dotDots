@@ -1,5 +1,5 @@
 {_, ...}: let
-  inherit (_.lists.generators) mkEnum;
+  inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.std.lists) length;
 

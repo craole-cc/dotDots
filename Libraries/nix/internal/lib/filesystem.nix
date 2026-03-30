@@ -1,18 +1,25 @@
-{lib, ...}: let
-  __exports =
-    {
+{
+  lib,
+  flatten ? false,
+  ...
+}: let
+  __exports = {
+    namespaced = {
       inherit
         paths
         predicates
         reading
         sources
         ;
-    }
-    // paths
-    // predicates
-    // reading
-    // sources
-    // {};
+    };
+    flattened =
+      {}
+      // paths
+      // predicates
+      // reading
+      // sources
+      // {};
+  };
 
   paths = {
     inherit
@@ -103,4 +110,6 @@
       ;
   };
 in
-  __exports
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

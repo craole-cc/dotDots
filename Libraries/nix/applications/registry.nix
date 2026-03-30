@@ -7,7 +7,7 @@
   inherit (lib.lists) elem filter head init last length;
   inherit (lib.strings) concatStringsSep;
   inherit (_.lists.predicates) isIn;
-  inherit (_.lists.transform) indentedForError;
+  inherit (_.lists.transformation) indentedForError;
   inherit (_.applications.enums) categories;
   data = _.filesystem.importers.importAllMerged ./.data {};
 
