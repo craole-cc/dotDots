@@ -10,8 +10,8 @@
 
   lib = let
     base = let
-      dir = ./base;
-      attrs = import dir;
+      raw = ./base;
+      set = import raw;
       init = f:
         f {
           lib = lib';
@@ -28,12 +28,12 @@
             (
               filterAttrs
               (n: t: t == "regular" && hasSuffix ".nix" n && n != "default.nix")
-              (readDir lib.dir)
+              (readDir raw)
             )
           )
         );
     in
-      genAttrs names (name: init attrs.${name});
+      genAttrs names (name: init set.${name});
   in
     customLib.extend (_: prev: recursiveUpdate base prev);
 

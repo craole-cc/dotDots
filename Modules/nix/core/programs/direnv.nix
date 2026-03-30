@@ -8,7 +8,7 @@
   mod = "direnv";
   cfg = config.${top}.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
-  inherit (lix.modules.merging) mkIf;
+  inherit (lix.modules.construction) mkIf;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue mod;

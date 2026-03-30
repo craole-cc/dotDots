@@ -16,7 +16,7 @@
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
   inherit (lix.options.construction) mkEnable mkOption mkTrue;
-  inherit (lix.modules.merging) mkIf;
+  inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
 in {
   options.${top}.${dom}.${mod} = {

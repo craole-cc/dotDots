@@ -8,7 +8,7 @@
   dom = "interface";
 
   inherit (lib.types) nullOr str;
-  inherit (lix.options.construction) mkEnumOption mkOption mkTrue;
+  inherit (lix.options.construction) mkEnum mkOption mkTrue;
   inherit (lix.schema.ui) mkUI;
 
   ui = mkUI {inherit host;};
@@ -30,25 +30,25 @@ in {
       default = {inherit desktopEnvironments windowManagers;};
     };
 
-    desktopEnvironment = mkEnumOption {
+    desktopEnvironment = mkEnum {
       description = "Desktop Environment";
       default = ui.desktopEnvironment;
       input = desktopEnvironments;
     };
 
-    windowManager = mkEnumOption {
+    windowManager = mkEnum {
       description = "Window Manager";
       default = ui.windowManager;
       input = windowManagers;
     };
 
-    displayManager = mkEnumOption {
+    displayManager = mkEnum {
       description = "Display Manager";
       default = ui.displayManager;
       input = displayManagers;
     };
 
-    displayProtocol = mkEnumOption {
+    displayProtocol = mkEnum {
       description = "Display Protocols";
       default = ui.displayProtocol;
       input = displayProtocols;
@@ -66,13 +66,13 @@ in {
       type = types.apps;
     };
 
-    shell = mkEnumOption {
+    shell = mkEnum {
       description = "Login shell";
       default = ui.shell.system;
       input = shells.system;
     };
 
-    compositor = mkEnumOption {
+    compositor = mkEnum {
       description = "Windowing compositor";
       default = ui.gui.window;
       input = [];

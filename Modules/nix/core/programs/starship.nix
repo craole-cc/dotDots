@@ -9,7 +9,7 @@
   cfg = config.${top}.${dom}.${mod};
   # inherit (config.${top}.interface) shellPrompt;
   inherit (lix.options.construction) mkEnable;
-  inherit (lix.modules.merging) mkIf;
+  inherit (lix.modules.construction) mkIf;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnable {

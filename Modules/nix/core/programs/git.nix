@@ -8,7 +8,7 @@
   mod = "git";
   cfg = config.${top}.${dom}.${mod};
   inherit (lix.options.construction) mkTrue;
-  inherit (lix.modules.merging) mkIf;
+  inherit (lix.modules.construction) mkIf;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";

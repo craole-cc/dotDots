@@ -6,14 +6,17 @@
   __exports = {
     namespaced = {
       inherit
+        access
         combinators
         opaque
         predicates
         primitives
+        submodules
         ;
     };
     flattened =
       {}
+      // access
       // combinators
       // opaque
       // predicates
@@ -73,8 +76,11 @@
       ;
   };
 
-  predicates = {
+  access = {
     inherit (builtins) typeOf;
+  };
+
+  predicates = {
     inherit (lib.attrsets) isAttrs isDerivation;
     inherit (lib.filesystem) isPath isStorePath;
     inherit (lib.lists) isList;

@@ -1,13 +1,15 @@
 {_, ...}: let
   __exports = {
     internal = {
-      inherit mkEnable mkTrue mkFalse mkEnumOption;
+      inherit mkEnable mkTrue mkFalse mkEnum;
+      mkEnableOption' = mkEnable;
+      mkEnumOption = mkEnum;
     };
     external = {
       mkEnableOptionTrue = mkTrue;
       mkEnableOptionFalse = mkFalse;
-      mkEnableOption' = mkEnable;
-      inherit mkEnumOption;
+      mkEnableOption = mkEnable;
+      mkEnumOption = mkEnum;
     };
   };
 
@@ -15,8 +17,8 @@
   inherit (_.types.predicates) bool;
   inherit (_.types.combinators) enum nullOr;
   inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.lists.construction) mkEnum;
   inherit (_.types.predicates) isAttrs;
+  mkEnumData = _.lists.construction.mkEnum;
 
   # Omits the `description` key entirely when null, so doc generators and
   # `nixos-option` see an absent field rather than an explicit null.
@@ -109,7 +111,7 @@
   value takes precedence over the `nullable` argument.
 
   # Type
-  `mkEnumOption :: { input :: ([String] | EnumType), description :: String?,
+  `mkEnum :: { input :: ([String] | EnumType), description :: String?,
                      default :: Any?, nullable :: Bool } -> Option`
 
   # Arguments
@@ -123,7 +125,7 @@
   # Examples
   ```nix
     # From a plain list
-    mkEnumOption {
+    mkEnum {
       description = "log verbosity";
       input       = [ "debug" "info" "warn" "error" ];
       default     = "info";
@@ -131,12 +133,12 @@
     }
 
     # From a pre-built enum (nullable derived from the enum itself)
-    mkEnumOption {
+    mkEnum {
       input = mkEnum { values = [ "a" "b" "c" ]; nullable = false; };
     }
   ```
   */
-  mkEnumOption = {
+  mkEnum = {
     input,
     description ? null,
     default ? null,
@@ -146,7 +148,7 @@
       if isAttrs input && input ? allValues
       then input
       else
-        mkEnum {
+        mkEnumData {
           values = input;
           inherit nullable;
         };
