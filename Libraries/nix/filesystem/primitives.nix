@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (_.filesystem.predicates) pathExists;
-  inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
+  inherit (_.types) isAttrs isList isPath isString typeOf;
   inherit (lib.strings) concatStringsSep hasPrefix;
 
   exports = {

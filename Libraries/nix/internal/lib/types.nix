@@ -72,9 +72,9 @@
 
   predicates = {
     inherit (builtins) typeOf;
-    inherit (lib.attrsets) isDerivation;
+    inherit (lib.attrsets) isAttrs isDerivation;
     inherit (lib.filesystem) isPath isStorePath;
-    inherit (lib.list) isList;
+    inherit (lib.lists) isList;
     inherit
       (lib.strings)
       isString

@@ -8,7 +8,7 @@
   dom = "interface";
 
   inherit (lib.types) nullOr str;
-  inherit (lix.types.options) mkTrue mkOption mkEnumOption;
+  inherit (lix.options.declaration) mkEnumOption mkOption mkTrue;
   inherit (lix.schema.ui) mkUI;
 
   ui = mkUI {inherit host;};

@@ -33,9 +33,7 @@
     genAttrs names (name: init libImports.${name});
 
   # Pass 1: Base libs available to all scanned lib functions via self
-  withLibs = customLib.extend (
-    _: prev: recursiveUpdate prev libs
-  );
+  withLibs = customLib.extend (_: prev: recursiveUpdate libs prev);
 
   # Pass 2: Metadata only
   lix = withLibs.extend (

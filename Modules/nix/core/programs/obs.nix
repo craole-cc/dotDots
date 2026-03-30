@@ -15,7 +15,8 @@
   inherit (config.${top}.interface) displayProtocol;
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
-  inherit (lix.types.options) mkEnable mkOption mkTrue mkIf;
+  inherit (lix.options.declaration) mkEnable mkOption mkTrue;
+  inherit (lix.modules.merging) mkIf;
   pins = pkgs.obs-studio-plugins;
 in {
   options.${top}.${dom}.${mod} = {
