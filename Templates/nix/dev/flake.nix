@@ -1,4 +1,5 @@
 {
+  description = "Common development utilities";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";

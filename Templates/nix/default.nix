@@ -1,5 +1,17 @@
 {
   templates = let
+    devShell = {
+      path = ./common;
+      description = "Common development utilities";
+    };
+    dev = {
+      path = ./dev;
+      description = "Common development utilities";
+    };
+    media = {
+      path = ./media;
+      description = "Comprehensive Media Environment";
+    };
     rust = {
       path = ./rust/standard;
       description = "Rust development environment with nightly toolchain";
@@ -10,6 +22,6 @@
     };
   in {
     default = rust;
-    inherit rust rustspace;
+    inherit devShell dev media rust rustspace;
   };
 }

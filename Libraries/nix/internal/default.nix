@@ -1,7 +1,8 @@
 {
-  bootstrap = import ./bootstrap.nix; # returns: { lib, path } -> lib'
-  collisions = import ./collisions.nix; # returns: { lib', collisionStrategy } -> customAttrs -> merged
-  env = import ./env.nix; # returns: { lib', path, name, self, safeLib } -> attrset
-  scanner = import ./scan.nix; # returns: { lib', env, ... } -> scanDir
-  assemble = import ./assemble.nix; # returns: { lib', customLib, path } -> finalLib
+  assemble = import ./assemble.nix;
+  bootstrap = import ./bootstrap.nix;
+  build = import ./build.nix;
+  collisions = import ./collisions.nix;
+  env = import ./env.nix;
+  scanner = import ./scan.nix;
 }
