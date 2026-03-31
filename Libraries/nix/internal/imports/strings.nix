@@ -39,6 +39,7 @@
       (strings)
       charToInt
       concatImapStringsSep
+      concatMapStringsSep
       concatMapStrings
       concatStrings
       concatStringsSep
