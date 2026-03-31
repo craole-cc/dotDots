@@ -47,6 +47,8 @@
       (lists)
       genList
       range
+      optional
+      optionals
       replicate
       singleton
       toList

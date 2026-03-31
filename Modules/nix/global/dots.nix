@@ -1,5 +1,4 @@
 {
-  lib,
   lix,
   system,
   pkgs,
@@ -7,10 +6,15 @@
   mediaPackages ? [],
   ...
 }: let
-  inherit (lib.attrsets) attrValues mapAttrsToList;
-  inherit (lib.lists) filter foldl' optionals;
-  inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
-  inherit (lix) mkShellApp;
+  inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.transformation) mapAttrsToList;
+  inherit (lix.lists.construction) optionals;
+  inherit (lix.lists.reduction) foldl';
+  inherit (lix.lists.selection) filter;
+  inherit (lix.lists.construction) genList;
+  inherit (lix.strings.access) stringLength;
+  inherit (lix.strings.construction) concatStrings concatMapStringsSep;
+  inherit (lix.applications.construction) mkShellApp;
   inherit (pkgs.stdenv) isLinux;
 
   #|─────────────────────────────────────────────────────────────────────────────|
