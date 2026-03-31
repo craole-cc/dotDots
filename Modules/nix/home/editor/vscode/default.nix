@@ -12,10 +12,10 @@
   mod = "vscode";
   cfg = config.${top}.${dom}.${mod};
 
-  inherit (lib.modules) mkIf mkMerge mkDefault;
-  inherit (lib.attrsets) attrNames;
+  inherit (lix.modules.construction) mkIf mkMerge mkDefault;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.types.options) mkEnable;
+  inherit (lix.options.construction) mkEnable;
 
   base = import ./base/default.nix {inherit lib mkDefault;};
   features = import ./features/default.nix {inherit lib lix inputs pkgs;};

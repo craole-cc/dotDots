@@ -5,8 +5,8 @@
   inputs,
   ...
 }: let
-  inherit (lix.types.options) mkTrue mkFalse;
-  inherit (lib.attrsets) listToAttrs;
+  inherit (lix.options.construction) mkTrue mkFalse;
+  inherit (lix.attrsets.construction) listToAttrs;
 
   load = path: import path {inherit lix lib pkgs inputs;};
 

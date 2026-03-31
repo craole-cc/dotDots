@@ -1,32 +1,20 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit
-    (lib.attrsets)
-    attrNames
-    filterAttrs
-    genAttrs
-    hasAttr
-    isAttrs
-    recursiveUpdate
-    ;
-  inherit
-    (lib.lists)
-    concatMap
-    elem
-    head
-    toList
-    optional
-    unique
-    ;
-  inherit (lib.strings) optionalString;
-  inherit (_.lists.construction) mkEnum;
+{_, ...}: let
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.attrsets) recursiveUpdate;
+  inherit (_.attrsets.predicates) hasAttr isAttrs;
+  inherit (_.lists.construction) mkEnum optional toList;
+  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.access) head;
+  inherit (_.lists.predicates) elem;
+  inherit (_.lists.transformation) unique;
+  inherit (_.strings.construction) optionalString;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.schema) io;
-  inherit (_.options) mkOption;
-  inherit (_.types) submodule nullOr str;
+  inherit (_.options.construction) mkOption;
+  inherit (_.types.primitives) nullOr str;
+  inherit (_.types.combinators) submodule;
   sh = _.applications.shells;
 
   __exports = {
