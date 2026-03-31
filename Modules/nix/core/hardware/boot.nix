@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   lix,
   pkgs,
   top,
@@ -12,37 +11,43 @@
   cfg = config.${top}.${dom}.${mod};
   hw = host.hardware;
 
-  inherit (lib.attrsets) getAttr hasAttr;
-  inherit (lib.debug) traceIf;
-  inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString;
-  inherit (lib.types) int str;
-  inherit (lix.enums) bootLoaders;
+  inherit (lix.attrsets.access) getAttr;
+  inherit (lix.attrsets.predicates) hasAttr;
+  inherit (lix.debug.tracing) traceIf;
+  inherit (lix.modules.construction) mkIf;
+  inherit (lix.lists.enums.gui) bootLoaders;
+  inherit (lix.lists.predicates) any;
+  inherit (lix.options.construction) mkTrue mkOption;
+  inherit (lix.strings.construction) concatStringsSep optionalString;
+  inherit (lix.strings.predicates) hasInfix hasPrefix isString;
+  inherit (lix.types.combinators) enum;
+  inherit (lix.types.primitives) int str;
+  inherit (pkgs) linuxPackages;
 
   validPatterns = ["system" "refind" "grub"];
-
-  kernelRequested = host.packages.kernel or null;
-  kernelExists = kernelRequested != null && hasAttr kernelRequested pkgs;
-  kernelPkgs =
-    if kernelExists
-    then getAttr kernelRequested pkgs
-    else pkgs.linuxPackages;
-  kernelSelected =
-    traceIf (kernelRequested != null && kernelExists)
-    "✓ Using kernel: ${kernelRequested} (${kernelPkgs.kernel.version or "unknown"})"
-    (traceIf (kernelRequested != null && !kernelExists)
-      "⚠️  Kernel '${kernelRequested}' not found, using default (${pkgs.linuxPackages.kernel.version})"
-      (traceIf (kernelRequested == null)
-        "ℹ Using default kernel (${pkgs.linuxPackages.kernel.version})"
-        kernelPkgs));
+  kernel = let
+    selection = host.packages.kernel or null;
+    exists = selection != null && hasAttr selection pkgs;
+    pkgs' =
+      if exists
+      then getAttr selection pkgs
+      else linuxPackages;
+    packages =
+      traceIf exists
+      "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})"
+      (traceIf (!exists)
+        "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})"
+        (traceIf (selection == null)
+          "ℹ Using default kernel (${linuxPackages.kernel.version})"
+          pkgs'));
+  in {inherit packages;};
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable = mkTrue mod;
     loader = mkOption {
       description = "Boot loader";
       default = hw.boot.loader;
-      type = lib.types.enum bootLoaders.values;
+      type = enum bootLoaders.values;
     };
     timeout = mkOption {
       description = "Boot loader timeout";
@@ -63,7 +68,7 @@ in {
       isGrub = hasInfix "grub" cfg.loader;
     in [
       {
-        assertion = builtins.any (p: hasInfix p cfg.loader) validPatterns;
+        assertion = any (p: hasInfix p cfg.loader) validPatterns;
         message = ''
           Invalid bootLoader '${cfg.loader}'.
           Must contain one of: ${concatStringsSep ", " validPatterns}
@@ -100,7 +105,7 @@ in {
       isRefind = hasInfix "refind" cfg.loader;
       isGrub = hasInfix "grub" cfg.loader;
     in {
-      kernelPackages = kernelSelected;
+      kernelPackages = kernel.packages;
 
       loader = {
         systemd-boot = mkIf isSystemd {
@@ -147,6 +152,8 @@ in {
       initrd.availableKernelModules = host.modules or [];
     };
 
-    environment.systemPackages = [pkgs.efibootmgr];
+    environment.systemPackages = with pkgs; [
+      efibootmgr
+    ];
   };
 }

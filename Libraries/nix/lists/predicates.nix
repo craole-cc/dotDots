@@ -42,12 +42,12 @@
   inherit (_.debug.runners) runTests;
   inherit (_.lists.access) head tail length;
   inherit (_.lists.construction) mkCheckList;
-  inherit (_.lists.filtering) filter;
+  inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any;
   inherit (_.lists.reduction) foldl';
   inherit (_.lists.transformation) sort;
   inherit (_.strings.access) stringLength;
-  inherit (_.strings.construction) toList;
+  inherit (_.lists.construction) toList;
   inherit (_.types.predicates) isList isAttrs;
 
   /**

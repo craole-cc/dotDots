@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __doc = ''
     Module Evaluation and System Generation
 
@@ -29,7 +25,8 @@
     };
   };
 
-  inherit (_.attrsets.access) attrNames genAttrs;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;

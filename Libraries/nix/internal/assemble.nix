@@ -40,7 +40,7 @@
   lix = lib.extend (
     _: prev:
       recursiveUpdate prev {
-        inherit path;
+        # inherit path;
         src = path;
         lib = lib';
       }

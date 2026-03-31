@@ -1,16 +1,15 @@
 {
   config,
   host,
-  lib,
   lix,
   nixosConfig,
   pkgs,
   user,
   ...
 }: let
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.strings.transform) normalize;
+  inherit (lix.strings.transformation) normalize;
   inherit (lix.strings.predicates) contains;
 
   name = "Zen";

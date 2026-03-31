@@ -30,13 +30,14 @@
     };
   };
 
-  inherit (_.lists.attrsets.resolution) attrNames hasAttr;
-  inherit (_.lists.predicates) elem isIn isInExact;
-  inherit (_.lists.filtering) filter;
-  inherit (_.lists.strings) hasPrefix;
-  inherit (_.lists.transformation) toLower;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.predicates) hasAttr;
   inherit (_.lists.construction) toList;
-  inherit (_.lists.access) stringLength;
+  inherit (_.lists.predicates) elem isIn isInExact;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.strings) hasPrefix;
+  inherit (_.strings.access) stringLength;
+  inherit (_.strings.transformation) toLower;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.types.predicates) isAttrs isFunction isList;

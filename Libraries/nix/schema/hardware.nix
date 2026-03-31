@@ -11,7 +11,8 @@
   };
 
   inherit (_.lists.predicates) isIn;
-  inherit (_.enums) hostFunctionalities desktopEnvironments windowManagers;
+  inherit (_.lists.enums.gui) desktopEnvironments windowManagers;
+  inherit (_.lists.enums.hardware) hostFunctionalities;
 
   dualBootValues = [
     (hostFunctionalities.resolve "dualboot-windows")

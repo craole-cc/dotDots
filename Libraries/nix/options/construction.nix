@@ -14,7 +14,7 @@
   };
 
   inherit (_.options.construction) mkOption;
-  inherit (_.types.predicates) bool;
+  inherit (_.types.primitives) bool;
   inherit (_.types.combinators) enum nullOr;
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.types.predicates) isAttrs;

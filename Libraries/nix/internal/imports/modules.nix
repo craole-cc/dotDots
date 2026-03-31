@@ -19,7 +19,7 @@
       // {};
   };
 
-  inherit (lib) modules;
+  inherit (lib) modules extend;
 
   construction = {
     inherit
@@ -48,11 +48,11 @@
       (modules)
       evalModules
       evalOptionValue
-      extend #TODO: Check is this is the best place to house extend.
       importApply
       importJSON
       importTOML
       ;
+    inherit extend; #TODO: Check is this is the best place to house extend.
   };
 
   migration = {
