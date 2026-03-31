@@ -17,10 +17,10 @@
       schema
       top
       ;
-    inherit (lix.modules.construction) mkFlakeOutputs mkSystems;
+    inherit (lix.modules.construction) mkFlake mkSystems;
     inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
   in
-    mkFlakeOutputs {
+    mkFlake {
       inherit legacyPackages;
       fn = {
         system,

@@ -2,7 +2,7 @@
   lib',
   env,
   path,
-  scanBase,
+  basePath,
   excludedDirs,
   excludedFiles,
   excludedPatterns,
@@ -142,7 +142,7 @@
           module = rec {
             name = concatStringsSep "." namespace;
             path = filePath;
-            directory = removePrefix (scanBase + "/") (toString dir);
+            directory = removePrefix ((toString basePath) + "/") (toString dir);
             filename = entryName;
             namespace = [env.library] ++ pathPrefix ++ [moduleName];
           };

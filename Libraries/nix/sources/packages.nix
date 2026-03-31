@@ -12,7 +12,7 @@
   '';
 
   # Updated to the new function names
-  inherit (_.sources.source) resolveInputs sourceInput;
+  inherit (_.sources.inputs) resolveInputs sourceInput;
   inherit (_.sources.overlays) mkOverlays;
   inherit (lib.attrsets) listToAttrs;
 

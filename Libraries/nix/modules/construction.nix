@@ -18,19 +18,25 @@
 
   __exports = {
     internal = {
-      inherit mkSystems mkFlakeOutputs mkCore mkHome mkTree;
+      inherit mkSystems mkFlake mkCore mkHome mkTree;
     };
-    external = {inherit mkSystems mkFlakeOutputs;};
+    external = {
+      inherit mkSystems mkFlake;
+      mkModulesSystems = mkSystems;
+      mkModulesCore = mkCore;
+      mkModulesHome = mkHome;
+      mkModulesFlake = mkFlake;
+    };
   };
 
+  inherit (_.attrsets.access) attrNames genAttrs;
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
+  inherit (_.modules.evaluation) evalModules extend;
+  inherit (_.modules.home.users) mkUsers;
   inherit (_.sources.modules) mkModules;
   inherit (_.sources.packages) mkPackages;
-  inherit (_.modules.core._) mkCore;
-  inherit (_.modules.home._) mkHome;
-  inherit (lib.attrsets) attrNames genAttrs mapAttrs;
-  inherit (lib.modules) evalModules;
 
   /**
   Evaluate all hosts from the discovered schema into concrete system outputs.
@@ -73,16 +79,14 @@
           modules = mkModules {inherit class inputs;};
         in {inherit inputs packages modules;};
 
-        modules = let
+        moduleArgs = let
           fromInputs = flakeArgs.modules;
-
           fromHost = mkCore {
             inherit host specialArgs;
             inherit (flakeArgs) modules inputs;
             inherit (flakeArgs.packages) nixpkgs;
             tree = tree';
           };
-
           fromEval = evalModules {
             specialArgs =
               specialArgs
@@ -103,11 +107,83 @@
       in
         if class == "darwin"
         then
-          modules.fromEval
-          // {system = modules.fromEval.config.system.build.toplevel;}
-        else modules.fromEval
+          moduleArgs.fromEval
+          // {system = moduleArgs.fromEval.config.system.build.toplevel;}
+        else moduleArgs.fromEval
     )
     schema.hosts;
+
+  /**
+  Build the host-specific core module list used during system evaluation.
+
+  Produces the base module stack for a host by combining low-level hardware,
+  networking, environment, services, programs, users, and home-manager glue.
+  The result is returned as a module list suitable for `evalModules`.
+
+  # Args:
+    host: The enriched host definition.
+    nixpkgs: The resolved nixpkgs source/configuration attrset.
+    inputs: Canonically resolved flake inputs.
+    modules: Resolved input-provided module sets.
+    specialArgs: Extra arguments forwarded into module evaluation.
+
+  # Returns:
+    A list of modules for the target host, including any host-local imports.
+  */
+  mkCore = {
+    host,
+    nixpkgs,
+    inputs,
+    modules,
+    specialArgs,
+    tree,
+  }: [
+    {inherit nixpkgs;}
+    (mkHome {
+      inherit host specialArgs tree inputs;
+      modules = modules.home;
+    })
+  ];
+
+  /**
+  Produce the complete Home Manager option block for the current host.
+
+  Configures Home Manager to reuse the system package set, forward shared
+  special arguments, and generate per-user configurations through the
+  home user builder.
+
+  # Args:
+    host: The current host definition.
+    specialArgs: Arguments forwarded into Home Manager modules.
+    inputs: Canonically resolved flake inputs.
+    modules: Resolved Home Manager module set.
+    tree: Repository tree metadata used by downstream user builders.
+
+  # Returns:
+    A module fragment defining the `home-manager` configuration block.
+  */
+  mkHome = {
+    host,
+    specialArgs,
+    inputs,
+    modules,
+    tree,
+  }: {
+    home-manager = {
+      backupFileExtension = "BaC";
+      overwriteBackup = true;
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      extraSpecialArgs =
+        specialArgs
+        // {
+          lib = extend (_self: _super: {
+            hm = inputs.home-manager.lib.hm or {};
+          });
+        };
+      users = mkUsers {inherit inputs modules host tree;};
+    };
+  };
 
   /**
   Generate system-indexed flake-style outputs from a function.
@@ -128,7 +204,7 @@
     An attrset whose top-level keys are output groups and whose values are
     attrsets keyed by system.
   */
-  mkFlakeOutputs = {
+  mkFlake = {
     flake ? {},
     nixpkgs ? {},
     legacyPackages ? {},

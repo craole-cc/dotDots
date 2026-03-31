@@ -48,6 +48,7 @@
       (modules)
       evalModules
       evalOptionValue
+      extend #TODO: Check is this is the best place to house extend.
       importApply
       importJSON
       importTOML

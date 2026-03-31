@@ -29,7 +29,7 @@
     ".old.nix"
   ],
 }:
-(import ./internal).build {
+(import ./internal) {
   inherit
     lib
     path

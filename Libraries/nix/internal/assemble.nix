@@ -1,6 +1,6 @@
 {
   lib',
-  customLib,
+  library,
   path,
 }: let
   inherit (lib'.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
@@ -10,7 +10,7 @@
 
   lib = let
     base = let
-      raw = ./base;
+      raw = ./imports;
       set = import raw;
       init = f:
         f {
@@ -35,7 +35,7 @@
     in
       genAttrs names (name: init set.${name});
   in
-    customLib.extend (_: prev: recursiveUpdate base prev);
+    library.extend (_: prev: recursiveUpdate base prev);
 
   lix = lib.extend (
     _: prev:

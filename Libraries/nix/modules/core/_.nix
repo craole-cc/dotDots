@@ -25,7 +25,7 @@
     external = {mkCoreModules = mkModules;};
   };
 
-  inherit (_.modules._) mkHome;
+  inherit (_.modules.construction) mkHome;
 
   /**
   Build the host-specific core module list used during system evaluation.
