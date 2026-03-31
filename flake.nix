@@ -17,9 +17,8 @@
       schema
       top
       ;
-    inherit (lix) resolveInputs mkFlakeOutputs mkSystems;
-
-    inputsWrapped = resolveInputs {inherit flake;};
+    inherit (lix.modules.construction) mkFlakeOutputs mkSystems;
+    inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
   in
     mkFlakeOutputs {
       inherit legacyPackages;
