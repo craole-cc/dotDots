@@ -2,7 +2,7 @@
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.construction) genAttrs;
-  inherit (_.attrsets.attrsets) recursiveUpdate;
+  inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
   inherit (_.lists.construction) mkEnum optional toList;
   inherit (_.lists.reduction) concatMap;

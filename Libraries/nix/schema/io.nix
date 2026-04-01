@@ -1,13 +1,15 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.attrsets) attrValues isAttrs mapAttrs recursiveUpdate;
-  inherit (lib.lists) filter isList;
-  inherit (lib.strings) concatStringsSep;
-  inherit (_.options) mkOption mkEnableOption;
-  inherit (_.types) attrsOf submodule nullOr str;
+{_, ...}: let
+  inherit (_.attrsets.access) attrValues;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.merging) recursiveUpdate;
+  inherit (_.attrsets.predicates) isAttrs;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.predicates) isList;
+  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.options.construction) mkOption mkEnableOption;
+  inherit (_.types.primitives) str;
+  inherit (_.types.combinators) attrsOf nullOr;
+  inherit (_.types.combinators) submodule;
 
   __exports = {
     internal =

@@ -7,9 +7,9 @@
   # tree,
   ...
 }: let
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.applications.utilities) mkScriptWrappers;
+  inherit (lix.applications.construction) mkScriptWrappers;
   inherit (pkgs) makeDesktopItem;
 
   #~@ Script Wrappers
