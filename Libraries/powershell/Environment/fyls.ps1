@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-#Bin/powershell/environment/fyls.psm1
+#Libraries/powershell/environment/fyls.psm1
 # PowerShell port of fyls - ls wrapper that tries eza, then lsd, then falls back to ls/Get-ChildItem
 # TODO: Working but quite slowly
 #region Global Functions

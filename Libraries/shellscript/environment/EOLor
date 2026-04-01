@@ -512,14 +512,14 @@ execute_core_process() {
 # main "$@"
 main --test \
   --include /d/Configuration \
-  --include '/d/Configuration/global/Bin/utility/files/eol_test/path with space' \
-  --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
-  --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+  --include '/d/Configuration/global/Libraries/utility/files/eol_test/path with space' \
+  --include /d/Configuration/global/Libraries/utility/files/eol_test/.gitactions \
+  --include /d/Configuration/global/Libraries/utility/files/eol_test/.gitactions \
   --include /d/Configuration
 
 # --include '/d/Configuration global' \
 # --include /d/Configuration \
-# --include '/d/Configuration global/Bin' \
+# --include '/d/Configuration global/Libraries' \
 # --include '/d/Configuration global' \
 # --include '/d/path with spaces' \
 # --include '/d/path with spaces' \

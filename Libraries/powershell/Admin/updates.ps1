@@ -7,7 +7,7 @@
     Skips updates on non-Windows OSes for now.
 
 .NOTES
-    Place in $DOTS/Bin/powershell/Admin/updates.ps1
+    Place in $DOTS/Libraries/powershell/Admin/updates.ps1
 #>
 
 function Global:Install-Updates {

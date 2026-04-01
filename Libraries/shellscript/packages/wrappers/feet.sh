@@ -2,7 +2,7 @@
 # shellcheck enable=all
 #~@ Feet - Smart Foot Terminal Wrapper
 #? POSIX-compliant theme detection and terminal launcher
-#? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh
+#? Location: $DOTS/Libraries/shellscript/packages/wrappers/feet.sh
 
 initialize_environment() {
   #> Early exit if not on Wayland

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-script="$DOTS/Bin/inf/sysinf"
+script="$DOTS/Libraries/inf/sysinf"
 
 test_get_os_type() {
   result=$(get_os_type)

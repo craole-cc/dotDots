@@ -1,5 +1,5 @@
 require("zoxide"):setup({
-  update_db = true,
+	update_db = true,
 })
 
 -- Status:children_add(function()

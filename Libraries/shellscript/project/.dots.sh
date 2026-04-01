@@ -30,7 +30,7 @@ fi
 
 #{ Use devnix from here on
 CMD_DEVNIX="$(command -v devnix 2>/dev/null || true)"
-CMD_DEVNIX="${CMD_DEVNIX:-"${workspace}/Bin/shellscript/project/nix/devnix"}"
+CMD_DEVNIX="${CMD_DEVNIX:-"${workspace}/Libraries/shellscript/project/nix/devnix"}"
 if [ -x "${CMD_DEVNIX}" ]; then
   pout_debug "CMD_DEVNIX" "${CMD_DEVNIX}"
   "${CMD_DEVNIX}" "${workspace}"

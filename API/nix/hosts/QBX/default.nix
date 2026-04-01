@@ -72,6 +72,19 @@ in {
           "dmask=0077"
         ];
       };
+      "/mnt/Storage" = {
+        device = "/dev/disk/by-uuid/01DBCFFA6ABD5C10";
+        fsType = "ntfs3";
+        options = [
+          "uid=1000"
+          "gid=1000"
+          "umask=022"
+          "prealloc"
+          "nofail"
+          "x-systemd.automount"
+          "x-systemd.idle-timeout=60"
+        ];
+      };
     };
 
     swap = [];

@@ -16,6 +16,7 @@
     [
       bat #? Cat clone with syntax highlighting
       direnv #? Environment management per directory
+      exiftool #? ARW/RAW embedded preview extraction for yazi
       eza #? Modern ls replacement
       fd #? Fast find alternative
       gitui #? Git terminal UI
@@ -31,6 +32,8 @@
       starship #? Cross-shell prompt
       tokei #? Code statistics tool
       undollar #? Remove leading dollar signs
+      ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
+      yazi #? File manager (ensure CLI tools available in devshell)
     ]
     ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
 
@@ -85,6 +88,14 @@
       . "$BINIT_PATH"
     else
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+    fi
+
+    #> Initialize yazi
+    YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
+    if [ -f "$YAZI_INIT" ]; then
+      . "$YAZI_INIT"
+    else
+      printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
     fi
 
     #> Use starship for prompt

@@ -72,7 +72,7 @@ function Global:Write-Pattern {
   Throws error if integers or strings exceed two occurrences each.
 
   .LINK
-  https://github.com/craole-cc/dotDots/blob/main/Bin/powershell/Base/write.ps1
+  https://github.com/craole-cc/dotDots/blob/main/Libraries/powershell/Base/write.ps1
 
   #>
 

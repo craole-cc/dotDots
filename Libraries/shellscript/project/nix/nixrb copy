@@ -142,7 +142,7 @@ cache_commands() {
   done
 
   #| Gyt
-  cmd_gyt="${DOTS:-"${HOME}/.dots"}/Bin/shellscript/project/git/gyt"
+  cmd_gyt="${DOTS:-"${HOME}/.dots"}/Libraries/shellscript/project/git/gyt"
   if [ -z "${CMD_GYT}" ] && [ -x "${cmd_gyt}" ]; then
     CMD_GYT="${cmd_gyt}"
   else

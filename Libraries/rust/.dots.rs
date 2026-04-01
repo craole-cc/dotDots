@@ -1990,8 +1990,8 @@ impl DotDots {
   fn find_bin_directories(&self) -> Result<Vec<PathBuf>> {
     let mut bin_dirs = Vec::new();
 
-    // Add the main Bin directory if it exists
-    let main_bin = self.root.join("Bin");
+    // Add the main Libraries directory if it exists
+    let main_bin = self.root.join("Libraries");
     if main_bin.is_dir() {
       bin_dirs.push(main_bin);
     }

@@ -6,7 +6,7 @@
     Contains functions to set module location and install modules conditionally.
 
 .NOTES
-    Place in Bin\powershell\Admin\module.ps1
+    Place in Libraries\powershell\Admin\module.ps1
 #>
 
 function Global:Set-ModuleLocation {

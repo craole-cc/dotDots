@@ -1,8 +1,8 @@
 #!/bin/sh
-#> Initialize Bin directory structure
+#> Initialize Libraries directory structure
 
 #> Configuration - can be overridden by caller
-: "${DOTS_LIB:=Bin}"
+: "${DOTS_LIB:=Libraries}"
 : "${BIN_DEPTH:=10}"
 : "${BIN_IGNORE:=review tmp archive}"
 : "${BLACKLIST_EXT:=md txt json yaml yml xml html css js ts jsx tsx png jpg jpeg gif svg pdf doc docx xls xlsx ppt pptx zip tar gz bz2 7z log}"
@@ -35,7 +35,7 @@ make_executable() {
 	[ "${changed_count}" -gt 0 ] && printf "Made %s scripts executable\n" "${changed_count}" >&2
 }
 
-#> Add Bin directories to PATH
+#> Add Libraries directories to PATH
 add_to_path() {
 	DOTS_PATH=""
 	dir_count=0

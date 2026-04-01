@@ -10,12 +10,18 @@ max_width = 1024
 
 [plugin]
 prepend_previewers = [
-  { mime = "application/*zip", run = "ouch" },
-  { mime = "application/x-tar", run = "ouch" },
-  { mime = "application/x-bzip2", run = "ouch" },
+  #~@ RAW images
+  { mime = "image/x-sony-arw", run = "arw" },
+  { url = "*.arw",             run = "arw" },
+  { url = "*.ARW",             run = "arw" },
+  #~@ Archives
+  { mime = "application/*zip",            run = "ouch" },
+  { mime = "application/x-tar",           run = "ouch" },
+  { mime = "application/x-bzip2",         run = "ouch" },
   { mime = "application/x-7z-compressed", run = "ouch" },
-  { mime = "application/x-rar", run = "ouch" },
-  { mime = "application/x-xz", run = "ouch" },
+  { mime = "application/x-rar",           run = "ouch" },
+  { mime = "application/x-xz",            run = "ouch" },
+
 ]
 
 [opener]
