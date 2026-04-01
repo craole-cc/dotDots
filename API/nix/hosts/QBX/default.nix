@@ -130,40 +130,6 @@ in {
     };
   };
 
-  #   display = {
-  #     "HDMI-A-3" = {
-  #       brand = "KTC";
-  #       resolution = "2560x1440";
-  #       refreshRate = 100;
-  #       scale = 1;
-  #       position = "1080x900";
-  #       size = 27.0;
-  #       priority = 0; #? Primary (lowest number = highest priority)
-  #     };
-
-  #     "DP-3" = {
-  #       brand = "DELL";
-  #       resolution = "1600x900";
-  #       refreshRate = 60;
-  #       scale = 1;
-  #       position = "1080x0";
-  #       size = 19.4;
-  #       priority = 1;
-  #     };
-
-  #     # "HDMI-A-2" = {
-  #     #   brand = "ACER";
-  #     #   resolution = "1920x1080";
-  #     #   refreshRate = 100;
-  #     #   scale = 1;
-  #     #   position = "0x420";
-  #     #   transform = 3;
-  #     #   size = 24.5;
-  #     #   priority = 2;
-  #     # };
-  #   };
-  # };
-
   localization = {
     latitude = 18.015;
     longitude = -77.49;

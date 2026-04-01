@@ -24,6 +24,7 @@ in {
       modesetting.enable = true;
       powerManagement.enable = false;
       nvidiaPersistenced = false;
+      nvidiaSettings = false;
 
       prime = {
         amdgpuBusId = "PCI:12:0:0"; # 0c:00.0 AMD Granite Ridge
