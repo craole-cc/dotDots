@@ -23,16 +23,16 @@ in {
       forceFullCompositionPipeline = true;
       modesetting.enable = true;
       powerManagement.enable = false;
+      nvidiaPersistenced = false;
 
       prime = {
-        # AMD Granite Ridge iGPU: 0c:00.0 → PCI:12:0:0
+        # AMD Granite Ridge iGPU: 0c:00.0 → 12 decimal
         amdgpuBusId = "PCI:12:0:0";
-        # NVIDIA GTX 1050 Ti: 01:00.0 → PCI:1:0:0
+        # NVIDIA GTX 1050 Ti: 01:00.0
         nvidiaBusId = "PCI:1:0:0";
-        # AMD is the Wayland render node (card1); NVIDIA outputs (card0) are
-        # PRIME-linked and appear as additional connectors under the AMD DRM device.
-        # This lets Hyprland drive both the NVIDIA-connected monitors AND the
-        # optional AMD motherboard port simultaneously.
+        # AMD is the Wayland render node; NVIDIA outputs are PRIME-linked to it.
+        # Allows Hyprland to drive NVIDIA-connected monitors AND the optional
+        # AMD mobo port (3rd monitor) simultaneously.
         reverseSync.enable = true;
       };
     };
@@ -51,6 +51,13 @@ in {
     kernelPackages = mkDefault pkgs.linuxPackages_latest;
     extraModulePackages = [];
 
+    # Force nvidia_drm KMS via modprobe — more reliable than kernel params on 6.12+.
+    # This ensures modeset/fbdev are applied before the module loads rather than
+    # as parse-order-dependent kernel params.
+    extraModprobeConfig = ''
+      options nvidia_drm modeset=1 fbdev=1
+    '';
+
     initrd = {
       availableKernelModules = [
         "nvme"
@@ -60,9 +67,8 @@ in {
         "usb_storage"
         "sd_mod"
       ];
-      # Load GPU drivers early so KMS is active before the display manager starts.
-      # amdgpu must come first — it becomes the primary DRM device (card1) for
-      # reverseSync; nvidia_drm then registers card0 and links outputs via PRIME.
+      # amdgpu first → becomes card1 (Wayland render node for reverseSync).
+      # nvidia_drm last → registers card0 PRIME-linked to card1.
       kernelModules = [
         "amdgpu"
         "kvm-amd"
@@ -80,9 +86,7 @@ in {
     };
 
     kernelParams = [
-      # NVIDIA KMS — deduplicated (kernel treats hyphens/underscores identically)
-      "nvidia_drm.modeset=1"
-      "nvidia_drm.fbdev=1"
+      # NVIDIA registry tweaks (module options, not KMS — that's in extraModprobeConfig)
       "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
       "nvidia.NVreg_EnableS0ixPowerManagement=1"
       "nvidia.NVreg_TemporaryFilePath=/var/tmp"
@@ -91,15 +95,16 @@ in {
       "amdgpu.modeset=1"
       "amd_pstate=active"
 
-      # Prevent the EFI/VESA framebuffer from claiming the NVIDIA card before
-      # nvidia_drm can register it — this was causing card0-Unknown-1 / 800x600
+      # Evict the EFI/VESA framebuffer so it can't squat on the NVIDIA PCI slot.
+      # simpledrm is blacklisted below as belt-and-suspenders for kernel 6.12+.
       "video=efifb:off"
+      "video=vesa:off"
 
-      # Force-probe the AMD motherboard output for the optional 3rd monitor.
-      # Remove if unused; connector name confirmed via `ls /sys/class/drm/card1/`
+      # Force-probe the AMD mobo output for the optional 3rd monitor.
+      # Safe to keep even when monitor is absent; remove if it causes issues.
       "video=card1-HDMI-A-2:e"
 
-      # Disable nouveau completely
+      # Blacklist nouveau
       "rd.driver.blacklist=nouveau"
       "modprobe.blacklist=nouveau"
 
@@ -111,14 +116,18 @@ in {
       "lsm=landlock,yama,bpf"
     ];
 
-    blacklistedKernelModules = ["nouveau"];
+    # simpledrm: prevents EFI framebuffer from claiming the NVIDIA PCI slot on 6.12+.
+    # video=efifb:off alone is insufficient on newer kernels.
+    blacklistedKernelModules = ["nouveau" "simpledrm"];
   };
 
   # ==================== DISPLAY / WAYLAND ====================
   # With reverseSync, AMD (card1) is the Wayland render device.
-  # Hyprland must open card1 so PRIME-linked NVIDIA outputs are visible.
+  # WLR_DRM_DEVICES ensures Hyprland opens card1 so PRIME-linked
+  # NVIDIA outputs (your two monitors) are visible alongside the
+  # optional AMD mobo port.
   environment.sessionVariables.WLR_DRM_DEVICES = "/dev/dri/card1";
 
-  # Both drivers must be listed so X / KMS initialises them in the right order
+  # amdgpu must be listed first — sets init order so AMD registers before NVIDIA.
   services.xserver.videoDrivers = ["amdgpu" "nvidia"];
 }
