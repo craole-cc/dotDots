@@ -25,8 +25,10 @@ prepend_previewers = [
 ]
 
 [opener]
-raw = [{ run = 'darktable "$@"', desc = "Open in darktable" }]
-image = [{ run = 'nomacs "$@"', desc = "Open in nomacs" }]
+raw   = [{ run = 'darktable "$1"', desc = "Darktable" },
+         { run = 'rawtherapee "$1"', desc = "RawTherapee" }]
+image = [{ run = 'nomacs "$1"',    desc = "Nomacs" },
+         { run = 'gimp "$@"',      desc = "GIMP" }]
 display = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
 edit = [{ run = '$EDITOR "$@"', block = true }]
 extract = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]

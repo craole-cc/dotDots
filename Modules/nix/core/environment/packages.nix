@@ -99,7 +99,9 @@
       gitui
       helix
       imagemagick
+      imv
       jql
+      nomacs
       qimgv
       ripgrep
       viu
