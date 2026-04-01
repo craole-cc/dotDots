@@ -31,18 +31,20 @@ in {
     };
 
     gpu = {
-      # TODO: Change this to not use named attrsets, similar to displays
+      # Monitors are wired to the NVIDIA card (card0, PCI:1:0:0).
+      # AMD iGPU (card1, PCI:12:0:0) drives the optional 3rd monitor via motherboard.
+      # reverseSync: AMD is the Wayland render node; NVIDIA outputs are PRIME-linked to it.
       primary = {
         brand = "amd";
-        busId = "PCI:6:0:0";
-        model = "Radeon 660M";
+        busId = "PCI:12:0:0"; # 0c:00.0 → 12 decimal
+        model = "Granite Ridge Radeon Graphics";
       };
       secondary = {
         brand = "nvidia";
-        busId = "PCI:1:0:0"; # 01:00.0
-        model = "RTX 2050"; # This needs to be changed to match the actual model `lspci | grep -E 'VGA|3D'`
+        busId = "PCI:1:0:0"; # 01:00.0 — confirmed by lspci
+        model = "GTX 1050 Ti"; # EVGA GP107, subsystem 3842:6253
       };
-      mode = "hybrid"; # or "offload", "sync", "primary-nvidia", etc.
+      mode = "reverse-sync"; # AMD renders; NVIDIA outputs sync through PRIME
     };
   };
 
@@ -97,9 +99,10 @@ in {
         resolution = "2560x1440";
         refreshRate = 100;
         scale = 1;
-        position = "1080x900";
+        # Centered below DP-3: (2560 - 1600) / 2 = 480 → x=480; y=900 (below 900px tall DP-3)
+        position = "480x900";
         size = 27.0;
-        priority = 0; #? Primary (lowest number = highest priority)
+        priority = 0; # Primary
       };
 
       "DP-3" = {
@@ -107,23 +110,59 @@ in {
         resolution = "1600x900";
         refreshRate = 60;
         scale = 1;
-        position = "1080x0";
+        # Centered above HDMI-A-3: (2560 - 1600) / 2 = 480
+        position = "480x0";
         size = 19.4;
         priority = 1;
       };
 
+      # Optional 3rd monitor — motherboard HDMI (AMD iGPU, card1-HDMI-A-2)
       # "HDMI-A-2" = {
       #   brand = "ACER";
       #   resolution = "1920x1080";
       #   refreshRate = 100;
       #   scale = 1;
       #   position = "0x420";
-      #   transform = 3;
+      #   transform = 3; # 270° rotation
       #   size = 24.5;
       #   priority = 2;
       # };
     };
   };
+
+  #   display = {
+  #     "HDMI-A-3" = {
+  #       brand = "KTC";
+  #       resolution = "2560x1440";
+  #       refreshRate = 100;
+  #       scale = 1;
+  #       position = "1080x900";
+  #       size = 27.0;
+  #       priority = 0; #? Primary (lowest number = highest priority)
+  #     };
+
+  #     "DP-3" = {
+  #       brand = "DELL";
+  #       resolution = "1600x900";
+  #       refreshRate = 60;
+  #       scale = 1;
+  #       position = "1080x0";
+  #       size = 19.4;
+  #       priority = 1;
+  #     };
+
+  #     # "HDMI-A-2" = {
+  #     #   brand = "ACER";
+  #     #   resolution = "1920x1080";
+  #     #   refreshRate = 100;
+  #     #   scale = 1;
+  #     #   position = "0x420";
+  #     #   transform = 3;
+  #     #   size = 24.5;
+  #     #   priority = 2;
+  #     # };
+  #   };
+  # };
 
   localization = {
     latitude = 18.015;
