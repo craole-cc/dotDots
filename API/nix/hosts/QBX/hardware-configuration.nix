@@ -19,7 +19,7 @@ in {
 
     nvidia = {
       open = false;
-      package = config.boot.kernelPackages.nvidiaPackages.legacy_550;
+      package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
       forceFullCompositionPipeline = true;
       modesetting.enable = true;
       powerManagement.enable = false;
