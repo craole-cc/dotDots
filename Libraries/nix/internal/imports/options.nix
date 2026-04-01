@@ -18,24 +18,28 @@
       // predicates
       // {};
   };
+
+  inherit (lib) options types;
+
   access = {
-    inherit (lib.options) showFiles showOption;
+    inherit (options) showFiles showOption;
   };
 
   construction = {
     inherit
-      (lib.options)
+      (options)
       mergeUniqueOption
       mkEnableOption
       mkOption
       mkPackageOption
       mkSinkUndeclaredOptions
       ;
+    inherit (types) mkOptionType;
   };
 
   predicates = {
-    inherit (lib.options) isOption;
-    inherit (lib.types) isOptionType;
+    inherit (options) isOption;
+    inherit (types) isOptionType;
   };
 in
   if flatten

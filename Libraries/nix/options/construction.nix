@@ -1,29 +1,105 @@
 {_, ...}: let
   __exports = {
     internal = {
-      inherit mkEnable mkTrue mkFalse mkEnum;
+      inherit mkEnable mkTrue mkFalse mkEnum toOptionType;
       mkEnableOption' = mkEnable;
       mkEnumOption = mkEnum;
+      mkType = toOptionType;
     };
     external = {
       mkEnableOptionTrue = mkTrue;
       mkEnableOptionFalse = mkFalse;
       mkEnableOption = mkEnable;
       mkEnumOption = mkEnum;
+      mkOptionType' = toOptionType;
     };
   };
 
-  inherit (_.options.construction) mkOption;
-  inherit (_.types.primitives) bool;
-  inherit (_.types.combinators) enum nullOr;
   inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.types.predicates) isAttrs;
+  inherit
+    (_.options.construction)
+    mkOption
+    mergeUniqueOption
+    mkOptionType
+    ;
+  inherit (_.types.combinators) enum nullOr;
+  inherit
+    (_.types.primitives)
+    str
+    bool
+    int
+    float
+    path
+    ;
+  inherit (_.types.predicates) isAttrs isString;
+  customTypes = _.types.checks;
   mkEnumData = _.lists.construction.mkEnum;
 
   # Omits the `description` key entirely when null, so doc generators and
   # `nixos-option` see an absent field rather than an explicit null.
   optionalDesc = description:
     optionalAttrs (description != null) {inherit description;};
+
+  /**
+  Bridges a `_.types.checks` type into a `lib.types`-compatible option type
+  for use with `mkOption`. Accepts either a type attrset directly or a string
+  name resolved from `_.types.checks`.
+
+  Primitive types are mapped to their `lib.types` equivalents to preserve
+  correct merge semantics. Constrained types fall back to `mkOptionType`
+  with `mergeUniqueOption`.
+
+  Primitive mappings: `"str"` | `"string"` → `str`, `"bool"` → `bool`,
+  `"int"` → `int`, `"float"` → `float`, `"path"` → `path`.
+
+  Note: `customTypeOrName` must be a `_.types.checks` attrset or a string key
+  into it. Passing a bare `lib.types` value is not supported and will fail at
+  evaluation time.
+
+  # Type
+  `toOptionType :: (CustomType | String) -> OptionType`
+
+  # Arguments
+  - `customTypeOrName`: A `_.types.checks` attrset, or a string key into `_.types.checks`.
+
+  # Examples
+  ```nix
+    # Primitive via string — resolves to lib.types.str with correct merge
+    mkOption { type = toOptionType "str"; }
+
+    # Primitive via attrset
+    mkOption { type = toOptionType _.types.checks.bool; }
+
+    # Constrained type via string
+    mkOption { type = toOptionType "port"; }
+
+    # Constrained type via attrset
+    mkOption { type = toOptionType (_.types.intBetween 1 100); }
+  ```
+  */
+  toOptionType = customTypeOrName: let
+    customType =
+      if isString customTypeOrName
+      then customTypes.${customTypeOrName}
+      else customTypeOrName;
+    primitives = {
+      "string" = str;
+      "str" = str;
+      "bool" = bool;
+      "int" = int;
+      "float" = float;
+      "path" = path;
+    };
+  in
+    if primitives ? ${customType.type}
+    then primitives.${customType.type}
+    else
+      mkOptionType {
+        name = customType.type;
+        description = customType.description or customType.type;
+        check = customType.check;
+        merge = mergeUniqueOption;
+      };
 
   /**
   Creates a boolean enable option whose default is derived from a condition.

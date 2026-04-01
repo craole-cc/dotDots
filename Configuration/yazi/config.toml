@@ -25,14 +25,22 @@ prepend_previewers = [
 ]
 
 [opener]
+raw = [{ run = 'darktable "$@"', desc = "Open in darktable" }]
+image = [{ run = 'nomacs "$@"', desc = "Open in nomacs" }]
 display = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
 edit = [{ run = '$EDITOR "$@"', block = true }]
 extract = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]
-generic_open = [{ run = 'xdg-open "$@"', desc = "Open" }]
+generic_open = [{ run = 'xdg-open "$@"', desc = "Open"}]
 
 [open]
-append_rules = [{ name = "*", use = "generic_open" }]
+append_rules = [{ name = "*", use = "edit" }]
 prepend_rules = [
+  { name = "*.arw",  use = "image" },
+  { name = "*.ARW",  use = "image" },
+  { name = "*.jpg",  use = "image" },
+  { name = "*.JPG",  use = "image" },
+  { name = "*.jpeg", use = "image" },
+  { name = "*.png",  use = "image" },
   { name = "*.epub", use = "display" },
-  { name = "*.pdf", use = "display" },
+  { name = "*.pdf",  use = "display" },
 ]

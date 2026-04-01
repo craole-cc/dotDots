@@ -24,6 +24,8 @@
       jq #? JSON query processor
       lsd #? LSDeluxe file lister
       mise #? Polyglot version manager
+      imv
+      nomacs
       nitch #? System fetch written in nim
       nix-output-monitor #? Build output monitor
       nixd #? Nix language daemon
