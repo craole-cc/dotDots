@@ -1,130 +1,71 @@
 {_, ...}: let
-  inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.transformation) filterAttrs;
-  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.construction) genAttrs listToAttrs;
   inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
-  inherit (_.lists.construction) mkEnum optional toList;
-  inherit (_.lists.reduction) concatMap;
+  inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.access) head;
+  inherit (_.lists.construction) mkEnum optional toList;
   inherit (_.lists.predicates) elem;
+  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) optionalString;
-  inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
+  inherit (_.options.construction) mkEnumOption mkOption mkTrue;
   inherit (_.schema) io;
-  inherit (_.options.construction) mkOption;
-  inherit (_.types.primitives) nullOr str;
+  inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
+  inherit (_.strings.construction) optionalString concatStringsSep;
+  inherit (_.strings.transformation) splitString;
   inherit (_.types.combinators) submodule;
+  inherit (_.types.primitives) nullOr str;
   sh = _.applications.shells;
 
   __exports = {
-    internal =
-      composites
-      // {
-        inherit
-          mkUI
-          defaults
-          normalize
-          ;
-      };
+    internal = composites functions;
     external = {
       mkUISchema = mkUI;
-      normalizeUISchema = normalize;
+      mkUIDefault = mkDefault;
+      mkUIOptions = mkOptions;
+      normalizeUI = normalize;
     };
   };
+
+  composites = {
+    inherit
+      compositors
+      defaults
+      desktopEnvironments
+      displayManagers
+      displayProtocols
+      enums
+      panels
+      shells
+      options
+      windowManagers
+      ;
+  };
+  functions = {inherit mkUI normalize mkDefault mkOptions;};
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Data                                                      ║
   #╚═══════════════════════════════════════════════════════════╝
-
-  composites = {
-    #~@ Sets
-    inherit
-      desktopEnvironments
-      windowManagers
-      displayManagers
-      displayProtocols
-      ;
-
-    shells = {
-      system = sh.system;
-      interactive = sh.interactive;
-    };
-
-    #~@ Enums/Lists
-    enums = {
-      shells = {
-        system = sh.enums.system;
-        interactive = sh.enums.interactive;
-      };
-
-      desktopEnvironments = mkEnum {
-        values = desktopEnvironments;
-        nullable = true;
-      };
-      windowManagers = mkEnum {
-        values = windowManagers;
-        nullable = true;
-      };
-      displayManagers = mkEnum displayManagers;
-      displayProtocols = mkEnum {
-        values = displayProtocols;
-        nullable = true;
-      };
-    };
-
-    #~@ Types
-    types = rec {
-      inherit (io.types) keyboard;
-
-      gui = submodule {
-        options = {
-          desktop = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          window = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          bar = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          notification = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-        };
-      };
-
-      app = submodule {
-        options = {
-          pri = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-          sec = mkOption {
-            type = nullOr str;
-            default = null;
-          };
-        };
-      };
-
-      apps = submodule {
-        options = {
-          launcher = mkOption {type = app;};
-          terminal = mkOption {type = app;};
-          explorer = mkOption {type = app;};
-          browser = mkOption {type = app;};
-          editor = mkOption {type = app;};
-        };
-      };
-    };
-  };
-
   defaults = {
     inherit (io.defaults) keyboard;
+    panel = null;
+    notifier = null;
+    desktopEnvironment = null;
+    windowManager = null;
+    greeter = null;
+    protocol = null;
+    session = null;
+    compositor = {
+      desktop = null;
+      window = null;
+    };
+    shell = {
+      system = "bash";
+      interactive = "bash";
+      prompt = "starship";
+    };
     apps = {
       launcher = {
         pri = "vicinae";
@@ -147,27 +88,177 @@
         sec = "helix";
       };
     };
+  };
 
-    gui = {
-      desktop = null;
-      window = null;
-      bar = null;
-      notification = null;
+  enums = {
+    shells = {
+      system = sh.enums.system;
+      interactive = sh.enums.interactive;
+    };
+    desktopEnvironments = mkEnum {
+      values = desktopEnvironments;
+      nullable = true;
+    };
+    windowManagers = mkEnum {
+      values = windowManagers;
+      nullable = true;
+    };
+    displayManagers = mkEnum {
+      values = displayManagers;
+      nullable = true;
+    };
+    displayProtocols = mkEnum {
+      values = displayProtocols;
+      nullable = true;
+    };
+    notifiers = mkEnum {
+      values = notifiers;
+      nullable = true;
+    };
+    panels = mkEnum {
+      values = panels;
+      nullable = true;
+    };
+    compositors = {
+      desktop = mkEnum {
+        values = compositors.desktop;
+        nullable = true;
+      };
+      window = mkEnum {
+        values = compositors.window;
+        nullable = true;
+      };
+    };
+  };
+
+  options = {
+    enable = mkTrue "User Interface";
+
+    available = mkOption {
+      description = "Available interfaces";
+      default = {inherit desktopEnvironments windowManagers;};
     };
 
-    session = {
-      desktopEnvironment = null;
-      windowManager = null;
-      manager = null;
-      protocol = null;
-      trigger = null;
+    desktopEnvironment = mkEnumOption {
+      description = "Desktop Environment";
+      default = defaults.desktopEnvironment;
+      input = desktopEnvironments;
+      nullable = true;
+    };
+
+    windowManager = mkEnumOption {
+      description = "Window Manager";
+      default = defaults.windowManager;
+      input = windowManagers;
+    };
+
+    displayManager = mkEnumOption {
+      description = "Display Manager";
+      default = defaults.displayManager;
+      input = displayManagers;
+    };
+
+    displayProtocol = mkEnumOption {
+      description = "Display Protocols";
+      default = defaults.displayProtocol;
+      input = displayProtocols;
+    };
+
+    session = mkOption {
+      description = "Default display manager session";
+      default = defaults.session;
+      type = nullOr str;
     };
 
     shell = {
-      system = "bash";
-      interactive = "bash";
-      prompt = "starship";
+      system = mkEnumOption {
+        description = "System shell";
+        default = defaults.shell.system;
+        input = sh.enums.system;
+      };
+      interactive = mkEnumOption {
+        description = "Interactive shell";
+        default = defaults.shell.system;
+        input = sh.enums.interactive;
+      };
     };
+
+    compositor = {
+      desktop = mkEnumOption {
+        description = "Desktop shell";
+        default = defaults.compositor.desktop;
+        input = compositors.desktop;
+      };
+      window = mkEnumOption {
+        description = "Windowing compositor";
+        default = defaults.compositor.window;
+        input = compositors.window;
+      };
+    };
+
+    panel = mkEnumOption {
+      description = "Desktop panel/bar";
+      default = defaults.panel;
+      input = panels;
+    };
+
+    notifier = mkEnumOption {
+      description = "Desktop notification deamon";
+      default = defaults.notifiers;
+      input = notifiers;
+    };
+
+    keyboard = mkOption {
+      description = "Keyboard config and bindings";
+      default = defaults.keyboard;
+      type = io.types.keyboard;
+    };
+
+    apps = let
+      app = submodule {
+        options = {
+          pri = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+          sec = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+        };
+      };
+    in {
+      launcher = mkOption {
+        description = "Default app launchers";
+        default = {inherit (defaults.apps.launcher) pri sec;};
+        type = app;
+      };
+      terminal = mkOption {
+        description = "Default terminal applications";
+        default = {inherit (defaults.apps.terminal) pri sec;};
+        type = app;
+      };
+      explorer = mkOption {
+        description = "Default explorer applications";
+        default = {inherit (defaults.apps.explorer) pri sec;};
+        type = app;
+      };
+      browser = mkOption {
+        description = "Default browser applications";
+        default = {inherit (defaults.apps.browser) pri sec;};
+        type = app;
+      };
+      editor = mkOption {
+        description = "Default editor applications";
+        default = {inherit (defaults.apps.editor) pri sec;};
+        type = app;
+      };
+    };
+  };
+
+  shells = {
+    system = sh.system;
+    interactive = sh.interactive;
   };
 
   #╔═══════════════════════════════════════════════════════════╗
@@ -245,13 +336,11 @@
       vibe = "minimal-industrial";
     };
   };
-
   displayProtocols = [
     "tty"
     "wayland"
     "xorg"
   ];
-
   dmsByProtocol = genAttrs displayProtocols (protocol:
     attrNames
     (
@@ -259,7 +348,6 @@
         elem protocol displayManager.supported)
       displayManagers
     ));
-
   dmsFor = protocols:
     unique (
       concatMap
@@ -270,40 +358,43 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Environment                                               ║
   #╚═══════════════════════════════════════════════════════════╝
-
-  mkEnv = {session, ...} @ args: let
-    dp =
-      if session ? protocol
-      then toList session.protocol
-      else if session ? protocols
-      then toList session.protocols
-      else [];
+  mkEnv = {...} @ args: let
+    protocols = args.protocols or (toList args.protocol or []);
+    protocol =
+      args.protocol or (
+        optionalString (args?protocols) (head args.protocols)
+      );
   in
     {
       displayProtocol = {
-        supported = dp;
-        preferred = optionalString (dp != []) (head dp);
+        supported = protocols;
+        preferred = protocol;
       };
       displayManager = {
-        supported = dmsFor dp;
-        preferred = session.manager or null;
+        supported = dmsFor protocols;
+        preferred = args.greeter or null;
       };
-      defaultSession = session.trigger or null;
+      defaultSession = args.session or null;
     }
-    // (removeAttrs args ["display"]);
-
+    // (removeAttrs args ["display" "protocol" "protocols"]);
+  mkKnown = target: let
+    path = concatStringsSep "." (splitString "." target);
+    known = unique (
+      (map (de: de.${path} or null) (attrValues desktopEnvironments))
+      ++ (map (wm: wm.${path} or null) (attrValues windowManagers))
+    );
+  in
+    filter (v: v != null) known;
   desktopEnvironments = {
     gnome = mkEnv {
-      session = {
-        protocols = ["wayland" "xorg"];
-        manager = "gdm";
-      };
-      gui = {
+      protocols = ["wayland" "xorg"];
+      greeter = "gdm";
+      compositor = {
         desktop = "gnome-shell";
         window = "mutter";
-        bar = "gnome-shell";
-        notification = "gnome-shell";
       };
+      panel = "gnome-shell";
+      notifier = "gnome-shell";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "gnome-shell-overview";
         terminal.pri = "gnome-terminal";
@@ -319,26 +410,22 @@
         screenshotWindow.action = "gnome-screenshot -w";
       };
     };
-
     plasma = mkEnv {
-      session = {
-        protocols = ["wayland" "xorg"];
-        protocol = "wayland";
-        manager = "sddm";
-      };
-      gui = {
+      protocols = ["wayland" "xorg"];
+      compositor = {
         desktop = "plasmashell";
         window = "kwin";
-        bar = "plasmashell";
-        notification = "plasmashell";
       };
+      greeter = "plasma-login-shell";
+      panel = "plasmashell";
+      notifier = "plasmashell";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "krunner";
         terminal.pri = "konsole";
         explorer.pri = "dolphin";
         editor.sec = "kate";
       };
-      keyboard.bindings = {
+      keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
         close.action = "qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Window Close'";
         lock.action = "qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock";
         logout.action = "qdbus org.kde.Shutdown /Shutdown logout";
@@ -347,64 +434,55 @@
         screenshotWindow.action = "spectacle -a";
       };
     };
-
     cosmic = mkEnv {
-      session = {
-        protocols = ["wayland" "xorg"];
-        manager = "cosmic-greeter";
-      };
-      gui = {
-        desktop = "cosmic-shell";
+      protocol = "wayland";
+      greeter = "cosmic-greeter";
+      compositor = {
+        desktop = "gnome-shell";
         window = "cosmic-comp";
-        bar = "cosmic-panel";
-        notification = "cosmic-notifications";
       };
+      panel = "cosmic-panel";
+      notifier = "cosmic-notifications";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "cosmic-launcher";
         terminal.pri = "cosmic-terminal";
         explorer.pri = "cosmic-files";
         editor.sec = "cosmic-text-editor";
       };
-      keyboard.bindings = {
+      keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
         close.action = "cosmic-comp-msg action close";
         lock.action = "cosmic-session-ctl lock";
         logout.action = "cosmic-session-ctl logout";
       };
     };
-
     pantheon = mkEnv {
-      session = {
-        protocol = "xorg";
-        manager = "lightdm";
-      };
-      gui = {
+      protocol = "xorg";
+      greeter = "lightdm";
+      compositor = {
         desktop = "gala";
         window = "gala";
-        bar = "wingpanel";
-        notification = "notification-daemon";
       };
+      panel = "wingpanel";
+      notifier = "notification-daemon";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "slingshot";
         terminal.pri = "pantheon-terminal";
         explorer.pri = "pantheon-files";
         editor.sec = "mousepad";
       };
-      keyboard.bindings = {
+      keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
         lock.action = "io.elementary.desktop.agent-polkit --lock";
       };
     };
-
     cinnamon = mkEnv {
-      session = {
-        protocol = "xorg";
-        manager = "lightdm";
-      };
-      gui = {
+      protocol = "xorg";
+      greeter = "lightdm";
+      compositor = {
         desktop = "cinnamon";
         window = "muffin";
-        bar = "cinnamon";
-        notification = "cinnamon";
       };
+      panel = "cinnamon";
+      notifier = "cinnamon";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "cinnamon-menu";
         terminal.pri = "gnome-terminal";
@@ -412,50 +490,43 @@
         explorer.pri = "nemo";
         editor.sec = "mousepad";
       };
-      keyboard.bindings = {
+      keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
         lock.action = "cinnamon-screensaver-command --lock";
         logout.action = "cinnamon-session-quit --logout --no-prompt";
       };
     };
-
     xfce = mkEnv {
-      session = {
-        protocol = "xorg";
-        manager = "lightdm";
-      };
-      gui = {
+      protocol = "xorg";
+      greeter = "lightdm";
+      compositor = {
         desktop = "xfce4-panel";
         window = "xfwm4";
-        bar = "xfce4-panel";
-        notification = "xfce4-notifyd";
       };
+      panel = "xfce4-panel";
+      notifier = "xfce4-notifyd";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "xfce4-appfinder";
         terminal.pri = "xfce4-terminal";
         explorer.pri = "thunar";
         editor.sec = "mousepad";
       };
-      keyboard.bindings = {
+      keyboard.bindings = recursiveUpdate defaults.keyboard.bindings {
         lock.action = "xflock4";
         logout.action = "xfce4-session-logout --logout --fast";
       };
     };
   };
-
   windowManagers = let
     mkWayland = name:
       mkEnv {
-        session = {
-          protocol = "wayland";
-          manager = "dms-greeter";
-          trigger = name;
-        };
-        gui = {
+        protocol = "wayland";
+        greeter = "dms-greeter";
+        compositor = {
           desktop = name;
           window = name;
-          bar = "dms-shell";
-          notification = "dms-shell";
         };
+        panel = "dms-shell";
+        notifier = "dms-shell";
         apps = recursiveUpdate defaults.apps {
           launcher.sec = "dms-shell";
           terminal.pri = "foot";
@@ -479,22 +550,22 @@
 
     mkXorg = name:
       mkEnv {
-        session = {
-          protocol = "xorg";
-          manager = "regreet";
-          trigger = name;
-        };
-        gui = {
+        protocol = "xorg";
+        greeter = "regreet";
+        compositor = {
           desktop = name;
           window = name;
-          bar = "polybar";
-          notification = "dunst";
         };
+        panel = "polybar";
+        notifier = "dunst";
         apps = recursiveUpdate defaults.apps {
           launcher.sec = "rofi";
           terminal.pri = "xfce4-terminal";
           explorer.pri = "thunar";
         };
+        keyboard.bindings =
+          recursiveUpdate defaults.keyboard.bindings {
+          };
       };
   in {
     hyprland = recursiveUpdate (mkWayland "hyprland") {
@@ -535,7 +606,6 @@
         screenshotWindow.action = "grim -g \"$(slurp -w 0)\"";
       };
     };
-
     sway = recursiveUpdate (mkWayland "sway") {
       keyboard.bindings = {
         keybinds.action = "dms ipc call keybinds toggle sway";
@@ -554,7 +624,6 @@
         screenshotWindow.action = "grim -g \"$(slurp -w 0)\"";
       };
     };
-
     river = recursiveUpdate (mkWayland "river") {
       keyboard.bindings = {
         close.action = "riverctl close";
@@ -567,7 +636,6 @@
         screenshotRegion.action = "grim -g \"$(slurp)\"";
       };
     };
-
     i3 = recursiveUpdate (mkXorg "i3") {
       keyboard.bindings = {
         close.action = "i3-msg kill";
@@ -582,7 +650,6 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-
     bspwm = recursiveUpdate (mkXorg "bspwm") {
       keyboard.bindings = {
         close.action = "bspc node -c";
@@ -597,9 +664,8 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-
     qtile = recursiveUpdate (mkXorg "qtile") {
-      gui.bar = "qtile";
+      panel = "qtile";
       keyboard.bindings = {
         close.action = "qtile-cmd -o window -f kill";
         fullscreen.action = "qtile-cmd -o window -f toggle_fullscreen";
@@ -611,9 +677,8 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-
     awesome = recursiveUpdate (mkXorg "awesome") {
-      gui.bar = "awesome";
+      panel = "awesome";
       keyboard.bindings = {
         close.action = "awesome-client 'client.focus:kill()'";
         fullscreen.action = "awesome-client 'client.focus.fullscreen = not client.focus.fullscreen; client.focus:raise()'";
@@ -624,9 +689,8 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-
     xmonad = recursiveUpdate (mkXorg "xmonad") {
-      gui.bar = "xmobar";
+      panel = "xmobar";
       keyboard.bindings = {
         close.action = "xmonadctl kill";
         fullscreen.action = "xmonadctl full";
@@ -635,12 +699,9 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-
     openbox = recursiveUpdate (mkXorg "openbox") {
-      gui = {
-        bar = "tint2";
-        notification = "xfce4-notifyd";
-      };
+      panel = "tint2";
+      notifier = "xfce4-notifyd";
       apps = {
         launcher.pri = "rofi";
         terminal.pri = "xfce4-terminal";
@@ -658,22 +719,23 @@
       };
     };
   };
+  notifiers = mkKnown "notifier";
+  panels = mkKnown "panel";
+  compositors = {
+    desktop = mkKnown "compositor.desktop";
+    window = mkKnown "compositor.window";
+  };
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Resolution                                                ║
   #╚═══════════════════════════════════════════════════════════╝
-
   keys = {
     selection = {
       desktopEnvironment = desktopEnvironments;
       windowManager = windowManagers;
     };
-    resolution = [
-      "apps"
-      "gui"
-    ];
+    resolution = ["apps"];
   };
-
   select = {
     key,
     set,
@@ -714,15 +776,14 @@
       or configs.wm.${key}
       or configs.de.${key}
       or defaults.${key};
-
   normalize = interface: let
     inherit
       (genAttrs (attrNames keys.selection) (
         n:
           select {
+            inherit interface;
             key = n;
             set = keys.selection.${n};
-            inherit interface;
           }
       ))
       desktopEnvironment
@@ -734,62 +795,52 @@
       wm = windowManager.config;
     };
 
-    sessions = {
-      environment =
-        if windowManager.name != null
-        then windowManager
-        else if desktopEnvironment.name != null
-        then desktopEnvironment
-        else let
-          env =
-            interface.session.environment
+    environment =
+      if windowManager.name != null
+      then windowManager
+      else if desktopEnvironment.name != null
+      then desktopEnvironment
+      else let
+        env =
+          interface.session.environment
             or defaults.session.environment;
-        in
-          if hasAttr env windowManagers
-          then {
-            name = env;
-            kind = "windowManager";
-            config = windowManagers.${env};
-          }
-          else {
-            name = env;
-            kind = "desktopEnvironment";
-            config = desktopEnvironments.${env};
-          };
+      in
+        if hasAttr env windowManagers
+        then {
+          name = env;
+          kind = "windowManager";
+          config = windowManagers.${env};
+        }
+        else {
+          name = env;
+          kind = "desktopEnvironment";
+          config = desktopEnvironments.${env};
+        };
 
-      manager =
-        interface.session.manager
-        or interface.display.manager
-        or sessions.environment.displayManager.preferred
-        or defaults.session.manager;
+    enabled =
+      (optional (desktopEnvironment.name != null) desktopEnvironment.name)
+      ++ (optional (windowManager.name != null) windowManager.name);
 
-      protocol =
-        interface.display.protocol
+    greeter =
+      interface.session.greeter
+        or interface.display.greeter
+        or environment.displayManager.preferred
+        or defaults.session;
+
+    protocol =
+      interface.display.protocol
         or interface.session.protocol
         or configs.wm.displayProtocol.preferred
         or configs.de.displayProtocol.preferred
         or defaults.session.protocol;
 
-      trigger =
-        interface.session
+    session =
+      interface.defaultSession or interface.session
         or configs.wm.defaultSession
         or configs.de.defaultSession
         or windowManager.name
         or desktopEnvironment.name
-        or defaults.session.trigger;
-
-      enabled =
-        (optional (desktopEnvironment.name != null) desktopEnvironment.name)
-        ++ (optional (windowManager.name != null) windowManager.name);
-
-      default =
-        interface.defaultSession
-        or configs.wm.defaultSession
-        or configs.de.defaultSession
-        or windowManager.name
-        or desktopEnvironment.name
-        or defaults.session.trigger;
-    };
+        or defaults.session;
 
     shell = {
       system =
@@ -815,23 +866,19 @@
       (interface.keyboard or {})
     );
   in
-    {
-      inherit defaults keyboard sessions shell composites;
+    composites
+    // {
+      inherit enabled keyboard shell;
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
-      displayManager = sessions.manager;
-      displayProtocol = sessions.protocol;
-      defaultSession = sessions.default;
+      displayManager = greeter;
+      displayProtocol = protocol;
+      defaultSession = session;
     }
-    // (genAttrs keys.resolution (key:
-      resolve {
-        inherit
-          key
-          interface
-          configs
-          ;
-      }));
-
+    // (
+      genAttrs keys.resolution (key:
+        resolve {inherit key interface configs;})
+    );
   mkUI = {
     user ? {},
     host,
@@ -841,5 +888,41 @@
       (host.interface or {})
       (user.interface or {})
     );
+
+  requireUI = {
+    host ? null,
+    ui ? null,
+  }:
+    assert host != null || ui != null;
+      if ui != null
+      then ui
+      else mkUI {inherit host;};
+
+  mkDefault = args: let
+    resolvedUI = requireUI args;
+  in
+    key: resolvedUI.options.${key} // {default = resolvedUI.${key};};
+
+  mkOptions = args: let
+    withDefault = mkDefault args;
+  in
+    listToAttrs (map (key: {
+        name = key;
+        value = withDefault key;
+      }) [
+        "enable"
+        "available"
+        "desktopEnvironment"
+        "windowManager"
+        "displayManager"
+        "displayProtocol"
+        "session"
+        "apps"
+        "shell"
+        "compositor"
+        "panel"
+        "notifier"
+        "keyboard"
+      ]);
 in
   __exports.internal // {_rootAliases = __exports.external;}
