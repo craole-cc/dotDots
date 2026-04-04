@@ -1,18 +1,42 @@
 {_, ...}: let
   __exports = {
     internal = {
-      inherit mkEnable mkTrue mkFalse mkEnum toOptionType;
-      mkEnableOption' = mkEnable;
-      mkEnumOption = mkEnum;
-      mkType = toOptionType;
+      inherit mkEnable mkTrue mkFalse mkEnum mkEnums toOptionType;
+      inherit
+        (aliases)
+        # mkEnableOption'
+        # mkOptionEnable
+        mkOptionEnum
+        mkOptionEnums
+        # mkOptionFalse
+        # mkOptionTrue
+        # mkOptionType'
+        mkType
+        ;
     };
     external = {
-      mkEnableOptionTrue = mkTrue;
-      mkEnableOptionFalse = mkFalse;
-      mkEnableOption = mkEnable;
-      mkEnumOption = mkEnum;
-      mkOptionType' = toOptionType;
+      inherit
+        (aliases)
+        mkEnableOption'
+        mkOptionEnable
+        mkOptionEnum
+        mkOptionEnums
+        mkOptionFalse
+        mkOptionTrue
+        mkOptionType'
+        ;
     };
+  };
+
+  aliases = {
+    mkEnableOption' = mkEnable;
+    mkOptionEnable = mkEnable;
+    mkOptionEnum = mkEnum;
+    mkOptionEnums = mkEnums;
+    mkOptionFalse = mkFalse;
+    mkOptionTrue = mkTrue;
+    mkOptionType' = toOptionType;
+    mkType = toOptionType;
   };
 
   inherit (_.attrsets.construction) optionalAttrs;
@@ -22,7 +46,7 @@
     mergeUniqueOption
     mkOptionType
     ;
-  inherit (_.types.combinators) enum nullOr;
+  inherit (_.types.combinators) enum listOf nullOr;
   inherit
     (_.types.primitives)
     str
@@ -179,38 +203,63 @@
     };
 
   /**
-  Creates a `mkOption` backed by an enum type, with optional nullability.
-  Accepts either a pre-built enum attrset (from `mkEnum`) or a plain list of
-  values, which will be passed to `mkEnum` automatically.
+  Creates a `mkOption` backed by an enum type, with optional nullability and
+  list support. Accepts either a pre-built enum attrset (from
+  `_.lists.construction.mkEnum`) or a plain list of values, which will be
+  passed through automatically.
 
   When `input` is a pre-built enum attrset containing a `nullable` field, that
-  value takes precedence over the `nullable` argument.
+  value takes precedence over the `nullable` argument. When `many = true`, the
+  option holds a list of enum values instead of a single value, and `default`
+  falls back to `[]` instead of `null`.
+
+  Exported as `mkOptionEnum` (single) and `mkOptionEnums` (list) for
+  call-site clarity, but both resolve to this function.
 
   # Type
   `mkEnum :: { input :: ([String] | EnumType), description :: String?,
-                     default :: Any?, nullable :: Bool } -> Option`
+               default :: Any?, nullable :: Bool, many :: Bool } -> Option`
 
   # Arguments
   - `input`: A list of valid string values, or a pre-built `mkEnum` attrset
     with an `allValues` field.
   - `description`: Option description forwarded to `mkOption`. Optional.
-  - `default`: Default value. Defaults to `null`.
-  - `nullable`: Whether to wrap the type in `nullOr`. Ignored when `input` is
-    a pre-built enum that already carries a `nullable` field. Defaults to `true`.
+  - `default`: Default value. Defaults to `null` when `many = false`, `[]`
+    when `many = true`.
+  - `nullable`: Whether to wrap the element type in `nullOr`. Ignored when
+    `input` is a pre-built enum that already carries a `nullable` field.
+    Defaults to `true`.
+  - `many`: When `true`, wraps the type in `listOf`, producing a
+    multi-value option. Defaults to `false`.
 
   # Examples
   ```nix
-    # From a plain list
-    mkEnum {
+    # Single value from a plain list
+    mkOptionEnum {
       description = "log verbosity";
       input       = [ "debug" "info" "warn" "error" ];
       default     = "info";
       nullable    = false;
     }
 
-    # From a pre-built enum (nullable derived from the enum itself)
-    mkEnum {
-      input = mkEnum { values = [ "a" "b" "c" ]; nullable = false; };
+    # Single value from a pre-built enum (nullable derived from the enum)
+    mkOptionEnum {
+      input = sh.enums.system;
+    }
+
+    # List of values — equivalent to mkOptionEnums
+    mkOptionEnum {
+      description = "shell enhancements";
+      input       = sh.enums.enhancements;
+      default     = [ "atuin" "zoxide" "fzf" ];
+      many        = true;
+    }
+
+    # Via the mkOptionEnums alias
+    mkOptionEnums {
+      description = "shell enhancements";
+      input       = sh.enums.enhancements;
+      default     = [ "atuin" "zoxide" "fzf" ];
     }
   ```
   */
@@ -219,6 +268,7 @@
     description ? null,
     default ? null,
     nullable ? true,
+    many ? false, # ← false = single value, true = listOf
   }: let
     e =
       if isAttrs input && input ? allValues
@@ -229,14 +279,28 @@
           inherit nullable;
         };
     isNullable = e.nullable or nullable;
+    elemType =
+      if isNullable
+      then nullOr (enum e.allValues)
+      else enum e.allValues;
   in
     mkOption {
-      inherit default;
+      default =
+        if many
+        then
+          (
+            if default == null
+            then []
+            else default
+          )
+        else default;
       type =
-        if isNullable
-        then nullOr (enum e.allValues)
-        else enum e.allValues;
+        if many
+        then listOf elemType
+        else elemType;
     }
     // optionalDesc description;
+
+  mkEnums = args: mkEnum (args // {many = true;});
 in
   __exports.internal // {_rootAliases = __exports.external;}

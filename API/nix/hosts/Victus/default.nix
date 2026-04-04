@@ -202,14 +202,13 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    # defaultSession = "hyprland-uwsm";
-    # loginManager = "sddm";
-    # desktopEnvironment = "cosmic";
-    windowManager = "hyprland";
+    # desktopEnvironment = "plasma";
+    # windowManager = "hyprland";
     # displayProtocol = "wayland";
-    keyboard = {
-      modifier = "SUPER";
-      swapCapsEscape = true;
-    };
+    # session = "niri";
+    # keyboard = {
+    #   modifier = "SUPER";
+    #   swapCapsEscape = true;
+    # };
   };
 }

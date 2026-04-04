@@ -1,28 +1,17 @@
 {
-  config,
-  host,
-  lib,
   lix,
-  top,
+  interface,
   ...
 }: let
-  dom = "interface";
-  cfg = config.${top}.${dom};
-
-  inherit (lib.modules) mkIf;
-  inherit (lix.schema.ui) mkUI;
-
-  ui = mkUI {inherit host;};
-  inherit (ui.gui) bar window;
-  isDank = bar == "dms-shell";
+  inherit (lix.modules.construction) mkIf;
+  inherit (interface.ui) panel compositor;
+  isDank = panel == "dms-shell";
 in {
-  # _module.args.${dom} = ui;
-
   config = mkIf isDank {
     programs.dms-shell.enable = true;
     services.displayManager.dms-greeter = {
       enable = true;
-      compositor.name = window;
+      compositor.name = compositor.window or compositor.desktop;
     };
   };
 }

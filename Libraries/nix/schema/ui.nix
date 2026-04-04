@@ -7,20 +7,21 @@
   inherit (_.lists.access) head;
   inherit (_.lists.construction) mkEnum optional toList;
   inherit (_.lists.predicates) elem;
-  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.reduction) concatMap foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.options.construction) mkEnumOption mkOption mkTrue;
+  inherit (_.options.construction) mkOptionEnum mkOptionEnums mkOption mkTrue;
   inherit (_.schema) io;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
-  inherit (_.strings.construction) optionalString concatStringsSep;
+  inherit (_.strings.construction) optionalString;
   inherit (_.strings.transformation) splitString;
-  inherit (_.types.combinators) submodule;
-  inherit (_.types.primitives) nullOr str;
+  inherit (_.types.combinators) submodule attrsOf;
+  inherit (_.types.primitives) str anything;
+  inherit (_.types.combinators) nullOr;
   sh = _.applications.shells;
 
   __exports = {
-    internal = composites functions;
+    internal = composites // functions;
     external = {
       mkUISchema = mkUI;
       mkUIDefault = mkDefault;
@@ -43,7 +44,14 @@
       windowManagers
       ;
   };
-  functions = {inherit mkUI normalize mkDefault mkOptions;};
+  functions = {
+    inherit
+      mkUI
+      normalize
+      mkDefault
+      mkOptions
+      ;
+  };
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Data                                                      ║
@@ -54,7 +62,7 @@
     notifier = null;
     desktopEnvironment = null;
     windowManager = null;
-    greeter = null;
+    displayManager = null;
     protocol = null;
     session = null;
     compositor = {
@@ -65,6 +73,8 @@
       system = "bash";
       interactive = "bash";
       prompt = "starship";
+      lineEditor = "blesh";
+      enhancements = ["atuin" "zoxide" "fzf"];
     };
     apps = {
       launcher = {
@@ -94,6 +104,9 @@
     shells = {
       system = sh.enums.system;
       interactive = sh.enums.interactive;
+      lineEditor = sh.enums.lineEditors;
+      prompt = sh.enums.prompts;
+      enhancement = sh.enums.enhancements;
     };
     desktopEnvironments = mkEnum {
       values = desktopEnvironments;
@@ -137,28 +150,29 @@
     available = mkOption {
       description = "Available interfaces";
       default = {inherit desktopEnvironments windowManagers;};
+      type = attrsOf (attrsOf anything);
     };
 
-    desktopEnvironment = mkEnumOption {
+    desktopEnvironment = mkOptionEnum {
       description = "Desktop Environment";
       default = defaults.desktopEnvironment;
       input = desktopEnvironments;
       nullable = true;
     };
 
-    windowManager = mkEnumOption {
+    windowManager = mkOptionEnum {
       description = "Window Manager";
       default = defaults.windowManager;
       input = windowManagers;
     };
 
-    displayManager = mkEnumOption {
+    displayManager = mkOptionEnum {
       description = "Display Manager";
       default = defaults.displayManager;
       input = displayManagers;
     };
 
-    displayProtocol = mkEnumOption {
+    displayProtocol = mkOptionEnum {
       description = "Display Protocols";
       default = defaults.displayProtocol;
       input = displayProtocols;
@@ -171,40 +185,55 @@
     };
 
     shell = {
-      system = mkEnumOption {
+      system = mkOptionEnum {
         description = "System shell";
         default = defaults.shell.system;
         input = sh.enums.system;
       };
-      interactive = mkEnumOption {
+      interactive = mkOptionEnum {
         description = "Interactive shell";
-        default = defaults.shell.system;
+        default = defaults.shell.interactive;
         input = sh.enums.interactive;
+      };
+      prompt = mkOptionEnum {
+        description = "Shell prompt";
+        default = defaults.shell.prompt;
+        input = sh.enums.prompts;
+      };
+      lineEditor = mkOptionEnum {
+        description = "Line editor / readline replacement";
+        default = defaults.shell.lineEditor;
+        input = sh.enums.lineEditors;
+      };
+      enhancements = mkOptionEnums {
+        description = "Shell enhancements (history, navigation, fuzzy)";
+        default = defaults.shell.enhancements;
+        input = sh.enums.enhancements;
       };
     };
 
     compositor = {
-      desktop = mkEnumOption {
+      desktop = mkOptionEnum {
         description = "Desktop shell";
         default = defaults.compositor.desktop;
         input = compositors.desktop;
       };
-      window = mkEnumOption {
+      window = mkOptionEnum {
         description = "Windowing compositor";
         default = defaults.compositor.window;
         input = compositors.window;
       };
     };
 
-    panel = mkEnumOption {
+    panel = mkOptionEnum {
       description = "Desktop panel/bar";
       default = defaults.panel;
       input = panels;
     };
 
-    notifier = mkEnumOption {
+    notifier = mkOptionEnum {
       description = "Desktop notification deamon";
-      default = defaults.notifiers;
+      default = defaults.notifier;
       input = notifiers;
     };
 
@@ -378,10 +407,18 @@
     }
     // (removeAttrs args ["display" "protocol" "protocols"]);
   mkKnown = target: let
-    path = concatStringsSep "." (splitString "." target);
+    parts = splitString "." target;
+    getPath = set:
+      foldl'
+      (acc: key:
+        if isAttrs acc && hasAttr key acc
+        then acc.${key}
+        else null)
+      set
+      parts;
     known = unique (
-      (map (de: de.${path} or null) (attrValues desktopEnvironments))
-      ++ (map (wm: wm.${path} or null) (attrValues windowManagers))
+      (map getPath (attrValues desktopEnvironments))
+      ++ (map getPath (attrValues windowManagers))
     );
   in
     filter (v: v != null) known;
@@ -734,17 +771,19 @@
       desktopEnvironment = desktopEnvironments;
       windowManager = windowManagers;
     };
-    resolution = ["apps"];
+    resolution = [
+      "apps"
+      "compositor"
+      "notifier"
+      "panel"
+    ];
   };
   select = {
     key,
     set,
     interface,
   }: let
-    rawVal =
-      interface.${key}
-      or interface.session.${key}
-      or defaults.session.${key};
+    rawVal = interface.${key} or interface.session.${key} or null;
     name =
       if isAttrs rawVal
       then rawVal.name or null
@@ -824,14 +863,15 @@
     greeter =
       interface.session.greeter
         or interface.display.greeter
-        or environment.displayManager.preferred
-        or defaults.session;
+        or environment.config.displayManager.preferred
+        or defaults.displayManager;
 
     protocol =
       interface.display.protocol
         or interface.session.protocol
-        or configs.wm.displayProtocol.preferred
-        or configs.de.displayProtocol.preferred
+        or environment.config.displayProtocol.preferred
+        # or configs.wm.displayProtocol.preferred
+        # or configs.de.displayProtocol.preferred
         or defaults.session.protocol;
 
     session =
@@ -844,14 +884,19 @@
 
     shell = {
       system =
-        interface.shell.system or
-        interface.shell.login or
-        defaults.shell.system;
+        interface.shell.system or interface.shell.login
+        or defaults.shell.system;
       interactive =
-        interface.shell.interactive or
-        defaults.shell.interactive;
-      prompt = interface.shell.prompt or defaults.shell.prompt;
+        interface.shell.interactive or interface.shell.login
+        or defaults.shell.interactive;
+      prompt =
+        interface.shell.prompt or defaults.shell.prompt;
+      lineEditor =
+        interface.shell.lineEditor or defaults.shell.lineEditor;
+      enhancements =
+        interface.shell.enhancements or defaults.shell.enhancements;
     };
+
     #? Merge order: io defaults → DE overrides → WM overrides → user overrides
     #? normalizeKeyboard converts all mod lists to strings at the boundary
     keyboard = normalizeKeyboard (
@@ -868,12 +913,12 @@
   in
     composites
     // {
-      inherit enabled keyboard shell;
+      inherit enabled keyboard shell session;
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
       displayManager = greeter;
       displayProtocol = protocol;
-      defaultSession = session;
+      enable = enabled != [];
     }
     // (
       genAttrs keys.resolution (key:
@@ -900,8 +945,23 @@
 
   mkDefault = args: let
     resolvedUI = requireUI args;
+    go = opt: val:
+      if opt ? type || opt ? description
+      then
+        if val != null
+        then opt // {default = val;}
+        else opt
+      else
+        genAttrs (attrNames opt) (
+          subkey:
+            go opt.${subkey} (
+              if isAttrs val
+              then val.${subkey} or null
+              else null
+            )
+        );
   in
-    key: resolvedUI.options.${key} // {default = resolvedUI.${key};};
+    key: go resolvedUI.options.${key} (resolvedUI.${key} or null);
 
   mkOptions = args: let
     withDefault = mkDefault args;
