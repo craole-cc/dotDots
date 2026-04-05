@@ -40,7 +40,7 @@
         "esr"
         "legacy"
       ];
-      nullable = false;
+      nullable = true;
     };
     families = mkEnum {
       values = [
@@ -50,8 +50,9 @@
         "vscode"
         "emacs"
         "vim"
+        "whatsapp"
       ];
-      nullable = false;
+      nullable = true;
     };
   };
 

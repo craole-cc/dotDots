@@ -46,7 +46,6 @@
       fixedWidthNumber
       fixedWidthString
       floatToString
-      intToChar
       optionalString
       ;
   };

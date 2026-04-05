@@ -1,128 +1,58 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __exports = {
-    internal = {
-      inherit
-        all
-        byCategory
-        ofCategory
-        lookup
-        identify
-        resolveExec
-        mkApps
-        ;
-    };
-    external = {
-      appRegistry = all;
-    };
+    internal = all;
+    external.applicationRegistry = all;
   };
 
-  inherit (lib.attrsets) filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) elem filter head init last length;
-  inherit (lib.strings) concatStringsSep;
-  inherit (_.lists.predicates) isIn;
-  inherit (_.strings.construction) indentedForError;
-  inherit (_.applications.enums) constants;
-  categories = constants.categories.allValues;
-  channels = constants.channels.allValues;
-  families = constants.families.allValues;
-  data = _.filesystem.importers.importAllMerged ./.data {};
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists) filter head init last length;
+  inherit (_.strings.construction) concatStringsSep indentedForError;
+  inherit (_.applications.enums.constants) categories channels families;
+  data = _.filesystem.importers.importAllMerged ./.data/common {};
 
-  # -- Resolution ──────────────────────────────────────────────────────────────
   listCategories = indentedForError {
     title = "Valid Categories";
-    items = categories;
+    items = categories.allValues;
+  };
+  listChannels = indentedForError {
+    title = "Valid Channels";
+    items = channels.allValues;
+  };
+  listFamilies = indentedForError {
+    title = "Valid Families";
+    items = families.allValues;
   };
 
-  all =
-    mapAttrs (
-      name: app: let
-        invalid = filter (c: !elem c categories) app.categories;
-        count = length invalid;
-        quoted = map (c: "'${c}'") invalid;
-        humanJoin = items:
-          if count == 1
-          then head items
-          else "${concatStringsSep ", " (init items)} and ${last items}";
-      in
-        if invalid != []
-        then
-          throw "${humanJoin quoted} ${
-            if count == 1
-            then "is an invalid category"
-            else "are invalid categories"
-          }. ${listCategories}"
-        else app
-    )
-    data;
+  normalizeOptional = val:
+    if val == null || val == "" || val == "none"
+    then null
+    else val;
 
-  ofCategory = cat:
-    if !isIn cat categories
-    then throw "'${cat}' is not a valid category. ${listCategories}"
-    else filterAttrs (_: a: isIn cat a.categories) all;
+  all = mapAttrs (name: app: let
+    channel = normalizeOptional (app.channel or null);
+    family = normalizeOptional (app.family  or null);
+    app' = app // {inherit channel family;};
 
-  byCategory = genAttrs categories ofCategory;
-
-  # -- Lookup ───────────────────────────────────────────────────────────────────
-
-  lookup = name: category: let
-    app = all.${name} or (throw "Unknown app '${name}' in registry.");
+    invalidCats = filter (c: !categories.validator.check c) app'.categories;
+    catCount = length invalidCats;
+    quotedCats = map (c: "'${c}'") invalidCats;
+    humanJoin = items:
+      if catCount == 1
+      then head items
+      else "${concatStringsSep ", " (init items)} and ${last items}";
   in
-    if elem category app.categories
-    then app
-    else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString app.categories}";
-
-  identify = app:
-    if app.names ? title
-    then [
-      {
-        type = "title";
-        value = app.names.title;
-      }
-      {
-        type = "initialTitle";
-        value = app.names.title;
-      }
-    ]
-    else if app.names ? class
-    then [
-      {
-        type = "class";
-        value = app.names.class;
-      }
-    ]
-    else null;
-
-  # Wraps a terminal-mode app using the resolved terminal emulator.
-  # e.g. yazi via foot → "foot --title yazi -e yazi"
-  resolveExec = tty: app:
-    if app.needsTerminal or false
+    if invalidCats != []
     then
-      "${tty.names.command}"
-      + " ${tty.wrap.titleFlag} ${
-        app.names.title or app.names.command
-      }"
-      + " ${tty.wrap.execFlag} ${app.exec}"
-    else app.exec;
-
-  # -- Enrichment ───────────────────────────────────────────────────────────────
-
-  # Enriches the all registry with resolved nix pkg derivations.
-  # Falls back gracefully so UI resolution never hard-fails on a missing pkg.
-  mkApps = pkgs:
-    mapAttrs (name: app: let
-      pkg = pkgs.${app.names.package} or null;
-    in
-      app
-      // {inherit pkg;}
-      // (
-        if pkg != null
-        then {version = pkg.version;}
-        else {}
-      ))
-    all;
+      throw "${humanJoin quotedCats} ${
+        if catCount == 1
+        then "is an invalid category"
+        else "are invalid categories"
+      }. ${listCategories}"
+    else if !channels.validator.check app'.channel
+    then throw "'${name}' has invalid channel '${toString app'.channel}'. ${listChannels}"
+    else if !families.validator.check app'.family
+    then throw "'${name}' has invalid family '${toString app'.family}'. ${listFamilies}"
+    else app')
+  data;
 in
   __exports.internal // {_rootAliases = __exports.external;}

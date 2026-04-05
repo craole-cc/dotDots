@@ -1,11 +1,23 @@
-{...}: {
-  whatsapp = {
+{
+  whatsapp-electron = {
     names = {
       package = "whatsapp-electron";
       command = "whatsapp";
       title = "WhatsApp Electron :: Default Account";
     };
     exec = "whatsapp";
+    categories = ["communication" "messenger"];
+    family = "whatsapp";
+    channel = "stable";
+  };
+
+  karere = {
+    names = {
+      package = "karere";
+      command = "karere";
+      title = "WhatsApp Electron :: Default Account";
+    };
+    exec = "karere";
     categories = ["communication" "messenger"];
     family = "whatsapp";
     channel = "stable";

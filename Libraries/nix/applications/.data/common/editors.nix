@@ -1,4 +1,4 @@
-{...}: {
+{
   vscode = {
     names = {
       package = "vscode";

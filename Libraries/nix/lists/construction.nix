@@ -109,8 +109,14 @@
         };
       })
     else if exact
-    then (e: e != null && elem e normalizedList)
-    else (e: e != null && elem (toLower e) normalizedList);
+    then (e: elem e normalizedList)
+    else
+      (
+        e:
+          if e == null
+          then elem null normalizedList
+          else elem (toLower e) normalizedList
+      );
 
   /**
   Create a validator that checks if values are in an allowed list.
@@ -147,10 +153,10 @@
         };
       })
     else {
-      check = name:
-        if exact
-        then isInExact name list
-        else isIn name list;
+      check = mkCheckList {
+        check = list;
+        inherit exact;
+      };
       inherit list;
     };
 
@@ -324,17 +330,20 @@
       aliases = normalized.aliases or {};
       nullable = normalized.nullable or false;
       allValues = values ++ (attrNames aliases);
-      allValuesNullable = allValues ++ [null];
     in {
       inherit
         values
         aliases
         nullable
         allValues
-        allValuesNullable
         ;
-      validator = mkCaseInsensitiveValidator allValues;
-      validatorNullable = mkCaseInsensitiveValidator allValuesNullable;
+      validator = {
+        check = val:
+          if val == null
+          then nullable
+          else (mkCaseInsensitiveValidator allValues).check val;
+        list = allValues;
+      };
       resolve = value:
         if value == null
         then null

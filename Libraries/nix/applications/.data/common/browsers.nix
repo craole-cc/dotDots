@@ -1,4 +1,4 @@
-{...}: {
+{
   brave = {
     names = {
       package = "brave";
@@ -136,7 +136,7 @@
       title = "Zen Twilight";
     };
     exec = "zen-twilight";
-    categories = ["browsers"];
+    categories = ["browser"];
     family = "zen";
     channel = "twilight";
   };
@@ -148,7 +148,7 @@
       class = "zen-beta";
     };
     exec = "zen-beta";
-    categories = ["browsers" "firefox" "nothing"];
+    categories = ["browser"];
     family = "zen";
     channel = "beta";
   };
