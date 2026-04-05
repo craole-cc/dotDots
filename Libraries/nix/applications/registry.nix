@@ -3,14 +3,6 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) elem filter head init last length;
-  inherit (lib.strings) concatStringsSep;
-  inherit (_.lists.predicates) isIn;
-  inherit (_.lists.transformation) indentedForError;
-  inherit (_.applications.enums) categories;
-  data = _.filesystem.importers.importAllMerged ./.data {};
-
   __exports = {
     internal = {
       inherit
@@ -27,6 +19,17 @@
       appRegistry = all;
     };
   };
+
+  inherit (lib.attrsets) filterAttrs genAttrs mapAttrs;
+  inherit (lib.lists) elem filter head init last length;
+  inherit (lib.strings) concatStringsSep;
+  inherit (_.lists.predicates) isIn;
+  inherit (_.strings.construction) indentedForError;
+  inherit (_.applications.enums) constants;
+  categories = constants.categories.allValues;
+  channels = constants.channels.allValues;
+  families = constants.families.allValues;
+  data = _.filesystem.importers.importAllMerged ./.data {};
 
   # -- Resolution ──────────────────────────────────────────────────────────────
   listCategories = indentedForError {

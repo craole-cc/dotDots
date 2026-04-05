@@ -5,12 +5,11 @@
   };
 
   inherit (_.applications.enums) constants;
-  inherit (_.applications.registry) all byCategory ofCategory;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
-
   categories = constants.categories.allValues;
   channels = constants.channels.allValues;
   families = constants.families.allValues;
+  inherit (_.applications.registry) all byCategory ofCategory;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
 
   filters = {
     inherit all byCategory ofCategory;

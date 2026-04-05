@@ -62,4 +62,4 @@
     byChannel = mapAttrs (_: v: mkEnum v) filters.byChannel;
   };
 in
-  __exports.internal {_rootAliases = __exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}
