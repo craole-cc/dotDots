@@ -1,63 +1,94 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __exports = {
-    internal = {
-      inherit registry byType enums;
-      inherit
-        (registry)
-        enhancements
-        interactive
-        lineEditors
-        prompts
-        shells
-        system
-        ;
-      inherit
-        (registry.shells)
-        elvish
-        nushell
-        pwsh
-        tcsh
-        bash
-        dash
-        zsh
-        ksh
-        sh
-        fish
-        ;
-      inherit (registry.lineEditors) blesh zle readline;
-      inherit
-        (registry.prompts)
-        starship
-        ohmyposh
-        liquidprompt
-        powerlevel10k
-        spaceship
-        pure
-        prezto
-        tide
-        hydro
-        powerline
-        powerline-go
-        ;
+    internal =
+      {}
+      // filters.shells.all
+      // filters.lineEditors.all
+      // filters.prompts.all
+      // filters.enhancements.all
+      // {
+        inherit
+          filters
+          registry
+          enums
+          ;
+        inherit
+          (filters)
+          lineEditors
+          prompts
+          shells
+          enhancements
+          ;
+      };
+    external = {
+      registryOfShells = registry;
     };
-    external = {};
   };
 
-  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.lists.access) length;
+  inherit (_.lists.predicates) elem;
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
 
-  byType = rec {
-    all = registry.shells;
-    interactive = filterAttrs (_: s: s.interactive) all;
-    system = filterAttrs (_: s: s.system) all;
-    posix = filterAttrs (_: s: s.posix) all;
-    modern = filterAttrs (_: s: !s.posix) all;
+  filters = {
+    shells = let
+      all = registry.shells;
+    in
+      all
+      // {
+        inherit all;
+        where = {
+          interactive = filterAttrs (_: s: s.interactive) all;
+          system = filterAttrs (_: s: s.system) all;
+          posix = filterAttrs (_: s: s.posix) all;
+          modern = filterAttrs (_: s: !s.posix) all;
+        };
+      };
+
+    lineEditors = let
+      all = registry.lineEditors;
+      stable = filterAttrs (_: e: e.maturity == "stable") all;
+      byShell =
+        mapAttrs
+        (name: _: filterAttrs (_: e: elem name e.shells) all)
+        registry.shells;
+    in
+      all
+      // {
+        inherit all byShell;
+        where = {inherit stable;};
+      };
+
+    prompts = let
+      all = registry.prompts;
+      multiShell = filterAttrs (_: p: length p.shells > 1) all;
+      byShell =
+        mapAttrs
+        (name: _: filterAttrs (_: p: elem name p.shells) all)
+        registry.shells;
+    in
+      all
+      // {
+        inherit all byShell;
+        where = {inherit multiShell;};
+      };
+
+    enhancements = let
+      all = registry.enhancements;
+      fuzzy = filterAttrs (_: e: e.kind == "fuzzy") all;
+      history = filterAttrs (_: e: e.kind == "history") all;
+      navigation = filterAttrs (_: e: e.kind == "navigation") all;
+      byShell =
+        mapAttrs
+        (name: _: filterAttrs (_: e: elem name e.shells) all)
+        registry.shells;
+    in
+      all
+      // {
+        inherit all byShell;
+        where = {inherit fuzzy history navigation;};
+      };
   };
 
   registry = {
@@ -130,13 +161,13 @@
     };
     lineEditors = {
       blesh = {
-        base = "shell";
+        base = "shellscript";
         config = ".blerc";
         shells = ["bash"];
         maturity = "young";
       };
       zle = {
-        base = "shell";
+        base = "shellscript";
         config = null;
         shells = ["zsh"];
         maturity = "stable";
@@ -283,36 +314,36 @@
 
   enums = {
     shells = mkEnum {
-      values = registry.shells;
+      values = filters.shells.all;
       nullable = true;
     };
     interactive = mkEnum {
-      values = registry.interactive;
+      values = filters.shells.where.interactive;
       nullable = true;
     };
     system = mkEnum {
-      values = registry.system;
+      values = filters.shells.where.system;
       nullable = true;
     };
     lineEditors = mkEnum {
-      values = registry.lineEditors;
+      values = filters.lineEditors.all;
       nullable = true;
     };
     prompts = mkEnum {
-      values = registry.prompts;
+      values = filters.prompts.all;
       nullable = true;
     };
     promptsMultiShell = mkEnum {
-      values = filterAttrs (_: p: length p.shells > 1) registry.prompts;
+      values = filters.prompts.where.multiShell;
       nullable = true;
     };
     enhancements = mkEnum {
-      values = registry.enhancements;
+      values = filters.enhancements.all;
       nullable = true;
     };
     enhancementsByKind = kind:
       mkEnum {
-        values = filterAttrs (_: e: e.kind == kind) registry.enhancements;
+        values = filters.enhancements.byShell.${kind} or {};
         nullable = true;
       };
   };

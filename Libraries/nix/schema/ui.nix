@@ -252,14 +252,6 @@
     };
   };
 
-  shells = {
-    system = sh.system;
-    interactive = sh.interactive;
-    prompts = sh.prompts;
-    enhancements = sh.enhancements;
-    lineEditors = sh.lineEditors;
-  };
-
   #╔═══════════════════════════════════════════════════════════╗
   #║ Data                                                      ║
   #╚═══════════════════════════════════════════════════════════╝
