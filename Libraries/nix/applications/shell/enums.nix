@@ -25,7 +25,8 @@
 
     enhancements = {
       all = mkEnum filters.enhancements.all;
-      byKind = kind: mkEnum (filters.enhancements.byShell.${kind} or {});
+      byShell = shell: mkEnum (filters.enhancements.byShell.${shell} or {});
+      byKind = kind: mkEnum (filters.enhancements.where.${kind} or {});
     };
   };
 in
