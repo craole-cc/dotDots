@@ -1,72 +1,87 @@
 {_, ...}: let
   __exports = {
     internal = filters;
-    external.shellFilters = filters;
+    external.interfaceFilters = filters;
   };
 
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
-  inherit (_.lists.access) length;
   inherit (_.lists.predicates) elem;
-  inherit (_.applications.registry) shells lineEditors prompts enhancements;
+  inherit (_.applications.interface) registry;
+
+  mkByProtocol = all:
+    mapAttrs
+    (name: _: filterAttrs (_: e: elem name e.protocol) all)
+    registry.protocols;
 
   filters = {
-    shells = let
-      all = shells;
-    in
-      all
-      // {
-        inherit all;
-        where = {
-          interactive = filterAttrs (_: s: s.interactive) all;
-          system = filterAttrs (_: s: s.system) all;
-          posix = filterAttrs (_: s: s.posix) all;
-          modern = filterAttrs (_: s: !s.posix) all;
-        };
+    compositors = let
+      all = registry.compositors;
+    in {
+      inherit all;
+      byProtocol = mkByProtocol all;
+      where = {
+        standalone = filterAttrs (_: c: c.role == "standalone") all;
+        embedded = filterAttrs (_: c: c.role == "embedded") all;
+        shell = filterAttrs (_: c: c.role == "shell") all;
       };
+    };
 
-    lineEditors = let
-      all = lineEditors;
-      stable = filterAttrs (_: e: e.maturity == "stable") all;
-      byShell =
-        mapAttrs
-        (name: _: filterAttrs (_: e: elem name e.shells) all)
-        shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit stable;};
+    environments = let
+      all = registry.environments;
+    in {
+      inherit all;
+      byProtocol = mkByProtocol all;
+      where = {
+        desktop = filterAttrs (_: e: e.kind == "desktop") all;
+        standalone = filterAttrs (_: e: e.kind == "standalone") all;
+        wayland = filterAttrs (_: e: elem "wayland" e.protocol) all;
+        xorg = filterAttrs (_: e: elem "xorg" e.protocol) all;
       };
+    };
 
-    prompts = let
-      all = prompts;
-      multiShell = filterAttrs (_: p: length p.shells > 1) all;
-      byShell =
-        mapAttrs
-        (name: _: filterAttrs (_: p: elem name p.shells) all)
-        shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit multiShell;};
+    greeters = let
+      all = registry.greeters;
+    in {
+      inherit all;
+      byProtocol = mkByProtocol all;
+      where = {
+        graphical = filterAttrs (_: g: g.display == "graphical") all;
+        terminal = filterAttrs (_: g: g.display == "terminal") all;
       };
+    };
 
-    enhancements = let
-      all = enhancements;
-      fuzzy = filterAttrs (_: e: e.kind == "fuzzy") all;
-      history = filterAttrs (_: e: e.kind == "history") all;
-      navigation = filterAttrs (_: e: e.kind == "navigation") all;
-      byShell =
-        mapAttrs
-        (name: _: filterAttrs (_: e: elem name e.shells) all)
-        shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit fuzzy history navigation;};
+    notifiers = let
+      all = registry.notifiers;
+    in {
+      inherit all;
+      byProtocol = mkByProtocol all;
+      where = {
+        integrated = filterAttrs (_: n: n.integrated) all;
+        standalone = filterAttrs (_: n: !n.integrated) all;
       };
+    };
+
+    panels = let
+      all = registry.panels;
+    in {
+      inherit all;
+      byProtocol = mkByProtocol all;
+      where = {
+        integrated = filterAttrs (_: p: p.integrated) all;
+        standalone = filterAttrs (_: p: !p.integrated) all;
+      };
+    };
+
+    protocols = let
+      all = registry.protocols;
+    in {
+      inherit all;
+      where = {
+        compositing = filterAttrs (_: p: p.compositing) all;
+        accelerated = filterAttrs (_: p: p.acceleration) all;
+        remote = filterAttrs (_: p: p.remote) all;
+      };
+    };
   };
 in
   __exports.internal // {_rootAliases = __exports.external;}

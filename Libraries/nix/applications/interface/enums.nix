@@ -1,56 +1,55 @@
 {_, ...}: let
   __exports = {
     internal = enums;
-    external.shellEnums = enums;
+    external.interfaceEnums = enums;
   };
 
-  inherit (_.applications.shell) filters;
+  inherit (_.applications.interface) filters;
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
 
   enums = {
-    shells = {
-      all = mkEnum {
-        values = filters.shells.all;
-        nullable = true;
-      };
-      interactive = mkEnum {
-        values = filters.shells.where.interactive;
-        nullable = true;
-      };
-      system = mkEnum {
-        values = filters.shells.where.system;
-        nullable = true;
-      };
+    compositors = {
+      all = mkEnum filters.compositors.all;
+      standalone = mkEnum filters.compositors.where.standalone;
+      embedded = mkEnum filters.compositors.where.embedded;
+      shell = mkEnum filters.compositors.where.shell;
+      byProtocol = mapAttrs (_: v: mkEnum v) filters.compositors.byProtocol;
     };
 
-    lineEditors = {
-      all = mkEnum {
-        values = filters.lineEditors.all;
-        nullable = true;
-      };
+    environments = {
+      all = mkEnum filters.environments.all;
+      desktop = mkEnum filters.environments.where.desktop;
+      standalone = mkEnum filters.environments.where.standalone;
+      byProtocol = mapAttrs (_: v: mkEnum v) filters.environments.byProtocol;
     };
 
-    prompts = {
-      all = mkEnum {
-        values = filters.prompts.all;
-        nullable = true;
-      };
-      multiShell = mkEnum {
-        values = filters.prompts.where.multiShell;
-        nullable = true;
-      };
+    greeters = {
+      all = mkEnum filters.greeters.all;
+      graphical = mkEnum filters.greeters.where.graphical;
+      terminal = mkEnum filters.greeters.where.terminal;
+      byProtocol = mapAttrs (_: v: mkEnum v) filters.greeters.byProtocol;
     };
 
-    enhancements = {
-      all = mkEnum {
-        values = filters.enhancements.all;
-        nullable = true;
-      };
-      byKind = kind:
-        mkEnum {
-          values = filters.enhancements.byShell.${kind} or {};
-          nullable = true;
-        };
+    protocols = {
+      all = mkEnum filters.protocols.all;
+      compositing = mkEnum filters.protocols.where.compositing;
+      accelerated = mkEnum filters.protocols.where.accelerated;
+      remote = mkEnum filters.protocols.where.remote;
+    };
+
+    panels = {
+      all = mkEnum filters.panels.all;
+      integrated = mkEnum filters.panels.where.integrated;
+      standalone = mkEnum filters.panels.where.standalone;
+      byProtocol = mapAttrs (_: v: mkEnum v) filters.panels.byProtocol;
+    };
+
+    notifiers = {
+      all = mkEnum filters.notifiers.all;
+      integrated = mkEnum filters.notifiers.where.integrated;
+      standalone = mkEnum filters.notifiers.where.standalone;
+      byProtocol = mapAttrs (_: v: mkEnum v) filters.notifiers.byProtocol;
     };
   };
 in

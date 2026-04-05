@@ -7,22 +7,20 @@
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.lists.access) length;
   inherit (_.lists.predicates) elem;
-  inherit (_.applications.registry) shells lineEditors prompts enhancements;
+  inherit (_.applications.shell.registry) shells lineEditors prompts enhancements;
 
   filters = {
     shells = let
       all = shells;
-    in
-      all
-      // {
-        inherit all;
-        where = {
-          interactive = filterAttrs (_: s: s.interactive) all;
-          system = filterAttrs (_: s: s.system) all;
-          posix = filterAttrs (_: s: s.posix) all;
-          modern = filterAttrs (_: s: !s.posix) all;
-        };
+    in {
+      inherit all;
+      where = {
+        interactive = filterAttrs (_: s: s.interactive) all;
+        system = filterAttrs (_: s: s.system) all;
+        posix = filterAttrs (_: s: s.posix) all;
+        modern = filterAttrs (_: s: !s.posix) all;
       };
+    };
 
     lineEditors = let
       all = lineEditors;
@@ -31,12 +29,10 @@
         mapAttrs
         (name: _: filterAttrs (_: e: elem name e.shells) all)
         shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit stable;};
-      };
+    in {
+      inherit all byShell;
+      where = {inherit stable;};
+    };
 
     prompts = let
       all = prompts;
@@ -45,12 +41,10 @@
         mapAttrs
         (name: _: filterAttrs (_: p: elem name p.shells) all)
         shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit multiShell;};
-      };
+    in {
+      inherit all byShell;
+      where = {inherit multiShell;};
+    };
 
     enhancements = let
       all = enhancements;
@@ -61,12 +55,10 @@
         mapAttrs
         (name: _: filterAttrs (_: e: elem name e.shells) all)
         shells;
-    in
-      all
-      // {
-        inherit all byShell;
-        where = {inherit fuzzy history navigation;};
-      };
+    in {
+      inherit all byShell;
+      where = {inherit fuzzy history navigation;};
+    };
   };
 in
   __exports.internal // {_rootAliases = __exports.external;}

@@ -9,48 +9,23 @@
 
   enums = {
     shells = {
-      all = mkEnum {
-        values = filters.shells.all;
-        nullable = true;
-      };
-      interactive = mkEnum {
-        values = filters.shells.where.interactive;
-        nullable = true;
-      };
-      system = mkEnum {
-        values = filters.shells.where.system;
-        nullable = true;
-      };
+      all = mkEnum filters.shells.all;
+      interactive = mkEnum filters.shells.where.interactive;
+      system = mkEnum filters.shells.where.system;
     };
 
     lineEditors = {
-      all = mkEnum {
-        values = filters.lineEditors.all;
-        nullable = true;
-      };
+      all = mkEnum filters.lineEditors.all;
     };
 
     prompts = {
-      all = mkEnum {
-        values = filters.prompts.all;
-        nullable = true;
-      };
-      multiShell = mkEnum {
-        values = filters.prompts.where.multiShell;
-        nullable = true;
-      };
+      all = mkEnum filters.prompts.all;
+      multiShell = mkEnum filters.prompts.where.multiShell;
     };
 
     enhancements = {
-      all = mkEnum {
-        values = filters.enhancements.all;
-        nullable = true;
-      };
-      byKind = kind:
-        mkEnum {
-          values = filters.enhancements.byShell.${kind} or {};
-          nullable = true;
-        };
+      all = mkEnum filters.enhancements.all;
+      byKind = kind: mkEnum (filters.enhancements.byShell.${kind} or {});
     };
   };
 in

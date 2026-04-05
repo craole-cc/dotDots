@@ -1,228 +1,586 @@
 {...}: let
   __exports = {
     internal = registry;
-    external = {
-      registryOfShells = registry;
-    };
+    external.interfaceRegistry = registry;
   };
 
   registry = {
-    shells = {
-      #~@ POSIX-compatible
-      bash = {
-        posix = true;
-        interactive = true;
-        system = true;
-        base = "c";
+    compositors = {
+      #~@ Wayland — Standalone WMs
+      hyprland = {
+        protocol = ["wayland"];
+        role = "standalone";
+        language = "c++";
+        maturity = "stable";
       };
-      dash = {
-        posix = true;
-        interactive = false;
-        system = true;
-        base = "c";
+      niri = {
+        protocol = ["wayland"];
+        role = "standalone";
+        language = "rust";
+        maturity = "stable";
       };
-      sh = {
-        posix = true;
-        interactive = false;
-        system = true;
-        base = "c";
+      sway = {
+        protocol = ["wayland"];
+        role = "standalone";
+        language = "c";
+        maturity = "stable";
       };
-      ksh = {
-        posix = true;
-        interactive = true;
-        system = true;
-        base = "c";
-      };
-      zsh = {
-        posix = true;
-        interactive = true;
-        system = true;
-        base = "c";
-      };
-
-      #~@ Modern
-      fish = {
-        posix = false;
-        interactive = true;
-        system = false;
-        base = "c";
-      };
-      nushell = {
-        posix = false;
-        interactive = true;
-        system = false;
-        base = "rust";
-      };
-      elvish = {
-        posix = false;
-        interactive = true;
-        system = false;
-        base = "go";
-      };
-      pwsh = {
-        posix = false;
-        interactive = true;
-        system = false;
-        base = "dotnet";
-      };
-
-      #~@ Legacy/niche
-      tcsh = {
-        posix = false;
-        interactive = true;
-        system = false;
-        base = "c";
-      };
-    };
-    lineEditors = {
-      blesh = {
-        base = "shellscript";
-        config = ".blerc";
-        shells = ["bash"];
+      river = {
+        protocol = ["wayland"];
+        role = "standalone";
+        language = "zig";
         maturity = "young";
       };
-      zle = {
-        base = "shellscript";
-        config = null;
-        shells = ["zsh"];
-        maturity = "stable";
-      };
-      readline = {
-        base = "c";
-        config = ".inputrc";
-        shells = ["bash" "sh" "ksh"];
-        maturity = "stable";
-      };
-    };
-    prompts = {
-      #~@ Cross-shell (work in bash, zsh, fish, nushell, etc.)
-      starship = {
-        base = "rust";
-        config = "starship.toml";
-        shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh" "tcsh"];
-        maturity = "stable";
-      };
-      ohmyposh = {
-        base = "go";
-        config = ".omp.json";
-        shells = ["bash" "zsh" "fish" "nushell" "pwsh"];
-        maturity = "stable";
-      };
-      liquidprompt = {
-        base = "shell";
-        config = ".liquidpromptrc";
-        shells = ["bash" "zsh"];
-        maturity = "stable";
-      };
-
-      #~@ Zsh-specific
-      powerlevel10k = {
-        base = "shell";
-        config = ".p10k.zsh";
-        shells = ["zsh"];
-        maturity = "stable";
-      };
-      spaceship = {
-        base = "shell";
-        config = "spaceship.zsh";
-        shells = ["zsh"];
-        maturity = "stable";
-      };
-      pure = {
-        base = "shell";
-        config = null;
-        shells = ["zsh"];
-        maturity = "stable";
-      };
-      prezto = {
-        base = "shell";
-        config = ".zpreztorc";
-        shells = ["zsh"];
-        maturity = "stable";
-      };
-
-      #~@ Fish-specific
-      tide = {
-        base = "shell";
-        config = null;
-        shells = ["fish"];
-        maturity = "stable";
-      };
-      hydro = {
-        base = "shell";
-        config = null;
-        shells = ["fish"];
-        maturity = "stable";
-      };
-
-      #~@ Nushell-specific
-      oh-my-nu = {
-        base = "nushell";
-        config = null;
-        shells = ["nushell"];
+      cosmic-comp = {
+        protocol = ["wayland"];
+        role = "standalone";
+        language = "rust";
         maturity = "young";
       };
 
-      #~@ Powerline-based
-      powerline = {
-        base = "python";
-        config = "powerline.json";
-        shells = ["bash" "zsh" "fish" "pwsh"];
+      #~@ Wayland — Embedded DE compositors
+      mutter = {
+        protocol = ["wayland"];
+        role = "embedded";
+        language = "c";
+        maturity = "stable";
+      };
+      kwin = {
+        protocol = ["wayland"];
+        role = "embedded";
+        language = "c++";
+        maturity = "stable";
+      };
+
+      #~@ Xorg — Standalone WMs
+      i3 = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "c";
+        maturity = "stable";
+      };
+      bspwm = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "c";
+        maturity = "stable";
+      };
+      qtile = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "python";
+        maturity = "stable";
+      };
+      awesome = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "c";
+        maturity = "stable";
+      };
+      xmonad = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "haskell";
+        maturity = "stable";
+      };
+      openbox = {
+        protocol = ["xorg"];
+        role = "standalone";
+        language = "c";
         maturity = "legacy";
       };
-      powerline-go = {
-        base = "go";
-        config = null;
-        shells = ["bash" "zsh" "fish" "pwsh"];
+
+      #~@ Xorg — Embedded DE compositors
+      xfwm4 = {
+        protocol = ["xorg"];
+        role = "embedded";
+        language = "c";
         maturity = "stable";
       };
-      powerline-rs = {
-        base = "rust";
-        config = null;
-        shells = ["bash" "zsh" "fish"];
+      muffin = {
+        protocol = ["xorg"];
+        role = "embedded";
+        language = "c";
+        maturity = "stable";
+      };
+
+      #~@ DE Shells (fused compositor + panel)
+      gnome-shell = {
+        protocol = ["wayland"];
+        role = "shell";
+        language = "javascript";
+        maturity = "stable";
+      };
+      plasmashell = {
+        protocol = ["wayland"];
+        role = "shell";
+        language = "c++";
+        maturity = "stable";
+      };
+      cosmic-panel = {
+        protocol = ["wayland"];
+        role = "shell";
+        language = "rust";
+        maturity = "young";
+      };
+      cinnamon = {
+        protocol = ["xorg"];
+        role = "shell";
+        language = "c";
+        maturity = "stable";
+      };
+      xfce4-panel = {
+        protocol = ["xorg"];
+        role = "shell";
+        language = "c";
+        maturity = "stable";
+      };
+      gala = {
+        protocol = ["xorg"];
+        role = "shell";
+        language = "vala";
+        maturity = "stable";
+      };
+    };
+    environments = {
+      #~@ Desktop Environments
+      gnome = {
+        kind = "desktop";
+        protocol = ["wayland" "xorg"];
+        greeter = "gdm";
+        compositor = {
+          shell = "gnome-shell";
+          window = "mutter";
+        };
+        panel = "gnome-shell";
+        notifier = "gnome-shell";
+      };
+      plasma = {
+        kind = "desktop";
+        protocol = ["wayland" "xorg"];
+        greeter = "plasma-login-shell";
+        compositor = {
+          shell = "plasmashell";
+          window = "kwin";
+        };
+        panel = "plasmashell";
+        notifier = "plasmashell";
+      };
+      cosmic = {
+        kind = "desktop";
+        protocol = ["wayland"];
+        greeter = "cosmic-greeter";
+        compositor = {
+          shell = "cosmic-panel";
+          window = "cosmic-comp";
+        };
+        panel = "cosmic-panel";
+        notifier = "cosmic-notifications";
+      };
+      pantheon = {
+        kind = "desktop";
+        protocol = ["xorg"];
+        greeter = "lightdm";
+        compositor = {
+          shell = "gala";
+          window = "gala";
+        };
+        panel = "wingpanel";
+        notifier = "notification-daemon";
+      };
+      cinnamon = {
+        kind = "desktop";
+        protocol = ["xorg"];
+        greeter = "lightdm";
+        compositor = {
+          shell = "cinnamon";
+          window = "muffin";
+        };
+        panel = "cinnamon";
+        notifier = "cinnamon";
+      };
+      xfce = {
+        kind = "desktop";
+        protocol = ["xorg"];
+        greeter = "lightdm";
+        compositor = {
+          shell = "xfce4-panel";
+          window = "xfwm4";
+        };
+        panel = "xfce4-panel";
+        notifier = "xfce4-notifyd";
+      };
+
+      #~@ Standalone WMs — Wayland
+      hyprland = {
+        kind = "standalone";
+        protocol = ["wayland"];
+        greeter = "dms-greeter";
+        compositor = {
+          shell = null;
+          window = "hyprland";
+        };
+        panel = "dms-shell";
+        notifier = "dms-shell";
+      };
+      niri = {
+        kind = "standalone";
+        protocol = ["wayland"];
+        greeter = "dms-greeter";
+        compositor = {
+          shell = null;
+          window = "niri";
+        };
+        panel = "dms-shell";
+        notifier = "dms-shell";
+      };
+      sway = {
+        kind = "standalone";
+        protocol = ["wayland"];
+        greeter = "dms-greeter";
+        compositor = {
+          shell = null;
+          window = "sway";
+        };
+        panel = "dms-shell";
+        notifier = "dms-shell";
+      };
+      river = {
+        kind = "standalone";
+        protocol = ["wayland"];
+        greeter = "dms-greeter";
+        compositor = {
+          shell = null;
+          window = "river";
+        };
+        panel = "dms-shell";
+        notifier = "dms-shell";
+      };
+
+      #~@ Standalone WMs — Xorg
+      i3 = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "i3";
+        };
+        panel = "polybar";
+        notifier = "dunst";
+      };
+      bspwm = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "bspwm";
+        };
+        panel = "polybar";
+        notifier = "dunst";
+      };
+      qtile = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "qtile";
+        };
+        panel = "qtile";
+        notifier = "dunst";
+      };
+      awesome = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "awesome";
+        };
+        panel = "awesome";
+        notifier = "dunst";
+      };
+      xmonad = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "xmonad";
+        };
+        panel = "xmobar";
+        notifier = "dunst";
+      };
+      openbox = {
+        kind = "standalone";
+        protocol = ["xorg"];
+        greeter = "regreet";
+        compositor = {
+          shell = null;
+          window = "openbox";
+        };
+        panel = "tint2";
+        notifier = "xfce4-notifyd";
+      };
+    };
+    greeters = {
+      cosmic-greeter = {
+        protocol = ["wayland"];
+        display = "graphical";
+        language = "rust";
+        maturity = "young";
+      };
+      dms-greeter = {
+        protocol = ["wayland"];
+        display = "graphical";
+        language = "rust";
+        maturity = "young";
+      };
+      gdm = {
+        protocol = ["wayland" "xorg"];
+        display = "graphical";
+        language = "c";
+        maturity = "stable";
+      };
+      greetd = {
+        protocol = ["wayland" "xorg" "tty" "kms"];
+        display = "terminal";
+        language = "rust";
+        maturity = "stable";
+      };
+      lemurs = {
+        protocol = ["wayland" "xorg" "tty" "kms"];
+        display = "terminal";
+        language = "rust";
+        maturity = "young";
+      };
+      lightdm = {
+        protocol = ["wayland" "xorg"];
+        display = "graphical";
+        language = "c";
+        maturity = "legacy";
+      };
+      ly = {
+        protocol = ["wayland" "xorg" "tty" "kms"];
+        display = "terminal";
+        language = "zig";
+        maturity = "niche";
+      };
+      plasma-login-shell = {
+        protocol = ["wayland" "xorg"];
+        display = "graphical";
+        language = "c++";
+        maturity = "stable";
+      };
+      regreet = {
+        protocol = ["wayland" "xorg"];
+        display = "graphical";
+        language = "rust";
+        maturity = "stable";
+      };
+      sddm = {
+        protocol = ["wayland" "xorg"];
+        display = "graphical";
+        language = "c++";
+        maturity = "stable";
+      };
+      tuigreet = {
+        protocol = ["wayland" "tty" "kms"];
+        display = "terminal";
+        language = "rust";
+        maturity = "stable";
+      };
+    };
+    notifiers = {
+      #~@ DE-integrated
+      gnome-shell = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "javascript";
+        maturity = "stable";
+      };
+      plasmashell = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "c++";
+        maturity = "stable";
+      };
+      cosmic-notifications = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "rust";
+        maturity = "young";
+      };
+      cinnamon = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "c";
+        maturity = "stable";
+      };
+      xfce4-notifyd = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "c";
+        maturity = "stable";
+      };
+      notification-daemon = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "c";
+        maturity = "legacy";
+      };
+
+      #~@ Standalone Wayland
+      mako = {
+        protocol = ["wayland"];
+        integrated = false;
+        language = "c";
+        maturity = "stable";
+      };
+      fnott = {
+        protocol = ["wayland"];
+        integrated = false;
+        language = "c";
+        maturity = "stable";
+      };
+      dms-shell = {
+        protocol = ["wayland"];
+        integrated = false;
+        language = "rust";
+        maturity = "young";
+      };
+
+      #~@ Standalone — any protocol
+      dunst = {
+        protocol = ["wayland" "xorg"];
+        integrated = false;
+        language = "c";
+        maturity = "stable";
+      };
+      deadd-notification-center = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "haskell";
         maturity = "niche";
       };
     };
-    enhancements = {
-      #~@ History
-      atuin = {
-        base = "rust";
-        config = "atuin/config.toml";
-        shells = ["bash" "zsh" "fish" "nushell"];
+    panels = {
+      #~@ DE-integrated
+      gnome-shell = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "javascript";
         maturity = "stable";
-        kind = "history";
       };
-      mcfly = {
-        base = "rust";
-        config = null;
-        shells = ["bash" "zsh" "fish"];
+      plasmashell = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "c++";
         maturity = "stable";
-        kind = "history";
+      };
+      cosmic-panel = {
+        protocol = ["wayland"];
+        integrated = true;
+        language = "rust";
+        maturity = "young";
+      };
+      cinnamon = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "c";
+        maturity = "stable";
+      };
+      xfce4-panel = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "c";
+        maturity = "stable";
+      };
+      wingpanel = {
+        protocol = ["xorg"];
+        integrated = true;
+        language = "vala";
+        maturity = "stable";
       };
 
-      #~@ Navigation
-      zoxide = {
-        base = "rust";
-        config = null;
-        shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh"];
+      #~@ WM-native (built into the WM, not a DE)
+      awesome = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "c";
         maturity = "stable";
-        kind = "navigation";
+      };
+      qtile = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "python";
+        maturity = "stable";
+      };
+      xmobar = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "haskell";
+        maturity = "stable";
       };
 
-      #~@ Fuzzy finding
-      fzf = {
-        base = "go";
-        config = null;
-        shells = ["bash" "zsh" "fish"];
+      #~@ Standalone Wayland
+      waybar = {
+        protocol = ["wayland"];
+        integrated = false;
+        language = "c++";
         maturity = "stable";
-        kind = "fuzzy";
       };
-      skim = {
-        base = "rust";
-        config = null;
-        shells = ["bash" "zsh" "fish"];
+      dms-shell = {
+        protocol = ["wayland"];
+        integrated = false;
+        language = "rust";
+        maturity = "young";
+      };
+
+      #~@ Standalone Xorg
+      polybar = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "c++";
         maturity = "stable";
-        kind = "fuzzy";
+      };
+      tint2 = {
+        protocol = ["xorg"];
+        integrated = false;
+        language = "c";
+        maturity = "legacy";
+      };
+    };
+    protocols = {
+      tty = {
+        surface = "console";
+        acceleration = false;
+        compositing = false;
+        remote = false;
+        maturity = "stable";
+      };
+      kms = {
+        surface = "framebuffer";
+        acceleration = true;
+        compositing = false;
+        remote = false;
+        maturity = "stable";
+      };
+      wayland = {
+        surface = "native";
+        acceleration = true;
+        compositing = true;
+        remote = true;
+        maturity = "stable";
+      };
+      xorg = {
+        surface = "native";
+        acceleration = true;
+        compositing = true;
+        remote = true;
+        maturity = "legacy";
       };
     };
   };

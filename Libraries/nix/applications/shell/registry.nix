@@ -13,31 +13,31 @@
         posix = true;
         interactive = true;
         system = true;
-        base = "c";
+        language = "c";
       };
       dash = {
         posix = true;
         interactive = false;
         system = true;
-        base = "c";
+        language = "c";
       };
       sh = {
         posix = true;
         interactive = false;
         system = true;
-        base = "c";
+        language = "c";
       };
       ksh = {
         posix = true;
         interactive = true;
         system = true;
-        base = "c";
+        language = "c";
       };
       zsh = {
         posix = true;
         interactive = true;
         system = true;
-        base = "c";
+        language = "c";
       };
 
       #~@ Modern
@@ -45,25 +45,25 @@
         posix = false;
         interactive = true;
         system = false;
-        base = "c";
+        language = "c";
       };
       nushell = {
         posix = false;
         interactive = true;
         system = false;
-        base = "rust";
+        language = "rust";
       };
       elvish = {
         posix = false;
         interactive = true;
         system = false;
-        base = "go";
+        language = "go";
       };
       pwsh = {
         posix = false;
         interactive = true;
         system = false;
-        base = "dotnet";
+        language = "csharp";
       };
 
       #~@ Legacy/niche
@@ -71,45 +71,47 @@
         posix = false;
         interactive = true;
         system = false;
-        base = "c";
+        language = "c";
       };
     };
+
     lineEditors = {
       blesh = {
-        base = "shellscript";
+        language = "bash";
         config = ".blerc";
         shells = ["bash"];
         maturity = "young";
       };
       zle = {
-        base = "shellscript";
+        language = "c";
         config = null;
         shells = ["zsh"];
         maturity = "stable";
       };
       readline = {
-        base = "c";
+        language = "c";
         config = ".inputrc";
         shells = ["bash" "sh" "ksh"];
         maturity = "stable";
       };
     };
+
     prompts = {
       #~@ Cross-shell (work in bash, zsh, fish, nushell, etc.)
       starship = {
-        base = "rust";
+        language = "rust";
         config = "starship.toml";
         shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh" "tcsh"];
         maturity = "stable";
       };
       ohmyposh = {
-        base = "go";
+        language = "go";
         config = ".omp.json";
         shells = ["bash" "zsh" "fish" "nushell" "pwsh"];
         maturity = "stable";
       };
       liquidprompt = {
-        base = "shell";
+        language = "bash";
         config = ".liquidpromptrc";
         shells = ["bash" "zsh"];
         maturity = "stable";
@@ -117,25 +119,25 @@
 
       #~@ Zsh-specific
       powerlevel10k = {
-        base = "shell";
+        language = "zsh";
         config = ".p10k.zsh";
         shells = ["zsh"];
         maturity = "stable";
       };
       spaceship = {
-        base = "shell";
+        language = "zsh";
         config = "spaceship.zsh";
         shells = ["zsh"];
         maturity = "stable";
       };
       pure = {
-        base = "shell";
+        language = "zsh";
         config = null;
         shells = ["zsh"];
         maturity = "stable";
       };
       prezto = {
-        base = "shell";
+        language = "zsh";
         config = ".zpreztorc";
         shells = ["zsh"];
         maturity = "stable";
@@ -143,13 +145,13 @@
 
       #~@ Fish-specific
       tide = {
-        base = "shell";
+        language = "fish";
         config = null;
         shells = ["fish"];
         maturity = "stable";
       };
       hydro = {
-        base = "shell";
+        language = "fish";
         config = null;
         shells = ["fish"];
         maturity = "stable";
@@ -157,7 +159,7 @@
 
       #~@ Nushell-specific
       oh-my-nu = {
-        base = "nushell";
+        language = "nushell";
         config = null;
         shells = ["nushell"];
         maturity = "young";
@@ -165,35 +167,36 @@
 
       #~@ Powerline-based
       powerline = {
-        base = "python";
+        language = "python";
         config = "powerline.json";
         shells = ["bash" "zsh" "fish" "pwsh"];
         maturity = "legacy";
       };
       powerline-go = {
-        base = "go";
+        language = "go";
         config = null;
         shells = ["bash" "zsh" "fish" "pwsh"];
         maturity = "stable";
       };
       powerline-rs = {
-        base = "rust";
+        language = "rust";
         config = null;
         shells = ["bash" "zsh" "fish"];
         maturity = "niche";
       };
     };
+
     enhancements = {
       #~@ History
       atuin = {
-        base = "rust";
+        language = "rust";
         config = "atuin/config.toml";
         shells = ["bash" "zsh" "fish" "nushell"];
         maturity = "stable";
         kind = "history";
       };
       mcfly = {
-        base = "rust";
+        language = "rust";
         config = null;
         shells = ["bash" "zsh" "fish"];
         maturity = "stable";
@@ -202,7 +205,7 @@
 
       #~@ Navigation
       zoxide = {
-        base = "rust";
+        language = "rust";
         config = null;
         shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh"];
         maturity = "stable";
@@ -211,14 +214,14 @@
 
       #~@ Fuzzy finding
       fzf = {
-        base = "go";
+        language = "go";
         config = null;
         shells = ["bash" "zsh" "fish"];
         maturity = "stable";
         kind = "fuzzy";
       };
       skim = {
-        base = "rust";
+        language = "rust";
         config = null;
         shells = ["bash" "zsh" "fish"];
         maturity = "stable";
