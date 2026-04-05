@@ -5,6 +5,7 @@
   };
 
   inherit (_.applications.shell) filters;
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
 
   enums = {
@@ -16,6 +17,8 @@
 
     lineEditors = {
       all = mkEnum filters.lineEditors.all;
+      stable = mkEnum filters.lineEditors.where.stable;
+      byShell = mapAttrs (_: v: mkEnum v) filters.lineEditors.byShell;
     };
 
     prompts = {
