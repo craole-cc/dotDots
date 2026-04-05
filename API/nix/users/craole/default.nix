@@ -33,10 +33,10 @@
   interface = {
     # displayProtocol = "wayland";
     # desktopEnvironment = "cosmic";
-    windowManager = "hyprland";
-    bar = "caelestia";
-    shell = "bash";
-    prompt = "starship";
+    # windowManager = "hyprland";
+    # bar = "caelestia";
+    # shell = "bash";
+    # prompt = "starship";
     keyboard = {
       # modifier = "SUPER";
       swapCapsEscape = false;

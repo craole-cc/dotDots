@@ -3,15 +3,18 @@
   lib,
   ...
 }: let
-  inherit (_.lists.access) length;
-  inherit (_.lists.construction) mkEnum;
-  inherit (_.trivial.tests) mkTest runTests;
-  inherit (lib.attrsets) filterAttrs;
-
   __exports = {
     internal = {
-      inherit registry enums;
-      inherit (registry) lineEditors shells prompts;
+      inherit registry byType enums;
+      inherit
+        (registry)
+        enhancements
+        interactive
+        lineEditors
+        prompts
+        shells
+        system
+        ;
       inherit
         (registry.shells)
         elvish
@@ -42,6 +45,19 @@
         ;
     };
     external = {};
+  };
+
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.lists.access) length;
+  inherit (_.lists.construction) mkEnum;
+  inherit (_.trivial.tests) mkTest runTests;
+
+  byType = rec {
+    all = registry.shells;
+    interactive = filterAttrs (_: s: s.interactive) all;
+    system = filterAttrs (_: s: s.system) all;
+    posix = filterAttrs (_: s: s.posix) all;
+    modern = filterAttrs (_: s: !s.posix) all;
   };
 
   registry = {
@@ -271,11 +287,11 @@
       nullable = true;
     };
     interactive = mkEnum {
-      values = filterAttrs (_: s: s.interactive) registry.shells;
+      values = registry.interactive;
       nullable = true;
     };
     system = mkEnum {
-      values = filterAttrs (_: s: s.system) registry.shells;
+      values = registry.system;
       nullable = true;
     };
     lineEditors = mkEnum {
