@@ -6,64 +6,62 @@
 
   inherit (_.lists.construction) mkEnum;
   enums = {
-    common = {
-      categories = mkEnum [
-        #~@ Common
-        "browser"
-        "communication"
-        "editor"
-        "email-client"
-        "file-manager"
-        "game"
-        "graphics"
-        "launcher"
-        "media"
-        "messenger"
-        "office"
-        "system"
-        "terminal"
+    categories = mkEnum [
+      #~@ Common
+      "browser"
+      "communication"
+      "editor"
+      "email-client"
+      "file-manager"
+      "game"
+      "graphics"
+      "launcher"
+      "media"
+      "messenger"
+      "office"
+      "system"
+      "terminal"
 
-        #~@ Interface
-        "interface"
-        "compositor"
-        "environment"
-        "greeter"
-        "notifier"
-        "panel"
-        "protocol"
+      #~@ Interface
+      "interface"
+      "compositor"
+      "environment"
+      "greeter"
+      "notifier"
+      "panel"
+      "protocol"
 
-        #~@ Shell
-        "shell"
-        "prompt"
-        "line-editor"
-        "enhancement"
+      #~@ Shell
+      "shell"
+      "prompt"
+      "line-editor"
+      "enhancement"
+    ];
+
+    channels = mkEnum {
+      values = [
+        "stable"
+        "beta"
+        "nightly"
+        "insiders"
+        "twilight"
+        "esr"
+        "legacy"
       ];
+      nullable = true;
+    };
 
-      channels = mkEnum {
-        values = [
-          "stable"
-          "beta"
-          "nightly"
-          "insiders"
-          "twilight"
-          "esr"
-          "legacy"
-        ];
-        nullable = true;
-      };
-
-      families = mkEnum {
-        values = [
-          "firefox"
-          "chromium"
-          "zen"
-          "vscode"
-          "emacs"
-          "vim"
-          "whatsapp"
-        ];
-        nullable = true;
-      };
+    families = mkEnum {
+      values = [
+        "firefox"
+        "chromium"
+        "zen"
+        "vscode"
+        "emacs"
+        "vim"
+        "whatsapp"
+      ];
+      nullable = true;
     };
   };
 in
