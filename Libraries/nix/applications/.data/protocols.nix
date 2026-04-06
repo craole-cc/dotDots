@@ -1,5 +1,6 @@
-{
+{...}: {
   tty = {
+    categories = ["interface" "[protocol]"];
     surface = "console";
     acceleration = false;
     compositing = false;
@@ -7,6 +8,7 @@
     maturity = "stable";
   };
   kms = {
+    categories = ["interface" "[protocol]"];
     surface = "framebuffer";
     acceleration = true;
     compositing = false;
@@ -14,6 +16,7 @@
     maturity = "stable";
   };
   wayland = {
+    categories = ["interface" "[protocol]"];
     surface = "native";
     acceleration = true;
     compositing = true;
@@ -21,6 +24,7 @@
     maturity = "stable";
   };
   xorg = {
+    categories = ["interface" "[protocol]"];
     surface = "native";
     acceleration = true;
     compositing = true;

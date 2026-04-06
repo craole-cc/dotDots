@@ -1,6 +1,7 @@
-{
+{...}: {
   #~@ Desktop Environments
   gnome = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["wayland" "xorg"];
     greeter = "gdm";
@@ -12,6 +13,7 @@
     notifier = "gnome-shell";
   };
   plasma = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["wayland" "xorg"];
     greeter = "plasma-login-shell";
@@ -23,6 +25,7 @@
     notifier = "plasmashell";
   };
   cosmic = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["wayland"];
     greeter = "cosmic-greeter";
@@ -34,6 +37,7 @@
     notifier = "cosmic-notifications";
   };
   pantheon = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["xorg"];
     greeter = "lightdm";
@@ -45,6 +49,7 @@
     notifier = "notification-daemon";
   };
   cinnamon = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["xorg"];
     greeter = "lightdm";
@@ -56,6 +61,7 @@
     notifier = "cinnamon";
   };
   xfce = {
+    categories = ["interface" "environment"];
     kind = "desktop";
     protocol = ["xorg"];
     greeter = "lightdm";
@@ -69,6 +75,7 @@
 
   #~@ Standalone WMs — Wayland
   hyprland = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["wayland"];
     greeter = "dms-greeter";
@@ -80,6 +87,7 @@
     notifier = "dms-shell";
   };
   niri = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["wayland"];
     greeter = "dms-greeter";
@@ -91,6 +99,7 @@
     notifier = "dms-shell";
   };
   sway = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["wayland"];
     greeter = "dms-greeter";
@@ -102,6 +111,7 @@
     notifier = "dms-shell";
   };
   river = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["wayland"];
     greeter = "dms-greeter";
@@ -115,6 +125,7 @@
 
   #~@ Standalone WMs — Xorg
   i3 = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";
@@ -126,6 +137,7 @@
     notifier = "dunst";
   };
   bspwm = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";
@@ -137,6 +149,7 @@
     notifier = "dunst";
   };
   qtile = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";
@@ -148,6 +161,7 @@
     notifier = "dunst";
   };
   awesome = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";
@@ -159,6 +173,7 @@
     notifier = "dunst";
   };
   xmonad = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";
@@ -170,6 +185,7 @@
     notifier = "dunst";
   };
   openbox = {
+    categories = ["interface" "environment"];
     kind = "standalone";
     protocol = ["xorg"];
     greeter = "regreet";

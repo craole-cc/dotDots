@@ -1,10 +1,154 @@
-{lib, ...}: let
-  inherit (lib.attrsets) listToAttrs mapAttrsToList;
-
+{_, ...}: let
   exports = {
-    internal = {inherit mkShellApp mkScriptWrapper mkScriptWrappers;};
+    internal = {
+      inherit
+        mkFilters
+        mkRegistry
+        mkShellApp
+        mkScriptWrapper
+        mkScriptWrappers
+        mkSubsystem
+        ;
+    };
     external = exports.internal;
   };
+
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
+  inherit (_.lists.access) head init last length;
+  inherit (_.filesystem.access) readFile;
+  inherit (_.filesystem.importers) importAllMerged;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.predicates) isIn;
+  inherit (_.strings.construction) concatStringsSep indentedForError;
+  inherit (_.strings.transformation) escapeShellArgs;
+  inherit (_.types.predicates) isString isPath;
+
+  normalizeOptional = val:
+    if val == null || val == "" || val == "none"
+    then null
+    else val;
+
+  mkFilters = {
+    all,
+    categories,
+    channels ? null,
+    families ? null,
+  }: let
+    listCategories = indentedForError {
+      title = "Valid Categories";
+      items = categories.allValues;
+    };
+
+    ofCategory = cat:
+      if !categories.validator.check cat
+      then throw "'${cat}' is not a valid category. ${listCategories}"
+      else filterAttrs (_: a: isIn cat a.categories) all;
+  in {
+    inherit all ofCategory;
+    byCategory = genAttrs categories.allValues ofCategory;
+    byFamily =
+      if families != null
+      then genAttrs families.allValues (n: filterAttrs (_: a: a.family == n) all)
+      else {};
+    byChannel =
+      if channels != null
+      then genAttrs channels.allValues (n: filterAttrs (_: a: a.channel == n) all)
+      else {};
+    needsTerminal = filterAttrs (_: a: a.needsTerminal or false) all;
+  };
+
+  mkSubsystem = {
+    path,
+    categories,
+    channels ? null,
+    families ? null,
+  }: let
+    all = mkRegistry {
+      data = importAllMerged path {};
+      inherit categories channels families;
+    };
+  in {
+    registry = all;
+    filters = mkFilters {inherit all categories channels families;};
+  };
+
+  /**
+  Build a validated, normalized registry attrset from raw imported data.
+
+  # Arguments
+  - data:       imported attrset (e.g. from importAllMerged)
+  - categories: mkEnum result — required, non-nullable
+  - channels:   mkEnum result — optional, pass null to skip validation
+  - families:   mkEnum result — optional, pass null to skip validation
+
+  # Example
+  ```nix
+  all = mkRegistry {
+    data       = _.filesystem.importers.importAllMerged ./.data {};
+    inherit categories channels families;
+  };
+  ```
+  */
+  mkRegistry = {
+    data,
+    categories,
+    channels ? null,
+    families ? null,
+  }: let
+    listCategories = indentedForError {
+      title = "Valid Categories";
+      items = categories.allValues;
+    };
+    listChannels =
+      if channels != null
+      then
+        indentedForError {
+          title = "Valid Channels";
+          items = channels.allValues;
+        }
+      else "";
+    listFamilies =
+      if families != null
+      then
+        indentedForError {
+          title = "Valid Families";
+          items = families.allValues;
+        }
+      else "";
+  in
+    mapAttrs (name: app: let
+      channel =
+        if channels != null
+        then normalizeOptional (app.channel or null)
+        else null;
+      family =
+        if families != null
+        then normalizeOptional (app.family  or null)
+        else null;
+      app' = app // {inherit channel family;};
+
+      invalidCats = filter (c: !categories.validator.check c) app'.categories;
+      catCount = length invalidCats;
+      quotedCats = map (c: "'${c}'") invalidCats;
+      humanJoin = items:
+        if catCount == 1
+        then head items
+        else "${concatStringsSep ", " (init items)} and ${last items}";
+    in
+      if invalidCats != []
+      then
+        throw "${humanJoin quotedCats} ${
+          if catCount == 1
+          then "is an invalid category"
+          else "are invalid categories"
+        }. ${listCategories}"
+      else if channels != null && !channels.validator.check app'.channel
+      then throw "'${name}' has invalid channel '${toString app'.channel}'. ${listChannels}"
+      else if families != null && !families.validator.check app'.family
+      then throw "'${name}' has invalid family '${toString app'.family}'. ${listFamilies}"
+      else app')
+    data;
 
   /**
     mkShellApp - A helper function to create a shell script application with runtime dependencies
@@ -165,7 +309,7 @@
         ;
       meta =
         meta
-        // lib.optionalAttrs (description != null) {
+        // optionalAttrs (description != null) {
           inherit description;
         };
       passthru =
@@ -224,13 +368,13 @@
     mkScriptWrapper {
       inherit pkgs;
       name = "zen";
-      script = tree.lib.sh.local + "/packages/wrappers/zen.sh";
+      script = tree.sh.local + "/packages/wrappers/zen.sh";
     }
 
     mkScriptWrapper {
       inherit pkgs;
       name = "feet-quake";
-      script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+      script = tree.sh.local + "/packages/wrappers/feet.sh";
       extraArgs = ["--quake"];
     }
   ```
@@ -258,10 +402,11 @@
     */
     extraArgs ? [],
   }: let
-    stored = pkgs.writeShellScript "${name}.sh" (builtins.readFile script);
+    inherit (pkgs) writeShellScript writeShellScriptBin;
+    stored = writeShellScript "${name}.sh" (readFile script);
   in
-    pkgs.writeShellScriptBin name ''
-      exec ${stored} ${lib.escapeShellArgs extraArgs} "$@"
+    writeShellScriptBin name ''
+      exec ${stored} ${escapeShellArgs extraArgs} "$@"
     '';
 
   /**
@@ -280,11 +425,11 @@
     mkScriptWrappers {
       inherit pkgs;
       scripts = {
-        zen  = tree.lib.sh.local + "/packages/wrappers/zen.sh";
-        feet = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        zen  = tree.sh.local + "/packages/wrappers/zen.sh";
+        feet = tree.sh.local + "/packages/wrappers/feet.sh";
         # With extra args:
-        feet-quake   = { script = tree.lib.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--quake"];   };
-        feet-monitor = { script = tree.lib.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--monitor"]; };
+        feet-quake   = { script = tree.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--quake"];   };
+        feet-monitor = { script = tree.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--monitor"]; };
       };
     }
   ```
@@ -297,7 +442,7 @@
       mkScriptWrapper (
         {inherit pkgs name;}
         // (
-          if builtins.isPath value || builtins.isString value
+          if isPath value || isString value
           then {script = value;}
           else value # already an attrset with { script, extraArgs?, ... }
         )

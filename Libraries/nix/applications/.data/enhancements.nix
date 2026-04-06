@@ -1,6 +1,6 @@
-{
-  #~@ History
+{...}: {
   atuin = {
+    categories = ["shell" "enhancement"];
     language = "rust";
     config = "atuin/config.toml";
     shells = ["bash" "zsh" "fish" "nushell"];
@@ -8,24 +8,23 @@
     kind = "history";
   };
   mcfly = {
+    categories = ["shell" "enhancement"];
     language = "rust";
     config = null;
     shells = ["bash" "zsh" "fish"];
     maturity = "stable";
     kind = "history";
   };
-
-  #~@ Navigation
   zoxide = {
+    categories = ["shell" "enhancement"];
     language = "rust";
     config = null;
     shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh"];
     maturity = "stable";
     kind = "navigation";
   };
-
-  #~@ Fuzzy finding
   fzf = {
+    categories = ["shell" "enhancement"];
     language = "go";
     config = null;
     shells = ["bash" "zsh" "fish"];
@@ -33,6 +32,7 @@
     kind = "fuzzy";
   };
   skim = {
+    categories = ["shell" "enhancement"];
     language = "rust";
     config = null;
     shells = ["bash" "zsh" "fish"];

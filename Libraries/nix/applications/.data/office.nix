@@ -1,4 +1,4 @@
-{
+{...}: {
   libreoffice = {
     names = {
       package = "libreoffice";

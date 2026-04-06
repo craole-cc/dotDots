@@ -1,19 +1,14 @@
 {_, ...}: let
   __exports = {
-    internal = enums // {inherit constants;};
-    external = {
-      applicationEnums = enums;
-      applicationConst = constants;
-    };
+    internal = enums;
+    external.applicationEnums = __exports.internal;
   };
 
-  inherit (_.applications) filters;
-  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
-
-  constants = {
-    categories = mkEnum {
-      values = [
+  enums = {
+    common = {
+      categories = mkEnum [
+        #~@ Common
         "browser"
         "communication"
         "editor"
@@ -27,40 +22,49 @@
         "office"
         "system"
         "terminal"
-      ];
-      nullable = false;
-    };
-    channels = mkEnum {
-      values = [
-        "stable"
-        "beta"
-        "nightly"
-        "insiders"
-        "twilight"
-        "esr"
-        "legacy"
-      ];
-      nullable = true;
-    };
-    families = mkEnum {
-      values = [
-        "firefox"
-        "chromium"
-        "zen"
-        "vscode"
-        "emacs"
-        "vim"
-        "whatsapp"
-      ];
-      nullable = true;
-    };
-  };
 
-  enums = {
-    all = mkEnum filters.all;
-    byCategory = mapAttrs (_: v: mkEnum v) filters.byCategory;
-    byFamily = mapAttrs (_: v: mkEnum v) filters.byFamily;
-    byChannel = mapAttrs (_: v: mkEnum v) filters.byChannel;
+        #~@ Interface
+        "interface"
+        "compositor"
+        "environment"
+        "greeter"
+        "notifier"
+        "panel"
+        "protocol"
+
+        #~@ Shell
+        "shell"
+        "prompt"
+        "line-editor"
+        "enhancement"
+      ];
+
+      channels = mkEnum {
+        values = [
+          "stable"
+          "beta"
+          "nightly"
+          "insiders"
+          "twilight"
+          "esr"
+          "legacy"
+        ];
+        nullable = true;
+      };
+
+      families = mkEnum {
+        values = [
+          "firefox"
+          "chromium"
+          "zen"
+          "vscode"
+          "emacs"
+          "vim"
+          "whatsapp"
+        ];
+        nullable = true;
+      };
+    };
   };
 in
   __exports.internal // {_rootAliases = __exports.external;}

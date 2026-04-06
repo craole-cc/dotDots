@@ -1,4 +1,4 @@
-{
+{...}: {
   whatsapp-electron = {
     names = {
       package = "whatsapp-electron";

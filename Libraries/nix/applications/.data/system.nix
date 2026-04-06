@@ -1,4 +1,4 @@
-{
+{...}: {
   htop = {
     names = {
       package = "htop";

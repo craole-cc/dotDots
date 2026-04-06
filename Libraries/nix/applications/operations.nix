@@ -1,20 +1,16 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __exports = {
     internal = {inherit lookup identify resolveExec mkApps;};
     external.applicationOps = __exports.internal;
   };
 
-  inherit (lib.attrsets) mapAttrs;
-  inherit (lib.lists) elem;
-  inherit (_.applications.registry) all;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists.predicates) elem;
+  inherit (_.applications) registry;
   inherit (_.applications.enums.constants) categories;
 
   lookup = name: category: let
-    app = all.${name} or (throw "Unknown app '${name}' in registry.");
+    app = registry.${name} or (throw "Unknown app '${name}' in registry.");
   in
     if categories.validator.check category && elem category app.categories
     then app
@@ -60,6 +56,6 @@
         then {version = pkg.version;}
         else {}
       ))
-    all;
+    registry;
 in
   __exports.internal // {_rootAliases = __exports.external;}

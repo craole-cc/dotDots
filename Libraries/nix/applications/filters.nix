@@ -4,21 +4,12 @@
     external.applicationFilters = filters;
   };
 
-  inherit (_.applications.enums) constants;
-  categories = constants.categories.allValues;
-  channels = constants.channels.allValues;
-  families = constants.families.allValues;
-
-  inherit (_.applications.registry) all byCategory ofCategory;
-  inherit (_.attrsets.transformation) filterAttrs;
-  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.applications.registry) common interface shell;
 
   filters = {
-    inherit all byCategory ofCategory;
-
-    byFamily = genAttrs families (name: filterAttrs (_: a: (a.family   or null) == name) all);
-    byChannel = genAttrs channels (name: filterAttrs (_: a: (a.channel  or null) == name) all);
-    needsTerminal = filterAttrs (_: a: a.needsTerminal or false) all;
+    inherit (common.filters) all byCategory byChannel byFamily needsTerminal ofCategory;
+    interface = interface.filters;
+    shell = shell.filters;
   };
 in
   __exports.internal // {_rootAliases = __exports.external;}
