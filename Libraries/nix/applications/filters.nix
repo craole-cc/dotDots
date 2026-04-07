@@ -417,142 +417,230 @@
         greeters = let
           set = byCategory.greeter;
           all = set;
+
           grouped = {
-            byDisplay = groupBy {
+            byKind = mkEqQueries {
               inherit set;
-              field = "display";
-              keys = unique (
-                map
-                (a: a.display or "unknown")
-                (attrValues set)
-              );
+              field = "kind";
+            };
+            byToolkit = mkEqQueries {
+              inherit set;
+              field = "toolkit";
+            };
+            byProtocol = mkMemberQueries {
+              inherit set;
+              field = "protocol";
             };
           };
-          queried = {
-            graphical = withEq {
+
+          queried = let
+            independence = mkBoolQueries {
               inherit set;
-              field = "display";
-              value = "graphical";
+              field = "independent";
+              trueKey = "independent";
+              falseKey = "integrated";
             };
-            terminal = withEq {
-              inherit set;
-              field = "display";
-              value = "terminal";
+            maturity = {
+              isStable = withEq {
+                inherit set;
+                field = "maturity";
+                value = "stable";
+              };
+              isYoung = withEq {
+                inherit set;
+                field = "maturity";
+                value = "young";
+              };
             };
-          };
+            display = {
+              isGraphical = withEq {
+                inherit set;
+                field = "display";
+                value = "graphical";
+              };
+              isTerminal = withEq {
+                inherit set;
+                field = "display";
+                value = "terminal";
+              };
+            };
+          in
+            independence // maturity // display;
         in {inherit all grouped queried;};
+
         notifiers = let
           set = byCategory.notifier;
           all = set;
+
           grouped = {
-            byProtocol = groupByMember {
+            byMaturity = mkEqQueries {
+              inherit set;
+              field = "maturity";
+              default = "unknown";
+            };
+            byProtocol = mkMemberQueries {
               inherit set;
               field = "protocol";
-              keys = protocols;
+            };
+            byConfigLanguage = mkMemberQueries {
+              inherit set;
+              field = "config";
             };
           };
-          queried = mkEqQueries {
-            inherit set;
-            field = "integrated";
-          };
+
+          queried = let
+            independence = mkBoolQueries {
+              inherit set;
+              field = "independent";
+              trueKey = "independent";
+              falseKey = "integrated";
+            };
+            maturity = {
+              isStable = withEq {
+                inherit set;
+                field = "maturity";
+                value = "stable";
+              };
+              isYoung = withEq {
+                inherit set;
+                field = "maturity";
+                value = "young";
+              };
+            };
+            protocol = {
+              worksOnWayland = withMember {
+                inherit set;
+                field = "protocol";
+                value = "wayland";
+              };
+              worksOnXorg = withMember {
+                inherit set;
+                field = "protocol";
+                value = "xorg";
+              };
+            };
+          in
+            independence // maturity // protocol;
         in {inherit all grouped queried;};
+
         panels = let
           set = byCategory.panel;
           all = set;
           grouped = {
-            byProtocol = groupByMember {
+            byToolkit = mkEqQueries {
+              inherit set;
+              field = "toolkit";
+              default = "unknown";
+            };
+            byMaturity = mkEqQueries {
+              inherit set;
+              field = "maturity";
+            };
+            byProtocol = mkMemberQueries {
               inherit set;
               field = "protocol";
-              keys = protocols;
+            };
+            byConfigLanguage = mkMemberQueries {
+              inherit set;
+              field = "config";
+            };
+            byEngineLanguage = mkMemberQueries {
+              inherit set;
+              field = "engine";
             };
           };
-          queried = mkEqQueries {
-            inherit set;
-            field = "integrated";
-          };
+          queried = let
+            independence = mkBoolQueries {
+              inherit set;
+              field = "independent";
+              trueKey = "independent";
+              falseKey = "integrated";
+            };
+            maturity = {
+              isStable = withEq {
+                inherit set;
+                field = "maturity";
+                value = "stable";
+              };
+              isYoung = withEq {
+                inherit set;
+                field = "maturity";
+                value = "young";
+              };
+            };
+            protocol = {
+              worksOnWayland = withMember {
+                inherit set;
+                field = "protocol";
+                value = "wayland";
+              };
+              worksOnXorg = withMember {
+                inherit set;
+                field = "protocol";
+                value = "xorg";
+              };
+            };
+          in
+            independence // maturity // protocol;
         in {inherit all grouped queried;};
+
         protocols = let
           set = byCategory.protocol;
           all = set;
-          surfaces = unique (
-            map
-            (a: a.surface  or "unknown")
-            (attrValues all)
-          );
-          maturities = unique (
-            map
-            (a: a.maturity or "unknown")
-            (attrValues all)
-          );
           grouped = {
-            bySurface = groupBy {
-              field = "surface";
-              keys = surfaces;
-              inherit set;
-            };
-            byMaturity = groupBy {
-              field = "maturity";
-              keys = maturities;
-              inherit set;
-            };
-          };
-          queried =
-            mkEqQueries {
-              field = "maturity";
-              inherit set;
-            }
-            // {
-              compositing = withFlag {
-                field = "compositing";
+            byCapability = {
+              acceleration = withFlag {
                 inherit set;
+                field = "acceleration";
               };
-              nonCompositing = withoutFlag {
-                field = "compositing";
+              compositing = withFlag {
                 inherit set;
+                field = "compositing";
               };
               remote = withFlag {
+                inherit set;
                 field = "remote";
-                inherit set;
-              };
-              local = withoutFlag {
-                field = "remote";
-                inherit set;
-              };
-              accelerated = withFlag {
-                field = "acceleration";
-                inherit set;
-              };
-              software = withoutFlag {
-                field = "acceleration";
-                inherit set;
-              };
-              modern = withNeq {
-                field = "maturity";
-                default = null;
-                value = "legacy";
-                inherit set;
               };
             };
+            bySurface = mkEqQueries {
+              inherit set;
+              field = "surface";
+            };
+            byMaturity = mkEqQueries {
+              inherit set;
+              field = "maturity";
+            };
+          };
+          queried = let
+            capabilities = {
+              canAccelerate = withFlag {
+                inherit set;
+                field = "acceleration";
+              };
+              canComposite = withFlag {
+                inherit set;
+                field = "compositing";
+              };
+              canRemote = withFlag {
+                inherit set;
+                field = "remote";
+              };
+            };
+            maturity = {
+              isStable = withEq {
+                inherit set;
+                field = "maturity";
+                value = "stable";
+              };
+              isLegacy = withEq {
+                inherit set;
+                field = "maturity";
+                value = "legacy";
+              };
+            };
+          in
+            capabilities // maturity;
         in {inherit all grouped queried;};
-        # grouped = {};
-        # queried = let
-        #   integrated = mkBoolQueries {
-        #     field = "integrated";
-        #     trueKey = "integrated";
-        #     falseKey = "standalone";
-        #     inherit set;
-        #   };
-        #   protocol = mkMemberQueries {
-        #     inherit set;
-        #     field = "protocol";
-        #   };
-        #   maturity = mkEqQueries {
-        #     inherit set;
-        #     field = "maturity";
-        #     default = "unknown";
-        #   };
-        # in
-        #   integrated // protocol // maturity;
       in {
         inherit
           all

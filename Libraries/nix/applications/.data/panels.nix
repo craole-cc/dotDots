@@ -1,7 +1,7 @@
 {...}: {
   awesome = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c" "lua"];
     config = ["lua"];
     maturity = "stable";
@@ -11,7 +11,7 @@
 
   caelestia = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c++" "qml"];
     config = ["qml"];
     maturity = "young";
@@ -21,7 +21,7 @@
 
   cinnamon = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c"];
     config = ["javascript" "css"];
     maturity = "stable";
@@ -31,7 +31,7 @@
 
   cosmic-panel = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["rust"];
     config = ["ron" "css"];
     maturity = "young";
@@ -41,7 +41,7 @@
 
   dms-shell = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["go"];
     config = ["qml"];
     maturity = "young";
@@ -51,7 +51,7 @@
 
   eww = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["rust"];
     config = ["yuck" "scss"];
     maturity = "stable";
@@ -61,7 +61,7 @@
 
   exo = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["python"];
     config = ["python" "scss"];
     maturity = "young";
@@ -71,7 +71,7 @@
 
   gnome-shell = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c" "javascript"];
     config = ["javascript" "css"];
     maturity = "stable";
@@ -81,7 +81,7 @@
 
   i3bar = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c"];
     config = ["json" "shell"];
     maturity = "stable";
@@ -91,17 +91,17 @@
 
   hyprpanel = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["typescript"];
     config = ["typescript" "scss"];
-    maturity = "stable";
+    maturity = "young";
     protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
   lemonbar = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c"];
     config = ["shell"];
     maturity = "stable";
@@ -111,7 +111,7 @@
 
   noctalia = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c++"];
     config = ["qml"];
     maturity = "young";
@@ -121,7 +121,7 @@
 
   nwg-panel = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["python"];
     config = ["json" "css"];
     maturity = "stable";
@@ -131,7 +131,7 @@
 
   plasmashell = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c++" "qml"];
     config = ["qml" "javascript"];
     maturity = "stable";
@@ -141,7 +141,7 @@
 
   polybar = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c++"];
     config = ["ini" "shell"];
     maturity = "stable";
@@ -151,7 +151,7 @@
 
   qtile = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = false;
     engine = ["python" "c"];
     config = ["python"];
     maturity = "stable";
@@ -161,7 +161,7 @@
 
   swaybar = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c"];
     config = ["shell" "json"];
     maturity = "stable";
@@ -171,7 +171,7 @@
 
   tint2 = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c"];
     config = ["ini"];
     maturity = "legacy";
@@ -181,7 +181,7 @@
 
   waybar = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["c++"];
     config = ["jsonc" "css"];
     maturity = "stable";
@@ -191,7 +191,7 @@
 
   wingpanel = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["vala" "c"];
     config = ["css"];
     maturity = "stable";
@@ -201,7 +201,7 @@
 
   xfce4-panel = {
     categories = ["panel" "interface"];
-    integrated = true;
+    independent = false;
     engine = ["c"];
     config = ["rc" "css"];
     maturity = "stable";
@@ -211,7 +211,7 @@
 
   xmobar = {
     categories = ["panel" "interface"];
-    integrated = false;
+    independent = true;
     engine = ["haskell"];
     config = ["haskell"];
     maturity = "stable";

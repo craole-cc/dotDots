@@ -1,84 +1,90 @@
 {...}: {
-  #~@ DE-integrated
-  gnome-shell = {
+  cinnamon = {
     categories = ["interface" "notifier"];
-    protocol = ["wayland"];
-    integrated = true;
-    language = "javascript";
-    maturity = "stable";
-  };
-  plasmashell = {
-    categories = ["interface" "notifier"];
-    protocol = ["wayland"];
-    integrated = true;
-    language = "c++";
+    protocol = ["xorg"];
+    independent = false;
+    engine = ["c"];
+    config = ["javascript" "css"];
     maturity = "stable";
   };
   cosmic-notifications = {
     categories = ["interface" "notifier"];
     protocol = ["wayland"];
-    integrated = true;
-    language = "rust";
+    independent = false;
+    engine = ["rust"];
+    config = ["ron" "css"];
     maturity = "young";
   };
-  cinnamon = {
+  deadd-notification-center = {
     categories = ["interface" "notifier"];
     protocol = ["xorg"];
-    integrated = true;
-    language = "c";
-    maturity = "stable";
+    independent = true;
+    engine = ["haskell"];
+    config = ["css"];
+    maturity = "young";
   };
-  xfce4-notifyd = {
-    categories = ["interface" "notifier"];
-    protocol = ["xorg"];
-    integrated = true;
-    language = "c";
-    maturity = "stable";
-  };
-  notification-daemon = {
-    categories = ["interface" "notifier"];
-    protocol = ["xorg"];
-    integrated = true;
-    language = "c";
-    maturity = "legacy";
-  };
-
-  #~@ Standalone Wayland
-  mako = {
+  dms-shell = {
     categories = ["interface" "notifier"];
     protocol = ["wayland"];
-    integrated = false;
-    language = "c";
+    independent = true;
+    engine = ["go"];
+    config = ["qml"];
+    maturity = "young";
+  };
+  dunst = {
+    categories = ["interface" "notifier"];
+    protocol = ["wayland" "xorg"];
+    independent = true;
+    engine = ["c"];
+    config = ["ini"];
     maturity = "stable";
   };
   fnott = {
     categories = ["interface" "notifier"];
     protocol = ["wayland"];
-    integrated = false;
-    language = "c";
+    independent = true;
+    engine = ["c"];
+    config = ["ini"];
     maturity = "stable";
   };
-  dms-shell = {
+  gnome-shell = {
     categories = ["interface" "notifier"];
     protocol = ["wayland"];
-    integrated = false;
-    language = "rust";
-    maturity = "young";
-  };
-
-  #~@ Standalone — any protocol
-  dunst = {
-    categories = ["interface" "notifier"];
-    protocol = ["wayland" "xorg"];
-    integrated = false;
-    language = "c";
+    independent = false;
+    engine = ["c" "javascript"];
+    config = ["javascript" "css"];
     maturity = "stable";
   };
-  deadd-notification-center = {
+  mako = {
+    categories = ["interface" "notifier"];
+    protocol = ["wayland"];
+    independent = true;
+    engine = ["c"];
+    config = ["ini"];
+    maturity = "stable";
+  };
+  notification-daemon = {
     categories = ["interface" "notifier"];
     protocol = ["xorg"];
-    integrated = false;
-    language = "haskell";
-    maturity = "niche";
+    independent = false;
+    engine = ["c"];
+    config = ["ini"];
+    maturity = "legacy";
+  };
+  plasmashell = {
+    categories = ["interface" "notifier"];
+    protocol = ["wayland"];
+    independent = false;
+    engine = ["c++" "qml"];
+    config = ["qml" "javascript"];
+    maturity = "stable";
+  };
+  xfce4-notifyd = {
+    categories = ["interface" "notifier"];
+    protocol = ["xorg"];
+    independent = false;
+    engine = ["c"];
+    config = ["rc" "css"];
+    maturity = "stable";
   };
 }

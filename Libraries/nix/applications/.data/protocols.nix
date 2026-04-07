@@ -5,11 +5,11 @@
     acceleration = false;
     compositing = false;
     remote = false;
-    maturity = "stable";
+    maturity = "legacy";
   };
   kms = {
     categories = ["interface" "protocol"];
-    surface = "framebuffer";
+    surface = "native";
     acceleration = true;
     compositing = false;
     remote = false;

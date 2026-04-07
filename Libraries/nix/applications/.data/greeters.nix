@@ -1,95 +1,112 @@
 {...}: {
-  #~@ Daemon
-
-  greetd = {
-    categories = ["greeter" "interface"];
-    display = "daemon"; # session manager; regreet/tuigreet/dms-greeter etc. run under it
-    language = "rust";
-    maturity = "stable";
-    protocol = ["wayland" "xorg" "tty" "kms"];
-  };
-
-  #~@ Graphical
-
   cosmic-greeter = {
     categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "rust";
+    kind = "graphical";
+    independent = false;
+    engine = ["rust"];
+    config = ["ron" "css"];
     maturity = "young";
     protocol = ["wayland"];
+    toolkit = "iced";
   };
-
   dms-greeter = {
     categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "rust";
+    kind = "graphical";
+    independent = true;
+    engine = ["rust"];
+    config = ["toml"];
     maturity = "young";
     protocol = ["wayland"];
+    toolkit = "gtk4";
   };
-
   gdm = {
     categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "c";
+    kind = "graphical";
+    independent = false;
+    engine = ["c"];
+    config = ["javascript" "css"];
     maturity = "stable";
     protocol = ["wayland" "xorg"];
+    toolkit = "gtk4";
   };
-
-  lightdm = {
+  greetd = {
     categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "c";
-    maturity = "legacy";
-    protocol = ["wayland" "xorg"];
-  };
-
-  plasma-login-shell = {
-    categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "c++";
+    kind = "daemon";
+    independent = true;
+    engine = ["rust"];
+    config = ["toml"];
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = ["wayland" "xorg" "tty" "kms"];
+    toolkit = "none";
   };
-
-  regreet = {
-    categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "rust";
-    maturity = "stable";
-    protocol = ["wayland" "xorg"];
-  };
-
-  sddm = {
-    categories = ["greeter" "interface"];
-    display = "graphical";
-    language = "c++";
-    maturity = "stable";
-    protocol = ["wayland" "xorg"];
-  };
-
-  #~@ Terminal
-
   lemurs = {
     categories = ["greeter" "interface"];
-    display = "terminal";
-    language = "rust";
+    kind = "terminal";
+    independent = true;
+    engine = ["rust"];
+    config = ["toml"];
     maturity = "young";
     protocol = ["wayland" "xorg" "tty" "kms"];
+    toolkit = "ncurses";
   };
-
+  lightdm = {
+    categories = ["greeter" "interface"];
+    kind = "graphical";
+    independent = true;
+    engine = ["c"];
+    config = ["ini"];
+    maturity = "legacy";
+    protocol = ["wayland" "xorg"];
+    toolkit = "gtk3";
+  };
   ly = {
     categories = ["greeter" "interface"];
-    display = "terminal";
-    language = "zig";
+    kind = "terminal";
+    independent = true;
+    engine = ["zig"];
+    config = ["ini"];
     maturity = "young";
     protocol = ["wayland" "xorg" "tty" "kms"];
+    toolkit = "ncurses";
   };
-
+  plasma-login-shell = {
+    categories = ["greeter" "interface"];
+    kind = "graphical";
+    independent = false;
+    engine = ["c++" "qml"];
+    config = ["qml"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "qt6";
+  };
+  regreet = {
+    categories = ["greeter" "interface"];
+    kind = "graphical";
+    independent = true;
+    engine = ["rust"];
+    config = ["toml" "css"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "gtk4";
+  };
+  sddm = {
+    categories = ["greeter" "interface"];
+    kind = "graphical";
+    independent = true;
+    engine = ["c++"];
+    config = ["qml" "ini"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "qt6";
+  };
   tuigreet = {
     categories = ["greeter" "interface"];
-    display = "terminal";
-    language = "rust";
+    kind = "terminal";
+    independent = true;
+    engine = ["rust"];
+    config = ["shell"];
     maturity = "stable";
     protocol = ["wayland" "xorg" "tty" "kms"];
+    toolkit = "ncurses";
   };
 }
