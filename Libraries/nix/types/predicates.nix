@@ -2,37 +2,35 @@
   __exports = {
     internal =
       {}
-      # // _.types.predicates
       // attrsets
+      // lists
       // debug
       // strings
       // trivial
       // {};
     external = trivial;
   };
-  std = _.types.predicates;
-  attrsets = {
-    inherit
-      (_)
-      isAllEnabledAttrs
-      isAnyEnabledAttrs
-      isTypedAttrs
-      isWaylandEnabledAttrs
-      ;
+
+  attrsets = with _.attrsets.predicates; {
+    isAllEnabledAttrs = allEnabled;
+    isAnyEnabledAttrs = anyEnabled;
+    isTypedAttrs = isTyped;
+    isWaylandEnabledAttrs = waylandEnabled;
   };
 
-  strings = {
-    inherit
-      (_)
-      isStringLike
-      isBinaryString
-      isStringConvertible
-      isPOSIXString
-      ;
+  lists = with _.lists.predicates; {
+    inherit isEnum;
   };
 
-  debug = {
-    inherit (_.debug) isTest;
+  strings = with _.strings.predicates; {
+    isBinaryString = isBinary;
+    isStringLike = isLike;
+    isStringConvertible = isConvertible;
+    isPOSIXString = isPOSIX;
+  };
+
+  debug = with _.debug.predicates; {
+    inherit isTest;
   };
 
   trivial = {
@@ -44,6 +42,8 @@
       typeOf
       ;
   };
+
+  std = _.types.predicates;
 
   /**
   Return the Nix type of a value as a string.
@@ -65,7 +65,7 @@
   typeOf null         # => "null"
   ```
   */
-  typeOf = x: std.typeOf x;
+  typeOf = input: std.typeOf input;
 
   /**
   Check whether a value is a boolean.
@@ -82,7 +82,7 @@
   isBool 1      # => false
   ```
   */
-  isBool = x: std.isBool x;
+  isBool = input: std.isBool input;
 
   /**
   Check whether a value is a floating point number.
@@ -98,7 +98,7 @@
   isFloat 1    # => false
   ```
   */
-  isFloat = x: std.isFloat x;
+  isFloat = input: std.isFloat input;
 
   /**
   Check whether a value is a function.
@@ -114,7 +114,7 @@
   isFunction "hello"  # => false
   ```
   */
-  isFunction = x: std.isFunction x;
+  isFunction = input: std.isFunction input;
 
   /**
   Check whether a value is an integer.
@@ -131,6 +131,6 @@
   isInt "1"  # => false
   ```
   */
-  isInt = x: std.isInt x;
+  isInt = input: std.isInt input;
 in
   __exports.internal // {_rootAliases = __exports.external;}

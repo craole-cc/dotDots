@@ -6,6 +6,7 @@
   __exports = {
     internal = {
       inherit
+        isEnum
         isMember
         countMatches
         hasAll
@@ -49,6 +50,9 @@
   inherit (_.strings.access) stringLength;
   inherit (_.lists.construction) toList;
   inherit (_.types.predicates) isList isAttrs;
+
+  isEnum = value:
+    isAttrs value && value?allValues && value?validator;
 
   /**
   Check whether a value is a list.

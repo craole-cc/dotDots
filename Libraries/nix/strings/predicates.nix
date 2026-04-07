@@ -35,18 +35,18 @@
     };
   };
 
-  inherit (_.debug.module) mkModuleDebug mkFn;
-  inherit (_.debug.format) mkExample;
   inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.format) mkExample;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.construction) toList;
-  inherit (_.lists.predicates) isList;
-  inherit (_.types.predicates) typeOf;
-  inherit (lib.attrsets) isAttrs;
-  inherit (lib.lists) any all;
-  inherit (lib.strings) hasInfix hasPrefix hasSuffix toLower;
+  inherit (_.lists.predicates) any all isList;
+  inherit (_.strings.predicates) hasInfix hasPrefix hasSuffix;
+  inherit (_.strings.transformation) toLower;
+  inherit (_.types.predicates) isAttrs isValidPosixName typeOf;
 
   debug = mkModuleDebug __moduleRef;
+
   /**
     Internal helper — evaluate `mkAny`-style matching logic.
 
@@ -371,7 +371,7 @@
   isString null   # => false
   ```
   */
-  isString = lib.strings.isString;
+  isString = value: lib.strings.isString value;
 
   /**
   Check whether a string is a binary digit — exactly `"0"` or `"1"`.
@@ -451,7 +451,7 @@
   isPOSIX "-foo"      # => false (cannot start with hyphen)
   ```
   */
-  isPOSIX = lib.strings.isValidPosixName;
+  isPOSIX = name: isValidPosixName name;
 in
   __exports.internal
   // {

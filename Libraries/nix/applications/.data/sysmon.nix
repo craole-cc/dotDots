@@ -7,7 +7,7 @@
     };
     exec = "htop";
     needsTerminal = true;
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 
   btop = {
@@ -18,7 +18,7 @@
     };
     exec = "btop";
     needsTerminal = true;
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 
   nvtop = {
@@ -29,7 +29,7 @@
     };
     exec = "nvtop";
     needsTerminal = true;
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 
   mission-center = {
@@ -39,7 +39,7 @@
       class = "io.missioncenter.MissionCenter";
     };
     exec = "missioncenter";
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 
   gnome-system-monitor = {
@@ -49,7 +49,7 @@
       class = "org.gnome.SystemMonitor";
     };
     exec = "gnome-system-monitor";
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 
   plasma-systemmonitor = {
@@ -59,6 +59,6 @@
       class = "org.kde.plasma-systemmonitor";
     };
     exec = "plasma-systemmonitor";
-    categories = ["system"];
+    categories = ["monitor" "process" "system"];
   };
 }

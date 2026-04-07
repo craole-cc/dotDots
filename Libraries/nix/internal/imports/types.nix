@@ -75,14 +75,15 @@
 
   predicates = {
     inherit (attrsets) isAttrs isDerivation;
-    inherit (filesystem) isPath isStorePath;
+    inherit (filesystem) isPath;
     inherit (lists) isList;
     inherit
       (strings)
       isString
       isConvertibleWithToString
       isStringLike
-      isPOSIXString
+      isValidPosixName
+      isStorePath
       ;
   };
 in

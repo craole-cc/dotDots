@@ -80,6 +80,7 @@
       hasAttr
       hasAttrByPath
       isAttrs
+      isDerivation
       ;
   };
 in

@@ -32,30 +32,47 @@
   mkFilters = {
     all,
     categories,
-    channels ? null,
-    families ? null,
+    channels ? {},
+    families ? {},
+    grouped ? {},
+    queried ? (_: {}), # fn: { byCategory, byChannel, byFamily } -> attrset
   }: let
     listCategories = indentedForError {
       title = "Valid Categories";
       items = categories.allValues;
     };
-
-    ofCategory = cat:
-      if !categories.validator.check cat
-      then throw "'${cat}' is not a valid category. ${listCategories}"
-      else filterAttrs (_: a: isIn cat a.categories) all;
-  in {
-    inherit all ofCategory;
     byCategory = genAttrs categories.allValues ofCategory;
     byFamily =
-      if families != null
-      then genAttrs families.allValues (n: filterAttrs (_: a: a.family == n) all)
-      else {};
+      optionalAttrs
+      (families?allValues)
+      (
+        genAttrs
+        families.allValues
+        (n: filterAttrs (_: a: a.family == n) all)
+      );
     byChannel =
-      if channels != null
-      then genAttrs channels.allValues (n: filterAttrs (_: a: a.channel == n) all)
-      else {};
-    needsTerminal = filterAttrs (_: a: a.needsTerminal or false) all;
+      optionalAttrs
+      (channels?allValues)
+      (
+        genAttrs
+        channels.allValues
+        (n: filterAttrs (_: a: a.channel == n) all)
+      );
+    ofCategory = category:
+      if !categories.validator.check category
+      then
+        throw
+        "'${category}' is not a valid category. ${listCategories}"
+      else
+        filterAttrs
+        (_: a: isIn category (a.categories or []))
+        all;
+  in {
+    inherit all;
+    grouped =
+      {inherit byCategory byChannel byFamily ofCategory;}
+      // grouped;
+    queried = queried {inherit byCategory byChannel byFamily;};
   };
 
   mkSubsystem = {

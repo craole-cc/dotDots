@@ -6,8 +6,6 @@
   __exports = {
     internal = {
       inherit
-        isAttrs
-        isDerivation
         isTyped
         allEnabled
         anyEnabled
@@ -15,7 +13,6 @@
         ;
     };
     external = {
-      inherit isAttrs isDerivation;
       isAllEnabledAttrs = allEnabled;
       isAnyEnabledAttrs = anyEnabled;
       isWaylandEnabledAttrs = waylandEnabled;

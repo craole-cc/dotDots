@@ -4,11 +4,12 @@
     external.applicationRegistry = all;
   };
 
-  inherit (_.applications.enums) categories channels families;
   inherit (_.applications.construction) mkRegistry;
+  inherit (_.applications.enums) categories channels families;
+  inherit (_.filesystem.importers) importAllMerged;
 
   all = mkRegistry {
-    data = _.filesystem.importers.importAllMerged ./.data {};
+    data = importAllMerged ./.data {};
     inherit categories channels families;
   };
 in
