@@ -1,158 +1,129 @@
 {...}: {
-  #~@ Wayland — Standalone WMs
-  hyprland = {
-    protocol = ["wayland"];
-    role = "standalone";
-    language = "c++";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  niri = {
-    protocol = ["wayland"];
-    role = "standalone";
-    language = "rust";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  sway = {
-    protocol = ["wayland"];
-    role = "standalone";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  river = {
-    protocol = ["wayland"];
-    role = "standalone";
-    language = "zig";
-    maturity = "young";
-    categories = ["interface" "compositor"];
-  };
-  cosmic-comp = {
-    protocol = ["wayland"];
-    role = "standalone";
-    language = "rust";
-    maturity = "young";
-    categories = ["interface" "compositor"];
-  };
-
-  #~@ Wayland — Embedded DE compositors
-  mutter = {
-    protocol = ["wayland"];
-    role = "embedded";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  kwin = {
-    protocol = ["wayland"];
-    role = "embedded";
-    language = "c++";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-
-  #~@ Xorg — Standalone WMs
-  i3 = {
-    protocol = ["xorg"];
-    role = "standalone";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  bspwm = {
-    protocol = ["xorg"];
-    role = "standalone";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  qtile = {
-    protocol = ["xorg"];
-    role = "standalone";
-    language = "python";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
   awesome = {
-    protocol = ["xorg"];
-    role = "standalone";
+    categories = ["compositor" "interface"];
     language = "c";
     maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  xmonad = {
     protocol = ["xorg"];
     role = "standalone";
-    language = "haskell";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  openbox = {
-    protocol = ["xorg"];
-    role = "standalone";
-    language = "c";
-    maturity = "legacy";
-    categories = ["interface" "compositor"];
   };
 
-  #~@ Xorg — Embedded DE compositors
-  xfwm4 = {
-    protocol = ["xorg"];
-    role = "embedded";
+  bspwm = {
+    categories = ["compositor" "interface"];
     language = "c";
     maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  muffin = {
     protocol = ["xorg"];
-    role = "embedded";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
+    role = "standalone";
   };
 
-  #~@ DE Shells (fused compositor + panel)
-  gnome-shell = {
-    protocol = ["wayland"];
-    role = "shell";
-    language = "javascript";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  plasmashell = {
-    protocol = ["wayland"];
-    role = "shell";
-    language = "c++";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  cosmic-panel = {
-    protocol = ["wayland"];
-    role = "shell";
+  cosmic-comp = {
+    categories = ["compositor" "interface"];
     language = "rust";
     maturity = "young";
-    categories = ["interface" "compositor"];
+    protocol = ["wayland"];
+    role = "standalone";
   };
-  cinnamon = {
-    protocol = ["xorg"];
-    role = "shell";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
-  xfce4-panel = {
-    protocol = ["xorg"];
-    role = "shell";
-    language = "c";
-    maturity = "stable";
-    categories = ["interface" "compositor"];
-  };
+
   gala = {
-    protocol = ["xorg"];
-    role = "shell";
+    categories = ["compositor" "interface"];
     language = "vala";
     maturity = "stable";
-    categories = ["interface" "compositor"];
+    protocol = ["xorg"];
+    role = "embedded";
+  };
+
+  hyprland = {
+    categories = ["compositor" "interface"];
+    language = "c++";
+    maturity = "stable";
+    protocol = ["wayland"];
+    role = "standalone";
+  };
+
+  i3 = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "stable";
+    protocol = ["xorg"];
+    role = "standalone";
+  };
+
+  kwin = {
+    categories = ["compositor" "interface"];
+    language = "c++";
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    role = "embedded";
+  };
+
+  muffin = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "stable";
+    protocol = ["xorg"];
+    role = "embedded";
+  };
+
+  mutter = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    role = "embedded";
+  };
+
+  niri = {
+    categories = ["compositor" "interface"];
+    language = "rust";
+    maturity = "stable";
+    protocol = ["wayland"];
+    role = "standalone";
+  };
+
+  openbox = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "legacy";
+    protocol = ["xorg"];
+    role = "standalone";
+  };
+
+  qtile = {
+    categories = ["compositor" "interface"];
+    language = "python";
+    maturity = "stable";
+    protocol = ["xorg"];
+    role = "standalone";
+  };
+
+  river = {
+    categories = ["compositor" "interface"];
+    language = "zig";
+    maturity = "young";
+    protocol = ["wayland"];
+    role = "standalone";
+  };
+
+  sway = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "stable";
+    protocol = ["wayland"];
+    role = "standalone";
+  };
+
+  xfwm4 = {
+    categories = ["compositor" "interface"];
+    language = "c";
+    maturity = "stable";
+    protocol = ["xorg"];
+    role = "embedded";
+  };
+
+  xmonad = {
+    categories = ["compositor" "interface"];
+    language = "haskell";
+    maturity = "stable";
+    protocol = ["xorg"];
+    role = "standalone";
   };
 }

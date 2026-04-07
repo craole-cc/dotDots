@@ -390,7 +390,12 @@
   ```
   */
   isBinary = s:
-    typeOf s == "string" && (s == "0" || s == "1");
+    typeOf s
+    == "string"
+    && (
+      (s == "0" || s == "1")
+      || (s == true || s == false)
+    );
 
   /**
   Check whether a value can be converted to a string via `toString`.

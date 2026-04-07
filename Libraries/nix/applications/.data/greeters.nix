@@ -1,79 +1,95 @@
 {...}: {
+  #~@ Daemon
+
+  greetd = {
+    categories = ["greeter" "interface"];
+    display = "daemon"; # session manager; regreet/tuigreet/dms-greeter etc. run under it
+    language = "rust";
+    maturity = "stable";
+    protocol = ["wayland" "xorg" "tty" "kms"];
+  };
+
+  #~@ Graphical
+
   cosmic-greeter = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland"];
+    categories = ["greeter" "interface"];
     display = "graphical";
     language = "rust";
     maturity = "young";
+    protocol = ["wayland"];
   };
+
   dms-greeter = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland"];
+    categories = ["greeter" "interface"];
     display = "graphical";
     language = "rust";
     maturity = "young";
+    protocol = ["wayland"];
   };
+
   gdm = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg"];
+    categories = ["greeter" "interface"];
     display = "graphical";
     language = "c";
     maturity = "stable";
-  };
-  greetd = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg" "tty" "kms"];
-    display = "terminal";
-    language = "rust";
-    maturity = "stable";
-  };
-  lemurs = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg" "tty" "kms"];
-    display = "terminal";
-    language = "rust";
-    maturity = "young";
-  };
-  lightdm = {
-    categories = ["interface" "greeter"];
     protocol = ["wayland" "xorg"];
+  };
+
+  lightdm = {
+    categories = ["greeter" "interface"];
     display = "graphical";
     language = "c";
     maturity = "legacy";
+    protocol = ["wayland" "xorg"];
   };
-  ly = {
-    categories = ["interface" "greeter"];
+
+  plasma-login-shell = {
+    categories = ["greeter" "interface"];
+    display = "graphical";
+    language = "c++";
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+  };
+
+  regreet = {
+    categories = ["greeter" "interface"];
+    display = "graphical";
+    language = "rust";
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+  };
+
+  sddm = {
+    categories = ["greeter" "interface"];
+    display = "graphical";
+    language = "c++";
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+  };
+
+  #~@ Terminal
+
+  lemurs = {
+    categories = ["greeter" "interface"];
+    display = "terminal";
+    language = "rust";
+    maturity = "young";
     protocol = ["wayland" "xorg" "tty" "kms"];
+  };
+
+  ly = {
+    categories = ["greeter" "interface"];
     display = "terminal";
     language = "zig";
-    maturity = "niche";
+    maturity = "young";
+    protocol = ["wayland" "xorg" "tty" "kms"];
   };
-  plasma-login-shell = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg"];
-    display = "graphical";
-    language = "c++";
-    maturity = "stable";
-  };
-  regreet = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg"];
-    display = "graphical";
-    language = "rust";
-    maturity = "stable";
-  };
-  sddm = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "xorg"];
-    display = "graphical";
-    language = "c++";
-    maturity = "stable";
-  };
+
   tuigreet = {
-    categories = ["interface" "greeter"];
-    protocol = ["wayland" "tty" "kms"];
+    categories = ["greeter" "interface"];
     display = "terminal";
     language = "rust";
     maturity = "stable";
+    protocol = ["wayland" "xorg" "tty" "kms"];
   };
 }

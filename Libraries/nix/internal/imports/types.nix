@@ -27,6 +27,7 @@
     filesystem
     lists
     strings
+    trivial
     types
     ;
 
@@ -75,6 +76,7 @@
 
   predicates = {
     inherit (attrsets) isAttrs isDerivation;
+    inherit (trivial) isBool;
     inherit (filesystem) isPath;
     inherit (lists) isList;
     inherit

@@ -8,7 +8,7 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.access) head;
   inherit (_.lists.construction) mkEnum;
-  inherit (_.types.predicates) isAttrs isEnum;
+  inherit (_.types.predicates) isAttrs;
   inherit (_.applications.filters.queried) shell interface;
 
   isRegistryAttrset = tree:

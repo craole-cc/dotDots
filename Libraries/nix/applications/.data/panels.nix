@@ -1,100 +1,221 @@
 {...}: {
-  #~@ DE-integrated
-  gnome-shell = {
-    categories = ["interface" "panel"];
-    protocol = ["wayland"];
-    integrated = true;
-    language = "javascript";
-    maturity = "stable";
-  };
-  plasmashell = {
-    categories = ["interface" "panel"];
-    protocol = ["wayland"];
-    integrated = true;
-    language = "c++";
-    maturity = "stable";
-  };
-  cosmic-panel = {
-    categories = ["interface" "panel"];
-    protocol = ["wayland"];
-    integrated = true;
-    language = "rust";
-    maturity = "young";
-  };
-  cinnamon = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
-    integrated = true;
-    language = "c";
-    maturity = "stable";
-  };
-  xfce4-panel = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
-    integrated = true;
-    language = "c";
-    maturity = "stable";
-  };
-  wingpanel = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
-    integrated = true;
-    language = "vala";
-    maturity = "stable";
-  };
-
-  #~@ WM-native (built into the WM, not a DE)
   awesome = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
+    categories = ["panel" "interface"];
     integrated = false;
-    language = "c";
+    engine = ["c" "lua"];
+    config = ["lua"];
     maturity = "stable";
-  };
-  qtile = {
-    categories = ["interface" "panel"];
     protocol = ["xorg"];
-    integrated = false;
-    language = "python";
-    maturity = "stable";
-  };
-  xmobar = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
-    integrated = false;
-    language = "haskell";
-    maturity = "stable";
+    toolkit = "cairo";
   };
 
-  #~@ Standalone Wayland
-  waybar = {
-    categories = ["interface" "panel"];
-    protocol = ["wayland"];
+  caelestia = {
+    categories = ["panel" "interface"];
     integrated = false;
-    language = "c++";
-    maturity = "stable";
-  };
-  dms-shell = {
-    categories = ["interface" "panel"];
-    protocol = ["wayland"];
-    integrated = false;
-    language = "rust";
+    engine = ["c++" "qml"];
+    config = ["qml"];
     maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "qt6";
   };
 
-  #~@ Standalone Xorg
-  polybar = {
-    categories = ["interface" "panel"];
-    protocol = ["xorg"];
-    integrated = false;
-    language = "c++";
+  cinnamon = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c"];
+    config = ["javascript" "css"];
     maturity = "stable";
-  };
-  tint2 = {
-    categories = ["interface" "panel"];
     protocol = ["xorg"];
+    toolkit = "gtk3";
+  };
+
+  cosmic-panel = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["rust"];
+    config = ["ron" "css"];
+    maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "iced";
+  };
+
+  dms-shell = {
+    categories = ["panel" "interface"];
     integrated = false;
-    language = "c";
+    engine = ["go"];
+    config = ["qml"];
+    maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "qt6";
+  };
+
+  eww = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["rust"];
+    config = ["yuck" "scss"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "gtk3";
+  };
+
+  exo = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["python"];
+    config = ["python" "scss"];
+    maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "gtk4";
+  };
+
+  gnome-shell = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c" "javascript"];
+    config = ["javascript" "css"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "st";
+  };
+
+  i3bar = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c"];
+    config = ["json" "shell"];
+    maturity = "stable";
+    protocol = ["xorg"];
+    toolkit = "xcb";
+  };
+
+  hyprpanel = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["typescript"];
+    config = ["typescript" "scss"];
+    maturity = "stable";
+    protocol = ["wayland"];
+    toolkit = "gtk3";
+  };
+
+  lemonbar = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["c"];
+    config = ["shell"];
+    maturity = "stable";
+    protocol = ["xorg"];
+    toolkit = "xcb";
+  };
+
+  noctalia = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["c++"];
+    config = ["qml"];
+    maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "qt6";
+  };
+
+  nwg-panel = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["python"];
+    config = ["json" "css"];
+    maturity = "stable";
+    protocol = ["wayland"];
+    toolkit = "gtk3";
+  };
+
+  plasmashell = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c++" "qml"];
+    config = ["qml" "javascript"];
+    maturity = "stable";
+    protocol = ["wayland" "xorg"];
+    toolkit = "qt6";
+  };
+
+  polybar = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["c++"];
+    config = ["ini" "shell"];
+    maturity = "stable";
+    protocol = ["xorg"];
+    toolkit = "cairo";
+  };
+
+  qtile = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["python" "c"];
+    config = ["python"];
+    maturity = "stable";
+    protocol = ["xorg" "wayland"];
+    toolkit = "cairo";
+  };
+
+  swaybar = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c"];
+    config = ["shell" "json"];
+    maturity = "stable";
+    protocol = ["wayland"];
+    toolkit = "cairo";
+  };
+
+  tint2 = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["c"];
+    config = ["ini"];
     maturity = "legacy";
+    protocol = ["xorg"];
+    toolkit = "pango";
+  };
+
+  waybar = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["c++"];
+    config = ["jsonc" "css"];
+    maturity = "stable";
+    protocol = ["wayland"];
+    toolkit = "gtk3";
+  };
+
+  wingpanel = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["vala" "c"];
+    config = ["css"];
+    maturity = "stable";
+    protocol = ["xorg" "wayland"];
+    toolkit = "gtk3";
+  };
+
+  xfce4-panel = {
+    categories = ["panel" "interface"];
+    integrated = true;
+    engine = ["c"];
+    config = ["rc" "css"];
+    maturity = "stable";
+    protocol = ["xorg"];
+    toolkit = "gtk3";
+  };
+
+  xmobar = {
+    categories = ["panel" "interface"];
+    integrated = false;
+    engine = ["haskell"];
+    config = ["haskell"];
+    maturity = "stable";
+    protocol = ["xorg"];
+    toolkit = "xft";
   };
 }

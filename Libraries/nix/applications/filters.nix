@@ -9,179 +9,564 @@
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.lists.access) length;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.transformation) unique;
+  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.selection) filter;
   all = _.applications.registry;
 
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Checkers                                                  ║
+  #╚═══════════════════════════════════════════════════════════╝
+  withFlag = {
+    field,
+    set,
+  }:
+    filterAttrs (_: a: (a.${field} or false)) set;
+
+  withoutFlag = {
+    field,
+    set,
+  }:
+    filterAttrs (_: a: !(a.${field} or false)) set;
+
+  withEq = {
+    field,
+    default ? null,
+    value,
+    set,
+  }:
+    filterAttrs (_: a: (a.${field} or default) == value) set;
+
+  withNeq = {
+    field,
+    default ? null,
+    value,
+    set,
+  }:
+    filterAttrs (_: a: (a.${field} or default) != value) set;
+
+  withMember = {
+    field,
+    value,
+    set,
+  }:
+    filterAttrs (_: a: isIn value (a.${field} or [])) set;
+
+  groupBy = {
+    field,
+    default ? "unknown",
+    keys,
+    set,
+  }:
+    genAttrs keys (k:
+      withEq {
+        inherit field default set;
+        value = k;
+      });
+
+  groupByMember = {
+    field,
+    keys,
+    set,
+  }:
+    genAttrs keys (p:
+      withMember {
+        inherit field set;
+        value = p;
+      });
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Builders                                                  ║
+  #╚═══════════════════════════════════════════════════════════╝
+  mkEqQueries = {
+    field,
+    default ? false,
+    set,
+  }: let
+    keys = unique (
+      filter (k: k != default) (
+        map
+        (a: a.${field} or default)
+        (attrValues set)
+      )
+    );
+  in
+    groupBy {inherit field default keys set;};
+
+  mkBoolQueries = {
+    field,
+    trueKey,
+    falseKey,
+    set,
+  }: {
+    ${trueKey} = withFlag {inherit field set;};
+    ${falseKey} = withoutFlag {inherit field set;};
+  };
+
+  mkMemberQueries = {
+    field,
+    set,
+  }: let
+    keys = unique (
+      concatMap
+      (a: a.${field} or [])
+      (attrValues set)
+    );
+  in
+    groupByMember {inherit field keys set;};
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Core                                                      ║
+  #╚═══════════════════════════════════════════════════════════╝
   filters = mkFilters {
     inherit all categories channels families;
-    queried = {byCategory, ...}: {
-      needsTerminal =
-        filterAttrs (_: a: a.needsTerminal or false) all;
-
+    queried = {byCategory, ...}: let
+      needsTerminal = withFlag {
+        field = "needsTerminal";
+        set = all;
+      };
       shell = let
-        all = byCategory.shell;
-        languages = unique (map (a: a.language or "unknown") (attrValues all));
+        set = byCategory.shell;
+        all = set;
+        shells = let
+          set =
+            filterAttrs
+            (_: a: (a.categories or []) == ["shell"])
+            byCategory.shell;
+          all = set;
+          grouped = {
+            byLanguage = groupBy {
+              field = "language";
+              keys = unique (
+                map
+                (a: a.language or "unknown")
+                (attrValues all)
+              );
+              inherit set;
+            };
+          };
+          queried = {
+            system = withFlag {
+              field = "system";
+              inherit set;
+            };
+            interactive = withFlag {
+              field = "interactive";
+              inherit set;
+            };
+            posix = withFlag {
+              field = "posix";
+              inherit set;
+            };
+            modern = withoutFlag {
+              field = "posix";
+              inherit set;
+            };
+          };
+          # flattened = all // grouped // queried;
+        in {inherit all grouped queried;};
+
+        prompts = let
+          set = byCategory.prompt;
+          all = set;
+          grouped = {
+            byShell = groupByMember {
+              inherit set;
+              field = "shells";
+              keys = unique (
+                concatMap
+                (a: a.shells or [])
+                (attrValues all)
+              );
+            };
+            byLanguage = groupBy {
+              inherit set;
+              field = "language";
+              keys = unique (
+                map
+                (a: a.language or "unknown")
+                (attrValues all)
+              );
+            };
+            byMaturity = groupBy {
+              inherit set;
+              field = "maturity";
+              keys = unique (
+                map
+                (a: a.maturity  or "unknown")
+                (attrValues all)
+              );
+            };
+          };
+          queried = {
+            configurable =
+              filterAttrs
+              (_: a: (a.config or null) != null)
+              all;
+            crossShell =
+              filterAttrs
+              (_: a: length (a.shells or []) > 1)
+              all;
+            singleShell =
+              filterAttrs
+              (_: a: length (a.shells or []) == 1)
+              all;
+            stable = withEq {
+              inherit set;
+              field = "maturity";
+              value = "stable";
+            };
+            legacy = withEq {
+              inherit set;
+              field = "maturity";
+              value = "legacy";
+            };
+          };
+        in {inherit all grouped queried;};
+
+        enhancements = let
+          set = byCategory.enhancement;
+          all = set;
+          grouped = {
+            byKind = groupBy {
+              inherit set;
+              field = "kind";
+              keys = unique (
+                map
+                (a: a.kind or "unknown")
+                (attrValues all)
+              );
+            };
+            byShell = groupByMember {
+              inherit set;
+              field = "shells";
+              keys = unique (
+                concatMap
+                (a: a.shells or [])
+                (attrValues all)
+              );
+            };
+          };
+          queried = {
+            history = withEq {
+              inherit set;
+              field = "kind";
+              value = "history";
+            };
+            fuzzy = withEq {
+              inherit set;
+              field = "kind";
+              value = "fuzzy";
+            };
+            navigation = withEq {
+              inherit set;
+              field = "kind";
+              value = "navigation";
+            };
+          };
+        in {inherit all grouped queried;};
+
+        lineEditors = let
+          set = byCategory."line-editor";
+          all = set;
+          grouped = {
+            byShell = groupByMember {
+              inherit set;
+              field = "shells";
+              keys = unique (
+                concatMap
+                (a: a.shells or [])
+                (attrValues all)
+              );
+            };
+          };
+          queried = {
+            stable = withEq {
+              inherit set;
+              field = "maturity";
+              value = "stable";
+            };
+            young = withEq {
+              inherit set;
+              field = "maturity";
+              value = "young";
+            };
+          };
+        in {inherit all grouped queried;};
       in {
-        inherit all;
-        grouped = {
-          byLanguage =
-            genAttrs languages
-            (l: filterAttrs (_: a: (a.language or "unknown") == l) all);
-          prompts = byCategory.prompt;
-          enhancements = byCategory.enhancement;
-          lineEditors = byCategory."line-editor";
-        };
-        queried = {
-          system = filterAttrs (_: a: a.system      or false) all;
-          interactive = filterAttrs (_: a: a.interactive or false) all;
-          posix = filterAttrs (_: a: a.posix       or false) all;
-          modern = filterAttrs (_: a: !(a.posix       or false)) all;
-        };
+        inherit
+          all
+          shells
+          prompts
+          enhancements
+          lineEditors
+          ;
       };
 
-      interface = {
-        all = byCategory.interface;
-        grouped = {
-          compositors = let
-            all = byCategory.compositor;
-            protocols = attrNames byCategory.protocol;
-            roles = unique (map (a: a.role      or "unknown") (attrValues all));
-            maturities = unique (map (a: a.maturity  or "unknown") (attrValues all));
-          in {
-            inherit all;
-            grouped = {
-              byProtocol =
-                genAttrs protocols
-                (p: filterAttrs (_: a: isIn p (a.protocol or [])) all);
-              byRole =
-                genAttrs roles
-                (r: filterAttrs (_: a: (a.role     or "unknown") == r) all);
-              byMaturity =
-                genAttrs maturities
-                (m: filterAttrs (_: a: (a.maturity or "unknown") == m) all);
-            };
-            queried = {
-              integrated =
-                filterAttrs
-                (_: a: a.integrated or false)
-                byCategory.interface;
-              standalone =
-                filterAttrs
-                (_: a: !(a.integrated or false))
-                byCategory.interface;
-              wayland =
-                filterAttrs
-                (_: a: isIn "wayland" (a.protocol or []))
-                byCategory.interface;
-              xorg =
-                filterAttrs
-                (_: a: isIn "xorg" (a.protocol or []))
-                byCategory.interface;
-              stable =
-                filterAttrs
-                (_: a: (a.maturity or null) == "stable")
-                byCategory.interface;
-              legacy =
-                filterAttrs
-                (_: a: (a.maturity or null) == "legacy")
-                byCategory.interface;
-            };
-          };
+      interface = let
+        set = byCategory.interface;
+        all = set;
+        protocolNames = attrNames byCategory.protocol;
+        greeterNames = attrNames byCategory.greeter;
 
-          environments = let
-            all = byCategory.environment;
-            kinds = unique (map (a: a.kind or "unknown") (attrValues all));
-          in {
-            inherit all;
-            grouped = {
-              byKind =
-                genAttrs kinds
-                (k: filterAttrs (_: a: (a.kind or "unknown") == k) all);
+        compositors = let
+          set = byCategory.compositor;
+          all = set;
+          grouped = {
+            byProtocol = groupByMember {
+              inherit set;
+              field = "protocol";
+              keys = protocolNames;
             };
-            queried = {
-              desktop = filterAttrs (_: a: (a.kind or null) == "desktop") all;
-              window = filterAttrs (_: a: (a.kind or null) == "compositor") all;
+            byRole = groupBy {
+              inherit set;
+              field = "role";
+              keys = unique (
+                map
+                (a: a.role or "unknown")
+                (attrValues all)
+              );
+            };
+            byMaturity = groupBy {
+              inherit set;
+              field = "maturity";
+              keys = unique (
+                map
+                (a: a.maturity or "unknown")
+                (attrValues all)
+              );
             };
           };
+          queried = {};
+        in {inherit all grouped queried;};
 
-          greeters = let
-            all = byCategory.greeter;
-            displays = unique (map (a: a.display or "unknown") (attrValues all));
-          in {
-            inherit all;
-            grouped = {
-              byDisplay =
-                genAttrs displays
-                (d: filterAttrs (_: a: (a.display or "unknown") == d) all);
+        environments = let
+          set = byCategory.environment;
+          all = set;
+          grouped = {
+            byCompositor = groupBy {
+              field = "compositor";
+              default = "none";
+              keys = unique (map (a: a.compositor or "none") (attrValues set));
+              inherit set;
             };
-            queried = {
-              graphical = filterAttrs (_: a: (a.display or null) == "graphical") all;
-              terminal = filterAttrs (_: a: (a.display or null) == "terminal") all;
+            byPanel = groupByMember {
+              field = "panel";
+              keys = unique (concatMap (a: a.panel or []) (attrValues set));
+              inherit set;
+            };
+            byScope = groupBy {
+              field = "scope";
+              default = "unknown";
+              keys = unique (
+                map
+                (a: a.scope or "unknown")
+                (attrValues set)
+              );
+              inherit set;
+            };
+            byLayout = groupByMember {
+              field = "layouts";
+              keys = ["tiling" "floating" "stacking"];
+              inherit set;
+            };
+            byProtocol = groupByMember {
+              field = "protocol";
+              keys = protocolNames;
+              inherit set;
+            };
+            byGreeter = groupByMember {
+              field = "greeters";
+              keys = greeterNames;
+              inherit set;
             };
           };
+          queried = {
+            desktop = withEq {
+              field = "scope";
+              default = null;
+              value = "desktop";
+              inherit set;
+            };
+            compositor = withEq {
+              field = "scope";
+              default = null;
+              value = "compositor";
+              inherit set;
+            };
+            tiling = withMember {
+              field = "layouts";
+              value = "tiling";
+              inherit set;
+            };
+            floating = withMember {
+              field = "layouts";
+              value = "floating";
+              inherit set;
+            };
+            stacking = withMember {
+              field = "layouts";
+              value = "stacking";
+              inherit set;
+            };
+          };
+        in {inherit all grouped queried;};
 
-          notifiers = let
-            all = byCategory.notifier;
-            protocols = attrNames byCategory.protocol;
-          in {
-            inherit all;
-            grouped = {
-              byProtocol =
-                genAttrs protocols
-                (p: filterAttrs (_: a: isIn p (a.protocol or [])) all);
-            };
-            queried = {
-              integrated = filterAttrs (_: a: a.integrated or false) all;
-              standalone = filterAttrs (_: a: !(a.integrated or false)) all;
-            };
-          };
-
-          panels = let
-            all = byCategory.panel;
-            protocols = attrNames byCategory.protocol;
-          in {
-            inherit all;
-            grouped = {
-              byProtocol =
-                genAttrs protocols
-                (p: filterAttrs (_: a: isIn p (a.protocol or [])) all);
-            };
-            queried = {
-              integrated = filterAttrs (_: a: a.integrated or false) all;
-              standalone = filterAttrs (_: a: !(a.integrated or false)) all;
+        greeters = let
+          set = byCategory.greeter;
+          all = set;
+          grouped = {
+            byDisplay = groupBy {
+              inherit set;
+              field = "display";
+              keys = unique (
+                map
+                (a: a.display or "unknown")
+                (attrValues set)
+              );
             };
           };
-
-          protocols = let
-            all = byCategory.protocol;
-            surfaces = unique (map (a: a.surface  or "unknown") (attrValues all));
-            maturities = unique (map (a: a.maturity or "unknown") (attrValues all));
-          in {
-            inherit all;
-            grouped = {
-              bySurface =
-                genAttrs surfaces
-                (s: filterAttrs (_: a: (a.surface  or "unknown") == s) all);
-              byMaturity =
-                genAttrs maturities
-                (m: filterAttrs (_: a: (a.maturity or "unknown") == m) all);
+          queried = {
+            graphical = withEq {
+              inherit set;
+              field = "display";
+              value = "graphical";
             };
-            queried = {
-              compositing = filterAttrs (_: a: a.compositing  or false) all;
-              nonCompositing = filterAttrs (_: a: !(a.compositing  or false)) all;
-              remote = filterAttrs (_: a: a.remote       or false) all;
-              local = filterAttrs (_: a: !(a.remote       or false)) all;
-              accelerated = filterAttrs (_: a: a.acceleration or false) all;
-              software = filterAttrs (_: a: !(a.acceleration or false)) all;
-              modern = filterAttrs (_: a: (a.maturity or null) != "legacy") all;
-              legacy = filterAttrs (_: a: (a.maturity or null) == "legacy") all;
+            terminal = withEq {
+              inherit set;
+              field = "display";
+              value = "terminal";
             };
           };
-        };
-        queried = {};
+        in {inherit all grouped queried;};
+        notifiers = let
+          set = byCategory.notifier;
+          all = set;
+          grouped = {
+            byProtocol = groupByMember {
+              inherit set;
+              field = "protocol";
+              keys = protocols;
+            };
+          };
+          queried = mkEqQueries {
+            inherit set;
+            field = "integrated";
+          };
+        in {inherit all grouped queried;};
+        panels = let
+          set = byCategory.panel;
+          all = set;
+          grouped = {
+            byProtocol = groupByMember {
+              inherit set;
+              field = "protocol";
+              keys = protocols;
+            };
+          };
+          queried = mkEqQueries {
+            inherit set;
+            field = "integrated";
+          };
+        in {inherit all grouped queried;};
+        protocols = let
+          set = byCategory.protocol;
+          all = set;
+          surfaces = unique (
+            map
+            (a: a.surface  or "unknown")
+            (attrValues all)
+          );
+          maturities = unique (
+            map
+            (a: a.maturity or "unknown")
+            (attrValues all)
+          );
+          grouped = {
+            bySurface = groupBy {
+              field = "surface";
+              keys = surfaces;
+              inherit set;
+            };
+            byMaturity = groupBy {
+              field = "maturity";
+              keys = maturities;
+              inherit set;
+            };
+          };
+          queried =
+            mkEqQueries {
+              field = "maturity";
+              inherit set;
+            }
+            // {
+              compositing = withFlag {
+                field = "compositing";
+                inherit set;
+              };
+              nonCompositing = withoutFlag {
+                field = "compositing";
+                inherit set;
+              };
+              remote = withFlag {
+                field = "remote";
+                inherit set;
+              };
+              local = withoutFlag {
+                field = "remote";
+                inherit set;
+              };
+              accelerated = withFlag {
+                field = "acceleration";
+                inherit set;
+              };
+              software = withoutFlag {
+                field = "acceleration";
+                inherit set;
+              };
+              modern = withNeq {
+                field = "maturity";
+                default = null;
+                value = "legacy";
+                inherit set;
+              };
+            };
+        in {inherit all grouped queried;};
+        # grouped = {};
+        # queried = let
+        #   integrated = mkBoolQueries {
+        #     field = "integrated";
+        #     trueKey = "integrated";
+        #     falseKey = "standalone";
+        #     inherit set;
+        #   };
+        #   protocol = mkMemberQueries {
+        #     inherit set;
+        #     field = "protocol";
+        #   };
+        #   maturity = mkEqQueries {
+        #     inherit set;
+        #     field = "maturity";
+        #     default = "unknown";
+        #   };
+        # in
+        #   integrated // protocol // maturity;
+      in {
+        inherit
+          all
+          # grouped
+          # queried
+          compositors
+          environments
+          greeters
+          notifiers
+          panels
+          protocols
+          ;
       };
-    };
+    in {inherit needsTerminal shell interface;};
   };
 in
   __exports.internal // {_rootAliases = __exports.external;}

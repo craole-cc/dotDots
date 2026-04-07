@@ -1,199 +1,195 @@
 {...}: {
   #~@ Desktop Environments
-  gnome = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
-    protocol = ["wayland" "xorg"];
-    greeter = "gdm";
-    compositor = {
-      shell = "gnome-shell";
-      window = "mutter";
-    };
-    panel = "gnome-shell";
-    notifier = "gnome-shell";
-  };
-  plasma = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
-    protocol = ["wayland" "xorg"];
-    greeter = "plasma-login-shell";
-    compositor = {
-      shell = "plasmashell";
-      window = "kwin";
-    };
-    panel = "plasmashell";
-    notifier = "plasmashell";
-  };
-  cosmic = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
-    protocol = ["wayland"];
-    greeter = "cosmic-greeter";
-    compositor = {
-      shell = "cosmic-panel";
-      window = "cosmic-comp";
-    };
-    panel = "cosmic-panel";
-    notifier = "cosmic-notifications";
-  };
-  pantheon = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
-    protocol = ["xorg"];
-    greeter = "lightdm";
-    compositor = {
-      shell = "gala";
-      window = "gala";
-    };
-    panel = "wingpanel";
-    notifier = "notification-daemon";
-  };
   cinnamon = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
+    categories = ["environment" "interface"];
+    compositor = "muffin";
+    greeters = ["lightdm"];
+    layouts = ["floating" "stacking"];
+    notifier = ["cinnamon"];
+    panel = ["cinnamon"];
     protocol = ["xorg"];
-    greeter = "lightdm";
-    compositor = {
-      shell = "cinnamon";
-      window = "muffin";
-    };
-    panel = "cinnamon";
-    notifier = "cinnamon";
+    scope = "desktop";
   };
-  xfce = {
-    categories = ["interface" "environment"];
-    kind = "desktop";
+
+  cosmic = {
+    categories = ["environment" "interface"];
+    compositor = "cosmic-comp";
+    greeters = ["cosmic-greeter" "greetd"];
+    layouts = ["floating" "stacking" "tiling"];
+    notifier = ["cosmic-notifications"];
+    panel = ["cosmic-panel"];
+    protocol = ["wayland"];
+    scope = "desktop";
+  };
+
+  gnome = {
+    categories = ["environment" "interface"];
+    compositor = "mutter";
+    greeters = ["gdm"];
+    layouts = ["floating" "stacking" "tiling"];
+    notifier = ["gnome-shell"];
+    panel = ["gnome-shell"];
+    protocol = ["wayland" "xorg"];
+    scope = "desktop";
+  };
+
+  pantheon = {
+    categories = ["environment" "interface"];
+    compositor = "gala";
+    greeters = ["lightdm"];
+    layouts = ["floating" "stacking" "tiling"];
+    notifier = ["notification-daemon"];
+    panel = ["wingpanel"];
     protocol = ["xorg"];
-    greeter = "lightdm";
-    compositor = {
-      shell = "xfce4-panel";
-      window = "xfwm4";
-    };
-    panel = "xfce4-panel";
-    notifier = "xfce4-notifyd";
+    scope = "desktop";
+  };
+
+  plasma = {
+    categories = ["environment" "interface"];
+    compositor = "kwin";
+    greeters = ["sddm" "plasma-login-shell"];
+    layouts = ["floating" "stacking" "tiling"];
+    notifier = ["plasmashell"];
+    panel = ["plasmashell"];
+    protocol = ["wayland" "xorg"];
+    scope = "desktop";
+  };
+
+  xfce = {
+    categories = ["environment" "interface"];
+    compositor = "xfwm4";
+    greeters = ["lightdm"];
+    layouts = ["floating" "stacking"];
+    notifier = ["xfce4-notifyd"];
+    panel = ["xfce4-panel"];
+    protocol = ["xorg"];
+    scope = "desktop";
   };
 
   #~@ Standalone WMs — Wayland
   hyprland = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+    categories = ["environment" "interface"];
+    compositor = "hyprland";
+    greeters = [
+      "regreet"
+      "dms-greeter"
+      "greetd"
+      "tuigreet"
+      "ly"
+    ];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["mako" "dms-shell" "swaync"];
+    panel = [
+      "hyprpanel"
+      "dms-shell"
+      "caelestia"
+      "exo"
+      "noctalia"
+      "waybar"
+      "nwg-panel"
+      "eww"
+    ];
     protocol = ["wayland"];
-    greeter = "dms-greeter";
-    compositor = {
-      shell = null;
-      window = "hyprland";
-    };
-    panel = "dms-shell";
-    notifier = "dms-shell";
+    scope = "compositor";
   };
+
   niri = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+    categories = ["environment" "interface"];
+    compositor = "niri";
+    greeters = ["regreet" "dms-greeter" "greetd" "tuigreet" "ly"];
+    layouts = ["tiling" "floating"];
+    notifier = ["mako" "dms-shell" "swaync"];
+    panel = ["dms-shell" "exo" "noctalia" "waybar" "eww"];
     protocol = ["wayland"];
-    greeter = "dms-greeter";
-    compositor = {
-      shell = null;
-      window = "niri";
-    };
-    panel = "dms-shell";
-    notifier = "dms-shell";
+    scope = "compositor";
   };
-  sway = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
-    protocol = ["wayland"];
-    greeter = "dms-greeter";
-    compositor = {
-      shell = null;
-      window = "sway";
-    };
-    panel = "dms-shell";
-    notifier = "dms-shell";
-  };
+
   river = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+    categories = ["environment" "interface"];
+    compositor = "river";
+    greeters = ["regreet" "dms-greeter" "greetd" "tuigreet" "ly"];
+    layouts = ["tiling" "floating"];
+    notifier = ["mako" "dms-shell" "swaync"];
+    panel = ["dms-shell" "waybar" "eww"];
     protocol = ["wayland"];
-    greeter = "dms-greeter";
-    compositor = {
-      shell = null;
-      window = "river";
-    };
-    panel = "dms-shell";
-    notifier = "dms-shell";
+    scope = "compositor";
+  };
+
+  sway = {
+    categories = ["environment" "interface"];
+    compositor = "sway";
+    greeters = ["regreet" "dms-greeter" "greetd" "tuigreet" "ly"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["mako" "dms-shell" "swaync"];
+    panel = ["dms-shell" "waybar" "swaybar" "eww"];
+    protocol = ["wayland"];
+    scope = "compositor";
   };
 
   #~@ Standalone WMs — Xorg
-  i3 = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
-    protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "i3";
-    };
-    panel = "polybar";
-    notifier = "dunst";
-  };
-  bspwm = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
-    protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "bspwm";
-    };
-    panel = "polybar";
-    notifier = "dunst";
-  };
-  qtile = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
-    protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "qtile";
-    };
-    panel = "qtile";
-    notifier = "dunst";
-  };
   awesome = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+    categories = ["environment" "interface"];
+    compositor = "awesome";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["dunst"];
+    panel = ["awesome" "polybar" "xmobar"];
     protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "awesome";
-    };
-    panel = "awesome";
-    notifier = "dunst";
+    scope = "compositor";
   };
-  xmonad = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+
+  bspwm = {
+    categories = ["environment" "interface"];
+    compositor = "bspwm";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["dunst"];
+    panel = ["polybar" "lemonbar" "xmobar"];
     protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "xmonad";
-    };
-    panel = "xmobar";
-    notifier = "dunst";
+    scope = "compositor";
   };
+
+  i3 = {
+    categories = ["environment" "interface"];
+    compositor = "i3";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["dunst"];
+    panel = ["i3bar" "polybar" "lemonbar" "xmobar"];
+    protocol = ["xorg"];
+    scope = "compositor";
+  };
+
   openbox = {
-    categories = ["interface" "environment"];
-    kind = "standalone";
+    categories = ["environment" "interface"];
+    compositor = "openbox";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["floating" "stacking"];
+    notifier = ["dunst" "xfce4-notifyd"];
+    panel = ["tint2" "polybar" "lemonbar"];
     protocol = ["xorg"];
-    greeter = "regreet";
-    compositor = {
-      shell = null;
-      window = "openbox";
-    };
-    panel = "tint2";
-    notifier = "xfce4-notifyd";
+    scope = "compositor";
+  };
+
+  qtile = {
+    categories = ["environment" "interface"];
+    compositor = "qtile";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["dunst"];
+    panel = ["qtile" "polybar" "xmobar"];
+    protocol = ["xorg"];
+    scope = "compositor";
+  };
+
+  xmonad = {
+    categories = ["environment" "interface"];
+    compositor = "xmonad";
+    greeters = ["lightdm" "greetd" "regreet"];
+    layouts = ["tiling" "floating" "stacking"];
+    notifier = ["dunst"];
+    panel = ["xmobar" "polybar" "lemonbar"];
+    protocol = ["xorg"];
+    scope = "compositor";
   };
 }
