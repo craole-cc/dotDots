@@ -34,8 +34,8 @@
     categories,
     channels ? {},
     families ? {},
-    grouped ? {},
-    queried ? (_: {}),
+    groups ? {},
+    queries ? (_: {}),
   }: let
     listCategories = indentedForError {
       title = "Valid Categories";
@@ -68,10 +68,10 @@
         all;
   in {
     inherit all;
-    grouped =
+    groups =
       {inherit byCategory byChannel byFamily ofCategory;}
-      // grouped;
-    queried = queried {inherit byCategory byChannel byFamily;};
+      // groups;
+    queries = queries {inherit byCategory byChannel byFamily;};
   };
 
   mkSubsystem = {

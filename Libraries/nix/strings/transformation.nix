@@ -4,6 +4,41 @@
   lib,
   ...
 }: let
+  __exports = {
+    internal = {
+      inherit
+        capitalize
+        indent
+        normalize
+        replaceAll
+        toCamel
+        toLower'
+        toPascal
+        toScreamingSnake
+        toSnake
+        toTitle
+        toUpper'
+        trim
+        trimEnd
+        trimStart
+        ;
+    };
+    external = {
+      capitalizeString = capitalize;
+      toCamelCase = toCamel;
+      toLowerCase = toLower';
+      toPascalCase = toPascal;
+      toScreamingSnakeCase = toScreamingSnake;
+      toSnakeCase = toSnake;
+      toTitleCase = toTitle;
+      toUpperCase = toUpper';
+      trimString = trim;
+      trimStringEnd = trimEnd;
+      trimStringStart = trimStart;
+      replaceAllStrings = replaceAll;
+      normalizeString = normalize;
+    };
+  };
   _debug = mkModuleDebug __moduleRef;
   inherit (_debug) mkFn mkExample;
 
@@ -12,10 +47,20 @@
   inherit (_.debug.testing.assertions) mkTest;
   inherit (_.debug.testing.runners) runTests;
   inherit (_.types.predicates) isList isString;
+  inherit
+    (_.strings.transformation)
+    removePrefix
+    removeSuffix
+    replaceStrings
+    splitString
+    toLower
+    toUpper
+    ;
+  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.access) stringLength substring;
+  inherit (_.strings.predicates) hasPrefix hasSuffix;
   inherit (_.content.empty) isEmpty;
   inherit (lib.lists) any genList map;
-  inherit (lib.strings) concatStringsSep hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
-  _str = lib.strings;
 
   #? Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -23,21 +68,30 @@
     then map fn input
     else fn input;
 
+  #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
+  _splitWords = s:
+    splitString "-" (
+      replaceStrings
+      [" " "_"]
+      ["-" "-"]
+      (toLower s)
+    );
+
   /**
   Convert a string or list of strings to lower case.
 
   # Type
   ```nix
-  toLower :: string | [string] -> string | [string]
+  toLower' :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toLower "FOO Bar"      # => "foo bar"
-  toLower ["FOO" "BAR"] # => ["foo" "bar"]
+  toLower' "FOO Bar"      # => "foo bar"
+  toLower' ["FOO" "BAR"] # => ["foo" "bar"]
   ```
   */
-  toLower = input:
+  toLower' = input:
     if isList input && any isList input
     then
       throw (_debug.withDoc {
@@ -53,23 +107,23 @@
         };
         inherit input;
       })
-    else _applyStr _str.toLower input;
+    else _applyStr toLower input;
 
   /**
   Convert a string or list of strings to upper case.
 
   # Type
   ```nix
-  toUpper :: string | [string] -> string | [string]
+  toUpper' :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toUpper "foo bar"      # => "FOO BAR"
-  toUpper ["foo" "bar"] # => ["FOO" "BAR"]
+  toUpper' "foo bar"      # => "FOO BAR"
+  toUpper' ["foo" "bar"] # => ["FOO" "BAR"]
   ```
   */
-  toUpper = input:
+  toUpper' = input:
     if isList input && any isList input
     then
       throw (_debug.withDoc {
@@ -85,7 +139,7 @@
         };
         inherit input;
       })
-    else _applyStr _str.toUpper input;
+    else _applyStr toUpper input;
 
   /**
   Remove leading occurrences of `chars` from a string or list of strings.
@@ -319,137 +373,356 @@
       input;
 
   indent = n: concatStringsSep "" (genList (_: " ") n);
-in {
-  inherit
-    trim
-    trimEnd
-    trimStart
-    replaceAll
-    normalize
-    toUpper
-    toLower
-    indent
-    ;
 
-  _rootAliases = {
-    toLowercase = toLower;
-    toUppercase = toUpper;
-    trimString = trim;
-    trimStringStart = trimStart;
-    trimStringEnd = trimEnd;
-    replaceAllStrings = replaceAll;
-    normalizeString = normalize;
-  };
+  /**
+  Capitalize the first character of a string or list of strings.
 
-  _tests = runTests {
-    toLower = {
-      singleString = mkTest {
-        desired = "foo bar";
-        command = ''toLower "FOO Bar"'';
-        outcome = toLower "FOO Bar";
+  The rest of the string is left unchanged. Use `toLower` first
+  if you want true Title Word behavior.
+
+  # Type
+  ```nix
+  capitalize :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  capitalize "foo bar"      # => "Foo bar"
+  capitalize "name"         # => "Name"
+  capitalize ["foo" "bar"]  # => ["Foo" "Bar"]
+  ```
+  */
+  capitalize = input: let
+    go = s:
+      if s == ""
+      then ""
+      else
+        toUpper (substring 0 1 s)
+        + substring 1 (stringLength s) s;
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "capitalize";
+          fn = capitalize;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''capitalize ["foo" "bar"]'';
+          res = ''["Foo" "Bar"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+
+  /**
+  Convert a string or list of strings to camelCase.
+
+  Splits on spaces, underscores, and hyphens.
+
+  # Type
+  ```nix
+  toCamel :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  toCamel "foo bar"           # => "fooBar"
+  toCamel "foo_bar_baz"       # => "fooBarBaz"
+  toCamel ["foo bar" "a_b"]   # => ["fooBar" "aB"]
+  ```
+  */
+  toCamel = input: let
+    go = s: let
+      words = _splitWords s;
+    in
+      builtins.head words
+      + concatStringsSep "" (map capitalize (builtins.tail words));
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "toCamel";
+          fn = toCamel;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''toCamel ["foo bar" "baz_qux"]'';
+          res = ''["fooBar" "bazQux"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+
+  /**
+  Convert a string or list of strings to PascalCase.
+
+  Splits on spaces, underscores, and hyphens.
+
+  # Type
+  ```nix
+  toPascal :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  toPascal "foo bar"           # => "FooBar"
+  toPascal "foo_bar_baz"       # => "FooBarBaz"
+  toPascal ["foo bar" "a_b"]   # => ["FooBar" "AB"]
+  ```
+  */
+  toPascal = input: let
+    go = s:
+      concatStringsSep "" (map capitalize (_splitWords s));
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "toPascal";
+          fn = toPascal;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''toPascal ["foo bar" "baz_qux"]'';
+          res = ''["FooBar" "BazQux"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+
+  /**
+  Convert a string or list of strings to snake_case.
+
+  Splits on spaces, underscores, and hyphens. All lowercase.
+
+  # Type
+  ```nix
+  toSnake :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  toSnake "Foo Bar"           # => "foo_bar"
+  toSnake "fooBarBaz"         # => "foobarbaz"  (no camelCase splitting)
+  toSnake ["Foo Bar" "A-B"]   # => ["foo_bar" "a_b"]
+  ```
+  */
+  toSnake = input: let
+    go = s: concatStringsSep "_" (_splitWords s);
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "toSnake";
+          fn = toSnake;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''toSnake ["Foo Bar" "baz-qux"]'';
+          res = ''["foo_bar" "baz_qux"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+
+  /**
+  Convert a string or list of strings to SCREAMING_SNAKE_CASE.
+
+  Splits on spaces, underscores, and hyphens. All uppercase.
+
+  # Type
+  ```nix
+  toScreamingSnake :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  toScreamingSnake "foo bar"        # => "FOO_BAR"
+  toScreamingSnake "fooBarBaz"      # => "FOOBARBAZ"
+  toScreamingSnake ["foo" "bar"]    # => ["FOO" "BAR"]
+  ```
+  */
+  toScreamingSnake = input: let
+    go = s: toUpper (concatStringsSep "_" (_splitWords s));
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "toScreamingSnake";
+          fn = toScreamingSnake;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''toScreamingSnake ["foo bar" "baz_qux"]'';
+          res = ''["FOO_BAR" "BAZ_QUX"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+
+  /**
+  Convert a string or list of strings to Title Case.
+
+  Splits on spaces, underscores, and hyphens. Each word is capitalized
+  and rejoined with a single space.
+
+  # Type
+  ```nix
+  toTitle :: string | [string] -> string | [string]
+  ```
+
+  # Examples
+  ```nix
+  toTitle "foo bar"           # => "Foo Bar"
+  toTitle "foo_bar_baz"       # => "Foo Bar Baz"
+  toTitle "the-quick-fox"     # => "The Quick Fox"
+  toTitle ["foo bar" "a_b"]   # => ["Foo Bar" "A B"]
+  ```
+  */
+  toTitle = input: let
+    go = s:
+      concatStringsSep " " (map capitalize (_splitWords s));
+  in
+    if isList input && any isList input
+    then
+      throw (_debug.withDoc {
+        function = mkFn {
+          name = "toTitle";
+          fn = toTitle;
+        };
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''toTitle ["foo bar" "baz_qux"]'';
+          res = ''["Foo Bar" "Baz Qux"]'';
+        };
+        inherit input;
+      })
+    else _applyStr go input;
+in
+  __exports.internal
+  // {
+    _rootAliases = __exports.external;
+
+    _tests = runTests {
+      toLower = {
+        singleString = mkTest {
+          desired = "foo bar";
+          command = ''toLower "FOO Bar"'';
+          outcome = toLower "FOO Bar";
+        };
+        list = mkTest {
+          desired = ["foo" "bar"];
+          command = ''toLower ["FOO" "BAR"]'';
+          outcome = toLower ["FOO" "BAR"];
+        };
       };
-      list = mkTest {
-        desired = ["foo" "bar"];
-        command = ''toLower ["FOO" "BAR"]'';
-        outcome = toLower ["FOO" "BAR"];
+      toUpper = {
+        singleString = mkTest {
+          desired = "FOO BAR";
+          command = ''toUpper "foo bar"'';
+          outcome = toUpper "foo bar";
+        };
+        list = mkTest {
+          desired = ["FOO" "BAR"];
+          command = ''toUpper ["foo" "bar"]'';
+          outcome = toUpper ["foo" "bar"];
+        };
+      };
+      trimStart = {
+        spaces = mkTest {
+          desired = "foo bar";
+          command = ''trimStart null "  foo bar"'';
+          outcome = trimStart null "  foo bar";
+        };
+        customChar = mkTest {
+          desired = "Pictures";
+          command = ''trimStart "home:" "home:home:Pictures"'';
+          outcome = trimStart "home:" "home:home:Pictures";
+        };
+        list = mkTest {
+          desired = ["a" "b"];
+          command = ''trimStart null ["  a" "  b"]'';
+          outcome = trimStart null ["  a" "  b"];
+        };
+      };
+      trimEnd = {
+        spaces = mkTest {
+          desired = "foo bar";
+          command = ''trimEnd null "foo bar  "'';
+          outcome = trimEnd null "foo bar  ";
+        };
+        customChar = mkTest {
+          desired = "foo";
+          command = ''trimEnd "!" "foo!!!"'';
+          outcome = trimEnd "!" "foo!!!";
+        };
+      };
+      trim = {
+        spaces = mkTest {
+          desired = "foo bar";
+          command = ''trim null "  foo bar  "'';
+          outcome = trim null "  foo bar  ";
+        };
+        customChar = mkTest {
+          desired = "foo/bar";
+          command = ''trim "/" "/foo/bar/"'';
+          outcome = trim "/" "/foo/bar/";
+        };
+      };
+      replaceAll = {
+        singlePair = mkTest {
+          desired = "bar bar";
+          command = ''replaceAll "foo" "bar" "foo foo"'';
+          outcome = replaceAll "foo" "bar" "foo foo";
+        };
+        multiPair = mkTest {
+          desired = "zen-twilight";
+          command = ''replaceAll [" " "_"] ["-" "-"] "zen twilight"'';
+          outcome = replaceAll [" " "_"] ["-" "-"] "zen twilight";
+        };
+        list = mkTest {
+          desired = ["b" "cbt"];
+          command = ''replaceAll "a" "b" ["a" "cat"]'';
+          outcome = replaceAll "a" "b" ["a" "cat"];
+        };
+      };
+      normalize = {
+        spaces = mkTest {
+          desired = "zen-twilight";
+          command = ''normalize "Zen Twilight"'';
+          outcome = normalize "Zen Twilight";
+        };
+        underscores = mkTest {
+          desired = "zen-twilight";
+          command = ''normalize "zen_twilight"'';
+          outcome = normalize "zen_twilight";
+        };
+        list = mkTest {
+          desired = ["zen-twilight" "zen-beta"];
+          command = ''normalize ["Zen Twilight" "zen_beta"]'';
+          outcome = normalize ["Zen Twilight" "zen_beta"];
+        };
+        nullInput = mkTest {
+          desired = null;
+          command = ''normalize null'';
+          outcome = normalize null;
+        };
+        emptyInput = mkTest {
+          desired = null;
+          command = ''normalize []'';
+          outcome = normalize [];
+        };
       };
     };
-    toUpper = {
-      singleString = mkTest {
-        desired = "FOO BAR";
-        command = ''toUpper "foo bar"'';
-        outcome = toUpper "foo bar";
-      };
-      list = mkTest {
-        desired = ["FOO" "BAR"];
-        command = ''toUpper ["foo" "bar"]'';
-        outcome = toUpper ["foo" "bar"];
-      };
-    };
-    trimStart = {
-      spaces = mkTest {
-        desired = "foo bar";
-        command = ''trimStart null "  foo bar"'';
-        outcome = trimStart null "  foo bar";
-      };
-      customChar = mkTest {
-        desired = "Pictures";
-        command = ''trimStart "home:" "home:home:Pictures"'';
-        outcome = trimStart "home:" "home:home:Pictures";
-      };
-      list = mkTest {
-        desired = ["a" "b"];
-        command = ''trimStart null ["  a" "  b"]'';
-        outcome = trimStart null ["  a" "  b"];
-      };
-    };
-    trimEnd = {
-      spaces = mkTest {
-        desired = "foo bar";
-        command = ''trimEnd null "foo bar  "'';
-        outcome = trimEnd null "foo bar  ";
-      };
-      customChar = mkTest {
-        desired = "foo";
-        command = ''trimEnd "!" "foo!!!"'';
-        outcome = trimEnd "!" "foo!!!";
-      };
-    };
-    trim = {
-      spaces = mkTest {
-        desired = "foo bar";
-        command = ''trim null "  foo bar  "'';
-        outcome = trim null "  foo bar  ";
-      };
-      customChar = mkTest {
-        desired = "foo/bar";
-        command = ''trim "/" "/foo/bar/"'';
-        outcome = trim "/" "/foo/bar/";
-      };
-    };
-    replaceAll = {
-      singlePair = mkTest {
-        desired = "bar bar";
-        command = ''replaceAll "foo" "bar" "foo foo"'';
-        outcome = replaceAll "foo" "bar" "foo foo";
-      };
-      multiPair = mkTest {
-        desired = "zen-twilight";
-        command = ''replaceAll [" " "_"] ["-" "-"] "zen twilight"'';
-        outcome = replaceAll [" " "_"] ["-" "-"] "zen twilight";
-      };
-      list = mkTest {
-        desired = ["b" "cbt"];
-        command = ''replaceAll "a" "b" ["a" "cat"]'';
-        outcome = replaceAll "a" "b" ["a" "cat"];
-      };
-    };
-    normalize = {
-      spaces = mkTest {
-        desired = "zen-twilight";
-        command = ''normalize "Zen Twilight"'';
-        outcome = normalize "Zen Twilight";
-      };
-      underscores = mkTest {
-        desired = "zen-twilight";
-        command = ''normalize "zen_twilight"'';
-        outcome = normalize "zen_twilight";
-      };
-      list = mkTest {
-        desired = ["zen-twilight" "zen-beta"];
-        command = ''normalize ["Zen Twilight" "zen_beta"]'';
-        outcome = normalize ["Zen Twilight" "zen_beta"];
-      };
-      nullInput = mkTest {
-        desired = null;
-        command = ''normalize null'';
-        outcome = normalize null;
-      };
-      emptyInput = mkTest {
-        desired = null;
-        command = ''normalize []'';
-        outcome = normalize [];
-      };
-    };
-  };
-}
+  }

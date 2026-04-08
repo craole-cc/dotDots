@@ -11,7 +11,7 @@
     config = {
       lang = ["bash"];
       file = ".liquidpromptrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     shells = ["bash" "zsh"];
     maturity = "stable";
@@ -28,7 +28,7 @@
     config = {
       lang = ["toml"];
       file = "zen.toml";
-      path = "$XDG_CONFIG_HOME/ohmyposh";
+      home = "$XDG_CONFIG_HOME/ohmyposh";
     };
     shells = ["bash" "zsh" "fish" "nushell" "pwsh"];
     maturity = "stable";
@@ -39,7 +39,7 @@
     config = {
       lang = ["zsh"];
       file = ".p10k.zsh";
-      path = "$HOME";
+      home = "$HOME";
     };
     shells = ["zsh"];
     maturity = "stable";
@@ -50,7 +50,7 @@
     config = {
       lang = ["json"];
       file = "config.json";
-      path = "$XDG_CONFIG_HOME/powerline";
+      home = "$XDG_CONFIG_HOME/powerline";
     };
     shells = ["bash" "zsh" "fish" "pwsh"];
     maturity = "legacy";
@@ -73,7 +73,7 @@
     config = {
       lang = ["zsh"];
       file = ".zpreztorc";
-      path = "$HOME";
+      home = "$HOME";
     };
     shells = ["zsh"];
     maturity = "stable";
@@ -90,7 +90,7 @@
     config = {
       lang = ["zsh"];
       file = "spaceship.zsh";
-      path = "$XDG_CONFIG_HOME/spaceship";
+      home = "$XDG_CONFIG_HOME/spaceship";
     };
     shells = ["zsh"];
     maturity = "stable";
@@ -101,7 +101,7 @@
     config = {
       lang = ["toml"];
       file = "starship.toml";
-      path = "$XDG_CONFIG_HOME";
+      home = "$XDG_CONFIG_HOME";
     };
     shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh" "tcsh"];
     maturity = "stable";

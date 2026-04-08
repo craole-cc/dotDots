@@ -5,7 +5,7 @@
     config = {
       lang = ["toml"];
       file = "config.toml";
-      path = "$XDG_CONFIG_HOME/atuin";
+      home = "$XDG_CONFIG_HOME/atuin";
     };
     shells = ["bash" "zsh" "fish" "nushell"];
     maturity = "stable";
@@ -25,7 +25,7 @@
     config = {
       lang = ["toml"];
       file = "config.toml";
-      path = "$XDG_DATA_HOME/mcfly";
+      home = "$XDG_DATA_HOME/mcfly";
     };
     shells = ["bash" "zsh" "fish"];
     maturity = "stable";

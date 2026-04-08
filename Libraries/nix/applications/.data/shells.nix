@@ -4,7 +4,7 @@
     config = {
       lang = ["bash"];
       file = ".bashrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     engine = ["c"];
     interactive = true;
@@ -17,7 +17,7 @@
     config = {
       lang = ["sh"];
       file = ".profile";
-      path = "$HOME";
+      home = "$HOME";
     };
     engine = ["c"];
     interactive = true;
@@ -34,7 +34,7 @@
     config = {
       lang = ["elvish"];
       file = "rc.elv";
-      path = "$XDG_CONFIG_HOME/elvish";
+      home = "$XDG_CONFIG_HOME/elvish";
     };
     maturity = "young";
   };
@@ -47,7 +47,7 @@
     config = {
       lang = ["fish"];
       file = "config.fish";
-      path = "$XDG_CONFIG_HOME/fish";
+      home = "$XDG_CONFIG_HOME/fish";
     };
     maturity = "stable";
   };
@@ -60,7 +60,7 @@
     config = {
       lang = ["ksh"];
       file = ".kshrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     maturity = "stable";
   };
@@ -73,7 +73,7 @@
     config = {
       lang = ["nu"];
       file = "config.nu";
-      path = "$XDG_CONFIG_HOME/nushell";
+      home = "$XDG_CONFIG_HOME/nushell";
     };
     maturity = "young";
   };
@@ -86,7 +86,7 @@
     config = {
       lang = ["powershell"];
       file = "profile.ps1";
-      path = "$XDG_CONFIG_HOME/powershell";
+      home = "$XDG_CONFIG_HOME/powershell";
     };
     maturity = "stable";
   };
@@ -99,7 +99,7 @@
     config = {
       lang = ["sh"];
       file = ".profile";
-      path = "$HOME";
+      home = "$HOME";
     };
     maturity = "legacy";
   };
@@ -112,7 +112,7 @@
     config = {
       lang = ["csh"];
       file = ".tcshrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     maturity = "legacy";
   };
@@ -125,7 +125,7 @@
     config = {
       lang = ["zsh"];
       file = ".zshrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     maturity = "stable";
   };

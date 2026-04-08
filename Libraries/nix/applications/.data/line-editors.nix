@@ -5,7 +5,7 @@
     config = {
       lang = ["bash"];
       file = ".blerc";
-      path = "$HOME";
+      home = "$HOME";
     };
     shells = ["bash"];
     maturity = "young";
@@ -16,7 +16,7 @@
     config = {
       lang = ["readline"];
       file = ".inputrc";
-      path = "$HOME";
+      home = "$HOME";
     };
     shells = ["bash" "sh" "ksh"];
     maturity = "stable";
