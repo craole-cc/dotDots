@@ -88,6 +88,14 @@
     "Packages/custom/dots/archive",
     "Packages/custom/dots/tmp_repl.nix",
     "Modules/nix/core/interface/environment/gnome/reference.nix",
-    "Libraries/nix/applications/.data"
+    "Libraries/nix/applications/.data",
+    "Libraries/nix/applications/firefox.md",
+    "Libraries/nix/applications/config.nix",
+    "Libraries/nix/applications/editors.nix",
+    "Libraries/nix/applications/generators.nix",
+    "Libraries/nix/applications/operations.nix",
+    "Libraries/nix/applications/resolution.nix",
+    "Libraries/nix/applications/on.nix",
+    "Libraries/nix/applications/firefox.nix"
   ]
 }

@@ -123,8 +123,14 @@
     multiKey,
     set,
   }: {
-    ${singleKey} = filterAttrs (_: a: length (a.${field} or []) == 1) set;
-    ${multiKey} = filterAttrs (_: a: length (a.${field} or []) > 1) set;
+    ${singleKey} =
+      filterAttrs
+      (_: a: length (a.${field} or []) == 1)
+      set;
+    ${multiKey} =
+      filterAttrs
+      (_: a: length (a.${field} or []) > 1)
+      set;
   };
 
   mkScopeQueries = {
@@ -133,9 +139,7 @@
     singleKey,
     multiKey,
   }:
-    mkLengthQueries {
-      inherit set field singleKey multiKey;
-    };
+    mkLengthQueries {inherit set field singleKey multiKey;};
 
   # -- Semantic grouped helpers ─────────────────────────────────────────────────
   mkMaturityGroup = {
