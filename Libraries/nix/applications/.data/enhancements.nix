@@ -1,42 +1,50 @@
 {...}: {
   atuin = {
     categories = ["shell" "enhancement"];
-    language = "rust";
-    config = "atuin/config.toml";
+    engine = ["rust"];
+    config = {
+      lang = ["toml"];
+      file = "config.toml";
+      path = "$XDG_CONFIG_HOME/atuin";
+    };
     shells = ["bash" "zsh" "fish" "nushell"];
     maturity = "stable";
     kind = "history";
   };
+  fzf = {
+    categories = ["shell" "enhancement"];
+    engine = ["go"];
+    config = null;
+    shells = ["bash" "zsh" "fish"];
+    maturity = "stable";
+    kind = "fuzzy";
+  };
   mcfly = {
     categories = ["shell" "enhancement"];
-    language = "rust";
-    config = null;
+    engine = ["rust"];
+    config = {
+      lang = ["toml"];
+      file = "config.toml";
+      path = "$XDG_DATA_HOME/mcfly";
+    };
     shells = ["bash" "zsh" "fish"];
     maturity = "stable";
     kind = "history";
   };
+  skim = {
+    categories = ["shell" "enhancement"];
+    engine = ["rust"];
+    config = null;
+    shells = ["bash" "zsh" "fish"];
+    maturity = "stable";
+    kind = "fuzzy";
+  };
   zoxide = {
     categories = ["shell" "enhancement"];
-    language = "rust";
+    engine = ["rust"];
     config = null;
     shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh"];
     maturity = "stable";
     kind = "navigation";
-  };
-  fzf = {
-    categories = ["shell" "enhancement"];
-    language = "go";
-    config = null;
-    shells = ["bash" "zsh" "fish"];
-    maturity = "stable";
-    kind = "fuzzy";
-  };
-  skim = {
-    categories = ["shell" "enhancement"];
-    language = "rust";
-    config = null;
-    shells = ["bash" "zsh" "fish"];
-    maturity = "stable";
-    kind = "fuzzy";
   };
 }

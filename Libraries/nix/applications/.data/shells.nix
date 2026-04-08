@@ -85,7 +85,7 @@
     engine = ["dotnet" "csharp"];
     config = {
       lang = ["powershell"];
-      file = "Microsoft.PowerShell_profile.ps1";
+      file = "profile.ps1";
       path = "$XDG_CONFIG_HOME/powershell";
     };
     maturity = "stable";

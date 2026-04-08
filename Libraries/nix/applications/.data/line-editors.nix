@@ -1,23 +1,30 @@
 {...}: {
   blesh = {
     categories = ["shell" "line-editor"];
-    language = "bash";
-    config = ".blerc";
+    engine = ["bash"];
+    config = {
+      lang = ["bash"];
+      file = ".blerc";
+      path = "$HOME";
+    };
     shells = ["bash"];
     maturity = "young";
   };
-  zle = {
-    categories = ["shell" "line-editor"];
-    language = "c";
-    config = null;
-    shells = ["zsh"];
-    maturity = "stable";
-  };
   readline = {
     categories = ["shell" "line-editor"];
-    language = "c";
-    config = ".inputrc";
+    engine = ["c"];
+    config = {
+      lang = ["readline"];
+      file = ".inputrc";
+      path = "$HOME";
+    };
     shells = ["bash" "sh" "ksh"];
+    maturity = "stable";
+  };
+  zle = {
+    categories = ["shell" "line-editor"];
+    engine = ["c" "zsh"];
+    shells = ["zsh"];
     maturity = "stable";
   };
 }

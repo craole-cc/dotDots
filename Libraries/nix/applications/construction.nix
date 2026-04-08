@@ -35,7 +35,7 @@
     channels ? {},
     families ? {},
     grouped ? {},
-    queried ? (_: {}), # fn: { byCategory, byChannel, byFamily } -> attrset
+    queried ? (_: {}),
   }: let
     listCategories = indentedForError {
       title = "Valid Categories";
@@ -48,7 +48,10 @@
       (
         genAttrs
         families.allValues
-        (n: filterAttrs (_: a: a.family == n) all)
+        (n:
+          filterAttrs
+          (_: a: (a.family or null) == n)
+          all)
       );
     byChannel =
       optionalAttrs
@@ -56,7 +59,10 @@
       (
         genAttrs
         channels.allValues
-        (n: filterAttrs (_: a: a.channel == n) all)
+        (n:
+          filterAttrs
+          (_: a: (a.channel or null) == n)
+          all)
       );
     ofCategory = category:
       if !categories.validator.check category
