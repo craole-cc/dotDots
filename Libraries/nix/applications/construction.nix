@@ -42,28 +42,6 @@
       items = categories.allValues;
     };
     byCategory = genAttrs categories.allValues ofCategory;
-    # byFamily =
-    #   optionalAttrs
-    #   (families?allValues)
-    #   (
-    #     genAttrs
-    #     families.allValues
-    #     (n:
-    #       filterAttrs
-    #       (_: a: (a.family or null) == n)
-    #       all)
-    #   );
-    # byChannel =
-    #   optionalAttrs
-    #   (channels?allValues)
-    #   (
-    #     genAttrs
-    #     channels.allValues
-    #     (n:
-    #       filterAttrs
-    #       (_: a: (a.channel or null) == n)
-    #       all)
-    #   );
     byFamily = optionalAttrs (families ? allValues) (
       genAttrs families.allValues (
         n:
