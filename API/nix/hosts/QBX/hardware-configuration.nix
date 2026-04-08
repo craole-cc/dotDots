@@ -14,9 +14,7 @@ in {
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
     amdgpu.initrd.enable = true;
-
     graphics.enable = true;
-
     nvidia = {
       open = false;
       package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
@@ -51,12 +49,7 @@ in {
   boot = {
     kernelPackages = mkDefault pkgs.linuxPackages_latest;
     extraModulePackages = [];
-
-    # nvidia_drm KMS options via modprobe — applied when the module loads
-    # during systemd init (stage-2), not in the initrd.
-    extraModprobeConfig = ''
-      options nvidia_drm modeset=1 fbdev=1
-    '';
+    extraModprobeConfig = ''options nvidia_drm modeset=1 fbdev=1'';
 
     initrd = {
       availableKernelModules = [
@@ -67,13 +60,7 @@ in {
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = [
-        # amdgpu in initrd is fine — it powers the framebuffer console.
-        # nvidia_drm must NOT be here: PCI devices aren't fully accessible
-        # in stage-1, causing "No such device" and permanent load failure.
-        "amdgpu"
-        "kvm-amd"
-      ];
+      kernelModules = ["amdgpu" "kvm-amd"];
     };
 
     loader = {
@@ -83,18 +70,18 @@ in {
     };
 
     kernelParams = [
-      # NVIDIA registry options
+      #~@ NVIDIA registry options
       "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
       "nvidia.NVreg_EnableS0ixPowerManagement=1"
       "nvidia.NVreg_TemporaryFilePath=/var/tmp"
 
-      # AMD
+      #~@ AMD
       "amdgpu.modeset=1"
       "amd_pstate=active"
 
-      # simpledrm is built into the NixOS kernel — it cannot be blacklisted.
-      # These params prevent it from binding to the EFI framebuffer device,
-      # leaving the NVIDIA PCI slot free for nvidia_drm to claim at stage-2.
+      #? simpledrm is built into the NixOS kernel — it cannot be blacklisted.
+      #? These params prevent it from binding to the EFI framebuffer device,
+      #? leaving the NVIDIA PCI slot free for nvidia_drm to claim at stage-2.
       "video=efifb:off"
       "video=vesa:off"
       "video=simplefb:off"
