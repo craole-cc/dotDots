@@ -45,16 +45,6 @@
     (_: a: (a.${field} or default) == value)
     set;
 
-  withNeq = {
-    field,
-    default ? null,
-    value,
-    set,
-  }:
-    filterAttrs
-    (_: a: (a.${field} or default) != value)
-    set;
-
   withMember = {
     field,
     value,
@@ -178,18 +168,6 @@
     };
   };
 
-  mkFlagQueries = {
-    set,
-    flags,
-  }:
-    genAttrs flags (
-      flag:
-        withFlag {
-          inherit set;
-          field = flag;
-        }
-    );
-
   mkIndependenceQueries = set:
     mkBoolQueries {
       inherit set;
@@ -253,17 +231,6 @@
       field = "remote";
     };
   };
-
-  mkExistenceQueries = {
-    set,
-    fields,
-  }:
-    genAttrs fields (
-      field:
-        filterAttrs
-        (_: a: (a.${field} or null) != null)
-        set
-    );
 
   mkConfigQueries = set: {
     configurable =
