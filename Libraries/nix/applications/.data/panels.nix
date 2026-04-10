@@ -10,6 +10,7 @@
   };
 
   caelestia = {
+    # family = "caelestia";
     categories = ["panel" "interface"];
     independent = true;
     engine = ["c++" "qml"];
@@ -21,6 +22,7 @@
 
   cinnamon = {
     categories = ["panel" "interface"];
+    family = "cinnamon";
     independent = false;
     engine = ["c"];
     config = ["javascript" "css"];
@@ -31,6 +33,7 @@
 
   cosmic-panel = {
     categories = ["panel" "interface"];
+    family = "cosmic";
     independent = false;
     engine = ["rust"];
     config = ["ron" "css"];
@@ -41,6 +44,7 @@
 
   dms-shell = {
     categories = ["panel" "interface"];
+    family = "dms";
     independent = true;
     engine = ["go"];
     config = ["qml"];
@@ -71,6 +75,7 @@
 
   gnome-shell = {
     categories = ["panel" "interface"];
+    family = "gnome";
     independent = false;
     engine = ["c" "javascript"];
     config = ["javascript" "css"];
@@ -91,6 +96,7 @@
 
   hyprpanel = {
     categories = ["panel" "interface"];
+    family = "hyprland";
     independent = true;
     engine = ["typescript"];
     config = ["typescript" "scss"];
@@ -131,6 +137,7 @@
 
   plasmashell = {
     categories = ["panel" "interface"];
+    family = "plasma";
     independent = false;
     engine = ["c++" "qml"];
     config = ["qml" "javascript"];
@@ -161,6 +168,7 @@
 
   swaybar = {
     categories = ["panel" "interface"];
+    family = "sway";
     independent = false;
     engine = ["c"];
     config = ["shell" "json"];
@@ -191,6 +199,7 @@
 
   wingpanel = {
     categories = ["panel" "interface"];
+    family = "pantheon";
     independent = false;
     engine = ["vala" "c"];
     config = ["css"];
@@ -200,6 +209,7 @@
   };
 
   xfce4-panel = {
+    family = "xfce";
     categories = ["panel" "interface"];
     independent = false;
     engine = ["c"];
@@ -210,6 +220,7 @@
   };
 
   xmobar = {
+    family = "xmonad";
     categories = ["panel" "interface"];
     independent = true;
     engine = ["haskell"];

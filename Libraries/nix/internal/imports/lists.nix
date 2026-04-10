@@ -104,6 +104,7 @@
       any
       elem
       isList
+      allUnique
       ;
   };
 in

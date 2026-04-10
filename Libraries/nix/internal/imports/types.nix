@@ -76,7 +76,7 @@
 
   predicates = {
     inherit (attrsets) isAttrs isDerivation;
-    inherit (trivial) isBool;
+    inherit (trivial) isBool isFunction;
     inherit (filesystem) isPath;
     inherit (lists) isList;
     inherit

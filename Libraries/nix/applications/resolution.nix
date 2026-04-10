@@ -1,7 +1,11 @@
-{lib, ...}: let
-  inherit (lib.attrsets) attrByPath hasAttrByPath;
-  inherit (lib.lists) filter unique;
-  inherit (lib.trivial) isFunction;
+{_, ...}: let
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.predicates) hasAttrByPath;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.strings.predicates) hasInfix;
+  inherit (_.strings.transformation) toLower;
+  inherit (_.types.predicates) isFunction;
 
   /**
   mkApp - Create a generic application handler with flake support
@@ -131,28 +135,33 @@
   # Helper to detect browser variant (similar to detectFirefoxVariant)
   # TODO: move to parse.nix
   detectBrowserVariant = input: let
-    lowerInput = lib.toLower input;
+    lowerInput = toLower input;
   in
     # Zen Browser variants
-    if lib.hasInfix "zen" lowerInput && (lib.hasInfix "beta" lowerInput || lib.hasInfix "nightly" lowerInput)
+    if
+      hasInfix "zen" lowerInput
+      && (
+        hasInfix "beta" lowerInput
+        || hasInfix "nightly" lowerInput
+      )
     then "zen-beta"
-    else if lib.hasInfix "zen" lowerInput
+    else if hasInfix "zen" lowerInput
     then "zen-twilight"
     # Edge/Chromium variants
-    else if lib.hasInfix "edge" lowerInput
+    else if hasInfix "edge" lowerInput
     then "edge"
-    else if lib.hasInfix "chrome" lowerInput && lib.hasInfix "google" lowerInput
+    else if hasInfix "chrome" lowerInput && hasInfix "google" lowerInput
     then "chrome"
-    else if lib.hasInfix "chromium" lowerInput
+    else if hasInfix "chromium" lowerInput
     then "chromium"
     # Other browsers
-    else if lib.hasInfix "brave" lowerInput
+    else if hasInfix "brave" lowerInput
     then "brave"
-    else if lib.hasInfix "vivaldi" lowerInput
+    else if hasInfix "vivaldi" lowerInput
     then "vivaldi"
-    else if lib.hasInfix "floorp" lowerInput
+    else if hasInfix "floorp" lowerInput
     then "floorp"
-    else if lib.hasInfix "firefox" lowerInput
+    else if hasInfix "firefox" lowerInput
     then "firefox"
     # Default to input if no match
     else input;

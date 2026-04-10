@@ -82,6 +82,7 @@
       execFlag = "-e";
     };
     categories = ["terminal"];
+    family = "plasma";
   };
 
   gnome-terminal = {
@@ -95,6 +96,7 @@
       titleFlag = "--title";
       execFlag = "--";
     };
+    family = "gnome";
     categories = ["terminal"];
   };
 
@@ -104,6 +106,7 @@
       command = "xfce4-terminal";
       class = "xfce4-terminal";
     };
+    family = "xfce";
     exec = "xfce4-terminal";
     wrap = {
       titleFlag = "--title";
@@ -113,6 +116,7 @@
   };
 
   cosmic-terminal = {
+    family = "cosmic";
     names = {
       package = "cosmic-term";
       command = "cosmic-term";
@@ -133,6 +137,7 @@
       class = "io.elementary.terminal";
     };
     exec = "io.elementary.terminal";
+    family = "pantheon";
     wrap = {
       titleFlag = "--title";
       execFlag = "-x";

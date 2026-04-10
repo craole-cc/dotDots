@@ -2,6 +2,7 @@
   cosmic-greeter = {
     categories = ["greeter" "interface"];
     kind = "graphical";
+    family = "cosmic";
     independent = false;
     engine = ["rust"];
     config = ["ron" "css"];
@@ -11,6 +12,7 @@
   };
   dms-greeter = {
     categories = ["greeter" "interface"];
+    family = "dms";
     kind = "graphical";
     independent = true;
     engine = ["rust"];
@@ -22,6 +24,7 @@
   gdm = {
     categories = ["greeter" "interface"];
     kind = "graphical";
+    family = "gnome";
     independent = false;
     engine = ["c"];
     config = ["javascript" "css"];
@@ -31,6 +34,7 @@
   };
   greetd = {
     categories = ["greeter" "interface"];
+    family = "greetd";
     kind = "daemon";
     independent = true;
     engine = ["rust"];
@@ -71,6 +75,7 @@
   };
   plasma-login-shell = {
     categories = ["greeter" "interface"];
+    family = "plasma";
     kind = "graphical";
     independent = false;
     engine = ["c++" "qml"];
@@ -81,6 +86,7 @@
   };
   regreet = {
     categories = ["greeter" "interface"];
+    family = "greetd";
     kind = "graphical";
     independent = true;
     engine = ["rust"];
@@ -91,6 +97,7 @@
   };
   sddm = {
     categories = ["greeter" "interface"];
+    family = "plasma";
     kind = "graphical";
     independent = true;
     engine = ["c++"];

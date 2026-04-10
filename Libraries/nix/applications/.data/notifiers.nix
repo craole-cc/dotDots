@@ -1,5 +1,6 @@
 {...}: {
   cinnamon = {
+    family = "cinnamon";
     categories = ["interface" "notifier"];
     protocol = ["xorg"];
     independent = false;
@@ -8,6 +9,7 @@
     maturity = "stable";
   };
   cosmic-notifications = {
+    family = "cosmic";
     categories = ["interface" "notifier"];
     protocol = ["wayland"];
     independent = false;
@@ -25,6 +27,7 @@
   };
   dms-shell = {
     categories = ["interface" "notifier"];
+    family = "dms";
     protocol = ["wayland"];
     independent = true;
     engine = ["go"];
@@ -49,6 +52,7 @@
   };
   gnome-shell = {
     categories = ["interface" "notifier"];
+    family = "gnome";
     protocol = ["wayland"];
     independent = false;
     engine = ["c" "javascript"];
@@ -73,6 +77,7 @@
   };
   plasmashell = {
     categories = ["interface" "notifier"];
+    family = "plasma";
     protocol = ["wayland"];
     independent = false;
     engine = ["c++" "qml"];
@@ -81,6 +86,7 @@
   };
   xfce4-notifyd = {
     categories = ["interface" "notifier"];
+    family = "xfce";
     protocol = ["xorg"];
     independent = false;
     engine = ["c"];

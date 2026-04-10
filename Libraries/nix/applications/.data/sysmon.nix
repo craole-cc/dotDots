@@ -43,6 +43,7 @@
   };
 
   gnome-system-monitor = {
+    family = "gnome";
     names = {
       package = "gnome.gnome-system-monitor";
       command = "gnome-system-monitor";
@@ -53,6 +54,7 @@
   };
 
   plasma-systemmonitor = {
+    family = "plasma";
     names = {
       package = "plasma-systemmonitor";
       command = "plasma-systemmonitor";

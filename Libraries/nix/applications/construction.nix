@@ -4,6 +4,7 @@
       inherit
         mkFilters
         mkRegistry
+        importRegistry
         mkShellApp
         mkScriptWrapper
         mkScriptWrappers
@@ -13,158 +14,97 @@
     external = exports.internal;
   };
 
+  inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.lists.access) head init last length;
   inherit (_.filesystem.access) readFile;
   inherit (_.filesystem.importers) importAllMerged;
-  inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) isIn;
-  inherit (_.strings.construction) concatStringsSep indentedForError;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) escapeShellArgs;
-  inherit (_.types.predicates) isString isPath;
+  inherit (_.types.predicates) isList isPath isString;
 
-  normalizeOptional = val:
-    if val == null || val == "" || val == "none"
+  normalizeOptional = value:
+    if value == null || value == "" || value == "none"
     then null
-    else val;
+    else value;
+
+  normalizeList = values:
+    if isList values
+    then filter (value: value != null && value != "" && value != "none") values
+    else [];
+
+  keysFromOptional = field: set:
+    unique (
+      filter (value: value != null) (
+        map (item: normalizeOptional (item.${field} or null)) (attrValues set)
+      )
+    );
+
+  keysFromMembers = field: set:
+    unique (
+      builtins.concatMap (item: normalizeList (item.${field} or [])) (attrValues set)
+    );
+
+  mkRegistry = data:
+    mapAttrs (_: app:
+      app
+      // {
+        categories = normalizeList (app.categories or []);
+        channel = normalizeOptional (app.channel or null);
+        family = normalizeOptional (app.family or null);
+      })
+    data;
+
+  importRegistry = path:
+    mkRegistry (importAllMerged path {});
 
   mkFilters = {
     all,
-    categories,
-    channels ? {},
-    families ? {},
     groups ? {},
     queries ? (_: {}),
   }: let
-    listCategories = indentedForError {
-      title = "Valid Categories";
-      items = categories.allValues;
-    };
-    byCategory = genAttrs categories.allValues ofCategory;
-    byFamily = optionalAttrs (families ? allValues) (
-      genAttrs families.allValues (
-        n:
-          filterAttrs
-          (_: a: (a.family or null) == n)
-          all
-      )
+    byCategory = genAttrs (keysFromMembers "categories" all) (
+      category:
+        filterAttrs (_: app: isIn category (app.categories or [])) all
     );
-    byChannel = optionalAttrs (families ? allValues) (
-      genAttrs channels.allValues (
-        n:
-          filterAttrs (_: a: (a.channel or null) == n) all
-      )
+
+    byFamily = genAttrs (keysFromOptional "family" all) (
+      family:
+        filterAttrs (_: app: (app.family or null) == family) all
+    );
+
+    byChannel = genAttrs (keysFromOptional "channel" all) (
+      channel:
+        filterAttrs (_: app: (app.channel or null) == channel) all
     );
 
     ofCategory = category:
-      if !categories.validator.check category
-      then
-        throw
-        "'${category}' is not a valid category. ${listCategories}"
-      else
-        filterAttrs
-        (_: a: isIn category (a.categories or []))
-        all;
+      byCategory.${category} or {};
   in {
     inherit all;
     groups =
-      {inherit byCategory byChannel byFamily ofCategory;}
+      {
+        inherit byCategory byFamily byChannel ofCategory;
+      }
       // groups;
-    queries = queries {inherit byCategory byChannel byFamily;};
+    queries = queries {inherit byCategory byFamily byChannel;};
   };
 
   mkSubsystem = {
     path,
-    categories,
-    channels ? null,
-    families ? null,
+    groups ? {},
+    queries ? (_: {}),
   }: let
-    all = mkRegistry {
-      data = importAllMerged path {};
-      inherit categories channels families;
-    };
+    all = importRegistry path;
   in {
+    inherit all;
     registry = all;
-    filters = mkFilters {inherit all categories channels families;};
-  };
-
-  /**
-  Build a validated, normalized registry attrset from raw imported data.
-
-  # Arguments
-  - data:       imported attrset (e.g. from importAllMerged)
-  - categories: mkEnum result — required, non-nullable
-  - channels:   mkEnum result — optional, pass null to skip validation
-  - families:   mkEnum result — optional, pass null to skip validation
-
-  # Example
-  ```nix
-  all = mkRegistry {
-    data       = _.filesystem.importers.importAllMerged ./.data {};
-    inherit categories channels families;
-  };
-  ```
-  */
-  mkRegistry = {
-    data,
-    categories,
-    channels ? null,
-    families ? null,
-  }: let
-    listCategories = indentedForError {
-      title = "Valid Categories";
-      items = categories.allValues;
+    filters = mkFilters {
+      inherit all groups queries;
     };
-    listChannels =
-      if channels != null
-      then
-        indentedForError {
-          title = "Valid Channels";
-          items = channels.allValues;
-        }
-      else "";
-    listFamilies =
-      if families != null
-      then
-        indentedForError {
-          title = "Valid Families";
-          items = families.allValues;
-        }
-      else "";
-  in
-    mapAttrs (name: app: let
-      channel =
-        if channels != null
-        then normalizeOptional (app.channel or null)
-        else null;
-      family =
-        if families != null
-        then normalizeOptional (app.family  or null)
-        else null;
-      app' = app // {inherit channel family;};
-
-      invalidCats = filter (c: !categories.validator.check c) app'.categories;
-      catCount = length invalidCats;
-      quotedCats = map (c: "'${c}'") invalidCats;
-      humanJoin = items:
-        if catCount == 1
-        then head items
-        else "${concatStringsSep ", " (init items)} and ${last items}";
-    in
-      if invalidCats != []
-      then
-        throw "${humanJoin quotedCats} ${
-          if catCount == 1
-          then "is an invalid category"
-          else "are invalid categories"
-        }. ${listCategories}"
-      else if channels != null && !channels.validator.check app'.channel
-      then throw "'${name}' has invalid channel '${toString app'.channel}'. ${listChannels}"
-      else if families != null && !families.validator.check app'.family
-      then throw "'${name}' has invalid family '${toString app'.family}'. ${listFamilies}"
-      else app')
-    data;
+  };
 
   /**
     mkShellApp - A helper function to create a shell script application with runtime dependencies

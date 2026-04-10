@@ -4,7 +4,7 @@
     external.applicationFilters = filters;
   };
 
-  inherit (_.applications.construction) mkFilters;
+  inherit (_.applications.primitives) toValue;
   inherit (_.attrsets.access) attrByPath attrNames attrValues;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.merging) recursiveUpdate;
@@ -19,48 +19,6 @@
   inherit (_.strings.transformation) splitString toPascal;
   all = _.applications.registry;
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Primitives                                                ║
-  #╚═══════════════════════════════════════════════════════════╝
-  toPath = field:
-    if isList field
-    then field
-    else splitString "." field;
-
-  toValue = {
-    field,
-    default ? null,
-  }: app:
-    attrByPath (toPath field) default app;
-
-  toName = {
-    prefix ? "by",
-    field,
-    suffix ? "",
-  }: let
-    normalized = concatStringsSep "-" (toPath field);
-    name = toPascal normalized;
-  in
-    prefix + name + suffix;
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Predicates                                                ║
-  #╚═══════════════════════════════════════════════════════════╝
-  hasField = {
-    field,
-    set,
-  }:
-    filter (a: toValue {inherit field;} a != null) (attrValues set) != [];
-
-  hasListField = {
-    field,
-    set,
-  }:
-    filter (a: isList (toValue {inherit field;} a)) (attrValues set) != [];
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Primitive Filters                                         ║
-  #╚═══════════════════════════════════════════════════════════╝
   withFlag = {
     field,
     set,
