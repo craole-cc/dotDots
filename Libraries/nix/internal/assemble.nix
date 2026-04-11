@@ -32,8 +32,13 @@
             )
           )
         );
+      importBase = genAttrs names (name: init set.${name});
+      meta = import ./meta.nix {
+        inherit lib';
+        inherit (importBase) strings;
+      };
     in
-      genAttrs names (name: init set.${name});
+      importBase // {inherit meta;};
   in
     library.extend (_: prev: recursiveUpdate base prev);
 

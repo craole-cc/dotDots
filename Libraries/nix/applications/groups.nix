@@ -1,235 +1,238 @@
-{_, ...}: let
-  __exports = {
-    internal = filters;
-    external.applicationFilters = filters;
-  };
+{
+  _,
+  __meta,
+  ...
+}: let
+  __doc = ''
+    Application group builders (Layer 3).
 
-  inherit (_.applications.primitives) toValue;
-  inherit (_.attrsets.access) attrByPath attrNames attrValues;
-  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
-  inherit (_.attrsets.predicates) isAttrs;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
-  inherit (_.lists.access) length;
-  inherit (_.lists.predicates) isIn isList;
-  inherit (_.lists.reduction) concatMap;
-  inherit (_.lists.selection) filter;
-  inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) concatStringsSep;
-  inherit (_.strings.transformation) splitString toPascal;
-  all = _.applications.registry;
+    Provides semantic grouping functions that partition an application set
+    by well-known fields (maturity, protocol, scope, capability, config),
+    and a composable standard grouping builder used by section constructors.
 
-  withFlag = {
-    field,
-    set,
-  }:
-    filterAttrs (_:
-      toValue {
-        inherit field;
-        default = false;
-      })
-    set;
+    Depends on: _.applications.queries, _.applications.selectors, _.applications.primitives
+  '';
 
-  withoutFlag = {
-    field,
-    set,
-  }:
-    filterAttrs (_: a:
-      !(toValue {
-          inherit field;
-          default = false;
-        }
-        a))
-    set;
-
-  withNeq = {
-    field,
-    default ? null,
-    value ? null,
-    set,
-  }:
-    filterAttrs (_: a: toValue {inherit field default;} a != value) set;
-
-  normalizeConfig = {
-    set,
-    path ? ["config"],
-  }:
-    mapAttrs (
-      _: a: let
-        cfg = attrByPath path null a;
-      in
-        if cfg != null && cfg.home != null && cfg.file != null
-        then recursiveUpdate a (setAttrByPath path (cfg // {path = "${cfg.home}/${cfg.file}";}))
-        else a
-    )
-    set;
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Field Query Builders                                      ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkEqQueries = {
-    field,
-    set,
-  }: let
-    getVal = toValue {inherit field;};
-    keys = unique (filter (v: v != null) (map getVal (attrValues set)));
-  in
-    genAttrs keys (value: filterAttrs (_: a: getVal a == value) set);
-
-  mkMemberQueries = {
-    field,
-    set,
-  }: let
-    getVal = toValue {
-      inherit field;
-      default = [];
+  __exports = _.meta.mkModuleExports {
+    meta = __meta.module;
+    functions = {
+      inherit
+        mkCapability
+        mkConfigFile
+        mkMaturity
+        mkProtocol
+        mkScope
+        mkStandard
+        ;
     };
-    keys = unique (concatMap getVal (attrValues set));
-  in
-    genAttrs keys (value: filterAttrs (_: a: isIn value (getVal a)) set);
-
-  mkBoolQueries = {
-    field,
-    trueKey,
-    falseKey,
-    set,
-  }: {
-    ${trueKey} = withFlag {inherit field set;};
-    ${falseKey} = withoutFlag {inherit field set;};
   };
 
-  mkLengthQueries = {
-    field,
-    singleKey,
-    multiKey,
-    set,
-  }: let
-    getVal = toValue {
-      inherit field;
-      default = [];
-    };
-  in {
-    ${singleKey} = filterAttrs (_: a: length (getVal a) == 1) set;
-    ${multiKey} = filterAttrs (_: a: length (getVal a) > 1) set;
+  __imports = {
+    inherit (_.attrsets.access) attrNames attrValues;
+    inherit (_.attrsets.construction) genAttrs listToAttrs;
+    inherit (_.attrsets.transformation) filterAttrs;
+    inherit (_.lists.predicates) isIn;
+    inherit (_.lists.selection) filter;
+    inherit (_.lists.transformation) unique;
+    inherit (_.applications.primitives) toValue toName;
+    inherit (_.applications.selectors) withFlag;
+    inherit (_.applications.queries) mkEq mkMember;
   };
+  inherit (__imports) attrValues filter filterAttrs genAttrs isIn listToAttrs toValue toName unique withFlag mkEq mkMember;
 
-  mkLengthQueriesFor = {
-    set,
-    field,
-  }:
-    optionalAttrs (field != null)
-    (optionalAttrs (hasListField {inherit field set;})
-      (mkLengthQueries {
-        inherit set field;
-        singleKey = "single" + toPascal field;
-        multiKey = "multi" + toPascal field;
-      }));
+  /**
+      Partition an application set by the distinct values of the `maturity` field.
 
-  mkNamedQueries = {
-    prefix,
-    set,
-    suffix ? "",
-  }:
-    listToAttrs (map (field: {
-      name = toName {inherit prefix suffix field;};
-      value = set.${field};
-    }) (attrNames set));
+      Entries where `maturity` is absent or `null` are excluded.
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Semantic Helpers                                          ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkMaturityGroup = {set}:
-    mkEqQueries {
+      # Type
+  ```nix
+      mkMaturity :: { set :: AttrSet } -> { ${maturity} :: AttrSet }
+  ```
+
+      # Examples
+  ```nix
+      mkMaturity { set = { a = { maturity = "stable"; }; b = { maturity = "beta"; }; }; }
+      # => { stable = { a = { maturity = "stable"; }; };
+      #      beta   = { b = { maturity = "beta";   }; }; }
+
+      # Entries without maturity are excluded
+      mkMaturity { set = { a = { maturity = "stable"; }; b = {}; }; }
+      # => { stable = { a = { maturity = "stable"; }; }; }
+  ```
+  */
+  mkMaturity = {set}:
+    mkEq {
       inherit set;
       field = "maturity";
     };
-  mkProtocolGroup = {set}:
-    mkMemberQueries {
+
+  /**
+      Index an application set by members of the `protocol` list field.
+
+      An entry appears under every protocol value it lists. Entries where
+      `protocol` is absent or empty are excluded from all keys.
+
+      # Type
+  ```nix
+      mkProtocol :: { set :: AttrSet } -> { ${protocol} :: AttrSet }
+  ```
+
+      # Examples
+  ```nix
+      mkProtocol {
+        set = {
+          a = { protocol = [ "wayland" "x11" ]; };
+          b = { protocol = [ "wayland" ]; };
+        };
+      }
+      # => { wayland = { a = ...; b = ...; };
+      #      x11     = { a = ...; }; }
+  ```
+  */
+  mkProtocol = {set}:
+    mkMember {
       inherit set;
       field = "protocol";
     };
-  mkScopeGroup = {set}:
-    mkEqQueries {
+
+  /**
+      Partition an application set by the distinct values of the `scope` field.
+
+      Entries where `scope` is absent or `null` are excluded.
+
+      # Type
+  ```nix
+      mkScope :: { set :: AttrSet } -> { ${scope} :: AttrSet }
+  ```
+
+      # Examples
+  ```nix
+      mkScope {
+        set = { a = { scope = "user"; }; b = { scope = "system"; }; };
+      }
+      # => { user   = { a = { scope = "user";   }; };
+      #      system = { b = { scope = "system"; }; }; }
+  ```
+  */
+  mkScope = {set}:
+    mkEq {
       inherit set;
       field = "scope";
     };
-  mkCapabilityGroup = {set}: let
+
+  /**
+      Build a capability map for an application set across a fixed set of
+      boolean capability fields: `acceleration`, `compositing`, `remote`,
+      and `floating`.
+
+      Each key in the result contains the subset of entries that have that
+      capability flag set to true. Empty subsets are omitted.
+
+      # Type
+  ```nix
+      mkCapability :: { set :: AttrSet } -> { ${capability} :: AttrSet }
+  ```
+
+      # Examples
+  ```nix
+      mkCapability {
+        set = {
+          a = { acceleration = true; compositing = false; };
+          b = { acceleration = true; compositing = true;  };
+        };
+      }
+      # => { acceleration = { a = ...; b = ...; };
+      #      compositing  = { b = ...; }; }
+
+      # Capabilities with no matching entries are omitted entirely
+      mkCapability { set = { a = { floating = false; }; }; }
+      # => {}
+  ```
+  */
+  mkCapability = {set}: let
     fields = ["acceleration" "compositing" "remote" "floating"];
   in
-    filterAttrs (_: v: v != {}) (genAttrs fields (field: withFlag {inherit field set;}));
+    filterAttrs (_: v: v != {}) (
+      genAttrs fields (field: withFlag {inherit field set;})
+    );
 
-  mkMaturityQueries = {set}:
-    mkNamedQueries {
-      prefix = "is";
-      set = mkMaturityGroup {inherit set;};
-    };
-  mkProtocolQueries = {set}:
-    mkNamedQueries {
-      prefix = "for";
-      set = mkProtocolGroup {inherit set;};
-    };
-  mkScopeQueries = {set}:
-    mkNamedQueries {
-      prefix = "as";
-      set = mkScopeGroup {inherit set;};
-    };
-  mkCapabilityQueries = {set}:
-    mkNamedQueries {
-      prefix = "has";
-      set = mkCapabilityGroup {inherit set;};
-    };
+  /**
+      Partition an application set by the value of `config.file`, scoping
+      only to entries that have a non-null `config` field.
 
-  mkIndependenceQueries = {set}: let
-    field = "independent";
-  in
-    optionalAttrs (hasField {inherit field set;})
-    (mkBoolQueries {
-      inherit field set;
-      trueKey = field;
-      falseKey = "integrated";
-    });
+      Entries without `config` or with a null `config.file` are excluded.
 
-  mkConfigQueries = {set}: let
-    withConfig = filterAttrs (_: a: let cfg = toValue {field = "config";} a; in isAttrs cfg && cfg ? file) set;
-    profileOnly = filterAttrs (_: a: toValue {field = "config.file";} a == ".profile") withConfig;
-    isConfigurable = removeAttrs withConfig (attrNames profileOnly);
-  in
-    optionalAttrs (withConfig != {}) {inherit isConfigurable;};
+      # Type
+  ```nix
+      mkConfigFile :: { set :: AttrSet } -> { ${configFile} :: AttrSet }
+  ```
 
-  mkStandardQueries = {
-    set,
-    field ? null,
-  }:
-    mkCapabilityQueries {inherit set;}
-    // mkConfigQueries {inherit set;}
-    // mkIndependenceQueries {inherit set;}
-    // mkMaturityQueries {inherit set;}
-    // mkProtocolQueries {inherit set;}
-    // mkScopeQueries {inherit set;}
-    // mkLengthQueriesFor {inherit set field;};
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Group Helpers                                             ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkConfigFileGroup = {set}: let
-    getVal = toValue {field = "config.file";};
+      # Examples
+  ```nix
+      mkConfigFile {
+        set = {
+          a = { config = { file = ".bashrc"; home = "/home/user"; }; };
+          b = { config = { file = ".zshrc";  home = "/home/user"; }; };
+          c = {};
+        };
+      }
+      # => { ".bashrc" = { a = ...; };
+      #      ".zshrc"  = { b = ...; }; }
+  ```
+  */
+  mkConfigFile = {set}: let
+    getFile = toValue {field = "config.file";};
     withCfg = filterAttrs (_: a: toValue {field = "config";} a != null) set;
-    keys = unique (filter (v: v != null) (map getVal (attrValues withCfg)));
+    keys = unique (filter (v: v != null) (map getFile (attrValues withCfg)));
   in
-    genAttrs keys (file: filterAttrs (_: a: getVal a == file) set);
+    genAttrs keys (file: filterAttrs (_: a: getFile a == file) set);
 
-  mkStandardGrouped = {
+  /**
+      Build a combined grouping attrset from an application set, keyed by
+      `toName`-derived attribute names. Supports semantic fields (maturity,
+      protocol, scope, capability, config) out of the box; additional fields
+      fall back to `mkEq` or `mkMember` based on which list they appear in.
+
+      # Type
+  ```nix
+      mkStandard :: {
+        set    :: AttrSet,
+        eq     :: [string],   # optional, default []
+        member :: [string],   # optional, default []
+        fields :: [string],   # optional, default []
+      } -> AttrSet
+  ```
+
+      # Examples
+  ```nix
+      mkStandard {
+        set    = { ... };
+        eq     = ["compositor" "scope"];
+        member = ["layouts" "greeters"];
+        fields = ["protocol" "maturity"];
+      }
+      # => { byCompositor = ...; byScope = ...; byLayouts = ...;
+      #      byGreeters = ...; byProtocol = ...; byMaturity = ...; }
+
+      # Semantic fields use their dedicated group builder regardless of eq/member
+      mkStandard { set = { ... }; fields = ["capability"]; }
+      # => { byCapability = { acceleration = ...; compositing = ...; }; }
+  ```
+  */
+  mkStandard = {
     set,
     eq ? [],
     member ? [],
     fields ? [],
   }: let
+    #~@ well-known fields with dedicated builders
     perField = {
-      maturity = mkMaturityGroup {inherit set;};
-      protocol = mkProtocolGroup {inherit set;};
-      config = mkConfigFileGroup {inherit set;};
-      capability = mkCapabilityGroup {inherit set;};
-      scope = mkScopeGroup {inherit set;};
+      maturity = mkMaturity {inherit set;};
+      protocol = mkProtocol {inherit set;};
+      config = mkConfigFile {inherit set;};
+      capability = mkCapability {inherit set;};
+      scope = mkScope {inherit set;};
     };
     allFields = unique (eq ++ member ++ fields);
   in
@@ -239,170 +242,16 @@
           perField.${
             field
           } or (
+            #? fall back to eq or member query for unknown fields
             if isIn field eq
-            then mkEqQueries {inherit set field;}
-            else mkMemberQueries {inherit set field;}
+            then mkEq {inherit set field;}
+            else mkMember {inherit set field;}
           );
       })
       allFields);
-
-  # ── Section builder ──────────────────────────────────────────────────────────
-  # Eliminates the repeated skeleton across every leaf section:
-  #
-  #   let all = …; groups = mkStandardGrouped {…}; queries = mkStandardQueries {…} // extras;
-  #   in { inherit all groups queries; }
-  #
-  # `extraQueries` is a function `groups -> attrset` so callers can promote
-  # specific group keys into queries without needing a separate binding:
-  #
-  #   extraQueries = groups: { inherit (groups.byKind) history fuzzy; }
-  mkSection = {
-    set,
-    grouped ? {},
-    queryField ? null,
-    extraQueries ? (_groups: {}),
-  }: let
-    groups = mkStandardGrouped ({inherit set;} // grouped);
-  in {
-    all = set;
-    inherit groups;
-    queries =
-      mkStandardQueries {
-        inherit set;
-        field = queryField;
-      }
-      // extraQueries groups;
-  };
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Core                                                      ║
-  #╚═══════════════════════════════════════════════════════════╝
-  filters = mkFilters {
-    inherit all;
-    queries = {byCategory, ...}: let
-      needsTerminal = withFlag {
-        field = "needsTerminal";
-        set = all;
-      };
-
-      shell = let
-        all = byCategory.shell;
-      in {
-        inherit all;
-
-        shells = mkSection {
-          set = normalizeConfig {
-            set = filterAttrs (_: a: (a.categories or []) == ["shell"]) all;
-          };
-          grouped = {
-            member = ["engine"];
-            fields = ["config" "maturity"];
-          };
-          # posix query runs against the full shell set, not the filtered one
-          extraQueries = _:
-            mkBoolQueries {
-              set = all;
-              field = "posix";
-              trueKey = "posix";
-              falseKey = "modern";
-            };
-        };
-
-        prompts = mkSection {
-          set = byCategory.prompt;
-          grouped = {
-            eq = ["engine"];
-            member = ["shells"];
-            fields = ["maturity"];
-          };
-          queryField = "shells";
-        };
-
-        enhancements = mkSection {
-          set = byCategory.enhancement;
-          grouped = {
-            eq = ["kind"];
-            member = ["shells" "engine"];
-            fields = ["maturity"];
-          };
-          queryField = "shells";
-          extraQueries = groups: {inherit (groups.byKind) history fuzzy navigation;};
-        };
-
-        lineEditors = mkSection {
-          set = byCategory."line-editor";
-          grouped = {
-            member = ["engine" "shell"];
-            fields = ["maturity"];
-          };
-          queryField = "shells";
-        };
-      };
-
-      interface = let
-        all = byCategory.interface;
-      in {
-        inherit all;
-
-        compositors = mkSection {
-          set = byCategory.compositor;
-          grouped = {
-            eq = ["role"];
-            fields = ["protocol" "maturity"];
-          };
-        };
-
-        environments = mkSection {
-          set = byCategory.environment;
-          grouped = {
-            eq = ["compositor" "scope"];
-            member = ["panel" "layouts" "greeters"];
-            fields = ["protocol" "maturity"];
-          };
-          extraQueries = groups:
-            {inherit (groups.byLayouts) tiling floating stacking;}
-            // groups.byScope;
-        };
-
-        greeters = mkSection {
-          set = byCategory.greeter;
-          grouped = {
-            eq = ["kind" "toolkit"];
-            fields = ["protocol"];
-          };
-          extraQueries = groups: groups.byToolkit // groups.byKind;
-        };
-
-        notifiers = mkSection {
-          set = byCategory.notifier;
-          grouped = {
-            member = ["config.lang"];
-            fields = ["maturity" "protocol"];
-          };
-        };
-
-        panels = mkSection {
-          set = byCategory.panel;
-          grouped = {
-            eq = ["toolkit"];
-            member = ["config.lang" "engine"];
-            fields = ["maturity" "protocol"];
-          };
-          queryField = "toolkit";
-        };
-
-        protocols = mkSection {
-          set = byCategory.protocol;
-          grouped = {
-            eq = ["surface"];
-            fields = ["capability" "maturity"];
-          };
-          extraQueries = groups:
-            mkCapabilityQueries {set = byCategory.protocol;}
-            // groups.bySurface;
-        };
-      };
-    in {inherit needsTerminal shell interface;};
-  };
 in
-  __exports.internal // {_rootAliases = __exports.external;}
+  __exports.internal
+  // {
+    _rootAliases = __exports.external;
+    inherit __doc;
+  }

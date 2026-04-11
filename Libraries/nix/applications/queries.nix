@@ -1,7 +1,10 @@
-{_, ...}: let
-  __exports = let
-    prefix = "mkApplication";
-    suffix = "Queries";
+{
+  _,
+  __meta,
+  ...
+}: let
+  __exports = _.meta.mkModuleExports {
+    meta = __meta.module;
     functions = {
       inherit
         mkBool
@@ -18,19 +21,6 @@
         mkScope
         ;
     };
-    mkAliases = fns:
-      listToAttrs (map (k: {
-        name = k + suffix;
-        value = fns.${k};
-      }) (attrNames fns));
-    mkExternal = fns:
-      listToAttrs (map (k: {
-        name = prefix + toPascal (removePrefix "mk" k) + suffix;
-        value = fns.${k};
-      }) (attrNames fns));
-  in {
-    internal = functions // mkAliases functions;
-    external = mkExternal functions;
   };
 
   __imports = {
