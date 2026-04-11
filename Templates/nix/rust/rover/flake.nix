@@ -198,7 +198,6 @@
 
           [ -f .envrc ] ||
             cp ${templates.envrc} .envrc
-          # direnv allow .envrc 2>/dev/null || true
 
           [ -f .gitignore ] ||
             cp ${templates.gitignore} .gitignore
@@ -223,7 +222,10 @@
           git rm --cached ${files.drop} 2>/dev/null || true
 
           #> Optionally allow direnv
-          ${cmd.yn} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
+          if ! direnv status 2>/dev/null | grep -q "Found RC allowed 2"; then
+            ${cmd.yn} "Allow direnv to automatically reload when changes are detected?" && \
+              direnv allow .envrc 2>/dev/null || true
+          fi
         '';
         leptosfmtv = ''
           ${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2
@@ -270,10 +272,6 @@
           #> Optionally clean build artifacts
           ${cmd.yn} "Clean cargo build cache?" && ${bin.cargo} clean
 
-          #> Remove .cargo if empty
-          [ -d .cargo ] && [ -z "$(ls -A .cargo)" ] &&
-            ${cmd.trash} .cargo 2>/dev/null || true
-
           #> Optionally remove lock files
           ${cmd.yn} "Remove lock files? (flake.lock + Cargo.lock)" && {
             ${cmd.trash} flake.lock Cargo.lock 2>/dev/null || true
@@ -284,7 +282,13 @@
             for f in .direnv ${files.drop}; do
               ${cmd.trash} "$f" 2>/dev/null || true
             done
-            direnv reload
+
+            #> Remove .cargo if empty
+            [ -d .cargo ] && [ -z "$(ls -A .cargo)" ] && \
+              ${cmd.trash} .cargo 2>/dev/null || true
+
+            #> Reinitialize
+            ${cmd.init}
           }
         '';
         rustv = "${bin.rustc} --version | cut -d ' ' -f2";
