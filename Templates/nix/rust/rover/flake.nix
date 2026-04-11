@@ -287,8 +287,12 @@
           ${cmd.yellow} "Updating flake inputs..."
           nix flake update
 
-          ${cmd.green} "Updating cargo dependencies..."
-          ${bin.cargo} update
+          if [ -f Cargo.toml ]; then
+            ${cmd.green} "Updating cargo dependencies..."
+            ${bin.cargo} update
+          else
+            ${cmd.grey} "No Cargo.toml found, skipping cargo update."
+          fi
 
           ${cmd.magenta} "Done! Reloading shell to apply flake updates."
           direnv reload
