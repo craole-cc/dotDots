@@ -19,7 +19,7 @@
       title = "Cursor";
     };
     exec = "cursor";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     family = "vscode";
     channel = "stable";
   };
@@ -163,7 +163,7 @@
       class = "dev.lapce.lapce";
     };
     exec = "lapce";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     channel = "stable";
   };
 
@@ -254,7 +254,7 @@
     names = {
       package = "jetbrains.rust-rover";
       command = "rust-rover";
-      class = "jetbrains-rust-rover";
+      class = "jetbrains-rustrover";
       title = "RustRover";
     };
     exec = "rust-rover";
@@ -296,7 +296,7 @@
       title = "Visual Studio Code";
     };
     exec = "code";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     family = "vscode";
     channel = "stable";
   };
@@ -308,7 +308,7 @@
       class = "code - Insiders";
     };
     exec = "code-insiders";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     family = "vscode";
     channel = "insiders";
   };
@@ -320,7 +320,7 @@
       class = "VSCodium";
     };
     exec = "codium";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     family = "vscode";
     channel = "stable";
   };
@@ -345,7 +345,7 @@
       title = "Windsurf";
     };
     exec = "windsurf";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     family = "vscode";
     channel = "stable";
   };
@@ -357,7 +357,7 @@
       class = "dev.zed.Zed";
     };
     exec = "zeditor";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     channel = "stable";
   };
 
@@ -368,7 +368,7 @@
       class = "dev.zed.Zed-Preview";
     };
     exec = "zeditor --preview";
-    categories = ["editor"];
+    categories = ["editor" "ide"];
     channel = "beta";
   };
 }
