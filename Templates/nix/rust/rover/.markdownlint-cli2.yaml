@@ -1,7 +1,0 @@
-config:
-  default: true
-  MD013:
-    line_length: 100
-  MD033: false  # Allow inline HTML
-  MD041: false  # First line doesn't need to be h1
-fix: true
