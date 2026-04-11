@@ -4,15 +4,16 @@
   __moduleName,
   ...
 }: let
+  inherit (_.applications.primitives) toValue toName;
+  inherit (_.applications.queries) mkEq mkMember;
+  inherit (_.applications.selection) withFlag;
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.construction) genAttrs listToAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.applications.primitives) toValue toName;
-  inherit (_.applications.selectors) withFlag;
-  inherit (_.applications.queries) mkEq mkMember;
+  default = _.applications.filters.groups;
 
   /**
       Partition an application set by the distinct values of the `maturity` field.
@@ -237,14 +238,16 @@ in
       Depends on: applications {queries, primitives, selectors}.
     '';
 
-    functions = {
-      inherit
-        mkCapability
-        mkConfigFile
-        mkMaturity
-        mkProtocol
-        mkScope
-        mkStandard
-        ;
-    };
+    functions =
+      default
+      // {
+        inherit
+          mkCapability
+          mkConfigFile
+          mkMaturity
+          mkProtocol
+          mkScope
+          mkStandard
+          ;
+      };
   }

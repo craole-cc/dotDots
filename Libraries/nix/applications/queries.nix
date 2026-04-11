@@ -4,10 +4,16 @@
   __moduleName,
   ...
 }: let
-  inherit (_.applications.groups) mkCapabilityGroup mkMaturityGroup mkProtocolGroup mkScopeGroup;
+  inherit
+    (_.applications.groups)
+    mkCapabilityGroups
+    mkMaturityGroups
+    mkProtocolGroups
+    mkScopeGroups
+    ;
   inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
-  inherit (_.applications.selectors) withFlag withoutFlag;
+  inherit (_.applications.selection) withFlag withoutFlag;
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) isAttrs;
@@ -18,6 +24,7 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) toPascal;
+  default = _.applications.filters.queries;
 
   /**
     Partition an attribute set into two subsets based on the presence or absence
@@ -280,25 +287,23 @@
   mkMaturity = {set}:
     mkNamed {
       prefix = "is";
-      set = mkMaturityGroup {inherit set;};
+      set = mkMaturityGroups {inherit set;};
     };
   mkProtocol = {set}:
     mkNamed {
       prefix = "for";
-      set = mkProtocolGroup {inherit set;};
+      set = mkProtocolGroups {inherit set;};
     };
   mkScope = {set}:
     mkNamed {
       prefix = "as";
-      set = mkScopeGroup {inherit set;};
+      set = mkScopeGroups {inherit set;};
     };
   mkCapability = {set}:
     mkNamed {
       prefix = "has";
-      set = mkCapabilityGroup {inherit set;};
+      set = mkCapabilityGroups {inherit set;};
     };
-
-  # present only when field exists in set; produces { independent = …; integrated = …; }
   mkIndependence = {set}: let
     field = "independent";
   in
@@ -309,13 +314,24 @@
       falseKey = "integrated";
     });
 
-  # present only when any app has a config attrset with a `file` key
   mkConfig = {set}: let
     withConfig = filterAttrs (_: a: let cfg = toValue {field = "config";} a; in isAttrs cfg && cfg ? file) set;
     profileOnly = filterAttrs (_: a: toValue {field = "config.file";} a == ".profile") withConfig;
     isConfigurable = removeAttrs withConfig (attrNames profileOnly);
   in
     optionalAttrs (withConfig != {}) {inherit isConfigurable;};
+
+  mkStandard = {
+    set,
+    field ? null,
+  }:
+    mkCapability {inherit set;}
+    // mkConfig {inherit set;}
+    // mkIndependence {inherit set;}
+    // mkMaturity {inherit set;}
+    // mkProtocol {inherit set;}
+    // mkScope {inherit set;}
+    // mkLengthFor {inherit set field;};
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;
@@ -332,20 +348,23 @@ in
       Depends on: applications {groups, predicates, primitives, selectors}.
     '';
 
-    functions = {
-      inherit
-        mkBool
-        mkCapability
-        mkConfig
-        mkEq
-        mkIndependence
-        mkLength
-        mkLengthFor
-        mkMaturity
-        mkMember
-        mkNamed
-        mkProtocol
-        mkScope
-        ;
-    };
+    functions =
+      default
+      // {
+        inherit
+          mkBool
+          mkCapability
+          mkConfig
+          mkEq
+          mkIndependence
+          mkLength
+          mkLengthFor
+          mkMaturity
+          mkMember
+          mkNamed
+          mkProtocol
+          mkScope
+          mkStandard
+          ;
+      };
   }

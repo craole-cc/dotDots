@@ -1,310 +1,53 @@
-{_, ...}: let
-  __exports = {
-    internal = filters;
-    external.applicationFilters = filters;
-  };
+{
+  _,
+  __moduleDir,
+  ...
+}: let
+  inherit (_.applications.groups) mkStandardGroups;
+  inherit (_.applications.primitives) keysFromMembers keysFromOptional normalizeConfig;
+  inherit (_.applications.queries) mkStandardQueries mkCapabilityQueries mkBoolQueries;
+  inherit (_.applications.selection) withFlag;
+  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.lists.predicates) isIn;
+  registry = _.applications.registry.default;
 
-  inherit (_.applications.construction) mkFilters;
-  inherit (_.attrsets.access) attrByPath attrNames attrValues;
-  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
-  inherit (_.attrsets.predicates) isAttrs;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
-  inherit (_.lists.access) length;
-  inherit (_.lists.predicates) isIn isList;
-  inherit (_.lists.reduction) concatMap;
-  inherit (_.lists.selection) filter;
-  inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) concatStringsSep;
-  inherit (_.strings.transformation) splitString toPascal;
-  all = _.applications.registry;
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Primitives                                                ║
-  #╚═══════════════════════════════════════════════════════════╝
-  toPath = field:
-    if isList field
-    then field
-    else splitString "." field;
-
-  toValue = {
-    field,
-    default ? null,
-  }: app:
-    attrByPath (toPath field) default app;
-
-  toName = {
-    prefix ? "by",
-    field,
-    suffix ? "",
+  mkFilters = {
+    registry,
+    groups ? {},
+    queries ? (_: {}),
   }: let
-    normalized = concatStringsSep "-" (toPath field);
-    name = toPascal normalized;
-  in
-    prefix + name + suffix;
+    byCategory = genAttrs (keysFromMembers "categories" registry) (
+      category:
+        filterAttrs (_: app: isIn category (app.categories or [])) registry
+    );
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Predicates                                                ║
-  #╚═══════════════════════════════════════════════════════════╝
-  hasField = {
-    field,
-    set,
-  }:
-    filter (a: toValue {inherit field;} a != null) (attrValues set) != [];
+    byFamily = genAttrs (keysFromOptional "family" registry) (
+      family:
+        filterAttrs (_: app: (app.family or null) == family) registry
+    );
 
-  hasListField = {
-    field,
-    set,
-  }:
-    filter (a: isList (toValue {inherit field;} a)) (attrValues set) != [];
+    byChannel = genAttrs (keysFromOptional "channel" registry) (
+      channel:
+        filterAttrs (_: app: (app.channel or null) == channel) registry
+    );
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Primitive Filters                                         ║
-  #╚═══════════════════════════════════════════════════════════╝
-  withFlag = {
-    field,
-    set,
-  }:
-    filterAttrs (_:
-      toValue {
-        inherit field;
-        default = false;
-      })
-    set;
-
-  withoutFlag = {
-    field,
-    set,
-  }:
-    filterAttrs (_: a:
-      !(toValue {
-          inherit field;
-          default = false;
-        }
-        a))
-    set;
-
-  withNeq = {
-    field,
-    default ? null,
-    value ? null,
-    set,
-  }:
-    filterAttrs (_: a: toValue {inherit field default;} a != value) set;
-
-  normalizeConfig = {
-    set,
-    path ? ["config"],
-  }:
-    mapAttrs (
-      _: a: let
-        cfg = attrByPath path null a;
-      in
-        if cfg != null && cfg.home != null && cfg.file != null
-        then recursiveUpdate a (setAttrByPath path (cfg // {path = "${cfg.home}/${cfg.file}";}))
-        else a
-    )
-    set;
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Field Query Builders                                      ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkEqQueries = {
-    field,
-    set,
-  }: let
-    getVal = toValue {inherit field;};
-    keys = unique (filter (v: v != null) (map getVal (attrValues set)));
-  in
-    genAttrs keys (value: filterAttrs (_: a: getVal a == value) set);
-
-  mkMemberQueries = {
-    field,
-    set,
-  }: let
-    getVal = toValue {
-      inherit field;
-      default = [];
-    };
-    keys = unique (concatMap getVal (attrValues set));
-  in
-    genAttrs keys (value: filterAttrs (_: a: isIn value (getVal a)) set);
-
-  mkBoolQueries = {
-    field,
-    trueKey,
-    falseKey,
-    set,
-  }: {
-    ${trueKey} = withFlag {inherit field set;};
-    ${falseKey} = withoutFlag {inherit field set;};
-  };
-
-  mkLengthQueries = {
-    field,
-    singleKey,
-    multiKey,
-    set,
-  }: let
-    getVal = toValue {
-      inherit field;
-      default = [];
-    };
+    ofCategory = category: byCategory.${category} or {};
   in {
-    ${singleKey} = filterAttrs (_: a: length (getVal a) == 1) set;
-    ${multiKey} = filterAttrs (_: a: length (getVal a) > 1) set;
+    default = registry;
+    groups =
+      {inherit byCategory byFamily byChannel ofCategory;}
+      // groups;
+    queries = queries {inherit byCategory byFamily byChannel;};
   };
 
-  mkLengthQueriesFor = {
-    set,
-    field,
-  }:
-    optionalAttrs (field != null)
-    (optionalAttrs (hasListField {inherit field set;})
-      (mkLengthQueries {
-        inherit set field;
-        singleKey = "single" + toPascal field;
-        multiKey = "multi" + toPascal field;
-      }));
-
-  mkNamedQueries = {
-    prefix,
-    set,
-    suffix ? "",
-  }:
-    listToAttrs (map (field: {
-      name = toName {inherit prefix suffix field;};
-      value = set.${field};
-    }) (attrNames set));
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Semantic Helpers                                          ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkMaturityGroup = {set}:
-    mkEqQueries {
-      inherit set;
-      field = "maturity";
-    };
-  mkProtocolGroup = {set}:
-    mkMemberQueries {
-      inherit set;
-      field = "protocol";
-    };
-  mkScopeGroup = {set}:
-    mkEqQueries {
-      inherit set;
-      field = "scope";
-    };
-  mkCapabilityGroup = {set}: let
-    fields = ["acceleration" "compositing" "remote" "floating"];
-  in
-    filterAttrs (_: v: v != {}) (genAttrs fields (field: withFlag {inherit field set;}));
-
-  mkMaturityQueries = {set}:
-    mkNamedQueries {
-      prefix = "is";
-      set = mkMaturityGroup {inherit set;};
-    };
-  mkProtocolQueries = {set}:
-    mkNamedQueries {
-      prefix = "for";
-      set = mkProtocolGroup {inherit set;};
-    };
-  mkScopeQueries = {set}:
-    mkNamedQueries {
-      prefix = "as";
-      set = mkScopeGroup {inherit set;};
-    };
-  mkCapabilityQueries = {set}:
-    mkNamedQueries {
-      prefix = "has";
-      set = mkCapabilityGroup {inherit set;};
-    };
-
-  mkIndependenceQueries = {set}: let
-    field = "independent";
-  in
-    optionalAttrs (hasField {inherit field set;})
-    (mkBoolQueries {
-      inherit field set;
-      trueKey = field;
-      falseKey = "integrated";
-    });
-
-  mkConfigQueries = {set}: let
-    withConfig = filterAttrs (_: a: let cfg = toValue {field = "config";} a; in isAttrs cfg && cfg ? file) set;
-    profileOnly = filterAttrs (_: a: toValue {field = "config.file";} a == ".profile") withConfig;
-    isConfigurable = removeAttrs withConfig (attrNames profileOnly);
-  in
-    optionalAttrs (withConfig != {}) {inherit isConfigurable;};
-
-  mkStandardQueries = {
-    set,
-    field ? null,
-  }:
-    mkCapabilityQueries {inherit set;}
-    // mkConfigQueries {inherit set;}
-    // mkIndependenceQueries {inherit set;}
-    // mkMaturityQueries {inherit set;}
-    // mkProtocolQueries {inherit set;}
-    // mkScopeQueries {inherit set;}
-    // mkLengthQueriesFor {inherit set field;};
-
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Group Helpers                                             ║
-  #╚═══════════════════════════════════════════════════════════╝
-  mkConfigFileGroup = {set}: let
-    getVal = toValue {field = "config.file";};
-    withCfg = filterAttrs (_: a: toValue {field = "config";} a != null) set;
-    keys = unique (filter (v: v != null) (map getVal (attrValues withCfg)));
-  in
-    genAttrs keys (file: filterAttrs (_: a: getVal a == file) set);
-
-  mkStandardGrouped = {
-    set,
-    eq ? [],
-    member ? [],
-    fields ? [],
-  }: let
-    perField = {
-      maturity = mkMaturityGroup {inherit set;};
-      protocol = mkProtocolGroup {inherit set;};
-      config = mkConfigFileGroup {inherit set;};
-      capability = mkCapabilityGroup {inherit set;};
-      scope = mkScopeGroup {inherit set;};
-    };
-    allFields = unique (eq ++ member ++ fields);
-  in
-    listToAttrs (map (field: {
-        name = toName {inherit field;};
-        value =
-          perField.${
-            field
-          } or (
-            if isIn field eq
-            then mkEqQueries {inherit set field;}
-            else mkMemberQueries {inherit set field;}
-          );
-      })
-      allFields);
-
-  # ── Section builder ──────────────────────────────────────────────────────────
-  # Eliminates the repeated skeleton across every leaf section:
-  #
-  #   let all = …; groups = mkStandardGrouped {…}; queries = mkStandardQueries {…} // extras;
-  #   in { inherit all groups queries; }
-  #
-  # `extraQueries` is a function `groups -> attrset` so callers can promote
-  # specific group keys into queries without needing a separate binding:
-  #
-  #   extraQueries = groups: { inherit (groups.byKind) history fuzzy; }
   mkSection = {
     set,
     grouped ? {},
     queryField ? null,
-    extraQueries ? (_groups: {}),
+    extraQueries ? (_: {}),
   }: let
-    groups = mkStandardGrouped ({inherit set;} // grouped);
+    groups = mkStandardGroups ({inherit set;} // grouped);
   in {
     all = set;
     inherit groups;
@@ -316,15 +59,12 @@
       // extraQueries groups;
   };
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Core                                                      ║
-  #╚═══════════════════════════════════════════════════════════╝
-  filters = mkFilters {
-    inherit all;
+  default = mkFilters {
+    inherit registry;
     queries = {byCategory, ...}: let
       needsTerminal = withFlag {
         field = "needsTerminal";
-        set = all;
+        set = registry;
       };
 
       shell = let
@@ -447,4 +187,18 @@
     in {inherit needsTerminal shell interface;};
   };
 in
-  __exports.internal // {__rootAliases = __exports.external;}
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Application enums (Layer 4).
+
+      Converts the application registry into typed enums, recursively
+      walking nested registry trees and wrapping leaf sets with `mkEnum`.
+      Provides pre-built enums for shells and interfaces, including
+      queried sub-enums with optional nullability overrides.
+
+      Depends on: applications.queries lists.construction.
+    '';
+
+    functions = default // {inherit mkFilters mkSection;};
+  }

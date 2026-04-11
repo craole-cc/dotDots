@@ -30,7 +30,17 @@
     doc ? "",
     tests ? {},
   }: let
-    knownPrefixes = ["without" "with" "from" "has" "is" "mk" "to" "by"];
+    knownPrefixes = [
+      "by"
+      "from"
+      "has"
+      "is"
+      "mk"
+      "on"
+      "to"
+      "with"
+      "without"
+    ];
 
     extSuffix =
       if filename == ""
@@ -75,6 +85,4 @@
       __doc = doc;
     }
     // optionalAttrs (tests != {}) {__tests = tests;};
-in {
-  inherit mkModuleExports toSingular;
-}
+in {inherit mkModuleExports toSingular;}
