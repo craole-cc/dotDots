@@ -99,6 +99,7 @@
       files = rec {
         list = [
           ".cargo/config.toml"
+          ".envrc"
           ".gitignore"
           ".markdownlint-cli2.yaml"
           ".mise.toml"
@@ -195,6 +196,13 @@
           [ -f .cargo/config.toml ] ||
             cp ${templates.cargo} .cargo/config.toml
 
+          [ -f .envrc ] ||
+            cp ${templates.envrc} .envrc
+          # direnv allow .envrc 2>/dev/null || true
+
+          [ -f .gitignore ] ||
+            cp ${templates.gitignore} .gitignore
+
           [ -f treefmt.toml ] && mv treefmt.toml .treefmt.toml
           [ -f .treefmt.toml ] ||
             cp ${templates.treefmt} .treefmt.toml
@@ -207,15 +215,15 @@
           [ -f .mise.toml ] ||
             cp ${templates.mise} .mise.toml
 
-          [ -f .gitignore ] ||
-            cp ${templates.gitignore} .gitignore
-
           #> Ensure config files are writable
           chmod +w ${files.keep} 2>/dev/null || true
 
           #> Untrack files that should be ignored
           git rm -r --cached .direnv target 2>/dev/null || true
           git rm --cached ${files.drop} 2>/dev/null || true
+
+          #> Optionally allow direnv
+          ${cmd.yn} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
         '';
         leptosfmtv = ''
           ${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2
@@ -262,6 +270,15 @@
           #> Optionally clean build artifacts
           ${cmd.yn} "Clean cargo build cache?" && ${bin.cargo} clean
 
+          #> Remove .cargo if empty
+          [ -d .cargo ] && [ -z "$(ls -A .cargo)" ] &&
+            ${cmd.trash} .cargo 2>/dev/null || true
+
+          #> Optionally remove lock files
+          ${cmd.yn} "Remove lock files? (flake.lock + Cargo.lock)" && {
+            ${cmd.trash} flake.lock Cargo.lock 2>/dev/null || true
+          }
+
           #> Remove the existing config files and direnv folder
           ${cmd.yn} "Config files will be re-generated. Continue?" && {
             for f in .direnv ${files.drop}; do
@@ -270,7 +287,7 @@
             direnv reload
           }
         '';
-        rustv = "${cmd.rustvv} --version | ${cmd.awk} '{print $1}'";
+        rustv = "${bin.rustc} --version | cut -d ' ' -f2";
         rustvv = "${bin.rustc} --version | cut -d ' ' -f2-";
         rr = bin.rust-rover;
         rrv = ''
@@ -351,6 +368,7 @@
 
     mkTemplates = {pkgs}: let
       inherit (pkgs) writeText;
+    in {
       cargo = writeText "cargo-config.toml" ''
         [alias]
         b = "build"
@@ -368,6 +386,10 @@
 
         [term]
         color = "always"
+      '';
+
+      envrc = writeText ".envrc" ''
+        use flake
       '';
 
       gitignore = writeText ".gitignore" ''
@@ -472,7 +494,7 @@
         command = "yamlfmt"
         includes = ["*.yaml", "*.yml"]
       '';
-    in {inherit cargo gitignore markdownlint mise treefmt;};
+    };
 
     mkWelcome = {
       pkgs,
