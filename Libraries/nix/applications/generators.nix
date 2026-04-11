@@ -754,7 +754,7 @@
     exports;
 in {
   inherit userApplication userApplicationConfig program;
-  _rootAliases = {
+  __rootAliases = {
     mkUserApplication = userApplicationConfig;
     mkProgram = program;
   };

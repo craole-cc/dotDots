@@ -33,10 +33,7 @@
           )
         );
       importBase = genAttrs names (name: init set.${name});
-      meta = import ./meta.nix {
-        inherit lib';
-        inherit (importBase) strings;
-      };
+      meta = import ./meta.nix {inherit lib';};
     in
       importBase // {inherit meta;};
   in

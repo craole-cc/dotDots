@@ -58,11 +58,11 @@
 in {
   inherit languages;
 
-  _rootAliases = {
+  __rootAliases = {
     devLanguagesList = languages.values;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     languages = {
       validatesRust = mkTest {
         expected = true;

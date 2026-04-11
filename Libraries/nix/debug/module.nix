@@ -237,4 +237,4 @@
 
   exports = {inherit mkModuleDebug mkFn;};
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

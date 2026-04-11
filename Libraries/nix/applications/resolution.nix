@@ -537,4 +537,4 @@
     inherit mkApp detectBrowserVariant browsers terminals launchers bars editors;
   };
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

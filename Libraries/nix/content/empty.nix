@@ -74,9 +74,9 @@
 in
   exports
   // {
-    _rootAliases = exports;
+    __rootAliases = exports;
 
-    _tests = runTests {
+    __tests = runTests {
       isEmpty = {
         nullIsEmpty = mkTest {
           desired = true;

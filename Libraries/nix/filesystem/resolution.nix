@@ -110,5 +110,5 @@ in
   __exports.internal
   // {
     inherit __doc;
-    _rootAliases = __exports.external;
+    __rootAliases = __exports.external;
   }

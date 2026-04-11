@@ -114,12 +114,12 @@
 in {
   inherit mkError validate;
 
-  _rootAliases = {
+  __rootAliases = {
     mkTypeError = mkError;
     validateType = validate;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     mkError = {
       stringExpectedSetGotString =
         mkTest

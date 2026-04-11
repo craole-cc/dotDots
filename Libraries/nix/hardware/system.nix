@@ -148,8 +148,8 @@ in
   __exports.internal
   // {
     inherit __doc;
-    _rootAliases = __exports.external;
-    _tests = runTests {
+    __rootAliases = __exports.external;
+    __tests = runTests {
       getSystems = {
         defaultSystemIsX86 = mkTest {
           desired = "x86_64-linux";

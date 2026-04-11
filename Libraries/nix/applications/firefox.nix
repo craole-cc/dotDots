@@ -515,7 +515,7 @@ in {
     resolveModule
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     mkFirefoxExtensionUrl = extensionUrl;
     mkFirefoxExtensionEntry = extensionEntry;
     mkFirefoxExtensionSettings = extensionSettings;

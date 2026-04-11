@@ -192,4 +192,4 @@
       // mapAttrs (_: resolveStore src) stems';
   in {inherit mkLocal store;};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  exports.internal // {__rootAliases = exports.external;}

@@ -119,4 +119,4 @@
     inherit trace traceRaw traceValue traceFn;
   };
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

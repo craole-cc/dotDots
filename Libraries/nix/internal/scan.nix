@@ -92,6 +92,7 @@
             __moduleName = moduleName;
             __modulePath = [env.library] ++ pathPrefix ++ [moduleName];
             __moduleRef = concatStringsSep "." __modulePath;
+            __moduleDir = removePrefix ((toString basePath) + "/") (toString dir); # ← add
           };
         result = rawModule moduleEnv;
       in
@@ -102,16 +103,23 @@
       then rawModule
       else throw "Module ${entryName} must be either a function or attribute set";
 
-    rootAliases = importedModule._rootAliases or {};
+    rootAliases = importedModule.__rootAliases or {};
 
     attrsToRemove =
-      ["_rootAliases"]
+      ["__rootAliases"]
       ++ filter
-      (n: hasPrefix "_" n && n != "_rootAliases" && n != "_tests" && n != "__meta" && n != "__doc")
+      (
+        n:
+          hasPrefix "_" n
+          && n != "__rootAliases"
+          && n != "__tests"
+          && n != "__meta"
+          && n != "__doc"
+      )
       (attrNames importedModule)
       ++ (
         if !runTests
-        then ["_tests"]
+        then ["__tests"]
         else []
       );
 
@@ -155,7 +163,7 @@
       };
   in {
     modules = {${moduleName} = moduleWithMeta;};
-    rootAliases = rootAliases;
+    inherit rootAliases;
   };
 
   # ── Recursive directory scanner ─────────────────────────────────────────

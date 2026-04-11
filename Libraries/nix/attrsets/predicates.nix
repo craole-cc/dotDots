@@ -266,9 +266,9 @@
 in
   __exports.internal
   // {
-    _rootAliases = __exports.external;
+    __rootAliases = __exports.external;
 
-    _tests = let
+    __tests = let
       inherit (_.debug.assertions) mkTest mkThrows;
       inherit (_.debug.runners) runTests;
     in

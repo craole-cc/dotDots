@@ -405,4 +405,4 @@
     in {inherit needsTerminal shell interface;};
   };
 in
-  __exports.internal // {_rootAliases = __exports.external;}
+  __exports.internal // {__rootAliases = __exports.external;}

@@ -79,9 +79,9 @@
 in
   exports
   // {
-    _rootAliases = exports;
+    __rootAliases = exports;
 
-    _tests = runTests {
+    __tests = runTests {
       parseLspci = {
         onlyIncludesGPUs = mkTest {
           desired = 2;

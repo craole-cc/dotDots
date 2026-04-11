@@ -84,9 +84,9 @@
 in
   exports
   // {
-    _rootAliases = exports;
+    __rootAliases = exports;
 
-    _tests = let
+    __tests = let
       twoMonitors = {
         displays = {
           "HDMI-A-2" = {

@@ -92,4 +92,4 @@
   listNix = path:
     filter isNotEmpty (map toString (listFilesRecursive path));
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

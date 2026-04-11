@@ -234,4 +234,4 @@
   in
     import path filtered;
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

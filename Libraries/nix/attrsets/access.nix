@@ -303,7 +303,7 @@ in {
     renameKey
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     attrOr = valueOr;
     nestedOrAttrOr = nestedOr;
     attrPick = pick;
@@ -313,7 +313,7 @@ in {
     attrCompact = compact;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     valueOr = {
       existingKey = mkTest {
         desired = "bar";

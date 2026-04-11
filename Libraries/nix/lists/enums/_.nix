@@ -51,8 +51,8 @@
 in
   enums
   // {
-    _rootAliases = {inherit enums;};
-    _tests = runTests {
+    __rootAliases = {inherit enums;};
+    __tests = runTests {
       #? Test structure exists
       hasValues = mkTest {
         desired = true;

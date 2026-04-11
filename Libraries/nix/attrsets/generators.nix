@@ -84,13 +84,13 @@ in {
     managed
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     lockAttrs = lock;
     makeLockedAttrs = locked;
     makeManagedAttrs = managed;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     lock = {
       basic = mkTest {
         desired = {

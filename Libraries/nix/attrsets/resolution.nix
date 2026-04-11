@@ -555,8 +555,8 @@ in
   exports.internal
   // {
     inherit __doc;
-    _rootAliases = exports.external;
-    _tests = runTests {
+    __rootAliases = exports.external;
+    __tests = runTests {
       getAttr = {
         returnsValueWhenPresent = mkTest {
           desired = "hello";

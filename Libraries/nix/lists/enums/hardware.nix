@@ -191,11 +191,11 @@
 in {
   inherit functionalities gpuBrands cpuBrands cpuPowerModes;
 
-  _rootAliases = {
+  __rootAliases = {
     hostFunctionalities = functionalities;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     functionalities = {
       validatesCommon = mkTest true (functionalities.validator.check "keyboard");
       validatesStorage = mkTest true (functionalities.validator.check "nvme");

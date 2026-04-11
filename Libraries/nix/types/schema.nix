@@ -145,7 +145,7 @@ in {
     validateField
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     validateSchema = validate;
     applyTypeDefaults = applyDefaults;
     mkTypedFunction = mkFunction;

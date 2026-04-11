@@ -282,7 +282,7 @@ in {
     waylandSupport
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     bootLoadersList = bootLoaders.values;
     displayProtocolsList = displayProtocols.values;
     displayManagersList = displayManagers.values;
@@ -291,7 +291,7 @@ in {
     waylandSupportedEnviromnentsList = waylandSupport.values;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     bootLoaders = {
       validatesSystemdBoot = mkTest {
         desired = true;

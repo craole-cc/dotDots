@@ -106,4 +106,4 @@
   };
   exports = {inherit mkUserApps;};
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

@@ -83,4 +83,4 @@
 
   exports = {inherit mkTest mkTest' mkThrows;};
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

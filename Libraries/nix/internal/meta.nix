@@ -1,10 +1,16 @@
-{
-  lib',
-  strings,
-}: let
-  inherit (lib'.attrsets) attrNames listToAttrs;
+{lib'}: let
+  inherit (lib'.attrsets) attrNames listToAttrs optionalAttrs;
   inherit (lib'.lists) filter head;
-  inherit (strings) hasPrefix removePrefix removeSuffix toPascal;
+  inherit (lib'.strings) hasPrefix removePrefix removeSuffix concatStrings splitString toUpper substring stringLength;
+
+  #> minimal toPascal using only nixpkgs — custom _.strings.transformation.toPascal not available here
+  capitalize = s:
+    if s == ""
+    then ""
+    else toUpper (substring 0 1 s) + substring 1 (stringLength s - 1) s;
+
+  toPascal = s:
+    concatStrings (map capitalize (splitString "-" s));
 
   toSingular = let
     #~@ irregular plurals that can't be handled by stripping trailing s
@@ -18,37 +24,57 @@
       else removeSuffix "s" word;
 
   mkModuleExports = {
-    meta,
+    directory,
+    filename ? "",
     functions,
+    doc ? "",
+    tests ? {},
   }: let
-    #~@ ordered longest-first to avoid partial matches e.g. with vs without
     knownPrefixes = ["without" "with" "from" "has" "is" "mk" "to" "by"];
 
-    extSuffix = toPascal (removeSuffix ".nix" meta.filename);
-    namespace = "mk" + toPascal (toSingular meta.directory);
+    extSuffix =
+      if filename == ""
+      then ""
+      else toPascal filename;
+    domain = toPascal (toSingular directory);
 
-    stripFnPrefix = k: let
+    splitFnPrefix = k: let
       matched = filter (p: hasPrefix p k) knownPrefixes;
     in
       if matched == []
-      then k
-      else removePrefix (head matched) k;
+      then {
+        prefix = "";
+        stem = k;
+      }
+      else let
+        p = head matched;
+      in {
+        prefix = p;
+        stem = removePrefix p k;
+      };
 
     mkAliases = fns:
-      listToAttrs (map (k: {
+      optionalAttrs (extSuffix != "")
+      (listToAttrs (map (k: {
         name = k + extSuffix;
         value = fns.${k};
-      }) (attrNames fns));
+      }) (attrNames fns)));
 
     mkExternal = fns:
       listToAttrs (map (k: {
-        name = namespace + toPascal (stripFnPrefix k) + extSuffix;
+        name = let
+          parts = splitFnPrefix k;
+        in
+          parts.prefix + domain + parts.stem + extSuffix;
         value = fns.${k};
       }) (attrNames fns));
-  in {
-    internal = functions // mkAliases functions;
-    external = mkExternal functions;
-  };
+  in
+    (functions // mkAliases functions)
+    // {
+      __rootAliases = mkExternal functions;
+      __doc = doc;
+    }
+    // optionalAttrs (tests != {}) {__tests = tests;};
 in {
   inherit mkModuleExports toSingular;
 }

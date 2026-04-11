@@ -22,4 +22,4 @@
 
   exports = {inherit mkKeyboard;};
 in
-  exports // {_rootAliases = {mkUserKeyboard = mkKeyboard;};}
+  exports // {__rootAliases = {mkUserKeyboard = mkKeyboard;};}

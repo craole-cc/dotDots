@@ -218,9 +218,9 @@
 in
   exports.internal
   // {
-    _rootAliases = exports.external;
+    __rootAliases = exports.external;
 
-    _tests = runTests {
+    __tests = runTests {
       orDefault = {
         returnsValueWhenNonEmpty = mkTest {
           desired = "hello";

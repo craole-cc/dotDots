@@ -232,14 +232,14 @@ in {
     withDefaults
     ;
 
-  _rootAliases = {
+  __rootAliases = {
     attrMerge = merge;
     attrMergeWith = mergeWith;
     attrMergeDeep = mergeDeep;
     attrWithDefaults = withDefaults;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     merge = {
       overrideWins = mkTest {
         desired = {

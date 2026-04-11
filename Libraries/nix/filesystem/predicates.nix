@@ -113,8 +113,8 @@
 in
   exports.internal
   // {
-    _rootAliases = exports.external;
-    _tests = runTests {
+    __rootAliases = exports.external;
+    __tests = runTests {
       isNixFile = {
         detectsNixExtension = mkTest' true (isNixFile "/foo/bar.nix");
         rejectsNonNix = mkTest' false (isNixFile "/foo/bar.txt");

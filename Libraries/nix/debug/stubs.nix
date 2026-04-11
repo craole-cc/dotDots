@@ -50,4 +50,4 @@
 
   exports = {inherit mkDefaultStub mkForceStub mkEnableOptionStub;};
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

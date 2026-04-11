@@ -271,4 +271,4 @@
 
   exports = {inherit mkFonts mkStyle;};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  exports.internal // {__rootAliases = exports.external;}

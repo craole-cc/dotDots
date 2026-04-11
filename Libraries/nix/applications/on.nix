@@ -149,4 +149,4 @@
   mkFocus = environment: app:
     (byEnvironment.${environment} or (_: app.exec)) app;
 in
-  __exports.internal // {_rootAliases = __exports.external;}
+  __exports.internal // {__rootAliases = __exports.external;}

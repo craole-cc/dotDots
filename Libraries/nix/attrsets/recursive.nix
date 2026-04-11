@@ -100,7 +100,7 @@ in {
     updateDeep
     ;
 
-  _tests = runTests {
+  __tests = runTests {
     update = {
       wrapsPrimitives = mkTest {
         desired = {

@@ -100,9 +100,9 @@
 in
   __exports.internal
   // {
-    _rootAliases = __exports.external;
+    __rootAliases = __exports.external;
 
-    _tests = runTests {
+    __tests = runTests {
       combineValidators = {
         requiresAllToPass = mkTest {
           desired = true;

@@ -21,7 +21,7 @@
 
   # Examples
   ```nix
-  :p _.strings.transform._tests
+  :p _.strings.transform.__tests
   # { toLower = { singleString = { passed = true; ... }; }; ... }
   ```
   */
@@ -54,7 +54,7 @@
 
   # Examples
   ```nix
-  failures = collectFailures (runTests myModule._tests);
+  failures = collectFailures (runTests myModule.__tests);
   assert failures == []; "all tests passed"
   ```
   */
@@ -79,4 +79,4 @@
 
   exports = {inherit runTests collectFailures;};
 in
-  exports // {_rootAliases = exports;}
+  exports // {__rootAliases = exports;}

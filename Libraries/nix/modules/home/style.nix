@@ -35,4 +35,4 @@
 
   exports = {inherit mkStyle;};
 in
-  exports // {_rootAliases = {mkUserStyle = mkStyle;};}
+  exports // {__rootAliases = {mkUserStyle = mkStyle;};}

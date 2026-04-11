@@ -183,7 +183,7 @@
 in
   exports
   // {
-    _rootAliases = {
+    __rootAliases = {
       concatStrings = concat;
       splitString = split;
       stringToList = toList;
@@ -191,7 +191,7 @@ in
       mkAllStringPredicate = mkAllPredicate;
     };
 
-    _tests = runTests {
+    __tests = runTests {
       toList = {
         singleString = mkTest {
           desired = ["foo"];

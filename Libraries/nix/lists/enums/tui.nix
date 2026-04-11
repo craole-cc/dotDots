@@ -60,11 +60,11 @@
 in {
   inherit shells;
 
-  _rootAliases = {
+  __rootAliases = {
     shellsList = shells;
   };
 
-  _tests = runTests {
+  __tests = runTests {
     shells = {
       validatesBash = mkTest true (shells.validator.check "bash");
       validatesZsh = mkTest true (shells.validator.check "zsh");

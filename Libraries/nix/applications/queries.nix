@@ -1,10 +1,24 @@
 {
   _,
-  __meta,
+  __moduleDir,
+  __moduleName,
   ...
 }: let
+  __doc = ''
+    Application query builders (Layer 3).
+
+    Provides composable query functions that partition an application set
+    by field values, list membership, boolean flags, and field length.
+    Includes semantic builders for well-known fields (maturity, protocol,
+    scope, capability, config, independence) and a standard query combinator
+    that applies all of them in one call.
+
+    Depends on: _.applications.groups, _.applications.selectors, _.applications.predicates, _.applications.primitives
+  '';
+
   __exports = _.meta.mkModuleExports {
-    meta = __meta.module;
+    directory = __moduleDir;
+    filename = __moduleName;
     functions = {
       inherit
         mkBool
@@ -50,7 +64,7 @@
       ;
     inherit (_.applications.selectors) withFlag withoutFlag;
   };
-  inherit (__imports) attrNames attrValues concatMap filter filterAttrs genAttrs hasField hasListField isAttrs isIn length listToAttrs mkCapabilityGroup mkMaturityGroup mkProtocolGroup mkScopeGroup optionalAttrs removePrefix toName toPascal toValue unique withFlag withoutFlag;
+  inherit (__imports) attrNames attrValues concatMap filter filterAttrs genAttrs hasField hasListField isAttrs isIn length listToAttrs mkCapabilityGroup mkMaturityGroup mkProtocolGroup mkScopeGroup optionalAttrs toName toPascal toValue unique withFlag withoutFlag;
 
   /**
     Partition an attribute set into two subsets based on the presence or absence
@@ -350,4 +364,4 @@
   in
     optionalAttrs (withConfig != {}) {inherit isConfigurable;};
 in
-  __exports.internal // {_rootAliases = __exports.external;}
+  __exports
