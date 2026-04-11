@@ -1,44 +1,18 @@
 {
   _,
-  __meta,
+  __moduleDir,
+  __moduleName,
   ...
 }: let
-  __doc = ''
-    Application group builders (Layer 3).
-
-    Provides semantic grouping functions that partition an application set
-    by well-known fields (maturity, protocol, scope, capability, config),
-    and a composable standard grouping builder used by section constructors.
-
-    Depends on: _.applications.queries, _.applications.selectors, _.applications.primitives
-  '';
-
-  __exports = _.meta.mkModuleExports {
-    meta = __meta.module;
-    functions = {
-      inherit
-        mkCapability
-        mkConfigFile
-        mkMaturity
-        mkProtocol
-        mkScope
-        mkStandard
-        ;
-    };
-  };
-
-  __imports = {
-    inherit (_.attrsets.access) attrNames attrValues;
-    inherit (_.attrsets.construction) genAttrs listToAttrs;
-    inherit (_.attrsets.transformation) filterAttrs;
-    inherit (_.lists.predicates) isIn;
-    inherit (_.lists.selection) filter;
-    inherit (_.lists.transformation) unique;
-    inherit (_.applications.primitives) toValue toName;
-    inherit (_.applications.selectors) withFlag;
-    inherit (_.applications.queries) mkEq mkMember;
-  };
-  inherit (__imports) attrValues filter filterAttrs genAttrs isIn listToAttrs toValue toName unique withFlag mkEq mkMember;
+  inherit (_.attrsets.access) attrValues;
+  inherit (_.attrsets.construction) genAttrs listToAttrs;
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.lists.predicates) isIn;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.applications.primitives) toValue toName;
+  inherit (_.applications.selectors) withFlag;
+  inherit (_.applications.queries) mkEq mkMember;
 
   /**
       Partition an application set by the distinct values of the `maturity` field.
@@ -250,8 +224,27 @@
       })
       allFields);
 in
-  __exports.internal
-  // {
-    __rootAliases = __exports.external;
-    inherit __doc;
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    filename = __moduleName;
+    doc = ''
+      Application group builders (Layer 3).
+
+      Provides semantic grouping functions that partition an application set
+      by well-known fields (maturity, protocol, scope, capability, config),
+      and a composable standard grouping builder used by section constructors.
+
+      Depends on: applications {queries, primitives, selectors}.
+    '';
+
+    functions = {
+      inherit
+        mkCapability
+        mkConfigFile
+        mkMaturity
+        mkProtocol
+        mkScope
+        mkStandard
+        ;
+    };
   }

@@ -1,34 +1,12 @@
-{_, ...}: let
-  __doc = ''
-    Set-membership predicates (Layer 2).
-
-    Provides boolean probes over an attribute set of application entries,
-    answering "does any entry in this set carry field X?" questions.
-    Both predicates scan the values of `set` and short-circuit to `true`
-    as soon as one qualifying entry is found.
-
-    Depends on: primitives
-  '';
-
-  __exports = {
-    internal = {
-      inherit
-        hasField
-        hasListField
-        ;
-    };
-    external = {
-      applicationHasField = hasField;
-      applicationHasListField = hasListField;
-    };
-  };
-
-  __imports = {
-    inherit (_.attrsets.access) attrValues;
-    inherit (_.lists.predicates) isList;
-    inherit (_.lists.selection) filter;
-    inherit (_.applications.primitives) toValue;
-  };
+{
+  _,
+  __moduleDir,
+  ...
+}: let
+  inherit (_.attrsets.access) attrValues;
+  inherit (_.lists.predicates) isList;
+  inherit (_.lists.selection) filter;
+  inherit (_.applications.primitives) toValue;
 
   /**
     Return `true` when at least one entry in `set` has a non-null value at
@@ -58,12 +36,11 @@
     # => false
   ```
   */
-  hasField = with __imports;
-    {
-      field,
-      set,
-    }:
-      filter (a: toValue {inherit field;} a != null) (attrValues set) != [];
+  hasField = {
+    field,
+    set,
+  }:
+    filter (a: toValue {inherit field;} a != null) (attrValues set) != [];
 
   /**
     Return `true` when at least one entry in `set` has a list value at `field`.
@@ -95,15 +72,24 @@
     # => false
   ```
   */
-  hasListField = with __imports;
-    {
-      field,
-      set,
-    }:
-      filter (a: isList (toValue {inherit field;} a)) (attrValues set) != [];
+  hasListField = {
+    field,
+    set,
+  }:
+    filter (a: isList (toValue {inherit field;} a)) (attrValues set) != [];
 in
-  __exports.internal
-  // {
-    __rootAliases = __exports.external;
-    inherit __doc;
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Set-membership predicates (Layer 2).
+
+      Provides boolean probes over an attribute set of application entries,
+      answering "does any entry in this set carry field X?" questions.
+      Both predicates scan the values of `set` and short-circuit to `true`
+      as soon as one qualifying entry is found.
+
+      Depends on: applications.primitives
+    '';
+
+    functions = {inherit hasField hasListField;};
   }

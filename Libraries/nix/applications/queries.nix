@@ -4,67 +4,20 @@
   __moduleName,
   ...
 }: let
-  __doc = ''
-    Application query builders (Layer 3).
-
-    Provides composable query functions that partition an application set
-    by field values, list membership, boolean flags, and field length.
-    Includes semantic builders for well-known fields (maturity, protocol,
-    scope, capability, config, independence) and a standard query combinator
-    that applies all of them in one call.
-
-    Depends on: _.applications.groups, _.applications.selectors, _.applications.predicates, _.applications.primitives
-  '';
-
-  __exports = _.meta.mkModuleExports {
-    directory = __moduleDir;
-    filename = __moduleName;
-    functions = {
-      inherit
-        mkBool
-        mkCapability
-        mkConfig
-        mkEq
-        mkIndependence
-        mkLength
-        mkLengthFor
-        mkMaturity
-        mkMember
-        mkNamed
-        mkProtocol
-        mkScope
-        ;
-    };
-  };
-
-  __imports = {
-    inherit (_.attrsets.access) attrNames attrValues;
-    inherit
-      (_.attrsets.construction)
-      genAttrs
-      listToAttrs
-      optionalAttrs
-      ;
-    inherit (_.attrsets.predicates) isAttrs;
-    inherit (_.attrsets.transformation) filterAttrs;
-    inherit (_.lists.access) length;
-    inherit (_.lists.predicates) isIn;
-    inherit (_.lists.reduction) concatMap;
-    inherit (_.lists.selection) filter;
-    inherit (_.lists.transformation) unique;
-    inherit (_.strings.transformation) removePrefix toPascal;
-    inherit (_.applications.primitives) toValue toName;
-    inherit (_.applications.predicates) hasField hasListField;
-    inherit
-      (_.applications.groups)
-      mkCapabilityGroup
-      mkMaturityGroup
-      mkProtocolGroup
-      mkScopeGroup
-      ;
-    inherit (_.applications.selectors) withFlag withoutFlag;
-  };
-  inherit (__imports) attrNames attrValues concatMap filter filterAttrs genAttrs hasField hasListField isAttrs isIn length listToAttrs mkCapabilityGroup mkMaturityGroup mkProtocolGroup mkScopeGroup optionalAttrs toName toPascal toValue unique withFlag withoutFlag;
+  inherit (_.applications.groups) mkCapabilityGroup mkMaturityGroup mkProtocolGroup mkScopeGroup;
+  inherit (_.applications.predicates) hasField hasListField;
+  inherit (_.applications.primitives) toValue toName;
+  inherit (_.applications.selectors) withFlag withoutFlag;
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
+  inherit (_.attrsets.predicates) isAttrs;
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.lists.access) length;
+  inherit (_.lists.predicates) isIn;
+  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.strings.transformation) toPascal;
 
   /**
     Partition an attribute set into two subsets based on the presence or absence
@@ -364,4 +317,35 @@
   in
     optionalAttrs (withConfig != {}) {inherit isConfigurable;};
 in
-  __exports
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    filename = __moduleName;
+    doc = ''
+      Application query builders (Layer 3).
+
+      Provides composable query functions that partition an application set
+      by field values, list membership, boolean flags, and field length.
+      Includes semantic builders for well-known fields (maturity, protocol,
+      scope, capability, config, independence) and a standard query combinator
+      that applies all of them in one call.
+
+      Depends on: applications {groups, predicates, primitives, selectors}.
+    '';
+
+    functions = {
+      inherit
+        mkBool
+        mkCapability
+        mkConfig
+        mkEq
+        mkIndependence
+        mkLength
+        mkLengthFor
+        mkMaturity
+        mkMember
+        mkNamed
+        mkProtocol
+        mkScope
+        ;
+    };
+  }

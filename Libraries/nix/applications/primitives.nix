@@ -1,35 +1,12 @@
-{_, ...}: let
-  __doc = ''
-    Primitive field accessors (Layer 1).
-
-    Provides the core operations for normalizing field paths, reading values
-    from nested attribute sets, and deriving camelCase names from field
-    identifiers. All higher-level modules depend on these primitives.
-
-    Depends on: _
-  '';
-
-  __exports = {
-    internal = {
-      inherit
-        toPath
-        toValue
-        toName
-        ;
-    };
-    external = {
-      toApplicationPath = toPath;
-      toApplicationValue = toValue;
-      toApplicationName = toName;
-    };
-  };
-
-  __imports = {
-    inherit (_.lists.predicates) isList;
-    inherit (_.strings.construction) concatStringsSep;
-    inherit (_.strings.transformation) splitString toPascal;
-    inherit (_.attrsets.access) attrByPath;
-  };
+{
+  _,
+  __moduleDir,
+  ...
+}: let
+  inherit (_.lists.predicates) isList;
+  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.transformation) splitString toPascal;
+  inherit (_.attrsets.access) attrByPath;
 
   /**
       Normalize a field identifier into a path segment list.
@@ -48,11 +25,10 @@
       toPath "simple"     # => ["simple"]
   ```
   */
-  toPath = with __imports;
-    field:
-      if isList field
-      then field
-      else splitString "." field;
+  toPath = field:
+    if isList field
+    then field
+    else splitString "." field;
 
   /**
       Safely read a possibly-nested field from an attribute set, returning
@@ -76,18 +52,17 @@
       toValue { field = "x"; default = 0; } {}           # => 0
   ```
   */
-  toValue = with __imports;
-    {
-      field,
-      default ? null,
-    }: app:
-      attrByPath (
-        if isList field
-        then field
-        else splitString "." field
-      )
-      default
-      app;
+  toValue = {
+    field,
+    default ? null,
+  }: app:
+    attrByPath (
+      if isList field
+      then field
+      else splitString "." field
+    )
+    default
+    app;
 
   /**
       Derive a camelCase identifier from a field path, with optional prefix
@@ -115,22 +90,28 @@
       # => "byABIndex"
   ```
   */
-  toName = with __imports;
-    {
-      prefix ? "",
-      field,
-      suffix ? "",
-    }: let
-      normalized = concatStringsSep "-" (
-        if isList field
-        then field
-        else splitString "." field
-      );
-    in
-      prefix + toPascal normalized + suffix;
+  toName = {
+    prefix ? "",
+    field,
+    suffix ? "",
+  }: let
+    normalized = concatStringsSep "-" (
+      if isList field
+      then field
+      else splitString "." field
+    );
+  in
+    prefix + toPascal normalized + suffix;
 in
-  __exports.internal
-  // {
-    __rootAliases = __exports.external;
-    inherit __doc;
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Primitive field accessors (Layer 1).
+
+      Provides the core operations for normalizing field paths, reading values
+      from nested attribute sets, and deriving camelCase names from field
+      identifiers. All higher-level modules depend on these primitives.
+    '';
+
+    functions = {inherit toPath toValue toName;};
   }
