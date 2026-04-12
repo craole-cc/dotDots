@@ -23,14 +23,18 @@
     != null
     && (hasInfix "cachyos" kernelRequested || hasAttr kernelRequested pkgs);
 
-  chaoticSubstituters = optionals isChaotic ["https://nyx.chaotic.cx/"];
-  chaoticKeys = optionals isChaotic ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
+  substituters =
+    ["https://cache.numtide.com"]
+    ++ optionals isChaotic ["https://nyx.chaotic.cx/"];
+  trustedKeys =
+    ["niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="]
+    ++ optionals isChaotic ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     stateVersion = mkOption {
       description = "NixOS state version";
-      default = host.stateVersion    or "25.11";
+      default = host.stateVersion or "25.11";
       type = str;
     };
     maxJobs = mkOption {
@@ -40,12 +44,12 @@ in {
     };
     extraSubstituters = mkOption {
       description = "Extra binary caches";
-      default = chaoticSubstituters;
+      default = substituters;
       type = listOf str;
     };
     extraTrustedKeys = mkOption {
       description = "Extra trusted keys";
-      default = chaoticKeys;
+      default = trustedKeys;
       type = listOf str;
     };
   };
