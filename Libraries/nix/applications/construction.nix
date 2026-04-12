@@ -1,8 +1,18 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application construction helpers.
+      Provides shell-app and script-wrapper builders.
+    '';
+    functions = {
+      inherit mkShellApp mkScriptWrapper mkScriptWrappers;
+    };
+    exports = {
+      local = functions;
+      alias = functions;
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrsToList;
   inherit (_.filesystem.access) readFile;
@@ -308,19 +318,8 @@
       ))
     scripts;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application construction helpers.
-
-      Provides shell-app and script-wrapper builders.
-    '';
-
-    functions = {
-      inherit
-        mkShellApp
-        mkScriptWrapper
-        mkScriptWrappers
-        ;
-    };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

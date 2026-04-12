@@ -1,8 +1,24 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Primitive application set selectors (Layer 3).
+
+      Provides low-level set selectors and set transforms that operate on
+      whole application attrsets. These functions filter by boolean or
+      inequality predicates and derive resolved config paths, but do not
+      assign semantic query names or compose higher-level query bundles.
+
+      Depends on: applications.primitives.
+    '';
+    functions = {
+      inherit withFlag withoutFlag withNeq resolveConfig;
+    };
+    exports = {
+      local = functions;
+      alias = {};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.primitives) toValue;
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.merging) recursiveUpdate;
@@ -171,18 +187,8 @@
       )
       set;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Primitive application set selectors (Layer 3).
-
-      Provides low-level set selectors and set transforms that operate on
-      whole application attrsets. These functions filter by boolean or
-      inequality predicates and derive resolved config paths, but do not
-      assign semantic query names or compose higher-level query bundles.
-
-      Depends on: applications.primitives.
-    '';
-
-    functions = {inherit withFlag withoutFlag withNeq resolveConfig;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

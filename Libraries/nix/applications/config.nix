@@ -1,11 +1,21 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application config helpers.
+      Provides small helpers that assemble user-facing application module
+      metadata from `userApplication` plus selected input modules.
+    '';
+    functions = {
+      inherit mkUserApp mkUserApps;
+    };
+    exports = {
+      local = functions;
+      alias = functions;
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.generators) userApplication;
   inherit (_.strings.predicates) hasInfix;
-
   mkUserApp = {
     modules,
     pkgs,
@@ -14,14 +24,13 @@
     moduleName,
     app,
   }: let
-    appInfo =
-      userApplication (
-        {
-          inherit user pkgs config;
-          debug = false;
-        }
-        // app
-      );
+    appInfo = userApplication (
+      {
+        inherit user pkgs config;
+        debug = false;
+      }
+      // app
+    );
   in {
     module = modules.${moduleName}.default or {};
     inherit
@@ -75,15 +84,14 @@
         if hasInfix "twilight" (user.applications.browser.firefox or "")
         then "twilight"
         else "default";
-      appInfo =
-        userApplication {
-          inherit user pkgs config;
-          name = "zen-browser";
-          kind = "browser";
-          customCommand = "zen";
-          resolutionHints = ["zen" "zen-twilight" "zen-beta"];
-          debug = false;
-        };
+      appInfo = userApplication {
+        inherit user pkgs config;
+        name = "zen-browser";
+        kind = "browser";
+        customCommand = "zen";
+        resolutionHints = ["zen" "zen-twilight" "zen-beta"];
+        debug = false;
+      };
     in {
       module = modules.zen-browser.${variant} or {};
       inherit
@@ -104,14 +112,8 @@
     };
   };
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application config helpers.
-
-      Provides small helpers that assemble user-facing application module
-      metadata from `userApplication` plus selected input modules.
-    '';
-
-    functions = {inherit mkUserApps;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

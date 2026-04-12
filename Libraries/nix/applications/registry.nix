@@ -1,8 +1,31 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application registry data (Layer 0).
+
+      Provides normalized application records from `./.data`, with consistent
+      `categories` (list), `channel`/`family` (optional) fields. Supplies
+      primitive tree inspection for recursive processing, validated registry
+      lookup, and registry-derived identification metadata.
+
+      Depends on: applications.primitives filesystem.importers.
+    '';
+    functions = {
+      inherit
+        all
+        mkRegistry
+        importRegistry
+        isRegistryAttrset
+        lookup
+        identify
+        ;
+    };
+    exports = {
+      local = all // functions;
+      alias = {};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.primitives) normalizeList normalizeOptional;
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -142,29 +165,8 @@
 
   all = importRegistry ./.data;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application registry data (Layer 0).
-
-      Provides normalized application records from `./.data`, with consistent
-      `categories` (list), `channel`/`family` (optional) fields. Supplies
-      primitive tree inspection for recursive processing, validated registry
-      lookup, and registry-derived identification metadata.
-
-      Depends on: applications.primitives filesystem.importers.
-    '';
-
-    functions =
-      all
-      // {
-        inherit
-          all
-          mkRegistry
-          importRegistry
-          isRegistryAttrset
-          lookup
-          identify
-          ;
-      };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

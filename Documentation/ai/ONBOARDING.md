@@ -13,14 +13,17 @@ profiles, and reusable configuration modules. It is not a simple home-manager
 wrapper — it has a fully custom library (`lix`) and a typed schema system
 driving host and user evaluation.
 
-The three most important mental-model facts:
+The four most important mental-model facts:
 
 1. `lix` is the custom standard library. Everything flows through it.
 2. `tree` is the canonical path registry. Paths are never hardcoded — they are
    looked up through `tree.store.*`.
-3. The repo is divided into four strictly separated roles: `Libraries/nix`
+3. The repo is divided into five strictly separated roles: `Libraries/nix`
    (infrastructure), `API/nix` (data), `Modules/nix` (behavior),
-   `Templates/nix` (reusable kits).
+   `Templates/nix` (reusable kits), `Configuration/` and `Environment/`
+   (system-level declarations).
+4. `API/nix` is the source of truth for all hosts and users. It is data only —
+   no logic lives there.
 
 ---
 
@@ -34,18 +37,14 @@ Read `flake.nix` and `default.nix` in full.
 
 From `flake.nix` you will learn:
 
-- All external inputs and what they provide (editors, shells, styling, secrets,
-  formatters, etc.).
-- That `mkFlake` and `mkSystems` drive output construction — these are defined
-  inside `Libraries/nix`.
+- All external inputs and what they provide (editors, shells, styling, secrets, formatters, etc.).
+- That `mkFlake` and `mkSystems` drive output construction — these are defined inside `Libraries/nix`.
 - That `inputsWrapped` normalises inputs before they reach modules.
 
 From `default.nix` you will learn:
 
-- The full directory tree expressed as `stems` — this is the authoritative
-  path map. Every path in the repo has a `tree.store.*` equivalent.
-- That `lix` is imported from `Libraries/nix` and exposed as the shared
-  namespace.
+- The full directory tree expressed as `stems` — this is the authoritative path map. Every path in the repo has a `tree.store.*` equivalent.
+- That `lix` is imported from `Libraries/nix` and exposed as the shared namespace.
 - That `schema` is derived from `tree` and produces `hosts` and `users`.
 
 ### Step 2 — Read the Architecture
@@ -56,12 +55,12 @@ This gives you the evaluation flow:
 
 ```sh
 flake.nix
-  -> default.nix          (assembles lix, tree, schema)
+  -> default.nix #? assembles lix, tree, schema
   -> lix.modules.construction
-      -> mkFlake           (per-system outputs: devShells, formatter, checks)
-      -> mkSystems         (evaluates each host from schema.hosts)
-          -> mkCore        (NixOS system config from Modules/nix/core)
-          -> mkHome        (Home Manager config from Modules/nix/home)
+    -> mkFlake #? per-system: devShells, formatter, checks
+    -> mkSystems #? evaluates each host from schema.hosts
+      -> mkCore #? NixOS system via Modules/nix/core
+      -> mkHome #? Home Manager via Modules/nix/home
 ```
 
 ### Step 3 — Learn the Library Conventions
@@ -70,35 +69,66 @@ Open any module under `Libraries/nix/` and read it with these questions in mind.
 
 #### Module signature
 
-Every `lix` module takes `{ _, ... }` as its argument set. The `_` argument is
-the entire `lix` namespace — the library itself, passed as a single attrset.
+Every `lix` module takes `{ _, __moduleDir, ... }` as its argument set, and
+optionally `__moduleName` when namespaced aliases are needed. The `_` argument
+is the entire `lix` namespace — the library itself, passed as a single attrset.
 Modules never use relative imports; they access everything through `_`.
 
 #### Module structure (canonical ordering)
 
-Every module follows this ordering:
-
 ```nix
-{ _, ... }: let
-  __doc = ''...'';        # 1. documentation string
-  __exports = { ... };    # 2. internal and external export declarations
-  __imports = { ... };    # 3. all inherit statements, collected here
-  # 4. functions, each preceded by its /** */ docstring
+{ _,
+  __moduleDir,
+  __moduleName,   # optional — include when namespaced aliases are wanted
+  ...
+}: let
+  inherit (_.some.namespace) foo bar;   # 1. inherits at top of let
+  inherit (_.other.namespace) baz;
+
+  /**  docstring */                     # 2. docstring immediately before function
+  fnOne = { argA, argB ? <default> }: <body>;
+
 in
-  __exports.internal // {
-    _rootAliases = __exports.external;
-    inherit __doc;
-    _tests = runTests { ... };
+  _.meta.mkModuleExports {             # 3. single export call
+    directory = __moduleDir;
+    filename  = __moduleName;          #? omit when no namespaced aliases needed
+    doc = ''
+      <Title> (Layer N).
+
+      <2–4 sentences describing what this module provides.>
+
+      Depends on: <comma-separated list>
+    '';
+    functions = {
+      inherit fnOne;
+      customAlias = fnOne;             # explicit alias when needed
+    };
+    tests = runTests { ... };
   }
 ```
 
-Do not deviate from this ordering when writing or editing modules.
+#### `_.meta.mkModuleExports`
 
-#### `__doc`
+This is the only export mechanism. Its arguments:
+
+- `directory = __moduleDir` — always present, used for filesystem introspection
+- `filename = __moduleName` — **optional**. When included, `mkModuleExports`
+  automatically generates a namespaced alias for every function in `functions`
+  by appending the module name in PascalCase. For example, in a module named
+  `groups`, `mkStandard` is also exported as `mkStandardGroups`. This is how
+  the `lix` namespace avoids collisions across modules in the same domain.
+- `doc` — the layer/dependency documentation string (see below)
+- `functions` — attrset of exported symbols; may include both bare `inherit`
+  and explicit aliases under custom names
+- `tests` — the `runTests { ... }` block
+
+Do not invent alternative export shapes. All modules end with this call.
+
+#### `doc` string format
 
 A multiline string with this format:
 
-```sh
+```md
 <Title> (Layer N).
 
 <2–4 sentences describing what this module provides.>
@@ -106,124 +136,68 @@ A multiline string with this format:
 Depends on: <comma-separated list>
 ```
 
-The layer number and `Depends on:` line are mandatory. Read them to understand
-the module's place in the dependency graph before editing. Leaf modules (no
-intra-domain dependencies) omit the `Depends on:` line.
+The layer number and `Depends on:` line are mandatory for non-leaf modules.
+Read them before editing to understand the module's position in the dependency
+graph. Leaf modules (no intra-domain dependencies) omit `Depends on:`.
 
-#### `__exports`
+#### Namespaced aliases in practice
 
-Exports are split into `internal` and `external`:
-
-```nix
-__exports = {
-  internal = {
-    inherit fnOne fnTwo;          # bare names, used within the module tree
-  };
-  external = {
-    #~@ prefixed to avoid root-level collisions
-    domainFnOne = fnOne;          # namespaced: <domain><FunctionName>
-    domainFnTwo = fnTwo;
-  };
-};
-```
-
-Internal exports use bare `inherit`. External exports **must be namespaced**
-with the domain prefix to avoid collisions at the root level — e.g.
-`toApplicationPath`, `mkUserConfig`, `hasCapabilitySync`. Bare `inherit` in
-`external` is only appropriate when the name is already globally unambiguous.
-
-External exports surface as `_rootAliases` in the `in` clause and become
-available directly on the `_` namespace at the root level.
-
-#### `__imports`
-
-All `inherit` statements that pull from `_` are collected in `__imports`:
+From a `nix-repl` inspection of `applications.groups` (module filename `groups`):
 
 ```nix
-__imports = {
-  inherit (_.some.namespace) foo bar;
-  inherit (_.other.namespace) baz;
-};
+mkGroups         = «lambda mkStandard ...»   # bare name from functions.inherit
+mkStandardGroups = «lambda mkStandard ...»   # auto-generated by filename = __moduleName
+mkMaturity       = «lambda mkMaturity ...»
+mkMaturityGroups = «lambda mkMaturity ...»
 ```
 
-Functions then open `__imports` with `with __imports;` rather than scattering
-`inherit` statements throughout the body.
+When you see a `FooBar` and `FooBarDomain` pair on the namespace, the second is
+the auto-alias. Both point to the same lambda.
 
 #### Function docstrings (`/** */`)
 
-Every exported function is preceded by a `/** */` docstring in this order:
+Every exported function is preceded by a `/** */` docstring immediately above
+its definition, in this order:
 
 1. One-line summary (plain prose, no heading)
 2. Optional second paragraph for edge cases, defaults, or guards
-3. `# Type` block — pseudo-signature using `::`, named record args, `|` for
-   unions, `?` suffix or inline comment for optionals
-4. `# Examples` block — at minimum one typical case and one boundary/edge case,
-   each with a comment explaining what it demonstrates
-
-<!-- ```nix
-  /**
-    One-line summary of what the function does.
-
-    Optional second paragraph for edge cases or defaults.
-
-    # Type
-  ```nix
-    fnOne :: {
-      argA :: string,
-      argB :: int,      # optional, default 0
-    } -> AttrSet
-  ```
-
-  # Examples
-
-  ```nix
-    fnOne { argA = "x"; }
-    # => { ... }
-
-    # Demonstrates behaviour when argB is omitted
-    fnOne { argA = "x"; argB = 0; }
-    # => { ... }
-  ```
-
-  */
-  fnOne = with __imports; { argA, argB ? 0 }: ...;
-
-``` -->
+3. `# Type` block — pseudo-signature using `::`, named record args, `|` for unions, `?` suffix or inline comment for optionals
+4. `# Examples` block — at minimum one typical case and one boundary/edge case, each with a comment explaining what it demonstrates
 
 #### Naming prefix conventions
 
-| Prefix       | Meaning                                       |
-|--------------|-----------------------------------------------|
-| `mk*`        | Constructor — builds or derives something     |
-| `to*`        | Converter — transforms input to output        |
-| `has*`       | Predicate — boolean, checks presence          |
-| `is*`        | Predicate — boolean, checks identity/state    |
-| `normalize*` | Cleaner — strips nulls, sentinels, empties    |
-| `keysFrom*`  | Extractor — derives canonical key sets        |
-| `resolve*`   | Resolver — materialises a deferred value      |
+| Prefix       | Meaning                                    |
+|--------------|--------------------------------------------|
+| `mk*`        | Constructor — builds or derives something  |
+| `to*`        | Converter — transforms input to output     |
+| `has*`       | Predicate — boolean, checks presence       |
+| `is*`        | Predicate — boolean, checks identity/state |
+| `normalize*` | Cleaner — strips nulls, sentinels, empties |
+| `keysFrom*`  | Extractor — derives canonical key sets     |
+| `resolve*`   | Resolver — materialises a deferred value   |
 
 #### Generated attrset key prefixes
 
 When a `mk*` function partitions an attrset and names the resulting keys, the
 prefix encodes the semantic relationship:
 
-| Prefix           | Relationship                          | Example              |
-|------------------|---------------------------------------|----------------------|
-| `by`             | grouped by field value                | `byColor`            |
-| `is`             | boolean true partition                | `isStable`           |
-| `has`            | list-field membership                 | `hasSync`            |
-| `as`             | identity/role partition               | `asGraphical`        |
-| `for`            | protocol or lang affinity             | `forWayland`         |
-| `on`             | surface or channel partition          | `onWayland`          |
-| `in`             | color or space membership             | `inDark`             |
-| `with`           | toolkit or panel association          | `withGtk`            |
-| `using`          | compositor affiliation                | `usingHyprland`      |
-| `via`            | delivery mechanism                    | `viaGreeter`         |
-| `from`           | family origin                         | `fromFirefox`        |
-| `writtenIn`      | engine/language membership            | `writtenInRust`      |
-| `supports`       | capability or protocol support        | `supportsWayland`    |
-| `configuredWith` | config language                       | `configuredWithToml` |
-| `single`/`multi` | list-length partition                 | `singleTag`          |
+| Prefix           | Relationship                       | Example              |
+|------------------|------------------------------------|----------------------|
+| `by`             | grouped by field value             | `byColor`            |
+| `is`             | boolean true partition             | `isStable`           |
+| `has`            | list-field membership              | `hasSync`            |
+| `as`             | identity/role partition            | `asGraphical`        |
+| `for`            | protocol or lang affinity          | `forWayland`         |
+| `on`             | surface or channel partition       | `onWayland`          |
+| `in`             | color or space membership          | `inDark`             |
+| `with`           | toolkit or panel association       | `withGtk`            |
+| `using`          | compositor affiliation             | `usingHyprland`      |
+| `via`            | delivery mechanism                 | `viaGreeter`         |
+| `from`           | family origin                      | `fromFirefox`        |
+| `writtenIn`      | engine/language membership         | `writtenInRust`      |
+| `supports`       | capability or protocol support     | `supportsWayland`    |
+| `configuredWith` | config language                    | `configuredWithToml` |
+| `single`/`multi` | list-length partition              | `singleTag`          |
 
 #### Section shape
 
@@ -243,23 +217,23 @@ When a `mk*` function produces a queryable section it always has this shape:
 Tests live in the `in` clause under `_tests = runTests { ... }`. Test names
 read as assertions about behaviour, not descriptions of the function:
 
-| Pattern | Use |
-| --- | --- |
-| `allowsX` / `deniesX` | boolean predicates |
-| `returnsX` / `exportsX` | value or shape checks |
-| `resolvesX` | lookup or alias resolution |
-| `caseSensitiveWithExact` | case-sensitivity behaviour |
+| Pattern                  | Use                              |
+|--------------------------|----------------------------------|
+| `allowsX` / `deniesX`    | boolean predicates               |
+| `returnsX` / `exportsX`  | value or shape checks            |
+| `resolvesX`              | lookup or alias resolution       |
+| `caseSensitiveWithExact` | case-sensitivity behaviour       |
 
 Cover at minimum: the happy path, the rejection path, and any default-value or
 case-sensitivity behaviour.
 
 #### Inline comment sigils
 
-| Sigil | Use                                              |
-|-------|--------------------------------------------------|
-| `#~@` | groups, lists, collections                       |
-| `#>`  | runners, verbs, active steps                     |
-| `#?`  | checks, guards, questions, preconditions         |
+| Sigil | Use                                      |
+|-------|------------------------------------------|
+| `#~@` | groups, lists, collections               |
+| `#>`  | runners, verbs, active steps             |
+| `#?`  | checks, guards, questions, preconditions |
 
 Section headings in long files use box-drawing characters:
 
@@ -271,14 +245,14 @@ Section headings in long files use box-drawing characters:
 
 #### Type conventions
 
-| Pattern                    | Meaning                                  |
-|----------------------------|------------------------------------------|
-| `string` `bool` `int`      | primitives                               |
-| `AttrSet`                  | untyped attribute set                    |
-| `{ ${key} :: AttrSet }`    | attrset with dynamic keys                |
-| `A \| B`                   | union / nullable (`string \| null`)      |
-| `# optional, default ""`   | optional record field with default       |
-| `-> X \| {}`               | may return empty attrset                 |
+| Pattern                  | Meaning                               |
+|--------------------------|---------------------------------------|
+| `string` `bool` `int`    | primitives                            |
+| `AttrSet`                | untyped attribute set                 |
+| `{ ${key} :: AttrSet }`  | attrset with dynamic keys             |
+| `A \| B`                 | union / nullable (`string \| null`)   |
+| `# optional, default ""` | optional record field with default    |
+| `-> X \| {}`             | may return empty attrset              |
 
 #### Aggregator `default.nix`
 
@@ -289,16 +263,20 @@ contains substantive logic — verify before reading it as a source of truth.
 
 ### Step 4 — Locate the API
 
-Browse `API/nix/hosts/` and `API/nix/users/`.
+Browse `API/nix/hosts/` and `API/nix/users/`. This directory is the
+source of truth for all host and user declarations in the repo.
 
-Host files are data, not behavior. A host definition declares what a machine
-is (its hardware, role, inputs, modules, and user assignments) but contains no
-module logic. `mkSystems` in `Libraries/nix/modules/construction.nix` reads
-this data and evaluates it.
+`API/nix/hosts/<host>/` declares what a machine is: its hardware profile,
+system role, which inputs and modules it uses, and which users are assigned to
+it. It contains no module logic — `mkSystems` in
+`Libraries/nix/modules/construction.nix` reads this data and evaluates it.
 
-User files are similarly declarative. They describe user identity, app
-preferences, shell config, and theme choices. `mkHome` wires them into
-Home Manager via `Libraries/nix/modules/home/users.nix`.
+`API/nix/users/<user>/` declares user identity, app preferences, shell config,
+and theme choices. `mkHome` wires these into Home Manager via
+`Libraries/nix/modules/home/users.nix`.
+
+If a task appears host-specific or user-specific, verify the source of truth
+is here before touching anything in `Modules/nix`.
 
 ### Step 5 — Inspect the Module Layers
 
@@ -313,30 +291,41 @@ shared across all users.
 
 For each file, check first whether it is an aggregator or a substantive module.
 
+### Step 6 — Inspect the Templates
+
+Browse `Templates/nix/`. This directory contains reusable kit sets exposed
+via `tree.store.kit.*` and merged into the flake outputs directly from
+`flake.nix`. The kits are split into:
+
+- `common/` — shared across all contexts
+- `dev/` — development environment templates
+- `media/` — media-related templates
+
+When a task calls for a reusable pattern that is not host- or user-specific and
+does not belong in `Libraries/nix`, check whether a kit in `Templates/nix` is
+the right home before introducing new structure.
+
 ---
 
 ## Key Relationships to Hold
 
-```yml
-Libraries/nix
-  provides: lix namespace, filesystem tools, schema constructors,
-            module builders, application registry and query system
+- Libraries/nix
+  - **provides**: lix namespace, filesystem tools, schema constructors, module builders, application registry and query system
 
-API/nix
-  consumes: schema constructors from Libraries/nix
-  provides: concrete host and user data
+- API/nix
+  - **consumes**: schema constructors from Libraries/nix
+  - **provides**: concrete host and user data (source of truth)
 
-Modules/nix
-  consumes: lix, tree, schema, API data, external inputs
-  provides: NixOS and HM module behavior
+- Modules/nix
+  - **consumes**: lix, tree, schema, API data, external inputs
+  - **provides**: NixOS and HM module behavior
 
-Templates/nix
-  consumes: lix, tree
-  provides: reusable kit sets exposed via tree.store.kit.*
+- Templates/nix
+  - **consumes**: lix, tree
+  - **provides**: reusable kit sets exposed via tree.store.kit.*
 
-flake.nix
-  wires: all of the above into flake outputs and nixosConfigurations
-```
+- flake.nix
+  - **wires**: all of the above into flake outputs and nixosConfigurations
 
 ---
 
@@ -359,25 +348,22 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 
 ## What to Verify Before Editing
 
-1. Does `tree` already model the path you intend to add? Check `default.nix`
-   stems before introducing new path conventions.
-2. Is the `default.nix` you are about to edit an aggregator or does it own
-   behavior? Open it and check before assuming.
-3. Does a library helper already exist for the pattern you are about to write?
-   Check `Libraries/nix/` before adding new logic to a module.
+1. Does `tree` already model the path you intend to add? Check `default.nix` stems before introducing new path conventions.
+2. Is the `default.nix` you are about to edit an aggregator or does it own behavior? Open it and check before assuming.
+3. Does a library helper already exist for the pattern you are about to write? Check `Libraries/nix/` before adding new logic to a module.
 4. Are you putting data in a module or behavior in API? Both are wrong.
 
 ---
 
 ## Reference Documents
 
-| Document | Contents |
-| --- | --- |
-| `ARCHITECTURE.md` | Evaluation flow and layer model |
-| `CONVENTIONS.md` | Repository rules and role boundaries |
-| `TASKS.md` | Investigation flows for common change types |
-| `AGENTS.md` | Quick-reference navigation guide |
-| Tool-specific adapters | `CODEX.md`, `CURSOR.md`, etc. |
+| Document               | Contents                                    |
+|------------------------|---------------------------------------------|
+| `ARCHITECTURE.md`      | Evaluation flow and layer model             |
+| `CONVENTIONS.md`       | Repository rules and role boundaries        |
+| `TASKS.md`             | Investigation flows for common change types |
+| `AGENTS.md`            | Quick-reference navigation guide            |
+| Tool-specific adapters | `CODEX.md`, `CURSOR.md`, etc.               |
 
 ---
 
@@ -386,10 +372,8 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 Adapters should:
 
 1. Tell the agent to read this file first.
-2. Add only tool-specific notes (file watching, shell commands, diff format,
-  model-specific constraints).
-3. Not duplicate content from this file or from `ARCHITECTURE.md`,
-   `CONVENTIONS.md`, or `TASKS.md`.
+2. Add only tool-specific notes (file watching, shell commands, diff format, model-specific constraints).
+3. Not duplicate content from this file or from `ARCHITECTURE.md`, `CONVENTIONS.md`, or `TASKS.md`.
 
 Example adapter structure:
 

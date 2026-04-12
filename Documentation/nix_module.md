@@ -3,33 +3,13 @@
 ## File Structure
 
 ````nix
-{_, ...}: let
-  __doc = ''
-    <Module title> (Layer N).
-
-    <2–4 sentence description of what this module provides.>
-
-    Depends on: <dependencies>
-  '';
-
-  __exports = {
-    internal = {
-      inherit
-        fnOne
-        fnTwo
-        ;
-    };
-    external = {
-      #~@ prefixed to avoid root-level collisions
-      domainFnOne = fnOne;
-      domainFnTwo = fnTwo;
-    };
-  };
-
-  __imports = {
-    inherit (_.some.namespace) foo bar;
-    inherit (_.other.namespace) baz;
-  };
+{ _,
+  __moduleDir,
+  __moduleName,
+ ...
+}: let
+  inherit (_.some.namespace) foo bar;
+  inherit (_.other.namespace) baz;
 
   /**
     <One-line summary of what the function does.>
@@ -37,15 +17,15 @@
     <Optional second paragraph for edge cases, defaults, or guards.>
 
     # Type
-```nix
+    ```nix
     fnOne :: {
       argA :: type,
       argB :: type,      # optional, default <value>
     } -> ReturnType
-```
+    ```
 
     # Examples
-```nix
+    ```nix
     fnOne {
       argA = <value>;
       argB = <value>;
@@ -57,21 +37,31 @@
       argA = <edge value>;
     }
     # => <result>
-```
+    ```
   */
-  fnOne = with __imports;
-    {
-      argA,
-      argB ? <default>,
-    }: <body>;
+  fnOne = {
+    argA,
+    argB ? <default>,
+  }: <body>;
 
 in
-  __exports.internal
-  // {
-    _rootAliases = __exports.external;
-    inherit __doc;
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    filename = __moduleName; #? Using this creates namespaced aliases as well eg. fnOneNamespace
+    doc = ''
+      <Module title> (Layer N).
 
-    _tests = runTests {
+      <2–4 sentence description of what this module provides.>
+
+      Depends on: <dependencies>
+'';
+
+    functions = {
+      inherit fnOne;
+      customFnOne = fnOne;
+    };
+
+    tests = runTests {
       fnOne = {
         <descriptiveCamelCaseName> = mkTest {
           desired = <expected>;

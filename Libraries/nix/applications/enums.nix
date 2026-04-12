@@ -1,9 +1,25 @@
-{
-  _,
-  __moduleDir,
-  __moduleName,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application enums (Layer 4).
+
+      Converts the application registry into typed enums, recursively
+      walking nested registry trees and wrapping leaf sets with `mkEnum`.
+
+      Provides pre-built enums for shells and interfaces, including
+      queried sub-enums with optional nullability overrides.
+
+      Depends on: applications.queries lists.construction.
+    '';
+    functions = {
+      inherit all toEnums;
+    };
+    exports = {
+      local = all // functions;
+      alias = {toApplicationEnums = toEnums;};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.filters.queries) shell interface;
   inherit (_.applications.registry) isRegistryAttrset;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -56,19 +72,8 @@
     interface = toEnums interface;
   };
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    filename = __moduleName;
-    doc = ''
-      Application enums (Layer 4).
-
-      Converts the application registry into typed enums, recursively
-      walking nested registry trees and wrapping leaf sets with `mkEnum`.
-      Provides pre-built enums for shells and interfaces, including
-      queried sub-enums with optional nullability overrides.
-
-      Depends on: applications.queries lists.construction.
-    '';
-
-    functions = all // {inherit all toEnums;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

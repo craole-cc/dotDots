@@ -1,8 +1,33 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Primitive field and value helpers (Layer 1).
+
+      Provides the core operations for normalizing field paths, reading values
+      from nested attribute sets, deriving exported names, normalizing
+      optional and list-valued fields, and extracting canonical key domains
+      from application records.
+
+      Higher-level selector and query-builder modules should depend on these
+      primitives rather than reimplementing normalization or key discovery.
+    '';
+    functions = {
+      inherit
+        toPath
+        toValue
+        toName
+        normalizeOptional
+        normalizeList
+        keysFromOptional
+        keysFromMembers
+        ;
+    };
+    exports = {
+      local = functions;
+      alias = {};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
@@ -215,29 +240,8 @@
       (attrValues set)
     );
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Primitive field and value helpers (Layer 1).
-
-      Provides the core operations for normalizing field paths, reading values
-      from nested attribute sets, deriving exported names, normalizing
-      optional and list-valued fields, and extracting canonical key domains
-      from application records.
-
-      Higher-level selector and query-builder modules should depend on these
-      primitives rather than reimplementing normalization or key discovery.
-    '';
-
-    functions = {
-      inherit
-        toPath
-        toValue
-        toName
-        normalizeOptional
-        normalizeList
-        keysFromOptional
-        keysFromMembers
-        ;
-    };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

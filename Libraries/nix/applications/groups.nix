@@ -1,9 +1,34 @@
-{
-  _,
-  __moduleDir,
-  __moduleName,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application group builders (Layer 3).
+
+      Provides semantic grouping functions that partition an application set
+      by well-known fields (maturity, protocol, scope, capability, config),
+      and a composable standard grouping builder used by section constructors.
+
+      All group keys are prefixed with "by" via mkNamed.
+
+      Depends on: applications {queries, primitives, selection}.
+    '';
+    functions = {
+      inherit
+        mkCapability
+        mkConfig
+        mkMaturity
+        mkProtocol
+        mkScope
+        mkStandard
+        ;
+      mkGroups = mkStandard;
+    };
+    exports = {
+      local = all // functions;
+      alias = {mkApplicationGroups = mkStandard;};
+    };
+  in {inherit doc exports functions;};
+
+  all = _.applications.filters.groups;
   inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
   inherit (_.applications.queries) mkEq mkMember;
@@ -15,7 +40,6 @@
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  default = _.applications.filters.groups;
 
   /**
   Partition an application set by the distinct values of the `maturity` field.
@@ -254,31 +278,8 @@
         allFields)
     );
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    filename = __moduleName;
-    doc = ''
-      Application group builders (Layer 3).
-
-      Provides semantic grouping functions that partition an application set
-      by well-known fields (maturity, protocol, scope, capability, config),
-      and a composable standard grouping builder used by section constructors.
-      All group keys are prefixed with "by" via mkNamed.
-
-      Depends on: applications {queries, primitives, selection}.
-    '';
-
-    functions =
-      default
-      // {
-        inherit
-          mkCapability
-          mkConfig
-          mkMaturity
-          mkProtocol
-          mkScope
-          mkStandard
-          ;
-        mk = mkStandard;
-      };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

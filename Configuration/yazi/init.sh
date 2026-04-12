@@ -32,4 +32,4 @@ if [ -d "$YAZI_CONF/plugins" ]; then
   done
 fi
 
-printf "yazi: config linked from %s\n" "$YAZI_CONF"
+[ -n "${VERBOSE:-}" ] && printf "yazi: config linked from %s\n" "$YAZI_CONF"

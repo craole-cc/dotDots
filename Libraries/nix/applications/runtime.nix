@@ -1,8 +1,23 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application runtime operations (Layer 5).
+
+      Provides execution-oriented helpers that consume normalized registry
+      data and produce runtime-facing artifacts such as wrapped exec strings
+      and package-enriched app records.
+
+      Depends on: applications.registry applications.primitives.
+    '';
+    functions = {
+      inherit resolveExec mkApps;
+    };
+    exports = {
+      local = functions;
+      alias = functions;
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.registry) all;
   inherit (_.applications.primitives) toValue;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -56,17 +71,8 @@
     )
     all;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application runtime operations (Layer 5).
-
-      Provides execution-oriented helpers that consume normalized registry
-      data and produce runtime-facing artifacts such as wrapped exec strings
-      and package-enriched app records.
-
-      Depends on: applications.registry applications.primitives.
-    '';
-
-    functions = {inherit resolveExec mkApps;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

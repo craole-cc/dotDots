@@ -1,8 +1,34 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Focus-or-launch command builders (applications layer).
+
+      For each supported desktop environment and window manager, provides a
+      function `app -> string` that produces a shell command which focuses an
+      existing window if one is open, or launches the app fresh.
+
+      Usage:
+        mkFocus "hyprland" myApp
+        # => "sh -c 'if hyprctl clients | grep -q ...; then ...; else ...; fi'"
+
+      Protocol awareness: Wayland compositors (cosmic, hyprland, niri, sway)
+      prefer app_id for window matching; Xorg environments prefer class.
+      The preferredMatch helper selects automatically from the registry.
+
+      Depends on: applications.registry.
+    '';
+    functions = {
+      inherit byEnvironment mkFocus;
+    };
+    exports = {
+      local = byEnvironment // functions;
+      alias = {
+        applicationsByEnvironment = byEnvironment;
+        mkAppFocus = mkFocus;
+      };
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.registry) identify;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) isIn;
@@ -125,27 +151,8 @@
   mkFocus = environment: app:
     (byEnvironment.${environment} or (_: app.exec)) app;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Focus-or-launch command builders (applications layer).
-
-      For each supported desktop environment and window manager, provides a
-      function `app -> string` that produces a shell command which focuses an
-      existing window if one is open, or launches the app fresh.
-
-      Usage:
-        mkFocus "hyprland" myApp
-        # => "sh -c 'if hyprctl clients | grep -q ...; then ...; else ...; fi'"
-
-      Protocol awareness: Wayland compositors (cosmic, hyprland, niri, sway)
-      prefer app_id for window matching; Xorg environments prefer class.
-      The preferredMatch helper selects automatically from the registry.
-
-      Depends on: applications.registry.
-    '';
-
-    functions =
-      byEnvironment
-      // {inherit byEnvironment mkFocus;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

@@ -227,5 +227,12 @@
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
+
+    aiAgents = {
+      repo = "llm-agents";
+      owner = "numtide";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
   };
 }

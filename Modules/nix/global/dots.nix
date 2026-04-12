@@ -1,6 +1,7 @@
 {
   lix,
   system,
+  config,
   pkgs,
   fmtPackages ? [],
   mediaPackages ? [],
@@ -16,17 +17,6 @@
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
   inherit (pkgs.stdenv) isLinux;
-
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Configuration                                                               |
-  #|─────────────────────────────────────────────────────────────────────────────|
-
-  config = {
-    name = "dots";
-    version = "2.0.0";
-    cache = ".cache";
-    prefix = ".";
-  };
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| CLI Tools                                                                   |

@@ -1,8 +1,48 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application filters (Layer 4).
+
+      Partitions the application registry into typed, queryable subsets.
+      Each top-level key maps to a domain section exposing
+      { all, default, groups, queries } via mkSection. Sub-sections refine
+      by category intersection, boolean flags, or protocol affinity.
+
+      Top-level sections:
+        needsTerminal  — apps requiring a host terminal emulator
+        shell          — shells, prompts, enhancements, line editors
+        interface      — compositors, environments, greeters, notifiers, panels, protocols
+        terminal       — terminal emulators (with wayland/xorg/wrappable sub-sets)
+        launcher       — app launchers (standalone and builtin)
+        editor         — text editors, IDEs, database editors
+        browser        — web browsers (by family and channel)
+        fileManager    — file managers (graphical and TUI)
+        media          — media players and audio apps
+        graphics       — image and graphics editors
+        office         — office and document apps
+        communication  — messengers and email clients
+        monitor        — system monitors (graphical and TUI)
+
+      Top-level partitions by category, family, and channel are
+      available under filters.groups.
+
+      Depends on: applications {groups, queries, selection, primitives}.
+    '';
+
+    functions = {
+      inherit mkFilters mkSection;
+      mkFilterSection = mkSection;
+    };
+
+    exports = {
+      local = default // functions;
+      alias = {
+        toApplicationFilters = mkFilters;
+        # toApplicationFilterSection = mkSection;
+      };
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.applications.groups) mkGroups;
   inherit (_.applications.primitives) keysFromMembers keysFromOptional;
   inherit (_.applications.queries) mkQueries;
@@ -205,36 +245,8 @@
     };
   };
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application filters (Layer 4).
-
-      Partitions the application registry into typed, queryable subsets.
-      Each top-level key maps to a domain section exposing
-      { all, default, groups, queries } via mkSection. Sub-sections refine
-      by category intersection, boolean flags, or protocol affinity.
-
-      Top-level sections:
-        needsTerminal  — apps requiring a host terminal emulator
-        shell          — shells, prompts, enhancements, line editors
-        interface      — compositors, environments, greeters, notifiers, panels, protocols
-        terminal       — terminal emulators (with wayland/xorg/wrappable sub-sets)
-        launcher       — app launchers (standalone and builtin)
-        editor         — text editors, IDEs, database editors
-        browser        — web browsers (by family and channel)
-        fileManager    — file managers (graphical and TUI)
-        media          — media players and audio apps
-        graphics       — image and graphics editors
-        office         — office and document apps
-        communication  — messengers and email clients
-        monitor        — system monitors (graphical and TUI)
-
-      Top-level partitions by category, family, and channel are
-      available under filters.groups.
-
-      Depends on: applications {groups, queries, selection, primitives}.
-    '';
-
-    functions = default // {inherit mkFilters mkSection;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

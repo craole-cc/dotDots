@@ -92,7 +92,7 @@
   }
   ```
   */
-  mkModuleDebug = pathOrArgs: let
+  mkModule = pathOrArgs: let
     normalized =
       if isString pathOrArgs
       then {
@@ -235,6 +235,9 @@
     inherit ref;
   };
 
-  exports = {inherit mkModuleDebug mkFn;};
+  exports = {
+    inherit mkModule mkFn;
+    mkModuleDebug = mkModule;
+  };
 in
   exports // {__rootAliases = exports;}

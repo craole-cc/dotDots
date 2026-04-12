@@ -6,7 +6,7 @@
   system,
   ...
 }: let
-  configuration = {
+  config = {
     name = "dots";
     version = "2.0.0";
     cache = ".cache";
@@ -23,12 +23,12 @@
     inherit pkgs;
   };
   dots = import ./dots.nix {
-    inherit pkgs lix lib system;
+    inherit pkgs lix lib system config;
     mediaPackages = media.packages;
     fmtPackages = formatters;
   };
   minimal = import ./minimal.nix {
-    inherit lib pkgs system configuration;
+    inherit lib pkgs system config;
   };
 in {
   devShells = {

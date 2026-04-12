@@ -240,6 +240,16 @@
         ];
       };
 
+      llm-agents = byPaths {
+        inherit attrset;
+        paths = [
+          ["llm"]
+          ["aiAgents"]
+          ["ai-agents"]
+          ["llm-agents"]
+        ];
+      };
+
       noctalia-shell = byPaths {
         inherit attrset;
         paths = [

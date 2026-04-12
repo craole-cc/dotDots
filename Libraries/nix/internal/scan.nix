@@ -35,8 +35,6 @@
     ;
   inherit (lib'.trivial) isFunction;
 
-  # scalp = lib'.attrsets.removeAttrs;
-
   empty = {
     modules = {};
     rootAliases = {};
@@ -92,7 +90,6 @@
             __moduleName = moduleName;
             __modulePath = [env.library] ++ pathPrefix ++ [moduleName];
             __moduleRef = concatStringsSep "." __modulePath;
-            __moduleDir = removePrefix ((toString basePath) + "/") (toString dir); # ← add
           };
         result = rawModule moduleEnv;
       in
@@ -103,23 +100,16 @@
       then rawModule
       else throw "Module ${entryName} must be either a function or attribute set";
 
-    rootAliases = importedModule.__rootAliases or {};
+    rootAliases = importedModule._rootAliases or {};
 
     attrsToRemove =
-      ["__rootAliases"]
+      ["_rootAliases"]
       ++ filter
-      (
-        n:
-          hasPrefix "_" n
-          && n != "__rootAliases"
-          && n != "__tests"
-          && n != "__meta"
-          && n != "__doc"
-      )
+      (n: hasPrefix "_" n && n != "_rootAliases" && n != "_tests" && n != "__meta" && n != "__doc")
       (attrNames importedModule)
       ++ (
         if !runTests
-        then ["__tests"]
+        then ["_tests"]
         else []
       );
 
@@ -163,7 +153,7 @@
       };
   in {
     modules = {${moduleName} = moduleWithMeta;};
-    inherit rootAliases;
+    rootAliases = rootAliases;
   };
 
   # ── Recursive directory scanner ─────────────────────────────────────────

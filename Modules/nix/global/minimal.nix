@@ -2,12 +2,12 @@
   lib,
   system,
   pkgs,
-  configuration,
+  config,
   ...
 }: let
   inherit (lib.lists) optionals;
   inherit (pkgs.stdenv) isLinux;
-
+  allowAI = true;
   #|────────────────────────────────────────|
   #| Packages                               |
   #|────────────────────────────────────────|
@@ -36,9 +36,19 @@
       undollar #? Remove leading dollar signs
       ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
       yazi #? File manager (ensure CLI tools available in devshell)
-      codex
-      bubblewrap
     ]
+    ++ (optionals allowAI [
+      (symlinkJoin {
+        name = "codex-wrapped";
+        paths = [codex];
+        buildInputs = [makeWrapper];
+        postBuild = ''
+          wrapProgram $out/bin/codex \
+            --set BWRAP "${bubblewrap}/bin/bwrap"
+        '';
+      })
+      bubblewrap
+    ])
     ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
 
   #|────────────────────────────────────────|
@@ -67,7 +77,7 @@
     fi
 
     if [ -z "$DOTS_CACHE" ]; then
-      DOTS_CACHE="$DOTS/${configuration.cache}"
+      DOTS_CACHE="$DOTS/${config.cache}"
       export DOTS_CACHE
     fi
 
@@ -125,6 +135,6 @@
   '';
 in
   pkgs.mkShell {
-    inherit (configuration) name;
+    inherit (config) name;
     inherit packages env shellHook;
   }

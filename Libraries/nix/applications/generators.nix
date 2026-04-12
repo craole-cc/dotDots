@@ -1,8 +1,20 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application generators.
+
+      Provides user application resolution, module-oriented program builders,
+      and higher-level configuration assembly helpers.
+    '';
+    functions = {
+      inherit userApplication userApplicationConfig program;
+    };
+    exports = {
+      local = functions;
+      alias = {};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
@@ -292,8 +304,7 @@
           if package ? meta.mainProgram
           then package.meta.mainProgram
           else builtins.head resolutionHints;
-      in
-        "${package}/bin/${binaryName}"
+      in "${package}/bin/${binaryName}"
       else null; #> Return null if package not found
 
     basename =
@@ -752,16 +763,8 @@
   in
     exports;
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Application generators.
-
-      Provides user application resolution, module-oriented program builders,
-      and higher-level configuration assembly helpers.
-    '';
-
-    functions = {
-      inherit userApplication userApplicationConfig program;
-    };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

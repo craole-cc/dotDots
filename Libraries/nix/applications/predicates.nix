@@ -1,8 +1,25 @@
-{
-  _,
-  __moduleDir,
-  ...
-}: let
+{_, ...}: let
+  meta = let
+    doc = ''
+      Set-membership predicates (Layer 2).
+
+      Provides boolean probes over an attribute set of application entries,
+      answering "does any entry in this set carry field X?" questions.
+      Both predicates scan the values of `set` and short-circuit to `true`
+      as soon as one qualifying entry is found.
+
+      Depends on: applications.primitives
+    '';
+
+    functions = {
+      inherit hasField hasListField;
+    };
+    exports = {
+      local = functions;
+      alias = {};
+    };
+  in {inherit doc exports functions;};
+
   inherit (_.attrsets.access) attrValues;
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
@@ -78,18 +95,8 @@
   }:
     filter (a: isList (toValue {inherit field;} a)) (attrValues set) != [];
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    doc = ''
-      Set-membership predicates (Layer 2).
-
-      Provides boolean probes over an attribute set of application entries,
-      answering "does any entry in this set carry field X?" questions.
-      Both predicates scan the values of `set` and short-circuit to `true`
-      as soon as one qualifying entry is found.
-
-      Depends on: applications.primitives
-    '';
-
-    functions = {inherit hasField hasListField;};
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }

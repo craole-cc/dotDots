@@ -1,16 +1,47 @@
-{
-  _,
-  __moduleDir,
-  __moduleName,
-  ...
-}: let
-  inherit
-    (_.applications.groups)
-    mkCapabilityGroups
-    mkMaturityGroups
-    mkProtocolGroups
-    mkScopeGroups
-    ;
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application query builders (Layer 3).
+
+      Provides composable query functions that partition an application set
+      by field values, list membership, boolean flags, and field length.
+
+      Includes semantic builders for well-known fields (maturity, protocol,
+      scope, capability, config, independence, engine) and a standard query
+      combinator that applies all of them in one call.
+
+      Depends on: applications {groups, predicates, primitives, selection}.
+    '';
+    functions = {
+      inherit
+        all
+        mkBool
+        mkCapability
+        mkConfig
+        mkEq
+        mkEqFor
+        mkEngine
+        mkFlagsFor
+        mkLength
+        mkLengthFor
+        mkMaturity
+        mkMember
+        mkNamed
+        mkProtocol
+        mkScope
+        mkStandard
+        mkSupport
+        ;
+      mkQueries = mkStandard;
+    };
+    exports = {
+      local = all // functions;
+      alias = {mkApplicationQueries = mkStandard;};
+    };
+  in {inherit doc exports functions;};
+
+  all = _.applications.filters.queries;
+  inherit (_.applications.groups) mkCapabilityGroups mkMaturityGroups mkProtocolGroups mkScopeGroups;
   inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
   inherit (_.applications.selection) withFlag withoutFlag;
@@ -24,7 +55,6 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) toPascal;
-  default = _.applications.filters.queries;
 
   /**
   Partition an attribute set into two subsets based on the presence or absence
@@ -616,42 +646,8 @@
       // mkSupport {inherit set support;}
       // {});
 in
-  _.meta.mkModuleExports {
-    directory = __moduleDir;
-    filename = __moduleName;
-    doc = ''
-      Application query builders (Layer 3).
-
-      Provides composable query functions that partition an application set
-      by field values, list membership, boolean flags, and field length.
-      Includes semantic builders for well-known fields (maturity, protocol,
-      scope, capability, config, independence, engine) and a standard query
-      combinator that applies all of them in one call.
-
-      Depends on: applications {groups, predicates, primitives, selection}.
-    '';
-
-    functions =
-      default
-      // {
-        inherit
-          mkBool
-          mkCapability
-          mkConfig
-          mkEq
-          mkEqFor
-          mkEngine
-          mkFlagsFor
-          mkLength
-          mkLengthFor
-          mkMaturity
-          mkMember
-          mkNamed
-          mkProtocol
-          mkScope
-          mkStandard
-          mkSupport
-          ;
-        mk = mkStandard;
-      };
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }
