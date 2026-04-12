@@ -229,7 +229,7 @@
     };
 
     aiAgents = {
-      repo = "llm-agents";
+      repo = "llm-agents.nix";
       owner = "numtide";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
