@@ -5,25 +5,9 @@
 }: let
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrsToList;
-  inherit (_.applications.filters) mkFilters;
-  inherit (_.applications.registry) importRegistry;
   inherit (_.filesystem.access) readFile;
   inherit (_.strings.transformation) escapeShellArgs;
   inherit (_.types.predicates) isPath isString;
-
-  mkSubsystem = {
-    path,
-    groups ? {},
-    queries ? (_: {}),
-  }: let
-    all = importRegistry path;
-  in {
-    inherit all;
-    registry = all;
-    filters = mkFilters {
-      inherit all groups queries;
-    };
-  };
 
   /**
     mkShellApp - A helper function to create a shell script application with runtime dependencies
@@ -329,11 +313,7 @@ in
     doc = ''
       Application construction helpers.
 
-      Provides shell-app and script-wrapper builders plus `mkSubsystem`,
-      which composes registry import and filter construction from the
-      dedicated applications modules.
-
-      Depends on: applications.registry applications.filters.
+      Provides shell-app and script-wrapper builders.
     '';
 
     functions = {
@@ -341,7 +321,6 @@ in
         mkShellApp
         mkScriptWrapper
         mkScriptWrappers
-        mkSubsystem
         ;
     };
   }

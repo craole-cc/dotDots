@@ -3,7 +3,7 @@
   inherit (lib.strings) hasInfix toLower;
 
   __exports = {
-    internal = {inherit defaults mkApplications;};
+    internal = {inherit defaults uiDefaults mkApplications;};
     external = {mkSchemaApplications = mkApplications;};
   };
 
@@ -39,6 +39,29 @@
     bar = null;
     prompt = "starship";
     allowed = [];
+  };
+
+  uiDefaults = {
+    launcher = {
+      pri = "vicinae";
+      sec = "vicinae";
+    };
+    terminal = {
+      pri = "kitty";
+      sec = "ghostty";
+    };
+    explorer = {
+      pri = "doublecmd";
+      sec = "yazi";
+    };
+    browser = {
+      pri = "zen-twilight";
+      sec = "chromium";
+    };
+    editor = {
+      pri = "vscode";
+      sec = "helix";
+    };
   };
 
   # ── Command resolution ───────────────────────────────────────────────────────

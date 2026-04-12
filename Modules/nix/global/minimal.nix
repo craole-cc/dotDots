@@ -36,6 +36,8 @@
       undollar #? Remove leading dollar signs
       ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
       yazi #? File manager (ensure CLI tools available in devshell)
+      codex
+      bubblewrap
     ]
     ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
 

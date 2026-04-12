@@ -39,6 +39,7 @@
   inherit (_.lists.transformation) unique;
   inherit (_.options.construction) mkOptionEnum mkOptionEnums mkOption mkTrue;
   inherit (_.schema) io;
+  appSchema = _.schema.applications;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.strings.construction) optionalString;
   inherit (_.strings.transformation) splitString;
@@ -75,26 +76,13 @@
       enhancements = ["atuin" "zoxide" "fzf"];
     };
     apps = {
-      launcher = {
-        pri = "vicinae";
-        sec = "vicinae";
-      };
-      terminal = {
-        pri = "kitty";
-        sec = "ghostty";
-      };
-      explorer = {
-        pri = "doublecmd";
-        sec = "yazi";
-      };
-      browser = {
-        pri = "zen-twilight";
-        sec = "chromium";
-      };
-      editor = {
-        pri = "vscode";
-        sec = "helix";
-      };
+      inherit (appSchema.uiDefaults)
+        launcher
+        terminal
+        explorer
+        browser
+        editor
+        ;
     };
   };
 
