@@ -45,8 +45,11 @@
   inherit (_.types.combinators) submodule attrsOf;
   inherit (_.types.primitives) str anything;
   inherit (_.types.combinators) nullOr;
-  registry = _.applications.filters.queried.interface;
-  sh = _.applications.shell;
+  registry = _.applications.filters.queries.interface;
+  # sh = _.applications.shell;
+  appEnums = _.applications.enums;
+  iface = _.applications.filters.queries.interface;
+  sh = _.applications.filters.queries.shell;
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Data                                                      ║
@@ -96,25 +99,25 @@
   };
 
   enums = {
-    inherit (_.applications.enums) shells interface;
-    inherit (_.applications.enums.interface) env;
+    # Shell enums — toEnums already walked the shell filter tree.
+    shells = appEnums.shells;
+
+    # Interface enums — toEnums walked the interface filter tree.
+    # Each sub-key is either an Enum (leaf) or a nested attrset of Enums.
+    greeters = appEnums.interface.greeters.all;
+    protocols = appEnums.interface.protocols.all;
+    panels = appEnums.interface.panels.all;
+    notifiers = appEnums.interface.notifiers.all;
+
     environment = {
-      desktop =
-        filterAttrs
-        (_: e: e.kind == "desktop")
-        registry.environments;
-      window =
-        filterAttrs
-        (_: e: e.kind == "compositor")
-        registry.environments;
+      # queries.forDesktop / forCompositor are registry attrsets → Enums.
+      desktop = appEnums.interface.environments.queries.forDesktop;
+      window = appEnums.interface.environments.queries.forCompositor;
     };
-    greeters = mkEnum (attrNames registry.greeters);
-    protocols = mkEnum (attrNames registry.protocols);
-    notifiers = mkEnum notifiers;
-    panels = mkEnum panels;
+
     compositors = {
-      desktop = mkEnum compositors.desktop;
-      window = mkEnum compositors.window;
+      desktop = appEnums.interface.compositors.all;
+      window = appEnums.interface.compositors.all;
     };
   };
 
@@ -129,78 +132,80 @@
       desktop = mkOptionEnum {
         description = "Desktop Environment";
         default = defaults.desktopEnvironment;
-        input = attrNames registry.desktopEnvironments;
+        input = enums.environment.desktop.values;
       };
       window = mkOptionEnum {
-        description = "Desktop Environment";
-        default = defaults.desktopEnvironment;
-        input = attrNames registry.windowManagers;
+        description = "Window Manager / Compositor";
+        default = defaults.windowManager;
+        input = enums.environment.window.values;
       };
     };
+
     greeter = mkOptionEnum {
       description = "Display Manager";
       default = defaults.greeter;
-      input = attrNames registry.greeters;
+      input = enums.greeters.values;
     };
+
     protocol = mkOptionEnum {
-      description = "Display Protocols";
+      description = "Display Protocol";
       default = defaults.protocol;
-      input = attrNames registry.protocols;
+      input = enums.protocols.values;
     };
-    session = mkOption {
-      description = "Default display manager session";
-      default = defaults.session;
-      type = nullOr str;
+
+    panel = mkOptionEnum {
+      description = "Desktop panel/bar";
+      default = defaults.panel;
+      input = enums.panels.values;
     };
-    shell = {
-      system = mkOptionEnum {
-        description = "System shell";
-        default = defaults.shell.system;
-        input = sh.enums.system;
-      };
-      interactive = mkOptionEnum {
-        description = "Interactive shell";
-        default = defaults.shell.interactive;
-        input = sh.enums.interactive;
-      };
-      prompt = mkOptionEnum {
-        description = "Shell prompt";
-        default = defaults.shell.prompt;
-        input = sh.enums.prompts;
-      };
-      lineEditor = mkOptionEnum {
-        description = "Line editor / readline replacement";
-        default = defaults.shell.lineEditor;
-        input = sh.enums.lineEditors;
-      };
-      enhancements = mkOptionEnums {
-        description = "Shell enhancements (history, navigation, fuzzy)";
-        default = defaults.shell.enhancements;
-        input = sh.enums.enhancements;
-      };
+
+    notifier = mkOptionEnum {
+      description = "Desktop notification daemon";
+      default = defaults.notifier;
+      input = enums.notifiers.values;
     };
+
     compositor = {
       desktop = mkOptionEnum {
-        description = "Desktop shell";
+        description = "Desktop shell compositor";
         default = defaults.compositor.desktop;
-        input = compositors.desktop;
+        input = enums.compositors.desktop.values;
       };
       window = mkOptionEnum {
         description = "Windowing compositor";
         default = defaults.compositor.window;
-        input = compositors.window;
+        input = enums.compositors.window.values;
       };
     };
-    panel = mkOptionEnum {
-      description = "Desktop panel/bar";
-      default = defaults.panel;
-      input = panels;
+
+    shell = {
+      system = mkOptionEnum {
+        description = "System shell";
+        default = defaults.shell.system;
+        input = appEnums.shells.queried.system.values; # non-nullable override
+      };
+      interactive = mkOptionEnum {
+        description = "Interactive shell";
+        default = defaults.shell.interactive;
+        input = appEnums.shells.queried.interactive.values;
+      };
+      prompt = mkOptionEnum {
+        description = "Shell prompt";
+        default = defaults.shell.prompt;
+        input = appEnums.shells.queried.prompts.values;
+      };
+      lineEditor = mkOptionEnum {
+        description = "Line editor / readline replacement";
+        default = defaults.shell.lineEditor;
+        input = appEnums.shells.queried.lineEditors.values;
+      };
+      enhancements = mkOptionEnums {
+        description = "Shell enhancements (history, navigation, fuzzy)";
+        default = defaults.shell.enhancements;
+        input = appEnums.shells.queried.enhancements.values;
+      };
     };
-    notifier = mkOptionEnum {
-      description = "Desktop notification deamon";
-      default = defaults.notifier;
-      input = notifiers;
-    };
+
     keyboard = mkOption {
       description = "Keyboard config and bindings";
       default = defaults.keyboard;
@@ -833,23 +838,19 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Display                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
-  # displayManagers = registry.greeters;
-  # displayProtocols = registry.protocols;
-  dmsByProtocol =
-    genAttrs
-    (attrNames registry.protocols)
-    (protocol:
+  # Greeter registry already carries `protocol` as a list field.
+  # Re-derive from iface.greeters.all rather than a hand-rolled map.
+  dmsByProtocol = genAttrs (iface.protocols.all |> attrNames) (
+    protocol:
       attrNames (
         filterAttrs
-        (_: displayManager: elem protocol displayManager.supported)
-        registry.greeters
-      ));
+        (_: g: elem protocol (g.protocol or []))
+        iface.greeters.all
+      )
+  );
+
   dmsFor = protocols:
-    unique (
-      concatMap
-      (protocol: dmsByProtocol.${protocol} or [])
-      protocols
-    );
+    unique (concatMap (p: dmsByProtocol.${p} or []) protocols);
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Environment                                               ║
