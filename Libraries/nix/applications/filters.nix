@@ -4,12 +4,13 @@
   ...
 }: let
   inherit (_.applications.groups) mkStandardGroups;
-  inherit (_.applications.primitives) keysFromMembers keysFromOptional normalizeConfig;
-  inherit (_.applications.queries) mkStandardQueries mkCapabilityQueries mkBoolQueries;
-  inherit (_.applications.selection) withFlag;
+  inherit (_.applications.primitives) keysFromMembers keysFromOptional;
+  inherit (_.applications.queries) mkQueries mkStandardQueries;
+  inherit (_.applications.selection) resolveConfig withFlag;
   inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.predicates) isIn;
+
   registry = _.applications.registry.default;
 
   mkFilters = {
@@ -18,45 +19,22 @@
     queries ? (_: {}),
   }: let
     byCategory = genAttrs (keysFromMembers "categories" registry) (
-      category:
-        filterAttrs (_: app: isIn category (app.categories or [])) registry
+      category: filterAttrs (_: app: isIn category (app.categories or [])) registry
     );
 
     byFamily = genAttrs (keysFromOptional "family" registry) (
-      family:
-        filterAttrs (_: app: (app.family or null) == family) registry
+      family: filterAttrs (_: app: (app.family or null) == family) registry
     );
 
     byChannel = genAttrs (keysFromOptional "channel" registry) (
-      channel:
-        filterAttrs (_: app: (app.channel or null) == channel) registry
+      channel: filterAttrs (_: app: (app.channel or null) == channel) registry
     );
 
     ofCategory = category: byCategory.${category} or {};
   in {
     default = registry;
-    groups =
-      {inherit byCategory byFamily byChannel ofCategory;}
-      // groups;
+    groups = {inherit byCategory byFamily byChannel ofCategory;} // groups;
     queries = queries {inherit byCategory byFamily byChannel;};
-  };
-
-  mkSection = {
-    set,
-    grouped ? {},
-    queryField ? null,
-    extraQueries ? (_: {}),
-  }: let
-    groups = mkStandardGroups ({inherit set;} // grouped);
-  in {
-    all = set;
-    inherit groups;
-    queries =
-      mkStandardQueries {
-        inherit set;
-        field = queryField;
-      }
-      // extraQueries groups;
   };
 
   default = mkFilters {
@@ -72,52 +50,71 @@
       in {
         inherit all;
 
-        shells = mkSection {
-          set = normalizeConfig {
-            set = filterAttrs (_: a: (a.categories or []) == ["shell"]) all;
-          };
-          grouped = {
+        shells = let
+          set = resolveConfig (
+            filterAttrs (_: a: (a.categories or []) == ["shell"]) all
+          );
+          groups = mkStandardGroups {
+            inherit set;
             member = ["engine"];
             fields = ["config" "maturity"];
           };
-          # posix query runs against the full shell set, not the filtered one
-          extraQueries = _:
-            mkBoolQueries {
-              set = all;
-              field = "posix";
-              trueKey = "posix";
-              falseKey = "modern";
-            };
+          queries = mkStandardQueries {
+            inherit set;
+            flags = [
+              {
+                field = "posix";
+                trueKey = "posix";
+                falseKey = "modern";
+              }
+            ];
+          };
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        prompts = mkSection {
+        prompts = let
           set = byCategory.prompt;
-          grouped = {
-            eq = ["engine"];
-            member = ["shells"];
+          groups = mkStandardGroups {
+            inherit set;
+            member = ["engine" "shells"];
             fields = ["maturity"];
           };
-          queryField = "shells";
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        enhancements = mkSection {
+        enhancements = let
           set = byCategory.enhancement;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["kind"];
             member = ["shells" "engine"];
             fields = ["maturity"];
           };
-          queryField = "shells";
-          extraQueries = groups: {inherit (groups.byKind) history fuzzy navigation;};
+          queries = mkStandardQueries {
+            inherit set;
+            support = {inherit (groups.byKind) history fuzzy navigation;};
+          };
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        lineEditors = mkSection {
+        lineEditors = let
           set = byCategory."line-editor";
-          grouped = {
-            member = ["engine" "shell"];
+          groups = mkStandardGroups {
+            inherit set;
+            member = ["engine" "shells"];
             fields = ["maturity"];
           };
-          queryField = "shells";
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
       };
 
@@ -126,62 +123,89 @@
       in {
         inherit all;
 
-        compositors = mkSection {
+        compositors = let
           set = byCategory.compositor;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["role"];
             fields = ["protocol" "maturity"];
           };
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        environments = mkSection {
+        environments = let
           set = byCategory.environment;
-          grouped = {
+
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["compositor" "scope"];
             member = ["panel" "layouts" "greeters"];
             fields = ["protocol" "maturity"];
           };
-          extraQueries = groups:
-            {inherit (groups.byLayouts) tiling floating stacking;}
-            // groups.byScope;
+
+          queries = mkStandardQueries {
+            inherit set;
+            support = ["layouts"];
+          };
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        greeters = mkSection {
+        greeters = let
           set = byCategory.greeter;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["kind" "toolkit"];
             fields = ["protocol"];
           };
-          extraQueries = groups: groups.byToolkit // groups.byKind;
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        notifiers = mkSection {
+        notifiers = let
           set = byCategory.notifier;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             member = ["config.lang"];
             fields = ["maturity" "protocol"];
           };
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        panels = mkSection {
+        panels = let
           set = byCategory.panel;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["toolkit"];
             member = ["config.lang" "engine"];
             fields = ["maturity" "protocol"];
           };
-          queryField = "toolkit";
+          queries = mkStandardQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
 
-        protocols = mkSection {
+        protocols = let
           set = byCategory.protocol;
-          grouped = {
+          groups = mkStandardGroups {
+            inherit set;
             eq = ["surface"];
             fields = ["capability" "maturity"];
           };
-          extraQueries = groups:
-            mkCapabilityQueries {set = byCategory.protocol;}
-            // groups.bySurface;
+          queries = mkQueries {inherit set;};
+        in {
+          inherit groups queries;
+          default = set;
         };
       };
     in {inherit needsTerminal shell interface;};
@@ -190,15 +214,14 @@ in
   _.meta.mkModuleExports {
     directory = __moduleDir;
     doc = ''
-      Application enums (Layer 4).
+      Application filters (Layer 4).
 
-      Converts the application registry into typed enums, recursively
-      walking nested registry trees and wrapping leaf sets with `mkEnum`.
-      Provides pre-built enums for shells and interfaces, including
-      queried sub-enums with optional nullability overrides.
+      Partitions the application registry into typed, queryable subsets.
+      Provides pre-built filters for shells and interfaces, including
+      grouped sub-sets and queries derived from standard field builders.
 
-      Depends on: applications.queries lists.construction.
+      Depends on: applications.{groups, queries, selection, primitives}.
     '';
 
-    functions = default // {inherit mkFilters mkSection;};
+    functions = default // {inherit mkFilters;};
   }

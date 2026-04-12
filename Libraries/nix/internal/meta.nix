@@ -1,7 +1,18 @@
 {lib'}: let
   inherit (lib'.attrsets) attrNames listToAttrs optionalAttrs;
-  inherit (lib'.lists) filter head;
-  inherit (lib'.strings) hasPrefix removePrefix removeSuffix concatStrings splitString toUpper substring stringLength;
+  inherit (lib'.lists) filter head map;
+  inherit
+    (lib'.strings)
+    concatStrings
+    hasPrefix
+    removePrefix
+    removeSuffix
+    splitString
+    stringLength
+    substring
+    toLower
+    toUpper
+    ;
 
   #> minimal toPascal using only nixpkgs — custom _.strings.transformation.toPascal not available here
   capitalize = s:
@@ -11,6 +22,11 @@
 
   toPascal = s:
     concatStrings (map capitalize (splitString "-" s));
+
+  uncapitalize = s:
+    if s == ""
+    then ""
+    else toLower (substring 0 1 s) + substring 1 (stringLength s - 1) s;
 
   toSingular = let
     #~@ irregular plurals that can't be handled by stripping trailing s
@@ -31,21 +47,22 @@
     tests ? {},
   }: let
     knownPrefixes = [
-      "by"
+      "without"
+      "with"
       "from"
       "has"
       "is"
       "mk"
-      "on"
       "to"
-      "with"
-      "without"
+      "by"
+      "on"
     ];
 
     extSuffix =
       if filename == ""
       then ""
       else toPascal filename;
+
     domain = toPascal (toSingular directory);
 
     splitFnPrefix = k: let
@@ -70,12 +87,18 @@
         value = fns.${k};
       }) (attrNames fns)));
 
+    mkExternalName = k: let
+      parts = splitFnPrefix k;
+      shifted =
+        if parts.prefix == ""
+        then domain + toPascal parts.stem + extSuffix
+        else parts.prefix + domain + toPascal parts.stem + extSuffix;
+    in
+      uncapitalize shifted;
+
     mkExternal = fns:
       listToAttrs (map (k: {
-        name = let
-          parts = splitFnPrefix k;
-        in
-          parts.prefix + domain + parts.stem + extSuffix;
+        name = mkExternalName k;
         value = fns.${k};
       }) (attrNames fns));
   in

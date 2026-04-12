@@ -126,7 +126,17 @@
   ```
   */
   mkCapability = {set}: let
-    fields = ["acceleration" "compositing" "remote" "floating"];
+    fields = [
+      "acceleration"
+      "compositing"
+      "floating"
+      "fuzzy"
+      "history"
+      "nagigation"
+      "remote"
+      "stacking"
+      "tiling"
+    ];
   in
     filterAttrs (_: v: v != {}) (
       genAttrs fields (field: withFlag {inherit field set;})
@@ -212,7 +222,10 @@
     allFields = unique (eq ++ member ++ fields);
   in
     listToAttrs (map (field: {
-        name = toName {inherit field;};
+        name = toName {
+          inherit field;
+          prefix = "by";
+        };
         value =
           perField.${
             field

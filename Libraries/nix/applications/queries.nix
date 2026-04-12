@@ -20,7 +20,7 @@
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.access) length;
   inherit (_.lists.predicates) isIn;
-  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.reduction) concatMap foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) toPascal;
@@ -61,6 +61,23 @@
     ${trueKey} = withFlag {inherit field set;};
     ${falseKey} = withoutFlag {inherit field set;};
   };
+
+  mkFlagsFor = {
+    set,
+    flags ? [],
+  }:
+    foldl' (
+      acc: f:
+        acc
+        // mkNamed {
+          prefix = f.prefix or "is";
+          set = mkBool {
+            inherit set;
+            inherit (f) field trueKey falseKey;
+          };
+        }
+    ) {}
+    flags;
 
   /**
     Partition an attribute set by the distinct values of a scalar field,
@@ -103,6 +120,40 @@
   in
     genAttrs keys (value: filterAttrs (_: a: getVal a == value) set);
 
+  mkEqFor = {
+    set,
+    eq ? [],
+  }: let
+    knownPrefixes = {
+      kind = "as";
+      surface = "on";
+      toolkit = "with";
+      color = "in";
+      lang = "for";
+    };
+    normalize = f:
+      if isAttrs f
+      then f
+      else {
+        field = f;
+        prefix = knownPrefixes.${f} or "";
+      };
+  in
+    foldl' (
+      acc: f: let
+        e = normalize f;
+      in
+        acc
+        // mkNamed {
+          prefix = e.prefix;
+          set = mkEq {
+            inherit set;
+            field = e.field;
+          };
+        }
+    ) {}
+    eq;
+
   /**
     Partition an attribute set by the length of a list field, producing two
     subsets: entries whose list has exactly one element and entries whose list
@@ -119,7 +170,7 @@
       singleKey :: string,
       multiKey  :: string,
       set       :: AttrSet,
-    } -> { ${singleKey} :: AttrSet, ${multiKey} :: AttrSet }
+    } -> { ${singleKey} :: AttrSet, ${multiKey} :: AttrSe t }
   ```
 
     # Examples
@@ -192,15 +243,24 @@
   */
   mkLengthFor = {
     set,
-    field,
+    lengths ? [], # was `fields` — avoids shadowing the imported `length` function
   }:
-    optionalAttrs (field != null)
-    (optionalAttrs (hasListField {inherit field set;})
-      (mkLength {
-        inherit set field;
-        singleKey = "single" + toPascal field;
-        multiKey = "multi" + toPascal field;
-      }));
+    foldl' (
+      acc: f:
+        acc
+        // optionalAttrs (f != null)
+        (optionalAttrs (hasListField {
+            inherit set;
+            field = f;
+          })
+          (mkLength {
+            inherit set;
+            field = f;
+            singleKey = "single" + toPascal f;
+            multiKey = "multi" + toPascal f;
+          }))
+    ) {}
+    lengths;
 
   /**
     Index an attribute set by the members of a list field, producing an
@@ -283,27 +343,48 @@
       value = set.${field};
     }) (attrNames set));
 
-  # ── Query producers (named predicates) ──────────────────────────────────────
   mkMaturity = {set}:
     mkNamed {
       prefix = "is";
       set = mkMaturityGroups {inherit set;};
     };
+
   mkProtocol = {set}:
     mkNamed {
       prefix = "for";
       set = mkProtocolGroups {inherit set;};
     };
+
   mkScope = {set}:
     mkNamed {
       prefix = "as";
       set = mkScopeGroups {inherit set;};
     };
+
   mkCapability = {set}:
     mkNamed {
       prefix = "has";
       set = mkCapabilityGroups {inherit set;};
     };
+
+  mkSupport = {
+    set,
+    support ? [], # was `fields`
+  }:
+    mkNamed {
+      prefix = "supports";
+      set =
+        foldl' (
+          acc: f:
+            acc
+            // mkMember {
+              inherit set;
+              field = f;
+            }
+        ) {}
+        support;
+    };
+
   mkIndependence = {set}: let
     field = "independent";
   in
@@ -314,24 +395,97 @@
       falseKey = "integrated";
     });
 
+  /**
+      Partition an application set by the members of the `engine` field,
+      prefixed with `writtenIn` to reflect implementation language.
+
+      # Type
+  ```nix
+      mkEngine :: { set :: AttrSet } -> { ${writtenIn} :: AttrSet }
+  ```
+
+      # Examples
+  ```nix
+      mkEngine { set = { a = { engine = ["rust"]; }; b = { engine = ["go"]; }; }; }
+      # => { writtenInRust = { a = ...; }; writtenInGo = { b = ...; }; }
+  ```
+  */
+  mkEngine = {set}:
+    mkNamed {
+      prefix = "writtenIn";
+      set = mkMember {
+        inherit set;
+        field = "engine";
+      };
+    };
+
+  /**
+      Derive config-related queries from an application set.
+
+      Produces `isConfigurable` for apps with a non-profile config file, and
+      `configuredWith*` entries partitioned by `config.lang` when present.
+
+      # Type
+  ```nix
+      mkConfig :: { set :: AttrSet } -> AttrSet
+  ```
+
+      # Examples
+  ```nix
+      mkConfig {
+        set = {
+          a = { config = { file = "foot.ini"; lang = "ini"; }; };
+          b = { config = { file = ".profile"; lang = "sh"; }; };
+          c = {};
+        };
+      }
+      # => { isConfigurable = { a = ...; };
+      #      configuredWithIni = { a = ...; }; }
+  ```
+  */
   mkConfig = {set}: let
-    withConfig = filterAttrs (_: a: let cfg = toValue {field = "config";} a; in isAttrs cfg && cfg ? file) set;
-    profileOnly = filterAttrs (_: a: toValue {field = "config.file";} a == ".profile") withConfig;
+    withConfig =
+      filterAttrs
+      (_: a: let cfg = toValue {field = "config";} a; in isAttrs cfg && cfg ? file)
+      set;
+    profileOnly =
+      filterAttrs
+      (_: a: toValue {field = "config.file";} a == ".profile")
+      withConfig;
     isConfigurable = removeAttrs withConfig (attrNames profileOnly);
+    configuredWith = mkNamed {
+      prefix = "configuredWith";
+      set = mkMember {
+        set = isConfigurable;
+        field = "config.lang";
+      };
+    };
   in
-    optionalAttrs (withConfig != {}) {inherit isConfigurable;};
+    optionalAttrs (withConfig != {}) (
+      {inherit isConfigurable;}
+      // configuredWith
+    );
 
   mkStandard = {
     set,
-    field ? null,
+    eq ? ["kind" "toolkit" "surface"],
+    flags ? [],
+    lengths ? ["categories" "engine" "shells"],
+    support ? [],
   }:
-    mkCapability {inherit set;}
+    {}
+    // mkCapability {inherit set;}
     // mkConfig {inherit set;}
+    // mkEngine {inherit set;}
     // mkIndependence {inherit set;}
+    // mkEqFor {inherit set eq;}
+    // mkFlagsFor {inherit set flags;}
+    // mkLengthFor {inherit set lengths;}
     // mkMaturity {inherit set;}
     // mkProtocol {inherit set;}
     // mkScope {inherit set;}
-    // mkLengthFor {inherit set field;};
+    // mkSupport {inherit set support;}
+    // {};
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;
@@ -365,6 +519,8 @@ in
           mkProtocol
           mkScope
           mkStandard
+          mkSupport
           ;
+        mk = mkStandard;
       };
   }

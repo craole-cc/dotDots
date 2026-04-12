@@ -71,12 +71,26 @@
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
   _splitWords = s:
     splitString "-" (
-      replaceStrings
-      [" " "_"]
-      ["-" "-"]
-      (toLower s)
+      replaceStrings [" " "_"] ["-" "-"]
+      (_normalizeSymbols (toLower s))
     );
 
+  _symbolAliases = {
+    "c++" = "cpp";
+    "c#" = "csharp";
+    ".net" = "dotnet";
+    "objc" = "objectivec";
+  };
+
+  _normalizeSymbols = s:
+    _symbolAliases.${
+      s
+    } or (
+      replaceStrings
+      ["++" "#" "."]
+      ["p" "sharp" "-"]
+      s
+    );
   /**
   Convert a string or list of strings to lower case.
 

@@ -7,6 +7,7 @@
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
+  inherit (_.attrsets.predicates) isAttrs;
 
   /**
   Select applications where a boolean field is `true`.
@@ -126,59 +127,46 @@
     filterAttrs (_: app: toValue {inherit field default;} app != value) set;
 
   /**
-  Resolve `config.home` and `config.file` into `config.path` across a set.
+      Resolve `config.home` and `config.file` into `config.path` across a set.
 
-  When both fields are present at `path`, adds a derived `path` member
-  equal to `"${home}/${file}"` while preserving the original structure.
+      Accepts either a named attrset `{ set, path? }` / `{ raw, path? }` or a
+      flat application attrset directly.
 
-  # Type
+      When both `home` and `file` are present at `path`, adds a derived `path`
+      member equal to `"${home}/${file}"` while preserving the original fields.
+
+      # Type
   ```nix
-  resolveConfig :: {
-    set  :: AttrSet,
-    path :: [string],   # optional, default ["config"]
-  } -> AttrSet
+      resolveConfig :: AttrSet | { set :: AttrSet, path :: [string] } -> AttrSet
   ```
 
-  # Examples
+      # Examples
   ```nix
-  resolveConfig {
-    set = {
-      app1 = {
-        config = {
-          home = ".config";
-          file = "foot/foot.ini";
-        };
-      };
-    };
-  }
-  # => {
-  #      app1 = {
-  #        config = {
-  #          home = ".config";
-  #          file = "foot/foot.ini";
-  #          path = ".config/foot/foot.ini";
-  #        };
-  #      };
-  #    }
+      resolveConfig { set = { app1 = { config = { home = ".config"; file = "foot/foot.ini"; }; }; }; }
+      # => { app1 = { config = { home = ".config"; file = "foot/foot.ini"; path = ".config/foot/foot.ini"; }; }; }
+
+      # Flat form — no wrapping needed
+      resolveConfig { app1 = { config = { home = ".config"; file = "foot/foot.ini"; }; }; }
+      # => { app1 = { config = { ... path = ".config/foot/foot.ini"; }; }; }
   ```
   */
-  resolveConfig = {
-    set,
-    path ? ["config"],
-  }:
-    mapAttrs (
-      _: app: let
-        cfg = attrByPath path null app;
-      in
-        if cfg != null && cfg ? home && cfg ? file
-        then
-          recursiveUpdate app (
-            setAttrByPath path
-            (cfg // {path = "${cfg.home}/${cfg.file}";})
-          )
-        else app
-    )
-    set;
+  resolveConfig = args: let
+    set = args.set or args.raw or args;
+    path = args.path or ["config"];
+  in
+    assert isAttrs set;
+      mapAttrs (
+        _: app: let
+          cfg = attrByPath path null app;
+        in
+          if cfg != null && cfg ? home && cfg ? file
+          then
+            recursiveUpdate app (setAttrByPath path (
+              cfg // {path = "${cfg.home}/${cfg.file}";}
+            ))
+          else app
+      )
+      set;
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;

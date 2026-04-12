@@ -6,7 +6,7 @@
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.transformation) splitString toPascal;
   inherit (_.attrsets.access) attrByPath attrValues;
 
@@ -62,38 +62,45 @@
 
   /**
       Derive a PascalCase-style identifier fragment from a field path, with
-      optional prefix and suffix.
+      optional naming kind, prefix, and suffix.
 
       The field is normalized to a list, joined with `"-"`, then passed
-      through `toPascal` before the prefix is prepended and the suffix
-      appended.
+      through `toPascal`. When `kind = "group"` and `prefix` is omitted,
+      the default prefix is `"by"`.
 
       # Type
   ```nix
       toName :: {
-        prefix :: string,    # optional, default ""
         field  :: string | [string],
+        kind   :: string,    # optional, default "plain"
+        prefix :: string,    # optional, default depends on kind
         suffix :: string,    # optional, default ""
       } -> string
   ```
 
       # Examples
   ```nix
-      toName { field = "color"; }                        # => "Color"
-      toName { prefix = "by"; field = "color"; }         # => "byColor"
-      toName { prefix = "by"; field = "a.b"; }           # => "byAB"
+      toName { field = "color"; }                          # => "Color"
+      toName { kind = "group"; field = "color"; }         # => "byColor"
+      toName { prefix = "is"; field = "enabled"; }        # => "isEnabled"
+      toName { kind = "group"; field = "config.lang"; }   # => "byConfigLang"
       toName { prefix = "by"; field = ["a" "b"]; suffix = "Index"; }
       # => "byABIndex"
   ```
   */
   toName = {
-    prefix ? "",
     field,
+    kind ? "plain",
+    prefix ? null,
     suffix ? "",
   }: let
     normalized = concatStringsSep "-" (toPath field);
+    resolvedPrefix =
+      if prefix != null
+      then prefix
+      else optionalString (kind == "group") "by";
   in
-    prefix + toPascal normalized + suffix;
+    resolvedPrefix + toPascal normalized + suffix;
 
   /**
       Normalize an optional scalar value.
