@@ -1,10 +1,45 @@
 {
   _,
-  lib,
+  __moduleDir,
   ...
 }: let
-  inherit (lib.strings) hasInfix;
   inherit (_.applications.generators) userApplication;
+  inherit (_.strings.predicates) hasInfix;
+
+  mkUserApp = {
+    modules,
+    pkgs,
+    user,
+    config,
+    moduleName,
+    app,
+  }: let
+    appInfo =
+      userApplication (
+        {
+          inherit user pkgs config;
+          debug = false;
+        }
+        // app
+      );
+  in {
+    module = modules.${moduleName}.default or {};
+    inherit
+      (appInfo)
+      name
+      kind
+      packageFound
+      command
+      basename
+      identifiers
+      isPrimary
+      isSecondary
+      isRequested
+      isPlatformCompatible
+      isAllowed
+      sessionVariables
+      ;
+  };
 
   mkUserApps = {
     modules,
@@ -12,63 +47,27 @@
     user,
     config,
   }: {
-    noctalia-shell = let
-      module = modules.noctalia-shell.default or {};
-      appInfo = userApplication {
-        inherit user pkgs config;
+    noctalia-shell = mkUserApp {
+      inherit modules pkgs user config;
+      moduleName = "noctalia-shell";
+      app = {
         name = "noctalia-shell";
         kind = "bar";
         customCommand = "noctalia";
         resolutionHints = ["noctalia" "noctalia-dev"];
-        debug = false;
       };
-    in {
-      inherit module;
-      inherit
-        (appInfo)
-        name
-        kind
-        packageFound
-        command
-        basename
-        identifiers
-        isPrimary
-        isSecondary
-        isRequested
-        isPlatformCompatible
-        isAllowed
-        sessionVariables
-        ;
     };
 
-    nvf = let
-      module = modules.nvf.default or {};
-      appInfo = userApplication {
-        inherit user pkgs config;
+    nvf = mkUserApp {
+      inherit modules pkgs user config;
+      moduleName = "nvf";
+      app = {
         name = "nvf";
         kind = "editor";
         customCommand = "nvim";
         category = "tty";
         resolutionHints = ["nvim" "neovim"];
-        debug = false;
       };
-    in {
-      inherit module;
-      inherit
-        (appInfo)
-        name
-        kind
-        packageFound
-        command
-        basename
-        identifiers
-        isPrimary
-        isSecondary
-        isRequested
-        isPlatformCompatible
-        isAllowed
-        sessionVariables
-        ;
     };
 
     zen-browser = let
@@ -76,17 +75,17 @@
         if hasInfix "twilight" (user.applications.browser.firefox or "")
         then "twilight"
         else "default";
-      module = modules.zen-browser.${variant} or {};
-      appInfo = userApplication {
-        inherit user pkgs config;
-        name = "zen-browser";
-        kind = "browser";
-        customCommand = "zen";
-        resolutionHints = ["zen" "zen-twilight" "zen-beta"];
-        debug = false;
-      };
+      appInfo =
+        userApplication {
+          inherit user pkgs config;
+          name = "zen-browser";
+          kind = "browser";
+          customCommand = "zen";
+          resolutionHints = ["zen" "zen-twilight" "zen-beta"];
+          debug = false;
+        };
     in {
-      inherit module;
+      module = modules.zen-browser.${variant} or {};
       inherit
         (appInfo)
         name
@@ -104,6 +103,15 @@
         ;
     };
   };
-  exports = {inherit mkUserApps;};
 in
-  exports // {__rootAliases = exports;}
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Application config helpers.
+
+      Provides small helpers that assemble user-facing application module
+      metadata from `userApplication` plus selected input modules.
+    '';
+
+    functions = {inherit mkUserApps;};
+  }

@@ -3,6 +3,7 @@
 Agent onboarding lives in [`Documentation/ai/AGENTS.md`](Documentation/ai/AGENTS.md).
 
 Use these files:
+
 - `Documentation/ai/AGENTS.md`: quick start and entrypoints
 - `Documentation/ai/ARCHITECTURE.md`: Lix data flow and layering
 - `Documentation/ai/CONVENTIONS.md`: repo-specific working rules

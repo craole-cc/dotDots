@@ -838,9 +838,7 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Display                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
-  # Greeter registry already carries `protocol` as a list field.
-  # Re-derive from iface.greeters.all rather than a hand-rolled map.
-  dmsByProtocol = genAttrs (iface.protocols.all |> attrNames) (
+  dmsByProtocol = genAttrs (attrNames iface.protocols.all) (
     protocol:
       attrNames (
         filterAttrs
@@ -1225,12 +1223,6 @@
         screenshotRegion.action = "scrot -s";
       };
     };
-  };
-  notifiers = mkKnown "notifier";
-  panels = mkKnown "panel";
-  compositors = {
-    desktop = mkKnown "compositor.desktop";
-    window = mkKnown "compositor.window";
   };
 
   #╔═══════════════════════════════════════════════════════════╗

@@ -8,6 +8,7 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.importers) importAllMerged;
   inherit (_.lists.access) head;
+  inherit (_.lists.predicates) elem;
   inherit (_.types.predicates) isAttrs;
 
   /**
@@ -91,6 +92,54 @@
         isAttrs firstVal && firstVal ? categories
     );
 
+  /**
+      Lookup an application by name and validate category membership.
+
+      Throws if the app is unknown or does not belong to `category`.
+
+      # Type
+  ```nix
+      lookup :: string -> string -> AppRecord
+  ```
+  */
+  lookup = name: category: let
+    app = all.${name} or (throw "Unknown app '${name}' in registry.");
+  in
+    if elem category (app.categories or [])
+    then app
+    else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (app.categories or [])}";
+
+  /**
+      Derive window-identification metadata from a registry entry.
+
+      Returns prioritized matching strategies based on `app.names`.
+
+      # Type
+  ```nix
+      identify :: AppRecord -> [{ type :: string, value :: string }] | null
+  ```
+  */
+  identify = app:
+    if app.names ? title
+    then [
+      {
+        type = "title";
+        value = app.names.title;
+      }
+      {
+        type = "initialTitle";
+        value = app.names.title;
+      }
+    ]
+    else if app.names ? class
+    then [
+      {
+        type = "class";
+        value = app.names.class;
+      }
+    ]
+    else null;
+
   all = importRegistry ./.data;
 in
   _.meta.mkModuleExports {
@@ -100,10 +149,22 @@ in
 
       Provides normalized application records from `./.data`, with consistent
       `categories` (list), `channel`/`family` (optional) fields. Supplies
-      primitive tree inspection for recursive processing.
+      primitive tree inspection for recursive processing, validated registry
+      lookup, and registry-derived identification metadata.
 
       Depends on: applications.primitives filesystem.importers.
     '';
 
-    functions = all // {inherit all mkRegistry importRegistry isRegistryAttrset;};
+    functions =
+      all
+      // {
+        inherit
+          all
+          mkRegistry
+          importRegistry
+          isRegistryAttrset
+          lookup
+          identify
+          ;
+      };
   }

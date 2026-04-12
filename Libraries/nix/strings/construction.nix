@@ -169,9 +169,30 @@
     bullet ? "-",
   }:
     indentedList {inherit items title size bullet;};
+
+  /**
+  Render a boolean as a lowercase string.
+
+  # Type
+  ```nix
+  fromBool :: bool -> string
+  ```
+
+  # Examples
+  ```nix
+  fromBool true   # => "true"
+  fromBool false  # => "false"
+  ```
+  */
+  fromBool = value:
+    if value
+    then "true"
+    else "false";
+
   exports = {
     inherit
       concat
+      fromBool
       split
       toList
       mkAnyPredicate
@@ -184,6 +205,7 @@ in
   exports
   // {
     __rootAliases = {
+      boolToString = fromBool;
       concatStrings = concat;
       splitString = split;
       stringToList = toList;

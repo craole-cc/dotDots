@@ -1,96 +1,15 @@
-{_, ...}: let
-  exports = {
-    internal = {
-      inherit
-        mkFilters
-        mkRegistry
-        importRegistry
-        mkShellApp
-        mkScriptWrapper
-        mkScriptWrappers
-        mkSubsystem
-        ;
-    };
-    external = exports.internal;
-  };
-
-  inherit (_.attrsets.access) attrValues;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList;
-  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
+{
+  _,
+  __moduleDir,
+  ...
+}: let
+  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
+  inherit (_.attrsets.transformation) mapAttrsToList;
+  inherit (_.applications.filters) mkFilters;
+  inherit (_.applications.registry) importRegistry;
   inherit (_.filesystem.access) readFile;
-  inherit (_.filesystem.importers) importAllMerged;
-  inherit (_.lists.predicates) isIn;
-  inherit (_.lists.selection) filter;
-  inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) escapeShellArgs;
-  inherit (_.types.predicates) isList isPath isString;
-
-  normalizeOptional = value:
-    if value == null || value == "" || value == "none"
-    then null
-    else value;
-
-  normalizeList = values:
-    if isList values
-    then filter (value: value != null && value != "" && value != "none") values
-    else [];
-
-  keysFromOptional = field: set:
-    unique (
-      filter (value: value != null) (
-        map (item: normalizeOptional (item.${field} or null)) (attrValues set)
-      )
-    );
-
-  keysFromMembers = field: set:
-    unique (
-      builtins.concatMap (item: normalizeList (item.${field} or [])) (attrValues set)
-    );
-
-  mkRegistry = data:
-    mapAttrs (_: app:
-      app
-      // {
-        categories = normalizeList (app.categories or []);
-        channel = normalizeOptional (app.channel or null);
-        family = normalizeOptional (app.family or null);
-      })
-    data;
-
-  importRegistry = path:
-    mkRegistry (importAllMerged path {});
-
-  mkFilters = {
-    all,
-    groups ? {},
-    queries ? (_: {}),
-  }: let
-    byCategory = genAttrs (keysFromMembers "categories" all) (
-      category:
-        filterAttrs (_: app: isIn category (app.categories or [])) all
-    );
-
-    byFamily = genAttrs (keysFromOptional "family" all) (
-      family:
-        filterAttrs (_: app: (app.family or null) == family) all
-    );
-
-    byChannel = genAttrs (keysFromOptional "channel" all) (
-      channel:
-        filterAttrs (_: app: (app.channel or null) == channel) all
-    );
-
-    ofCategory = category:
-      byCategory.${category} or {};
-  in {
-    inherit all;
-    groups =
-      {
-        inherit byCategory byFamily byChannel ofCategory;
-      }
-      // groups;
-    queries = queries {inherit byCategory byFamily byChannel;};
-  };
+  inherit (_.types.predicates) isPath isString;
 
   mkSubsystem = {
     path,
@@ -405,4 +324,24 @@
       ))
     scripts;
 in
-  exports.internal // {__rootAliases = exports.external;}
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Application construction helpers.
+
+      Provides shell-app and script-wrapper builders plus `mkSubsystem`,
+      which composes registry import and filter construction from the
+      dedicated applications modules.
+
+      Depends on: applications.registry applications.filters.
+    '';
+
+    functions = {
+      inherit
+        mkShellApp
+        mkScriptWrapper
+        mkScriptWrappers
+        mkSubsystem
+        ;
+    };
+  }

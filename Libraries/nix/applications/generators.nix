@@ -1,16 +1,15 @@
 {
   _,
-  lib,
+  __moduleDir,
   ...
 }: let
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) filter head unique;
-  inherit (lib.meta) getExe';
-  inherit (lib.modules) mkMerge;
-  inherit (lib.trivial) warn boolToString;
-  inherit (lib.strings) concatStringsSep optionalString toUpper;
-  inherit (lib.generators) toPretty;
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.lists.predicates) isIn;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.modules.construction) mkMerge;
+  inherit (_.strings.construction) concatStringsSep fromBool optionalString;
+  inherit (_.strings.transformation) toUpper;
   inherit (_.types.predicates) isDerivation;
 
   /**
@@ -292,9 +291,9 @@
         binaryName =
           if package ? meta.mainProgram
           then package.meta.mainProgram
-          else head resolutionHints;
+          else builtins.head resolutionHints;
       in
-        getExe' package binaryName
+        "${package}/bin/${binaryName}"
       else null; #> Return null if package not found
 
     basename =
@@ -438,15 +437,15 @@
         else "✗ BLOCKED";
 
       variablesWithPlatform = ''
-        │  Compatible: ${boolToString isPlatformCompatible}
+        │  Compatible: ${fromBool isPlatformCompatible}
         ${
           if requiresWayland
-          then "│     Wayland: ${boolToString isWaylandAvailable}"
+          then "│     Wayland: ${fromBool isWaylandAvailable}"
           else "│"
         }
         ${
           if requiresWayland
-          then "│         X11: ${boolToString isX11Available}"
+          then "│         X11: ${fromBool isX11Available}"
           else "│"
         }
         ${variables}'';
@@ -454,7 +453,7 @@
       variables =
         if sessionVariables == {}
         then "│   Variables: none"
-        else toPretty {} sessionVariables;
+        else builtins.toJSON sessionVariables;
 
       debug = ''
         ╭─ mkApplication ${name} ────│ ${status} │
@@ -481,7 +480,7 @@
     #~@ Debug Output
   in
     if debug
-    then warn output.debug export
+    then builtins.trace output.debug export
     else export;
 
   /**
@@ -752,10 +751,17 @@
     exports = {inherit environment home programs enable;} // res;
   in
     exports;
-in {
-  inherit userApplication userApplicationConfig program;
-  __rootAliases = {
-    mkUserApplication = userApplicationConfig;
-    mkProgram = program;
-  };
-}
+in
+  _.meta.mkModuleExports {
+    directory = __moduleDir;
+    doc = ''
+      Application generators.
+
+      Provides user application resolution, module-oriented program builders,
+      and higher-level configuration assembly helpers.
+    '';
+
+    functions = {
+      inherit userApplication userApplicationConfig program;
+    };
+  }
