@@ -71,7 +71,7 @@
           "fresh-editor"
           "helix"
           "home-manager"
-          # "llm-agents"
+          "llm-agents"
           "noctalia-shell"
           "nvf"
           "plasma"

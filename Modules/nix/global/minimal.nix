@@ -37,19 +37,9 @@
       ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
       yazi #? File manager (ensure CLI tools available in devshell)
     ]
-    ++ (optionals allowAI [
-      (symlinkJoin {
-        name = "codex-wrapped";
-        paths = [codex];
-        buildInputs = [makeWrapper];
-        postBuild = ''
-          wrapProgram $out/bin/codex \
-            --set BWRAP "${bubblewrap}/bin/bwrap"
-        '';
-      })
-      bubblewrap
-    ])
-    ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
+    ++ (optionals allowAI (with pkgs.fromInputs.llm-agents; [codex]))
+    ++ (optionals isLinux [xclip wl-clipboard xsel]) #? Linux clipboard tools
+    ++ [];
 
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
