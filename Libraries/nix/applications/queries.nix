@@ -183,11 +183,14 @@
     eq ? [],
   }: let
     knownPrefixes = {
+      compositor = "using";
+      color = "in";
       kind = "as";
+      lang = "for";
+      role = "as";
+      scope = "for";
       surface = "on";
       toolkit = "with";
-      color = "in";
-      lang = "for";
     };
     normalize = f:
       if isAttrs f
@@ -472,15 +475,15 @@
   in
     optionalAttrs (withConfig != {}) ({inherit isConfigurable;} // configuredWith);
 
-  mkIndependence = {set}: let
-    field = "independent";
-  in
-    optionalAttrs (hasField {inherit field set;})
-    (mkBool {
-      inherit field set;
-      trueKey = field;
-      falseKey = "integrated";
-    });
+  # mkIndependence = {set}: let
+  #   field = "independent";
+  # in
+  #   optionalAttrs (hasField {inherit field set;})
+  #   (mkBool {
+  #     inherit field set;
+  #     trueKey = field;
+  #     falseKey = "integrated";
+  #   });
 
   mkSupport = {
     set,
@@ -499,24 +502,59 @@
 
   mkStandard = {
     set,
-    eq ? ["kind" "toolkit" "surface"],
-    flags ? [],
-    lengths ? ["categories" "engine" "shells"],
-    support ? [],
+    eq ? [
+      "compositor"
+      "kind"
+      "role"
+      "scope"
+      "surface"
+      "toolkit"
+    ],
+    flags ? [
+      {
+        field = "posix";
+        trueKey = "posix";
+        falseKey = "modern";
+      }
+      {
+        field = "independent";
+        trueKey = "independent";
+        falseKey = "integrated";
+      }
+      {
+        field = "interactive";
+        trueKey = "interactive";
+        falseKey = "passive";
+      }
+      {
+        field = "system";
+        trueKey = "system";
+        falseKey = "userOnly";
+      }
+    ],
+    lengths ? [
+      "categories"
+      "config.lang"
+      "engine"
+      "layouts"
+      "protocol"
+      "shells"
+      "toolkit"
+    ],
+    support ? ["layouts" "shells"],
   }:
-    {}
-    // mkCapability {inherit set;}
-    // mkConfig {inherit set;}
-    // mkEngine {inherit set;}
-    // mkIndependence {inherit set;}
-    // mkEqFor {inherit set eq;}
-    // mkFlagsFor {inherit set flags;}
-    // mkLengthFor {inherit set lengths;}
-    // mkMaturity {inherit set;}
-    // mkProtocol {inherit set;}
-    // mkScope {inherit set;}
-    // mkSupport {inherit set support;}
-    // {};
+    filterAttrs (_: v: v != {}) ({}
+      // mkCapability {inherit set;}
+      // mkConfig {inherit set;}
+      // mkEngine {inherit set;}
+      // mkEqFor {inherit set eq;}
+      // mkFlagsFor {inherit set flags;}
+      // mkLengthFor {inherit set lengths;}
+      // mkMaturity {inherit set;}
+      // mkProtocol {inherit set;}
+      // mkScope {inherit set;}
+      // mkSupport {inherit set support;}
+      // {});
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;
@@ -544,7 +582,6 @@ in
           mkEqFor
           mkEngine
           mkFlagsFor
-          mkIndependence
           mkLength
           mkLengthFor
           mkMaturity

@@ -16,24 +16,18 @@
   default = _.applications.filters.groups;
 
   /**
-      Partition an application set by the distinct values of the `maturity` field.
+  Partition an application set by the distinct values of the `maturity` field.
+  Entries where `maturity` is absent or `null` are excluded.
 
-      Entries where `maturity` is absent or `null` are excluded.
-
-      # Type
+  # Type
   ```nix
-      mkMaturity :: { set :: AttrSet } -> { ${maturity} :: AttrSet }
+  mkMaturity :: { set :: AttrSet } -> { ${maturity} :: AttrSet }
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkMaturity { set = { a = { maturity = "stable"; }; b = { maturity = "beta"; }; }; }
-      # => { stable = { a = { maturity = "stable"; }; };
-      #      beta   = { b = { maturity = "beta";   }; }; }
-
-      # Entries without maturity are excluded
-      mkMaturity { set = { a = { maturity = "stable"; }; b = {}; }; }
-      # => { stable = { a = { maturity = "stable"; }; }; }
+  mkMaturity { set = { a = { maturity = "stable"; }; b = { maturity = "beta"; }; }; }
+  # => { stable = { a = ...; }; beta = { b = ...; }; }
   ```
   */
   mkMaturity = {set}:
@@ -43,26 +37,20 @@
     };
 
   /**
-      Index an application set by members of the `protocol` list field.
+  Index an application set by members of the `protocol` list field.
+  An entry appears under every protocol value it lists.
 
-      An entry appears under every protocol value it lists. Entries where
-      `protocol` is absent or empty are excluded from all keys.
-
-      # Type
+  # Type
   ```nix
-      mkProtocol :: { set :: AttrSet } -> { ${protocol} :: AttrSet }
+  mkProtocol :: { set :: AttrSet } -> { ${protocol} :: AttrSet }
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkProtocol {
-        set = {
-          a = { protocol = [ "wayland" "x11" ]; };
-          b = { protocol = [ "wayland" ]; };
-        };
-      }
-      # => { wayland = { a = ...; b = ...; };
-      #      x11     = { a = ...; }; }
+  mkProtocol {
+    set = { a = { protocol = ["wayland" "xorg"]; }; b = { protocol = ["wayland"]; }; };
+  }
+  # => { wayland = { a = ...; b = ...; }; xorg = { a = ...; }; }
   ```
   */
   mkProtocol = {set}:
@@ -72,22 +60,18 @@
     };
 
   /**
-      Partition an application set by the distinct values of the `scope` field.
+  Partition an application set by the distinct values of the `scope` field.
+  Entries where `scope` is absent or `null` are excluded.
 
-      Entries where `scope` is absent or `null` are excluded.
-
-      # Type
+  # Type
   ```nix
-      mkScope :: { set :: AttrSet } -> { ${scope} :: AttrSet }
+  mkScope :: { set :: AttrSet } -> { ${scope} :: AttrSet }
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkScope {
-        set = { a = { scope = "user"; }; b = { scope = "system"; }; };
-      }
-      # => { user   = { a = { scope = "user";   }; };
-      #      system = { b = { scope = "system"; }; }; }
+  mkScope { set = { a = { scope = "user"; }; b = { scope = "system"; }; }; }
+  # => { user = { a = ...; }; system = { b = ...; }; }
   ```
   */
   mkScope = {set}:
@@ -97,32 +81,28 @@
     };
 
   /**
-      Build a capability map for an application set across a fixed set of
-      boolean capability fields: `acceleration`, `compositing`, `remote`,
-      and `floating`.
+  Build a capability map for an application set across a fixed set of
+  boolean capability fields. Each key contains the subset of entries that
+  have that capability set to true. Empty subsets are omitted.
 
-      Each key in the result contains the subset of entries that have that
-      capability flag set to true. Empty subsets are omitted.
-
-      # Type
+  # Type
   ```nix
-      mkCapability :: { set :: AttrSet } -> { ${capability} :: AttrSet }
+  mkCapability :: { set :: AttrSet } -> { ${capability} :: AttrSet }
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkCapability {
-        set = {
-          a = { acceleration = true; compositing = false; };
-          b = { acceleration = true; compositing = true;  };
-        };
-      }
-      # => { acceleration = { a = ...; b = ...; };
-      #      compositing  = { b = ...; }; }
+  mkCapability {
+    set = {
+      a = { acceleration = true;  compositing = false; };
+      b = { acceleration = true;  compositing = true;  };
+    };
+  }
+  # => { acceleration = { a = ...; b = ...; }; compositing = { b = ...; }; }
 
-      # Capabilities with no matching entries are omitted entirely
-      mkCapability { set = { a = { floating = false; }; }; }
-      # => {}
+  # Capabilities with no matching entries are omitted
+  mkCapability { set = { a = { floating = false; }; }; }
+  # => {}
   ```
   */
   mkCapability = {set}: let
@@ -132,7 +112,7 @@
       "floating"
       "fuzzy"
       "history"
-      "nagigation"
+      "navigation"
       "remote"
       "stacking"
       "tiling"
@@ -143,30 +123,27 @@
     );
 
   /**
-      Partition an application set by the value of `config.file`, scoping
-      only to entries that have a non-null `config` field.
+  Partition an application set by the value of `config.file`.
+  Entries without `config` or with a null `config.file` are excluded.
 
-      Entries without `config` or with a null `config.file` are excluded.
-
-      # Type
+  # Type
   ```nix
-      mkConfigFile :: { set :: AttrSet } -> { ${configFile} :: AttrSet }
+  mkConfig :: { set :: AttrSet } -> { ${configFile} :: AttrSet }
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkConfigFile {
-        set = {
-          a = { config = { file = ".bashrc"; home = "/home/user"; }; };
-          b = { config = { file = ".zshrc";  home = "/home/user"; }; };
-          c = {};
-        };
-      }
-      # => { ".bashrc" = { a = ...; };
-      #      ".zshrc"  = { b = ...; }; }
+  mkConfig {
+    set = {
+      a = { config = { file = ".bashrc"; }; };
+      b = { config = { file = ".zshrc";  }; };
+      c = {};
+    };
+  }
+  # => { ".bashrc" = { a = ...; }; ".zshrc" = { b = ...; }; }
   ```
   */
-  mkConfigFile = {set}: let
+  mkConfig = {set}: let
     getFile = toValue {field = "config.file";};
     withCfg = filterAttrs (_: a: toValue {field = "config";} a != null) set;
     keys = unique (filter (v: v != null) (map getFile (attrValues withCfg)));
@@ -174,69 +151,82 @@
     genAttrs keys (file: filterAttrs (_: a: getFile a == file) set);
 
   /**
-      Build a combined grouping attrset from an application set, keyed by
-      `toName`-derived attribute names. Supports semantic fields (maturity,
-      protocol, scope, capability, config) out of the box; additional fields
-      fall back to `mkEq` or `mkMember` based on which list they appear in.
+  Build a combined grouping attrset from an application set, prefixed with
+  `by`. Well-known fields (`maturity`, `protocol`, `config`, `capability`,
+  `scope`) use their dedicated builders; unknown fields in `eq` use `mkEq`
+  and unknown fields in `member` use `mkMember`.
 
-      # Type
+  # Type
   ```nix
-      mkStandard :: {
-        set    :: AttrSet,
-        eq     :: [string],   # optional, default []
-        member :: [string],   # optional, default []
-        fields :: [string],   # optional, default []
-      } -> AttrSet
+  mkStandard :: {
+    set    :: AttrSet,
+    eq     :: [string],  # optional, default []
+    member :: [string],  # optional, default []
+    fields :: [string],  # optional, default [] — well-known semantic fields
+  } -> AttrSet
   ```
 
-      # Examples
+  # Examples
   ```nix
-      mkStandard {
-        set    = { ... };
-        eq     = ["compositor" "scope"];
-        member = ["layouts" "greeters"];
-        fields = ["protocol" "maturity"];
-      }
-      # => { byCompositor = ...; byScope = ...; byLayouts = ...;
-      #      byGreeters = ...; byProtocol = ...; byMaturity = ...; }
+  mkStandard {
+    set    = { ... };
+    eq     = ["role"];
+    member = ["engine"];
+    fields = ["protocol" "maturity"];
+  }
+  # => { byRole = ...; byEngine = ...; byProtocol = ...; byMaturity = ...; }
 
-      # Semantic fields use their dedicated group builder regardless of eq/member
-      mkStandard { set = { ... }; fields = ["capability"]; }
-      # => { byCapability = { acceleration = ...; compositing = ...; }; }
+  # Well-known fields use dedicated builders
+  mkStandard { set = { ... }; fields = ["capability"]; }
+  # => { byCapability = { acceleration = ...; compositing = ...; }; }
   ```
   */
   mkStandard = {
     set,
-    eq ? [],
-    member ? [],
-    fields ? [],
+    eq ? [
+      "compositor"
+      "kind"
+      "role"
+      "scope"
+      "surface"
+      "toolkit"
+    ],
+    member ? [
+      "config.lang"
+      "engine"
+      "greeters"
+      "layouts"
+      "panel"
+      "shells"
+    ],
+    fields ? ["capability" "protocol" "maturity"],
   }: let
-    #~@ well-known fields with dedicated builders
     perField = {
       maturity = mkMaturity {inherit set;};
       protocol = mkProtocol {inherit set;};
-      config = mkConfigFile {inherit set;};
+      config = mkConfig {inherit set;};
       capability = mkCapability {inherit set;};
       scope = mkScope {inherit set;};
     };
     allFields = unique (eq ++ member ++ fields);
   in
-    listToAttrs (map (field: {
-        name = toName {
-          inherit field;
-          prefix = "by";
-        };
-        value =
-          perField.${
-            field
-          } or (
-            #? fall back to eq or member query for unknown fields
-            if isIn field eq
-            then mkEq {inherit set field;}
-            else mkMember {inherit set field;}
-          );
-      })
-      allFields);
+    filterAttrs (_: v: v != {}) (
+      listToAttrs (map (field: {
+          name = toName {
+            inherit field;
+            prefix = "by";
+          };
+          value =
+            perField.${
+              field
+            } or (
+              if isIn field eq
+              then mkEq {inherit set field;}
+              else mkMember {inherit set field;}
+            );
+        })
+        allFields)
+    );
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;
@@ -247,8 +237,9 @@ in
       Provides semantic grouping functions that partition an application set
       by well-known fields (maturity, protocol, scope, capability, config),
       and a composable standard grouping builder used by section constructors.
+      All group keys are prefixed with "by" via mkNamed.
 
-      Depends on: applications {queries, primitives, selectors}.
+      Depends on: applications {queries, primitives, selection}.
     '';
 
     functions =
@@ -256,11 +247,12 @@ in
       // {
         inherit
           mkCapability
-          mkConfigFile
+          mkConfig
           mkMaturity
           mkProtocol
           mkScope
           mkStandard
           ;
+        mk = mkStandard;
       };
   }

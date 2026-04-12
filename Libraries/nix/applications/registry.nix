@@ -91,7 +91,7 @@
         isAttrs firstVal && firstVal ? categories
     );
 
-  default = importRegistry ./.data;
+  all = importRegistry ./.data;
 in
   _.meta.mkModuleExports {
     directory = __moduleDir;
@@ -105,5 +105,5 @@ in
       Depends on: applications.primitives filesystem.importers.
     '';
 
-    functions = default // {inherit default mkRegistry importRegistry isRegistryAttrset;};
+    functions = all // {inherit all mkRegistry importRegistry isRegistryAttrset;};
   }
