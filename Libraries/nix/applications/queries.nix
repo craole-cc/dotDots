@@ -98,13 +98,17 @@
     foldl' (
       acc: f:
         acc
-        // mkNamed {
+        // optionalAttrs (hasField {
+          inherit set;
+          field = f.field;
+        })
+        (mkNamed {
           prefix = f.prefix or "is";
           set = mkBool {
             inherit set;
             inherit (f) field trueKey falseKey;
           };
-        }
+        })
     ) {}
     flags;
 
@@ -183,10 +187,15 @@
     eq ? [],
   }: let
     knownPrefixes = {
-      compositor = "using";
+      channel = "on";
       color = "in";
+      compositor = "using";
+      family = "from";
+      greeters = "via";
       kind = "as";
       lang = "for";
+      notifier = "via";
+      panel = "with";
       role = "as";
       scope = "for";
       surface = "on";
@@ -205,13 +214,17 @@
         e = normalize f;
       in
         acc
-        // mkNamed {
+        // optionalAttrs (hasField {
+          inherit set;
+          field = e.field;
+        })
+        (mkNamed {
           prefix = e.prefix;
           set = mkEq {
             inherit set;
             field = e.field;
           };
-        }
+        })
     ) {}
     eq;
 
@@ -401,37 +414,57 @@
     }) (attrNames set));
 
   mkCapability = {set}:
-    mkNamed {
+    optionalAttrs (hasListField {
+      inherit set;
+      field = "capabilities";
+    })
+    (mkNamed {
       prefix = "has";
       set = mkCapabilityGroups {inherit set;};
-    };
+    });
 
   mkMaturity = {set}:
-    mkNamed {
+    optionalAttrs (hasField {
+      inherit set;
+      field = "maturity";
+    })
+    (mkNamed {
       prefix = "is";
       set = mkMaturityGroups {inherit set;};
-    };
+    });
 
   mkProtocol = {set}:
-    mkNamed {
+    optionalAttrs (hasListField {
+      inherit set;
+      field = "protocol";
+    })
+    (mkNamed {
       prefix = "for";
       set = mkProtocolGroups {inherit set;};
-    };
+    });
 
   mkScope = {set}:
-    mkNamed {
+    optionalAttrs (hasField {
+      inherit set;
+      field = "scope";
+    })
+    (mkNamed {
       prefix = "as";
       set = mkScopeGroups {inherit set;};
-    };
+    });
 
   mkEngine = {set}:
-    mkNamed {
+    optionalAttrs (hasListField {
+      inherit set;
+      field = "engine";
+    })
+    (mkNamed {
       prefix = "writtenIn";
       set = mkMember {
         inherit set;
         field = "engine";
       };
-    };
+    });
 
   /**
   Derive config-related queries from an application set.
@@ -491,13 +524,20 @@
   }:
     mkNamed {
       prefix = "supports";
-      set = foldl' (acc: f:
-        acc
-        // mkMember {
-          inherit set;
-          field = f;
-        }) {}
-      support;
+      set =
+        foldl' (
+          acc: f:
+            acc
+            // optionalAttrs (hasListField {
+              inherit set;
+              field = f;
+            })
+            (mkMember {
+              inherit set;
+              field = f;
+            })
+        ) {}
+        support;
     };
 
   mkStandard = {
@@ -507,6 +547,7 @@
       "kind"
       "role"
       "scope"
+      "family"
       "surface"
       "toolkit"
     ],
@@ -531,6 +572,21 @@
         trueKey = "system";
         falseKey = "userOnly";
       }
+      {
+        field = "wrappable";
+        trueKey = "wrappable";
+        falseKey = "bare";
+      }
+      {
+        field = "builtin";
+        trueKey = "builtin";
+        falseKey = "standalone";
+      }
+      {
+        field = "needsTerminal";
+        trueKey = "tui";
+        falseKey = "graphical";
+      }
     ],
     lengths ? [
       "categories"
@@ -541,7 +597,11 @@
       "shells"
       "toolkit"
     ],
-    support ? ["layouts" "shells"],
+    support ? [
+      "layouts"
+      "protocol"
+      "shells"
+    ],
   }:
     filterAttrs (_: v: v != {}) ({}
       // mkCapability {inherit set;}

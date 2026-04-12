@@ -4,11 +4,13 @@
   __moduleName,
   ...
 }: let
+  inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
   inherit (_.applications.queries) mkEq mkMember;
   inherit (_.applications.selection) withFlag;
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.construction) genAttrs listToAttrs;
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
@@ -185,6 +187,7 @@
     set,
     eq ? [
       "compositor"
+      "family"
       "kind"
       "role"
       "scope"
@@ -197,16 +200,33 @@
       "greeters"
       "layouts"
       "panel"
+      "protocol"
       "shells"
     ],
     fields ? ["capability" "protocol" "maturity"],
   }: let
     perField = {
-      maturity = mkMaturity {inherit set;};
-      protocol = mkProtocol {inherit set;};
-      config = mkConfig {inherit set;};
+      maturity = optionalAttrs (hasField {
+        inherit set;
+        field = "maturity";
+      }) (mkMaturity {inherit set;});
+
+      protocol = optionalAttrs (hasListField {
+        inherit set;
+        field = "protocol";
+      }) (mkProtocol {inherit set;});
+
+      config = optionalAttrs (hasField {
+        inherit set;
+        field = "config";
+      }) (mkConfig {inherit set;});
+
       capability = mkCapability {inherit set;};
-      scope = mkScope {inherit set;};
+
+      scope = optionalAttrs (hasField {
+        inherit set;
+        field = "scope";
+      }) (mkScope {inherit set;});
     };
     allFields = unique (eq ++ member ++ fields);
   in
@@ -221,8 +241,14 @@
               field
             } or (
               if isIn field eq
-              then mkEq {inherit set field;}
-              else mkMember {inherit set field;}
+              then
+                optionalAttrs
+                (hasField {inherit set field;})
+                (mkEq {inherit set field;})
+              else
+                optionalAttrs
+                (hasListField {inherit set field;})
+                (mkMember {inherit set field;})
             );
         })
         allFields)

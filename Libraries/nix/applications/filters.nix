@@ -9,40 +9,21 @@
   inherit (_.applications.selection) resolveConfig withFlag;
   inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.predicates) isIn;
   registry = _.applications.registry.all;
 
   /**
   Build a standard section from an application set, producing a consistent
-  `{ all, default, groups, queries }` shape. `all` and `default` both expose
-  the raw set — `all` for flat enumeration, `default` for fallback selection.
-  `groups` and `queries` are derived via `mkGroups` and `mkQueries` respectively,
-  with optional overrides passed through `groupArgs` and `queryArgs`.
+  `{ all, default, groups, queries }` shape.
 
   # Type
   ```nix
   mkSection :: {
     set       :: AttrSet,
-    groupArgs :: AttrSet,  # optional, merged into mkGroups call
-    queryArgs :: AttrSet,  # optional, merged into mkQueries call
+    groupArgs :: AttrSet,
+    queryArgs :: AttrSet,
   } -> { all :: AttrSet, default :: AttrSet, groups :: AttrSet, queries :: AttrSet }
-  ```
-
-  # Examples
-  ```nix
-  mkSection { set = byCategory.greeter; }
-  # => {
-  #   all     = { gdm = ...; lightdm = ...; };
-  #   default = { gdm = ...; lightdm = ...; };
-  #   groups  = { byMaturity = ...; byProtocol = ...; };
-  #   queries = { forWayland = ...; isStable = ...; };
-  # }
-
-  mkSection {
-    set       = byCategory.prompt;
-    groupArgs = { member = ["engine" "shells"]; fields = ["maturity"]; };
-  }
-  # => { all = ...; default = ...; groups = ...; queries = ...; }
   ```
   */
   mkSection = {
@@ -58,31 +39,15 @@
 
   /**
   Build a filter tree from an arbitrary registry, partitioned by category,
-  family, and channel. Accepts optional `groups` and `queries` overrides to
-  extend the base partitions with domain-specific structure.
-
-  `queries` receives `{ byCategory, byFamily, byChannel }` and returns an
-  attrset of named query trees.
+  family, and channel.
 
   # Type
   ```nix
   mkFilters :: {
     registry :: AttrSet,
-    groups   :: AttrSet,        # optional, merged into base groups
-    queries  :: AttrSet -> AttrSet, # optional, receives partition maps
+    groups   :: AttrSet,
+    queries  :: AttrSet -> AttrSet,
   } -> { default :: AttrSet, groups :: AttrSet, queries :: AttrSet }
-  ```
-
-  # Examples
-  ```nix
-  mkFilters {
-    registry = { a = { categories = ["shell"]; }; };
-  }
-  # => {
-  #   default = { a = ...; };
-  #   groups  = { byCategory = { shell = { a = ...; }; }; byFamily = {}; byChannel = {}; ofCategory = <fn>; };
-  #   queries = {};
-  # }
   ```
   */
   mkFilters = {
@@ -90,45 +55,27 @@
     groups ? {},
     queries ? (_: {}),
   }: let
-    byCategory =
-      genAttrs
-      (keysFromMembers "categories" registry) (
-        category:
-          filterAttrs
-          (_: app: isIn category (app.categories or []))
-          registry
-      );
-    byFamily =
-      genAttrs
-      (keysFromOptional "family" registry) (
-        family:
-          filterAttrs
-          (_: app: (app.family or null) == family)
-          registry
-      );
-    byChannel =
-      genAttrs
-      (keysFromOptional "channel" registry) (
-        channel:
-          filterAttrs
-          (_: app: (app.channel or null) == channel)
-          registry
-      );
+    byCategory = genAttrs (keysFromMembers "categories" registry) (
+      category: filterAttrs (_: app: isIn category (app.categories or [])) registry
+    );
+    byFamily = genAttrs (keysFromOptional "family" registry) (
+      family: filterAttrs (_: app: (app.family or null) == family) registry
+    );
+    byChannel = genAttrs (keysFromOptional "channel" registry) (
+      channel: filterAttrs (_: app: (app.channel or null) == channel) registry
+    );
     ofCategory = category: byCategory.${category} or {};
   in {
     default = registry;
-    groups =
-      {inherit byCategory byFamily byChannel ofCategory;}
-      // groups;
+    groups = {inherit byCategory byFamily byChannel ofCategory;} // groups;
     queries = queries {inherit byCategory byFamily byChannel;};
   };
 
-  all = mkFilters {
+  default = mkFilters {
     inherit registry;
     queries = {byCategory, ...}: let
       /**
       Applications that must be launched inside a terminal emulator.
-      Derived from the `needsTerminal` boolean flag on the registry.
       */
       needsTerminal = withFlag {
         field = "needsTerminal";
@@ -136,61 +83,126 @@
       };
 
       /**
-      Shell-related applications, partitioned into sub-sections by category.
-      `all` is the full `shell` category; sub-sections refine by single-category
-      membership or exact category match.
+      Shell-related applications: pure shells, prompts, enhancements, line editors.
       */
       shell = let
         all = byCategory.shell;
       in {
         inherit all;
-
-        #? Pure shells — entries whose categories list is exactly ["shell"],
-        #? with config resolved to normalise nested attrsets.
         shells = mkSection {
           set = resolveConfig (
             filterAttrs (_: a: (a.categories or []) == ["shell"]) all
           );
         };
-
-        #? Shell prompt themes and frameworks.
         prompts = mkSection {set = byCategory.prompt;};
-
-        #? Shell enhancement plugins (history, fuzzy-find, navigation, etc.).
         enhancements = mkSection {set = byCategory.enhancement;};
-
-        #? Readline-style line editing libraries used by shells.
         lineEditors = mkSection {set = byCategory."line-editor";};
       };
 
       /**
-      Interface-related applications, partitioned into sub-sections by category.
-      `all` is the full `interface` category.
+      Interface-related applications: compositors, environments, greeters,
+      notifiers, panels, and display protocols.
       */
       interface = let
         all = byCategory.interface;
       in {
         inherit all;
-
-        #? Wayland/X11 compositors.
         compositors = mkSection {set = byCategory.compositor;};
-
-        #? Desktop environments.
         environments = mkSection {set = byCategory.environment;};
-
-        #? Display managers and login greeters.
         greeters = mkSection {set = byCategory.greeter;};
-
-        #? Desktop notification daemons.
         notifiers = mkSection {set = byCategory.notifier;};
-
-        #? Taskbars, status bars, and panel applications.
         panels = mkSection {set = byCategory.panel;};
-
-        #? Display protocols (Wayland, Xorg, KMS, TTY).
         protocols = mkSection {set = byCategory.protocol;};
       };
-    in {inherit needsTerminal shell interface;};
+
+      /**
+      Terminal emulators. Protocol affinity and wrap capability are exposed
+      as queries rather than sub-sections — use `terminal.queries.forWayland`,
+      `terminal.queries.forXorg`, and `terminal.queries.isWrappable` directly.
+      */
+      terminal = mkSection {
+        set =
+          mapAttrs
+          (_: a: a // {wrappable = (a.wrap or null) != null;})
+          (byCategory.terminal);
+      };
+
+      /**
+      Application launchers and runners. `builtin` entries are provided
+      by a desktop environment and have no standalone exec.
+      */
+      launcher = mkSection {
+        set =
+          mapAttrs
+          (_: a: a // {builtin = a.builtin or false;})
+          (byCategory.launcher);
+      };
+
+      /**
+      Text editors and IDEs. Category membership distinguishes pure editors,
+      IDEs, and database editors — use `editor.queries.forIde`,
+      `editor.queries.forDatabase`, and `editor.queries.isTui` directly.
+      */
+      editor = mkSection {set = byCategory.editor;};
+
+      /**
+      Web browsers. `family` partitions by engine lineage
+      (chromium, firefox, zen, etc.) and `channel` by release track
+      (stable, esr, nightly, beta, twilight).
+      */
+      browser = mkSection {set = byCategory.browser;};
+
+      /**
+      File managers, both graphical and terminal-based.
+      `needsTerminal` entries (lf, yazi, ranger, nnn, broot) require
+      a host terminal emulator to launch.
+      */
+      fileManager = mkSection {set = byCategory."file-manager";};
+
+      /**
+      Media players and audio applications.
+      */
+      media = mkSection {set = byCategory.media;};
+
+      /**
+      Graphics and image editing applications.
+      */
+      graphics = mkSection {set = byCategory.graphics;};
+
+      /**
+      Office, productivity, and document viewer applications.
+      */
+      office = mkSection {set = byCategory.office;};
+
+      /**
+      Communication applications. Sub-sections split by protocol role:
+      instant messengers and email clients.
+      */
+      communication = mkSection {set = byCategory.communication;};
+
+      /**
+      System monitoring applications. All entries carry `needsTerminal`
+      (btop, htop, nvtop) or are graphical (mission-center, gnome-system-monitor).
+      Sub-sections split by UI style.
+      */
+      monitor = mkSection {set = byCategory.monitor;};
+    in {
+      inherit
+        needsTerminal
+        shell
+        interface
+        terminal
+        launcher
+        editor
+        browser
+        fileManager
+        media
+        graphics
+        office
+        communication
+        monitor
+        ;
+    };
   };
 in
   _.meta.mkModuleExports {
@@ -199,12 +211,30 @@ in
       Application filters (Layer 4).
 
       Partitions the application registry into typed, queryable subsets.
-      Provides pre-built filters for shells and interfaces, each exposing
-      { all, default, groups, queries } via mkSection. Top-level partitions
-      by category, family, and channel are available under filters.groups.
+      Each top-level key maps to a domain section exposing
+      { all, default, groups, queries } via mkSection. Sub-sections refine
+      by category intersection, boolean flags, or protocol affinity.
+
+      Top-level sections:
+        needsTerminal  — apps requiring a host terminal emulator
+        shell          — shells, prompts, enhancements, line editors
+        interface      — compositors, environments, greeters, notifiers, panels, protocols
+        terminal       — terminal emulators (with wayland/xorg/wrappable sub-sets)
+        launcher       — app launchers (standalone and builtin)
+        editor         — text editors, IDEs, database editors
+        browser        — web browsers (by family and channel)
+        fileManager    — file managers (graphical and TUI)
+        media          — media players and audio apps
+        graphics       — image and graphics editors
+        office         — office and document apps
+        communication  — messengers and email clients
+        monitor        — system monitors (graphical and TUI)
+
+      Top-level partitions by category, family, and channel are
+      available under filters.groups.
 
       Depends on: applications {groups, queries, selection, primitives}.
     '';
 
-    functions = all // {inherit mkFilters mkSection;};
+    functions = default // {inherit mkFilters mkSection;};
   }

@@ -147,6 +147,9 @@
           gitui
           onefetch
           tokei
+          #~@ AI
+          codex
+          bubblewrap
           #~@ Utilities
           gawk
           direnv

@@ -77,12 +77,15 @@
     field,
     set,
   }:
-    filterAttrs (_: app:
-      !(toValue {
+    filterAttrs (_: app: let
+      val =
+        toValue {
           inherit field;
-          default = false;
+          default = null;
         }
-        app))
+        app;
+    in
+      val == null || val == false)
     set;
 
   /**
