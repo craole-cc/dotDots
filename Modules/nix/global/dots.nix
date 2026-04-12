@@ -1,12 +1,10 @@
-{
-  lix,
-  system,
-  config,
-  pkgs,
-  fmtPackages ? [],
-  mediaPackages ? [],
-  ...
-}: let
+{_, ...}: let
+  export = mkShell {
+    inherit packages env shellHook;
+    inherit (_) name;
+  };
+
+  inherit (_) lix system pkgs isLinux mkShell;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
@@ -16,13 +14,12 @@
   inherit (lix.strings.access) stringLength;
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
-  inherit (pkgs.stdenv) isLinux;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| CLI Tools                                                                   |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  commands.${config.name} = {
+  commands.${_.name} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
@@ -117,7 +114,7 @@
             inherit pkgs;
             inherit (cfg) command description;
             name = name;
-            prefix = cfg.prefix or config.prefix;
+            prefix = cfg.prefix or _.prefix;
             inputs = cfg.inputs or [];
             aliases = cfg.aliases or [];
           }
@@ -127,8 +124,8 @@
     mergeApps allApps;
 
   #> Generate command list for shellHook
-  commandList = with config; let
-    mainCmd = commands.${name};
+  commandList = let
+    mainCmd = commands.${_.name};
 
     #> Group aliases by domain
     groups = [
@@ -174,7 +171,7 @@
           maxNameLength =
             foldl' (
               max: cmd: let
-                len = stringLength "${prefix}${cmd.name}";
+                len = stringLength "${_.prefix}${cmd.name}";
               in
                 if len > max
                 then len
@@ -183,9 +180,9 @@
             0
             cmds;
           formatCmd = cmd: let
-            padding = maxNameLength - (stringLength "${prefix}${cmd.name}");
+            padding = maxNameLength - (stringLength "${_.prefix}${cmd.name}");
             spaces = concatStrings (genList (_: " ") padding);
-          in "  ${prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          in "  ${_.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
           if cmds != []
           then header + concatMapStringsSep "\n" formatCmd cmds
@@ -199,48 +196,50 @@
   #| Packages                                                                    |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  packages = with pkgs;
-    [
-      bat #? Cat clone with syntax highlighting
-      cargo #? Rust package manager
-      direnv #? Environment management per directory
-      dos2unix #? Line ending converter
-      eza #? Modern ls replacement
-      fd #? Fast find alternative
-      gcc #? GNU C compiler
-      gitui #? Git terminal UI
-      gnused #? GNU stream editor
-      imagemagick #? Image processing
-      jq #? JSON query processor
-      lsd #? LSDeluxe file lister
-      mise #? Polyglot version manager
-      mtr #? Network diagnostic tool
-      nil #? Nix language server
-      nitch #? System fetch written in nim
-      nix-output-monitor #? Build output monitor
-      nix-tree #? Nix dependency visualizer
-      nixd #? Nix language daemon
-      nushell #? Modern shell language
-      onefetch #? Git repository summary
-      pandoc #? Universal document converter
-      poppler-utils #? PDF utilities (pdfunite, pdfseparate)
-      qpdf #? PDF transformation
-      ripgrep #? Fast grep alternative
-      rust-script #? Rust scripting
-      rustc #? Rust compiler
-      starship #? Cross-shell prompt
-      tldr #? Simplified man pages
-      tokei #? Code statistics tool
-      typst #? Modern LaTeX alternative
-      undollar #? Remove leading dollar signs
-      watchexec #? File watcher and executor
-      yazi #? Terminal file manager
-      zoxide #? Smart cd replacement
-    ]
-    ++ (attrValues applications)
-    ++ fmtPackages #? From fmt.nix: treefmt, alejandra, etc.
-    ++ mediaPackages #? From media.nix: mpv, ffmpeg, yt-dlp, etc.
-    ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
+  packages =
+    _.packages
+    ++ (
+      with _.pkgs;
+        [
+          bat #? Cat clone with syntax highlighting
+          cargo #? Rust package manager
+          direnv #? Environment management per directory
+          dos2unix #? Line ending converter
+          eza #? Modern ls replacement
+          fd #? Fast find alternative
+          gcc #? GNU C compiler
+          gitui #? Git terminal UI
+          gnused #? GNU stream editor
+          imagemagick #? Image processing
+          jq #? JSON query processor
+          lsd #? LSDeluxe file lister
+          mise #? Polyglot version manager
+          mtr #? Network diagnostic tool
+          nil #? Nix language server
+          nitch #? System fetch written in nim
+          nix-output-monitor #? Build output monitor
+          nix-tree #? Nix dependency visualizer
+          nixd #? Nix language daemon
+          nushell #? Modern shell language
+          onefetch #? Git repository summary
+          pandoc #? Universal document converter
+          poppler-utils #? PDF utilities (pdfunite, pdfseparate)
+          qpdf #? PDF transformation
+          ripgrep #? Fast grep alternative
+          rust-script #? Rust scripting
+          rustc #? Rust compiler
+          starship #? Cross-shell prompt
+          tldr #? Simplified man pages
+          tokei #? Code statistics tool
+          typst #? Modern LaTeX alternative
+          undollar #? Remove leading dollar signs
+          watchexec #? File watcher and executor
+          yazi #? Terminal file manager
+          zoxide #? Smart cd replacement
+        ]
+        ++ (attrValues applications)
+        ++ (optionals isLinux [xclip wl-clipboard xsel])
+    ); #? Linux clipboard tools
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Shell Configuration                                                         |
@@ -250,7 +249,7 @@
     SYSTEM = "$(hostname)";
   };
 
-  shellHook = with config; ''
+  shellHook = ''
     #> Determine host info dynamically
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
@@ -262,7 +261,7 @@
     export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
-    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
+    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${_.cache}"}"
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -313,9 +312,7 @@
     printf '║               dotDots Configuration Shell             ║\n'
     printf '╚═══════════════════════════════════════════════════════╝\n'
     printf "%s\n\n" "${commandList}"
-    printf "  Run %shelp for detailed help information\n\n" "${prefix}"
+    printf "  Run %shelp for detailed help information\n\n" "${_.prefix}"
   '';
 in
-  pkgs.mkShell (with config; {
-    inherit name packages env shellHook;
-  })
+  export

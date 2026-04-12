@@ -23,15 +23,18 @@
         mkHome
         mkAll
         mkOne
+        fromInputs
         ;
       mkPackages = mkAll;
       mkPackage = mkOne;
+      mkPackageFromInputs = fromInputs;
       mkCorePackages = mkCore;
       mkHomePackages = mkHome;
     };
     external = {
       mkInputOverlays = mkOverlays;
       mkInputPackages = mkAll;
+      mkPackageFromInputs = fromInputs;
       mkInputPackage = mkOne;
       mkCoreInputPackages = mkCore;
       mkHomeInputPackages = mkHome;
@@ -83,6 +86,13 @@
         ]
         ++ names;
     };
+
+  fromInputs = {
+    inputs,
+    system,
+    input,
+  }:
+    inputs.${input}.packages.${system} or {};
 
   mkOne = {
     inputs,

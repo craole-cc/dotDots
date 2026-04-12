@@ -9,6 +9,7 @@
     "review"
     "archive"
     "internal"
+    "imports"
     "test"
     "tmp"
     "temp"

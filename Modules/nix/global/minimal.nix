@@ -1,13 +1,18 @@
-{
-  lib,
-  system,
-  pkgs,
-  config,
-  ...
-}: let
-  inherit (lib.lists) optionals;
-  inherit (pkgs.stdenv) isLinux;
-  allowAI = true;
+{_, ...}: let
+  export = _.mkShell {inherit name packages env shellHook;};
+  inherit
+    (_)
+    allowAI
+    cache
+    isLinux
+    lix
+    name
+    pkgs
+    system
+    inputPkgs
+    ;
+  inherit (lix.lists.construction) optionals;
+
   #|────────────────────────────────────────|
   #| Packages                               |
   #|────────────────────────────────────────|
@@ -37,8 +42,12 @@
       ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
       yazi #? File manager (ensure CLI tools available in devshell)
     ]
-    ++ (optionals allowAI (with pkgs.fromInputs.llm-agents; [codex]))
     ++ (optionals isLinux [xclip wl-clipboard xsel]) #? Linux clipboard tools
+    ++ (
+      optionals
+      allowAI
+      (with (inputPkgs "llm-agents"); [codex])
+    )
     ++ [];
 
   #|────────────────────────────────────────|
@@ -67,7 +76,7 @@
     fi
 
     if [ -z "$DOTS_CACHE" ]; then
-      DOTS_CACHE="$DOTS/${config.cache}"
+      DOTS_CACHE="$DOTS/${cache}"
       export DOTS_CACHE
     fi
 
@@ -124,7 +133,4 @@
     fi
   '';
 in
-  pkgs.mkShell {
-    inherit (config) name;
-    inherit packages env shellHook;
-  }
+  export

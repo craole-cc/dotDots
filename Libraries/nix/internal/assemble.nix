@@ -10,7 +10,7 @@
 
   lib = let
     base = let
-      raw = ./imports;
+      raw = ../imports;
       set = import raw;
       init = f:
         f {

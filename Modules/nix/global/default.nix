@@ -1,16 +1,36 @@
 {
-  pkgs,
+  inputs,
   lib,
-  path,
   lix,
+  path,
+  pkgs,
   system,
   ...
 }: let
-  config = {
+  _ = {
+    inherit inputs lib lix path pkgs system;
+    inherit (pkgs.stdenv) isLinux isDarwin;
+    inherit (pkgs) mkShell;
+    inputPkgs = input:
+      lix.sources.packages.fromInputs {
+        inherit input inputs system;
+      };
+
+    #~@ Metadata
     name = "dots";
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
+
+    #~@ Options
+    allowAI = true;
+
+    #~@ Packages
+    packages =
+      []
+      ++ minimal.packages
+      ++ formatters
+      ++ media.packages;
   };
 
   inherit
@@ -19,17 +39,9 @@
     formatter
     checks
     ;
-  media = import ./media.nix {
-    inherit pkgs;
-  };
-  dots = import ./dots.nix {
-    inherit pkgs lix lib system config;
-    mediaPackages = media.packages;
-    fmtPackages = formatters;
-  };
-  minimal = import ./minimal.nix {
-    inherit lib pkgs system config;
-  };
+  media = import ./media.nix {inherit pkgs;};
+  dots = import ./dots.nix {inherit _;};
+  minimal = import ./minimal.nix {inherit _;};
 in {
   devShells = {
     default = minimal;
