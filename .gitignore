@@ -23,3 +23,5 @@ Archive
 !.envrc
 !flake.lock
 !.data/
+
+.codex
