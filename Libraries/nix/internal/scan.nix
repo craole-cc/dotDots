@@ -100,12 +100,23 @@
       then rawModule
       else throw "Module ${entryName} must be either a function or attribute set";
 
-    rootAliases = importedModule._rootAliases or {};
+    rootAliases =
+      if importedModule ? __rootAliases
+      then importedModule.__rootAliases
+      else importedModule._rootAliases or {};
 
     attrsToRemove =
-      ["_rootAliases"]
+      ["_rootAliases" "__rootAliases"]
       ++ filter
-      (n: hasPrefix "_" n && n != "_rootAliases" && n != "_tests" && n != "__meta" && n != "__doc")
+      (
+        n:
+          hasPrefix "_" n
+          && n != "_rootAliases"
+          && n != "__rootAliases"
+          && n != "_tests"
+          && n != "__meta"
+          && n != "__doc"
+      )
       (attrNames importedModule)
       ++ (
         if !runTests

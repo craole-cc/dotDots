@@ -4,7 +4,7 @@
   name ? "lix",
   collisionStrategy ? "warn",
   runTests ? true,
-  rootAliases ? false,
+  rootAliases ? true,
   excludedDirs ? [
     "review"
     "archive"
