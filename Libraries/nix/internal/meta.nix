@@ -105,7 +105,7 @@
     (functions // mkAliases functions)
     // {
       __rootAliases = mkExternal functions;
-      __doc = doc;
+      __docs = doc;
     }
     // optionalAttrs (tests != {}) {__tests = tests;};
 in {inherit mkModuleExports toSingular;}

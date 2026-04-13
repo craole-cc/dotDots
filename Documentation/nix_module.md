@@ -82,11 +82,11 @@ in
 
 ## Ordering
 
-1. `__doc`
+1. `__docs`
 2. `__exports`
 3. `__imports`
 4. functions (each preceded by its `/** */` docstring)
-5. `in` clause — `__exports.internal // { _rootAliases, __doc, _tests }`
+5. `in` clause — `__exports.internal // { __rootAliases, __docs, __tests }`
 
 ---
 
@@ -126,12 +126,12 @@ The naming pattern for external keys is `<domain><FunctionName>` — e.g. `toApp
 
 ---
 
-## Tests (`_tests`)
+## Tests (`__tests`)
 
-Tests live in the `in` clause under `_tests = runTests { ... }`.
+Tests live in the `in` clause under `__tests = runTests { ... }`.
 
 ````nix
-_tests = runTests {
+__tests = runTests {
   fnOne = {
     # name describes what is being asserted, not what the function is
     allowsValidValue = mkTest {
@@ -190,7 +190,7 @@ Cover at minimum: the happy path, the rejection path, and any case-sensitivity o
 
 ---
 
-## `__doc` Format
+## `__docs` Format
 
 ````md
 <Title> (Layer N).
@@ -201,4 +201,4 @@ Cover at minimum: the happy path, the rejection path, and any case-sensitivity o
 Depends on: <comma-separated list>
 ````
 
-Surfaces as a readable string in `nix repl` and is exported via `inherit __doc;`.
+Surfaces as a readable string in `nix repl` and is exported via `inherit __docs;`.

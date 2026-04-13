@@ -212,9 +212,9 @@ When a `mk*` function produces a queryable section it always has this shape:
 }
 ```
 
-#### Tests (`_tests`)
+#### Tests (`__tests`)
 
-Tests live in the `in` clause under `_tests = runTests { ... }`. Test names
+Tests live in the `in` clause under `__tests = runTests { ... }`. Test names
 read as assertions about behaviour, not descriptions of the function:
 
 | Pattern                  | Use                              |

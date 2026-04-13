@@ -5,6 +5,7 @@
 }: let
   meta = let
     doc = ''
+
       # Builders [Layer 3]
 
       Composable partition builders for application attribute sets.
@@ -34,9 +35,9 @@
   in {inherit doc exports functions;};
 
   inherit (_.applications.selection) withFlag withoutFlag;
-  inherit (_.trivial.debug) mkModuleDebug mkExample;
+  inherit (_.debug.format) mkExample;
+  inherit (_.debug.module.mkModule __moduleRef) withDoc;
   inherit (_.types.predicates) isAttrs isString;
-  _debug = mkModuleDebug __moduleRef;
 
   /**
   Partition an attribute set into two subsets based on the presence or absence
@@ -72,7 +73,7 @@
   }:
     if !isString field
     then
-      throw (_debug.withDoc {
+      throw (withDoc {
         function = "mkBool";
         message = "field must be a string naming the boolean attribute to partition on";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
@@ -84,7 +85,7 @@
       })
     else if !isString trueKey
     then
-      throw (_debug.withDoc {
+      throw (withDoc {
         function = "mkBool";
         message = "trueKey must be a string — it becomes the output attribute name for flag=true items";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
@@ -96,7 +97,7 @@
       })
     else if !isString falseKey
     then
-      throw (_debug.withDoc {
+      throw (withDoc {
         function = "mkBool";
         message = "falseKey must be a string — it becomes the output attribute name for flag=false items";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
@@ -108,7 +109,7 @@
       })
     else if trueKey == falseKey
     then
-      throw (_debug.withDoc {
+      throw (withDoc {
         function = "mkBool";
         message = "trueKey and falseKey must be different strings — they cannot both write to the same output key";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
@@ -120,7 +121,7 @@
       })
     else if !isAttrs set
     then
-      throw (_debug.withDoc {
+      throw (withDoc {
         function = "mkBool";
         message = "set must be an attribute set of items to partition";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
@@ -140,7 +141,8 @@ in
     __docs = meta.doc;
     __rootAliases = meta.exports.alias;
     __tests = let
-      inherit (_.trivial.tests) mkTest runTests;
+      inherit (_.debug.assertions) mkTest;
+      inherit (_.debug.runners) runTests;
 
       apps = {
         alpha = {

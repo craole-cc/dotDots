@@ -12,25 +12,27 @@
   inherit
     (lib'.attrsets)
     attrNames
+    filterAttrs
     foldlAttrs
     isAttrs
     mapAttrs
-    filterAttrs
     ;
   inherit
     (lib'.lists)
     elem
     filter
-    foldl'
     findFirst
+    foldl'
+    length
     ;
   inherit
     (lib'.strings)
     concatStringsSep
     hasPrefix
     hasSuffix
-    removeSuffix
     removePrefix
+    removeSuffix
+    splitString
     typeOf
     ;
   inherit (lib'.trivial) isFunction;
@@ -100,70 +102,112 @@
       then rawModule
       else throw "Module ${entryName} must be either a function or attribute set";
 
+    normalizedModule =
+      importedModule
+      // (
+        if importedModule ? __doc && !(importedModule ? __docs)
+        then {__docs = importedModule.__doc;}
+        else {}
+      )
+      // (
+        if importedModule ? _tests && !(importedModule ? __tests)
+        then {__tests = importedModule._tests;}
+        else {}
+      );
+
     rootAliases =
-      if importedModule ? __rootAliases
-      then importedModule.__rootAliases
-      else importedModule._rootAliases or {};
+      if normalizedModule ? __rootAliases
+      then normalizedModule.__rootAliases
+      else normalizedModule._rootAliases or {};
 
     attrsToRemove =
-      ["_rootAliases" "__rootAliases"]
+      ["_rootAliases" "__rootAliases" "__doc" "_tests"]
       ++ filter
       (
         n:
           hasPrefix "_" n
           && n != "_rootAliases"
           && n != "__rootAliases"
-          && n != "_tests"
           && n != "__meta"
-          && n != "__doc"
+          && n != "__docs"
+          && n != "__tests"
       )
-      (attrNames importedModule)
+      (attrNames normalizedModule)
       ++ (
         if !runTests
-        then ["_tests"]
+        then ["_tests" "__tests"]
         else []
       );
 
-    cleanModule = removeAttrs importedModule attrsToRemove;
+    cleanModule = removeAttrs normalizedModule attrsToRemove;
 
-    mdDocs = findDocs dir moduleName;
-    docsInfo =
-      if mdDocs.available
-      then mdDocs
-      else if cleanModule ? __doc
-      then {
-        type = "string";
-        source = cleanModule.__doc;
-        available = true;
-        locations = [];
-      }
-      else {
-        type = "none";
-        source = null;
-        available = false;
-        locations = [];
+    meta = let
+      module = rec {
+        name = concatStringsSep "." namespace;
+        path = filePath;
+        directory = removePrefix ((toString basePath) + "/") (toString dir);
+        filename = entryName;
+        namespace = [env.library] ++ pathPrefix ++ [moduleName];
       };
 
-    moduleWithMeta =
+      exports = filterAttrs (n: _: !(hasPrefix "__" n)) cleanModule;
+
+      docs = let
+        mdDocs = findDocs dir moduleName;
+        available = cleanModule ? __docs;
+      in
+        if mdDocs.available
+        then mdDocs
+        else if available
+        then rec {
+          inherit available;
+          type = "string";
+          source = concatStringsSep "." [module.name "__docs"];
+          location = splitString "." source;
+        }
+        else {
+          inherit available;
+          type = "none";
+        };
+
+      tests = let
+        available = cleanModule ? __tests;
+      in
+        if available
+        then let
+          results =
+            foldlAttrs
+            (acc: _: group:
+              acc
+              ++ (
+                if isAttrs group
+                then map (n: group.${n}) (attrNames group)
+                else []
+              ))
+            []
+            cleanModule.__tests;
+          total = length results;
+          passed = length (filter (t: t.passed or false) results);
+          failed = total - passed;
+        in {inherit available total passed failed;}
+        else {inherit available;};
+    in
       cleanModule
       // {
         __meta = {
-          module = rec {
-            name = concatStringsSep "." namespace;
-            path = filePath;
-            directory = removePrefix ((toString basePath) + "/") (toString dir);
-            filename = entryName;
-            namespace = [env.library] ++ pathPrefix ++ [moduleName];
-          };
-          docs = docsInfo;
-          exports = attrNames cleanModule;
-          functions = attrNames (filterAttrs (_: v: isFunction v) cleanModule);
-          values = attrNames (filterAttrs (_: v: !isFunction v) cleanModule);
+          inherit module docs tests;
+          exports = attrNames exports;
+          functions =
+            attrNames
+            (filterAttrs (_: v: isFunction v) exports);
+          values =
+            attrNames
+            (filterAttrs (_: v: !isFunction v) exports);
           timestamp = currentTime;
         };
       };
   in {
-    modules = {${moduleName} = moduleWithMeta;};
+    modules = {${moduleName} = meta;};
     rootAliases = rootAliases;
   };
 
