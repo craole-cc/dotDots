@@ -27,7 +27,9 @@
     };
     exports = {
       local = functions;
-      alias._example = {inherit mkBool;};
+      alias = {
+        mkBoolExample = mkBool;
+      };
     };
   in {inherit doc exports functions;};
 
