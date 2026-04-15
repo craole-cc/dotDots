@@ -1,4 +1,4 @@
-{_}: let
+{dots}: let
   inherit (dots) pkgs;
   description = "🎬 Media Development Shell";
   packages = with pkgs; [

@@ -39,7 +39,7 @@
   #~@ Shell Logic Consolidation
   devShells = let
     inherit (lib.attrsets) filterAttrs mapAttrs mapAttrs' nameValuePair;
-    inherit (lib.filesystem) readDir;
+    inherit (lib.filesystem) pathIsRegularFile readDir;
     inherit (lib.lists) elem;
     inherit (lib.strings) hasSuffix hasPrefix removeSuffix;
     inherit (pkgs) mkShell;
@@ -47,21 +47,22 @@
     #> Filter out internal logic, archives, and formatting files
     files = let
       all = readDir ./.;
-      valid = filterAttrs (name: kind:
-        (kind == "regular")
-        && hasSuffix ".nix" name
-        && !(elem name ["default.nix" "fmt.nix"])
-        && !(hasPrefix "archive" name)
-        && !(hasPrefix "review" name))
+      valid = filterAttrs (name: type:
+        # pathIsRegularFile name
+          (type == "regular")
+          && hasSuffix ".nix" name
+          && !(elem name ["default.nix" "fmt.nix"])
+          && !(hasPrefix "archive" name)
+          && !(hasPrefix "review" name))
       all;
     in
       valid;
 
     #> Import the attrs from the valididated files
-    configs = mapAttrs' (name: _:
+    configs = mapAttrs' (file: _:
       nameValuePair
-      (removeSuffix ".nix" name)
-      (import (./. + "/${name}") {inherit dots;}))
+      (removeSuffix ".nix" file)
+      (import (./. + "/${file}") {inherit dots;}))
     files;
 
     #> Build the final derivations
