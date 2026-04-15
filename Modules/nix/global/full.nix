@@ -1,10 +1,6 @@
 {_, ...}: let
-  export = mkShell {
-    inherit packages env shellHook;
-    inherit (_) name;
-  };
-
-  inherit (_) lix system pkgs isLinux mkShell;
+  description = "Exhaustive Shell";
+  inherit (_) lix system pkgs isLinux;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
@@ -196,50 +192,48 @@
   #| Packages                                                                    |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  packages =
-    _.packages
-    ++ (
-      with _.pkgs;
-        [
-          bat #? Cat clone with syntax highlighting
-          cargo #? Rust package manager
-          direnv #? Environment management per directory
-          dos2unix #? Line ending converter
-          eza #? Modern ls replacement
-          fd #? Fast find alternative
-          gcc #? GNU C compiler
-          gitui #? Git terminal UI
-          gnused #? GNU stream editor
-          imagemagick #? Image processing
-          jq #? JSON query processor
-          lsd #? LSDeluxe file lister
-          mise #? Polyglot version manager
-          mtr #? Network diagnostic tool
-          nil #? Nix language server
-          nitch #? System fetch written in nim
-          nix-output-monitor #? Build output monitor
-          nix-tree #? Nix dependency visualizer
-          nixd #? Nix language daemon
-          nushell #? Modern shell language
-          onefetch #? Git repository summary
-          pandoc #? Universal document converter
-          poppler-utils #? PDF utilities (pdfunite, pdfseparate)
-          qpdf #? PDF transformation
-          ripgrep #? Fast grep alternative
-          rust-script #? Rust scripting
-          rustc #? Rust compiler
-          starship #? Cross-shell prompt
-          tldr #? Simplified man pages
-          tokei #? Code statistics tool
-          typst #? Modern LaTeX alternative
-          undollar #? Remove leading dollar signs
-          watchexec #? File watcher and executor
-          yazi #? Terminal file manager
-          zoxide #? Smart cd replacement
-        ]
-        ++ (attrValues applications)
-        ++ (optionals isLinux [xclip wl-clipboard xsel])
-    ); #? Linux clipboard tools
+  packages = (
+    with pkgs;
+      [
+        bat #? Cat clone with syntax highlighting
+        cargo #? Rust package manager
+        direnv #? Environment management per directory
+        dos2unix #? Line ending converter
+        eza #? Modern ls replacement
+        fd #? Fast find alternative
+        gcc #? GNU C compiler
+        gitui #? Git terminal UI
+        gnused #? GNU stream editor
+        imagemagick #? Image processing
+        jq #? JSON query processor
+        lsd #? LSDeluxe file lister
+        mise #? Polyglot version manager
+        mtr #? Network diagnostic tool
+        nil #? Nix language server
+        nitch #? System fetch written in nim
+        nix-output-monitor #? Build output monitor
+        nix-tree #? Nix dependency visualizer
+        nixd #? Nix language daemon
+        nushell #? Modern shell language
+        onefetch #? Git repository summary
+        pandoc #? Universal document converter
+        poppler-utils #? PDF utilities (pdfunite, pdfseparate)
+        qpdf #? PDF transformation
+        ripgrep #? Fast grep alternative
+        rust-script #? Rust scripting
+        rustc #? Rust compiler
+        starship #? Cross-shell prompt
+        tldr #? Simplified man pages
+        tokei #? Code statistics tool
+        typst #? Modern LaTeX alternative
+        undollar #? Remove leading dollar signs
+        watchexec #? File watcher and executor
+        yazi #? Terminal file manager
+        zoxide #? Smart cd replacement
+      ]
+      ++ (attrValues applications)
+      ++ (optionals isLinux [xclip wl-clipboard xsel])
+  ); #? Linux clipboard tools
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Shell Configuration                                                         |
@@ -314,5 +308,6 @@
     printf "%s\n\n" "${commandList}"
     printf "  Run %shelp for detailed help information\n\n" "${_.prefix}"
   '';
-in
-  export
+in {
+  inherit description packages env shellHook;
+}

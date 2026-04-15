@@ -7,7 +7,9 @@
   system,
   ...
 }: let
+  #> Metadata & Dependency Injection
   _ = {
+    #~@ Functions
     inherit inputs lib lix path pkgs system;
     inherit (pkgs.stdenv) isLinux isDarwin;
     inherit (pkgs) mkShell;
@@ -17,36 +19,59 @@
       };
 
     #~@ Metadata
-    name = "dots";
+    name = "dotDots";
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
 
     #~@ Options
     allowAI = true;
-
-    #~@ Packages
-    packages =
-      []
-      ++ minimal.packages
-      ++ formatters
-      ++ media.packages;
   };
 
+  #~@ Global formatting tools
   inherit
-    (import ./fmt.nix {inherit pkgs path;})
+    (import ./fmt.nix {inherit _;})
     formatters
     formatter
     checks
     ;
-  media = import ./media.nix {inherit pkgs;};
-  dots = import ./dots.nix {inherit _;};
-  minimal = import ./minimal.nix {inherit _;};
-in {
-  devShells = {
-    default = minimal;
-    media = media.shell;
-    inherit dots minimal;
-  };
-  inherit formatter checks;
-}
+
+  #~@ Shell Logic Consolidation
+  devShells = let
+    inherit (lib.attrsets) filterAttrs mapAttrs mapAttrs' nameValuePair;
+    inherit (lib.filesystem) readDir;
+    inherit (lib.lists) elem;
+    inherit (lib.strings) hasSuffix hasPrefix removeSuffix;
+    inherit (pkgs) mkShell;
+
+    #> Filter out internal logic, archives, and formatting files
+    configs = let
+      validFiles =
+        filterAttrs (
+          name: type:
+            (type == "regular")
+            && hasSuffix ".nix" name
+            && !(elem name ["default.nix" "fmt.nix"])
+            && !(hasPrefix "archive" name)
+            && !(hasPrefix "review" name)
+        )
+        (readDir ./.);
+    in
+      mapAttrs' (name: _:
+        nameValuePair
+        (removeSuffix ".nix" name)
+        (import (./. + "/${name}") {inherit _;}))
+      validFiles;
+
+    #> Build the final derivations
+    shells = mapAttrs (name: cfg:
+      mkShell {
+        name = "${_.name}-${name}";
+        env = cfg.env or {};
+        shellHook = cfg.shellHook or "";
+        packages = (cfg.packages or []) ++ formatters;
+      })
+    configs;
+  in
+    shells // {default = shells.minimal;};
+in {inherit checks devShells formatter;}

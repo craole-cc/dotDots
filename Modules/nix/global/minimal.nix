@@ -1,5 +1,5 @@
 {_, ...}: let
-  export = _.mkShell {inherit name packages env shellHook;};
+  description = "Minimal Dev Environment";
   inherit
     (_)
     allowAI
@@ -132,5 +132,4 @@
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in
-  export
+in {inherit description name packages env shellHook;}
