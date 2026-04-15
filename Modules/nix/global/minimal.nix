@@ -1,7 +1,7 @@
-{_, ...}: let
+{dots, ...}: let
   description = "Minimal Dev Environment";
   inherit
-    (_)
+    (dots)
     allowAI
     cache
     isLinux
@@ -44,8 +44,7 @@
     ]
     ++ (optionals isLinux [xclip wl-clipboard xsel]) #? Linux clipboard tools
     ++ (
-      optionals
-      allowAI
+      optionals allowAI
       (with (inputPkgs "llm-agents"); [codex])
     )
     ++ [];
@@ -132,4 +131,4 @@
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in {inherit description name packages env shellHook;}
+in {inherit description packages env shellHook;}

@@ -8,7 +8,7 @@
   ...
 }: let
   #> Metadata & Dependency Injection
-  _ = {
+  dots = {
     #~@ Functions
     inherit inputs lib lix path pkgs system;
     inherit (pkgs.stdenv) isLinux isDarwin;
@@ -30,7 +30,7 @@
 
   #~@ Global formatting tools
   inherit
-    (import ./fmt.nix {inherit _;})
+    (import ./fmt.nix {inherit dots;})
     formatters
     formatter
     checks
@@ -45,28 +45,29 @@
     inherit (pkgs) mkShell;
 
     #> Filter out internal logic, archives, and formatting files
-    configs = let
-      validFiles =
-        filterAttrs (
-          name: type:
-            (type == "regular")
-            && hasSuffix ".nix" name
-            && !(elem name ["default.nix" "fmt.nix"])
-            && !(hasPrefix "archive" name)
-            && !(hasPrefix "review" name)
-        )
-        (readDir ./.);
+    files = let
+      all = readDir ./.;
+      valid = filterAttrs (name: kind:
+        (kind == "regular")
+        && hasSuffix ".nix" name
+        && !(elem name ["default.nix" "fmt.nix"])
+        && !(hasPrefix "archive" name)
+        && !(hasPrefix "review" name))
+      all;
     in
-      mapAttrs' (name: _:
-        nameValuePair
-        (removeSuffix ".nix" name)
-        (import (./. + "/${name}") {inherit _;}))
-      validFiles;
+      valid;
+
+    #> Import the attrs from the valididated files
+    configs = mapAttrs' (name: _:
+      nameValuePair
+      (removeSuffix ".nix" name)
+      (import (./. + "/${name}") {inherit dots;}))
+    files;
 
     #> Build the final derivations
     shells = mapAttrs (name: cfg:
       mkShell {
-        name = "${_.name}-${name}";
+        name = "${dots.name}-${name}";
         env = cfg.env or {};
         shellHook = cfg.shellHook or "";
         packages = (cfg.packages or []) ++ formatters;

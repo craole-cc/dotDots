@@ -1,6 +1,6 @@
-{_, ...}: let
+{dots, ...}: let
   description = "Exhaustive Shell";
-  inherit (_) lix system pkgs isLinux;
+  inherit (dots) lix system pkgs isLinux;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
@@ -15,7 +15,7 @@
   #| CLI Tools                                                                   |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  commands.${_.name} = {
+  commands.${dots.name} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
@@ -110,7 +110,7 @@
             inherit pkgs;
             inherit (cfg) command description;
             name = name;
-            prefix = cfg.prefix or _.prefix;
+            prefix = cfg.prefix or dots.prefix;
             inputs = cfg.inputs or [];
             aliases = cfg.aliases or [];
           }
@@ -121,7 +121,7 @@
 
   #> Generate command list for shellHook
   commandList = let
-    mainCmd = commands.${_.name};
+    mainCmd = commands.${dots.name};
 
     #> Group aliases by domain
     groups = [
@@ -167,7 +167,7 @@
           maxNameLength =
             foldl' (
               max: cmd: let
-                len = stringLength "${_.prefix}${cmd.name}";
+                len = stringLength "${dots.prefix}${cmd.name}";
               in
                 if len > max
                 then len
@@ -176,9 +176,9 @@
             0
             cmds;
           formatCmd = cmd: let
-            padding = maxNameLength - (stringLength "${_.prefix}${cmd.name}");
+            padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
             spaces = concatStrings (genList (_: " ") padding);
-          in "  ${_.prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          in "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
           if cmds != []
           then header + concatMapStringsSep "\n" formatCmd cmds
@@ -255,7 +255,7 @@
     export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
-    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${_.cache}"}"
+    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${dots.cache}"}"
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -306,7 +306,7 @@
     printf '║               dotDots Configuration Shell             ║\n'
     printf '╚═══════════════════════════════════════════════════════╝\n'
     printf "%s\n\n" "${commandList}"
-    printf "  Run %shelp for detailed help information\n\n" "${_.prefix}"
+    printf "  Run %shelp for detailed help information\n\n" "${dots.prefix}"
   '';
 in {
   inherit description packages env shellHook;

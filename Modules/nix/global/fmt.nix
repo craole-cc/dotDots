@@ -1,5 +1,5 @@
-{_}: let
-  inherit (_) pkgs path;
+{dots, ...}: let
+  inherit (dots) pkgs path;
   inherit (pkgs.lib) makeBinPath;
   inherit (pkgs) writeShellScriptBin runCommand;
 

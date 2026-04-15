@@ -1,5 +1,5 @@
 {_}: let
-  inherit (_) pkgs;
+  inherit (dots) pkgs;
   description = "🎬 Media Development Shell";
   packages = with pkgs; [
     mpv #? Media player
