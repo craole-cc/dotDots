@@ -1,0 +1,16 @@
+[alias]
+b  = "build"
+br = "build --release"
+c  = "check"
+cl = "clippy"
+t  = "test"
+r  = "run"
+rr = "run --release"
+w  = "watch -x check"
+wr = "watch -x run"
+
+[build]
+jobs = 4
+
+[term]
+color = "always"
