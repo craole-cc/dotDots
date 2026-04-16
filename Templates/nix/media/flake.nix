@@ -6,24 +6,24 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
-    nixpkgs,
-    flake-utils,
-  }:
-    flake-utils.lib.eachDefaultSystem (
+  outputs = inputs @ {...}: let
+  in
+    inputs.flake-utils.lib.eachDefaultSystem (
       system: let
-        paths = rec {
-          home = "/home/craole/.dots/Flakes/media";
-          # mod = ./modules;
-          mod = home + "/modules";
-          bin = home + "/bin";
-          cfg = home + "/config";
-          dls = home + "/downloads";
-        };
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
+        src = import ./. {inherit inputs system;};
+        inherit (src) paths pkgs;
+        # paths = rec {
+        #   home = "/home/craole/.dots/Flakes/media";
+        #   # mod = ./modules;
+        #   mod = home + "/modules";
+        #   bin = home + "/bin";
+        #   cfg = home + "/config";
+        #   dls = home + "/downloads";
+        # };
+        # pkgs = import nixpkgs {
+        #   inherit system;
+        #   config.allowUnfree = true;
+        # };
 
         ytdCommand = pkgs.substituteAll {
           isExecutable = true;
@@ -111,4 +111,3 @@
 # cp -f ${mpvCommand} ${flakeBin}/mpv
 # cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
 # cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
-

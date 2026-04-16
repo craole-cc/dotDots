@@ -1,6 +1,6 @@
 {dots, ...}: let
   description = "Exhaustive Shell";
-  inherit (dots) lix system pkgs isLinux;
+  inherit (dots) allowAI lix system pkgs isLinux formatters;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
@@ -231,8 +231,13 @@
         yazi #? Terminal file manager
         zoxide #? Smart cd replacement
       ]
+      ++ formatters
       ++ (attrValues applications)
       ++ (optionals isLinux [xclip wl-clipboard xsel])
+      ++ (
+        optionals allowAI
+        (with (inputPkgs "llm-agents"); [codex])
+      )
   ); #? Linux clipboard tools
 
   #|─────────────────────────────────────────────────────────────────────────────|

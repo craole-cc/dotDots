@@ -1,7 +1,7 @@
 {
-  description ? "Rust development environment with AI Tools",
+  description ? "Comprehensive Media Environment",
   paths ? {
-    libraries = ./libraries;
+    binaries = ./.bin;
     environment = ./environment;
     modules = ./modules;
     config = ./config;

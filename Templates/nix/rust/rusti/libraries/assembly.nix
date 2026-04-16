@@ -26,7 +26,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
   # ---------------------------------------------------------------------------
   inherit (lib.attrsets) attrNames attrValues filterAttrs mergeAttrsList;
   inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
-  inherit (lib.lists) concatMap elem filter flatten foldl' isList map;
+  inherit (lib.lists) concatMap elem filter flatten foldl' isList map optionals toList;
   inherit (lib.strings) hasSuffix removeSuffix;
   inherit (lib.trivial) functionArgs isFunction;
 
@@ -179,27 +179,25 @@ Intended as a zero-dependency bootstrap that other library namespaces
         (name: !(elem name ignore) && isNixFile name entries.${name})
         (attrNames entries));
 
-    dirPaths =
-      concatMap
-      (name: let
-        subPath = path + "/${name}";
-        subEntries = readDir subPath;
-        hasDefault =
-          subEntries ? "default.nix"
-          && subEntries."default.nix" == "regular";
-      in
-        if hasDefault
-        then [subPath]
-        else if recurse
-        then
-          collectFromDir {
-            path = subPath;
-            inherit recurse ignore;
-          }
-        else [])
-      (filter
-        (name: !(elem name ignore) && isIncludedDir name entries.${name})
-        (attrNames entries));
+    dirPaths = concatMap (name: let
+      subPath = path + "/${name}";
+      subEntries = readDir subPath;
+      hasDefault =
+        subEntries ? "default.nix"
+        && subEntries."default.nix" == "regular";
+    in
+      if hasDefault
+      then [subPath]
+      else
+        optionals recurse
+        collectFromDir {
+          path = subPath;
+          inherit recurse ignore;
+        }) (filter (
+      name:
+        !(elem name ignore)
+        && isIncludedDir name entries.${name}
+    ) (attrNames entries));
   in
     filePaths ++ dirPaths;
 
@@ -225,24 +223,21 @@ Intended as a zero-dependency bootstrap that other library namespaces
   }:
     flatten (
       map
-      (p:
-        if pathType p == "directory"
-        then
-          collectFromDir {
-            path = p;
-            inherit recurse ignore;
-          }
-        else if
-          pathIsRegularFile p
-          && !(elem (baseNameOf p) ignore)
-          && hasSuffix ".nix" (baseNameOf p)
-        then [p]
-        else [])
       (
-        if isList path
-        then path
-        else [path]
-      )
+        p:
+          if pathType p == "directory"
+          then
+            collectFromDir {
+              path = p;
+              inherit recurse ignore;
+            }
+          else
+            optionals (
+              pathIsRegularFile p
+              && !(elem (baseNameOf p) ignore)
+              && hasSuffix ".nix" (baseNameOf p)
+            ) [p]
+      ) (toList path)
     );
 
   # ---------------------------------------------------------------------------
@@ -270,10 +265,8 @@ Intended as a zero-dependency bootstrap that other library namespaces
       }
       // defaults;
   in
-    if isPath input
-    then base // {path = input;}
-    else if isList input
-    then base // {path = input;}
+    if isPath input || isList input
+    then base // {path = toList input;}
     else base // input;
 
   /**
@@ -319,10 +312,10 @@ Intended as a zero-dependency bootstrap that other library namespaces
   importPaths :: path | [path] | AttrSet -> [path]
   ```
   */
-  importPaths = input: let
-    n = normalizeInput {} input;
-  in
-    collectPaths {inherit (n) path recurse ignore;};
+  importPaths = input:
+    collectPaths {
+      inherit (normalizeInput {} input) path recurse ignore;
+    };
 
   /**
   Import multiple attrset fragments, merge them, and attach `__meta`.

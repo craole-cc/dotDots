@@ -9,20 +9,22 @@
 }: let
   #> Metadata & Dependency Injection
   dots = {
-    #~@ Functions
-    inherit inputs lib lix path pkgs system;
-    inherit (pkgs.stdenv) isLinux isDarwin;
-    inherit (pkgs) mkShell;
-    inputPkgs = input:
-      lix.sources.packages.fromInputs {
-        inherit input inputs system;
-      };
-
     #~@ Metadata
     name = "dotDots";
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
+
+    #~@ Imports
+    inherit inputs lib lix path system;
+
+    #~@ Packages
+    inherit pkgs formatters;
+    inherit (pkgs.stdenv) isLinux isDarwin;
+    inputPkgs = input:
+      lix.sources.packages.fromInputs {
+        inherit input inputs system;
+      };
 
     #~@ Options
     allowAI = true;
@@ -71,7 +73,7 @@
         name = "${dots.name}-${name}";
         env = cfg.env or {};
         shellHook = cfg.shellHook or "";
-        packages = (cfg.packages or []) ++ formatters;
+        packages = cfg.packages or [];
       })
     configs;
   in

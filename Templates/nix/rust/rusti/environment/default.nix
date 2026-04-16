@@ -6,7 +6,7 @@
   inherit (lib.shells) mkShells;
 
   testShell = {
-    name = "ai-rust";
+    name = "testing";
     packages = [];
     env = {};
     shellHook = ''

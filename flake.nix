@@ -25,43 +25,53 @@
       fn = {
         system,
         pkgs,
-      }: {
-        inherit
-          (import tree.store.mod.global {
-            inherit
-              path
-              lib
-              lix
-              pkgs
-              system
-              ;
-            inputs = inputsWrapped.resolved;
-          })
-          devShells
-          formatter
-          checks
-          ;
-      };
-    }
-    // (
-      {
-        nixosConfigurations = let
+      }:
+        (import tree.store.mod.global {
+          inherit
+            path
+            lib
+            lix
+            pkgs
+            system
+            ;
           inputs = inputsWrapped.resolved;
-        in
-          mkSystems {
-            inherit schema tree inputs;
-            extraArgs = {
-              inherit
-                inputs
-                inputsWrapped
-                lix
-                top
-                ;
+        })
+        // (import tree.store.kit.default)
+        // {
+          nixosConfigurations = let
+            inputs = inputsWrapped.resolved;
+          in
+            mkSystems {
+              inherit schema tree inputs;
+              extraArgs = {
+                inherit
+                  inputs
+                  inputsWrapped
+                  lix
+                  top
+                  ;
+              };
             };
-          };
-      }
-      // import tree.store.kit.default
-    );
+        };
+    };
+  # {
+  #   inherit
+  #     (import tree.store.mod.global {
+  #       inherit
+  #         path
+  #         lib
+  #         lix
+  #         pkgs
+  #         system
+  #         ;
+  #       inputs = inputsWrapped.resolved;
+  #     })
+  #     devShells
+  #     formatter
+  #     checks
+  #     ;
+  # };
+  # }
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";

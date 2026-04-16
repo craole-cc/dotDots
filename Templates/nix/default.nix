@@ -1,27 +1,45 @@
-{
-  templates = let
-    devShell = {
+let
+  inherit (builtins) getFlake isAttrs pathExists;
+
+  mkTemplate = arg: let
+    spec =
+      if isAttrs arg
+      then arg
+      else {path = arg;};
+
+    inherit (spec) path;
+    description = spec.description or "";
+
+    hasFlake = pathExists (path + "/flake.nix");
+  in {
+    inherit path;
+    description =
+      if hasFlake
+      then (getFlake (toString path)).description or description
+      else description;
+  };
+
+  entries = {
+    common = mkTemplate {
       path = ./common;
       description = "Common development utilities";
     };
-    dev = {
+    dev = mkTemplate {
       path = ./dev;
       description = "Common development utilities";
     };
-    media = {
+    media = mkTemplate {
       path = ./media;
       description = "Comprehensive Media Environment";
     };
-    rust = {
+    rust = mkTemplate {
       path = ./rust/standard;
       description = "Rust development environment with nightly toolchain";
     };
-    rustspace = {
+    rusti = mkTemplate ./rust/rusti;
+    rustspace = mkTemplate {
       path = ./rust/workspace;
       description = "Rust workspace with multiple crates";
     };
-  in {
-    default = rust;
-    inherit devShell dev media rust rustspace;
   };
-}
+in {templates = entries // {default = entries.rusti;};}

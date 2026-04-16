@@ -1,5 +1,5 @@
 {
-  description = "AI + Rust Development Environment";
+  # description = "Rust development environment with AI Tools";
 
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -16,5 +16,15 @@
     AI.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs @ {...}: import ./. {inherit inputs;};
+  outputs = inputs @ {...}: let
+    src = import ./. {
+      inherit inputs;
+      lib = inputs.NixPackages.lib;
+    };
+  in
+    src
+    // import src.paths.environment {
+      inherit inputs;
+      inherit (src) lib;
+    };
 }

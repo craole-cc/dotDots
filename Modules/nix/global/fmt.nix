@@ -7,6 +7,7 @@
     actionlint
     alejandra
     deno
+    prettierd
     dos2unix
     markdownlint-cli2
     rustfmt

@@ -2,14 +2,11 @@
   description = "Minimal Dev Environment";
   inherit
     (dots)
-    allowAI
     cache
     isLinux
     lix
-    name
     pkgs
     system
-    inputPkgs
     ;
   inherit (lix.lists.construction) optionals;
 
@@ -19,34 +16,30 @@
 
   packages = with pkgs;
     [
-      bat #? Cat clone with syntax highlighting
-      direnv #? Environment management per directory
-      exiftool #? ARW/RAW embedded preview extraction for yazi
-      eza #? Modern ls replacement
-      fd #? Fast find alternative
-      gitui #? Git terminal UI
-      gnused #? GNU stream editor
-      jq #? JSON query processor
-      lsd #? LSDeluxe file lister
-      mise #? Polyglot version manager
-      imv
-      nomacs
+      # bat #? Cat clone with syntax highlighting
+      # direnv #? Environment management per directory
+      # exiftool #? ARW/RAW embedded preview extraction for yazi
+      # eza #? Modern ls replacement
+      # fd #? Fast find alternative
+      # gitui #? Git terminal UI
+      # gnused #? GNU stream editor
+      # jq #? JSON query processor
+      # lsd #? LSDeluxe file lister
+      # mise #? Polyglot version manager
+      # imv
+      # nomacs
       nitch #? System fetch written in nim
-      nix-output-monitor #? Build output monitor
+      # nix-output-monitor #? Build output monitor
       nixd #? Nix language daemon
-      onefetch #? Git repository summary
-      ripgrep #? Fast grep alternative
+      # onefetch #? Git repository summary
+      # ripgrep #? Fast grep alternative
       starship #? Cross-shell prompt
-      tokei #? Code statistics tool
-      undollar #? Remove leading dollar signs
-      ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
-      yazi #? File manager (ensure CLI tools available in devshell)
+      # tokei #? Code statistics tool
+      # undollar #? Remove leading dollar signs
+      # ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
+      # yazi #? File manager (ensure CLI tools available in devshell)
     ]
     ++ (optionals isLinux [xclip wl-clipboard xsel]) #? Linux clipboard tools
-    ++ (
-      optionals allowAI
-      (with (inputPkgs "llm-agents"); [codex])
-    )
     ++ [];
 
   #|────────────────────────────────────────|

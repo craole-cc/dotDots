@@ -105,6 +105,7 @@
       qimgv
       ripgrep
       viu
+      gum
 
       #~@ Shell
       btop
