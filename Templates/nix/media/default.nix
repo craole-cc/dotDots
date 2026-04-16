@@ -19,11 +19,6 @@
         if home != ""
         then home + "/${name}"
         else ./.;
-      bin = rec {
-        base = root + "/.bin";
-        ytd = base + "/ytd";
-        mpv = base + "/mpv";
-      };
       cfg = rec {
         base = root + "/.config";
         ytd = base + "/ytd";
@@ -86,7 +81,7 @@
     then import paths.libraries {lib = lib';}
     else lib';
 in {
-  inherit description system;
+  inherit description system name;
   lib = libraries;
   paths = {src = ./.;} // paths;
   pkgs = nixpkgs;

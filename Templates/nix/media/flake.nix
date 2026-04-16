@@ -10,14 +10,18 @@
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
+        prefix = lib.strings.toUpper name;
 
         packages =
           [
             (pkgs.substituteAll {
               isExecutable = true;
               src = paths.build.modules.ytd + "/cmd.sh";
-              cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
-              fmt = "1080p";
+              command = "${pkgs.yt-dlp}/bin/yt-dlp";
+              format = "1080p";
+              config = toString paths.runtime.cfg.ytd;
+              settings = toString (paths.build.modules.ytd + "/settings.conf");
+              downloads = toString paths.runtime.downloads;
             })
           ]
           ++ (with pkgs; [
@@ -58,61 +62,61 @@
           ]);
 
         env = let
-          prefix = lib.strings.toUpper name;
-          inherit (paths.runtime) bin cfg downloads music pictures videos;
+          inherit (paths.build.modules) ytd mpv mpd;
+          inherit (paths.runtime) root cfg downloads music pictures videos;
         in {
-          "${prefix}" = paths.runtime.root;
-          "${prefix}_BIN_BASE" = bin.base;
-          "${prefix}_BIN_YTD" = bin.ytd;
-          "${prefix}_BIN_MPV" = bin.mpv;
-          "${prefix}_CFG_BASE" = cfg.base;
-          "${prefix}_CFG_YTD" = cfg.ytd;
-          "${prefix}_CFG_MPV" = cfg.mpv;
-          "${prefix}_CFG_MPD" = cfg.mpd;
-          "${prefix}_DOWNLOADS" = downloads;
-          "${prefix}_MUSIC" = music;
-          "${prefix}_PICTURES" = pictures;
-          "${prefix}_VIDEOS" = videos;
+          "${prefix}" = toString root;
+          "${prefix}_MOD_YTD" = toString ytd;
+          "${prefix}_MOD_MPD" = toString mpd;
+          "${prefix}_MOD_MPV" = toString mpv;
+          "${prefix}_CFG_BASE" = toString cfg.base;
+          "${prefix}_CFG_YTD" = toString cfg.ytd;
+          "${prefix}_CFG_MPV" = toString cfg.mpv;
+          "${prefix}_CFG_MPD" = toString cfg.mpd;
+          "${prefix}_DOWNLOADS" = toString downloads;
+          "${prefix}_MUSIC" = toString music;
+          "${prefix}_PICTURES" = toString pictures;
+          "${prefix}_VIDEOS" = toString videos;
         };
 
         shellHook = let
-          inherit (paths.runtime) bin cfg downloads music pictures videos;
-          inherit (paths.binaries) modules;
+          prefix = lib.strings.toUpper name;
+          ytd = {
+            mod = "$" + prefix + "_MOD_YTD";
+            cfg = "$" + prefix + "_CFG_YTD";
+          };
+          mpd = {
+            mod = "$" + prefix + "_MOD_MPD";
+            cfg = "$" + prefix + "_CFG_MPD";
+          };
+          mpv = {
+            mod = "$" + prefix + "_MOD_MPV";
+            cfg = "$" + prefix + "_CFG_MPV";
+          };
+          music = "$" + prefix + "_MUSIC";
         in ''
           printf "%s\n\n" "${description}"
 
-          #> Ensure essential directories exist
-          mkdir -p \
-            "${bin.base}" \
-            "${cfg.ytd}" \
-            "${cfg.mpv}" \
-            "${cfg.mpd}" \
-            "${downloads}" \
-            "${music}" \
-            "${pictures}" \
-            "${videos}"
-
           #> Deploy scripts
-            if [ ! -f "$MEDIA_CFG_YTD/settings.conf" ]; then
-              cp \
-                "${modules.ytd}/settings.conf" \
-                "$MEDIA_CFG_YTD/settings.conf"
-            fi
-            if [ ! -f "$MEDIA_CFG_MPD/settings.conf" ]; then
-              cp \
-                "${modules.mpd}/settings.conf" \
-                "$MEDIA_CFG_MPD/settings.conf"
-            fi
-            if [ ! -f "$MEDIA_CFG_MPV/settings.conf" ]; then
-              cp \
-                "${modules.mpv}/settings.conf" \
-                "$MEDIA_CFG_MPV/settings.conf"
-            fi
-            if [ ! -f "$MEDIA_CFG_MPV/input.conf" ]; then
-              cp \
-                "${modules.mpv}/input.conf" \
-                "$MEDIA_CFG_MPV/input.conf"
-            fi
+          if [ ! -f "${ytd.cfg}/settings.conf" ]; then
+            mkdir -p "$(dirname "${ytd.cfg}")"
+            cp "${ytd.mod}/settings.conf" "${ytd.cfg}/settings.conf"
+          fi
+
+          if [ ! -f "${mpd.cfg}/settings.conf" ]; then
+            mkdir -p "$(dirname "${mpd.cfg}")"
+            cp "${mpd.mod}/settings.conf" "${mpd.cfg}/settings.conf"
+          fi
+
+          if [ ! -f "${mpv.cfg}/settings.conf" ]; then
+            mkdir -p "$(dirname "${mpv.cfg}")"
+            cp "${mpv.mod}/settings.conf" "${mpv.cfg}/settings.conf"
+          fi
+
+          if [ ! -f "${mpv.cfg}/input.conf" ]; then
+            cp "${mpv.mod}/input.conf" "${mpv.cfg}/input.conf"
+          fi
+
 
           #> Show the usage guide
           printf "Video Tools:\n"
@@ -124,7 +128,7 @@
           printf "  imv         - Alternative image viewer\n\n"
 
           printf "Music & Radio:\n"
-          printf "  ncmpcpp     - Music player (music dir: ${music})\n"
+          printf "  ncmpcpp     - Music player (music dir: "${music}")\n"
           printf "  curseradio  - Terminal radio\n\n"
         '';
       in {
