@@ -59,6 +59,6 @@
 in {
   inherit description system;
   lib = libraries;
-  paths = paths // {root = ./.;};
+  paths = {src = ./.;} // paths;
   pkgs = nixpkgs;
 }

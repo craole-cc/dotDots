@@ -1,11 +1,40 @@
 {
-  description ? "Comprehensive Media Environment",
+  description ? "🎬 Comprehensive Media Environment",
+  name ? "media",
   paths ? {
-    binaries = ./.bin;
-    environment = ./environment;
-    modules = ./modules;
-    config = ./config;
-    downloads = ./downloads;
+    build = {
+      src = ./.;
+      modules = rec {
+        root = ./modules;
+        ytd = root + "/ytd";
+        mpv = root + "/mpv";
+        mpd = root + "/mpd";
+      };
+      scripts = ./scripts;
+    };
+
+    runtime = rec {
+      home = builtins.getEnv "HOME";
+      root =
+        if home != ""
+        then home + "/${name}"
+        else ./.;
+      bin = rec {
+        base = root + "/.bin";
+        ytd = base + "/ytd";
+        mpv = base + "/mpv";
+      };
+      cfg = rec {
+        base = root + "/.config";
+        ytd = base + "/ytd";
+        mpv = base + "/mpv";
+        mpd = base + "/mpd";
+      };
+      downloads = root + "/Downloads";
+      music = root + "/Music";
+      pictures = root + "/Pictures";
+      videos = root + "/Videos";
+    };
   },
   lib ? null,
   inputs ? null,
@@ -59,6 +88,6 @@
 in {
   inherit description system;
   lib = libraries;
-  paths = paths // {root = ./.;};
+  paths = {src = ./.;} // paths;
   pkgs = nixpkgs;
 }

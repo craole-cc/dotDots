@@ -1,6 +1,4 @@
 {
-  description = "Comprehensive Media Environment";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -11,32 +9,18 @@
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         src = import ./. {inherit inputs system;};
-        inherit (src) paths pkgs;
-        # paths = rec {
-        #   home = "/home/craole/.dots/Flakes/media";
-        #   # mod = ./modules;
-        #   mod = home + "/modules";
-        #   bin = home + "/bin";
-        #   cfg = home + "/config";
-        #   dls = home + "/downloads";
-        # };
-        # pkgs = import nixpkgs {
-        #   inherit system;
-        #   config.allowUnfree = true;
-        # };
+        inherit (src) name lib paths pkgs description;
 
-        ytdCommand = pkgs.substituteAll {
-          isExecutable = true;
-          src = ./modules/ytd/cmd.sh;
-          cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
-          cfg = paths.cfg + "/ytd/yt-dlp.conf";
-          mod = paths.mod + "/ytd/settings.conf";
-          dls = paths.dls;
-          fmt = "1080p";
-        };
-      in {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
+        packages =
+          [
+            (pkgs.substituteAll {
+              isExecutable = true;
+              src = paths.build.modules.ytd + "/cmd.sh";
+              cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
+              fmt = "1080p";
+            })
+          ]
+          ++ (with pkgs; [
             #| Image
             feh
             imv
@@ -71,43 +55,82 @@
             # mpvEnhanced
             mpvc
             # yt-dlp
-          ];
+          ]);
 
-          shellHook = ''
-            printf "🎬 Comprehensive Media Environment Loaded!\n\n"
+        env = let
+          prefix = lib.strings.toUpper name;
+          inherit (paths.runtime) bin cfg downloads music pictures videos;
+        in {
+          "${prefix}" = paths.runtime.root;
+          "${prefix}_BIN_BASE" = bin.base;
+          "${prefix}_BIN_YTD" = bin.ytd;
+          "${prefix}_BIN_MPV" = bin.mpv;
+          "${prefix}_CFG_BASE" = cfg.base;
+          "${prefix}_CFG_YTD" = cfg.ytd;
+          "${prefix}_CFG_MPV" = cfg.mpv;
+          "${prefix}_CFG_MPD" = cfg.mpd;
+          "${prefix}_DOWNLOADS" = downloads;
+          "${prefix}_MUSIC" = music;
+          "${prefix}_PICTURES" = pictures;
+          "${prefix}_VIDEOS" = videos;
+        };
 
-            #{ Deploy scripts
-            mkdir -p ${paths.bin}
-            cp -f ${ytdCommand} ${paths.bin}/ytd
+        shellHook = let
+          inherit (paths.runtime) bin cfg downloads music pictures videos;
+          inherit (paths.binaries) modules;
+        in ''
+          printf "%s\n\n" "${description}"
 
-            #{ Set up executable scripts
-            find "${paths.bin}" -type f -exec chmod +x {} +
-            PATH="$PATH:${paths.bin}"
-            export PATH
-            unalias mpv ytd
+          #> Ensure essential directories exist
+          mkdir -p \
+            "${bin.base}" \
+            "${cfg.ytd}" \
+            "${cfg.mpv}" \
+            "${cfg.mpd}" \
+            "${downloads}" \
+            "${music}" \
+            "${pictures}" \
+            "${videos}"
 
-            #{ Show the usage guide
-            printf "Video Tools:\n"
-            printf "  mpv         - Enhanced MPV with custom config\n"
-            printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
+          #> Deploy scripts
+            if [ ! -f "$MEDIA_CFG_YTD/settings.conf" ]; then
+              cp \
+                "${modules.ytd}/settings.conf" \
+                "$MEDIA_CFG_YTD/settings.conf"
+            fi
+            if [ ! -f "$MEDIA_CFG_MPD/settings.conf" ]; then
+              cp \
+                "${modules.mpd}/settings.conf" \
+                "$MEDIA_CFG_MPD/settings.conf"
+            fi
+            if [ ! -f "$MEDIA_CFG_MPV/settings.conf" ]; then
+              cp \
+                "${modules.mpv}/settings.conf" \
+                "$MEDIA_CFG_MPV/settings.conf"
+            fi
+            if [ ! -f "$MEDIA_CFG_MPV/input.conf" ]; then
+              cp \
+                "${modules.mpv}/input.conf" \
+                "$MEDIA_CFG_MPV/input.conf"
+            fi
 
-            printf "Image Viewers:\n"
-            printf "  feh         - Light image viewer\n"
-            printf "  imv         - Alternative image viewer\n\n"
+          #> Show the usage guide
+          printf "Video Tools:\n"
+          printf "  mpv         - Enhanced MPV with custom config\n"
+          printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
 
-            printf "Music & Radio:\n"
-            printf "  ncmpcpp     - Music player (music dir: ${paths.home}/music)\n"
-            printf "  curseradio  - Terminal radio\n\n"
-          '';
+          printf "Image Viewers:\n"
+          printf "  feh         - Light image viewer\n"
+          printf "  imv         - Alternative image viewer\n\n"
+
+          printf "Music & Radio:\n"
+          printf "  ncmpcpp     - Music player (music dir: ${music})\n"
+          printf "  curseradio  - Terminal radio\n\n"
+        '';
+      in {
+        devShells.default = pkgs.mkShell {
+          inherit packages env shellHook;
         };
       }
     );
 }
-#{ Initialize the apps
-# init-ytd
-# init-mpv
-# cp -f ${ytdInit} ${flakeBin}/init-ytd
-# cp -f ${mpvInit} ${flakeBin}/init-mpv
-# cp -f ${mpvCommand} ${flakeBin}/mpv
-# cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
-# cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
