@@ -10,7 +10,56 @@
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
-        prefix = lib.strings.toUpper name;
+
+        env = let
+          # inherit (paths.runtime) root cfg downloads music pictures videos;
+          prefix = lib.strings.toUpper name;
+          ytd = {
+            mod = {
+              path = paths.builf.modules.ytd;
+              env = "$" + prefix + "_MOD_YTD";
+            };
+            cfg = {
+              path = paths.builf.modules.ytd;
+              env = "$" + prefix + "_CFG_YTD";
+            };
+          };
+          mpd = {
+            mod = {
+              path = paths.builf.modules.mpd;
+              env = "$" + prefix + "_MOD_MPD";
+            };
+            cfg = {
+              path = paths.builf.modules.mpd;
+              env = "$" + prefix + "_CFG_MPD";
+            };
+          };
+          mpv = {
+            mod = {
+              path = paths.builf.modules.mpv;
+              env = "$" + prefix + "_MOD_MPV";
+            };
+            cfg = {
+              path = paths.builf.modules.mpv;
+              env = "$" + prefix + "_CFG_MPV";
+            };
+          };
+
+          music = "$" + prefix + "_MUSIC";
+        in {
+          "${prefix}" = toString root;
+          "${prefix}_MOD_YTD" = toString ytd;
+          "${prefix}_MOD_MPD" = toString mpd;
+          "${prefix}_MOD_MPV" = toString mpv;
+          "${prefix}_CFG_BASE" = toString cfg.base;
+          "${prefix}_CFG_YTD" = toString cfg.ytd;
+          "${prefix}_CFG_MPV" = toString cfg.mpv;
+          "${prefix}_CFG_MPD" = toString cfg.mpd;
+          "${prefix}_DOWNLOADS" = toString downloads;
+          "${prefix}_MUSIC" = toString music;
+          "${prefix}_PICTURES" = toString pictures;
+          "${prefix}_VIDEOS" = toString videos;
+        };
 
         packages =
           [
@@ -61,40 +110,7 @@
             # yt-dlp
           ]);
 
-        env = let
-          inherit (paths.build.modules) ytd mpv mpd;
-          inherit (paths.runtime) root cfg downloads music pictures videos;
-        in {
-          "${prefix}" = toString root;
-          "${prefix}_MOD_YTD" = toString ytd;
-          "${prefix}_MOD_MPD" = toString mpd;
-          "${prefix}_MOD_MPV" = toString mpv;
-          "${prefix}_CFG_BASE" = toString cfg.base;
-          "${prefix}_CFG_YTD" = toString cfg.ytd;
-          "${prefix}_CFG_MPV" = toString cfg.mpv;
-          "${prefix}_CFG_MPD" = toString cfg.mpd;
-          "${prefix}_DOWNLOADS" = toString downloads;
-          "${prefix}_MUSIC" = toString music;
-          "${prefix}_PICTURES" = toString pictures;
-          "${prefix}_VIDEOS" = toString videos;
-        };
-
-        shellHook = let
-          prefix = lib.strings.toUpper name;
-          ytd = {
-            mod = "$" + prefix + "_MOD_YTD";
-            cfg = "$" + prefix + "_CFG_YTD";
-          };
-          mpd = {
-            mod = "$" + prefix + "_MOD_MPD";
-            cfg = "$" + prefix + "_CFG_MPD";
-          };
-          mpv = {
-            mod = "$" + prefix + "_MOD_MPV";
-            cfg = "$" + prefix + "_CFG_MPV";
-          };
-          music = "$" + prefix + "_MUSIC";
-        in ''
+        shellHook = ''
           printf "%s\n\n" "${description}"
 
           #> Deploy scripts

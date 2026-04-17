@@ -39,7 +39,7 @@
     else "x86_64-linux",
   config ? {allowUnfree = true;},
 }: let
-  inherit (builtins) hasAttr head isAttrs pathExists tail;
+  inherit (builtins) head hasAttr isAttrs pathExists tail isPath;
   findFirst = names: set:
     if names == []
     then null
@@ -80,9 +80,124 @@
     if paths ? libraries && pathExists paths.libraries
     then import paths.libraries {lib = lib';}
     else lib';
+  inherit (libraries.strings) toUpper isString typeOf;
+
+  environment = let
+    mkEnv = {
+      path,
+      prefix ? null,
+      name ? null,
+      flat ? false,
+    }: let
+      base = "$" + name;
+      sep = "_";
+      key = toUpper (
+        if prefix != null && name != null
+        then sep + prefix + sep + name
+        else if prefix != null && name == null
+        then sep + prefix
+        else if prefix == null && name != null
+        then sep + name
+        else ""
+      );
+      var =
+        if flat
+        then key
+        else base + key;
+      val = toString path;
+    in {inherit var val;};
+
+    home = let
+      name = "home";
+    in {
+      env = mkEnv {
+        path = paths.runtime.${name};
+        flat = true;
+      };
+    };
+
+    root = let
+      name = "root";
+    in {
+      env = mkEnv {
+        path = paths.runtime.${name};
+        flat = true;
+      };
+    };
+
+    modules = let
+      mkModEnv = arg: let
+        base = paths.build.modules;
+        fail = msg: throw "mkModEnv: ${msg}";
+
+        requireName = name:
+          if !hasAttr name base
+          then fail "unknown module '${name}'"
+          else name;
+
+        normalizeName = name: let
+          name' = requireName name;
+        in
+          {
+            inherit name';
+            path = base.${name'};
+          }
+          // {name = name';};
+
+        normalizeAttr = attrs: let
+          name =
+            if !(hasAttr "name" attrs)
+            then fail "attrset form requires `name`"
+            else if !isString attrs.name
+            then fail "`name` must be a string"
+            else requireName attrs.name;
+        in
+          if hasAttr "path" attrs
+          then
+            if !(isString attrs.path || isPath attrs.path)
+            then fail "`path` must be a string or path"
+            else attrs // {inherit name;}
+          else attrs // (removeAttrs (normalizeName name) ["name"]);
+      in
+        mkEnv (
+          if isString arg
+          then normalizeName arg
+          else if isAttrs arg
+          then normalizeAttr arg
+          else fail "expected string or attrset, got ${typeOf arg}"
+        );
+    in {
+      ytd = mkModEnv "ytd";
+      mpd = mkModEnv "mpd";
+      mpv = mkModEnv "mpv";
+    };
+
+    music = {
+      env = mkEnv {
+        ref = music;
+        flat = true;
+      };
+    };
+
+    music = "$" + prefix + "_MUSIC";
+  in {
+    "${prefix}" = toString root;
+    "${prefix}_MOD_YTD" = toString ytd;
+    "${prefix}_MOD_MPD" = toString mpd;
+    "${prefix}_MOD_MPV" = toString mpv;
+    "${prefix}_CFG_BASE" = toString cfg.base;
+    "${prefix}_CFG_YTD" = toString cfg.ytd;
+    "${prefix}_CFG_MPV" = toString cfg.mpv;
+    "${prefix}_CFG_MPD" = toString cfg.mpd;
+    "${prefix}_DOWNLOADS" = toString downloads;
+    "${prefix}_MUSIC" = toString music;
+    "${prefix}_PICTURES" = toString pictures;
+    "${prefix}_VIDEOS" = toString videos;
+  };
 in {
   inherit description system name;
   lib = libraries;
   paths = {src = ./.;} // paths;
   pkgs = nixpkgs;
+  env = environment;
 }

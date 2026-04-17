@@ -10,7 +10,7 @@ set_defaults() {
   URL=""
   FMT="@format@"
   DIR="${MEDIA_DOWNLOADS:-@downloads@}"
-  CFG="${MEDIA_CFG_YTD:-@cfg@}/yt-dlp.conf"
+  CFG="${MEDIA_CFG_YTD:-@config@}/yt-dlp.conf"
   CMD="@command@"
 }
 
