@@ -28,15 +28,15 @@
         ref = var: "$" + prefix + "_" + var;
         ytd = {
           bin = ref "BIN_YTD";
-          ytd = ref "CFG_YTD";
+          cfg = ref "CFG_YTD";
         };
         mpd = {
           bin = ref "BIN_MPD";
-          mpd = ref "CFG_MPD";
+          cfg = ref "CFG_MPD";
         };
         mpv = {
           bin = ref "BIN_MPV";
-          mpv = ref "CFG_MPV";
+          cfg = ref "CFG_MPV";
         };
         music = ref "MUSIC";
         # pictures = ref "PICTURES";
@@ -51,13 +51,13 @@
               cmd = "${pkgs.mpd}";
               scripts = toString paths.build.bin;
             })
-            (pkgs.substituteAll {
+            (pkgs.substituteAll rec {
               name = "mpv";
               src = paths.build.bin + "/mpv";
               isExecutable = true;
               cmd = "${pkgs.mpv}";
               scripts = toString paths.build.bin;
-              mpv = "${pkgs.mpv}"; #? for ytdl_hook path
+              mpv = cmd; #? for ytdl_hook path
             })
             (pkgs.substituteAll {
               name = "ytd";
@@ -75,8 +75,8 @@
 
             #| Music
             ncmpcpp
-            mpc-cli
-            mpd
+            # mpc-cli
+            # mpd
             curseradio
             playerctl
             pamixer
