@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+main() {
+  local cfg_dir="${APP_CFG_MPV:?APP_CFG_MPV is not set}"
+
+  mkdir -p "${cfg_dir}"
+
+  exec "@cmd@" --config-dir="${cfg_dir}" "$@"
+}
+
+main "$@"

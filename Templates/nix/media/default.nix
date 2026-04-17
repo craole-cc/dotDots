@@ -3,11 +3,18 @@
   name ? "media",
   paths ? {
     src = ./.;
-    bin = ./scripts;
-    cfg = ./config;
-    ytd = ./config + "/ytd";
-    mpv = ./config + "/mpv";
-    mpd = ./config + "/mpd";
+    bin = rec {
+      base = ./.bin;
+      ytd = base + "/ytd";
+      mpv = base + "/mpv";
+      mpd = base + "/mpd";
+    };
+    cfg = rec {
+      base = ./.cfg;
+      ytd = base + "/ytd";
+      mpv = base + "/mpv";
+      mpd = base + "/mpd";
+    };
   },
   lib ? null,
   inputs ? null,

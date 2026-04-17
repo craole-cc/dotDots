@@ -27,7 +27,7 @@ parse_arguments() {
       -h|--help)
         usage
         ;;
-      audio|best|1080p|720p|480p)
+      best|1080p|720p|480p|audio)
         FMT="$1"
         ;;
       -*)
@@ -35,8 +35,12 @@ parse_arguments() {
         usage
         ;;
       *)
-        URL="$1"
-        break
+        if [ -z "$URL" ]; then
+          URL="$1"
+        else
+          printf 'Unexpected extra argument: %s\n' "$1" >&2
+          usage
+        fi
         ;;
     esac
     shift
@@ -50,19 +54,19 @@ execute_command() {
 
   case "$FMT" in
     best)
-      exec "@cmd@" --config-location "$CFG" "$URL"
+      exec "@cmd@" --config-location "$CFG" \
+        --output "${DIR}/%(title)s.%(ext)s" \
+        "$URL"
       ;;
     audio)
-      exec "@cmd@" \
-        --config-location "$CFG" \
+      exec "@cmd@" --config-location "$CFG" \
         --extract-audio \
         --audio-format mp3 \
         --output "${DIR}/%(title)s.%(ext)s" \
         "$URL"
       ;;
     *)
-      exec "@cmd@" \
-        --config-location "$CFG" \
+      exec "@cmd@" --config-location "$CFG" \
         --format "bestvideo[height<=${FMT%p}]+bestaudio/best[height<=${FMT%p}]" \
         --output "${DIR}/%(title)s.%(ext)s" \
         "$URL"
