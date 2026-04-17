@@ -125,7 +125,8 @@
       };
     };
 
-    modules = let
+    build = let
+      path = paths.build;
       mkModEnv = arg: let
         base = paths.build.modules;
         fail = msg: throw "mkModEnv: ${msg}";
@@ -178,22 +179,19 @@
         flat = true;
       };
     };
-
-    music = "$" + prefix + "_MUSIC";
-  in {
-    "${prefix}" = toString root;
-    "${prefix}_MOD_YTD" = toString ytd;
-    "${prefix}_MOD_MPD" = toString mpd;
-    "${prefix}_MOD_MPV" = toString mpv;
-    "${prefix}_CFG_BASE" = toString cfg.base;
-    "${prefix}_CFG_YTD" = toString cfg.ytd;
-    "${prefix}_CFG_MPV" = toString cfg.mpv;
-    "${prefix}_CFG_MPD" = toString cfg.mpd;
-    "${prefix}_DOWNLOADS" = toString downloads;
-    "${prefix}_MUSIC" = toString music;
-    "${prefix}_PICTURES" = toString pictures;
-    "${prefix}_VIDEOS" = toString videos;
-  };
+  in {inherit build runtime;};
+  # "${prefix}" = toString root;
+  # "${prefix}_MOD_YTD" = toString ytd;
+  # "${prefix}_MOD_MPD" = toString mpd;
+  # "${prefix}_MOD_MPV" = toString mpv;
+  # "${prefix}_CFG_BASE" = toString cfg.base;
+  # "${prefix}_CFG_YTD" = toString cfg.ytd;
+  # "${prefix}_CFG_MPV" = toString cfg.mpv;
+  # "${prefix}_CFG_MPD" = toString cfg.mpd;
+  # "${prefix}_DOWNLOADS" = toString downloads;
+  # "${prefix}_MUSIC" = toString music;
+  # "${prefix}_PICTURES" = toString pictures;
+  # "${prefix}_VIDEOS" = toString videos;
 in {
   inherit description system name;
   lib = libraries;
