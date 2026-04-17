@@ -85,16 +85,11 @@
         then key
         else projectPrefix + sep + key;
       val = toString path;
-    in {
-      inherit var val;
-    };
+    in {inherit var val;};
 
-    mkCfgEnv = cfgName: let
-      path = paths.${cfgName} or
-        (throw "mkCfgEnv: unknown config '${cfgName}'");
-    in
+    mkCfgEnv = cfgName:
       mkEnv {
-        inherit path;
+        path = paths.${cfgName} or (throw "mkCfgEnv: unknown config '${cfgName}'");
         prefix = "CFG";
         name = cfgName;
       };
@@ -104,17 +99,14 @@
         path = paths.src;
         name = "SRC";
       };
-
       bin = mkEnv {
         path = paths.bin;
         name = "BIN";
       };
-
       cfg = mkEnv {
         path = paths.cfg;
         name = "CFG";
       };
-
       ytd = mkCfgEnv "ytd";
       mpv = mkCfgEnv "mpv";
       mpd = mkCfgEnv "mpd";
@@ -123,7 +115,6 @@
         var = "APP_NAME";
         val = name;
       };
-
       appPrefix = {
         var = "APP_PREFIX";
         val = projectPrefix;
@@ -131,8 +122,8 @@
     };
   };
 in {
-  inherit description system name paths;
+  inherit description name paths system;
+  env = environment;
   lib = libraries;
   pkgs = nixpkgs;
-  env = environment;
 }

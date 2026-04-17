@@ -10,8 +10,6 @@
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
         inherit (src.env) build;
-
-        inherit (lib.strings) toUpper;
         inherit (lib.attrsets) attrValues listToAttrs;
 
         env = listToAttrs (
@@ -23,79 +21,40 @@
             value = val;
           }) (attrValues build)
         );
-
-        prefix = toUpper name;
-
-        ref = var: "$" + prefix + "_" + var;
-
-        cfg = {
-          ytd = ref "CFG_YTD";
-          mpv = ref "CFG_MPV";
-          mpd = ref "CFG_MPD";
-        };
-
-        tmpl = {
-          ytd = ref "CFG_YTD";
-          mpv = ref "CFG_MPV";
-          mpd = ref "CFG_MPD";
-        };
-
-        music = ref "MUSIC";
       in {
         devShells.default = pkgs.mkShell {
           inherit env;
 
-          packages =
-            [
-              (pkgs.substituteAll {
-                name = "mpd";
-                src = paths.bin + "/mpd";
-                isExecutable = true;
-                cmd = "${pkgs.mpd}";
-              })
+          packages = with pkgs; [
+            feh
+            imv
+            swww
 
-              (pkgs.substituteAll rec {
-                name = "mpv";
-                src = paths.bin + "/mpv";
-                isExecutable = true;
-                cmd = "${pkgs.mpv}";
-                mpv = cmd;
-              })
+            ncmpcpp
+            mpc-cli
+            mpd
+            curseradio
+            playerctl
+            pamixer
+            shortwave
+            strawberry
 
-              (pkgs.substituteAll {
-                name = "ytd";
-                src = paths.bin + "/ytd";
-                isExecutable = true;
-                cmd = "${pkgs.yt-dlp}";
-              })
-            ]
-            ++ (with pkgs; [
-              feh
-              imv
-              swww
+            btop
+            ffmpeg
+            curl
+            fzf
+            jq
+            libnotify
+            mediainfo
+            rlwrap
+            socat
+            xclip
 
-              ncmpcpp
-              curseradio
-              playerctl
-              pamixer
-              shortwave
-              strawberry
-
-              btop
-              ffmpeg
-              curl
-              fzf
-              jq
-              libnotify
-              mediainfo
-              rlwrap
-              socat
-              xclip
-
-              freetube
-              mpvc
-              yt-dlp
-            ]);
+            freetube
+            mpvc
+            yt-dlp
+            bash
+          ];
 
           shellHook = ''
             printf "%s\n\n" "${description}"
@@ -109,16 +68,6 @@
             export APP_MUSIC="''${APP_ROOT}/Music"
             export APP_PICTURES="''${APP_ROOT}/Pictures"
             export APP_VIDEOS="''${APP_ROOT}/Videos"
-
-            export ${prefix}_ROOT="''${APP_ROOT}"
-            export ${prefix}_CFG_BASE="''${APP_CFG_BASE}"
-            export ${prefix}_CFG_YTD="''${APP_CFG_YTD}"
-            export ${prefix}_CFG_MPV="''${APP_CFG_MPV}"
-            export ${prefix}_CFG_MPD="''${APP_CFG_MPD}"
-            export ${prefix}_DOWNLOADS="''${APP_DOWNLOADS}"
-            export ${prefix}_MUSIC="''${APP_MUSIC}"
-            export ${prefix}_PICTURES="''${APP_PICTURES}"
-            export ${prefix}_VIDEOS="''${APP_VIDEOS}"
 
             mkdir -p \
               "''${APP_CFG_YTD}" \
@@ -144,6 +93,25 @@
             if [ ! -f "''${APP_CFG_YTD}/yt-dlp.conf" ]; then
               cp "${build.ytd.val}/settings.conf" "''${APP_CFG_YTD}/yt-dlp.conf"
             fi
+
+            export APP_WRAPPER_BIN="''${APP_ROOT}/.bin"
+            mkdir -p "''${APP_WRAPPER_BIN}"
+
+            install -m755 "${paths.bin}/mpd" "''${APP_WRAPPER_BIN}/mpd"
+            install -m755 "${paths.bin}/mpv" "''${APP_WRAPPER_BIN}/mpv"
+            install -m755 "${paths.bin}/ytd" "''${APP_WRAPPER_BIN}/ytd"
+
+            substituteInPlace "''${APP_WRAPPER_BIN}/mpd" \
+              --subst-var-by cmd "${pkgs.mpd}/bin/mpd"
+
+            substituteInPlace "''${APP_WRAPPER_BIN}/mpv" \
+              --subst-var-by cmd "${pkgs.mpv}/bin/mpv" \
+              --subst-var-by mpv "${pkgs.mpv}"
+
+            substituteInPlace "''${APP_WRAPPER_BIN}/ytd" \
+              --subst-var-by cmd "${pkgs.yt-dlp}/bin/yt-dlp"
+
+            export PATH="''${APP_WRAPPER_BIN}:$PATH"
 
             printf "Video Tools:\n"
             printf "  mpv         - Enhanced MPV with custom config\n"
