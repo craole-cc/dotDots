@@ -1,33 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-resolve_app_root() {
-  if [ -n "${APP_ROOT:-}" ]; then
-    printf '%s\n' "$APP_ROOT"
-    return 0
-  fi
-
-  if [ -z "${APP_NAME:-}" ]; then
-    printf 'APP_NAME is not set\n' >&2
-    exit 1
-  fi
-
-  if [ -z "${HOME:-}" ] || [ "$HOME" = "/homeless-shelter" ]; then
-    printf 'No usable HOME for runtime path resolution\n' >&2
-    exit 1
-  fi
-
-  printf '%s/%s\n' "$HOME" "$APP_NAME"
-}
-
 main() {
-  local app_root cfg_dir music_dir
-
-  app_root="$(resolve_app_root)"
-  cfg_dir="${APP_CFG_MPD:-${app_root}/.config/mpd}"
-  music_dir="${APP_MUSIC:-${app_root}/Music}"
+  local cfg_dir="${APP_CFG_MPD:?APP_CFG_MPD is not set}"
+  local music_dir="${APP_MUSIC:?APP_MUSIC is not set}"
 
   mkdir -p "${cfg_dir}/playlists" "${music_dir}"
+
   exec "@cmd@" --no-daemon "${cfg_dir}/mpd.conf" "$@"
 }
 

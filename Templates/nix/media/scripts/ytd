@@ -1,25 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-resolve_app_root() {
-  if [ -n "${APP_ROOT:-}" ]; then
-    printf '%s\n' "$APP_ROOT"
-    return 0
-  fi
-
-  if [ -z "${APP_NAME:-}" ]; then
-    printf 'APP_NAME is not set\n' >&2
-    exit 1
-  fi
-
-  if [ -z "${HOME:-}" ] || [ "$HOME" = "/homeless-shelter" ]; then
-    printf 'No usable HOME for runtime path resolution\n' >&2
-    exit 1
-  fi
-
-  printf '%s/%s\n' "$HOME" "$APP_NAME"
-}
-
 main() {
   set_defaults
   parse_arguments "$@"
@@ -27,13 +8,10 @@ main() {
 }
 
 set_defaults() {
-  local app_root
-  app_root="$(resolve_app_root)"
-
   URL=""
   FMT="best"
-  DIR="${APP_DOWNLOADS:-${app_root}/Downloads}"
-  CFG_DIR="${APP_CFG_YTD:-${app_root}/.config/ytd}"
+  DIR="${APP_DOWNLOADS:?APP_DOWNLOADS is not set}"
+  CFG_DIR="${APP_CFG_YTD:?APP_CFG_YTD is not set}"
   CFG="${CFG_DIR}/yt-dlp.conf"
 }
 
