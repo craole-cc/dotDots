@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# scripts/app - Generic app runtime environment
+
+app_name="${APP_NAME:?APP_NAME required}"
+app_prefix="${APP_PREFIX:?APP_PREFIX required}"
+
+app_cfg() {
+  local mod="$1"
+  local varname="${app_prefix}_CFG_${mod^^}"
+  printf '%s' "${!varname:?${varname} required}"
+}
+
+app_dir() {
+  local dir="$1"
+  local varname="${app_prefix}_${dir^^}"
+  printf '%s' "${!varname:?${varname} required}"
+}
+
+app_require() {
+  [ -n "${!1:?$1 required}" ] || return 1
+}

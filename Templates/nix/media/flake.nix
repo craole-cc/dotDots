@@ -4,73 +4,67 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs @ {...}: let
-  in
+  outputs = inputs @ {...}:
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
+        inherit (src.env) build mkRuntimeSetup;
+        inherit (lib.strings) toUpper;
+        inherit (lib.attrsets) attrValues listToAttrs;
 
-        env = let
-          # inherit (paths.runtime) root cfg downloads music pictures videos;
-          prefix = lib.strings.toUpper name;
-          ytd = {
-            mod = {
-              path = paths.builf.modules.ytd;
-              env = "$" + prefix + "_MOD_YTD";
-            };
-            cfg = {
-              path = paths.builf.modules.ytd;
-              env = "$" + prefix + "_CFG_YTD";
-            };
-          };
-          mpd = {
-            mod = {
-              path = paths.builf.modules.mpd;
-              env = "$" + prefix + "_MOD_MPD";
-            };
-            cfg = {
-              path = paths.builf.modules.mpd;
-              env = "$" + prefix + "_CFG_MPD";
-            };
-          };
-          mpv = {
-            mod = {
-              path = paths.builf.modules.mpv;
-              env = "$" + prefix + "_MOD_MPV";
-            };
-            cfg = {
-              path = paths.builf.modules.mpv;
-              env = "$" + prefix + "_CFG_MPV";
-            };
-          };
+        # Flatten {var, val} records → {VAR = val} attrset for mkShell.
+        env = listToAttrs (map ({
+          var,
+          val,
+        }: {
+          name = var;
+          value = val;
+        }) (attrValues build));
 
-          music = "$" + prefix + "_MUSIC";
-        in {
-          "${prefix}" = toString root;
-          "${prefix}_MOD_YTD" = toString ytd;
-          "${prefix}_MOD_MPD" = toString mpd;
-          "${prefix}_MOD_MPV" = toString mpv;
-          "${prefix}_CFG_BASE" = toString cfg.base;
-          "${prefix}_CFG_YTD" = toString cfg.ytd;
-          "${prefix}_CFG_MPV" = toString cfg.mpv;
-          "${prefix}_CFG_MPD" = toString cfg.mpd;
-          "${prefix}_DOWNLOADS" = toString downloads;
-          "${prefix}_MUSIC" = toString music;
-          "${prefix}_PICTURES" = toString pictures;
-          "${prefix}_VIDEOS" = toString videos;
+        # Derive shell variable reference strings from the project prefix so
+        # the shellHook isn't hardcoded to "MEDIA_*".
+        prefix = toUpper name;
+        ref = var: "$" + prefix + "_" + var;
+        ytd = {
+          bin = ref "BIN_YTD";
+          ytd = ref "CFG_YTD";
         };
+        mpd = {
+          bin = ref "BIN_MPD";
+          mpd = ref "CFG_MPD";
+        };
+        mpv = {
+          bin = ref "BIN_MPV";
+          mpv = ref "CFG_MPV";
+        };
+        music = ref "MUSIC";
+        # pictures = ref "PICTURES";
+        # videos = ref "VIDEOS";
 
         packages =
           [
             (pkgs.substituteAll {
+              name = "mpd";
+              src = paths.build.bin + "/mpd";
               isExecutable = true;
-              src = paths.build.modules.ytd + "/cmd.sh";
-              command = "${pkgs.yt-dlp}/bin/yt-dlp";
-              format = "1080p";
-              config = toString paths.runtime.cfg.ytd;
-              settings = toString (paths.build.modules.ytd + "/settings.conf");
-              downloads = toString paths.runtime.downloads;
+              cmd = "${pkgs.mpd}";
+              scripts = toString paths.build.bin;
+            })
+            (pkgs.substituteAll {
+              name = "mpv";
+              src = paths.build.bin + "/mpv";
+              isExecutable = true;
+              cmd = "${pkgs.mpv}";
+              scripts = toString paths.build.bin;
+              mpv = "${pkgs.mpv}"; #? for ytdl_hook path
+            })
+            (pkgs.substituteAll {
+              name = "ytd";
+              src = paths.build.bin + "/ytd";
+              isExecutable = true;
+              cmd = "${pkgs.yt-dlp}";
+              scripts = toString paths.build.bin;
             })
           ]
           ++ (with pkgs; [
@@ -107,32 +101,31 @@
             freetube
             # mpvEnhanced
             mpvc
-            # yt-dlp
+            yt-dlp
           ]);
 
         shellHook = ''
           printf "%s\n\n" "${description}"
 
-          #> Deploy scripts
-          if [ ! -f "${ytd.cfg}/settings.conf" ]; then
-            mkdir -p "$(dirname "${ytd.cfg}")"
-            cp "${ytd.mod}/settings.conf" "${ytd.cfg}/settings.conf"
-          fi
+          ${mkRuntimeSetup}
+          setup_${name}_runtime
 
+          #> Deploy configs
           if [ ! -f "${mpd.cfg}/settings.conf" ]; then
-            mkdir -p "$(dirname "${mpd.cfg}")"
-            cp "${mpd.mod}/settings.conf" "${mpd.cfg}/settings.conf"
+            mkdir -p "${mpd.cfg}"
+            cp "${mpd.bin}/settings.conf" "${mpd.cfg}/settings.conf"
           fi
-
           if [ ! -f "${mpv.cfg}/settings.conf" ]; then
-            mkdir -p "$(dirname "${mpv.cfg}")"
-            cp "${mpv.mod}/settings.conf" "${mpv.cfg}/settings.conf"
+            mkdir -p "${mpv.cfg}"
+            cp "${mpv.bin}/settings.conf" "${mpv.cfg}/settings.conf"
           fi
-
           if [ ! -f "${mpv.cfg}/input.conf" ]; then
-            cp "${mpv.mod}/input.conf" "${mpv.cfg}/input.conf"
+            cp "${mpv.bin}/input.conf" "${mpv.cfg}/input.conf"
           fi
-
+          if [ ! -f "${ytd.cfg}/settings.conf" ]; then
+            mkdir -p "${ytd.cfg}"
+            cp "${ytd.bin}/settings.conf" "${ytd.cfg}/yt-dlp.conf"
+          fi
 
           #> Show the usage guide
           printf "Video Tools:\n"
@@ -144,7 +137,7 @@
           printf "  imv         - Alternative image viewer\n\n"
 
           printf "Music & Radio:\n"
-          printf "  ncmpcpp     - Music player (music dir: "${music}")\n"
+          printf "  ncmpcpp     - Music player (music dir: ${music})\n"
           printf "  curseradio  - Terminal radio\n\n"
         '';
       in {
