@@ -9,140 +9,154 @@
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
-        inherit (src.env) build mkRuntimeSetup;
+        inherit (src.env) build;
+
         inherit (lib.strings) toUpper;
         inherit (lib.attrsets) attrValues listToAttrs;
 
-        # Flatten {var, val} records → {VAR = val} attrset for mkShell.
-        env = listToAttrs (map ({
-          var,
-          val,
-        }: {
-          name = var;
-          value = val;
-        }) (attrValues build));
+        env = listToAttrs (
+          map ({
+            var,
+            val,
+          }: {
+            name = var;
+            value = val;
+          }) (attrValues build)
+        );
 
-        # Derive shell variable reference strings from the project prefix so
-        # the shellHook isn't hardcoded to "MEDIA_*".
         prefix = toUpper name;
+
         ref = var: "$" + prefix + "_" + var;
-        ytd = {
-          bin = ref "BIN_YTD";
-          cfg = ref "CFG_YTD";
+
+        cfg = {
+          ytd = ref "CFG_YTD";
+          mpv = ref "CFG_MPV";
+          mpd = ref "CFG_MPD";
         };
-        mpd = {
-          bin = ref "BIN_MPD";
-          cfg = ref "CFG_MPD";
+
+        tmpl = {
+          ytd = ref "CFG_YTD";
+          mpv = ref "CFG_MPV";
+          mpd = ref "CFG_MPD";
         };
-        mpv = {
-          bin = ref "BIN_MPV";
-          cfg = ref "CFG_MPV";
-        };
+
         music = ref "MUSIC";
-        # pictures = ref "PICTURES";
-        # videos = ref "VIDEOS";
-
-        packages =
-          [
-            (pkgs.substituteAll {
-              name = "mpd";
-              src = paths.build.bin + "/mpd";
-              isExecutable = true;
-              cmd = "${pkgs.mpd}";
-              scripts = toString paths.build.bin;
-            })
-            (pkgs.substituteAll rec {
-              name = "mpv";
-              src = paths.build.bin + "/mpv";
-              isExecutable = true;
-              cmd = "${pkgs.mpv}";
-              scripts = toString paths.build.bin;
-              mpv = cmd; #? for ytdl_hook path
-            })
-            (pkgs.substituteAll {
-              name = "ytd";
-              src = paths.build.bin + "/ytd";
-              isExecutable = true;
-              cmd = "${pkgs.yt-dlp}";
-              scripts = toString paths.build.bin;
-            })
-          ]
-          ++ (with pkgs; [
-            #| Image
-            feh
-            imv
-            swww
-
-            #| Music
-            ncmpcpp
-            # mpc-cli
-            # mpd
-            curseradio
-            playerctl
-            pamixer
-            # tauon
-            shortwave
-            strawberry
-            # deadbeef
-
-            #| Utilities
-            btop
-            ffmpeg
-            curl
-            fzf
-            jq
-            libnotify
-            mediainfo
-            rlwrap
-            socat
-            xclip
-
-            #| Video
-            freetube
-            # mpvEnhanced
-            mpvc
-            yt-dlp
-          ]);
-
-        shellHook = ''
-          printf "%s\n\n" "${description}"
-
-          ${mkRuntimeSetup}
-          setup_${name}_runtime
-
-          #> Deploy configs
-          if [ ! -f "${mpd.cfg}/settings.conf" ]; then
-            mkdir -p "${mpd.cfg}"
-            cp "${mpd.bin}/settings.conf" "${mpd.cfg}/settings.conf"
-          fi
-          if [ ! -f "${mpv.cfg}/settings.conf" ]; then
-            mkdir -p "${mpv.cfg}"
-            cp "${mpv.bin}/settings.conf" "${mpv.cfg}/settings.conf"
-          fi
-          if [ ! -f "${mpv.cfg}/input.conf" ]; then
-            cp "${mpv.bin}/input.conf" "${mpv.cfg}/input.conf"
-          fi
-          if [ ! -f "${ytd.cfg}/settings.conf" ]; then
-            mkdir -p "${ytd.cfg}"
-            cp "${ytd.bin}/settings.conf" "${ytd.cfg}/yt-dlp.conf"
-          fi
-
-          #> Show the usage guide
-          printf "Video Tools:\n"
-          printf "  mpv         - Enhanced MPV with custom config\n"
-          printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
-
-          printf "Image Viewers:\n"
-          printf "  feh         - Light image viewer\n"
-          printf "  imv         - Alternative image viewer\n\n"
-
-          printf "Music & Radio:\n"
-          printf "  ncmpcpp     - Music player (music dir: ${music})\n"
-          printf "  curseradio  - Terminal radio\n\n"
-        '';
       in {
         devShells.default = pkgs.mkShell {
-          inherit packages env shellHook;
+          inherit env;
+
+          packages =
+            [
+              (pkgs.substituteAll {
+                name = "mpd";
+                src = paths.bin + "/mpd";
+                isExecutable = true;
+                cmd = "${pkgs.mpd}";
+              })
+
+              (pkgs.substituteAll rec {
+                name = "mpv";
+                src = paths.bin + "/mpv";
+                isExecutable = true;
+                cmd = "${pkgs.mpv}";
+                mpv = cmd;
+              })
+
+              (pkgs.substituteAll {
+                name = "ytd";
+                src = paths.bin + "/ytd";
+                isExecutable = true;
+                cmd = "${pkgs.yt-dlp}";
+              })
+            ]
+            ++ (with pkgs; [
+              feh
+              imv
+              swww
+
+              ncmpcpp
+              curseradio
+              playerctl
+              pamixer
+              shortwave
+              strawberry
+
+              btop
+              ffmpeg
+              curl
+              fzf
+              jq
+              libnotify
+              mediainfo
+              rlwrap
+              socat
+              xclip
+
+              freetube
+              mpvc
+              yt-dlp
+            ]);
+
+          shellHook = ''
+            printf "%s\n\n" "${description}"
+
+            export APP_ROOT="''${HOME}/${name}"
+            export APP_CFG_BASE="''${APP_ROOT}/.config"
+            export APP_CFG_YTD="''${APP_CFG_BASE}/ytd"
+            export APP_CFG_MPV="''${APP_CFG_BASE}/mpv"
+            export APP_CFG_MPD="''${APP_CFG_BASE}/mpd"
+            export APP_DOWNLOADS="''${APP_ROOT}/Downloads"
+            export APP_MUSIC="''${APP_ROOT}/Music"
+            export APP_PICTURES="''${APP_ROOT}/Pictures"
+            export APP_VIDEOS="''${APP_ROOT}/Videos"
+
+            export ${prefix}_ROOT="''${APP_ROOT}"
+            export ${prefix}_CFG_BASE="''${APP_CFG_BASE}"
+            export ${prefix}_CFG_YTD="''${APP_CFG_YTD}"
+            export ${prefix}_CFG_MPV="''${APP_CFG_MPV}"
+            export ${prefix}_CFG_MPD="''${APP_CFG_MPD}"
+            export ${prefix}_DOWNLOADS="''${APP_DOWNLOADS}"
+            export ${prefix}_MUSIC="''${APP_MUSIC}"
+            export ${prefix}_PICTURES="''${APP_PICTURES}"
+            export ${prefix}_VIDEOS="''${APP_VIDEOS}"
+
+            mkdir -p \
+              "''${APP_CFG_YTD}" \
+              "''${APP_CFG_MPV}" \
+              "''${APP_CFG_MPD}" \
+              "''${APP_DOWNLOADS}" \
+              "''${APP_MUSIC}" \
+              "''${APP_PICTURES}" \
+              "''${APP_VIDEOS}"
+
+            if [ ! -f "''${APP_CFG_MPD}/mpd.conf" ]; then
+              cp "${build.mpd.val}/settings.conf" "''${APP_CFG_MPD}/mpd.conf"
+            fi
+
+            if [ ! -f "''${APP_CFG_MPV}/mpv.conf" ]; then
+              cp "${build.mpv.val}/settings.conf" "''${APP_CFG_MPV}/mpv.conf"
+            fi
+
+            if [ ! -f "''${APP_CFG_MPV}/input.conf" ]; then
+              cp "${build.mpv.val}/input.conf" "''${APP_CFG_MPV}/input.conf"
+            fi
+
+            if [ ! -f "''${APP_CFG_YTD}/yt-dlp.conf" ]; then
+              cp "${build.ytd.val}/settings.conf" "''${APP_CFG_YTD}/yt-dlp.conf"
+            fi
+
+            printf "Video Tools:\n"
+            printf "  mpv         - Enhanced MPV with custom config\n"
+            printf "  ytd         - Download videos (usage: ytd <url> [quality])\n\n"
+
+            printf "Image Viewers:\n"
+            printf "  feh         - Light image viewer\n"
+            printf "  imv         - Alternative image viewer\n\n"
+
+            printf "Music & Radio:\n"
+            printf "  ncmpcpp     - Music player (music dir: %s)\n" "''${APP_MUSIC}"
+            printf "  curseradio  - Terminal radio\n\n"
+          '';
         };
       }
     );

@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "@scripts@/app"
-
 main() {
-  local cfg_dir
-  cfg_dir="$(app_cfg mpv)"
-  local scripts_dir="${cfg_dir}/scripts"
+  local cfg_dir scripts_dir
+	cfg_dir="${APP_CFG_MPV:?APP_CFG_MPV is not set}"
+  scripts_dir="${cfg_dir}/scripts"
 
-  mkdir -p "$scripts_dir"
+  mkdir -p "${scripts_dir}"
 
   if [ ! -f "${scripts_dir}/ytdl_hook.lua" ]; then
-    cp "@mpv@/share/mpv/scripts/ytdl_hook.lua" "$scripts_dir/"
+    cp "@mpv@/share/mpv/scripts/ytdl_hook.lua" "${scripts_dir}/"
   fi
 
-  exec "@cmd@" --config-dir="$cfg_dir" "$@"
+  exec "@cmd@" --config-dir="${cfg_dir}" "$@"
 }
 
 main "$@"

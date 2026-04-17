@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "@scripts@/app"
-
 main() {
   set_defaults
   parse_arguments "$@"
@@ -12,35 +10,37 @@ main() {
 set_defaults() {
   URL=""
   FMT="best"
-  DIR="$(app_dir DOWNLOADS)"
-  CFG_DIR="$(app_cfg ytd)"
+  DIR="${APP_DOWNLOADS:?APP_DOWNLOADS is not set}"
+  CFG_DIR="${APP_CFG_YTD:?APP_CFG_YTD is not set}"
   CFG="${CFG_DIR}/yt-dlp.conf"
 }
 
-
-
 usage() {
-  printf "Usage: ytd <url> [quality]\n" >&2
-  printf "Quality: best, 1080p, 720p, 480p, audio\n" >&2
+  printf 'Usage: ytd <url> [quality]\n' >&2
+  printf 'Quality: best, 1080p, 720p, 480p, audio\n' >&2
   exit 1
 }
 
 parse_arguments() {
-  while [ $# -gt 0 ]; do
+  while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h|--help) usage ;;
+      -h|--help)
+        usage
+        ;;
       audio|best|1080p|720p|480p)
-        FMT="$1" ;;
+        FMT="$1"
+        ;;
       -*)
-        printf "Unknown option: %s\n" "$1" >&2
-        usage ;;
+        printf 'Unknown option: %s\n' "$1" >&2
+        usage
+        ;;
       *)
         URL="$1"
-        break ;;
+        break
+        ;;
     esac
     shift
   done
-  shift "$(( $# - 1 ))"  # consume remaining args after URL
 
   [ -n "$URL" ] || usage
 }
@@ -50,17 +50,23 @@ execute_command() {
 
   case "$FMT" in
     best)
-      exec "@cmd@" --config-location "$CFG" "$URL" ;;
+      exec "@cmd@" --config-location "$CFG" "$URL"
+      ;;
     audio)
-      exec "@cmd@" --config-location "$CFG" \
-        --extract-audio --audio-format mp3 \
+      exec "@cmd@" \
+        --config-location "$CFG" \
+        --extract-audio \
+        --audio-format mp3 \
         --output "${DIR}/%(title)s.%(ext)s" \
-        "$URL" ;;
+        "$URL"
+      ;;
     *)
-      exec "@cmd@" --config-location "$CFG" \
+      exec "@cmd@" \
+        --config-location "$CFG" \
         --format "bestvideo[height<=${FMT%p}]+bestaudio/best[height<=${FMT%p}]" \
         --output "${DIR}/%(title)s.%(ext)s" \
-        "$URL" ;;
+        "$URL"
+      ;;
   esac
 }
 
