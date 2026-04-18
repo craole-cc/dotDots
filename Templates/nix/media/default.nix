@@ -67,84 +67,75 @@
     then import paths.libraries {lib = lib';}
     else lib';
 
-  inherit (libraries.strings) toUpper;
+  inherit (libraries.strings) concatStringsSep isString toUpper;
+  inherit (libraries.lists) elem;
+  inherit (libraries.attrsets) listToAttrs;
 
   environment = let
-    prj = {
-      root = {
-        var = "PRJ_ROOT";
-        val = paths.src;
+    toolKinds = ["bin" "cfg"];
+    validKinds = ["src"] ++ toolKinds;
+
+    mkVar = {
+      parts,
+      sep ? "_",
+    }:
+      toUpper (concatStringsSep sep parts);
+
+    mkKindEnv = kind: {
+      var = mkVar {
+        parts = [
+          name
+          (
+            if kind == "src"
+            then "root"
+            else kind
+          )
+        ];
       };
-      name = {
-        var = "PRJ_NAME";
-        val = name;
-      };
-      prefix = {
-        var = "PRJ_PREFIX";
-        val = toUpper name;
-      };
+      val =
+        if kind == "src"
+        then paths.src
+        else paths.${kind}.base;
     };
 
-    mkEnv = {
-      path,
-      prefix ? null,
-      name ? null,
-      bare ? false,
-    }: let
-      sep = "_";
-      key =
-        if prefix != null && name != null
-        then toUpper (prefix + sep + name)
-        else if prefix != null
-        then toUpper prefix
-        else if name != null
-        then prj.prefix.var
-        else throw "mkEnv: at least one of `prefix` or `name` must be set";
-      var =
-        if bare
-        then key
-        else prj.prefix.val + sep + key;
-      val = toString path;
-    in {inherit var val;};
+    mkToolEnv = tool:
+      listToAttrs (map (kind: {
+          name = kind;
+          value = {
+            var = mkVar {parts = [name tool kind];};
+            val = paths.${kind}.${tool};
+          };
+        })
+        toolKinds);
 
-    mkBinEnv = binName:
-      mkEnv {
-        path = paths.${binName} or (throw "mkBinEnv: unknown binary '${binName}'");
-        prefix = "BIN";
-        name = binName;
-      };
-
-    mkCfgEnv = cfgName:
-      mkEnv {
-        path = paths.${cfgName} or (throw "mkCfgEnv: unknown config '${cfgName}'");
-        prefix = "CFG";
-        name = cfgName;
-      };
+    mkEnv = args:
+      if isString args
+      then
+        if elem args validKinds
+        then throw "mkEnv: '${args}' is a kind, did you mean to use { key = \"${args}\"; flat = true; }?"
+        else mkToolEnv args
+      else if args.flat or false
+      then
+        if !(elem args.key validKinds)
+        then throw "mkEnv: invalid kind '${args.key}', must be one of ${toString validKinds}"
+        else mkKindEnv args.key
+      else throw "mkEnv: expected a string tool name or { key; flat = true; }";
   in {
     src = mkEnv {
-      path = paths.src;
-      name = "SRC";
+      key = "src";
+      flat = true;
     };
     bin = mkEnv {
-      path = paths.bin;
-      name = "BIN";
+      key = "bin";
+      flat = true;
     };
     cfg = mkEnv {
-      path = paths.cfg;
-      name = "CFG";
+      key = "cfg";
+      flat = true;
     };
-    mpd = {
-      bin = mkBinEnv "mpd";
-      cfg = mkCfgEnv "mpd";
-    };
-    mpv = {
-      bin = mkBinEnv "mpv";
-      cfg = mkCfgEnv "mpv";
-    };
-    ytd = {
-      bin = mkBinEnv "ytd";
-      cfg = mkCfgEnv "ytd";
-    };
+    mpd = mkEnv "mpd";
+    mpv = mkEnv "mpv";
+    ytd = mkEnv "ytd";
   };
 in {
   inherit description name paths system;

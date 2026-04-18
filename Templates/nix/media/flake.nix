@@ -9,9 +9,17 @@
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
-        inherit (src.env) build;
         inherit (lib.attrsets) attrValues listToAttrs;
+        inherit (lib.lists) concatMap;
 
+        #> Recursively collect all { var, val } leaves from nested env
+        isLeaf = v: v ? var && v ? val;
+        collectLeaves = v:
+          if isLeaf v
+          then [v]
+          else concatMap collectLeaves (attrValues v);
+
+        #> Convert to { VAR_NAME = /path; } for mkShell
         env = listToAttrs (
           map ({
             var,
@@ -19,7 +27,8 @@
           }: {
             name = var;
             value = val;
-          }) (attrValues build)
+          })
+          (collectLeaves src.env)
         );
       in {
         devShells.default = pkgs.mkShell {
