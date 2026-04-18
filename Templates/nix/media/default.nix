@@ -70,7 +70,20 @@
   inherit (libraries.strings) toUpper;
 
   environment = let
-    projectPrefix = toUpper name;
+    prj = {
+      root = {
+        var = "PRJ_ROOT";
+        val = paths.src;
+      };
+      name = {
+        var = "PRJ_NAME";
+        val = name;
+      };
+      prefix = {
+        var = "PRJ_PREFIX";
+        val = toUpper name;
+      };
+    };
 
     mkEnv = {
       path,
@@ -85,14 +98,21 @@
         else if prefix != null
         then toUpper prefix
         else if name != null
-        then toUpper name
+        then prj.prefix.var
         else throw "mkEnv: at least one of `prefix` or `name` must be set";
       var =
         if bare
         then key
-        else projectPrefix + sep + key;
+        else prj.prefix.val + sep + key;
       val = toString path;
     in {inherit var val;};
+
+    mkBinEnv = binName:
+      mkEnv {
+        path = paths.${binName} or (throw "mkBinEnv: unknown binary '${binName}'");
+        prefix = "BIN";
+        name = binName;
+      };
 
     mkCfgEnv = cfgName:
       mkEnv {
@@ -101,31 +121,29 @@
         name = cfgName;
       };
   in {
-    build = {
-      src = mkEnv {
-        path = paths.src;
-        name = "SRC";
-      };
-      bin = mkEnv {
-        path = paths.bin;
-        name = "BIN";
-      };
-      cfg = mkEnv {
-        path = paths.cfg;
-        name = "CFG";
-      };
-      ytd = mkCfgEnv "ytd";
-      mpv = mkCfgEnv "mpv";
-      mpd = mkCfgEnv "mpd";
-
-      appName = {
-        var = "APP_NAME";
-        val = name;
-      };
-      appPrefix = {
-        var = "APP_PREFIX";
-        val = projectPrefix;
-      };
+    src = mkEnv {
+      path = paths.src;
+      name = "SRC";
+    };
+    bin = mkEnv {
+      path = paths.bin;
+      name = "BIN";
+    };
+    cfg = mkEnv {
+      path = paths.cfg;
+      name = "CFG";
+    };
+    mpd = {
+      bin = mkBinEnv "mpd";
+      cfg = mkCfgEnv "mpd";
+    };
+    mpv = {
+      bin = mkBinEnv "mpv";
+      cfg = mkCfgEnv "mpv";
+    };
+    ytd = {
+      bin = mkBinEnv "ytd";
+      cfg = mkCfgEnv "ytd";
     };
   };
 in {
