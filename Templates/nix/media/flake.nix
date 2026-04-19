@@ -160,7 +160,7 @@
               return $rc
             }
             ytd() {
-              declare -f ble-detach &>/dev/null && ble-detach
+              declare -f ble-detach &>/dev/null && ble-attach
               command ytd "$@"
               local rc=$?
               wait
