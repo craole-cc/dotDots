@@ -152,19 +152,19 @@
               declare -f ble-attach &>/dev/null && ble-attach
             }
             mpv() {
-              ble-detach 2>/dev/null || true
+              declare -f ble-detach &>/dev/null && ble-detach
               command mpv "$@"
               local rc=$?
               wait
-              ble-attach 2>/dev/null || true
+              declare -f ble-attach &>/dev/null && ble-attach
               return $rc
             }
             ytd() {
-              ble-detach 2>/dev/null || true
+              declare -f ble-detach &>/dev/null && ble-detach
               command ytd "$@"
               local rc=$?
               wait
-              ble-attach 2>/dev/null || true
+              declare -f ble-attach &>/dev/null && ble-attach
               return $rc
             }
 
