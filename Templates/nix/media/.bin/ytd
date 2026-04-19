@@ -10,7 +10,9 @@ main() {
 set_defaults() {
   URL=""
   FMT="best"
+  # shellcheck disable=SC2124
   DIR="${@downloadsVar@:?@downloadsVar@ is not set}"
+  # shellcheck disable=SC2124
   CFG_DIR="${@cfgVar@:?@cfgVar@ is not set}"
   CFG="${CFG_DIR}/yt-dlp.conf"
 }

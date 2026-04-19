@@ -2,8 +2,10 @@
 set -euo pipefail
 
 main() {
-  local cfg_dir="${APP_CFG_MPD:?APP_CFG_MPD is not set}"
-  local music_dir="${APP_MUSIC:?APP_MUSIC is not set}"
+  # shellcheck disable=SC2124
+  local cfg_dir="${@cfgVar@:?@cfgVar@ is not set}"
+  # shellcheck disable=SC2124
+  local music_dir="${@musicVar@:?@musicVar@ is not set}"
 
   mkdir -p "${cfg_dir}/playlists" "${music_dir}"
 

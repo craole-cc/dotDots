@@ -35,7 +35,7 @@
     cfg = {
       base = {
         store = paths.src.store + "/.cfg";
-        local = "$HOME" + "/.config";
+        local = "$HOME/.config/${name}";
       };
       mpd = {
         store = paths.cfg.base.store + "/mpd";

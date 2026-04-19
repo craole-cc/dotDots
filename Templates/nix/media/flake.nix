@@ -56,7 +56,7 @@
 
         #> Substitute @ytdlp@ in mpv settings.conf at build time
         mpvSettings = pkgs.substituteAll {
-          src = paths.cfg.mpv.store + "/settings.conf";
+          src = "${paths.cfg.mpv.store}/settings.conf";
           ytdlp = pkgs.yt-dlp;
         };
 
@@ -82,31 +82,32 @@
           packages =
             [scripts]
             ++ (with pkgs; [
-              feh
-              imv
-              swww
-              ncmpcpp
-              mpc-cli
-              mpd
-              curseradio
-              playerctl
-              pamixer
-              shortwave
-              strawberry
+              bash
               btop
-              ffmpeg
               curl
+              curseradio
+              feh
+              ffmpeg
+              freetube
               fzf
+              imv
               jq
               libnotify
               mediainfo
-              rlwrap
-              socat
-              xclip
-              freetube
+              mpc-cli
+              mpd
               mpvc
+              ncmpcpp
+              noto-fonts-emoji
+              pamixer
+              playerctl
+              rlwrap
+              shortwave
+              socat
+              strawberry
+              swww
+              xclip
               yt-dlp
-              bash
             ]);
 
           shellHook = ''
@@ -129,29 +130,42 @@
               "${e.pictures.val}"\
               "${e.downloads.val}"
 
-            #> Always sync config templates (preserves user edits via git)
-            cp --no-preserve=mode ${mpvSettings}                       "${e.mpv.cfg.val}/mpv.conf"
-            cp --no-preserve=mode ${paths.cfg.mpv.store}/input.conf    "${e.mpv.cfg.val}/input.conf"
-            cp --no-preserve=mode ${paths.cfg.mpd.store}/settings.conf "${e.mpd.cfg.val}/mpd.conf"
-            cp --no-preserve=mode ${paths.cfg.ytd.store}/settings.conf "${e.ytd.cfg.val}/yt-dlp.conf"
-            # [[ -f "${e.mpv.cfg.val}/mpv.conf" ]] ||
-            #   cp --no-preserve=mode \
-            #     ${mpvSettings} "${e.mpv.cfg.val}/mpv.conf"
-            # [[ -f "${e.mpv.cfg.val}/input.conf" ]] ||
-            #   cp --no-preserve=mode \
-            #     ${paths.cfg.mpv.store}/input.conf "${e.mpv.cfg.val}/input.conf"
-            # [[ -f "${e.mpd.cfg.val}/mpd.conf" ]] ||
-            #   cp --no-preserve=mode \
-            #     ${paths.cfg.mpd.store}/settings.conf "${e.mpd.cfg.val}/mpd.conf"
-            # [[ -f "${e.ytd.cfg.val}/yt-dlp.conf" ]] ||
-            #   cp --no-preserve=mode \
-            #     ${paths.cfg.ytd.store}/settings.conf "${e.ytd.cfg.val}/yt-dlp.conf"
+            #> Deploy configs into namespaced dirs (first run only)
+            [[ -d "${e.mpv.cfg.val}" ]] || {
+              mkdir -p "${e.mpv.cfg.val}"
+              cp --no-preserve=mode ${mpvSettings}                    "${e.mpv.cfg.val}/mpv.conf"
+              cp --no-preserve=mode ${paths.cfg.mpv.store}/input.conf "${e.mpv.cfg.val}/input.conf"
+            }
+            [[ -d "${e.mpd.cfg.val}" ]] || {
+              mkdir -p "${e.mpd.cfg.val}"
+              cp --no-preserve=mode ${paths.cfg.mpd.store}/settings.conf "${e.mpd.cfg.val}/mpd.conf"
+            }
+            [[ -d "${e.ytd.cfg.val}" ]] || {
+              mkdir -p "${e.ytd.cfg.val}"
+              cp --no-preserve=mode ${paths.cfg.ytd.store}/settings.conf "${e.ytd.cfg.val}/yt-dlp.conf"
+            }
 
             #> ble.sh compatibility
             ncmpcpp() {
               declare -f ble-detach &>/dev/null && ble-detach
               command ncmpcpp "$@"
               declare -f ble-attach &>/dev/null && ble-attach
+            }
+            mpv() {
+              ble-detach 2>/dev/null || true
+              command mpv "$@"
+              local rc=$?
+              wait
+              ble-attach 2>/dev/null || true
+              return $rc
+            }
+            ytd() {
+              ble-detach 2>/dev/null || true
+              command ytd "$@"
+              local rc=$?
+              wait
+              ble-attach 2>/dev/null || true
+              return $rc
             }
 
             printf "%s\n\n" "${description}"

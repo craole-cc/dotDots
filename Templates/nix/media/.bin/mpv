@@ -1,8 +1,29 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2124
 set -euo pipefail
+
 main() {
   local cfg_dir="${@cfgVar@:?@cfgVar@ is not set}"
   mkdir -p "${cfg_dir}"
-  "@cmd@" --config-dir="${cfg_dir}" "$@"
+ "@cmd@" --config-dir="${cfg_dir}" "$@" \
+    2> >(grep -iv \
+      -e "amdgpu" \
+      -e "mesa" \
+      -e "vdpau" \
+      -e "vdp_" \
+      -e "cuda" \
+      -e "vaapi" \
+      -e "AVHWDevice" \
+      -e "v4l2m2m" \
+      -e "VT_GET" \
+      -e "VT switcher" \
+      -e "VT release" \
+      -e "egl" \
+      -e "vo/gpu" \
+      -e "atomic request" \
+      -e "ioctl" \
+      -e "osd/libass" \
+      >&2)
 }
+
 main "$@"
