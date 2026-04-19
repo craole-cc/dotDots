@@ -1,21 +1,6 @@
 {
   description ? "🎬 Comprehensive Media Environment",
   name ? "media",
-  paths ? {
-    src = ./.;
-    bin = rec {
-      base = ./.bin;
-      ytd = base + "/ytd";
-      mpv = base + "/mpv";
-      mpd = base + "/mpd";
-    };
-    cfg = rec {
-      base = ./.cfg;
-      ytd = base + "/ytd";
-      mpv = base + "/mpv";
-      mpd = base + "/mpd";
-    };
-  },
   lib ? null,
   inputs ? null,
   system ?
@@ -23,6 +8,71 @@
     then builtins.currentSystem
     else "x86_64-linux",
   config ? {allowUnfree = true;},
+  sep ? "_",
+  paths ? {
+    src = {
+      store = ./.;
+      local = "$PWD";
+    };
+    bin = {
+      base = {
+        store = paths.src.store + "/.bin";
+        local = paths.src.local + "/.bin";
+      };
+      mpd = {
+        store = paths.bin.base.store + "/mpd";
+        local = paths.bin.base.local + "/mpd";
+      };
+      mpv = {
+        store = paths.bin.base.store + "/mpv";
+        local = paths.bin.base.local + "/mpv";
+      };
+      ytd = {
+        store = paths.bin.base.store + "/ytd";
+        local = paths.bin.base.local + "/ytd";
+      };
+    };
+    cfg = {
+      base = {
+        store = paths.src.store + "/.cfg";
+        local = "$HOME" + "/.config";
+      };
+      mpd = {
+        store = paths.cfg.base.store + "/mpd";
+        local = paths.cfg.base.local + "/mpd";
+      };
+      mpv = {
+        store = paths.cfg.base.store + "/mpv";
+        local = paths.cfg.base.local + "/mpv";
+      };
+      ytd = {
+        store = paths.cfg.base.store + "/ytd";
+        local = paths.cfg.base.local + "/ytd";
+      };
+    };
+    data = {
+      home = {
+        store = paths.src.store;
+        local = "$HOME";
+      };
+      downloads = {
+        store = paths.data.home.store + "/Downloads";
+        local = paths.data.home.local + "/Downloads";
+      };
+      music = {
+        store = paths.data.home.store + "/Music";
+        local = paths.data.home.local + "/Music";
+      };
+      pictures = {
+        store = paths.data.home.store + "/Pictures";
+        local = paths.data.home.local + "/Pictures";
+      };
+      videos = {
+        store = paths.data.home.store + "/Videos";
+        local = paths.data.home.local + "/Videos";
+      };
+    };
+  },
 }: let
   inherit (builtins) head hasAttr isAttrs pathExists tail;
 
@@ -66,79 +116,198 @@
     if paths ? libraries && pathExists paths.libraries
     then import paths.libraries {lib = lib';}
     else lib';
-
   inherit (libraries.strings) concatStringsSep isString toUpper;
   inherit (libraries.lists) elem;
   inherit (libraries.attrsets) listToAttrs;
-
   environment = let
     toolKinds = ["bin" "cfg"];
     validKinds = ["src"] ++ toolKinds;
+    dataKinds = ["music" "videos" "pictures" "downloads"];
 
-    mkVar = {
-      parts,
-      sep ? "_",
-    }:
-      toUpper (concatStringsSep sep parts);
+    mkVar = parts: toUpper (concatStringsSep sep parts);
 
+    #> Flat entry — reads .local from the matching paths leaf
     mkKindEnv = kind: {
-      var = mkVar {
-        parts = [
-          name
-          (
-            if kind == "src"
-            then "root"
-            else kind
-          )
-        ];
-      };
+      var = mkVar [
+        name
+        (
+          if kind == "src"
+          then "root"
+          else kind
+        )
+      ];
       val =
         if kind == "src"
-        then paths.src
-        else paths.${kind}.base;
+        then paths.src.local
+        else paths.${kind}.base.local;
     };
 
+    #> Nested entry — reads .local for each toolKind from paths
     mkToolEnv = tool:
       listToAttrs (map (kind: {
           name = kind;
           value = {
-            var = mkVar {parts = [name tool kind];};
-            val = paths.${kind}.${tool};
+            var = mkVar [name tool kind];
+            val = paths.${kind}.${tool}.local;
           };
         })
         toolKinds);
+
+    #> Data dir entry — reads from paths.data
+    mkDataEnv = dir: {
+      var = mkVar [name dir];
+      val = paths.data.${dir}.local;
+    };
 
     mkEnv = args:
       if isString args
       then
         if elem args validKinds
-        then throw "mkEnv: '${args}' is a kind, did you mean to use { key = \"${args}\"; flat = true; }?"
+        then throw "mkEnv: '${args}' is a kind — use { key = \"${args}\"; flat = true; }"
+        else if elem args dataKinds
+        then mkDataEnv args
         else mkToolEnv args
       else if args.flat or false
       then
         if !(elem args.key validKinds)
         then throw "mkEnv: invalid kind '${args.key}', must be one of ${toString validKinds}"
         else mkKindEnv args.key
-      else throw "mkEnv: expected a string tool name or { key; flat = true; }";
-  in {
-    src = mkEnv {
-      key = "src";
-      flat = true;
-    };
-    bin = mkEnv {
-      key = "bin";
-      flat = true;
-    };
-    cfg = mkEnv {
-      key = "cfg";
-      flat = true;
-    };
-    mpd = mkEnv "mpd";
-    mpv = mkEnv "mpv";
-    ytd = mkEnv "ytd";
-  };
+      else throw "mkEnv: expected a string or { key; flat = true; }";
+  in
+    {
+      src = mkEnv {
+        key = "src";
+        flat = true;
+      };
+      bin = mkEnv {
+        key = "bin";
+        flat = true;
+      };
+      cfg = mkEnv {
+        key = "cfg";
+        flat = true;
+      };
+      mpd = mkEnv "mpd";
+      mpv = mkEnv "mpv";
+      ytd = mkEnv "ytd";
+    }
+    // listToAttrs (map (dir: {
+        name = dir;
+        value = mkEnv dir;
+      })
+      dataKinds);
+  # environment = let
+  #   toolKinds = ["bin" "cfg"];
+  #   validKinds = ["src"] ++ toolKinds;
+  #   userDirs = ["music" "videos" "pictures" "downloads"];
+  #   mkVar = {
+  #     parts,
+  #     sep ? "_",
+  #   }:
+  #     toUpper (concatStringsSep sep parts);
+  #   mkKindEnv = kind: {
+  #     var = mkVar {
+  #       parts = [
+  #         name
+  #         (
+  #           if kind == "src"
+  #           then "root"
+  #           else kind
+  #         )
+  #       ];
+  #     };
+  #     val =
+  #       if kind == "src"
+  #       then paths.src
+  #       else paths.${kind}.base;
+  #   };
+  #   mkToolEnv = tool:
+  #     listToAttrs (map (kind: {
+  #         name = kind;
+  #         value = {
+  #           var = mkVar {parts = [name tool kind];};
+  #           val = paths.${kind}.${tool};
+  #         };
+  #       })
+  #       toolKinds);
+  #   mkUserEnv = dir: {
+  #     var = mkVar {parts = [name dir];};
+  #     val = dir;
+  #   };
+  #   mkEnv = args:
+  #     if isString args
+  #     then
+  #       if elem args validKinds
+  #       then throw "mkEnv: '${args}' is a kind, did you mean to use { key = \"${args}\"; flat = true; }?"
+  #       else mkToolEnv args
+  #     else if args.flat or false
+  #     then
+  #       if !(elem args.key validKinds)
+  #       then throw "mkEnv: invalid kind '${args.key}', must be one of ${toString validKinds}"
+  #       else mkKindEnv args.key
+  #     else throw "mkEnv: expected a string tool name or { key; flat = true; }";
+  #   build = {
+  #     src = mkEnv {
+  #       key = "src";
+  #       flat = true;
+  #     };
+  #     bin = mkEnv {
+  #       key = "bin";
+  #       flat = true;
+  #     };
+  #     cfg = mkEnv {
+  #       key = "cfg";
+  #       flat = true;
+  #     };
+  #     mpd = mkEnv "mpd";
+  #     mpv = mkEnv "mpv";
+  #     ytd = mkEnv "ytd";
+  #     music = mkUserEnv "music";
+  #     videos = mkUserEnv "videos";
+  #     pictures = mkUserEnv "pictures";
+  #     downloads = mkUserEnv "downloads";
+  #   };
+  #   #> Runtime cfg dirs (writable, under $HOME)
+  #   runtime = {
+  #     mpv = {
+  #       inherit (build.mpv.cfg) var;
+  #       val = "$HOME/.config/${name}/mpv";
+  #     };
+  #     mpd = {
+  #       inherit (build.mpd.cfg) var;
+  #       val = "$HOME/.config/${name}/mpd";
+  #     };
+  #     ytd = {
+  #       inherit (build.ytd.cfg) var;
+  #       val = "$HOME/.config/${name}/ytd";
+  #     };
+  #     downloads = {
+  #       inherit (build.downloads) var;
+  #       val = "$HOME/Downloads";
+  #     };
+  #     music = {
+  #       inherit (build.music) var;
+  #       val = "$HOME/Music";
+  #     };
+  #     pictures = {
+  #       inherit (build.pictures) var;
+  #       val = "$HOME/Pictures";
+  #     };
+  #     videos = {
+  #       inherit (build.videos) var;
+  #       val = "$HOME/Videos";
+  #     };
+  #   };
+  # in {inherit build runtime;};
 in {
-  inherit description name paths system;
+  inherit
+    description
+    name
+    paths
+    system
+    environment
+    libraries
+    ;
   env = environment;
   lib = libraries;
   pkgs = nixpkgs;
