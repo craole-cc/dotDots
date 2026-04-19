@@ -66,20 +66,18 @@
           if isLeaf v
           then [v]
           else concatMap collectLeaves (attrValues v);
-
-        shellEnv = listToAttrs (
-          map ({
-            var,
-            val,
-          }: {
-            name = var;
-            value = toString val;
-          })
-          (collectLeaves src.env)
-        );
       in {
         devShells.default = pkgs.mkShell {
-          env = shellEnv;
+          # env = listToAttrs (
+          #   map ({
+          #     var,
+          #     val,
+          #   }: {
+          #     name = var;
+          #     value = toString val;
+          #   })
+          #   (collectLeaves e.store)
+          # );
 
           packages =
             [scripts]
@@ -112,7 +110,16 @@
             ]);
 
           shellHook = ''
-            #> Create runtime cfg dirs (writable, under $HOME)
+            #> Runtime paths — $HOME expands here correctly
+            export ${e.mpv.cfg.var}="${e.mpv.cfg.val}"
+            export ${e.mpd.cfg.var}="${e.mpd.cfg.val}"
+            export ${e.ytd.cfg.var}="${e.ytd.cfg.val}"
+            export ${e.music.var}="${e.music.val}"
+            export ${e.videos.var}="${e.videos.val}"
+            export ${e.pictures.var}="${e.pictures.val}"
+            export ${e.downloads.var}="${e.downloads.val}"
+
+            #> Create them if missing
             mkdir -p \
               "${e.mpv.cfg.val}" \
               "${e.mpd.cfg.val}" \
@@ -122,11 +129,30 @@
               "${e.pictures.val}"\
               "${e.downloads.val}"
 
-            #> Copy config templates only if not already customized
-            [[ -f "${e.mpv.cfg.val}/mpv.conf"      ]] || cp ${mpvSettings}                         "${e.mpv.cfg.val}/mpv.conf"
-            [[ -f "${e.mpv.cfg.val}/input.conf"     ]] || cp ${paths.cfg.mpv.store}/input.conf      "${e.mpv.cfg.val}/input.conf"
-            [[ -f "${e.mpd.cfg.val}/mpd.conf"       ]] || cp ${paths.cfg.mpd.store}/settings.conf   "${e.mpd.cfg.val}/mpd.conf"
-            [[ -f "${e.ytd.cfg.val}/yt-dlp.conf"    ]] || cp ${paths.cfg.ytd.store}/settings.conf   "${e.ytd.cfg.val}/yt-dlp.conf"
+            #> Always sync config templates (preserves user edits via git)
+            cp --no-preserve=mode ${mpvSettings}                       "${e.mpv.cfg.val}/mpv.conf"
+            cp --no-preserve=mode ${paths.cfg.mpv.store}/input.conf    "${e.mpv.cfg.val}/input.conf"
+            cp --no-preserve=mode ${paths.cfg.mpd.store}/settings.conf "${e.mpd.cfg.val}/mpd.conf"
+            cp --no-preserve=mode ${paths.cfg.ytd.store}/settings.conf "${e.ytd.cfg.val}/yt-dlp.conf"
+            # [[ -f "${e.mpv.cfg.val}/mpv.conf" ]] ||
+            #   cp --no-preserve=mode \
+            #     ${mpvSettings} "${e.mpv.cfg.val}/mpv.conf"
+            # [[ -f "${e.mpv.cfg.val}/input.conf" ]] ||
+            #   cp --no-preserve=mode \
+            #     ${paths.cfg.mpv.store}/input.conf "${e.mpv.cfg.val}/input.conf"
+            # [[ -f "${e.mpd.cfg.val}/mpd.conf" ]] ||
+            #   cp --no-preserve=mode \
+            #     ${paths.cfg.mpd.store}/settings.conf "${e.mpd.cfg.val}/mpd.conf"
+            # [[ -f "${e.ytd.cfg.val}/yt-dlp.conf" ]] ||
+            #   cp --no-preserve=mode \
+            #     ${paths.cfg.ytd.store}/settings.conf "${e.ytd.cfg.val}/yt-dlp.conf"
+
+            #> ble.sh compatibility
+            ncmpcpp() {
+              declare -f ble-detach &>/dev/null && ble-detach
+              command ncmpcpp "$@"
+              declare -f ble-attach &>/dev/null && ble-attach
+            }
 
             printf "%s\n\n" "${description}"
             printf "Video Tools:\n"

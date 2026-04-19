@@ -3,6 +3,6 @@ set -euo pipefail
 main() {
   local cfg_dir="${@cfgVar@:?@cfgVar@ is not set}"
   mkdir -p "${cfg_dir}"
-  exec "@cmd@" --config-dir="${cfg_dir}" "$@"
+  "@cmd@" --config-dir="${cfg_dir}" "$@"
 }
 main "$@"

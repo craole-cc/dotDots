@@ -7,7 +7,7 @@ main() {
 
   mkdir -p "${cfg_dir}/playlists" "${music_dir}"
 
-  exec "@cmd@" --no-daemon "${cfg_dir}/mpd.conf" "$@"
+  "@cmd@" --no-daemon "${cfg_dir}/mpd.conf" "$@"
 }
 
 main "$@"

@@ -10,8 +10,8 @@ main() {
 set_defaults() {
   URL=""
   FMT="best"
-  DIR="${APP_DOWNLOADS:?APP_DOWNLOADS is not set}"
-  CFG_DIR="${APP_CFG_YTD:?APP_CFG_YTD is not set}"
+  DIR="${@downloadsVar@:?@downloadsVar@ is not set}"
+  CFG_DIR="${@cfgVar@:?@cfgVar@ is not set}"
   CFG="${CFG_DIR}/yt-dlp.conf"
 }
 
@@ -51,22 +51,20 @@ parse_arguments() {
 
 execute_command() {
   mkdir -p "$DIR" "$(dirname "$CFG")"
-
   case "$FMT" in
     best)
-      exec "@cmd@" --config-location "$CFG" \
+      "@cmd@" --config-location "$CFG" \
         --output "${DIR}/%(title)s.%(ext)s" \
         "$URL"
       ;;
     audio)
-      exec "@cmd@" --config-location "$CFG" \
-        --extract-audio \
-        --audio-format mp3 \
+      "@cmd@" --config-location "$CFG" \
+        --extract-audio --audio-format mp3 \
         --output "${DIR}/%(title)s.%(ext)s" \
         "$URL"
       ;;
     *)
-      exec "@cmd@" --config-location "$CFG" \
+      "@cmd@" --config-location "$CFG" \
         --format "bestvideo[height<=${FMT%p}]+bestaudio/best[height<=${FMT%p}]" \
         --output "${DIR}/%(title)s.%(ext)s" \
         "$URL"
