@@ -4,21 +4,26 @@
   ...
 }: let
   inherit (lib.attrsets) mapAttrsToList;
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.lists) filter;
+  inherit (lib.strings) concatStringsSep hasPrefix mkStyledOutput;
 
-  styles = let
-    gum = "${pkgs.gum}/bin/gum";
-  in {
-    error = "${gum} style --foreground 196 --bold --border normal --border-foreground 196 --padding '0 1'";
-    success = "${gum} style --foreground 46 --bold";
-    warning = "${gum} style --foreground 226 --bold";
-    info = "${gum} style --foreground 250";
-    code = "${gum} style --foreground 87";
-  };
+  print = mkStyledOutput {inherit pkgs;};
+  list = [
+    ".cargo/config.toml"
+    ".envrc"
+    ".gitignore"
+    ".markdownlint-cli2.yaml"
+    ".mise.toml"
+    "mise.toml"
+    ".treefmt.toml"
+    "treefmt.toml"
+  ];
+  drop = concatStringsSep " " list;
+  keep = concatStringsSep " " (filter (hasPrefix ".") list);
 
   all = {
     cargo = {
-      source = ./cargo-config.toml;
+      source = ./cargo.toml;
       target = "config/config.toml";
     };
     envrc = {
@@ -53,23 +58,30 @@
 
     # 1. Source check
     if [ ! -f "${source}" ]; then
-      ${styles.error} "❌ ERROR: Template source '${source}' is missing!" >&2
+      ${print.error} "❌ ERROR: Template source '${source}' is missing!" >&2
       exit 1
     fi
 
     mkdir -p "$TARGET_DIR"
 
+      chmod +w ${keep} 2>/dev/null || true
+      git rm -r --cached .direnv target 2>/dev/null || true
+      git rm --cached ${drop} 2>/dev/null || true
+
+      if ! direnv status 2>/dev/null | grep -q "Found RC allowed 2"; then
+        ${print.confirmation} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
+      fi
     # 2. Deployment check
     if [ ! -f "$FULL_TARGET" ]; then
-      ${styles.success} "✨ Deploying missing template to: $FULL_TARGET"
+      ${print.success} "✨ Deploying missing template to: $FULL_TARGET"
       cp "${source}" "$FULL_TARGET"
       chmod u+w "$FULL_TARGET"
     else
       # 3. Sync check
       if ! cmp -s "${source}" "$FULL_TARGET"; then
-        ${styles.warning} "⚠️  WARNING: '$FULL_TARGET' is out of sync with its template." >&2
-        ${styles.info} "   -> Action needed: Review changes manually or force sync with:" >&2
-        ${styles.code} "      cp ${source} $FULL_TARGET && chmod u+w $FULL_TARGET" >&2
+        ${print.warning} "⚠️  WARNING: '$FULL_TARGET' is out of sync with its template." >&2
+        ${print.info} "   -> Action needed: Review changes manually or force sync with:" >&2
+        ${print.code} " cp ${source} $FULL_TARGET && chmod u+w $FULL_TARGET" >&2
       fi
     fi
   '';

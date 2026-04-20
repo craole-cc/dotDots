@@ -78,82 +78,12 @@ Shell finalization helpers for lib.shells.
   in
     pkgs'.mkShell args;
 
-  # mkShells = {
-  #   inputs,
-  #   shells ? {},
-  #   default ? null,
-  # }:
-  #   mapAttrs
-  #   (_: pkgs: let
-  #     processShell = shell:
-  #       if isDerivation shell
-  #       then shell
-  #       else mkShell {inherit pkgs shell;};
-
-  #     processedShells = mapAttrs (_: processShell) shells;
-
-  #     defaultShell =
-  #       if isEmpty default
-  #       then
-  #         #> Find the first actual derivation in the set
-  #         let
-  #           found =
-  #             findFirst
-  #             isDerivation
-  #             null
-  #             (attrValues processedShells);
-  #         in
-  #           if found == null
-  #           then throw "mkShells: No shells defined and no default provided."
-  #           else found
-  #       else if isString default
-  #       then
-  #         processedShells.${
-  #           default
-  #         } or (throw ''
-  #           mkShells: default shell '${default}' not found.
-  #           Available shells: ${
-  #             concatStringsSep ", " (attrNames processedShells)
-  #           }'')
-  #       else if isDerivation default
-  #       then default
-  #       else processShell default;
-  #   in
-  #     processedShells // {default = defaultShell;})
-  #   (mkPkgsPerSystem {inherit inputs;});
-  # mkShells = {
-  #   inputs ? {},
-  #   shells ? {},
-  #   default ? null,
-  # }: let
-  #   resolvedDefault =
-  #     if default == null
-  #     then let
-  #       found = findFirst isDerivation null (attrValues shells);
-  #     in
-  #       if found == null
-  #       then throw "mkShells: no shells defined and no default provided."
-  #       else found
-  #     else if isString default
-  #     then
-  #       shells.${
-  #         default
-  #       }
-  #     or (throw ''
-  #         mkShells: default shell '${default}' not found.
-  #         Available: ${concatStringsSep ", " (attrNames shells)}'')
-  #     else if isDerivation default
-  #     then default
-  #     else mkShell {shell = default;};
-  # in
-  #   genAttrs (supportedSystems {})
-  #   (_: (shells // {default = resolvedDefault;}));
   mkShells = {
-    inputs ? {}, # DO NOT comment this out! It is required for pure flake evaluation.
+    inputs ? {},
     shells ? {},
     default ? null,
   }:
-  # Iterate over all systems, generating native pkgs for each (Linux & Mac compatibility)
+  #> Iterate over all systems, generating native pkgs for each (Linux & Mac compatibility)
     mapAttrs (
       system: pkgs: let
         # This helper ensures every shell gets the correct pkgs and system context
@@ -183,7 +113,6 @@ Shell finalization helpers for lib.shells.
             } or (throw ''
               mkShells: default shell '${default}' not found.
               Available: ${concatStringsSep ", " (attrNames processedShells)}'')
-          # processShell handles both raw derivations and attrset specs safely
           else processShell default;
       in
         processedShells // {default = resolvedDefault;}

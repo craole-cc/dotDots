@@ -1,8 +1,3 @@
-/**
-libraries/strings/core.nix
-
-String utilities for lib.strings.
-*/
 {lib}: let
   inherit (lib.lists) filter map;
   inherit

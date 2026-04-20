@@ -3,6 +3,7 @@
   paths ? {
     libraries = ./libraries;
     environment = ./environment;
+    templates = ./templates;
     modules = ./modules;
     config = ./config;
     downloads = ./downloads;
