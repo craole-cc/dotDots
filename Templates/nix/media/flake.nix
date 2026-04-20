@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixurl = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -9,8 +9,10 @@
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
-        inherit (lib.attrsets) attrValues listToAttrs;
+        inherit (lib.attrsets) attrValues;
         inherit (lib.lists) concatMap;
+        inherit (lib.strings) readFile;
+        inherit (pkgs) substituteAll symlinkJoin writeShellScriptBin;
 
         e = src.env;
 
@@ -20,22 +22,22 @@
           cmd,
           extraSubstitutions ? {},
         }:
-          pkgs.substituteAll ({
+          substituteAll ({
               src = scriptPath;
               inherit cmd;
               isExecutable = true;
             }
             // extraSubstitutions);
 
-        scripts = pkgs.symlinkJoin {
+        scripts = symlinkJoin {
           name = "${name}-scripts";
           paths = [
-            (pkgs.writeShellScriptBin "mpv" (builtins.readFile (mkScript {
+            (writeShellScriptBin "mpv" (readFile (mkScript {
               scriptPath = paths.bin.mpv.store;
               cmd = "${pkgs.mpv}/bin/mpv";
               extraSubstitutions = {cfgVar = e.mpv.cfg.var;};
             })))
-            (pkgs.writeShellScriptBin "mpd" (builtins.readFile (mkScript {
+            (writeShellScriptBin "mpd" (readFile (mkScript {
               scriptPath = paths.bin.mpd.store;
               cmd = "${pkgs.mpd}/bin/mpd";
               extraSubstitutions = {
@@ -43,7 +45,7 @@
                 musicVar = e.music.var;
               };
             })))
-            (pkgs.writeShellScriptBin "ytd" (builtins.readFile (mkScript {
+            (writeShellScriptBin "ytd" (readFile (mkScript {
               scriptPath = paths.bin.ytd.store;
               cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
               extraSubstitutions = {
@@ -55,7 +57,7 @@
         };
 
         #> Substitute @ytdlp@ in mpv settings.conf at build time
-        mpvSettings = pkgs.substituteAll {
+        mpvSettings = substituteAll {
           src = "${paths.cfg.mpv.store}/settings.conf";
           ytdlp = pkgs.yt-dlp;
         };
@@ -78,10 +80,13 @@
           #   })
           #   (collectLeaves e.store)
           # );
+          # env = {
+          #   # ${e.mpv.cfg.var} = e.mpv.cfg.val;
+          #   pop = "lol";
+          # };
 
           packages =
-            [scripts]
-            ++ (with pkgs; [
+            (with pkgs; [
               bash
               btop
               curl
@@ -108,7 +113,8 @@
               swww
               xclip
               yt-dlp
-            ]);
+            ])
+            ++ [scripts];
 
           shellHook = ''
             #> Runtime paths — $HOME expands here correctly
@@ -133,7 +139,7 @@
             #> Deploy configs into namespaced dirs (first run only)
             [[ -d "${e.mpv.cfg.val}" ]] || {
               mkdir -p "${e.mpv.cfg.val}"
-              cp --no-preserve=mode ${mpvSettings}                    "${e.mpv.cfg.val}/mpv.conf"
+              cp --no-preserve=mode ${mpvSettings} "${e.mpv.cfg.val}/mpv.conf"
               cp --no-preserve=mode ${paths.cfg.mpv.store}/input.conf "${e.mpv.cfg.val}/input.conf"
             }
             [[ -d "${e.mpd.cfg.val}" ]] || {
