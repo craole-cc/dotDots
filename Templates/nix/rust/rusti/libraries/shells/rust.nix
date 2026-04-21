@@ -1,4 +1,5 @@
 {lib}: let
+  inherit (lib.packages) mkBins;
   /**
   Build the Rust-focused shell specification.
 
@@ -25,145 +26,138 @@
   */
   mkRustSpec = {
     pkgs,
-    mkTools,
-    mkEnvironment,
-    mkTemplates,
-    mkWelcome,
-    channel ? "nightly",
+    channel ? null,
+    targets ? null,
+    extensions ? null,
+    includeEditor ? true,
   }: let
+    inherit (lib.attrsets) optionalAttrs;
+    inherit (lib.lists) optionals;
     inherit (lib.packages) mkRust;
     inherit (pkgs.stdenv) isDarwin;
-    inherit (pkgs.lib.lists) optionals;
 
-    rust = mkRust {inherit pkgs channel;};
-    templates = mkTemplates {inherit pkgs;};
-    tools = mkTools {inherit pkgs rust templates;};
-    env = mkEnvironment {inherit rust channel;};
-    welcome = mkWelcome {inherit pkgs tools;};
+    rust = mkRust {inherit pkgs channel targets extensions;};
+    tools = with pkgs;
+      {
+        inherit
+          #~@ Build Essentials
+          gcc
+          #~@ Development
+          cargo-leptos
+          trunk
+          binaryen
+          #~@ Build & Watch
+          cargo-watch
+          cargo-make
+          bacon
+          #~@ Dependencies & Security
+          cargo-edit
+          cargo-outdated
+          cargo-audit
+          cargo-deny
+          #~@ Performance & Analysis
+          cargo-flamegraph
+          cargo-bloat
+          cargo-expand
+          #~@ Testing & Quality
+          cargo-nextest
+          cargo-tarpaulin
+          #~@ Formatting
+          leptosfmt
+          rustfmt
+          taplo
+          treefmt
+          yamlfmt
+          ;
+      }
+      // optionalAttrs includeEditor {
+        #~@ Editor
+        inherit helix;
+        inherit (jetbrains) rust-rover;
+      };
+
+    bin =
+      mkBins tools
+      // {
+        cargo = "${rust}/bin/cargo";
+        rustc = "${rust}/bin/rustc";
+      };
+
+    cmd =
+      {
+        inherit rust;
+        audit = "${bin.cargo} audit";
+        baconv = ''
+          ${bin.bacon} --version 2>&1 |
+            ${cmd.awk} '{print substr($2, 1)}'
+        '';
+        bench = "${bin.cargo} bench";
+        clippy = "${bin.cargo} clippy -- -D warnings";
+        coverage = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
+        leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
+        rustv = "${bin.rustc} --version | cut -d ' ' -f2";
+        rustvv = "${bin.rustc} --version | cut -d ' ' -f2-";
+        test = "${bin.cargo} nextest run";
+        watch = "${bin.cargo} watch --quiet --clear --exec";
+        watch-lint = "${cmd.watch} 'clippy -- -D warnings'";
+        watch-run = "${cmd.watch} 'run'";
+        watch-test = "${cmd.watch} 'nextest run'";
+      }
+      // optionalAttrs includeEditor {
+        rr = bin.rust-rover;
+        rrv = ''
+          ${cmd.rr} --version 2>&1 | head -n1 |
+            ${cmd.awk} '{print substr($2, 1)}'
+        '';
+      };
+
+    packages = with pkgs;
+      [
+        #~@ Build Essentials
+        gcc
+        #~@ Development
+        cargo-leptos
+        trunk
+        binaryen
+        #~@ Build & Watch
+        cargo-watch
+        cargo-make
+        bacon
+        #~@ Dependencies & Security
+        cargo-edit
+        cargo-outdated
+        cargo-audit
+        cargo-deny
+        #~@ Performance & Analysis
+        cargo-flamegraph
+        cargo-bloat
+        cargo-expand
+        #~@ Testing & Quality
+        cargo-nextest
+        cargo-tarpaulin
+        #~@ Formatting
+        leptosfmt
+        markdownlint-cli2
+        prettierd
+        rustfmt
+        taplo
+        treefmt
+        yamlfmt
+      ]
+      ++ optionals includeEditor (with pkgs; [helix jetbrains.rust-rover])
+      ++ optionals isDarwin (with pkgs; [libiconv]);
   in {
     __meta = {
       kind = "rust";
-      inherit channel rust templates tools welcome pkgs;
+      inherit channel rust tools pkgs;
     };
 
     shell = {
       name = "rust-${channel}";
-      packages = tools.packages ++ optionals isDarwin [pkgs.libiconv];
-      env = env;
+      packages = packages ++ optionals isDarwin [pkgs.libiconv];
+      # env = env;
       shellHook = ''
-        ${tools.init}
-        [ -n "$PRJ_HOME" ] || PRJ_HOME=$PWD
-        [ -n "$PRJ_NAME" ] || PRJ_NAME=$(basename "$PRJ_HOME")
-        RUST_VERSION=$(${tools.rustvv})
-        export PRJ_HOME PRJ_NAME RUST_VERSION
-        ${welcome}
       '';
     };
   };
-
-  /**
-  Build the AI-tooling shell specification.
-
-  # Type
-  ```nix
-  mkAiSpec :: {
-    lib :: AttrSet;
-    pkgs :: AttrSet;
-  } -> AttrSet
-  ```
-
-  # Examples
-  ```nix
-  mkAiSpec { inherit lib pkgs; }
-  # => {
-  #   __meta.kind = "ai";
-  #   shell.name = "ai-dev";
-  #   ...
-  # }
-  ```
-
-  # Returns
-  A shell spec for the AI toolchain and its expected environment variables.
-  */
-  mkAiSpec = {
-    lib,
-    pkgs,
-  }: let
-    inherit (lib.packages) mkOpenClaw mkLLM;
-
-    claw = mkOpenClaw {inherit pkgs;};
-    llm = mkLLM {inherit pkgs lib;};
-  in {
-    __meta = {
-      kind = "ai";
-      inherit claw llm pkgs;
-    };
-
-    shell = {
-      name = "ai-dev";
-      packages = [claw.package] ++ llm.packages;
-      env = llm.env;
-      shellHook = ''
-        echo "🤖 AI Development Environment"
-        echo "   Tools: openclaw, claude-code, codex, gemini-cli, opencode"
-        echo "   Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY as needed."
-      '';
-    };
-  };
-
-  /**
-  Merge the Rust and AI shell specifications into a combined shell.
-
-  # Type
-  ```nix
-  mkCombinedSpec :: AttrSet -> AttrSet
-  ```
-
-  # Examples
-  ```nix
-  mkCombinedSpec {
-    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
-    channel = "nightly";
-  }
-  # => {
-  #   __meta.kind = "combined";
-  #   shell.name = "full-nightly";
-  #   ...
-  # }
-  ```
-
-  # Returns
-  A merged shell spec combining the Rust and AI environments.
-  */
-  mkCombinedSpec = {
-    lib,
-    pkgs,
-    mkTools,
-    mkEnvironment,
-    mkTemplates,
-    mkWelcome,
-    channel ? "nightly",
-  }: let
-    inherit (lib.shells) mergeShellSpecs;
-
-    base =
-      mergeShellSpecs
-      (mkRustSpec {
-        inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome channel;
-      })
-      (mkAiSpec {
-        inherit lib pkgs;
-      });
-  in
-    mergeShellSpecs base {
-      __meta.kind = "combined";
-      __meta.sources = ["rust.${channel}" "ai"];
-
-      shell = {
-        name = "full-${channel}";
-        packages = [];
-        env = {};
-        shellHook = "";
-      };
-    };
-in {inherit mkRustSpec mkAISpec mkCombinedSpec;}
+in {inherit mkRustSpec;}

@@ -166,4 +166,4 @@
         shellHook = "";
       };
     };
-in {inherit mkRustSpec mkAISpec mkCombinedSpec;}
+in {inherit mkRustSpec mkCombinedSpec;}

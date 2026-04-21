@@ -1,9 +1,11 @@
 # nix/tools.nix
 # All Rust dev tooling: packages, bin paths, and shell commands.
 # Returns: { packages, bin, cmd, ... } (all cmd entries also exposed at top level)
-{ pkgs, rust, templates }:
-
-let
+{
+  pkgs,
+  rust,
+  templates,
+}: let
   inherit (pkgs.lib.attrsets) attrValues mapAttrs mapAttrsToList;
   inherit (pkgs.lib.lists) filter;
   inherit (pkgs.lib.strings) concatStringsSep hasPrefix;
@@ -82,40 +84,40 @@ let
 
   cmd = {
     inherit rust;
-    awk       = bin.gawk;
-    audit     = "${bin.cargo} audit";
-    baconv    = ''
+    awk = bin.gawk;
+    audit = "${bin.cargo} audit";
+    baconv = ''
       ${bin.bacon} --version 2>&1 |
         ${cmd.awk} '{print substr($2, 1)}'
     '';
-    bench     = "${bin.cargo} bench";
-    clippy    = "${bin.cargo} clippy -- -D warnings";
-    commit    = ''
+    bench = "${bin.cargo} bench";
+    clippy = "${bin.cargo} clippy -- -D warnings";
+    commit = ''
       if [ -n "$(git status --porcelain)" ]; then
         ${cmd.yn} "Commit changes?" && ${cmd.gt}
       fi
     '';
-    coverage  = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
-    edit      = "\"$VISUAL\" \"$PWD\" > /dev/null 2>&1 & disown";
-    green     = ''${bin.gum} style --foreground=82'';
-    grey      = ''${bin.gum} style --foreground=250'';
-    gt        = "${bin.gitui}";
-    info      = "${bin.tokei}; ${bin.onefetch}";
-    init      = ''
+    coverage = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
+    edit = "\"$VISUAL\" \"$PWD\" > /dev/null 2>&1 & disown";
+    green = ''${bin.gum} style --foreground=82'';
+    grey = ''${bin.gum} style --foreground=250'';
+    gt = "${bin.gitui}";
+    info = "${bin.tokei}; ${bin.onefetch}";
+    init = ''
       mkdir -p .cargo
 
-      [ -f .cargo/config.toml ] || cp ${templates.cargo}       .cargo/config.toml
-      [ -f .envrc ]             || cp ${templates.envrc}       .envrc
-      [ -f .gitignore ]         || cp ${templates.gitignore}   .gitignore
+      [ -f .cargo/config.toml ] || cp ${templates.cargo} .cargo/config.toml
+      [ -f .envrc ] || cp ${templates.envrc} .envrc
+      [ -f .gitignore ] || cp ${templates.gitignore} .gitignore
 
-      [ -f treefmt.toml ]            && mv treefmt.toml            .treefmt.toml
-      [ -f .treefmt.toml ]           || cp ${templates.treefmt}    .treefmt.toml
+      [ -f treefmt.toml ] && mv treefmt.toml .treefmt.toml
+      [ -f .treefmt.toml ] || cp ${templates.treefmt} .treefmt.toml
 
       [ -f markdownlint-cli2.yaml ]  && mv markdownlint-cli2.yaml  .markdownlint-cli2.yaml
       [ -f .markdownlint-cli2.yaml ] || cp ${templates.markdownlint} .markdownlint-cli2.yaml
 
-      [ -f mise.toml ]               && mv mise.toml               .mise.toml
-      [ -f .mise.toml ]              || cp ${templates.mise}        .mise.toml
+      [ -f mise.toml ] && mv mise.toml .mise.toml
+      [ -f .mise.toml ] || cp ${templates.mise} .mise.toml
 
       chmod +w ${files.keep} 2>/dev/null || true
       git rm -r --cached .direnv target 2>/dev/null || true
@@ -126,7 +128,7 @@ let
       fi
     '';
     leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
-    lint       = ''
+    lint = ''
       ${cmd.init}
       ${cmd.commit}
       ${cmd.yn} "Proceed with linting?" ||
@@ -137,18 +139,18 @@ let
       ${bin.cargo} clippy         || failed=1
       exit $failed
     '';
-    magenta      = ''${bin.gum} style --foreground=212'';
+    magenta = ''${bin.gum} style --foreground=212'';
     markdownlint = bin.markdownlint-cli2;
     markdownlintv = ''
       ${bin.markdownlint-cli2} --version 2>&1 |
         head -1 | ${cmd.awk} '{print substr($2, 2)}'
     '';
-    misev      = ''${bin.mise} version 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+'  '';
-    prettiest  = bin.prettierd;
+    misev = ''${bin.mise} version 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+'  '';
+    prettiest = bin.prettierd;
     prettiestv = ''${cmd.prettiest} --version 2>&1 | cut -d ' ' -f2'';
-    red        = ''${bin.gum} style --foreground=196'';
-    reload     = ''${bin.direnv} reload'';
-    reset      = ''
+    red = ''${bin.gum} style --foreground=196'';
+    reload = ''${bin.direnv} reload'';
+    reset = ''
       ${cmd.commit}
       ${cmd.yn} "Clean cargo build cache?" && ${bin.cargo} clean
       ${cmd.yn} "Remove lock files? (flake.lock + Cargo.lock)" && {
@@ -163,20 +165,20 @@ let
         ${cmd.init}
       }
     '';
-    rustv  = "${bin.rustc} --version | cut -d ' ' -f2";
+    rustv = "${bin.rustc} --version | cut -d ' ' -f2";
     rustvv = "${bin.rustc} --version | cut -d ' ' -f2-";
-    rr     = bin.rust-rover;
-    rrv    = ''
+    rr = bin.rust-rover;
+    rrv = ''
       ${cmd.rr} --version 2>&1 | head -n1 |
         ${cmd.awk} '{print substr($2, 1)}'
     '';
-    test    = "${bin.cargo} nextest run";
-    trash   = bin.trashy;
+    test = "${bin.cargo} nextest run";
+    trash = bin.trashy;
     treefmtv = ''
       ${bin.treefmt} --version 2>&1 |
         ${cmd.awk} '{print substr($2, 2)}'
     '';
-    update  = ''
+    update = ''
       ${cmd.yellow} "Updating flake inputs..."
       nix flake update
       if [ -f Cargo.toml ]; then
@@ -206,21 +208,21 @@ let
       ${cmd.green} "    Rust-Rover |> $rover"
       ${cmd.green} "       Treefmt |> $treefmt"
     '';
-    watch      = "${bin.cargo} watch --quiet --clear --exec";
+    watch = "${bin.cargo} watch --quiet --clear --exec";
     watch-lint = "${cmd.watch} 'clippy -- -D warnings'";
-    watch-run  = "${cmd.watch} 'run'";
+    watch-run = "${cmd.watch} 'run'";
     watch-test = "${cmd.watch} 'nextest run'";
-    yellow     = ''${bin.gum} style --foreground=226'';
-    yn         = ''${bin.gum} confirm'';
+    yellow = ''${bin.gum} style --foreground=226'';
+    yn = ''${bin.gum} confirm'';
   };
 
   packages =
-    [ rust ]
+    [rust]
     ++ (attrValues tools)
     ++ (
       mapAttrsToList
       (name: val: pkgs.writeShellScriptBin name ''${val} "$@"'')
-      (removeAttrs cmd [ "rust" ])
+      (removeAttrs cmd ["rust"])
     );
 in
-  { inherit packages; } // cmd
+  {inherit packages;} // cmd

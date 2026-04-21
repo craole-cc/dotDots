@@ -4,8 +4,13 @@
   ...
 }: let
   inherit (lib.attrsets) mapAttrsToList;
-  inherit (lib.lists) filter;
-  inherit (lib.strings) concatStringsSep hasPrefix mkStyledOutput;
+  # inherit (lib.lists) filter;
+  inherit
+    (lib.strings)
+    concatStringsSep
+    # hasPrefix
+    mkStyledOutput
+    ;
 
   print = mkStyledOutput {inherit pkgs;};
   # list = [
@@ -81,7 +86,9 @@
 
   deployTemplates = templates:
     concatStringsSep "\n" (
-      mapAttrsToList (name: config: deployTemplate config) templates
+      mapAttrsToList
+      (name: config: deployTemplate config)
+      templates
     );
 in
   all // {inherit all deployTemplate deployTemplates;}

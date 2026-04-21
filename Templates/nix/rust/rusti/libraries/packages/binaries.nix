@@ -6,6 +6,9 @@ Pure package and binary resolution helpers for lib.packages.
 {lib}: let
   inherit (lib.attrsets) attrNames mapAttrs filterAttrs;
   inherit (lib.trivial) isNotEmpty;
+  inherit (lib.strings) parseDrvName;
+  inherit (lib.meta) getExe;
+  inherit (lib.trivial) isFunction;
 
   /**
   Resolve a derivation's main executable path.
@@ -28,9 +31,10 @@ Pure package and binary resolution helpers for lib.packages.
   The absolute path to the derivation's main executable.
   */
   resolveBin = drv:
-    if lib ? getExe
-    then lib.getExe drv
-    else "${drv}/bin/${drv.meta.mainProgram or drv.pname or (lib.parseDrvName drv.name).name}";
+    if isFunction getExe
+    then getExe drv
+    else "${drv}/bin/${drv.meta.mainProgram or
+      drv.pname or (parseDrvName drv.name).name}";
 
   resolveBins = packages:
     mapAttrs
