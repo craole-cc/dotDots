@@ -8,18 +8,18 @@
   inherit (lib.strings) concatStringsSep hasPrefix mkStyledOutput;
 
   print = mkStyledOutput {inherit pkgs;};
-  list = [
-    ".cargo/config.toml"
-    ".envrc"
-    ".gitignore"
-    ".markdownlint-cli2.yaml"
-    ".mise.toml"
-    "mise.toml"
-    ".treefmt.toml"
-    "treefmt.toml"
-  ];
-  drop = concatStringsSep " " list;
-  keep = concatStringsSep " " (filter (hasPrefix ".") list);
+  # list = [
+  #   ".cargo/config.toml"
+  #   ".envrc"
+  #   ".gitignore"
+  #   ".markdownlint-cli2.yaml"
+  #   ".mise.toml"
+  #   "mise.toml"
+  #   ".treefmt.toml"
+  #   "treefmt.toml"
+  # ];
+  # drop = concatStringsSep " " list;
+  # keep = concatStringsSep " " (filter (hasPrefix ".") list);
 
   all = {
     cargo = {
@@ -64,13 +64,6 @@
 
     mkdir -p "$TARGET_DIR"
 
-      chmod +w ${keep} 2>/dev/null || true
-      git rm -r --cached .direnv target 2>/dev/null || true
-      git rm --cached ${drop} 2>/dev/null || true
-
-      if ! direnv status 2>/dev/null | grep -q "Found RC allowed 2"; then
-        ${print.confirmation} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
-      fi
     # 2. Deployment check
     if [ ! -f "$FULL_TARGET" ]; then
       ${print.success} "✨ Deploying missing template to: $FULL_TARGET"
@@ -91,4 +84,4 @@
       mapAttrsToList (name: config: deployTemplate config) templates
     );
 in
-  all // {inherit all deployTemplate deployTemplates styles;}
+  all // {inherit all deployTemplate deployTemplates;}
