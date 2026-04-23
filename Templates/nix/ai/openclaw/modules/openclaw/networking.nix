@@ -8,8 +8,10 @@
   inherit (lib.strings) concatStringsSep optionalString;
 
   cfg = config.services.openclaw;
+  nginx = config.services.nginx;
+  tls = cfg.tls;
 
-  # Common security headers applied in both nginx and caddy snippets.
+  #? Common security headers applied in both nginx and caddy snippets.
   securityHeaders = {
     "X-Frame-Options" = "DENY";
     "X-Content-Type-Options" = "nosniff";
@@ -32,15 +34,15 @@ in
     # Include this in your NixOS nginx config with:
     #   services.nginx.virtualHosts."openclaw.example.com" =
     #     config.services.openclaw._nginxVhostAttrs;
-    services.openclaw._nginxVhostAttrs = mkIf config.services.nginx.enable {
-      forceSSL = cfg.tls.enable;
-      enableACME = cfg.tls.enable;
+    services.openclaw._nginxVhostAttrs = mkIf nginx.enable {
+      forceSSL = tls.enable;
+      enableACME = tls.enable;
 
       extraConfig = ''
         # Security headers
         ${nginxHeaderLines}
 
-        ${optionalString cfg.tls.enable ''
+        ${optionalString tls.enable ''
           # TLS hardening
           ssl_protocols TLSv1.2 TLSv1.3;
           ssl_ciphers "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384";
@@ -56,7 +58,7 @@ in
 
       locations."/" = {
         proxyPass = "http${
-          if cfg.tls.enable
+          if tls.enable
           then "s"
           else ""
         }://${cfg.host}:${toString cfg.port}";
@@ -94,9 +96,15 @@ in
         Referrer-Policy           "strict-origin-when-cross-origin"
         Content-Security-Policy   "default-src 'self'"
         Permissions-Policy        "geolocation=(), microphone=(), camera=()"
-        ${optionalString cfg.tls.enable ''Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"''}
+        ${
+        optionalString tls.enable
+        ''Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"''
+      }
       }
 
-      ${optionalString cfg.tls.enable "tls { protocols tls1.2 tls1.3 }"}
+      ${
+        optionalString tls.enable
+        "tls { protocols tls1.2 tls1.3 }"
+      }
     '';
   }

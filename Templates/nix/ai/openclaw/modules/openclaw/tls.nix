@@ -8,7 +8,6 @@
   cfg = config.services.openclaw;
 in
   mkIf (cfg.enable && cfg.tls.enable) {
-    # Validate that cert and key paths are provided when TLS is enabled.
     assertions = [
       {
         assertion = cfg.tls.certFile != null;

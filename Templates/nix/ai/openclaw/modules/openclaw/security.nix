@@ -5,7 +5,9 @@
 }: let
   inherit (lib.modules) mkDefault mkIf;
   inherit (lib.strings) optionalString;
+
   cfg = config.services.openclaw;
+  tls = cfg.tls;
 in
   mkIf cfg.enable {
     # ── AppArmor ──────────────────────────────────────────────────────────────
@@ -25,16 +27,16 @@ in
             #include <abstractions/ssl_certs>
 
             # Binary
-            ${config.services.openclaw.package}/bin/openclaw mr,
+            ${cfg.package}/bin/openclaw mr,
 
             # Data directory
             ${cfg.dataDir}/ r,
             ${cfg.dataDir}/** rwk,
 
             # TLS certificates (if enabled)
-            ${optionalString cfg.tls.enable ''
-            ${optionalString (cfg.tls.certFile != null) "${cfg.tls.certFile} r,"}
-            ${optionalString (cfg.tls.keyFile != null) "${cfg.tls.keyFile} r,"}
+            ${optionalString tls.enable ''
+            ${optionalString (tls.certFile != null) "${tls.certFile} r,"}
+            ${optionalString (tls.keyFile != null) "${tls.keyFile} r,"}
           ''}
 
             # Proc (limited)

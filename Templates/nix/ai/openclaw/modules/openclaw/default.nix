@@ -1,6 +1,7 @@
 {...}: {
   imports = [
-    ./config.nix
+    ./options.nix
+
     ./service.nix
     ./security.nix
     ./tls.nix

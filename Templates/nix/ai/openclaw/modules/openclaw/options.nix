@@ -3,8 +3,23 @@
   pkgs,
   ...
 }: let
-  inherit (lib.options) literalExpression mkOption mkEnableOption;
-  inherit (lib.types) attrs enum listOf nullOr package port path str;
+  inherit
+    (lib.options)
+    literalExpression
+    mkOption
+    mkEnableOption
+    ;
+  inherit
+    (lib.types)
+    attrs
+    enum
+    listOf
+    nullOr
+    package
+    port
+    path
+    str
+    ;
 in {
   options.services.openclaw = {
     enable = mkEnableOption "Whether to enable the openclaw service.";
