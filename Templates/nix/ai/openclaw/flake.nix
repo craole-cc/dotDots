@@ -13,10 +13,12 @@
     systems.url = "github:nix-systems/default";
     blueprint = {
       url = "github:numtide/blueprint";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.systems.follows = "systems";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
     };
-    treefmt-nix = {
+    treefmt = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -28,7 +30,7 @@
       url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix = {
+    sops = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -38,36 +40,41 @@
     };
   };
 
-  outputs = inputs: let
-    openclaw = {pkgs, ...}: {
-      _module.args.openclawPackage =
-        inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openclaw;
-
-      imports = [
-        inputs.sops-nix.nixosModules.sops
-        ./modules/openclaw
-      ];
-    };
-
-    blueprint = inputs.blueprint {
+  outputs = inputs:
+    inputs.blueprint {
       inherit inputs;
-      prefix = "modules";
-      nixpkgs.config.allowUnfree = true;
+      prefix = "config";
     };
-  in
-    blueprint
-    // {
-      overlays = {
-        default = import ./modules/overlays {
-          inherit (blueprint) packages;
-        };
-        shared-nixpkgs = import ./modules/overlays/shared.nix {
-          inherit (blueprint) mkPackagesFor;
-        };
-      };
-      nixosModules = {
-        inherit openclaw;
-        default = openclaw;
-      };
-    };
+  # outputs = inputs: let
+  #   openclaw = {pkgs, ...}: let
+  #     system = pkgs.stdenv.hostPlatform.system;
+  #   in {
+  #     _module.args.openclawPackage =
+  #       inputs.self.packages.${system}.openclaw;
+  #     imports = [
+  #       inputs.sops.nixosModules.sops
+  #       ./modules/openclaw
+  #     ];
+  #   };
+  #   blueprint = inputs.blueprint {
+  #     inherit inputs;
+  #     prefix = "config";
+  #     nixpkgs.config.allowUnfree = true;
+  #   };
+  # in
+  #   blueprint
+  #   // {
+  #     overlays = {
+  #       default = import ./modules/overlays {
+  #         inherit (blueprint) packages;
+  #       };
+  #       shared-nixpkgs = import ./modules/overlays/shared.nix {
+  #         inherit (blueprint) mkPackagesFor;
+  #       };
+  #     };
+  #     nixosModules = {
+  #       inherit openclaw;
+  #       default = openclaw;
+  #     };
+  #   };
 }

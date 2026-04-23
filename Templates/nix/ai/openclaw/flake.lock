@@ -122,12 +122,12 @@
         "flake-parts": "flake-parts",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs",
-        "sops-nix": "sops-nix",
+        "sops": "sops",
         "systems": "systems",
-        "treefmt-nix": "treefmt-nix"
+        "treefmt": "treefmt"
       }
     },
-    "sops-nix": {
+    "sops": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -162,7 +162,7 @@
         "type": "github"
       }
     },
-    "treefmt-nix": {
+    "treefmt": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
