@@ -13,6 +13,5 @@
   # Inject the pre-built derivations for the host system.
   # Downstream consumers that import this overlay get the exact derivations
   # that CI built and cached — no recompilation needed.
-  openclaw = packages.${final.system}.openclaw;
-  gh-tools = packages.${final.system}.gh-tools;
+  inherit (packages.${final.system}) opencalaw gh-tools;
 }

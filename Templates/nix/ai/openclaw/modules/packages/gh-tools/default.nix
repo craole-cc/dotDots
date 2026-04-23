@@ -1,15 +1,10 @@
-{
-  # lib,
-  symlinkJoin,
-  makeWrapper,
-  gh,
-}:
-symlinkJoin {
-  name = "gh-tools-${gh.version}";
+{pkgs, ...}:
+pkgs.symlinkJoin {
+  name = "gh-tools-${pkgs.gh.version}";
 
-  paths = [gh];
+  paths = [pkgs.gh];
 
-  nativeBuildInputs = [makeWrapper];
+  nativeBuildInputs = [pkgs.makeWrapper];
 
   #? gh already reads GITHUB_TOKEN from the environment; this wrapper
   #? documents and enforces that contract and adds a helpful error message.
@@ -23,7 +18,7 @@ symlinkJoin {
   '';
 
   meta =
-    gh.meta
+    pkgs.gh.meta
     // {
       description = "GitHub CLI wrapped to require GITHUB_TOKEN from environment";
     };

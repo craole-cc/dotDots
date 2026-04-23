@@ -16,21 +16,17 @@
 {
   config,
   lib,
-  inputs,
   ...
 }: let
   inherit (lib.modules) mkDefault mkIf;
 
   cfg = config.services.openclaw;
-  sops = config.sops;
-  tls = cfg.tls.enable;
 in
   mkIf cfg.enable {
-    imports = [inputs.sops-nix.nixosModules.sops];
-
     sops = {
-      # defaultSopsFile = ../../../secrets/secrets.yaml;
-      defaultSopsFile = ../../secrets/secrets.example.yaml;
+      # Template default for local development; downstream consumers should
+      # override this with their own encrypted secrets file.
+      defaultSopsFile = mkDefault ../../secrets/secrets.yaml.example;
       defaultSopsFormat = "yaml";
 
       # Age key used for decryption — set SOPS_AGE_KEY_FILE in .envrc.local.
@@ -38,14 +34,14 @@ in
 
       secrets = {
         # TLS private key — only relevant when services.openclaw.tls.enable = true.
-        "openclaw/tls/key" = mkIf tls.enable {
+        "openclaw/tls/key" = mkIf cfg.tls.enable {
           owner = "openclaw";
           group = "openclaw";
           mode = "0400";
         };
 
         # TLS certificate — only relevant when services.openclaw.tls.enable = true.
-        "openclaw/tls/cert" = mkIf tls.enable {
+        "openclaw/tls/cert" = mkIf cfg.tls.enable {
           owner = "openclaw";
           group = "openclaw";
           mode = "0444";
@@ -61,8 +57,8 @@ in
     };
 
     # Wire the sops-decrypted paths back into the openclaw TLS config.
-    services.openclaw.tls = mkIf tls.enable {
-      certFile = mkDefault sops.secrets."openclaw/tls/cert".path;
-      keyFile = mkDefault sops.secrets."openclaw/tls/key".path;
+    services.openclaw.tls = mkIf cfg.tls.enable {
+      certFile = mkDefault config.sops.secrets."openclaw/tls/cert".path;
+      keyFile = mkDefault config.sops.secrets."openclaw/tls/key".path;
     };
   }

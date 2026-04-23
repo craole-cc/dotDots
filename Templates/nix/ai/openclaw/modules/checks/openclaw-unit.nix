@@ -3,18 +3,13 @@
   inputs,
   ...
 }:
-pkgs.lib.nixosTest {
+pkgs.testers.runNixOSTest {
   name = "openclaw-unit";
 
   nodes.machine = {
-    # config,
-    # pkgs,
     ...
   }: {
-    imports = with inputs; [
-      self.nixosModules.openclaw
-      sops-nix.nixosModules.sops
-    ];
+    imports = [inputs.self.nixosModules.openclaw];
 
     services.openclaw = {
       enable = true;
@@ -36,7 +31,7 @@ pkgs.lib.nixosTest {
 
     # Assert the health endpoint returns HTTP 200.
     machine.succeed(
-      "curl --fail --silent --max-time 10 http://127.0.0.1:8080/health"
+      "${pkgs.curl}/bin/curl --fail --silent --max-time 10 http://127.0.0.1:8080/health"
     )
 
     # Assert the service runs as a non-root DynamicUser.

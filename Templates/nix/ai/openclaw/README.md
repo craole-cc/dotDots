@@ -38,7 +38,7 @@ All options live under `services.openclaw.*`.
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `enable` | bool | `false` | Enable the openclaw service |
-| `package` | package | `pkgs.openclaw` | The openclaw derivation to use |
+| `package` | package | `self.packages.<system>.openclaw` | The openclaw derivation to use |
 | `port` | port (int) | `8080` | TCP port openclaw listens on |
 | `host` | string | `"127.0.0.1"` | Bind address |
 | `dataDir` | path | `"/var/lib/openclaw"` | Persistent state directory |

@@ -7,11 +7,14 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) optional;
   inherit (lib.meta) getExe;
-  inherit (lib.strings) toJSON;
+  inherit (lib.strings) hasPrefix removePrefix toJSON;
   inherit (lib.modules) mkIf;
   inherit (pkgs) writeText;
 
   cfg = config.services.openclaw;
+  dataDir = toString cfg.dataDir;
+  stateDirectory = removePrefix "/var/lib/" dataDir;
+  managesDataDir = hasPrefix "/var/lib/" dataDir;
 
   #> Build the openclaw config JSON from extraConfig merged with core options.
   configFile = writeText "openclaw.json" (
@@ -32,13 +35,14 @@
   );
 in
   mkIf cfg.enable {
-    #> Ensure the data directory exists with correct ownership.
-    systemd = {
-      tmpfiles.rules = [
-        "d '${cfg.dataDir}' 0750 openclaw openclaw - -"
-      ];
+    assertions = [
+      {
+        assertion = managesDataDir;
+        message = "services.openclaw.dataDir must live under /var/lib when DynamicUser = true.";
+      }
+    ];
 
-      services.openclaw = {
+    systemd.services.openclaw = {
         description = "OpenClaw Service";
         documentation = ["https://github.com/your-org/openclaw"];
         wantedBy = ["multi-user.target"];
@@ -62,7 +66,7 @@ in
           PrivateDevices = true;
           ProtectSystem = "strict";
           ProtectHome = true;
-          ReadWritePaths = [cfg.dataDir];
+          ReadWritePaths = [dataDir];
 
           # ── Privilege containment ─────────────────────────────────────────────
           NoNewPrivileges = true;
@@ -98,10 +102,9 @@ in
 
           # ── Misc ──────────────────────────────────────────────────────────────
           UMask = "0027";
-          StateDirectory = "openclaw";
+          StateDirectory = stateDirectory;
           LogsDirectory = "openclaw";
           ConfigurationDirectory = "openclaw";
         };
       };
-    };
   }

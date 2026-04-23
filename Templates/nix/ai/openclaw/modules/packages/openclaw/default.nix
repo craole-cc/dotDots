@@ -1,11 +1,6 @@
-{
-  lib,
-  stdenv,
-  fetchFromGitHub,
-  pkg-config,
-  openssl,
-  makeWrapper,
-}: let
+{pkgs, ...}: let
+  inherit (pkgs) fetchFromGitHub makeWrapper openssl pkg-config stdenv;
+  lib = pkgs.lib;
   version = "0.1.0";
 in
   stdenv.mkDerivation {

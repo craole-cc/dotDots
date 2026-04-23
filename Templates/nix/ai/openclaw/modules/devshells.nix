@@ -91,7 +91,7 @@
     packages = with pkgs; [
       # Formatters / linters
       treefmt
-      nixfmt-rfc-style
+      nixfmt
       nodePackages.prettier
       shfmt
       taplo

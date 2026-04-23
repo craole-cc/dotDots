@@ -1,24 +1,23 @@
 {
-  lib,
-  symlinkJoin,
-  makeWrapper,
+  pkgs,
   openclaw,
-  coreutils,
-  curl,
-}:
-symlinkJoin {
+  ...
+}: let
+  lib = pkgs.lib;
+in
+  pkgs.symlinkJoin {
   name = "openclaw-wrapped-${openclaw.version}";
 
   paths = [openclaw];
 
-  nativeBuildInputs = [makeWrapper];
+  nativeBuildInputs = [pkgs.makeWrapper];
 
   postBuild = ''
     wrapProgram "$out/bin/openclaw" \
       --prefix PATH : ${
       lib.makeBinPath [
-        coreutils
-        curl
+        pkgs.coreutils
+        pkgs.curl
       ]
     } \
       --set OPENCLAW_DATA_DIR "/var/lib/openclaw" \

@@ -15,8 +15,7 @@ in
       enable = mkDefault true;
 
       policies."openclaw" = {
-        enable = true;
-        enforce = true;
+        state = "enforce";
 
         profile = ''
           #include <tunables/global>

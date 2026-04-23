@@ -39,24 +39,35 @@
   };
 
   outputs = inputs: let
-    blueprintOutputs = inputs.blueprint {
+    openclaw = {pkgs, ...}: {
+      _module.args.openclawPackage =
+        inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openclaw;
+
+      imports = [
+        inputs.sops-nix.nixosModules.sops
+        ./modules/openclaw
+      ];
+    };
+
+    blueprint = inputs.blueprint {
       inherit inputs;
+      prefix = "modules";
       nixpkgs.config.allowUnfree = true;
     };
   in
-    blueprintOutputs
+    blueprint
     // {
       overlays = {
-        default = import ./modules/packages/overlays {
-          inherit (blueprintOutputs) packages;
+        default = import ./modules/overlays {
+          inherit (blueprint) packages;
         };
-        shared-nixpkgs = import ./modules/packages/overlays/shared.nix {
-          inherit (blueprintOutputs) mkPackagesFor;
+        shared-nixpkgs = import ./modules/overlays/shared.nix {
+          inherit (blueprint) mkPackagesFor;
         };
       };
       nixosModules = {
-        openclaw = import ./modules/openclaw;
-        default = import ./modules/openclaw;
+        inherit openclaw;
+        default = openclaw;
       };
     };
 }

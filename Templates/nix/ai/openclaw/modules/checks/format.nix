@@ -4,7 +4,7 @@
   ...
 }: let
   treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs (
-    import ./treefmt.nix {inherit inputs;}
+    import ../treefmt.nix
   );
 in
-  treefmtEval.config.build.check pkgs
+  treefmtEval.config.build.check ../..
