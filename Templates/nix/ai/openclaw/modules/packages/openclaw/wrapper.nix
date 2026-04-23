@@ -1,0 +1,33 @@
+{
+  lib,
+  symlinkJoin,
+  makeWrapper,
+  openclaw,
+  coreutils,
+  curl,
+}:
+symlinkJoin {
+  name = "openclaw-wrapped-${openclaw.version}";
+
+  paths = [openclaw];
+
+  nativeBuildInputs = [makeWrapper];
+
+  postBuild = ''
+    wrapProgram "$out/bin/openclaw" \
+      --prefix PATH : ${
+      lib.makeBinPath [
+        coreutils
+        curl
+      ]
+    } \
+      --set OPENCLAW_DATA_DIR "/var/lib/openclaw" \
+      --set OPENCLAW_LOG_LEVEL "info"
+  '';
+
+  meta =
+    openclaw.meta
+    // {
+      description = "openclaw (wrapped with runtime PATH and defaults)";
+    };
+}

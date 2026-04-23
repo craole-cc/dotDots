@@ -1,0 +1,148 @@
+# Purpose: Security scanning — Trivy, grype, and sops secret lint.
+# Maintainer: openclaw-flake contributors
+name: Security Scan
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+  schedule:
+    # Run weekly on Mondays at 06:00 UTC.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  security-events: write # upload SARIF to GitHub Security tab
+
+jobs:
+  trivy-scan:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build openclaw derivation
+        run: nix build .#openclaw --print-build-logs
+
+      - name: Run Trivy on built derivation
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: result/
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+  grype-scan:
+    name: Grype vulnerability scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build openclaw derivation
+        run: nix build .#openclaw --print-build-logs
+
+      - name: Run grype
+        uses: anchore/scan-action@v3
+        with:
+          path: result/
+          output-format: sarif
+          fail-build: true
+          severity-cutoff: high
+
+      - name: Upload grype SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: grype
+
+  sops-lint:
+    name: sops secret lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for unencrypted secret patterns in tracked files
+        run: |
+          echo "==> Scanning tracked files for unencrypted secret patterns..."
+          FAIL=0
+
+          # Patterns that must never appear in any git-tracked file unencrypted.
+          PATTERNS=(
+            "BEGIN PRIVATE KEY"
+            "BEGIN RSA PRIVATE KEY"
+            "BEGIN EC PRIVATE KEY"
+            "BEGIN OPENSSH PRIVATE KEY"
+            "AKIA[A-Z0-9]\{16\}"
+            "password[[:space:]]*=[[:space:]]*\"[^\"]\\+\""
+          )
+
+          # Only scan files tracked by git (respects .gitignore).
+          TRACKED=$(git ls-files)
+
+          for pat in "${PATTERNS[@]}"; do
+            MATCHES=$(echo "$TRACKED" | xargs grep -l "$pat" 2>/dev/null || true)
+            if [ -n "$MATCHES" ]; then
+              echo "FAIL: Pattern '$pat' found in:"
+              echo "$MATCHES"
+              FAIL=1
+            fi
+          done
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "sops-lint: unencrypted secrets detected in tracked files."
+            echo "Encrypt them with sops before committing."
+            exit 1
+          fi
+
+          echo "sops-lint: no unencrypted secrets found in tracked files."
+
+      - name: Verify sops-encrypted files are valid YAML
+        run: |
+          for f in $(git ls-files 'secrets/*.yaml'); do
+            # sops-encrypted files contain a 'sops:' top-level key.
+            if ! grep -q '^sops:' "$f"; then
+              echo "FAIL: $f does not appear to be sops-encrypted (missing 'sops:' key)."
+              exit 1
+            fi
+          done
+          echo "sops-lint: all secrets/*.yaml files appear to be sops-encrypted."

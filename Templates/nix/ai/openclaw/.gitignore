@@ -1,0 +1,28 @@
+# Nix build results
+result
+result-*
+
+# direnv cache
+.direnv/
+
+# Local environment overrides — contains secrets, never commit
+.envrc.local
+
+# Encrypted secrets are committed; plaintext YAML is not
+secrets/*.yaml
+!secrets/*.yaml.enc
+!secrets/secrets.yaml.example
+
+# Editor noise
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS noise
+.DS_Store
+
+# Python (if any tooling)
+__pycache__/
+*.pyc
