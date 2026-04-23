@@ -9,7 +9,7 @@ in
     src = inputs.self;
     hooks = {
       nil.enable = true;
-      # statix.enable = true;
+      statix.enable = true;
       treefmt = {
         enable = true;
         package = (inputs.treefmt.lib.evalModule pkgs ../treefmt.nix).config.build.wrapper;
