@@ -1,6 +1,9 @@
-{...}: {
+_: {
   blesh = {
-    categories = ["shell" "line-editor"];
+    categories = [
+      "shell"
+      "line-editor"
+    ];
     engine = ["bash"];
     config = {
       lang = ["bash"];
@@ -11,19 +14,32 @@
     maturity = "young";
   };
   readline = {
-    categories = ["shell" "line-editor"];
+    categories = [
+      "shell"
+      "line-editor"
+    ];
     engine = ["c"];
     config = {
       lang = ["readline"];
       file = ".inputrc";
       home = "$HOME";
     };
-    shells = ["bash" "sh" "ksh"];
+    shells = [
+      "bash"
+      "sh"
+      "ksh"
+    ];
     maturity = "stable";
   };
   zle = {
-    categories = ["shell" "line-editor"];
-    engine = ["c" "zsh"];
+    categories = [
+      "shell"
+      "line-editor"
+    ];
+    engine = [
+      "c"
+      "zsh"
+    ];
     shells = ["zsh"];
     maturity = "stable";
   };

@@ -1,4 +1,4 @@
-{}: {
+_: {
   keybindings = [
     {
       key = "ctrl+shift+s";

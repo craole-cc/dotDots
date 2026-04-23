@@ -1,4 +1,4 @@
-{...}: {
+_: {
   clion = {
     names = {
       package = "jetbrains.clion";
@@ -6,7 +6,10 @@
       class = "jetbrains-clion";
     };
     exec = "clion";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -19,7 +22,10 @@
       title = "Cursor";
     };
     exec = "cursor";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "vscode";
     channel = "stable";
   };
@@ -31,7 +37,10 @@
       class = "jetbrains-datagrip";
     };
     exec = "datagrip";
-    categories = ["editor" "database"];
+    categories = [
+      "editor"
+      "database"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -43,7 +52,10 @@
       class = "Emacs";
     };
     exec = "emacs";
-    categories = ["editor" "file-manager"];
+    categories = [
+      "editor"
+      "file-manager"
+    ];
     family = "emacs";
     channel = "stable";
   };
@@ -103,7 +115,10 @@
       class = "jetbrains-goland";
     };
     exec = "goland";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -127,7 +142,10 @@
       class = "jetbrains-idea";
     };
     exec = "idea-oss";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -140,7 +158,10 @@
       title = "IntelliJ IDEA Ultimate";
     };
     exec = "idea-ultimate";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -163,7 +184,10 @@
       class = "dev.lapce.lapce";
     };
     exec = "lapce";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     channel = "stable";
   };
 
@@ -233,7 +257,10 @@
       class = "jetbrains-pycharm";
     };
     exec = "pycharm-professional";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -245,7 +272,10 @@
       class = "jetbrains-pycharm";
     };
     exec = "pycharm-oss";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -258,7 +288,10 @@
       title = "RustRover";
     };
     exec = "rust-rover";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -296,7 +329,10 @@
       title = "Visual Studio Code";
     };
     exec = "code";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "vscode";
     channel = "stable";
   };
@@ -308,7 +344,10 @@
       class = "code - Insiders";
     };
     exec = "code-insiders";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "vscode";
     channel = "insiders";
   };
@@ -320,7 +359,10 @@
       class = "VSCodium";
     };
     exec = "codium";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "vscode";
     channel = "stable";
   };
@@ -332,7 +374,10 @@
       class = "jetbrains-webstorm";
     };
     exec = "webstorm";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "jetbrains";
     channel = "stable";
   };
@@ -345,7 +390,10 @@
       title = "Windsurf";
     };
     exec = "windsurf";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     family = "vscode";
     channel = "stable";
   };
@@ -357,7 +405,10 @@
       class = "dev.zed.Zed";
     };
     exec = "zeditor";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     channel = "stable";
   };
 
@@ -368,7 +419,10 @@
       class = "dev.zed.Zed-Preview";
     };
     exec = "zeditor --preview";
-    categories = ["editor" "ide"];
+    categories = [
+      "editor"
+      "ide"
+    ];
     channel = "beta";
   };
 }

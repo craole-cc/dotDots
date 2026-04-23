@@ -1,4 +1,4 @@
-{...}: {
+_: {
   bash = {
     categories = ["shell"];
     config = {
@@ -82,7 +82,10 @@
     posix = false;
     interactive = true;
     system = false;
-    engine = ["dotnet" "csharp"];
+    engine = [
+      "dotnet"
+      "csharp"
+    ];
     config = {
       lang = ["powershell"];
       file = "profile.ps1";

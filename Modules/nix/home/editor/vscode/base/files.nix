@@ -1,4 +1,4 @@
-{}: {
+_: {
   userSettings = {
     "files.autoSave" = "afterDelay";
     "files.eol" = "\n";

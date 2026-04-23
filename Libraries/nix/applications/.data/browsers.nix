@@ -1,4 +1,4 @@
-{...}: {
+_: {
   brave = {
     names = {
       package = "brave";

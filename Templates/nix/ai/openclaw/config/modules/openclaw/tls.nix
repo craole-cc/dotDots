@@ -26,7 +26,10 @@ in
     services.openclaw.extraConfig = mkMerge [
       (mkIf cfg.tls.enable {
         tls = {
-          protocols = ["TLSv1.2" "TLSv1.3"];
+          protocols = [
+            "TLSv1.2"
+            "TLSv1.3"
+          ];
           #? TLS 1.3 cipher suites (selected automatically by OpenSSL).
           ciphersTLS13 = [
             "TLS_AES_256_GCM_SHA384"

@@ -1,7 +1,14 @@
 {_, ...}: let
   __exports = {
     internal = {
-      inherit mkEnable mkTrue mkFalse mkEnum mkEnums toOptionType;
+      inherit
+        mkEnable
+        mkTrue
+        mkFalse
+        mkEnum
+        mkEnums
+        toOptionType
+        ;
       inherit
         (aliases)
         # mkEnableOption'
@@ -61,8 +68,7 @@
 
   # Omits the `description` key entirely when null, so doc generators and
   # `nixos-option` see an absent field rather than an explicit null.
-  optionalDesc = description:
-    optionalAttrs (description != null) {inherit description;};
+  optionalDesc = description: optionalAttrs (description != null) {inherit description;};
 
   /**
   Bridges a `_.types.checks` type into a `lib.types`-compatible option type
@@ -115,15 +121,14 @@
       "path" = path;
     };
   in
-    if primitives ? ${customType.type}
-    then primitives.${customType.type}
-    else
-      mkOptionType {
-        name = customType.type;
-        description = customType.description or customType.type;
-        check = customType.check;
-        merge = mergeUniqueOption;
-      };
+    primitives.${
+      customType.type
+    } or (mkOptionType {
+      name = customType.type;
+      description = customType.description or customType.type;
+      inherit (customType) check;
+      merge = mergeUniqueOption;
+    });
 
   /**
   Creates a boolean enable option whose default is derived from a condition.

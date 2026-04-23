@@ -1,8 +1,14 @@
-{...}: {
+_: {
   awesome = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
-    engine = ["c" "lua"];
+    engine = [
+      "c"
+      "lua"
+    ];
     config = ["lua"];
     maturity = "stable";
     protocol = ["xorg"];
@@ -11,9 +17,15 @@
 
   caelestia = {
     # family = "caelestia";
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
-    engine = ["c++" "qml"];
+    engine = [
+      "c++"
+      "qml"
+    ];
     config = ["qml"];
     maturity = "young";
     protocol = ["wayland"];
@@ -21,29 +33,44 @@
   };
 
   cinnamon = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "cinnamon";
     independent = false;
     engine = ["c"];
-    config = ["javascript" "css"];
+    config = [
+      "javascript"
+      "css"
+    ];
     maturity = "stable";
     protocol = ["xorg"];
     toolkit = "gtk3";
   };
 
   cosmic-panel = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "cosmic";
     independent = false;
     engine = ["rust"];
-    config = ["ron" "css"];
+    config = [
+      "ron"
+      "css"
+    ];
     maturity = "young";
     protocol = ["wayland"];
     toolkit = "iced";
   };
 
   dms-shell = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "dms";
     independent = true;
     engine = ["go"];
@@ -54,59 +81,101 @@
   };
 
   eww = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["rust"];
-    config = ["yuck" "scss"];
+    config = [
+      "yuck"
+      "scss"
+    ];
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = [
+      "wayland"
+      "xorg"
+    ];
     toolkit = "gtk3";
   };
 
   exo = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["python"];
-    config = ["python" "scss"];
+    config = [
+      "python"
+      "scss"
+    ];
     maturity = "young";
     protocol = ["wayland"];
     toolkit = "gtk4";
   };
 
   gnome-shell = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "gnome";
     independent = false;
-    engine = ["c" "javascript"];
-    config = ["javascript" "css"];
+    engine = [
+      "c"
+      "javascript"
+    ];
+    config = [
+      "javascript"
+      "css"
+    ];
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = [
+      "wayland"
+      "xorg"
+    ];
     toolkit = "st";
   };
 
   i3bar = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = false;
     engine = ["c"];
-    config = ["json" "shell"];
+    config = [
+      "json"
+      "shell"
+    ];
     maturity = "stable";
     protocol = ["xorg"];
     toolkit = "xcb";
   };
 
   hyprpanel = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "hyprland";
     independent = true;
     engine = ["typescript"];
-    config = ["typescript" "scss"];
+    config = [
+      "typescript"
+      "scss"
+    ];
     maturity = "young";
     protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
   lemonbar = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["c"];
     config = ["shell"];
@@ -116,7 +185,10 @@
   };
 
   noctalia = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["c++"];
     config = ["qml"];
@@ -126,59 +198,101 @@
   };
 
   nwg-panel = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["python"];
-    config = ["json" "css"];
+    config = [
+      "json"
+      "css"
+    ];
     maturity = "stable";
     protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
   plasmashell = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "plasma";
     independent = false;
-    engine = ["c++" "qml"];
-    config = ["qml" "javascript"];
+    engine = [
+      "c++"
+      "qml"
+    ];
+    config = [
+      "qml"
+      "javascript"
+    ];
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = [
+      "wayland"
+      "xorg"
+    ];
     toolkit = "qt6";
   };
 
   polybar = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["c++"];
-    config = ["ini" "shell"];
+    config = [
+      "ini"
+      "shell"
+    ];
     maturity = "stable";
     protocol = ["xorg"];
     toolkit = "cairo";
   };
 
   qtile = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = false;
-    engine = ["python" "c"];
+    engine = [
+      "python"
+      "c"
+    ];
     config = ["python"];
     maturity = "stable";
-    protocol = ["xorg" "wayland"];
+    protocol = [
+      "xorg"
+      "wayland"
+    ];
     toolkit = "cairo";
   };
 
   swaybar = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "sway";
     independent = false;
     engine = ["c"];
-    config = ["shell" "json"];
+    config = [
+      "shell"
+      "json"
+    ];
     maturity = "stable";
     protocol = ["wayland"];
     toolkit = "cairo";
   };
 
   tint2 = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["c"];
     config = ["ini"];
@@ -188,32 +302,53 @@
   };
 
   waybar = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["c++"];
-    config = ["jsonc" "css"];
+    config = [
+      "jsonc"
+      "css"
+    ];
     maturity = "stable";
     protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
   wingpanel = {
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     family = "pantheon";
     independent = false;
-    engine = ["vala" "c"];
+    engine = [
+      "vala"
+      "c"
+    ];
     config = ["css"];
     maturity = "stable";
-    protocol = ["xorg" "wayland"];
+    protocol = [
+      "xorg"
+      "wayland"
+    ];
     toolkit = "gtk3";
   };
 
   xfce4-panel = {
     family = "xfce";
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = false;
     engine = ["c"];
-    config = ["rc" "css"];
+    config = [
+      "rc"
+      "css"
+    ];
     maturity = "stable";
     protocol = ["xorg"];
     toolkit = "gtk3";
@@ -221,7 +356,10 @@
 
   xmobar = {
     family = "xmonad";
-    categories = ["panel" "interface"];
+    categories = [
+      "panel"
+      "interface"
+    ];
     independent = true;
     engine = ["haskell"];
     config = ["haskell"];

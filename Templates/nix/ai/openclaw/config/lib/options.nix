@@ -6,7 +6,7 @@ in {
     nonEmptyStr = strMatching ".+";
 
     #? A TCP/UDP port number.
-    port = port;
+    inherit port;
 
     #? A log level enum.
     logLevel = enum [

@@ -1,4 +1,4 @@
-{
+_: {
   projectRootFile = "flake.nix";
 
   settings.global.excludes = [
@@ -10,7 +10,7 @@
   programs = {
     #~@ Nix
     alejandra.enable = true;
-    nixfmt.enable = true;
+    # nixfmt.enable = true;
     deadnix = {
       enable = true;
       no-lambda-pattern-names = false;

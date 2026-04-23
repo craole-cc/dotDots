@@ -1,40 +1,64 @@
-{...}: {
+_: {
   hydro = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["fish"];
     shells = ["fish"];
     maturity = "stable";
   };
   liquidprompt = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["bash"];
     config = {
       lang = ["bash"];
       file = ".liquidpromptrc";
       home = "$HOME";
     };
-    shells = ["bash" "zsh"];
+    shells = [
+      "bash"
+      "zsh"
+    ];
     maturity = "stable";
   };
   oh-my-nu = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["nu"];
     shells = ["nushell"];
     maturity = "young";
   };
   ohmyposh = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["go"];
     config = {
       lang = ["toml"];
       file = "zen.toml";
       home = "$XDG_CONFIG_HOME/ohmyposh";
     };
-    shells = ["bash" "zsh" "fish" "nushell" "pwsh"];
+    shells = [
+      "bash"
+      "zsh"
+      "fish"
+      "nushell"
+      "pwsh"
+    ];
     maturity = "stable";
   };
   powerlevel10k = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["zsh"];
     config = {
       lang = ["zsh"];
@@ -45,30 +69,56 @@
     maturity = "stable";
   };
   powerline = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["python"];
     config = {
       lang = ["json"];
       file = "config.json";
       home = "$XDG_CONFIG_HOME/powerline";
     };
-    shells = ["bash" "zsh" "fish" "pwsh"];
+    shells = [
+      "bash"
+      "zsh"
+      "fish"
+      "pwsh"
+    ];
     maturity = "legacy";
   };
   powerline-go = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["go"];
-    shells = ["bash" "zsh" "fish" "pwsh"];
+    shells = [
+      "bash"
+      "zsh"
+      "fish"
+      "pwsh"
+    ];
     maturity = "stable";
   };
   powerline-rs = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["rust"];
-    shells = ["bash" "zsh" "fish"];
+    shells = [
+      "bash"
+      "zsh"
+      "fish"
+    ];
     maturity = "young";
   };
   prezto = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["zsh"];
     config = {
       lang = ["zsh"];
@@ -79,13 +129,19 @@
     maturity = "stable";
   };
   pure = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["zsh"];
     shells = ["zsh"];
     maturity = "stable";
   };
   spaceship = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["zsh"];
     config = {
       lang = ["zsh"];
@@ -96,18 +152,32 @@
     maturity = "stable";
   };
   starship = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["rust"];
     config = {
       lang = ["toml"];
       file = "starship.toml";
       home = "$XDG_CONFIG_HOME";
     };
-    shells = ["bash" "zsh" "fish" "nushell" "elvish" "pwsh" "tcsh"];
+    shells = [
+      "bash"
+      "zsh"
+      "fish"
+      "nushell"
+      "elvish"
+      "pwsh"
+      "tcsh"
+    ];
     maturity = "stable";
   };
   tide = {
-    categories = ["shell" "prompt"];
+    categories = [
+      "shell"
+      "prompt"
+    ];
     engine = ["fish"];
     shells = ["fish"];
     maturity = "stable";

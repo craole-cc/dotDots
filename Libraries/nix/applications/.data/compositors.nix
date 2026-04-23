@@ -1,6 +1,9 @@
-{...}: {
+_: {
   awesome = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["xorg"];
@@ -8,7 +11,10 @@
   };
 
   bspwm = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["xorg"];
@@ -16,7 +22,10 @@
   };
 
   cosmic-comp = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "rust";
     maturity = "young";
     protocol = ["wayland"];
@@ -24,7 +33,10 @@
   };
 
   gala = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "vala";
     maturity = "stable";
     protocol = ["xorg"];
@@ -32,7 +44,10 @@
   };
 
   hyprland = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c++";
     maturity = "stable";
     protocol = ["wayland"];
@@ -40,7 +55,10 @@
   };
 
   i3 = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["xorg"];
@@ -48,15 +66,24 @@
   };
 
   kwin = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c++";
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = [
+      "wayland"
+      "xorg"
+    ];
     role = "embedded";
   };
 
   muffin = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["xorg"];
@@ -64,15 +91,24 @@
   };
 
   mutter = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
-    protocol = ["wayland" "xorg"];
+    protocol = [
+      "wayland"
+      "xorg"
+    ];
     role = "embedded";
   };
 
   niri = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "rust";
     maturity = "stable";
     protocol = ["wayland"];
@@ -80,7 +116,10 @@
   };
 
   openbox = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "legacy";
     protocol = ["xorg"];
@@ -88,7 +127,10 @@
   };
 
   qtile = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "python";
     maturity = "stable";
     protocol = ["xorg"];
@@ -96,7 +138,10 @@
   };
 
   river = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "zig";
     maturity = "young";
     protocol = ["wayland"];
@@ -104,7 +149,10 @@
   };
 
   sway = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["wayland"];
@@ -112,7 +160,10 @@
   };
 
   xfwm4 = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "c";
     maturity = "stable";
     protocol = ["xorg"];
@@ -120,7 +171,10 @@
   };
 
   xmonad = {
-    categories = ["compositor" "interface"];
+    categories = [
+      "compositor"
+      "interface"
+    ];
     language = "haskell";
     maturity = "stable";
     protocol = ["xorg"];

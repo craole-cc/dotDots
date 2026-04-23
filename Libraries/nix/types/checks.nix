@@ -111,8 +111,8 @@
 
   #~@ Composite types
   nullOr = subtype: {
+    inherit subtype;
     type = "nullOr";
-    subtype = subtype;
     check = v: v == null || subtype.check v;
     validate = value:
       if value == null
@@ -123,8 +123,8 @@
   };
 
   listOf = subtype: {
+    inherit subtype;
     type = "listOf";
-    subtype = subtype;
     check = v: isList v && all subtype.check v;
     validate = value: let
       validated = validate {
@@ -141,8 +141,8 @@
   };
 
   attrsOf = subtype: {
+    inherit subtype;
     type = "attrsOf";
-    subtype = subtype;
     check = v: isAttrs v && all subtype.check (attrValues v);
     validate = value: let
       validated = validate {
@@ -159,8 +159,8 @@
   };
 
   enum = values: {
-    type = "enum";
     inherit values;
+    type = "enum";
     check = v: elem v values;
     validate = value:
       if elem value values
@@ -172,8 +172,8 @@
 
   #~@ Submodule with nested schema
   submodule = schema: {
-    type = "submodule";
     inherit schema;
+    type = "submodule";
     check = isAttrs;
     validate = value: schema.validate schema value;
     default = schema.extractDefaults schema;
@@ -182,7 +182,10 @@
 
   either = a: b: {
     type = "either";
-    types = [a b];
+    types = [
+      a
+      b
+    ];
     check = v: a.check v || b.check v;
     validate = value:
       if a.check value
@@ -190,7 +193,7 @@
       else if b.check value
       then b.validate value
       else throw "type.either: expected ${a.description or a.type} or ${b.description or b.type}, got ${typeOf value}";
-    default = a.default;
+    inherit (a) default;
     description = "${a.description or a.type} or ${b.description or b.type}";
   };
 
@@ -219,7 +222,7 @@
   # Lazy type (for recursive structures)
   lazy = schemaFn: {
     type = "lazy";
-    schemaFn = schemaFn;
+    inherit schemaFn;
     check = isAttrs;
     validate = value: schema.validate (schemaFn {}) value;
     default = null;
@@ -255,7 +258,7 @@
   # Non-empty list
   nonEmptyListOf = subtype: {
     type = "nonEmptyListOf";
-    subtype = subtype;
+    inherit subtype;
     check = v: isList v && v != [] && all subtype.check v;
     validate = value: let
       validated = validate {
@@ -275,8 +278,7 @@
   attrsWith = requiredKeys: {
     type = "attrsWith";
     inherit requiredKeys;
-    check = v:
-      isAttrs v && all (key: v ? ${key}) requiredKeys;
+    check = v: isAttrs v && all (key: v ? ${key}) requiredKeys;
     validate = value:
       if isAttrs value && all (key: value ? ${key}) requiredKeys
       then value

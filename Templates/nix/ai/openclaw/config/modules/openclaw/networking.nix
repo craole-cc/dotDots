@@ -8,8 +8,8 @@
   inherit (lib.strings) concatStringsSep optionalString;
 
   cfg = config.services.openclaw;
-  nginx = config.services.nginx;
-  tls = cfg.tls;
+  inherit (config.services) nginx;
+  inherit (cfg) tls;
 
   #? Common security headers applied in both nginx and caddy snippets.
   securityHeaders = {
@@ -96,15 +96,9 @@ in
         Referrer-Policy           "strict-origin-when-cross-origin"
         Content-Security-Policy   "default-src 'self'"
         Permissions-Policy        "geolocation=(), microphone=(), camera=()"
-        ${
-        optionalString tls.enable
-        ''Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"''
-      }
+        ${optionalString tls.enable ''Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"''}
       }
 
-      ${
-        optionalString tls.enable
-        "tls { protocols tls1.2 tls1.3 }"
-      }
+      ${optionalString tls.enable "tls { protocols tls1.2 tls1.3 }"}
     '';
   }

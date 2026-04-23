@@ -55,7 +55,12 @@ in {
     };
 
     logLevel = mkOption {
-      type = enum ["debug" "info" "warn" "error"];
+      type = enum [
+        "debug"
+        "info"
+        "warn"
+        "error"
+      ];
       default = "info";
       description = "Log verbosity level.";
       example = "debug";

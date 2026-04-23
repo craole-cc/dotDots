@@ -38,7 +38,12 @@
       ]);
 
     emoji = cfg.emoji or ["Noto Color Emoji"];
-    monospace = cfg.monospace or ["Maple Mono NF" "Victor Mono" "Monaspace Radon"];
+    monospace =
+      cfg.monospace or [
+        "Maple Mono NF"
+        "Victor Mono"
+        "Monaspace Radon"
+      ];
     serif = cfg.serif or ["Noto Serif"];
     sansSerif = cfg.sansSerif or ["Noto Sans"];
   };
@@ -51,7 +56,9 @@
       if (length parts) > 1
       then elemAt parts 1
       else null;
-  in {inherit family variant;};
+  in {
+    inherit family variant;
+  };
 
   themeRegistry = {
     catppuccin = {
@@ -111,12 +118,11 @@
     if variant == null
     then null
     else {
-      scheme = variant.scheme;
-      polarity = variant.polarity;
+      inherit (variant) scheme;
+      inherit (variant) polarity;
       cursor = {
         package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
-        name = variant.cursor.name;
-        size = variant.cursor.size;
+        inherit (variant.cursor) name size;
       };
     };
 
@@ -131,7 +137,7 @@
     };
   in {
     fonts = {
-      packages = fonts.packages;
+      inherit (fonts) packages;
       enableDefaultPackages = true;
       fontconfig = {
         enable = true;
@@ -142,7 +148,13 @@
         antialias = true;
         subpixel.rgba = "rgb";
         defaultFonts = {
-          inherit (fonts) emoji monospace serif sansSerif;
+          inherit
+            (fonts)
+            emoji
+            monospace
+            serif
+            sansSerif
+            ;
         };
       };
     };
@@ -205,8 +217,7 @@
         enable = true;
         base16Scheme = "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
         image = wallpaperPath;
-        polarity = resolvedTheme.polarity;
-        cursor = resolvedTheme.cursor;
+        inherit (resolvedTheme) polarity cursor;
 
         fonts = {
           monospace = {

@@ -6,9 +6,7 @@
 pkgs.testers.runNixOSTest {
   name = "openclaw-unit";
 
-  nodes.machine = {
-    ...
-  }: {
+  nodes.machine = {...}: {
     imports = [inputs.self.nixosModules.openclaw];
 
     services.openclaw = {

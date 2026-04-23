@@ -35,20 +35,20 @@ This flake pins `nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable"` uncondit
 
 All options live under `services.openclaw.*`.
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `enable` | bool | `false` | Enable the openclaw service |
-| `package` | package | `self.packages.<system>.openclaw` | The openclaw derivation to use |
-| `port` | port (int) | `8080` | TCP port openclaw listens on |
-| `host` | string | `"127.0.0.1"` | Bind address |
-| `dataDir` | path | `"/var/lib/openclaw"` | Persistent state directory |
-| `logLevel` | enum | `"info"` | Log verbosity: debug/info/warn/error |
-| `openFirewall` | bool | `false` | Open the firewall for `port` |
-| `tls.enable` | bool | `false` | Enable TLS on the listener |
-| `tls.certFile` | path or null | `null` | Path to TLS certificate |
-| `tls.keyFile` | path or null | `null` | Path to TLS private key |
-| `extraConfig` | attrs | `{}` | Freeform extra configuration passed as JSON |
-| `allowedIPs` | list of string | `[]` | IP ranges allowed through systemd IPAddressAllow |
+| Option         | Type           | Default                           | Description                                      |
+| -------------- | -------------- | --------------------------------- | ------------------------------------------------ |
+| `enable`       | bool           | `false`                           | Enable the openclaw service                      |
+| `package`      | package        | `self.packages.<system>.openclaw` | The openclaw derivation to use                   |
+| `port`         | port (int)     | `8080`                            | TCP port openclaw listens on                     |
+| `host`         | string         | `"127.0.0.1"`                     | Bind address                                     |
+| `dataDir`      | path           | `"/var/lib/openclaw"`             | Persistent state directory                       |
+| `logLevel`     | enum           | `"info"`                          | Log verbosity: debug/info/warn/error             |
+| `openFirewall` | bool           | `false`                           | Open the firewall for `port`                     |
+| `tls.enable`   | bool           | `false`                           | Enable TLS on the listener                       |
+| `tls.certFile` | path or null   | `null`                            | Path to TLS certificate                          |
+| `tls.keyFile`  | path or null   | `null`                            | Path to TLS private key                          |
+| `extraConfig`  | attrs          | `{}`                              | Freeform extra configuration passed as JSON      |
+| `allowedIPs`   | list of string | `[]`                              | IP ranges allowed through systemd IPAddressAllow |
 
 ## Secrets Bootstrap (age + sops)
 
@@ -98,18 +98,18 @@ direnv allow
 
 ## Developer Commands
 
-| Command | Action |
-| --- | --- |
-| `fmt` | Run treefmt on all files |
-| `check` | `nix flake check` |
-| `build` | `nix build .#openclaw` |
-| `run` | `nix run .#openclaw` |
-| `test` | Build the NixOS VM test |
+| Command        | Action                      |
+| -------------- | --------------------------- |
+| `fmt`          | Run treefmt on all files    |
+| `check`        | `nix flake check`           |
+| `build`        | `nix build .#openclaw`      |
+| `run`          | `nix run .#openclaw`        |
+| `test`         | Build the NixOS VM test     |
 | `secrets-edit` | `sops secrets/secrets.yaml` |
-| `gh` | GitHub CLI |
-| `ghpr` | `gh pr create --fill` |
-| `ghci` | `gh issue create` |
-| `update` | `nix flake update` |
+| `gh`           | GitHub CLI                  |
+| `ghpr`         | `gh pr create --fill`       |
+| `ghci`         | `gh issue create`           |
+| `update`       | `nix flake update`          |
 
 ## Binary Cache
 

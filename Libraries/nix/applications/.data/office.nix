@@ -1,4 +1,4 @@
-{...}: {
+_: {
   libreoffice = {
     names = {
       package = "libreoffice";
@@ -16,7 +16,10 @@
       class = "libreoffice-writer";
     };
     exec = "libreoffice --writer";
-    categories = ["office" "editor"];
+    categories = [
+      "office"
+      "editor"
+    ];
   };
 
   libreoffice-calc = {
@@ -57,7 +60,10 @@
       class = "obsidian";
     };
     exec = "obsidian";
-    categories = ["office" "editor"];
+    categories = [
+      "office"
+      "editor"
+    ];
     family = "chromium";
     channel = "stable";
   };
@@ -69,7 +75,10 @@
       class = "logseq";
     };
     exec = "logseq";
-    categories = ["office" "editor"];
+    categories = [
+      "office"
+      "editor"
+    ];
     family = "chromium";
     channel = "stable";
   };

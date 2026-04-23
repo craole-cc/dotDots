@@ -1,4 +1,4 @@
-{...}: {
+_: {
   gimp = {
     names = {
       package = "gimp";

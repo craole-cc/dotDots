@@ -1,6 +1,9 @@
-{...}: {
+_: {
   tty = {
-    categories = ["interface" "protocol"];
+    categories = [
+      "interface"
+      "protocol"
+    ];
     surface = "console";
     acceleration = false;
     compositing = false;
@@ -8,7 +11,10 @@
     maturity = "legacy";
   };
   kms = {
-    categories = ["interface" "protocol"];
+    categories = [
+      "interface"
+      "protocol"
+    ];
     surface = "native";
     acceleration = true;
     compositing = false;
@@ -16,7 +22,10 @@
     maturity = "stable";
   };
   wayland = {
-    categories = ["interface" "protocol"];
+    categories = [
+      "interface"
+      "protocol"
+    ];
     surface = "native";
     acceleration = true;
     compositing = true;
@@ -24,7 +33,10 @@
     maturity = "stable";
   };
   xorg = {
-    categories = ["interface" "protocol"];
+    categories = [
+      "interface"
+      "protocol"
+    ];
     surface = "native";
     acceleration = true;
     compositing = true;

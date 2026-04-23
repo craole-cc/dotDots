@@ -1,4 +1,4 @@
-{...}: {
+_: {
   yazi = {
     names = {
       package = "yazi";

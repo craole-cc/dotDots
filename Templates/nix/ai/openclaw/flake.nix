@@ -9,6 +9,7 @@
   };
 
   inputs = {
+    #~@ Core
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
     blueprint = {
@@ -18,14 +19,22 @@
         systems.follows = "systems";
       };
     };
-    treefmt = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
+
+    #~@ Utilities
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    treefmt = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     devshell = {
       url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,6 +53,7 @@
     inputs.blueprint {
       inherit inputs;
       prefix = "config";
+      nixpkgs.config.allowUnfree = true;
     };
   # outputs = inputs: let
   #   openclaw = {pkgs, ...}: let

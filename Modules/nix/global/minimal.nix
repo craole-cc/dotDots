@@ -15,7 +15,12 @@
   #|────────────────────────────────────────|
 
   packages = with pkgs;
-    [
+    (optionals isLinux [
+      xclip
+      wl-clipboard
+      xsel
+    ]) # ? Linux clipboard tools
+    ++ [
       # bat #? Cat clone with syntax highlighting
       # direnv #? Environment management per directory
       # exiftool #? ARW/RAW embedded preview extraction for yazi
@@ -28,20 +33,17 @@
       # mise #? Polyglot version manager
       # imv
       # nomacs
-      nitch #? System fetch written in nim
+      nitch # ? System fetch written in nim
       # nix-output-monitor #? Build output monitor
-      nixd #? Nix language daemon
+      nixd # ? Nix language daemon
       # onefetch #? Git repository summary
       # ripgrep #? Fast grep alternative
-      starship #? Cross-shell prompt
+      starship # ? Cross-shell prompt
       # tokei #? Code statistics tool
       # undollar #? Remove leading dollar signs
       # ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
       # yazi #? File manager (ensure CLI tools available in devshell)
-    ]
-    ++ (optionals isLinux [xclip wl-clipboard xsel]) #? Linux clipboard tools
-    ++ [];
-
+    ];
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
   #|────────────────────────────────────────|
@@ -124,4 +126,11 @@
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in {inherit description packages env shellHook;}
+in {
+  inherit
+    description
+    packages
+    env
+    shellHook
+    ;
+}

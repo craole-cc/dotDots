@@ -1,4 +1,4 @@
-{}: {
+_: {
   userSettings = {
     # General
     "license.author" = "Craig 'Craole' Cole";

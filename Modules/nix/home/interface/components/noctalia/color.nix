@@ -1,4 +1,4 @@
-{}: {
+_: {
   colorSchemes = {
     # darkMode = true;
     generateTemplatesForPredefined = true;

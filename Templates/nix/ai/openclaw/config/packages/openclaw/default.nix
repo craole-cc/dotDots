@@ -1,6 +1,13 @@
 {pkgs, ...}: let
-  inherit (pkgs) fetchFromGitHub makeWrapper openssl pkg-config stdenv;
-  lib = pkgs.lib;
+  inherit
+    (pkgs)
+    fetchFromGitHub
+    makeWrapper
+    openssl
+    pkg-config
+    stdenv
+    ;
+  inherit (pkgs) lib;
   version = "0.1.0";
 in
   stdenv.mkDerivation {
@@ -16,7 +23,10 @@ in
       sha256 = "sha256-STUB0000openclaw000000000000000000000000000=";
     };
 
-    nativeBuildInputs = [pkg-config makeWrapper];
+    nativeBuildInputs = [
+      pkg-config
+      makeWrapper
+    ];
 
     buildInputs = [openssl];
 

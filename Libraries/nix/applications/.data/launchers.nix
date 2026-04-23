@@ -1,4 +1,4 @@
-{...}: {
+_: {
   vicinae = {
     names = {
       package = "vicinae";

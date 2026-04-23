@@ -43,13 +43,20 @@
   in {
     __meta = {
       kind = "rust";
-      inherit channel rust templates tools welcome pkgs;
+      inherit
+        channel
+        rust
+        templates
+        tools
+        welcome
+        pkgs
+        ;
     };
 
     shell = {
       name = "rust-${channel}";
       packages = tools.packages ++ optionals isDarwin [pkgs.libiconv];
-      env = env;
+      inherit env;
       shellHook = ''
         ${tools.init}
         [ -n "$PRJ_HOME" ] || PRJ_HOME=$PWD
@@ -102,7 +109,7 @@
     shell = {
       name = "ai-dev";
       packages = [claw.package] ++ llm.packages;
-      env = llm.env;
+      inherit (llm) env;
       shellHook = ''
         echo "🤖 AI Development Environment"
         echo "   Tools: openclaw, claude-code, codex, gemini-cli, opencode"
@@ -149,7 +156,15 @@
     base =
       mergeShellSpecs
       (mkRustSpec {
-        inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome channel;
+        inherit
+          lib
+          pkgs
+          mkTools
+          mkEnvironment
+          mkTemplates
+          mkWelcome
+          channel
+          ;
       })
       (mkAiSpec {
         inherit lib pkgs;
@@ -157,7 +172,10 @@
   in
     mergeShellSpecs base {
       __meta.kind = "combined";
-      __meta.sources = ["rust.${channel}" "ai"];
+      __meta.sources = [
+        "rust.${channel}"
+        "ai"
+      ];
 
       shell = {
         name = "full-${channel}";
@@ -166,4 +184,6 @@
         shellHook = "";
       };
     };
-in {inherit mkRustSpec mkAISpec mkCombinedSpec;}
+in {
+  inherit mkRustSpec mkCombinedSpec;
+}

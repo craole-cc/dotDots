@@ -1,4 +1,4 @@
-{...}: {
+_: {
   whatsapp-electron = {
     names = {
       package = "whatsapp-electron";
@@ -6,7 +6,10 @@
       title = "WhatsApp Electron :: Default Account";
     };
     exec = "whatsapp";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     family = "whatsapp";
     channel = "stable";
   };
@@ -18,7 +21,10 @@
       title = "WhatsApp Electron :: Default Account";
     };
     exec = "karere";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     family = "whatsapp";
     channel = "stable";
   };
@@ -30,7 +36,10 @@
       class = "discord";
     };
     exec = "discord";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     family = "chromium";
     channel = "stable";
   };
@@ -54,7 +63,10 @@
       class = "Element";
     };
     exec = "element-desktop";
-    categories = ["communication" "email-client"];
+    categories = [
+      "communication"
+      "email-client"
+    ];
     family = "chromium";
     channel = "stable";
   };
@@ -66,7 +78,10 @@
       class = "org.gnome.Fractal";
     };
     exec = "fractal";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     channel = "stable";
   };
 
@@ -77,7 +92,10 @@
       class = "org.telegram.desktop";
     };
     exec = "telegram-desktop";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     channel = "stable";
   };
 
@@ -88,7 +106,10 @@
       class = "Signal";
     };
     exec = "signal-desktop";
-    categories = ["communication" "messenger"];
+    categories = [
+      "communication"
+      "messenger"
+    ];
     family = "chromium";
     channel = "stable";
   };
@@ -100,7 +121,10 @@
       class = "thunderbird";
     };
     exec = "thunderbird";
-    categories = ["communication" "email-client"];
+    categories = [
+      "communication"
+      "email-client"
+    ];
     family = "firefox";
     channel = "stable";
   };
@@ -112,7 +136,10 @@
       class = "org.gnome.Evolution";
     };
     exec = "evolution";
-    categories = ["communication" "email-client"];
+    categories = [
+      "communication"
+      "email-client"
+    ];
     channel = "stable";
   };
 
@@ -123,7 +150,10 @@
       class = "org.gnome.Geary";
     };
     exec = "geary";
-    categories = ["communication" "email-client"];
+    categories = [
+      "communication"
+      "email-client"
+    ];
     channel = "stable";
   };
 }

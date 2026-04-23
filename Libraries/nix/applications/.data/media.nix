@@ -1,4 +1,4 @@
-{...}: {
+_: {
   mpv = {
     names = {
       package = "mpv";

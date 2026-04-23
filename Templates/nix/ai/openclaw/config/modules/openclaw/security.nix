@@ -7,7 +7,7 @@
   inherit (lib.strings) optionalString;
 
   cfg = config.services.openclaw;
-  tls = cfg.tls;
+  inherit (cfg) tls;
 in
   mkIf cfg.enable {
     # ── AppArmor ──────────────────────────────────────────────────────────────

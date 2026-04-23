@@ -3,16 +3,16 @@
   pkgs,
   ...
 }: let
-  treefmtEval = inputs.treefmt.lib.evalModule pkgs ../treefmt.nix;
+  inherit (pkgs.stdenv.hostPlatform) system;
 in
-  inputs.git-hooks.lib.${pkgs.stdenv.hostPlatform.system}.run {
+  inputs.git-hooks.lib.${system}.run {
     src = inputs.self;
     hooks = {
       nil.enable = true;
-      statix.enable = true;
+      # statix.enable = true;
       treefmt = {
         enable = true;
-        package = treefmtEval.config.build.wrapper;
+        package = (inputs.treefmt.lib.evalModule pkgs ../treefmt.nix).config.build.wrapper;
       };
     };
   }
