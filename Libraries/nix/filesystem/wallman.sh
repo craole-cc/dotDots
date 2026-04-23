@@ -26,7 +26,7 @@ CACHE_FAVORITE="@cacheFavorite@"
 
 #> Ensure cache directory exists
 ensure_cache_dir() {
-  mkdir -p "$(dirname "$CACHE_POLARITY")" 2> /dev/null || true
+  mkdir -p "$(dirname "$CACHE_POLARITY")" 2>/dev/null || true
 }
 
 #> Classify image polarity (dark/light)
@@ -39,7 +39,7 @@ classify_polarity() {
 
   #> Check cache first
   if [ -f "$CACHE_POLARITY" ]; then
-    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_POLARITY" 2> /dev/null | cut -d'|' -f2)
+    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_POLARITY" 2>/dev/null | cut -d'|' -f2)
     if [ -n "$cached" ]; then
       printf "%s" "$cached"
       return 0
@@ -47,10 +47,10 @@ classify_polarity() {
   fi
 
   #> Analyze using ImageMagick
-  if command -v "$CMD_CONVERT" > /dev/null 2>&1; then
+  if command -v "$CMD_CONVERT" >/dev/null 2>&1; then
     brightness=$(
-      "$CMD_CONVERT" "$image" -colorspace Gray -format "%[fx:mean*100]" info: 2> /dev/null \
-        || printf "50"
+      "$CMD_CONVERT" "$image" -colorspace Gray -format "%[fx:mean*100]" info: 2>/dev/null ||
+        printf "50"
     )
     brightness_int=$(printf "%.0f" "$brightness")
 
@@ -62,15 +62,15 @@ classify_polarity() {
   else
     #> Fallback to filename heuristic
     case "$(basename "$image")" in
-      *dark* | *night* | *moon* | *shadow* | *black*)
-        printf "dark"
-        ;;
-      *light* | *day* | *sun* | *bright* | *white*)
-        printf "light"
-        ;;
-      *)
-        printf "dark"
-        ;;
+    *dark* | *night* | *moon* | *shadow* | *black*)
+      printf "dark"
+      ;;
+    *light* | *day* | *sun* | *bright* | *white*)
+      printf "light"
+      ;;
+    *)
+      printf "dark"
+      ;;
     esac
   fi
 }
@@ -81,7 +81,7 @@ classify_purity() {
 
   #> Check cache first
   if [ -f "$CACHE_PURITY" ]; then
-    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_PURITY" 2> /dev/null | cut -d'|' -f2)
+    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_PURITY" 2>/dev/null | cut -d'|' -f2)
     if [ -n "$cached" ]; then
       printf "%s" "$cached"
       return 0
@@ -90,12 +90,12 @@ classify_purity() {
 
   #> Filename heuristic for now (could be extended with ML)
   case "$(basename "$image")" in
-    *nsfw* | *18+* | *adult*)
-      printf "nsfw"
-      ;;
-    *)
-      printf "sfw"
-      ;;
+  *nsfw* | *18+* | *adult*)
+    printf "nsfw"
+    ;;
+  *)
+    printf "sfw"
+    ;;
   esac
 }
 
@@ -105,7 +105,7 @@ classify_category() {
 
   #> Check cache first
   if [ -f "$CACHE_CATEGORY" ]; then
-    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_CATEGORY" 2> /dev/null | cut -d'|' -f2)
+    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_CATEGORY" 2>/dev/null | cut -d'|' -f2)
     if [ -n "$cached" ]; then
       printf "%s" "$cached"
       return 0
@@ -114,21 +114,21 @@ classify_category() {
 
   #> Filename heuristic (could be extended with ML)
   case "$(basename "$image")" in
-    *nature* | *landscape* | *mountain* | *forest* | *ocean*)
-      printf "nature"
-      ;;
-    *anime* | *manga* | *waifu*)
-      printf "anime"
-      ;;
-    *abstract* | *geometric* | *pattern*)
-      printf "abstract"
-      ;;
-    *city* | *urban* | *building*)
-      printf "urban"
-      ;;
-    *)
-      printf "uncategorized"
-      ;;
+  *nature* | *landscape* | *mountain* | *forest* | *ocean*)
+    printf "nature"
+    ;;
+  *anime* | *manga* | *waifu*)
+    printf "anime"
+    ;;
+  *abstract* | *geometric* | *pattern*)
+    printf "abstract"
+    ;;
+  *city* | *urban* | *building*)
+    printf "urban"
+    ;;
+  *)
+    printf "uncategorized"
+    ;;
   esac
 }
 
@@ -137,7 +137,7 @@ classify_favorite() {
   image="$1"
 
   if [ -f "$CACHE_FAVORITE" ]; then
-    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_FAVORITE" 2> /dev/null | cut -d'|' -f2)
+    cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_FAVORITE" 2>/dev/null | cut -d'|' -f2)
     if [ -n "$cached" ]; then
       printf "%s" "$cached"
       return 0
@@ -160,35 +160,35 @@ scan_directory() {
   ensure_cache_dir
 
   #> Create cache header
-  printf "# %s classification cache for %s\n" "$classification_type" "$PATH_WALLPAPERS" > "$cache_file"
-  printf "# Monitor: %s (%s)\n" "$CFG_NAME" "$CFG_RESOLUTION" >> "$cache_file"
-  printf "# Generated: %s\n" "$(date)" >> "$cache_file"
+  printf "# %s classification cache for %s\n" "$classification_type" "$PATH_WALLPAPERS" >"$cache_file"
+  printf "# Monitor: %s (%s)\n" "$CFG_NAME" "$CFG_RESOLUTION" >>"$cache_file"
+  printf "# Generated: %s\n" "$(date)" >>"$cache_file"
 
   #> Scan and classify all images
-  "$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2> /dev/null \
-    | while read -r image; do
+  "$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2>/dev/null |
+    while read -r image; do
       case "$classification_type" in
-        polarity)
-          classification=$(classify_polarity "$image")
-          ;;
-        purity)
-          classification=$(classify_purity "$image")
-          ;;
-        category)
-          classification=$(classify_category "$image")
-          ;;
-        favorite)
-          classification=$(classify_favorite "$image")
-          ;;
-        *)
-          printf "Error: Unknown classification type: %s\n" "$classification_type" >&2
-          return 1
-          ;;
+      polarity)
+        classification=$(classify_polarity "$image")
+        ;;
+      purity)
+        classification=$(classify_purity "$image")
+        ;;
+      category)
+        classification=$(classify_category "$image")
+        ;;
+      favorite)
+        classification=$(classify_favorite "$image")
+        ;;
+      *)
+        printf "Error: Unknown classification type: %s\n" "$classification_type" >&2
+        return 1
+        ;;
       esac
-      printf "%s|%s\n" "$("$CMD_REALPATH" "$image")" "$classification" >> "$cache_file"
+      printf "%s|%s\n" "$("$CMD_REALPATH" "$image")" "$classification" >>"$cache_file"
     done
 
-  count=$("$CMD_RG" -c '|' "$cache_file" 2> /dev/null || printf "0")
+  count=$("$CMD_RG" -c '|' "$cache_file" 2>/dev/null || printf "0")
   printf "Scanned and classified %s images (%s) in %s\n" "$count" "$classification_type" "$PATH_WALLPAPERS"
 }
 
@@ -212,31 +212,31 @@ set_wallpaper() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-      --polarity)
-        polarity="$2"
-        shift 2
-        ;;
-      --purity)
-        purity="$2"
-        shift 2
-        ;;
-      --category)
-        category="$2"
-        shift 2
-        ;;
-      --favorite)
-        favorite="$2"
-        shift 2
-        ;;
-      *)
-        printf "Error: Unknown filter: %s\n" "$1" >&2
-        return 1
-        ;;
+    --polarity)
+      polarity="$2"
+      shift 2
+      ;;
+    --purity)
+      purity="$2"
+      shift 2
+      ;;
+    --category)
+      category="$2"
+      shift 2
+      ;;
+    --favorite)
+      favorite="$2"
+      shift 2
+      ;;
+    *)
+      printf "Error: Unknown filter: %s\n" "$1" >&2
+      return 1
+      ;;
     esac
   done
 
   #> Start with all images
-  candidates=$("$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2> /dev/null)
+  candidates=$("$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2>/dev/null)
 
   #> Apply polarity filter
   if [ -n "$polarity" ]; then
@@ -245,7 +245,7 @@ set_wallpaper() {
       return 1
     fi
     candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$polarity\$" "$CACHE_POLARITY" 2> /dev/null)
+      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$polarity\$" "$CACHE_POLARITY" 2>/dev/null)
       [ -n "$cached" ] && printf "%s\n" "$img"
     done)
   fi
@@ -257,7 +257,7 @@ set_wallpaper() {
       return 1
     fi
     candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$purity\$" "$CACHE_PURITY" 2> /dev/null)
+      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$purity\$" "$CACHE_PURITY" 2>/dev/null)
       [ -n "$cached" ] && printf "%s\n" "$img"
     done)
   fi
@@ -269,7 +269,7 @@ set_wallpaper() {
       return 1
     fi
     candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$category\$" "$CACHE_CATEGORY" 2> /dev/null)
+      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$category\$" "$CACHE_CATEGORY" 2>/dev/null)
       [ -n "$cached" ] && printf "%s\n" "$img"
     done)
   fi
@@ -281,7 +281,7 @@ set_wallpaper() {
       return 1
     fi
     candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$favorite\$" "$CACHE_FAVORITE" 2> /dev/null)
+      cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$favorite\$" "$CACHE_FAVORITE" 2>/dev/null)
       [ -n "$cached" ] && printf "%s\n" "$img"
     done)
   fi
@@ -320,47 +320,47 @@ main() {
   shift
 
   case "$command" in
-    classify)
-      if [ $# -lt 1 ]; then
-        printf "Error: classify requires a type flag\n" >&2
-        exit 1
-      fi
+  classify)
+    if [ $# -lt 1 ]; then
+      printf "Error: classify requires a type flag\n" >&2
+      exit 1
+    fi
 
-      case "$1" in
-        --polarity)
-          scan_directory "polarity" "$CACHE_POLARITY"
-          ;;
-        --purity)
-          scan_directory "purity" "$CACHE_PURITY"
-          ;;
-        --category)
-          scan_directory "category" "$CACHE_CATEGORY"
-          ;;
-        --favorite)
-          scan_directory "favorite" "$CACHE_FAVORITE"
-          ;;
-        --all)
-          scan_directory "polarity" "$CACHE_POLARITY"
-          scan_directory "purity" "$CACHE_PURITY"
-          scan_directory "category" "$CACHE_CATEGORY"
-          scan_directory "favorite" "$CACHE_FAVORITE"
-          ;;
-        *)
-          printf "Error: Unknown classification type: %s\n" "$1" >&2
-          exit 1
-          ;;
-      esac
+    case "$1" in
+    --polarity)
+      scan_directory "polarity" "$CACHE_POLARITY"
       ;;
-    get)
-      get_current
+    --purity)
+      scan_directory "purity" "$CACHE_PURITY"
       ;;
-    set)
-      set_wallpaper "$@"
+    --category)
+      scan_directory "category" "$CACHE_CATEGORY"
+      ;;
+    --favorite)
+      scan_directory "favorite" "$CACHE_FAVORITE"
+      ;;
+    --all)
+      scan_directory "polarity" "$CACHE_POLARITY"
+      scan_directory "purity" "$CACHE_PURITY"
+      scan_directory "category" "$CACHE_CATEGORY"
+      scan_directory "favorite" "$CACHE_FAVORITE"
       ;;
     *)
-      printf "Error: Unknown command: %s\n" "$command" >&2
+      printf "Error: Unknown classification type: %s\n" "$1" >&2
       exit 1
       ;;
+    esac
+    ;;
+  get)
+    get_current
+    ;;
+  set)
+    set_wallpaper "$@"
+    ;;
+  *)
+    printf "Error: Unknown command: %s\n" "$command" >&2
+    exit 1
+    ;;
   esac
 }
 

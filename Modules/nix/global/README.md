@@ -231,11 +231,13 @@ The `dots` shell configures:
 ## Development Workflow
 
 1. **Enter the shell**:
+
    ```bash
    nix develop
    ```
 
 2. **Use generated commands**:
+
    ```bash
    .rebuild  # Rebuild system
    .fmt      # Format code
@@ -243,6 +245,7 @@ The `dots` shell configures:
    ```
 
 3. **Access tools directly**:
+
    ```bash
    mpv video.mp4
    yt-dlp https://youtube.com/watch?v=...

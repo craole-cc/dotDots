@@ -167,7 +167,7 @@ its definition, in this order:
 #### Naming prefix conventions
 
 | Prefix       | Meaning                                    |
-|--------------|--------------------------------------------|
+| ------------ | ------------------------------------------ |
 | `mk*`        | Constructor — builds or derives something  |
 | `to*`        | Converter — transforms input to output     |
 | `has*`       | Predicate — boolean, checks presence       |
@@ -181,23 +181,23 @@ its definition, in this order:
 When a `mk*` function partitions an attrset and names the resulting keys, the
 prefix encodes the semantic relationship:
 
-| Prefix           | Relationship                       | Example              |
-|------------------|------------------------------------|----------------------|
-| `by`             | grouped by field value             | `byColor`            |
-| `is`             | boolean true partition             | `isStable`           |
-| `has`            | list-field membership              | `hasSync`            |
-| `as`             | identity/role partition            | `asGraphical`        |
-| `for`            | protocol or lang affinity          | `forWayland`         |
-| `on`             | surface or channel partition       | `onWayland`          |
-| `in`             | color or space membership          | `inDark`             |
-| `with`           | toolkit or panel association       | `withGtk`            |
-| `using`          | compositor affiliation             | `usingHyprland`      |
-| `via`            | delivery mechanism                 | `viaGreeter`         |
-| `from`           | family origin                      | `fromFirefox`        |
-| `writtenIn`      | engine/language membership         | `writtenInRust`      |
-| `supports`       | capability or protocol support     | `supportsWayland`    |
-| `configuredWith` | config language                    | `configuredWithToml` |
-| `single`/`multi` | list-length partition              | `singleTag`          |
+| Prefix           | Relationship                   | Example              |
+| ---------------- | ------------------------------ | -------------------- |
+| `by`             | grouped by field value         | `byColor`            |
+| `is`             | boolean true partition         | `isStable`           |
+| `has`            | list-field membership          | `hasSync`            |
+| `as`             | identity/role partition        | `asGraphical`        |
+| `for`            | protocol or lang affinity      | `forWayland`         |
+| `on`             | surface or channel partition   | `onWayland`          |
+| `in`             | color or space membership      | `inDark`             |
+| `with`           | toolkit or panel association   | `withGtk`            |
+| `using`          | compositor affiliation         | `usingHyprland`      |
+| `via`            | delivery mechanism             | `viaGreeter`         |
+| `from`           | family origin                  | `fromFirefox`        |
+| `writtenIn`      | engine/language membership     | `writtenInRust`      |
+| `supports`       | capability or protocol support | `supportsWayland`    |
+| `configuredWith` | config language                | `configuredWithToml` |
+| `single`/`multi` | list-length partition          | `singleTag`          |
 
 #### Section shape
 
@@ -217,12 +217,12 @@ When a `mk*` function produces a queryable section it always has this shape:
 Tests live in the `in` clause under `__tests = runTests { ... }`. Test names
 read as assertions about behaviour, not descriptions of the function:
 
-| Pattern                  | Use                              |
-|--------------------------|----------------------------------|
-| `allowsX` / `deniesX`    | boolean predicates               |
-| `returnsX` / `exportsX`  | value or shape checks            |
-| `resolvesX`              | lookup or alias resolution       |
-| `caseSensitiveWithExact` | case-sensitivity behaviour       |
+| Pattern                  | Use                        |
+| ------------------------ | -------------------------- |
+| `allowsX` / `deniesX`    | boolean predicates         |
+| `returnsX` / `exportsX`  | value or shape checks      |
+| `resolvesX`              | lookup or alias resolution |
+| `caseSensitiveWithExact` | case-sensitivity behaviour |
 
 Cover at minimum: the happy path, the rejection path, and any default-value or
 case-sensitivity behaviour.
@@ -230,7 +230,7 @@ case-sensitivity behaviour.
 #### Inline comment sigils
 
 | Sigil | Use                                      |
-|-------|------------------------------------------|
+| ----- | ---------------------------------------- |
 | `#~@` | groups, lists, collections               |
 | `#>`  | runners, verbs, active steps             |
 | `#?`  | checks, guards, questions, preconditions |
@@ -245,14 +245,14 @@ Section headings in long files use box-drawing characters:
 
 #### Type conventions
 
-| Pattern                  | Meaning                               |
-|--------------------------|---------------------------------------|
-| `string` `bool` `int`    | primitives                            |
-| `AttrSet`                | untyped attribute set                 |
-| `{ ${key} :: AttrSet }`  | attrset with dynamic keys             |
-| `A \| B`                 | union / nullable (`string \| null`)   |
-| `# optional, default ""` | optional record field with default    |
-| `-> X \| {}`             | may return empty attrset              |
+| Pattern                  | Meaning                             |
+| ------------------------ | ----------------------------------- |
+| `string` `bool` `int`    | primitives                          |
+| `AttrSet`                | untyped attribute set               |
+| `{ ${key} :: AttrSet }`  | attrset with dynamic keys           |
+| `A \| B`                 | union / nullable (`string \| null`) |
+| `# optional, default ""` | optional record field with default  |
+| `-> X \| {}`             | may return empty attrset            |
 
 #### Aggregator `default.nix`
 
@@ -322,7 +322,7 @@ the right home before introducing new structure.
 
 - Templates/nix
   - **consumes**: lix, tree
-  - **provides**: reusable kit sets exposed via tree.store.kit.*
+  - **provides**: reusable kit sets exposed via tree.store.kit.\*
 
 - flake.nix
   - **wires**: all of the above into flake outputs and nixosConfigurations
@@ -358,7 +358,7 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 ## Reference Documents
 
 | Document               | Contents                                    |
-|------------------------|---------------------------------------------|
+| ---------------------- | ------------------------------------------- |
 | `ARCHITECTURE.md`      | Evaluation flow and layer model             |
 | `CONVENTIONS.md`       | Repository rules and role boundaries        |
 | `TASKS.md`             | Investigation flows for common change types |

@@ -2,27 +2,27 @@
 excludes = [".direnv/**", "target/**"]
 
 [formatter.rust]
-command  = "rustfmt"
-options  = ["--edition", "2024"]
+command = "rustfmt"
+options = ["--edition", "2024"]
 includes = ["*.rs"]
 
 [formatter.toml]
-command  = "taplo"
-options  = ["format"]
+command = "taplo"
+options = ["format"]
 includes = ["*.toml"]
 
 [formatter.markdownlint]
-command  = "markdownlint"
-options  = ["--fix"]
+command = "markdownlint"
+options = ["--fix"]
 includes = ["*.md"]
 priority = 1
 
 [formatter.prettier]
-command  = "prettiest"
-options  = ["--write"]
+command = "prettiest"
+options = ["--write"]
 includes = ["*.md", "*.json"]
 priority = 2
 
 [formatter.yaml]
-command  = "yamlfmt"
+command = "yamlfmt"
 includes = ["*.yaml", "*.yml"]

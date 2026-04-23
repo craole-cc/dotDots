@@ -14,9 +14,9 @@ Infinite recursion occurs at runtime **only when `rootAliases = true`** is passe
 `Libraries/nix/default.nix`. When `rootAliases = false` (the default), the library builds
 and evaluates correctly. The error surfaces at:
 
-  Libraries/nix/applications/groups.nix:31:9
-    all = _.applications.filters.groups;
-           ^
+Libraries/nix/applications/groups.nix:31:9
+all = \_.applications.filters.groups;
+^
 
 Where `_` is `self` — the extensible library's fixed point.
 
@@ -24,7 +24,7 @@ Where `_` is `self` — the extensible library's fixed point.
 
 error: infinite recursion encountered
 at Libraries/nix/applications/groups.nix:31:9:
-all = _.applications.filters.groups;
+all = \_.applications.filters.groups;
 
 text
 
@@ -34,18 +34,18 @@ Run with `--show-trace` to get the full trace if not already visible.
 
 Please read and reason over the following files (relative to repo root):
 
-- `Libraries/nix/default.nix`            — entry point, receives `rootAliases` flag
-- `Libraries/nix/internal/default.nix`   — builds the `library` via `makeExtensible`;
-                                           contains the `rootAliases` branch logic
-- `Libraries/nix/internal/env.nix`       — constructs the module environment; `_ = self`
-- `Libraries/nix/internal/scan.nix`      — recursively scans `.nix` files; extracts
-                                           `_rootAliases` from each imported module
-- `Libraries/nix/internal/meta.nix`      — `mkModuleExports` helper that creates
-                                           `__rootAliases` (double underscore)
-- `Libraries/nix/internal/assemble.nix`  — final assembly; wraps `library` into `lix`
+- `Libraries/nix/default.nix` — entry point, receives `rootAliases` flag
+- `Libraries/nix/internal/default.nix` — builds the `library` via `makeExtensible`;
+  contains the `rootAliases` branch logic
+- `Libraries/nix/internal/env.nix` — constructs the module environment; `_ = self`
+- `Libraries/nix/internal/scan.nix` — recursively scans `.nix` files; extracts
+  `_rootAliases` from each imported module
+- `Libraries/nix/internal/meta.nix` — `mkModuleExports` helper that creates
+  `__rootAliases` (double underscore)
+- `Libraries/nix/internal/assemble.nix` — final assembly; wraps `library` into `lix`
 - `Libraries/nix/applications/groups.nix`— the file where recursion is detected; examine
-                                           how it defines `_rootAliases`, what it exports,
-                                           and whether it uses `mkModuleExports`
+  how it defines `_rootAliases`, what it exports,
+  and whether it uses `mkModuleExports`
 
 ## What to Investigate
 
@@ -84,7 +84,7 @@ before `self` is constructed.
 
 These names do NOT match. Check whether:
 a) `groups.nix` (and other modules) define `_rootAliases` directly rather than relying
-   on `mkModuleExports`
+on `mkModuleExports`
 b) Or if there's a transform somewhere that renames `__rootAliases` → `_rootAliases`
 
 If modules use `mkModuleExports` but scan looks for `_rootAliases`, then

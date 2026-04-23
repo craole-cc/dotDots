@@ -52,7 +52,6 @@ EOLor [OPTIONS] <PATH>
    ```
 
    In this example, different conversion options are given for each directory, and the script will perform the following conversions accordingly:
-
    - All files in `/path/to/dir1` to CRLF (DOS) line endings.
    - All files in `/path/to/dir2` to LF (Unix) line endings.
    - `my_file.text` based on the operating system.
@@ -86,7 +85,6 @@ EOLor [OPTIONS] <PATH>
 - POSIX shell utilities (usually pre-installed on Unix-like systems).
 
 - Optional dependencies for more efficient conversion:
-
   - `dos2unix`: For converting to LF (Unix to DOS).
   - `unix2dos`: For converting to CRLF (DOS to Unix).
 
@@ -105,7 +103,6 @@ EOLor [OPTIONS] <PATH>
 1. Place the script in a directory that is included in your system's `PATH` environment variable to use it globally.
 
 1. Optionally, install the `dos2unix` and `unix2dos` utilities for more efficient conversions:
-
    - On Windows systems:
 
      Ensure you have a POSIX-compatible shell environment on your Windows system. You can use tools like Cygwin or Git Bash, both of which come loaded with the necessary utilities.

@@ -25,19 +25,22 @@ in {
 
   ensurePrefix =
     assertMsg
-    (ensurePrefix "/" "tmp/cache" == "/tmp/cache"
+    (ensurePrefix "/" "tmp/cache"
+      == "/tmp/cache"
       && ensurePrefix "/" "/tmp/cache" == "/tmp/cache")
     "ensurePrefix prepends only when needed";
 
   ensureSuffix =
     assertMsg
-    (ensureSuffix ".nix" "default" == "default.nix"
+    (ensureSuffix ".nix" "default"
+      == "default.nix"
       && ensureSuffix ".nix" "default.nix" == "default.nix")
     "ensureSuffix appends only when needed";
 
   nonEmptyOrNull =
     assertMsg
-    (nonEmptyOrNull null == null
+    (nonEmptyOrNull null
+      == null
       && nonEmptyOrNull "" == null
       && nonEmptyOrNull 42 == "42")
     "nonEmptyOrNull normalizes null and empty values";

@@ -1,12 +1,12 @@
 [alias]
-b  = "build"
+b = "build"
 br = "build --release"
-c  = "check"
+c = "check"
 cl = "clippy"
-t  = "test"
-r  = "run"
+t = "test"
+r = "run"
 rr = "run --release"
-w  = "watch -x check"
+w = "watch -x check"
 wr = "watch -x run"
 
 [build]

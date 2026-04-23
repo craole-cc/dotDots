@@ -18,26 +18,26 @@ initialize_environment() {
 
 parse_arguments() {
   case "${1:-}" in
-    --monitor | -m)
-      monitor_mode
-      ;;
-    --quake | -q)
-      shift
-      quake_mode
-      ;;
-    --detect | -d)
-      detect_theme
-      printf "\n"
-      ;;
-    --help | -h) print_help ;;
-    *)
-      launch_terminal "$@"
-      ;;
+  --monitor | -m)
+    monitor_mode
+    ;;
+  --quake | -q)
+    shift
+    quake_mode
+    ;;
+  --detect | -d)
+    detect_theme
+    printf "\n"
+    ;;
+  --help | -h) print_help ;;
+  *)
+    launch_terminal "$@"
+    ;;
   esac
 }
 
 has_cmd() {
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 detect_theme() {
@@ -45,27 +45,27 @@ detect_theme() {
   if [ -f "$HOME/.config/kdeglobals" ]; then
     KDE_SCHEME=$(grep "^ColorScheme=" "$HOME/.config/kdeglobals" | head -1 | cut -d= -f2)
     case "$KDE_SCHEME" in
-      *[Dd]ark*)
-        printf "dark"
-        return 0
-        ;;
-      *[Ll]ight*)
-        printf "light"
-        return 0
-        ;;
-      *)
-        INACTIVE_COLOR=$(grep -A5 "^\[ColorEffects:Inactive\]" "$HOME/.config/kdeglobals" | grep "^Color=" | cut -d= -f2)
-        if [ -n "$INACTIVE_COLOR" ]; then
-          R=$(printf '%s' "$INACTIVE_COLOR" | cut -d, -f1)
-          if [ "$R" -gt 100 ] 2> /dev/null; then
-            printf "light"
-            return 0
-          else
-            printf "dark"
-            return 0
-          fi
+    *[Dd]ark*)
+      printf "dark"
+      return 0
+      ;;
+    *[Ll]ight*)
+      printf "light"
+      return 0
+      ;;
+    *)
+      INACTIVE_COLOR=$(grep -A5 "^\[ColorEffects:Inactive\]" "$HOME/.config/kdeglobals" | grep "^Color=" | cut -d= -f2)
+      if [ -n "$INACTIVE_COLOR" ]; then
+        R=$(printf '%s' "$INACTIVE_COLOR" | cut -d, -f1)
+        if [ "$R" -gt 100 ] 2>/dev/null; then
+          printf "light"
+          return 0
+        else
+          printf "dark"
+          return 0
         fi
-        ;;
+      fi
+      ;;
     esac
   fi
 
@@ -75,33 +75,33 @@ detect_theme() {
       --dest=org.freedesktop.portal.Desktop \
       /org/freedesktop/portal/desktop \
       org.freedesktop.portal.Settings.Read \
-      string:'org.freedesktop.appearance' string:'color-scheme' 2> /dev/null \
-      | grep -oE 'uint32 [0-9]+' | awk '{print $2}')
+      string:'org.freedesktop.appearance' string:'color-scheme' 2>/dev/null |
+      grep -oE 'uint32 [0-9]+' | awk '{print $2}')
 
     case "$THEME" in
-      1)
-        printf "dark"
-        return 0
-        ;;
-      2)
-        printf "light"
-        return 0
-        ;;
+    1)
+      printf "dark"
+      return 0
+      ;;
+    2)
+      printf "light"
+      return 0
+      ;;
     esac
   fi
 
   #| 3. Check GNOME settings
   if has_cmd gsettings; then
-    SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || printf "")
+    SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || printf "")
     case "$SCHEME" in
-      *dark* | *prefer-dark*)
-        printf "dark"
-        return 0
-        ;;
-      *light* | *prefer-light*)
-        printf "light"
-        return 0
-        ;;
+    *dark* | *prefer-dark*)
+      printf "dark"
+      return 0
+      ;;
+    *light* | *prefer-light*)
+      printf "light"
+      return 0
+      ;;
     esac
   fi
 
@@ -110,28 +110,28 @@ detect_theme() {
     if [ -f "$conf" ]; then
       GTK_THEME=$(grep "^gtk-theme-name" "$conf" | cut -d= -f2 | tr -d ' "')
       case "$GTK_THEME" in
-        *[Dd]ark*)
-          printf "dark"
-          return 0
-          ;;
-        *[Ll]ight*)
-          printf "light"
-          return 0
-          ;;
+      *[Dd]ark*)
+        printf "dark"
+        return 0
+        ;;
+      *[Ll]ight*)
+        printf "light"
+        return 0
+        ;;
       esac
     fi
   done
 
   #| 5. Check environment variables
   case "${GTK_THEME:-}:${QT_STYLE_OVERRIDE:-}" in
-    *[Dd]ark*)
-      printf "dark"
-      return 0
-      ;;
-    *[Ll]ight*)
-      printf "light"
-      return 0
-      ;;
+  *[Dd]ark*)
+    printf "dark"
+    return 0
+    ;;
+  *[Ll]ight*)
+    printf "light"
+    return 0
+    ;;
   esac
 
   #| 6. Time-based fallback
@@ -146,16 +146,16 @@ detect_theme() {
 start_server() {
   theme="$1"
   case "$theme" in
-    dark | light) foot_theme="$theme" ;;
-    *) foot_theme="dark" ;;
+  dark | light) foot_theme="$theme" ;;
+  *) foot_theme="dark" ;;
   esac
 
-  foot_bin=$(command -v foot 2> /dev/null) || {
+  foot_bin=$(command -v foot 2>/dev/null) || {
     printf "Error: foot not in PATH\n" >&2
     return 1
   }
 
-  "${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" > /dev/null 2>&1 &
+  "${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" >/dev/null 2>&1 &
   return 0
 }
 
@@ -182,11 +182,11 @@ launch_with_server() {
   client_cmd="$4"
 
   #> Cleanup stale socket
-  [ -S "$socket" ] && ! pgrep -x foot > /dev/null 2>&1 && rm -f "$socket"
+  [ -S "$socket" ] && ! pgrep -x foot >/dev/null 2>&1 && rm -f "$socket"
 
   #? Server check → start/connect
-  if ! pgrep -x foot > /dev/null 2>&1 || [ ! -S "$socket" ]; then
-    printf '%s' "$theme" > "$theme_file"
+  if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "$socket" ]; then
+    printf '%s' "$theme" >"$theme_file"
     rm -f "$socket"
     start_server "$theme" || return 1
     wait_for_socket "$socket" || return 1
@@ -205,7 +205,7 @@ monitor_mode() {
 
   # Initialize theme file
   CURRENT_THEME=$(detect_theme)
-  printf '%s' "$CURRENT_THEME" > "$THEME_FILE"
+  printf '%s' "$CURRENT_THEME" >"$THEME_FILE"
   printf "Initial theme: %s\n" "$CURRENT_THEME" >&2
 
   while true; do
@@ -221,7 +221,7 @@ monitor_mode() {
 
       if [ "$LAST_THEME" != "$NEW_THEME" ]; then
         printf "Theme changed: %s → %s\n" "$LAST_THEME" "$NEW_THEME" >&2
-        printf '%s' "$NEW_THEME" > "$THEME_FILE"
+        printf '%s' "$NEW_THEME" >"$THEME_FILE"
         printf "Press F12 in terminals to toggle theme, or close and reopen them.\n" >&2
       fi
     fi
@@ -230,10 +230,10 @@ monitor_mode() {
 
 find_window_id() {
   #> Get list of all windows
-  windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2> /dev/null)
+  windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2>/dev/null)
   for window in $windows; do
     #> Get window info and check if it matches our appId
-    info=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$window" 2> /dev/null)
+    info=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$window" 2>/dev/null)
     if printf "%s" "$info" | grep -q "appId: $1"; then
       printf "%s" "$window"
       return 0
@@ -248,25 +248,25 @@ quake_mode() {
 
   if [ -n "${WINDOW_ID:-}" ]; then
     #? Window exists, check its state and toggle it
-    WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${WINDOW_ID}" 2> /dev/null)
+    WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${WINDOW_ID}" 2>/dev/null)
 
     if printf "%s" "${WINDOW_INFO}" | grep -q "minimized: true"; then
       #> Window is minimized, show it
-      qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "${WINDOW_ID}" 2> /dev/null
-      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2> /dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "${WINDOW_ID}" 2>/dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
     elif printf "%s" "${WINDOW_INFO}" | grep -q "active: true"; then
       #> Window is active and visible, hide it
-      qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2> /dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2>/dev/null
     else
       #> Window exists but not active, activate it
-      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2> /dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
     fi
   else
     #> Window doesn't exist, launch it
     launch_with_server "${THEME_FILE}" "${SOCKET}" "$(detect_theme)" footclient \
       --app-id="${QUAKE_ID}" \
       --window-size-chars=240x40 \
-      > /dev/null 2>&1 &
+      >/dev/null 2>&1 &
   fi
 }
 
@@ -276,7 +276,7 @@ launch_terminal() {
 
 #> Main execution
 print_help() {
-  cat << EOF
+  cat <<EOF
 Feet - Smart Foot Terminal Wrapper
 
 USAGE:

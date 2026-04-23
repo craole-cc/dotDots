@@ -12,37 +12,41 @@ max_width = 1024
 prepend_previewers = [
   #~@ RAW images
   { mime = "image/x-sony-arw", run = "arw" },
-  { url = "*.arw",             run = "arw" },
-  { url = "*.ARW",             run = "arw" },
+  { url = "*.arw", run = "arw" },
+  { url = "*.ARW", run = "arw" },
   #~@ Archives
-  { mime = "application/*zip",            run = "ouch" },
-  { mime = "application/x-tar",           run = "ouch" },
-  { mime = "application/x-bzip2",         run = "ouch" },
+  { mime = "application/*zip", run = "ouch" },
+  { mime = "application/x-tar", run = "ouch" },
+  { mime = "application/x-bzip2", run = "ouch" },
   { mime = "application/x-7z-compressed", run = "ouch" },
-  { mime = "application/x-rar",           run = "ouch" },
-  { mime = "application/x-xz",            run = "ouch" },
+  { mime = "application/x-rar", run = "ouch" },
+  { mime = "application/x-xz", run = "ouch" },
 
 ]
 
 [opener]
-raw   = [{ run = 'darktable "$1"', desc = "Darktable" },
-         { run = 'rawtherapee "$1"', desc = "RawTherapee" }]
-image = [{ run = 'nomacs "$1"',    desc = "Nomacs" },
-         { run = 'gimp "$@"',      desc = "GIMP" }]
+raw = [
+  { run = 'darktable "$1"', desc = "Darktable" },
+  { run = 'rawtherapee "$1"', desc = "RawTherapee" },
+]
+image = [
+  { run = 'nomacs "$1"', desc = "Nomacs" },
+  { run = 'gimp "$@"', desc = "GIMP" },
+]
 display = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
 edit = [{ run = '$EDITOR "$@"', block = true }]
 extract = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]
-generic_open = [{ run = 'xdg-open "$@"', desc = "Open"}]
+generic_open = [{ run = 'xdg-open "$@"', desc = "Open" }]
 
 [open]
 append_rules = [{ name = "*", use = "edit" }]
 prepend_rules = [
-  { name = "*.arw",  use = "image" },
-  { name = "*.ARW",  use = "image" },
-  { name = "*.jpg",  use = "image" },
-  { name = "*.JPG",  use = "image" },
+  { name = "*.arw", use = "image" },
+  { name = "*.ARW", use = "image" },
+  { name = "*.jpg", use = "image" },
+  { name = "*.JPG", use = "image" },
   { name = "*.jpeg", use = "image" },
-  { name = "*.png",  use = "image" },
+  { name = "*.png", use = "image" },
   { name = "*.epub", use = "display" },
-  { name = "*.pdf",  use = "display" },
+  { name = "*.pdf", use = "display" },
 ]

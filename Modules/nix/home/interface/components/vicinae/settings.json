@@ -109,15 +109,11 @@
   // List of entrypoints that are tagged as "favorite".
   // They show up on the very top of the root search when no search query is active.
   // Each value is a serialized entrypoint ID.
-  "favorites": [
-    "clipboard:history"
-  ],
+  "favorites": ["clipboard:history"],
   // List of entrypoints to suggest as a fallback when no result matches the
   // provided search query.
   // Each value is a serialized entrypoint ID.
-  "fallbacks": [
-    "files:search"
-  ],
+  "fallbacks": ["files:search"],
   // Every item that can be activated from the vicinae root search is referred as an entrypoint, or sometimes, in the case of extensions, as a "command".
   // Entrypoints are always grouped under a provider.
   // e,g applications entrypoints are all grouped under the "applications" provider

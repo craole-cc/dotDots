@@ -31,9 +31,7 @@
     "floating": false,
     "marginHorizontal": 1,
     "marginVertical": 0.06,
-    "monitors": [
-      "HDMI-A-3"
-    ],
+    "monitors": ["HDMI-A-3"],
     "outerCorners": true,
     "position": "top",
     "showCapsule": false,
@@ -285,9 +283,7 @@
     "enabled": true,
     "floatingRatio": 1,
     "inactiveIndicators": true,
-    "monitors": [
-      "HDMI-A-3"
-    ],
+    "monitors": ["HDMI-A-3"],
     "onlySameOutput": true,
     "pinnedApps": [],
     "pinnedStatic": true,
@@ -379,17 +375,9 @@
     "autoHideMs": 2000,
     "backgroundOpacity": 1,
     "enabled": true,
-    "enabledTypes": [
-      0,
-      1,
-      2,
-      4,
-      3
-    ],
+    "enabledTypes": [0, 1, 2, 4, 3],
     "location": "top_right",
-    "monitors": [
-      "HDMI-A-3"
-    ],
+    "monitors": ["HDMI-A-3"],
     "overlayLayer": true
   },
   "screenRecorder": {

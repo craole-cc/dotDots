@@ -130,7 +130,7 @@ The naming pattern for external keys is `<domain><FunctionName>` — e.g. `toApp
 
 Tests live in the `in` clause under `__tests = runTests { ... }`.
 
-````nix
+```nix
 __tests = runTests {
   fnOne = {
     # name describes what is being asserted, not what the function is
@@ -146,7 +146,7 @@ __tests = runTests {
     };
   };
 };
-````
+```
 
 **Test naming conventions** — names should read as assertions:
 
@@ -161,44 +161,44 @@ Cover at minimum: the happy path, the rejection path, and any case-sensitivity o
 
 ## Inline Comments
 
-| Sigil | Use |
-| --- | --- |
-| `#~@` | groups, lists, collections |
-| `#>` | runners, verbs, active steps |
-| `#?` | checks, guards, questions, preconditions |
+| Sigil | Use                                      |
+| ----- | ---------------------------------------- |
+| `#~@` | groups, lists, collections               |
+| `#>`  | runners, verbs, active steps             |
+| `#?`  | checks, guards, questions, preconditions |
 
 ### Section Headings (for long files)
 
-````nix
+```nix
 #╔═══════════════════════════════════════════════════════════╗
 #║ Heading Text                                              ║
 #╚═══════════════════════════════════════════════════════════╝
-````
+```
 
 ---
 
 ## Type Conventions
 
-| Pattern | Meaning |
-| --- | --- |
-| `string` `bool` `int` | primitives |
-| `AttrSet` | untyped attribute set |
-| `{ ${key} :: AttrSet }` | attrset with dynamic keys |
-| `A \| B` | union / nullable (`string \| null`) |
-| `# optional, default ""` | optional record field with default |
-| `-> X \| {}` | may return empty attrset |
+| Pattern                  | Meaning                             |
+| ------------------------ | ----------------------------------- |
+| `string` `bool` `int`    | primitives                          |
+| `AttrSet`                | untyped attribute set               |
+| `{ ${key} :: AttrSet }`  | attrset with dynamic keys           |
+| `A \| B`                 | union / nullable (`string \| null`) |
+| `# optional, default ""` | optional record field with default  |
+| `-> X \| {}`             | may return empty attrset            |
 
 ---
 
 ## `__docs` Format
 
-````md
+```md
 <Title> (Layer N).
 
 <What this module provides — 2–4 sentences.>
 <Mention any notable behaviour shared across functions.>
 
 Depends on: <comma-separated list>
-````
+```
 
 Surfaces as a readable string in `nix repl` and is exported via `inherit __docs;`.
