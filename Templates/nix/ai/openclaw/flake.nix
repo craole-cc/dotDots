@@ -27,7 +27,6 @@
     devshell = {
       url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.systems.follows = "systems";
     };
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -42,8 +41,6 @@
   outputs = inputs: let
     blueprintOutputs = inputs.blueprint {
       inherit inputs;
-      # All discovery (packages/, checks/, devshell.nix, lib/) happens here.
-      src = ./modules;
       nixpkgs.config.allowUnfree = true;
     };
   in
@@ -53,7 +50,7 @@
         default = import ./modules/packages/overlays {
           inherit (blueprintOutputs) packages;
         };
-        shared-nixpkgs = import ./modules/packages/overlays/shared-nixpkgs.nix {
+        shared-nixpkgs = import ./modules/packages/overlays/shared.nix {
           inherit (blueprintOutputs) mkPackagesFor;
         };
       };
