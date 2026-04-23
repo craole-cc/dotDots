@@ -8,6 +8,7 @@
     pkgs
     isLinux
     formatters
+    inputPkgs
     ;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;

@@ -98,7 +98,7 @@
       )
       configs;
   in
-    shells // {default = shells.minimal;};
+    shells // {default = shells.full;};
 in {
   inherit checks devShells formatter;
 }
