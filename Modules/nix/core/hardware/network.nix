@@ -89,15 +89,15 @@ in {
 
   config = mkIf cfg.enable {
     networking = {
-      hostName = cfg.hostName;
-      hostId = cfg.hostId;
+      inherit (cfg) hostName;
+      inherit (cfg) hostId;
       networkmanager.enable = true;
-      nameservers = cfg.nameservers;
+      inherit (cfg) nameservers;
       interfaces = genAttrs cfg.devices (_: {
         useDHCP = true;
       });
       firewall = {
-        enable = cfg.firewall.enable;
+        inherit (cfg.firewall) enable;
         allowedTCPPorts = cfg.firewall.tcpPorts;
         allowedTCPPortRanges = cfg.firewall.tcpRanges;
         allowedUDPPorts = cfg.firewall.udpPorts;

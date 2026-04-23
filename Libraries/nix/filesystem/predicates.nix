@@ -67,7 +67,7 @@
   isStorePath "/etc/hosts"             # => false
   ```
   */
-  isStorePath = lib.strings.isStorePath;
+  inherit (lib.strings) isStorePath;
 
   /**
   Check whether a path refers to a `.nix` file.
@@ -87,8 +87,7 @@
   isExcludedFile :: path | string -> [string] -> bool
   ```
   */
-  isExcludedFile = path: filesToExclude:
-    elem (baseNameOf path) filesToExclude;
+  isExcludedFile = path: filesToExclude: elem (baseNameOf path) filesToExclude;
 
   /**
   Check whether the immediate parent directory of a path is in an exclusion list.
@@ -98,8 +97,7 @@
   isInExcludedFolder :: path | string -> [string] -> bool
   ```
   */
-  isInExcludedFolder = path: foldersToExclude:
-    elem (dirOf path) foldersToExclude;
+  isInExcludedFolder = path: foldersToExclude: elem (dirOf path) foldersToExclude;
 
   /**
   Check whether a path is a valid flake root (contains a `flake.nix`).
@@ -124,12 +122,18 @@ in
       isExcludedFile = {
         detectsExcluded = mkTest {
           desired = true;
-          outcome = isExcludedFile "/foo/default.nix" ["default.nix" "flake.nix"];
+          outcome = isExcludedFile "/foo/default.nix" [
+            "default.nix"
+            "flake.nix"
+          ];
           command = ''isExcludedFile "/foo/default.nix" ["default.nix" "flake.nix"]'';
         };
         allowsNonExcluded = mkTest {
           desired = false;
-          outcome = isExcludedFile "/foo/bar.nix" ["default.nix" "flake.nix"];
+          outcome = isExcludedFile "/foo/bar.nix" [
+            "default.nix"
+            "flake.nix"
+          ];
           command = ''isExcludedFile "/foo/bar.nix" ["default.nix" "flake.nix"]'';
         };
         emptyList = mkTest {
@@ -142,12 +146,18 @@ in
       isInExcludedFolder = {
         detectsExcludedParent = mkTest {
           desired = true;
-          outcome = isInExcludedFolder "/foo/review/bar.nix" ["review" "tmp"];
+          outcome = isInExcludedFolder "/foo/review/bar.nix" [
+            "review"
+            "tmp"
+          ];
           command = ''isInExcludedFolder "/foo/review/bar.nix" ["review" "tmp"]'';
         };
         allowsNonExcludedParent = mkTest {
           desired = false;
-          outcome = isInExcludedFolder "/foo/src/bar.nix" ["review" "tmp"];
+          outcome = isInExcludedFolder "/foo/src/bar.nix" [
+            "review"
+            "tmp"
+          ];
           command = ''isInExcludedFolder "/foo/src/bar.nix" ["review" "tmp"]'';
         };
       };

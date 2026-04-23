@@ -4,9 +4,22 @@
   ...
 }: let
   inherit (_.filesystem.meta) listNixModules;
-  inherit (lib.attrsets) attrValues listToAttrs attrNames filterAttrs;
+  inherit
+    (lib.attrsets)
+    attrValues
+    listToAttrs
+    attrNames
+    filterAttrs
+    ;
   inherit (lib.filesystem) readDir;
-  inherit (lib.lists) elem filter flatten foldl' map;
+  inherit
+    (lib.lists)
+    elem
+    filter
+    flatten
+    foldl'
+    map
+    ;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) functionArgs;
 
@@ -58,11 +71,13 @@
     entries = readDir dir;
     dirNames = filter (name: entries.${name} == "directory") (attrNames entries);
   in
-    listToAttrs (map (name: {
+    listToAttrs (
+      map (name: {
         inherit name;
         value = import (dir + "/${name}");
       })
-      dirNames);
+      dirNames
+    );
 
   /**
   List the names of all immediate subdirectories of `dir`.
@@ -102,19 +117,12 @@
     entries = readDir dir;
 
     nixFiles = filter (
-      name:
-        entries.${name}
-        == "regular"
-        && hasSuffix ".nix" name
-        && name != "default.nix"
+      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
 
-    subDirs = filter (
-      name:
-        entries.${name}
-        == "directory"
-        && !(elem name foldersToExclude)
-    ) (attrNames entries);
+    subDirs = filter (name: entries.${name} == "directory" && !(elem name foldersToExclude)) (
+      attrNames entries
+    );
 
     fileImports = map (name: import (dir + "/${name}")) nixFiles;
 
@@ -123,9 +131,7 @@
         name: let
           subPath = dir + "/${name}";
           subEntries = readDir subPath;
-          hasDefault =
-            subEntries ? "default.nix"
-            && subEntries."default.nix" == "regular";
+          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
         in
           if hasDefault
           then import (subPath + "/default.nix")
@@ -149,17 +155,10 @@
   importAllMerged = dir: args: let
     entries = readDir dir;
     nixFiles = filter (
-      name:
-        entries.${name}
-        == "regular"
-        && hasSuffix ".nix" name
-        && name != "default.nix"
+      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
   in
-    foldl'
-    (acc: mod: acc // mod)
-    {}
-    (map (name: import (dir + "/${name}") args) nixFiles);
+    foldl' (acc: mod: acc // mod) {} (map (name: import (dir + "/${name}") args) nixFiles);
 
   # -- importAllPaths ─────────────────────────────────────────────────────────
   /**
@@ -178,19 +177,12 @@
     entries = readDir dir;
 
     nixFiles = filter (
-      name:
-        entries.${name}
-        == "regular"
-        && hasSuffix ".nix" name
-        && name != "default.nix"
+      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
 
-    subDirs = filter (
-      name:
-        entries.${name}
-        == "directory"
-        && !(elem name foldersToExclude)
-    ) (attrNames entries);
+    subDirs = filter (name: entries.${name} == "directory" && !(elem name foldersToExclude)) (
+      attrNames entries
+    );
 
     filePaths = map (name: dir + "/${name}") nixFiles;
 
@@ -199,9 +191,7 @@
         name: let
           subPath = dir + "/${name}";
           subEntries = readDir subPath;
-          hasDefault =
-            subEntries ? "default.nix"
-            && subEntries."default.nix" == "regular";
+          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
         in
           if hasDefault
           then subPath

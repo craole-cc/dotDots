@@ -22,7 +22,9 @@
       inherit mkModules;
       mkCore = mkModules;
     };
-    external = {mkCoreModules = mkModules;};
+    external = {
+      mkCoreModules = mkModules;
+    };
   };
 
   inherit (_.modules.construction) mkHome;
@@ -54,7 +56,12 @@
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit host specialArgs tree inputs;
+      inherit
+        host
+        specialArgs
+        tree
+        inputs
+        ;
       modules = modules.home;
     })
   ];

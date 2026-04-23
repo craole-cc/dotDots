@@ -14,16 +14,23 @@ in {
   settings = mkMerge [
     (import ./core.nix {inherit apps keyboard;})
     (import ./io.nix {
-      inherit apps host lix lib;
-      keyboard = keys;
-    })
-    (mkIf withRules (import ./rules {
       inherit
         apps
-        keyboard
+        host
+        lix
         lib
-        mkMerge
         ;
-    }))
+      keyboard = keys;
+    })
+    (mkIf withRules (
+      import ./rules {
+        inherit
+          apps
+          keyboard
+          lib
+          mkMerge
+          ;
+      }
+    ))
   ];
 }

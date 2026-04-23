@@ -91,7 +91,10 @@ in {
 
     swap = [];
 
-    network = ["enp9s0" "wlp8s0"];
+    network = [
+      "enp9s0"
+      "wlp8s0"
+    ];
 
     display = {
       "HDMI-A-3" = {

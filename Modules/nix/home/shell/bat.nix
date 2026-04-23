@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+_: {
   programs.bat = {
     enable = true;
     config = {

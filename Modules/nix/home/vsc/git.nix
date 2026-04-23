@@ -14,7 +14,12 @@
         defaultBranch = "main";
       };
       url = {
-        "https://github.com/" = {insteadOf = ["gh:" "github:"];};
+        "https://github.com/" = {
+          insteadOf = [
+            "gh:"
+            "github:"
+          ];
+        };
       };
     };
     includes = [];

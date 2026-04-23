@@ -66,7 +66,7 @@ in {
         shell.extensions
       ];
       userSettings = mkMerge [
-        (rust.userSettings  or {})
+        (rust.userSettings or {})
         (shell.userSettings or {})
       ];
     };

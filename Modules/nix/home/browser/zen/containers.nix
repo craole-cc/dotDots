@@ -84,4 +84,13 @@ let
       position = 1003;
     };
   };
-in {inherit containersForce containers pins pinsForce spaces spacesForce;}
+in {
+  inherit
+    containersForce
+    containers
+    pins
+    pinsForce
+    spaces
+    spacesForce
+    ;
+}

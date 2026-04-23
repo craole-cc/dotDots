@@ -2,7 +2,7 @@
 #
 # Minimal NixOS option/override stubs for testing modules outside a full
 # nixpkgs evaluation context.
-{...}: let
+_: let
   /**
   Stub a `lib.mkDefault`-wrapped value (priority 1000).
 

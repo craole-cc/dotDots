@@ -80,14 +80,13 @@ in
       #? Test multiple enums exist
       hasAllCategories = mkTest {
         desired = true;
-        outcome = (
+        outcome =
           true
           && hasAttrByPath ["enums" "developmentLanguages"] _
           && hasAttrByPath ["enums" "hostFunctionalities"] _
           && hasAttrByPath ["enums" "userRoles"] _
           && hasAttrByPath ["enums" "bootLoaders"] _
-          && hasAttrByPath ["enums" "shells"] _
-        );
+          && hasAttrByPath ["enums" "shells"] _;
       };
 
       # Test enum count

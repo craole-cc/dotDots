@@ -7,8 +7,8 @@
 }: {
   #~@ Primary references
   inherit path name;
-  lib = lib'; #? nixpkgs lib
-  _ = self; #? custom library (extensible self)
+  lib = lib'; # ? nixpkgs lib
+  _ = self; # ? custom library (extensible self)
   src = path;
   library = name;
 

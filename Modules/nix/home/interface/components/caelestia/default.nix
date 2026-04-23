@@ -28,7 +28,15 @@
     ${name} = mkMerge [
       {inherit enable;}
       (import ./cli {})
-      (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
+      (import ./settings {
+        inherit
+          locale
+          fonts
+          mkMerge
+          paths
+          vimKeybinds
+          ;
+      })
     ];
   };
 
@@ -37,7 +45,13 @@
   };
 
   cfg = {
-    inherit enable name kind programs services;
+    inherit
+      enable
+      name
+      kind
+      programs
+      services
+      ;
     home = {inherit packages;};
   };
 in {

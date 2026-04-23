@@ -1,4 +1,4 @@
-{paths, ...}: {
+_: {
   hyprpaper = {
     enable = true;
     settings = {

@@ -1,6 +1,6 @@
 {
   services.udiskie = {
-    enable = false; #TODO: Enable this
+    enable = false; # TODO: Enable this
     settings = {
       program_options = {
         udisks_version = 2;
@@ -9,14 +9,27 @@
         menu = "flat";
       };
       icon_names = {
-        media = ["drive-removable-media" "media-optical"];
-        browse = ["document-open" "folder-open"];
-        terminal = ["terminal" "terminator" "xfce-terminal"];
+        media = [
+          "drive-removable-media"
+          "media-optical"
+        ];
+        browse = [
+          "document-open"
+          "folder-open"
+        ];
+        terminal = [
+          "terminal"
+          "terminator"
+          "xfce-terminal"
+        ];
         mount = ["udiskie-mount"];
         unmount = ["udiskie-unmount"];
         unlock = ["udiskie-unlock"];
         lock = ["udiskie-lock"];
-        eject = ["udiskie-eject" "media-eject"];
+        eject = [
+          "udiskie-eject"
+          "media-eject"
+        ];
         detach = ["udiskie-detach"];
         delete = ["udiskie-eject"];
         quit = ["application-exit"];

@@ -63,7 +63,10 @@
   ```
   */
   displayProtocols = mkEnum {
-    values = ["wayland" "xserver"];
+    values = [
+      "wayland"
+      "xserver"
+    ];
     aliases.x11 = "xserver";
   };
 

@@ -3,7 +3,13 @@
   keyboard,
   ...
 }: let
-  inherit (apps) browser editor launcher terminal;
+  inherit
+    (apps)
+    browser
+    editor
+    launcher
+    terminal
+    ;
 in {
   "$MOD" = keyboard.mod;
   "$browser" = browser.primary.command;

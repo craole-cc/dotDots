@@ -62,7 +62,7 @@
 in {
   home.packages = with pkgs; [
     tinty
-    (writeShellScriptBin "sync-themes" ''${syncThemes}'')
+    (writeShellScriptBin "sync-themes" "${syncThemes}")
   ];
 
   # Link all themes to tinty's expected location

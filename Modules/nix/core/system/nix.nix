@@ -15,23 +15,31 @@
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasInfix;
-  inherit (lib.types) either int listOf str;
+  inherit
+    (lib.types)
+    either
+    int
+    listOf
+    str
+    ;
 
   kernelRequested = host.packages.kernel or null;
   isChaotic =
-    kernelRequested
-    != null
-    && (hasInfix "cachyos" kernelRequested || hasAttr kernelRequested pkgs);
+    kernelRequested != null && (hasInfix "cachyos" kernelRequested || hasAttr kernelRequested pkgs);
 
-  substituters =
-    ["https://cache.numtide.com"]
-    ++ optionals isChaotic ["https://nyx.chaotic.cx/"];
+  substituters = ["https://cache.numtide.com"] ++ optionals isChaotic ["https://nyx.chaotic.cx/"];
   trustedKeys =
-    ["niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="]
+    [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ]
     ++ optionals isChaotic ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     stateVersion = mkOption {
       description = "NixOS state version";
       default = host.stateVersion or "25.11";
@@ -58,7 +66,11 @@ in {
     system.stateVersion = cfg.stateVersion;
 
     nix.settings = {
-      experimental-features = ["nix-command" "flakes" "pipe-operators"];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+        "pipe-operators"
+      ];
       max-jobs = cfg.maxJobs;
       trusted-users = ["@wheel"];
       substituters = cfg.extraSubstituters;

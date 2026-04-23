@@ -18,7 +18,11 @@
   inherit (lib.types) bool;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     udisks = mkOption {
       description = "Enable udisks2 for automounting removable media";
       default = hw.hasGui;
@@ -27,19 +31,20 @@ in {
   };
 
   config = mkIf cfg.enable {
-    fileSystems = mapAttrs (_: fs:
-      {
-        device = fs.device;
-        fsType = fs.fsType;
-      }
-      // (
-        if fs.options or [] == []
-        then {}
-        else {options = fs.options;}
-      ))
-    (host.devices.file or {});
+    fileSystems = mapAttrs (
+      _: fs:
+        {
+          inherit (fs) device;
+          inherit (fs) fsType;
+        }
+        // (
+          if fs.options or [] == []
+          then {}
+          else {inherit (fs) options;}
+        )
+    ) (host.devices.file or {});
 
-    swapDevices = map (s: {device = s.device;}) (host.devices.swap or []);
+    swapDevices = map (s: {inherit (s) device;}) (host.devices.swap or []);
 
     services.udisks2 = mkIf cfg.udisks {
       enable = true;

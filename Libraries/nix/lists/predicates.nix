@@ -51,8 +51,7 @@
   inherit (_.lists.construction) toList;
   inherit (_.types.predicates) isList isAttrs;
 
-  isEnum = value:
-    isAttrs value && value?allValues && value?validator;
+  isEnum = value: isAttrs value && value ? allValues && value ? validator;
 
   /**
   Check whether a value is a list.
@@ -69,7 +68,7 @@
   isList "foo"      # => false
   ```
   */
-  isList' = value: isList value;
+  isList' = isList;
 
   /**
   Check if any input elements are members of the allowed list.
@@ -273,36 +272,33 @@
     then null
     else let
       frequencies =
-        foldl'
-        (acc: item: let
-          key = toString item;
-          count = acc.${key}.count or 0;
-          storedItem = acc.${key}.item or item;
-        in
-          acc
-          // {
-            ${key} = {
-              item = storedItem;
-              count = count + 1;
-            };
-          })
-        {}
+        foldl' (
+          acc: item: let
+            key = toString item;
+            count = acc.${key}.count or 0;
+            storedItem = acc.${key}.item or item;
+          in
+            acc
+            // {
+              ${key} = {
+                item = storedItem;
+                count = count + 1;
+              };
+            }
+        ) {}
         list;
 
       itemsWithCounts = attrValues frequencies;
 
       maxCount =
-        foldl'
-        (max: entry:
+        foldl' (max: entry:
           if entry.count > max
           then entry.count
           else max)
         0
         itemsWithCounts;
 
-      tiedItems = map (entry: entry.item) (
-        filter (entry: entry.count == maxCount) itemsWithCounts
-      );
+      tiedItems = map (entry: entry.item) (filter (entry: entry.count == maxCount) itemsWithCounts);
     in
       if opts ? compareItems
       then head (sort opts.compareItems tiedItems)
@@ -321,7 +317,10 @@ in
           command = ''isMember { value = "foo"; check = ["foo" "bar"]; }'';
           outcome = isMember {
             value = "foo";
-            check = ["foo" "bar"];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         singleValueNotFound = mkTest {
@@ -329,23 +328,38 @@ in
           command = ''isMember { value = "baz"; check = ["foo" "bar"]; }'';
           outcome = isMember {
             value = "baz";
-            check = ["foo" "bar"];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         listWithOneMatch = mkTest {
           desired = true;
           command = ''isMember { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
           outcome = isMember {
-            value = ["foo" "qux"];
-            check = ["foo" "bar"];
+            value = [
+              "foo"
+              "qux"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         listWithNoMatches = mkTest {
           desired = false;
           command = ''isMember { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
           outcome = isMember {
-            value = ["qux" "quux"];
-            check = ["foo" "bar"];
+            value = [
+              "qux"
+              "quux"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         caseInsensitiveByDefault = mkTest {
@@ -353,7 +367,10 @@ in
           command = ''isMember { value = "FOO"; check = ["foo" "bar"]; }'';
           outcome = isMember {
             value = "FOO";
-            check = ["foo" "bar"];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         caseSensitiveWithExact = mkTest {
@@ -361,7 +378,10 @@ in
           command = ''isMember { value = "FOO"; check = ["foo" "bar"]; exact = true; }'';
           outcome = isMember {
             value = "FOO";
-            check = ["foo" "bar"];
+            check = [
+              "foo"
+              "bar"
+            ];
             exact = true;
           };
         };
@@ -370,14 +390,20 @@ in
           command = ''isMember { value = []; check = ["foo" "bar"]; }'';
           outcome = isMember {
             value = [];
-            check = ["foo" "bar"];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         singleCheckValue = mkTest {
           desired = true;
           command = ''isMember { value = ["foo" "bar"]; check = "foo"; }'';
           outcome = isMember {
-            value = ["foo" "bar"];
+            value = [
+              "foo"
+              "bar"
+            ];
             check = "foo";
           };
         };
@@ -388,40 +414,71 @@ in
           desired = 0;
           command = ''countMatches { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
           outcome = countMatches {
-            value = ["qux" "quux"];
-            check = ["foo" "bar"];
+            value = [
+              "qux"
+              "quux"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         oneMatch = mkTest {
           desired = 1;
           command = ''countMatches { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
           outcome = countMatches {
-            value = ["foo" "qux"];
-            check = ["foo" "bar"];
+            value = [
+              "foo"
+              "qux"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         allMatch = mkTest {
           desired = 2;
           command = ''countMatches { value = ["foo" "bar"]; check = ["foo" "bar" "baz"]; }'';
           outcome = countMatches {
-            value = ["foo" "bar"];
-            check = ["foo" "bar" "baz"];
+            value = [
+              "foo"
+              "bar"
+            ];
+            check = [
+              "foo"
+              "bar"
+              "baz"
+            ];
           };
         };
         caseInsensitive = mkTest {
           desired = 2;
           command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; }'';
           outcome = countMatches {
-            value = ["FOO" "Bar"];
-            check = ["foo" "bar"];
+            value = [
+              "FOO"
+              "Bar"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
         caseSensitive = mkTest {
           desired = 0;
           command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; exact = true; }'';
           outcome = countMatches {
-            value = ["FOO" "Bar"];
-            check = ["foo" "bar"];
+            value = [
+              "FOO"
+              "Bar"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
             exact = true;
           };
         };
@@ -429,8 +486,14 @@ in
           desired = 2;
           command = ''countMatches { value = ["foo" "foo"]; check = ["foo" "bar"]; }'';
           outcome = countMatches {
-            value = ["foo" "foo"];
-            check = ["foo" "bar"];
+            value = [
+              "foo"
+              "foo"
+            ];
+            check = [
+              "foo"
+              "bar"
+            ];
           };
         };
       };
@@ -439,17 +502,26 @@ in
         found = mkTest {
           desired = true;
           command = ''isIn "foo" ["foo" "bar"]'';
-          outcome = isIn "foo" ["foo" "bar"];
+          outcome = isIn "foo" [
+            "foo"
+            "bar"
+          ];
         };
         notFound = mkTest {
           desired = false;
           command = ''isIn "qux" ["foo" "bar"]'';
-          outcome = isIn "qux" ["foo" "bar"];
+          outcome = isIn "qux" [
+            "foo"
+            "bar"
+          ];
         };
         caseInsensitive = mkTest {
           desired = true;
           command = ''isIn "FOO" ["foo" "bar"]'';
-          outcome = isIn "FOO" ["foo" "bar"];
+          outcome = isIn "FOO" [
+            "foo"
+            "bar"
+          ];
         };
         listWithPartialMatch = mkTest {
           desired = true;
@@ -467,12 +539,18 @@ in
         caseSensitiveMatch = mkTest {
           desired = true;
           command = ''isInExact "foo" ["foo" "bar"]'';
-          outcome = isInExact "foo" ["foo" "bar"];
+          outcome = isInExact "foo" [
+            "foo"
+            "bar"
+          ];
         };
         caseSensitiveNoMatch = mkTest {
           desired = false;
           command = ''isInExact "FOO" ["foo" "bar"]'';
-          outcome = isInExact "FOO" ["foo" "bar"];
+          outcome = isInExact "FOO" [
+            "foo"
+            "bar"
+          ];
         };
         listWithCaseMismatch = mkTest {
           desired = true;

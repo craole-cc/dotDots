@@ -14,7 +14,13 @@
 
   __exports = {
     internal = {
-      inherit mkSystems mkFlake mkCore mkHome mkTree;
+      inherit
+        mkSystems
+        mkFlake
+        mkCore
+        mkHome
+        mkTree
+        ;
     };
     external = {
       inherit mkSystems mkFlake;
@@ -66,15 +72,27 @@
       _: host: let
         inherit (host.paths) dots;
         class = host.class or "nixos";
-        tree' = tree // {local = tree.mkLocal dots;};
+        tree' =
+          tree
+          // {
+            local = tree.mkLocal dots;
+          };
 
         specialArgs =
-          {inherit host class;} // extraArgs // {tree = tree';};
+          {
+            inherit host class;
+          }
+          // extraArgs
+          // {
+            tree = tree';
+          };
 
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
           modules = mkModules {inherit class inputs;};
-        in {inherit inputs packages modules;};
+        in {
+          inherit inputs packages modules;
+        };
 
         moduleArgs = let
           fromInputs = flakeArgs.modules;
@@ -89,23 +107,26 @@
               specialArgs
               // {
                 inherit (fromInputs.all) modulesPath baseModules;
-                modules = fromInputs // {host = fromHost;};
+                modules =
+                  fromInputs
+                  // {
+                    host = fromHost;
+                  };
               };
             modules =
-              []
-              ++ fromInputs.base
+              fromInputs.base
               ++ fromInputs.core
               ++ fromHost
               ++ (host.imports or [])
               ++ [tree'.store.mod.core]
               ++ [{config._module.args = specialArgs;}];
           };
-        in {inherit fromInputs fromHost fromEval;};
+        in {
+          inherit fromInputs fromHost fromEval;
+        };
       in
         if class == "darwin"
-        then
-          moduleArgs.fromEval
-          // {system = moduleArgs.fromEval.config.system.build.toplevel;}
+        then moduleArgs.fromEval // {system = moduleArgs.fromEval.config.system.build.toplevel;}
         else moduleArgs.fromEval
     )
     schema.hosts;
@@ -137,7 +158,12 @@
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit host specialArgs tree inputs;
+      inherit
+        host
+        specialArgs
+        tree
+        inputs
+        ;
       modules = modules.home;
     })
   ];
@@ -174,11 +200,20 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lib = extend (_self: _super: {
-            hm = inputs.home-manager.lib.hm or {};
-          });
+          lib = extend (
+            _self: _super: {
+              hm = inputs.home-manager.lib.hm or {};
+            }
+          );
         };
-      users = mkUsers {inherit inputs modules host tree;};
+      users = mkUsers {
+        inherit
+          inputs
+          modules
+          host
+          tree
+          ;
+      };
     };
   };
 
@@ -224,21 +259,20 @@
       all
       ;
 
-    perSystem = (genAttrs all) (sys:
-      fn {
-        system = sys;
-        pkgs = pkgsFor sys;
-      });
+    perSystem = (genAttrs all) (
+      sys:
+        fn {
+          system = sys;
+          pkgs = pkgsFor sys;
+        }
+    );
 
     names = attrNames (fn {
       system = derived;
       pkgs = pkgsFor derived;
     });
   in
-    genAttrs names (
-      name:
-        mapAttrs (_: outputs: outputs.${name}) perSystem
-    );
+    genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
 in
   __exports.internal
   // {

@@ -17,7 +17,12 @@
 
   __exports = {
     internal = {
-      inherit mkAll mkOne mkCore mkHome;
+      inherit
+        mkAll
+        mkOne
+        mkCore
+        mkHome
+        ;
       mkModules = mkAll;
       mkModule = mkOne;
     };
@@ -84,12 +89,9 @@
         system = {
           checks.verifyNixPath = false;
           darwinVersionSuffix = ".${
-            inputs.nix-darwin.shortRev
-            or inputs.nix-darwin.dirtyShortRev
-            or "dirty"
+            inputs.nix-darwin.shortRev or inputs.nix-darwin.dirtyShortRev or "dirty"
           }";
-          darwinRevision =
-            inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
+          darwinRevision = inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
         };
       }
     ];
@@ -106,8 +108,12 @@
     noctalia-shell = inputs.noctalia-shell.homeModules or {};
     caelestia = inputs.caelestia.homeManagerModules or {};
     catppuccin = inputs.catppuccin.homeModules or {};
-    nvf = {default = inputs.nvf.homeManagerModules.default or {};};
-    plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
+    nvf = {
+      default = inputs.nvf.homeManagerModules.default or {};
+    };
+    plasma = {
+      default = inputs.plasma.homeModules.plasma-manager or {};
+    };
     zen-browser = {
       twilight = inputs.zen-browser.homeModules.twilight or {};
       default = inputs.zen-browser.homeModules.default or {};
@@ -129,7 +135,7 @@
     ...
   }: let
     inputs' =
-      if inputs?nixpkgs
+      if inputs ? nixpkgs
       then inputs
       else (resolveInputs {}).resolved;
 
@@ -147,7 +153,16 @@
       modulesPath = path;
     };
   in
-    {inherit all base core home path;} // all;
+    {
+      inherit
+        all
+        base
+        core
+        home
+        path
+        ;
+    }
+    // all;
 in
   __exports.internal
   // {

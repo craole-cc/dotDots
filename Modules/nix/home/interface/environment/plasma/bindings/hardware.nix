@@ -11,7 +11,10 @@
     "increase_microphone_volume" = "Microphone Volume Up";
     "increase_volume" = "Volume Up";
     "increase_volume_small" = "Shift+Volume Up";
-    "mic_mute" = ["Microphone Mute" "Meta+Volume Mute"];
+    "mic_mute" = [
+      "Microphone Mute"
+      "Meta+Volume Mute"
+    ];
     "mute" = "Volume Mute";
   };
 
@@ -20,12 +23,24 @@
   };
 
   ksmserver = {
-    "Halt Without Confirmation" = ["Meta+Ctrl+S" "Ctrl+Alt+S"];
-    "Lock Session" = ["Meta+L" "Screensaver"];
-    "Log Out Without Confirmation" = ["Meta+Ctrl+L" "Ctrl+Alt+L"];
+    "Halt Without Confirmation" = [
+      "Meta+Ctrl+S"
+      "Ctrl+Alt+S"
+    ];
+    "Lock Session" = [
+      "Meta+L"
+      "Screensaver"
+    ];
+    "Log Out Without Confirmation" = [
+      "Meta+Ctrl+L"
+      "Ctrl+Alt+L"
+    ];
     "Log Out" = "Ctrl+Alt+Del";
     "LogOut" = [];
-    "Reboot Without Confirmation" = ["Meta+Ctrl+R" "Ctrl+Alt+R"];
+    "Reboot Without Confirmation" = [
+      "Meta+Ctrl+R"
+      "Ctrl+Alt+R"
+    ];
     "Reboot" = [];
     "Shut Down" = [];
   };
@@ -54,7 +69,10 @@
     "Sleep" = "Sleep";
     "Toggle Keyboard Backlight" = "Keyboard Light On/Off";
     "Turn Off Screen" = [];
-    "powerProfile" = ["Battery" "Meta+B"];
+    "powerProfile" = [
+      "Battery"
+      "Meta+B"
+    ];
     # "services/org.kde.konsole.desktop"._launch = [];
   };
 }

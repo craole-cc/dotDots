@@ -1,7 +1,16 @@
 {lix, ...}: let
   inherit (lix.std.options) mkOption;
   inherit (lix.std.modules) mkDefault;
-  inherit (lix.std.types) attrsOf either float int oneOf str submodule;
+  inherit
+    (lix.std.types)
+    attrsOf
+    either
+    float
+    int
+    oneOf
+    str
+    submodule
+    ;
 
   displayOpts = {config, ...}: let
     cfg = config;

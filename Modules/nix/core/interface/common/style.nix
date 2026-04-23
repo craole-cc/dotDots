@@ -18,7 +18,13 @@
   inherit (lib.modules) mkIf mkForce;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
-  inherit (lib.types) enum int nullOr str;
+  inherit
+    (lib.types)
+    enum
+    int
+    nullOr
+    str
+    ;
   inherit (lix.attrsets.resolution) getPackage;
 
   themeMap = {
@@ -87,7 +93,11 @@
     else null;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = currentTheme != null;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = currentTheme != null;
+      };
     theme = mkOption {
       description = "Current theme name";
       default = style.theme.${style.current or "dark"} or "Catppuccin Frappé";
@@ -96,7 +106,10 @@ in {
     polarity = mkOption {
       description = "Theme polarity";
       default = style.current or "dark";
-      type = enum ["dark" "light"];
+      type = enum [
+        "dark"
+        "light"
+      ];
     };
     wallpaper = mkOption {
       description = "Wallpaper path override";
@@ -110,7 +123,9 @@ in {
     };
     autoSwitch =
       mkEnableOption "automatic dark/light switching"
-      // {default = style.autoSwitch or true;};
+      // {
+        default = style.autoSwitch or true;
+      };
   };
 
   config = mkIf (cfg.enable && currentTheme != null) {
@@ -118,7 +133,7 @@ in {
       enable = true;
       base16Scheme = "${pkgs.base16-schemes}/share/themes/${currentTheme.scheme}.yaml";
       image = wallpaperPath;
-      polarity = currentTheme.polarity;
+      inherit (currentTheme) polarity;
 
       cursor = {
         inherit (cursorResolved) name package;

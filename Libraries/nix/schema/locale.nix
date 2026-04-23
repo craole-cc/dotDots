@@ -24,14 +24,9 @@
     host,
     user ? {},
   }: let
-    merged =
-      recursiveUpdate
-      (host.localization or {})
-      (user.localization or {});
+    merged = recursiveUpdate (host.localization or {}) (user.localization or {});
     fun = host.functionalities or [];
   in
-    defaults
-    // merged
-    // {dualBootWindows = elem "dualboot-windows" fun;};
+    defaults // merged // {dualBootWindows = elem "dualboot-windows" fun;};
 in
   __exports.internal // {__rootAliases = __exports.external;}

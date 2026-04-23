@@ -87,7 +87,7 @@
   deployTemplates = templates:
     concatStringsSep "\n" (
       mapAttrsToList
-      (name: config: deployTemplate config)
+      (_name: deployTemplate)
       templates
     );
 in

@@ -31,8 +31,22 @@
         material = "Material Symbols Sharp";
         clock = "Rubik";
       };
-  in {inherit fonts mode variant accent flavor catppuccin;};
+  in {
+    inherit
+      fonts
+      mode
+      variant
+      accent
+      flavor
+      catppuccin
+      ;
+  };
 
   exports = {inherit mkStyle;};
 in
-  exports // {__rootAliases = {mkUserStyle = mkStyle;};}
+  exports
+  // {
+    __rootAliases = {
+      mkUserStyle = mkStyle;
+    };
+  }

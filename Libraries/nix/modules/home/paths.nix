@@ -100,10 +100,7 @@
     absolute =
       if root == "dots"
       then dots
-      else if
-        root
-        == "home"
-        || root == ""
+      else if root == "home" || root == ""
       then home
       else removeSuffix "/" root;
 
@@ -180,121 +177,160 @@
     wallpapers = let
       raw = nestedOr {
         attrs = user.paths or {};
-        path = ["wallpapers" "all"];
+        path = [
+          "wallpapers"
+          "all"
+        ];
         default = tree.local.res.wallpaper or "home:Pictures/Wallpapers";
       };
 
       all =
         if isList raw
         then
-          map (p:
-            resolve {
-              inherit home dots user;
-              default = p;
-            })
+          map (
+            p:
+              resolve {
+                inherit home dots user;
+                default = p;
+              }
+          )
           raw
         else [
           (resolve {
             inherit home dots user;
-            path = ["wallpapers" "all"];
+            path = [
+              "wallpapers"
+              "all"
+            ];
             default = "home:Pictures/Wallpapers";
           })
         ];
 
       primary = resolve {
         inherit home dots user;
-        path = ["wallpapers" "primary"];
+        path = [
+          "wallpapers"
+          "primary"
+        ];
         default = head all;
       };
 
       dark = resolve {
         inherit home dots user;
-        path = ["wallpapers" "dark"];
+        path = [
+          "wallpapers"
+          "dark"
+        ];
         default = primary + "/dark.jpg";
       };
 
       light = resolve {
         inherit home dots user;
-        path = ["wallpapers" "light"];
+        path = [
+          "wallpapers"
+          "light"
+        ];
         default = primary + "/light.jpg";
       };
 
       monitors =
-        mapAttrs (name: cfg: let
-          transformation = cfg.transform or 0;
-          rotation =
-            if transformation == 1
-            then 90
-            else if transformation == 2
-            then 180
-            else if transformation == 3
-            then 270
-            else 0;
+        mapAttrs (
+          name: cfg: let
+            transformation = cfg.transform or 0;
+            rotation =
+              if transformation == 1
+              then 90
+              else if transformation == 2
+              then 180
+              else if transformation == 3
+              then 270
+              else 0;
 
-          isRotated = rotation == 90 || rotation == 270;
-          isFlipped = rotation == 180;
+            isRotated = rotation == 90 || rotation == 270;
+            isFlipped = rotation == 180;
 
-          resolution =
-            if isRotated
-            then let
-              parts = splitString "x" cfg.resolution;
-              width = elemAt parts 0;
-              height = elemAt parts 1;
-            in "${height}x${width}"
-            else cfg.resolution;
+            resolution =
+              if isRotated
+              then let
+                parts = splitString "x" cfg.resolution;
+                width = elemAt parts 0;
+                height = elemAt parts 1;
+              in "${height}x${width}"
+              else cfg.resolution;
 
-          directory = resolve {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "directory"];
-            default = primary + "/${resolution}";
-          };
-          monDark = resolve {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "dark"];
-            default = directory;
-          };
-          monLight = resolve {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "light"];
-            default = directory;
-          };
-          cache = directory + "/.cache";
-          current = primary + "/current-${name}.jpg";
-
-          manager = replaceVarsWith {
-            src = wallman; # _.filesystem.meta.wallman = ./wallman.sh (in filesystem/)
-            name = "wallman-${name}";
-            replacements = {
-              inherit name resolution directory current;
-              cmdConvert = "${imagemagick}/bin/convert";
-              cmdFd = "${fd}/bin/fd";
-              cmdRg = "${ripgrep}/bin/rg";
-              cmdLn = "${coreutils}/bin/ln";
-              cmdShuf = "${coreutils}/bin/shuf";
-              cmdRealpath = "${coreutils}/bin/realpath";
-              cachePolarity = "${cache}/polarity.txt";
-              cachePurity = "${cache}/purity.txt";
-              cacheCategory = "${cache}/category.txt";
-              cacheFavorite = "${cache}/favorite.txt";
+            directory = resolve {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "directory"
+              ];
+              default = primary + "/${resolution}";
             };
-            isExecutable = true;
-          };
-        in {
-          inherit
-            cache
-            current
-            isFlipped
-            isRotated
-            manager
-            name
-            resolution
-            rotation
-            transformation
-            ;
-          dark = monDark;
-          light = monLight;
-          directory = directory;
-        })
+            monDark = resolve {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "dark"
+              ];
+              default = directory;
+            };
+            monLight = resolve {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "light"
+              ];
+              default = directory;
+            };
+            cache = directory + "/.cache";
+            current = primary + "/current-${name}.jpg";
+
+            manager = replaceVarsWith {
+              src = wallman; # _.filesystem.meta.wallman = ./wallman.sh (in filesystem/)
+              name = "wallman-${name}";
+              replacements = {
+                inherit
+                  name
+                  resolution
+                  directory
+                  current
+                  ;
+                cmdConvert = "${imagemagick}/bin/convert";
+                cmdFd = "${fd}/bin/fd";
+                cmdRg = "${ripgrep}/bin/rg";
+                cmdLn = "${coreutils}/bin/ln";
+                cmdShuf = "${coreutils}/bin/shuf";
+                cmdRealpath = "${coreutils}/bin/realpath";
+                cachePolarity = "${cache}/polarity.txt";
+                cachePurity = "${cache}/purity.txt";
+                cacheCategory = "${cache}/category.txt";
+                cacheFavorite = "${cache}/favorite.txt";
+              };
+              isExecutable = true;
+            };
+          in {
+            inherit
+              cache
+              current
+              isFlipped
+              isRotated
+              manager
+              name
+              resolution
+              rotation
+              transformation
+              ;
+            dark = monDark;
+            light = monLight;
+            inherit directory;
+          }
+        )
         host.devices.display;
 
       manager = writeShellScriptBin "wallman" ''
@@ -304,21 +340,36 @@
           printf "Usage: %s <command> [options]\n" "$0" >&2
           exit 1
         fi
-        ${concatMapStringsSep "\n"
-          (mgr: ''${mgr} "$@" || true'')
-          (mapAttrsToList (_: cfg: cfg.manager) monitors)}
+        ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (
+          mapAttrsToList (_: cfg: cfg.manager) monitors
+        )}
       '';
-    in {inherit all primary dark light monitors manager;};
+    in {
+      inherit
+        all
+        primary
+        dark
+        light
+        monitors
+        manager
+        ;
+    };
 
     avatars = {
       session = resolve {
         inherit home dots user;
-        path = ["avatars" "session"];
+        path = [
+          "avatars"
+          "session"
+        ];
         default = "root:/assets/kurukuru.gif";
       };
       media = resolve {
         inherit home dots user;
-        path = ["avatars" "media"];
+        path = [
+          "avatars"
+          "media"
+        ];
         default = "root:/assets/kurukuru.gif";
       };
     };
@@ -334,6 +385,15 @@
       };
     };
   in
-    tree // {inherit api avatars dots home wallpapers;};
+    tree
+    // {
+      inherit
+        api
+        avatars
+        dots
+        home
+        wallpapers
+        ;
+    };
 in
   exports.internal // {__rootAliases = exports.external;}

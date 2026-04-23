@@ -267,13 +267,13 @@ in {
         todos.extensions
       ];
       userSettings = mkMerge [
-        (errorLens.userSettings   or {})
+        (errorLens.userSettings or {})
         (indentation.userSettings or {})
-        (colorize.userSettings    or {})
-        (output.userSettings      or {})
-        (lineWidth.userSettings   or {})
-        (comments.userSettings    or {})
-        (todos.userSettings       or {})
+        (colorize.userSettings or {})
+        (output.userSettings or {})
+        (lineWidth.userSettings or {})
+        (comments.userSettings or {})
+        (todos.userSettings or {})
       ];
     };
 }

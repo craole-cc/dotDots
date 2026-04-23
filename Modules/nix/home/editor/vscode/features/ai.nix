@@ -84,11 +84,11 @@ in {
         continue.extensions
       ];
       userSettings = mkMerge [
-        (copilot.userSettings  or {})
-        (codeium.userSettings  or {})
-        (codex.userSettings  or {})
-        (gemini.userSettings  or {})
-        (continue.userSettings  or {})
+        (copilot.userSettings or {})
+        (codeium.userSettings or {})
+        (codex.userSettings or {})
+        (gemini.userSettings or {})
+        (continue.userSettings or {})
       ];
     };
 }

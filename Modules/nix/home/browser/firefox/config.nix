@@ -38,7 +38,15 @@
       else "${homeDir}/Downloads";
   };
 
-  debug = trace "firefox" {inherit exists program package variant isZen;};
+  debug = trace "firefox" {
+    inherit
+      exists
+      program
+      package
+      variant
+      isZen
+      ;
+  };
 in {
   home.sessionVariables.${debug.key} = debug.val;
 

@@ -105,7 +105,9 @@ in {
       nested = mkTest {
         desired = {
           a = {
-            Value = {b = 2;};
+            Value = {
+              b = 2;
+            };
             Status = "managed";
           };
           c = {
@@ -114,7 +116,9 @@ in {
           };
         };
         outcome = lock "managed" {
-          a = {b = 2;};
+          a = {
+            b = 2;
+          };
           c = 3;
         };
       };

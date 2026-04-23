@@ -12,9 +12,7 @@
     systems;
 
   currentSystem =
-    if builtins ? currentSystem
-    then builtins.currentSystem
-    else head (supportedSystems {});
+    builtins.currentSystem or (head (supportedSystems {}));
 
   defineSystem = {
     system ? currentSystem,

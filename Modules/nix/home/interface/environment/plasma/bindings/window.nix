@@ -9,12 +9,18 @@
     "Decrease Opacity" = [];
     "Edit Tiles" = "Meta+T";
     "Expose" = "Ctrl+F9";
-    "ExposeAll" = ["Ctrl+F10" "Launch (C)"];
+    "ExposeAll" = [
+      "Ctrl+F10"
+      "Launch (C)"
+    ];
     "ExposeClass" = "Ctrl+F7";
     "ExposeClassCurrentDesktop" = [];
     "Grid View" = "Meta+G";
     "Increase Opacity" = [];
-    "Kill Window" = ["Meta+Shift+Q" "Meta+Ctrl+Esc"];
+    "Kill Window" = [
+      "Meta+Shift+Q"
+      "Meta+Ctrl+Esc"
+    ];
     "KrohnkiteBTreeLayout" = [];
     "KrohnkiteColumnsLayout" = [];
     "KrohnkiteDecrease" = [];
@@ -64,10 +70,22 @@
     "Switch One Desktop Up" = [];
     "Switch One Desktop to the Left" = "Meta+Ctrl+Left";
     "Switch One Desktop to the Right" = "Meta+Ctrl+Right";
-    "Switch Window Down" = ["Meta+Shift+J" "Meta+Alt+Down"];
-    "Switch Window Left" = ["Meta+Shift+H" "Meta+Alt+Left"];
-    "Switch Window Right" = ["Meta+Shift+L" "Meta+Alt+Right"];
-    "Switch Window Up" = ["Meta+Shift+K" "Meta+Alt+Up"];
+    "Switch Window Down" = [
+      "Meta+Shift+J"
+      "Meta+Alt+Down"
+    ];
+    "Switch Window Left" = [
+      "Meta+Shift+H"
+      "Meta+Alt+Left"
+    ];
+    "Switch Window Right" = [
+      "Meta+Shift+L"
+      "Meta+Alt+Right"
+    ];
+    "Switch Window Up" = [
+      "Meta+Shift+K"
+      "Meta+Alt+Up"
+    ];
     "Switch to Desktop 1" = "Ctrl+F1";
     "Switch to Desktop 10" = [];
     "Switch to Desktop 11" = [];
@@ -109,17 +127,39 @@
     "ToggleCurrentThumbnail" = "Meta+Ctrl+T";
     "ToggleMouseClick" = "Meta+*";
     "TrackMouse" = [];
-    "Walk Through Windows" = ["Alt+Tab" ""];
-    "Walk Through Windows (Reverse)" = ["Alt+Shift+Tab" ""];
-    "Walk Through Windows Alternative" = ["Meta+Tab" ""];
-    "Walk Through Windows Alternative (Reverse)" = ["Meta+Shift+Tab" ""];
-    "Walk Through Windows of Current Application" = ["Alt+`" ""];
-    "Walk Through Windows of Current Application (Reverse)" = ["Alt+~" ""];
+    "Walk Through Windows" = [
+      "Alt+Tab"
+      ""
+    ];
+    "Walk Through Windows (Reverse)" = [
+      "Alt+Shift+Tab"
+      ""
+    ];
+    "Walk Through Windows Alternative" = [
+      "Meta+Tab"
+      ""
+    ];
+    "Walk Through Windows Alternative (Reverse)" = [
+      "Meta+Shift+Tab"
+      ""
+    ];
+    "Walk Through Windows of Current Application" = [
+      "Alt+`"
+      ""
+    ];
+    "Walk Through Windows of Current Application (Reverse)" = [
+      "Alt+~"
+      ""
+    ];
     "Walk Through Windows of Current Application Alternative" = [];
     "Walk Through Windows of Current Application Alternative (Reverse)" = [];
     "Window Above Other Windows" = [];
     "Window Below Other Windows" = [];
-    "Window Close" = ["Ctrl+Alt+Q" "Meta+Q" "Alt+F4"];
+    "Window Close" = [
+      "Ctrl+Alt+Q"
+      "Meta+Q"
+      "Alt+F4"
+    ];
     "Window Custom Quick Tile Bottom" = [];
     "Window Custom Quick Tile Left" = [];
     "Window Custom Quick Tile Right" = [];
@@ -130,8 +170,14 @@
     "Window Lower" = [];
     "Window Maximize Horizontal" = [];
     "Window Maximize Vertical" = [];
-    "Window Maximize" = ["Meta+Home" "Meta+PgUp"];
-    "Window Minimize" = ["Meta+Shift+Home" "Meta+PgDown"];
+    "Window Maximize" = [
+      "Meta+Home"
+      "Meta+PgUp"
+    ];
+    "Window Minimize" = [
+      "Meta+Shift+Home"
+      "Meta+PgDown"
+    ];
     "Window Move Center" = [];
     "Window Move" = [];
     "Window No Border" = [];
@@ -195,7 +241,10 @@
     "Window to Screen 7" = [];
     "disableInputCapture" = "Meta+Shift+Esc";
     "view_actual_size" = "Meta+0";
-    "view_zoom_in" = ["Meta++" "Meta+="];
+    "view_zoom_in" = [
+      "Meta++"
+      "Meta+="
+    ];
     "view_zoom_out" = "Meta+-";
   };
 }

@@ -26,19 +26,26 @@
   ```
   */
   runTests = tests:
-    mapAttrs
-    (name: test:
-      if isTest test
-      then {
-        inherit (test) desired result passed command;
-        error =
-          if !test.passed
-          then "Test `${name}` failed: expected ${builtins.toJSON test.desired}, got ${builtins.toJSON test.result}"
-          else null;
-      }
-      else if isAttrs test
-      then runTests test
-      else test)
+    mapAttrs (
+      name: test:
+        if isTest test
+        then {
+          inherit
+            (test)
+            desired
+            result
+            passed
+            command
+            ;
+          error =
+            if !test.passed
+            then "Test `${name}` failed: expected ${builtins.toJSON test.desired}, got ${builtins.toJSON test.result}"
+            else null;
+        }
+        else if isAttrs test
+        then runTests test
+        else test
+    )
     tests;
 
   /**
@@ -59,23 +66,25 @@
   ```
   */
   collectFailures = results:
-    flatten
-    (mapAttrsToList
-      (name: result:
-        if isTest result
-        then
-          if !result.passed
-          then [
-            {
-              path = name;
-              inherit (result) error;
-            }
-          ]
+    flatten (
+      mapAttrsToList (
+        name: result:
+          if isTest result
+          then
+            if !result.passed
+            then [
+              {
+                path = name;
+                inherit (result) error;
+              }
+            ]
+            else []
+          else if isAttrs result
+          then map (f: f // {path = "${name}.${f.path}";}) (collectFailures result)
           else []
-        else if isAttrs result
-        then map (f: f // {path = "${name}.${f.path}";}) (collectFailures result)
-        else [])
-      results);
+      )
+      results
+    );
 
   exports = {inherit runTests collectFailures;};
 in

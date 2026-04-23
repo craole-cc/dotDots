@@ -21,11 +21,9 @@
     };
 
   getSorted = args:
-    sort
-    (a: b: (a.priority or 999) < (b.priority or 999))
-    (mapAttrsToList
-      (name: monitor: monitor // {inherit name;})
-      (getAll args));
+    sort (a: b: (a.priority or 999) < (b.priority or 999)) (
+      mapAttrsToList (name: monitor: monitor // {inherit name;}) (getAll args)
+    );
 
   getPrimary = args: let
     sorted = getSorted args;
@@ -155,7 +153,10 @@ in
 
         getNames = {
           returnsSortedNames = mkTest {
-            desired = ["DP-1" "HDMI-A-2"];
+            desired = [
+              "DP-1"
+              "HDMI-A-2"
+            ];
             outcome = getNames twoMonitors;
             command = "getNames twoMonitors";
           };

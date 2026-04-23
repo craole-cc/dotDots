@@ -14,7 +14,10 @@
     name = "nvf";
     kind = "editor";
     category = "tty";
-    resolutionHints = ["neovim" "nvim"];
+    resolutionHints = [
+      "neovim"
+      "nvim"
+    ];
     extraProgramConfig = mkMerge [
       # (import ./editor.nix)
       # (import ./keybindings.nix)

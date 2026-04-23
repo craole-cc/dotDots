@@ -1,13 +1,6 @@
 {_, ...}: let
   __exports = {
-    internal =
-      {}
-      // attrsets
-      // lists
-      // debug
-      // strings
-      // trivial
-      // {};
+    internal = {} // attrsets // lists // debug // strings // trivial // {};
     external = trivial;
   };
 

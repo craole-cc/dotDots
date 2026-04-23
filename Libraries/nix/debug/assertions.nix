@@ -53,8 +53,7 @@
   correctCount  = mkTest' 4     (length cpuBrands.values)
   ```
   */
-  mkTest' = desired: outcome:
-    _build desired outcome null;
+  mkTest' = desired: outcome: _build desired outcome null;
 
   /**
   Create a test case that expects evaluation to throw.

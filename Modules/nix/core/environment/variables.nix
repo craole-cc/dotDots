@@ -12,10 +12,10 @@
   dom = "environment";
   mod = "variables";
   cfg = config.${top}.${dom}.${mod};
-  dots = host.paths.dots;
+  inherit (host.paths) dots;
   user = host.users.data.primary or {};
   apps = user.applications or {};
-  system = pkgs.stdenv.hostPlatform.system;
+  inherit (pkgs.stdenv.hostPlatform) system;
   wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
 
   inherit (config.${top}.interface) displayProtocol;
@@ -23,7 +23,14 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf str;
-  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
+  inherit
+    (lix.applications.resolution)
+    editors
+    browsers
+    terminals
+    launchers
+    bars
+    ;
 
   editorCmds = editors.commands {
     inherit pkgs system inputs;
@@ -65,13 +72,13 @@
 
       #~@ Firefox
       MOZ_ENABLE_WAYLAND = "1";
-      MOZ_DBUS_REMOTE = "1"; #? Allows communication with gnome-shell
-      MOZ_USE_XINPUT2 = "1"; #? Enables XInput2 extension
+      MOZ_DBUS_REMOTE = "1"; # ? Allows communication with gnome-shell
+      MOZ_USE_XINPUT2 = "1"; # ? Enables XInput2 extension
 
       #~@ Application Backend
       QT_QPA_PLATFORM = "wayland";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-      QT_AUTO_SCREEN_SCALE_FACTOR = "1"; #? Auto-detect screen scale factor
+      QT_AUTO_SCREEN_SCALE_FACTOR = "1"; # ? Auto-detect screen scale factor
       SDL_VIDEODRIVER = "wayland";
       CLUTTER_BACKEND = "wayland";
       GDK_BACKEND = "wayland";
@@ -85,7 +92,11 @@
     };
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     default = mkOption {
       description = "Base session variables";
       default = defaultVars;

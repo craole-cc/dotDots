@@ -54,7 +54,7 @@
 
   #> Flattened — exposes each input's default package directly on pkgs
   #> e.g. pkgs.helix = inputs.editorHelix.packages.${system}.default
-  flattenedOverlay = {packages}: final: prev: let
+  flattenedOverlay = {packages}: _final: prev: let
     system = systemOf prev;
     resolve = pkgsSet: let
       val = pkgsSet.${system} or null;
@@ -62,8 +62,8 @@
       if val == null
       then null
       else if val ? outPath
-      then val #? already a derivation
-      else val.default or null; #? attrset → pick .default
+      then val # ? already a derivation
+      else val.default or null; # ? attrset → pick .default
   in
     filterAttrs (_: v: v != null) (
       mapAttrs' (name: pkgsSet: {
@@ -75,7 +75,7 @@
 
   #> Variant expansion — explicitly expose named variants for known multi-output inputs
   #> Avoids forcing evaluation of entire nixpkgs attrsets (which causes AAAAAASomeThingsFailToEvaluate)
-  variantOverlay = {packages}: final: prev: let
+  variantOverlay = {packages}: _final: prev: let
     system = systemOf prev;
     zen = packages."zen-browser".${system} or {};
   in {
@@ -86,7 +86,7 @@
 
   #> Categorised — exposes all input package sets under pkgs.fromInputs.<name>
   #> e.g. pkgs.fromInputs.helix = { default = ...; helix = ...; }
-  fromInputsOverlay = {packages}: final: prev: let
+  fromInputsOverlay = {packages}: _final: prev: let
     system = systemOf prev;
   in {
     fromInputs = mapAttrs (_: pkgsSet: pkgsSet.${system} or null) packages;
@@ -117,9 +117,7 @@
     inputs,
     packages,
   }:
-    []
-    ++ mkCore {inherit inputs config;}
-    ++ mkHome {inherit inputs packages;};
+    mkCore {inherit inputs config;} ++ mkHome {inherit inputs packages;};
 in
   __exports.internal
   // {

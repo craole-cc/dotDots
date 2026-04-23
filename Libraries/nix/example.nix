@@ -32,7 +32,9 @@
         mkBoolExample = mkBool;
       };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.selection) withFlag withoutFlag;
   inherit (_.debug.format) mkExample;
@@ -80,7 +82,7 @@
         input = field;
         example = mkExample {
           cmd = ''mkBool { field = "active"; trueKey = "on"; falseKey = "off"; set = s; }'';
-          res = ''{ on = { ... }; off = { ... }; }'';
+          res = "{ on = { ... }; off = { ... }; }";
         };
       })
     else if !isString trueKey
@@ -92,7 +94,7 @@
         input = trueKey;
         example = mkExample {
           cmd = ''mkBool { field = "active"; trueKey = "running"; falseKey = "stopped"; set = s; }'';
-          res = ''{ running = { ... }; stopped = { ... }; }'';
+          res = "{ running = { ... }; stopped = { ... }; }";
         };
       })
     else if !isString falseKey
@@ -104,7 +106,7 @@
         input = falseKey;
         example = mkExample {
           cmd = ''mkBool { field = "active"; trueKey = "running"; falseKey = "stopped"; set = s; }'';
-          res = ''{ running = { ... }; stopped = { ... }; }'';
+          res = "{ running = { ... }; stopped = { ... }; }";
         };
       })
     else if trueKey == falseKey
@@ -116,7 +118,7 @@
         input = {inherit trueKey falseKey;};
         example = mkExample {
           cmd = ''mkBool { field = "active"; trueKey = "running"; falseKey = "stopped"; set = s; }'';
-          res = ''{ running = { ... }; stopped = { ... }; }'';
+          res = "{ running = { ... }; stopped = { ... }; }";
         };
       })
     else if !isAttrs set
@@ -128,7 +130,7 @@
         input = set;
         example = mkExample {
           cmd = ''mkBool { field = "active"; trueKey = "running"; falseKey = "stopped"; set = { a = { active = true; }; }; }'';
-          res = ''{ running = { a = { active = true; }; }; stopped = { }; }'';
+          res = "{ running = { a = { active = true; }; }; stopped = { }; }";
         };
       })
     else {
@@ -170,31 +172,31 @@ in
         mkBool = {
           trueKeyContainsFlaggedItems = mkTest {
             desired = true;
-            command = ''result.running ? alpha && result.running ? gamma'';
+            command = "result.running ? alpha && result.running ? gamma";
             outcome = result.running ? alpha && result.running ? gamma;
           };
 
           falseKeyContainsUnflaggedItems = mkTest {
             desired = true;
-            command = ''result.stopped ? beta'';
+            command = "result.stopped ? beta";
             outcome = result.stopped ? beta;
           };
 
           trueItemsExcludedFromFalseKey = mkTest {
             desired = false;
-            command = ''result.stopped ? alpha'';
+            command = "result.stopped ? alpha";
             outcome = result.stopped ? alpha;
           };
 
           falseItemsExcludedFromTrueKey = mkTest {
             desired = false;
-            command = ''result.running ? beta'';
+            command = "result.running ? beta";
             outcome = result.running ? beta;
           };
 
           usesCallerSuppliedKeys = mkTest {
             desired = true;
-            command = ''result ? running && result ? stopped'';
+            command = "result ? running && result ? stopped";
             outcome = result ? running && result ? stopped;
           };
 
@@ -203,7 +205,7 @@ in
               active = true;
               name = "alice";
             };
-            command = ''result.running.alpha'';
+            command = "result.running.alpha";
             outcome = result.running.alpha;
           };
 
@@ -212,8 +214,12 @@ in
             command = ''(mkBool { field = "on"; trueKey = "yes"; falseKey = "no"; set = allOn; }).no == {}'';
             outcome = let
               allOn = {
-                x = {on = true;};
-                y = {on = true;};
+                x = {
+                  on = true;
+                };
+                y = {
+                  on = true;
+                };
               };
             in
               (mkBool {
@@ -230,8 +236,12 @@ in
             command = ''(mkBool { field = "on"; trueKey = "yes"; falseKey = "no"; set = allOff; }).yes == {}'';
             outcome = let
               allOff = {
-                x = {on = false;};
-                y = {on = false;};
+                x = {
+                  on = false;
+                };
+                y = {
+                  on = false;
+                };
               };
             in
               (mkBool {

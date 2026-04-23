@@ -65,25 +65,21 @@
     configs =
       if nixosConfigurations != {}
       then nixosConfigurations
-      else flake.nixosConfigurations
-        or (getFlake {inherit self path;}).nixosConfigurations
-        or {};
+      else flake.nixosConfigurations or (getFlake {inherit self path;}).nixosConfigurations or {};
 
     #> Find the first host matching the target system
     #? Default to {} instead of null to prevent hard crashes on attribute access
-    derived =
-      findFirst
-      (cfg: (cfg.config.nixpkgs.hostPlatform.system or null) == targetSystem)
-      {}
-      (attrValues configs);
+    derived = findFirst (cfg: (cfg.config.nixpkgs.hostPlatform.system or null) == targetSystem) {} (
+      attrValues configs
+    );
 
     # Safe checks for tracing
     isValid = derived != {} && (derived.class or null) == "nixos";
     hostName = derived.config.networking.hostName or "unknown";
   in
-    traceIf (!isValid)
-    "❌ Failed to derive current host for system: ${targetSystem}"
-    (derived // {name = hostName;});
+    traceIf (!isValid) "❌ Failed to derive current host for system: ${targetSystem}" (
+      derived // {name = hostName;}
+    );
 in
   __exports.internal
   // {

@@ -9,7 +9,13 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
-  inherit (lib.attrsets) hasAttr filterAttrs listToAttrs mapAttrsToList;
+  inherit
+    (lib.attrsets)
+    hasAttr
+    filterAttrs
+    listToAttrs
+    mapAttrsToList
+    ;
   inherit (lib.lists) elem foldl';
   debug = mkModuleDebug __moduleRef;
 
@@ -38,14 +44,16 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "valueOr";
-          fn = valueOr;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "valueOr";
+            fn = valueOr;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if hasAttr key attrs
     then attrs.${key}
     else default;
@@ -73,27 +81,30 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "nestedOr";
-          fn = nestedOr;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "nestedOr";
+            fn = nestedOr;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if !isList path
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "nestedOr";
-          fn = nestedOr;
-        };
-        message = "path must be a list of strings";
-        input = path;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "nestedOr";
+            fn = nestedOr;
+          };
+          message = "path must be a list of strings";
+          input = path;
+        }
+      )
     else
-      foldl'
-      (acc: key:
+      foldl' (acc: key:
         if isAttrs acc && hasAttr key acc
         then acc.${key}
         else default)
@@ -125,24 +136,28 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "pick";
-          fn = pick;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "pick";
+            fn = pick;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if !isList keys
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "pick";
-          fn = pick;
-        };
-        message = "keys must be a list of strings";
-        input = keys;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "pick";
+            fn = pick;
+          };
+          message = "keys must be a list of strings";
+          input = keys;
+        }
+      )
     else filterAttrs (key: _: elem key keys) attrs;
 
   /**
@@ -170,24 +185,28 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "omit";
-          fn = omit;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "omit";
+            fn = omit;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if !isList keys
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "omit";
-          fn = omit;
-        };
-        message = "keys must be a list of strings";
-        input = keys;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "omit";
+            fn = omit;
+          };
+          message = "keys must be a list of strings";
+          input = keys;
+        }
+      )
     else filterAttrs (key: _: !(elem key keys)) attrs;
 
   /**
@@ -216,14 +235,16 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "renameKey";
-          fn = renameKey;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "renameKey";
+            fn = renameKey;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if !(hasAttr from attrs)
     then attrs
     else
@@ -231,7 +252,9 @@
         inherit attrs;
         keys = [from];
       })
-      // {"${to}" = attrs.${from};};
+      // {
+        "${to}" = attrs.${from};
+      };
 
   /**
   Transform all keys in an attrset using a function.
@@ -250,21 +273,24 @@
   mapKeys = fn: attrs:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mapKeys";
-          fn = mapKeys;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mapKeys";
+            fn = mapKeys;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else
-      listToAttrs
-      (mapAttrsToList (key: val: {
+      listToAttrs (
+        mapAttrsToList (key: val: {
           name = fn key;
           value = val;
         })
-        attrs);
+        attrs
+      );
 
   /**
   Remove all keys whose value is null.
@@ -283,14 +309,16 @@
   compact = attrs:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "compact";
-          fn = compact;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "compact";
+            fn = compact;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else filterAttrs (_: val: val != null) attrs;
 in {
   inherit
@@ -319,7 +347,9 @@ in {
         desired = "bar";
         command = ''valueOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }'';
         outcome = valueOr {
-          attrs = {foo = "bar";};
+          attrs = {
+            foo = "bar";
+          };
           key = "foo";
           default = "?";
         };
@@ -337,7 +367,9 @@ in {
         desired = null;
         command = ''valueOr { attrs = { foo = null; }; key = "foo"; default = "?"; }'';
         outcome = valueOr {
-          attrs = {foo = null;};
+          attrs = {
+            foo = null;
+          };
           key = "foo";
           default = "?";
         };
@@ -349,8 +381,14 @@ in {
         desired = 1;
         command = ''nestedOr { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }'';
         outcome = nestedOr {
-          attrs = {a.b.c = 1;};
-          path = ["a" "b" "c"];
+          attrs = {
+            a.b.c = 1;
+          };
+          path = [
+            "a"
+            "b"
+            "c"
+          ];
           default = 0;
         };
       };
@@ -358,8 +396,14 @@ in {
         desired = 0;
         command = ''nestedOr { attrs = { a.b = 1; }; path = ["a" "x" "c"]; default = 0; }'';
         outcome = nestedOr {
-          attrs = {a.b = 1;};
-          path = ["a" "x" "c"];
+          attrs = {
+            a.b = 1;
+          };
+          path = [
+            "a"
+            "x"
+            "c"
+          ];
           default = 0;
         };
       };
@@ -387,15 +431,25 @@ in {
             b = 2;
             c = 3;
           };
-          keys = ["a" "c"];
+          keys = [
+            "a"
+            "c"
+          ];
         };
       };
       missingKeysIgnored = mkTest {
-        desired = {a = 1;};
+        desired = {
+          a = 1;
+        };
         command = ''pick { attrs = { a = 1; }; keys = ["a" "z"]; }'';
         outcome = pick {
-          attrs = {a = 1;};
-          keys = ["a" "z"];
+          attrs = {
+            a = 1;
+          };
+          keys = [
+            "a"
+            "z"
+          ];
         };
       };
     };
@@ -417,10 +471,14 @@ in {
         };
       };
       missingKeysIgnored = mkTest {
-        desired = {a = 1;};
+        desired = {
+          a = 1;
+        };
         command = ''omit { attrs = { a = 1; }; keys = ["z"]; }'';
         outcome = omit {
-          attrs = {a = 1;};
+          attrs = {
+            a = 1;
+          };
           keys = ["z"];
         };
       };
@@ -443,10 +501,14 @@ in {
         };
       };
       noopIfMissing = mkTest {
-        desired = {a = 1;};
+        desired = {
+          a = 1;
+        };
         command = ''renameKey { attrs = { a = 1; }; from = "x"; to = "y"; }'';
         outcome = renameKey {
-          attrs = {a = 1;};
+          attrs = {
+            a = 1;
+          };
           from = "x";
           to = "y";
         };
@@ -485,7 +547,7 @@ in {
           a = 0;
           b = false;
         };
-        command = ''compact { a = 0; b = false; }'';
+        command = "compact { a = 0; b = false; }";
         outcome = compact {
           a = 0;
           b = false;

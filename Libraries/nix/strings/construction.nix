@@ -11,7 +11,14 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isList isString;
-  inherit (lib.lists) all any filter head map;
+  inherit
+    (lib.lists)
+    all
+    any
+    filter
+    head
+    map
+    ;
   inherit (lib.strings) concatStringsSep splitString;
   inherit (_.strings.transformation) indent;
 
@@ -32,8 +39,7 @@
   toList null                # => []
   ```
   */
-  toList = value:
-    filter (v: v != null) (lib.lists.toList value);
+  toList = value: filter (v: v != null) (lib.lists.toList value);
 
   /**
   Concatenate a list of strings, or groups of strings, with a delimiter.
@@ -52,11 +58,13 @@
   concat = delimiter: input:
     if !(isString delimiter)
     then
-      throw (_debug.withLoc {
-        function = "concat";
-        message = "delimiter must be a string";
-        input = delimiter;
-      })
+      throw (
+        _debug.withLoc {
+          function = "concat";
+          message = "delimiter must be a string";
+          input = delimiter;
+        }
+      )
     else if (input == null) || (input == [])
     then ""
     else if isList (head input)
@@ -80,11 +88,13 @@
   split = delimiter: input:
     if !(isString delimiter)
     then
-      throw (_debug.withLoc {
-        function = "split";
-        message = "delimiter must be a string";
-        input = delimiter;
-      })
+      throw (
+        _debug.withLoc {
+          function = "split";
+          message = "delimiter must be a string";
+          input = delimiter;
+        }
+      )
     else if isList input && any isList input
     then let
       function = "split";
@@ -95,7 +105,17 @@
         res = ''[["a" "b"] ["c" "d"]]'';
       };
     in
-      throw (_debug.withDoc {inherit input function message signature example;})
+      throw (
+        _debug.withDoc {
+          inherit
+            input
+            function
+            message
+            signature
+            example
+            ;
+        }
+      )
     else if isList input
     then map (splitString delimiter) input
     else splitString delimiter input;
@@ -112,16 +132,18 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (_debug.withDoc {
-        inherit function;
-        message = "patterns must be a string or list of strings";
-        signature = "string | [string] -> string | [string] -> bool";
-        input = patterns;
-        example = mkExample {
-          cmd = ''${function} "foo" ["bar" "baz"]'';
-          res = "true";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          inherit function;
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${function} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
     else any (p: any (v: checker p v) vs) ps;
 
   # Internal: build a predicate that requires ALL inputs to match at least one pattern.
@@ -136,16 +158,18 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (_debug.withDoc {
-        inherit function;
-        message = "patterns must be a string or list of strings";
-        signature = "string | [string] -> string | [string] -> bool";
-        input = patterns;
-        example = mkExample {
-          cmd = ''${function} "foo" ["bar" "baz"]'';
-          res = "true";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          inherit function;
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${function} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
     else all (v: any (p: checker p v) ps) vs;
 
   indentedList = {
@@ -155,12 +179,10 @@
     bullet ? "-",
   }:
     if title != null
-    then "\n${indent size}${title}:\n${concatStringsSep "\n" (
-      map (i: "${indent (size + 2)}${bullet} ${i}") items
-    )}"
-    else "\n${concatStringsSep "\n" (
-      map (i: "${indent size}${bullet} ${i}") items
-    )}";
+    then "\n${indent size}${title}:\n${
+      concatStringsSep "\n" (map (i: "${indent (size + 2)}${bullet} ${i}") items)
+    }"
+    else "\n${concatStringsSep "\n" (map (i: "${indent size}${bullet} ${i}") items)}";
 
   indentedForError = {
     items,
@@ -168,7 +190,14 @@
     size ? 8,
     bullet ? "-",
   }:
-    indentedList {inherit items title size bullet;};
+    indentedList {
+      inherit
+        items
+        title
+        size
+        bullet
+        ;
+    };
 
   /**
   Render a boolean as a lowercase string.
@@ -221,9 +250,16 @@ in
           outcome = toList "foo";
         };
         listWithNull = mkTest {
-          desired = ["foo" "bar"];
+          desired = [
+            "foo"
+            "bar"
+          ];
           command = ''toList ["foo" null "bar"]'';
-          outcome = toList ["foo" null "bar"];
+          outcome = toList [
+            "foo"
+            null
+            "bar"
+          ];
         };
         nullInput = mkTest {
           desired = [];
@@ -235,12 +271,28 @@ in
         simpleList = mkTest {
           desired = "a,b,c";
           command = ''concat "," ["a" "b" "c"]'';
-          outcome = concat "," ["a" "b" "c"];
+          outcome = concat "," [
+            "a"
+            "b"
+            "c"
+          ];
         };
         nestedLists = mkTest {
-          desired = ["a,b" "c,d"];
+          desired = [
+            "a,b"
+            "c,d"
+          ];
           command = ''concat "," [["a" "b"] ["c" "d"]]'';
-          outcome = concat "," [["a" "b"] ["c" "d"]];
+          outcome = concat "," [
+            [
+              "a"
+              "b"
+            ]
+            [
+              "c"
+              "d"
+            ]
+          ];
         };
         emptyInput = mkTest {
           desired = "";
@@ -255,14 +307,30 @@ in
       };
       split = {
         singleString = mkTest {
-          desired = ["a" "b" "c"];
+          desired = [
+            "a"
+            "b"
+            "c"
+          ];
           command = ''split "," "a,b,c"'';
           outcome = split "," "a,b,c";
         };
         listOfStrings = mkTest {
-          desired = [["a" "b"] ["c" "d"]];
+          desired = [
+            [
+              "a"
+              "b"
+            ]
+            [
+              "c"
+              "d"
+            ]
+          ];
           command = ''split "," ["a,b" "c,d"]'';
-          outcome = split "," ["a,b" "c,d"];
+          outcome = split "," [
+            "a,b"
+            "c,d"
+          ];
         };
       };
     };

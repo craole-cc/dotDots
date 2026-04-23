@@ -106,10 +106,12 @@
   }:
     if isEmpty content
     then
-      throw (debug.mkError {
-        function = "orError";
-        inherit message;
-      })
+      throw (
+        debug.mkError {
+          function = "orError";
+          inherit message;
+        }
+      )
     else content;
 
   /**
@@ -210,10 +212,12 @@
   }:
     if isEmpty content
     then
-      throw (debug.mkError {
-        function = "mapOrError";
-        inherit message;
-      })
+      throw (
+        debug.mkError {
+          function = "mapOrError";
+          inherit message;
+        }
+      )
     else fn content;
 in
   exports.internal
@@ -326,7 +330,9 @@ in
           command = "orNull { content = {}; default = { a = 1; }; }";
           outcome = orNull {
             content = {};
-            default = {a = 1;};
+            default = {
+              a = 1;
+            };
           };
         };
       };
@@ -395,32 +401,59 @@ in
         returnsFirstNonEmpty = mkTest {
           desired = "hello";
           command = ''firstNonEmpty ["" null "hello" "world"]'';
-          outcome = firstNonEmpty ["" null "hello" "world"];
+          outcome = firstNonEmpty [
+            ""
+            null
+            "hello"
+            "world"
+          ];
         };
         skipsNullAndEmpty = mkTest {
           desired = "hello";
           command = ''firstNonEmpty [null "" {} [] "hello"]'';
-          outcome = firstNonEmpty [null "" {} [] "hello"];
+          outcome = firstNonEmpty [
+            null
+            ""
+            {}
+            []
+            "hello"
+          ];
         };
         returnsNullWhenAllEmpty = mkTest {
           desired = null;
           command = ''firstNonEmpty [null "" {} []]'';
-          outcome = firstNonEmpty [null "" {} []];
+          outcome = firstNonEmpty [
+            null
+            ""
+            {}
+            []
+          ];
         };
         returnsFirstOfMany = mkTest {
           desired = "first";
           command = ''firstNonEmpty ["first" "second"]'';
-          outcome = firstNonEmpty ["first" "second"];
+          outcome = firstNonEmpty [
+            "first"
+            "second"
+          ];
         };
         zeroCountsAsNonEmpty = mkTest {
           desired = 0;
           command = "firstNonEmpty [null 0 1]";
-          outcome = firstNonEmpty [null 0 1];
+          outcome = firstNonEmpty [
+            null
+            0
+            1
+          ];
         };
         falseCountsAsNonEmpty = mkTest {
           desired = false;
           command = "firstNonEmpty [null false true]";
-          outcome = firstNonEmpty [null false true];
+          outcome = firstNonEmpty [
+            null
+            false
+            true
+          ];
         };
       };
 
@@ -541,7 +574,11 @@ in
           command = ''mapOrError { fn = length; content = [1 2 3]; message = "required"; }'';
           outcome = mapOrError {
             fn = length;
-            content = [1 2 3];
+            content = [
+              1
+              2
+              3
+            ];
             message = "required";
           };
         };

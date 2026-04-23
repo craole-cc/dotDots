@@ -29,7 +29,11 @@
   ];
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     packages = mkOption {
       description = "Font packages to install";
       default = defaultPackages;
@@ -59,7 +63,7 @@ in {
 
   config = mkIf cfg.enable {
     fonts = {
-      packages = cfg.packages;
+      inherit (cfg) packages;
       enableDefaultPackages = true;
       fontconfig = {
         enable = true;

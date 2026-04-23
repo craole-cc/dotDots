@@ -1,7 +1,6 @@
 {
   lib,
   keyboard,
-  apps,
   ...
 }: let
   inherit (lib.lists) elem flatten range;
@@ -18,7 +17,12 @@
     up = "u";
     down = "d";
   in {
-    inherit left right up down;
+    inherit
+      left
+      right
+      up
+      down
+      ;
     h = left;
     l = right;
     k = up;
@@ -36,12 +40,18 @@
     cmd =
       if workdir != null
       then
-        if (elem class ["foot" "feet" "com.mitchellh.ghostty" "yazi"])
+        if
+          (elem class [
+            "foot"
+            "feet"
+            "com.mitchellh.ghostty"
+            "yazi"
+          ])
         then ''${command} --working-directory="${workdir}"''
-        else ''cd ${workdir} && ${command}''
+        else "cd ${workdir} && ${command}"
       else command;
 
-    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done'';
+    moveScript = "for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done";
     modStr = "${mod}${lib.optionalString (extraMod != "") " ${extraMod}"}";
   in {
     bind = "${modStr},${key},togglespecialworkspace,${workspace}";
@@ -75,7 +85,7 @@
     })
   ];
 
-  specialWorkspaces = with apps; {
+  specialWorkspaces = {
     # browser = {
     #   inherit (browser) primary secondary;
     #   key = "B";
@@ -104,22 +114,30 @@
   }:
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
-  specialWorkspaceNames = flatten (mat (name: _: [name "${name}Alt"]) specialWorkspaces);
+  specialWorkspaceNames = flatten (
+    mat (name: _: [
+      name
+      "${name}Alt"
+    ])
+    specialWorkspaces
+  );
   windowrule = cat (v: v.rule) allVariants;
   exec-once = map (v: v.exec) allVariants;
 
   bind = flatten [
     (map (v: v.bind) allVariants)
 
-    (cat (n: let
-        ws =
-          if n == "0"
-          then "10"
-          else n;
-      in [
-        "${mod},${n},workspace,${ws}"
-        "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
-      ])
+    (cat (
+        n: let
+          ws =
+            if n == "0"
+            then "10"
+            else n;
+        in [
+          "${mod},${n},workspace,${ws}"
+          "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
+        ]
+      )
       numWorkspaces)
 
     (cat (n: [

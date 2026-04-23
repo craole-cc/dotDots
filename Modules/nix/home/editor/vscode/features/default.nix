@@ -8,7 +8,15 @@
   inherit (lix.options.construction) mkTrue mkFalse;
   inherit (lix.attrsets.construction) listToAttrs;
 
-  load = path: import path {inherit lix lib pkgs inputs;};
+  load = path:
+    import path {
+      inherit
+        lix
+        lib
+        pkgs
+        inputs
+        ;
+    };
 
   allFeatures = map load [
     ./ai.nix
@@ -29,14 +37,18 @@
     then mkTrue f.description
     else mkFalse f.description;
 in {
-  features = listToAttrs (map (f: {
-      name = f.name;
+  features = listToAttrs (
+    map (f: {
+      inherit (f) name;
       value = f.feature;
     })
-    allFeatures);
-  options = listToAttrs (map (f: {
-      name = f.name;
+    allFeatures
+  );
+  options = listToAttrs (
+    map (f: {
+      inherit (f) name;
       value = mkOption f;
     })
-    allFeatures);
+    allFeatures
+  );
 }

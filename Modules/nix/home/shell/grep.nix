@@ -13,7 +13,13 @@
     fd = {
       enable = true;
       extraOptions = ["--absolute-path"];
-      ignores = [".git/" "archives" "tmp" "temp" "*.bak"];
+      ignores = [
+        ".git/"
+        "archives"
+        "tmp"
+        "temp"
+        "*.bak"
+      ];
     };
   };
 }

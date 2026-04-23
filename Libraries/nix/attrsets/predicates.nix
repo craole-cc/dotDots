@@ -22,7 +22,14 @@
 
   inherit (_.attrsets.access) attrByPath;
   inherit (_.content.empty) isNotEmpty;
-  inherit (_.lists.predicates) all any elem isList;
+  inherit
+    (_.lists.predicates)
+    all
+    any
+    elem
+    isList
+    toList
+    ;
   inherit (_.types.generators) validate;
 
   /**
@@ -40,7 +47,7 @@
   isAttrs []                # => false
   ```
   */
-  isAttrs = lib.attrsets.isAttrs;
+  inherit (lib.attrsets) isAttrs;
 
   /**
   Check whether a value is a "special" typed attrset — one with a `_type` attribute.
@@ -61,24 +68,17 @@
   */
   isTyped = v: isAttrs v && (v._type or null) != null;
 
-  isDerivation = x: lib.attrsets.isDerivation x;
-
-  toPath = name:
-    if isList name
-    then name
-    else [name];
-
   # True if basePath ++ path is `true` OR has `.enable == true`
   isPathEnabled = {
     attrset,
     basePath,
     path,
   }: let
-    fullPath = basePath ++ toPath path;
+    fullPath = basePath ++ (toList path);
     direct = attrByPath fullPath false attrset;
     withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
   in
-    direct == true || withEnable == true;
+    direct || withEnable;
 
   # Shared argument validation for anyEnabled / allEnabled
   validateArgs = fnName: {
@@ -115,8 +115,8 @@
   Check if any of a set of attributes is effectively enabled.
 
   An entry is considered enabled if either:
-  - `basePath ++ toPath name` is `true`, or
-  - `basePath ++ toPath name ++ ["enable"]` is `true`.
+  - `basePath ++ (toList name)` is `true`, or
+  - `basePath ++ (toList name) ++ ["enable"]` is `true`.
 
   # Type
   ```nix
@@ -141,13 +141,14 @@
     fnName = "anyEnabled";
     args = validateArgs fnName {inherit attrset basePath names;};
   in
-    any
-    (name:
-      isPathEnabled {
-        attrset = args.attrset;
-        basePath = args.basePath;
-        path = name;
-      })
+    any (
+      name:
+        isPathEnabled {
+          inherit (args) attrset;
+          inherit (args) basePath;
+          path = name;
+        }
+    )
     args.names;
 
   /**
@@ -178,20 +179,29 @@
     fnName = "allEnabled";
     args = validateArgs fnName {inherit attrset basePath names;};
   in
-    all
-    (name:
-      isPathEnabled {
-        attrset = args.attrset;
-        basePath = args.basePath;
-        path = name;
-      })
+    all (
+      name:
+        isPathEnabled {
+          inherit (args) attrset;
+          inherit (args) basePath;
+          path = name;
+        }
+    )
     args.names;
 
   waylandWindowManager = config:
     anyEnabled {
       attrset = config;
-      basePath = ["wayland" "windowManager"];
-      names = ["hyprland" "river" "sway" "wayfire"];
+      basePath = [
+        "wayland"
+        "windowManager"
+      ];
+      names = [
+        "hyprland"
+        "river"
+        "sway"
+        "wayfire"
+      ];
     }
     || anyEnabled {
       attrset = config;
@@ -202,31 +212,60 @@
   waylandDesktopManager = config:
     anyEnabled {
       attrset = config;
-      basePath = ["services" "desktopManager"];
+      basePath = [
+        "services"
+        "desktopManager"
+      ];
       names = ["cosmic"];
     };
 
   waylandDisplayManager = config: let
     attrset = config;
-    basePath = ["services" "displayManager"];
+    basePath = [
+      "services"
+      "displayManager"
+    ];
   in
     allEnabled {
       inherit attrset basePath;
-      names = ["gdm" ["gdm" "wayland"]];
+      names = [
+        "gdm"
+        [
+          "gdm"
+          "wayland"
+        ]
+      ];
     }
     || allEnabled {
       inherit attrset basePath;
-      names = ["cosmic-greeter" ["cosmic-greeter" "wayland"]];
+      names = [
+        "cosmic-greeter"
+        [
+          "cosmic-greeter"
+          "wayland"
+        ]
+      ];
     }
     || allEnabled {
       inherit attrset basePath;
-      names = ["sddm" ["sddm" "wayland"]];
+      names = [
+        "sddm"
+        [
+          "sddm"
+          "wayland"
+        ]
+      ];
     };
 
   waylandDefinedInterface = interface:
     ((interface.displayProtocol or null) == "wayland")
     || (interface.desktopEnvironment or null) == "cosmic"
-    || (elem (interface.windowManager or null) ["sway" "hyprland" "river" "niri"]);
+    || (elem (interface.windowManager or null) [
+      "sway"
+      "hyprland"
+      "river"
+      "niri"
+    ]);
 
   /**
   Check if Wayland is active via any supported mechanism.
@@ -349,7 +388,10 @@ in
                 services.apache.enable = false;
               };
               basePath = ["services"];
-              names = ["nginx" "apache"];
+              names = [
+                "nginx"
+                "apache"
+              ];
             };
           };
 
@@ -357,9 +399,19 @@ in
             desired = true;
             command = ''anyEnabled { attrset = { services.displayManager.gdm.wayland = true; }; basePath = ["services" "displayManager"]; names = [["gdm" "wayland"]]; }'';
             outcome = anyEnabled {
-              attrset = {services.displayManager.gdm.wayland = true;};
-              basePath = ["services" "displayManager"];
-              names = [["gdm" "wayland"]];
+              attrset = {
+                services.displayManager.gdm.wayland = true;
+              };
+              basePath = [
+                "services"
+                "displayManager"
+              ];
+              names = [
+                [
+                  "gdm"
+                  "wayland"
+                ]
+              ];
             };
           };
 
@@ -372,7 +424,10 @@ in
                 services.apache.enable = false;
               };
               basePath = ["services"];
-              names = ["nginx" "apache"];
+              names = [
+                "nginx"
+                "apache"
+              ];
             };
           };
 
@@ -409,7 +464,10 @@ in
                 services.postgresql.enable = true;
               };
               basePath = ["services"];
-              names = ["nginx" "postgresql"];
+              names = [
+                "nginx"
+                "postgresql"
+              ];
             };
           };
 
@@ -422,7 +480,10 @@ in
                 services.postgresql.enable = false;
               };
               basePath = ["services"];
-              names = ["nginx" "postgresql"];
+              names = [
+                "nginx"
+                "postgresql"
+              ];
             };
           };
 
@@ -434,8 +495,17 @@ in
                 services.displayManager.gdm.enable = true;
                 services.displayManager.gdm.wayland = true;
               };
-              basePath = ["services" "displayManager"];
-              names = ["gdm" ["gdm" "wayland"]];
+              basePath = [
+                "services"
+                "displayManager"
+              ];
+              names = [
+                "gdm"
+                [
+                  "gdm"
+                  "wayland"
+                ]
+              ];
             };
           };
 
@@ -447,45 +517,58 @@ in
                 services.displayManager.sddm.enable = true;
                 services.displayManager.sddm.wayland = false;
               };
-              basePath = ["services" "displayManager"];
-              names = ["sddm" ["sddm" "wayland"]];
+              basePath = [
+                "services"
+                "displayManager"
+              ];
+              names = [
+                "sddm"
+                [
+                  "sddm"
+                  "wayland"
+                ]
+              ];
             };
           };
 
-          rejectsInvalidAttrset = mkThrows (
-            allEnabled {
-              attrset = "nope";
-              basePath = ["services"];
-              names = ["nginx"];
-            }
-          );
+          rejectsInvalidAttrset = mkThrows (allEnabled {
+            attrset = "nope";
+            basePath = ["services"];
+            names = ["nginx"];
+          });
         };
 
         waylandEnabled = {
           detectsHyprland = mkTest {
             desired = true;
-            command = ''waylandEnabled { config = { wayland.windowManager.hyprland.enable = true; }; }'';
+            command = "waylandEnabled { config = { wayland.windowManager.hyprland.enable = true; }; }";
             outcome = waylandEnabled {
-              config = {wayland.windowManager.hyprland.enable = true;};
+              config = {
+                wayland.windowManager.hyprland.enable = true;
+              };
             };
           };
           detectsSway = mkTest {
             desired = true;
-            command = ''waylandEnabled { config = { wayland.windowManager.sway.enable = true; }; }'';
+            command = "waylandEnabled { config = { wayland.windowManager.sway.enable = true; }; }";
             outcome = waylandEnabled {
-              config = {wayland.windowManager.sway.enable = true;};
+              config = {
+                wayland.windowManager.sway.enable = true;
+              };
             };
           };
           detectsNiri = mkTest {
             desired = true;
-            command = ''waylandEnabled { config = { programs.niri.enable = true; }; }'';
+            command = "waylandEnabled { config = { programs.niri.enable = true; }; }";
             outcome = waylandEnabled {
-              config = {programs.niri.enable = true;};
+              config = {
+                programs.niri.enable = true;
+              };
             };
           };
           detectsGdmWayland = mkTest {
             desired = true;
-            command = ''waylandEnabled { config = { services.displayManager.gdm.enable = true; services.displayManager.gdm.wayland = true; }; }'';
+            command = "waylandEnabled { config = { services.displayManager.gdm.enable = true; services.displayManager.gdm.wayland = true; }; }";
             outcome = waylandEnabled {
               config = {
                 services.displayManager.gdm.enable = true;
@@ -495,9 +578,11 @@ in
           };
           gdmWithoutWaylandIsFalse = mkTest {
             desired = false;
-            command = ''waylandEnabled { config = { services.displayManager.gdm.enable = true; }; }'';
+            command = "waylandEnabled { config = { services.displayManager.gdm.enable = true; }; }";
             outcome = waylandEnabled {
-              config = {services.displayManager.gdm.enable = true;};
+              config = {
+                services.displayManager.gdm.enable = true;
+              };
             };
           };
           detectsInterfaceDisplayProtocol = mkTest {
@@ -505,7 +590,9 @@ in
             command = ''waylandEnabled { config = {}; interface = { displayProtocol = "wayland"; }; }'';
             outcome = waylandEnabled {
               config = {};
-              interface = {displayProtocol = "wayland";};
+              interface = {
+                displayProtocol = "wayland";
+              };
             };
           };
           detectsInterfaceWindowManager = mkTest {
@@ -513,7 +600,9 @@ in
             command = ''waylandEnabled { config = {}; interface = { windowManager = "hyprland"; }; }'';
             outcome = waylandEnabled {
               config = {};
-              interface = {windowManager = "hyprland";};
+              interface = {
+                windowManager = "hyprland";
+              };
             };
           };
           returnsFalseForEmptyConfig = mkTest {
@@ -521,7 +610,9 @@ in
             command = "waylandEnabled { config = {}; }";
             outcome = waylandEnabled {config = {};};
           };
-          rejectsInvalidConfig = mkThrows (waylandEnabled {config = "nope";});
+          rejectsInvalidConfig = mkThrows (waylandEnabled {
+            config = "nope";
+          });
           rejectsInvalidInterface = mkThrows (waylandEnabled {
             config = {};
             interface = "nope";

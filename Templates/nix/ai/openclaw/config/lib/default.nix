@@ -17,9 +17,11 @@
         host = "127.0.0.1";
         logLevel = "info";
         openFirewall = false;
-        tls.enable = false;
-        tls.certFile = null;
-        tls.keyFile = null;
+        tls = {
+          enable = false;
+          certFile = null;
+          keyFile = null;
+        };
         extraConfig = {};
         allowedIPs = [];
       }

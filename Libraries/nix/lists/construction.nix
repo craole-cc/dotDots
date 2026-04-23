@@ -61,8 +61,7 @@
   toList' null                # => []
   ```
   */
-  toList' = value:
-    filter (v: v != null) (toList value);
+  toList' = value: filter (v: v != null) (toList value);
 
   /**
   Generate a membership-checking predicate for a normalized list.
@@ -98,25 +97,25 @@
   in
     if !isList checkList
     then
-      throw (_debug.withDoc {
-        function = "mkCheckList";
-        message = "check must be a value or list of values";
-        signature = "{ check :: a | [a], exact :: Bool } -> (a -> Bool)";
-        input = check;
-        example = mkExample {
-          cmd = ''mkCheckList { check = ["foo" "bar"]; }'';
-          res = "(a -> Bool)";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "mkCheckList";
+          message = "check must be a value or list of values";
+          signature = "{ check :: a | [a], exact :: Bool } -> (a -> Bool)";
+          input = check;
+          example = mkExample {
+            cmd = ''mkCheckList { check = ["foo" "bar"]; }'';
+            res = "(a -> Bool)";
+          };
+        }
+      )
     else if exact
     then (e: elem e normalizedList)
     else
-      (
-        e:
-          if e == null
-          then elem null normalizedList
-          else elem (toLower e) normalizedList
-      );
+      (e:
+        if e == null
+        then elem null normalizedList
+        else elem (toLower e) normalizedList);
 
   /**
   Create a validator that checks if values are in an allowed list.
@@ -142,16 +141,18 @@
   }:
     if !isList list
     then
-      throw (_debug.withDoc {
-        function = "mkValidator";
-        message = "list must be a list of values";
-        signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
-        input = list;
-        example = mkExample {
-          cmd = ''mkValidator { list = ["foo" "bar"]; }'';
-          res = "{ check = ...; list = [\"foo\" \"bar\"]; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "mkValidator";
+          message = "list must be a list of values";
+          signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
+          input = list;
+          example = mkExample {
+            cmd = ''mkValidator { list = ["foo" "bar"]; }'';
+            res = "{ check = ...; list = [\"foo\" \"bar\"]; }";
+          };
+        }
+      )
     else {
       check = mkCheckList {
         check = list;
@@ -223,16 +224,18 @@
   }:
     if !isList list
     then
-      throw (_debug.withDoc {
-        function = "mkDenyValidator";
-        message = "list must be a list of values";
-        signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
-        input = list;
-        example = mkExample {
-          cmd = ''mkDenyValidator { list = ["admin" "root"]; }'';
-          res = "{ check = ...; list = [\"admin\" \"root\"]; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "mkDenyValidator";
+          message = "list must be a list of values";
+          signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
+          input = list;
+          example = mkExample {
+            cmd = ''mkDenyValidator { list = ["admin" "root"]; }'';
+            res = "{ check = ...; list = [\"admin\" \"root\"]; }";
+          };
+        }
+      )
     else {
       check = name:
         if exact
@@ -259,18 +262,20 @@
   mkPredicateValidator = predicate:
     if !isFunction predicate
     then
-      throw (_debug.withDoc {
-        function = "mkPredicateValidator";
-        message = "predicate must be a function";
-        signature = "(a -> Bool) -> { check :: a -> Bool, predicate :: (a -> Bool) }";
-        input = predicate;
-        example = mkExample {
-          cmd = ''mkPredicateValidator (hasPrefix "user_")'';
-          res = "{ check = ...; predicate = ...; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "mkPredicateValidator";
+          message = "predicate must be a function";
+          signature = "(a -> Bool) -> { check :: a -> Bool, predicate :: (a -> Bool) }";
+          input = predicate;
+          example = mkExample {
+            cmd = ''mkPredicateValidator (hasPrefix "user_")'';
+            res = "{ check = ...; predicate = ...; }";
+          };
+        }
+      )
     else {
-      check = name: predicate name;
+      check = predicate;
       inherit predicate;
     };
 
@@ -301,16 +306,18 @@
   mkEnum = input:
     if !(isList input || isAttrs input)
     then
-      throw (_debug.withDoc {
-        function = "mkEnum";
-        message = "input must be a list of values or an attrset with values and aliases";
-        signature = "[a] | { values :: [a], aliases :: AttrSet } -> Enum";
-        input = input;
-        example = mkExample {
-          cmd = ''mkEnum { values = ["admin" "user"]; aliases = { root = "admin"; }; }'';
-          res = "{ values = [...]; aliases = {...}; allValues = [...]; validator = ...; resolve = ...; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "mkEnum";
+          message = "input must be a list of values or an attrset with values and aliases";
+          signature = "[a] | { values :: [a], aliases :: AttrSet } -> Enum";
+          inherit input;
+          example = mkExample {
+            cmd = ''mkEnum { values = ["admin" "user"]; aliases = { root = "admin"; }; }'';
+            res = "{ values = [...]; aliases = {...}; allValues = [...]; validator = ...; resolve = ...; }";
+          };
+        }
+      )
     else let
       normalized =
         if isList input
@@ -326,7 +333,7 @@
           }
         else {values = attrNames input;};
 
-      values = normalized.values;
+      inherit (normalized) values;
       aliases = normalized.aliases or {};
       nullable = normalized.nullable or false;
       allValues = values ++ (attrNames aliases);
@@ -361,25 +368,51 @@ in
         caseInsensitiveByDefault = mkTest {
           desired = true;
           command = ''(mkCheckList { check = ["foo" "bar"]; }) "FOO"'';
-          outcome = (mkCheckList {check = ["foo" "bar"];}) "FOO";
+          outcome =
+            (mkCheckList {
+              check = [
+                "foo"
+                "bar"
+              ];
+            })
+            "FOO";
         };
         caseSensitiveWithExact = mkTest {
           desired = false;
           command = ''(mkCheckList { check = ["foo" "bar"]; exact = true; }) "FOO"'';
-          outcome = (mkCheckList {
-            check = ["foo" "bar"];
-            exact = true;
-          }) "FOO";
+          outcome =
+            (mkCheckList {
+              check = [
+                "foo"
+                "bar"
+              ];
+              exact = true;
+            })
+            "FOO";
         };
         matchesExactValue = mkTest {
           desired = true;
           command = ''(mkCheckList { check = ["foo" "bar"]; }) "foo"'';
-          outcome = (mkCheckList {check = ["foo" "bar"];}) "foo";
+          outcome =
+            (mkCheckList {
+              check = [
+                "foo"
+                "bar"
+              ];
+            })
+            "foo";
         };
         rejectsAbsentValue = mkTest {
           desired = false;
           command = ''(mkCheckList { check = ["foo" "bar"]; }) "baz"'';
-          outcome = (mkCheckList {check = ["foo" "bar"];}) "baz";
+          outcome =
+            (mkCheckList {
+              check = [
+                "foo"
+                "bar"
+              ];
+            })
+            "baz";
         };
         rejectsNull = mkTest {
           desired = false;
@@ -397,30 +430,65 @@ in
         caseInsensitiveByDefault = mkTest {
           desired = true;
           command = ''(mkValidator { list = ["foo" "bar"]; }).check "FOO"'';
-          outcome = (mkValidator {list = ["foo" "bar"];}).check "FOO";
+          outcome =
+            (mkValidator {
+              list = [
+                "foo"
+                "bar"
+              ];
+            }).check
+            "FOO";
         };
         caseSensitiveWithExact = mkTest {
           desired = false;
           command = ''(mkValidator { list = ["foo" "bar"]; exact = true; }).check "FOO"'';
-          outcome = (mkValidator {
-            list = ["foo" "bar"];
-            exact = true;
-          }).check "FOO";
+          outcome =
+            (mkValidator {
+              list = [
+                "foo"
+                "bar"
+              ];
+              exact = true;
+            }).check
+            "FOO";
         };
         allowsValueInList = mkTest {
           desired = true;
           command = ''(mkValidator { list = ["foo" "bar"]; }).check "foo"'';
-          outcome = (mkValidator {list = ["foo" "bar"];}).check "foo";
+          outcome =
+            (mkValidator {
+              list = [
+                "foo"
+                "bar"
+              ];
+            }).check
+            "foo";
         };
         deniesValueNotInList = mkTest {
           desired = false;
           command = ''(mkValidator { list = ["foo" "bar"]; }).check "baz"'';
-          outcome = (mkValidator {list = ["foo" "bar"];}).check "baz";
+          outcome =
+            (mkValidator {
+              list = [
+                "foo"
+                "bar"
+              ];
+            }).check
+            "baz";
         };
         exportsListAttribute = mkTest {
-          desired = ["foo" "bar"];
+          desired = [
+            "foo"
+            "bar"
+          ];
           command = ''(mkValidator { list = ["foo" "bar"]; }).list'';
-          outcome = (mkValidator {list = ["foo" "bar"];}).list;
+          outcome =
+            (mkValidator {
+              list = [
+                "foo"
+                "bar"
+              ];
+            }).list;
         };
       };
 
@@ -428,12 +496,22 @@ in
         allowsCaseVariations = mkTest {
           desired = true;
           command = ''(mkCaseInsensitiveValidator ["foo" "bar"]).check "FOO"'';
-          outcome = (mkCaseInsensitiveValidator ["foo" "bar"]).check "FOO";
+          outcome =
+            (mkCaseInsensitiveValidator [
+              "foo"
+              "bar"
+            ]).check
+            "FOO";
         };
         deniesValueNotInList = mkTest {
           desired = false;
           command = ''(mkCaseInsensitiveValidator ["foo" "bar"]).check "baz"'';
-          outcome = (mkCaseInsensitiveValidator ["foo" "bar"]).check "baz";
+          outcome =
+            (mkCaseInsensitiveValidator [
+              "foo"
+              "bar"
+            ]).check
+            "baz";
         };
       };
 
@@ -441,12 +519,22 @@ in
         deniesWrongCase = mkTest {
           desired = false;
           command = ''(mkCaseSensitiveValidator ["foo" "bar"]).check "FOO"'';
-          outcome = (mkCaseSensitiveValidator ["foo" "bar"]).check "FOO";
+          outcome =
+            (mkCaseSensitiveValidator [
+              "foo"
+              "bar"
+            ]).check
+            "FOO";
         };
         allowsExactMatch = mkTest {
           desired = true;
           command = ''(mkCaseSensitiveValidator ["foo" "bar"]).check "foo"'';
-          outcome = (mkCaseSensitiveValidator ["foo" "bar"]).check "foo";
+          outcome =
+            (mkCaseSensitiveValidator [
+              "foo"
+              "bar"
+            ]).check
+            "foo";
         };
       };
 
@@ -454,25 +542,51 @@ in
         allowsValueNotInDenylist = mkTest {
           desired = true;
           command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "user"'';
-          outcome = (mkDenyValidator {list = ["admin" "root"];}).check "user";
+          outcome =
+            (mkDenyValidator {
+              list = [
+                "admin"
+                "root"
+              ];
+            }).check
+            "user";
         };
         deniesValueInDenylist = mkTest {
           desired = false;
           command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "admin"'';
-          outcome = (mkDenyValidator {list = ["admin" "root"];}).check "admin";
+          outcome =
+            (mkDenyValidator {
+              list = [
+                "admin"
+                "root"
+              ];
+            }).check
+            "admin";
         };
         caseInsensitiveByDefault = mkTest {
           desired = false;
           command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "ADMIN"'';
-          outcome = (mkDenyValidator {list = ["admin" "root"];}).check "ADMIN";
+          outcome =
+            (mkDenyValidator {
+              list = [
+                "admin"
+                "root"
+              ];
+            }).check
+            "ADMIN";
         };
         caseSensitiveWithExact = mkTest {
           desired = true;
           command = ''(mkDenyValidator { list = ["admin" "root"]; exact = true; }).check "ADMIN"'';
-          outcome = (mkDenyValidator {
-            list = ["admin" "root"];
-            exact = true;
-          }).check "ADMIN";
+          outcome =
+            (mkDenyValidator {
+              list = [
+                "admin"
+                "root"
+              ];
+              exact = true;
+            }).check
+            "ADMIN";
         };
       };
 
@@ -498,31 +612,49 @@ in
         simpleEnumCheck = mkTest {
           desired = true;
           command = ''(mkEnum ["red" "green" "blue"]).validator.check "RED"'';
-          outcome = (mkEnum ["red" "green" "blue"]).validator.check "RED";
+          outcome =
+            (mkEnum [
+              "red"
+              "green"
+              "blue"
+            ]).validator.check
+            "RED";
         };
         aliasCheck = mkTest {
           desired = true;
           command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).validator.check "admin"'';
-          outcome = (mkEnum {
-            values = ["administrator"];
-            aliases = {admin = "administrator";};
-          }).validator.check "admin";
+          outcome =
+            (mkEnum {
+              values = ["administrator"];
+              aliases = {
+                admin = "administrator";
+              };
+            }).validator.check
+            "admin";
         };
         resolveAlias = mkTest {
           desired = "administrator";
           command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).resolve "admin"'';
-          outcome = (mkEnum {
-            values = ["administrator"];
-            aliases = {admin = "administrator";};
-          }).resolve "admin";
+          outcome =
+            (mkEnum {
+              values = ["administrator"];
+              aliases = {
+                admin = "administrator";
+              };
+            }).resolve
+            "admin";
         };
         resolveCanonical = mkTest {
           desired = "administrator";
           command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).resolve "administrator"'';
-          outcome = (mkEnum {
-            values = ["administrator"];
-            aliases = {admin = "administrator";};
-          }).resolve "administrator";
+          outcome =
+            (mkEnum {
+              values = ["administrator"];
+              aliases = {
+                admin = "administrator";
+              };
+            }).resolve
+            "administrator";
         };
       };
     };

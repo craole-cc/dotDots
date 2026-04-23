@@ -40,7 +40,10 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = ["System" "TerminalEmulator"];
+    categories = [
+      "System"
+      "TerminalEmulator"
+    ];
   };
 
   quake = makeDesktopItem {
@@ -51,7 +54,10 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = ["System" "TerminalEmulator"];
+    categories = [
+      "System"
+      "TerminalEmulator"
+    ];
     noDisplay = true;
   };
 
@@ -61,9 +67,17 @@
     name = "foot";
     kind = "terminal";
     customCommand = "feet";
-    resolutionHints = ["foot" "feet"];
+    resolutionHints = [
+      "foot"
+      "feet"
+    ];
     requiresWayland = true;
-    extraPackages = wrappers ++ [desktop quake];
+    extraPackages =
+      wrappers
+      ++ [
+        desktop
+        quake
+      ];
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [

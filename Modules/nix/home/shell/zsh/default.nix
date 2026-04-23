@@ -1,10 +1,5 @@
-{
-  user,
-  lix,
-  ...
-}: let
+_: let
   app = "zsh";
-  inherit (lix.lists.predicates) isIn;
   isAllowed = false;
   # isAllowed = isIn app (
   #   (user.shells or [])
@@ -13,6 +8,8 @@
   # );
 in {
   programs.${app} =
-    {enable = isAllowed;}
+    {
+      enable = isAllowed;
+    }
     // import ./settings.nix;
 }

@@ -59,8 +59,8 @@ in {
         jujutsu.extensions
       ];
       userSettings = mkMerge [
-        (git.userSettings      or {})
-        (jujutsu.userSettings  or {})
+        (git.userSettings or {})
+        (jujutsu.userSettings or {})
       ];
     };
 }

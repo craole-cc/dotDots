@@ -38,7 +38,11 @@
     };
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     default = mkOption {
       description = "Default shell aliases";
       default = defaultAliases;

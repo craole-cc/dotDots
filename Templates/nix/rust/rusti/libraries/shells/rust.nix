@@ -1,5 +1,4 @@
 {lib}: let
-  inherit (lib.packages) mkBins;
   /**
   Build the Rust-focused shell specification.
 
@@ -36,7 +35,14 @@
     inherit (lib.packages) mkRust;
     inherit (pkgs.stdenv) isDarwin;
 
-    rust = mkRust {inherit pkgs channel targets extensions;};
+    rust = mkRust {
+      inherit
+        pkgs
+        channel
+        targets
+        extensions
+        ;
+    };
     tools = with pkgs;
       {
         inherit
@@ -76,41 +82,6 @@
         inherit (jetbrains) rust-rover;
       };
 
-    bin =
-      mkBins tools
-      // {
-        cargo = "${rust}/bin/cargo";
-        rustc = "${rust}/bin/rustc";
-      };
-
-    cmd =
-      {
-        inherit rust;
-        audit = "${bin.cargo} audit";
-        baconv = ''
-          ${bin.bacon} --version 2>&1 |
-            ${cmd.awk} '{print substr($2, 1)}'
-        '';
-        bench = "${bin.cargo} bench";
-        clippy = "${bin.cargo} clippy -- -D warnings";
-        coverage = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
-        leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
-        rustv = "${bin.rustc} --version | cut -d ' ' -f2";
-        rustvv = "${bin.rustc} --version | cut -d ' ' -f2-";
-        test = "${bin.cargo} nextest run";
-        watch = "${bin.cargo} watch --quiet --clear --exec";
-        watch-lint = "${cmd.watch} 'clippy -- -D warnings'";
-        watch-run = "${cmd.watch} 'run'";
-        watch-test = "${cmd.watch} 'nextest run'";
-      }
-      // optionalAttrs includeEditor {
-        rr = bin.rust-rover;
-        rrv = ''
-          ${cmd.rr} --version 2>&1 | head -n1 |
-            ${cmd.awk} '{print substr($2, 1)}'
-        '';
-      };
-
     packages = with pkgs;
       [
         #~@ Build Essentials
@@ -144,20 +115,29 @@
         treefmt
         yamlfmt
       ]
-      ++ optionals includeEditor (with pkgs; [helix jetbrains.rust-rover])
-      ++ optionals isDarwin (with pkgs; [libiconv]);
+      ++ optionals includeEditor [
+        helix
+        jetbrains.rust-rover
+      ]
+      ++ optionals isDarwin [libiconv];
   in {
     __meta = {
       kind = "rust";
-      inherit channel rust tools pkgs;
+      inherit
+        channel
+        rust
+        tools
+        pkgs
+        ;
     };
 
     shell = {
       name = "rust-${channel}";
       packages = packages ++ optionals isDarwin [pkgs.libiconv];
       # env = env;
-      shellHook = ''
-      '';
+      shellHook = "";
     };
   };
-in {inherit mkRustSpec;}
+in {
+  inherit mkRustSpec;
+}

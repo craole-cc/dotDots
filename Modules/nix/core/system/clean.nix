@@ -14,7 +14,11 @@
   inherit (lib.types) nullOr str;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     keepSince = mkOption {
       description = "Delete generations older than";
       default = "3d";
@@ -39,7 +43,7 @@ in {
         enable = true;
         extraArgs = "--keep-since ${cfg.keepSince} --keep ${cfg.keepCount}";
       };
-      flake = cfg.flake;
+      inherit (cfg) flake;
     };
   };
 }

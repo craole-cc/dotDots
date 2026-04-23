@@ -3,11 +3,26 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) getAttr genAttrs hasAttr mapAttrs optionalAttrs;
+  inherit
+    (lib.attrsets)
+    getAttr
+    genAttrs
+    hasAttr
+    mapAttrs
+    optionalAttrs
+    ;
   inherit (lib.lists) any elem optionals;
   inherit (lib.debug) traceIf;
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
+  inherit
+    (lib.strings)
+    concatStringsSep
+    hasInfix
+    hasPrefix
+    isString
+    optionalString
+    toLower
+    ;
   inherit (_.lists.predicates) isIn;
   hasAudio = host: isIn "audio" (host.functionalities or []);
 
@@ -36,8 +51,8 @@
 
   mkFileSystem = _: fs: let
     base = {
-      device = fs.device;
-      fsType = fs.fsType;
+      inherit (fs) device;
+      inherit (fs) fsType;
     };
     opts = fs.options or [];
   in
@@ -45,7 +60,7 @@
     if opts == []
     then base
     else base // {options = opts;};
-  mkSwapDevice = s: {device = s.device;};
+  mkSwapDevice = s: {inherit (s) device;};
 
   mkFileSystems = {host, ...}: {
     fileSystems = mapAttrs mkFileSystem (host.devices.file or {});
@@ -83,7 +98,9 @@
       hostId = host.id or null;
       networkmanager.enable = hasNetwork;
       nameservers = access.nameservers or [];
-      interfaces = genAttrs networkDevices (_: {useDHCP = hasNetwork;});
+      interfaces = genAttrs networkDevices (_: {
+        useDHCP = hasNetwork;
+      });
       firewall = {
         enable = firewall.enable or false;
         allowedTCPPorts = firewall.tcp.ports or [];
@@ -93,14 +110,16 @@
       };
     };
 
-    environment.systemPackages = optionals hasNetwork (with pkgs; [
-      speedtest-cli
-      speedtest-go
-      mtr
-      curl
-      wget
-      tldr
-    ]);
+    environment.systemPackages = optionals hasNetwork (
+      with pkgs; [
+        speedtest-cli
+        speedtest-go
+        mtr
+        curl
+        wget
+        tldr
+      ]
+    );
 
     programs = {
       gnupg = optionalAttrs gnupgSupported {
@@ -125,14 +144,19 @@
     isRefind = hasInfix "refind" bootLoader;
     isGrub = hasInfix "grub" bootLoader;
 
-    validBootLoaderPatterns = ["system" "refind" "grub"];
+    validBootLoaderPatterns = [
+      "system"
+      "refind"
+      "grub"
+    ];
     hasValidBootLoader = any (pattern: hasInfix pattern bootLoader) validBootLoaderPatterns;
 
     functionalities = host.functionalities or [];
-    hasDualBoot = any (f:
-      hasInfix "dualboot" (toLower f)
-      || hasInfix "dual-boot" (toLower f))
-    functionalities;
+    hasDualBoot =
+      any (
+        f: hasInfix "dualboot" (toLower f) || hasInfix "dual-boot" (toLower f)
+      )
+      functionalities;
     hasEfi = elem "efi" functionalities;
 
     kernel = rec {
@@ -152,11 +176,11 @@
       selected =
         traceIf (requested != null && exists)
         "✓ Using kernel: ${requested} (${packages.kernel.version or "unknown"})"
-        (traceIf (requested != null && !exists)
+        (
+          traceIf (requested != null && !exists)
           "⚠️  Kernel '${requested}' not found in pkgs, using default (${default.kernel.version})"
-          (traceIf (requested == null)
-            "ℹ Using default kernel (${default.kernel.version})"
-            packages));
+          (traceIf (requested == null) "ℹ Using default kernel (${default.kernel.version})" packages)
+        );
     };
   in {
     assertions = [

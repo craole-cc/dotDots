@@ -135,13 +135,13 @@ in {
         keybindings.extensions
       ];
       userSettings = mkMerge [
-        (files.userSettings      or {})
-        (text.userSettings       or {})
-        (env.userSettings        or {})
-        (license.userSettings    or {})
-        (spelling.userSettings   or {})
-        (runners.userSettings    or {})
-        (viewers.userSettings    or {})
+        (files.userSettings or {})
+        (text.userSettings or {})
+        (env.userSettings or {})
+        (license.userSettings or {})
+        (spelling.userSettings or {})
+        (runners.userSettings or {})
+        (viewers.userSettings or {})
         (keybindings.userSettings or {})
       ];
     };

@@ -13,7 +13,7 @@
     '';
     functions = {
       inherit
-        toPath
+        asPath
         toValue
         toName
         normalizeOptional
@@ -26,7 +26,9 @@
       local = functions;
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
@@ -42,17 +44,17 @@
 
       # Type
   ```nix
-      toPath :: string | [string] -> [string]
+      asPath :: string | [string] -> [string]
   ```
 
       # Examples
   ```nix
-      toPath "a.b.c"      # => ["a" "b" "c"]
-      toPath ["a" "b"]    # => ["a" "b"]
-      toPath "simple"     # => ["simple"]
+      asPath "a.b.c"      # => ["a" "b" "c"]
+      asPath ["a" "b"]    # => ["a" "b"]
+      asPath "simple"     # => ["simple"]
   ```
   */
-  toPath = field:
+  asPath = field:
     if isList field
     then field
     else splitString "." field;
@@ -82,8 +84,7 @@
   toValue = {
     field,
     default ? null,
-  }: app:
-    attrByPath (toPath field) default app;
+  }: app: attrByPath (asPath field) default app;
 
   /**
       Derive a PascalCase-style identifier fragment from a field path, with
@@ -119,7 +120,7 @@
     prefix ? null,
     suffix ? "",
   }: let
-    normalized = concatStringsSep "-" (toPath field);
+    normalized = concatStringsSep "-" (asPath field);
     resolvedPrefix =
       if prefix != null
       then prefix
@@ -200,9 +201,9 @@
   */
   keysFromOptional = field: set:
     unique (
-      filter
-      (value: value != null)
-      (map (item: normalizeOptional (toValue {inherit field;} item)) (attrValues set))
+      filter (value: value != null) (
+        map (item: normalizeOptional (toValue {inherit field;} item)) (attrValues set)
+      )
     );
 
   /**
@@ -230,14 +231,16 @@
   */
   keysFromMembers = field: set:
     unique (
-      builtins.concatMap
-      (item:
-        normalizeList (toValue {
-            inherit field;
-            default = [];
-          }
-          item))
-      (attrValues set)
+      builtins.concatMap (
+        item:
+          normalizeList (
+            toValue {
+              inherit field;
+              default = [];
+            }
+            item
+          )
+      ) (attrValues set)
     );
 in
   meta.exports.local

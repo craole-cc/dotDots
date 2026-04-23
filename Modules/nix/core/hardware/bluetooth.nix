@@ -2,7 +2,6 @@
   config,
   host,
   lib,
-  pkgs,
   top,
   ...
 }: let
@@ -17,7 +16,11 @@
   inherit (lib.types) bool;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = hw.hasBluetooth;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = hw.hasBluetooth;
+      };
     powerOnBoot = mkOption {
       description = "Power bluetooth on boot";
       default = true;
@@ -28,7 +31,7 @@ in {
   config = mkIf cfg.enable {
     hardware.bluetooth = {
       enable = true;
-      powerOnBoot = cfg.powerOnBoot;
+      inherit (cfg) powerOnBoot;
     };
 
     services.blueman.enable = true;

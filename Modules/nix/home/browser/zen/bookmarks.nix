@@ -12,7 +12,10 @@
           }
           {
             name = "wiki";
-            tags = ["wiki" "nix"];
+            tags = [
+              "wiki"
+              "nix"
+            ];
             url = "https://wiki.nixos.org/";
           }
         ];

@@ -16,7 +16,9 @@
       local = functions;
       alias = functions;
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.registry) all;
   inherit (_.applications.primitives) toValue;
@@ -65,7 +67,7 @@
         // {inherit pkg;}
         // (
           if pkg != null
-          then {version = pkg.version;}
+          then {inherit (pkg) version;}
           else {}
         )
     )

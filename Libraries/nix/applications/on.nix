@@ -27,7 +27,9 @@
         mkAppFocus = mkFocus;
       };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.registry) identify;
   inherit (_.lists.access) head;
@@ -148,8 +150,7 @@
 
   # Resolve the focus-or-launch command for `environment`, falling back to
   # plain exec when the environment has no registered handler.
-  mkFocus = environment: app:
-    (byEnvironment.${environment} or (_: app.exec)) app;
+  mkFocus = environment: app: (byEnvironment.${environment} or (_: app.exec)) app;
 in
   meta.exports.local
   // {

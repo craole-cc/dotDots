@@ -12,13 +12,7 @@
         primitives
         ;
     };
-    flattened =
-      {}
-      // access
-      // combinators
-      // predicates
-      // primitives
-      // {};
+    flattened = {} // access // combinators // predicates // primitives // {};
   };
 
   inherit

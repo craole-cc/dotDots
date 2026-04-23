@@ -17,7 +17,14 @@
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) mapAttrsToList;
-  inherit (lib.lists) all elem flatten last unique;
+  inherit
+    (lib.lists)
+    all
+    elem
+    flatten
+    last
+    unique
+    ;
   currentSystem = builtins.currentSystem or null;
 
   __exports = {
@@ -109,19 +116,19 @@
   }: let
     inherit
       (getPackages {
-        inherit flake nixpkgs legacyPackages system;
+        inherit
+          flake
+          nixpkgs
+          legacyPackages
+          system
+          ;
       })
       pkgsBase
       pkgsFor
       ;
 
     #~@ Types Lists
-    defined = flatten (
-      mapAttrsToList (
-        _: host: host.platform or host.system or []
-      )
-      hosts
-    );
+    defined = flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts);
     default = [
       "aarch64-darwin"
       "aarch64-linux"
@@ -140,7 +147,14 @@
       then common
       else last default;
   in {
-    inherit all default defined derived pkgsBase pkgsFor;
+    inherit
+      all
+      default
+      defined
+      derived
+      pkgsBase
+      pkgsFor
+      ;
     system = derived;
     pkgs = pkgsFor derived;
   };
@@ -158,9 +172,12 @@ in
         };
         allContainsDefaults = mkTest {
           desired = true;
-          outcome =
-            all (s: elem s (getSystems {}).all)
-            ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+          outcome = all (s: elem s (getSystems {}).all) [
+            "x86_64-linux"
+            "aarch64-linux"
+            "x86_64-darwin"
+            "aarch64-darwin"
+          ];
           command = "all default systems present in getSystems {}.all";
         };
         usesHostPlatform = mkTest {
@@ -175,16 +192,17 @@ in
         };
         definedIncludesHostPlatform = mkTest {
           desired = true;
-          outcome =
-            elem "aarch64-linux"
-            (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
+          outcome = elem "aarch64-linux" (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
           command = ''elem "aarch64-linux" (getSystems {...}).defined'';
         };
         emptyHostsGivesEmptyDefined = mkTest' [] (getSystems {}).defined;
         pkgsForReturnsEmptyWhenNoPkgs = mkTest' {} ((getSystems {}).pkgsFor "x86_64-linux");
         allIsUnique = mkTest {
           desired = true;
-          outcome = let sys = getSystems {hosts.a.platform = "x86_64-linux";}; in sys.all == unique sys.all;
+          outcome = let
+            sys = getSystems {hosts.a.platform = "x86_64-linux";};
+          in
+            sys.all == unique sys.all;
           command = "getSystems {hosts.a.platform = ...}.all == unique ...all";
         };
       };

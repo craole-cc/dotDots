@@ -19,7 +19,7 @@
 
   hostUsers = host.users.data.enabled or {};
   adminNames = host.users.names.elevated or [];
-  hasNetwork = host.hardware.hasNetwork;
+  inherit (host.hardware) hasNetwork;
 in {
   options.${top}.${dom} = {
     execWheelOnly = mkOption {
@@ -31,14 +31,17 @@ in {
 
   config = {
     security.sudo = {
-      execWheelOnly = cfg.execWheelOnly;
+      inherit (cfg) execWheelOnly;
       extraRules =
         map (name: {
           users = [name];
           commands = [
             {
               command = "ALL";
-              options = ["SETENV" "NOPASSWD"];
+              options = [
+                "SETENV"
+                "NOPASSWD"
+              ];
             }
           ];
         })
@@ -56,9 +59,11 @@ in {
           password = user.password or null;
           group = name;
           extraGroups =
-            []
-            ++ optionals (user.role != "service") ["users"]
-            ++ optionals (isIn (user.role or null) ["admin" "administrator"]) ["wheel"]
+            optionals (user.role != "service") ["users"]
+            ++ optionals (isIn (user.role or null) [
+              "admin"
+              "administrator"
+            ]) ["wheel"]
             ++ optionals hasNetwork ["networkmanager"];
           shell = package {
             inherit pkgs;

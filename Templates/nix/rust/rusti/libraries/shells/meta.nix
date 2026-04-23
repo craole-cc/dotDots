@@ -1,8 +1,3 @@
-/**
-libraries/shells/meta.nix
-
-Shell-aware merge logic for lib.shells.
-*/
 {lib}: let
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.lists) foldl';
@@ -69,22 +64,14 @@ Shell-aware merge logic for lib.shells.
   appended packages, and concatenated shell hooks.
   */
   mergeShellSpecs = left: right: {
-    __meta =
-      recursiveUpdate
-      (left.__meta or {})
-      (right.__meta or {});
+    __meta = recursiveUpdate (left.__meta or {}) (right.__meta or {});
 
     shell = {
       name = right.shell.name or left.shell.name or "unnamed";
 
-      packages =
-        (left.shell.packages or [])
-        ++ (right.shell.packages or []);
+      packages = (left.shell.packages or []) ++ (right.shell.packages or []);
 
-      env =
-        recursiveUpdate
-        (left.shell.env or {})
-        (right.shell.env or {});
+      env = recursiveUpdate (left.shell.env or {}) (right.shell.env or {});
 
       shellHook = let
         l = left.shell.shellHook or "";

@@ -61,7 +61,15 @@
 
       getInfo = name:
         if name != null
-        then info {inherit pkgs inputs system name;}
+        then
+          info {
+            inherit
+              pkgs
+              inputs
+              system
+              name
+              ;
+          }
         else null;
 
       allInfos = filter (i: i != null) [
@@ -138,12 +146,7 @@
     lowerInput = toLower input;
   in
     # Zen Browser variants
-    if
-      hasInfix "zen" lowerInput
-      && (
-        hasInfix "beta" lowerInput
-        || hasInfix "nightly" lowerInput
-      )
+    if hasInfix "zen" lowerInput && (hasInfix "beta" lowerInput || hasInfix "nightly" lowerInput)
     then "zen-beta"
     else if hasInfix "zen" lowerInput
     then "zen-twilight"
@@ -189,7 +192,11 @@
         # cmd = "zen-twilight";
         cmd = "zen";
         pkg = pkgs.zen-browser or null;
-        inputPath = ["zen-browser" system "twilight"];
+        inputPath = [
+          "zen-browser"
+          system
+          "twilight"
+        ];
       };
 
       "zen-beta" = {
@@ -200,7 +207,11 @@
         # cmd = "zen-beta";
         cmd = "zen";
         pkg = pkgs.zen-browser or null;
-        inputPath = ["zen-browser" system "beta"];
+        inputPath = [
+          "zen-browser"
+          system
+          "beta"
+        ];
       };
 
       chromium = {pkgs, ...}: {
@@ -258,7 +269,11 @@
         cmd = "noctalia";
         pkg = pkgs.noctalia or null;
         # Uses specialArgs.inputs.packages.noctalia-shell
-        inputPath = ["noctalia-shell" system "default"];
+        inputPath = [
+          "noctalia-shell"
+          system
+          "default"
+        ];
       };
 
       "noctalia-shell" = {
@@ -268,7 +283,11 @@
       }: {
         cmd = "noctalia";
         pkg = pkgs.noctalia or null;
-        inputPath = ["noctalia-shell" system "default"];
+        inputPath = [
+          "noctalia-shell"
+          system
+          "default"
+        ];
       };
 
       "dank-material-shell" = {
@@ -278,7 +297,11 @@
       }: {
         cmd = "dank-material-shell";
         pkg = pkgs.dankMaterialShell or null;
-        inputPath = ["dankMaterialShell" system "default"];
+        inputPath = [
+          "dankMaterialShell"
+          system
+          "default"
+        ];
       };
 
       ags = {pkgs, ...}: {
@@ -394,7 +417,7 @@
       helix = {pkgs, ...}: {
         cmd = "hx";
         pkg = pkgs.helix;
-        inputPath = null; #? Helix is in nixpkgs
+        inputPath = null; # ? Helix is in nixpkgs
       };
 
       neovim = {
@@ -404,7 +427,11 @@
       }: {
         cmd = "nvim";
         pkg = pkgs.neovim;
-        inputPath = ["nvf" system "default"];
+        inputPath = [
+          "nvf"
+          system
+          "default"
+        ];
       };
 
       vim = {pkgs, ...}: {
@@ -482,7 +509,15 @@
 
       getInfo = name:
         if name != null
-        then info {inherit pkgs inputs system name;}
+        then
+          info {
+            inherit
+              pkgs
+              inputs
+              system
+              name
+              ;
+          }
         else null;
 
       allInfos = filter (i: i != null) [
@@ -534,7 +569,15 @@
   };
 
   exports = {
-    inherit mkApp detectBrowserVariant browsers terminals launchers bars editors;
+    inherit
+      mkApp
+      detectBrowserVariant
+      browsers
+      terminals
+      launchers
+      bars
+      editors
+      ;
   };
 in
   exports // {__rootAliases = exports;}

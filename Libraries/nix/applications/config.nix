@@ -12,7 +12,9 @@
       local = functions;
       alias = functions;
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.generators) userApplication;
   inherit (_.strings.predicates) hasInfix;
@@ -57,25 +59,41 @@
     config,
   }: {
     noctalia-shell = mkUserApp {
-      inherit modules pkgs user config;
+      inherit
+        modules
+        pkgs
+        user
+        config
+        ;
       moduleName = "noctalia-shell";
       app = {
         name = "noctalia-shell";
         kind = "bar";
         customCommand = "noctalia";
-        resolutionHints = ["noctalia" "noctalia-dev"];
+        resolutionHints = [
+          "noctalia"
+          "noctalia-dev"
+        ];
       };
     };
 
     nvf = mkUserApp {
-      inherit modules pkgs user config;
+      inherit
+        modules
+        pkgs
+        user
+        config
+        ;
       moduleName = "nvf";
       app = {
         name = "nvf";
         kind = "editor";
         customCommand = "nvim";
         category = "tty";
-        resolutionHints = ["nvim" "neovim"];
+        resolutionHints = [
+          "nvim"
+          "neovim"
+        ];
       };
     };
 
@@ -89,7 +107,11 @@
         name = "zen-browser";
         kind = "browser";
         customCommand = "zen";
-        resolutionHints = ["zen" "zen-twilight" "zen-beta"];
+        resolutionHints = [
+          "zen"
+          "zen-twilight"
+          "zen-beta"
+        ];
         debug = false;
       };
     in {

@@ -8,5 +8,9 @@
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
 in {
-  programs.${app} = {enable = isAllowed;} // import ./settings.nix;
+  programs.${app} =
+    {
+      enable = isAllowed;
+    }
+    // import ./settings.nix;
 }

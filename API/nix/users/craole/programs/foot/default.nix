@@ -20,20 +20,13 @@
       inherit config;
       inherit (user) interface;
     }
-    && (
-      (elem app allowed)
-      || isPrimary
-      || isSecondary
-    );
+    && ((elem app allowed) || isPrimary || isSecondary);
 in {
   config = mkIf isAllowed {
     programs.${app} = {
       enable = true;
       server.enable = true;
-      settings =
-        (import ./settings.nix)
-        // (import ./input.nix)
-        // (import ./themes.nix);
+      settings = (import ./settings.nix) // (import ./input.nix) // (import ./themes.nix);
     };
 
     home = {

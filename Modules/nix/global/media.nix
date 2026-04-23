@@ -2,11 +2,11 @@
   inherit (dots) pkgs;
   description = "🎬 Media Development Shell";
   packages = with pkgs; [
-    mpv #? Media player
-    ffmpeg-full #? Complete FFmpeg with all features
-    yt-dlp #? YouTube downloader
-    mediainfo #? Media file analyzer
-    mkvtoolnix #? Matroska tools
+    mpv # ? Media player
+    ffmpeg-full # ? Complete FFmpeg with all features
+    yt-dlp # ? YouTube downloader
+    mediainfo # ? Media file analyzer
+    mkvtoolnix # ? Matroska tools
   ];
   shellHook = ''
     cat <<-EOF
@@ -20,4 +20,6 @@
 
       EOF
   '';
-in {inherit description packages shellHook;}
+in {
+  inherit description packages shellHook;
+}

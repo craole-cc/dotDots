@@ -85,9 +85,18 @@
     };
   };
 in
-  {inherit containersForce containers;}
+  {
+    inherit containersForce containers;
+  }
   // (
     if app == "zen-browser"
-    then {inherit pins pinsForce spaces spacesForce;}
+    then {
+      inherit
+        pins
+        pinsForce
+        spaces
+        spacesForce
+        ;
+    }
     else {}
   )

@@ -13,7 +13,9 @@
       local = functions;
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.lists.predicates) isIn;
@@ -300,12 +302,9 @@
       else if packageFound
       then let
         #> Try to get the binary from resolutionHints first, then fallback to name
-        binaryName =
-          if package ? meta.mainProgram
-          then package.meta.mainProgram
-          else builtins.head resolutionHints;
+        binaryName = package.meta.mainProgram or (builtins.head resolutionHints);
       in "${package}/bin/${binaryName}"
-      else null; #> Return null if package not found
+      else null; # > Return null if package not found
 
     basename =
       if command != null
@@ -314,11 +313,14 @@
 
     #~@ Complete Identifiers - FILTER OUT NULL VALUES
     identifiers = unique (
-      filter (x: x != null) ([
+      filter (x: x != null) (
+        [
           name
           basename
         ]
-        ++ resolutionHints ++ ["${name}-${kind}"])
+        ++ resolutionHints
+        ++ ["${name}-${kind}"]
+      )
     );
 
     #~@ Role Classification
@@ -358,11 +360,9 @@
       if category != null
       then "${var}_${toUpper category}"
       else var;
-    shellAliases = {}; #TODO: Add something here
+    shellAliases = {}; # TODO: Add something here
     sessionVariables =
-      optionalAttrs
-      (kind != "editor")
-      (
+      optionalAttrs (kind != "editor") (
         if isPrimary
         then {
           "${varWithCategory}_PRI" = command;
@@ -375,9 +375,7 @@
         }
         else {}
       )
-      // optionalAttrs
-      (kind == "editor" && category == "tty")
-      (
+      // optionalAttrs (kind == "editor" && category == "tty") (
         if isPrimary
         then {
           EDITOR_PRI = command;
@@ -390,22 +388,19 @@
         }
         else {}
       )
-      // (
-        optionalAttrs (kind == "editor" && category == "gui")
-        (
-          if isPrimary
-          then {
-            VISUAL_PRI = command;
-            VISUAL_PRI_NAME = basename;
-          }
-          else if isSecondary
-          then {
-            VISUAL_SEC = command;
-            VISUAL_SEC_NAME = basename;
-          }
-          else {}
-        )
-      );
+      // (optionalAttrs (kind == "editor" && category == "gui") (
+        if isPrimary
+        then {
+          VISUAL_PRI = command;
+          VISUAL_PRI_NAME = basename;
+        }
+        else if isSecondary
+        then {
+          VISUAL_SEC = command;
+          VISUAL_SEC_NAME = basename;
+        }
+        else {}
+      ));
 
     packages = [package] ++ extraPackages;
 
@@ -432,15 +427,13 @@
     };
 
     output = rec {
-      role =
-        optionalString
-        isAllowed (
-          if isPrimary
-          then "Primary"
-          else if isSecondary
-          then "Secondary"
-          else "Requested"
-        );
+      role = optionalString isAllowed (
+        if isPrimary
+        then "Primary"
+        else if isSecondary
+        then "Secondary"
+        else "Requested"
+      );
 
       status =
         if isAllowed
@@ -642,7 +635,6 @@
   */
   program = {
     config,
-    isAllowed,
     name,
     package,
     extraConfig ? {},
@@ -650,16 +642,14 @@
     extraPackages ? [],
     ...
   }: let
-    programs =
-      optionalAttrs (config.programs ? name)
-      {
-        ${name} =
-          {
-            enable = true;
-            inherit package;
-          }
-          // extraConfig;
-      };
+    programs = optionalAttrs (config.programs ? name) {
+      ${name} =
+        {
+          enable = true;
+          inherit package;
+        }
+        // extraConfig;
+    };
     home = {
       inherit sessionVariables;
       packages = [package] ++ extraPackages;
@@ -713,9 +703,9 @@
         };
 
     moduleName = res.name;
-    hasHome = res.config?home;
-    hasProg = res.config?programs.${moduleName};
-    hasProgPkg = res.config.programs.${moduleName}?package;
+    hasHome = res.config ? home;
+    hasProg = res.config ? programs.${moduleName};
+    hasProgPkg = res.config.programs.${moduleName} ? package;
 
     testVariables = optionalAttrs res.debug {
       "__${moduleName}" =
@@ -737,14 +727,12 @@
     };
 
     enable = res.isAllowed;
-    package = res.package;
+    inherit (res) package;
     packages = res.packages ++ extraPackages;
     sessionVariables = res.sessionVariables // extraVariables // testVariables;
     shellAliases = res.shellAliases // extraAliases;
 
-    home =
-      optionalAttrs hasHome
-      {inherit sessionVariables shellAliases packages;};
+    home = optionalAttrs hasHome {inherit sessionVariables shellAliases packages;};
 
     environment = optionalAttrs (!hasHome) {
       systemPackages = packages;
@@ -759,7 +747,16 @@
       ];
     };
 
-    exports = {inherit environment home programs enable;} // res;
+    exports =
+      {
+        inherit
+          environment
+          home
+          programs
+          enable
+          ;
+      }
+      // res;
   in
     exports;
 in

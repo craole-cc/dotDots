@@ -49,7 +49,11 @@
     then {}
     else if class == "darwin"
     then {source = input;}
-    else {flake = {source = input;};};
+    else {
+      flake = {
+        source = input;
+      };
+    };
 
   /**
   Resolves, normalizes, and categorizes flake inputs.
@@ -95,7 +99,7 @@
 
     nixpkgs-stable = byPaths {
       inherit attrset;
-      default = nixpkgs; #? Fallback chain
+      default = nixpkgs; # ? Fallback chain
       paths = [
         ["nixPackagesStable"]
         ["nixosPackagesStable"]
@@ -109,7 +113,7 @@
 
     nixpkgs-unstable = byPaths {
       inherit attrset;
-      default = nixpkgs-stable; #? Fallback chain
+      default = nixpkgs-stable; # ? Fallback chain
       paths = [
         ["nixPackagesUnstable"]
         ["nixosPackagesUnstable"]
@@ -358,7 +362,12 @@
 
     resolved = core // home;
   in {
-    inherit resolved raw core home;
+    inherit
+      resolved
+      raw
+      core
+      home
+      ;
     flake = flake';
   };
 in

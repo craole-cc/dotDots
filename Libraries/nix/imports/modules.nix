@@ -11,12 +11,7 @@
         migration
         ;
     };
-    flattened =
-      {}
-      // construction
-      // evaluation
-      // migration
-      // {};
+    flattened = {} // construction // evaluation // migration // {};
   };
 
   inherit (lib) modules extend;
@@ -52,7 +47,7 @@
       importJSON
       importTOML
       ;
-    inherit extend; #TODO: Check is this is the best place to house extend.
+    inherit extend; # TODO: Check is this is the best place to house extend.
   };
 
   migration = {

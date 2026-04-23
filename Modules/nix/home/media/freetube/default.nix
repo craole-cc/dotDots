@@ -1,8 +1,6 @@
 {
-  user,
   lix,
   host,
-  pkgs,
   ...
 }: let
   app = "freetube";
@@ -10,6 +8,8 @@
   isAllowed = isIn "video" (host.functionalities or []);
 in {
   programs.${app} =
-    {enable = isAllowed;}
+    {
+      enable = isAllowed;
+    }
     // import ./settings.nix;
 }

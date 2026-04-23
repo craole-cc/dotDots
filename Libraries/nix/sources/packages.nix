@@ -99,11 +99,13 @@
     attrs,
     names,
   }:
-    listToAttrs (map (name: {
+    listToAttrs (
+      map (name: {
         inherit name;
         value = inputs.${name}.${attrs} or {};
       })
-      names);
+      names
+    );
 
   mkAll = {
     host ? {},
@@ -112,7 +114,7 @@
     coreNames ? [],
     homeNames ? [],
   }: let
-    pkgs = host.packages or{};
+    pkgs = host.packages or {};
     config' =
       {
         allowUnfree = pkgs.allowUnfree or true;

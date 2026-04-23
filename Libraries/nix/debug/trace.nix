@@ -116,7 +116,12 @@
     };
 
   exports = {
-    inherit trace traceRaw traceValue traceFn;
+    inherit
+      trace
+      traceRaw
+      traceValue
+      traceFn
+      ;
   };
 in
   exports // {__rootAliases = exports;}

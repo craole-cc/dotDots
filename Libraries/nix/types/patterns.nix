@@ -28,7 +28,17 @@
   # UUID
   uuid = strMatching "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 in {
-  inherit email url semver gitRef username hostname ipv4 color uuid;
+  inherit
+    email
+    url
+    semver
+    gitRef
+    username
+    hostname
+    ipv4
+    color
+    uuid
+    ;
   __rootAliases = {
     emailPattern = email;
     urlPattern = url;

@@ -14,7 +14,11 @@
     name = "helix";
     kind = "editor";
     category = "tty";
-    resolutionHints = ["hx" "helix" "helix-editor"];
+    resolutionHints = [
+      "hx"
+      "helix"
+      "helix-editor"
+    ];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
       (import ./editor.nix)

@@ -25,13 +25,21 @@
   addons = import ./addons {inherit lib mkMerge paths;};
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = windowManager == "hyprland";};
+    enable =
+      mkEnableOption mod
+      // {
+        default = windowManager == "hyprland";
+      };
     withAddons = mkOption {
       description = "Enable hyprland addons";
       default = true;
       type = bool;
     };
-    withRules = mkEnableOption "Window rules" // {default = true;};
+    withRules =
+      mkEnableOption "Window rules"
+      // {
+        default = true;
+      };
   };
 
   config = mkIf cfg.enable {
@@ -41,8 +49,16 @@ in {
         plugins = [];
       }
       (import ./settings {
-        inherit host lib lix apps user keyboard mkMerge;
-        withRules = cfg.withRules;
+        inherit
+          host
+          lib
+          lix
+          apps
+          user
+          keyboard
+          mkMerge
+          ;
+        inherit (cfg) withRules;
         keys = cfgTop.interface.keyboard;
       })
       (import ./submaps {inherit mkMerge;})

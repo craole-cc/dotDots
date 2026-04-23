@@ -11,12 +11,13 @@
 in {
   home = {
     inherit (host) stateVersion;
-    packages = map (shell:
-      package {
-        inherit pkgs;
-        target = shell;
-      })
-    (user.shells or []);
+    packages = map (
+      shell:
+        package {
+          inherit pkgs;
+          target = shell;
+        }
+    ) (user.shells or []);
   };
 
   imports = importAll ./.;

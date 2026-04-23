@@ -12,6 +12,16 @@
   isAllowed = isIn "video" (host.functionalities or []);
 in {
   programs.${app} =
-    {enable = isAllowed;}
-    // import ./plugins.nix {inherit pkgs lib lix user config;};
+    {
+      enable = isAllowed;
+    }
+    // import ./plugins.nix {
+      inherit
+        pkgs
+        lib
+        lix
+        user
+        config
+        ;
+    };
 }

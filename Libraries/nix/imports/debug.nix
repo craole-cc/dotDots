@@ -10,11 +10,7 @@
         tracing
         ;
     };
-    flattened =
-      {}
-      // testing
-      // tracing
-      // {};
+    flattened = {} // testing // tracing // {};
   };
 
   inherit (lib) debug;

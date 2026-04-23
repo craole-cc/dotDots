@@ -14,14 +14,21 @@
 
   user = host.users.data.primary or {};
   apps = user.applications or {};
-  system = pkgs.stdenv.hostPlatform.system;
+  inherit (pkgs.stdenv.hostPlatform) system;
 
   inherit (config.${top}.interface) displayProtocol;
   inherit (lib.modules) mkIf;
   inherit (lib.lists) optionals;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf package;
-  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
+  inherit
+    (lix.applications.resolution)
+    editors
+    browsers
+    terminals
+    launchers
+    bars
+    ;
 
   editorPkgs = editors.packages {
     inherit pkgs system inputs;
@@ -117,7 +124,11 @@
     ++ waylandPkgs;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     default = mkOption {
       description = "Base system packages";
       default = defaultPackages;
@@ -132,13 +143,7 @@ in {
 
   config = mkIf cfg.enable {
     environment.systemPackages =
-      cfg.default
-      ++ cfg.extra
-      ++ editorPkgs
-      ++ browserPkgs
-      ++ terminalPkgs
-      ++ launcherPkgs
-      ++ barPkgs;
+      cfg.default ++ cfg.extra ++ editorPkgs ++ browserPkgs ++ terminalPkgs ++ launcherPkgs ++ barPkgs;
 
     programs.xwayland.enable = true;
   };

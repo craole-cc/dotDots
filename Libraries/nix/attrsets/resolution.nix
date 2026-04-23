@@ -23,7 +23,13 @@
     optionalAttrs
     ;
   inherit (lib.debug) traceIf;
-  inherit (lib.lists) filter findFirst head toList;
+  inherit
+    (lib.lists)
+    filter
+    findFirst
+    head
+    toList
+    ;
   inherit (builtins) getFlake tryEval;
 
   debug = mkModuleDebug __moduleRef;
@@ -105,13 +111,14 @@
     attrs,
     name,
   }:
-    if attrs ? ${name}
-    then attrs.${name}
-    else
-      throw (debug.mkError {
+    attrs.${
+      name
+    } or (throw (
+      debug.mkError {
         function = "getAttr";
         message = "attribute '${name}' is missing";
-      });
+      }
+    ));
 
   /**
   Get an attribute value, falling back to `default` if missing or empty.
@@ -166,9 +173,7 @@
     name,
     default,
   }:
-    if attrs ? ${name}
-    then attrs.${name}
-    else default;
+    attrs.${name} or default;
 
   /**
   Resolve an attribute by trying multiple paths in order.
@@ -246,13 +251,14 @@
   in
     if priority != null
     then let
-      sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
+      sources = filterAttrs (_key: value: value != null) (
+        genAttrs priority (name: nixpkgs.${name} or null)
+      );
     in
-      (findFirst
-        (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
-        nixpkgs.legacyPackages
-        (attrValues sources))
-      .${
+      (findFirst (
+          nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null
+        )
+        nixpkgs.legacyPackages (attrValues sources)).${
         targetSystem
       }
     else nixpkgs.legacyPackages.${targetSystem};
@@ -326,11 +332,13 @@
     attrs,
     names,
   }:
-    listToAttrs (map (name: {
+    listToAttrs (
+      map (name: {
         inherit name;
         value = inputs.${name}.${attrs} or {};
       })
-      names);
+      names
+    );
 
   /**
   Parse a VSCode extension identifier into { publisher, name }.
@@ -382,8 +390,16 @@
         market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
       };
       paths = [
-        ["nixpkgs" e.publisher e.name]
-        ["market" e.publisher e.name]
+        [
+          "nixpkgs"
+          e.publisher
+          e.name
+        ]
+        [
+          "market"
+          e.publisher
+          e.name
+        ]
       ];
       inherit default;
     };
@@ -408,7 +424,18 @@
     entries,
   }:
     lib.lists.filter (x: x != null) (
-      map (entry: vscodePackage {inherit pkgs inputs system entry;}) entries
+      map (
+        entry:
+          vscodePackage {
+            inherit
+              pkgs
+              inputs
+              system
+              entry
+              ;
+          }
+      )
+      entries
     );
 
   /**
@@ -455,10 +482,9 @@
     if self != {}
     then self
     else
-      traceIf
-      ((derived._type or null) != "flake")
-      "❌ Flake load failed: ${toString path} (${failureReason})"
-      (derived // {srcPath = path;});
+      traceIf (
+        (derived._type or null) != "flake"
+      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
 
   hostAttrs = {
     self ? {},
@@ -470,29 +496,27 @@
   }: let
     derived =
       findFirst
-      (hostConfig:
-        (hostConfig.config.nixpkgs.hostPlatform.system or null)
-        == (
-          if system != null
-          then system
-          else (getSystems {inherit hosts;}).system
-        ))
-      null
-      (attrValues (
-        if nixosConfigurations != {}
-        then nixosConfigurations
-        else
-          (
-            flake.nixosConfigurations or
-        (flakeAttrs {inherit self path;}).nixosConfigurations or
-        {}
+      (
+        hostConfig:
+          (hostConfig.config.nixpkgs.hostPlatform.system or null)
+          == (
+            if system != null
+            then system
+            else (getSystems {inherit hosts;}).system
           )
-      ));
+      )
+      null
+      (
+        attrValues (
+          if nixosConfigurations != {}
+          then nixosConfigurations
+          else (flake.nixosConfigurations or (flakeAttrs {inherit self path;}).nixosConfigurations or {})
+        )
+      );
   in
-    traceIf
-    ((derived.class or null) != "nixos")
-    "❌ Failed to derive current host"
-    (derived // {name = derived.config.networking.hostName;});
+    traceIf ((derived.class or null) != "nixos") "❌ Failed to derive current host" (
+      derived // {name = derived.config.networking.hostName;}
+    );
 
   /**
   Build the `nixpkgs` source attribute appropriate for the host class.
@@ -520,7 +544,10 @@
     inputs ? {},
     ...
   }: let
-    root' = firstNonEmpty [root (inputs.nixpkgs or null)];
+    root' = firstNonEmpty [
+      root
+      (inputs.nixpkgs or null)
+    ];
   in
     if (host.class or "nixos") == "darwin"
     then {source = root';}
@@ -561,7 +588,9 @@ in
         returnsValueWhenPresent = mkTest {
           desired = "hello";
           outcome = getAttr {
-            attrs = {a = "hello";};
+            attrs = {
+              a = "hello";
+            };
             name = "a";
           };
           command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
@@ -569,7 +598,9 @@ in
         preservesEmptyString = mkTest {
           desired = "";
           outcome = getAttr {
-            attrs = {a = "";};
+            attrs = {
+              a = "";
+            };
             name = "a";
           };
           command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
@@ -591,7 +622,9 @@ in
         returnsValueWhenPresent = mkTest {
           desired = "hello";
           outcome = orDefault {
-            attrs = {a = "hello";};
+            attrs = {
+              a = "hello";
+            };
             name = "a";
             default = "fallback";
           };
@@ -600,7 +633,9 @@ in
         fallsBackOnEmptyString = mkTest {
           desired = "fallback";
           outcome = orDefault {
-            attrs = {a = "";};
+            attrs = {
+              a = "";
+            };
             name = "a";
             default = "fallback";
           };
@@ -616,19 +651,28 @@ in
           command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
         };
         preservesZero = mkTest' 0 (orDefault {
-          attrs = {a = 0;};
+          attrs = {
+            a = 0;
+          };
           name = "a";
           default = 42;
         });
         preservesFalse = mkTest' false (orDefault {
-          attrs = {a = false;};
+          attrs = {
+            a = false;
+          };
           name = "a";
           default = true;
         });
         fallsBackOnEmpty = mkTest' [1 2] (orDefault {
-          attrs = {a = [];};
+          attrs = {
+            a = [];
+          };
           name = "a";
-          default = [1 2];
+          default = [
+            1
+            2
+          ];
         });
       };
 
@@ -636,7 +680,9 @@ in
         preservesEmptyString = mkTest {
           desired = "";
           outcome = orNull {
-            attrs = {a = "";};
+            attrs = {
+              a = "";
+            };
             name = "a";
             default = "fallback";
           };
@@ -645,7 +691,9 @@ in
         preservesEmptyList = mkTest {
           desired = [];
           outcome = orNull {
-            attrs = {a = [];};
+            attrs = {
+              a = [];
+            };
             name = "a";
             default = [1];
           };
@@ -661,7 +709,9 @@ in
           command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
         };
         preservesNull = mkTest' null (orNull {
-          attrs = {a = null;};
+          attrs = {
+            a = null;
+          };
           name = "a";
           default = "fallback";
         });
@@ -669,9 +719,13 @@ in
 
       optional = {
         includesWhenPresent = mkTest {
-          desired = {baz = "yes";};
+          desired = {
+            baz = "yes";
+          };
           outcome = optional {
-            attrs = {baz = "yes";};
+            attrs = {
+              baz = "yes";
+            };
             name = "baz";
           };
           command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
@@ -681,7 +735,9 @@ in
           name = "baz";
         });
         excludesWhenEmpty = mkTest' {} (optional {
-          attrs = {baz = "";};
+          attrs = {
+            baz = "";
+          };
           name = "baz";
         });
       };
@@ -694,10 +750,20 @@ in
               foo.bar = 1;
               baz.qux = 2;
             };
-            paths = [["missing"] ["foo" "bar"] ["baz" "qux"]];
+            paths = [
+              ["missing"]
+              [
+                "foo"
+                "bar"
+              ]
+              [
+                "baz"
+                "qux"
+              ]
+            ];
             default = null;
           };
-          command = ''byPaths: first match is foo.bar'';
+          command = "byPaths: first match is foo.bar";
         };
         fallsBackToDefault = mkTest' null (byPaths {
           attrset = {};

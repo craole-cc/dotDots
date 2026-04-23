@@ -73,16 +73,18 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (debug.withDoc {
-        function = mkFn {inherit name fn;};
-        message = "patterns must be a string or list of strings";
-        signature = "string | [string] -> string | [string] -> bool";
-        input = patterns;
-        example = mkExample {
-          cmd = ''${name} "foo" ["bar" "baz"]'';
-          res = "true";
-        };
-      })
+      throw (
+        debug.withDoc {
+          function = mkFn {inherit name fn;};
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${name} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
     else any (p: any (v: checker p v) vs) ps;
 
   /**
@@ -111,16 +113,18 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (debug.withDoc {
-        function = mkFn {inherit name fn;};
-        message = "patterns must be a string or list of strings";
-        signature = "string | [string] -> string | [string] -> bool";
-        input = patterns;
-        example = mkExample {
-          cmd = ''${name} "foo" ["bar" "baz"]'';
-          res = "true";
-        };
-      })
+      throw (
+        debug.withDoc {
+          function = mkFn {inherit name fn;};
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${name} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
     else all (v: any (p: checker p v) ps) vs;
 
   /**
@@ -200,15 +204,9 @@
     #? Attrset call:  contains { patterns = …; input = …; }
     #? Options call:  contains { caseSensitive = …; } patterns input
     #? Positional:    contains patterns input
-    isAttrsetCall =
-      isAttrs patternsOrAttrs
-      && patternsOrAttrs ? patterns
-      && patternsOrAttrs ? input;
+    isAttrsetCall = isAttrs patternsOrAttrs && patternsOrAttrs ? patterns && patternsOrAttrs ? input;
 
-    isOptsCall =
-      isAttrs patternsOrAttrs
-      && !(patternsOrAttrs ? patterns)
-      && !(patternsOrAttrs ? input);
+    isOptsCall = isAttrs patternsOrAttrs && !(patternsOrAttrs ? patterns) && !(patternsOrAttrs ? input);
 
     #? Fall back to case-insensitive matching unless the caller opts out.
     caseSensitive =
@@ -223,18 +221,20 @@
       # { patterns, input[, caseSensitive] }
       mkAny {
         inherit checker name fn;
-        input = patternsOrAttrs.input;
-        patterns = patternsOrAttrs.patterns;
+        inherit (patternsOrAttrs) input;
+        inherit (patternsOrAttrs) patterns;
       }
     else if isOptsCall
     then
       # { caseSensitive } -> patterns -> input
-      (actualInput:
-        mkAny {
-          inherit checker name fn;
-          input = actualInput;
-          patterns = inputOrPatterns;
-        })
+      (
+        actualInput:
+          mkAny {
+            inherit checker name fn;
+            input = actualInput;
+            patterns = inputOrPatterns;
+          }
+      )
     else
       # patterns input  (plain positional)
       mkAny {
@@ -389,13 +389,7 @@
   isBinary 1      # => false
   ```
   */
-  isBinary = s:
-    typeOf s
-    == "string"
-    && (
-      (s == "0" || s == "1")
-      || (s == true || s == false)
-    );
+  isBinary = s: typeOf s == "string" && ((s == "0" || s == "1") || (s || !s));
 
   /**
   Check whether a value can be converted to a string via `toString`.
@@ -456,7 +450,7 @@
   isPOSIX "-foo"      # => false (cannot start with hyphen)
   ```
   */
-  isPOSIX = name: isValidPosixName name;
+  isPOSIX = isValidPosixName;
 in
   __exports.internal
   // {
@@ -477,7 +471,10 @@ in
         listInput = mkTest {
           desired = true;
           command = ''contains "foo" ["baz" "foobar"]'';
-          outcome = contains "foo" ["baz" "foobar"];
+          outcome = contains "foo" [
+            "baz"
+            "foobar"
+          ];
         };
         noMatch = mkTest {
           desired = false;
@@ -499,7 +496,10 @@ in
         listInput = mkTest {
           desired = true;
           command = ''startsWith "foo" ["foobar" "fooX"]'';
-          outcome = startsWith "foo" ["foobar" "fooX"];
+          outcome = startsWith "foo" [
+            "foobar"
+            "fooX"
+          ];
         };
       };
       endsWith = {
@@ -516,43 +516,64 @@ in
         listInput = mkTest {
           desired = true;
           command = ''endsWith "bar" ["foobar" "bazbar"]'';
-          outcome = endsWith "bar" ["foobar" "bazbar"];
+          outcome = endsWith "bar" [
+            "foobar"
+            "bazbar"
+          ];
         };
       };
       containsAll = {
         allMatch = mkTest {
           desired = true;
           command = ''containsAll "foo" ["foobar" "fooX"]'';
-          outcome = containsAll "foo" ["foobar" "fooX"];
+          outcome = containsAll "foo" [
+            "foobar"
+            "fooX"
+          ];
         };
         notAllMatch = mkTest {
           desired = false;
           command = ''containsAll "foo" ["foobar" "baz"]'';
-          outcome = containsAll "foo" ["foobar" "baz"];
+          outcome = containsAll "foo" [
+            "foobar"
+            "baz"
+          ];
         };
       };
       startsWithAll = {
         allMatch = mkTest {
           desired = true;
           command = ''startsWithAll "foo" ["foobar" "fooX"]'';
-          outcome = startsWithAll "foo" ["foobar" "fooX"];
+          outcome = startsWithAll "foo" [
+            "foobar"
+            "fooX"
+          ];
         };
         notAllMatch = mkTest {
           desired = false;
           command = ''startsWithAll "foo" ["foobar" "barX"]'';
-          outcome = startsWithAll "foo" ["foobar" "barX"];
+          outcome = startsWithAll "foo" [
+            "foobar"
+            "barX"
+          ];
         };
       };
       endsWithAll = {
         allMatch = mkTest {
           desired = true;
           command = ''endsWithAll "bar" ["foobar" "bazbar"]'';
-          outcome = endsWithAll "bar" ["foobar" "bazbar"];
+          outcome = endsWithAll "bar" [
+            "foobar"
+            "bazbar"
+          ];
         };
         notAllMatch = mkTest {
           desired = false;
           command = ''endsWithAll "bar" ["foobar" "bazX"]'';
-          outcome = endsWithAll "bar" ["foobar" "bazX"];
+          outcome = endsWithAll "bar" [
+            "foobar"
+            "bazX"
+          ];
         };
       };
 
@@ -650,7 +671,7 @@ in
         };
         rejectsPlainAttrs = mkTest {
           desired = false;
-          command = ''isConvertible { a = 1; }'';
+          command = "isConvertible { a = 1; }";
           outcome = isConvertible {a = 1;};
         };
         rejectsNull = mkTest {
@@ -678,7 +699,7 @@ in
         };
         rejectsPlainAttrs = mkTest {
           desired = false;
-          command = ''isLike { a = 1; }'';
+          command = "isLike { a = 1; }";
           outcome = isLike {a = 1;};
         };
         rejectsNull = mkTest {

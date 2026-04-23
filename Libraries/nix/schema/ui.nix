@@ -26,7 +26,7 @@
       ;
   };
 
-  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
@@ -34,15 +34,19 @@
   inherit (_.lists.access) head;
   inherit (_.lists.construction) optional toList;
   inherit (_.lists.predicates) elem;
-  inherit (_.lists.reduction) concatMap foldl';
-  inherit (_.lists.selection) filter;
+  inherit (_.lists.reduction) concatMap;
   inherit (_.lists.transformation) unique;
-  inherit (_.options.construction) mkOptionEnum mkOptionEnums mkOption mkTrue;
+  inherit
+    (_.options.construction)
+    mkOptionEnum
+    mkOptionEnums
+    mkOption
+    mkTrue
+    ;
   inherit (_.schema) io;
   appSchema = _.schema.applications;
   inherit (_.schema.io) keyboardDefaults normalizeKeyboard;
   inherit (_.strings.construction) optionalString;
-  inherit (_.strings.transformation) splitString;
   inherit (_.types.combinators) submodule attrsOf;
   inherit (_.types.primitives) str anything;
   inherit (_.types.combinators) nullOr;
@@ -50,7 +54,6 @@
   # sh = _.applications.shell;
   appEnums = _.applications.enums;
   iface = _.applications.filters.queries.interface;
-  sh = _.applications.filters.queries.shell;
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Data                                                      ║
@@ -73,7 +76,11 @@
       interactive = "bash";
       prompt = "starship";
       lineEditor = "blesh";
-      enhancements = ["atuin" "zoxide" "fzf"];
+      enhancements = [
+        "atuin"
+        "zoxide"
+        "fzf"
+      ];
     };
     apps = {
       inherit
@@ -89,7 +96,7 @@
 
   enums = {
     # Shell enums — toEnums already walked the shell filter tree.
-    shells = appEnums.shells;
+    inherit (appEnums) shells;
 
     # Interface enums — toEnums walked the interface filter tree.
     # Each sub-key is either an Enum (leaf) or a nested attrset of Enums.
@@ -246,28 +253,17 @@
   #║ Display                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
   dmsByProtocol = genAttrs (attrNames iface.protocols.all) (
-    protocol:
-      attrNames (
-        filterAttrs
-        (_: g: elem protocol (g.protocol or []))
-        iface.greeters.all
-      )
+    protocol: attrNames (filterAttrs (_: g: elem protocol (g.protocol or [])) iface.greeters.all)
   );
 
-  dmsFor = protocols:
-    unique (concatMap (p: dmsByProtocol.${p} or []) protocols);
+  dmsFor = protocols: unique (concatMap (p: dmsByProtocol.${p} or []) protocols);
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Environment                                               ║
   #╚═══════════════════════════════════════════════════════════╝
-  mkEnv = {...} @ args: let
+  mkEnv = args: let
     protocols = args.protocols or (toList args.protocol or []);
-    protocol =
-      args.protocol or (
-        optionalString
-        (args?protocols)
-        (head args.protocols)
-      );
+    protocol = args.protocol or (optionalString (args ? protocols) (head args.protocols));
   in
     {
       displayProtocol = {
@@ -280,27 +276,17 @@
       };
       defaultSession = args.session or null;
     }
-    // (removeAttrs args ["display" "protocol" "protocols"]);
-
-  mkKnown = target: let
-    parts = splitString "." target;
-    getPath = set:
-      foldl'
-      (acc: key:
-        if isAttrs acc && hasAttr key acc
-        then acc.${key}
-        else null)
-      set
-      parts;
-    known = unique (
-      (map getPath (attrValues desktopEnvironments))
-      ++ (map getPath (attrValues windowManagers))
-    );
-  in
-    filter (v: v != null) known;
+    // (removeAttrs args [
+      "display"
+      "protocol"
+      "protocols"
+    ]);
   desktopEnvironments = {
     gnome = mkEnv {
-      protocols = ["wayland" "xorg"];
+      protocols = [
+        "wayland"
+        "xorg"
+      ];
       greeter = "gdm";
       compositor = {
         desktop = "gnome-shell";
@@ -324,7 +310,10 @@
       };
     };
     plasma = mkEnv {
-      protocols = ["wayland" "xorg"];
+      protocols = [
+        "wayland"
+        "xorg"
+      ];
       compositor = {
         desktop = "plasmashell";
         window = "kwin";
@@ -681,10 +670,7 @@
     interface,
     configs,
   }:
-    interface.${key}
-      or configs.wm.${key}
-      or configs.de.${key}
-      or defaults.${key};
+    interface.${key} or configs.wm.${key} or configs.de.${key} or defaults.${key};
   normalize = interface: let
     inherit
       (genAttrs (attrNames keys.selection) (
@@ -710,13 +696,9 @@
       else if desktopEnvironment.name != null
       then desktopEnvironment
       else let
-        env =
-          interface.session.environment
-            or defaults.windowManager
-            or defaults.desktopEnvironment;
+        env = interface.session.environment or defaults.windowManager or defaults.desktopEnvironment;
       in
-        optionalAttrs (env != null)
-        (
+        optionalAttrs (env != null) (
           if hasAttr env windowManagers
           then {
             name = env;
@@ -735,76 +717,53 @@
       ++ (optional (windowManager.name != null) windowManager.name);
 
     greeter =
-      interface.session.greeter
-        or interface.display.greeter
-        or environment.config.displayManager.preferred
-        or defaults.greeter;
+      interface.session.greeter or interface.display.greeter
+          or environment.config.displayManager.preferred or defaults.greeter;
 
     protocol =
-      interface.display.protocol
-        or interface.session.protocol
-        or environment.config.displayProtocol.preferred
-        or defaults.protocol;
+      interface.display.protocol or interface.session.protocol
+          or environment.config.displayProtocol.preferred or defaults.protocol;
 
     session =
-      interface.defaultSession or interface.session
-        or configs.wm.defaultSession
-        or configs.de.defaultSession
-        or windowManager.name
-        or desktopEnvironment.name
-        or defaults.session;
+      interface.defaultSession or interface.session or configs.wm.defaultSession
+          or configs.de.defaultSession or windowManager.name or desktopEnvironment.name or defaults.session;
 
     shell = {
-      system =
-        interface.shell.system or interface.shell.login
-        or defaults.shell.system;
-      interactive =
-        interface.shell.interactive or interface.shell.login
-        or defaults.shell.interactive;
-      prompt =
-        interface.shell.prompt or defaults.shell.prompt;
-      lineEditor =
-        interface.shell.lineEditor or defaults.shell.lineEditor;
-      enhancements =
-        interface.shell.enhancements or defaults.shell.enhancements;
+      system = interface.shell.system or interface.shell.login or defaults.shell.system;
+      interactive = interface.shell.interactive or interface.shell.login or defaults.shell.interactive;
+      prompt = interface.shell.prompt or defaults.shell.prompt;
+      lineEditor = interface.shell.lineEditor or defaults.shell.lineEditor;
+      enhancements = interface.shell.enhancements or defaults.shell.enhancements;
     };
 
     #? Merge order: io defaults → DE overrides → WM overrides → user overrides
     #? normalizeKeyboard converts all mod lists to strings at the boundary
     keyboard = normalizeKeyboard (
-      recursiveUpdate (
-        recursiveUpdate (
-          recursiveUpdate
-          keyboardDefaults
-          (configs.de.keyboard or {})
-        )
-        (configs.wm.keyboard or {})
-      )
-      (interface.keyboard or {})
+      recursiveUpdate (recursiveUpdate (recursiveUpdate keyboardDefaults (configs.de.keyboard or {})) (
+        configs.wm.keyboard or {}
+      )) (interface.keyboard or {})
     );
   in
     composites
     // {
-      inherit enabled keyboard shell session;
+      inherit
+        enabled
+        keyboard
+        shell
+        session
+        ;
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
       displayManager = greeter;
       displayProtocol = protocol;
       enable = enabled != [];
     }
-    // (
-      genAttrs keys.resolution (key:
-        resolve {inherit key interface configs;})
-    );
+    // (genAttrs keys.resolution (key: resolve {inherit key interface configs;}));
   mkUI = {
     user ? {},
     host,
   }:
-    normalize (
-      recursiveUpdate
-      (host.interface or {})
-      (user.interface or {})
-    );
+    normalize (recursiveUpdate (host.interface or {}) (user.interface or {}));
 
   requireUI = {
     host ? null,
@@ -838,9 +797,11 @@
   mkOptions = args: let
     withDefault = mkDefault args;
   in
-    listToAttrs (map (key: {
-      name = key;
-      value = withDefault key;
-    }) (attrNames options));
+    listToAttrs (
+      map (key: {
+        name = key;
+        value = withDefault key;
+      }) (attrNames options)
+    );
 in
   __exports.internal // {__rootAliases = __exports.external;}

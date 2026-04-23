@@ -11,12 +11,7 @@
         predicates
         ;
     };
-    flattened =
-      {}
-      // access
-      // construction
-      // predicates
-      // {};
+    flattened = {} // access // construction // predicates // {};
   };
 
   inherit (lib) options types;

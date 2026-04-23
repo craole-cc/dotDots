@@ -1,10 +1,4 @@
-{
-  config,
-  lix,
-  pkgs,
-  user,
-  ...
-}: {
+_: {
   # inherit
   #   (lix.applications.generators.userApplicationConfig {
   #     inherit config user pkgs;

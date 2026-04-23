@@ -1,6 +1,8 @@
 {
   programs.vim =
-    {enable = true;}
+    {
+      enable = true;
+    }
     // import ./plugins.nix
     // import ./settings.nix;
 }

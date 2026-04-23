@@ -7,7 +7,6 @@
 
   Available interactive shells for user sessions and scripting.
 
-
   # POSIX-Compatible
   - bash: Bourne Again SHell (most common)
   - zsh: Z Shell (extended Bourne, powerful)

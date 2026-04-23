@@ -45,11 +45,17 @@ in {
       config = {
         common.default = ["*"];
         hyprland = mkIf (cfg.windowManager == "hyprland") {
-          default = ["hyprland" "gtk"];
+          default = [
+            "hyprland"
+            "gtk"
+          ];
           "org.freedesktop.impl.portal.Settings" = settingsImpl;
         };
         niri = mkIf (cfg.windowManager == "niri") {
-          default = ["gnome" "gtk"];
+          default = [
+            "gnome"
+            "gtk"
+          ];
           "org.freedesktop.impl.portal.Settings" = settingsImpl;
         };
       };

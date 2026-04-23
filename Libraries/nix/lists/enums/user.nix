@@ -36,7 +36,14 @@
   ```
   */
   roles = mkEnum {
-    values = ["administrator" "developer" "poweruser" "user" "guest" "service"];
+    values = [
+      "administrator"
+      "developer"
+      "poweruser"
+      "user"
+      "guest"
+      "service"
+    ];
     aliases = {
       admin = "administrator";
       dev = "developer";
@@ -48,7 +55,6 @@
 
   Defines what the user primarily does with their system.
   Used to configure appropriate applications and optimizations.
-
 
   # Creative
   - creation: Art, music, video production

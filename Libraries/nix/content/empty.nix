@@ -38,7 +38,7 @@
   ```
   */
   isEmpty = value:
-    if isNull value
+    if (value == null)
     then true
     else if isString value
     then stringLength (trim value) == 0
@@ -136,11 +136,15 @@ in
         nonEmptyListIsNotEmpty = mkTest {
           desired = false;
           command = "isEmpty [1 2 3]";
-          outcome = isEmpty [1 2 3];
+          outcome = isEmpty [
+            1
+            2
+            3
+          ];
         };
         nonEmptyAttrsIsNotEmpty = mkTest {
           desired = false;
-          command = ''isEmpty { a = 1; }'';
+          command = "isEmpty { a = 1; }";
           outcome = isEmpty {a = 1;};
         };
         functionIsNotEmpty = mkTest {

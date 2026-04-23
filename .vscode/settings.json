@@ -96,6 +96,7 @@
     "Libraries/nix/applications/operations.nix",
     "Libraries/nix/applications/resolution.nix",
     "Libraries/nix/applications/on.nix",
-    "Libraries/nix/applications/firefox.nix"
+    "Libraries/nix/applications/firefox.nix",
+    "Templates/nix/ai/openclaw/.direnv"
   ]
 }

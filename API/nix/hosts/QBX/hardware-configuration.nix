@@ -49,7 +49,7 @@ in {
   boot = {
     kernelPackages = mkDefault pkgs.linuxPackages_latest;
     extraModulePackages = [];
-    extraModprobeConfig = ''options nvidia_drm modeset=1 fbdev=1'';
+    extraModprobeConfig = "options nvidia_drm modeset=1 fbdev=1";
 
     initrd = {
       availableKernelModules = [
@@ -60,7 +60,10 @@ in {
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = ["amdgpu" "kvm-amd"];
+      kernelModules = [
+        "amdgpu"
+        "kvm-amd"
+      ];
     };
 
     loader = {
@@ -111,5 +114,8 @@ in {
   environment.sessionVariables.WLR_DRM_DEVICES = "/dev/dri/card1";
 
   # amdgpu first sets the init order — AMD registers before NVIDIA.
-  services.xserver.videoDrivers = ["amdgpu" "nvidia"];
+  services.xserver.videoDrivers = [
+    "amdgpu"
+    "nvidia"
+  ];
 }

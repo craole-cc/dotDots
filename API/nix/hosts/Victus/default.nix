@@ -7,7 +7,7 @@ in {
   stateVersion = "25.05";
   system = "${arch}-${os}";
   class = "nixos";
-  id = "d2c1db8e"; #> head -c8 /etc/machine-id'
+  id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
     dots = "/home/craole/Downloads/public/dotDots";
@@ -70,7 +70,10 @@ in {
       "/boot" = {
         device = "/dev/disk/by-uuid/3C12-4AC5";
         fsType = "vfat";
-        options = ["fmask=0077" "dmask=0077"];
+        options = [
+          "fmask=0077"
+          "dmask=0077"
+        ];
       };
     };
 
@@ -78,7 +81,10 @@ in {
       {device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe";}
     ];
 
-    network = ["eno1" "wlo1"];
+    network = [
+      "eno1"
+      "wlo1"
+    ];
 
     display = {
       "eDP-1" = {

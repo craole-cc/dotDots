@@ -47,8 +47,8 @@ in {
         networking.extensions
       ];
       userSettings = mkMerge [
-        (docker.userSettings     or {})
-        (sql.userSettings        or {})
+        (docker.userSettings or {})
+        (sql.userSettings or {})
         (networking.userSettings or {})
       ];
     };

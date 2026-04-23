@@ -22,7 +22,12 @@
         "assets/styles/variables.css"
         "style.css"
       ];
-      "cssvar.extensions" = ["css" "postcss" "jsx" "tsx"];
+      "cssvar.extensions" = [
+        "css"
+        "postcss"
+        "jsx"
+        "tsx"
+      ];
       "cssvar.ignore" = [];
     };
   };
@@ -67,7 +72,7 @@ in {
       ];
       userSettings = mkMerge [
         (tailwind.userSettings or {})
-        (deno.userSettings     or {})
+        (deno.userSettings or {})
         (prettier.userSettings or {})
       ];
     };

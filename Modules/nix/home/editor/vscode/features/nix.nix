@@ -54,8 +54,8 @@ in {
         direnv.extensions
       ];
       userSettings = mkMerge [
-        (nixLsp.userSettings  or {})
-        (direnv.userSettings  or {})
+        (nixLsp.userSettings or {})
+        (direnv.userSettings or {})
       ];
     };
 }

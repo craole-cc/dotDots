@@ -15,7 +15,11 @@
   inherit (lib.options) mkEnableOption;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = hw.hasAudio;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = hw.hasAudio;
+      };
   };
 
   config = mkIf cfg.enable {

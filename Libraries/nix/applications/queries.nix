@@ -36,12 +36,22 @@
     };
     exports = {
       local = all // functions;
-      alias = {mkApplicationQueries = mkStandard;};
+      alias = {
+        mkApplicationQueries = mkStandard;
+      };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   all = _.applications.filters.queries;
-  inherit (_.applications.groups) mkCapabilityGroups mkMaturityGroups mkProtocolGroups mkScopeGroups;
+  inherit
+    (_.applications.groups)
+    mkCapabilityGroups
+    mkMaturityGroups
+    mkProtocolGroups
+    mkScopeGroups
+    ;
   inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
   inherit (_.applications.selection) withFlag withoutFlag;
@@ -128,9 +138,10 @@
     foldl' (
       acc: f:
         acc
-        // optionalAttrs (hasField {
+        // optionalAttrs
+        (hasField {
           inherit set;
-          field = f.field;
+          inherit (f) field;
         })
         (mkNamed {
           prefix = f.prefix or "is";
@@ -244,15 +255,16 @@
         e = normalize f;
       in
         acc
-        // optionalAttrs (hasField {
+        // optionalAttrs
+        (hasField {
           inherit set;
-          field = e.field;
+          inherit (e) field;
         })
         (mkNamed {
-          prefix = e.prefix;
+          inherit (e) prefix;
           set = mkEq {
             inherit set;
-            field = e.field;
+            inherit (e) field;
           };
         })
     ) {}
@@ -348,8 +360,9 @@
     foldl' (
       acc: f:
         acc
-        // optionalAttrs (f != null)
-        (optionalAttrs (hasListField {
+        // optionalAttrs (f != null) (
+          optionalAttrs
+          (hasListField {
             inherit set;
             field = f;
           })
@@ -358,7 +371,8 @@
             field = f;
             singleKey = "single" + toPascal f;
             multiKey = "multi" + toPascal f;
-          }))
+          })
+        )
     ) {}
     lengths;
 
@@ -438,13 +452,16 @@
     set,
     suffix ? "",
   }:
-    listToAttrs (map (field: {
-      name = toName {inherit prefix suffix field;};
-      value = set.${field};
-    }) (attrNames set));
+    listToAttrs (
+      map (field: {
+        name = toName {inherit prefix suffix field;};
+        value = set.${field};
+      }) (attrNames set)
+    );
 
   mkCapability = {set}:
-    optionalAttrs (hasListField {
+    optionalAttrs
+    (hasListField {
       inherit set;
       field = "capabilities";
     })
@@ -454,7 +471,8 @@
     });
 
   mkMaturity = {set}:
-    optionalAttrs (hasField {
+    optionalAttrs
+    (hasField {
       inherit set;
       field = "maturity";
     })
@@ -464,7 +482,8 @@
     });
 
   mkProtocol = {set}:
-    optionalAttrs (hasListField {
+    optionalAttrs
+    (hasListField {
       inherit set;
       field = "protocol";
     })
@@ -474,7 +493,8 @@
     });
 
   mkScope = {set}:
-    optionalAttrs (hasField {
+    optionalAttrs
+    (hasField {
       inherit set;
       field = "scope";
     })
@@ -484,7 +504,8 @@
     });
 
   mkEngine = {set}:
-    optionalAttrs (hasListField {
+    optionalAttrs
+    (hasListField {
       inherit set;
       field = "engine";
     })
@@ -521,11 +542,14 @@
   ```
   */
   mkConfig = {set}: let
-    withConfig = filterAttrs (_: a: let
-      cfg = toValue {field = "config";} a;
-    in
-      isAttrs cfg && cfg ? file)
-    set;
+    withConfig =
+      filterAttrs (
+        _: a: let
+          cfg = toValue {field = "config";} a;
+        in
+          isAttrs cfg && cfg ? file
+      )
+      set;
     profileOnly = filterAttrs (_: a: toValue {field = "config.file";} a == ".profile") withConfig;
     isConfigurable = removeAttrs withConfig (attrNames profileOnly);
     configuredWith = mkNamed {
@@ -558,7 +582,8 @@
         foldl' (
           acc: f:
             acc
-            // optionalAttrs (hasListField {
+            // optionalAttrs
+            (hasListField {
               inherit set;
               field = f;
             })
@@ -633,7 +658,8 @@
       "shells"
     ],
   }:
-    filterAttrs (_: v: v != {}) ({}
+    filterAttrs (_: v: v != {}) (
+      {}
       // mkCapability {inherit set;}
       // mkConfig {inherit set;}
       // mkEngine {inherit set;}
@@ -644,7 +670,8 @@
       // mkProtocol {inherit set;}
       // mkScope {inherit set;}
       // mkSupport {inherit set support;}
-      // {});
+      // {}
+    );
 in
   meta.exports.local
   // {

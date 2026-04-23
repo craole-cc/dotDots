@@ -7,7 +7,9 @@
 
   __exports = {
     internal = {inherit mkHardware defaults;};
-    external = {mkHardwareSchema = mkHardware;};
+    external = {
+      mkHardwareSchema = mkHardware;
+    };
   };
 
   inherit (_.lists.predicates) isIn;

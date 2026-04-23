@@ -100,10 +100,10 @@ in {
         tooling.extensions
       ];
       userSettings = mkMerge [
-        (markdown.userSettings    or {})
+        (markdown.userSettings or {})
         (dataFormats.userSettings or {})
-        (typst.userSettings       or {})
-        (tooling.userSettings     or {})
+        (typst.userSettings or {})
+        (tooling.userSettings or {})
       ];
     };
 }

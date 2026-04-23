@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+_: {
   # package = with pkgs; [ffmpeg-full];
   # with mpv-unwrapped;
   #   wrapper {mpv = override {ffmpeg = ffmpeg-full;};};

@@ -49,7 +49,7 @@
     shell = {
       name = "rust-${channel}";
       packages = tools.packages ++ optionals isDarwin [pkgs.libiconv];
-      env = env;
+      inherit env;
       shellHook = ''
         ${tools.init}
         [ -n "$PRJ_HOME" ] || PRJ_HOME=$PWD
@@ -102,7 +102,7 @@
     shell = {
       name = "ai-dev";
       packages = [claw.package] ++ llm.packages;
-      env = llm.env;
+      inherit (llm) env;
       shellHook = ''
         echo "🤖 AI Development Environment"
         echo "   Tools: openclaw, claude-code, codex, gemini-cli, opencode"

@@ -9,12 +9,12 @@ _: {
 
   programs = {
     #~@ Nix
-    alejandra.enable = true;
-    # nixfmt.enable = true;
-    deadnix = {
-      enable = true;
-      no-lambda-pattern-names = false;
-    };
+    # alejandra.enable = true;
+    nixfmt.enable = true;
+    # deadnix = {
+    #   enable = true;
+    #   no-lambda-pattern-names = false;
+    # };
     statix.enable = true;
 
     #~@ Markup

@@ -44,9 +44,7 @@
 
   # ── Exclusion predicates ────────────────────────────────────────────────
   isExcludedDir = n: elem n excludedDirs || hasPrefix "." n;
-  isExcludedFile = n:
-    elem n excludedFiles
-    || foldl' (acc: pat: acc || hasSuffix pat n) false excludedPatterns;
+  isExcludedFile = n: elem n excludedFiles || foldl' (acc: pat: acc || hasSuffix pat n) false excludedPatterns;
 
   # ── Documentation discovery ─────────────────────────────────────────────
   findDocs = dir: moduleName: let
@@ -115,15 +113,16 @@
         else {}
       );
 
-    rootAliases =
-      if normalizedModule ? __rootAliases
-      then normalizedModule.__rootAliases
-      else normalizedModule._rootAliases or {};
+    rootAliases = normalizedModule.__rootAliases or (normalizedModule._rootAliases or {});
 
     attrsToRemove =
-      ["_rootAliases" "__rootAliases" "__doc" "_tests"]
-      ++ filter
-      (
+      [
+        "_rootAliases"
+        "__rootAliases"
+        "__doc"
+        "_tests"
+      ]
+      ++ filter (
         n:
           hasPrefix "_" n
           && n != "_rootAliases"
@@ -131,11 +130,13 @@
           && n != "__meta"
           && n != "__docs"
           && n != "__tests"
-      )
-      (attrNames normalizedModule)
+      ) (attrNames normalizedModule)
       ++ (
         if !runTests
-        then ["_tests" "__tests"]
+        then [
+          "_tests"
+          "__tests"
+        ]
         else []
       );
 
@@ -162,7 +163,10 @@
         then rec {
           inherit available;
           type = "string";
-          source = concatStringsSep "." [module.name "__docs"];
+          source = concatStringsSep "." [
+            module.name
+            "__docs"
+          ];
           location = splitString "." source;
         }
         else {
@@ -176,20 +180,27 @@
         if available
         then let
           results =
-            foldlAttrs
-            (acc: _: group:
-              acc
-              ++ (
-                if isAttrs group
-                then map (n: group.${n}) (attrNames group)
-                else []
-              ))
-            []
+            foldlAttrs (
+              acc: _: group:
+                acc
+                ++ (
+                  if isAttrs group
+                  then map (n: group.${n}) (attrNames group)
+                  else []
+                )
+            ) []
             cleanModule.__tests;
           total = length results;
           passed = length (filter (t: t.passed or false) results);
           failed = total - passed;
-        in {inherit available total passed failed;}
+        in {
+          inherit
+            available
+            total
+            passed
+            failed
+            ;
+        }
         else {inherit available;};
     in
       cleanModule
@@ -197,18 +208,16 @@
         __meta = {
           inherit module docs tests;
           exports = attrNames exports;
-          functions =
-            attrNames
-            (filterAttrs (_: v: isFunction v) exports);
-          values =
-            attrNames
-            (filterAttrs (_: v: !isFunction v) exports);
+          functions = attrNames (filterAttrs (_: isFunction) exports);
+          values = attrNames (filterAttrs (_: v: !isFunction v) exports);
           timestamp = currentTime;
         };
       };
   in {
-    modules = {${moduleName} = meta;};
-    rootAliases = rootAliases;
+    modules = {
+      ${moduleName} = meta;
+    };
+    inherit rootAliases;
   };
 
   # ── Recursive directory scanner ─────────────────────────────────────────
@@ -225,7 +234,7 @@
           if res.modules != {}
           then {${entryName} = res.modules;}
           else {};
-        rootAliases = res.rootAliases;
+        inherit (res) rootAliases;
       }
       else if entryType == "regular" && hasSuffix ".nix" entryName && !isExcludedFile entryName
       then processNixFile dir pathPrefix entryName
@@ -233,8 +242,7 @@
 
     processed = mapAttrs processEntry (readDir dir);
   in
-    foldlAttrs
-    (acc: _: v: {
+    foldlAttrs (acc: _: v: {
       modules = acc.modules // v.modules;
       rootAliases = acc.rootAliases // v.rootAliases;
     })

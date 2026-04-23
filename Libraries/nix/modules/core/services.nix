@@ -3,7 +3,9 @@
 
   exports = {
     internal = {inherit mkServices;};
-    external = {mkCoreServices = mkServices;};
+    external = {
+      mkCoreServices = mkServices;
+    };
   };
 
   mkServices = {
@@ -15,10 +17,10 @@
     user = host.users.data.primary or {};
 
     #~@ Host interface
-    wm = host.interface.windowManager    or null;
+    wm = host.interface.windowManager or null;
     de = host.interface.desktopEnvironment or null;
-    dp = host.interface.displayProtocol  or "wayland";
-    dm = host.interface.displayManager   or null;
+    dp = host.interface.displayProtocol or "wayland";
+    dm = host.interface.displayManager or null;
     bar = host.interface.bar or user.interface.bar or null;
 
     #~@ Derived state
@@ -31,7 +33,7 @@
   in {
     services = {
       #~@ Input
-      iio-niri.enable = wm == "niri"; #? Sensor integration for niri
+      iio-niri.enable = wm == "niri"; # ? Sensor integration for niri
 
       #~@ Desktop environments
       desktopManager = {
@@ -76,7 +78,7 @@
       #~@ Hardware
       udisks2 = optionalAttrs hasGui {
         enable = true;
-        mountOnMedia = true; #? Auto-mount removable media under /media
+        mountOnMedia = true; # ? Auto-mount removable media under /media
       };
     };
 

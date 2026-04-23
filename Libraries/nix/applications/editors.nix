@@ -25,8 +25,7 @@
     userSettings ? {},
     pkgs,
     inputs,
-  }: let
-  in
+  }:
     {
       extensions = optionals enabled (vscodePackages {
         inherit pkgs inputs;
@@ -40,8 +39,7 @@
     extensions ? [],
     userSettings ? {},
   }:
-    {extensions = optionals enabled extensions;}
-    // optionalAttrs enabled {inherit userSettings;};
+    {extensions = optionals enabled extensions;} // optionalAttrs enabled {inherit userSettings;};
 
   mkHelixFeature = {
     enabled,

@@ -13,7 +13,12 @@
   inherit (lix.strings.predicates) contains;
 
   name = "Zen";
-  opts = ["zen" "zen-twilight" "zen-beta" "twilight"];
+  opts = [
+    "zen"
+    "zen-twilight"
+    "zen-beta"
+    "twilight"
+  ];
   apps = user.applications or {};
   allowed = normalize (apps.allowed or []);
   primary = normalize (apps.browser.primary or "");
@@ -22,7 +27,14 @@
   isSecondary = isIn opts secondary;
   isAllowed = isIn opts allowed;
   variant =
-    if contains "twilight" ([primary secondary] ++ allowed)
+    if
+      contains "twilight" (
+        [
+          primary
+          secondary
+        ]
+        ++ allowed
+      )
     then "twilight"
     else "beta";
   darwinName = "${name}-${variant}";

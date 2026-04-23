@@ -1,7 +1,10 @@
 {
   plasmashell = {
     "Slideshow Wallpaper Next Image" = [];
-    "activate application launcher" = ["Meta" "Alt+F1"];
+    "activate application launcher" = [
+      "Meta"
+      "Alt+F1"
+    ];
     "activate task manager entry 1" = "Meta+1";
     "activate task manager entry 10" = [];
     "activate task manager entry 2" = "Meta+2";

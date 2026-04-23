@@ -18,7 +18,11 @@
   inherit (lib.types) bool str;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     xkbLayout = mkOption {
       description = "XKB keyboard layout";
       default = "us";

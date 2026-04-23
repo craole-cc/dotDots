@@ -24,7 +24,9 @@
       local = all // functions;
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.primitives) normalizeList normalizeOptional;
   inherit (_.attrsets.access) attrValues;
@@ -59,13 +61,15 @@
   ```
   */
   mkRegistry = data:
-    mapAttrs (_: app:
-      app
-      // {
-        categories = normalizeList (app.categories or []);
-        channel = normalizeOptional (app.channel or null);
-        family = normalizeOptional (app.family or null);
-      })
+    mapAttrs (
+      _: app:
+        app
+        // {
+          categories = normalizeList (app.categories or []);
+          channel = normalizeOptional (app.channel or null);
+          family = normalizeOptional (app.family or null);
+        }
+    )
     data;
 
   /**
@@ -78,8 +82,7 @@
       importRegistry :: path -> AttrSet
   ```
   */
-  importRegistry = path:
-    mkRegistry (importAllMerged path {});
+  importRegistry = path: mkRegistry (importAllMerged path {});
 
   /**
       Return `true` when `tree` is a non-empty attribute set whose first value
@@ -130,7 +133,10 @@
   in
     if elem category (app.categories or [])
     then app
-    else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (app.categories or [])}";
+    else
+      throw "'${name}' does not satisfy category '${category}'. Its categories: ${
+        toString (app.categories or [])
+      }";
 
   /**
       Derive window-identification metadata from a registry entry.

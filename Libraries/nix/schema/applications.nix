@@ -4,7 +4,9 @@
 
   __exports = {
     internal = {inherit defaults uiDefaults mkApplications;};
-    external = {mkSchemaApplications = mkApplications;};
+    external = {
+      mkSchemaApplications = mkApplications;
+    };
   };
 
   # ── Defaults ────────────────────────────────────────────────────────────────
@@ -197,10 +199,9 @@
     host,
     user ? {},
   }: let
-    raw =
-      recursiveUpdate
-      (recursiveUpdate defaults (host.applications or {}))
-      (user.applications or {});
+    raw = recursiveUpdate (recursiveUpdate defaults (host.applications or {})) (
+      user.applications or {}
+    );
   in {
     browser = {
       primary = mkEntry "browser" raw.browser.primary;

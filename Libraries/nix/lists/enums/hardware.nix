@@ -124,7 +124,12 @@
   _lib.inList "amd" _lib.cpuBrands.values
   ```
   */
-  cpuBrands = mkEnum ["amd" "intel" "arm" "risc-v"];
+  cpuBrands = mkEnum [
+    "amd"
+    "intel"
+    "arm"
+    "risc-v"
+  ];
 
   /**
   CPU power modes - processor power management profiles.
@@ -189,7 +194,12 @@
     "nvidia"
   ];
 in {
-  inherit functionalities gpuBrands cpuBrands cpuPowerModes;
+  inherit
+    functionalities
+    gpuBrands
+    cpuBrands
+    cpuPowerModes
+    ;
 
   __rootAliases = {
     hostFunctionalities = functionalities;

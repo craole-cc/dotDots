@@ -8,7 +8,7 @@
   inherit (lib.lists) elem;
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
-  isEnabled = pkg: config.programs.${pkg}.enable; #TODO: Use lix
+  isEnabled = pkg: config.programs.${pkg}.enable; # TODO: Use lix
 in {
   programs.${app} =
     {

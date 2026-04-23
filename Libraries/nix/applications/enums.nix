@@ -16,9 +16,13 @@
     };
     exports = {
       local = all // functions;
-      alias = {toApplicationEnums = toEnums;};
+      alias = {
+        toApplicationEnums = toEnums;
+      };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.filters.queries) shell interface;
   inherit (_.applications.registry) isRegistryAttrset;
@@ -53,7 +57,7 @@
         values = input;
         nullable = true;
       }
-    else mapAttrs (_: subtree: toEnums subtree) input;
+    else mapAttrs (_: toEnums) input;
 
   all = {
     shells =

@@ -16,10 +16,10 @@
     AI.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs @ {...}: let
+  outputs = inputs: let
     src = import ./. {
       inherit inputs;
-      lib = inputs.NixPackages.lib;
+      inherit (inputs.NixPackages) lib;
     };
   in
     src

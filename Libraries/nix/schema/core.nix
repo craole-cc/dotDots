@@ -3,22 +3,28 @@
   lib,
   ...
 }: let
-  inherit (_.schema._) mkUI mkHome mkLocale mkHardware;
+  inherit
+    (_.schema._)
+    mkUI
+    mkHome
+    mkLocale
+    mkHardware
+    ;
   inherit (lib.attrsets) attrNames attrValues;
   inherit (lib.lists) head;
 
   __exports = {
     internal = {inherit mkHost mkCore hostOrDefault;};
-    external = {mkCoreSchema = mkCore;};
+    external = {
+      mkCoreSchema = mkCore;
+    };
   };
 
   mkHost = {
     hosts,
     name ? null,
   }:
-    if hosts ? ${name}
-    then hosts.${name}
-    else throw "Host '${name}' not found. Available hosts: ${toString (attrNames hosts)}";
+    hosts.${name} or (throw "Host '${name}' not found. Available hosts: ${toString (attrNames hosts)}");
 
   hostOrDefault = {
     hosts,

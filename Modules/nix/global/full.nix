@@ -1,6 +1,14 @@
 {dots, ...}: let
   description = "Exhaustive Shell";
-  inherit (dots) allowAI lix system pkgs isLinux formatters;
+  inherit
+    (dots)
+    allowAI
+    lix
+    system
+    pkgs
+    isLinux
+    formatters
+    ;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
@@ -109,7 +117,7 @@
           mkShellApp {
             inherit pkgs;
             inherit (cfg) command description;
-            name = name;
+            inherit name;
             prefix = cfg.prefix or dots.prefix;
             inputs = cfg.inputs or [];
             aliases = cfg.aliases or [];
@@ -127,15 +135,28 @@
     groups = [
       {
         name = "System/Info";
-        aliases = ["info" "hosts"];
+        aliases = [
+          "info"
+          "hosts"
+        ];
       }
       {
         name = "Build/Rebuild";
-        aliases = ["boot" "dry" "rebuild" "check" "fmt"];
+        aliases = [
+          "boot"
+          "dry"
+          "rebuild"
+          "check"
+          "fmt"
+        ];
       }
       {
         name = "Maintenance/Utilities";
-        aliases = ["clean" "list" "help"];
+        aliases = [
+          "clean"
+          "list"
+          "help"
+        ];
       }
       {
         name = "Interaction/REPL";
@@ -192,53 +213,52 @@
   #| Packages                                                                    |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  packages = (
-    with pkgs;
-      [
-        bat #? Cat clone with syntax highlighting
-        cargo #? Rust package manager
-        direnv #? Environment management per directory
-        dos2unix #? Line ending converter
-        eza #? Modern ls replacement
-        fd #? Fast find alternative
-        gcc #? GNU C compiler
-        gitui #? Git terminal UI
-        gnused #? GNU stream editor
-        imagemagick #? Image processing
-        jq #? JSON query processor
-        lsd #? LSDeluxe file lister
-        mise #? Polyglot version manager
-        mtr #? Network diagnostic tool
-        nil #? Nix language server
-        nitch #? System fetch written in nim
-        nix-output-monitor #? Build output monitor
-        nix-tree #? Nix dependency visualizer
-        nixd #? Nix language daemon
-        nushell #? Modern shell language
-        onefetch #? Git repository summary
-        pandoc #? Universal document converter
-        poppler-utils #? PDF utilities (pdfunite, pdfseparate)
-        qpdf #? PDF transformation
-        ripgrep #? Fast grep alternative
-        rust-script #? Rust scripting
-        rustc #? Rust compiler
-        starship #? Cross-shell prompt
-        tldr #? Simplified man pages
-        tokei #? Code statistics tool
-        typst #? Modern LaTeX alternative
-        undollar #? Remove leading dollar signs
-        watchexec #? File watcher and executor
-        yazi #? Terminal file manager
-        zoxide #? Smart cd replacement
-      ]
-      ++ formatters
-      ++ (attrValues applications)
-      ++ (optionals isLinux [xclip wl-clipboard xsel])
-      ++ (
-        optionals allowAI
-        (with (inputPkgs "llm-agents"); [codex])
-      )
-  ); #? Linux clipboard tools
+  packages = with pkgs;
+    [
+      bat # ? Cat clone with syntax highlighting
+      cargo # ? Rust package manager
+      direnv # ? Environment management per directory
+      dos2unix # ? Line ending converter
+      eza # ? Modern ls replacement
+      fd # ? Fast find alternative
+      gcc # ? GNU C compiler
+      gitui # ? Git terminal UI
+      gnused # ? GNU stream editor
+      imagemagick # ? Image processing
+      jq # ? JSON query processor
+      lsd # ? LSDeluxe file lister
+      mise # ? Polyglot version manager
+      mtr # ? Network diagnostic tool
+      nil # ? Nix language server
+      nitch # ? System fetch written in nim
+      nix-output-monitor # ? Build output monitor
+      nix-tree # ? Nix dependency visualizer
+      nixd # ? Nix language daemon
+      nushell # ? Modern shell language
+      onefetch # ? Git repository summary
+      pandoc # ? Universal document converter
+      poppler-utils # ? PDF utilities (pdfunite, pdfseparate)
+      qpdf # ? PDF transformation
+      ripgrep # ? Fast grep alternative
+      rust-script # ? Rust scripting
+      rustc # ? Rust compiler
+      starship # ? Cross-shell prompt
+      tldr # ? Simplified man pages
+      tokei # ? Code statistics tool
+      typst # ? Modern LaTeX alternative
+      undollar # ? Remove leading dollar signs
+      watchexec # ? File watcher and executor
+      yazi # ? Terminal file manager
+      zoxide # ? Smart cd replacement
+    ]
+    ++ formatters
+    ++ (attrValues applications)
+    ++ (optionals isLinux [
+      xclip
+      wl-clipboard
+      xsel
+    ])
+    ++ (optionals allowAI (with (inputPkgs "llm-agents"); [codex])); # ? Linux clipboard tools
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Shell Configuration                                                         |
@@ -314,5 +334,10 @@
     printf "  Run %shelp for detailed help information\n\n" "${dots.prefix}"
   '';
 in {
-  inherit description packages env shellHook;
+  inherit
+    description
+    packages
+    env
+    shellHook
+    ;
 }

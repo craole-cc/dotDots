@@ -10,13 +10,11 @@
   cfg = config.${top}.interface;
   user = host.users.data.primary or {};
   useDms =
-    cfg.windowShell
-    == "dms"
-    && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
+    cfg.windowShell == "dms" && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
 in {
   config = mkIf (cfg.displayManager != null) {
     services.displayManager = {
-      defaultSession = cfg.defaultSession;
+      inherit (cfg) defaultSession;
       autoLogin = mkIf (user.autoLogin or false) {
         enable = true;
         user = user.name or null;

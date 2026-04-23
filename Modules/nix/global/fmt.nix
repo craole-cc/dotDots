@@ -28,9 +28,11 @@ in {
   formatters = formatters ++ [treefmtWrapper];
   formatter = treefmtWrapper;
   checks.formatting =
-    runCommand "check-formatting" {
+    runCommand "check-formatting"
+    {
       buildInputs = formatters;
-    } ''
+    }
+    ''
       export TMPDIR=$(mktemp -d)
       cd $TMPDIR
 

@@ -13,7 +13,9 @@
 
   __exports = {
     internal = {inherit mkUsers;};
-    external = {mkHomeUsers = mkUsers;};
+    external = {
+      mkHomeUsers = mkUsers;
+    };
   };
 
   /**
@@ -41,17 +43,33 @@
         pkgs,
         ...
       }: let
-        enrichedUser = user // {inherit name;};
+        enrichedUser =
+          user
+          // {
+            inherit name;
+          };
         enrichedInterface = mkUI {
           inherit host;
           user = enrichedUser;
         };
         inputsForHome = mkApps {inherit user inputs modules;};
-        derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
+        derivedPaths = mkSessionPaths {
+          inherit
+            config
+            host
+            user
+            pkgs
+            tree
+            ;
+        };
       in {
         _module.args = {
           style = mkStyle {inherit host user;};
-          user = enrichedUser // {interface = enrichedInterface;};
+          user =
+            enrichedUser
+            // {
+              interface = enrichedInterface;
+            };
           apps = mkApplications {
             inherit host;
             user = enrichedUser;

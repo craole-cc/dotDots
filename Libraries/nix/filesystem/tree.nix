@@ -9,8 +9,18 @@
   inherit (lib.attrsets) mapAttrs recursiveUpdateUntil;
 
   exports = {
-    internal = {inherit stems mkTree mkGroup mkLangGroup wallman;};
-    external = {mkProjectTree = mkTree;};
+    internal = {
+      inherit
+        stems
+        mkTree
+        mkGroup
+        mkLangGroup
+        wallman
+        ;
+    };
+    external = {
+      mkProjectTree = mkTree;
+    };
   };
 
   # ── Group constructors ─────────────────────────────────────────────────────
@@ -41,16 +51,16 @@
   #    }
   ```
   */
-  mkLangGroup = parent: langs:
-    {default = parent ++ ["nix"];}
-    // mapAttrs (_: lang: parent ++ [lang]) langs;
+  mkLangGroup = parent: langs: {default = parent ++ ["nix"];} // mapAttrs (_: lang: parent ++ [lang]) langs;
 
   # ── Shared default bases ───────────────────────────────────────────────────
   #
   # Defined once here and shared between `stems` and `mkTree` so they can
   # never drift out of sync. `mkTree` overrides these via its `bases` arg.
 
-  defaultBases = {lib = ["Libraries"];};
+  defaultBases = {
+    lib = ["Libraries"];
+  };
 
   # ── mkGroup ────────────────────────────────────────────────────────────────
   #
@@ -109,7 +119,11 @@
   stems.env.default     # => ["Environment"]
   ```
   */
-  stems = {default = [];} // mkGroup defaultBases;
+  stems =
+    {
+      default = [];
+    }
+    // mkGroup defaultBases;
 
   # wallman.sh lives alongside this file in Libraries/nix/filesystem/.
   # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
@@ -167,16 +181,16 @@
     commonStems = mkGroup bases';
 
     stems' =
-      recursiveUpdateUntil
-      (_path: _lhs: rhs: isAttrs rhs && rhs ? default)
+      recursiveUpdateUntil (
+        _path: _lhs: rhs:
+          isAttrs rhs && rhs ? default
+      )
       commonStems
       stems;
 
-    resolveStore = root: group:
-      mapAttrs (_: stem: (construct {inherit root stem;}).store) group;
+    resolveStore = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).store) group;
 
-    resolveLocal = root: group:
-      mapAttrs (_: stem: (construct {inherit root stem;}).local) group;
+    resolveLocal = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).local) group;
 
     mkLocal = arg: let
       root =
@@ -184,12 +198,15 @@
         then arg.root
         else arg;
     in
-      {default = (construct {inherit root;}).local;}
-      // mapAttrs (_: resolveLocal root) stems';
+      {default = (construct {inherit root;}).local;} // mapAttrs (_: resolveLocal root) stems';
 
     store =
-      {default = (construct {root = src;}).store;}
+      {
+        default = (construct {root = src;}).store;
+      }
       // mapAttrs (_: resolveStore src) stems';
-  in {inherit mkLocal store;};
+  in {
+    inherit mkLocal store;
+  };
 in
   exports.internal // {__rootAliases = exports.external;}

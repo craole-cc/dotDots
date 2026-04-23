@@ -12,13 +12,7 @@
         transformation
         ;
     };
-    flattened =
-      {}
-      // access
-      // construction
-      // predicates
-      // transformation
-      // {};
+    flattened = {} // access // construction // predicates // transformation // {};
   };
 
   inherit (lib) strings;

@@ -24,7 +24,11 @@
   inherit (lix.types.primitives) int str;
   inherit (pkgs) linuxPackages;
 
-  validPatterns = ["system" "refind" "grub"];
+  validPatterns = [
+    "system"
+    "refind"
+    "grub"
+  ];
   kernel = let
     selection = host.packages.kernel or null;
     exists = selection != null && hasAttr selection pkgs;
@@ -32,15 +36,14 @@
       if exists
       then getAttr selection pkgs
       else linuxPackages;
-    packages =
-      traceIf exists
-      "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})"
-      (traceIf (!exists)
-        "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})"
-        (traceIf (selection == null)
-          "ℹ Using default kernel (${linuxPackages.kernel.version})"
-          pkgs'));
-  in {inherit packages;};
+    packages = traceIf exists "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})" (
+      traceIf (!exists)
+      "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})"
+      (traceIf (selection == null) "ℹ Using default kernel (${linuxPackages.kernel.version})" pkgs')
+    );
+  in {
+    inherit packages;
+  };
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue mod;
@@ -146,7 +149,7 @@ in {
           efiSysMountPoint = cfg.efiMount;
         };
 
-        timeout = cfg.timeout;
+        inherit (cfg) timeout;
       };
 
       initrd.availableKernelModules = host.modules or [];

@@ -15,11 +15,18 @@
     internal =
       composites
       // {
-        inherit defaults normalizeKeyboard mkKeyboard mkKeybindings;
+        inherit
+          defaults
+          normalizeKeyboard
+          mkKeyboard
+          mkKeybindings
+          ;
         keyboardDefaults = defaults.keyboard;
         mkHyprKeybindings = mkKeybindings.hyprland;
       };
-    external = {mkKeyboardSchema = mkKeyboard;};
+    external = {
+      mkKeyboardSchema = mkKeyboard;
+    };
   };
 
   composites = {
@@ -206,7 +213,12 @@
           action = "systemctl reboot";
         };
         reboot_soft = {
-          mod = mod ++ ["CTRL" "SHIFT"];
+          mod =
+            mod
+            ++ [
+              "CTRL"
+              "SHIFT"
+            ];
           key = "R";
           action = "systemctl soft-reboot";
         };
@@ -292,12 +304,14 @@
   Applied at the output boundary so consumers always receive strings.
   */
   normalizeKeyboard = kb:
-    mapAttrs (k: v:
-      if k == "mod" && isList v
-      then concatStringsSep " " v
-      else if isAttrs v
-      then normalizeKeyboard v
-      else v)
+    mapAttrs (
+      k: v:
+        if k == "mod" && isList v
+        then concatStringsSep " " v
+        else if isAttrs v
+        then normalizeKeyboard v
+        else v
+    )
     kb;
 
   mkKeyboard = {
@@ -305,20 +319,16 @@
     user ? {},
   }:
     normalizeKeyboard (
-      recursiveUpdate
-      (
-        recursiveUpdate
-        defaults.keyboard
-        (host.keyboard or {})
-      )
-      (user.keyboard or {})
+      recursiveUpdate (recursiveUpdate defaults.keyboard (host.keyboard or {})) (user.keyboard or {})
     );
 
   mkKeybindings = {
     hyprland = kb:
-      map (b: "${b.mod}, ${b.key}, exec, ${b.action}")
-      (filter (b: b.mod != null && b.key != null && b.action != null && b.action != "")
-        (attrValues kb.bindings));
+      map (b: "${b.mod}, ${b.key}, exec, ${b.action}") (
+        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (
+          attrValues kb.bindings
+        )
+      );
   };
 in
   __exports.internal // {__rootAliases = __exports.external;}

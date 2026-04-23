@@ -69,11 +69,7 @@
     else fn input;
 
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
-  _splitWords = s:
-    splitString "-" (
-      replaceStrings [" " "_"] ["-" "-"]
-      (_normalizeSymbols (toLower s))
-    );
+  _splitWords = s: splitString "-" (replaceStrings [" " "_"] ["-" "-"] (_normalizeSymbols (toLower s)));
 
   _symbolAliases = {
     "c++" = "cpp";
@@ -82,15 +78,7 @@
     "objc" = "objectivec";
   };
 
-  _normalizeSymbols = s:
-    _symbolAliases.${
-      s
-    } or (
-      replaceStrings
-      ["++" "#" "."]
-      ["p" "sharp" "-"]
-      s
-    );
+  _normalizeSymbols = s: _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
   /**
   Convert a string or list of strings to lower case.
 
@@ -108,19 +96,21 @@
   toLower' = input:
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toLower";
-          fn = toLower;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toLower ["FOO" "BAR"]'';
-          res = ''["foo" "bar"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toLower";
+            fn = toLower;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toLower ["FOO" "BAR"]'';
+            res = ''["foo" "bar"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr toLower input;
 
   /**
@@ -140,19 +130,21 @@
   toUpper' = input:
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toUpper";
-          fn = toUpper;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toUpper ["foo" "bar"]'';
-          res = ''["FOO" "BAR"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toUpper";
+            fn = toUpper;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toUpper ["foo" "bar"]'';
+            res = ''["FOO" "BAR"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr toUpper input;
 
   /**
@@ -178,14 +170,16 @@
       then " "
       else if !isString chars
       then
-        throw (_debug.withLoc {
-          function = mkFn {
-            name = "trimStart";
-            fn = trimStart;
-          };
-          message = "chars must be a string or null";
-          input = chars;
-        })
+        throw (
+          _debug.withLoc {
+            function = mkFn {
+              name = "trimStart";
+              fn = trimStart;
+            };
+            message = "chars must be a string or null";
+            input = chars;
+          }
+        )
       else chars;
     go = s:
       if hasPrefix c s
@@ -195,19 +189,21 @@
     input:
       if isList input && any isList input
       then
-        throw (_debug.withDoc {
-          function = mkFn {
-            name = "trimStart";
-            fn = trimStart;
-          };
-          message = "nested lists are not supported";
-          signature = "string | null -> string | [string] -> string | [string]";
-          example = mkExample {
-            cmd = ''trimStart null ["  foo" "  bar"]'';
-            res = ''["foo" "bar"]'';
-          };
-          inherit input;
-        })
+        throw (
+          _debug.withDoc {
+            function = mkFn {
+              name = "trimStart";
+              fn = trimStart;
+            };
+            message = "nested lists are not supported";
+            signature = "string | null -> string | [string] -> string | [string]";
+            example = mkExample {
+              cmd = ''trimStart null ["  foo" "  bar"]'';
+              res = ''["foo" "bar"]'';
+            };
+            inherit input;
+          }
+        )
       else _applyStr go input;
 
   /**
@@ -233,14 +229,16 @@
       then " "
       else if !isString chars
       then
-        throw (_debug.withLoc {
-          function = mkFn {
-            name = "trimEnd";
-            fn = trimEnd;
-          };
-          message = "chars must be a string or null";
-          input = chars;
-        })
+        throw (
+          _debug.withLoc {
+            function = mkFn {
+              name = "trimEnd";
+              fn = trimEnd;
+            };
+            message = "chars must be a string or null";
+            input = chars;
+          }
+        )
       else chars;
     go = s:
       if hasSuffix c s
@@ -250,19 +248,21 @@
     input:
       if isList input && any isList input
       then
-        throw (_debug.withDoc {
-          function = mkFn {
-            name = "trimEnd";
-            fn = trimEnd;
-          };
-          message = "nested lists are not supported";
-          signature = "string | null -> string | [string] -> string | [string]";
-          example = mkExample {
-            cmd = ''trimEnd null ["foo  " "bar  "]'';
-            res = ''["foo" "bar"]'';
-          };
-          inherit input;
-        })
+        throw (
+          _debug.withDoc {
+            function = mkFn {
+              name = "trimEnd";
+              fn = trimEnd;
+            };
+            message = "nested lists are not supported";
+            signature = "string | null -> string | [string] -> string | [string]";
+            example = mkExample {
+              cmd = ''trimEnd null ["foo  " "bar  "]'';
+              res = ''["foo" "bar"]'';
+            };
+            inherit input;
+          }
+        )
       else _applyStr go input;
 
   /**
@@ -282,8 +282,7 @@
   trim null ["  a  " "  b  "]  # => ["a" "b"]
   ```
   */
-  trim = chars: input:
-    trimStart chars (trimEnd chars input);
+  trim = chars: input: trimStart chars (trimEnd chars input);
 
   /**
   Replace all occurrences of substrings in a string or list of strings.
@@ -309,39 +308,45 @@
     input:
       if isList input && any isList input
       then
-        throw (_debug.withDoc {
-          function = mkFn {
-            name = "replaceAll";
-            fn = replaceAll;
-          };
-          message = "nested lists are not supported in input";
-          signature = "string | [string] -> string | [string] -> string | [string] -> string | [string]";
-          example = mkExample {
-            cmd = ''replaceAll " " "-" ["foo bar" "baz qux"]'';
-            res = ''["foo-bar" "baz-qux"]'';
-          };
-          inherit input;
-        })
+        throw (
+          _debug.withDoc {
+            function = mkFn {
+              name = "replaceAll";
+              fn = replaceAll;
+            };
+            message = "nested lists are not supported in input";
+            signature = "string | [string] -> string | [string] -> string | [string] -> string | [string]";
+            example = mkExample {
+              cmd = ''replaceAll " " "-" ["foo bar" "baz qux"]'';
+              res = ''["foo-bar" "baz-qux"]'';
+            };
+            inherit input;
+          }
+        )
       else if isList ss && any isList ss
       then
-        throw (_debug.withLoc {
-          function = mkFn {
-            name = "replaceAll";
-            fn = replaceAll;
-          };
-          message = "nested lists are not supported in search";
-          input = search;
-        })
+        throw (
+          _debug.withLoc {
+            function = mkFn {
+              name = "replaceAll";
+              fn = replaceAll;
+            };
+            message = "nested lists are not supported in search";
+            input = search;
+          }
+        )
       else if isList rs && any isList rs
       then
-        throw (_debug.withLoc {
-          function = mkFn {
-            name = "replaceAll";
-            fn = replaceAll;
-          };
-          message = "nested lists are not supported in replace";
-          input = replace;
-        })
+        throw (
+          _debug.withLoc {
+            function = mkFn {
+              name = "replaceAll";
+              fn = replaceAll;
+            };
+            message = "nested lists are not supported in replace";
+            input = replace;
+          }
+        )
       else _applyStr (replaceStrings ss rs) input;
 
   /**
@@ -368,23 +373,22 @@
     then null
     else if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "normalize";
-          fn = normalize;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] | null -> string | [string] | null";
-        example = mkExample {
-          cmd = ''normalize ["Zen Twilight" "zen_beta"]'';
-          res = ''["zen-twilight" "zen-beta"]'';
-        };
-        inherit input;
-      })
-    else
-      _applyStr
-      (s: replaceAll [" " "_"] ["-" "-"] (toLower s))
-      input;
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "normalize";
+            fn = normalize;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] | null -> string | [string] | null";
+          example = mkExample {
+            cmd = ''normalize ["Zen Twilight" "zen_beta"]'';
+            res = ''["zen-twilight" "zen-beta"]'';
+          };
+          inherit input;
+        }
+      )
+    else _applyStr (s: replaceAll [" " "_"] ["-" "-"] (toLower s)) input;
 
   indent = n: concatStringsSep "" (genList (_: " ") n);
 
@@ -410,25 +414,25 @@
     go = s:
       if s == ""
       then ""
-      else
-        toUpper (substring 0 1 s)
-        + substring 1 (stringLength s) s;
+      else toUpper (substring 0 1 s) + substring 1 (stringLength s) s;
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "capitalize";
-          fn = capitalize;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''capitalize ["foo" "bar"]'';
-          res = ''["Foo" "Bar"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "capitalize";
+            fn = capitalize;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''capitalize ["foo" "bar"]'';
+            res = ''["Foo" "Bar"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 
   /**
@@ -452,24 +456,25 @@
     go = s: let
       words = _splitWords s;
     in
-      builtins.head words
-      + concatStringsSep "" (map capitalize (builtins.tail words));
+      builtins.head words + concatStringsSep "" (map capitalize (builtins.tail words));
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toCamel";
-          fn = toCamel;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toCamel ["foo bar" "baz_qux"]'';
-          res = ''["fooBar" "bazQux"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toCamel";
+            fn = toCamel;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toCamel ["foo bar" "baz_qux"]'';
+            res = ''["fooBar" "bazQux"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 
   /**
@@ -490,24 +495,25 @@
   ```
   */
   toPascal = input: let
-    go = s:
-      concatStringsSep "" (map capitalize (_splitWords s));
+    go = s: concatStringsSep "" (map capitalize (_splitWords s));
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toPascal";
-          fn = toPascal;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toPascal ["foo bar" "baz_qux"]'';
-          res = ''["FooBar" "BazQux"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toPascal";
+            fn = toPascal;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toPascal ["foo bar" "baz_qux"]'';
+            res = ''["FooBar" "BazQux"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 
   /**
@@ -532,19 +538,21 @@
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toSnake";
-          fn = toSnake;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toSnake ["Foo Bar" "baz-qux"]'';
-          res = ''["foo_bar" "baz_qux"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toSnake";
+            fn = toSnake;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toSnake ["Foo Bar" "baz-qux"]'';
+            res = ''["foo_bar" "baz_qux"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 
   /**
@@ -569,19 +577,21 @@
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toScreamingSnake";
-          fn = toScreamingSnake;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toScreamingSnake ["foo bar" "baz_qux"]'';
-          res = ''["FOO_BAR" "BAZ_QUX"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toScreamingSnake";
+            fn = toScreamingSnake;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toScreamingSnake ["foo bar" "baz_qux"]'';
+            res = ''["FOO_BAR" "BAZ_QUX"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 
   /**
@@ -604,24 +614,25 @@
   ```
   */
   toTitle = input: let
-    go = s:
-      concatStringsSep " " (map capitalize (_splitWords s));
+    go = s: concatStringsSep " " (map capitalize (_splitWords s));
   in
     if isList input && any isList input
     then
-      throw (_debug.withDoc {
-        function = mkFn {
-          name = "toTitle";
-          fn = toTitle;
-        };
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        example = mkExample {
-          cmd = ''toTitle ["foo bar" "baz_qux"]'';
-          res = ''["Foo Bar" "Baz Qux"]'';
-        };
-        inherit input;
-      })
+      throw (
+        _debug.withDoc {
+          function = mkFn {
+            name = "toTitle";
+            fn = toTitle;
+          };
+          message = "nested lists are not supported";
+          signature = "string | [string] -> string | [string]";
+          example = mkExample {
+            cmd = ''toTitle ["foo bar" "baz_qux"]'';
+            res = ''["Foo Bar" "Baz Qux"]'';
+          };
+          inherit input;
+        }
+      )
     else _applyStr go input;
 in
   __exports.internal
@@ -636,9 +647,15 @@ in
           outcome = toLower "FOO Bar";
         };
         list = mkTest {
-          desired = ["foo" "bar"];
+          desired = [
+            "foo"
+            "bar"
+          ];
           command = ''toLower ["FOO" "BAR"]'';
-          outcome = toLower ["FOO" "BAR"];
+          outcome = toLower [
+            "FOO"
+            "BAR"
+          ];
         };
       };
       toUpper = {
@@ -648,9 +665,15 @@ in
           outcome = toUpper "foo bar";
         };
         list = mkTest {
-          desired = ["FOO" "BAR"];
+          desired = [
+            "FOO"
+            "BAR"
+          ];
           command = ''toUpper ["foo" "bar"]'';
-          outcome = toUpper ["foo" "bar"];
+          outcome = toUpper [
+            "foo"
+            "bar"
+          ];
         };
       };
       trimStart = {
@@ -665,9 +688,15 @@ in
           outcome = trimStart "home:" "home:home:Pictures";
         };
         list = mkTest {
-          desired = ["a" "b"];
+          desired = [
+            "a"
+            "b"
+          ];
           command = ''trimStart null ["  a" "  b"]'';
-          outcome = trimStart null ["  a" "  b"];
+          outcome = trimStart null [
+            "  a"
+            "  b"
+          ];
         };
       };
       trimEnd = {
@@ -706,9 +735,15 @@ in
           outcome = replaceAll [" " "_"] ["-" "-"] "zen twilight";
         };
         list = mkTest {
-          desired = ["b" "cbt"];
+          desired = [
+            "b"
+            "cbt"
+          ];
           command = ''replaceAll "a" "b" ["a" "cat"]'';
-          outcome = replaceAll "a" "b" ["a" "cat"];
+          outcome = replaceAll "a" "b" [
+            "a"
+            "cat"
+          ];
         };
       };
       normalize = {
@@ -723,18 +758,24 @@ in
           outcome = normalize "zen_twilight";
         };
         list = mkTest {
-          desired = ["zen-twilight" "zen-beta"];
+          desired = [
+            "zen-twilight"
+            "zen-beta"
+          ];
           command = ''normalize ["Zen Twilight" "zen_beta"]'';
-          outcome = normalize ["Zen Twilight" "zen_beta"];
+          outcome = normalize [
+            "Zen Twilight"
+            "zen_beta"
+          ];
         };
         nullInput = mkTest {
           desired = null;
-          command = ''normalize null'';
+          command = "normalize null";
           outcome = normalize null;
         };
         emptyInput = mkTest {
           desired = null;
-          command = ''normalize []'';
+          command = "normalize []";
           outcome = normalize [];
         };
       };

@@ -6,14 +6,21 @@
   ...
 }: let
   inherit (_.filesystem.predicates) pathExists;
-  inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isList
+    isPath
+    isString
+    typeOf
+    ;
   inherit (lib.strings) concatStringsSep hasPrefix;
 
   exports = {
     internal = {
       inherit
         concat
-        toPath
+        mkPath
         ground
         construct
         ;
@@ -67,35 +74,35 @@
 
   # Type
   ```
-  toPath :: path | string | [string]
+  mkPath :: path | string | [string]
           -> { store :: path | null, local :: string }
   ```
 
   # Examples
   ```nix
-  toPath ./.
+  mkPath ./.
   # => { store = "/nix/store/…-path"; local = "/home/…/dotDots"; }
 
-  toPath "/home/user/docs"
-  # => { store = "/nix/store/…-path"; local = "/home/user/docs"; }
+  mkPath "/home/user/docs"
+  # => { store = "/nix/store/…-path"; local = "/home/user/docs";
 
-  toPath "Libraries"
+  mkPath "Libraries"
   # => { store = "/nix/store/…-path"; local = "/home/…/dotDots/Libraries"; }
 
-  toPath ["Libraries" "nix"]
+  mkPath ["Libraries" "nix"]
   # => { store = "/nix/store/…-path"; local = "/home/…/dotDots/Libraries/nix"; }
 
-  toPath { path = ./Libraries; name = "libs"; }
+  mkPath { path = ./Libraries; name = "libs"; }
   # => { store = "/nix/store/…-libs"; local = "/home/…/dotDots/Libraries"; }
 
-  toPath { path = ./file.txt; recursive = false; sha256 = "sha256-…"; }
+  mkPath { path = ./file.txt; recursive = false; sha256 = "sha256-…"; }
   # => { store = "/nix/store/…-path"; local = "/home/…/dotDots/file.txt"; }
 
-  toPath "/nonexistent"
+  mkPath "/nonexistent"
   # => { store = null; local = "/nonexistent"; }
   ```
   */
-  toPath = arg: let
+  mkPath = arg: let
     #> Unpack into a normalised attrset
     unpacked =
       if isAttrs arg
@@ -126,7 +133,7 @@
   /**
     Resolve a root directory into a `{ store, local }` pair.
 
-    Thin wrapper over `toPath` that defaults `root` to `src`.
+    Thin wrapper over `mkPath` that defaults `root` to `src`.
 
     # Type
   ```
@@ -149,7 +156,7 @@
     root ? src,
     name ? "dotDots",
   }:
-    toPath {
+    mkPath {
       path = root;
       inherit name;
     };
@@ -186,9 +193,7 @@
     normalized =
       if isAttrs arg
       then arg
-      else if
-        isString arg
-        || isList arg
+      else if isString arg || isList arg
       then {stem = arg;}
       else throw "construct: expected attrset, string, or list — got: ${typeOf arg}";
 
@@ -215,14 +220,12 @@
       then basePath
       else
         basePath
-        + (
-          "/"
+        + ("/"
           + (
             if isList stem
             then concatStringsSep "/" stem
             else stem
-          )
-        );
+          ));
   in {
     store = joinPath base.store;
     local = joinStr base.local;

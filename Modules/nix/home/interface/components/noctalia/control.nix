@@ -1,4 +1,4 @@
-{terminal}: {
+_: {
   appLauncher = {
     customLaunchPrefix = "";
     customLaunchPrefixEnabled = false;

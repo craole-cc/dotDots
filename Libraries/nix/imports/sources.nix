@@ -11,12 +11,7 @@
         transformation
         ;
     };
-    flattened =
-      {}
-      // access
-      // predicates
-      // transformation
-      // {};
+    flattened = {} // access // predicates // transformation // {};
   };
 
   inherit (lib) sources;

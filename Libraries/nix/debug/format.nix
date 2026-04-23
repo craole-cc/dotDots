@@ -42,7 +42,11 @@
     function,
   }:
     if name != null
-    then concatStringsSep "." [name function]
+    then
+      concatStringsSep "." [
+        name
+        function
+      ]
     else if path != []
     then concatStringsSep "." (path ++ [function])
     else throw "mkRef: either `path` or `name` must be provided";

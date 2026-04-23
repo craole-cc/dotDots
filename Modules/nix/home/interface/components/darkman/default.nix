@@ -28,7 +28,7 @@
     "Catppuccin Mocha" = "mocha";
   };
 
-  darkTheme = style.theme.dark  or "Catppuccin Frappé";
+  darkTheme = style.theme.dark or "Catppuccin Frappé";
   lightTheme = style.theme.light or "Catppuccin Latte";
 
   caelestiaFlavour = polarity:
@@ -37,7 +37,7 @@
       then darkTheme
       else lightTheme
     }
-    or (
+      or (
       if polarity == "dark"
       then "frappe"
       else "latte"
@@ -64,7 +64,8 @@
             if polarity == "dark"
             then darkTheme
             else lightTheme
-          } or (
+          }
+            or (
             if polarity == "dark"
             then "Kaolin Temple"
             else "Kaolin Valley Light"

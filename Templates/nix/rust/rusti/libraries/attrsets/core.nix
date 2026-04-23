@@ -156,7 +156,7 @@ Attrset utilities for lib.attrsets.
   An attrset of string values with any original `null` entries omitted.
   */
   toEnv = attrs:
-    compactAttrs (mapAttrs (_: v: toString v) attrs);
+    compactAttrs (mapAttrs (_: toString) attrs);
 in {
   inherit
     optionalAttr

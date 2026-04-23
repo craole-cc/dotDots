@@ -3,10 +3,7 @@
   name ? "media",
   lib ? null,
   inputs ? null,
-  system ?
-    if builtins ? currentSystem
-    then builtins.currentSystem
-    else "x86_64-linux",
+  system ? builtins.currentSystem or "x86_64-linux",
   config ? {allowUnfree = true;},
   sep ? "_",
   paths ? {
@@ -52,7 +49,7 @@
     };
     data = {
       home = {
-        store = paths.src.store;
+        inherit (paths.src) store;
         local = "$HOME";
       };
       downloads = {

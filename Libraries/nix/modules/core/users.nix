@@ -42,7 +42,10 @@
       commands = [
         {
           command = "ALL";
-          options = ["SETENV" "NOPASSWD"];
+          options = [
+            "SETENV"
+            "NOPASSWD"
+          ];
         }
       ];
     })
@@ -127,9 +130,11 @@
         password = user.password or null;
         group = name;
         extraGroups =
-          []
-          ++ optionals (user.role or null != "service") ["users"]
-          ++ optionals (isIn (user.role or null) ["admin" "administrator"]) ["wheel"]
+          optionals (user.role or null != "service") ["users"]
+          ++ optionals (isIn (user.role or null) [
+            "admin"
+            "administrator"
+          ]) ["wheel"]
           ++ optionals (host.devices.network != []) ["networkmanager"];
         shell = package {
           inherit pkgs;

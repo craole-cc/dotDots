@@ -4,13 +4,11 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs @ {...}:
+  outputs = inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         src = import ./. {inherit inputs system;};
         inherit (src) name lib paths pkgs description;
-        inherit (lib.attrsets) attrValues;
-        inherit (lib.lists) concatMap;
         inherit (lib.strings) readFile;
         inherit (pkgs) substituteAll symlinkJoin writeShellScriptBin;
 
@@ -61,13 +59,7 @@
           src = "${paths.cfg.mpv.store}/settings.conf";
           ytdlp = pkgs.yt-dlp;
         };
-
         #> Flatten nested { var, val } leaves -> { VAR = "val"; } for mkShell
-        isLeaf = v: v ? var && v ? val;
-        collectLeaves = v:
-          if isLeaf v
-          then [v]
-          else concatMap collectLeaves (attrValues v);
       in {
         devShells.default = pkgs.mkShell {
           # env = listToAttrs (

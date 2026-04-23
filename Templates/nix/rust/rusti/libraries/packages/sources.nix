@@ -32,13 +32,13 @@
     if inputs == {}
     then import <nixpkgs> {inherit system;}
     else
-      import (packages.nix) {
+      import packages.nix {
         inherit system;
         overlays =
           [
-            (resolveOverlay (packages.ai))
-            (resolveOverlay (packages.openclaw))
-            (resolveOverlay (packages.rust))
+            (resolveOverlay packages.ai)
+            (resolveOverlay packages.openclaw)
+            (resolveOverlay packages.rust)
           ]
           ++ extraOverlays;
         config.allowUnfree = true;
@@ -146,10 +146,7 @@
     then noop
     #? 2. Check for Modern Flake Overlay (overlays.default)
     else if isAttrs input
-    then
-      if input ? overlays.default
-      then input.overlays.default
-      else noop
+    then input.overlays.default or noop
     #? 3. Check if the input is already a function
     else if isFunction input
     then input

@@ -12,6 +12,9 @@
   # ui = mkUI {inherit host;};
 in {
   # imports = lix.filesystem.importers.importAllPaths ./.;
-  imports = [./config.nix ./options.nix];
+  imports = [
+    ./config.nix
+    ./options.nix
+  ];
   options.${top}.${dom} = mkOptions {inherit host;};
 }

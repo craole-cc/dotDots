@@ -46,16 +46,18 @@
   combineValidators = validators:
     if !isList validators
     then
-      throw (_debug.withDoc {
-        function = "combineValidators";
-        message = "validators must be a list of validator objects";
-        signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
-        input = validators;
-        example = mkExample {
-          cmd = "combineValidators [v1 v2]";
-          res = "{ check = ...; validators = [...]; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "combineValidators";
+          message = "validators must be a list of validator objects";
+          signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
+          input = validators;
+          example = mkExample {
+            cmd = "combineValidators [v1 v2]";
+            res = "{ check = ...; validators = [...]; }";
+          };
+        }
+      )
     else {
       check = name: all (v: v.check name) validators;
       inherit validators;
@@ -83,16 +85,18 @@
   combineValidatorsOr = validators:
     if !isList validators
     then
-      throw (_debug.withDoc {
-        function = "combineValidatorsOr";
-        message = "validators must be a list of validator objects";
-        signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
-        input = validators;
-        example = mkExample {
-          cmd = "combineValidatorsOr [v1 v2]";
-          res = "{ check = ...; validators = [...]; }";
-        };
-      })
+      throw (
+        _debug.withDoc {
+          function = "combineValidatorsOr";
+          message = "validators must be a list of validator objects";
+          signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
+          input = validators;
+          example = mkExample {
+            cmd = "combineValidatorsOr [v1 v2]";
+            res = "{ check = ...; validators = [...]; }";
+          };
+        }
+      )
     else {
       check = name: any (v: v.check name) validators;
       inherit validators;
@@ -108,19 +112,37 @@ in
           desired = true;
           command = ''(combineValidators [allowlist prefix]).check "user_alice"'';
           outcome = let
-            allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+            allowlist = mkValidator {
+              list = [
+                "user_alice"
+                "user_bob"
+              ];
+            };
             prefix = mkPredicateValidator (hasPrefix "user_");
           in
-            (combineValidators [allowlist prefix]).check "user_alice";
+            (combineValidators [
+              allowlist
+              prefix
+            ]).check
+            "user_alice";
         };
         failsIfAnyFails = mkTest {
           desired = false;
           command = ''(combineValidators [allowlist prefix]).check "user_charlie"'';
           outcome = let
-            allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+            allowlist = mkValidator {
+              list = [
+                "user_alice"
+                "user_bob"
+              ];
+            };
             prefix = mkPredicateValidator (hasPrefix "user_");
           in
-            (combineValidators [allowlist prefix]).check "user_charlie";
+            (combineValidators [
+              allowlist
+              prefix
+            ]).check
+            "user_charlie";
         };
       };
 
@@ -129,28 +151,70 @@ in
           desired = true;
           command = ''(combineValidatorsOr [list1 list2]).check "alice"'';
           outcome = let
-            list1 = mkValidator {list = ["alice" "bob"];};
-            list2 = mkValidator {list = ["charlie" "dave"];};
+            list1 = mkValidator {
+              list = [
+                "alice"
+                "bob"
+              ];
+            };
+            list2 = mkValidator {
+              list = [
+                "charlie"
+                "dave"
+              ];
+            };
           in
-            (combineValidatorsOr [list1 list2]).check "alice";
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
+            "alice";
         };
         passesWithSecondList = mkTest {
           desired = true;
           command = ''(combineValidatorsOr [list1 list2]).check "charlie"'';
           outcome = let
-            list1 = mkValidator {list = ["alice" "bob"];};
-            list2 = mkValidator {list = ["charlie" "dave"];};
+            list1 = mkValidator {
+              list = [
+                "alice"
+                "bob"
+              ];
+            };
+            list2 = mkValidator {
+              list = [
+                "charlie"
+                "dave"
+              ];
+            };
           in
-            (combineValidatorsOr [list1 list2]).check "charlie";
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
+            "charlie";
         };
         failsIfNonePasses = mkTest {
           desired = false;
           command = ''(combineValidatorsOr [list1 list2]).check "eve"'';
           outcome = let
-            list1 = mkValidator {list = ["alice" "bob"];};
-            list2 = mkValidator {list = ["charlie" "dave"];};
+            list1 = mkValidator {
+              list = [
+                "alice"
+                "bob"
+              ];
+            };
+            list2 = mkValidator {
+              list = [
+                "charlie"
+                "dave"
+              ];
+            };
           in
-            (combineValidatorsOr [list1 list2]).check "eve";
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
+            "eve";
         };
       };
     };

@@ -11,7 +11,9 @@
       local = functions;
       alias = functions;
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrsToList;
@@ -193,29 +195,30 @@
 
     #> Create alias applications
     aliasApps =
-      map (aliasSpec: let
-        aliasPrefix = aliasSpec.prefix or prefix;
-        aliasName = "${aliasPrefix}${aliasSpec.name}";
-      in {
-        name = aliasName;
-        value = pkgs.writeShellApplication {
+      map (
+        aliasSpec: let
+          aliasPrefix = aliasSpec.prefix or prefix;
+          aliasName = "${aliasPrefix}${aliasSpec.name}";
+        in {
           name = aliasName;
-          runtimeInputs = [mainApp];
-          text = ''exec ${fullName} ${aliasSpec.name} "$@"'';
-          meta = {
-            description = aliasSpec.description or "Alias for ${fullName} ${aliasSpec.name}";
+          value = pkgs.writeShellApplication {
+            name = aliasName;
+            runtimeInputs = [mainApp];
+            text = ''exec ${fullName} ${aliasSpec.name} "$@"'';
+            meta = {
+              description = aliasSpec.description or "Alias for ${fullName} ${aliasSpec.name}";
+            };
+            passthru = {
+              aliasOf = mainApp;
+              aliasCmd = aliasSpec.name;
+            };
           };
-          passthru = {
-            aliasOf = mainApp;
-            aliasCmd = aliasSpec.name;
-          };
-        };
-      })
+        }
+      )
       aliases;
   in
     #> Return attrset with main app and all aliases
-    {${fullName} = mainApp;}
-    // listToAttrs aliasApps;
+    {${fullName} = mainApp;} // listToAttrs aliasApps;
 
   /**
     mkScriptWrapper - Copies a POSIX shell script from the dotfiles tree into the nix
@@ -307,15 +310,19 @@
     pkgs,
     scripts,
   }:
-    mapAttrsToList (name: value:
-      mkScriptWrapper (
-        {inherit pkgs name;}
-        // (
-          if isPath value || isString value
-          then {script = value;}
-          else value # already an attrset with { script, extraArgs?, ... }
+    mapAttrsToList (
+      name: value:
+        mkScriptWrapper (
+          {
+            inherit pkgs name;
+          }
+          // (
+            if isPath value || isString value
+            then {script = value;}
+            else value # already an attrset with { script, extraArgs?, ... }
+          )
         )
-      ))
+    )
     scripts;
 in
   meta.exports.local

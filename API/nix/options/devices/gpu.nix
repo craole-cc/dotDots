@@ -3,7 +3,14 @@
   inherit (lix.std.attrsets) attrValues;
   inherit (lix.std.lists) any optional;
   inherit (lix.std.options) mkOption mkEnableOption mkDefault;
-  inherit (lix.std.types) attrsOf enum nullOr str submodule;
+  inherit
+    (lix.std.types)
+    attrsOf
+    enum
+    nullOr
+    str
+    submodule
+    ;
 
   gpuOpts = {config, ...}: {
     options = {

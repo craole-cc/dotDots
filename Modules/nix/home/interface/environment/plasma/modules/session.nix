@@ -1,4 +1,4 @@
-{src}: {
+_: {
   kscreenlocker = {
     appearance = {
       alwaysShowClock = true;

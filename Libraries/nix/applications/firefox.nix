@@ -170,10 +170,12 @@
   - Batch extension installation
   - Simplified Home Manager configuration
   */
-  extensionSettings = mapAttrs (_: entry:
-    if isAttrs entry
-    then entry
-    else extensionEntry {id = entry;});
+  extensionSettings = mapAttrs (
+    _: entry:
+      if isAttrs entry
+      then entry
+      else extensionEntry {id = entry;}
+  );
 
   /**
   Detect Firefox variant from input string.
@@ -233,28 +235,52 @@
   - Returns normalized names matching nixpkgs attribute paths
   */
   detectVariant = input: let
-    beta = ["beta" "nightly" "unstable" "latest"];
-    stable = ["esr" "extend" "stable" "twilight" "support" "reproducible"];
-    dev = ["development" "dev" "devedition" "dev-edition" "developer"];
+    beta = [
+      "beta"
+      "nightly"
+      "unstable"
+      "latest"
+    ];
+    stable = [
+      "esr"
+      "extend"
+      "stable"
+      "twilight"
+      "support"
+      "reproducible"
+    ];
+    dev = [
+      "development"
+      "dev"
+      "devedition"
+      "dev-edition"
+      "developer"
+    ];
   in
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
     else if
-      (hasInfix "zen" input
-        && (
-          hasInfix "beta" input
-          || hasInfix "nightly" input
-          || hasInfix "unstable" input
-        ))
+      (
+        hasInfix "zen" input
+        && (hasInfix "beta" input || hasInfix "nightly" input || hasInfix "unstable" input)
+      )
     then "zen-beta"
     else if (hasInfix "zen" input) || (hasInfix "twilight" input)
     then "zen-twilight"
     #~@ Check for LibreWolf
-    else if (elem input ["libre" "wolf"])
+    else if
+      (elem input [
+        "libre"
+        "wolf"
+      ])
     then "librewolf-bin"
     #~@ Check for Pale Moon
-    else if (elem input ["pale" "moon"])
+    else if
+      (elem input [
+        "pale"
+        "moon"
+      ])
     then "palemoon-bin"
     #~@ Check for Firefox variants
     else if (elem input beta)
@@ -408,18 +434,32 @@
       check = hasInfix "zen-" detectedVariant;
       #> Extract suffix: "zen-beta" → "beta"
       zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
-      parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+      parents = [
+        "firefoxZen"
+        "zenBrowser"
+        "zen-browser"
+        "zen_browser"
+        "twilight"
+        "zen"
+      ];
       attrset = inputs;
     in
       optionalAttrs check {
         name = "zen-browser";
         module = getNestedAttrByPaths {
           inherit attrset parents;
-          target = ["homeModules" zenVariant];
+          target = [
+            "homeModules"
+            zenVariant
+          ];
         };
         package = getNestedAttrByPaths {
           inherit attrset parents;
-          target = ["packages" system zenVariant];
+          target = [
+            "packages"
+            system
+            zenVariant
+          ];
         };
         variant = zenVariant;
       };
@@ -480,7 +520,7 @@
     detectedVariant = detectVariant variant;
     isZen = hasInfix "zen-" detectedVariant;
   in
-    if ! isZen
+    if !isZen
     then null
     else if hasInfix "beta" detectedVariant
     then "beta"

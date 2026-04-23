@@ -7,7 +7,13 @@
   inherit (_.debug.runners) runTests;
   inherit (_.debug.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
   inherit (_.attrsets.predicates) isTyped;
-  inherit (lib.attrsets) filterAttrs isAttrs isDerivation mapAttrs;
+  inherit
+    (lib.attrsets)
+    filterAttrs
+    isAttrs
+    isDerivation
+    mapAttrs
+    ;
 
   /**
   Recursively applies `mkDefault` to all leaf values in an attribute set.
@@ -79,18 +85,19 @@
     then next
     else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
     then
-      mapAttrs
-      (name: prevValue:
-        if next ? ${name}
-        then let
-          nextValue = next.${name};
-        in
-          if isTyped prevValue
-          then prevValue
-          else if isTyped nextValue
-          then nextValue
-          else updateDeep prevValue nextValue
-        else prevValue)
+      mapAttrs (
+        name: prevValue:
+          if next ? ${name}
+          then let
+            nextValue = next.${name};
+          in
+            if isTyped prevValue
+            then prevValue
+            else if isTyped nextValue
+            then nextValue
+            else updateDeep prevValue nextValue
+          else prevValue
+      )
       prev
       // filterAttrs (name: _value: !prev ? ${name}) next
     else next;
@@ -150,28 +157,30 @@ in {
           updateDeep
           {
             a = 1;
-            b = {c = 2;};
+            b = {
+              c = 2;
+            };
           }
           {
-            b = {d = 3;};
+            b = {
+              d = 3;
+            };
             e = 4;
           };
       };
 
       preservesPrevSpecialType = mkTest {
-        desired = {enable = mkEnableOptionStub "foo";};
-        outcome =
-          updateDeep
-          {enable = mkEnableOptionStub "foo";}
-          {enable = true;};
+        desired = {
+          enable = mkEnableOptionStub "foo";
+        };
+        outcome = updateDeep {enable = mkEnableOptionStub "foo";} {enable = true;};
       };
 
       allowsNextSpecialType = mkTest {
-        desired = {enable = mkForceStub false;};
-        outcome =
-          updateDeep
-          {enable = true;}
-          {enable = mkForceStub false;};
+        desired = {
+          enable = mkForceStub false;
+        };
+        outcome = updateDeep {enable = true;} {enable = mkForceStub false;};
       };
 
       mergesModuleArgsShallow = mkTest {
@@ -185,8 +194,20 @@ in {
         };
         outcome =
           updateDeep
-          {_module = {args = {x = 1;};};}
-          {_module = {args = {y = 2;};};};
+          {
+            _module = {
+              args = {
+                x = 1;
+              };
+            };
+          }
+          {
+            _module = {
+              args = {
+                y = 2;
+              };
+            };
+          };
       };
 
       primitiveOverride = mkTest {

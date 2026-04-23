@@ -13,14 +13,7 @@
         transformation
         ;
     };
-    flattened =
-      {}
-      // access
-      // construction
-      // merging
-      // predicates
-      // transformation
-      // {};
+    flattened = {} // access // construction // merging // predicates // transformation // {};
   };
 
   inherit (lib) attrsets;

@@ -26,7 +26,9 @@
       inherit mkModules;
       mkHome = mkModules;
     };
-    external = {mkHomeModules = mkModules;};
+    external = {
+      mkHomeModules = mkModules;
+    };
   };
 
   inherit (_.modules.home.users) mkUsers;
@@ -64,11 +66,20 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lib = extend (_self: _super: {
-            hm = inputs.home-manager.lib.hm or {};
-          });
+          lib = extend (
+            _self: _super: {
+              hm = inputs.home-manager.lib.hm or {};
+            }
+          );
         };
-      users = mkUsers {inherit inputs modules host tree;};
+      users = mkUsers {
+        inherit
+          inputs
+          modules
+          host
+          tree
+          ;
+      };
     };
   };
 in

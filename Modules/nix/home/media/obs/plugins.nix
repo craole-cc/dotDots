@@ -39,10 +39,8 @@ in
         obs-vintage-filter
         waveform
       ]
-      ++ optionals (
-        waylandEnabled {
-          inherit config;
-          interface = user.interface or {};
-        }
-      ) [wlrobs];
+      ++ optionals (waylandEnabled {
+        inherit config;
+        interface = user.interface or {};
+      }) [wlrobs];
   }

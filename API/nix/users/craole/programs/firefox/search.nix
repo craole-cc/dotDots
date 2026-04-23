@@ -38,7 +38,10 @@ in {
         urls = [
           {template = "https://search.brave.com/search?q={searchTerms}";}
         ];
-        definedAliases = ["b" "@b"];
+        definedAliases = [
+          "b"
+          "@b"
+        ];
       };
 
       github = {
@@ -46,7 +49,10 @@ in {
         urls = [
           {template = "https://github.com/search?q={searchTerms}";}
         ];
-        definedAliases = ["gh" "@gh"];
+        definedAliases = [
+          "gh"
+          "@gh"
+        ];
       };
 
       google = {
@@ -70,7 +76,10 @@ in {
             ];
           }
         ];
-        definedAliases = ["gi" "@gimg"];
+        definedAliases = [
+          "gi"
+          "@gimg"
+        ];
       };
 
       home-manager-options = {
@@ -91,7 +100,10 @@ in {
           }
         ];
         icon = snowflake;
-        definedAliases = ["hm" "@hm"];
+        definedAliases = [
+          "hm"
+          "@hm"
+        ];
       };
 
       nix-packages = {
@@ -112,7 +124,10 @@ in {
             ];
           }
         ];
-        definedAliases = ["np" "@p"];
+        definedAliases = [
+          "np"
+          "@p"
+        ];
       };
 
       nixos-options = {
@@ -133,7 +148,10 @@ in {
             ];
           }
         ];
-        definedAliases = ["no" "@o"];
+        definedAliases = [
+          "no"
+          "@o"
+        ];
       };
 
       nixos-wiki = {
@@ -141,7 +159,10 @@ in {
         name = "NixOS Wiki";
         urls = [{template = "https://wiki.nixos.org/w/index.php?search={searchTerms}";}];
         # iconMapObj."16" = "https://wiki.nixos.org/favicon.ico";
-        definedAliases = ["nw" "@nw"];
+        definedAliases = [
+          "nw"
+          "@nw"
+        ];
       };
 
       noogle = {
@@ -157,7 +178,10 @@ in {
             ];
           }
         ];
-        definedAliases = ["@l" "nl"];
+        definedAliases = [
+          "@l"
+          "nl"
+        ];
       };
 
       perplexity = {

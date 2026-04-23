@@ -16,7 +16,7 @@
     extraProgramConfig = mkMerge [
       {
         settings.main = {
-          terminal = "$TERMINAL"; #TODO Use defaults defined in lib
+          terminal = "$TERMINAL"; # TODO Use defaults defined in lib
           layer = "overlay";
         };
       }

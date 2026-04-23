@@ -1,6 +1,8 @@
 {
   programs.tmux =
-    {enable = true;}
+    {
+      enable = true;
+    }
     # // import ./settings.nix
     // import ./plugins.nix;
 }

@@ -71,14 +71,13 @@
       "path" = path;
     };
   in
-    if primitives ? ${customType.type}
-    then primitives.${customType.type}
-    else
-      mkOptionType {
-        name = customType.type;
-        description = customType.description or customType.type;
-        check = customType.check;
-        merge = mergeUniqueOption;
-      };
+    primitives.${
+      customType.type
+    } or (mkOptionType {
+      name = customType.type;
+      description = customType.description or customType.type;
+      inherit (customType) check;
+      merge = mergeUniqueOption;
+    });
 in
   __exports.internal // {__rootAliases = __exports.external;}

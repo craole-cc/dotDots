@@ -41,11 +41,15 @@
     hosts =
       if paths.hosts != null
       then
-        mapAttrs (name: host:
-          mkCore {
-            inherit name host users;
-          }) (importAttrs paths.hosts)
+        mapAttrs (
+          name: host:
+            mkCore {
+              inherit name host users;
+            }
+        ) (importAttrs paths.hosts)
       else {};
-  in {inherit users hosts;};
+  in {
+    inherit users hosts;
+  };
 in
   __exports.internal // {__rootAliases = __exports.external;}

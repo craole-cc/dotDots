@@ -23,11 +23,13 @@
     "text/html"
   ];
 
-  associations = listToAttrs (map (mimeType: {
+  associations = listToAttrs (
+    map (mimeType: {
       name = mimeType;
       value = "${command}.desktop";
     })
-    mimeTypes);
+    mimeTypes
+  );
 in {
   associations.added = associations;
   defaultApplications = associations;

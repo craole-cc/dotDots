@@ -61,10 +61,7 @@
   in
     if (flake != null) && (flake ? outPath)
     then flake.outPath
-    else
-      traceIf (result == null)
-      "❌ '${pathStr}' is not a valid flake path."
-      result;
+    else traceIf (result == null) "❌ '${pathStr}' is not a valid flake path." result;
 
   /**
   Safely evaluates and retrieves a flake from a given path.
@@ -86,9 +83,7 @@
   }: let
     normalizedPath = getFlakePath {inherit flake path;};
 
-    derived = optionalAttrs (normalizedPath != null) (
-      getFlake normalizedPath
-    );
+    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
 
     failureReason =
       if normalizedPath == null
@@ -102,10 +97,9 @@
     if flake != null
     then flake
     else
-      traceIf
-      ((derived._type or null) != "flake")
-      "❌ Flake load failed: ${toString path} (${failureReason})"
-      (derived // {srcPath = path;});
+      traceIf (
+        (derived._type or null) != "flake"
+      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
 in
   __exports.internal
   // {

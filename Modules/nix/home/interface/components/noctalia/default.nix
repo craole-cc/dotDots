@@ -10,12 +10,10 @@
 }: let
   app = "noctalia-shell";
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.lists.predicates) isIn;
   inherit (lix.hardware.display) getNames getPrimaryName;
 
   desired = user.interface.bar or null;
   primary = desired != null;
-  allowed = isIn app (user.applications.allowed or []);
 
   # Check if the program option exists in home-manager
   # programExists = config ? programs.${app};

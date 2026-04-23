@@ -1,5 +1,11 @@
 {_, ...}: let
-  inherit (_.attrsets) attrNames attrValues mapAttrs recursiveUpdate;
+  inherit
+    (_.attrsets)
+    attrNames
+    attrValues
+    mapAttrs
+    recursiveUpdate
+    ;
   inherit (_.lists) elem filter foldl';
   inherit (_.strings) concatStringsSep;
   inherit (_.types) nullOr;
@@ -9,13 +15,13 @@
   extractDefaults = schema:
     mapAttrs (
       _name: spec:
-        if spec ? default
-        then spec.default
-        else if spec.type == "submodule"
-        then extractDefaults spec.schema
-        else if spec.type == "lazy"
-        then null
-        else null
+        spec.default or (
+          if spec.type == "submodule"
+          then extractDefaults spec.schema
+          else if spec.type == "lazy"
+          then null
+          else null
+        )
     )
     schema;
 
@@ -41,15 +47,12 @@
         name: spec:
           if config ? ${name}
           then validateField name config.${name} spec
-          else if spec ? default
-          then spec.default
-          else throw "Required field '${name}' is missing"
+          else spec.default or (throw "Required field '${name}' is missing")
       )
       schema;
 
   # Apply defaults from schema to config
-  applyDefaults = schema: config:
-    recursiveUpdate (extractDefaults schema) config;
+  applyDefaults = schema: config: recursiveUpdate (extractDefaults schema) config;
 
   # Soft validation (returns result object instead of throwing)
   validateSoft = schema: config: let
@@ -92,12 +95,10 @@
     };
 
   # Merge multiple schemas
-  mergeSchemas = schemas:
-    foldl' recursiveUpdate {} schemas;
+  mergeSchemas = schemas: foldl' recursiveUpdate {} schemas;
 
   # Make all fields optional
-  makeOptional = schema:
-    mapAttrs (_name: spec: nullOr spec) schema;
+  makeOptional = schema: mapAttrs (_name: nullOr) schema;
 
   # Make specific fields required (remove nullOr wrapper)
   makeRequired = fields: schema:

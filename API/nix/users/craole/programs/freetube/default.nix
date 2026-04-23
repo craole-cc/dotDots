@@ -9,6 +9,8 @@
   isAllowed = elem app allowed;
 in {
   programs.${app} =
-    {enable = isAllowed;}
+    {
+      enable = isAllowed;
+    }
     // import ./settings.nix;
 }

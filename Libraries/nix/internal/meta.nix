@@ -20,8 +20,7 @@
     then ""
     else toUpper (substring 0 1 s) + substring 1 (stringLength s - 1) s;
 
-  toPascal = s:
-    concatStrings (map capitalize (splitString "-" s));
+  toPascal = s: concatStrings (map capitalize (splitString "-" s));
 
   uncapitalize = s:
     if s == ""
@@ -34,10 +33,7 @@
       # add as needed
     };
   in
-    word:
-      if irregulars ? ${word}
-      then irregulars.${word}
-      else removeSuffix "s" word;
+    word: irregulars.${word} or (removeSuffix "s" word);
 
   mkModuleExports = {
     directory,
@@ -81,11 +77,14 @@
       };
 
     mkAliases = fns:
-      optionalAttrs (extSuffix != "")
-      (listToAttrs (map (k: {
-        name = k + extSuffix;
-        value = fns.${k};
-      }) (attrNames fns)));
+      optionalAttrs (extSuffix != "") (
+        listToAttrs (
+          map (k: {
+            name = k + extSuffix;
+            value = fns.${k};
+          }) (attrNames fns)
+        )
+      );
 
     mkExternalName = k: let
       parts = splitFnPrefix k;
@@ -97,10 +96,12 @@
       uncapitalize shifted;
 
     mkExternal = fns:
-      listToAttrs (map (k: {
-        name = mkExternalName k;
-        value = fns.${k};
-      }) (attrNames fns));
+      listToAttrs (
+        map (k: {
+          name = mkExternalName k;
+          value = fns.${k};
+        }) (attrNames fns)
+      );
   in
     (functions // mkAliases functions)
     // {
@@ -108,4 +109,6 @@
       __docs = doc;
     }
     // optionalAttrs (tests != {}) {__tests = tests;};
-in {inherit mkModuleExports toSingular;}
+in {
+  inherit mkModuleExports toSingular;
+}

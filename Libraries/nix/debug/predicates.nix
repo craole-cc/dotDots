@@ -11,11 +11,7 @@
   isTest :: any -> bool
   ```
   */
-  isTest = v:
-    isAttrs v
-    && v ? desired
-    && v ? result
-    && v ? passed;
+  isTest = v: isAttrs v && v ? desired && v ? result && v ? passed;
 
   exports = {
     inherit

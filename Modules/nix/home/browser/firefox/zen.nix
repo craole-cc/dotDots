@@ -17,7 +17,10 @@
                 }
                 {
                   name = "wiki";
-                  tags = ["wiki" "nix"];
+                  tags = [
+                    "wiki"
+                    "nix"
+                  ];
                   url = "https://wiki.nixos.org/";
                 }
               ];
@@ -37,12 +40,18 @@
             brave = {
               name = "Brave";
               urls = [{template = "https://search.brave.com/search?q={searchTerms}";}];
-              definedAliases = ["b" "@b"];
+              definedAliases = [
+                "b"
+                "@b"
+              ];
             };
             github = {
               name = "GitHub";
               urls = [{template = "https://github.com/search?q={searchTerms}";}];
-              definedAliases = ["gh" "@gh"];
+              definedAliases = [
+                "gh"
+                "@gh"
+              ];
             };
             google.metaData.alias = "@g";
             google-images = {
@@ -62,7 +71,10 @@
                   ];
                 }
               ];
-              definedAliases = ["gi" "@gimg"];
+              definedAliases = [
+                "gi"
+                "@gimg"
+              ];
             };
             home-manager-options = {
               name = "Home Manager Options";
@@ -82,7 +94,10 @@
                   ];
                 }
               ];
-              definedAliases = ["hm" "@hm"];
+              definedAliases = [
+                "hm"
+                "@hm"
+              ];
             };
             nix-packages = {
               name = "NixOS Packages";
@@ -101,7 +116,10 @@
                   ];
                 }
               ];
-              definedAliases = ["np" "@p"];
+              definedAliases = [
+                "np"
+                "@p"
+              ];
             };
             nixos-options = {
               name = "NixOS Options";
@@ -120,13 +138,19 @@
                   ];
                 }
               ];
-              definedAliases = ["no" "@o"];
+              definedAliases = [
+                "no"
+                "@o"
+              ];
             };
             nixos-wiki = {
               name = "NixOS Wiki";
               urls = [{template = "https://wiki.nixos.org/w/index.php?search={searchTerms}";}];
               iconMapObj."16" = "https://wiki.nixos.org/favicon.ico";
-              definedAliases = ["nw" "@nw"];
+              definedAliases = [
+                "nw"
+                "@nw"
+              ];
             };
             noogle = {
               name = "Noogle Dev";
@@ -141,7 +165,10 @@
                   ];
                 }
               ];
-              definedAliases = ["@l" "nl"];
+              definedAliases = [
+                "@l"
+                "nl"
+              ];
             };
             perplexity = {
               name = "Perplexity";
@@ -156,7 +183,10 @@
                   ];
                 }
               ];
-              definedAliases = ["@px" "px"];
+              definedAliases = [
+                "@px"
+                "px"
+              ];
             };
             wikipedia = {
               name = "Wiktionary";
@@ -187,7 +217,10 @@
                   ];
                 }
               ];
-              definedAliases = ["@dict" "@wd"];
+              definedAliases = [
+                "@dict"
+                "@wd"
+              ];
             };
             youtube = {
               name = "YouTube";
@@ -355,11 +388,13 @@
       "text/plain"
       "text/html"
     ];
-    associations = lib.attrsets.listToAttrs (map (app: {
+    associations = lib.attrsets.listToAttrs (
+      map (app: {
         name = app;
         value = "zen.desktop";
       })
-      types);
+      types
+    );
   in {
     associations.added = associations;
     defaultApplications = associations;

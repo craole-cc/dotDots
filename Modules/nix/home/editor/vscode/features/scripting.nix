@@ -67,8 +67,8 @@ in {
         powershell.extensions
       ];
       userSettings = mkMerge [
-        (python.userSettings     or {})
-        (nushell.userSettings    or {})
+        (python.userSettings or {})
+        (nushell.userSettings or {})
         (powershell.userSettings or {})
       ];
     };

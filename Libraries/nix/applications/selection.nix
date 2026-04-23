@@ -11,13 +11,20 @@
       Depends on: applications.primitives.
     '';
     functions = {
-      inherit withFlag withoutFlag withNeq resolveConfig;
+      inherit
+        withFlag
+        withoutFlag
+        withNeq
+        resolveConfig
+        ;
     };
     exports = {
       local = functions;
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.primitives) toValue;
   inherit (_.attrsets.access) attrByPath;
@@ -54,12 +61,14 @@
     field,
     set,
   }:
-    filterAttrs (_: app:
-      toValue {
-        inherit field;
-        default = false;
-      }
-      app)
+    filterAttrs (
+      _: app:
+        toValue {
+          inherit field;
+          default = false;
+        }
+        app
+    )
     set;
 
   /**
@@ -93,15 +102,17 @@
     field,
     set,
   }:
-    filterAttrs (_: app: let
-      val =
-        toValue {
-          inherit field;
-          default = null;
-        }
-        app;
-    in
-      val == null || val == false)
+    filterAttrs (
+      _: app: let
+        val =
+          toValue {
+            inherit field;
+            default = null;
+          }
+          app;
+      in
+        val == null || !val
+    )
     set;
 
   /**
@@ -179,10 +190,7 @@
           cfg = attrByPath path null app;
         in
           if cfg != null && cfg ? home && cfg ? file
-          then
-            recursiveUpdate app (setAttrByPath path (
-              cfg // {path = "${cfg.home}/${cfg.file}";}
-            ))
+          then recursiveUpdate app (setAttrByPath path (cfg // {path = "${cfg.home}/${cfg.file}";}))
           else app
       )
       set;

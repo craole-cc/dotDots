@@ -13,10 +13,20 @@
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool float nullOr str;
+  inherit
+    (lib.types)
+    bool
+    float
+    nullOr
+    str
+    ;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     timeZone = mkOption {
       description = "System timezone";
       default = loc.timeZone;
@@ -51,13 +61,13 @@ in {
 
   config = mkIf cfg.enable {
     time = {
-      timeZone = cfg.timeZone;
+      inherit (cfg) timeZone;
       hardwareClockInLocalTime = cfg.dualBootWindows;
     };
 
     location = mkIf (cfg.latitude != null && cfg.longitude != null) {
-      latitude = cfg.latitude;
-      longitude = cfg.longitude;
+      inherit (cfg) latitude;
+      inherit (cfg) longitude;
       provider = cfg.locator;
     };
 

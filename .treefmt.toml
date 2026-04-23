@@ -53,16 +53,15 @@ priority = 1
 #| Nix                                                                         |
 #|─────────────────────────────────────────────────────────────────────────────|
 
-# [formatter.nixfmt]
-# includes = ["*.nix"]
-# priority = 2
-# command = "nixfmt"
-
-[formatter.alejandra]
+[formatter.nixfmt]
 includes = ["*.nix"]
 priority = 1
-command = "alejandra"
+command = "nixfmt"
 
+# [formatter.alejandra]
+# includes = ["*.nix"]
+# priority = 1
+# command = "alejandra"=
 
 #|─────────────────────────────────────────────────────────────────────────────|
 #| Rust                                                                        |

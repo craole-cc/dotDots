@@ -6,11 +6,22 @@
   inherit (_.sources.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs;
-  inherit (lib.strings) hasInfix replaceStrings splitString toLower;
+  inherit
+    (lib.strings)
+    hasInfix
+    replaceStrings
+    splitString
+    toLower
+    ;
 
   __exports = rec {
     internal = {
-      inherit defaults mkApp mkApps mkPrograms;
+      inherit
+        defaults
+        mkApp
+        mkApps
+        mkPrograms
+        ;
       mkHomeApp = mkApp;
       mkHomeApps = mkApps;
       mkHomePrograms = mkPrograms;
@@ -29,24 +40,65 @@
 
   defaults = {
     apps = {
-      plasma.aliases = normalizeNames ["kde" "kde-plasma" "plasma6"];
+      plasma.aliases = normalizeNames [
+        "kde"
+        "kde-plasma"
+        "plasma6"
+      ];
 
       catppuccin = {
-        aliases = normalizeNames ["catppuccin-theme" "catpp"];
-        flavors = normalizeNames ["latte" "frappe" "macchiato" "mocha"];
+        aliases = normalizeNames [
+          "catppuccin-theme"
+          "catpp"
+        ];
+        flavors = normalizeNames [
+          "latte"
+          "frappe"
+          "macchiato"
+          "mocha"
+        ];
       };
 
-      caelestia.aliases = normalizeNames ["caelestia-shell" "cls"];
-      "dank-material-shell".aliases = normalizeNames ["dms" "dank"];
-      "dms-plugin-registry".aliases = normalizeNames ["dmsp" "dank-plugins"];
-      "noctalia-shell".aliases = normalizeNames ["noctalia" "noctalia-dev"];
-      nvf.aliases = normalizeNames ["nvim" "neovim"];
+      caelestia.aliases = normalizeNames [
+        "caelestia-shell"
+        "cls"
+      ];
+      "dank-material-shell".aliases = normalizeNames [
+        "dms"
+        "dank"
+      ];
+      "dms-plugin-registry".aliases = normalizeNames [
+        "dmsp"
+        "dank-plugins"
+      ];
+      "noctalia-shell".aliases = normalizeNames [
+        "noctalia"
+        "noctalia-dev"
+      ];
+      nvf.aliases = normalizeNames [
+        "nvim"
+        "neovim"
+      ];
 
       "zen-browser" = {
-        aliases = normalizeNames ["zen" "zen-twilight" "zen-beta" "zen-default"];
+        aliases = normalizeNames [
+          "zen"
+          "zen-twilight"
+          "zen-beta"
+          "zen-default"
+        ];
         variants = {
-          twilight = normalizeNames ["zen" "zen-twilight" "zen twilight"];
-          beta = normalizeNames ["zen-beta" "zen-default" "zen beta" "zen default"];
+          twilight = normalizeNames [
+            "zen"
+            "zen-twilight"
+            "zen twilight"
+          ];
+          beta = normalizeNames [
+            "zen-beta"
+            "zen-default"
+            "zen beta"
+            "zen default"
+          ];
         };
       };
     };
@@ -106,7 +158,12 @@
         primary = "vicinae";
         secondary = "fuzzel";
       };
-      tui = normalizeNames ["yazi" "btop" "htop" "fend"];
+      tui = normalizeNames [
+        "yazi"
+        "btop"
+        "htop"
+        "fend"
+      ];
     };
   };
 
@@ -121,10 +178,30 @@
     cfg = attrByPath ["apps" name] {} defaults;
     names = normalizeNames ([name] ++ (cfg.aliases or []));
     flavors = normalizeNames (cfg.flavors or []);
-    variants = mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
-    isAllowed = condition ({inherit cfg name names flavors variants;} // context);
-    module = mkModule {inherit inputs modules name variant;};
-  in {inherit isAllowed module;};
+    variants = mapAttrs (_: normalizeNames) (cfg.variants or {});
+    isAllowed = condition (
+      {
+        inherit
+          cfg
+          name
+          names
+          flavors
+          variants
+          ;
+      }
+      // context
+    );
+    module = mkModule {
+      inherit
+        inputs
+        modules
+        name
+        variant
+        ;
+    };
+  in {
+    inherit isAllowed module;
+  };
 
   mkApps = {
     user,
@@ -133,13 +210,9 @@
     ...
   }: let
     apps = user.applications or {};
-    appsAllowed = normalizeNames (
-      attrByPath ["applications" "allowed"] [] user
-    );
+    appsAllowed = normalizeNames (attrByPath ["applications" "allowed"] [] user);
     ui = user.interface or {};
-    de = normalizeName (
-      attrByPath ["desktopEnvironment"] "" ui
-    );
+    de = normalizeName (attrByPath ["desktopEnvironment"] "" ui);
 
     theme = let
       t = attrByPath ["style" "theme"] {} ui;
@@ -158,7 +231,17 @@
       secondary = normalizeName (t.secondary or "");
     };
     hasAnyApp = names: extras: isIn names (appsAllowed ++ normalizeNames extras);
-    context = {inherit appsAllowed bar theme de firefox hasAnyApp tty;};
+    context = {
+      inherit
+        appsAllowed
+        bar
+        theme
+        de
+        firefox
+        hasAnyApp
+        tty
+        ;
+    };
 
     isDankAllowed = {
       hasAnyApp,
@@ -166,8 +249,7 @@
       ...
     }: let
       dankNames = normalizeNames (
-        ["dank-material-shell"]
-        ++ (defaults.apps."dank-material-shell".aliases or [])
+        ["dank-material-shell"] ++ (defaults.apps."dank-material-shell".aliases or [])
       );
     in
       hasAnyApp dankNames [bar];
@@ -191,7 +273,10 @@
         isIn names appsAllowed
         || hasInfix (normalizeName name) theme.light
         || hasInfix (normalizeName name) theme.dark
-        || isIn flavors [theme.light theme.dark];
+        || isIn flavors [
+          theme.light
+          theme.dark
+        ];
 
       caelestia.condition = {
         names,
@@ -229,7 +314,10 @@
         tty,
         ...
       }:
-        hasAnyApp names [tty.primary tty.secondary];
+        hasAnyApp names [
+          tty.primary
+          tty.secondary
+        ];
 
       "zen-browser" = let
         variant =
@@ -248,8 +336,20 @@
       };
     };
   in
-    mapAttrs (name: spec:
-      mkApp ({inherit context name inputs modules;} // spec))
+    mapAttrs (
+      name: spec:
+        mkApp (
+          {
+            inherit
+              context
+              name
+              inputs
+              modules
+              ;
+          }
+          // spec
+        )
+    )
     appSpecs;
 
   mkPrograms = {
@@ -264,8 +364,12 @@
     zenNames = normalizeNames (["zen-browser"] ++ (zenCfg.aliases or []));
 
     rawTerm = normalizeName (
-      attrByPath ["terminal" "primary"]
-      (attrByPath ["terminal" "primary"] programs.terminal.primary hostApps)
+      attrByPath ["terminal" "primary"] (attrByPath [
+          "terminal"
+          "primary"
+        ]
+        programs.terminal.primary
+        hostApps)
       userApps
     );
     primaryTerminalCmd = attrByPath ["terminal" rawTerm] rawTerm mappings.command;
@@ -315,29 +419,31 @@
       hostCategory = attrByPath ["applications" category] {} host;
       optionPath = splitString "." option;
       name = normalizeName (
-        attrByPath optionPath
-        (attrByPath optionPath default hostCategory)
-        userCategory
+        attrByPath optionPath (attrByPath optionPath default hostCategory) userCategory
       );
       command = getCommand category name;
       class = getClass command;
-    in {inherit command class;};
+    in {
+      inherit command class;
+    };
 
     mkCategory = category: options:
-      mapAttrs (name: value: let
-        cfg =
-          if isAttrs value
-          then value
-          else {
-            option = name;
-            default = value;
-          };
-      in
-        resolveProgram {
-          inherit category;
-          option = cfg.option or name;
-          default = cfg.default;
-        })
+      mapAttrs (
+        name: value: let
+          cfg =
+            if isAttrs value
+            then value
+            else {
+              option = name;
+              default = value;
+            };
+        in
+          resolveProgram {
+            inherit category;
+            option = cfg.option or name;
+            inherit (cfg) default;
+          }
+      )
       options;
   in
     mapAttrs mkCategory programDefaults // {inherit resolveProgram;};

@@ -10,7 +10,13 @@
     removeAttrs
     ;
 
-  inherit (lib.lists) head elem sort length;
+  inherit
+    (lib.lists)
+    head
+    elem
+    sort
+    length
+    ;
 
   /**
   Role priority rankings used for primary user selection.
@@ -36,11 +42,13 @@
   Returns an attrset of `{ name = principal; }` pairs.
   */
   getPrincipals = host:
-    listToAttrs (map (p: {
-        name = p.name;
+    listToAttrs (
+      map (p: {
+        inherit (p) name;
         value = p;
       })
-      host.principals);
+      host.principals
+    );
 
   /**
   Merge global user config with host principal config for all principals.
@@ -62,11 +70,14 @@
     mapAttrs (
       name: hostUser: let
         userData = users.${name} or {};
-        userDataFiltered = removeAttrs userData ["enable" "autoLogin" "role"];
+        userDataFiltered = removeAttrs userData [
+          "enable"
+          "autoLogin"
+          "role"
+        ];
       in
         recursiveUpdate userDataFiltered hostUser
-    )
-    (getPrincipals host);
+    ) (getPrincipals host);
 
   /**
   Like `getAll`, but guarantees at least one user has `enable = true`.
@@ -91,7 +102,7 @@
       then throw "No users defined"
       else head (attrNames all);
   in
-    if filterAttrs (_: u: u.enable == true) all == {}
+    if filterAttrs (_: u: u.enable) all == {}
     then
       all
       // {
@@ -112,7 +123,7 @@
   Arguments:
     users: Any attrset of user configs.
   */
-  getEnabled = users: filterAttrs (_: u: u.enable == true) users;
+  getEnabled = users: filterAttrs (_: u: u.enable) users;
 
   /**
   Filter a user attrset to enabled, interactive (human) users only.
@@ -124,7 +135,8 @@
   Arguments:
     users: Any attrset of user configs.
   */
-  getInteractive = users: filterAttrs (_: u: (u.role or "") != "service" && (u.role or "") != "guest") (getEnabled users);
+  getInteractive = users:
+    filterAttrs (_: u: (u.role or "") != "service" && (u.role or "") != "guest") (getEnabled users);
 
   /**
   Filter a user attrset to only users with `autoLogin = true`.
@@ -134,7 +146,7 @@
   Arguments:
     enabledUsers: An attrset of already-enabled user configs.
   */
-  getAutoLogin = enabledUsers: filterAttrs (_: u: u.autoLogin == true) enabledUsers;
+  getAutoLogin = enabledUsers: filterAttrs (_: u: u.autoLogin) enabledUsers;
 
   /**
   Filter a user attrset to users with a known role, and annotate each
@@ -148,9 +160,7 @@
     users: Any attrset of user configs.
   */
   getElevated = users:
-    mapAttrs
-    (_: u: u // {_rank = rolePriority.${u.role or "guest"} or 999;})
-    (
+    mapAttrs (_: u: u // {_rank = rolePriority.${u.role or "guest"} or 999;}) (
       filterAttrs (_: u: elem (u.role or "") (attrNames rolePriority)) (getEnabled users)
     );
 
@@ -176,12 +186,7 @@
     if autoLogin != {}
     then head (attrValues autoLogin)
     else if elevated != {}
-    then
-      head (
-        sort
-        (a: b: a._rank < b._rank)
-        (attrValues elevated)
-      )
+    then head (sort (a: b: a._rank < b._rank) (attrValues elevated))
     else if interactive != {}
     then head (attrValues interactive)
     else {};
@@ -205,7 +210,9 @@
     users,
   }: let
     all = getAll {inherit host users;};
-    enabled = getEnabled (getAllWithDefault {inherit host users;});
+    enabled = getEnabled (getAllWithDefault {
+      inherit host users;
+    });
     interactive = getInteractive enabled;
     autoLogin = getAutoLogin interactive;
     elevated = getElevated interactive;
@@ -228,7 +235,16 @@
       interactive = length names.interactive;
       elevated = length names.elevated;
     };
-    data = {inherit all enabled interactive elevated autoLogin primary;};
+    data = {
+      inherit
+        all
+        enabled
+        interactive
+        elevated
+        autoLogin
+        primary
+        ;
+    };
   in {
     inherit
       names

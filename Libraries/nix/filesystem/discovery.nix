@@ -32,7 +32,7 @@
   listRecursively :: path -> [path]
   ```
   */
-  listRecursively = path: listFilesRecursive path;
+  listRecursively = listFilesRecursive;
 
   /**
   Build a recursive package attrset from a directory using `callPackage`.
@@ -77,9 +77,7 @@
     isExcludedFolder = file: elem (dirOf file) defaultFoldersToExclude;
     files = listFilesRecursive path;
   in
-    filter
-    (file: isNixFile file && !isExcludedFile file && !isExcludedFolder file)
-    files;
+    filter (file: isNixFile file && !isExcludedFile file && !isExcludedFolder file) files;
 
   /**
   List all `.nix` file paths under a directory as strings.
@@ -89,7 +87,6 @@
   listNix :: path -> [string]
   ```
   */
-  listNix = path:
-    filter isNotEmpty (map toString (listFilesRecursive path));
+  listNix = path: filter isNotEmpty (map toString (listFilesRecursive path));
 in
   exports // {__rootAliases = exports;}

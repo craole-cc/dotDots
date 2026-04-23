@@ -5,14 +5,15 @@
   ...
 }: let
   app = "starship";
-  opt = [app "starship-prompt" "starship-rs"];
+  opt = [
+    app
+    "starship-prompt"
+    "starship-rs"
+  ];
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
 
-  isAllowed = isIn opt (
-    (user.applications.allowed or [])
-    ++ [(user.interface.prompt or null)]
-  );
+  isAllowed = isIn opt ((user.applications.allowed or []) ++ [(user.interface.prompt or null)]);
 in {
   config = mkIf isAllowed {
     # home.file.".config/starship.toml" = {
@@ -110,7 +111,10 @@ in {
           style = "italic bright-blue";
           truncation_symbol = "⋯";
           truncation_length = 11;
-          ignore_branches = ["main" "master"];
+          ignore_branches = [
+            "main"
+            "master"
+          ];
           only_attached = true;
         };
 

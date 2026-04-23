@@ -83,7 +83,9 @@ in {
         opacity.enable = false;
         # fonts.enable = false;
       };
-      zen-browser = {profileNames = [user.name];};
+      zen-browser = {
+        profileNames = [user.name];
+      };
     };
   };
 }

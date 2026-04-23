@@ -6,7 +6,13 @@
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) removeAttrs;
-  inherit (lib.lists) elemAt filter imap0 length;
+  inherit
+    (lib.lists)
+    elemAt
+    filter
+    imap0
+    length
+    ;
   inherit (lib.strings) replaceStrings splitString;
 
   vendorMap = {
@@ -57,14 +63,14 @@
   ```
   */
   fromLspciMm = lspciMm:
-    map
-    (gpu:
-      gpu
-      // {
-        primary = false;
-        secondary = false;
-      })
-    (parseLspci lspciMm);
+    map (
+      gpu:
+        gpu
+        // {
+          primary = false;
+          secondary = false;
+        }
+    ) (parseLspci lspciMm);
 
   testLspciInput = ''
     01:00.0 "Class 0300" "10de" "25ad" "103c" "8c30"
@@ -74,7 +80,12 @@
   '';
 
   exports = {
-    inherit fromLspciMm parseLspci testLspciInput vendorMap;
+    inherit
+      fromLspciMm
+      parseLspci
+      testLspciInput
+      vendorMap
+      ;
   };
 in
   exports

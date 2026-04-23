@@ -41,7 +41,9 @@
         # toApplicationFilterSection = mkSection;
       };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.applications.groups) mkGroups;
   inherit (_.applications.primitives) keysFromMembers keysFromOptional;
@@ -107,7 +109,16 @@
     ofCategory = category: byCategory.${category} or {};
   in {
     default = registry;
-    groups = {inherit byCategory byFamily byChannel ofCategory;} // groups;
+    groups =
+      {
+        inherit
+          byCategory
+          byFamily
+          byChannel
+          ofCategory
+          ;
+      }
+      // groups;
     queries = queries {inherit byCategory byFamily byChannel;};
   };
 
@@ -130,9 +141,7 @@
       in {
         inherit all;
         shells = mkSection {
-          set = resolveConfig (
-            filterAttrs (_: a: (a.categories or []) == ["shell"]) all
-          );
+          set = resolveConfig (filterAttrs (_: a: (a.categories or []) == ["shell"]) all);
         };
         prompts = mkSection {set = byCategory.prompt;};
         enhancements = mkSection {set = byCategory.enhancement;};
@@ -161,10 +170,7 @@
       `terminal.queries.forXorg`, and `terminal.queries.isWrappable` directly.
       */
       terminal = mkSection {
-        set =
-          mapAttrs
-          (_: a: a // {wrappable = (a.wrap or null) != null;})
-          (byCategory.terminal);
+        set = mapAttrs (_: a: a // {wrappable = (a.wrap or null) != null;}) byCategory.terminal;
       };
 
       /**
@@ -172,10 +178,7 @@
       by a desktop environment and have no standalone exec.
       */
       launcher = mkSection {
-        set =
-          mapAttrs
-          (_: a: a // {builtin = a.builtin or false;})
-          (byCategory.launcher);
+        set = mapAttrs (_: a: a // {builtin = a.builtin or false;}) byCategory.launcher;
       };
 
       /**

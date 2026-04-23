@@ -3,7 +3,9 @@
 
   exports = {
     internal = {inherit mkPrograms;};
-    external = {mkCorePrograms = mkPrograms;};
+    external = {
+      mkCorePrograms = mkPrograms;
+    };
   };
 
   mkPrograms = {host, ...}: let
@@ -11,9 +13,9 @@
     user = host.users.data.primary or {};
 
     #~@ Host interface
-    wm = host.interface.windowManager    or null;
-    shell = host.interface.shell  or null;
-    prompt = host.interface.prompt           or null;
+    wm = host.interface.windowManager or null;
+    shell = host.interface.shell or null;
+    prompt = host.interface.prompt or null;
   in {
     programs = {
       #~@ Shell

@@ -18,7 +18,10 @@
   tree = mkTree {
     stems = {
       api = let
-        base = ["API" "nix"];
+        base = [
+          "API"
+          "nix"
+        ];
       in
         mkLangGroup ["API"] {
           nix = "nix";
@@ -38,7 +41,10 @@
       };
 
       kit = let
-        base = ["Templates" "nix"];
+        base = [
+          "Templates"
+          "nix"
+        ];
       in
         mkLangGroup ["Templates"] {
           nix = "nix";
@@ -62,7 +68,10 @@
       };
 
       mod = let
-        base = ["Modules" "nix"];
+        base = [
+          "Modules"
+          "nix"
+        ];
       in
         mkLangGroup ["Modules"] {
           nix = "nix";
@@ -75,7 +84,10 @@
         };
 
       pkg = let
-        base = ["Packages" "nix"];
+        base = [
+          "Packages"
+          "nix"
+        ];
       in
         mkLangGroup ["Packages"] {
           nix = "nix";
@@ -98,12 +110,21 @@
       };
 
       res = let
-        images = ["Assets" "Images"];
+        images = [
+          "Assets"
+          "Images"
+        ];
       in {
         default = ["Assets"];
-        images = images;
-        fonts = ["Assets" "Fonts"];
-        icons = ["Assets" "Icons"];
+        inherit images;
+        fonts = [
+          "Assets"
+          "Fonts"
+        ];
+        icons = [
+          "Assets"
+          "Icons"
+        ];
         ascii = images ++ ["ascii"];
         logo = images ++ ["logo"];
         wallpapers = images ++ ["wallpaper"];

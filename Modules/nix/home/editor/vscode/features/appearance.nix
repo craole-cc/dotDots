@@ -82,70 +82,117 @@
           "base" = "rust";
           "color" = "amber-300";
           "lightColor" = "amber-600";
-          "fileNames" = ["lib.rs" "main.rs" "mod.rs" "Cargo.toml"];
+          "fileNames" = [
+            "lib.rs"
+            "main.rs"
+            "mod.rs"
+            "Cargo.toml"
+          ];
         }
         {
           "name" = "nix-entrypoint";
           "base" = "nix";
           "color" = "green-300";
           "lightColor" = "green-600";
-          "fileNames" = ["default.nix" "flake.nix" "shell.nix" "configuration.nix"];
+          "fileNames" = [
+            "default.nix"
+            "flake.nix"
+            "shell.nix"
+            "configuration.nix"
+          ];
         }
         {
           "name" = "users";
           "base" = "admin";
           "color" = "light-green-300";
           "lightColor" = "light-green-700";
-          "folderNames" = ["users" "user" "people" "roles"];
+          "folderNames" = [
+            "users"
+            "user"
+            "people"
+            "roles"
+          ];
         }
         {
           "name" = "desktops";
           "base" = "desktop";
           "color" = "purple-300";
           "lightColor" = "orange-700";
-          "folderNames" = ["desktops" "desktop" "control"];
+          "folderNames" = [
+            "desktops"
+            "desktop"
+            "control"
+          ];
         }
         {
           "name" = "hosts";
           "base" = "client";
           "color" = "blue-gray-400";
           "lightColor" = "orange-700";
-          "folderNames" = ["hosts" "host" "machine" "machines"];
+          "folderNames" = [
+            "hosts"
+            "host"
+            "machine"
+            "machines"
+          ];
         }
         {
           "name" = "programs";
           "base" = "app";
           "color" = "cyan-300";
           "lightColor" = "green-700";
-          "folderNames" = ["program" "programs"];
+          "folderNames" = [
+            "program"
+            "programs"
+          ];
         }
         {
           "name" = "macros";
           "base" = "middleware";
           "color" = "blue-400";
           "lightColor" = "blue-500";
-          "folderNames" = ["constructors" "macros"];
+          "folderNames" = [
+            "constructors"
+            "macros"
+          ];
         }
         {
           "name" = "shell";
           "base" = "scripts";
           "color" = "blue-gray-600";
           "lightColor" = "blue-gray-500";
-          "folderNames" = ["shell" "shellscript" "bash" "sh" "posix"];
+          "folderNames" = [
+            "shell"
+            "shellscript"
+            "bash"
+            "sh"
+            "posix"
+          ];
         }
         {
           "name" = "nixos";
           "base" = "nix";
           "color" = "cyan-800";
           "lightColor" = "cyan-700";
-          "folderNames" = ["nixos" "flake" "flakes" "nix"];
+          "folderNames" = [
+            "nixos"
+            "flake"
+            "flakes"
+            "nix"
+          ];
         }
         {
           "name" = "dots";
           "base" = "ionic";
           "color" = "teal-300";
           "lightColor" = "teal-600";
-          "fileNames" = [".dots.json" "dots.json" ".dotsrc" ".dotsrc.sh" ".dotsrc.nu"];
+          "fileNames" = [
+            ".dots.json"
+            "dots.json"
+            ".dotsrc"
+            ".dotsrc.sh"
+            ".dotsrc.nu"
+          ];
         }
       ];
       "material-icon-theme.languages.customClones" = [
@@ -212,10 +259,10 @@ in {
         customUI.extensions
       ];
       userSettings = mkMerge [
-        (themes.userSettings    or {})
-        (icons.userSettings     or {})
+        (themes.userSettings or {})
+        (icons.userSettings or {})
         (animations.userSettings or {})
-        (customUI.userSettings  or {})
+        (customUI.userSettings or {})
         {
           #~@ Window
           "window.autoDetectColorScheme" = true;

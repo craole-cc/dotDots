@@ -24,9 +24,13 @@
     };
     exports = {
       local = all // functions;
-      alias = {mkApplicationGroups = mkStandard;};
+      alias = {
+        mkApplicationGroups = mkStandard;
+      };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   all = _.applications.filters.groups;
   inherit (_.applications.predicates) hasField hasListField;
@@ -144,9 +148,7 @@
       "tiling"
     ];
   in
-    filterAttrs (_: v: v != {}) (
-      genAttrs fields (field: withFlag {inherit field set;})
-    );
+    filterAttrs (_: v: v != {}) (genAttrs fields (field: withFlag {inherit field set;}));
 
   /**
   Partition an application set by the value of `config.file`.
@@ -227,35 +229,60 @@
       "protocol"
       "shells"
     ],
-    fields ? ["capability" "protocol" "maturity"],
+    fields ? [
+      "capability"
+      "protocol"
+      "maturity"
+    ],
   }: let
     perField = {
-      maturity = optionalAttrs (hasField {
-        inherit set;
-        field = "maturity";
-      }) (mkMaturity {inherit set;});
+      maturity =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "maturity";
+        })
+        (mkMaturity {
+          inherit set;
+        });
 
-      protocol = optionalAttrs (hasListField {
-        inherit set;
-        field = "protocol";
-      }) (mkProtocol {inherit set;});
+      protocol =
+        optionalAttrs
+        (hasListField {
+          inherit set;
+          field = "protocol";
+        })
+        (mkProtocol {
+          inherit set;
+        });
 
-      config = optionalAttrs (hasField {
-        inherit set;
-        field = "config";
-      }) (mkConfig {inherit set;});
+      config =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "config";
+        })
+        (mkConfig {
+          inherit set;
+        });
 
       capability = mkCapability {inherit set;};
 
-      scope = optionalAttrs (hasField {
-        inherit set;
-        field = "scope";
-      }) (mkScope {inherit set;});
+      scope =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "scope";
+        })
+        (mkScope {
+          inherit set;
+        });
     };
     allFields = unique (eq ++ member ++ fields);
   in
     filterAttrs (_: v: v != {}) (
-      listToAttrs (map (field: {
+      listToAttrs (
+        map (field: {
           name = toName {
             inherit field;
             prefix = "by";
@@ -266,16 +293,17 @@
             } or (
               if isIn field eq
               then
-                optionalAttrs
-                (hasField {inherit set field;})
-                (mkEq {inherit set field;})
+                optionalAttrs (hasField {inherit set field;}) (mkEq {
+                  inherit set field;
+                })
               else
-                optionalAttrs
-                (hasListField {inherit set field;})
-                (mkMember {inherit set field;})
+                optionalAttrs (hasListField {inherit set field;}) (mkMember {
+                  inherit set field;
+                })
             );
         })
-        allFields)
+        allFields
+      )
     );
 in
   meta.exports.local

@@ -13,14 +13,7 @@
         traversal
         ;
     };
-    flattened =
-      {}
-      // access
-      // construction
-      // transformation
-      // predicates
-      // traversal
-      // {};
+    flattened = {} // access // construction // transformation // predicates // traversal // {};
   };
 
   inherit (lib) filesystem path strings;

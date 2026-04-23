@@ -11,7 +11,10 @@
     "vicinae"
     "caelestia:launcher"
   ];
-  panels = ["bar" "gtk-layer-shell"];
+  panels = [
+    "bar"
+    "gtk-layer-shell"
+  ];
   layers = common ++ panels;
 in {
   layerrule = [

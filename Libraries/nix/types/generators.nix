@@ -21,7 +21,8 @@
       str = "string";
       num = "int";
       number = "int";
-    }.${
+    }
+    .${
       t
     } or t;
 
@@ -38,7 +39,13 @@
   };
 
   withArticle = noun:
-    if elem noun ["attribute set" "integer" "array" "object"]
+    if
+      elem noun [
+        "attribute set"
+        "integer"
+        "array"
+        "object"
+      ]
     then "an ${noun}"
     else "a ${noun}";
 
@@ -109,7 +116,15 @@
     outcome,
   }:
     if !predicate outcome
-    then throw (mkError {inherit fnName argName desired outcome;})
+    then
+      throw (mkError {
+        inherit
+          fnName
+          argName
+          desired
+          outcome
+          ;
+      })
     else outcome;
 in {
   inherit mkError validate;
@@ -122,8 +137,7 @@ in {
   __tests = runTests {
     mkError = {
       stringExpectedSetGotString =
-        mkTest
-        "waylandEnabled: `config` must be an attribute set, but a string was given (value: \"cfg\")."
+        mkTest "waylandEnabled: `config` must be an attribute set, but a string was given (value: \"cfg\")."
         (mkError {
           fnName = "waylandEnabled";
           argName = "config";
@@ -132,8 +146,7 @@ in {
         });
 
       stringExpectedSetGotInt =
-        mkTest
-        "waylandEnabled: `config` must be an attribute set, but an integer was given (value: 1)."
+        mkTest "waylandEnabled: `config` must be an attribute set, but an integer was given (value: 1)."
         (mkError {
           fnName = "waylandEnabled";
           argName = "config";
@@ -142,8 +155,7 @@ in {
         });
 
       stringExpectedListGotSet =
-        mkTest
-        "foo: `bar` must be a list, but an attribute set was given (value: { a, b })."
+        mkTest "foo: `bar` must be a list, but an attribute set was given (value: { a, b })."
         (mkError {
           fnName = "foo";
           argName = "bar";
@@ -155,19 +167,24 @@ in {
         });
 
       stringExpectedStringGotListPreview =
-        mkTest
-        "fn: `val` must be a string, but a list was given (value: [1, 2, 3, …])."
+        mkTest "fn: `val` must be a string, but a list was given (value: [1, 2, 3, …])."
         (mkError {
           fnName = "fn";
           argName = "val";
           desired = "string";
-          outcome = [1 2 3 4 5 6];
+          outcome = [
+            1
+            2
+            3
+            4
+            5
+            6
+          ];
         });
 
       # Demonstrate alias normalization: desired = "set"
       stringExpectedSetAlias =
-        mkTest
-        "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")."
+        mkTest "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")."
         (mkError {
           fnName = "fn";
           argName = "cfg";
@@ -177,8 +194,7 @@ in {
 
       # Demonstrate desired = "str" alias
       stringExpectedStrAlias =
-        mkTest
-        "fn: `name` must be a string, but an integer was given (value: 5)."
+        mkTest "fn: `name` must be a string, but an integer was given (value: 5)."
         (mkError {
           fnName = "fn";
           argName = "name";
@@ -188,8 +204,7 @@ in {
 
       # Demonstrate desired = "num" alias
       stringExpectedNumAlias =
-        mkTest
-        "fn: `n` must be an integer, but a string was given (value: \"7\")."
+        mkTest "fn: `n` must be an integer, but a string was given (value: \"7\")."
         (mkError {
           fnName = "fn";
           argName = "n";
@@ -199,8 +214,7 @@ in {
 
       # Demonstrate desired = "binary"
       stringExpectedBinary =
-        mkTest
-        "fn: `blob` must be a binary value, but a string was given (value: \"abc\")."
+        mkTest "fn: `blob` must be a binary value, but a string was given (value: \"abc\")."
         (mkError {
           fnName = "fn";
           argName = "blob";
@@ -210,8 +224,7 @@ in {
 
       # Demonstrate float outcome
       stringExpectedIntGotFloat =
-        mkTest
-        "fn: `x` must be an integer, but a float was given (value: <float>)."
+        mkTest "fn: `x` must be an integer, but a float was given (value: <float>)."
         (mkError {
           fnName = "fn";
           argName = "x";
@@ -221,19 +234,19 @@ in {
 
       # Demonstrate path outcome
       stringExpectedPathGotSet =
-        mkTest
-        "fn: `p` must be a path, but an attribute set was given (value: { a })."
+        mkTest "fn: `p` must be a path, but an attribute set was given (value: { a })."
         (mkError {
           fnName = "fn";
           argName = "p";
           desired = "path";
-          outcome = {a = 1;};
+          outcome = {
+            a = 1;
+          };
         });
 
       # Demonstrate null outcome
       stringExpectedSetGotNull =
-        mkTest
-        "fn: `cfg` must be an attribute set, but null was given (value: <null>)."
+        mkTest "fn: `cfg` must be an attribute set, but null was given (value: <null>)."
         (mkError {
           fnName = "fn";
           argName = "cfg";
@@ -261,106 +274,89 @@ in {
     };
 
     validate = {
-      acceptsCorrectType = mkTest {x = 1;} (
-        validate {
-          fnName = "testFn";
-          argName = "x";
-          desired = "int";
-          predicate = isInt;
-          outcome = {x = 1;}.x;
-        }
-      );
+      acceptsCorrectType = mkTest {x = 1;} (validate {
+        fnName = "testFn";
+        argName = "x";
+        desired = "int";
+        predicate = isInt;
+        outcome = {x = 1;}.x;
+      });
 
       # Also show validate with desired "string"/isString pattern
-      acceptsString = mkTest "ok" (
-        validate {
-          fnName = "testFn";
-          argName = "name";
-          desired = "string";
-          predicate = isString;
-          outcome = "ok";
-        }
-      );
+      acceptsString = mkTest "ok" (validate {
+        fnName = "testFn";
+        argName = "name";
+        desired = "string";
+        predicate = isString;
+        outcome = "ok";
+      });
 
-      rejectsWrongTypeString = mkThrows (
-        validate {
-          fnName = "testFn";
-          argName = "x";
-          desired = "attrset";
-          predicate = isAttrs;
-          outcome = "oops";
-        }
-      );
+      rejectsWrongTypeString = mkThrows (validate {
+        fnName = "testFn";
+        argName = "x";
+        desired = "attrset";
+        predicate = isAttrs;
+        outcome = "oops";
+      });
 
-      rejectsWrongTypeList = mkThrows (
-        validate {
-          fnName = "testFn";
-          argName = "x";
-          desired = "attrset";
-          predicate = isAttrs;
-          outcome = ["pop" 1];
-        }
-      );
+      rejectsWrongTypeList = mkThrows (validate {
+        fnName = "testFn";
+        argName = "x";
+        desired = "attrset";
+        predicate = isAttrs;
+        outcome = [
+          "pop"
+          1
+        ];
+      });
 
-      rejectsWrongTypeBool = mkThrows (
-        validate {
-          fnName = "testFn";
-          argName = "flag";
-          desired = "bool";
-          predicate = isBool;
-          outcome = 42;
-        }
-      );
+      rejectsWrongTypeBool = mkThrows (validate {
+        fnName = "testFn";
+        argName = "flag";
+        desired = "bool";
+        predicate = isBool;
+        outcome = 42;
+      });
 
-      rejectsWrongTypeBinary = mkThrows (
-        validate {
-          fnName = "binFn";
-          argName = "blob";
-          desired = "binary";
-          predicate = isString; # pretend "binary" stored as string for demo
-          outcome = 10;
-        }
-      );
+      rejectsWrongTypeBinary = mkThrows (validate {
+        fnName = "binFn";
+        argName = "blob";
+        desired = "binary";
+        predicate = isString; # pretend "binary" stored as string for demo
+        outcome = 10;
+      });
     };
 
-    acceptsBinaryString0 = mkTest "0" (
-      validate {
-        fnName = "testFn";
-        argName = "flag";
-        desired = "binary";
-        predicate = isBinaryString;
-        outcome = "0";
-      }
-    );
+    acceptsBinaryString0 = mkTest "0" (validate {
+      fnName = "testFn";
+      argName = "flag";
+      desired = "binary";
+      predicate = isBinaryString;
+      outcome = "0";
+    });
 
-    acceptsBinaryString1 = mkTest "1" (
-      validate {
-        fnName = "testFn";
-        argName = "flag";
-        desired = "binary";
-        predicate = isBinaryString;
-        outcome = "1";
-      }
-    );
+    acceptsBinaryString1 = mkTest "1" (validate {
+      fnName = "testFn";
+      argName = "flag";
+      desired = "binary";
+      predicate = isBinaryString;
+      outcome = "1";
+    });
 
-    rejectsNonBinaryString = mkThrows (
-      validate {
-        fnName = "testFn";
-        argName = "flag";
-        desired = "binary";
-        predicate = isBinaryString;
-        outcome = "yes";
-      }
-    );
+    rejectsNonBinaryString = mkThrows (validate {
+      fnName = "testFn";
+      argName = "flag";
+      desired = "binary";
+      predicate = isBinaryString;
+      outcome = "yes";
+    });
 
-    rejectsBinaryInt = mkThrows (
-      validate {
-        fnName = "testFn";
-        argName = "flag";
-        desired = "binary";
-        predicate = isBinaryString;
-        outcome = 1;
-      }
-    );
+    rejectsBinaryInt = mkThrows (validate {
+      fnName = "testFn";
+      argName = "flag";
+      desired = "binary";
+      predicate = isBinaryString;
+      outcome = 1;
+    });
   };
 }

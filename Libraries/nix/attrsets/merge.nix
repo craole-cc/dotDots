@@ -34,24 +34,28 @@
   }:
     if !isAttrs base
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "merge";
-          fn = merge;
-        };
-        message = "base must be an attrset";
-        input = base;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "merge";
+            fn = merge;
+          };
+          message = "base must be an attrset";
+          input = base;
+        }
+      )
     else if !isAttrs override
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "merge";
-          fn = merge;
-        };
-        message = "override must be an attrset";
-        input = override;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "merge";
+            fn = merge;
+          };
+          message = "override must be an attrset";
+          input = override;
+        }
+      )
     else base // override;
 
   /**
@@ -91,47 +95,53 @@
   }:
     if !isFunction resolver
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mergeWith";
-          fn = mergeWith;
-        };
-        message = "resolver must be a function";
-        input = resolver;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mergeWith";
+            fn = mergeWith;
+          };
+          message = "resolver must be a function";
+          input = resolver;
+        }
+      )
     else if !isAttrs base
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mergeWith";
-          fn = mergeWith;
-        };
-        message = "base must be an attrset";
-        input = base;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mergeWith";
+            fn = mergeWith;
+          };
+          message = "base must be an attrset";
+          input = base;
+        }
+      )
     else if !isAttrs override
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mergeWith";
-          fn = mergeWith;
-        };
-        message = "override must be an attrset";
-        input = override;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mergeWith";
+            fn = mergeWith;
+          };
+          message = "override must be an attrset";
+          input = override;
+        }
+      )
     else
       (base // override)
-      // mapAttrs
-      (key: value:
-        if base ? ${key} && override ? ${key}
-        then
-          resolver {
-            inherit key;
-            base = base.${key};
-            override = override.${key};
-          }
-        else value)
-      (base // override);
+      // mapAttrs (
+        key: value:
+          if base ? ${key} && override ? ${key}
+          then
+            resolver {
+              inherit key;
+              base = base.${key};
+              override = override.${key};
+            }
+          else value
+      ) (base // override);
 
   /**
   Recursively merge two attrsets.
@@ -159,24 +169,28 @@
   }:
     if !isAttrs base
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mergeDeep";
-          fn = mergeDeep;
-        };
-        message = "base must be an attrset";
-        input = base;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mergeDeep";
+            fn = mergeDeep;
+          };
+          message = "base must be an attrset";
+          input = base;
+        }
+      )
     else if !isAttrs override
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "mergeDeep";
-          fn = mergeDeep;
-        };
-        message = "override must be an attrset";
-        input = override;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "mergeDeep";
+            fn = mergeDeep;
+          };
+          message = "override must be an attrset";
+          input = override;
+        }
+      )
     else recursiveUpdate base override;
 
   /**
@@ -205,24 +219,28 @@
   }:
     if !isAttrs attrs
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "withDefaults";
-          fn = withDefaults;
-        };
-        message = "attrs must be an attrset";
-        input = attrs;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "withDefaults";
+            fn = withDefaults;
+          };
+          message = "attrs must be an attrset";
+          input = attrs;
+        }
+      )
     else if !isAttrs defaults
     then
-      throw (debug.withLoc {
-        function = mkFn {
-          name = "withDefaults";
-          fn = withDefaults;
-        };
-        message = "defaults must be an attrset";
-        input = defaults;
-      })
+      throw (
+        debug.withLoc {
+          function = mkFn {
+            name = "withDefaults";
+            fn = withDefaults;
+          };
+          message = "defaults must be an attrset";
+          input = defaults;
+        }
+      )
     else defaults // attrs;
 in {
   inherit
@@ -247,7 +265,7 @@ in {
           b = 99;
           c = 3;
         };
-        command = ''merge { base = { a = 1; b = 2; }; override = { b = 99; c = 3; }; }'';
+        command = "merge { base = { a = 1; b = 2; }; override = { b = 99; c = 3; }; }";
         outcome = merge {
           base = {
             a = 1;
@@ -260,10 +278,14 @@ in {
         };
       };
       emptyOverride = mkTest {
-        desired = {a = 1;};
-        command = ''merge { base = { a = 1; }; override = {}; }'';
+        desired = {
+          a = 1;
+        };
+        command = "merge { base = { a = 1; }; override = {}; }";
         outcome = merge {
-          base = {a = 1;};
+          base = {
+            a = 1;
+          };
           override = {};
         };
       };
@@ -276,7 +298,7 @@ in {
           b = 12;
           c = 3;
         };
-        command = ''mergeWith { resolver = { base, override, ... }: base + override; base = { a = 1; b = 2; }; override = { b = 10; c = 3; }; }'';
+        command = "mergeWith { resolver = { base, override, ... }: base + override; base = { a = 1; b = 2; }; override = { b = 10; c = 3; }; }";
         outcome = mergeWith {
           resolver = {
             base,
@@ -295,7 +317,12 @@ in {
         };
       };
       concatenatesLists = mkTest {
-        desired = {tags = ["a" "b"];};
+        desired = {
+          tags = [
+            "a"
+            "b"
+          ];
+        };
         command = ''mergeWith { resolver = { base, override, ... }: base ++ override; base = { tags = ["a"]; }; override = { tags = ["b"]; }; }'';
         outcome = mergeWith {
           resolver = {
@@ -304,8 +331,12 @@ in {
             ...
           }:
             base ++ override;
-          base = {tags = ["a"];};
-          override = {tags = ["b"];};
+          base = {
+            tags = ["a"];
+          };
+          override = {
+            tags = ["b"];
+          };
         };
       };
     };
@@ -320,7 +351,7 @@ in {
           x = 0;
           y = 1;
         };
-        command = ''mergeDeep { base = { a.b = 1; a.c = 2; x = 0; }; override = { a.b = 99; y = 1; }; }'';
+        command = "mergeDeep { base = { a.b = 1; a.c = 2; x = 0; }; override = { a.b = 99; y = 1; }; }";
         outcome = mergeDeep {
           base = {
             a.b = 1;
@@ -343,7 +374,9 @@ in {
         };
         command = ''withDefaults { attrs = { color = "red"; }; defaults = { color = "blue"; size = "medium"; }; }'';
         outcome = withDefaults {
-          attrs = {color = "red";};
+          attrs = {
+            color = "red";
+          };
           defaults = {
             color = "blue";
             size = "medium";

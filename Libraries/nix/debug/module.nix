@@ -125,7 +125,7 @@
       then
         traceFn {
           name = ref function.name;
-          fn = function.fn;
+          inherit (function) fn;
           result = msg;
         }
       else msg;
@@ -159,7 +159,12 @@
       fnRef = ref (_name function);
       thrown = mkThrownUsage {
         ref = fnRef;
-        inherit message input signature example;
+        inherit
+          message
+          input
+          signature
+          example
+          ;
       };
     in
       _emit function thrown;
@@ -201,7 +206,12 @@
       fnRef = ref (_name function);
       thrown = mkThrownUsage {
         ref = fnRef;
-        inherit message input signature example;
+        inherit
+          message
+          input
+          signature
+          example
+          ;
       };
     in
       addErrorContext "from call site" (throw (_emit function thrown));

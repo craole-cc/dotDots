@@ -14,7 +14,10 @@
     name = "zed-editor";
     kind = "editor";
     category = "gui";
-    resolutionHints = ["zeditor" "zed-editor"];
+    resolutionHints = [
+      "zeditor"
+      "zed-editor"
+    ];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
       # (import ./editor.nix)
