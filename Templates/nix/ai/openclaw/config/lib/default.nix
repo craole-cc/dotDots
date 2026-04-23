@@ -1,7 +1,7 @@
 # Module: lib/default.nix
 # Purpose: mkOpenClawConfig and mkSecureService helper functions.
 # Maintainer: openclaw-flake contributors
-{lib, ...}: {
+{lib}: {
   # Re-export all lib helpers as a single attrset.
   # Import as: `inputs.self.lib` or via blueprint's lib discovery.
   lib = {
