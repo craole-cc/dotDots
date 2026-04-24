@@ -54,9 +54,18 @@
     if paths ? libraries && pathExists paths.libraries
     then import paths.libraries {lib = lib';}
     else lib';
+
+  templates =
+    libraries.optionalAttrs
+    (paths ? templates && pathExists paths.templates)
+    import
+    paths.templates {
+      lib = libraries;
+      pkgs = nixpkgs;
+    };
 in {
-  inherit description system;
+  inherit description system templates;
   lib = libraries;
-  paths = {src = ./.;} // paths;
   pkgs = nixpkgs;
+  paths = {src = ./.;} // paths;
 }

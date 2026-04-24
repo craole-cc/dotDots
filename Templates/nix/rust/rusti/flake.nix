@@ -21,10 +21,10 @@
       inherit inputs;
       inherit (inputs.NixPackages) lib;
     };
-  in
-    src
-    // import src.paths.environment {
+    env = import src.paths.environment {
       inherit inputs;
       inherit (src) lib;
     };
+  in
+    src // env;
 }
