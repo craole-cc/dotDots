@@ -31,27 +31,9 @@ excludes = [
   "Templates/**",                              #TODO Temporary
 ]
 
-#|─────────────────────────────────────────────────────────────────────────────|
-#| Documentation                                                               |
-#|─────────────────────────────────────────────────────────────────────────────|
-
-[formatter.markdown]
-includes = ["*.md", "README"]
-command = "markdownlint-cli2"
-# options = ["--fix"]
-options = ["--fix", "--config", ".markdownlint.yaml"]
-priority = 1
-
-# [formatter.mdsh]
-# command = "mdsh"
-# excludes = []
-# includes = ["README.md"]
-# options = ["--inputs"]
-# priority = 2
-
-#|─────────────────────────────────────────────────────────────────────────────|
-#| Nix                                                                         |
-#|─────────────────────────────────────────────────────────────────────────────|
+#|─────────────────────────────────────────────────────────────────|
+#| Nix                                                             |
+#|─────────────────────────────────────────────────────────────────|
 
 # [formatter.nixfmt]
 # includes = ["*.nix"]
@@ -69,24 +51,24 @@ priority = 2
 command = "sh"
 options = ["-c", "for f in \"$@\"; do statix check \"$f\"; done"]
 
-#|─────────────────────────────────────────────────────────────────────────────|
-#| Rust                                                                        |
-#|─────────────────────────────────────────────────────────────────────────────|
+#|─────────────────────────────────────────────────────────────────|
+#| Rust                                                            |
+#|─────────────────────────────────────────────────────────────────|
 
 [formatter.rust]
 includes = ["*.rs"]
 priority = 1
 command = "rustfmt"
+options = ["--edition", "2024"]
 
 [formatter.leptosfmt]
 includes = ["*.rs"]
 priority = 2
 command = "leptosfmt"
 
-
-#|─────────────────────────────────────────────────────────────────────────────|
-#| Shellscript                                                                 |
-#|─────────────────────────────────────────────────────────────────────────────|
+#|─────────────────────────────────────────────────────────────────|
+#| Shellscript                                                     |
+#|─────────────────────────────────────────────────────────────────|
 
 [formatter.shellcheck]
 includes = [
@@ -136,6 +118,10 @@ options = [
 #   "Invoke-Formatter -ScriptDefinition (Get-Content -Raw $inputFile) | Set-Content -Path $outputFile",
 # ]
 
+#|─────────────────────────────────────────────────────────────────|
+#| Configuration                                                   |
+#|─────────────────────────────────────────────────────────────────|
+
 [formatter.toml]
 includes = ["*.toml"]
 command = "taplo"
@@ -144,6 +130,23 @@ options = ["format"]
 [formatter.stylua]
 includes = ["*.lua"]
 command = "stylua"
+
+#|─────────────────────────────────────────────────────────────────|
+#| Markup                                                          |
+#|─────────────────────────────────────────────────────────────────|
+
+[formatter.markdown]
+includes = ["*.md", "README"]
+command = "markdownlint-cli2"
+options = ["--fix", "--config", ".markdownlint.yaml"]
+priority = 1
+
+# [formatter.mdsh]
+# command = "mdsh"
+# excludes = []
+# includes = ["README.md"]
+# options = ["--inputs"]
+# priority = 2
 
 [formatter.deno]
 excludes = []

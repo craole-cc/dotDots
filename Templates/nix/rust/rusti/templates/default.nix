@@ -29,7 +29,7 @@
   all = {
     cargo = {
       source = ./cargo.toml;
-      target = "config/config.toml";
+      target = ".cargo/config.toml";
     };
     envrc = {
       source = ./.envrc;
