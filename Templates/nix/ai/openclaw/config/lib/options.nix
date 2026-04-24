@@ -9,12 +9,7 @@ in {
     inherit port;
 
     #? A log level enum.
-    logLevel = enum [
-      "debug"
-      "info"
-      "warn"
-      "error"
-    ];
+    logLevel = enum ["debug" "info" "warn" "error"];
 
     #? A TLS cipher suite string.
     cipherSuite = strMatching "[A-Z0-9_-]+";

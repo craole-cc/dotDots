@@ -19,10 +19,10 @@
         systems.follows = "systems";
       };
     };
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
+    # flake-parts = {
+    #   url = "github:hercules-ci/flake-parts";
+    #   inputs.nixpkgs-lib.follows = "nixpkgs";
+    # };
 
     #~@ Utilities
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -35,10 +35,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    devshell = {
-      url = "github:numtide/devshell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # devshell = {
+    #   url = "github:numtide/devshell";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     sops = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
