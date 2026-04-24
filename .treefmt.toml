@@ -36,10 +36,10 @@ excludes = [
 #|─────────────────────────────────────────────────────────────────────────────|
 
 [formatter.markdown]
-command = "markdownlint-cli2"
 includes = ["*.md", "README"]
-options = ["--fix"]
-# options = ["--fix", "--config", ".markdownlint.yaml"]
+command = "markdownlint-cli2"
+# options = ["--fix"]
+options = ["--fix", "--config", ".markdownlint.yaml"]
 priority = 1
 
 # [formatter.mdsh]
@@ -53,15 +53,21 @@ priority = 1
 #| Nix                                                                         |
 #|─────────────────────────────────────────────────────────────────────────────|
 
-[formatter.nixfmt]
-includes = ["*.nix"]
-priority = 1
-command = "nixfmt"
-
-# [formatter.alejandra]
+# [formatter.nixfmt]
 # includes = ["*.nix"]
 # priority = 1
-# command = "alejandra"=
+# command = "nixfmt"
+
+[formatter.alejandra]
+includes = ["*.nix"]
+priority = 1
+command = "alejandra"
+
+[formatter.statix]
+includes = ["*.nix"]
+priority = 2
+command = "statix"
+options = ["fix", "."]
 
 #|─────────────────────────────────────────────────────────────────────────────|
 #| Rust                                                                        |

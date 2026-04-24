@@ -10,7 +10,7 @@ toggle_quake() {
   sleep 0.1 # Brief settle
 
   #> Check if minimized (indirect via kdotool if available, or assume toggle)
-  if pidof foot >/dev/null 2>&1; then
+  if pidof foot > /dev/null 2>&1; then
     #> Focus & raise
     qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut "$SHORTCUT_RAISE"
   else

@@ -265,8 +265,9 @@
   #| Shell Configuration                                                         |
   #|─────────────────────────────────────────────────────────────────────────────|
   env = {
-    NIX_CONFIG = "experimental-features = nix-command flakes";
-    SYSTEM = "$(hostname)";
+    # NIX_CONFIG = "experimental-features = nix-command flakes";
+    # SYSTEM = "$(hostname)";
+    SYSTEM = system;
   };
 
   shellHook = ''

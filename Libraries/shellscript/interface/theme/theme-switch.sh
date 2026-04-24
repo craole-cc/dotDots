@@ -2,7 +2,7 @@
 # Time-based + manual theme toggle
 
 toggle_manual() {
-  CURRENT=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || echo "''")
+  CURRENT=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || echo "''")
   if [ "$CURRENT" = "'prefer-dark'" ]; then
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
     notify-send -u low "🌞 Light mode"
@@ -22,7 +22,7 @@ auto_time() {
 }
 
 case "$1" in
---toggle | -t) toggle_manual ;;
---auto | -a) auto_time ;;
-*) toggle_manual ;; # Default manual
+  --toggle | -t) toggle_manual ;;
+  --auto | -a) auto_time ;;
+  *) toggle_manual ;; # Default manual
 esac
