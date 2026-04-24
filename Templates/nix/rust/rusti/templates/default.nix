@@ -65,8 +65,8 @@
     in {inherit preferred string;};
   in ''
         ROOT="''${PRJ_ROOT:-$PWD}"
-        FULL_SOURCE="$ROOT/${source}"
-        FULL_PREFERRED="$ROOT/${target'.preferred}"
+        FULL_SOURCE="${source}"
+        FULL_PREFERRED="$ROOT/${target'.preferred}"\
         TARGET_LIST="${target'.string}"
 
         #> Ensure the source exists
