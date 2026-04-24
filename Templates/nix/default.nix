@@ -19,7 +19,7 @@ let
       else description;
   };
 
-  entries = {
+  templates = {
     common = mkTemplate {
       path = ./common;
       description = "Common development utilities";
@@ -42,4 +42,4 @@ let
       description = "Rust workspace with multiple crates";
     };
   };
-in {templates = entries // {default = entries.rusti;};}
+in templates // {default = templates.rusti;}

@@ -55,6 +55,7 @@
           common = base ++ ["common"];
           dev = base ++ ["dev"];
           media = base ++ ["media"];
+          full = base ++ ["full"];
         };
 
       lib = mkLangGroup ["Libraries"] {

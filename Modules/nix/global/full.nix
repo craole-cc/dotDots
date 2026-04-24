@@ -20,9 +20,9 @@
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| CLI Tools                                                                   |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|───────────────────────────────────────────────────────────────|
+  #| CLI Tools                                                     |
+  #|───────────────────────────────────────────────────────────────|
 
   commands.${dots.name} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
@@ -210,9 +210,9 @@
   in
     allCommands;
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Packages                                                                    |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|───────────────────────────────────────────────────────────────|
+  #| Packages                                                      |
+  #|───────────────────────────────────────────────────────────────|
 
   packages = with pkgs;
     [
@@ -244,6 +244,7 @@
       rust-script # ? Rust scripting
       rustc # ? Rust compiler
       starship # ? Cross-shell prompt
+      statix #? Lints and suggestions for nix
       tldr # ? Simplified man pages
       tokei # ? Code statistics tool
       typst # ? Modern LaTeX alternative
@@ -259,11 +260,15 @@
       wl-clipboard
       xsel
     ])
-    ++ (optionals allowAI (with (inputPkgs "llm-agents"); [codex])); # ? Linux clipboard tools
+    ++ (optionals allowAI (with (inputPkgs "llm-agents"); [
+      codex
+      claude-code-bin
+      perplexity-mcp
+    ])); # ? Linux clipboard tools
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Shell Configuration                                                         |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|───────────────────────────────────────────────────────────────|
+  #| Shell Configuration                                           |
+  #|───────────────────────────────────────────────────────────────|
   env = {
     # NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;

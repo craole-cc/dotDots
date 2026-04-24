@@ -583,14 +583,13 @@
   in {
     devShells = mkPerSystem (system: let
       for = channel: mkDevShell {inherit system channel;};
-
-      #? Selective shells: nix develop .#stable
-      nightly = for "nightly";
-      stable = for "stable";
-      beta = for "beta";
-    in {
-      inherit nightly stable beta;
-      default = nightly;
-    });
+      shells = {
+        #? Selective shells: nix develop .#stable
+        nightly = for "nightly";
+        stable = for "stable";
+        beta = for "beta";
+      };
+    in
+      shells // {default = shells.nightly;});
   };
 }

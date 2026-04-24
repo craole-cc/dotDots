@@ -5,12 +5,13 @@ project.
 
 ## Structure
 
-```
+```sh
 Packages/shared/
-├── default.nix    # Main entry point, orchestrates all shells
-├── dots.nix       # Primary development shell
-├── fmt.nix        # Code formatting and linting tools
-└── media.nix      # Media processing tools
+├── default.nix  #? Main entry point, orchestrates all shells
+├── fmt.nix      #? Code formatting and linting tools
+├── full.nix     #? Primary development shell
+├── media.nix    #? Media processing tools
+└── minimal.nix  #? Primary development shell
 ```
 
 ## Available Shells
@@ -95,47 +96,46 @@ dots = import ./dots.nix {
 
 1. Create a new file (e.g., `docs.nix`):
 
-```nix
-{pkgs}: let
-  packages = with pkgs; [
-    pandoc        # Universal document converter
-    typst         # Modern LaTeX alternative
-    imagemagick   # Image processing
-    poppler_utils # PDF utilities (pdfunite, pdfseparate)
-    qpdf          # PDF transformation
-  ];
+    ```nix
+    {pkgs}: let
+      packages = with pkgs; [
+        pandoc        # Universal document converter
+        typst         # Modern LaTeX alternative
+        imagemagick   # Image processing
+        poppler_utils # PDF utilities (pdfunite, pdfseparate)
+        qpdf          # PDF transformation
+      ];
 
-  shell = pkgs.mkShell {
-    name = "doc-tools";
-    inherit packages;
-  };
-in {
-  inherit packages shell;
-}
-```
+      shell = pkgs.mkShell {
+        name = "doc-tools";
+        inherit packages;
+      };
+    in {
+      inherit packages shell;
+    }
+    ```
 
 2. Import in `default.nix`:
 
-```nix
-docs = import ./docs.nix {inherit pkgs;};
-dots = import ./dots.nix {
-  # ...
-  docsPackages = docs.packages;
-};
-```
+    ```nix
+    docs = import ./docs.nix {inherit pkgs;};
+    dots = import ./dots.nix {
+      # ...
+      docsPackages = docs.packages;
+    };
+    ```
 
 3. Add to `dots.nix` parameters:
 
-```nix
-{
-  # ...
-  docsPackages ? [],
-  ...
-}: let
-  packages = with pkgs;
-    [...]
-    ++ docsPackages;  # Document processing tools
-```
+    ```nix
+    {
+      # ...
+      docsPackages ? [],
+      ...
+    }: let
+      packages = with pkgs;
+        [...] ++ docsPackages;  # Document processing tools
+    ```
 
 ### Other Good Examples
 
@@ -218,27 +218,27 @@ The `dots` shell generates command wrappers from the main Rust CLI:
 
 The `dots` shell configures:
 
-| Variable           | Description                                |
-| ------------------ | ------------------------------------------ |
-| `$HOSTNAME`        | Current system hostname                    |
-| `$HOSTTYPE`        | System architecture (e.g., `x86_64-linux`) |
-| `$DOTS_CACHE`      | Cache directory (default: `$DOTS/.cache`)  |
-| `$ENV_BIN`         | Binary cache directory                     |
-| `$DOTS_LOGS`       | Log directory                              |
-| `$DOTS_TMP`        | Temporary files directory                  |
-| `$STARSHIP_CONFIG` | Prompt configuration path                  |
+| Variable | Description |
+| --- | --- |
+| `$HOSTNAME` | Current system hostname |
+| `$HOSTTYPE` | System architecture (e.g., `x86_64-linux`) |
+| `$DOTS_CACHE` | Cache directory (default: `$DOTS/.cache`) |
+| `$ENV_BIN` | Binary cache directory |
+| `$DOTS_LOGS` | Log directory |
+| `$DOTS_TMP` | Temporary files directory |
+| `$STARSHIP_CONFIG` | Prompt configuration path |
 
 ## Development Workflow
 
 1. **Enter the shell**:
 
-   ```bash
+   ```sh
    nix develop
    ```
 
 2. **Use generated commands**:
 
-   ```bash
+   ```sh
    .rebuild  # Rebuild system
    .fmt      # Format code
    .check    # Run checks
@@ -246,14 +246,15 @@ The `dots` shell configures:
 
 3. **Access tools directly**:
 
-   ```bash
+   ```sh
    mpv video.mp4
    yt-dlp https://youtube.com/watch?v=...
    ffmpeg -i input.mp4 output.webm
    ```
 
 4. **Format on save** (if using direnv):
-   ```bash
+
+   ```sh
    echo "use flake" > .envrc
    direnv allow
    ```

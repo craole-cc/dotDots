@@ -19,12 +19,27 @@
       ;
     inherit (lix.modules.construction) mkFlake mkSystems;
     inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
+    templates = import tree.store.kit.nix;
+    nixosConfigurations = let
+      inputs = inputsWrapped.resolved;
+    in
+      mkSystems {
+        inherit schema tree inputs;
+        extraArgs = {
+          inherit
+            inputs
+            inputsWrapped
+            lix
+            top
+            ;
+        };
+      };
   in
     mkFlake {
       inherit legacyPackages;
       fn = {
-        system,
         pkgs,
+        system ? pkgs.stdenv.hostPlatform.system,
       }:
         (import tree.store.mod.global {
           inherit
@@ -36,42 +51,8 @@
             ;
           inputs = inputsWrapped.resolved;
         })
-        // (import tree.store.kit.default)
-        // {
-          nixosConfigurations = let
-            inputs = inputsWrapped.resolved;
-          in
-            mkSystems {
-              inherit schema tree inputs;
-              extraArgs = {
-                inherit
-                  inputs
-                  inputsWrapped
-                  lix
-                  top
-                  ;
-              };
-            };
-        };
+        // {inherit nixosConfigurations templates;};
     };
-  # {
-  #   inherit
-  #     (import tree.store.mod.global {
-  #       inherit
-  #         path
-  #         lib
-  #         lix
-  #         pkgs
-  #         system
-  #         ;
-  #       inputs = inputsWrapped.resolved;
-  #     })
-  #     devShells
-  #     formatter
-  #     checks
-  #     ;
-  # };
-  # }
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";

@@ -7,9 +7,11 @@
     actionlint
     alejandra
     deno
-    prettierd
     dos2unix
+    leptosfmt #? Formatter for the leptos view! macro
     markdownlint-cli2
+    nixfmt
+    prettierd
     rustfmt
     shellcheck
     shfmt
@@ -28,10 +30,7 @@ in {
   formatters = formatters ++ [treefmtWrapper];
   formatter = treefmtWrapper;
   checks.formatting =
-    runCommand "check-formatting"
-    {
-      buildInputs = formatters;
-    }
+    runCommand "check-formatting" {buildInputs = formatters;}
     ''
       export TMPDIR=$(mktemp -d)
       cd $TMPDIR

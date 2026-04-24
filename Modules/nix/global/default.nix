@@ -99,6 +99,4 @@
       configs;
   in
     shells // {default = shells.full;};
-in {
-  inherit checks devShells formatter;
-}
+in {inherit checks devShells formatter;}

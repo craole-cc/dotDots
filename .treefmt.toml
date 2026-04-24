@@ -66,17 +66,22 @@ command = "alejandra"
 [formatter.statix]
 includes = ["*.nix"]
 priority = 2
-command = "statix"
-options = ["fix", "."]
+command = "sh"
+options = ["-c", "for f in \"$@\"; do statix check \"$f\"; done"]
 
 #|─────────────────────────────────────────────────────────────────────────────|
 #| Rust                                                                        |
 #|─────────────────────────────────────────────────────────────────────────────|
 
 [formatter.rust]
-command = "rustfmt"
 includes = ["*.rs"]
 priority = 1
+command = "rustfmt"
+
+[formatter.leptosfmt]
+includes = ["*.rs"]
+priority = 2
+command = "leptosfmt"
 
 
 #|─────────────────────────────────────────────────────────────────────────────|
@@ -93,9 +98,9 @@ includes = [
   "Bin/shellscript/**",
 ]
 excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
+priority = 1
 command = "shellcheck"
 options = ["--rcfile", ".shellcheckrc"]
-priority = 1
 
 [formatter.shfmt]
 includes = [
@@ -109,6 +114,7 @@ includes = [
   # "Bin/shellscript/**",
 ]
 excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
+priority = 2
 command = "shfmt"
 options = [
   "--apply-ignore",
@@ -120,7 +126,6 @@ options = [
   "--posix",
   "--write",
 ]
-priority = 2
 
 # [formatter.powershell]
 # includes = ["*.ps1", "*.psm1, *.psd1"]
@@ -132,22 +137,15 @@ priority = 2
 # ]
 
 [formatter.toml]
-includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
+includes = ["*.toml"]
 command = "taplo"
 options = ["format"]
 
 [formatter.stylua]
-command = "stylua"
 includes = ["*.lua"]
-
-[formatter.actionlint]
-command = "actionlint"
-excludes = []
-includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
-options = []
+command = "stylua"
 
 [formatter.deno]
-command = "deno"
 excludes = []
 includes = [
   "*.css",
@@ -157,8 +155,8 @@ includes = [
   "*.jsonc",
   "*.jsx",
   "*.less",
-  # "*.markdown",
-  # "*.md",
+  "*.markdown",
+  "*.md",
   "*.sass",
   "*.scss",
   "*.ts",
@@ -166,9 +164,23 @@ includes = [
   "*.yaml",
   "*.yml",
 ]
+priority = 2
+command = "deno"
 options = ["fmt"]
 
 [formatter.yamlfmt]
 includes = ["*.yaml", "*.yml"]
+priority = 1
 command = "yamlfmt"
 options = ["-formatter", "retain_line_breaks=true"]
+
+[formatter.actionlint]
+includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+excludes = []
+priority = 2
+command = "actionlint"
+options = []
+
+[formatter.typstyle]
+includes = ["*.typ", "*.typst"]
+command = "typstyle"
