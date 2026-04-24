@@ -266,15 +266,14 @@
   #|─────────────────────────────────────────────────────────────────────────────|
   env = {
     # NIX_CONFIG = "experimental-features = nix-command flakes";
-    # SYSTEM = "$(hostname)";
     SYSTEM = system;
   };
 
   shellHook = ''
     #> Determine host info dynamically
-    HOSTNAME="$(hostname)"
-    HOSTTYPE="${system}"
-    export HOSTNAME HOSTTYPE
+    HOST_NAME="$(hostname)"
+    HOST_TYPE="${system}"
+    export HOST_NAME HOST_TYPE
 
     #> Ensure DOTS is setand available for use
     DOTS="$(pwd -P)"
