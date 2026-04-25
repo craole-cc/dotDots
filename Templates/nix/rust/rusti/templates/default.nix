@@ -89,30 +89,30 @@
     $TARGET_LIST
     EOF
 
-        #> Move existing non-preferred to preferred
-        if [ -n "$EXISTING_TARGET" ]; then
-          case "$EXISTING_TARGET" in
-            "$FULL_PREFERRED") ;;
-            *)
-              ${print.warning} "Moving $EXISTING_TARGET → $FULL_PREFERRED" >&2
-              mv "$EXISTING_TARGET" "$FULL_PREFERRED"
-              chmod u+w "$FULL_PREFERRED"
-              ;;
-          esac
-        fi
+    #> Move existing non-preferred to preferred
+    if [ -n "$EXISTING_TARGET" ]; then
+      case "$EXISTING_TARGET" in
+        "$FULL_PREFERRED") ;;
+        *)
+          ${print.warning} "Moving $EXISTING_TARGET → $FULL_PREFERRED" >&2
+          mv "$EXISTING_TARGET" "$FULL_PREFERRED"
+          chmod u+w "$FULL_PREFERRED"
+          ;;
+      esac
+    fi
 
-        #> Deploy/update preferred target
-        if [ ! -f "$FULL_PREFERRED" ]; then
-          ${print.success} "Deploying $FULL_SOURCE → $FULL_PREFERRED" >&2
-          cp "$FULL_SOURCE" "$FULL_PREFERRED"
-          chmod u+w "$FULL_PREFERRED"
-        elif ! cmp -s "$FULL_SOURCE" "$FULL_PREFERRED"; then
-          ${print.info} "Updating $FULL_PREFERRED" >&2
-          cp "$FULL_SOURCE" "$FULL_PREFERRED"
-          chmod u+w "$FULL_PREFERRED"
-        else
-          ${print.success} "Already up-to-date: $FULL_PREFERRED" >&2
-        fi
+    #> Deploy/update preferred target
+    if [ ! -f "$FULL_PREFERRED" ]; then
+      ${print.success} "Deploying $FULL_SOURCE → $FULL_PREFERRED" >&2
+      cp "$FULL_SOURCE" "$FULL_PREFERRED"
+      chmod u+w "$FULL_PREFERRED"
+    elif ! cmp -s "$FULL_SOURCE" "$FULL_PREFERRED"; then
+      ${print.info} "Updating $FULL_PREFERRED" >&2
+      cp "$FULL_SOURCE" "$FULL_PREFERRED"
+      chmod u+w "$FULL_PREFERRED"
+    else
+      ${print.success} "Already up-to-date: $FULL_PREFERRED" >&2
+    fi
   '';
 
   deployTemplates = concatStringsSep "\n" (
