@@ -1,4 +1,5 @@
 {lib}: let
+  inherit (lib.trivial) isNotEmpty;
   /**
   Build the Rust-focused shell specification.
 
@@ -33,10 +34,8 @@
     inherit (lib.attrsets) optionalAttrs;
     inherit (lib.lists) optionals;
     inherit (lib.packages) mkRust;
-    inherit (pkgs.stdenv) isDarwin;
 
-    name = "rust-${channel}";
-    rust = mkRust {
+    variant = mkRust {
       inherit
         pkgs
         channel
@@ -44,7 +43,14 @@
         extensions
         ;
     };
-    tools = with pkgs;
+
+    # name =
+    #   if isNotEmpty channel
+    #   then "rust-${channel}"
+    #   else "rust-shell";
+
+
+    # tools = with pkgs;
       {
         inherit
           #~@ Build Essentials
@@ -83,44 +89,44 @@
         inherit (jetbrains) rust-rover;
       };
     env = {};
-    packages = with pkgs;
-      [
-        #~@ Build Essentials
-        gcc
-        #~@ Development
-        cargo-leptos
-        trunk
-        binaryen
-        #~@ Build & Watch
-        cargo-watch
-        cargo-make
-        bacon
-        #~@ Dependencies & Security
-        cargo-edit
-        cargo-outdated
-        cargo-audit
-        cargo-deny
-        #~@ Performance & Analysis
-        cargo-flamegraph
-        cargo-bloat
-        cargo-expand
-        #~@ Testing & Quality
-        cargo-nextest
-        cargo-tarpaulin
-        #~@ Formatting
-        leptosfmt
-        markdownlint-cli2
-        prettierd
-        rustfmt
-        taplo
-        treefmt
-        yamlfmt
-      ]
-      ++ optionals includeEditor [
-        helix
-        jetbrains.rust-rover
-      ]
-      ++ optionals isDarwin [libiconv];
+    # packages = with pkgs;
+    #   [
+    #     #~@ Build Essentials
+    #     gcc
+    #     #~@ Development
+    #     cargo-leptos
+    #     trunk
+    #     binaryen
+    #     #~@ Build & Watch
+    #     cargo-watch
+    #     cargo-make
+    #     bacon
+    #     #~@ Dependencies & Security
+    #     cargo-edit
+    #     cargo-outdated
+    #     cargo-audit
+    #     cargo-deny
+    #     #~@ Performance & Analysis
+    #     cargo-flamegraph
+    #     cargo-bloat
+    #     cargo-expand
+    #     #~@ Testing & Quality
+    #     cargo-nextest
+    #     cargo-tarpaulin
+    #     #~@ Formatting
+    #     leptosfmt
+    #     markdownlint-cli2
+    #     prettierd
+    #     rustfmt
+    #     taplo
+    #     treefmt
+    #     yamlfmt
+    #   ]
+    #   ++ optionals includeEditor [
+    #     helix
+    #     jetbrains.rust-rover
+    #   ]
+    #   ++ optionals isDarwin [libiconv];
     shellHook = ''
 
     '';
@@ -129,9 +135,11 @@
       kind = "rust";
       inherit
         channel
-        rust
+        env
+        packages
+        shellHook
         tools
-        pkgs
+        variant
         ;
     };
 
