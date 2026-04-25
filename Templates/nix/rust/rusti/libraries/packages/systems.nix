@@ -1,33 +1,41 @@
 {lib}: let
   inherit (lib.lists) elem head;
 
-  supportedSystems = {
-    systems ? [
-      "x86_64-linux"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ],
+  defaultSystems = [
+    "x86_64-linux"
+    "aarch64-linux"
+    "x86_64-darwin"
+    "aarch64-darwin"
+  ];
+
+  getSystem = {pkgs ? null}:
+    if pkgs ? stdenv.hostPlatform.system
+    then pkgs.stdenv.hostPlatform.system
+    else builtins.currentSystem or
+        throw "getSystem: pass `pkgs` or run outside --pure-eval";
+
+  getSystemOrDefault = {
+    pkgs ? null,
+    systems ? defaultSystems,
   }:
-    systems;
+    if pkgs ? stdenv.hostPlatform.system
+    then pkgs.stdenv.hostPlatform.system
+    else builtins.currentSystem or (head systems);
 
-  currentSystem =
-    builtins.currentSystem or (head (supportedSystems {}));
-
+  defineSystems = {systems ? defaultSystems}: systems;
   defineSystem = {
-    system ? currentSystem,
-    systems ? supportedSystems {},
+    system ? getSystemOrDefault {},
+    systems ? defineSystems {},
   }:
     if elem system systems
     then system
     else throw "Unsupported system: ${system}";
-
-  getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
 in {
   inherit
+    defaultSystems
     defineSystem
-    currentSystem
-    supportedSystems
+    defineSystems
     getSystem
+    getSystemOrDefault
     ;
 }

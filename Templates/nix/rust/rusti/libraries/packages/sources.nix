@@ -1,7 +1,7 @@
 {lib}: let
-  inherit (lib.attrsets) genAttrs isAttrs;
+  inherit (lib.attrsets) genAttrs isAttrs optionalAttrs;
   inherit (lib.lists) findFirst;
-  inherit (lib.packages) currentSystem supportedSystems;
+  inherit (lib.packages) getSystemOrDefault defineSystems;
   inherit (lib.strings) isString isPath;
   inherit (lib.trivial) isFunction isNotEmpty isEmpty;
 
@@ -23,17 +23,22 @@
   A `pkgs` set imported from `inputs.NixPackages` with the project overlays applied.
   */
   mkPkgs = {
-    inputs ? {},
-    system ? currentSystem,
+    inputs ? null,
+    system ? null,
     extraOverlays ? [],
   }: let
     packages = resolvePackages inputs;
+
+    system' =
+      if isNotEmpty system
+      then system
+      else getSystemOrDefault;
   in
-    if inputs == {}
+    if isEmpty inputs
     then import <nixpkgs> {inherit system;}
     else
       import packages.nix {
-        inherit system;
+        system = system';
         overlays =
           [
             (resolveOverlay packages.ai)
@@ -45,19 +50,20 @@
       };
 
   mkPkgsPerSystem = {inputs, ...}:
-    (genAttrs (supportedSystems {})) (
+    (genAttrs (defineSystems {})) (
       system: mkPkgs {inherit inputs system;}
     );
 
   parseInput = {
-    inputs,
+    inputs ? null,
     names,
     error ? "",
   }: let
-    foundName = findFirst (name: inputs ? ${name}) null names;
+    inputs' = optionalAttrs (inputs != null) inputs;
+    foundName = findFirst (name: inputs' ? ${name}) null names;
     result =
       if foundName != null
-      then inputs.${foundName}
+      then inputs'.${foundName}
       else null;
   in
     if (isEmpty result) && (isNotEmpty error)
@@ -88,7 +94,8 @@
   # Returns
   - An attribute set containing resolved package inputs or null if not found.
   */
-  resolvePackages = inputs: {
+  resolvePackages = inputs: let
+  in {
     nix = parseInput {
       inherit inputs;
       names = [
@@ -141,8 +148,8 @@
   resolveOverlay = input: let
     noop = _: _: {};
   in
-    #? 1. Immediate Safety: If it's null, we're done.
-    if input == null
+    #? 1. Immediate Safety
+    if isEmpty input
     then noop
     #? 2. Check for Modern Flake Overlay (overlays.default)
     else if isAttrs input

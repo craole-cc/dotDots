@@ -4,9 +4,9 @@ libraries/shells/build.nix
 Shell finalization helpers for lib.shells.
 */
 {lib}: let
-  inherit (lib.attrsets) attrNames attrValues isDerivation mapAttrs optionalAttrs;
-  inherit (lib.packages) currentSystem mkPkgsPerSystem mkPkgs;
-  inherit (lib.lists) filter findFirst optionals;
+  inherit (lib.attrsets) attrNames attrValues isDerivation mapAttrs;
+  inherit (lib.packages) mkPkgsPerSystem mkPkgs;
+  inherit (lib.lists) filter findFirst;
   inherit (lib.strings) isString concatStringsSep;
   inherit (lib.trivial) isNotEmpty;
 
@@ -15,7 +15,7 @@ Shell finalization helpers for lib.shells.
 
   # Type
   ```nix
-  mkShell :: { pkgs :: AttrSet; spec :: AttrSet; } -> derivation
+  mkShell :: { pkgs :: AttrSet; args :: AttrSet; } -> derivation
   ```
 
   # Examples
@@ -32,14 +32,15 @@ Shell finalization helpers for lib.shells.
   ```
   */
   mkShell = {
-    pkgs ? null,
-    inputs ? {},
-    system ? currentSystem,
-    shell ? {},
-    name ? "",
-    packages ? [],
+    args ? {},
     env ? {},
+    inputs ? null,
+    name ? "nix-dev",
+    packages ? [],
+    pkgs ? null,
+    shell ? {},
     shellHook ? "",
+    system ? null,
     ...
   }: let
     #? Performance note: We use null-check here because pkgs can be huge.
@@ -50,22 +51,11 @@ Shell finalization helpers for lib.shells.
       else mkPkgs {inherit inputs system;};
 
     #> Recursively update or manual merge preserve data.
-    args =
-      shell
+    args' =
+      {inherit name packages env;}
+      // args
+      // shell
       // {
-        name =
-          if isNotEmpty name
-          then name
-          else (shell.name or "nix-dev");
-
-        packages =
-          (shell.packages or [])
-          ++ (optionals (isNotEmpty packages) packages);
-
-        env =
-          (shell.env or {})
-          // (optionalAttrs (isNotEmpty env) env);
-
         #> Combine hooks rather than overwriting them
         #? Filtering out empty strings and joining with a newline.
         shellHook = concatStringsSep "\n" (
@@ -76,45 +66,43 @@ Shell finalization helpers for lib.shells.
         );
       };
   in
-    pkgs'.mkShell args;
+    pkgs'.mkShell args';
 
   mkShells = {
+    default ? null,
     inputs ? {},
     shells ? {},
-    default ? null,
   }:
   #> Iterate over all systems, generating native pkgs for each (Linux & Mac compatibility)
     mapAttrs (
       system: pkgs: let
-        # This helper ensures every shell gets the correct pkgs and system context
-        processShell = shellSpec:
-          if isDerivation shellSpec
-          then shellSpec
-          else
-            mkShell {
-              inherit pkgs inputs system;
-              shell = shellSpec;
-            };
+        #? Ensures each shell gets the correct pkgs and system context
+        processShell = shell:
+          if isDerivation shell
+          then shell
+          else mkShell {inherit pkgs inputs system shell;};
 
         processedShells = mapAttrs (_: processShell) shells;
-
-        resolvedDefault =
-          if default == null
-          then let
-            found = findFirst isDerivation null (attrValues processedShells);
-          in
-            if found == null
-            then throw "mkShells: no shells defined and no default provided."
-            else found
-          else if isString default
-          then
-            processedShells.${
-              default
-            } or (throw ''
-              mkShells: default shell '${default}' not found.
-              Available: ${concatStringsSep ", " (attrNames processedShells)}'')
-          else processShell default;
       in
-        processedShells // {default = resolvedDefault;}
+        processedShells
+        // {
+          default =
+            if default == null
+            then let
+              found = findFirst isDerivation null (attrValues processedShells);
+            in
+              if found != null
+              then found
+              else throw "mkShells: no shells defined and no default provided."
+            else if isString default
+            then
+              processedShells.${
+                default
+              } or (throw ''
+                mkShells: default shell '${default}' not found.
+                Available: ${concatStringsSep ", " (attrNames processedShells)}
+              '')
+            else processShell default;
+        }
     ) (mkPkgsPerSystem {inherit inputs;});
 in {inherit mkShell mkShells;}

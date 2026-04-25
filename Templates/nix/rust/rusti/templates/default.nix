@@ -60,14 +60,14 @@
       targets = toList target;
       toLine = t: "${t}";
       lines = map toLine targets;
-      string = concatStringsSep "\n" lines;
+      list = concatStringsSep "\n" lines;
       preferred = head targets;
-    in {inherit preferred string;};
+    in {inherit preferred list;};
   in ''
         ROOT="''${PRJ_ROOT:-$PWD}"
         FULL_SOURCE="${source}"
         FULL_PREFERRED="$ROOT/${target'.preferred}"\
-        TARGET_LIST="${target'.string}"
+        TARGET_LIST="${target'.list}"
 
         #> Ensure the source exists
         if [ ! -f "$FULL_SOURCE" ]; then

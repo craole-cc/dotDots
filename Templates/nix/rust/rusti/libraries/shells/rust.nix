@@ -35,6 +35,7 @@
     inherit (lib.packages) mkRust;
     inherit (pkgs.stdenv) isDarwin;
 
+    name = "rust-${channel}";
     rust = mkRust {
       inherit
         pkgs
@@ -81,7 +82,7 @@
         inherit helix;
         inherit (jetbrains) rust-rover;
       };
-
+    env = {};
     packages = with pkgs;
       [
         #~@ Build Essentials
@@ -120,6 +121,9 @@
         jetbrains.rust-rover
       ]
       ++ optionals isDarwin [libiconv];
+    shellHook = ''
+
+    '';
   in {
     __meta = {
       kind = "rust";
@@ -131,13 +135,6 @@
         ;
     };
 
-    shell = {
-      name = "rust-${channel}";
-      packages = packages ++ optionals isDarwin [pkgs.libiconv];
-      # env = env;
-      shellHook = "";
-    };
+    shell = {inherit name packages env shellHook;};
   };
-in {
-  inherit mkRustSpec;
-}
+in {inherit mkRustSpec;}
