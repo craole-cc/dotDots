@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.trivial) pathExists;
+  inherit (lib.trivial) toTOML readFile pathExists;
   /**
   Select a rust-overlay toolchain derivation.
 
@@ -33,43 +33,69 @@
     channel ? null,
     targets ? null,
     extensions ? null,
-    toolchainFile ? null,
+    toolchain ? null,
   }: let
-    package = pkgs.rust-bin;
+    resolved = {
+      toolchain = {
+        file = let
+          root = ../../rust-toolchain.toml;
+          template = ../../templates/rust-toolchain.toml;
+        in
+          if toolchain != null && pathExists toolchain
+          then toolchain
+          else if pathExists root
+          then root
+          else if pathExists template
+          then template
+          else null;
 
-    toolchain = {
-      root = ../../rust-toolchain.toml;
-      template = ../../templates/rust-toolchain.toml;
-    };
-  in
-    if toolchainFile != null && pathExists toolchainFile
-    then package.fromRustupToolchainFile toolchainFile
-    else if pathExists toolchain.root
-    then package.fromRustupToolchainFile toolchain.root
-    else if pathExists toolchain.template
-    then package.fromRustupToolchainFile toolchain.template
-    else
-      package.${
-        if channel != null
-        then channel
-        else "nightly"
-      }.latest.default.override {
-        targets =
-          if targets != null
-          then targets
-          else ["wasm32-unknown-unknown"];
-        extensions =
-          if extensions != null
-          then extensions
-          else [
-            "cargo"
-            "clippy"
-            "rust-analyzer"
-            "rust-docs"
-            "rust-src"
-            "rust-std"
-            "rustc"
-            "rustfmt"
-          ];
+        channel = let
+          fromFile =
+            if resolved.toolchain.file != null
+            then (fromTOML (readFile resolved.toolchain.file)).toolchain.channel or null
+            else null;
+        in
+          if fromFile != null
+          then fromFile
+          else if channel != null
+          then channel
+          else "nightly";
+
+        source =
+          if resolved.toolchain.file != null
+          then "file"
+          else "string";
       };
+
+      package = let
+        rust = pkgs.rust-bin;
+      in
+        if resolved.toolchain.file != null
+        then rust.fromRustupToolchainFile resolved.toolchain.file
+        else
+          rust.${resolved.channel}.latest.default.override {
+            targets =
+              if targets != null
+              then targets
+              else ["wasm32-unknown-unknown"];
+            extensions =
+              if extensions != null
+              then extensions
+              else [
+                "cargo"
+                "clippy"
+                "rust-analyzer"
+                "rust-docs"
+                "rust-src"
+                "rust-std"
+                "rustc"
+                "rustfmt"
+              ];
+          };
+    };
+  in {
+    kind = "rust";
+    inherit (resolved) package toolchain;
+    inherit (resolved.package) version system paths;
+  };
 in {inherit mkRust;}

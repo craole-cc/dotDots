@@ -10,8 +10,8 @@
   },
   lib ? null,
   inputs ? null,
-  system ? builtins.currentSystem or "x86_64-linux",
-  config ? {allowUnfree = true;},
+  system ? null,
+  config ? null,
 }: let
   inherit (builtins) hasAttr head isAttrs pathExists tail;
   findFirst = names: set:
@@ -39,7 +39,16 @@
         ]
         inputs
       else null;
-    cfg = {inherit system config;};
+    cfg = {
+      config =
+        if config != null
+        then config
+        else {allowUnfree = true;};
+      system =
+        if system != null
+        then system
+        else builtins.currentSystem or "x86_64-linux";
+    };
   in
     if name != null
     then import inputs.${name} cfg
@@ -54,6 +63,9 @@
     if paths ? libraries && pathExists paths.libraries
     then import paths.libraries {lib = lib';}
     else lib';
+  inherit (libraries.packages) mkPkgs getSystemOrDefault;
+
+  packages = mkPkgs {inherit inputs;};
 
   templates =
     libraries.optionalAttrs
@@ -61,11 +73,12 @@
     import
     paths.templates {
       lib = libraries;
-      pkgs = nixpkgs;
+      pkgs = packages;
     };
 in {
-  inherit description system templates;
-  lib = libraries;
-  pkgs = nixpkgs;
+  inherit description templates;
   paths = {src = ./.;} // paths;
+  lib = libraries;
+  pkgs = packages;
+  system = getSystemOrDefault {pkgs = packages;};
 }

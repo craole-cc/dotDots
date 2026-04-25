@@ -1,5 +1,9 @@
 {lib}: let
-  inherit (lib.trivial) isNotEmpty;
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.lists) optionals;
+  inherit (lib.packages) mkRust;
+  inherit (lib.strings) concatStringsSep;
+  inherit (lib.trivial) isEmpty;
   /**
   Build the Rust-focused shell specification.
 
@@ -31,11 +35,7 @@
     extensions ? null,
     includeEditor ? true,
   }: let
-    inherit (lib.attrsets) optionalAttrs;
-    inherit (lib.lists) optionals;
-    inherit (lib.packages) mkRust;
-
-    variant = mkRust {
+    rust = mkRust {
       inherit
         pkgs
         channel
@@ -44,105 +44,98 @@
         ;
     };
 
-    # name =
-    #   if isNotEmpty channel
-    #   then "rust-${channel}"
-    #   else "rust-shell";
+    name =
+      if isEmpty channel
+      then concatStringsSep "-" [rust.kind rust.toolchain.channel]
+      else "rust-${channel}";
 
+    env = let
+      ch = rust.toolchain.channel;
+    in {
+      # rust-analyzer needs this; rust-src is included in the derivation
+      RUST_SRC_PATH = "${rust.package}/lib/rustlib/src/rust/library";
 
-    # tools = with pkgs;
-      {
-        inherit
-          #~@ Build Essentials
-          gcc
-          #~@ Development
-          cargo-leptos
-          trunk
-          binaryen
-          #~@ Build & Watch
-          cargo-watch
-          cargo-make
-          bacon
-          #~@ Dependencies & Security
-          cargo-edit
-          cargo-outdated
-          cargo-audit
-          cargo-deny
-          #~@ Performance & Analysis
-          cargo-flamegraph
-          cargo-bloat
-          cargo-expand
-          #~@ Testing & Quality
-          cargo-nextest
-          cargo-tarpaulin
-          #~@ Formatting
-          leptosfmt
-          rustfmt
-          taplo
-          treefmt
-          yamlfmt
-          ;
-      }
-      // optionalAttrs includeEditor {
-        #~@ Editor
-        inherit helix;
-        inherit (jetbrains) rust-rover;
-      };
-    env = {};
-    # packages = with pkgs;
-    #   [
-    #     #~@ Build Essentials
-    #     gcc
-    #     #~@ Development
-    #     cargo-leptos
-    #     trunk
-    #     binaryen
-    #     #~@ Build & Watch
-    #     cargo-watch
-    #     cargo-make
-    #     bacon
-    #     #~@ Dependencies & Security
-    #     cargo-edit
-    #     cargo-outdated
-    #     cargo-audit
-    #     cargo-deny
-    #     #~@ Performance & Analysis
-    #     cargo-flamegraph
-    #     cargo-bloat
-    #     cargo-expand
-    #     #~@ Testing & Quality
-    #     cargo-nextest
-    #     cargo-tarpaulin
-    #     #~@ Formatting
-    #     leptosfmt
-    #     markdownlint-cli2
-    #     prettierd
-    #     rustfmt
-    #     taplo
-    #     treefmt
-    #     yamlfmt
-    #   ]
-    #   ++ optionals includeEditor [
-    #     helix
-    #     jetbrains.rust-rover
-    #   ]
-    #   ++ optionals isDarwin [libiconv];
+      # Nightly allows -Z flags; expose that clearly
+      RUSTFLAGS =
+        if ch == "nightly"
+        then "-Z macro-backtrace"
+        else "";
+
+      # More verbose backtraces on nightly (dev ergonomics)
+      RUST_BACKTRACE =
+        if ch == "stable"
+        then "0"
+        else "1";
+    };
+
+    packages = let
+      base = with pkgs; [
+        #~@ Build Essentials
+        gcc
+        #~@ Development
+        cargo-leptos
+        trunk
+        binaryen
+        #~@ Build & Watch
+        cargo-watch
+        cargo-make
+        bacon
+        #~@ Dependencies & Security
+        cargo-edit
+        cargo-outdated
+        cargo-audit
+        cargo-deny
+        #~@ Performance & Analysis
+        cargo-flamegraph
+        cargo-bloat
+        cargo-expand
+        #~@ Testing & Quality
+        cargo-nextest
+        cargo-tarpaulin
+        #~@ Formatting
+        leptosfmt
+        markdownlint-cli2
+        prettierd
+        # deno
+        rustfmt
+        taplo
+        treefmt
+        yamlfmt
+      ];
+
+      nightly = with pkgs;
+        optionals (ch == "nightly") [
+          cargo-careful #? runs tests under strict undefined-behaviour checks
+        ];
+
+      editor = optionals includeEditor (with pkgs; [
+        helix
+        jetbrains.rust-rover
+      ]);
+
+      darwin = optionals pkgs.stdenv.isDarwin (with pkgs; [
+        libiconv
+      ]);
+    in
+      base ++ nightly ++ editor ++ darwin;
+
     shellHook = ''
 
     '';
   in {
-    __meta = {
-      kind = "rust";
-      inherit
-        channel
-        env
-        packages
-        shellHook
-        tools
-        variant
-        ;
-    };
+    __meta =
+      rust
+      // {
+        inherit
+          name
+          # channel
+          env
+          # packages
+          shellHook
+          # tools
+          ;
+      };
 
-    shell = {inherit name packages env shellHook;};
+    # shell = {inherit name packages env shellHook;};
   };
 in {inherit mkRustSpec;}
