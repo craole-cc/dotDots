@@ -32,10 +32,10 @@
     system' =
       if isNotEmpty system
       then system
-      else getSystemOrDefault;
+      else getSystemOrDefault {};
   in
     if isEmpty inputs
-    then import <nixpkgs> {inherit system;}
+    then import <nixpkgs> {system = system';}
     else
       import packages.nix {
         system = system';
