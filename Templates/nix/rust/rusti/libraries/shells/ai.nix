@@ -68,12 +68,8 @@
         minimal = with pkg; [default];
         common =
           minimal
-          ++ (with pkg; [
-            codex
-            claude-code
-            qwen-code
-            openclaw
-          ]);
+          ++ (with pkgs'; [ollama])
+          ++ (with pkg; [codex claude-code]);
         agents = with pkg; [
           claude-code
           codex
@@ -91,6 +87,7 @@
         google = with pkg; [gemini-cli];
         openai = with pkg; [
           codex
+          code
           codex-acp
           copilot-cli
           copilot-language-server
@@ -107,7 +104,7 @@
           mistral-vibe
           cursor-agent
         ];
-        full = agents ++ assistants ++ vibe;
+        full = minimal ++ agents ++ assistants ++ anthropic ++ openai + vibe;
       in
         {
           inherit
