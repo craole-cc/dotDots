@@ -1,9 +1,9 @@
 {lib}: let
   inherit (lib.attrsets) attrNames mapAttrsToList;
-  inherit (lib.strings) concatLines;
+  inherit (lib.strings) concatLines escapeShellArg;
 
   mkEnvLines = env:
-    concatLines (mapAttrsToList (name: value: "${name}=${value}") env);
+    concatLines (mapAttrsToList (name: value: "${name}=${escapeShellArg value}") env);
 
   mkScriptPackage = {
     pkgs,

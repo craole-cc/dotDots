@@ -53,6 +53,19 @@
       name = "rust-command";
       file = ../../scripts/rust-command.sh;
     };
+    rustWelcome = scripts.mkScriptPackage {
+      pkgs = pkgs';
+      name = "rust-welcome";
+      file = ../../scripts/rust-welcome.sh;
+      env = {
+        GUM = "${pkgs'.gum}/bin/gum";
+        RUST_CHANNEL = rust.toolchain.channel;
+        RUST_TOOLCHAIN_FILE =
+          if rust.toolchain.file != null
+          then toString rust.toolchain.file
+          else "<channel>";
+      };
+    };
     missionControl = scripts.mkMissionControl {
       pkgs = pkgs';
       shellName = name;
@@ -196,15 +209,7 @@
     #> Shell hook includes auto-deployment of templates
     shellHook = ''
       ${templates.command}
-
-      printf "🦀 Rust"
-      ${
-        optionalString (rust.toolchain.source == "file")
-        ''printf "  Toolchain: %s\n" "${toString rust.toolchain.file}"''
-      }
-      printf "    Channel: %s\n" "${rust.toolchain.channel}"
-      printf "    Version: %s\n" "${rust.version}"
-      printf "   Commands: mission-control list\n"
+      ${rustWelcome}/bin/rust-welcome
     '';
     shell = {
       inherit name env shellHook;
@@ -214,6 +219,7 @@
           templates.deployPackage
           templates.resetPackage
           rustCommand
+          rustWelcome
           missionControl
           commandsAlias
           mcAlias

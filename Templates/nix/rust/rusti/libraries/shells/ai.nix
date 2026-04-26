@@ -70,6 +70,15 @@
       name = "ai-command";
       file = ../../scripts/ai-command.sh;
     };
+    aiWelcome = scripts.mkScriptPackage {
+      pkgs = pkgs';
+      name = "ai-welcome";
+      file = ../../scripts/ai-welcome.sh;
+      env = {
+        AI_PRESET = preset';
+        GUM = "${pkgs'.gum}/bin/gum";
+      };
+    };
     missionControl = scripts.mkMissionControl {
       pkgs = pkgs';
       shellName = name;
@@ -202,16 +211,14 @@
 
     #> Shell hook includes auto-deployment of templates
     shellHook = ''
-      printf "🤖 AI"
-      printf "    Preset: %s\n" "${preset'}"
-      printf "   Commands: mission-control list\n"
+      ${aiWelcome}/bin/ai-welcome
     '';
 
     shell = {
       inherit name env shellHook;
       packages =
         []
-        ++ [aiCommand missionControl commandsAlias mcAlias]
+        ++ [aiCommand aiWelcome missionControl commandsAlias mcAlias]
         ++ packages.core
         ++ packages.utilities
         ++ packages.analytics
