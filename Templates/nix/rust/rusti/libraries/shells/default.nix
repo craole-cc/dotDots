@@ -2,5 +2,5 @@
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
-  priority = ["config" "ai" "rust" "combined"];
+  priority = [ "ai" "rust" "config" ];
 }

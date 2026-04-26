@@ -27,7 +27,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
   inherit (lib.attrsets) attrNames attrValues filterAttrs mergeAttrsList;
   inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
   inherit (lib.lists) concatMap elem filter flatten foldl' isList map optionals toList;
-  inherit (lib.strings) hasSuffix removeSuffix;
+  inherit (lib.strings) hasSuffix match removeSuffix;
   inherit (lib.trivial) functionArgs isFunction;
 
   # ---------------------------------------------------------------------------
@@ -190,32 +190,70 @@ Intended as a zero-dependency bootstrap that other library namespaces
     ignore ? [],
     dependencies ? [],
   }: let
+    #> Automatically loaded first (in this order) when present and explicitly defined.
     autoPrioritize = names:
-      filter
-      (name: (name == "core" || name == "core.nix") && !(elem name priority))
-      names;
+      filter (name: elem name names && !(elem name priority)) [
+        "imports"
+        "import"
+        "import.nix"
+        "base"
+        "base.nix"
+        "core"
+        "core.nix"
+      ];
+
+    #> Automatically deferred to the end (in this order) when present and explicitly defined.
+    autoDefer = names:
+      filter (name: elem name names && !(elem name priority)) [
+        "config"
+        "config.nix"
+        "exports"
+        "export"
+        "export.nix"
+      ];
 
     orderedEntries =
       if isList entries
       then let
+        #> Drop ignored entries and copy-files (unless explicitly prioritized).
         notIgnored =
           filter
-          (entry: !(elem (baseNameOf (toString entry)) ignore))
+          (entry: let
+            name = baseNameOf (toString entry);
+          in
+            !(elem name ignore)
+            && (!isNixFileCopy name || elem name priority))
           entries;
 
         allNames = map (entry: baseNameOf (toString entry)) notIgnored;
         effectivePriority = (autoPrioritize allNames) ++ priority;
+        deferred = autoDefer allNames;
 
+        #> Walk effectivePriority in declared order
         prioritized =
+          concatMap
+          (name: filter (entry: baseNameOf (toString entry) == name) notIgnored)
+          (filter (name: elem name allNames) effectivePriority);
+
+        prioritizedNames =
+          map (entry: baseNameOf (toString entry)) prioritized;
+
+        #? Everything neither prioritized nor deferred, in original list order.
+        middle =
           filter
-          (entry: elem (baseNameOf (toString entry)) effectivePriority)
+          (entry: let
+            name = baseNameOf (toString entry);
+          in
+            !(elem name prioritizedNames) && !(elem name deferred))
           notIgnored;
-        remaining =
-          filter
-          (entry: !(elem (baseNameOf (toString entry)) effectivePriority))
-          notIgnored;
+
+        #? Deferred entries in autoLast order.
+        deferredEntries =
+          concatMap
+          (name: filter (entry: baseNameOf (toString entry) == name) notIgnored)
+          (filter (name: elem name allNames) deferred);
       in
-        prioritized ++ remaining
+        prioritized ++ middle ++ deferredEntries
       else let
         dir = readDir entries;
         names =
@@ -223,23 +261,32 @@ Intended as a zero-dependency bootstrap that other library namespaces
           (name:
             !(elem name ignore)
             && name != "default.nix"
+            && (!isNixFileCopy name || elem name priority)
             && (dir.${name}
               == "directory"
               || (dir.${name} == "regular" && hasSuffix ".nix" name)))
           (attrNames dir);
 
         effectivePriority = (autoPrioritize names) ++ priority;
+        deferred = autoDefer names;
 
-        prioritized = filter (name: elem name effectivePriority) names;
-        remaining = filter (name: !elem name prioritized) names;
+        #> Walk effectivePriority in declared order (only names that exist).
+        prioritized = filter (name: elem name names) effectivePriority;
+
+        #? Middle: alphabetical, excluding prioritized and deferred.
+        middle =
+          filter
+          (name: !(elem name prioritized) && !(elem name deferred))
+          names;
+
+        #? Deferred in autoLast order (only names that exist).
+        deferredFiltered = filter (name: elem name names) deferred;
       in
-        map (name: entries + "/${name}") (prioritized ++ remaining);
+        map (name: entries + "/${name}") (prioritized ++ middle ++ deferredFiltered);
   in
     foldl'
     (acc: entry: let
       baseLib = scope acc;
-
-      # Inject dependency extensions so each entry sees them in its `lib`.
       libForEntry =
         foldl'
         (depLib: depPath:
@@ -265,6 +312,9 @@ Intended as a zero-dependency bootstrap that other library namespaces
   */
   isNixFile = name: entry:
     entry == "regular" && hasSuffix ".nix" name && name != "default.nix";
+
+  #> Matches macOS "name copy.nix" / "name copy 2.nix" backup naming.
+  isNixFileCopy = name: match ".* copy( [0-9]+)?\\.nix" name != null;
 
   /**
   True for traversable subdirectories not in `foldersToExclude`.
@@ -463,14 +513,6 @@ Intended as a zero-dependency bootstrap that other library namespaces
     values = attrValues all;
   in
     {__meta = {inherit names values all;};} // all;
-  # importAttrs = input: let
-  #   n = normalizeInput {} input;
-  #   paths = collectPaths {inherit (n) path recurse ignore;};
-  #   all = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
-  #   names = attrNames all;
-  #   values = attrValues all;
-  # in
-  #   {__meta = {inherit names values all;};} // all;
 
   /**
   Import library leaf files and mount them under a single namespace.
