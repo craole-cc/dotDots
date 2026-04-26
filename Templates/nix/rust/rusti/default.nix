@@ -4,6 +4,7 @@
     libraries = ./libraries;
     environment = ./environment;
     templates = ./templates;
+    scripts = ./scripts;
     modules = ./modules;
     config = ./config;
     downloads = ./downloads;
@@ -65,6 +66,11 @@
     else lib';
   inherit (libraries.packages) mkPkgs getSystemOrDefault;
 
+  scripts =
+    libraries.optionalAttrs
+    (paths ? scripts && pathExists paths.scripts)
+    (import paths.scripts {lib = libraries;});
+
   packages = mkPkgs {inherit inputs;};
 
   templates =
@@ -75,10 +81,12 @@
       lib = libraries;
       pkgs = packages;
     };
-in {
-  inherit description templates;
-  paths = {src = ./.;} // paths;
-  lib = libraries;
-  pkgs = packages;
-  system = getSystemOrDefault {pkgs = packages;};
-}
+in
+  {
+    inherit description templates;
+    paths = {src = ./.;} // paths;
+    lib = libraries;
+    pkgs = packages;
+    system = getSystemOrDefault {pkgs = packages;};
+  }
+  // scripts

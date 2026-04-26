@@ -70,5 +70,4 @@
 
             ${readFile ./mission-control.sh}
     '';
-
 in {scripts = {inherit mkAliasPackage mkMissionControl mkScriptPackage;};}

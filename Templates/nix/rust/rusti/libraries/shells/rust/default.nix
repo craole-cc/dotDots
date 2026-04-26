@@ -1,5 +1,6 @@
 {lib}: let
   inherit (lib.lists) elem optionals;
+  inherit (lib.shells) mkAliasPackage mkMissionControl mkScriptPackage;
   inherit (lib.packages) mkPkgs mkRust;
   inherit (lib.strings) concatStringsSep optionalString;
   inherit (lib.trivial) isEmpty isNotEmpty;
@@ -43,102 +44,6 @@
       then pkgs
       else mkPkgs {};
 
-    scripts = import ../../scripts {inherit lib;};
-    templates = import ../../templates {
-      lib = lib;
-      pkgs = pkgs';
-    };
-    rustCommand = scripts.mkScriptPackage {
-      pkgs = pkgs';
-      name = "rust-command";
-      file = ../../scripts/rust-command.sh;
-    };
-    rustWelcome = scripts.mkScriptPackage {
-      pkgs = pkgs';
-      name = "rust-welcome";
-      file = ../../scripts/rust-welcome.sh;
-      env = {
-        GUM = "${pkgs'.gum}/bin/gum";
-        RUST_CHANNEL = rust.toolchain.channel;
-        RUST_TOOLCHAIN_FILE =
-          if rust.toolchain.file != null
-          then toString rust.toolchain.file
-          else "<channel>";
-      };
-    };
-    missionControl = scripts.mkMissionControl {
-      pkgs = pkgs';
-      shellName = name;
-      commands = {
-        bench = {
-          description = "Run cargo bench";
-          run = ''exec rust-command bench "$@"'';
-        };
-        check = {
-          description = "Run cargo check";
-          run = ''exec rust-command check "$@"'';
-        };
-        clippy = {
-          description = "Run cargo clippy with warnings denied";
-          run = ''exec rust-command clippy "$@"'';
-        };
-        deploy = {
-          description = "Deploy template files into the current project";
-          run = ''exec deploy-templates "$@"'';
-        };
-        fmt = {
-          description = "Format the project";
-          run = ''exec rust-command fmt "$@"'';
-        };
-        info = {
-          description = "Show project stats and repository summary";
-          run = ''exec rust-command info "$@"'';
-        };
-        lint = {
-          description = "Run treefmt, fmt checks, and clippy";
-          run = ''exec rust-command lint "$@"'';
-        };
-        reset = {
-          description = "Remove deployed templates and transient build dirs";
-          run = ''exec reset-flake "$@"'';
-        };
-        run = {
-          description = "Run cargo run";
-          run = ''exec rust-command run "$@"'';
-        };
-        test = {
-          description = "Run cargo nextest";
-          run = ''exec rust-command test "$@"'';
-        };
-        version = {
-          description = "Show rustc version";
-          run = ''exec rust-command version "$@"'';
-        };
-        watch-check = {
-          description = "Watch cargo check";
-          run = ''exec rust-command watch-check "$@"'';
-        };
-        watch-run = {
-          description = "Watch cargo run";
-          run = ''exec rust-command watch-run "$@"'';
-        };
-        watch-test = {
-          description = "Watch cargo nextest";
-          run = ''exec rust-command watch-test "$@"'';
-        };
-      };
-    };
-    commandsAlias = scripts.mkAliasPackage {
-      pkgs = pkgs';
-      name = "commands";
-      target = "${missionControl}/bin/mission-control";
-    };
-    mcAlias = scripts.mkAliasPackage {
-      pkgs = pkgs';
-      name = "mc";
-      target = "${missionControl}/bin/mission-control";
-    };
-
     rust = mkRust {
       inherit
         channel
@@ -157,8 +62,8 @@
       then "${kind}-${ch}"
       else "rust-${channel}";
 
-    env = let
-    in {
+    env = {
+      CMD_GUM = "${pkgs'.gum}/bin/gum";
       RUST_SRC_PATH = "${rust.package}/lib/rustlib/src/rust/library";
       RUSTFLAGS = optionalString (ch == "nightly") "-Z macro-backtrace";
       RUST_BACKTRACE =
@@ -167,6 +72,105 @@
         else "full";
       RUST_LOG = "info";
       CARGO_INCREMENTAL = "1";
+      RUST_CHANNEL = rust.toolchain.channel;
+      RUST_TOOLCHAIN_FILE =
+        if rust.toolchain.file != null
+        then toString rust.toolchain.file
+        else "<channel>";
+    };
+
+    scripts = {
+      commands = mkScriptPackage {
+        pkgs = pkgs';
+        name = "rust-commands";
+        file = ./commands.sh;
+      };
+
+      welcome = mkScriptPackage {
+        pkgs = pkgs';
+        name = "rust-welcome";
+        file = ./welcome.sh;
+        inherit env;
+      };
+    };
+
+    # templates = import ../../templates {
+    #   lib = lib;
+    #   pkgs = pkgs';
+    # };
+
+    missionCommands = {
+      bench = {
+        description = "Run cargo bench";
+        run = ''exec rust-command bench "$@"'';
+      };
+      check = {
+        description = "Run cargo check";
+        run = ''exec rust-command check "$@"'';
+      };
+      clippy = {
+        description = "Run cargo clippy with warnings denied";
+        run = ''exec rust-command clippy "$@"'';
+      };
+      deploy = {
+        description = "Deploy template files into the current project";
+        run = ''exec deploy-templates "$@"'';
+      };
+      fmt = {
+        description = "Format the project";
+        run = ''exec rust-command fmt "$@"'';
+      };
+      info = {
+        description = "Show project stats and repository summary";
+        run = ''exec rust-command info "$@"'';
+      };
+      lint = {
+        description = "Run treefmt, fmt checks, and clippy";
+        run = ''exec rust-command lint "$@"'';
+      };
+      reset = {
+        description = "Remove deployed templates and transient build dirs";
+        run = ''exec reset-flake "$@"'';
+      };
+      run = {
+        description = "Run cargo run";
+        run = ''exec rust-command run "$@"'';
+      };
+      test = {
+        description = "Run cargo nextest";
+        run = ''exec rust-command test "$@"'';
+      };
+      version = {
+        description = "Show rustc version";
+        run = ''exec rust-command version "$@"'';
+      };
+      watch-check = {
+        description = "Watch cargo check";
+        run = ''exec rust-command watch-check "$@"'';
+      };
+      watch-run = {
+        description = "Watch cargo run";
+        run = ''exec rust-command watch-run "$@"'';
+      };
+      watch-test = {
+        description = "Watch cargo nextest";
+        run = ''exec rust-command watch-test "$@"'';
+      };
+    };
+    missionControl = scripts.mkMissionControl {
+      pkgs = pkgs';
+      shellName = name;
+      commands = missionCommands;
+    };
+    commandsAlias = scripts.mkAliasPackage {
+      pkgs = pkgs';
+      name = "commands";
+      target = "${missionControl}/bin/mission-control";
+    };
+    mcAlias = scripts.mkAliasPackage {
+      pkgs = pkgs';
+      name = "mc";
+      target = "${missionControl}/bin/mission-control";
     };
 
     packages = {
@@ -206,33 +210,38 @@
       darwin = optionals pkgs'.stdenv.isDarwin (with pkgs'; [libiconv]);
     };
 
+    payloadPackages =
+      []
+      ++ packages.core
+      ++ packages.full
+      ++ packages.nightly
+      ++ packages.editor
+      ++ packages.darwin;
+
+    controlPackages = [
+      # templates.deployPackage
+      # templates.resetPackage
+      scripts.commands
+      scripts.welcome
+      missionControl
+      commandsAlias
+      mcAlias
+    ];
+
     #> Shell hook includes auto-deployment of templates
-    shellHook = ''
-      ${templates.command}
-      ${rustWelcome}/bin/rust-welcome
-    '';
+    shellHook = ''${scripts.welcome}/bin/rust-welcome'';
     shell = {
       inherit name env shellHook;
-      packages =
-        []
-        ++ [
-          templates.deployPackage
-          templates.resetPackage
-          rustCommand
-          rustWelcome
-          missionControl
-          commandsAlias
-          mcAlias
-        ]
-        ++ packages.core
-        ++ packages.full
-        ++ packages.nightly
-        ++ packages.editor
-        ++ packages.darwin
-        ++ [];
+      packages = controlPackages ++ payloadPackages;
     };
   in {
-    __meta = rust // shell;
+    __meta =
+      rust
+      // shell
+      // {
+        inherit (scripts) commands;
+        inherit controlPackages missionCommands payloadPackages;
+      };
     inherit shell;
   };
 

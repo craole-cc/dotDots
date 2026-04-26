@@ -2,5 +2,5 @@
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
-  ignore = ["meta.nix" "config.nix"];
+  ignore = ["combined.nix" "meta.nix" "config.nix"];
 }
