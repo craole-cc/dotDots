@@ -2,5 +2,5 @@
 lib.assembly.importAttrs {
   inherit lib;
   path = ./.;
-  ignore = ["meta.nix" "config.nix"];
+  ignore = ["meta.nix" ];
 }

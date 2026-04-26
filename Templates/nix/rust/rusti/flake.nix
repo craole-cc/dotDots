@@ -21,10 +21,11 @@
       inherit inputs;
       inherit (inputs.NixPackages) lib;
     };
-    env = import src.paths.environment {
-      inherit inputs;
-      inherit (src) lib pkgs;
-    };
+    inherit (src) lib pkgs;
+    # env = lib.shells.mkDevShells {
+    #   inherit inputs lib pkgs;
+    # };
+    env = {};
   in
     src // env;
 }
