@@ -2,5 +2,5 @@
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
-  ignore = ["combined.nix" "meta.nix" ];
+  priority = ["config" "ai" "rust" "combined"];
 }

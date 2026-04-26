@@ -4,7 +4,32 @@
   inherit (lib.trivial) isNotEmpty;
   inherit (lib.shells) mkAISpec mkRustSpec;
 
-  mkCombinedSpec = {
+
+  /**
+  Merge the Rust and AI shell specifications into a combined shell.
+
+  # Type
+  ```nix
+  mkSpec :: AttrSet -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  mkSpec {
+    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
+    channel = "nightly";
+  }
+  # => {
+  #   __meta.kind = "combined";
+  #   shell.name = "full-nightly";
+  #   ...
+  # }
+  ```
+
+  # Returns
+  A merged shell spec combining the Rust and AI environments.
+  */
+  mkSpec = {
     pkgs ? null,
     channel ? null,
     preset ? null,
@@ -39,7 +64,7 @@
 
     combinedName = "combined-${rustName}-${aiName}";
 
-    combinedWelcome = scripts.mkScriptPackage {
+    combinedWelcome = mkScriptPackage {
       pkgs = pkgs';
       name = "combined-welcome";
       file = ../../scripts/combined-welcome.sh;
@@ -55,7 +80,7 @@
     };
 
     missionCommands = rustMeta.missionCommands // aiMeta.missionCommands;
-    missionControl = scripts.mkMissionControl {
+    missionControl = mkMissionControl {
       pkgs = pkgs';
       shellName = combinedName;
       commands = missionCommands;
@@ -65,7 +90,7 @@
       name = "commands";
       target = "${missionControl}/bin/mission-control";
     };
-    mcAlias = scripts.mkAliasPackage {
+    mcAlias = mkAliasPackage {
       pkgs = pkgs';
       name = "mc";
       target = "${missionControl}/bin/mission-control";
@@ -102,7 +127,7 @@
   };
 
   mkCombinedSuite = {pkgs ? null}: let
-    mk = args: mkCombinedSpec ({inherit pkgs;} // args);
+    mk = args: mkSpec ({inherit pkgs;} // args);
   in {
     combined = mk {};
     combined-common = mk {
@@ -126,7 +151,7 @@
     };
   };
 in {
-  inherit mkCombinedSpec mkCombinedSuite;
-  mkCombined = mkCombinedSpec;
+  inherit mkSpec mkCombinedSuite;
+  mkShell = mkSpec;
   mkCombinedShells = mkCombinedSuite;
 }

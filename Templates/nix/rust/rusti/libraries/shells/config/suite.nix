@@ -1,5 +1,6 @@
 {lib}: let
-  mkSuites = {
+
+  mkSuite = {
     inputs,
     pkgs,
   }: let
@@ -17,6 +18,6 @@
     };
   };
 in {
-  inherit mkSuites;
-  mkDevShells = mkSuites;
+  inherit mkSuite;
+  mkDevShells = mkSuite;
 }
