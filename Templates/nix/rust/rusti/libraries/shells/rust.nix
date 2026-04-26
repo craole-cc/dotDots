@@ -1,8 +1,11 @@
 {lib}: let
-  inherit (lib.lists) optionals;
+  inherit (lib.lists) elem optionals;
   inherit (lib.packages) mkPkgs mkRust;
   inherit (lib.strings) concatStringsSep optionalString;
   inherit (lib.trivial) isEmpty isNotEmpty;
+
+  channels = ["stable" "beta" "nightly"];
+
   /**
   Build the Rust-focused shell specification.
 
@@ -48,13 +51,14 @@
         ;
       pkgs = pkgs';
     };
-
     ch = rust.toolchain.channel;
     inherit (rust) kind;
 
     name =
-      if isEmpty channel
-      then concatStringsSep "-" [kind ch]
+      if !elem ch channels
+      then throw "mkRustSpec: unknown channel '${ch}'. Valid: ${concatStringsSep ", " channels}"
+      else if isEmpty channel
+      then "${kind}-${ch}"
       else "rust-${channel}";
 
     env = let
@@ -131,6 +135,8 @@
   mkRustSuite = {pkgs ? null}: let
     mk = args: mkRustSpec ({inherit pkgs;} // args);
   in {
+    rust = mk {};
+
     #~@ Full suite — with editor
     rust-nightly = mk {channel = "nightly";};
     rust-stable = mk {channel = "stable";};

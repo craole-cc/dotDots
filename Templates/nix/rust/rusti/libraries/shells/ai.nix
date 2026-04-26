@@ -1,189 +1,200 @@
 {lib}: let
+  inherit (lib.lists) elem optionals;
+  inherit (lib.packages) mkPkgs;
+  inherit (lib.strings) concatStringsSep;
+  inherit (lib.trivial) isEmpty isNotEmpty;
+
+  presets = [
+    "common"
+    "agents"
+    "anthropic"
+    "assistants"
+    "full"
+    "google"
+    "minimal"
+    "openai"
+    "vibe"
+  ];
+
   /**
-  Build the Rust-focused shell specification.
+  Build the AI-focused shell specification.
 
   # Type
   ```nix
-  mkRustSpec :: AttrSet -> AttrSet
+  mkAISpec :: AttrSet -> AttrSet
   ```
 
   # Examples
   ```nix
-  mkRustSpec {
-    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
-    channel = "stable";
+  mkAISpec {
+    inherit pkgs;
+    preset = "common";
   }
   # => {
-  #   __meta.kind = "rust";
-  #   shell.name = "rust-stable";
+  #   __meta.kind = "ai";
+  #   shell.name = "ai-common";
   #   ...
   # }
   ```
 
   # Returns
-  A shell spec containing Rust packages, environment variables, and shell initialization.
+  A shell spec containing AI agent packages, utilities, and shell initialization.
   */
-  mkRustSpec = {
-    pkgs,
-    mkTools,
-    mkEnvironment,
-    mkTemplates,
-    mkWelcome,
-    channel ? "nightly",
+  mkAISpec = {
+    pkgs ? null,
+    preset ? null,
+    includeAnalytics ? true,
+    includeWorkflow ? false,
+    minimal ? false,
   }: let
-    inherit (lib.packages) mkRust;
-    inherit (pkgs.stdenv) isDarwin;
-    inherit (pkgs.lib.lists) optionals;
+    pkgs' =
+      if isNotEmpty pkgs
+      then pkgs
+      else mkPkgs {};
 
-    rust = mkRust {inherit pkgs channel;};
-    templates = mkTemplates {inherit pkgs;};
-    tools = mkTools {inherit pkgs rust templates;};
-    env = mkEnvironment {inherit rust channel;};
-    welcome = mkWelcome {inherit pkgs tools;};
-  in {
-    __meta = {
-      kind = "rust";
-      inherit
-        channel
-        rust
-        templates
-        tools
-        welcome
-        pkgs
-        ;
+    preset' =
+      if isEmpty preset
+      then "common"
+      else preset;
+
+    name =
+      if elem preset' presets
+      then "ai-${preset'}"
+      else throw "mkAISpec: unknown preset '${preset'}'. Valid: ${concatStringsSep ", " presets}";
+
+    pkg = pkgs'.llm-agents;
+    packages = {
+      core = let
+        minimal = with pkg; [default];
+        common =
+          minimal
+          ++ (with pkg; [
+            codex
+            claude-code
+            qwen-code
+            openclaw
+          ]);
+        agents = with pkg; [
+          claude-code
+          codex
+          gemini-cli
+          opencode
+          qwen-code
+          goose-cli
+        ];
+        anthropic = with pkg; [
+          claude-code
+          claude-code-router
+          claude-plugins
+          oh-my-claudecode
+        ];
+        google = with pkg; [gemini-cli];
+        openai = with pkg; [
+          codex
+          codex-acp
+          copilot-cli
+          copilot-language-server
+        ];
+        assistants = with pkg; [
+          openclaw
+          zeroclaw
+          claw-code
+          auto-claude
+          claude-code-router
+        ];
+        vibe = with pkg; [
+          vibe-kanban
+          mistral-vibe
+          cursor-agent
+        ];
+        full = agents ++ assistants ++ vibe;
+      in
+        {
+          inherit
+            agents
+            common
+            anthropic
+            assistants
+            full
+            google
+            minimal
+            openai
+            vibe
+            ;
+        }.${
+          preset'
+        };
+
+      utilities = optionals (!minimal) (with pkgs'; [
+        #~@ General
+        git
+        jq
+        ripgrep
+        curl
+      ]);
+
+      analytics = optionals (includeAnalytics && !minimal) (with pkg; [
+        #~@ Usage & Visibility
+        ccusage
+        agentsview
+      ]);
+
+      workflow = optionals (includeWorkflow && !minimal) (with pkg; [
+        #~@ Project Management
+        vibe-kanban
+      ]);
     };
+
+    env = {};
+
+    shellHook = ''
+      printf "🤖 AI"
+      printf "    Preset: %s\n" "${preset'}"
+    '';
 
     shell = {
-      name = "rust-${channel}";
-      packages = tools.packages ++ optionals isDarwin [pkgs.libiconv];
-      inherit env;
-      shellHook = ''
-        ${tools.init}
-        [ -n "$PRJ_HOME" ] || PRJ_HOME=$PWD
-        [ -n "$PRJ_NAME" ] || PRJ_NAME=$(basename "$PRJ_HOME")
-        RUST_VERSION=$(${tools.rustvv})
-        export PRJ_HOME PRJ_NAME RUST_VERSION
-        ${welcome}
-      '';
+      inherit name env shellHook;
+      packages =
+        []
+        ++ packages.core
+        ++ packages.utilities
+        ++ packages.analytics
+        ++ packages.workflow;
     };
-  };
-
-  /**
-  Build the AI-tooling shell specification.
-
-  # Type
-  ```nix
-  mkAiSpec :: {
-    lib :: AttrSet;
-    pkgs :: AttrSet;
-  } -> AttrSet
-  ```
-
-  # Examples
-  ```nix
-  mkAiSpec { inherit lib pkgs; }
-  # => {
-  #   __meta.kind = "ai";
-  #   shell.name = "ai-dev";
-  #   ...
-  # }
-  ```
-
-  # Returns
-  A shell spec for the AI toolchain and its expected environment variables.
-  */
-  mkAiSpec = {
-    lib,
-    pkgs,
-  }: let
-    inherit (lib.packages) mkOpenClaw mkLLM;
-
-    claw = mkOpenClaw {inherit pkgs;};
-    llm = mkLLM {inherit pkgs lib;};
   in {
     __meta = {
       kind = "ai";
-      inherit claw llm pkgs;
+      preset = preset';
+      inherit packages env shellHook;
     };
-
-    shell = {
-      name = "ai-dev";
-      packages = [claw.package] ++ llm.packages;
-      inherit (llm) env;
-      shellHook = ''
-        echo "🤖 AI Development Environment"
-        echo "   Tools: openclaw, claude-code, codex, gemini-cli, opencode"
-        echo "   Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY as needed."
-      '';
-    };
+    inherit shell;
   };
 
-  /**
-  Merge the Rust and AI shell specifications into a combined shell.
-
-  # Type
-  ```nix
-  mkCombinedSpec :: AttrSet -> AttrSet
-  ```
-
-  # Examples
-  ```nix
-  mkCombinedSpec {
-    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
-    channel = "nightly";
-  }
-  # => {
-  #   __meta.kind = "combined";
-  #   shell.name = "full-nightly";
-  #   ...
-  # }
-  ```
-
-  # Returns
-  A merged shell spec combining the Rust and AI environments.
-  */
-  mkCombinedSpec = {
-    lib,
-    pkgs,
-    mkTools,
-    mkEnvironment,
-    mkTemplates,
-    mkWelcome,
-    channel ? "nightly",
-  }: let
-    inherit (lib.shells) mergeShellSpecs;
-
-    base =
-      mergeShellSpecs
-      (mkRustSpec {
-        inherit
-          lib
-          pkgs
-          mkTools
-          mkEnvironment
-          mkTemplates
-          mkWelcome
-          channel
-          ;
-      })
-      (mkAiSpec {
-        inherit lib pkgs;
-      });
-  in
-    mergeShellSpecs base {
-      __meta.kind = "combined";
-      __meta.sources = [
-        "rust.${channel}"
-        "ai"
-      ];
-
-      shell = {
-        name = "full-${channel}";
-        packages = [];
-        env = {};
-        shellHook = "";
-      };
+  mkAISuite = {pkgs ? null}: let
+    mk = args: mkAISpec ({inherit pkgs;} // args);
+  in {
+    ai = mk {};
+    #~@ Entry point
+    ai-minimal = mk {
+      preset = "minimal";
+      includeAnalytics = false;
     };
+
+    #~@ Focused suites
+    ai-agents = mk {preset = "agents";};
+    ai-assistants = mk {preset = "assistants";};
+
+    #~@ Daily driver
+    ai-common = mk {preset = "common";};
+
+    #~@ Full suite — all agents + assistants + analytics + workflow
+    ai-full = mk {
+      preset = "full";
+      includeWorkflow = true;
+    };
+  };
 in {
-  inherit mkRustSpec mkCombinedSpec;
+  inherit mkAISpec mkAISuite;
+  mkAI = mkAISpec;
+  mkAIShells = mkAISuite;
 }
