@@ -1,2 +1,5 @@
-{lib}:
-lib.assembly.importAttrs {path = ./.;}
+{ lib }:
+lib.assembly.importAttrs {
+  inherit lib;
+  path = ./.;
+}

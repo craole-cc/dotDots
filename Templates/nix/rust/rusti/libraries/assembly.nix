@@ -440,12 +440,26 @@ Intended as a zero-dependency bootstrap that other library namespaces
   */
   importAttrs = input: let
     n = normalizeInput {} input;
+    libToUse =
+      if n.lib != null
+      then n.lib
+      else lib;
     paths = collectPaths {inherit (n) path recurse ignore;};
-    all = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
+    all = mergeAttrsList (map
+      (p: importWithFilteredArgs p ({lib = libToUse;} // n.args))
+      paths);
     names = attrNames all;
     values = attrValues all;
   in
     {__meta = {inherit names values all;};} // all;
+  # importAttrs = input: let
+  #   n = normalizeInput {} input;
+  #   paths = collectPaths {inherit (n) path recurse ignore;};
+  #   all = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
+  #   names = attrNames all;
+  #   values = attrValues all;
+  # in
+  #   {__meta = {inherit names values all;};} // all;
 
   /**
   Import library leaf files and mount them under a single namespace.

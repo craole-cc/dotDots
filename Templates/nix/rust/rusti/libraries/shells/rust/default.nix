@@ -157,17 +157,17 @@
         run = ''exec rust-command watch-test "$@"'';
       };
     };
-    missionControl = scripts.mkMissionControl {
+    missionControl = mkMissionControl {
       pkgs = pkgs';
       shellName = name;
       commands = missionCommands;
     };
-    commandsAlias = scripts.mkAliasPackage {
+    commandsAlias = mkAliasPackage {
       pkgs = pkgs';
       name = "commands";
       target = "${missionControl}/bin/mission-control";
     };
-    mcAlias = scripts.mkAliasPackage {
+    mcAlias = mkAliasPackage {
       pkgs = pkgs';
       name = "mc";
       target = "${missionControl}/bin/mission-control";
