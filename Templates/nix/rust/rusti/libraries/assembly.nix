@@ -305,7 +305,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
   /**
   Directory basenames always skipped during discovery.
   */
-  foldersToExclude = ["archives" "review" "temp" "tmp"];
+  foldersToExclude = ["archive" "archives" "review" "temp" "tmp"];
 
   /**
   True for regular `.nix` files other than `default.nix`.

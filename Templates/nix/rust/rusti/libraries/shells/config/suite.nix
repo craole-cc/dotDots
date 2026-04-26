@@ -13,7 +13,7 @@
   in {
     devShells = mkShells {
       inherit inputs;
-      # default = suites.full;
+      default = suites.ai.ai-common;
       shells = suites.rust // suites.ai;
     };
   };

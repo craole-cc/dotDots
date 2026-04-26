@@ -22,10 +22,10 @@
       inherit (inputs.NixPackages) lib;
     };
     inherit (src) lib pkgs;
+
     env = lib.shells.mkDevShells {
-      inherit inputs lib pkgs;
+      inherit inputs pkgs;
     };
-    # env = {};
   in
     src // env;
 }
