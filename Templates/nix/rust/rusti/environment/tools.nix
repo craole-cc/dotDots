@@ -110,7 +110,7 @@
       git rm --cached ${files.drop} 2>/dev/null || true
 
       #> Allow direnv if needed
-      if ! direnv status 2>/dev/null | grep -q "Found RC allowed 2"; then
+      if ! direnv status 2>/dev/null | rg -q "Found RC allowed 2"; then
         ${cmd.yn} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
       fi
     '';
@@ -131,7 +131,7 @@
       ${bin.markdownlint-cli2} --version 2>&1 |
         head -1 | ${cmd.awk} '{print substr($2, 2)}'
     '';
-    misev = ''${bin.mise} version 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+'  '';
+    misev = ''${bin.mise} version 2>/dev/null | rg -o '^[0-9]+\.[0-9]+\.[0-9]+'  '';
     prettiest = bin.prettierd;
     prettiestv = ''${cmd.prettiest} --version 2>&1 | cut -d ' ' -f2'';
     red = ''${bin.gum} style --foreground=196'';

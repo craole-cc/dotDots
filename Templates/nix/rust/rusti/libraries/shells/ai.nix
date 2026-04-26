@@ -52,6 +52,8 @@
       then pkgs
       else mkPkgs {};
 
+    scripts = import ../../scripts {inherit lib;};
+
     preset' =
       if isEmpty preset
       then "common"
@@ -63,6 +65,59 @@
       else throw "mkAISpec: unknown preset '${preset'}'. Valid: ${concatStringsSep ", " presets}";
 
     pkg = pkgs'.llm-agents;
+    aiCommand = scripts.mkScriptPackage {
+      pkgs = pkgs';
+      name = "ai-command";
+      file = ../../scripts/ai-command.sh;
+    };
+    missionControl = scripts.mkMissionControl {
+      pkgs = pkgs';
+      shellName = name;
+      commands = {
+        agents = {
+          description = "Run agentsview when available";
+          run = ''exec ai-command agents "$@"'';
+        };
+        claude = {
+          description = "Run claude-code when available";
+          run = ''exec ai-command claude "$@"'';
+        };
+        codex = {
+          description = "Run codex when available";
+          run = ''exec ai-command codex "$@"'';
+        };
+        doctor = {
+          description = "Show which AI tools are available";
+          run = ''exec ai-command doctor "$@"'';
+        };
+        gemini = {
+          description = "Run gemini when available";
+          run = ''exec ai-command gemini "$@"'';
+        };
+        goose = {
+          description = "Run goose-cli when available";
+          run = ''exec ai-command goose "$@"'';
+        };
+        opencode = {
+          description = "Run opencode when available";
+          run = ''exec ai-command opencode "$@"'';
+        };
+        usage = {
+          description = "Run ccusage when available";
+          run = ''exec ai-command usage "$@"'';
+        };
+      };
+    };
+    commandsAlias = scripts.mkAliasPackage {
+      pkgs = pkgs';
+      name = "commands";
+      target = "${missionControl}/bin/mission-control";
+    };
+    mcAlias = scripts.mkAliasPackage {
+      pkgs = pkgs';
+      name = "mc";
+      target = "${missionControl}/bin/mission-control";
+    };
 
     packages = {
       core = let
@@ -149,12 +204,14 @@
     shellHook = ''
       printf "🤖 AI"
       printf "    Preset: %s\n" "${preset'}"
+      printf "   Commands: mission-control list\n"
     '';
 
     shell = {
       inherit name env shellHook;
       packages =
         []
+        ++ [aiCommand missionControl commandsAlias mcAlias]
         ++ packages.core
         ++ packages.utilities
         ++ packages.analytics
