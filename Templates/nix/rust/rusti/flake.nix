@@ -23,7 +23,7 @@
     };
     env = import src.paths.environment {
       inherit inputs;
-      inherit (src) lib;
+      inherit (src) lib pkgs;
     };
   in
     src // env;

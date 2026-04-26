@@ -77,10 +77,14 @@ Shell finalization helpers for lib.shells.
     mapAttrs (
       system: pkgs: let
         #? Ensures each shell gets the correct pkgs and system context
-        processShell = shell:
-          if isDerivation shell
-          then shell
-          else mkShell {inherit pkgs inputs system shell;};
+        processShell = spec:
+          if isDerivation spec
+          then spec
+          else
+            mkShell {
+              inherit pkgs inputs system;
+              shell = spec.shell or spec;
+            };
 
         processedShells = mapAttrs (_: processShell) shells;
       in

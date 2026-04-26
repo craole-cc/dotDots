@@ -1,9 +1,8 @@
 {lib}: let
-  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) optionals;
-  inherit (lib.packages) mkRust;
-  inherit (lib.strings) concatStringsSep;
-  inherit (lib.trivial) isEmpty;
+  inherit (lib.packages) mkPkgs mkRust;
+  inherit (lib.strings) concatStringsSep optionalString;
+  inherit (lib.trivial) isEmpty isNotEmpty;
   /**
   Build the Rust-focused shell specification.
 
@@ -29,57 +28,55 @@
   A shell spec containing Rust packages, environment variables, and shell initialization.
   */
   mkRustSpec = {
-    pkgs,
+    pkgs ? null,
     channel ? null,
     targets ? null,
     extensions ? null,
     includeEditor ? true,
+    minimal ? false,
   }: let
+    pkgs' =
+      if isNotEmpty pkgs
+      then pkgs
+      else mkPkgs {};
+
     rust = mkRust {
       inherit
-        pkgs
         channel
         targets
         extensions
         ;
+      pkgs = pkgs';
     };
+
+    ch = rust.toolchain.channel;
+    inherit (rust) kind;
 
     name =
       if isEmpty channel
-      then concatStringsSep "-" [rust.kind rust.toolchain.channel]
+      then concatStringsSep "-" [kind ch]
       else "rust-${channel}";
 
     env = let
-      ch = rust.toolchain.channel;
     in {
-      # rust-analyzer needs this; rust-src is included in the derivation
       RUST_SRC_PATH = "${rust.package}/lib/rustlib/src/rust/library";
-
-      # Nightly allows -Z flags; expose that clearly
-      RUSTFLAGS =
-        if ch == "nightly"
-        then "-Z macro-backtrace"
-        else "";
-
-      # More verbose backtraces on nightly (dev ergonomics)
+      RUSTFLAGS = optionalString (ch == "nightly") "-Z macro-backtrace";
       RUST_BACKTRACE =
         if ch == "stable"
         then "0"
         else "1";
     };
 
-    packages = let
-      base = with pkgs; [
-        #~@ Build Essentials
-        gcc
+    packages = {
+      core = with pkgs'; [rust.package gcc];
+      full = optionals (!minimal) (with pkgs'; [
         #~@ Development
         cargo-leptos
         trunk
         binaryen
-        #~@ Build & Watch
-        cargo-watch
-        cargo-make
+        #~@ Watch
         bacon
+        cargo-watch
         #~@ Dependencies & Security
         cargo-edit
         cargo-outdated
@@ -96,46 +93,71 @@
         leptosfmt
         markdownlint-cli2
         prettierd
-        # deno
         rustfmt
         taplo
         treefmt
         yamlfmt
-      ];
-
-      nightly = with pkgs;
-        optionals (ch == "nightly") [
-          cargo-careful #? runs tests under strict undefined-behaviour checks
-        ];
-
-      editor = optionals includeEditor (with pkgs; [
-        helix
-        jetbrains.rust-rover
+        cargo-make
       ]);
-
-      darwin = optionals pkgs.stdenv.isDarwin (with pkgs; [
-        libiconv
-      ]);
-    in
-      base ++ nightly ++ editor ++ darwin;
+      nightly = optionals (ch == "nightly" && !minimal) (with pkgs'; [cargo-careful]);
+      editor = optionals (includeEditor && !minimal) (with pkgs'; [helix jetbrains.rust-rover]);
+      darwin = optionals pkgs'.stdenv.isDarwin (with pkgs'; [libiconv]);
+    };
 
     shellHook = ''
-
+      printf "🦀 Rust"
+      ${
+        optionalString (rust.toolchain.source == "file")
+        ''printf "  Toolchain: %s\n" "${toString rust.toolchain.file}"''
+      }
+      printf "    Channel: %s\n" "${rust.toolchain.channel}"
+      printf "    Version: %s\n" "${rust.version}"
     '';
+    shell = {
+      inherit name env shellHook;
+      packages =
+        []
+        ++ packages.core
+        ++ packages.full
+        ++ packages.nightly
+        ++ packages.editor
+        ++ packages.darwin;
+    };
   in {
-    __meta =
-      rust
-      // {
-        inherit
-          name
-          # channel
-          env
-          # packages
-          shellHook
-          # tools
-          ;
-      };
-
-    # shell = {inherit name packages env shellHook;};
+    __meta = rust // shell;
+    inherit shell;
   };
-in {inherit mkRustSpec;}
+
+  mkRustSuite = {pkgs ? null}: let
+    mk = args: mkRustSpec ({inherit pkgs;} // args);
+  in {
+    #~@ Full suite — with editor
+    rust-nightly = mk {channel = "nightly";};
+    rust-stable = mk {channel = "stable";};
+    rust-beta = mk {channel = "beta";};
+
+    #~@Lean — full tooling, no editor
+    rust-nightly-lean = mk {
+      channel = "nightly";
+      includeEditor = false;
+    };
+    rust-stable-lean = mk {
+      channel = "stable";
+      includeEditor = false;
+    };
+
+    #~@ Minimal — toolchain + gcc only, no dev tools, no editor
+    rust-nightly-minimal = mk {
+      channel = "nightly";
+      minimal = true;
+    };
+    rust-stable-minimal = mk {
+      channel = "stable";
+      minimal = true;
+    };
+  };
+in {
+  inherit mkRustSpec mkRustSuite;
+  mkRust = mkRustSpec;
+  mkRustShells = mkRustSuite;
+}

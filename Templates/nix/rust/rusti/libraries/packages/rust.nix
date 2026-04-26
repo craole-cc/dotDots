@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.trivial) toTOML readFile pathExists;
+  inherit (lib.trivial) fromTOML readFile pathExists;
   /**
   Select a rust-overlay toolchain derivation.
 
@@ -68,12 +68,15 @@
       };
 
       package = let
-        rust = pkgs.rust-bin;
+        rust =
+          if pkgs?rust-bin
+          then pkgs.rust-bin
+          else throw "lib.shells.mkRust: pkgs.rust-bin is required.";
       in
         if resolved.toolchain.file != null
         then rust.fromRustupToolchainFile resolved.toolchain.file
         else
-          rust.${resolved.channel}.latest.default.override {
+          rust.${resolved.toolchain.channel}.latest.default.override {
             targets =
               if targets != null
               then targets

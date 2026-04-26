@@ -1,23 +1,17 @@
 {
   lib,
   inputs,
+  pkgs,
   ...
 }: let
-  inherit (lib.shells) mkShells;
+  inherit (lib.shells) mkShells mkRustSuite;
 
-  testShell = {
-    name = "testing";
-    packages = [];
-    env = {};
-    shellHook = ''
-      echo "🔧 AI+Rust REPL"
-      echo "REPL: nix repl"
-    '';
-  };
+  rust = mkRustSuite {inherit pkgs;};
+  # ai = mkAISuite {inherit pkgs;};
 in {
   devShells = mkShells {
     inherit inputs;
-    default = testShell;
-    shells = {inherit testShell;};
+    default = rust.rust-nightly-minimal;
+    shells =  rust;
   };
 }

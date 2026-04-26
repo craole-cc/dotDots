@@ -1,3 +1,3 @@
 {lib}: {
-  inherit (lib) toTOML;
+  inherit (lib) fromTOML;
 }
