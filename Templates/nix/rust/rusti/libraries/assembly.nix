@@ -54,18 +54,132 @@ Intended as a zero-dependency bootstrap that other library namespaces
   ```
 
   # Examples
-  ```nix
-  assemble {
-    start   = lib;
-    entries = [ ./filesystem ./attrsets ];
-    scope   = acc: acc;
-  }
 
-  assemble {
-    start  = lib.filesystem;
-    entries = [ ./paths.nix ./imports.nix ];
-    scope  = acc: lib // { filesystem = acc; };
-  }
+  ## 1 – Simplest use: scan a directory, fold into `lib`
+
+  Given a directory `./extensions/` containing:
+    - `strings.nix`   → `{ lib }: { capitalize = s: ...; trimLines = s: ...; }`
+    - `attrs.nix`     → `{ lib }: { mapKeys = f: set: ...; }`
+    - `paths.nix`     → `{ lib }: { toRelative = base: p: ...; }`
+
+  Each file receives the *already-extended* `lib`, so `attrs.nix` can call
+  functions defined in `strings.nix`, and `paths.nix` can call functions from
+  both earlier files — with no fixed-point needed.
+
+  ```nix
+  myLib = assemble {
+    start   = lib;
+    entries = ./extensions;    # scans dir; alphabetical, skips default.nix
+    scope   = acc: acc;        # each entry receives the full growing acc
+  };
+
+  # Result (conceptually):
+  # myLib == lib // { capitalize = …; trimLines = …; }    ← from strings.nix
+  #              // { mapKeys = …; }                       ← from attrs.nix
+  #              // { toRelative = …; }                    ← from paths.nix
+  ```
+
+  ---
+
+  ## 2 – Priority + ignore: control load order explicitly
+
+  `meta.nix` defines `mkVersion` and `mkLabel` — foundational helpers that
+  later files depend on.  `legacy.nix` is obsolete and must be skipped.
+
+  ```nix
+  myLib = assemble {
+    start    = lib;
+    entries  = ./lib;
+    priority = [ "meta.nix" "types.nix" ];   # loaded before anything else
+    ignore   = [ "legacy.nix" "wip.nix"  ];  # skipped entirely
+    scope    = acc: acc;
+  };
+  # Load order: meta.nix → types.nix → (everything else, alpha-sorted)
+  ```
+
+  ---
+
+  ## 3 – Nested namespace with `scope`: build a sub-library
+
+  When entries should extend a *sub-key* (e.g. `lib.custom`) rather than the
+  top-level `lib`, `scope` re-wraps the accumulator before each import so the
+  entry's `lib` argument looks like standard nixpkgs `lib` with the growing
+  custom namespace merged in.
+
+  ```nix
+  # Each file under ./custom/ receives:
+  #   lib == <nixpkgs lib> // { custom = <everything assembled so far> }
+  # so later files can call lib.custom.mkLabel, lib.custom.formatVersion, etc.
+
+  customLib = assemble {
+    start   = {};                              # accumulator starts empty
+    entries = ./custom;                        # custom/mkLabel.nix, etc.
+    scope   = acc: lib // { custom = acc; };   # re-expose acc as lib.custom
+  };
+
+  # Attach the finished sub-library to nixpkgs lib:
+  finalLib = lib // { custom = customLib; };
+  ```
+
+  ---
+
+  ## 4 – `dependencies`: inject per-entry lib extensions
+
+  Some entries need a helper that is not yet part of the main accumulator
+  (e.g. a shared utility defined in a sibling file).  `dependencies` injects
+  those extensions into the `lib` seen by *every* entry without polluting the
+  accumulated result.
+
+  ```nix
+  # ./helpers/debug.nix  →  { lib }: { trace = v: lib.traceValSeq v; }
+
+  myLib = assemble {
+    start        = lib;
+    entries      = [ ./network.nix ./storage.nix ./compute.nix ];
+    scope        = acc: acc;
+    dependencies = [ ./helpers/debug.nix ];   # every entry can call lib.trace
+  };
+
+  # lib.trace is available inside network.nix, storage.nix, compute.nix
+  # but is NOT merged into myLib's final output.
+  ```
+
+  ---
+
+  ## 5 – Full real-world composition
+
+  Assembles a layered `myLib` from a `./lib/` directory.  Foundational modules
+  load first, the `scope` re-wraps so each entry sees `lib.my.*` as it grows,
+  and a shared `typecheck.nix` helper is injected without leaking.
+
+  ```nix
+  # ./lib/ contains:
+  #   core.nix       – mkId, mkSlug   (no dependencies on other custom fns)
+  #   meta.nix       – mkVersion      (depends on lib.my.mkSlug)
+  #   system.nix     – mkHost         (depends on lib.my.mkVersion)
+  #   home.nix       – mkUser         (depends on lib.my.mkHost)
+  #   experimental.nix               (not ready; ignored)
+
+  myLib = assemble {
+    start        = {};
+    entries      = ./lib;
+    priority     = [ "core.nix" "meta.nix" ];
+    ignore       = [ "experimental.nix" ];
+    scope        = acc: lib // { my = acc; };
+    dependencies = [ ./lib/internal/typecheck.nix ];
+  };
+
+  # Inside meta.nix (example entry):
+  #   { lib }: {
+  #     mkVersion = major: minor: patch:
+  #       "${lib.my.mkSlug major}.${toString minor}.${toString patch}";
+  #   }
+  #
+  # `lib.my.mkSlug` exists because core.nix was prioritized and already
+  # folded into `acc` before meta.nix was imported.
+
+  # Expose as a top-level overlay:
+  finalLib = lib // { my = myLib; };
   ```
   */
   assemble = {
@@ -79,7 +193,6 @@ Intended as a zero-dependency bootstrap that other library namespaces
     orderedEntries =
       if isList entries
       then let
-        #? Explicit list — only strip ignored entries, keep caller's order.
         notIgnored =
           filter
           (entry: !(elem (baseNameOf (toString entry)) ignore))
@@ -190,10 +303,10 @@ Intended as a zero-dependency bootstrap that other library namespaces
       then [subPath]
       else
         optionals recurse
-        collectFromDir {
+        (collectFromDir {
           path = subPath;
           inherit recurse ignore;
-        }) (filter (
+        })) (filter (
       name:
         !(elem name ignore)
         && isIncludedDir name entries.${name}
