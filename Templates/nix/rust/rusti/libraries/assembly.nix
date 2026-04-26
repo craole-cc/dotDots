@@ -190,6 +190,11 @@ Intended as a zero-dependency bootstrap that other library namespaces
     ignore ? [],
     dependencies ? [],
   }: let
+    autoPrioritize = names:
+      filter
+      (name: (name == "core" || name == "core.nix") && !(elem name priority))
+      names;
+
     orderedEntries =
       if isList entries
       then let
@@ -197,18 +202,21 @@ Intended as a zero-dependency bootstrap that other library namespaces
           filter
           (entry: !(elem (baseNameOf (toString entry)) ignore))
           entries;
+
+        allNames = map (entry: baseNameOf (toString entry)) notIgnored;
+        effectivePriority = (autoPrioritize allNames) ++ priority;
+
         prioritized =
           filter
-          (entry: elem (baseNameOf (toString entry)) priority)
+          (entry: elem (baseNameOf (toString entry)) effectivePriority)
           notIgnored;
         remaining =
           filter
-          (entry: !(elem (baseNameOf (toString entry)) priority))
+          (entry: !(elem (baseNameOf (toString entry)) effectivePriority))
           notIgnored;
       in
         prioritized ++ remaining
       else let
-        #? Directory — sort by priority then alphabetically.
         dir = readDir entries;
         names =
           filter
@@ -220,7 +228,9 @@ Intended as a zero-dependency bootstrap that other library namespaces
               || (dir.${name} == "regular" && hasSuffix ".nix" name)))
           (attrNames dir);
 
-        prioritized = filter (name: elem name names) priority;
+        effectivePriority = (autoPrioritize names) ++ priority;
+
+        prioritized = filter (name: elem name effectivePriority) names;
         remaining = filter (name: !elem name prioritized) names;
       in
         map (name: entries + "/${name}") (prioritized ++ remaining);
@@ -375,6 +385,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
         ignore = [];
         lib = null;
         start = null;
+        scope = null;
       }
       // defaults;
   in
@@ -508,7 +519,10 @@ Intended as a zero-dependency bootstrap that other library namespaces
         then n.start
         else libToUse.${namespace} or {};
       entries = paths;
-      scope = acc: libToUse // {${namespace} = acc;}; # ← was `lib //`
+      scope =
+        if n.scope != null
+        then n.scope
+        else acc: libToUse // {${namespace} = acc;};
       priority = n.priority or [];
       ignore = n.ignore   or [];
       dependencies = n.dependencies or [];

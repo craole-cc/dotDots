@@ -22,12 +22,12 @@
 
   # Type
   ```nix
-  mkAISpec :: AttrSet -> AttrSet
+  mkSpec :: AttrSet -> AttrSet
   ```
 
   # Examples
   ```nix
-  mkAISpec {
+  mkSpec {
     inherit pkgs;
     preset = "common";
   }
@@ -41,7 +41,7 @@
   # Returns
   A shell spec containing AI agent packages, utilities, and shell initialization.
   */
-  mkAISpec = {
+  mkSpec = {
     pkgs ? null,
     preset ? null,
     includeAnalytics ? true,
@@ -61,7 +61,7 @@
     name =
       if elem preset' presets
       then "ai-${preset'}"
-      else throw "mkAISpec: unknown preset '${preset'}'. Valid: ${concatStringsSep ", " presets}";
+      else throw "mkSpec: unknown preset '${preset'}'. Valid: ${concatStringsSep ", " presets}";
 
     env = {};
 
@@ -245,32 +245,8 @@
     };
     inherit shell;
   };
-
-  mkAISuite = {pkgs ? null}: let
-    mk = args: mkAISpec ({inherit pkgs;} // args);
-  in {
-    ai = mk {};
-    #~@ Entry point
-    ai-minimal = mk {
-      preset = "minimal";
-      includeAnalytics = false;
-    };
-
-    #~@ Focused suites
-    ai-agents = mk {preset = "agents";};
-    ai-assistants = mk {preset = "assistants";};
-
-    #~@ Daily driver
-    ai-common = mk {preset = "common";};
-
-    #~@ Full suite — all agents + assistants + analytics + workflow
-    ai-full = mk {
-      preset = "full";
-      includeWorkflow = true;
-    };
-  };
 in {
-  inherit mkAISpec mkAISuite;
-  mkAI = mkAISpec;
-  mkAIShells = mkAISuite;
+  inherit mkSpec;
+  mkAISpec = mkSpec;
+  mkShell = mkSpec;
 }

@@ -4,15 +4,16 @@
   pkgs,
   ...
 }: let
-  inherit (lib.shells) mkAISuite mkRustSuite mkShells;
-  rust = mkRustSuite {inherit pkgs;};
-  ai = mkAISuite {inherit pkgs;};
+  inherit (lib.shells)  mkRustSuite mkShells;
+  inherit (lib.shells) ai;
+  rustShells = mkRustSuite {inherit pkgs;};
+  aiShells = ai.mkAISuite {inherit pkgs;};
   # combined = mkCombinedSuite {inherit pkgs;};
 in {
   devShells = mkShells {
     inherit inputs;
     # default = combined.combined-common;
     # shells = rust // ai // combined;
-    shells = rust // ai;
+    shells = rustShells // aiShells;
   };
 }

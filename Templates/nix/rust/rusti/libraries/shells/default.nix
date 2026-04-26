@@ -2,6 +2,6 @@
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
-  priority = ["core"];
+  # priority = ["core"];
   ignore = ["combined.nix" "meta.nix" "config.nix"];
 }
