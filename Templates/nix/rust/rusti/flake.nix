@@ -23,10 +23,10 @@
     };
     inherit (src) lib pkgs;
 
-    # env = lib.shells.mkDevShells {
-    #   inherit inputs pkgs;
-    # };
-    env={};
+    env = lib.shells.mkDevShells {
+      inherit inputs pkgs;
+    };
+    # env={};
   in
     src // env;
 }
