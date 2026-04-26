@@ -92,11 +92,6 @@
     '';
     bench = "${bin.cargo} bench";
     clippy = "${bin.cargo} clippy -- -D warnings";
-    commit = ''
-      if [ -n "$(git status --porcelain)" ]; then
-        ${cmd.yn} "Commit changes?" && ${cmd.gt}
-      fi
-    '';
     coverage = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
     edit = "\"$VISUAL\" \"$PWD\" > /dev/null 2>&1 & disown";
     green = ''${bin.gum} style --foreground=82'';
@@ -104,25 +99,17 @@
     gt = "${bin.gitui}";
     info = "${bin.tokei}; ${bin.onefetch}";
     init = ''
-      mkdir -p .cargo
+      #> Deploy templates using the deploy-templates script
+      deploy-templates
 
-      [ -f .cargo/config.toml ] || cp ${templates.cargo} .cargo/config.toml
-      [ -f .envrc ] || cp ${templates.envrc} .envrc
-      [ -f .gitignore ] || cp ${templates.gitignore} .gitignore
-
-      [ -f treefmt.toml ] && mv treefmt.toml .treefmt.toml
-      [ -f .treefmt.toml ] || cp ${templates.treefmt} .treefmt.toml
-
-      [ -f markdownlint-cli2.yaml ]  && mv markdownlint-cli2.yaml  .markdownlint-cli2.yaml
-      [ -f .markdownlint-cli2.yaml ] || cp ${templates.markdownlint} .markdownlint-cli2.yaml
-
-      [ -f mise.toml ] && mv mise.toml .mise.toml
-      [ -f .mise.toml ] || cp ${templates.mise} .mise.toml
-
+      #> Make files writable
       chmod +w ${files.keep} 2>/dev/null || true
+
+      #> Remove cached files from git
       git rm -r --cached .direnv target 2>/dev/null || true
       git rm --cached ${files.drop} 2>/dev/null || true
 
+      #> Allow direnv if needed
       if ! direnv status 2>/dev/null | grep -q "Found RC allowed 2"; then
         ${cmd.yn} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
       fi
@@ -130,7 +117,6 @@
     leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
     lint = ''
       ${cmd.init}
-      ${cmd.commit}
       ${cmd.yn} "Proceed with linting?" ||
         { ${cmd.yellow} "Linting cancelled."; exit 0; }
       failed=0
@@ -151,7 +137,6 @@
     red = ''${bin.gum} style --foreground=196'';
     reload = ''${bin.direnv} reload'';
     reset = ''
-      ${cmd.commit}
       ${cmd.yn} "Clean cargo build cache?" && ${bin.cargo} clean
       ${cmd.yn} "Remove lock files? (flake.lock + Cargo.lock)" && {
         ${cmd.trash} flake.lock Cargo.lock 2>/dev/null || true

@@ -63,6 +63,7 @@
       else throw "mkAISpec: unknown preset '${preset'}'. Valid: ${concatStringsSep ", " presets}";
 
     pkg = pkgs'.llm-agents;
+
     packages = {
       core = let
         minimal = with pkg; [default];
@@ -104,7 +105,7 @@
           mistral-vibe
           cursor-agent
         ];
-        full = minimal ++ agents ++ assistants ++ anthropic ++ openai + vibe;
+        full = minimal ++ agents ++ assistants ++ anthropic ++ openai ++ vibe;
       in
         {
           inherit
@@ -144,6 +145,7 @@
 
     env = {};
 
+    #> Shell hook includes auto-deployment of templates
     shellHook = ''
       printf "🤖 AI"
       printf "    Preset: %s\n" "${preset'}"
@@ -156,7 +158,8 @@
         ++ packages.core
         ++ packages.utilities
         ++ packages.analytics
-        ++ packages.workflow;
+        ++ packages.workflow
+        ++ [];
     };
   in {
     __meta = {

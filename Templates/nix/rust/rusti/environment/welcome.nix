@@ -24,6 +24,11 @@ in
   writeShellScript "banner.sh" ''
     ${mkHeader "🦀 Rust Development Environment" "Toolchain: $(${rustv})"}
 
+    ${mkSection "Auto-Deployed Templates" [
+      "Templates are automatically deployed on shell entry"
+      "Run deploy-templates to manually trigger deployment"
+    ]}
+
     ${mkSection "Quick Start" [
       "cargo init <name>    # Create new project"
       "cargo new <name>     # Create with git"
@@ -72,7 +77,8 @@ in
     ]}
 
     ${mkSection "Environment" [
-      "init                 # Initialize config files"
+      "deploy-templates     # Manually deploy config templates"
+      "init                 # Full project initialization"
       "reset                # Regenerate config files"
       "reload               # Reload the environment"
       "rustv / rustvv       # Print rust version"

@@ -68,7 +68,9 @@
       RUST_BACKTRACE =
         if ch == "stable"
         then "0"
-        else "1";
+        else "full";
+      RUST_LOG = "info";
+      CARGO_INCREMENTAL = "1";
     };
 
     packages = {
@@ -108,6 +110,7 @@
       darwin = optionals pkgs'.stdenv.isDarwin (with pkgs'; [libiconv]);
     };
 
+    #> Shell hook includes auto-deployment of templates
     shellHook = ''
       printf "🦀 Rust"
       ${
@@ -125,7 +128,8 @@
         ++ packages.full
         ++ packages.nightly
         ++ packages.editor
-        ++ packages.darwin;
+        ++ packages.darwin
+        ++ [];
     };
   in {
     __meta = rust // shell;
@@ -142,7 +146,7 @@
     rust-stable = mk {channel = "stable";};
     rust-beta = mk {channel = "beta";};
 
-    #~@Lean — full tooling, no editor
+    #~@ Lean — full tooling, no editor
     rust-nightly-lean = mk {
       channel = "nightly";
       includeEditor = false;
