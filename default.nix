@@ -134,6 +134,7 @@
   };
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
+  # pkgs = lix.
 in {
   inherit (names) top;
   inherit
@@ -143,4 +144,5 @@ in {
     hosts
     users
     ;
+
 }

@@ -38,21 +38,61 @@
     mkFlake {
       inherit legacyPackages;
       fn = {
+        system,
         pkgs,
-        system ? pkgs.stdenv.hostPlatform.system,
-      }:
-        (import tree.store.mod.global {
-          inherit
-            path
-            lib
-            lix
-            pkgs
-            system
-            ;
-          inputs = inputsWrapped.resolved;
-        })
-        // {inherit nixosConfigurations templates;};
+      }: {
+        inherit
+          (import tree.store.mod.global {
+            inherit
+              path
+              lib
+              lix
+              pkgs
+              system
+              ;
+            inputs = inputsWrapped.resolved;
+          })
+          devShells
+          formatter
+          checks
+          ;
+      };
+    }
+    // {
+      nixosConfigurations = let
+        inputs = inputsWrapped.resolved;
+      in
+        mkSystems {
+          inherit schema tree inputs;
+          extraArgs = {
+            inherit
+              inputs
+              inputsWrapped
+              lix
+              top
+              ;
+          };
+        };
+      inherit templates;
     };
+  # mkFlake {
+  #   inherit legacyPackages;
+  #   fn = {
+  #     pkgs,
+  #     system ? pkgs.stdenv.hostPlatform.system,
+  #   }:
+  #     (import tree.store.mod.global {
+  #       inherit
+  #         path
+  #         lib
+  #         lix
+  #         pkgs
+  #         system
+  #         ;
+  #       inputs = inputsWrapped.resolved;
+  #     })
+  #     // {inherit nixosConfigurations templates;};
+  # };
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";

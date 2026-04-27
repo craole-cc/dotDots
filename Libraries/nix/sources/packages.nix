@@ -114,11 +114,12 @@
     coreNames ? [],
     homeNames ? [],
   }: let
-    pkgs = host.packages or {};
-    config' =
+    config' = let
+      p = host.packages;
+    in
       {
-        allowUnfree = pkgs.allowUnfree or true;
-        allowBroken = pkgs.allowBroken or false;
+        allowUnfree = p.allowUnfree or true;
+        allowBroken = p.allowBroken or false;
       }
       // config;
 
@@ -144,7 +145,7 @@
       {
         inherit overlays;
         config = config';
-        hostPlatform = host.system;
+        hostPlatform = host.system or builtins.currentSystem or "x86_64-linux";
       }
       // sourceInput {
         inherit host;

@@ -31,7 +31,6 @@ each namespace.  Order = dependency order; later entries see earlier ones on
 their incoming `lib`.
 */
 {lib ? (import <nixpkgs> {}).lib}: let
-  # lib' = lib // (import ./assembly.nix {inherit lib;});
   lib' = lib.extend (final: _: import ./assembly.nix {lib = final;});
 in
   lib'.assembly.assemble {
@@ -44,6 +43,7 @@ in
       ./strings
       ./packages
       ./shells
+      ../scripts
     ];
     ignore = ["tests" "assembly.nix"];
   }

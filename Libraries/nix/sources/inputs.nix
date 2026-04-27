@@ -16,6 +16,7 @@
     external = {inherit resolveInputs sourceInput;};
   };
 
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.resolution) byPaths;
   inherit (_.filesystem.resolution) getFlake;
 
@@ -45,15 +46,13 @@
   }: let
     class = host.class or "nixos";
   in
-    if input == null
-    then {}
-    else if class == "darwin"
-    then {source = input;}
-    else {
-      flake = {
-        source = input;
-      };
-    };
+    optionalAttrs
+    (input == null)
+    (
+      if (class == "darwin")
+      then {source = input;}
+      else {flake.source = input;}
+    );
 
   /**
   Resolves, normalizes, and categorizes flake inputs.

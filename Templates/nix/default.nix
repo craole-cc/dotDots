@@ -19,27 +19,30 @@ let
       else description;
   };
 
-  templates = {
-    common = mkTemplate {
-      path = ./common;
-      description = "Common development utilities";
-    };
-    dev = mkTemplate {
-      path = ./dev;
-      description = "Common development utilities";
-    };
-    media = mkTemplate {
-      path = ./media;
-      description = "Comprehensive Media Environment";
-    };
-    # rust = mkTemplate {
-    #   path = ./rust/standard;
-    #   description = "Rust development environment with nightly toolchain";
-    # };
-    rust = mkTemplate ./rust/rusti;
-    # rustspace = mkTemplate {
-    #   path = ./rust/workspace;
-    #   description = "Rust workspace with multiple crates";
-    # };
-  };
-in templates // {default = templates.rust;}
+  templates =
+    {
+      common = mkTemplate {
+        path = ./common;
+        description = "Common development utilities";
+      };
+      dev = mkTemplate {
+        path = ./dev;
+        description = "Common development utilities";
+      };
+      media = mkTemplate {
+        path = ./media;
+        description = "Comprehensive Media Environment";
+      };
+      # rust = mkTemplate {
+      #   path = ./rust/standard;
+      #   description = "Rust development environment with nightly toolchain";
+      # };
+      rust = mkTemplate ./rust/rusti;
+      # rustspace = mkTemplate {
+      #   path = ./rust/workspace;
+      #   description = "Rust workspace with multiple crates";
+      # };
+    }
+    // {default = templates.rust;};
+in
+  templates
