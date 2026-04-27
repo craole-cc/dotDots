@@ -12,6 +12,7 @@ tarpaulin-report.html
 #~@ Environment
 .direnv
 .env
+.codex
 !.env.example
 
 #~@ Editor

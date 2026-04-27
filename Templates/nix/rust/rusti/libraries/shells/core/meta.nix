@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.attrsets) attrNames filterAttrs listToAttrs optionaAttrs recursiveUpdate;
+  inherit (lib.attrsets) attrNames filterAttrs listToAttrs optionalAttrs recursiveUpdate;
   inherit (lib.lists) elem foldl' isList map;
   inherit (lib.strings) concatStringsSep optionalString;
   inherit (lib.trivial) functionArgs isNotEmpty;
@@ -150,7 +150,7 @@
 
     mkSuite = {pkgs ? null}: let
       subSuites = map (n:
-        optionaAttrs
+        optionalAttrs
         (ns.${n} ? mkSuite)
         ns.${n}.mkSuite {inherit pkgs;})
       names;
