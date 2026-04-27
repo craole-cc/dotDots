@@ -1,16 +1,14 @@
 {lib}: let
-  inherit (lib.shells) mergeSpecs mkShells rust ai;
+  inherit (lib.shells) mergeNamespaces mkShells rust ai;
 
-  combined = mergeSpecs {inherit rust ai;};
-  mkSpec = combined.mkShell;
+  combined = mergeNamespaces {inherit rust ai;};
+  inherit (combined) mkSpec;
 
   mkSuite = {
     inputs,
     pkgs,
-    lib ? null,
   }: let
     mk = args: mkSpec ({inherit pkgs;} // args);
-    individuals = combined.mkSuite {inherit pkgs;};
     variants = {
       default = mk {};
       stable = mk {channel = "stable";};
@@ -25,11 +23,12 @@
         minimal = true;
       };
     };
+    namespaced = combined.mkSuite {inherit pkgs;};
   in {
     devShells = mkShells {
       inherit inputs;
       default = variants.default;
-      shells = individuals // variants;
+      shells = namespaced // variants;
     };
   };
 in {
