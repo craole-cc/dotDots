@@ -30,20 +30,26 @@ Bootstrap lib.assembly from assembly.nix, then sequentially extend lib with
 each namespace.  Order = dependency order; later entries see earlier ones on
 their incoming `lib`.
 */
-{lib ? (import <nixpkgs> {}).lib}: let
+{
+  lib ? (import <nixpkgs> {}).lib,
+  paths ? {},
+}: let
   lib' = lib.extend (final: _: import ./assembly.nix {lib = final;});
 in
   lib'.assembly.assemble {
     start = lib';
     scope = acc: acc;
-    entries = [
-      ./trivial
-      ./filesystem
-      ./attrsets
-      ./strings
-      ./packages
-      ./shells
-      ../scripts
-    ];
+    entries =
+      [
+        ./trivial
+        ./filesystem
+        ./attrsets
+        ./strings
+        ./packages
+      ]
+      ++ [
+        (paths.scripts or ../scripts)
+        ./shells
+      ];
     ignore = ["tests" "assembly.nix"];
   }
