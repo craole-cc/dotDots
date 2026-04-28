@@ -81,12 +81,10 @@
       lib = libraries;
       pkgs = packages;
     };
-in
-  {
-    inherit description templates;
-    paths = {src = ./.;} // paths;
-    lib = libraries;
-    pkgs = packages;
-    system = getSystemOrDefault {pkgs = packages;};
-  }
-  // scripts
+in {
+  inherit description templates;
+  paths = {src = ./.;} // paths;
+  lib = libraries;
+  pkgs = packages;
+  system = getSystemOrDefault {pkgs = packages;};
+}
