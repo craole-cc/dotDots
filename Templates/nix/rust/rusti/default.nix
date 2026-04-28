@@ -1,13 +1,14 @@
 {
   description ? "Rust development environment with AI Tools",
   paths ? {
-    libraries = ./libraries;
-    environment = ./environment;
-    templates = ./templates;
-    scripts = ./scripts;
-    modules = ./modules;
-    config = ./config;
-    downloads = ./downloads;
+    root = ./.;
+    libraries = ./_/libraries;
+    environment = ./_/environment;
+    templates = ./_/templates;
+    scripts = ./_/scripts;
+    modules = ./_/modules;
+    config = ./_/config;
+    downloads = ./_/downloads;
   },
   lib ? null,
   inputs ? null,
@@ -65,11 +66,6 @@
     then import paths.libraries {lib = lib';}
     else lib';
   inherit (libraries.packages) mkPkgs getSystemOrDefault;
-
-  scripts =
-    libraries.optionalAttrs
-    (paths ? scripts && pathExists paths.scripts)
-    (import paths.scripts {lib = libraries;});
 
   packages = mkPkgs {inherit inputs;};
 
