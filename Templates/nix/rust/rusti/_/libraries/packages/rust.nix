@@ -98,7 +98,8 @@
     };
   in {
     kind = "rust";
-    inherit (resolved) package toolchain;
-    inherit (resolved.package) version system paths;
+    inherit (resolved) toolchain package;
+    inherit (resolved.package) paths version system;
+    inherit (resolved.toolchain) channel;
   };
 in {inherit mkRust;}

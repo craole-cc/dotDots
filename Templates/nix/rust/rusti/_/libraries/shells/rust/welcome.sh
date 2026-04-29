@@ -45,5 +45,5 @@ section "Templates" \
   "deploy-templates -f    Overwrite local template changes"
 
 section "Context" \
-  "Toolchain file: $RUST_TOOLCHAIN_FILE" \
+  "Toolchain file: ${RUST_TOOLCHAIN_FILE:-"n/a"}" \
   "Commands alias: commands list"
