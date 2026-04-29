@@ -3,7 +3,7 @@
 set -eu
 
 header() {
-  "$GUM" style \
+  "${CMD_GUM}" style \
     --border double \
     --border-foreground 212 \
     --align center \
@@ -18,9 +18,9 @@ section() {
   title=$1
   shift
 
-  "$GUM" style --foreground 212 --bold " $title"
+  "${CMD_GUM}" style --foreground 212 --bold " $title"
   for line in "$@"; do
-    "$GUM" style --foreground 250 "  $line"
+    "${CMD_GUM}" style --foreground 250 "  $line"
   done
   printf '\n'
 }
