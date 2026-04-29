@@ -63,7 +63,11 @@
       else nixpkgs.lib;
   in
     if paths ? libraries && pathExists paths.libraries
-    then import paths.libraries {lib = lib';}
+    then
+      import paths.libraries {
+        inherit paths;
+        lib = lib';
+      }
     else lib';
   inherit (libraries.packages) mkPkgs getSystemOrDefault;
 

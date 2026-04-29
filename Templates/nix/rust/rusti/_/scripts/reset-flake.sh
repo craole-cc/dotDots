@@ -28,10 +28,10 @@ while [ "$#" -gt 0 ]; do
 done
 
 remove_path() {
-  path=$1
-  if [ -e "$ROOT/$path" ]; then
-    rm -rf "$ROOT/$path"
-    printf 'removed %s\n' "$ROOT/$path"
+  path="$(printf '%s/%s' "$ROOT" "$1")"
+  if [ -e "$path" ]; then
+    rm -rf "$path"
+    printf 'removed %s\n' "$path"
   fi
 }
 

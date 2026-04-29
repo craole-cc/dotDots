@@ -189,6 +189,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
     priority ? [],
     ignore ? [],
     dependencies ? [],
+    extraArgs ? {},
   }: let
     #> Automatically loaded first (in this order) when present and explicitly defined.
     autoPrioritize = names:
@@ -285,16 +286,20 @@ Intended as a zero-dependency bootstrap that other library namespaces
         map (name: entries + "/${name}") (prioritized ++ middle ++ deferredFiltered);
   in
     foldl'
-    (acc: entry: let
-      baseLib = scope acc;
-      libForEntry =
-        foldl'
-        (depLib: depPath:
-          depLib // (import depPath {lib = depLib;}))
-        baseLib
-        dependencies;
-    in
-      acc // (import entry {lib = libForEntry;}))
+    (
+      acc: entry: let
+        baseLib = scope acc;
+        libForEntry =
+          foldl'
+          (depLib: depPath:
+            depLib // (import depPath {lib = depLib;}))
+          baseLib
+          dependencies;
+      in
+        acc
+        // (importWithFilteredArgs entry
+          ({lib = libForEntry;} // extraArgs))
+    )
     start
     orderedEntries;
 

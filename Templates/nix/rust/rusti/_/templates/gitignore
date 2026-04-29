@@ -1,6 +1,9 @@
+#~@ Nix
+# flake.lock
+
 #~@ Rust
 target/
-Cargo.lock
+# Cargo.lock
 **/*.rs.bk
 *.pdb
 

@@ -39,6 +39,7 @@ in
   lib'.assembly.assemble {
     start = lib';
     scope = acc: acc;
+    extraArgs = {inherit paths;};
     entries =
       [
         ./trivial
@@ -46,10 +47,11 @@ in
         ./attrsets
         ./strings
         ./packages
+        (paths.scripts or ../scripts) #? Not sure about this
+        (paths.templates or ../templates) #? Not sure about this
+        ./shells
       ]
       ++ [
-        (paths.scripts or ../scripts)
-        ./shells
       ];
     ignore = ["tests" "assembly.nix"];
   }
