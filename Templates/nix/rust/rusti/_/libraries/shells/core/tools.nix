@@ -1,54 +1,63 @@
 {lib}: let
+  inherit (lib.attrsets) attrValues optionalAttrs;
+  inherit (lib.lists) flatten;
+  inherit (lib.packages) mkBins;
+  inherit (lib.strings) mkStyledOutput;
+  inherit (lib.trivial) isNotEmpty;
+  inherit (lib.packages) mkPkgs;
+
   mkTools = {
-    pkgs,
+    pkgs ? mkPkgs {},
     minimal ? false,
     includeEditor ? true,
     includeFmt ? true,
     includeInfo ? true,
   }: let
-    inherit (lib.attrsets) attrValues;
-    inherit (lib.lists) optionals flatten;
-    inherit (lib.strings) mkStyledOutput;
-
     print = mkStyledOutput {inherit pkgs;};
-
     tools = {
-      fmt =
-        optionals (includeFmt && !minimal)
-        (with pkgs; [taplo treefmt markdownlint-cli2 prettierd yamlfmt]);
-      info =
-        optionals (includeInfo && !minimal)
-        (with pkgs; [gitui onefetch tokei direnv gum mise trashy]);
-      editor =
-        optionals (includeEditor && !minimal)
-        (with pkgs; [helix]);
+      fmt = optionalAttrs (includeFmt && !minimal) {
+        inherit
+          (pkgs)
+          taplo
+          treefmt
+          markdownlint-cli2
+          prettierd
+          yamlfmt
+          ;
+      };
+      info = optionalAttrs (includeInfo && !minimal) {
+        inherit
+          (pkgs)
+          gitui
+          onefetch
+          tokei
+          direnv
+          gum
+          mise
+          trashy
+          ;
+      };
+      editor = optionalAttrs (includeEditor && !minimal) {
+        inherit (pkgs) helix;
+      };
     };
 
-    bin =
+    bin = with tools;
       {}
-      // optionals (includeFmt && !minimal) {
-        treefmt = "${pkgs.treefmt}/bin/treefmt";
-      }
-      // optionals (includeInfo && !minimal) {
-        gum = "${pkgs.gum}/bin/gum";
-        gitui = "${pkgs.gitui}/bin/gitui";
-        tokei = "${pkgs.tokei}/bin/tokei";
-        onefetch = "${pkgs.onefetch}/bin/onefetch";
-        direnv = "${pkgs.direnv}/bin/direnv";
-        mise = "${pkgs.mise}/bin/mise";
-        trashy = "${pkgs.trashy}/bin/trash";
-      }
-      // optionals (includeEditor && !minimal) {
-        helix = "${pkgs.helix}/bin/hx";
-      };
+      // optionalAttrs (isNotEmpty fmt) (mkBins fmt)
+      // optionalAttrs (isNotEmpty info && !minimal) (mkBins info)
+      // optionalAttrs (isNotEmpty editor) (mkBins editor)
+      // {};
 
     cmd =
-      {}
-      // optionals (includeFmt && !minimal) {
+      {
+        gumv = ''${bin.gum} --version 2>&1 | head -n1 | awk '{print $2}' '';
+      }
+      // optionalAttrs (includeFmt && !minimal) {
         fmtree = bin.treefmt;
         treefmtv = ''${bin.treefmt} --version 2>&1 | awk '{print substr($2,2)}' '';
       }
-      // optionals (includeInfo && !minimal) {
+      // optionalAttrs (includeInfo && !minimal) {
         info = "${bin.tokei}; ${bin.onefetch}";
         gt = bin.gitui;
         reload = "${bin.direnv} reload";
@@ -58,7 +67,7 @@
           nix flake update
         '';
       }
-      // optionals (includeEditor && !minimal) {
+      // optionalAttrs (includeEditor && !minimal) {
         hxv = ''${bin.helix} --version 2>&1 | head -n1 | awk '{print $2}' '';
       };
   in {
