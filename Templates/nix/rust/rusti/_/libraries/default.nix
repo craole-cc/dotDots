@@ -32,7 +32,10 @@ their incoming `lib`.
 */
 {
   lib ? (import <nixpkgs> {}).lib,
-  paths ? {},
+  paths ? {
+    scripts = ../scripts;
+    templates = ../templates;
+  },
 }: let
   lib' = lib.extend (final: _: import ./assembly.nix {lib = final;});
 in
@@ -40,18 +43,15 @@ in
     start = lib';
     scope = acc: acc;
     extraArgs = {inherit paths;};
-    entries =
-      [
-        ./trivial
-        ./filesystem
-        ./attrsets
-        ./strings
-        ./packages
-        (paths.scripts or ../scripts) #? Not sure about this
-        (paths.templates or ../templates) #? Not sure about this
-        ./shells
-      ]
-      ++ [
-      ];
+    entries = with paths; [
+      ./trivial
+      ./filesystem
+      ./attrsets
+      ./strings
+      ./packages
+      scripts
+      templates
+      ./shells
+    ];
     ignore = ["tests" "assembly.nix"];
   }

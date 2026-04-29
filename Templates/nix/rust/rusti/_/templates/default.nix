@@ -72,7 +72,7 @@
 
   # --- package builders -------------------------------------------------
 
-  mkTemplatePackage = {pkgs ? mkPkgs {}}: let
+  mkPackage = {pkgs ? mkPkgs {}}: let
     print = mkStyledOutput {inherit pkgs;};
 
     banner = mkHeader {
@@ -87,9 +87,6 @@
       content = map (name: name) (attrNames entries);
     };
   in
-    # Still needs writeShellScriptBin because we must append generated
-    # deployCalls after the file content; mkScriptPackage doesn't support
-    # a post-file block. Everything else goes through the helpers.
     pkgs.writeShellScriptBin "deploy-templates" ''
       ${banner}
       ${section}
@@ -98,8 +95,7 @@
       ${deployCalls}
     '';
 
-  # reset fits mkScriptPackage perfectly – no codegen needed
-  mkResetPackage = {pkgs ? mkPkgs {}}:
+  mkFlakeReset = {pkgs ? mkPkgs {}}:
     mkScriptPackage {
       inherit pkgs;
       name = "reset-flake";
@@ -115,22 +111,28 @@
       commands = {
         deploy-templates = {
           description = "Sync config templates into the project";
-          run = "${mkTemplatePackage {inherit pkgs;}}/bin/deploy-templates";
+          run = "${mkPackage {inherit pkgs;}}/bin/deploy-templates";
         };
         reset-flake = {
           description = "Reset the flake lock and generated files";
-          run = "${mkResetPackage {inherit pkgs;}}/bin/reset-flake";
+          run = "${mkFlakeReset {inherit pkgs;}}/bin/reset-flake";
         };
       };
     };
 in {
-  inherit entries;
-
-  packages = {
-    deploy = mkTemplatePackage;
-    reset = mkResetPackage;
+  templates = {
+    inherit
+      entries
+      mkPackage
+      mkFlakeReset
+      mkCommands
+      ;
   };
 
-  # commands is now a proper mission-control dispatcher, not a raw bin path
-  commands = mkCommands;
+  packages =
+    lib.packages
+    // {
+      inherit mkFlakeReset;
+      mkTemplate = mkPackage;
+    };
 }
