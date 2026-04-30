@@ -1,0 +1,29 @@
+[Aa]rchive/
+[Aa]rchives/
+# [Dd]ebug/
+[Dd]ownloads/
+# [Ii]mport/
+[Ll]og/
+[Pp]rivate/
+# [Rr]eview/
+[Tt]arget/
+[Tt]emp/
+[Tt]mp/
+
+.cache/
+# .config/
+.devenv/
+.direnv/
+*.ttf
+*.otf
+*.woff2
+
+.vscode/
+.zed
+.idea/
+
+!.envrc
+!flake.lock
+!.data/
+
+.codex
