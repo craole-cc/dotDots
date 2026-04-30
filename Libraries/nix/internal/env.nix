@@ -1,26 +1,27 @@
 {
-  lib',
-  path,
-  name,
+  lib,
+  paths,
+  names,
   self,
-  safeLib,
+  flake,
+  safe,
 }: {
   #~@ Primary references
-  inherit path name;
-  lib = lib'; # ? nixpkgs lib
+  inherit lib names flake;
+  src = paths.root;
   _ = self; # ? custom library (extensible self)
-  src = path;
-  library = name;
+  ${names.top} = self; # ? custom library (extensible self)
+  library = names.lib;
 
   #~@ Short aliases
-  l = lib';
+  l = lib;
   x = self;
-  s = safeLib;
+  s = safe;
 
   #~@ Structured access
   libs = {
-    nixpkgs = lib';
+    nixpkgs = lib;
     custom = self;
-    safe = safeLib;
+    inherit safe;
   };
 }

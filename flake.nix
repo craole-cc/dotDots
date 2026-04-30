@@ -176,16 +176,11 @@
 
   outputs = inputs @ {self, ...}: let
     flake = self;
-    path = ./.;
-    names = {
-      top = "_";
-      lib = "lix";
-    };
     inherit (inputs.nixPackages) lib legacyPackages;
-    src = import path {inherit lib names;};
-    inherit (src) lix tree schema top;
+    inherit (import ./. {inherit flake lib;}) lix tree schema top;
     inherit (lix.modules.construction) mkFlake mkSystems;
     inherit (lix.sources.inputs) resolveInputs;
+
     inputsWrapped = resolveInputs {inherit flake;};
   in {
     inherit
@@ -196,7 +191,8 @@
           pkgs,
         }:
           import tree.store.mod.global {
-            inherit path lib lix pkgs system;
+            inherit lix pkgs system;
+            inherit (lix) lib;
             inputs = inputsWrapped.resolved;
           };
       })

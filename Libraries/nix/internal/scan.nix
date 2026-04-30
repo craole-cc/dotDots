@@ -1,16 +1,13 @@
 {
-  lib',
+  lib,
   env,
-  path,
-  basePath,
-  excludedDirs,
-  excludedFiles,
-  excludedPatterns,
+  exclusions,
+  paths,
   runTests,
 }: let
   inherit (builtins) readDir pathExists currentTime;
   inherit
-    (lib'.attrsets)
+    (lib.attrsets)
     attrNames
     filterAttrs
     foldlAttrs
@@ -18,7 +15,7 @@
     mapAttrs
     ;
   inherit
-    (lib'.lists)
+    (lib.lists)
     elem
     filter
     findFirst
@@ -26,7 +23,7 @@
     length
     ;
   inherit
-    (lib'.strings)
+    (lib.strings)
     concatStringsSep
     hasPrefix
     hasSuffix
@@ -35,7 +32,8 @@
     splitString
     typeOf
     ;
-  inherit (lib'.trivial) isFunction;
+  inherit (lib.trivial) isFunction;
+  inherit (paths) src libraries;
 
   empty = {
     modules = {};
@@ -43,8 +41,8 @@
   };
 
   # ── Exclusion predicates ────────────────────────────────────────────────
-  isExcludedDir = n: elem n excludedDirs || hasPrefix "." n;
-  isExcludedFile = n: elem n excludedFiles || foldl' (acc: pat: acc || hasSuffix pat n) false excludedPatterns;
+  isExcludedDir = n: elem n exclusions.dirs || hasPrefix "." n;
+  isExcludedFile = n: elem n exclusions.files || foldl' (acc: pat: acc || hasSuffix pat n) false exclusions.patterns;
 
   # ── Documentation discovery ─────────────────────────────────────────────
   findDocs = dir: moduleName: let
@@ -55,8 +53,8 @@
       (dir + "/readme.md")
       (dir + "/docs/${moduleName}.md")
       (dir + "/docs/README.md")
-      (path + "/Documentation/${getRelPath path dir}/${moduleName}.md")
-      (path + "/Documentation/${getRelPath path dir}/README.md")
+      (src + "/Documentation/${getRelPath src dir}/${moduleName}.md")
+      (src + "/Documentation/${getRelPath src dir}/README.md")
     ];
     found = findFirst (p: p != null && pathExists (toString p)) null candidates;
   in
@@ -146,7 +144,7 @@
       module = rec {
         name = concatStringsSep "." namespace;
         path = filePath;
-        directory = removePrefix ((toString basePath) + "/") (toString dir);
+        directory = removePrefix ((toString libraries) + "/") (toString dir);
         filename = entryName;
         namespace = [env.library] ++ pathPrefix ++ [moduleName];
       };

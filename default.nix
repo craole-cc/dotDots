@@ -1,18 +1,19 @@
 {
   lib ? null,
-  path ? ./.,
+  flake ? null,
+  paths ? {
+    src = ./.;
+    libraries = ./Libraries/nix;
+  },
   names ? {
-    top = "dots";
+    top = "_";
     lib = "lix";
   },
 }: let
-  inherit
-    (import ./Libraries/nix {
-      inherit lib path;
-      name = names.lib;
-    })
-    lix
-    ;
+  libraries = import paths.libraries {
+    inherit paths flake names lib;
+  };
+  inherit (libraries) lix;
   inherit (lix.filesystem.tree) mkTree mkLangGroup;
   inherit (lix.schema._) mkSchema;
   tree = mkTree {

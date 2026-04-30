@@ -1,29 +1,30 @@
 {
-  collisionStrategy,
-  lib',
+  # collisionStrategy,
+  lib,
+  flake,
   library,
-  path,
+  # paths,
   rootAliases,
 }: let
   inherit
-    (lib'.attrsets)
+    (lib.attrsets)
     attrNames
     filterAttrs
     genAttrs
     recursiveUpdate
     ;
-  inherit (lib'.lists) elem filter;
-  inherit (lib'.filesystem) readDir;
-  inherit (lib'.strings) hasSuffix removeSuffix;
-  inherit (lib'.debug) trace;
+  inherit (lib.lists) elem filter;
+  inherit (lib.filesystem) readDir;
+  inherit (lib.strings) hasSuffix removeSuffix;
+  inherit (lib.debug) trace;
 
-  lib = let
+  lib' = let
     base = let
       raw = ../imports;
       set = import raw;
       init = f:
         f {
-          lib = lib';
+          lib = lib;
           flatten = false;
         };
       names = filter (name: name != "default") (
@@ -38,12 +39,12 @@
   in
     library.extend (_: prev: recursiveUpdate base prev);
 
-  lix = lib.extend (
+  lix = lib'.extend (
     _: prev:
       recursiveUpdate prev {
         # inherit path;
         src = path;
-        lib = lib';
+        lib = lib;
       }
   );
   base = removeAttrs lix [
