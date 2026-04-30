@@ -1,6 +1,7 @@
 {lib}: let
   inherit (lib.packages) mkPkgs mkRust mkBins;
   inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.lists) optional;
   inherit (lib.strings) concatStringsSep;
   inherit (lib.trivial) isNotEmpty;
 
@@ -9,13 +10,20 @@
     rust ? mkRust {inherit pkgs;},
     minimal ? false,
     includeEditor ? true,
-    # includeFmt ? true,
     includeWeb ? false,
     includeAnalysis ? true,
     includeWatch ? true,
   }: let
     inherit (lib.shells.mkTools {inherit pkgs;}) print;
-    inherit (rust) package channel;
+    inherit
+      (rust)
+      channel
+      hasClippy
+      hasLlvmTools
+      hasMiri
+      hasRustfmt
+      package
+      ;
     inherit (pkgs.stdenv) isDarwin;
 
     tools =
@@ -56,7 +64,7 @@
           {inherit (pkgs) cargo-careful;};
         watch =
           optionalAttrs includeWatch
-          {inherit (pkgs) bacon cargo-watch cargo-make;};
+          {inherit (pkgs) bacon cargo-watch cargo-make watchexec;};
         web =
           optionalAttrs includeWeb
           {inherit (pkgs) cargo-leptos trunk binaryen leptosfmt;};
@@ -82,9 +90,13 @@
       {
         bench = "${cargo} bench";
         check = "${cargo} check";
-        clippy = "${cargo} clippy --all-targets --all-features -- -D warnings";
-        fmtrs = "${cargo} fmt --all";
-        lint = concatStringsSep " && " (with cmd; [check fmtrs clippy]);
+        doc = "${cargo} doc --all-features --no-deps";
+        lint = with cmd;
+          concatStringsSep " && " (
+            [check]
+            ++ optional hasRustfmt fmtrs
+            ++ optional hasClippy clippy
+          );
         run = "${cargo} run";
         rustv = "${rustc} --version | cut -d ' ' -f2";
         rustvv = "${rustc} --version | cut -d ' ' -f2-";
@@ -96,6 +108,18 @@
           fi
         '';
       }
+      // optionalAttrs hasRustfmt {
+        fmtrs = "${cargo} fmt --all";
+      }
+      // optionalAttrs hasClippy {
+        clippy = "${cargo} clippy --all-targets --all-features -- -D warnings";
+      }
+      // optionalAttrs hasMiri {
+        miri = "${cargo} miri test --all-features";
+      }
+      // optionalAttrs hasLlvmTools {
+        coverage = "${cargo} llvm-cov --all-features --workspace";
+      }
       // optionalAttrs (isNotEmpty tools.deps) {
         audit = "${cargo} audit";
         test = "${cargo} nextest run";
@@ -106,10 +130,12 @@
         rrv = ''${bin.rust-rover} --version 2>&1 | head -n1 | awk '{print $2}' '';
       }
       // optionalAttrs (isNotEmpty tools.watch) {
-        watch = "${cargo} watch --quiet --clear --exec";
-        watch-run = "${cargo} watch --quiet --clear --exec run";
-        watch-test = "${cargo} watch --quiet --clear --exec 'nextest run'";
-        watch-lint = "${cargo} watch --quiet --clear --exec 'clippy -- -D warnings'";
+        watch-rs = "${bin.watchexec} --clear --exts rs,toml --";
+        watch-cargo = "${cargo} watch --quiet --clear --exec";
+        watch-run = "${cmd.watch-rs} '${cmd.run}'";
+        watch-test = "${cmd.watch-rs} '${cmd.test}'";
+        watch-lint = "${cmd.watch-rs} '${cmd.lint}'";
+        watch-bacon = bin.bacon;
         baconv = ''${bin.bacon} --version 2>&1 | awk '{print $2}' '';
       }
       // optionalAttrs (isNotEmpty tools.web) {
@@ -119,6 +145,5 @@
   in {
     inherit bin cmd print;
     tools = tools // {all = tools;};
-    # tools = tools // {all = flatten (attrValues tools);};
   };
 in {inherit mkTools;}
