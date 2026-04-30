@@ -1,35 +1,57 @@
 {_, ...}: let
-  __doc = ''
-    Module Evaluation and System Generation
+  meta = let
+    doc = ''
+      Module Evaluation and System Generation
 
-    Provides the orchestration layer for turning discovered hosts, resolved
-    flake inputs, generated package sets, and assembled module lists into
-    fully evaluated system configurations.
+      Provides the orchestration layer for turning discovered hosts, resolved
+      flake inputs, generated package sets, and assembled module lists into
+      fully evaluated system configurations.
 
-    This file is responsible for two major tasks:
+      This file is responsible for two major tasks:
 
-    1. Evaluating host systems via `evalModules`.
-    2. Generating per-system flake-style output matrices from a function.
-  '';
-
-  __exports = {
-    internal = {
-      inherit
-        mkSystems
-        mkFlake
-        mkCore
-        mkHome
-        mkTree
-        ;
+      1. Evaluating host systems via `evalModules`.
+      2. Generating per-system flake-style output matrices from a function.
+    '';
+    functions = {
+      inherit mkSystems mkFlake mkCore mkHome mkTree;
     };
-    external = {
-      inherit mkSystems mkFlake;
-      mkModulesSystems = mkSystems;
-      mkModulesCore = mkCore;
-      mkModulesHome = mkHome;
-      mkModulesFlake = mkFlake;
+    exports = {
+      local = functions;
+      alias = functions;
     };
-  };
+  in {inherit doc exports functions;};
+
+  # __doc = ''
+  #   Module Evaluation and System Generation
+
+  #   Provides the orchestration layer for turning discovered hosts, resolved
+  #   flake inputs, generated package sets, and assembled module lists into
+  #   fully evaluated system configurations.
+
+  #   This file is responsible for two major tasks:
+
+  #   1. Evaluating host systems via `evalModules`.
+  #   2. Generating per-system flake-style output matrices from a function.
+  # '';
+
+  # __exports = {
+  #   internal = {
+  #     inherit
+  #       mkSystems
+  #       mkFlake
+  #       mkCore
+  #       mkHome
+  #       mkTree
+  #       ;
+  #   };
+  #   external = {
+  #     inherit mkSystems mkFlake;
+  #     mkModulesSystems = mkSystems;
+  #     mkModulesCore = mkCore;
+  #     mkModulesHome = mkHome;
+  #     mkModulesFlake = mkFlake;
+  #   };
+  # };
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) genAttrs;
@@ -240,7 +262,7 @@
     flake ? {},
     nixpkgs ? {},
     legacyPackages ? {},
-    system ? builtins.currentSystem or null,
+    system ? null,
     hosts ? {},
     fn,
   }: let
@@ -272,10 +294,17 @@
       pkgs = pkgsFor derived;
     });
   in
-    genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
+    genAttrs names (
+      name: mapAttrs (_: outputs: outputs.${name}) perSystem
+    );
 in
-  __exports.internal
+  meta.exports.local
   // {
-    inherit __doc;
-    __rootAliases = __exports.external;
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
   }
+# __exports.internal
+# // {
+#   inherit __doc;
+#   __rootAliases = __exports.external;
+# }

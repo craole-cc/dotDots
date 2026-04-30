@@ -71,8 +71,13 @@
     flake ? {},
     nixpkgs ? {},
     legacyPackages ? {},
-    system ? currentSystem,
+    system ? null,
   }: let
+    system' =
+      if system != null
+      then system
+      else currentSystem;
+
     pkgsBase =
       if legacyPackages != {}
       then legacyPackages
@@ -83,7 +88,7 @@
       then import <nixpkgs> {}
       else pkgsBase.${sys} or (import <nixpkgs> {system = sys;});
 
-    pkgs = pkgsFor system;
+    pkgs = pkgsFor system';
   in {
     inherit pkgsBase pkgsFor pkgs;
   };
@@ -111,22 +116,9 @@
     flake ? {},
     nixpkgs ? {},
     legacyPackages ? {},
-    system ? currentSystem,
+    system ? null,
     hosts ? {},
   }: let
-    inherit
-      (getPackages {
-        inherit
-          flake
-          nixpkgs
-          legacyPackages
-          system
-          ;
-      })
-      pkgsBase
-      pkgsFor
-      ;
-
     #~@ Types Lists
     defined = flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts);
     default = [
@@ -140,12 +132,27 @@
     #~@ Selection
     common = mostFrequent defined null;
     derived =
-      #? Give an explicitly passed 'system' argument highest priority
       if system != null
       then system
+      else if builtins ? currentSystem
+      then builtins.currentSystem
       else if common != null
       then common
       else last default;
+
+    #~@ System Packages
+    inherit
+      (getPackages {
+        inherit
+          flake
+          nixpkgs
+          legacyPackages
+          ;
+        system = derived;
+      })
+      pkgsBase
+      pkgsFor
+      ;
   in {
     inherit
       all

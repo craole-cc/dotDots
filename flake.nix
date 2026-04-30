@@ -188,12 +188,6 @@
     inherit (lix.sources.inputs) resolveInputs;
     inputsWrapped = resolveInputs {inherit flake;};
   in {
-    nixosConfigurations = mkSystems {
-      inherit schema tree;
-      inputs = inputsWrapped.resolved;
-      extraArgs = {inherit flake inputsWrapped lix top;};
-    };
-    templates = import tree.store.kit.nix;
     inherit
       (mkFlake {
         inherit legacyPackages;
@@ -210,5 +204,13 @@
       formatter
       checks
       ;
+
+    nixosConfigurations = mkSystems {
+      inherit schema tree;
+      inputs = inputsWrapped.resolved;
+      extraArgs = {inherit flake inputsWrapped lix top;};
+    };
+
+    templates = import tree.store.kit.nix;
   };
 }

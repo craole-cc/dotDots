@@ -24,6 +24,7 @@
       listNixPackagesRecursively = listPackagesRecursively;
     };
   };
+
   /**
   List all files under a directory, recursively.
 
