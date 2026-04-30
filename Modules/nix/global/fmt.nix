@@ -15,6 +15,7 @@
     rustfmt
     shellcheck
     shfmt
+    statix
     stylua
     taplo
     typstyle
