@@ -130,14 +130,21 @@
   # Conditional lint example
   ```nix
   inherit (rust) package channel hasRustfmt hasClippy;
-   cmd =
-      {
-        lint = lib.strings.concatStringsSep " && " (
-          [ cmd.check ]
-          ++ lib.lists.optional rust.hasRustfmt cmd.fmtrs
-          ++ lib.lists.optional rust.hasClippy  cmd.clippy
-        );
-      };
+  cmd =
+    {
+      check = "${cargo} check";
+      lint = concatStringsSep " && " (
+        [cmd.check]
+        ++ [cmd.fmtrs] or []
+        ++ [cmd.clippy] or []
+      );
+    }
+    // optionalAttrs hasRustfmt {
+      fmtrs = "${cargo} fmt --all";
+    }
+    // optionalAttrs hasClippy {
+      clippy = "${cargo} clippy --all-targets --all-features -- -D warnings";
+    };
   ```
   */
   mkRust = {

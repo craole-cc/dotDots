@@ -30,7 +30,6 @@
       {
         core =
           {inherit (pkgs) gcc;}
-          # // optionalAttrs includeFmt {inherit (pkgs) rustfmt;}
           // optionalAttrs isDarwin {inherit (pkgs) libiconv;};
       }
       // optionalAttrs (!minimal) {
@@ -91,12 +90,6 @@
         bench = "${cargo} bench";
         check = "${cargo} check";
         doc = "${cargo} doc --all-features --no-deps";
-        lint = with cmd;
-          concatStringsSep " && " (
-            [check]
-            ++ optional hasRustfmt fmtrs
-            ++ optional hasClippy clippy
-          );
         run = "${cargo} run";
         rustv = "${rustc} --version | cut -d ' ' -f2";
         rustvv = "${rustc} --version | cut -d ' ' -f2-";
@@ -129,19 +122,30 @@
         rr = bin.rust-rover;
         rrv = ''${bin.rust-rover} --version 2>&1 | head -n1 | awk '{print $2}' '';
       }
-      // optionalAttrs (isNotEmpty tools.watch) {
-        watch-rs = "${bin.watchexec} --clear --exts rs,toml --";
-        watch-cargo = "${cargo} watch --quiet --clear --exec";
-        watch-run = "${cmd.watch-rs} '${cmd.run}'";
-        watch-test = "${cmd.watch-rs} '${cmd.test}'";
-        watch-lint = "${cmd.watch-rs} '${cmd.lint}'";
-        watch-bacon = bin.bacon;
-        baconv = ''${bin.bacon} --version 2>&1 | awk '{print $2}' '';
-      }
+      // optionalAttrs (isNotEmpty tools.watch) ({
+          watch-rs = "${bin.watchexec} --clear --exts rs,toml --";
+          watch-cargo = "${cargo} watch --quiet --clear --exec";
+          watch-run = "${cmd.watch-rs} '${cmd.run}'";
+          watch-lint = "${cmd.watch-rs} '${cmd.lint}'";
+          watch-bacon = bin.bacon;
+          baconv = ''${bin.bacon} --version 2>&1 | awk '{print $2}' '';
+        }
+        // optionalAttrs (cmd ? test) {
+          watch-test = "${cmd.watch-rs} '${cmd.test}'";
+        }
+        // optionalAttrs (cmd ? lint) {
+          watch-lint = "${cmd.watch-rs} '${cmd.lint}'";
+        })
       // optionalAttrs (isNotEmpty tools.web) {
         leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
       }
-      // {};
+      // {
+        lint = concatStringsSep " && " (
+          [cmd.check]
+          ++ optional (cmd ? fmtrs) cmd.fmtrs
+          ++ optional (cmd ? clippy) cmd.clippy
+        );
+      };
   in {
     inherit bin cmd print;
     tools = tools // {all = tools;};
