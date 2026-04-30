@@ -8,7 +8,7 @@
     alejandra
     deno
     dos2unix
-    leptosfmt #? Formatter for the leptos view! macro
+    leptosfmt
     markdownlint-cli2
     nixfmt
     prettierd

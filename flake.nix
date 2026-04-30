@@ -183,41 +183,16 @@
     };
     inherit (inputs.nixPackages) lib legacyPackages;
     src = import path {inherit lib names;};
-    inherit
-      (src)
-      lix
-      tree
-      schema
-      top
-      ;
+    inherit (src) lix tree schema top;
     inherit (lix.modules.construction) mkFlake mkSystems;
-    inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
-    perFlake = mkFlake {
-      inherit legacyPackages;
-      fn = {
-        system,
-        pkgs,
-      }:
-        import tree.store.mod.global {
-          inherit path lib lix pkgs system;
-          inputs = inputsWrapped.resolved;
-        };
-    };
+    inherit (lix.sources.inputs) resolveInputs;
+    inputsWrapped = resolveInputs {inherit flake;};
   in {
-    nixosConfigurations = let
+    nixosConfigurations = mkSystems {
+      inherit schema tree;
       inputs = inputsWrapped.resolved;
-    in
-      mkSystems {
-        inherit schema tree inputs;
-        extraArgs = {
-          inherit
-            inputs
-            inputsWrapped
-            lix
-            top
-            ;
-        };
-      };
+      extraArgs = {inherit flake inputsWrapped lix top;};
+    };
     templates = import tree.store.kit.nix;
     inherit
       (mkFlake {
