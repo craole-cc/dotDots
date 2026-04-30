@@ -14,10 +14,10 @@ pout_error() {
 
 pout_debug() {
   case "${debug:-}" in
-  '' | off | no | false) return ;;
-  1 | on | true | *)
-    printf "[DEBUG] %s === %s\n" "${src_name}" "$*"
-    ;;
+    '' | off | no | false) return ;;
+    1 | on | true | *)
+      printf "[DEBUG] %s === %s\n" "${src_name}" "$*"
+      ;;
   esac
 }
 
@@ -29,7 +29,7 @@ else
 fi
 
 #{ Use devnix from here on
-CMD_DEVNIX="$(command -v devnix 2>/dev/null || true)"
+CMD_DEVNIX="$(command -v devnix 2> /dev/null || true)"
 CMD_DEVNIX="${CMD_DEVNIX:-"${workspace}/Libraries/shellscript/project/nix/devnix"}"
 if [ -x "${CMD_DEVNIX}" ]; then
   pout_debug "CMD_DEVNIX" "${CMD_DEVNIX}"

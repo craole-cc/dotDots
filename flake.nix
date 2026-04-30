@@ -192,39 +192,48 @@
       ;
     inherit (lix.modules.construction) mkFlake mkSystems;
     inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
-  in
-    {
-      nixosConfigurations = let
-        inputs = inputsWrapped.resolved;
-      in
-        mkSystems {
-          inherit schema tree inputs;
-          extraArgs = {
-            inherit
-              inputs
-              inputsWrapped
-              lix
-              top
-              ;
-          };
-        };
-    }
-    // import tree.store.kit.nix
-    // mkFlake {
+    perFlake = mkFlake {
       inherit legacyPackages;
       fn = {
         system,
         pkgs,
-      }: {
-        inherit
-          (import tree.store.mod.global {
+      }:
+        import tree.store.mod.global {
+          inherit path lib lix pkgs system;
+          inputs = inputsWrapped.resolved;
+        };
+    };
+  in {
+    nixosConfigurations = let
+      inputs = inputsWrapped.resolved;
+    in
+      mkSystems {
+        inherit schema tree inputs;
+        extraArgs = {
+          inherit
+            inputs
+            inputsWrapped
+            lix
+            top
+            ;
+        };
+      };
+    templates = import tree.store.kit.nix;
+    inherit
+      (mkFlake {
+        inherit legacyPackages;
+        fn = {
+          system,
+          pkgs,
+        }:
+          import tree.store.mod.global {
             inherit path lib lix pkgs system;
             inputs = inputsWrapped.resolved;
-          })
-          devShells
-          formatter
-          checks
-          ;
-      };
-    };
+          };
+      })
+      devShells
+      formatter
+      checks
+      ;
+  };
 }
