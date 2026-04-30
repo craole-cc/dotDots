@@ -55,36 +55,4 @@
       prefix = "config";
       nixpkgs.config.allowUnfree = true;
     };
-  # outputs = inputs: let
-  #   openclaw = {pkgs, ...}: let
-  #     system = pkgs.stdenv.hostPlatform.system;
-  #   in {
-  #     _module.args.openclawPackage =
-  #       inputs.self.packages.${system}.openclaw;
-  #     imports = [
-  #       inputs.sops.nixosModules.sops
-  #       ./modules/openclaw
-  #     ];
-  #   };
-  #   blueprint = inputs.blueprint {
-  #     inherit inputs;
-  #     prefix = "config";
-  #     nixpkgs.config.allowUnfree = true;
-  #   };
-  # in
-  #   blueprint
-  #   // {
-  #     overlays = {
-  #       default = import ./modules/overlays {
-  #         inherit (blueprint) packages;
-  #       };
-  #       shared-nixpkgs = import ./modules/overlays/shared.nix {
-  #         inherit (blueprint) mkPackagesFor;
-  #       };
-  #     };
-  #     nixosModules = {
-  #       inherit openclaw;
-  #       default = openclaw;
-  #     };
-  #   };
 }

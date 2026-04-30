@@ -1,99 +1,6 @@
 {
   description = "dotDots Flake Configuration";
 
-  outputs = inputs @ {self, ...}: let
-    flake = self;
-    path = ./.;
-    names = {
-      top = "_";
-      lib = "lix";
-    };
-    inherit (inputs.nixPackages) lib legacyPackages;
-    src = import path {inherit lib names;};
-    inherit
-      (src)
-      lix
-      tree
-      schema
-      top
-      ;
-    inherit (lix.modules.construction) mkFlake mkSystems;
-    inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
-    templates = import tree.store.kit.nix;
-    nixosConfigurations = let
-      inputs = inputsWrapped.resolved;
-    in
-      mkSystems {
-        inherit schema tree inputs;
-        extraArgs = {
-          inherit
-            inputs
-            inputsWrapped
-            lix
-            top
-            ;
-        };
-      };
-  in
-    mkFlake {
-      inherit legacyPackages;
-      fn = {
-        system,
-        pkgs,
-      }: {
-        inherit
-          (import tree.store.mod.global {
-            inherit
-              path
-              lib
-              lix
-              pkgs
-              system
-              ;
-            inputs = inputsWrapped.resolved;
-          })
-          devShells
-          formatter
-          checks
-          ;
-      };
-    }
-    // {
-      nixosConfigurations = let
-        inputs = inputsWrapped.resolved;
-      in
-        mkSystems {
-          inherit schema tree inputs;
-          extraArgs = {
-            inherit
-              inputs
-              inputsWrapped
-              lix
-              top
-              ;
-          };
-        };
-      inherit templates;
-    };
-  # mkFlake {
-  #   inherit legacyPackages;
-  #   fn = {
-  #     pkgs,
-  #     system ? pkgs.stdenv.hostPlatform.system,
-  #   }:
-  #     (import tree.store.mod.global {
-  #       inherit
-  #         path
-  #         lib
-  #         lix
-  #         pkgs
-  #         system
-  #         ;
-  #       inputs = inputsWrapped.resolved;
-  #     })
-  #     // {inherit nixosConfigurations templates;};
-  # };
-
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
@@ -266,4 +173,58 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
   };
+
+  outputs = inputs @ {self, ...}: let
+    flake = self;
+    path = ./.;
+    names = {
+      top = "_";
+      lib = "lix";
+    };
+    inherit (inputs.nixPackages) lib legacyPackages;
+    src = import path {inherit lib names;};
+    inherit
+      (src)
+      lix
+      tree
+      schema
+      top
+      ;
+    inherit (lix.modules.construction) mkFlake mkSystems;
+    inputsWrapped = lix.sources.inputs.resolveInputs {inherit flake;};
+  in
+    {
+      nixosConfigurations = let
+        inputs = inputsWrapped.resolved;
+      in
+        mkSystems {
+          inherit schema tree inputs;
+          extraArgs = {
+            inherit
+              inputs
+              inputsWrapped
+              lix
+              top
+              ;
+          };
+        };
+    }
+    // import tree.store.kit.nix
+    // mkFlake {
+      inherit legacyPackages;
+      fn = {
+        system,
+        pkgs,
+      }: {
+        inherit
+          (import tree.store.mod.global {
+            inherit path lib lix pkgs system;
+            inputs = inputsWrapped.resolved;
+          })
+          devShells
+          formatter
+          checks
+          ;
+      };
+    };
 }
