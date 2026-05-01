@@ -140,6 +140,7 @@ in {
   inherit (names) top;
   inherit
     lix
+    paths
     tree
     schema
     hosts

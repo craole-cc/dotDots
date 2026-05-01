@@ -1,6 +1,42 @@
 {
   description = "dotDots Flake Configuration";
 
+  outputs = inputs @ {self, ...}: let
+    flake = self;
+    inherit (inputs.nixPackages) lib legacyPackages;
+    inherit (import ./. {inherit flake lib;}) lix tree schema top paths;
+    inherit (lix.modules.construction) mkFlake mkSystems;
+    inherit (lix.sources.inputs) resolveInputs;
+
+    inputsWrapped = resolveInputs {inherit flake;};
+  in {
+    inherit
+      (mkFlake {
+        inherit legacyPackages;
+        fn = {
+          system,
+          pkgs,
+        }:
+          import tree.store.mod.global {
+            inherit lix pkgs system paths;
+            inherit (lix) lib;
+            inputs = inputsWrapped.resolved;
+          };
+      })
+      devShells
+      formatter
+      checks
+      ;
+
+    nixosConfigurations = mkSystems {
+      inherit schema tree;
+      inputs = inputsWrapped.resolved;
+      extraArgs = {inherit flake inputsWrapped lix top;};
+    };
+
+    templates = import tree.store.kit.nix;
+  };
+
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
@@ -172,41 +208,5 @@
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
-  };
-
-  outputs = inputs @ {self, ...}: let
-    flake = self;
-    inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import ./. {inherit flake lib;}) lix tree schema top;
-    inherit (lix.modules.construction) mkFlake mkSystems;
-    inherit (lix.sources.inputs) resolveInputs;
-
-    inputsWrapped = resolveInputs {inherit flake;};
-  in {
-    inherit
-      (mkFlake {
-        inherit legacyPackages;
-        fn = {
-          system,
-          pkgs,
-        }:
-          import tree.store.mod.global {
-            inherit lix pkgs system;
-            inherit (lix) lib;
-            inputs = inputsWrapped.resolved;
-          };
-      })
-      devShells
-      formatter
-      checks
-      ;
-
-    nixosConfigurations = mkSystems {
-      inherit schema tree;
-      inputs = inputsWrapped.resolved;
-      extraArgs = {inherit flake inputsWrapped lix top;};
-    };
-
-    templates = import tree.store.kit.nix;
   };
 }

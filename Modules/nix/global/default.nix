@@ -2,7 +2,7 @@
   inputs,
   lib,
   lix,
-  path,
+  paths,
   pkgs,
   system,
   ...
@@ -20,9 +20,9 @@
       inputs
       lib
       lix
-      path
       system
       ;
+    inherit (paths) src;
 
     #~@ Packages
     inherit pkgs formatters;

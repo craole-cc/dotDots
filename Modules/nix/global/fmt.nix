@@ -1,5 +1,5 @@
 {dots, ...}: let
-  inherit (dots) pkgs path;
+  inherit (dots) pkgs src;
   inherit (pkgs.lib) makeBinPath;
   inherit (pkgs) writeShellScriptBin runCommand;
 
@@ -36,12 +36,12 @@ in {
       export TMPDIR=$(mktemp -d)
       cd $TMPDIR
 
-      cp -r ${path}/* .
+      cp -r ${src}/* .
       chmod -R +w .
 
       for config in shellcheckrc .shellcheckrc treefmt.toml .treefmt.toml rustfmt.toml .rustfmt.toml markdownlint.yaml .markdownlint.yaml typos.toml .typos.toml; do
-        if [ -f ${path}/$config ]; then
-          cp ${path}/$config .
+        if [ -f ${src}/$config ]; then
+          cp ${src}/$config .
           chmod +w $config 2>/dev/null || true
         fi
       done
