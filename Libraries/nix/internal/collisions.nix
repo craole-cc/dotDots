@@ -6,12 +6,7 @@
   inherit (lib.lists) elem filter;
   inherit (lib.debug) trace;
 
-  allowed = [
-    "error"
-    "warn"
-    "prefer-custom"
-    "prefer-nixpkgs"
-  ];
+  allowed = ["error" "warn" "prefer-custom" "prefer-nixpkgs"];
 
   validated =
     if elem collisionStrategy allowed
@@ -22,21 +17,21 @@
         Expected one of: ${toString allowed}
       '';
 in
-  customAttrs: let
-    collisions = filter (
-      n: elem n (attrNames lib)
-    ) (attrNames customAttrs);
+  {
+    base ? lib,
+    msg ? "Collisions encountered",
+    overrides,
+  }: let
+    collisions = filter (n: elem n (attrNames base)) (attrNames overrides);
     hasCollisions = collisions != [];
-    msg = "Custom library has collisions with nixpkgs lib: ${
-      toString collisions
-    }";
+    fullMsg = "${msg}: ${toString collisions}";
   in
     if !hasCollisions
-    then lib // customAttrs
+    then base // overrides
     else if validated == "error"
-    then throw msg
+    then throw fullMsg
     else if validated == "warn"
-    then trace "WARNING: ${msg}" (lib // customAttrs)
+    then trace "WARNING: ${fullMsg}" (base // overrides)
     else if validated == "prefer-custom"
-    then lib // customAttrs
-    else customAttrs // lib
+    then base // overrides
+    else overrides // base

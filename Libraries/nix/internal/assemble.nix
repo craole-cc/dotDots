@@ -1,26 +1,18 @@
 {
-  # collisionStrategy,
   lib,
-  flake,
+  handleCollisions,
   library,
-  # paths,
+  paths,
   rootAliases,
 }: let
-  inherit
-    (lib.attrsets)
-    attrNames
-    filterAttrs
-    genAttrs
-    recursiveUpdate
-    ;
-  inherit (lib.lists) elem filter;
+  inherit (lib.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
+  inherit (lib.lists) filter;
   inherit (lib.filesystem) readDir;
   inherit (lib.strings) hasSuffix removeSuffix;
-  inherit (lib.debug) trace;
 
   lib' = let
     base = let
-      raw = ../imports;
+      raw = paths.libraries + "/imports";
       set = import raw;
       init = f:
         f {
@@ -42,8 +34,7 @@
   lix = lib'.extend (
     _: prev:
       recursiveUpdate prev {
-        # inherit path;
-        src = path;
+        inherit (paths) src;
         lib = lib;
       }
   );
@@ -57,17 +48,11 @@
   withAliases =
     if !rootAliases
     then base
-    else let
-      rootAliasNames = attrNames aliases;
-      moduleTopLevelNames = attrNames base;
-      collisions = filter (n: elem n moduleTopLevelNames) rootAliasNames;
-    in
-      if collisions == []
-      then base // aliases
-      else if collisionStrategy == "error"
-      then throw "Root aliases collide with modules: ${toString collisions}"
-      else if collisionStrategy == "warn"
-      then trace "WARNING: Root aliases override modules for: ${toString collisions}" (base // aliases)
-      else base // aliases;
+    else
+      handleCollisions {
+        inherit base;
+        overrides = aliases;
+        msg = "Root aliases collide with modules";
+      };
 in
   withAliases // {extend = f: lix.extend f;}
