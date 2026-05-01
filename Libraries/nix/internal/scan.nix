@@ -5,7 +5,7 @@
   paths,
   runTests,
 }: let
-  inherit (builtins) readDir pathExists currentTime;
+  inherit (builtins) readDir pathExists currentTime typeOf;
   inherit
     (lib.attrsets)
     attrNames
@@ -15,7 +15,6 @@
     isAttrs
     listToAttrs
     mapAttrs
-    # optionalAttrs
     ;
   inherit
     (lib.lists)
@@ -24,7 +23,6 @@
     filter
     findFirst
     foldl'
-    # head
     length
     optionals
     toList
@@ -42,7 +40,6 @@
     splitString
     substring
     toLower
-    typeOf
     ;
   inherit (lib.trivial) isFunction;
   inherit (paths) src libraries;
@@ -203,7 +200,7 @@
     name,
   }: let
     mkRelativeDir = {
-      root,
+      root ? src,
       stem,
     }:
       removePrefix (toString root + "/") (toString stem);
@@ -211,7 +208,7 @@
     mkDocDir = {nest ? "Documentation"}:
       src
       + "/${nest}/"
-      + mkRelativeDir {inherit dir src;};
+      + mkRelativeDir {stem = dir;};
 
     candidates = [
       (dir + "/${name}.md")
@@ -354,17 +351,16 @@
       in
         if available
         then let
-          results =
-            foldlAttrs (
-              acc: _: group:
-                acc
-                ++ (
-                  optionals
-                  (isAttrs group)
-                  map (n: group.${n}) (attrNames group)
-                )
-            ) []
-            cleaned.__tests;
+          results = foldlAttrs (
+            acc: _: group:
+              acc
+              ++ (
+                optionals
+                (isAttrs group)
+                (map (n: group.${n}) (attrNames group))
+              )
+          ) []
+          normalized.__tests;
           total = length results;
           passed = length (filter (t: t.passed or false) results);
           failed = total - passed;
