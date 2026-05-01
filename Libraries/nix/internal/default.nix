@@ -14,7 +14,7 @@
       self: let
         safe = import ./collisions.nix {inherit lib collisionStrategy;} self;
         scan = import ./scan.nix {
-          inherit paths exclusions lib runTests;
+          inherit exclusions paths lib runTests;
           env = import ./env.nix {
             inherit flake lib names paths safe self;
           };
