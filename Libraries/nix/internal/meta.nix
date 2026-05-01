@@ -1,10 +1,11 @@
-{lib'}: let
-  inherit (lib'.attrsets) attrNames listToAttrs optionalAttrs;
-  inherit (lib'.lists) filter head map;
+{lib}: let
+  inherit (lib.attrsets) attrNames listToAttrs optionalAttrs;
+  inherit (lib.lists) filter head map uniqueStrings;
   inherit
-    (lib'.strings)
+    (lib.strings)
     concatStrings
     hasPrefix
+    optionalString
     removePrefix
     removeSuffix
     splitString
@@ -14,101 +15,105 @@
     toUpper
     ;
 
-  #> minimal toPascal using only nixpkgs — custom _.strings.transformation.toPascal not available here
-  capitalize = s:
-    if s == ""
-    then ""
-    else toUpper (substring 0 1 s) + substring 1 (stringLength s - 1) s;
+  capitalize = input:
+    optionalString
+    (input != "" && input != null)
+    (
+      ""
+      + toUpper (substring 0 1 input)
+      + substring 1 (stringLength input - 1) input
+    );
 
-  toPascal = s: concatStrings (map capitalize (splitString "-" s));
+  uncapitalize = input:
+    optionalString
+    (input != "" && input != null)
+    (
+      ""
+      + toLower (substring 0 1 input)
+      + substring 1 (stringLength input - 1) input
+    );
 
-  uncapitalize = s:
-    if s == ""
-    then ""
-    else toLower (substring 0 1 s) + substring 1 (stringLength s - 1) s;
+  toPascal = input:
+    concatStrings (
+      map capitalize (splitString "-" input)
+    );
 
   toSingular = let
     #~@ irregular plurals that can't be handled by stripping trailing s
-    irregulars = {
-      # add as needed
-    };
+    irregulars = {};
   in
     word: irregulars.${word} or (removeSuffix "s" word);
 
   mkModuleExports = {
     directory,
-    filename ? "",
     functions,
-    doc ? "",
-    tests ? {},
+    filename ? null,
+    doc ? null,
+    tests ? null,
+    prefixes ? [],
   }: let
-    knownPrefixes = [
-      "without"
-      "with"
-      "from"
-      "has"
-      "is"
-      "mk"
-      "to"
-      "by"
-      "on"
-    ];
-
-    extSuffix =
-      if filename == ""
-      then ""
-      else toPascal filename;
-
     domain = toPascal (toSingular directory);
+    suffix =
+      optionalString
+      (filename != null && filename != "")
+      (toPascal filename);
 
-    splitFnPrefix = k: let
-      matched = filter (p: hasPrefix p k) knownPrefixes;
-    in
-      if matched == []
-      then {
-        prefix = "";
-        stem = k;
-      }
-      else let
-        p = head matched;
-      in {
-        prefix = p;
-        stem = removePrefix p k;
-      };
+    splitFnPrefix = stem: let
+      commonPrefixes = [
+        "without"
+        "with"
+        "from"
+        "has"
+        "is"
+        "mk"
+        "to"
+        "by"
+        "on"
+      ];
+      prefixes' =
+        filter
+        (prefix: hasPrefix prefix stem)
+        (uniqueStrings (prefixes ++ commonPrefixes));
+      isPrefixed = prefixes' != [];
+      prefix = optionalString isPrefixed (head prefixes');
+    in {
+      inherit prefix;
+      stem =
+        if isPrefixed
+        then removePrefix prefix stem
+        else stem;
+    };
 
     mkAliases = fns:
-      optionalAttrs (extSuffix != "") (
-        listToAttrs (
-          map (k: {
-            name = k + extSuffix;
-            value = fns.${k};
-          }) (attrNames fns)
-        )
+      optionalAttrs
+      (suffix != "")
+      (
+        listToAttrs (map (fn: {
+          name = fn + suffix;
+          value = fns.${fn};
+        }) (attrNames fns))
       );
 
-    mkExternalName = k: let
-      parts = splitFnPrefix k;
-      shifted =
-        if parts.prefix == ""
-        then domain + toPascal parts.stem + extSuffix
-        else parts.prefix + domain + toPascal parts.stem + extSuffix;
+    mkExternalName = fn: let
+      inherit suffix domain;
+      inherit (splitFnPrefix fn) prefix stem;
+      name = toPascal stem;
     in
-      uncapitalize shifted;
+      uncapitalize (prefix + domain + name + suffix);
 
     mkExternal = fns:
       listToAttrs (
-        map (k: {
-          name = mkExternalName k;
-          value = fns.${k};
+        map (fn: {
+          name = mkExternalName fn;
+          value = fns.${fn};
         }) (attrNames fns)
       );
   in
-    (functions // mkAliases functions)
-    // {
-      __rootAliases = mkExternal functions;
-      __docs = doc;
-    }
-    // optionalAttrs (tests != {}) {__tests = tests;};
+    functions
+    // mkAliases functions
+    // optionalAttrs (doc != null || doc != "") {_docs = doc;}
+    // optionalAttrs (tests != {} || tests != null) {__tests = tests;}
+    {__rootAliases = mkExternal functions;};
 in {
   inherit mkModuleExports toSingular;
 }

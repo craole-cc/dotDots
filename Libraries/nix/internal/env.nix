@@ -7,11 +7,11 @@
   safe,
 }: {
   #~@ Primary references
-  inherit lib names flake;
-  src = paths.root;
-  _ = self; # ? custom library (extensible self)
-  ${names.top} = self; # ? custom library (extensible self)
   library = names.lib;
+  inherit lib names flake;
+  inherit (paths) src;
+  ${names.top} = self; # ? custom library (extensible self)
+  _ = self; # ? custom library (extensible self)
 
   #~@ Short aliases
   l = lib;
