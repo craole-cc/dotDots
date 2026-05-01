@@ -111,8 +111,10 @@
   in
     functions
     // mkAliases functions
-    // optionalAttrs (doc != null || doc != "") {_docs = doc;}
-    // optionalAttrs (tests != {} || tests != null) {__tests = tests;}
+    # // optionalAttrs (doc != null || doc != "") {_docs = doc;}
+    # // optionalAttrs (tests != {} || tests != null) {__tests = tests;}
+    optionalAttrs (doc != null || doc != "") {_docs = doc;}
+    optionalAttrs (tests != {} || tests != null) {__tests = tests;}
     {__rootAliases = mkExternal functions;};
 in {
   inherit mkModuleExports toSingular;

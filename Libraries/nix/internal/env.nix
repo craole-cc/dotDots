@@ -11,7 +11,7 @@
   inherit lib names flake;
   inherit (paths) src;
   ${names.top} = self; # ? custom library (extensible self)
-  _ = self; # ? custom library (extensible self)
+  lix = self; # ? custom library (extensible self)
 
   #~@ Short aliases
   l = lib;

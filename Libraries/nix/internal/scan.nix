@@ -315,28 +315,7 @@
     in
       removeAttrs normalized attrsToRemove;
 
-    rootAliases = normalized.module.__rootAliases;
-    # attrsToRemove =
-    #   [
-    #     "_rootAliases"
-    #     "__rootAliases"
-    #     "__doc"
-    #     "_tests"
-    #   ]
-    #   ++ (
-    #     filter (
-    #       prefix:
-    #         hasPrefix "_" prefix
-    #         && prefix != "_rootAliases"
-    #         && prefix != "__rootAliases"
-    #         && prefix != "__meta"
-    #         && prefix != "__docs"
-    #         && prefix != "__tests"
-    #     )
-    #     (attrNames normalized.module)
-    #   )
-    #   ++ (optionals (!runTests) ["_tests" "__tests"]);
-    # cleanModule = removeAttrs normalized attrsToRemove;
+    aliases = normalized.__rootAliases;
   in {
     modules.${meta.name} = let
       module = {
@@ -402,15 +381,14 @@
       cleaned
       // {
         __meta = {
-          inherit module docs tests;
+          inherit aliases module docs tests;
           exports = attrNames exports;
           functions = attrNames (filterAttrs (_: isFunction) exports);
           values = attrNames (filterAttrs (_: value: !isFunction value) exports);
           timestamp = currentTime;
-          aliases = rootAliases;
         };
       };
-    inherit rootAliases;
+    rootAliases = aliases;
   };
 
   # -- Recursive directory scanner ─────────────────────────────────────────

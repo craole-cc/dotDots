@@ -8,7 +8,7 @@
   name ? null,
   names ? {},
   paths ? {},
-  rootAliases ? true,
+  rootAliases ? false,
   runTests ? true,
 }: let
   defaults = {
@@ -57,10 +57,10 @@
     else if (builtins ? getFlake)
     then let
       inherit (builtins) getFlake pathExists;
-      inherit (paths') root;
+      inherit (paths') src;
     in
-      if pathExists (toString root + "/flake.nix")
-      then getFlake (toString root)
+      if pathExists (toString src + "/flake.nix")
+      then getFlake (toString src)
       else {}
     else {};
 
