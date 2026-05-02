@@ -1,108 +1,266 @@
 #!/bin/sh
 # shellcheck enable=all
+# =============================================================================
+# play-media — A POSIX shell music player frontend for mpv
+# =============================================================================
+# DESCRIPTION:
+#   Searches configured media directories for audio files matching given search
+#   terms, builds a playlist, and plays it via mpv. Supports direct URL
+#   streaming (via yt-dlp), shuffling, dry-run preview, and mixed playlists
+#   combining local files and remote URLs.
+#
+# DEPENDENCIES:
+#   mpv    — media player          (https://mpv.io)
+#   fd     — fast file finder      (https://github.com/sharkdp/fd)
+#   yt-dlp — optional URL support  (https://github.com/yt-dlp/yt-dlp)
+#
+# ENVIRONMENT:
+#   MUSIC       — base music directory (falls back to ~/Music)
+#   MEDIA_DIRS  — colon- or newline-separated list of directories to search;
+#                 overrides the default candidates when set
+#
+# PERMISSIONS:
+#   Make the script executable before use:
+#     chmod +x play-media
+#
+# USAGE:
+#   play-media [OPTIONS] [SEARCH_TERM|URL ...]
+# =============================================================================
+
+# =============================================================================
+#~@ ENTRY POINT
+# =============================================================================
 
 main() {
+	#> Initialize defaults and clear any stale state from the environment
 	manage_environment --reset
+
+	#> Parse CLI flags and positional args into environment variables
 	parse_arguments "$@"
+
+	#> Resolve media dirs and build the playlist from parsed args
 	manage_environment --set
+
+	#> Play or preview based on DRY_RUN
 	execute
 }
 
+# =============================================================================
+#~@ EXECUTION
+# =============================================================================
+
 execute() {
+	#? Branch on DRY_RUN: preview mode prints dirs + playlist; otherwise play
 	case "${DRY_RUN}" in
 	1 | true | [yY]* | on)
 		display --media-dirs
 		display --playlist
 		;;
 	0 | false | [nN]* | off | *) play ;;
-	# *) play ;;
 	esac
 }
+
+# =============================================================================
+#~@ ENVIRONMENT MANAGEMENT
+# =============================================================================
 
 manage_environment() {
 	while [ "$#" -ge 1 ]; do
 		case $1 in
+
 		-x | --reset | --clean)
-		name=$(basename "$0")
+			#> Capture script name early for use in usage() and error messages
+			name=$(basename "$0")
+
+			#> Clear all transient state so re-runs don't bleed into each other
+			unset args SEARCH_COUNT PLAYLIST EXTRA_DIRS matches_nl matches_delim
+
+			#> DELIMITER: unit separator (ASCII 31 / \037) — safe for paths with
+			#?   spaces, tabs, or special chars; never appears in filenames
 			: "${DELIMITER:="$(printf "\037")"}"
+
+			#> VERBOSITY: reserved for future log-level filtering
 			: "${VERBOSITY:="info"}"
+
+			#> EXTENSIONS: space-separated list of audio formats fd will match
 			: "${EXTENSIONS:=mp3 flac m4a aac ogg opus wav alac wma ape mka}"
+
+			#> SHUFFLE: passed to mpv as --shuffle when non-empty
 			: "${SHUFFLE:=}"
+
+			#> DRY_RUN: when set, preview only — no playback
 			: "${DRY_RUN:=}"
-			: "${MEDIA_DIRS:="${MUSIC}"}"
-			unset args SEARCH_COUNT PLAYLIST matches_nl matches_delim
 			;;
+
 		-i | --init | --set | *)
+			#> Save/restore IFS around define_media_dirs which uses DELIMITER
 			_ifs_manage=${IFS}
 			IFS="${DELIMITER}"
 			define_media_dirs
 			IFS=${_ifs_manage}
+
+			#> Populate PLAYLIST from resolved MEDIA_DIRS and parsed args
 			build_playlist
 			;;
+
 		esac
 		shift
 	done
 }
+
+# =============================================================================
+#~@ ARGUMENT PARSING
+# =============================================================================
 
 parse_arguments() {
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
+
 		-h | --help)
+			#> Print usage and exit cleanly — no playback
 			usage
 			exit 0
 			;;
-		-d | --dry-run) DRY_RUN=true ;;
-		-x | --shuffle) SHUFFLE=true ;;
-		-s | --search)
+
+		-d | --dry-run)
+			#> Enable preview mode: show dirs + playlist, skip playback
+			DRY_RUN=true
+			;;
+
+		-x | --shuffle)
+			#> Enable mpv shuffle — applies to the entire final playlist
+			SHUFFLE=true
+			;;
+
+		-m | --media-dir)
+			#> Append a caller-specified directory to the media search list
 			shift
-			if [ "$#" -gt 0 ]; then
-				build_search "$1"
-			else
+			case "${1:-}" in
+			"")
+				printf 'Error: --media-dir requires a path\n' >&2
+				usage >&2
+				exit 1
+				;;
+			*)
+				EXTRA_DIRS="${EXTRA_DIRS:+${EXTRA_DIRS}${DELIMITER}}$1"
+				;;
+			esac
+			;;
+
+		-s | --search)
+			#> Reserved: explicit search flag (currently maps to positional args)
+			shift
+			case "${1:-}" in
+			"")
 				printf 'Error: --search requires a value\n' >&2
 				exit 1
-			fi
+				;;
+			*)
+				build_search "$1"
+				;;
+			esac
 			;;
+
 		-*)
+			#> Reject unknown flags early with a usage hint
 			printf 'Error: Unknown option %s\n' "$1" >&2
 			usage >&2
 			exit 1
 			;;
-		*) args="${args:+${args}${DELIMITER}}$1" ;;
+
+		*)
+			#> Accumulate positional args (search terms and URLs) into a
+			#? DELIMITER-separated string so spaces within args are preserved
+			args="${args:+${args}${DELIMITER}}$1"
+			;;
+
 		esac
 		shift
 	done
 }
 
-define_media_dirs() {
-	#> build a delimited list of existing dirs (POSIX sh)
-	MEDIA_DIRS=""
-	for dir in "${MUSIC:-}" "${HOME}/Music" "/mnt/Storage/Music" "${PWD}"; do
-		#> skip empty
-		[ -z "${dir}" ] && continue
+# =============================================================================
+#~@ MEDIA DIRECTORY RESOLUTION
+# =============================================================================
 
-		#> expand ~ if present (POSIX shells don't expand ~ in quotes) -- handle common case
+define_media_dirs() {
+	#> Normalize externally-supplied MEDIA_DIRS if set — callers may use colons
+	#? or newlines as delimiters (e.g. from a shell config or env file)
+	case "${MEDIA_DIRS:-}" in
+	?*)
+		MEDIA_DIRS="$(printf '%s' "${MEDIA_DIRS}" |
+			tr ':\n' "${DELIMITER}${DELIMITER}")"
+		;;
+	esac
+
+	#? Build candidate list — explicit dirs take priority via -m / EXTRA_DIRS;
+	#? if none were given, fall back to standard locations in priority order:
+	#?   1. $MUSIC env var (user-defined base)
+	#?   2. ~/Music (XDG conventional location)
+	#?   3. /mnt/Storage/Music (common external mount)
+	#?   4. $PWD (last resort)
+	case "${EXTRA_DIRS:-}" in
+	?*) _candidates="${EXTRA_DIRS}" ;;
+	*)  _candidates="${MUSIC:-}${DELIMITER}${HOME}/Music${DELIMITER}/mnt/Storage/Music${DELIMITER}${PWD}" ;;
+	esac
+
+	_old_ifs=${IFS}
+	IFS=${DELIMITER}
+	for dir in ${_candidates}; do
+		IFS=${_old_ifs}
+
+		#> Skip empty candidates (e.g. unset $MUSIC)
+		case "${dir}" in
+		"") continue ;;
+		esac
+
+		#> Expand leading ~ manually — POSIX sh won't expand ~ inside quotes
 		case "${dir}" in
 		~/*) dir="${HOME}/${dir#~/}" ;;
-		~) dir="${HOME}" ;;
-		*) ;;
+		~)   dir="${HOME}" ;;
 		esac
 
-		#> only include if directory exists
+		#> Skip paths that don't exist or aren't directories
 		[ -d "${dir}" ] || continue
 
-		#> skip duplicates (exact path substring match using : as delimiter)
+		#> Skip exact duplicates already in the list
 		case ":${MEDIA_DIRS}:" in
-		*":${dir}:"*) ;;
-		*) MEDIA_DIRS="${MEDIA_DIRS:+${MEDIA_DIRS}${DELIMITER}}${dir}" ;;
+		*":${dir}:"*) continue ;;
 		esac
-	done
 
-	: "${MEDIA_DIRS:="${PWD:-"."}"}"
+		#> Skip if any already-listed dir is a subdirectory of this candidate;
+		#? Prevents double-scanning when e.g. ~/Music is already listed before ~
+		_is_parent=false
+		IFS=${DELIMITER}
+		for _existing in ${MEDIA_DIRS}; do
+			case "${_existing}" in
+			"${dir}/"*)
+				_is_parent=true
+				break
+				;;
+			esac
+		done
+		IFS=${_old_ifs}
+
+		case "${_is_parent}" in
+		true) continue ;;
+		esac
+
+		#> Append validated, unique, non-redundant directory
+		MEDIA_DIRS="${MEDIA_DIRS:+${MEDIA_DIRS}${DELIMITER}}${dir}"
+	done
+	IFS=${_old_ifs}
 }
 
+# =============================================================================
+#~@ FILE DISCOVERY
+# =============================================================================
+
 find_media() {
+	#? $1 — search pattern; empty string means "match everything"
 	pattern=$1
 
+	#> Split MEDIA_DIRS on DELIMITER into positional params
 	old_ifs=${IFS}
 	IFS=${DELIMITER}
 	# shellcheck disable=SC2086
@@ -110,12 +268,19 @@ find_media() {
 	IFS=${old_ifs}
 
 	for search_dir in "$@"; do
-		[ -n "${search_dir}" ] || continue
+		#> Skip empty or missing directories defensively
+		case "${search_dir}" in
+		"") continue ;;
+		esac
 		[ -d "${search_dir}" ] || continue
 
-		if [ -n "${pattern}" ]; then
+		case "${pattern}" in
+		?*)
+			#> Search mode: match pattern against the full path so that
+			#? album/artist names in parent directories are also searchable
 			fd \
 				--type f \
+				--full-path \
 				--ignore-case \
 				--fixed-strings \
 				--search-path "${search_dir}" \
@@ -131,7 +296,9 @@ find_media() {
 				--extension ape \
 				--extension mka \
 				"${pattern}" 2>/dev/null || true
-		else
+			;;
+		*)
+			#> Load-all mode: no pattern — return every supported audio file
 			fd \
 				--type f \
 				--search-path "${search_dir}" \
@@ -147,56 +314,79 @@ find_media() {
 				--extension ape \
 				--extension mka \
 				2>/dev/null || true
-		fi
-	done | sort
+			;;
+		esac
+
+	done | sort #> Sort across all directories for deterministic ordering
 }
 
+# =============================================================================
+#~@ PLAYLIST CONSTRUCTION
+# =============================================================================
+
 build_playlist() {
+	#> Split accumulated args back into positional params using DELIMITER
 	_ifs_build="${IFS}"
 	IFS="${DELIMITER}"
 	# shellcheck disable=SC2086
 	set -- ${args:-}
 	IFS="${_ifs_build}"
 
-	#> No args — load everything from MEDIA_DIRS
+	#> Load everything from all media dirs if no args provided
 	[ "$#" -eq 0 ] && set -- ""
 
 	for item in "$@"; do
 		if is_url "${item}"; then
-			#> Append URLs directly
+			#> URLs bypass file search and stream directly via mpv + yt-dlp
 			PLAYLIST="${PLAYLIST:+${PLAYLIST}${DELIMITER}}${item}"
 		else
-			#> Get matching files for non-URL args
+			#> Resolve search term to matching local files
 			matches_nl=$(find_media "${item}")
-			[ -z "${matches_nl}" ] && continue
 
-			#> Convert newlines to DELIMITER and strip leading/trailing
+			case "${matches_nl}" in
+			"") continue ;;
+			esac
+
+			#> Convert newline-separated results to DELIMITER-separated string
 			matches_delim=$(printf '%s' "${matches_nl}" | tr '\n' "${DELIMITER}")
+
+			#> Strip any leading/trailing DELIMITERs left by the conversion
 			matches_delim="${matches_delim#"${DELIMITER}"}"
 			matches_delim="${matches_delim%"${DELIMITER}"}"
 
-			#> Append media files
+			#> Append resolved files to the playlist
 			PLAYLIST="${PLAYLIST:+${PLAYLIST}${DELIMITER}}${matches_delim}"
 		fi
 	done
 }
 
+# =============================================================================
+#~@ PLAYLIST OUTPUT
+# =============================================================================
+
 generate_playlist() {
+	#> Expand the DELIMITER-separated PLAYLIST into newline-separated output
+	#? Suitable for piping into mpv --playlist=-
 	printf '%s' "${PLAYLIST}" | tr "${DELIMITER}" '\n'
 }
 
-is_url() {
-	case "$1" in
-	http://* | https://*) return 0 ;;
-	*) return 1 ;;
-	esac
-}
+# =============================================================================
+#~@ PLAYBACK
+# =============================================================================
 
 play() {
+	#> Stream the playlist into mpv; --shuffle is injected only when SHUFFLE is set
 	generate_playlist | mpv ${SHUFFLE:+--shuffle} --playlist=-
 }
 
+# =============================================================================
+#~@ DISPLAY / DRY-RUN OUTPUT
+# =============================================================================
+
 print_list() {
+	#? $1    — section title
+	#? $2    — DELIMITER-separated list of items
+	#? $3... — optional flags: --count / -n  |  --no-count / -x
 	title="$1"
 	list="$2"
 	shift 2
@@ -204,31 +394,29 @@ print_list() {
 	use_count=false
 	for arg in "$@"; do
 		case ${arg} in
-		-n | --count) use_count=true ;;
+		-n | --count)        use_count=true ;;
 		-x | --no-count | *) ;;
 		esac
 	done
 
+	#> Split list into positional params for iteration
 	old_ifs="${IFS}"
 	IFS="${DELIMITER}"
 	# shellcheck disable=SC2086
 	set -- ${list}
 	IFS="${old_ifs}"
 
-	#> Display the titlea
 	printf '\n%s\n' "${title}"
 
 	num=0
 	for item in "$@"; do
 		num=$((num + 1))
 
-		#> Display the count, conditionally
-		case "${use_count:-0}" in
+		#> Optionally prefix each item with its index
+		case "${use_count}" in
 		1 | true | [yY]* | on) printf "%s. " "${num}" ;;
-		0 | false | [nN]* | off | *) ;;
 		esac
 
-		#> Display the media
 		printf "%s\n" "${item}"
 	done
 }
@@ -242,34 +430,65 @@ display() {
 		-p | --playlist)
 			print_list "📋 Playlist:" "${PLAYLIST}" --count
 			;;
-		*) ;;
 		esac
 		shift
 	done
 }
 
+# =============================================================================
+#~@ UTILITIES
+# =============================================================================
+
+is_url() {
+	#? Returns 0 (true) if $1 looks like an http/https URL
+	case "$1" in
+	http://* | https://*) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+# =============================================================================
+#~@ USAGE
+# =============================================================================
+
 usage() {
 	cat <<EOF
 Usage: ${name} [OPTIONS] [SEARCH_TERM|URL ...]
 
-Play music from media directories (optionally filtered by search terms) and/or URLSs.
+Play music from media directories, optionally filtered by search terms and/or
+streamed from URLs. With no arguments, the entire library is queued.
 
 Arguments:
-  SEARCH_TERM   Filter media files by name (case-insensitive, multiple allowed)
-  URL           Stream directly from a URL (http:// or https://)
+  SEARCH_TERM        Match files by name or path (case-insensitive, repeatable)
+  URL                Stream directly from a URL (http:// or https://)
 
 Options:
-  -d, --dry-run   Preview the playlist without playing
-  -x, --shuffle   Shuffle the playlist
-  -h, --help      Show this help message
+  -m, --media-dir PATH   Add a directory to search (repeatable)
+  -d, --dry-run          Preview resolved directories and playlist without playing
+  -x, --shuffle          Shuffle the playlist before playback
+  -h, --help             Show this help message and exit
+
+Environment:
+  MUSIC        Base music directory; used when MEDIA_DIRS and -m are not set
+  MEDIA_DIRS   Colon- or newline-separated list of directories to search;
+               takes precedence over the default candidate locations
+
+Permissions:
+  chmod +x ${name}
 
 Examples:
-  ${name}                          		#? Play everything
-  ${name} cole                     		#? Play files matching 'cole'
-  ${name} cole chronixx           		#? Play files matching either
-  ${name} https://youtu.be/xyz    		#? Stream a URL
-  ${name} cole https://youtu.be/xyz chronixx -d -x  #? Mix it all
+  ${name}                                            #? Play everything
+  ${name} cole                                       #? Files matching 'cole'
+  ${name} cole chronixx                              #? Files matching either term
+  ${name} exile                                      #? Matches album folder or title
+  ${name} https://youtu.be/xyz                       #? Stream a URL
+  ${name} -m /mnt/usb/Music cole                     #? Search an extra directory
+  ${name} cole https://youtu.be/xyz chronixx -d -x   #? Mixed, shuffled, preview
 EOF
 }
+
+# =============================================================================
+#~@ RUN
+# =============================================================================
 
 main "$@"
