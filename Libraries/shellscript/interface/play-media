@@ -73,7 +73,7 @@ manage_environment() {
 			name=$(basename "$0")
 
 			#> Clear all transient state so re-runs don't bleed into each other
-			unset args SEARCH_COUNT PLAYLIST EXTRA_DIRS matches_nl matches_delim
+			unset args SEARCH_COUNT PLAYLIST EXTRA_DIRS NO_PWD matches_nl matches_delim
 
 			#> DELIMITER: unit separator (ASCII 31 / \037) — safe for paths with
 			#?   spaces, tabs, or special chars; never appears in filenames
@@ -161,6 +161,11 @@ parse_arguments() {
 			esac
 			;;
 
+		--no-pwd)
+			#> Exclude the current directory from the media search candidates
+			NO_PWD=true
+			;;
+
 		-*)
 			#> Reject unknown flags early with a usage hint
 			printf 'Error: Unknown option %s\n' "$1" >&2
@@ -201,7 +206,13 @@ define_media_dirs() {
 	#?   4. $PWD (last resort)
 	case "${EXTRA_DIRS:-}" in
 	?*) _candidates="${EXTRA_DIRS}" ;;
-	*)  _candidates="${MUSIC:-}${DELIMITER}${HOME}/Music${DELIMITER}/mnt/Storage/Music${DELIMITER}${PWD}" ;;
+	*)
+		_candidates="${MUSIC:-}${DELIMITER}${HOME}/Music${DELIMITER}/mnt/Storage/Music"
+		case "${NO_PWD:-}" in
+		1 | true | [yY]* | on) ;;
+		*) _candidates="${_candidates}${DELIMITER}${PWD}" ;;
+		esac
+		;;
 	esac
 
 	_old_ifs=${IFS}
@@ -217,7 +228,7 @@ define_media_dirs() {
 		#> Expand leading ~ manually — POSIX sh won't expand ~ inside quotes
 		case "${dir}" in
 		~/*) dir="${HOME}/${dir#~/}" ;;
-		~)   dir="${HOME}" ;;
+		~) dir="${HOME}" ;;
 		esac
 
 		#> Skip paths that don't exist or aren't directories
@@ -394,7 +405,7 @@ print_list() {
 	use_count=false
 	for arg in "$@"; do
 		case ${arg} in
-		-n | --count)        use_count=true ;;
+		-n | --count) use_count=true ;;
 		-x | --no-count | *) ;;
 		esac
 	done
@@ -463,15 +474,16 @@ Arguments:
   URL                Stream directly from a URL (http:// or https://)
 
 Options:
-  -m, --media-dir PATH   Add a directory to search (repeatable)
-  -d, --dry-run          Preview resolved directories and playlist without playing
-  -x, --shuffle          Shuffle the playlist before playback
   -h, --help             Show this help message and exit
+  -d, --dry-run          Preview resolved directories and playlist without playing
+  -m, --media-dir PATH   Add a directory to search (repeatable)
+  -x, --shuffle          Shuffle the playlist before playback
+	--no-pwd               Exclude the current directory from the search candidates
 
 Environment:
-  MUSIC        Base music directory; used when MEDIA_DIRS and -m are not set
-  MEDIA_DIRS   Colon- or newline-separated list of directories to search;
-               takes precedence over the default candidate locations
+  MUSIC         Base music directory; used when MEDIA_DIRS and -m are not set
+  MEDIA_DIRS    Colon- or newline-separated list of directories to search;
+                takes precedence over the default candidate locations
 
 Permissions:
   chmod +x ${name}
