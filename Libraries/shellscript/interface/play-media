@@ -1,0 +1,275 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+	manage_environment --reset
+	parse_arguments "$@"
+	manage_environment --set
+	execute
+}
+
+execute() {
+	case "${DRY_RUN}" in
+	1 | true | [yY]* | on)
+		display --media-dirs
+		display --playlist
+		;;
+	0 | false | [nN]* | off | *) play ;;
+	# *) play ;;
+	esac
+}
+
+manage_environment() {
+	while [ "$#" -ge 1 ]; do
+		case $1 in
+		-x | --reset | --clean)
+		name=$(basename "$0")
+			: "${DELIMITER:="$(printf "\037")"}"
+			: "${VERBOSITY:="info"}"
+			: "${EXTENSIONS:=mp3 flac m4a aac ogg opus wav alac wma ape mka}"
+			: "${SHUFFLE:=}"
+			: "${DRY_RUN:=}"
+			: "${MEDIA_DIRS:="${MUSIC}"}"
+			unset args SEARCH_COUNT PLAYLIST matches_nl matches_delim
+			;;
+		-i | --init | --set | *)
+			_ifs_manage=${IFS}
+			IFS="${DELIMITER}"
+			define_media_dirs
+			IFS=${_ifs_manage}
+			build_playlist
+			;;
+		esac
+		shift
+	done
+}
+
+parse_arguments() {
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-h | --help)
+			usage
+			exit 0
+			;;
+		-d | --dry-run) DRY_RUN=true ;;
+		-x | --shuffle) SHUFFLE=true ;;
+		-s | --search)
+			shift
+			if [ "$#" -gt 0 ]; then
+				build_search "$1"
+			else
+				printf 'Error: --search requires a value\n' >&2
+				exit 1
+			fi
+			;;
+		-*)
+			printf 'Error: Unknown option %s\n' "$1" >&2
+			usage >&2
+			exit 1
+			;;
+		*) args="${args:+${args}${DELIMITER}}$1" ;;
+		esac
+		shift
+	done
+}
+
+define_media_dirs() {
+	#> build a delimited list of existing dirs (POSIX sh)
+	MEDIA_DIRS=""
+	for dir in "${MUSIC:-}" "${HOME}/Music" "/mnt/Storage/Music" "${PWD}"; do
+		#> skip empty
+		[ -z "${dir}" ] && continue
+
+		#> expand ~ if present (POSIX shells don't expand ~ in quotes) -- handle common case
+		case "${dir}" in
+		~/*) dir="${HOME}/${dir#~/}" ;;
+		~) dir="${HOME}" ;;
+		*) ;;
+		esac
+
+		#> only include if directory exists
+		[ -d "${dir}" ] || continue
+
+		#> skip duplicates (exact path substring match using : as delimiter)
+		case ":${MEDIA_DIRS}:" in
+		*":${dir}:"*) ;;
+		*) MEDIA_DIRS="${MEDIA_DIRS:+${MEDIA_DIRS}${DELIMITER}}${dir}" ;;
+		esac
+	done
+
+	: "${MEDIA_DIRS:="${PWD:-"."}"}"
+}
+
+find_media() {
+	pattern=$1
+
+	old_ifs=${IFS}
+	IFS=${DELIMITER}
+	# shellcheck disable=SC2086
+	set -- ${MEDIA_DIRS}
+	IFS=${old_ifs}
+
+	for search_dir in "$@"; do
+		[ -n "${search_dir}" ] || continue
+		[ -d "${search_dir}" ] || continue
+
+		if [ -n "${pattern}" ]; then
+			fd \
+				--type f \
+				--ignore-case \
+				--fixed-strings \
+				--search-path "${search_dir}" \
+				--extension mp3 \
+				--extension flac \
+				--extension m4a \
+				--extension aac \
+				--extension ogg \
+				--extension opus \
+				--extension wav \
+				--extension alac \
+				--extension wma \
+				--extension ape \
+				--extension mka \
+				"${pattern}" 2>/dev/null || true
+		else
+			fd \
+				--type f \
+				--search-path "${search_dir}" \
+				--extension mp3 \
+				--extension flac \
+				--extension m4a \
+				--extension aac \
+				--extension ogg \
+				--extension opus \
+				--extension wav \
+				--extension alac \
+				--extension wma \
+				--extension ape \
+				--extension mka \
+				2>/dev/null || true
+		fi
+	done | sort
+}
+
+build_playlist() {
+	_ifs_build="${IFS}"
+	IFS="${DELIMITER}"
+	# shellcheck disable=SC2086
+	set -- ${args:-}
+	IFS="${_ifs_build}"
+
+	#> No args — load everything from MEDIA_DIRS
+	[ "$#" -eq 0 ] && set -- ""
+
+	for item in "$@"; do
+		if is_url "${item}"; then
+			#> Append URLs directly
+			PLAYLIST="${PLAYLIST:+${PLAYLIST}${DELIMITER}}${item}"
+		else
+			#> Get matching files for non-URL args
+			matches_nl=$(find_media "${item}")
+			[ -z "${matches_nl}" ] && continue
+
+			#> Convert newlines to DELIMITER and strip leading/trailing
+			matches_delim=$(printf '%s' "${matches_nl}" | tr '\n' "${DELIMITER}")
+			matches_delim="${matches_delim#"${DELIMITER}"}"
+			matches_delim="${matches_delim%"${DELIMITER}"}"
+
+			#> Append media files
+			PLAYLIST="${PLAYLIST:+${PLAYLIST}${DELIMITER}}${matches_delim}"
+		fi
+	done
+}
+
+generate_playlist() {
+	printf '%s' "${PLAYLIST}" | tr "${DELIMITER}" '\n'
+}
+
+is_url() {
+	case "$1" in
+	http://* | https://*) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+play() {
+	generate_playlist | mpv ${SHUFFLE:+--shuffle} --playlist=-
+}
+
+print_list() {
+	title="$1"
+	list="$2"
+	shift 2
+
+	use_count=false
+	for arg in "$@"; do
+		case ${arg} in
+		-n | --count) use_count=true ;;
+		-x | --no-count | *) ;;
+		esac
+	done
+
+	old_ifs="${IFS}"
+	IFS="${DELIMITER}"
+	# shellcheck disable=SC2086
+	set -- ${list}
+	IFS="${old_ifs}"
+
+	#> Display the titlea
+	printf '\n%s\n' "${title}"
+
+	num=0
+	for item in "$@"; do
+		num=$((num + 1))
+
+		#> Display the count, conditionally
+		case "${use_count:-0}" in
+		1 | true | [yY]* | on) printf "%s. " "${num}" ;;
+		0 | false | [nN]* | off | *) ;;
+		esac
+
+		#> Display the media
+		printf "%s\n" "${item}"
+	done
+}
+
+display() {
+	while [ "$#" -ge 1 ]; do
+		case $1 in
+		-d | --media* | --dir)
+			print_list "📁 Media Directories:" "${MEDIA_DIRS}" --count
+			;;
+		-p | --playlist)
+			print_list "📋 Playlist:" "${PLAYLIST}" --count
+			;;
+		*) ;;
+		esac
+		shift
+	done
+}
+
+usage() {
+	cat <<EOF
+Usage: ${name} [OPTIONS] [SEARCH_TERM|URL ...]
+
+Play music from media directories (optionally filtered by search terms) and/or URLSs.
+
+Arguments:
+  SEARCH_TERM   Filter media files by name (case-insensitive, multiple allowed)
+  URL           Stream directly from a URL (http:// or https://)
+
+Options:
+  -d, --dry-run   Preview the playlist without playing
+  -x, --shuffle   Shuffle the playlist
+  -h, --help      Show this help message
+
+Examples:
+  ${name}                          		#? Play everything
+  ${name} cole                     		#? Play files matching 'cole'
+  ${name} cole chronixx           		#? Play files matching either
+  ${name} https://youtu.be/xyz    		#? Stream a URL
+  ${name} cole https://youtu.be/xyz chronixx -d -x  #? Mix it all
+EOF
+}
+
+main "$@"
