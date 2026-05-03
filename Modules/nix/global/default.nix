@@ -7,6 +7,9 @@
   system,
   ...
 }: let
+  inherit (lib.lits) optionals;
+  inherit (pkgs.stdenv) isLinux isDarwin;
+
   #> Metadata & Dependency Injection
   dots = {
     #~@ Metadata
@@ -20,13 +23,14 @@
       inputs
       lib
       lix
+      optionals
       system
       ;
     inherit (paths) src;
 
     #~@ Packages
-    inherit pkgs formatters;
-    inherit (pkgs.stdenv) isLinux isDarwin;
+    inherit pkgs formatters isLinux isDarwin;
+    inherit (import ./minimal.nix {inherit dots;}) packages;
     inputPkgs = input:
       lix.sources.packages.fromInputs {
         inherit input inputs system;
@@ -64,13 +68,9 @@
       valid =
         filterAttrs (
           name: type:
-          # pathIsRegularFile name
             (type == "regular")
             && hasSuffix ".nix" name
-            && !(elem name [
-              "default.nix"
-              "fmt.nix"
-            ])
+            && !(elem name ["default.nix" "fmt.nix"])
             && !(hasPrefix "archive" name)
             && !(hasPrefix "review" name)
         )
@@ -81,7 +81,10 @@
     #> Import the attrs from the valididated files
     configs =
       mapAttrs' (
-        file: _: nameValuePair (removeSuffix ".nix" file) (import (./. + "/${file}") {inherit dots;})
+        file: _:
+          nameValuePair
+          (removeSuffix ".nix" file)
+          (import (./. + "/${file}") {inherit dots;})
       )
       files;
 
@@ -93,10 +96,10 @@
             name = "${dots.name}-${name}";
             env = cfg.env or {};
             shellHook = cfg.shellHook or "";
-            packages = cfg.packages or [];
+            packages = dots.packages ++ (cfg.packages or []);
           }
       )
       configs;
   in
-    shells // {default = shells.full;};
+    shells // {default = shells.minimal;};
 in {inherit checks devShells formatter;}

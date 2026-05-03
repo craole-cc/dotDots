@@ -16,40 +16,33 @@
 
   packages = with pkgs;
     (optionals isLinux [
+      # ? Linux clipboard tools
       xclip
       wl-clipboard
       xsel
-    ]) # ? Linux clipboard tools
+    ])
     ++ [
-      # bat #? Cat clone with syntax highlighting
-      # direnv #? Environment management per directory
-      # exiftool #? ARW/RAW embedded preview extraction for yazi
-      # eza #? Modern ls replacement
-      # fd #? Fast find alternative
-      # gitui #? Git terminal UI
-      # gnused #? GNU stream editor
-      # jq #? JSON query processor
-      # lsd #? LSDeluxe file lister
-      # mise #? Polyglot version manager
-      # imv
-      # nomacs
+      bat #? Cat clone with syntax highlighting
+      fd #? Fast find alternative
+      gitui #? Git terminal UI
+      gh #? GitHub CLI tool
+      gnused #? GNU stream editor
+      jq #? JSON query processor
+      lsd #? LSDeluxe file lister
+      mise #? Polyglot version manager
       nitch # ? System fetch written in nim
-      # nix-output-monitor #? Build output monitor
+      nix-output-monitor #? Build output monitor
       nixd # ? Nix language daemon
-      # onefetch #? Git repository summary
-      # ripgrep #? Fast grep alternative
-      starship # ? Cross-shell prompt
-      # tokei #? Code statistics tool
-      # undollar #? Remove leading dollar signs
-      # ueberzugpp #? Terminal image rendering backend for yazi (Wayland)
-      # yazi #? File manager (ensure CLI tools available in devshell)
+      ripgrep-all #? Fast grep alternative
+      sd
+      undollar #? Remove leading dollar signs
     ];
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
   #|────────────────────────────────────────|
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
-    SYSTEM = "$(hostname)";
+    SYSTEM = system;
   };
 
   shellHook = ''
@@ -126,11 +119,4 @@
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in {
-  inherit
-    description
-    packages
-    env
-    shellHook
-    ;
-}
+in {inherit description packages env shellHook;}
