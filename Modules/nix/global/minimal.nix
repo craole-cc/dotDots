@@ -3,7 +3,6 @@
   inherit
     (dots)
     cache
-    isLinux
     lix
     pkgs
     system
@@ -15,28 +14,20 @@
   #|────────────────────────────────────────|
 
   packages = with pkgs;
-    (optionals isLinux [
-      # ? Linux clipboard tools
-      xclip
-      wl-clipboard
-      xsel
-    ])
-    ++ [
+    [
       bat #? Cat clone with syntax highlighting
       fd #? Fast find alternative
-      gitui #? Git terminal UI
-      gh #? GitHub CLI tool
       gnused #? GNU stream editor
       jq #? JSON query processor
       lsd #? LSDeluxe file lister
-      mise #? Polyglot version manager
       nitch # ? System fetch written in nim
-      nix-output-monitor #? Build output monitor
       nixd # ? Nix language daemon
       ripgrep-all #? Fast grep alternative
-      sd
+      sd #? Intuitive find & replace CLI (sed alternative)
+      onefetch #? Git repository summary on your terminal
       undollar #? Remove leading dollar signs
-    ];
+    ]
+    ++ optionals stdenv.isLinux [xclip wl-clipboard xsel];
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
   #|────────────────────────────────────────|
