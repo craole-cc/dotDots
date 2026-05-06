@@ -19,10 +19,7 @@
   };
 
   outputs = inputs @ {self, ...}: let
-    cfg = import ./. {
-      inherit inputs;
-      inherit (inputs.NixPackages) lib;
-    };
+    cfg = import ./. {inherit inputs;};
 
     inherit (cfg) lib pkgs repl;
     inherit (lib.attrsets) mapAttrs;

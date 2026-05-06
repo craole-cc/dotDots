@@ -1,36 +1,119 @@
 {
-  description ? "Rust development environment with AI Tools",
-  lib ? null,
-  inputs ? null,
-  system ? null,
-  paths ? let
-    src = ../.;
-    nix = src + "/.nix";
-    scr = src + "/.bin";
-    mkCfg = path: nix + "/${path}";
-  in {
-    inherit nix src;
-    templates.config = mkCfg "templates";
-    libraries = mkCfg "libraries";
-    repl = mkCfg "repl.nix";
-    scripts.src = scr;
-  },
+  lib,
+  pkgs,
 }: let
-  libraries = import paths.libraries {
-    inherit paths;
-    lib =
-      if lib != null
-      then lib
-      else if inputs != null && inputs ? NixPackages
-      then inputs.NixPackages.lib
-      else (import <nixpkgs> {}).lib;
+  inherit (lib.lists) filter;
+  inherit (lib.shells) mkTools;
+  inherit (lib.packages) resolveBin;
+
+  packageName = pkg:
+    pkg.meta.name or pkg.name or pkg.pname or null;
+
+  inspectList = packageList: let
+    findAll = name:
+      filter
+      (pkg: packageName pkg == name)
+      packageList;
+
+    hasPkg = name:
+      findAll name != [];
+
+    findPkg = name: let
+      matches = findAll name;
+    in
+      if matches == []
+      then throw "repl.inspectList.findPkg: package not found: '${name}'"
+      else builtins.head matches;
+
+    cmdPath = name:
+      resolveBin {
+        inherit name;
+        drv = findPkg name;
+      };
+
+    cmdText = name:
+      (findPkg name).text or null;
+
+    cmdInfo = name: let
+      pkg = findPkg name;
+    in {
+      inherit name pkg;
+      packageName = packageName pkg;
+      path = resolveBin {
+        inherit name;
+        drv = pkg;
+      };
+      text = pkg.text or null;
+      meta = pkg.meta or {};
+    };
+
+    cmdTexts = names:
+      map
+      (name: {
+        inherit name;
+        text = cmdText name;
+      })
+      names;
+  in {
+    inherit
+      packageList
+      findAll
+      hasPkg
+      findPkg
+      cmdPath
+      cmdText
+      cmdInfo
+      cmdTexts
+      ;
   };
-  packages = libraries.packages.mkPkgs {inherit inputs system;};
-  repl = import paths.repl {
-    inherit libraries packages;
+
+  inspectAttrs = packageSet: let
+    hasPkg = name:
+      packageSet ? ${name};
+
+    findPkg = name:
+      if hasPkg name
+      then packageSet.${name}
+      else throw "repl.inspectAttrs.findPkg: package not found: '${name}'";
+
+    cmdPath = name:
+      resolveBin {
+        inherit name;
+        drv = findPkg name;
+      };
+
+    cmdText = name:
+      (findPkg name).text or null;
+
+    cmdInfo = name: let
+      pkg = findPkg name;
+    in {
+      inherit name pkg;
+      packageName = packageName pkg;
+      path = resolveBin {
+        inherit name;
+        drv = pkg;
+      };
+      text = pkg.text or null;
+      meta = pkg.meta or {};
+    };
+  in {
+    inherit
+      hasPkg
+      findPkg
+      cmdPath
+      cmdText
+      cmdInfo
+      ;
   };
+
+  tools = mkTools {inherit pkgs;};
 in {
-  inherit description paths repl;
-  pkgs = packages;
-  lib = libraries;
+  inherit
+    inspectList
+    inspectAttrs
+    ;
+
+  tools = inspectList tools.packages;
+  pkgs = inspectAttrs pkgs;
 }

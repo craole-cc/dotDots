@@ -12,11 +12,11 @@
 
   scripts = (paths.scripts or {}) // {missionControl = ./mission-control.sh;};
 
-  setMarker = {path ? paths.nix}: path;
+  setMarker = {path ? paths.flake}: path;
   setSource = stem:
     joinPath {
       inherit stem;
-      root = paths.templates.config;
+      root = paths.templates.default;
     };
 
   mkPackage = {
