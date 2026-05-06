@@ -33,15 +33,11 @@ let
         path = ./media;
         description = "Comprehensive Media Environment";
       };
-      # rust = mkTemplate {
-      #   path = ./rust/standard;
-      #   description = "Rust development environment with nightly toolchain";
-      # };
-      rust = mkTemplate ./rust/rusti;
-      # rustspace = mkTemplate {
-      #   path = ./rust/workspace;
-      #   description = "Rust workspace with multiple crates";
-      # };
+      rust = mkTemplate ./rust/standard;
+      rustspace = mkTemplate {
+        path = ./rust/workspace;
+        description = "Rust workspace with multiple crates";
+      };
     }
     // {default = templates.rust;};
 in

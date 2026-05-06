@@ -1,6 +1,9 @@
+#~@ Nix
+flake.lock
+
 #~@ Rust
 target/
-Cargo.lock
+# Cargo.lock #> Uncomment if lib
 **/*.rs.bk
 *.pdb
 
@@ -12,16 +15,31 @@ tarpaulin-report.html
 #~@ Environment
 .direnv
 .env
+.codex
 !.env.example
+
+#~@ OS
+.DS_Store
+Thumbs.db
 
 #~@ Editor
 .helix/
 .idea/
 .vscode/
+.zed/
+!.helix/config.toml
+!.helix/languages.toml
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.zed/settings.json
+!.zed/tasks.json
+!.idea/rust.xml
+!.idea/misc.xml
+!.idea/runConfigurations/
+!.neoconf.json
+!.nvim.lua
 *.swp
 *.swo
 *~
-
-#~@ OS
-.DS_Store
-Thumbs.db
