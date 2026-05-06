@@ -7,14 +7,14 @@
   inherit (lib.filesystem) readDir;
   inherit (lib.lists) elem filter findFirst head last optional;
   inherit (lib.packages) mkPkgs;
-  inherit (lib.strings) concatLines joinPath escapeShellArg hasPrefix match optionalString;
+  inherit (lib.strings) toLines toPathString escapeShellArg hasPrefix match optionalString;
   inherit (lib.trivial) readFile throwIf;
 
   scripts = (paths.scripts or {}) // {missionControl = ./mission-control.sh;};
 
   setMarker = {path ? paths.flake}: path;
   setSource = stem:
-    joinPath {
+    toPathString {
       inherit stem;
       root = paths.templates.default;
     };
@@ -28,7 +28,7 @@
   }: let
     script = scripts.${name} or file;
 
-    envLines = concatLines (
+    envLines = toLines (
       mapAttrsToList
       (name: value: ''export ${name}=${escapeShellArg value}'')
       env
@@ -180,10 +180,10 @@
     commands,
   }: let
     names = attrNames commands;
-    commandList = concatLines (
+    commandList = toLines (
       map (name: "  ${name}  ${commands.${name}.description}") names
     );
-    commandCases = concatLines (
+    commandCases = toLines (
       map (name: ''
         ${name})
           shift

@@ -3,14 +3,13 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) isAttrs;
   inherit (lib.lists) filter flatten map toList;
   inherit
     (lib.strings)
     concatStringsSep
     hasPrefix
     hasSuffix
-    isString
+    isStringLike
     hasInfix
     splitString
     ;
@@ -116,30 +115,25 @@
   # Returns
   The separator-joined string of all non-empty parts.
   */
-  concatNonEmpty = arg1: arg2: let
-    args =
-      if isAttrs arg1
-      then arg1
-      else {
-        separator = arg1;
-        parts = arg2;
-      };
-  in
-    concatStringsSep args.separator (
+  concatNonEmpty = {
+    separator ? "",
+    parts ? [],
+  }:
+    concatStringsSep separator (
       filter
       (part: part != null)
-      (map nonEmptyOrNull args.parts)
+      (map nonEmptyOrNull parts)
     );
 
-  joinPath = {
-    root ? paths.src,
-    stem,
+  toPathString = {
+    root ? paths.flake,
+    stem ? null,
   }: let
     separator = "/";
     mkParts = value:
       flatten (map (
         part:
-          if isString part && hasInfix separator part
+          if isStringLike part && hasInfix separator part
           then splitString separator part
           else [part]
       ) (toList value));
@@ -152,46 +146,55 @@
 
   # Type
   ```nix
-  lines :: [any | null] -> string
+  toLines :: [any | null] -> string
   ```
 
   # Examples
   ```nix
-  lines ["alpha" "" null "beta"]
+  toLines ["alpha" "" null "beta"]
   # => "alpha\nbeta"
   ```
 
   # Returns
   A newline-delimited string built from the non-empty parts.
   */
-  lines = concatNonEmpty "\n";
+  toLines = parts:
+    concatNonEmpty {
+      separator = "\n";
+      inherit parts;
+    };
 
   /**
   Join non-empty parts into a space-delimited string.
 
   # Type
   ```nix
-  words :: [any | null] -> string
+  toWords :: [any | null] -> string
   ```
 
   # Examples
   ```nix
-  words ["cargo" "" null "test"]
-  # => "cargo test"
+  toWords ["alpha" "" null "beta"]
+  # => "alpha beta"
   ```
 
   # Returns
   A space-delimited string built from the non-empty parts.
   */
-  words = concatNonEmpty " ";
+  toWords = parts:
+    concatNonEmpty {
+      separator = " ";
+      inherit parts;
+    };
 in {
   inherit
     ensurePrefix
     ensureSuffix
     nonEmptyOrNull
     concatNonEmpty
-    joinPath
-    lines
-    words
+    toLines
+    toWords
+    toPathString
     ;
+  toStringPath = toPath;
 }

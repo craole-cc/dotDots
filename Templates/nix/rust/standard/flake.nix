@@ -21,7 +21,7 @@
   outputs = inputs @ {self, ...}: let
     cfg = import ./. {inherit inputs;};
 
-    inherit (cfg) lib pkgs repl;
+    inherit (cfg) lib pkgs;
     inherit (lib.attrsets) mapAttrs;
     inherit (lib.shells) mkDevShells;
     inherit (lib.packages) mkPkgsPerSystem mkTreefmt;
@@ -29,7 +29,7 @@
     fmt = mkTreefmt {inherit inputs self;};
     env = mkDevShells {inherit inputs pkgs fmt;};
   in {
-    inherit lib repl;
+    inherit (cfg) lib pkgs paths repl;
     inherit (fmt) formatter checks;
     inherit (env) devShells;
     legacyPackages = mapAttrs (system: pkgs:
