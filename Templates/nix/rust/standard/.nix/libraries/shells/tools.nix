@@ -92,11 +92,11 @@
 
         scripts = let
           auto =
-            if paths ? scripts && paths.scripts ? src
+            if paths ? scripts && paths.scripts ? default
             then
               mkPackagesFrom {
                 inherit pkgs;
-                dir = paths.scripts.src;
+                dir = paths.scripts.default;
               }
             else {};
           commit = ''gcp --no-push "$@"'';
@@ -125,7 +125,7 @@
             reload = shBin "reload" ''${commit}; ${direnv} reload'';
             format = shBin "format" ''${commit}; nix fmt'';
             rg = shBin "rg" ''${ripgrep-all} "$@"'';
-            ff = shBin "ff" ''${fd} "$@"'';
+            ff = shBin "ff" ''${fd} --absolute-path "$@"'';
 
             #~@ Script Helpers
             find_cmd = shBin "find_cmd" ''
