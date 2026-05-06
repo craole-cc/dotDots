@@ -1,3 +1,0 @@
-{lib}: {
-  ignored = true;
-}
