@@ -1,29 +1,22 @@
 {lib, ...}: let
-  inherit (lib.packages) mkPkgs;
-  inherit (lib.strings) mkStyledOutput;
   inherit (lib.shells) mkDeployConfig;
 
-  entries = {
-    # ai = {
-    #   some-config = {
-    #     source = config + "/some-config";
-    #     target = ".some-config";
-    #   };
-    # };
-  };
-
-  deployConfig = {
-    pkgs ? mkPkgs {},
-    print ? mkStyledOutput {inherit pkgs;},
-    includeFormat ? true,
-    includeEditor ? false,
-  }:
+  defineConfigDeployment = {}: let
+    entries = {
+      all = {
+        # ai = {
+        #   some-config = {
+        #     source = config + "/some-config";
+        #     target = ".some-config";
+        #   };
+        # };
+      };
+      selected = entries.all;
+    };
+  in
     mkDeployConfig {
-      inherit pkgs print includeFormat includeEditor;
+      inherit entries;
       title = "AI Configuration Deployment";
       description = "Syncing AI development configuration files into your workspace";
-      extraEntries = entries;
     };
-in {
-  inherit entries deployConfig;
-}
+in {inherit defineConfigDeployment;}

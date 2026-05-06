@@ -1,57 +1,27 @@
 {lib, ...}: let
   inherit (lib.attrsets) attrNames optionalAttrs;
-  inherit (lib.lists) head toList optional;
+  inherit (lib.lists) head last toList optional;
   inherit (lib.packages) mkPkgs;
   inherit
     (lib.strings)
     concatNonEmpty
+    concatStringsSep
     escapeShellArg
     mkHeader
     mkSection
     mkStyledOutput
     replaceStrings
+    toLines
+    hasSuffix
+    toPathString
     ;
   inherit (lib.trivial) readFile;
   inherit (lib.shells) rust ai editor setMarker setSource;
   esc = escapeShellArg;
+  anchor = setMarker {};
+  project = baseNameOf anchor;
 
-  entries = {
-    base = let
-      mkSrc = name: setSource ["base" name];
-    in {
-      envrc = {
-        source = mkSrc "envrc";
-        target = ".envrc";
-      };
-      gitignore = {
-        source = mkSrc "gitignore";
-        target = ".gitignore";
-      };
-      mise = {
-        source = mkSrc "mise";
-        target = [".mise.toml" "mise.toml"];
-      };
-      shellcheck = {
-        source = mkSrc "shellcheckrc";
-        target = [".shellcheckrc" "shellcheckrc"];
-      };
-    };
-
-    format = let
-      mkSrc = name: setSource ["base" name];
-    in {
-      markdownlint = {
-        source = mkSrc "markdownlint-cli2.yaml";
-        target = [".markdownlint-cli2.yaml" "markdownlint-cli2.yaml"];
-      };
-      treefmt = {
-        source = mkSrc "treefmt.toml";
-        target = [".treefmt.toml" "treefmt.toml"];
-      };
-    };
-  };
-
-  deployEntry = name: {
+  deployTemplate = name: {
     source,
     target,
   }: let
@@ -71,32 +41,26 @@
     '';
 
   mkDeployConfig = {
-    pkgs ? mkPkgs {},
-    print ? mkStyledOutput {inherit pkgs;},
-    extraEntries ? {},
-    includeFormat ? true,
     title ? "Configuration Deployment",
     description ? "Syncing project configuration files into your workspace",
+    templates ? {},
+    pkgs ? mkPkgs {},
+    style ? mkStyledOutput {inherit pkgs;},
   }: let
-    selected =
-      entries.base
-      // optionalAttrs includeFormat entries.format
-      // extraEntries;
-
     content = ''
       ${mkHeader {
-        inherit print title;
+        inherit style title;
         content = description;
       }}
       ${mkSection {
-        inherit print;
+        inherit style;
         title = "Entries";
-        content = attrNames selected;
+        content = attrNames templates;
       }}
       status=0
       ${concatNonEmpty {
         separator = "\n";
-        parts = map (n: deployEntry n selected.${n}) (attrNames selected);
+        parts = map (n: deployTemplate n templates.${n}) (attrNames templates);
       }}
       return "''${status}"
     '';
@@ -106,73 +70,192 @@
       (readFile ./deploy.sh);
   in
     pkgs.writeShellScriptBin "deploy-config" source;
+
+  getTemplates = {
+    pkgs,
+    projectName ? project,
+    includeBase ? true,
+    includeFormat ? true,
+    includeAI ? true,
+    includeRust ? true,
+    includeWeb ? false,
+    withEditor ? null,
+  }: let
+    all = {
+      base = {
+        envrc = {
+          source = setSource ["base" "envrc"];
+          target = ".envrc";
+        };
+        gitignore = {
+          source = setSource ["base" "gitignore"];
+          target = ".gitignore";
+        };
+        mise = {
+          source = setSource ["base" "mise"];
+          target = [".mise.toml" "mise.toml"];
+        };
+        shellcheck = {
+          source = setSource ["base" "shellcheckrc"];
+          target = [".shellcheckrc" "shellcheckrc"];
+        };
+      };
+      format = {
+        markdownlint = {
+          source = setSource ["base" "markdownlint-cli2.yaml"];
+          target = [".markdownlint-cli2.yaml" "markdownlint-cli2.yaml"];
+        };
+        treefmt = {
+          source = setSource ["base" "treefmt.toml"];
+          target = [".treefmt.toml" "treefmt.toml"];
+        };
+      };
+      rust = {
+        cargo = {
+          source = setSource ["rust" "cargo.toml"];
+          target = ".cargo/config.toml";
+        };
+        rust-analyzer = {
+          source = setSource ["rust" "rust-analyzer.toml"];
+          target = [".rust-analyzer.toml" "rust-analyzer.toml"];
+        };
+        rust-toolchain = {
+          source = setSource ["rust" "rust-toolchain.toml"];
+          target = "rust-toolchain.toml";
+        };
+        rustfmt = {
+          source = setSource ["rust" "rustfmt.toml"];
+          target = [".rustfmt.toml" "rustfmt.toml"];
+        };
+      };
+      web = {
+        deno = {
+          source = setSource ["web" "deno.jsonc"];
+          target = "deno.jsonc";
+        };
+        prettier = {
+          source = setSource ["web" "prettierrc"];
+          target = [".prettierrc" "prettier.config.json"];
+        };
+        trunk = {
+          source = setSource ["web" "trunk.toml"];
+          target = [
+            ".trunk.toml"
+            "Trunk.toml"
+            ".trunk.yaml"
+            "Trunk.yaml"
+            ".trunk.json"
+            "Trunk.json"
+          ];
+        };
+      };
+      ai = {};
+      editor = let
+        base = "editor";
+        mkSource = stems: setSource [base stems];
+        mkTarget = stems: ".${toPathString stems}";
+        mkEntry = stems: let
+          stem = toPathString stems;
+        in {
+          # If the file is 'modules.xml' or '.iml', process it. Otherwise, leave it.
+          source =
+            if (hasSuffix "modules.xml" stem) || (hasSuffix ".iml" stem)
+            then
+              pkgs.runCommand "processed-${concatStringsSep "-" stem}" {} ''
+                substitute ${esc (toString (mkSource stem))} $out \
+                  --replace-fail "PROJECT_NAME" ${esc projectName}
+              ''
+            else mkSource stem;
+          target = mkTarget stem;
+        };
+      in {
+        common = {
+          editorconfig = {
+            source = mkSource ["common" "editorconfig"];
+            target = mkTarget "editorconfig";
+          };
+        };
+
+        vscode = {
+          settings = mkEntry ["vscode" "settings.json"];
+          extensions = mkEntry ["vscode" "extensions.json"];
+          tasks = mkEntry ["vscode" "tasks.json"];
+          launch = mkEntry ["vscode" "launch.json"];
+        };
+
+        helix = {
+          config = mkEntry ["helix" "config.toml"];
+          languages = mkEntry ["helix" "languages.toml"];
+        };
+
+        zed = {
+          settings = mkEntry ["zed" "settings.json"];
+          tasks = mkEntry ["zed" "tasks.json"];
+        };
+
+        rustrover = {
+          scopes = mkEntry ["idea" "scopes" "Project_Default.xml"];
+          rust = mkEntry ["idea" "rust.xml"];
+          misc = mkEntry ["idea" "misc.xml"];
+          modules = mkEntry ["idea" "modules.xml"];
+          cargo-run = mkEntry ["idea" "runConfigurations" "cargo.xml"];
+          cargo-test = mkEntry ["idea" "runConfigurations" "tests.xml"];
+          file-templates = mkEntry [
+            "idea"
+            "fileTemplates"
+            "internal"
+            "Rust_File.rs.ft"
+          ];
+        };
+
+        neovim = {
+          neoconf = {
+            source =mkSource ["neovim" "neoconf.json"];
+            target = ".neoconf.json";
+          };
+          config = {
+            source = mkSource ["neovim" "nvim.lua"];
+            target = ".nvim.lua";
+          };
+        };
+      };
+    };
+    selected = with all;
+      optionalAttrs includeBase base
+      // optionalAttrs includeAI ai
+      // optionalAttrs includeFormat format
+      // optionalAttrs includeRust rust
+      // optionalAttrs includeWeb web
+      // (
+        optionalAttrs
+        (withEditor != "none")
+        (editor.common // editor."${withEditor}")
+      );
+  in {inherit all selected;};
 
   deployConfig = {
-    pkgs ? mkPkgs {},
-    print ? mkStyledOutput {inherit pkgs;},
-    extraEntries ? {},
-    includeFormat ? true,
-    includeRust ? true,
-    includeAI ? true,
-    withEditor ? null,
     title ? "Configuration Deployment",
     description ? "Syncing project configuration files into your workspace",
+    projectName ? project,
+    includeAI ? true,
+    includeFormat ? true,
+    includeRust ? true,
+    includeWeb ? false,
+    pkgs ? mkPkgs {},
+    style ? mkStyledOutput {inherit pkgs;},
+    withEditor ? null,
   }: let
-    selected =
-      entries.base
-      // optionalAttrs includeFormat entries.format
-      // extraEntries;
-
-    delegateCalls = let
-      stem = ''/bin/deploy-config'';
-      args = ''"$@" || status=1'';
-    in
-      concatNonEmpty {
-        separator = "\n";
-        parts =
-          optional includeRust ''
-            "${rust.deployConfig {
-              inherit pkgs print includeFormat;
-            }}${stem}" ${args}
-          ''
-          ++ optional includeAI ''
-            "${ai.deployConfig {
-              inherit pkgs print includeFormat;
-            }}${stem}" ${args}
-          ''
-          ++ optional (editor != "none") ''
-            "${editor.deployConfig {
-              inherit pkgs print includeFormat;
-              editor = withEditor;
-            }}${stem}" ${args}
-          '';
-      };
-
-    content = ''
-      ${mkHeader {
-        inherit print title;
-        content = description;
-      }}
-      ${mkSection {
-        inherit print;
-        title = "Entries";
-        content = attrNames selected;
-      }}
-      status=0
-      ${delegateCalls}
-      ${concatNonEmpty {
-        separator = "\n";
-        parts = map (n: deployEntry n selected.${n}) (attrNames selected);
-      }}
-      return "''${status}"
-    '';
-
-    source =
-      replaceStrings ["#__DEPLOY_CONF_CALLS__"] [content]
-      (readFile ./deploy.sh);
+    templates = getTemplates {
+      inherit
+        includeAI
+        includeFormat
+        includeRust
+        includeWeb
+        pkgs
+        projectName
+        withEditor
+        ;
+    };
   in
-    pkgs.writeShellScriptBin "deploy-config" source;
-in {
-  inherit entries mkDeployConfig deployConfig;
-  anchor = setMarker {};
-}
+    mkDeployConfig {inherit pkgs style templates title description;};
+in {inherit anchor mkDeployConfig deployConfig;}

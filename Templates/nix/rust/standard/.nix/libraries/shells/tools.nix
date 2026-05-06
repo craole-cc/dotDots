@@ -25,7 +25,7 @@
       includeExtras   :: bool;
     } -> {
       packages :: [derivation];
-      print    :: AttrSet;
+      style    :: AttrSet;
     }
   ```
 
@@ -33,7 +33,7 @@
   ```nix
     tools = mkTools { inherit pkgs; includeWeb = true; };
     # tools.packages — add to shell packages list
-    # tools.print    — gum-based styled output helpers
+    # tools.style    — gum-based styled output helpers
   ```
   */
   mkTools = {
@@ -48,7 +48,7 @@
     inherit (pkgs.stdenv) isLinux;
 
     shBin = pkgs.writeShellScriptBin;
-    print = mkStyledOutput {inherit pkgs;};
+    style = mkStyledOutput {inherit pkgs;};
     groups = {
       /**
       Core essential/navigation/git/file tooling.
@@ -151,7 +151,7 @@
             inherit pkgs;
             prefix = "print";
             sep = "_";
-            set = print;
+            set = style;
           };
         in
           auto // manual // printers;
@@ -232,7 +232,7 @@
       };
     };
   in {
-    inherit print;
+    inherit style;
     packages = flatten (
       concatMap
       (g:

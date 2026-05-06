@@ -1,7 +1,8 @@
 {lib}: let
   inherit (lib.strings) concatStringsSep;
+  inherit (lib.packages) mkPkgs;
 
-  mkStyledOutput = {pkgs}: let
+  mkStyledOutput = {pkgs ? mkPkgs {}}: let
     gum = "${pkgs.gum}/bin/gum";
   in {
     inherit gum;
@@ -19,21 +20,21 @@
   };
 
   mkSection = {
-    print,
+    style,
     title,
     content,
   }: ''
-    ${print.magenta} " $ ${title}"
-    ${print.grey} "${concatStringsSep "\n" (map (line: "  ${line}") content)}"
+    ${style.magenta} " $ ${title}"
+    ${style.grey} "${concatStringsSep "\n" (map (line: "  ${line}") content)}"
     echo ""
   '';
 
   mkHeader = {
-    print,
+    style,
     title,
     content,
   }: ''
-    ${print.magenta} \
+    ${style.magenta} \
       --border-foreground 212 --border double \
       --align center --width 60 --margin "1 2" --padding "1 2" \
       "${title}" "${content}"

@@ -8,7 +8,7 @@
     mkTools
     rust
     ai
-    mkDeployConfig
+    deployConfig
     ;
 
   combined = mergeNamespaces {inherit rust ai;};
@@ -21,7 +21,9 @@
   }: let
     mk = args: let
       tools = mkTools ({inherit pkgs;} // args);
-      inherit (tools) print;
+      inherit (tools) style;
+      #TODO: It's the variants that should determine how this is called
+      deployment = deployConfig ({inherit pkgs style;} // args);
       spec = mkSpec ({inherit pkgs;} // args);
       shell =
         spec.shell
@@ -31,14 +33,16 @@
             spec.shell.packages
             ++ (attrValues fmt.packages.${getSystem pkgs})
             ++ tools.packages
-            ++ [(mkDeployConfig ({inherit pkgs print;} // args))];
+            ++ [deployment];
         };
     in
       spec // {inherit shell;};
 
     variants = {
       minimal = mk {};
-      default = mk {includeExtras = true;};
+      default = mk {
+        includeExtras = true;
+      };
       stable = mk {
         channel = "stable";
         includeExtras = true;

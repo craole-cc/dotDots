@@ -9,7 +9,7 @@
     pkgs ? mkPkgs {},
     rust ? mkRust {inherit pkgs;},
     minimal ? false,
-    includeEditor ? true,
+    includeEditor ? false,
     includeWeb ? false,
     includeAnalysis ? true,
     includeWatch ? true,
