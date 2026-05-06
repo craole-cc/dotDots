@@ -58,10 +58,9 @@
         content = attrNames templates;
       }}
       status=0
-      ${concatNonEmpty {
-        separator = "\n";
-        parts = map (n: deployTemplate n templates.${n}) (attrNames templates);
-      }}
+      ${toLines (map
+        (n: deployTemplate n templates.${n})
+        (attrNames templates))}
       return "''${status}"
     '';
 
@@ -210,7 +209,7 @@
 
         neovim = {
           neoconf = {
-            source =mkSource ["neovim" "neoconf.json"];
+            source = mkSource ["neovim" "neoconf.json"];
             target = ".neoconf.json";
           };
           config = {

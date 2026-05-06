@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.attrsets) attrValues;
+  inherit (lib.attrsets) attrValues removeAttrs;
   inherit (lib.packages) getSystem;
   inherit
     (lib.shells)
@@ -15,39 +15,70 @@
   inherit (combined) mkSpec;
 
   mkSuite = {
+    pkgs,
+    fmt,
+  }: {packages ? [], ...} @ args: let
+    shellArgs = removeAttrs args ["packages"];
+    tools = mkTools ({inherit pkgs;} // shellArgs);
+    spec = mkSpec ({inherit pkgs;} // shellArgs);
+    applicationPackages = tools.packages;
+    shell =
+      spec.shell
+      // {
+        shellHook = ""; #TODO: Combined shellHook are currently too noisy
+        packages =
+          spec.shell.packages
+          ++ (attrValues fmt.packages.${getSystem pkgs})
+          ++ applicationPackages
+          ++ packages;
+      };
+  in
+    spec // {inherit shell;};
+
+  mkSuites = {
     inputs,
     pkgs,
     fmt,
   }: let
-    mk = args: let
-      tools = mkTools ({inherit pkgs;} // args);
-      inherit (tools) style;
-      #TODO: It's the variants that should determine how this is called
-      deployment = deployConfig ({inherit pkgs style;} // args);
-      spec = mkSpec ({inherit pkgs;} // args);
-      shell =
-        spec.shell
-        // {
-          shellHook = ""; #TODO: Combined shellHook are currently too noisy
-          packages =
-            spec.shell.packages
-            ++ (attrValues fmt.packages.${getSystem pkgs})
-            ++ tools.packages
-            ++ [deployment];
-        };
-    in
-      spec // {inherit shell;};
-
+    suite = mkSuite {inherit pkgs fmt;};
     variants = {
-      minimal = mk {};
-      default = mk {
+      minimal = suite {
+        packages = [
+          (deployConfig {inherit pkgs;})
+        ];
+      };
+      default = suite {
+        packages = [
+          (deployConfig {
+            inherit pkgs;
+            includeFormat = true;
+            includeEditor = false;
+            includeWeb = false;
+          })
+        ];
         includeExtras = true;
       };
-      stable = mk {
+      stable = suite {
+        packages = [
+          (deployConfig {
+            inherit pkgs;
+            includeFormat = true;
+            includeEditor = false;
+            includeWeb = false;
+          })
+        ];
         channel = "stable";
         includeExtras = true;
       };
-      full = mk {
+      full = suite {
+        packages = [
+          (deployConfig {
+            inherit pkgs;
+            includeFormat = true;
+            includeEditor = false;
+            includeWeb = true;
+          })
+        ];
         includeExtras = true;
         includeWorkflow = true;
         includeWeb = true;
@@ -63,5 +94,6 @@
   };
 in {
   inherit mkSpec mkSuite;
-  mkDevShells = mkSuite;
+  inherit mkSuites;
+  mkDevShells = mkSuites;
 }
