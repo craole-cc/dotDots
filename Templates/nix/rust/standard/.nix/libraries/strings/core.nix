@@ -196,5 +196,5 @@ in {
     toWords
     toPathString
     ;
-  toStringPath = toPath;
+  toStringPath = toPathString;
 }
