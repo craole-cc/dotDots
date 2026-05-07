@@ -22,10 +22,7 @@ in {
       });
   in {
     # inherit style;
-    packages = let
-      # gs = attrValues groups;
-      # _ = builtins.trace (builtins.toJSON (map (g: builtins.attrNames (g.scripts or {})) gs)) null;
-    in
+    packages =
       flatten (concatMap (g:
         attrValues (g.packages or {})
         ++ attrValues (g.scripts or {}))

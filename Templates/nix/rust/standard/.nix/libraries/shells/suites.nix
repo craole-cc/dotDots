@@ -41,57 +41,48 @@
   in
     spec // {inherit shell;};
 
+  mkVariant = {
+    shellArgs ? {},
+    deployArgs ? {},
+  }: let
+    fmt = mkFmt {inherit inputs self;} shellArgs;
+  in
+    mkSuite {inherit pkgs fmt;} {inherit shellArgs deployArgs;};
+
+    mkVarFrom = set: mkVariant {shellArgs =set;};
   mkSuites = {
     inputs,
     pkgs,
     self,
   }: let
-    mkVariant = {
-      shellArgs ? {},
-      deployArgs ? {},
-    }: let
-      fmt = mkFmt {inherit inputs self;} shellArgs;
-    in
-      mkSuite {inherit pkgs fmt;} {inherit shellArgs deployArgs;};
+    baseArgs = {
+      minimal = {};
+      default = {includeExtras = true;};
+      stable = {
+        channel = "stable";
+        includeExtras = true;
+      };
+      full = {
+        includeExtras = true;
+        includeWorkflow = true;
+        includeWeb = true;
+        includeDatabase = true;
+        includeRust = true;
+      };
+    };
 
-    base = let
-      shell = {
-        minimal = {};
-        default = {includeExtras = true;};
-        stable = {
-          channel = "stable";
-          includeExtras = true;
-        };
-        full = {
-          includeExtras = true;
-          includeWorkflow = true;
-          includeWeb = true;
-          includeDatabase = true;
-          includeRust = true;
-        };
-      };
-    in
-      mapAttrs (_: args: mkEnvVariant args) {
-        minimal = {};
-        default = {includeExtras = true;};
-        stable = {
-          channel = "stable";
-          includeExtras = true;
-        };
-        full = {
-          includeExtras = true;
-          includeWorkflow = true;
-          includeWeb = true;
-          includeDatabase = true;
-          includeRust = true;
-        };
-      };
+    baseDeployArgs = {
+      minimal = {};
+      default = {};
+      stable = {};
+      full = {includeWeb = true;};
+    };
 
     baseVariants = {
-      minimal = mkVariant {shellArgs = baseArgs.minimal;};
-      default = mkVariant {shellArgs = baseArgs.default;};
-      stable = mkVariant {shellArgs = baseArgs.stable;};
-      full = mkVariant {shellArgs = baseArgs.full;};
+      minimal = mkVar baseArgs.minimal;
+      default = mkVar baseArgs.default;
+      stable = mkVar baseArgs.stable;
+      full = mkVar baseArgs.full;
     };
 
     editorNames = ["vscode" "helix" "zed" "rustrover" "neovim"];

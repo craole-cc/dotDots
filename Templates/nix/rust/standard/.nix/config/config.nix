@@ -1,6 +1,6 @@
 {lib}: let
   inherit (lib.attrsets) attrValues listToAttrs;
-  inherit (lib.packages) getSystem mkFmt mkChecks;
+  inherit (lib.packages) getSystem mkTreefmt;
   inherit
     (lib.shells)
     ai
@@ -46,46 +46,38 @@
     pkgs,
     self,
   }: let
+
+
     mkVariant = {
       shellArgs ? {},
       deployArgs ? {},
     }: let
-      fmt = mkFmt {inherit inputs self;} shellArgs;
+      fmt = mkFmt shellArgs;
     in
       mkSuite {inherit pkgs fmt;} {inherit shellArgs deployArgs;};
 
-    base = let
-      shell = {
-        minimal = {};
-        default = {includeExtras = true;};
-        stable = {
-          channel = "stable";
-          includeExtras = true;
-        };
-        full = {
-          includeExtras = true;
-          includeWorkflow = true;
-          includeWeb = true;
-          includeDatabase = true;
-          includeRust = true;
-        };
+    baseArgs = {
+      minimal = {};
+      default = {includeExtras = true;};
+      stable = {
+        channel = "stable";
+        includeExtras = true;
       };
-    in
-      mapAttrs (_: args: mkEnvVariant args) {
-        minimal = {};
-        default = {includeExtras = true;};
-        stable = {
-          channel = "stable";
-          includeExtras = true;
-        };
-        full = {
-          includeExtras = true;
-          includeWorkflow = true;
-          includeWeb = true;
-          includeDatabase = true;
-          includeRust = true;
-        };
+      full = {
+        includeExtras = true;
+        includeWorkflow = true;
+        includeWeb = true;
+        includeDatabase = true;
+        includeRust = true;
       };
+    };
+
+    baseDeployArgs = {
+      minimal = {};
+      default = {};
+      stable = {};
+      full = {includeWeb = true;};
+    };
 
     baseVariants = {
       minimal = mkVariant {shellArgs = baseArgs.minimal;};
@@ -129,10 +121,13 @@
       default = variants.minimal;
       shells = namespaced // variants;
     };
-    checks = mkChecks {
-      bases = baseArgs;
-      mkFmt = mkFmt {inherit inputs self;};
-    };
+    checks = listToAttrs (
+      map (name: {
+        inherit name;
+        value = (mkFmt baseArgs.${name}).checks;
+      })
+      baseNames
+    );
     fmt = mkFmt baseArgs.default;
   };
 in {

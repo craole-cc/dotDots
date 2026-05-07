@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.attrsets) mapAttrs recursiveUpdate;
+  inherit (lib.attrsets) attrNames listToAttrs mapAttrs recursiveUpdate;
   inherit (lib.lists) elem optionals toList;
   inherit (lib.packages) defineSystems resolvePackages perSystem;
 
@@ -86,4 +86,27 @@
       };
     }
     config;
-in {inherit mkTreefmt mkTreefmtConfig;}
+
+  mkFmt = {
+    inputs,
+    self,
+  }: args:
+    mkTreefmt {
+      inherit inputs self;
+      includeRust = args.includeRust     or false;
+      includeWeb = args.includeWeb      or false;
+      includeDatabase = args.includeDatabase or false;
+    };
+
+  mkChecks = {
+    bases,
+    mkFmt,
+  }:
+    listToAttrs (
+      map (name: {
+        inherit name;
+        value = (mkFmt bases.${name}).checks;
+      })
+      (attrNames bases)
+    );
+in {inherit mkFmt mkTreefmt mkTreefmtConfig mkChecks;}
