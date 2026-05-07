@@ -4,14 +4,13 @@
   inherit
     (lib.shells)
     ai
-    concatMap
     deployConfig
     mergeNamespaces
     mkShells
     mkTools
     rust
     ;
-
+  inherit (lib.lists) concatMap;
   combined = mergeNamespaces {inherit rust ai;};
   inherit (combined) mkSpec;
 

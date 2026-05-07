@@ -10,6 +10,7 @@
     includeWeb ? false,
     includeExtras ? false,
     includeDatabase ? false,
+    includeRust ? false,
   }: let
     inherit (resolvePackages {inherit inputs;}) treefmt;
 
@@ -17,7 +18,15 @@
       inherit inputs;
       fn = pkgs: let
         module = treefmt.lib.evalModule pkgs (
-          mkTreefmtConfig {inherit pkgs config includeWeb includeExtras includeDatabase;}
+          mkTreefmtConfig {
+            inherit
+              pkgs
+              config
+              includeWeb
+              includeRust
+              includeDatabase
+              ;
+          }
         );
         inherit (module.config.build) check wrapper programs;
         formatting = check self;

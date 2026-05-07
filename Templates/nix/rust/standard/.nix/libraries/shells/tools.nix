@@ -11,26 +11,18 @@ in {
     includeWeb ? false,
     withEditor ? null,
   }: let
-    shBin = pkgs.writeShellScriptBin;
-    style = mkStyledOutput {inherit pkgs;};
     anchor = lib.shells.setMarker {};
     project = baseNameOf anchor;
 
     groups =
-      (common.base.mkGroups {
-        inherit pkgs shBin style;
-      })
-      // (common.extra.mkGroups {
-        inherit pkgs shBin includeExtras;
-      })
-      // (web.mkGroups {
-        inherit pkgs includeWeb;
+      (common.mkGroups {
+        inherit pkgs includeExtras includeWeb;
       })
       // (editor.mkGroups {
         inherit pkgs project withEditor;
       });
   in {
-    inherit style;
+    # inherit style;
     packages = flatten (concatMap (g:
       attrValues (g.packages or {})
       ++ attrValues (g.scripts or {}))
