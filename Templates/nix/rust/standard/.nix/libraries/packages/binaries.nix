@@ -4,25 +4,66 @@ libraries/packages/resolve.nix
 Pure package and binary resolution helpers for lib.packages.
 */
 {lib}: let
+  inherit (lib.filesystem) readDir;
+  inherit (lib.lists) elem filter findFirst head last optional optionals;
   inherit
     (lib.attrsets)
     attrNames
     filterAttrs
     isAttrs
+    listToAttrs
     mapAttrs
     mapAttrs'
     mapAttrsToList
     nameValuePair
     ;
-  inherit (lib.trivial) isNotEmpty;
   inherit
     (lib.strings)
     concatStringsSep
     parseDrvName
     escapeShellArg
     isString
-    optionalString
+    hasPrefix
+    match
     ;
+  inherit (lib.trivial) isNotEmpty readFile throwIf;
+
+  mkPkg = {
+    pkgs,
+    name,
+    prefix ? null,
+    sep ? null,
+    script ? null,
+    command ? null,
+  }: let
+    shBin = pkgs.writeShellScriptBin;
+    var =
+      if prefix != null
+      then
+        concatStringsSep (
+          if sep != null
+          then sep
+          else "_"
+        ) [prefix name]
+      else name;
+    val =
+      throwIf (script != null && command != null)
+      "mkPkg: both `script` and `command` provided, preferring `command`"
+      (
+        if command != null
+        then shBin var ''exec ${command} "$@"''
+        else if script != null
+        then shBin var script
+        else throw "mkPkg: must provide either `script` or `command`"
+      );
+  in
+    val;
+
+  mkPkgAttrs = args: let
+    val = mkPkg args;
+    var = val.name;
+    bin = "${val}/bin/${var}";
+  in {inherit var val bin;};
 
   /**
   Resolve a derivation's main executable path.
@@ -174,12 +215,13 @@ Pure package and binary resolution helpers for lib.packages.
   mkAlias = {
     pkgs,
     name,
-    command,
+    command ? null,
+    script ? null,
     prefix ? null,
     sep ? null,
   }: let
     var =
-      if (prefix != null)
+      if prefix != null
       then
         concatStringsSep (
           if sep != null
@@ -187,8 +229,7 @@ Pure package and binary resolution helpers for lib.packages.
           else "_"
         ) [prefix name]
       else name;
-    val =
-      pkgs.writeShellScriptBin var ''exec ${command} "$@"'';
+    val = mkPkg {inherit pkgs name prefix sep command script;};
   in
     nameValuePair var val;
 
@@ -198,11 +239,18 @@ Pure package and binary resolution helpers for lib.packages.
     prefix ? null,
     sep ? null,
     exclude ? [],
-  }:
-    mapAttrs' (
-      name: command:
-        mkAlias {inherit pkgs name command prefix sep;}
-    ) (removeAttrs set exclude);
+  }: let
+    resolve = name: value:
+      if isAttrs value
+      then mkAlias ({inherit pkgs name prefix sep;} // value)
+      else
+        mkAlias {
+          inherit pkgs name prefix sep;
+          command = value;
+        };
+  in
+    mapAttrs' (name: value: resolve name value)
+    (removeAttrs set exclude);
 
   mkAliases = aliases:
     concatStringsSep "\n" (
@@ -210,15 +258,129 @@ Pure package and binary resolution helpers for lib.packages.
       (name: value: "alias ${name}=${escapeShellArg value}")
       aliases
     );
+
+  mkPackagesFrom = {
+    pkgs,
+    dir ? null,
+    file ? null,
+    files ? [],
+    priority ? ["rs" "bash" "sh" "py" "rb"],
+  }: let
+    dirFiles = optionals (dir != null) (
+      let
+        entries = readDir dir;
+
+        names =
+          filter
+          (name: entries.${name} == "regular")
+          (attrNames entries);
+      in
+        map
+        (name: {
+          inherit name;
+          path = dir + "/${name}";
+        })
+        names
+    );
+
+    explicitFiles =
+      map
+      (path: {
+        name = baseNameOf (toString path);
+        inherit path;
+      })
+      (files ++ optional (file != null) file);
+
+    allFiles = dirFiles ++ explicitFiles;
+
+    parseName = name: let
+      parts = match "^(.*)\\.([^.]+)$" name;
+    in
+      if parts == null
+      then {
+        base = name;
+        ext = null;
+      }
+      else {
+        base = head parts;
+        ext = last parts;
+      };
+
+    scriptName = item: (parseName item.name).base;
+    scriptExt = item: (parseName item.name).ext;
+    isSupported = item: elem (scriptExt item) priority;
+    hasShebang = item: hasPrefix "#!" (readFile item.path);
+    candidates =
+      filter
+      (item: isSupported item && hasShebang item)
+      allFiles;
+    bases = attrNames (
+      listToAttrs (
+        map
+        (item: nameValuePair (scriptName item) true)
+        candidates
+      )
+    );
+
+    choose = base:
+      findFirst
+      (item: item != null)
+      null
+      (
+        map (ext: let
+          matches =
+            filter
+            (item: scriptName item == base && scriptExt item == ext)
+            candidates;
+        in
+          if matches == []
+          then null
+          else head matches)
+        priority
+      );
+
+    scriptEnv = ext:
+      if ext == "rs"
+      then ''
+        case "''${RUST_LOG:-}" in
+        *rust_script=*)
+          ;;
+        "") export RUST_LOG="rust_script=warn" ;;
+        *) export RUST_LOG="''${RUST_LOG},rust_script=warn" ;;
+        esac
+      ''
+      else "";
+
+    mkDiscoveredScript = base: let
+      chosen = choose base;
+      ext = scriptExt chosen;
+
+      source = pkgs.writeTextFile {
+        name = "${base}-source";
+        destination = "/share/${base}/${chosen.name}";
+        executable = true;
+        text = readFile chosen.path;
+      };
+    in
+      nameValuePair base
+      (pkgs.writeShellScriptBin base ''
+        ${scriptEnv ext}
+        exec ${source}/share/${base}/${chosen.name} "$@"
+      '');
+  in
+    listToAttrs (map mkDiscoveredScript bases);
 in {
   inherit
+    mkPkgAttrs
     mkAlias
     mkAliases
     resolveBin
+    mkPackagesFrom
     resolveBins
     mkBin
     mkBins
     mkCmds
     mkVr3n
+    mkPkg
     ;
 }

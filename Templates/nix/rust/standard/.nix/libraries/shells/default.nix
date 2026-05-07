@@ -4,12 +4,14 @@ lib.assembly.importLibs {
   path = ./.;
   priority = [
     "scripts.nix"
-    "tools.nix"
     "build.nix"
     "meta.nix"
+    "common"
+    "web"
     "ai"
     "rust"
     "editor"
+    "tools.nix"
     "deploy.nix"
     "config.nix"
   ];

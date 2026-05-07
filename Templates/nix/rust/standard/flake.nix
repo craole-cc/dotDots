@@ -20,20 +20,45 @@
 
   outputs = inputs @ {self, ...}: let
     cfg = import ./. {inherit inputs;};
-
     inherit (cfg) lib pkgs;
     inherit (lib.attrsets) mapAttrs;
     inherit (lib.shells) mkDevShells;
     inherit (lib.packages) mkPkgsPerSystem mkTreefmt;
 
-    fmt = mkTreefmt {inherit inputs self;};
-    env = mkDevShells {inherit inputs pkgs fmt;};
+fmt = mkTreefmt {
+  inherit inputs self;
+  includeRust      = true;
+  includeWeb      = true;
+  includeExtras   = true;
+  includeDatabase = true;
+};
+
+    env = mkDevShells {inherit inputs pkgs self;};
   in {
     inherit (cfg) lib pkgs paths repl;
-    inherit (fmt) formatter checks;
+    formatter = fmt.formatter; # full, for `nix fmt`
+    checks = env.checks; # per-variant
     inherit (env) devShells;
     legacyPackages = mapAttrs (system: pkgs:
       pkgs // {formatter = fmt.packages.${system};})
     (mkPkgsPerSystem {inherit inputs;});
   };
+  # outputs = inputs @ {self, ...}: let
+  #   cfg = import ./. {inherit inputs;};
+
+  #   inherit (cfg) lib pkgs;
+  #   inherit (lib.attrsets) mapAttrs;
+  #   inherit (lib.shells) mkDevShells;
+  #   inherit (lib.packages) mkPkgsPerSystem mkTreefmt;
+
+  #   fmt = mkTreefmt {inherit inputs self;};
+  #   env = mkDevShells {inherit inputs pkgs fmt;};
+  # in {
+  #   inherit (cfg) lib pkgs paths repl;
+  #   inherit (fmt) formatter checks;
+  #   inherit (env) devShells;
+  #   legacyPackages = mapAttrs (system: pkgs:
+  #     pkgs // {formatter = fmt.packages.${system};})
+  #   (mkPkgsPerSystem {inherit inputs;});
+  # };
 }

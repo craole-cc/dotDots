@@ -1,12 +1,15 @@
-{lib, ...}: let
+{lib}: let
   inherit (lib.attrsets) mapAttrs recursiveUpdate;
-  inherit (lib.lists) elem toList;
+  inherit (lib.lists) elem optionals toList;
   inherit (lib.packages) defineSystems resolvePackages perSystem;
 
   mkTreefmt = {
     self,
     inputs,
     config ? {},
+    includeWeb ? false,
+    includeExtras ? false,
+    includeDatabase ? false,
   }: let
     inherit (resolvePackages {inherit inputs;}) treefmt;
 
@@ -14,7 +17,7 @@
       inherit inputs;
       fn = pkgs: let
         module = treefmt.lib.evalModule pkgs (
-          mkTreefmtConfig {inherit pkgs config;}
+          mkTreefmtConfig {inherit pkgs config includeWeb includeExtras includeDatabase;}
         );
         inherit (module.config.build) check wrapper programs;
         formatting = check self;
@@ -29,6 +32,9 @@
   mkTreefmtConfig = {
     pkgs,
     config,
+    includeWeb ? false,
+    includeRust ? false,
+    includeDatabase ? false,
   }: let
     inherit (pkgs.stdenv.hostPlatform) system;
     for = {
@@ -40,26 +46,33 @@
       projectRootFile = "flake.nix";
 
       programs = {
+        #~@ Common
         actionlint.enable = true;
         alejandra.enable = for.all {};
-        deno.enable = for.allBut "riscv64-linux";
-        leptosfmt.enable = true;
-        rustfmt.enable = true;
         shellcheck.enable = true;
         shfmt.enable = true;
-        sql-formatter = {
-          enable = true;
-          dialect = "sqlite";
-        };
         statix.enable = true;
         taplo.enable = true;
         yamlfmt.enable = true;
+
+        #~@ Rust
+        leptosfmt.enable = includeRust && includeWeb;
+        rustfmt.enable = includeRust;
+
+        #~@ Web
+        deno.enable = includeWeb && for.allBut "riscv64-linux";
+
+        #~@ Database
+        sql-formatter = {
+          enable = includeDatabase;
+          dialect = "sqlite";
+        };
       };
 
       settings = {
         excludes = ["node_modules" ".git" "target" "dist"];
         formatter = {
-          deno.excludes = ["*.yaml" "*.yml"];
+          deno.excludes = optionals includeWeb ["*.yaml" "*.yml"];
         };
       };
     }
