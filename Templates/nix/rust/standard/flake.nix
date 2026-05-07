@@ -29,15 +29,14 @@ fmt = mkTreefmt {
   inherit inputs self;
   includeRust      = true;
   includeWeb      = true;
-  includeExtras   = true;
   includeDatabase = true;
 };
 
     env = mkDevShells {inherit inputs pkgs self;};
   in {
     inherit (cfg) lib pkgs paths repl;
-    formatter = fmt.formatter; # full, for `nix fmt`
-    checks = env.checks; # per-variant
+    inherit (fmt) formatter; # full, for `nix fmt`
+    inherit (env) checks; # per-variant
     inherit (env) devShells;
     legacyPackages = mapAttrs (system: pkgs:
       pkgs // {formatter = fmt.packages.${system};})

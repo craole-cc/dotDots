@@ -77,11 +77,11 @@
     style ? mkStyledOutput {inherit pkgs;},
     withEditor ? null,
   }: let
-    common = lib.shells.common;
-    web = lib.shells.web;
-    editor = lib.shells.editor;
-    rust = lib.shells.rust;
-    ai = lib.shells.ai;
+    inherit (lib.shells) common;
+    inherit (lib.shells) web;
+    inherit (lib.shells) editor;
+    inherit (lib.shells) rust;
+    inherit (lib.shells) ai;
 
     templates =
       optionalAttrs includeBase (common.base.templates or {})

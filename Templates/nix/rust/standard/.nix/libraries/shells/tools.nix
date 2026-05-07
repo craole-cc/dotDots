@@ -2,8 +2,7 @@
   inherit (lib.attrsets) attrValues;
   inherit (lib.lists) concatMap flatten;
   inherit (lib.packages) mkPkgs;
-  inherit (lib.strings) mkStyledOutput;
-  inherit (lib.shells) common web editor;
+  inherit (lib.shells) common editor;
 in {
   mkTools = {
     pkgs ? mkPkgs {},
@@ -23,9 +22,13 @@ in {
       });
   in {
     # inherit style;
-    packages = flatten (concatMap (g:
-      attrValues (g.packages or {})
-      ++ attrValues (g.scripts or {}))
-    (attrValues groups));
+    packages = let
+      # gs = attrValues groups;
+      # _ = builtins.trace (builtins.toJSON (map (g: builtins.attrNames (g.scripts or {})) gs)) null;
+    in
+      flatten (concatMap (g:
+        attrValues (g.packages or {})
+        ++ attrValues (g.scripts or {}))
+      (attrValues groups));
   };
 }

@@ -1,7 +1,7 @@
 {lib, ...}: let
   inherit (lib.shells) mkDeployConfig;
 
-  defineConfigDeployment = {}: let
+  defineConfigDeployment = _: let
     entries = {
       all = {
         # ai = {

@@ -51,7 +51,6 @@
         inherit inputs self;
         includeRust = shellArgs.includeRust or false;
         includeWeb = shellArgs.includeWeb or false;
-        includeExtras = shellArgs.includeExtras or false;
         includeDatabase = shellArgs.includeDatabase or false;
       };
 

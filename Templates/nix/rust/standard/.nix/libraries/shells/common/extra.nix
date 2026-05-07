@@ -1,7 +1,7 @@
 {lib, ...}: let
   inherit (lib.packages) mkBins mkPkg;
 in {
-  mkBase = pkgs: let
+  mkExtra = pkgs: let
     templates = {};
 
     packages = with pkgs; {
