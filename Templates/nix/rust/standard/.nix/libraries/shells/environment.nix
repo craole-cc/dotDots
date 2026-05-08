@@ -1,7 +1,7 @@
 {lib}: let
-  combined = mergeNamespaces {inherit rust ai;};
   inherit (lib.packages) mkFmt mkChecks;
   inherit (lib.shells) ai mergeNamespaces mkShells mkVariants rust;
+  # inherit (mergeNamespaces {inherit rust ai;}) mkDevShell;
 
   mkEnvironment = {
     inputs,
@@ -10,7 +10,7 @@
   }: let
     variants = mkVariants {
       inherit pkgs inputs self;
-      raw = {
+      variants = {
         minimal = {};
         default = {includeExtras = true;};
         stable = {
@@ -36,12 +36,12 @@
         "zed"
       ];
     };
-    namespaced = combined.mkDevShell {inherit pkgs;};
   in {
     devShells = mkShells {
       inherit inputs;
       default = variants.minimal;
-      shells = namespaced // variants;
+      # shells = mkDevShell {inherit pkgs;} // variants;
+      shells = variants;
     };
     checks = mkChecks {
       bases = variants.raw;

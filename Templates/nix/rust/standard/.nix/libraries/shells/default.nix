@@ -14,6 +14,7 @@ lib.assembly.importLibs {
     "tools.nix"
     "deploy.nix"
     # "config.nix"
+    "variants.nix"
     "environment.nix"
   ];
 }

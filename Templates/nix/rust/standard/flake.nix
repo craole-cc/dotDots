@@ -22,7 +22,7 @@
     cfg = import ./. {inherit inputs;};
     inherit (cfg) lib pkgs;
     inherit (lib.attrsets) mapAttrs;
-    inherit (lib.shells) mkSuites;
+    inherit (lib.shells) mkEnvironment;
     inherit (lib.packages) mkPkgsPerSystem;
 
     env = mkEnvironment {inherit inputs pkgs self;};
