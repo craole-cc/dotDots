@@ -2,6 +2,8 @@
   inherit (lib.attrsets) attrNames listToAttrs mapAttrs;
   inherit (lib.lists) concatMap;
   inherit (lib.shells) mkFmt mkSuite;
+  inherit (lib.strings) concatNonEmpty toPascal;
+  inherit (lib.trivial) isNotEmpty;
 
   mkVariant = {
     pkgs,
@@ -25,15 +27,28 @@
   mkIdeVariant = {
     variant,
     base,
-    suffixes,
+    suffixes ? {},
     names,
-  }:
+  }: let
+    suffixes' =
+      if isNotEmpty
+      then suffixes
+      else
+        listToAttrs (
+          map (name: {
+            name = name;
+            value = toPascal name;
+          })
+          names
+        );
+  in
     listToAttrs (
       concatMap (
         baseName:
           map (
             editorName: {
-              name = "${baseName}With${suffixes.${editorName}}";
+              # name = "${baseName}With${suffixes'.${editorName}}";
+              name = concatNonEmpty {parts = [baseName "With" suffixes'.${editorName}];};
               value = variant {
                 shellArgs = base.${baseName};
                 deployArgs = {withEditor = editorName;};
@@ -49,7 +64,7 @@
     pkgs,
     inputs,
     self,
-    variants ? {
+    raw ? {
       minimal = {};
       default = {includeExtras = true;};
       stable = {
@@ -67,25 +82,24 @@
   }: let
     variant = mkVariant {inherit pkgs inputs self;};
 
-    base = mapAttrs (_: args:
-      mkEnvVariant {
-        inherit variant args;
-      })
-    variants;
+    base =
+      mapAttrs
+      (_: args: mkEnvVariant {inherit variant args;})
+      raw;
 
     editor = mkIdeVariant {
       inherit variant;
-      base = variants;
-      names = ["vscode" "helix" "zed" "rustrover" "neovim"];
-      suffixes = {
-        vscode = "Vscode";
-        helix = "Helix";
-        zed = "Zed";
-        rustrover = "Rustrover";
-        neovim = "Neovim";
-      };
+      base = raw;
+      names = [
+        "helix"
+        "neovim"
+        "rust-rover"
+        "vscode"
+        "zed"
+      ];
     };
 
     all = base // editor;
-  in {inherit all base editor;};
+  in
+    all // {inherit all base editor raw;};
 in {inherit mkVariant mkEnvVariant mkIdeVariant mkVariants;}

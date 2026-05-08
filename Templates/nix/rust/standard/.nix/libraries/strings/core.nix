@@ -3,6 +3,7 @@
   paths,
   ...
 }: let
+  inherit (lib.attrsets) isAttrs;
   inherit (lib.lists) filter flatten map toList;
   inherit
     (lib.strings)
@@ -115,15 +116,24 @@
   # Returns
   The separator-joined string of all non-empty parts.
   */
-  concatNonEmpty = {
-    separator ? "",
-    parts ? [],
-  }:
-    concatStringsSep separator (
-      filter
-      (part: part != null)
-      (map nonEmptyOrNull parts)
-    );
+  concatNonEmpty = delim: input:
+    if isAttrs delim
+    then
+      concatStringsSep (
+        delim.separator or delim.sep or delim.delimiter or ""
+      ) (
+        filter
+        (part: part != null)
+        (map nonEmptyOrNull (
+          delim.parts or delim.list or delim.strings or []
+        ))
+      )
+    else
+      concatStringsSep delim (
+        filter
+        (part: part != null)
+        (map nonEmptyOrNull input)
+      );
 
   toPathString = {
     root ? paths.flake,
