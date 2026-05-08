@@ -56,7 +56,7 @@ Shell finalization helpers for lib.shells.
       // args
       // shell
       // {
-        env = (args.env or {}) // (shell.env or {});
+        env = env // (args.env or {}) // (shell.env or {});
         #> Combine hooks rather than overwriting them
         #? Filtering out empty strings and joining with a newline.
         shellHook = concatStringsSep "\n" (
@@ -100,13 +100,13 @@ Shell finalization helpers for lib.shells.
               then found
               else throw "mkShells: no shells defined and no default provided."
             else if isString default
-            then
-              processedShells.${
-                default
-              } or (throw ''
+            then let
+              error = throw ''
                 mkShells: default shell '${default}' not found.
                 Available: ${concatStringsSep ", " (attrNames processedShells)}
-              '')
+              '';
+            in
+              processedShells.${default} or error
             else processShell default;
         }
     ) (mkPkgsPerSystem {inherit inputs;});

@@ -5,7 +5,6 @@
   inherit
     (lib.strings)
     concatNonEmpty
-    concatStringsSep
     escapeShellArg
     mkHeader
     mkSection
@@ -14,11 +13,9 @@
     toLines
     ;
   inherit (lib.trivial) readFile;
-  inherit (lib.shells) setMarker;
+  inherit (lib.shells) ai common editor rust web;
 
   esc = escapeShellArg;
-  anchor = setMarker {};
-  project = baseNameOf anchor;
 
   deployTemplate = name: {
     source,
@@ -77,12 +74,6 @@
     style ? mkStyledOutput {inherit pkgs;},
     withEditor ? null,
   }: let
-    inherit (lib.shells) common;
-    inherit (lib.shells) web;
-    inherit (lib.shells) editor;
-    inherit (lib.shells) rust;
-    inherit (lib.shells) ai;
-
     templates =
       optionalAttrs includeBase (common.base.templates or {})
       // optionalAttrs includeFormat (common.format.templates or {})

@@ -22,18 +22,17 @@
     cfg = import ./. {inherit inputs;};
     inherit (cfg) lib pkgs;
     inherit (lib.attrsets) mapAttrs;
-    inherit (lib.shells) mkDevShells;
+    inherit (lib.shells) mkSuites;
     inherit (lib.packages) mkPkgsPerSystem;
 
-    env = mkDevShells {inherit inputs pkgs self;};
+    env = mkEnvironment {inherit inputs pkgs self;};
   in {
     inherit (cfg) lib pkgs paths repl;
     inherit (env) checks devShells;
     inherit (env.fmt) formatter;
 
-    legacyPackages =
-      mapAttrs (system: pkgs:
-        pkgs // {formatter = env.fmt.packages.${system};})
-      (mkPkgsPerSystem {inherit inputs;});
+    legacyPackages = mapAttrs (system: pkgs:
+      pkgs // {formatter = env.fmt.packages.${system};})
+    (mkPkgsPerSystem {inherit inputs;});
   };
 }

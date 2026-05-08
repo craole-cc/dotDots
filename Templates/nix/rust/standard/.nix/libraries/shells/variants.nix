@@ -1,105 +1,74 @@
 {lib, ...}: let
   inherit (lib.attrsets) attrNames listToAttrs mapAttrs;
+  inherit (lib.packages) getSystem mkFmt;
+  inherit (lib.shells) deployConfig mkTools;
   inherit (lib.lists) concatMap;
-  inherit (lib.shells) mkFmt mkSuite;
-  inherit (lib.strings) concatNonEmpty toPascal;
-  inherit (lib.trivial) isNotEmpty;
+  inherit (lib.strings) concatNonEmpty toPascalCase;
 
-  mkVariant = {
+  mkDevShell = {
     pkgs,
     inputs,
     self,
   }: {
     shellArgs ? {},
     deployArgs ? {},
-  }:
-    mkSuite {
-      inherit pkgs;
-      fmt = mkFmt {inherit inputs self;} shellArgs;
-    } {inherit shellArgs deployArgs;};
+    extraPackages ? [],
+    ...
+  }: let
+    tools = mkTools ({inherit pkgs;} // shellArgs);
+    fmt = mkFmt {inherit inputs self;} shellArgs;
+  in {
+    shellHook = "";
+    packages = let
+      formatter = fmt.packages.${getSystem pkgs};
+      application = tools.packages;
+      deployment = [deployConfig ({inherit pkgs;} // deployArgs)];
+      extra = extraPackages;
+    in
+      []
+      ++ formatter
+      ++ application
+      ++ deployment
+      ++ extra;
+  };
 
   mkEnvVariant = {
-    variant,
+    builder,
     args,
   }:
-    variant {shellArgs = args;};
+    builder {shellArgs = args;};
 
   mkIdeVariant = {
-    variant,
-    base,
-    suffixes ? {},
-    names,
-  }: let
-    suffixes' =
-      if isNotEmpty
-      then suffixes
-      else
-        listToAttrs (
-          map (name: {
-            name = name;
-            value = toPascal name;
-          })
-          names
-        );
-  in
-    listToAttrs (
-      concatMap (
-        baseName:
-          map (
-            editorName: {
-              # name = "${baseName}With${suffixes'.${editorName}}";
-              name = concatNonEmpty {parts = [baseName "With" suffixes'.${editorName}];};
-              value = variant {
-                shellArgs = base.${baseName};
-                deployArgs = {withEditor = editorName;};
-              };
-            }
-          )
-          names
-      )
-      (attrNames base)
-    );
+    builder,
+    variants,
+    editors,
+  }:
+    listToAttrs (concatMap (variant:
+      map (editor: {
+        name = concatNonEmpty [
+          variant
+          "With"
+          "${toPascalCase editor}"
+        ];
+        value = builder {
+          shellArgs = variants.${variant};
+          deployArgs = {withEditor = editor;};
+        };
+      })
+      editors) (attrNames variants));
 
   mkVariants = {
     pkgs,
     inputs,
     self,
-    raw ? {
-      minimal = {};
-      default = {includeExtras = true;};
-      stable = {
-        channel = "stable";
-        includeExtras = true;
-      };
-      full = {
-        includeExtras = true;
-        includeWorkflow = true;
-        includeWeb = true;
-        includeDatabase = true;
-        includeRust = true;
-      };
-    },
+    variants,
+    editors,
   }: let
-    variant = mkVariant {inherit pkgs inputs self;};
-
-    base =
-      mapAttrs
-      (_: args: mkEnvVariant {inherit variant args;})
-      raw;
-
-    editor = mkIdeVariant {
-      inherit variant;
-      base = raw;
-      names = [
-        "helix"
-        "neovim"
-        "rust-rover"
-        "vscode"
-        "zed"
-      ];
-    };
-
+    builder = mkDevShell {inherit pkgs inputs self;};
+    base = mapAttrs (_: args: mkEnvVariant {inherit builder args;}) variants;
+    editor = mkIdeVariant {inherit editors builder variants;};
     all = base // editor;
+    raw = variants;
   in
     all // {inherit all base editor raw;};
-in {inherit mkVariant mkEnvVariant mkIdeVariant mkVariants;}
+in {inherit mkEnvVariant mkIdeVariant mkVariants;}

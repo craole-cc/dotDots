@@ -13,6 +13,7 @@ lib.assembly.importLibs {
     "editor"
     "tools.nix"
     "deploy.nix"
-    "config.nix"
+    # "config.nix"
+    "environment.nix"
   ];
 }

@@ -9,10 +9,16 @@
     mkShells
     mkTools
     rust
+    setMarker
     ;
   inherit (lib.lists) concatMap;
   combined = mergeNamespaces {inherit rust ai;};
   inherit (combined) mkSpec;
+
+  project = rec {
+    anchor = setMarker {};
+    name = baseNameOf anchor;
+  };
 
   mkSuite = {
     pkgs,
@@ -135,7 +141,4 @@
     };
     fmt = mkFmt baseArgs.default;
   };
-in {
-  inherit mkSpec mkSuite mkSuites;
-  mkDevShells = mkSuites;
-}
+in {inherit project mkSpec mkSuite mkSuites;}

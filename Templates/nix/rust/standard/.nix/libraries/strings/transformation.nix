@@ -1,39 +1,4 @@
 {lib, ...}: let
-  __exports = {
-    internal = {
-      inherit
-        capitalize
-        indent
-        normalize
-        replaceAll
-        toCamel
-        toLower'
-        toPascal
-        toScreamingSnake
-        toSnake
-        toTitle
-        toUpper'
-        trim
-        trimEnd
-        trimStart
-        ;
-    };
-    external = {
-      capitalizeString = capitalize;
-      toCamelCase = toCamel;
-      toLowerCase = toLower';
-      toPascalCase = toPascal;
-      toScreamingSnakeCase = toScreamingSnake;
-      toSnakeCase = toSnake;
-      toTitleCase = toTitle;
-      toUpperCase = toUpper';
-      trimString = trim;
-      trimStringEnd = trimEnd;
-      trimStringStart = trimStart;
-      replaceAllStrings = replaceAll;
-      normalizeString = normalize;
-    };
-  };
   inherit
     (lib.lists)
     any
@@ -73,31 +38,36 @@
     else fn input;
 
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
-  _splitWords = s: splitString "-" (replaceStrings [" " "_"] ["-" "-"] (_normalizeSymbols (toLower s)));
+  splitWords = s:
+    splitString "-"
+    (replaceStrings [" " "_"] ["-" "-"]
+      (normalizeSymbols (toLower s)));
 
-  _symbolAliases = {
-    "c++" = "cpp";
-    "c#" = "csharp";
-    ".net" = "dotnet";
-    "objc" = "objectivec";
-  };
-
-  _normalizeSymbols = s: _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
+  normalizeSymbols = symbols: let
+    aliases = {
+      "c++" = "cpp";
+      "c#" = "csharp";
+      ".net" = "dotnet";
+      "objc" = "objectivec";
+    };
+  in
+    aliases.${symbols} or
+      (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] symbols);
   /**
   Convert a string or list of strings to lower case.
 
   # Type
   ```nix
-  toLower' :: string | [string] -> string | [string]
+  toLowerCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toLower' "FOO Bar"      # => "foo bar"
-  toLower' ["FOO" "BAR"] # => ["foo" "bar"]
+  toLowerCase "FOO Bar"      # => "foo bar"
+  toLowerCase ["FOO" "BAR"] # => ["foo" "bar"]
   ```
   */
-  toLower' = input:
+  toLowerCase = input:
     if isList input && any isList input
     then throw msgs.nested
     else _applyStr toLower input;
@@ -107,16 +77,16 @@
 
   # Type
   ```nix
-  toUpper' :: string | [string] -> string | [string]
+  toUpperCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toUpper' "foo bar"      # => "FOO BAR"
-  toUpper' ["foo" "bar"] # => ["FOO" "BAR"]
+  toUpperCase "foo bar"      # => "FOO BAR"
+  toUpperCase ["foo" "bar"] # => ["FOO" "BAR"]
   ```
   */
-  toUpper' = input:
+  toUpperCase = input:
     if isList input && any isList input
     then throw msgs.nested
     else _applyStr toUpper input;
@@ -128,17 +98,17 @@
 
   # Type
   ```nix
-  trimStart :: string | null -> string | [string] -> string | [string]
+  trimStringStart :: string | null -> string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  trimStart null "  foo bar"              # => "foo bar"
-  trimStart "home:" "home:home:Pictures" # => "Pictures"
-  trimStart null ["  a" "  b"]           # => ["a" "b"]
+  trimStringStart null "  foo bar"              # => "foo bar"
+  trimStringStart "home:" "home:home:Pictures" # => "Pictures"
+  trimStringStart null ["  a" "  b"]           # => ["a" "b"]
   ```
   */
-  trimStart = chars: let
+  trimStringStart = chars: let
     c =
       if chars == null
       then " "
@@ -162,17 +132,17 @@
 
   # Type
   ```nix
-  trimEnd :: string | null -> string | [string] -> string | [string]
+  trimStringEnd :: string | null -> string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  trimEnd null "foo bar  "    # => "foo bar"
-  trimEnd "!" "foo!!!"        # => "foo"
-  trimEnd null ["a  " "b "]  # => ["a" "b"]
+  trimStringEnd null "foo bar  "    # => "foo bar"
+  trimStringEnd "!" "foo!!!"        # => "foo"
+  trimStringEnd null ["a  " "b "]  # => ["a" "b"]
   ```
   */
-  trimEnd = chars: let
+  trimStringEnd = chars: let
     c =
       if chars == null
       then " "
@@ -196,17 +166,17 @@
 
   # Type
   ```nix
-  trim :: string | null -> string | [string] -> string | [string]
+  trimString :: string | null -> string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  trim null "  foo bar  "       # => "foo bar"
-  trim "/" "/foo/bar/"          # => "foo/bar"
-  trim null ["  a  " "  b  "]  # => ["a" "b"]
+  trimString null "  foo bar  "       # => "foo bar"
+  trimString "/" "/foo/bar/"          # => "foo/bar"
+  trimString null ["  a  " "  b  "]  # => ["a" "b"]
   ```
   */
-  trim = chars: input: trimStart chars (trimEnd chars input);
+  trimString = chars: input: trimStringStart chars (trimStringEnd chars input);
 
   /**
   Replace all occurrences of substrings in a string or list of strings.
@@ -215,17 +185,17 @@
 
   # Type
   ```nix
-  replaceAll :: string | [string] -> string | [string] -> string | [string] -> string | [string]
+  replaceAllStrings :: string | [string] -> string | [string] -> string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  replaceAll "foo" "bar" "foo foo"               # => "bar bar"
-  replaceAll [" " "_"] ["-" "-"] "zen twilight"  # => "zen-twilight"
-  replaceAll "a" "b" ["a" "cat"]                 # => ["b" "cbt"]
+  replaceAllStrings "foo" "bar" "foo foo"               # => "bar bar"
+  replaceAllStrings [" " "_"] ["-" "-"] "zen twilight"  # => "zen-twilight"
+  replaceAllStrings "a" "b" ["a" "cat"]                 # => ["b" "cbt"]
   ```
   */
-  replaceAll = search: replace: let
+  replaceAllStrings = search: replace: let
     ss = toList search;
     rs = toList replace;
     msg = "nested lists are not supported in input";
@@ -246,24 +216,24 @@
 
   # Type
   ```nix
-  normalize :: string | [string] | null -> string | [string] | null
+  normalizeString :: string | [string] | null -> string | [string] | null
   ```
 
   # Examples
   ```nix
-  normalize "Zen Twilight"               # => "zen-twilight"
-  normalize "zen_twilight"               # => "zen-twilight"
-  normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
-  normalize null                         # => null
-  normalize []                           # => null
+  normalizeString "Zen Twilight"               # => "zen-twilight"
+  normalizeString "zen_twilight"               # => "zen-twilight"
+  normalizeString ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
+  normalizeString null                         # => null
+  normalizeString []                           # => null
   ```
   */
-  normalize = input:
+  normalizeString = input:
     if isEmpty input
     then null
     else if isList input && any isList input
     then throw msgs.nested
-    else _applyStr (s: replaceAll [" " "_"] ["-" "-"] (toLower s)) input;
+    else _applyStr (s: replaceAllStrings [" " "_"] ["-" "-"] (toLower s)) input;
 
   indent = n: concatStringsSep "" (genList (_: " ") n);
 
@@ -302,19 +272,19 @@
 
   # Type
   ```nix
-  toCamel :: string | [string] -> string | [string]
+  toCamelCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toCamel "foo bar"           # => "fooBar"
-  toCamel "foo_bar_baz"       # => "fooBarBaz"
-  toCamel ["foo bar" "a_b"]   # => ["fooBar" "aB"]
+  toCamelCase "foo bar"           # => "fooBar"
+  toCamelCase "foo_bar_baz"       # => "fooBarBaz"
+  toCamelCase ["foo bar" "a_b"]   # => ["fooBar" "aB"]
   ```
   */
-  toCamel = input: let
+  toCamelCase = input: let
     go = s: let
-      words = _splitWords s;
+      words = splitWords s;
     in
       head words + concatStringsSep "" (map capitalize (tail words));
   in
@@ -329,18 +299,18 @@
 
   # Type
   ```nix
-  toPascal :: string | [string] -> string | [string]
+  toPascalCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toPascal "foo bar"           # => "FooBar"
-  toPascal "foo_bar_baz"       # => "FooBarBaz"
-  toPascal ["foo bar" "a_b"]   # => ["FooBar" "AB"]
+  toPascalCase "foo bar"           # => "FooBar"
+  toPascalCase "foo_bar_baz"       # => "FooBarBaz"
+  toPascalCase ["foo bar" "a_b"]   # => ["FooBar" "AB"]
   ```
   */
-  toPascal = input: let
-    go = s: concatStringsSep "" (map capitalize (_splitWords s));
+  toPascalCase = input: let
+    go = s: concatStringsSep "" (map capitalize (splitWords s));
   in
     if isList input && any isList input
     then throw msgs.nested
@@ -353,18 +323,18 @@
 
   # Type
   ```nix
-  toSnake :: string | [string] -> string | [string]
+  toSnakeCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toSnake "Foo Bar"           # => "foo_bar"
-  toSnake "fooBarBaz"         # => "foobarbaz"  (no camelCase splitting)
-  toSnake ["Foo Bar" "A-B"]   # => ["foo_bar" "a_b"]
+  toSnakeCase "Foo Bar"           # => "foo_bar"
+  toSnakeCase "fooBarBaz"         # => "foobarbaz"  (no camelCase splitting)
+  toSnakeCase ["Foo Bar" "A-B"]   # => ["foo_bar" "a_b"]
   ```
   */
-  toSnake = input: let
-    go = s: concatStringsSep "_" (_splitWords s);
+  toSnakeCase = input: let
+    go = s: concatStringsSep "_" (splitWords s);
   in
     if isList input && any isList input
     then throw msgs.nested
@@ -377,18 +347,18 @@
 
   # Type
   ```nix
-  toScreamingSnake :: string | [string] -> string | [string]
+  toScreamingSnakeCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toScreamingSnake "foo bar"        # => "FOO_BAR"
-  toScreamingSnake "fooBarBaz"      # => "FOOBARBAZ"
-  toScreamingSnake ["foo" "bar"]    # => ["FOO" "BAR"]
+  toScreamingSnakeCase "foo bar"        # => "FOO_BAR"
+  toScreamingSnakeCase "fooBarBaz"      # => "FOOBARBAZ"
+  toScreamingSnakeCase ["foo" "bar"]    # => ["FOO" "BAR"]
   ```
   */
-  toScreamingSnake = input: let
-    go = s: toUpper (concatStringsSep "_" (_splitWords s));
+  toScreamingSnakeCase = input: let
+    go = s: toUpper (concatStringsSep "_" (splitWords s));
   in
     if isList input && any isList input
     then throw msgs.nested
@@ -402,22 +372,42 @@
 
   # Type
   ```nix
-  toTitle :: string | [string] -> string | [string]
+  toTitleCase :: string | [string] -> string | [string]
   ```
 
   # Examples
   ```nix
-  toTitle "foo bar"           # => "Foo Bar"
-  toTitle "foo_bar_baz"       # => "Foo Bar Baz"
-  toTitle "the-quick-fox"     # => "The Quick Fox"
-  toTitle ["foo bar" "a_b"]   # => ["Foo Bar" "A B"]
+  toTitleCase "foo bar"           # => "Foo Bar"
+  toTitleCase "foo_bar_baz"       # => "Foo Bar Baz"
+  toTitleCase "the-quick-fox"     # => "The Quick Fox"
+  toTitleCase ["foo bar" "a_b"]   # => ["Foo Bar" "A B"]
   ```
   */
-  toTitle = input: let
-    go = s: concatStringsSep " " (map capitalize (_splitWords s));
+  toTitleCase = input: let
+    go = s: concatStringsSep " " (map capitalize (splitWords s));
   in
     if isList input && any isList input
     then throw msgs.nested
     else _applyStr go input;
-in
-  __exports.external
+in {
+  inherit
+    capitalize
+    indent
+    normalizeString
+    normalizeSymbols
+    replaceAllStrings
+    splitWords
+    toCamelCase
+    toLowerCase
+    toPascalCase
+    toScreamingSnakeCase
+    toSnakeCase
+    toTitleCase
+    toUpperCase
+    trimString
+    trimStringEnd
+    trimStringStart
+    ;
+  capitalizeString = capitalize;
+  indentString = indent;
+}
