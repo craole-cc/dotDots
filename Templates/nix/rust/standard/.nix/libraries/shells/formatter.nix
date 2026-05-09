@@ -93,20 +93,26 @@
   }: args:
     mkTreefmt {
       inherit inputs self;
-      includeRust = args.includeRust     or false;
-      includeWeb = args.includeWeb      or false;
+      includeRust = args.includeRust or false;
+      includeWeb = args.includeWeb or false;
       includeDatabase = args.includeDatabase or false;
     };
 
   mkChecks = {
-    bases,
-    mkFmt,
-  }:
-    listToAttrs (
-      map (name: {
-        inherit name;
-        value = (mkFmt bases.${name}).checks;
-      })
-      (attrNames bases)
-    );
+    inputs,
+    variants,
+  }: let
+    inherit (lib.attrsets) nameValuePair mapAttrs mapAttrs';
+    inherit (lib.packages) mkPkgsPerSystem;
+  in
+    mapAttrs (
+      system: _:
+        mapAttrs' (
+          name: variant:
+            nameValuePair
+            "formatting-${name}"
+            variant.fmt.checks.${system}.formatting
+        )
+        variants
+    ) (mkPkgsPerSystem {inherit inputs;});
 in {inherit mkFmt mkTreefmt mkTreefmtConfig mkChecks;}

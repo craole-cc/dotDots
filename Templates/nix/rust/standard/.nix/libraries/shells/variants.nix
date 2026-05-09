@@ -1,7 +1,7 @@
-{lib, ...}: let
-  inherit (lib.attrsets) attrNames listToAttrs mapAttrs;
-  inherit (lib.packages) getSystem mkFmt;
-  inherit (lib.shells) deployConfig mkTools;
+{lib}: let
+  inherit (lib.attrsets) attrNames attrValues listToAttrs mapAttrs;
+  inherit (lib.packages) getSystem ;
+  inherit (lib.shells) deployConfig mkTools mkFmt mkChecks;
   inherit (lib.lists) concatMap;
   inherit (lib.strings) concatNonEmpty toPascalCase;
 
@@ -18,18 +18,13 @@
     tools = mkTools ({inherit pkgs;} // shellArgs);
     fmt = mkFmt {inherit inputs self;} shellArgs;
   in {
+    inherit fmt;
     shellHook = "";
-    packages = let
-      formatter = fmt.packages.${getSystem pkgs};
-      application = tools.packages;
-      deployment = [deployConfig ({inherit pkgs;} // deployArgs)];
-      extra = extraPackages;
-    in
-      []
-      ++ formatter
-      ++ application
-      ++ deployment
-      ++ extra;
+    packages =
+      tools.packages
+      ++ (attrValues fmt.packages.${getSystem pkgs})
+      ++ [deployConfig ({inherit pkgs;} // deployArgs)]
+      ++ extraPackages;
   };
 
   mkEnvVariant = {
@@ -38,24 +33,36 @@
   }:
     builder {shellArgs = args;};
 
+  mkVariant = {
+    pkgs,
+    inputs,
+    self,
+    args,
+  }: let
+    fmt = mkFmt {inherit inputs self;} args;
+    shell = mkDevShell {inherit pkgs inputs self;} {shellArgs = args;};
+  in {
+    inherit shell fmt;
+    checks = fmt.checks;
+  };
+
   mkIdeVariant = {
-    builder,
+    pkgs,
+    inputs,
+    self,
     variants,
     editors,
   }:
     listToAttrs (concatMap (variant:
       map (editor: {
-        name = concatNonEmpty [
-          variant
-          "With"
-          "${toPascalCase editor}"
-        ];
-        value = builder {
+        name = concatNonEmpty "" [variant "With" (toPascalCase editor)];
+        value = mkDevShell {inherit pkgs inputs self;} {
           shellArgs = variants.${variant};
           deployArgs = {withEditor = editor;};
         };
       })
-      editors) (attrNames variants));
+      editors)
+    (attrNames variants));
 
   mkVariants = {
     pkgs,
@@ -64,11 +71,24 @@
     variants,
     editors,
   }: let
-    builder = mkDevShell {inherit pkgs inputs self;};
-    base = mapAttrs (_: args: mkEnvVariant {inherit builder args;}) variants;
-    editor = mkIdeVariant {inherit editors builder variants;};
-    all = base // editor;
+    base = mapAttrs (_: args: mkVariant {inherit pkgs inputs self args;}) variants;
+    editor = mkIdeVariant {inherit pkgs inputs self variants editors;};
+  in {
+    inherit base editor;
     raw = variants;
-  in
-    all // {inherit all base editor raw;};
-in {inherit mkEnvVariant mkIdeVariant mkVariants;}
+    shells = mapAttrs (_: v: v.shell) base // editor;
+    fmts = mapAttrs (_: v: v.fmt) base;
+    checks = mkChecks {
+      inherit inputs;
+      variants = base;
+    };
+  };
+in {
+  inherit
+    mkDevShell
+    mkEnvVariant
+    mkIdeVariant
+    mkVariant
+    mkVariants
+    ;
+}

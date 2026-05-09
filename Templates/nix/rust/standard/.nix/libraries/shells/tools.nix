@@ -3,6 +3,7 @@
   inherit (lib.lists) concatMap flatten;
   inherit (lib.packages) mkPkgs;
   inherit (lib.shells) common editor;
+  anchor = lib.shells.setMarker {};
 in {
   mkTools = {
     pkgs ? mkPkgs {},
@@ -10,22 +11,16 @@ in {
     includeWeb ? false,
     withEditor ? null,
   }: let
-    anchor = lib.shells.setMarker {};
-    project = baseNameOf anchor;
-
     groups =
-      (common.mkGroups {
-        inherit pkgs includeExtras includeWeb;
-      })
+      (common.mkGroups {inherit pkgs includeExtras includeWeb;})
       // (editor.mkGroups {
-        inherit pkgs project withEditor;
+        inherit pkgs withEditor;
+        name = baseNameOf anchor;
       });
   in {
-    # inherit style;
-    packages =
-      flatten (concatMap (g:
-        attrValues (g.packages or {})
-        ++ attrValues (g.scripts or {}))
-      (attrValues groups));
+    packages = flatten (concatMap (g:
+      attrValues (g.packages or {})
+      ++ attrValues (g.scripts or {}))
+    (attrValues groups));
   };
 }

@@ -1,7 +1,5 @@
 {lib}: let
-  inherit (lib.packages) mkFmt mkChecks;
   inherit (lib.shells) ai mergeNamespaces mkShells mkVariants rust;
-  # inherit (mergeNamespaces {inherit rust ai;}) mkDevShell;
 
   mkEnvironment = {
     inputs,
@@ -36,17 +34,15 @@
         "zed"
       ];
     };
+    # namespaced = (mergeNamespaces {inherit rust ai;}).mkDevShell {inherit pkgs;};
   in {
     devShells = mkShells {
       inherit inputs;
-      default = variants.minimal;
-      # shells = mkDevShell {inherit pkgs;} // variants;
-      shells = variants;
+      default = variants.shells.minimal;
+      # shells = namespaced // variants.shells;
+      inherit (variants) shells;
     };
-    checks = mkChecks {
-      bases = variants.raw;
-      mkFmt = mkFmt {inherit inputs self;};
-    };
-    fmt = mkFmt variants.raw.default;
+    checks = variants.checks;
+    fmt = variants.fmts.default;
   };
 in {inherit mkEnvironment;}
