@@ -1,0 +1,32 @@
+[cargo]
+buildScripts = { enable = true }
+allFeatures = true
+
+[check]
+command = "clippy"
+
+[inlay_hints]
+binding_mode_hints = { enable = true }
+closure_return_type_hints = { enable = "always" }
+lifetime_elision_hints = { enable = "always" }
+parameter_hints = { enable = "argument_names" }
+reborrow_hints = { enable = "always" }
+type_hints = { enable = true }
+
+[imports]
+granularity.group = "crate"
+prefix = "crate"
+
+[assist.importMergeBehavior]
+group = "crate"
+
+[completion]
+autoself = true
+callable.snippets = "fill_arguments"
+postfix.enable = true
+
+[proc_macro]
+enable = true
+
+[unlinkedFiles]
+showNotification = false

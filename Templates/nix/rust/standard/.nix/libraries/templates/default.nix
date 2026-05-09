@@ -11,10 +11,10 @@ lib.assembly.importLibs {
   priority = [
     "deploy.nix"
 
-    "base.nix"
-    "extra.nix"
-    "web.nix"
-    "ai.nix"
+    "base"
+    "editor"
+    "rust"
+    "web"
 
     "config.nix"
   ];
