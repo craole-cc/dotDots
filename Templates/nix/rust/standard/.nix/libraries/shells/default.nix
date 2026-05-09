@@ -5,6 +5,7 @@ lib.assembly.importLibs {
   priority = [
     "scripts.nix"
     "build.nix"
+    "formatter.nix"
     "meta.nix"
     "common"
     "web"
