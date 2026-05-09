@@ -9,8 +9,8 @@ in {
     pkgs ? mkPkgs {},
     channel ? "nightly",
     includeDatabase ? false,
-    includeRust ? false,
     includeExtras ? false,
+    includeRust ? false,
     includeWeb ? false,
     withEditor ? null,
   }: let
