@@ -2,7 +2,7 @@
   inherit (lib.attrsets) attrNames attrValues listToAttrs mapAttrs;
   inherit (lib.packages) getSystem;
   inherit (lib.shells) mkTools mkFmt mkChecks;
-  inherit (lib.templates) deployConfig;
+  # inherit (lib.templates) deployConfig;
   inherit (lib.lists) concatMap;
   inherit (lib.strings) concatNonEmpty toPascalCase;
 
@@ -27,7 +27,7 @@
         []
         ++ (attrValues fmt.packages.${getSystem pkgs})
         ++ tools.packages
-        ++ [deployConfig ({inherit pkgs;} // deployArgs)]
+        # ++ [deployConfig ({inherit pkgs;} // deployArgs)]
         ++ extraPackages;
     };
   };
@@ -76,11 +76,4 @@
       variants = base;
     };
   };
-in {
-  inherit
-    mkEnvVariant
-    mkIdeVariant
-    mkVariant
-    mkVariants
-    ;
-}
+in {inherit mkEnvVariant mkIdeVariant mkVariant mkVariants;}

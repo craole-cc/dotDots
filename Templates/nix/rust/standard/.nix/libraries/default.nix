@@ -50,7 +50,7 @@ in
       ./attrsets
       ./strings
       ./packages
-      ./templates
+      # ./templates
       ./shells
     ];
     ignore = ["tests" "assembly.nix" "format"];

@@ -1,33 +1,33 @@
 {lib}: let
-  inherit (lib.shells) ai mergeNamespaces mkShells mkVariants rust;
+  inherit (lib.shells) mkShells mkVariants;
 
-  deployConfig = {
-    pkgs ? mkPkgs {},
-    includeAI ? true,
-    includeBase ? true,
-    includeFormat ? true,
-    includeRust ? true,
-    includeWeb ? false,
-    style ? mkStyledOutput {inherit pkgs;},
-    withEditor ? null,
-  }: let
-    templates =
-      optionalAttrs includeBase (common.base.templates or {})
-      // optionalAttrs includeFormat (common.format.templates or {})
-      // optionalAttrs includeAI (ai.templates or {})
-      // optionalAttrs includeRust (rust.entries.rust or {})
-      // optionalAttrs includeWeb (web.templates or {})
-      // (
-        optionalAttrs
-        (withEditor != null && withEditor != "none")
-        (editor.entries.common // editor.entries."${withEditor}")
-      );
-  in
-    mkDeployConfig {
-      inherit pkgs style templates;
-      title = "Configuration Deployment";
-      description = "Syncing project configuration files into your workspace";
-    };
+  # deployConfig = {
+  #   pkgs ? mkPkgs {},
+  #   includeAI ? true,
+  #   includeBase ? true,
+  #   includeFormat ? true,
+  #   includeRust ? true,
+  #   includeWeb ? false,
+  #   style ? mkStyledOutput {inherit pkgs;},
+  #   withEditor ? null,
+  # }: let
+  #   templates =
+  #     optionalAttrs includeBase (common.base.templates or {})
+  #     // optionalAttrs includeFormat (common.format.templates or {})
+  #     // optionalAttrs includeAI (ai.templates or {})
+  #     // optionalAttrs includeRust (rust.entries.rust or {})
+  #     // optionalAttrs includeWeb (web.templates or {})
+  #     // (
+  #       optionalAttrs
+  #       (withEditor != null && withEditor != "none")
+  #       (editor.entries.common // editor.entries."${withEditor}")
+  #     );
+  # in
+  #   mkDeployConfig {
+  #     inherit pkgs style templates;
+  #     title = "Configuration Deployment";
+  #     description = "Syncing project configuration files into your workspace";
+  #   };
 
   mkEnvironment = {
     inputs,
@@ -45,7 +45,6 @@
         };
         full = {
           includeExtras = true;
-          includeWorkflow = true;
           includeWeb = true;
           includeDatabase = true;
           includeRust = true;

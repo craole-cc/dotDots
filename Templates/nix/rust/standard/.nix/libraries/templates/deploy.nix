@@ -1,5 +1,5 @@
 {lib, ...}: let
-  inherit (lib.attrsets) attrNames optionalAttrs;
+  inherit (lib.attrsets) attrNames;
   inherit (lib.lists) head toList;
   inherit (lib.packages) mkPkgs;
   inherit
@@ -13,11 +13,10 @@
     toLines
     ;
   inherit (lib.trivial) readFile;
-  # inherit (lib.shells) ai common editor rust web;
 
   esc = escapeShellArg;
 
-  deployTemplate = name: {
+  mkDeployTemplate = name: {
     source,
     target,
   }: let
@@ -54,7 +53,7 @@
         content = attrNames templates;
       }}
       status=0
-      ${toLines (map (n: deployTemplate n templates.${n}) (attrNames templates))}
+      ${toLines (map (n: mkDeployTemplate n templates.${n}) (attrNames templates))}
       return "''${status}"
     '';
 
@@ -63,34 +62,4 @@
       (readFile ./deploy.sh);
   in
     pkgs.writeShellScriptBin "deploy-config" source;
-
-  # deployConfig = {
-  #   pkgs ? mkPkgs {},
-  #   includeAI ? true,
-  #   includeBase ? true,
-  #   includeFormat ? true,
-  #   includeRust ? true,
-  #   includeWeb ? false,
-  #   style ? mkStyledOutput {inherit pkgs;},
-  #   withEditor ? null,
-  # }: let
-  #   templates =
-  #     optionalAttrs includeBase (common.base.templates or {})
-  #     // optionalAttrs includeFormat (common.format.templates or {})
-  #     // optionalAttrs includeAI (ai.templates or {})
-  #     // optionalAttrs includeRust (rust.entries.rust or {})
-  #     // optionalAttrs includeWeb (web.templates or {})
-  #     // (
-  #       optionalAttrs
-  #       (withEditor != null && withEditor != "none")
-  #       (editor.entries.common // editor.entries."${withEditor}")
-  #     );
-  # in
-  #   mkDeployConfig {
-  #     inherit pkgs style templates;
-  #     title = "Configuration Deployment";
-  #     description = "Syncing project configuration files into your workspace";
-  #   };
-in {
-  inherit mkDeployConfig deployConfig;
-}
+in {inherit mkDeployConfig;}

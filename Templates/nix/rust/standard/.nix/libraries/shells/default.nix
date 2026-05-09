@@ -7,15 +7,18 @@ lib.assembly.importLibs {
     "build.nix"
     "formatter.nix"
     "meta.nix"
-    "common"
-    "web"
-    "ai"
-    "rust"
-    "editor"
     "tools.nix"
     "deploy.nix"
     # "config.nix"
     "variants.nix"
     "environment.nix"
+  ];
+  ignore = [
+    "common"
+    "web"
+    "ai"
+    "rust"
+    "editor"
+    "config.nix"
   ];
 }
