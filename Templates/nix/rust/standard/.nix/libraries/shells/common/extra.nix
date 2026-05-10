@@ -2,8 +2,6 @@
   inherit (lib.packages) mkBins mkPkg;
 in {
   mkExtra = pkgs: let
-    templates = {};
-
     packages = with pkgs; {
       inherit
         fastfetch
@@ -84,5 +82,5 @@ in {
         command = "${gitui}";
       };
     };
-  in {inherit templates scripts packages;};
+  in {inherit  scripts packages;};
 }

@@ -14,7 +14,7 @@
     libraries = mkCfg "libraries";
     # modules = mkCfg "modules";
     scripts.default = flake + "/.bin";
-    templates.default = mkCfg "templates";
+    # templates.default = mkCfg "templates";
   };
 
   lib = import paths.libraries {

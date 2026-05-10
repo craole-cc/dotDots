@@ -1,30 +1,8 @@
 {lib, ...}: let
   inherit (lib.packages) mkBins mkBin;
-  inherit (lib.shells) setSource;
+  templates = lib.templates.base;
 in {
   mkWeb = pkgs: let
-    templates = {
-      deno = {
-        source = setSource ["web" "deno.jsonc"];
-        target = "deno.jsonc";
-      };
-      prettier = {
-        source = setSource ["web" "prettierrc"];
-        target = [".prettierrc" "prettier.config.json"];
-      };
-      trunk = {
-        source = setSource ["web" "trunk.toml"];
-        target = [
-          ".trunk.toml"
-          "Trunk.toml"
-          ".trunk.yaml"
-          "Trunk.yaml"
-          ".trunk.json"
-          "Trunk.json"
-        ];
-      };
-    };
-
     packages = with pkgs; {
       inherit deno pnpm prettierd;
     };

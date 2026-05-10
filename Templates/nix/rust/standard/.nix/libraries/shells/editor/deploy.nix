@@ -3,6 +3,7 @@
   inherit (lib.packages) mkPkgs;
   inherit (lib.shells) mkDeployConfig setSource;
   inherit (lib.strings) mkStyledOutput;
+  templates = lib.templates.base;
 
   mkSource = group: name: setSource ["editor" group name];
   mkEntry = group: name: {
