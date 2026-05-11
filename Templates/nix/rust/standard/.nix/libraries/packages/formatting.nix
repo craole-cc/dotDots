@@ -64,7 +64,8 @@
     };
   in {
     formatter = mapAttrs (_: v: v.wrapper) treefmt;
-    checks = mapAttrs (_: v: v.check self) treefmt;
+    # checks = mapAttrs (_: v: v.check self) treefmt;
+    checks = mapAttrs (_: v: {formatting = v.check self;}) treefmt;
     packages = mapAttrs (_: v: v.programs) treefmt;
   };
 in {

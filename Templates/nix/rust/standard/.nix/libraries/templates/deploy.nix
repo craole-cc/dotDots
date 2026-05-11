@@ -14,15 +14,14 @@
   }: let
     inherit (variant) common editor extra database rust web;
 
-    templates = (
+    templates =
       {}
       // optionalAttrs common.enable (mkCommon common)
       // optionalAttrs database.enable (mkDatabase database)
       // optionalAttrs editor.enable (mkEditor editor)
       // optionalAttrs extra.enable (mkExtra extra)
       // optionalAttrs rust.enable (mkRust rust)
-      // optionalAttrs web.enable (mkWeb web)
-    );
+      // optionalAttrs web.enable (mkWeb web);
   in
     pkgs.writeShellScriptBin name (
       replaceStrings

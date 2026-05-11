@@ -22,6 +22,7 @@ in {
           gum
           jq
           nixd
+          ripgrep
           ripgrep-all
           sd
           trashy
@@ -97,10 +98,10 @@ in {
           name = "format";
           command = "${commit}; nix fmt";
         };
-        rg = mkPkg {
+        rgh = mkPkg {
           inherit pkgs;
-          name = "rg";
-          command = "${ripgrep-all} \"$@\"";
+          name = "rg.";
+          command = "${ripgrep} --hidded \"$@\"";
         };
         ff = mkPkg {
           inherit pkgs;
