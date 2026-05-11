@@ -100,8 +100,8 @@ in {
         };
         rgh = mkPkg {
           inherit pkgs;
-          name = "rg.";
-          command = "${ripgrep} --hidded \"$@\"";
+          name = "rgh";
+          command = "${ripgrep} --hidden \"$@\"";
         };
         ff = mkPkg {
           inherit pkgs;
