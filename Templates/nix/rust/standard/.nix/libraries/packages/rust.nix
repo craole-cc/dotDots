@@ -120,23 +120,22 @@ Toolchain file resolution order:
   */
   mkRust = {
     pkgs,
-    # variant ? {},
-    variant ? {
-      rust = {
-        # channel = "nightly";
-        channel = "stable";
-        extraExtensions = [];
-        extraTargets = [];
-        includeAnalyzer = false;
-        includeDocs = false;
-        includeExtra = false;
-        includeWeb = false;
-        minimal = false;
-      };
-      extra.enable = false;
-      web.enable = false;
-      editor.enable = false;
-    },
+    variant ? {},
+    # variant ? {
+    #   rust = {
+    #     channel = "nightly";
+    #     extraExtensions = [];
+    #     extraTargets = [];
+    #     includeAnalyzer = false;
+    #     includeDocs = false;
+    #     includeExtra = false;
+    #     includeWeb = false;
+    #     minimal = false;
+    #   };
+    #   extra.enable = false;
+    #   web.enable = false;
+    #   editor.enable = false;
+    # },
     channel ? null,
     minimal ? null,
     extraTargets ? [],
@@ -154,8 +153,8 @@ Toolchain file resolution order:
       includeWeb = web.enable || rust.includeWeb;
       includeDocs = web.enable || rust.includeDocs;
       includeExtra = extra.enable || rust.includeExtra;
-      nightly = cfg.channel == "nightly";
-      stable = cfg.channel == "stable";
+      # nightly = cfg.channel == "nightly";
+      # stable = cfg.channel == "stable";
     };
 
     # Toolchain file detection
@@ -249,7 +248,7 @@ Toolchain file resolution order:
     packages = with pkgs;
       {inherit gcc;}
       // optionalAttrs stdenv.isDarwin {inherit libiconv;}
-      // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
+      // optionalAttrs ((cfg.channel == "nightly") && (!cfg.minimal)) {inherit cargo-careful;}
       // optionalAttrs cfg.includeExtra {
         inherit
           #~@ Watch
@@ -295,14 +294,20 @@ Toolchain file resolution order:
       inherit (package) paths version system;
       inherit (toolchain) channel;
       env = {
+        DEVSHELL_VARIANT_NAME = variant.__variantName or "unknown";
+        DEVSHELL_VARIANT = builtins.toJSON variant;
         RUST_SRC_PATH = "${package}/lib/rustlib/src/rust/library";
-        RUSTFLAGS = optionalString cfg.nightly "-Z macro-backtrace";
+        RUSTFLAGS =
+          optionalString
+          (cfg.channel == "nightly")
+          "-Z macro-backtrace";
         RUST_BACKTRACE =
-          if cfg.stable
+          if cfg.channel == "stable"
           then "0"
           else "full";
         RUST_LOG = "info";
         CARGO_INCREMENTAL = "1";
+        # RUST_CHANNEL = cfg.channel;
         RUST_CHANNEL = toolchain.channel;
         RUST_TOOLCHAIN_FILE =
           if toolchain.file != null

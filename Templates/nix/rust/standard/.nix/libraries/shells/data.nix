@@ -70,9 +70,11 @@
   normalizeFeature = defaults: value:
     if isDisabled value
     then defaults // {enable = false;}
+    else if isAttrs value
+    then defaults // value // {enable = isEnabled (value.enable or true);}
     else if isEnabled value
     then defaults // {enable = true;}
-    else defaults // value // {enable = isEnabled (value.enable or true);};
+    else defaults;
 
   normalizeAi = value: let
     defaults = {
@@ -118,6 +120,8 @@
     );
 
   normalizeVariant = raw: {
+    __variantName = raw.__variantName or null;
+
     common = normalizeFeature {
       enable = true;
     } (raw.common or true);
@@ -132,7 +136,7 @@
         includeRustScript = false;
       };
     in
-      if (raw.extra or null != null)
+      if isEnabled (raw.extra or null)
       then mapAttrs (_: _: true) defaults
       else normalizeFeature defaults (raw.extra or null);
 

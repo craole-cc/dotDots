@@ -34,101 +34,105 @@
 
   # mkVariant = config: tier: recursiveUpdate tier config;
 
-  mkVariants = config: let
-    mkVariant = tier: recursiveUpdate tier config;
-  in {
-    minimal = mkVariant {
-      common = true;
-      ai = "minimal";
-    };
+  mkVariants = config:
+    mapAttrs
+    (
+      name: tier:
+        recursiveUpdate config (tier // {__variantName = name;})
+    )
+    {
+      minimal = {
+        common = true;
+        ai = "minimal";
+      };
 
-    default = mkVariant {
-      common = true;
-      extra = true;
-      rust = true;
-      ai = "default";
-    };
+      default = {
+        common = true;
+        extra = true;
+        rust = true;
+        ai = "default";
+      };
 
-    full = mkVariant {
-      rust = true;
-      web = true;
-      database = true;
-      ai = "full";
-    };
+      full = {
+        rust = true;
+        web = true;
+        database = true;
+        ai = "full";
+      };
 
-    rust = mkVariant {
-      rust = true;
-    };
-
-    rust-web = mkVariant {
-      rust = true;
-      web = true;
-    };
-
-    rust-database = mkVariant {
-      rust = true;
-      database = true;
-    };
-
-    rust-web-database = mkVariant {
-      rust = true;
-      web = true;
-      database = true;
-    };
-
-    minimalRustStable = mkVariant {
-      common = true;
-      ai = "minimal";
       rust = {
-        enable = true;
-        minimal = true;
-        channel = "stable";
+        rust = true;
+      };
+
+      rust-web = {
+        rust = true;
+        web = true;
+      };
+
+      rust-database = {
+        rust = true;
+        database = true;
+      };
+
+      rust-web-database = {
+        rust = true;
+        web = true;
+        database = true;
+      };
+
+      minimalRustStable = {
+        common = true;
+        ai = "minimal";
+        rust = {
+          enable = true;
+          minimal = true;
+          channel = "stable";
+        };
+      };
+
+      minimalRustNightly = {
+        common = true;
+        ai = "minimal";
+        rust = {
+          enable = true;
+          minimal = true;
+          channel = "nightly";
+        };
+      };
+
+      defaultRustStable = {
+        common = true;
+        extra = true;
+        ai = "default";
+        rust = {
+          enable = true;
+          channel = "stable";
+        };
+      };
+
+      rustWebStable = {
+        common = true;
+        extra = true;
+        ai = "default";
+        rust = {
+          enable = true;
+          channel = "stable";
+        };
+        web = true;
+      };
+
+      fullStable = {
+        common = true;
+        extra = true;
+        ai = "full";
+        rust = {
+          enable = true;
+          channel = "stable";
+        };
+        web = true;
+        database = true;
       };
     };
-
-    minimalRustNightly = mkVariant {
-      common = true;
-      ai = "minimal";
-      rust = {
-        enable = true;
-        minimal = true;
-        channel = "nightly";
-      };
-    };
-
-    defaultRustStable = mkVariant {
-      common = true;
-      extra = true;
-      ai = "default";
-      rust = {
-        enable = true;
-        channel = "stable";
-      };
-    };
-
-    rustWebStable = mkVariant {
-      common = true;
-      extra = true;
-      ai = "default";
-      rust = {
-        enable = true;
-        channel = "stable";
-      };
-      web = true;
-    };
-
-    fullStable = mkVariant {
-      common = true;
-      extra = true;
-      ai = "full";
-      rust = {
-        enable = true;
-        channel = "stable";
-      };
-      web = true;
-      database = true;
-    };
-  };
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Modules                                                   ║
@@ -194,51 +198,75 @@
     extraPackages ? [],
     extraEnv ? {},
   }: let
-    tierRaws = mkVariants config;
+    variants = rec {
+      prev = mkVariants config;
+      final = mapAttrs (_: normalizeVariant) prev;
+    };
 
-    tierVariants = mapAttrs (_: normalizeVariant) tierRaws;
-
-    formatting = mkFormatting {inherit inputs self;} tierVariants.default;
+    formatting =
+      mkFormatting
+      {inherit inputs self;}
+      variants.final.default;
 
     templates = deployTemplates {
       inherit pkgs;
-      variant = tierVariants.default;
+      variant = variants.final.default;
     };
-
-    baseShells =
-      mapAttrs
-      (_: variant:
-        mkShellSpec {
-          inherit pkgs variant formatting extraPackages extraEnv;
-        })
-      tierVariants;
-
-    editorShells = listToAttrs (
-      concatMap
-      (
-        tierName:
-          map
-          (editorName: {
-            name = editorShellName tierName editorName;
-            value = mkShellSpec {
-              inherit pkgs formatting extraPackages extraEnv;
-              variant = normalizeVariant (
-                recursiveUpdate
-                tierRaws.${tierName}
-                {editor = editorName;}
-              );
-            };
+    shells = let
+      base =
+        mapAttrs
+        (name: variant: let
+          spec = mkShellSpec {
+            inherit pkgs variant formatting extraPackages extraEnv;
+          };
+        in
+          spec
+          // {
+            env =
+              spec.env
+              // {
+                DEVSHELL_VARIANT_NAME = variant.__variantName or name;
+                DEVSHELL_VARIANT = builtins.toJSON variant;
+                DEVSHELL_VARIANT_RAW = builtins.toJSON variants.prev.${name};
+              };
           })
-          (attrNames editorGroups)
-      )
-      (attrNames tierRaws)
-    );
+        variants.final;
 
-    shells = baseShells // editorShells;
+      editor = listToAttrs (
+        concatMap
+        (
+          variantName:
+            map
+            (editorName: {
+              name = editorShellName variantName editorName;
+              value = let
+                raw = recursiveUpdate variants.prev.${variantName} {editor = editorName;};
+                variant = normalizeVariant raw;
+                spec = mkShellSpec {
+                  inherit pkgs formatting extraPackages extraEnv variant;
+                };
+              in
+                spec
+                // {
+                  env =
+                    spec.env
+                    // {
+                      DEVSHELL_VARIANT_NAME = variant.__variantName or variantName;
+                      DEVSHELL_VARIANT = builtins.toJSON variant;
+                      DEVSHELL_VARIANT_RAW = builtins.toJSON raw;
+                    };
+                };
+            })
+            (attrNames editorGroups)
+        )
+        (attrNames variants.prev)
+      );
+    in
+      base // editor;
 
     defaultModules = mkModules {
       inherit pkgs;
-      variant = tierVariants.default;
+      variant = variants.final.default;
     };
   in {
     inherit templates;
