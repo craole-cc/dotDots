@@ -88,24 +88,6 @@
       includeMise = false;
     } (raw.base or true);
 
-    rust = let
-      base = normalizeFeature {
-        enable = false;
-        includeToolchain = false;
-      } (raw.rust or null);
-    in
-      base // {enable = base.enable || isEnabled (raw.includeRust or false);};
-
-    web = let
-      base = normalizeFeature {
-        enable = false;
-        includeDeno = false;
-        includePrettier = false;
-        includeTrunk = false;
-      } (raw.web or null);
-    in
-      base // {enable = base.enable || isEnabled (raw.includeWeb or false);};
-
     database = let
       base = normalizeFeature {
         enable = false;
@@ -115,9 +97,30 @@
         includeSqlite = false;
       } (raw.database or null);
     in
-      base // {enable = base.enable || isEnabled (raw.includeDatabase or false);};
+      base
+      // {enable = base.enable || isEnabled (raw.includeDatabase or false);};
 
     editor = normalizeEditor (raw.editor or null);
+
+    rust = let
+      base = normalizeFeature {
+        enable = false;
+        includeToolchain = false;
+      } (raw.rust or null);
+    in
+      base
+      // {enable = base.enable || isEnabled (raw.includeRust or false);};
+
+    web = let
+      base = normalizeFeature {
+        enable = false;
+        includeDeno = false;
+        includePrettier = false;
+        includeTrunk = false;
+      } (raw.web or null);
+    in
+      base
+      // {enable = base.enable || isEnabled (raw.includeWeb or false);};
   };
 
   mkEnvVariant = {

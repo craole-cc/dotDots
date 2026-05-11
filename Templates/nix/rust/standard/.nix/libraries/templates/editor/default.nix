@@ -1,7 +1,6 @@
 {lib, ...}: let
-  inherit (lib.attrsets) attrValues optionalAttrs;
-  inherit (lib.lists) any concatLists elem filter toList unique;
-  inherit (lib.strings) isString toLower;
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.trivial) hasAny;
 
   editorGroups = {
     helix = ["helix" "hx"];
@@ -24,8 +23,6 @@
     zed = ["zed" "zeditor"];
   };
 
-  knownEditors = concatLists (attrValues editorGroups);
-  hasAny = needles: haystack: any (x: elem x haystack) needles;
   mkSource = group: name: ./. + "/${group}/${name}";
 
   mkEntry = {
@@ -40,63 +37,27 @@
       else "${prefix}${group}/${name}";
   };
 
-  normalizeEditors = editor:
-    if editor == null || editor == false || editor == {}
-    then {
-      base = false;
-      editors = [];
-    }
-    else if editor == true
-    then {
-      base = true;
-      editors = [];
-    }
-    else if isString editor && toLower editor == "all"
-    then {
-      base = true;
-      editors = knownEditors;
-    }
-    else {
-      base = true;
-      editors = unique (
-        filter
-        (e: elem e knownEditors)
-        (map toLower (toList editor))
-      );
-    };
-
-  mkEditor = editor: let
-    normalized = normalizeEditors editor;
-  in
-    optionalAttrs (editor != null) (
-      optionalAttrs normalized.base {
+  mkEditor = editor:
+    optionalAttrs editor.enable (
+      optionalAttrs editor.base {
         editorconfig = {
-          base = {
-            source = mkSource "common" "editorconfig";
-            target = ".editorconfig";
-          };
+          source = mkSource "common" "editorconfig";
+          target = ".editorconfig";
         };
-
         shellcheck = {
           source = mkSource "common" "shellcheckrc";
           target = [".shellcheckrc" "shellcheckrc"];
         };
-
         markdownlint = {
           source = mkSource "common" "markdownlint-cli2.yaml";
           target = [".markdownlint-cli2.yaml" "markdownlint-cli2.yaml"];
         };
-
         treefmt = {
           source = mkSource "common" "treefmt.toml";
           target = [".treefmt.toml" "treefmt.toml"];
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.helix
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.helix editor.editors) {
         helix = {
           config = mkEntry {
             group = "helix";
@@ -108,28 +69,19 @@
           };
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.neovim
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.neovim editor.editors) {
         neovim = {
           neoconf = {
             source = mkSource "neovim" "neoconf.json";
             target = ".neoconf.json";
           };
-
           config = {
             source = mkSource "neovim" "nvim.lua";
             target = ".nvim.lua";
           };
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.vscode
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.vscode editor.editors) {
         vscode = {
           settings = mkEntry {
             group = "vscode";
@@ -149,11 +101,7 @@
           };
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.zed
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.zed editor.editors) {
         zed = {
           settings = mkEntry {
             group = "zed";
@@ -165,11 +113,7 @@
           };
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.rust-rover
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.rust-rover editor.editors) {
         rust-rover = {
           rust = mkEntry {
             group = "idea";
@@ -189,11 +133,7 @@
           };
         };
       }
-      // optionalAttrs (
-        hasAny
-        editorGroups.sublime
-        normalized.editors
-      ) {
+      // optionalAttrs (hasAny editorGroups.sublime editor.editors) {
         sublime-text = {
           project = mkEntry {
             group = "sublime-text";

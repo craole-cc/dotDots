@@ -14,13 +14,14 @@
   }: let
     inherit (variant) base editor database rust web;
 
-    templates =
+    templates = (
       {}
-      // optionalAttrs (base != null) (mkBase base)
-      // optionalAttrs (web != null) (mkWeb web)
-      // optionalAttrs (database != null) (mkDatabase database)
-      // optionalAttrs (rust != null) (mkRust rust)
-      // optionalAttrs (editor != null) (mkEditor editor);
+      // optionalAttrs base.enable (mkBase base)
+      // optionalAttrs database.enable (mkDatabase database)
+      // optionalAttrs editor.enable (mkEditor editor)
+      // optionalAttrs rust.enable (mkRust rust)
+      // optionalAttrs web.enable (mkWeb web)
+    );
   in
     pkgs.writeShellScriptBin name (
       replaceStrings

@@ -7,13 +7,9 @@
 in {
   mkTools = {
     pkgs ? mkPkgs {},
-    channel ? "nightly",
-    includeDatabase ? false,
-    includeExtras ? false,
-    includeRust ? false,
-    includeWeb ? false,
-    withEditor ? null,
+    variant ? {},
   }: let
+    inherit (variant) base rust web database editor;
     groups = {};
     # groups =
     #   (common.mkGroups {inherit pkgs includeExtras includeWeb;})
