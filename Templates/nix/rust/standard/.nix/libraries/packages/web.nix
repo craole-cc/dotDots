@@ -40,11 +40,12 @@ in {
       all = [];
     }
     // optionalAttrs cfg.enable (let
-      packages =
-        optionalAttrs cfg.includeDeno {inherit (pkgs) deno;}
-        // optionalAttrs cfg.includePnpm {inherit (pkgs) pnpm;}
-        // optionalAttrs cfg.includePrettier {inherit (pkgs) prettierd;}
-        // optionalAttrs cfg.includeTrunk {inherit (pkgs) trunk;};
+      packages = with pkgs;
+        {}
+        // optionalAttrs cfg.includeDeno {inherit deno;}
+        // optionalAttrs cfg.includePnpm {inherit pnpm;}
+        // optionalAttrs cfg.includePrettier {inherit prettierd;}
+        // optionalAttrs cfg.includeTrunk {inherit trunk;};
 
       scripts =
         (optionalAttrs cfg.includePnpm (

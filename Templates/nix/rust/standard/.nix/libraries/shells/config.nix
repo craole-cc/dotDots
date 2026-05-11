@@ -16,6 +16,7 @@
     mkFormatting
     mkPkgs
     mkRust
+    mkWeb
     ;
   inherit
     (lib.shells)
@@ -113,17 +114,22 @@
 
     #? Build a shell spec from a normalized variant
     mkShellSpec = variant: let
-      rust = mkRust {inherit pkgs variant;};
-      extra = mkExtra {inherit pkgs variant;};
       common = mkCommon {inherit pkgs variant;};
-      packages = extraPackages
+      extra = mkExtra {inherit pkgs variant;};
+      rust = mkRust {inherit pkgs variant;};
+      web = mkWeb {inherit pkgs variant;};
+      packages =
+        extraPackages
         ++ (rust.all or [])
+        ++ (web.all or [])
         ++ (extra.all or [])
         ++ (common.all or [])
         ++ (attrValues formatting.packages.${getSystem pkgs});
-      env = {}
+      env =
+        {}
         // common.env or {}
         // extra.env or {}
+        // web.env or {}
         // rust.env or {}
         // extraEnv;
       shellHook = "";

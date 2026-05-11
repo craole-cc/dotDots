@@ -272,7 +272,6 @@ Toolchain file resolution order:
           inherit
             binaryen
             cargo-leptos
-            trunk
             leptosfmt
             ;
         };

@@ -157,6 +157,7 @@
         includeDocs = false;
         includeAnalyzer = false;
         includeWeb = false;
+        includeLeptos = false;
         includeExtra = false;
         extraTargets = [];
         extraExtensions = [];

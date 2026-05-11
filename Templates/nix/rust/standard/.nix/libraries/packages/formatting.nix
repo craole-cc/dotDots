@@ -11,30 +11,50 @@
     inherit (pkgs.stdenv.hostPlatform) system;
 
     projectRootFile = "flake.nix";
+
     for = {
       allBut = systems: !(elem system (toList systems));
       all = {systems ? defineSystems}: elem system (toList systems);
     };
 
-    programs = {
-      actionlint.enable = true;
-      alejandra.enable = for.all {};
-      shellcheck.enable = true;
-      shfmt.enable = true;
-      statix.enable = true;
-      taplo.enable = true;
-      yamlfmt.enable = true;
-
-      leptosfmt.enable = variant.rust.enable && variant.web.enable;
-      rustfmt.enable = variant.rust.enable;
-
-      deno.enable = variant.web.enable && for.allBut "riscv64-linux";
-
-      sql-formatter = {
-        inherit (variant.database) enable;
-        dialect = "sqlite";
-      };
+    cfg = {
+      rust = variant.rust.enable;
+      web = variant.web.enable;
+      deno = variant.web.enable && variant.web.includeDeno;
+      prettier = variant.web.enable && variant.web.includePrettier;
+      leptos =
+        (variant.rust.enable && variant.web.enable)
+        || variant.rust.includeLeptos;
+      database = variant.database.enable;
     };
+
+    programs =
+      {
+        actionlint.enable = true;
+        alejandra.enable = for.all {};
+        shellcheck.enable = true;
+        shfmt.enable = true;
+        statix.enable = true;
+        taplo.enable = true;
+        yamlfmt.enable = true;
+
+        rustfmt.enable = cfg.rust;
+        leptosfmt.enable = cfg.leptos;
+
+        deno.enable = cfg.deno && for.allBut "riscv64-linux";
+
+        sql-formatter = {
+          enable = cfg.database;
+          dialect = "sqlite";
+        };
+      }
+      // optionalAttrs cfg.prettier {
+        prettier = {
+          enable = true;
+          package = pkgs.prettierd;
+          settings.editorconfig = true;
+        };
+      };
 
     settings = {
       excludes = ["node_modules" ".git" "target" "dist"];
@@ -64,10 +84,7 @@
     };
   in {
     formatter = mapAttrs (_: v: v.wrapper) treefmt;
-    # checks = mapAttrs (_: v: v.check self) treefmt;
     checks = mapAttrs (_: v: {formatting = v.check self;}) treefmt;
     packages = mapAttrs (_: v: v.programs) treefmt;
   };
-in {
-  inherit mkFormatting mkTreefmt;
-}
+in {inherit mkFormatting mkTreefmt;}
