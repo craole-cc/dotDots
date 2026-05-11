@@ -37,16 +37,15 @@
         statix.enable = true;
         taplo.enable = true;
         yamlfmt.enable = true;
-
-        rustfmt.enable = cfg.rust;
-        leptosfmt.enable = cfg.leptos;
-
-        deno.enable = cfg.deno && for.allBut "riscv64-linux";
-
-        sql-formatter = {
-          enable = cfg.database;
-          dialect = "sqlite";
-        };
+      }
+      // optionalAttrs cfg.rust {
+        rustfmt.enable = true;
+      }
+      // optionalAttrs cfg.leptos {
+        leptosfmt.enable = true;
+      }
+      // optionalAttrs (cfg.deno && for.allBut "riscv64-linux") {
+        deno.enable = true;
       }
       // optionalAttrs cfg.prettier {
         prettier = {
@@ -54,13 +53,19 @@
           package = pkgs.prettierd;
           settings.editorconfig = true;
         };
+      }
+      // optionalAttrs cfg.database {
+        sql-formatter = {
+          enable = true;
+          dialect = "sqlite";
+        };
       };
 
     settings = {
       excludes = ["node_modules" ".git" "target" "dist"];
       formatter =
         {}
-        // optionalAttrs (programs.deno.enable && programs.yamlfmt.enable) {
+        // optionalAttrs (programs ? deno && programs ? yamlfmt) {
           deno.excludes = ["*.yaml" "*.yml"];
         };
     };
@@ -87,4 +92,6 @@
     checks = mapAttrs (_: v: {formatting = v.check self;}) treefmt;
     packages = mapAttrs (_: v: v.programs) treefmt;
   };
-in {inherit mkFormatting mkTreefmt;}
+in {
+  inherit mkFormatting mkTreefmt;
+}

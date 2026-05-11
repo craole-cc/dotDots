@@ -15,6 +15,7 @@
     mkExtra
     mkFormatting
     mkPkgs
+    mkDatabase
     mkRust
     mkWeb
     ;
@@ -116,12 +117,14 @@
     mkShellSpec = variant: let
       common = mkCommon {inherit pkgs variant;};
       extra = mkExtra {inherit pkgs variant;};
+      db = mkDatabase {inherit pkgs variant;};
       rust = mkRust {inherit pkgs variant;};
       web = mkWeb {inherit pkgs variant;};
       packages =
         extraPackages
         ++ (rust.all or [])
         ++ (web.all or [])
+        ++ (db.all or [])
         ++ (extra.all or [])
         ++ (common.all or [])
         ++ (attrValues formatting.packages.${getSystem pkgs});
@@ -130,6 +133,7 @@
         // common.env or {}
         // extra.env or {}
         // web.env or {}
+        // db.env or {}
         // rust.env or {}
         // extraEnv;
       shellHook = "";
