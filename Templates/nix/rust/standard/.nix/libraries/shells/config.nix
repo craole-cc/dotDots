@@ -13,12 +13,12 @@
     getSystem
     mkCommon
     mkExtra
+    mkFormatting
     mkPkgs
     mkRust
     ;
   inherit
     (lib.shells)
-    mkFormatting
     mkShells
     editorGroups
     editorShellName
@@ -113,14 +113,24 @@
 
     #? Build a shell spec from a normalized variant
     mkShellSpec = variant: let
-      packages =
+      rust = mkRust {inherit pkgs variant;};
+      extra = mkExtra {inherit pkgs variant;};
+      common = mkCommon {inherit pkgs variant;};
+      packages = (
         []
+        ++ extraPackages
+        ++ (rust.all or [])
+        ++ (extra.all or [])
+        ++ (common.all or [])
         ++ (attrValues formatting.packages.${getSystem pkgs})
-        ++ (mkCommon {inherit pkgs variant;}).all
-        ++ (mkExtra {inherit pkgs variant;}).all
-        ++ (mkRust {inherit pkgs variant;}).all
-        ++ extraPackages;
-      env = {} // extraEnv;
+      );
+      env = (
+        {}
+        // common.env or {}
+        // extra.env or {}
+        // rust.env or {}
+        // extraEnv
+      );
       shellHook = "";
     in {inherit packages env shellHook;};
 

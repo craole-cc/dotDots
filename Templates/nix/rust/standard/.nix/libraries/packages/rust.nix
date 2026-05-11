@@ -16,6 +16,7 @@ Toolchain file resolution order:
   inherit (lib.lists) elem optionals unique;
   inherit (lib.meta.project) root;
   inherit (lib.packages) mkBins;
+  inherit (lib.strings) optionalString;
   inherit (lib.trivial) fromTOML isNotEmpty pathExists readFile;
 
   # ---------------------------------------------------------------------------
@@ -293,6 +294,21 @@ Toolchain file resolution order:
       inherit all toolchain package packages binaries scripts components targets;
       inherit (package) paths version system;
       inherit (toolchain) channel;
+      env = {
+        RUST_SRC_PATH = "${package}/lib/rustlib/src/rust/library";
+        RUSTFLAGS = optionalString cfg.nightly "-Z macro-backtrace";
+        RUST_BACKTRACE =
+          if cfg.channel == "stable"
+          then "0"
+          else "full";
+        RUST_LOG = "info";
+        CARGO_INCREMENTAL = "1";
+        RUST_CHANNEL = toolchain.channel;
+        RUST_TOOLCHAIN_FILE =
+          if toolchain.file != null
+          then toString toolchain.file
+          else "<channel>";
+      };
     }
     // components;
 in {inherit mkRust rustProfiles;}
