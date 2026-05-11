@@ -61,7 +61,6 @@ in {
             dir = paths.scripts.default;
             priority = ["sh" "bash" "py" "rb"];
           });
-        commit = ''gcp --no-push "$@" || true'';
         manual = with binaries.packages; {
           #~@ Clipboard
           clip = mkPkg {
@@ -90,16 +89,6 @@ in {
               fi
             '';
           };
-          wl-copy = mkPkg {
-            inherit pkgs;
-            name = "wl-copy";
-            command = wl-copy;
-          };
-          wl-paste = mkPkg {
-            inherit pkgs;
-            name = "wl-paste";
-            command = wl-paste;
-          };
 
           #~@ Project
           glog = mkPkg {
@@ -110,13 +99,7 @@ in {
           reload = mkPkg {
             inherit pkgs;
             name = "reload";
-            command = ''
-              # git add --all && git commit --message "reloading"
-              ${direnv} reload
-            '';
-            # command = ''
-            #   # gcp --no-push
-            # '';
+            command = ''${direnv} reload'';
           };
           check = mkPkg {
             inherit pkgs;

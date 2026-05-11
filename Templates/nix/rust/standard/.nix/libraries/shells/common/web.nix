@@ -16,7 +16,7 @@ in {
     scripts = with packages;
       mkBin {
         inherit pkgs;
-        prefix = "pnpm";
+        prefix = "pnpm" + "-";
         set = {
           i = {command = "${pnpm} install";};
           a = {script = ''${pnpm} add "$@"'';};
@@ -25,7 +25,7 @@ in {
       }
       // mkBin {
         inherit pkgs;
-        prefix = "deno";
+        prefix = "deno" + "-";
         set = {
           dev = {script = ''${deno} task dev "$@"'';};
           run = {script = ''${deno} run "$@"'';};
