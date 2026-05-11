@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) attrValues optionalAttrs;
-  inherit (lib.packages) mkBins mkBin mkPkg mkPackages mkRustScript;
+  inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
   inherit (lib.strings) mkStyledOutput;
 in {
   mkCommon = {
@@ -31,6 +31,7 @@ in {
             gum
             jq
             nixd
+            ripgrep
             sd
             trashy
             undollar
@@ -121,10 +122,10 @@ in {
             name = "ff";
             command = "${fd} --absolute-path \"$@\"";
           };
-          rg = mkPkg {
+          rga = mkPkg {
             inherit pkgs;
-            name = "rg";
-            command = rg;
+            name = "rga";
+            command = "${ripgrep--all} --hidden \"$@\"";
           };
 
           #~@ Script Helpers
