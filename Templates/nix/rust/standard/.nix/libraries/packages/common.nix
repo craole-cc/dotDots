@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.packages) mkBins mkBin mkPackages;
+  inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
   inherit (lib.strings) mkStyledOutput;
 
   mkBase = {
@@ -17,6 +17,7 @@
     },
   }: let
     inherit (variant) base;
+    inherit (pkgs.stdenv) isLinux;
   in (
     {kind = "base";}
     // optionalAttrs base.enable (let
@@ -39,7 +40,7 @@
             ;
           inherit (pkgs) gcc rust-script;
         }
-        // optionalAttrs pkgs.stdenv.isLinux {inherit (pkgs) wl-clipboard xclip xsel;}
+        // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;}
         // optionalAttrs base.includeMise {inherit (pkgs) mise;};
 
       binaries = {
@@ -110,7 +111,7 @@
           rg = mkPkg {
             inherit pkgs;
             name = "rg";
-            command = "${ripgrep-all} \"$@\"";
+            command = "${binaries.packages.ripgrep-all} \"$@\"";
           };
           ff = mkPkg {
             inherit pkgs;

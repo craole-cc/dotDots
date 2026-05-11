@@ -256,7 +256,7 @@ Pure package and binary resolution helpers for lib.packages.
       aliases
     );
 
-  mkPackagesFrom = {
+  mkPackages = {
     pkgs,
     dir ? null,
     file ? null,
@@ -372,7 +372,7 @@ in {
     mkAlias
     mkAliases
     resolveBin
-    mkPackagesFrom
+    mkPackages
     resolveBins
     mkBin
     mkBins
