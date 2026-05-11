@@ -55,10 +55,11 @@ in {
       scripts = let
         auto =
           optionalAttrs (paths ? scripts.default)
-          mkPackages {
+          (mkPackages {
             inherit pkgs;
             dir = paths.scripts.default;
-          };
+            priority = ["sh" "bash" "py" "rb"];
+          });
         commit = ''gcp --no-push "$@"'';
         manual = with binaries.packages; {
           #~@ Clipboard
@@ -153,19 +154,6 @@ in {
               *) exit 1 ;;
               esac
             '';
-          };
-
-          vr3n = mkRustScript {
-            inherit pkgs;
-            name = "vr3n2";
-            src = paths.scripts.default + "/vr3n.rs";
-            lockFile = paths.scripts.default + "/vr3n.lock";
-            dependencies = {
-              clap = ''version = "4.5"\nfeatures = ["derive"]'';
-              miette = ''version = "7"\nfeatures = ["fancy"]'';
-              regex = ''version = "1"'';
-              thiserror = ''version = "2"'';
-            };
           };
         };
 

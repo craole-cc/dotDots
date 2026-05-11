@@ -157,6 +157,7 @@
         includeFetch = false;
         includeGitTools = false;
         includeFileTools = false;
+        includeRustScript = false;
       };
     in
       if (raw.extra or null) == true

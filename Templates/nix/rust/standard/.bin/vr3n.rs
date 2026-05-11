@@ -1,3 +1,12 @@
+#!/usr/bin/env rust-script
+//! ```cargo
+//! [dependencies]
+//! clap = { version = "4.5", features = ["derive"] }
+//! miette = { version = "7", features = ["fancy"] }
+//! regex = "1"
+//! thiserror = "2"
+//! ```
+
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use {
