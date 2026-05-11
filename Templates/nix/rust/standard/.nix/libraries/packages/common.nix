@@ -121,18 +121,17 @@ in {
           check = mkPkg {
             inherit pkgs;
             name = "check";
-            command = ''
-              # git add --all && git commit --message "checking"
-              nix flake check "$@"
-            '';
+            command = ''nix flake check'';
+          };
+          check-all = mkPkg {
+            inherit pkgs;
+            name = "check-all";
+            command = ''nix flake check --keep-going --all-systems'';
           };
           format = mkPkg {
             inherit pkgs;
             name = "format";
-            command = ''
-              # git add --all && git commit --message "formatting"
-              nix fmt
-            '';
+            command = ''nix fmt'';
           };
           ff = mkPkg {
             inherit pkgs;
