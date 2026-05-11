@@ -31,7 +31,7 @@
       deno.enable = variant.web.enable && for.allBut "riscv64-linux";
 
       sql-formatter = {
-        enable = variant.database.enable;
+        inherit (variant.database) enable;
         dialect = "sqlite";
       };
     };

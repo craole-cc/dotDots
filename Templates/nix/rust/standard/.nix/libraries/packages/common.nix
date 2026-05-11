@@ -13,8 +13,7 @@ in {
   }: let
     cfg = variant.common;
     inherit (pkgs.stdenv) isLinux;
-  in (
-    {
+  in {
       kind = "common";
       all = [];
     }
@@ -172,6 +171,5 @@ in {
       in
         auto // manual // printers;
       all = attrValues packages ++ attrValues scripts;
-    in {inherit all packages binaries scripts;})
-  );
+    in {inherit all packages binaries scripts;});
 }

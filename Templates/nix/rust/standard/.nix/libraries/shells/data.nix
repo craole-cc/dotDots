@@ -68,7 +68,7 @@
         editors = [];
       }
       // mkGroups []
-    else if editor == true
+    else if editor
     then
       {
         enable = true;
@@ -94,7 +94,7 @@
   normalizeFeature = defaults: value:
     if isDisabled value
     then defaults // {enable = false;}
-    else if value == true
+    else if value
     then defaults // {enable = true;}
     else defaults // value // {enable = isEnabled (value.enable or true);};
 
@@ -115,7 +115,7 @@
       includeHermes = false;
       includeOpenClaw = false;
     }
-    else if value == true || value == "default"
+    else if value || value == "default"
     then {
       enable = true;
       includeCodex = true;
@@ -156,7 +156,7 @@
         includeRustScript = false;
       };
     in
-      if (raw.extra or null) == true
+      if (raw.extra or null)
       then mapAttrs (_: _: true) defaults
       else normalizeFeature defaults (raw.extra or null);
 

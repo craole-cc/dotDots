@@ -83,7 +83,8 @@
   isDisabled = value:
     value
     == null
-    || !value
+    || value == false
+    || value == 0
     || value == {}
     || value == []
     || value == "";

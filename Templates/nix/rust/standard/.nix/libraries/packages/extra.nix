@@ -20,8 +20,7 @@ in {
     },
   }: let
     cfg = variant.extra;
-  in (
-    {
+  in {
       kind = "extra";
       all = [];
     }
@@ -112,6 +111,5 @@ in {
         );
 
       all = attrValues packages ++ attrValues scripts;
-    in {inherit all packages binaries scripts;})
-  );
+    in {inherit all packages binaries scripts;});
 }

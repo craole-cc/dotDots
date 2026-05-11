@@ -116,21 +116,16 @@
       rust = mkRust {inherit pkgs variant;};
       extra = mkExtra {inherit pkgs variant;};
       common = mkCommon {inherit pkgs variant;};
-      packages = (
-        []
-        ++ extraPackages
+      packages = extraPackages
         ++ (rust.all or [])
         ++ (extra.all or [])
         ++ (common.all or [])
-        ++ (attrValues formatting.packages.${getSystem pkgs})
-      );
-      env = (
-        {}
+        ++ (attrValues formatting.packages.${getSystem pkgs});
+      env = {}
         // common.env or {}
         // extra.env or {}
         // rust.env or {}
-        // extraEnv
-      );
+        // extraEnv;
       shellHook = "";
     in {inherit packages env shellHook;};
 
@@ -144,7 +139,7 @@
     };
 
     #~@ Base shells (one per tier)
-    baseShells = mapAttrs (_: v: mkShellSpec v) tierVariants;
+    baseShells = mapAttrs (_: mkShellSpec) tierVariants;
 
     #~@ Editor cross-product shells
     #? Every tier × every editor group → {tierName}With{EditorName}

@@ -1,4 +1,4 @@
-{}: {
+_: {
   baseArgs = {
     minimal = {};
     default = {includeExtras = true;};

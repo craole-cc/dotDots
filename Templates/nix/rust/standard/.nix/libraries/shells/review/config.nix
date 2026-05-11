@@ -77,7 +77,7 @@
         };
       };
     in
-      mapAttrs (_: args: mkEnvVariant args) {
+      mapAttrs (_: mkEnvVariant) {
         minimal = {};
         default = {includeExtras = true;};
         stable = {

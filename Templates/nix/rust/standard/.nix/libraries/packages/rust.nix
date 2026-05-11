@@ -200,12 +200,12 @@ Toolchain file resolution order:
           unique (base ++ explicit ++ cfg.extensions)
         else
           (
-            if (cfg.minimal)
+            if cfg.minimal
             then rustProfiles.minimal
             else rustProfiles.default
           )
           ++ optionals cfg.includeDocs rustProfiles.docs
-          ++ optionals (cfg.includeAnalyzer) rustProfiles.ide
+          ++ optionals cfg.includeAnalyzer rustProfiles.ide
           ++ cfg.extensions;
     in {
       inherit extensions;
@@ -243,12 +243,11 @@ Toolchain file resolution order:
           inherit targets;
         };
 
-    packages = (
-      with pkgs;
+    packages = with pkgs;
         {inherit gcc;}
         // optionalAttrs stdenv.isDarwin {inherit libiconv;}
         // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
-        // optionalAttrs (cfg.includeExtra) {
+        // optionalAttrs cfg.includeExtra {
           inherit
             #~@ Watch
             bacon
@@ -269,15 +268,14 @@ Toolchain file resolution order:
             cargo-make
             ;
         }
-        // optionalAttrs (cfg.includeWeb) {
+        // optionalAttrs cfg.includeWeb {
           inherit
             binaryen
             cargo-leptos
             trunk
             leptosfmt
             ;
-        }
-    );
+        };
 
     binaries = {
       packages = mkBins packages;
