@@ -46,10 +46,6 @@
   editorShellName = tier: editor:
     concatNonEmpty "" [tier "With" (toPascalCase editor)];
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Normalizers                                               ║
-  #╚═══════════════════════════════════════════════════════════╝
-
   normalizeEditor = editor: let
     mkGroups = resolved: mapAttrs (_: members: hasAny members resolved) editorGroups;
     mkResult = resolved:
@@ -60,7 +56,7 @@
       }
       // mkGroups resolved;
   in
-    if isDisabled editor
+    if (isDisabled editor)
     then
       {
         enable = false;
@@ -68,7 +64,7 @@
         editors = [];
       }
       // mkGroups []
-    else if editor
+    else if  (isEnabled editor)
     then
       {
         enable = true;
@@ -90,6 +86,10 @@
       );
     in
       mkResult resolved;
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Features                                                  ║
+  #╚═══════════════════════════════════════════════════════════╝
 
   normalizeFeature = defaults: value:
     if isDisabled value
@@ -156,7 +156,7 @@
         includeRustScript = false;
       };
     in
-      if (raw.extra or null)
+      if (raw.extra or null != null)
       then mapAttrs (_: _: true) defaults
       else normalizeFeature defaults (raw.extra or null);
 
