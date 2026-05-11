@@ -1,7 +1,8 @@
 {lib, ...}: let
   inherit (lib.attrsets) attrValues;
-  inherit (lib.lists) concatMap flatten;
+  inherit (lib.lists) concatMap flatten foldl';
   inherit (lib.packages) mkPkgs;
+  inherit (lib.strings) concatNonEmpty;
   # inherit (lib.shells) common editor;
   # anchor = lib.shells.setMarker {};
 in {
@@ -22,5 +23,10 @@ in {
       attrValues (g.packages or {})
       ++ attrValues (g.scripts or {}))
     (attrValues groups));
+    env = foldl' (acc: g: acc // (g.env or {})) {} (attrValues groups);
+    shellHook = concatNonEmpty {
+      separator = "\n";
+      parts = attrValues (groups.shellHooks or {});
+    };
   };
 }
