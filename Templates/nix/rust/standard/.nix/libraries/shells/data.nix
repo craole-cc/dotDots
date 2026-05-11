@@ -48,15 +48,19 @@
 
   normalizeEditor = editor: let
     mkGroups = resolved: mapAttrs (_: members: hasAny members resolved) editorGroups;
+
+    resolve = input:
+      unique (filter (e: elem e knownEditors) (map toLower (toList input)));
+
     mkResult = resolved:
       {
-        enable = resolved != [];
-        base = resolved != [];
+        enable = true;
+        base = true;
         editors = resolved;
       }
       // mkGroups resolved;
   in
-    if (isDisabled editor)
+    if isDisabled editor
     then
       {
         enable = false;
@@ -64,28 +68,11 @@
         editors = [];
       }
       // mkGroups []
-    else if  (isEnabled editor)
-    then
-      {
-        enable = true;
-        base = true;
-        editors = [];
-      }
-      // mkGroups []
+    else if isEnabled editor
+    then mkResult []
     else if isString editor && toLower editor == "all"
-    then
-      {
-        enable = true;
-        base = true;
-        editors = knownEditors;
-      }
-      // mkGroups knownEditors
-    else let
-      resolved = unique (
-        filter (e: elem e knownEditors) (map toLower (toList editor))
-      );
-    in
-      mkResult resolved;
+    then mkResult knownEditors
+    else mkResult (resolve editor);
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Features                                                  ║
