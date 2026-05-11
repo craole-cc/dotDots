@@ -1,9 +1,21 @@
-{lib}: let
-  inherit (lib.attrsets) genAttrs isAttrs optionalAttrs;
-  inherit (lib.lists) findFirst;
+{
+  lib,
+  paths,
+  ...
+}: let
+  inherit
+    (lib.attrsets)
+    attrNames
+    genAttrs
+    isAttrs
+    listToAttrs
+    nameValuePair
+    optionalAttrs
+    ;
+  inherit (lib.lists) elem filter findFirst head last optional;
   inherit (lib.packages) getSystemOrDefault defineSystems;
-  inherit (lib.strings) isString isPath;
-  inherit (lib.trivial) isFunction isNotEmpty isEmpty;
+  inherit (lib.strings) hasPrefix isString isPath match;
+  inherit (lib.trivial) isFunction isNotEmpty isEmpty readDir readFile;
 
   /**
   Construct a `pkgs` set with the project overlays applied.
@@ -213,11 +225,137 @@
   in
     genAttrs systems
     (system: fn packages.${system});
+
+  mkPackages = {
+    pkgs,
+    dir ? paths.scripts.src or null,
+    file ? null,
+    files ? [],
+    priority ? ["rs" "bash" "sh" "py" "rb"],
+  }: let
+    dirFiles =
+      if dir == null
+      then []
+      else let
+        entries = readDir dir;
+
+        names =
+          filter
+          (name: entries.${name} == "regular")
+          (attrNames entries);
+      in
+        map
+        (name: {
+          inherit name;
+          path = dir + "/${name}";
+        })
+        names;
+
+    explicitFiles =
+      map
+      (path: {
+        name = baseNameOf (toString path);
+        inherit path;
+      })
+      (
+        files
+        ++ optional (file != null) file
+      );
+
+    allFiles = dirFiles ++ explicitFiles;
+
+    parseName = name: let
+      parts = match "^(.*)\\.([^.]+)$" name;
+    in
+      if parts == null
+      then {
+        base = name;
+        ext = null;
+      }
+      else {
+        base = head parts;
+        ext = last parts;
+      };
+
+    scriptName = item:
+      (parseName item.name).base;
+
+    scriptExt = item:
+      (parseName item.name).ext;
+
+    isSupported = item:
+      elem (scriptExt item) priority;
+
+    hasShebang = item:
+      hasPrefix "#!" (readFile item.path);
+
+    candidates =
+      filter
+      (item: isSupported item && hasShebang item)
+      allFiles;
+
+    bases = attrNames (
+      listToAttrs (
+        map
+        (item: nameValuePair (scriptName item) true)
+        candidates
+      )
+    );
+
+    choose = base:
+      findFirst
+      (item: item != null)
+      null
+      (
+        map
+        (ext: let
+          matches =
+            filter
+            (item: scriptName item == base && scriptExt item == ext)
+            candidates;
+        in
+          if matches == []
+          then null
+          else head matches)
+        priority
+      );
+
+    scriptEnv = ext:
+      if ext == "rs"
+      then ''
+        case "''${RUST_LOG:-}" in
+        *rust_script=*)
+          ;;
+        "") export RUST_LOG="rust_script=warn" ;;
+        *) export RUST_LOG="''${RUST_LOG},rust_script=warn" ;;
+        esac
+      ''
+      else "";
+
+    mkDiscoveredScript = base: let
+      chosen = choose base;
+      ext = scriptExt chosen;
+
+      source = pkgs.writeTextFile {
+        name = "${base}-source";
+        destination = "/share/${base}/${chosen.name}";
+        executable = true;
+        text = readFile chosen.path;
+      };
+    in
+      nameValuePair base
+      (pkgs.writeShellScriptBin base ''
+        ${scriptEnv ext}
+        exec ${source}/share/${base}/${chosen.name} "$@"
+      '');
+  in
+    listToAttrs (map mkDiscoveredScript bases);
 in {
   inherit
     mkOverlays
     mkPkgs
     mkPkgsPerSystem
+    mkPackages
     perSystem
     resolvePackages
     ;

@@ -1,3 +1,3 @@
 {lib}: {
-  inherit (lib) fromTOML pathExista readFile;
+  inherit (lib) fromTOML pathExista readDir readFile;
 }
