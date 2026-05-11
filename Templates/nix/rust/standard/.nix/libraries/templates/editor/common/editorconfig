@@ -1,0 +1,25 @@
+# EditorConfig — https://editorconfig.org
+root = true
+
+#╔═══════════════════════════════════════════════════════════╗
+#║ Universal baseline                                        ║
+#╚═══════════════════════════════════════════════════════════╝
+[*]
+charset                  = utf-8
+end_of_line              = lf
+indent_size              = 2
+indent_style             = space
+insert_final_newline     = true
+trim_trailing_whitespace = true
+
+#╔═══════════════════════════════════════════════════════════╗
+#║ Windows-native formats                                    ║
+#╚═══════════════════════════════════════════════════════════╝
+[{*.csproj,*.vbproj,*.vcxproj,*.sln,*.ps1,*.psm1,*.psd1}]
+  end_of_line = crlf
+
+#╔═══════════════════════════════════════════════════════════╗
+#║ Whitespace-sensitive                                      ║
+#╚═══════════════════════════════════════════════════════════╝
+[*.{md,mdx,markdown,csv,tsv,txt,log}]
+trim_trailing_whitespace = false

@@ -28,11 +28,10 @@
     env = mkEnvironment {inherit inputs pkgs self;};
   in {
     inherit (cfg) lib pkgs paths repl;
-    inherit (env) checks devShells;
-    inherit (env.fmt) formatter;
-
-    legacyPackages = mapAttrs (system: pkgs:
-      pkgs // {formatter = env.fmt.packages.${system};})
-    (mkPkgsPerSystem {inherit inputs;});
+    inherit (env) checks devShells formatter;
+    legacyPackages =
+      mapAttrs
+      (system: pkgs: pkgs // env.packages.${system})
+      (mkPkgsPerSystem {inherit inputs;});
   };
 }

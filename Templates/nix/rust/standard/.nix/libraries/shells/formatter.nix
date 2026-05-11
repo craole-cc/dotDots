@@ -1,118 +1,72 @@
 {lib}: let
-  inherit (lib.attrsets) attrNames listToAttrs mapAttrs recursiveUpdate;
-  inherit (lib.lists) elem optionals toList;
+  inherit (lib.attrsets) mapAttrs optionalAttrs recursiveUpdate;
+  inherit (lib.lists) elem toList;
   inherit (lib.packages) defineSystems resolvePackages perSystem;
 
   mkTreefmt = {
-    self,
-    inputs,
-    config ? {},
-    includeWeb ? false,
-    # includeExtras ? false,
-    includeDatabase ? false,
-    includeRust ? false,
-  }: let
-    inherit (resolvePackages {inherit inputs;}) treefmt;
-
-    evaluated = perSystem {
-      inherit inputs;
-      fn = pkgs: let
-        module = treefmt.lib.evalModule pkgs (
-          mkTreefmtConfig {
-            inherit
-              pkgs
-              config
-              includeWeb
-              includeRust
-              includeDatabase
-              ;
-          }
-        );
-        inherit (module.config.build) check wrapper programs;
-        formatting = check self;
-      in {inherit formatting programs wrapper;};
-    };
-  in {
-    formatter = mapAttrs (_: v: v.wrapper) evaluated;
-    checks = mapAttrs (_: v: {inherit (v) formatting;}) evaluated;
-    packages = mapAttrs (_: v: v.programs) evaluated;
-  };
-
-  mkTreefmtConfig = {
     pkgs,
-    config,
-    includeWeb ? false,
-    includeRust ? false,
-    includeDatabase ? false,
+    variant,
+    extraConfig ? {},
   }: let
     inherit (pkgs.stdenv.hostPlatform) system;
+
+    projectRootFile = "flake.nix";
     for = {
       allBut = systems: !(elem system (toList systems));
-      all = {systems ? defineSystems}: (elem system (toList systems));
+      all = {systems ? defineSystems}: elem system (toList systems);
+    };
+
+    programs = {
+      actionlint.enable = true;
+      alejandra.enable = for.all {};
+      shellcheck.enable = true;
+      shfmt.enable = true;
+      statix.enable = true;
+      taplo.enable = true;
+      yamlfmt.enable = true;
+
+      leptosfmt.enable = variant.rust.enable && variant.web.enable;
+      rustfmt.enable = variant.rust.enable;
+
+      deno.enable = variant.web.enable && for.allBut "riscv64-linux";
+
+      sql-formatter = {
+        enable = variant.database.enable;
+        dialect = "sqlite";
+      };
+    };
+
+    settings = {
+      excludes = ["node_modules" ".git" "target" "dist"];
+      formatter =
+        {}
+        // optionalAttrs (programs.deno.enable && programs.yamlfmt.enable) {
+          deno.excludes = ["*.yaml" "*.yml"];
+        };
     };
   in
-    recursiveUpdate {
-      projectRootFile = "flake.nix";
+    recursiveUpdate
+    {inherit projectRootFile programs settings;}
+    extraConfig;
 
-      programs = {
-        #~@ Common
-        actionlint.enable = true;
-        alejandra.enable = for.all {};
-        shellcheck.enable = true;
-        shfmt.enable = true;
-        statix.enable = true;
-        taplo.enable = true;
-        yamlfmt.enable = true;
-
-        #~@ Rust
-        leptosfmt.enable = includeRust && includeWeb;
-        rustfmt.enable = includeRust;
-
-        #~@ Web
-        deno.enable = includeWeb && for.allBut "riscv64-linux";
-
-        #~@ Database
-        sql-formatter = {
-          enable = includeDatabase;
-          dialect = "sqlite";
-        };
-      };
-
-      settings = {
-        excludes = ["node_modules" ".git" "target" "dist"];
-        formatter = {
-          deno.excludes = optionals includeWeb ["*.yaml" "*.yml"];
-        };
-      };
-    }
-    config;
-
-  mkFmt = {
+  mkFormatting = {
     inputs,
     self,
-  }: args:
-    mkTreefmt {
-      inherit inputs self;
-      includeRust = args.includeRust or false;
-      includeWeb = args.includeWeb or false;
-      includeDatabase = args.includeDatabase or false;
+  }: variant: let
+    treefmt = perSystem {
+      inherit inputs;
+      fn = pkgs: let
+        module =
+          (resolvePackages {inherit inputs;}).treefmt.lib.evalModule pkgs
+          (mkTreefmt {inherit pkgs variant;});
+      in
+        module.config.build;
     };
-
-  mkChecks = {
-    inputs,
-    variants,
-  }: let
-    inherit (lib.attrsets) nameValuePair mapAttrs mapAttrs';
-    inherit (lib.packages) mkPkgsPerSystem;
-  in
-    mapAttrs (
-      system: _:
-        mapAttrs' (
-          name: variant:
-            nameValuePair
-            "formatting-${name}"
-            variant.fmt.checks.${system}.formatting
-        )
-        variants
-    ) (mkPkgsPerSystem {inherit inputs;});
-in {inherit mkFmt mkTreefmt mkTreefmtConfig mkChecks;}
+  in {
+    formatter = mapAttrs (_: v: v.wrapper) treefmt;
+    checks = mapAttrs (_: v: v.check self) treefmt;
+    packages = mapAttrs (_: v: v.programs) treefmt;
+  };
+in {
+  inherit mkFormatting mkTreefmt;
+}

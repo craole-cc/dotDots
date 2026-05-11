@@ -25,9 +25,7 @@
   };
 
   knownEditors = concatLists (attrValues editorGroups);
-
   hasAny = needles: haystack: any (x: elem x haystack) needles;
-
   mkSource = group: name: ./. + "/${group}/${name}";
 
   mkEntry = {
@@ -43,7 +41,7 @@
   };
 
   normalizeEditors = editor:
-    if editor == null || editor == false
+    if editor == null || editor == false || editor == {}
     then {
       base = false;
       editors = [];
@@ -61,7 +59,9 @@
     else {
       base = true;
       editors = unique (
-        filter (e: elem e knownEditors) (map toLower (toList editor))
+        filter
+        (e: elem e knownEditors)
+        (map toLower (toList editor))
       );
     };
 
@@ -208,6 +208,4 @@
         };
       }
     );
-in {
-  inherit mkEditor;
-}
+in {inherit mkEditor;}

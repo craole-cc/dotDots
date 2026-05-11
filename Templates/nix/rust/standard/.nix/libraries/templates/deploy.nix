@@ -3,27 +3,25 @@
   inherit (lib.lists) head toList;
   inherit (lib.packages) mkPkgs;
   inherit (lib.strings) concatNonEmpty escapeShellArg replaceStrings toLines;
-  inherit (lib.templates) mkBase mkEditor mkRust mkWeb;
+  inherit (lib.templates) mkBase mkDatabase mkEditor mkRust mkWeb;
   inherit (lib.trivial) readFile;
   arg = escapeShellArg;
 
-  mkGroups = {
-    base ? {},
-    editor ? {},
-    rust ? {},
-    web ? {},
-  }:
-    {}
-    // optionalAttrs (base != null) (mkBase base)
-    // optionalAttrs (web != null) (mkWeb web)
-    // optionalAttrs (rust != null) (mkRust rust)
-    // optionalAttrs (editor != null) (mkEditor editor);
-
-  mkDeploy = {
-    templates ? {},
+  deployTemplates = {
+    variant ? {},
     pkgs ? mkPkgs {},
-    name ? "deploy-config",
-  }:
+    name ? "deploy-conf",
+  }: let
+    inherit (variant) base editor database rust web;
+
+    templates =
+      {}
+      // optionalAttrs (base != null) (mkBase base)
+      // optionalAttrs (web != null) (mkWeb web)
+      // optionalAttrs (database != null) (mkDatabase database)
+      // optionalAttrs (rust != null) (mkRust rust)
+      // optionalAttrs (editor != null) (mkEditor editor);
+  in
     pkgs.writeShellScriptBin name (
       replaceStrings
       ["#__DEPLOY_CONF_CALLS__"]
@@ -52,4 +50,4 @@
       ]
       (readFile ./deploy.sh)
     );
-in {inherit mkDeploy mkGroups;}
+in {inherit deployTemplates;}

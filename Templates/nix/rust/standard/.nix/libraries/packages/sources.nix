@@ -2,7 +2,7 @@
   inherit (lib.attrsets) genAttrs isAttrs optionalAttrs;
   inherit (lib.lists) findFirst;
   inherit (lib.packages) getSystemOrDefault defineSystems;
-  inherit (lib.strings) isString isPath match;
+  inherit (lib.strings) isString isPath;
   inherit (lib.trivial) isFunction isNotEmpty isEmpty;
 
   /**
