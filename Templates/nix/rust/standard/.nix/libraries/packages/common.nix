@@ -61,7 +61,7 @@ in {
             dir = paths.scripts.default;
             priority = ["sh" "bash" "py" "rb"];
           });
-        commit = ''gcp --no-push "$@"'';
+        commit = ''gcp --no-push "$@" || true'';
         manual = with binaries.packages; {
           #~@ Clipboard
           clip = mkPkg {
