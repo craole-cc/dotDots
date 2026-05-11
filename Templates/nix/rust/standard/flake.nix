@@ -31,7 +31,7 @@
     inherit (env) checks devShells formatter;
     legacyPackages =
       mapAttrs
-      (system: sysPkgs: sysPkgs // env.packages)
+      (_: sysPkgs: sysPkgs // env.packages)
       (mkPkgsPerSystem {inherit inputs;});
   };
 }

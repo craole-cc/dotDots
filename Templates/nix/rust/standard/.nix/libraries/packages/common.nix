@@ -34,8 +34,8 @@ in {
             sd
             trashy
             undollar
+            watchexec
             ;
-          inherit (pkgs) gcc rust-script cargo;
         }
         // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;};
 

@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit
     (lib.attrsets)
     attrValues
@@ -171,6 +168,9 @@
         channel = "nightly";
         minimal = false;
         includeDocs = false;
+        includeAnalyzer = false;
+        includeWeb = false;
+        includeExtra = false;
         extraTargets = [];
         extraExtensions = [];
       } (raw.rust or null);

@@ -8,7 +8,14 @@
     recursiveUpdate
     ;
   inherit (lib.lists) concatMap;
-  inherit (lib.packages) getSystem mkPkgs mkCommon mkExtra;
+  inherit
+    (lib.packages)
+    getSystem
+    mkCommon
+    mkExtra
+    mkPkgs
+    mkRust
+    ;
   inherit
     (lib.shells)
     mkFormatting
@@ -39,6 +46,8 @@
     default = tier {
       common = true;
       extra = true;
+      rust = true;
+
       ai = "default";
     };
 
@@ -109,6 +118,7 @@
         ++ (attrValues formatting.packages.${getSystem pkgs})
         ++ (mkCommon {inherit pkgs variant;}).all
         ++ (mkExtra {inherit pkgs variant;}).all
+        ++ (mkRust {inherit pkgs variant;}).all
         ++ extraPackages;
       env = {} // extraEnv;
       shellHook = "";

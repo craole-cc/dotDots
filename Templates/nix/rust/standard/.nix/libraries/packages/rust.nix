@@ -12,8 +12,10 @@ Toolchain file resolution order:
   3. String-based channel from variant.rust.channel (default: "nightly")
 */
 {lib}: let
+  inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.lists) elem optionals unique;
   inherit (lib.meta.project) root;
+  inherit (lib.packages) mkBins;
   inherit (lib.trivial) fromTOML isNotEmpty pathExists readFile;
 
   # ---------------------------------------------------------------------------
@@ -120,18 +122,37 @@ Toolchain file resolution order:
     variant ? {
       rust = {
         channel = "nightly";
-        minimal = false;
-        includeDocs = false;
-        extraTargets = [];
         extraExtensions = [];
+        extraTargets = [];
+        includeAnalyzer = false;
+        includeDocs = false;
+        includeExtra = false;
+        includeWeb = false;
+        minimal = false;
       };
+      extra.enable = false;
       web.enable = false;
       editor.enable = false;
     },
+    channel ? null,
+    minimal ? null,
+    extraTargets ? [],
+    extraExtensions ? [],
   }: let
-    inherit (variant) rust web editor;
-    inherit (rust) channel minimal includeDocs extraTargets extraExtensions;
-
+    inherit (variant) rust extra web editor;
+    cfg = {
+      channel =
+        if channel != null
+        then channel
+        else rust.channel;
+      minimal = minimal != null || rust.minimal;
+      extensions = unique (rust.extraExtensions ++ extraExtensions);
+      includeAnalyzer = editor.enable || rust.includeAnalyzer;
+      includeWeb = web.enable || rust.includeWeb;
+      includeDocs = web.enable || rust.includeDocs;
+      includeExtra = extra.enable || rust.includeExtra;
+      nightly = cfg.channel == "nightly";
+    };
 
     # Toolchain file detection
 
@@ -160,11 +181,10 @@ Toolchain file resolution order:
       channel =
         if file != null && isNotEmpty (toolchain.parsed.channel or null)
         then toolchain.parsed.channel
-        else channel;
+        else cfg.channel;
     };
 
     inherit (toolchain) parsed;
-
 
     # Component resolution
 
@@ -176,16 +196,16 @@ Toolchain file resolution order:
           base = rustProfiles.${profile} or rustProfiles.default;
           explicit = parsed.components or [];
         in
-          unique (base ++ explicit ++ extraExtensions)
+          unique (base ++ explicit ++ cfg.extensions)
         else
           (
-            if minimal
+            if (cfg.minimal)
             then rustProfiles.minimal
             else rustProfiles.default
           )
-          ++ optionals includeDocs rustProfiles.docs
-          ++ optionals editor.enable rustProfiles.ide
-          ++ extraExtensions;
+          ++ optionals cfg.includeDocs rustProfiles.docs
+          ++ optionals (cfg.includeAnalyzer) rustProfiles.ide
+          ++ cfg.extensions;
     in {
       inherit extensions;
       hasClippy = elem "clippy" extensions;
@@ -197,15 +217,13 @@ Toolchain file resolution order:
       hasDocs = elem "rust-docs" extensions;
     };
 
-
     # Target resolution
 
     targets = unique (
       (parsed.targets or [])
-      ++ optionals web.enable ["wasm32-unknown-unknown"]
-      ++ extraTargets
+      ++ optionals (web.enable or cfg.includeWASM) ["wasm32-unknown-unknown"]
+      ++ (cfg.extraTargets or extraTargets)
     );
-
 
     # Derivation
 
@@ -223,10 +241,56 @@ Toolchain file resolution order:
           inherit (components) extensions;
           inherit targets;
         };
+
+    packages = (
+      with pkgs;
+        {inherit gcc;}
+        // optionalAttrs stdenv.isDarwin {inherit libiconv;}
+        // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
+        // optionalAttrs (cfg.includeExtra) {
+          inherit
+            #~@ Watch
+            bacon
+            cargo-watch
+            #~@ Dependencies & Security
+            cargo-edit
+            cargo-outdated
+            cargo-audit
+            cargo-deny
+            #~@ Performance & Analysis
+            cargo-flamegraph
+            cargo-bloat
+            cargo-expand
+            #~@ Testing & Quality
+            cargo-nextest
+            cargo-tarpaulin
+            #~@ Formatting
+            cargo-make
+            ;
+        }
+        // optionalAttrs (cfg.includeWeb) {
+          inherit
+            binaryen
+            cargo-leptos
+            trunk
+            leptosfmt
+            ;
+        }
+    );
+
+    binaries = {
+      packages = mkBins packages;
+      scripts = mkBins scripts;
+      all = binaries.packages // binaries.scripts;
+    };
+
+    scripts = {};
+
+    all = [package] ++ attrValues packages ++ attrValues scripts;
   in
     {
       kind = "rust";
-      inherit toolchain package components targets;
+      inherit all toolchain package packages binaries scripts components targets;
       inherit (package) paths version system;
       inherit (toolchain) channel;
     }
