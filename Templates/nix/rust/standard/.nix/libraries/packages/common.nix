@@ -111,19 +111,28 @@ in {
             inherit pkgs;
             name = "reload";
             command = ''
-              gcp --no-push
+              # git add --all && git commit --message "reloading"
               ${direnv} reload
             '';
+            # command = ''
+            #   # gcp --no-push
+            # '';
           };
           check = mkPkg {
             inherit pkgs;
             name = "check";
-            command = "${commit}; nix flake check";
+            command = ''
+              # git add --all && git commit --message "checking"
+              nix flake check
+            '';
           };
           format = mkPkg {
             inherit pkgs;
             name = "format";
-            command = "${commit}; nix fmt";
+            command = ''
+              # git add --all && git commit --message "formatting"
+              nix fmt
+            '';
           };
           ff = mkPkg {
             inherit pkgs;
