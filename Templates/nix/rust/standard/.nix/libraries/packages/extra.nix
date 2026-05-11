@@ -1,5 +1,5 @@
 {lib, ...}: let
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.packages) mkBins mkPkg;
 in {
   mkExtra = {
@@ -16,7 +16,7 @@ in {
   }: let
     cfg = variant.extra;
   in (
-    {kind = "extra";}
+    {kind = "base";}
     // optionalAttrs cfg.enable (let
       packages =
         {}
@@ -96,6 +96,7 @@ in {
             script = ''${lsd} --long --git --recursive "$@"'';
           };
         };
-    in {inherit packages binaries scripts;})
+      all = attrValues packages ++ attrValues scripts;
+    in {inherit all packages binaries scripts;})
   );
 }

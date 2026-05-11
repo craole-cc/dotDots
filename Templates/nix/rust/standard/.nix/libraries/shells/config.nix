@@ -1,7 +1,4 @@
-{
-  lib,
-  paths,
-}: let
+{lib}: let
   inherit
     (lib.attrsets)
     attrNames
@@ -11,11 +8,10 @@
     recursiveUpdate
     ;
   inherit (lib.lists) concatMap;
-  inherit (lib.packages) getSystem mkPkgs;
+  inherit (lib.packages) getSystem mkPkgs mkCommon mkExtra;
   inherit
     (lib.shells)
     mkFormatting
-    mkTools
     mkShells
     editorGroups
     editorShellName
@@ -40,6 +36,8 @@
     };
 
     default = tier {
+      common = true;
+      extra = true;
       # rust = true;
       # ai = "default";
     };
@@ -106,14 +104,14 @@
 
     #? Build a shell spec from a normalized variant
     mkShellSpec = variant: let
-      tools = mkTools {inherit pkgs variant;};
       packages =
         []
         ++ (attrValues formatting.packages.${getSystem pkgs})
-        ++ tools.packages
+        ++ (mkCommon {inherit pkgs variant;}).all
+        ++ (mkExtra {inherit pkgs variant;}).all
         ++ extraPackages;
-      env = {} // tools.env // extraEnv;
-      shellHook = tools.shellHook;
+      env = {} // extraEnv;
+      shellHook = "";
     in {inherit packages env shellHook;};
 
     #? formatting is variant-agnostic (driven by the default variant)

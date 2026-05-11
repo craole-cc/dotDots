@@ -146,18 +146,22 @@
       value;
 
   normalizeVariant = raw: {
-    base = normalizeFeature {
+    common = normalizeFeature {
       enable = true;
-      includeMise = false;
-    } (raw.base or true);
+    } (raw.common or true);
 
-    extra = normalizeFeature {
-      enable = false;
-      includeMise = false;
-      includeFetch = false;
-      includeGitTools = false;
-      includeLsd = false;
-    } (raw.extra or null);
+    extra = let
+      defaults = {
+        enable = false;
+        includeMise = false;
+        includeFetch = false;
+        includeGitTools = false;
+        includeFileTools = false;
+      };
+    in
+      if (raw.extra or null) == true
+      then mapAttrs (_: _: true) defaults
+      else normalizeFeature defaults (raw.extra or null);
 
     ai = normalizeAi (raw.ai or null);
 
@@ -171,7 +175,8 @@
         extraExtensions = [];
       } (raw.rust or null);
     in
-      base // {enable = base.enable || isEnabled (raw.includeRust or false);};
+      base
+      // {enable = base.enable || isEnabled (raw.includeRust or false);};
 
     web = let
       base = normalizeFeature {
@@ -181,7 +186,8 @@
         includeTrunk = false;
       } (raw.web or null);
     in
-      base // {enable = base.enable || isEnabled (raw.includeWeb or false);};
+      base
+      // {enable = base.enable || isEnabled (raw.includeWeb or false);};
 
     database = let
       base = normalizeFeature {
@@ -192,7 +198,8 @@
         includeSqlite = false;
       } (raw.database or null);
     in
-      base // {enable = base.enable || isEnabled (raw.includeDatabase or false);};
+      base
+      // {enable = base.enable || isEnabled (raw.includeDatabase or false);};
 
     editor = normalizeEditor (raw.editor or null);
   };

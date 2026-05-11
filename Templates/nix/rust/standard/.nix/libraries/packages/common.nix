@@ -3,23 +3,18 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
   inherit (lib.strings) mkStyledOutput;
-
-  mkBase = {
+in {
+  mkCommon = {
     pkgs,
-    variant ? {
-      base = {
-        enable = true;
-        includeMise = false;
-      };
-    },
+    variant ? {common.enable = true;},
   }: let
-    cfg = variant.base;
+    cfg = variant.common;
     inherit (pkgs.stdenv) isLinux;
   in (
-    {kind = "base";}
+    {kind = "common";}
     // optionalAttrs cfg.enable (let
       packages =
         {
@@ -166,6 +161,7 @@
         };
       in
         auto // manual // printers;
-    in {inherit packages binaries scripts;})
+      all = attrValues packages ++ attrValues scripts;
+    in {inherit all packages binaries scripts;})
   );
-in {inherit mkBase;}
+}
