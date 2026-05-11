@@ -45,8 +45,8 @@ in
     scope = acc: acc;
     extraArgs = {inherit paths;};
     entries = [
-      ./meta.nix
       ./trivial
+      ./meta
       ./filesystem
       ./attrsets
       ./strings
