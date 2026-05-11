@@ -110,7 +110,10 @@ in {
           reload = mkPkg {
             inherit pkgs;
             name = "reload";
-            command = "${commit}; ${direnv} reload";
+            command = ''
+              gcp --no-push
+              ${direnv} reload
+            '';
           };
           check = mkPkg {
             inherit pkgs;
