@@ -2,6 +2,7 @@
   inherit (lib.attrsets) isAttrs;
   inherit (lib.strings) isString;
   inherit (lib.lists) any elem isList;
+  inherit (lib.trivial) isBool;
 
   /**
   Determine whether a value is empty.
@@ -80,15 +81,22 @@
 
   hasAny = needles: haystack: any (x: elem x haystack) needles;
 
+  # isDisabled = value:
+  #   value
+  #   == null
+  #   || value == false
+  #   || value == 0
+  #   || value == {}
+  #   || value == []
+  #   || value == "";
   isDisabled = value:
     value
     == null
-    || value == false
+    || (isBool value && !value)
     || value == 0
     || value == {}
     || value == []
     || value == "";
-
   isEnabled = value: !isDisabled value;
 in {
   inherit

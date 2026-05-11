@@ -123,7 +123,7 @@ in {
             name = "check";
             command = ''
               # git add --all && git commit --message "checking"
-              nix flake check
+              nix flake check "$@"
             '';
           };
           format = mkPkg {
