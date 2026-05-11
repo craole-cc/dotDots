@@ -43,7 +43,7 @@ in {
     // optionalAttrs cfg.enable (let
       packages = with pkgs;
         {}
-        // optionalAttrs cfg.includeMysql {inherit mysql-client;}
+        // optionalAttrs cfg.includeMysql {inherit (mariadb) client;}
         // optionalAttrs cfg.includePostgres {inherit postgresql;}
         // optionalAttrs cfg.includeRedis {inherit redis;}
         // optionalAttrs cfg.includeSqlite {inherit sqlite;};

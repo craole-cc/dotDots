@@ -1,13 +1,6 @@
 {lib, ...}: let
   inherit (lib.attrsets) attrValues isAttrs mapAttrs;
-  inherit
-    (lib.lists)
-    concatLists
-    elem
-    filter
-    toList
-    unique
-    ;
+  inherit (lib.lists) concatLists elem filter toList unique;
   inherit (lib.strings) concatNonEmpty toPascalCase isString toLower;
   inherit (lib.trivial) hasAny isDisabled isEnabled;
 
@@ -77,7 +70,7 @@
   normalizeFeature = defaults: value:
     if isDisabled value
     then defaults // {enable = false;}
-    else if value
+    else if isEnabled value
     then defaults // {enable = true;}
     else defaults // value // {enable = isEnabled (value.enable or true);};
 

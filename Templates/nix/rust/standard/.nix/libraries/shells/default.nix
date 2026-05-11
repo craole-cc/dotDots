@@ -5,17 +5,9 @@ lib.assembly.importLibs {
   priority = [
     "core.nix"
     "data.nix"
-    "scripts.nix"
-    "formatting.nix"
-    "meta.nix"
-    "tools.nix"
     "config.nix"
   ];
   ignore = [
-    "common"
-    "web"
-    "ai"
-    "rust"
-    "editor"
+    "scripts.nix"
   ];
 }

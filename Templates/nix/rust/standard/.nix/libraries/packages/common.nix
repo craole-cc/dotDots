@@ -101,6 +101,13 @@ in {
             name = "reload";
             command = ''${direnv} reload'';
           };
+          repl = mkPkg {
+            inherit pkgs;
+            name = "repl";
+            command = ''
+              nix repl .
+            '';
+          };
           check = mkPkg {
             inherit pkgs;
             name = "check";
