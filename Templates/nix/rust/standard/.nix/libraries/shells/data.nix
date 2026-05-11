@@ -1,6 +1,5 @@
 {
   lib,
-  paths,
   ...
 }: let
   inherit
