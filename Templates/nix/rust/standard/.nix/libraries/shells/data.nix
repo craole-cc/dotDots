@@ -113,11 +113,13 @@
       }
       else {};
   in
-    normalizeFeature defaults (
-      if isAttrs value
-      then preset // value
-      else preset
-    );
+    if isAttrs value
+    then
+      defaults
+      // preset
+      // value
+      // {enable = isEnabled (value.enable or true);}
+    else defaults // preset;
 
   normalizeVariant = raw: {
     __variantName = raw.__variantName or null;

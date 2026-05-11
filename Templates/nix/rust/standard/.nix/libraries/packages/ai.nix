@@ -1,71 +1,85 @@
 /**
-libraries/packages/llm.nix
+packages/ai.nix
 
-LLM-agent package selectors and command helpers for lib.packages.
+Resolve AI/LLM CLI tooling from a normalized variant attrset.
 */
 {lib}: let
-  inherit (lib.attrsets) attrValues filterAttrs;
-  inherit (lib.packages) resolveBins mkCmds;
-  inherit (lib.trivial) isNotEmpty;
+  inherit
+    (lib.attrsets)
+    attrValues
+    filterAttrs
+    mapAttrs
+    optionalAttrs
+    ;
+  inherit (lib.packages) mkBins mkCmds;
+in {
+  mkAI = {
+    pkgs,
+    variant ? {
+      ai = {
+        enable = false;
+        includeCodex = false;
+        includeClaude = false;
+        includeHermes = false;
+        includeOpenClaw = false;
+      };
+    },
+  }: let
+    cfg = variant.ai or {};
 
-  /**
-  Build a normalized view of installed LLM agent tooling.
+    registry = {
+      codex = {
+        enable = cfg.includeCodex or false;
+        package = pkgs.codex or null;
+      };
+      claude = {
+        enable = cfg.includeClaude or false;
+        package = pkgs.claude-code or null;
+      };
+      hermes = {
+        enable = cfg.includeHermes or false;
+        package = pkgs.hermes or null;
+      };
+      opencode = {
+        enable = cfg.includeOpenClaw or false;
+        package = pkgs.openclaw or null;
+      };
+    };
 
-  Returns package lists, binary paths, shell command aliases, and the standard
-  API-key environment contract expected by the AI shell.
+    selected =
+      mapAttrs (_: v: v.package)
+      (filterAttrs (_: v: v.enable && v.package != null) registry);
 
-  # Type
-  ```nix
-  mkAI :: {
-    pkgs :: AttrSet;
-    lib :: AttrSet;
-  } -> {
-    packages :: [derivation];
-    bin :: AttrSet;
-    cmd :: AttrSet;
-    env :: AttrSet;
-  }
-  ```
-
-  # Examples
-  ```nix
-  mkAI { inherit pkgs lib; }
-  # => {
-  #   packages = [ ... ];
-  #   bin.codex = "/nix/store/.../bin/codex";
-  #   cmd.cx = "/nix/store/.../bin/codex";
-  #   env.OPENAI_API_KEY = "$OPENAI_API_KEY";
-  # }
-  ```
-
-  # Returns
-  A normalized tool description containing package derivations, binary paths,
-  shell command aliases, and expected API-key environment variables.
-  */
-  mkAI = {pkgs}: let
-    tools = pkgs.llm-agents or {};
-    packages = attrValues tools;
-    bin = resolveBins tools;
+    bin = mkBins selected;
 
     cmd =
-      (mkCmds bin (path: path))
-      // {
-        # Standard Aliases
-        cc = bin.claude or null;
-        cx = bin.codex or null;
-        gm = bin.gemini or null;
-        oc = bin.opencode or null;
-
-        # Flagged Aliases
-        cc-auto = mkCmds {exe = bin.claude or null;} (p: "${p} --dangerously-skip-permissions");
-        cx-full = mkCmds {exe = bin.codex or null;} (p: "${p} --full-auto");
+      (mkCmds bin (p: p))
+      // optionalAttrs (bin ? claude) {
+        cc = bin.claude;
+        cc-auto = "${bin.claude} --dangerously-skip-permissions";
+      }
+      // optionalAttrs (bin ? codex) {
+        cx = bin.codex;
+        cx-full = "${bin.codex} --full-auto";
+      }
+      // optionalAttrs (bin ? opencode) {
+        oc = bin.opencode;
+      }
+      // optionalAttrs (bin ? hermes) {
+        hm = bin.hermes;
       };
 
-    env = {
+    env = optionalAttrs (cfg.enable or false) {
       ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";
       OPENAI_API_KEY = "$OPENAI_API_KEY";
       GEMINI_API_KEY = "$GEMINI_API_KEY";
       CODEX_UNSAFE_ALLOW_NO_SANDBOX = "0";
     };
-  in {inherit packages bin cmd env;};
-in {inherit mkAI;}
+
+    all = attrValues selected;
+  in {
+    kind = "ai";
+    inherit cfg registry selected all bin cmd env;
+    packages = selected;
+  };
+}

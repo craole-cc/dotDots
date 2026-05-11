@@ -8,19 +8,11 @@
 in {
   mkExtra = {
     pkgs,
-    variant ? {
-      extra = {
-        enable = false;
-        includeMise = false;
-        includeFetch = false;
-        includeGitTools = false;
-        includeFileTools = false;
-        includeRustScript = false;
-      };
-    },
+    variant ? {},
   }: let
     cfg = variant.extra;
-  in {
+  in
+    {
       kind = "extra";
       all = [];
     }

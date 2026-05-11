@@ -4,15 +4,7 @@
 in {
   mkDatabase = {
     pkgs,
-    variant ? {
-      database = {
-        enable = false;
-        includeMysql = false;
-        includePostgres = false;
-        includeRedis = false;
-        includeSqlite = false;
-      };
-    },
+    variant ? {},
   }: let
     raw = variant.database or {};
 

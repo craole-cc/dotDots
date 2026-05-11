@@ -11,6 +11,7 @@
   inherit
     (lib.packages)
     getSystem
+    mkAI
     mkCommon
     mkDatabase
     mkExtra
@@ -29,17 +30,21 @@
   inherit (lib.templates) deployTemplates;
 
   #╔═══════════════════════════════════════════════════════════╗
-  #║ Tiers                                                     ║
+  #║ Variants                                                  ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  # mkVariant = config: tier: recursiveUpdate tier config;
+  mkVariant = {
+    config,
+    name,
+    raw,
+  }:
+    recursiveUpdate
+    config
+    (raw // {__variantName = name;});
 
   mkVariants = config:
     mapAttrs
-    (
-      name: tier:
-        recursiveUpdate config (tier // {__variantName = name;})
-    )
+    (name: raw: mkVariant {inherit config name raw;})
     {
       minimal = {
         common = true;
@@ -58,26 +63,6 @@
         web = true;
         database = true;
         ai = "full";
-      };
-
-      rust = {
-        rust = true;
-      };
-
-      rust-web = {
-        rust = true;
-        web = true;
-      };
-
-      rust-database = {
-        rust = true;
-        database = true;
-      };
-
-      rust-web-database = {
-        rust = true;
-        web = true;
-        database = true;
       };
 
       minimalRustStable = {
@@ -142,6 +127,7 @@
     pkgs,
     variant,
   }: {
+    ai = mkAI {inherit pkgs variant;};
     common = mkCommon {inherit pkgs variant;};
     extra = mkExtra {inherit pkgs variant;};
     database = mkDatabase {inherit pkgs variant;};
@@ -150,11 +136,13 @@
   };
 
   mkExportedPackages = modules:
-    modules.common.all
-    ++ modules.extra.all
-    ++ modules.database.all
-    ++ modules.web.all
-    ++ modules.rust.all;
+    with modules;
+      common.all
+      ++ extra.all
+      ++ database.all
+      ++ web.all
+      ++ ai.all
+      ++ rust.all;
 
   mkShellSpec = {
     pkgs,
@@ -165,22 +153,23 @@
   }: let
     modules = mkModules {inherit pkgs variant;};
   in {
-    packages =
+    packages = with modules;
       extraPackages
-      ++ (modules.rust.all or [])
-      ++ (modules.web.all or [])
-      ++ (modules.database.all or [])
-      ++ (modules.extra.all or [])
-      ++ (modules.common.all or [])
+      ++ (rust.all or [])
+      ++ (web.all or [])
+      ++ (database.all or [])
+      ++ (extra.all or [])
+      ++ (common.all or [])
       ++ attrValues (formatting.packages.${getSystem pkgs} or {});
 
-    env =
+    env = with modules;
       {}
-      // (modules.common.env or {})
-      // (modules.extra.env or {})
-      // (modules.database.env or {})
-      // (modules.web.env or {})
-      // (modules.rust.env or {})
+      // (ai.env or {})
+      // (common.env or {})
+      // (extra.env or {})
+      // (database.env or {})
+      // (web.env or {})
+      // (rust.env or {})
       // extraEnv;
 
     shellHook = "";
@@ -283,4 +272,4 @@
       (mkExportedPackages defaultModules)
     );
   };
-in {inherit mkEnvironment mkModules mkVariants;}
+in {inherit mkEnvironment mkModules mkVariant mkVariants;}

@@ -9,7 +9,7 @@
 in {
   mkCommon = {
     pkgs,
-    variant ? {common.enable = true;},
+    variant ? {},
   }: let
     cfg = variant.common;
     inherit (pkgs.stdenv) isLinux;
