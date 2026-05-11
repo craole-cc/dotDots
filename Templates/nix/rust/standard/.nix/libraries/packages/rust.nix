@@ -1,26 +1,33 @@
-{lib}: let
+/**
+packages/rust.nix
+
+Resolve a Rust toolchain derivation from a normalized variant attrset.
+
+Reads variant.rust, variant.web, and variant.editor to determine components
+and targets — no duplicate flags needed at the call-site.
+
+Toolchain file resolution order:
+  1. paths.flake + "/rust-toolchain.toml"
+  2. paths.flake + "/rust-toolchain"
+  3. String-based channel from variant.rust.channel (default: "nightly")
+*/
+{
+  lib,
+  paths,
+}: let
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem optionals unique;
   inherit (lib.trivial) fromTOML isNotEmpty pathExists readFile;
 
-  /**
-  Non-overlapping component sets used to compose a toolchain.
-
-  `minimal` and `default` are base profiles; `ide` and `docs` are additive
-  feature sets appended on top.  Because they do not overlap, combining them
-  never produces duplicate entries (except when `extraExtensions` is involved,
-  which is deduplicated at call-site).
-
-  - `minimal` → cargo, rustc, rust-std
-  - `default` → minimal + clippy, rust-docs, rustfmt  (lint / CI baseline)
-  - `ide`     → rust-analyzer, rust-src               (editor / LSP — additive)
-  - `docs`    → rust-docs                             (offline book — additive)
-
-  Note: `rust-docs` appears in both `default` and `docs`.  On the string-based
-  path `includeDocs` is therefore only meaningful when `minimal = true`.
-
-  Reference: https://rust-lang.github.io/rustup/concepts/profiles.html
-  */
+  # ---------------------------------------------------------------------------
+  # Component profiles
+  #
+  # Non-overlapping sets composed additively.  No set is a superset of another
+  # except default ⊃ minimal, so combining them never duplicates entries
+  # (extraExtensions is deduplicated at call-site via `unique`).
+  #
+  # Reference: https://rust-lang.github.io/rustup/concepts/profiles.html
+  # ---------------------------------------------------------------------------
   profiles = let
     minimal = ["cargo" "rustc" "rust-std"];
     default = minimal ++ ["clippy" "rust-docs" "rustfmt"];
@@ -28,54 +35,36 @@
     docs = ["rust-docs"];
   in {inherit minimal default ide docs;};
 
-  /**
-  Select a rust-overlay toolchain derivation.
+  # ---------------------------------------------------------------------------
+  # mkRust
+  # ---------------------------------------------------------------------------
 
-  Resolves a Rust toolchain from either a `rust-toolchain.toml` file (auto-
-  detected or explicit) or a set of inline parameters.  Returns a rich attrset
-  that includes the derivation, resolved component flags, and target list so
-  that downstream shell / CI definitions can conditionally enable or skip steps
-  depending on what is actually installed.
+  /**
+  Select a rust-overlay toolchain derivation driven entirely by `variant`.
 
   # Type
   ```
   mkRust :: {
-    pkgs            :: AttrSet;     #? must include rust-bin from rust-overlay
-    channel         ? string;       #? "stable" | "beta" | "nightly" | "nightly-YYYY-MM-DD"
-                                    # default: "nightly"
-    minimal         ? bool;         #? use minimal profile — no clippy / rustfmt
-                                    # default: false
-    toolchainFile   ? path;         #? explicit path to rust-toolchain.toml
-                                    # default: auto-detects ../../rust-toolchain.toml,
-                                    #          then ../../templates/rust-toolchain.toml
-    includeEditor   ? bool;         #? append ide components (rust-analyzer, rust-src)
-                                    # default: true
-    includeDocs     ? bool;         #? append docs component (rust-docs)
-                                    #? only meaningful when minimal = true
-                                    # default: false
-    includeWeb      ? bool;         #? append wasm32-unknown-unknown target
-                                    # default: false
-    extraTargets    ? [string];     #? additional targets appended after all others
-                                    # default: []
-    extraExtensions ? [string];     #? additional components appended after all others
-                                    # default: []
+    pkgs    :: AttrSet;   #? must carry pkgs.rust-bin from rust-overlay
+    variant :: AttrSet;   #? normalized variant — reads .rust .web .editor
+    paths   :: AttrSet;   #? lib paths — uses paths.flake for file detection
   } -> {
     kind            :: string;      #? always "rust"
-    channel         :: string;      #? resolved channel string
-    package         :: derivation;  #? the rust-overlay toolchain derivation
+    channel         :: string;      #? resolved channel
+    package         :: derivation;  #? rust-overlay toolchain derivation
     toolchain       :: AttrSet;     #? { file, source, parsed, channel }
-    components      :: AttrSet;     #? { extensions :: [string], has* :: bool }
-    targets         :: [string];    #? fully resolved target list
+    components      :: AttrSet;     #? { extensions, has* }
+    targets         :: [string];
 
-    #? Flat aliases from components (also accessible as components.X):
+    #? Flat component aliases:
     extensions      :: [string];
-    hasClippy       :: bool;        #? cargo clippy
-    hasRustfmt      :: bool;        #? cargo fmt
-    hasMiri         :: bool;        #? cargo miri test
-    hasLlvmTools    :: bool;        #? cargo-llvm-cov, cargo-binutils
-    hasRustAnalyzer :: bool;        #? LSP server
-    hasSrc          :: bool;        #? rust-src — required for rust-analyzer std nav
-    hasDocs         :: bool;        #? rust-docs — local rustup doc
+    hasClippy       :: bool;
+    hasRustfmt      :: bool;
+    hasMiri         :: bool;
+    hasLlvmTools    :: bool;
+    hasRustAnalyzer :: bool;
+    hasSrc          :: bool;
+    hasDocs         :: bool;
 
     #? Forwarded from the derivation:
     paths           :: AttrSet;
@@ -86,112 +75,106 @@
 
   # Component resolution
 
-  ## File-based path (`toolchain.file != null`)
-  The TOML `profile` field (default: `"default"`) selects a base component set
-  from `profiles`, which is then merged with any `components` declared in the
-  file and with `extraExtensions`.  The result is deduplicated via `unique`.
-  The derivation is built with `fromRustupToolchainFile`; `extraExtensions` and
-  `extraTargets` are reflected in the `has*` flags and `targets` attrset fields
-  but are **not** forwarded to the derivation itself.
+  ## File-based (toolchain.file != null)
+  TOML `profile` (default: "default") selects the base component set.
+  File `components` and `variant.rust.extraExtensions` are merged in and
+  deduplicated.  The derivation is built with `fromRustupToolchainFile`.
+  `extraExtensions` and `extraTargets` are reflected in `has*` / `targets`
+  but are NOT forwarded to the derivation (the file drives it).
 
-  ## String-based path (`toolchain.file == null`)
-  Components are composed from non-overlapping sets:
+  ## String-based (toolchain.file == null)
   ```
-  (minimal ? profiles.minimal : profiles.default)
-  ++ (includeDocs   ? profiles.docs : [])
-  ++ (includeEditor ? profiles.ide  : [])
-  ++ extraExtensions
+  (variant.rust.minimal ? profiles.minimal : profiles.default)
+  ++ (variant.rust.includeDocs   ? profiles.docs : [])
+  ++ (variant.editor.enable      ? profiles.ide  : [])
+  ++ variant.rust.extraExtensions
   ```
-  The derivation is built with `rust.${channel}.latest.default.override`.
+  Derivation built with `rust.${channel}.latest.default.override`.
+
+  # Variant flags consumed
+  - variant.rust.channel          → toolchain channel (string-based path)
+  - variant.rust.minimal          → minimal vs default profile
+  - variant.rust.includeDocs      → append rust-docs
+  - variant.rust.extraTargets     → additional targets
+  - variant.rust.extraExtensions  → additional components
+  - variant.web.enable            → appends wasm32-unknown-unknown target
+  - variant.editor.enable         → appends rust-analyzer + rust-src (ide profile)
 
   # Examples
   ```nix
-  #? Nightly toolchain with default + ide components (the typical dev setup)
-  mkRust { inherit pkgs; }
+  # Typical dev shell — nightly + ide + wasm if web enabled
+  mkRust { inherit pkgs variant paths; }
 
-  #? Stable channel, no editor components
-  mkRust { inherit pkgs; channel = "stable"; includeEditor = false; }
-
-  #? CI: minimal baseline — hasClippy = false, hasRustfmt = false
-  mkRust { inherit pkgs; minimal = true; }
-
-  #? Toolchain file drives the profile and components
-  mkRust { inherit pkgs; toolchainFile = ./rust-toolchain.toml; }
-
-  #? Toolchain file + WASM target + extra component
+  # CI shell — minimal, no editor tools
   mkRust {
-    inherit pkgs;
-    toolchainFile   = ./rust-toolchain.toml;
-    includeWeb      = true;
-    extraExtensions = ["miri"];
+    inherit pkgs paths;
+    variant = normalizeVariant { rust.minimal = true; };
   }
-  ```
 
-  # Conditional lint example
-  ```nix
-  inherit (rust) package channel hasRustfmt hasClippy;
-  cmd =
-    {
-      check = "${cargo} check";
-      lint = concatStringsSep " && " (
-        [cmd.check]
-        ++ [cmd.fmtrs] or []
-        ++ [cmd.clippy] or []
-      );
-    }
-    // optionalAttrs hasRustfmt {
-      fmtrs = "${cargo} fmt --all";
-    }
-    // optionalAttrs hasClippy {
-      clippy = "${cargo} clippy --all-targets --all-features -- -D warnings";
-    };
+  # Stable channel via variant
+  mkRust {
+    inherit pkgs paths;
+    variant = normalizeVariant { rust = { channel = "stable"; }; };
+  }
   ```
   */
   mkRust = {
     pkgs,
-    channel ? null,
-    minimal ? false,
-    toolchainFile ? null,
-    includeEditor ? true,
-    includeDocs ? false,
-    includeWeb ? false,
-    extraTargets ? [],
-    extraExtensions ? [],
+    paths,
+    variant ? {
+      rust = {
+        channel = "nightly";
+        minimal = false;
+        includeDocs = false;
+        extraTargets = [];
+        extraExtensions = [];
+      };
+      web = {enable = false;};
+      editor = {enable = false;};
+    },
   }: let
-    toolchain = {
-      file = let
-        root = ../../rust-toolchain.toml;
-        template = ../../templates/rust-toolchain.toml;
-      in
-        if toolchainFile != null && pathExists toolchainFile
-        then toolchainFile
-        else if pathExists root
-        then root
-        else if pathExists template
-        then template
+    inherit (variant) rust web editor;
+    inherit (rust) channel minimal includeDocs extraTargets extraExtensions;
+
+    # -------------------------------------------------------------------------
+    # Toolchain file detection
+    # -------------------------------------------------------------------------
+    toolchain = let
+      rootToml = paths.flake + "/rust-toolchain.toml";
+      rootBare = paths.flake + "/rust-toolchain";
+      file =
+        if pathExists rootToml
+        then rootToml
+        else if pathExists rootBare
+        then rootBare
         else null;
+    in {
+      inherit file;
 
       source =
-        if isNotEmpty toolchain.file
+        if file != null
         then "file"
         else "string";
 
       parsed =
-        optionalAttrs (isNotEmpty toolchain.file)
-        (fromTOML (readFile toolchain.file)).toolchain;
+        if file != null
+        then (fromTOML (readFile file)).toolchain or {}
+        else {};
 
       channel =
-        if isNotEmpty toolchain.parsed && toolchain.parsed ? channel
+        if file != null && isNotEmpty (toolchain.parsed.channel or null)
         then toolchain.parsed.channel
-        else if isNotEmpty channel
-        then channel
-        else "nightly";
+        else channel;
     };
+
     inherit (toolchain) parsed;
 
+    # -------------------------------------------------------------------------
+    # Component resolution
+    # -------------------------------------------------------------------------
     components = let
       extensions =
-        if isNotEmpty parsed
+        if toolchain.file != null
         then let
           profile = parsed.profile or "default";
           base = profiles.${profile} or profiles.default;
@@ -205,33 +188,40 @@
             else profiles.default
           )
           ++ optionals includeDocs profiles.docs
-          ++ optionals includeEditor profiles.ide
+          ++ optionals editor.enable profiles.ide
           ++ extraExtensions;
     in {
       inherit extensions;
-      hasClippy = elem "clippy" extensions; # cargo clippy
-      hasRustfmt = elem "rustfmt" extensions; # cargo fmt
-      hasMiri = elem "miri" extensions; # cargo miri test
-      hasLlvmTools = elem "llvm-tools" extensions; # cargo-llvm-cov, cargo-binutils
-      hasRustAnalyzer = elem "rust-analyzer" extensions; # LSP server
-      hasSrc = elem "rust-src" extensions; # std nav in rust-analyzer
-      hasDocs = elem "rust-docs" extensions; # local rustup doc
+      hasClippy = elem "clippy" extensions;
+      hasRustfmt = elem "rustfmt" extensions;
+      hasMiri = elem "miri" extensions;
+      hasLlvmTools = elem "llvm-tools" extensions;
+      hasRustAnalyzer = elem "rust-analyzer" extensions;
+      hasSrc = elem "rust-src" extensions;
+      hasDocs = elem "rust-docs" extensions;
     };
 
+    # -------------------------------------------------------------------------
+    # Target resolution
+    # -------------------------------------------------------------------------
     targets = unique (
-      optionals (isNotEmpty parsed) (parsed.targets or [])
-      ++ optionals includeWeb ["wasm32-unknown-unknown"]
+      (parsed.targets or [])
+      ++ optionals web.enable ["wasm32-unknown-unknown"]
       ++ extraTargets
     );
 
+    # -------------------------------------------------------------------------
+    # Derivation
+    # -------------------------------------------------------------------------
     package = let
-      rust =
-        pkgs.rust-bin or (throw "lib.packages.mkRust: pkgs.rust-bin is required.");
+      rust-bin =
+        pkgs.rust-bin
+        or (throw "lib.packages.mkRust: pkgs.rust-bin not found — is the rust-overlay applied?");
     in
       if toolchain.file != null
-      then rust.fromRustupToolchainFile toolchain.file
+      then rust-bin.fromRustupToolchainFile toolchain.file
       else
-        rust.${toolchain.channel}.latest.default.override {
+        rust-bin.${toolchain.channel}.latest.default.override {
           inherit (components) extensions;
           inherit targets;
         };
@@ -243,4 +233,4 @@
       inherit (toolchain) channel;
     }
     // components;
-in {inherit mkRust;}
+in {inherit mkRust profiles;}

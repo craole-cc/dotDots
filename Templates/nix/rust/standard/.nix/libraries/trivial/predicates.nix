@@ -1,7 +1,7 @@
 {lib}: let
   inherit (lib.attrsets) isAttrs;
   inherit (lib.strings) isString;
-  inherit (lib.lists) any elem isList ;
+  inherit (lib.lists) any elem isList;
 
   /**
   Determine whether a value is empty.
@@ -79,10 +79,22 @@
   isNotEmpty = x: !isEmpty x;
 
   hasAny = needles: haystack: any (x: elem x haystack) needles;
+
+  isDisabled = value:
+    value
+    == null
+    || value == false
+    || value == {}
+    || value == []
+    || value == "";
+
+  isEnabled = value: !isDisabled value;
 in {
   inherit
     hasAny
     isEmpty
     isNotEmpty
+    isDisabled
+    isEnabled
     ;
 }

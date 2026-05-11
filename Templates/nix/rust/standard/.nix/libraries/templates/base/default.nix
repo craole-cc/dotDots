@@ -2,25 +2,22 @@
   inherit (lib.attrsets) optionalAttrs;
 
   mkBase = set:
-    optionalAttrs (set != null) (
+    optionalAttrs set.enable (
       {
         envrc = {
           source = ./envrc;
           target = ".envrc";
         };
-
         gitignore = {
           source = ./gitignore;
           target = ".gitignore";
         };
       }
-      // optionalAttrs (set.includeMise or false) {
+      // optionalAttrs set.includeMise {
         mise = {
           source = ./mise.toml;
           target = [".mise.toml" "mise.toml"];
         };
       }
     );
-in {
-  inherit mkBase;
-}
+in {inherit mkBase;}

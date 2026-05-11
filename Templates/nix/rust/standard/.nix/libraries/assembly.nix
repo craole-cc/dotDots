@@ -25,18 +25,14 @@ Intended as a zero-dependency bootstrap that other library namespaces
   paths,
   ...
 }: let
-  # ---------------------------------------------------------------------------
   # stdlib — only stock nixpkgs lib, nothing custom
-  # ---------------------------------------------------------------------------
   inherit (lib.attrsets) attrNames attrValues filterAttrs;
   inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
   inherit (lib.lists) concatMap elem filter flatten foldl' isList map optionals toList;
   inherit (lib.strings) hasSuffix match removeSuffix;
   inherit (lib.trivial) functionArgs isFunction;
 
-  # ---------------------------------------------------------------------------
   # assemble
-  # ---------------------------------------------------------------------------
 
   /**
   Assemble a list of modules in sequence, passing each module the
@@ -307,9 +303,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
     start
     orderedEntries;
 
-  # ---------------------------------------------------------------------------
   # Path discovery
-  # ---------------------------------------------------------------------------
 
   /**
   Directory basenames always skipped during discovery.
@@ -422,9 +416,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
       ) (toList path)
     );
 
-  # ---------------------------------------------------------------------------
   # Import helpers
-  # ---------------------------------------------------------------------------
 
   /**
   Normalize a path, list-of-paths, or options attrset into a canonical form.

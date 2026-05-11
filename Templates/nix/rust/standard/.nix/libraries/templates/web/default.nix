@@ -2,21 +2,21 @@
   inherit (lib.attrsets) optionalAttrs;
 
   mkWeb = set:
-    optionalAttrs (set != null) (
+    optionalAttrs set.enable (
       {}
-      // optionalAttrs (set.includeDeno or false) {
+      // optionalAttrs set.includeDeno {
         deno = {
           source = ./deno.jsonc;
           target = "deno.jsonc";
         };
       }
-      // optionalAttrs (set.includePrettier or false) {
+      // optionalAttrs set.includePrettier {
         prettier = {
           source = ./prettierrc;
           target = [".prettierrc" "prettier.config.json"];
         };
       }
-      // optionalAttrs (set.includeTrunk or false) {
+      // optionalAttrs set.includeTrunk {
         trunk = {
           source = ./trunk.toml;
           target = [

@@ -2,27 +2,27 @@
   inherit (lib.attrsets) optionalAttrs;
 
   mkDatabase = set:
-    optionalAttrs (set != null) (
+    optionalAttrs set.enable (
       {}
-      // optionalAttrs (set.includePostgres or false) {
+      // optionalAttrs set.includePostgres {
         postgres = {
           source = ./postgres.conf;
           target = "postgres.conf";
         };
       }
-      // optionalAttrs (set.includeMysql or false) {
+      // optionalAttrs set.includeMysql {
         mysql = {
           source = ./my.cnf;
           target = "my.cnf";
         };
       }
-      // optionalAttrs (set.includeSqlite or false) {
+      // optionalAttrs set.includeSqlite {
         sqlite = {
           source = ./sqlite.db;
           target = "sqlite.db";
         };
       }
-      // optionalAttrs (set.includeRedis or false) {
+      // optionalAttrs set.includeRedis {
         redis = {
           source = ./redis.conf;
           target = "redis.conf";

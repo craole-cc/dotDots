@@ -3,15 +3,13 @@ lib.assembly.importLibs {
   inherit lib;
   path = ./.;
   priority = [
+    "core.nix"
+    "data.nix"
     "scripts.nix"
-    "build.nix"
-    "formatter.nix"
+    "formatting.nix"
     "meta.nix"
     "tools.nix"
-    "deploy.nix"
-    # "config.nix"
-    "variants.nix"
-    "environment.nix"
+    "config.nix"
   ];
   ignore = [
     "common"
