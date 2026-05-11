@@ -102,7 +102,8 @@ Pure package and binary resolution helpers for lib.packages.
       mainProgram =
         if program != null
         then program
-        else drv.meta.mainProgram or (drv.NIX_MAIN_PROGRAM or (drv.pname or (
+        else
+          drv.meta.mainProgram or (drv.NIX_MAIN_PROGRAM or (drv.pname or (
             if name != null
             then name
             else parsed.name
@@ -348,6 +349,22 @@ Pure package and binary resolution helpers for lib.packages.
       ''
       else "";
 
+    # mkDiscoveredScript = base: let
+    #   chosen = choose base;
+    #   ext = scriptExt chosen;
+
+    #   source = pkgs.writeTextFile {
+    #     name = "${base}-source";
+    #     destination = "/share/${base}/${chosen.name}";
+    #     executable = true;
+    #     text = readFile chosen.path;
+    #   };
+    # in
+    #   nameValuePair base
+    #   (pkgs.writeShellScriptBin base ''
+    #     ${scriptEnv ext}
+    #     exec ${source}/share/${base}/${chosen.name} "$@"
+    #   '');
     mkDiscoveredScript = base: let
       chosen = choose base;
       ext = scriptExt chosen;
@@ -358,11 +375,16 @@ Pure package and binary resolution helpers for lib.packages.
         executable = true;
         text = readFile chosen.path;
       };
+
+      runner =
+        if ext == "rs"
+        then "${pkgs.rust-script}/bin/rust-script"
+        else source + "/share/${base}/${chosen.name}";
     in
       nameValuePair base
       (pkgs.writeShellScriptBin base ''
         ${scriptEnv ext}
-        exec ${source}/share/${base}/${chosen.name} "$@"
+        exec ${runner} ${source}/share/${base}/${chosen.name} "$@"
       '');
   in
     listToAttrs (map mkDiscoveredScript bases);

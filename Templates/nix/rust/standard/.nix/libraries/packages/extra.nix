@@ -16,7 +16,10 @@ in {
   }: let
     cfg = variant.extra;
   in (
-    {kind = "base";}
+    {
+      kind = "base";
+      all = [];
+    }
     // optionalAttrs cfg.enable (let
       packages =
         {}

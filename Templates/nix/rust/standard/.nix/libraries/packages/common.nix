@@ -14,7 +14,10 @@ in {
     cfg = variant.common;
     inherit (pkgs.stdenv) isLinux;
   in (
-    {kind = "common";}
+    {
+      kind = "common";
+      all = [];
+    }
     // optionalAttrs cfg.enable (let
       packages =
         {
@@ -32,7 +35,7 @@ in {
             trashy
             undollar
             ;
-          inherit (pkgs) gcc rust-script;
+          inherit (pkgs) gcc rust-script cargo;
         }
         // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;};
 
