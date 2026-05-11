@@ -15,7 +15,7 @@
     cargoToml = root + "/Cargo.toml";
     cargoExists = pathExists cargoToml;
   in
-    optionalAttrs cargoExists fromTOML (readFile cargoToml);
+    optionalAttrs cargoExists (fromTOML (readFile cargoToml));
   project = let
   in
     {inherit root name;} // cargo;
