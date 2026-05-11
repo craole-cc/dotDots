@@ -388,6 +388,34 @@ Pure package and binary resolution helpers for lib.packages.
       '');
   in
     listToAttrs (map mkDiscoveredScript bases);
+
+  mkRustScript = {
+    pkgs,
+    name,
+    src,
+    dependencies ? {},
+    version ? "0.1.0",
+    lockFile,
+  }:
+    pkgs.rustPlatform.buildRustPackage {
+      pname = name;
+      inherit version;
+      src = pkgs.runCommand "${name}-src" {} ''
+        mkdir -p $out/src
+        cp ${src} $out/src/main.rs
+        cat > $out/Cargo.toml << EOF
+        [package]
+        name = "${name}"
+        version = "${version}"
+        edition = "2021"
+        ${concatStringsSep "\n" (mapAttrsToList (n: v: "[dependencies.${n}]\n${v}") dependencies)}
+        [[bin]]
+        name = "${name}"
+        path = "src/main.rs"
+        EOF
+      '';
+      cargoLock.lockFile = lockFile;
+    };
 in {
   inherit
     mkPkgAttrs
@@ -396,6 +424,7 @@ in {
     resolveBin
     mkPackages
     resolveBins
+    mkRustScript
     mkBin
     mkBins
     mkCmds

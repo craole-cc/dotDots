@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) attrValues optionalAttrs;
-  inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
+  inherit (lib.packages) mkBins mkBin mkPkg mkPackages mkRustScript;
   inherit (lib.strings) mkStyledOutput;
 in {
   mkCommon = {
@@ -153,6 +153,19 @@ in {
               *) exit 1 ;;
               esac
             '';
+          };
+
+          vr3n = mkRustScript {
+            inherit pkgs;
+            name = "vr3n2";
+            src = paths.scripts.default + "/vr3n.rs";
+            lockFile = paths.scripts.default + "/vr3n.lock";
+            dependencies = {
+              clap = ''version = "4.5"\nfeatures = ["derive"]'';
+              miette = ''version = "7"\nfeatures = ["fancy"]'';
+              regex = ''version = "1"'';
+              thiserror = ''version = "2"'';
+            };
           };
         };
 
