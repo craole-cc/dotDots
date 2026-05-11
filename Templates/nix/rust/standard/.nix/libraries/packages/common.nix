@@ -124,7 +124,7 @@ in {
           };
           fa = mkPkg {
             inherit pkgs;
-            name = "ff";
+            name = "fa";
             command = "${fd} --absolute-path --hidden";
           };
           rga = mkPkg {
