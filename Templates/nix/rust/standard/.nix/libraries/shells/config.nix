@@ -157,5 +157,20 @@
     inherit templates;
     inherit (formatting) formatter checks;
     devShells = mkShells {inherit inputs shells;};
+    packages = listToAttrs (
+      map (p: {
+        name = p.pname or p.name;
+        value = p;
+      }) (
+        (mkCommon {
+          inherit pkgs;
+          variant = tierVariants.default;
+        }).all
+        ++ (mkExtra {
+          inherit pkgs;
+          variant = tierVariants.default;
+        }).all
+      )
+    );
   };
 in {inherit mkEnvironment;}
