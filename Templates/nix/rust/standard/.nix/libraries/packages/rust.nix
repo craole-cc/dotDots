@@ -11,12 +11,9 @@ Toolchain file resolution order:
   2. paths.flake + "/rust-toolchain"
   3. String-based channel from variant.rust.channel (default: "nightly")
 */
-{
-  lib,
-  paths,
-}: let
-  inherit (lib.attrsets) optionalAttrs;
+{lib}: let
   inherit (lib.lists) elem optionals unique;
+  inherit (lib.meta.project) root;
   inherit (lib.trivial) fromTOML isNotEmpty pathExists readFile;
 
   # ---------------------------------------------------------------------------
@@ -28,7 +25,7 @@ Toolchain file resolution order:
   #
   # Reference: https://rust-lang.github.io/rustup/concepts/profiles.html
   # ---------------------------------------------------------------------------
-  profiles = let
+  rustProfiles = let
     minimal = ["cargo" "rustc" "rust-std"];
     default = minimal ++ ["clippy" "rust-docs" "rustfmt"];
     ide = ["rust-analyzer" "rust-src"];
@@ -120,7 +117,6 @@ Toolchain file resolution order:
   */
   mkRust = {
     pkgs,
-    paths,
     variant ? {
       rust = {
         channel = "nightly";
@@ -129,19 +125,19 @@ Toolchain file resolution order:
         extraTargets = [];
         extraExtensions = [];
       };
-      web = {enable = false;};
-      editor = {enable = false;};
+      web.enable = false;
+      editor.enable = false;
     },
   }: let
     inherit (variant) rust web editor;
     inherit (rust) channel minimal includeDocs extraTargets extraExtensions;
 
-    # -------------------------------------------------------------------------
+
     # Toolchain file detection
-    # -------------------------------------------------------------------------
+
     toolchain = let
-      rootToml = paths.flake + "/rust-toolchain.toml";
-      rootBare = paths.flake + "/rust-toolchain";
+      rootToml = root + "/rust-toolchain.toml";
+      rootBare = root + "/rust-toolchain";
       file =
         if pathExists rootToml
         then rootToml
@@ -169,26 +165,26 @@ Toolchain file resolution order:
 
     inherit (toolchain) parsed;
 
-    # -------------------------------------------------------------------------
+
     # Component resolution
-    # -------------------------------------------------------------------------
+
     components = let
       extensions =
         if toolchain.file != null
         then let
           profile = parsed.profile or "default";
-          base = profiles.${profile} or profiles.default;
+          base = rustProfiles.${profile} or rustProfiles.default;
           explicit = parsed.components or [];
         in
           unique (base ++ explicit ++ extraExtensions)
         else
           (
             if minimal
-            then profiles.minimal
-            else profiles.default
+            then rustProfiles.minimal
+            else rustProfiles.default
           )
-          ++ optionals includeDocs profiles.docs
-          ++ optionals editor.enable profiles.ide
+          ++ optionals includeDocs rustProfiles.docs
+          ++ optionals editor.enable rustProfiles.ide
           ++ extraExtensions;
     in {
       inherit extensions;
@@ -201,22 +197,24 @@ Toolchain file resolution order:
       hasDocs = elem "rust-docs" extensions;
     };
 
-    # -------------------------------------------------------------------------
+
     # Target resolution
-    # -------------------------------------------------------------------------
+
     targets = unique (
       (parsed.targets or [])
       ++ optionals web.enable ["wasm32-unknown-unknown"]
       ++ extraTargets
     );
 
-    # -------------------------------------------------------------------------
+
     # Derivation
-    # -------------------------------------------------------------------------
+
     package = let
       rust-bin =
         pkgs.rust-bin
-        or (throw "lib.packages.mkRust: pkgs.rust-bin not found — is the rust-overlay applied?");
+        or (
+          throw "lib.packages.mkRust: pkgs.rust-bin not found — is the rust-overlay applied?"
+        );
     in
       if toolchain.file != null
       then rust-bin.fromRustupToolchainFile toolchain.file
@@ -233,4 +231,4 @@ Toolchain file resolution order:
       inherit (toolchain) channel;
     }
     // components;
-in {inherit mkRust profiles;}
+in {inherit mkRust rustProfiles;}

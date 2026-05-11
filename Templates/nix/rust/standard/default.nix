@@ -28,5 +28,6 @@
   pkgs = lib.packages.mkPkgs {inherit inputs system;};
 in {
   inherit description lib paths pkgs;
+  inherit (lib.meta) project;
   repl = import paths.nix {inherit lib pkgs;};
 }

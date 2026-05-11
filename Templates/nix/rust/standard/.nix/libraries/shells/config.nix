@@ -40,8 +40,8 @@
     };
 
     default = tier {
-      rust = true;
-      ai = "default";
+      # rust = true;
+      # ai = "default";
     };
 
     full = tier {
@@ -153,7 +153,7 @@
     #~@ All shells combined
     shells = baseShells // editorShells;
   in {
-    inherit templates project;
+    inherit templates;
     inherit (formatting) formatter checks;
     devShells = mkShells {inherit inputs shells;};
   };

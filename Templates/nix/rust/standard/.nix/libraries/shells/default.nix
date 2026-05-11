@@ -17,6 +17,5 @@ lib.assembly.importLibs {
     "ai"
     "rust"
     "editor"
-    "config.nix"
   ];
 }
