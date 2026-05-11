@@ -1,9 +1,5 @@
 {lib, ...}: let
-  inherit
-    (lib.attrsets)
-    attrValues
-    mapAttrs
-    ;
+  inherit (lib.attrsets) attrValues isAttrs mapAttrs;
   inherit
     (lib.lists)
     concatLists
@@ -85,48 +81,48 @@
     then defaults // {enable = true;}
     else defaults // value // {enable = isEnabled (value.enable or true);};
 
-  normalizeAi = value:
-    if isDisabled value
-    then {
+  normalizeAi = value: let
+    defaults = {
       enable = false;
       includeCodex = false;
       includeClaude = false;
       includeHermes = false;
       includeOpenClaw = false;
-    }
-    else if value == "minimal"
-    then {
-      enable = true;
-      includeCodex = true;
-      includeClaude = false;
-      includeHermes = false;
-      includeOpenClaw = false;
-    }
-    else if value || value == "default"
-    then {
-      enable = true;
-      includeCodex = true;
-      includeClaude = true;
-      includeHermes = false;
-      includeOpenClaw = false;
-    }
-    else if value == "full"
-    then {
-      enable = true;
-      includeCodex = true;
-      includeClaude = true;
-      includeHermes = true;
-      includeOpenClaw = true;
-    }
-    else
-      normalizeFeature {
-        enable = false;
-        includeCodex = false;
-        includeClaude = false;
-        includeHermes = false;
-        includeOpenClaw = false;
+    };
+
+    preset =
+      if value == "minimal"
+      then {
+        enable = true;
+        includeCodex = true;
       }
-      value;
+      else if value == "default"
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+      }
+      else if value == "full"
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+        includeHermes = true;
+        includeOpenClaw = true;
+      }
+      else if isEnabled value
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+      }
+      else {};
+  in
+    normalizeFeature defaults (
+      if isAttrs value
+      then preset // value
+      else preset
+    );
 
   normalizeVariant = raw: {
     common = normalizeFeature {

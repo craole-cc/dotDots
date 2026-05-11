@@ -153,6 +153,7 @@ Toolchain file resolution order:
       includeDocs = web.enable || rust.includeDocs;
       includeExtra = extra.enable || rust.includeExtra;
       nightly = cfg.channel == "nightly";
+      stable = cfg.channel == "stable";
     };
 
     # Toolchain file detection
