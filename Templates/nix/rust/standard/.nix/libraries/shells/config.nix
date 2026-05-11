@@ -32,12 +32,15 @@
   in {
     #~@ Opinionated tiers
     minimal = tier {
+      common = true;
       ai = "minimal";
     };
 
     default = tier {
       common = true;
-      extra = true;
+      ai = "minimal";
+
+      # extra = true;
       # rust = true;
       # ai = "default";
     };
