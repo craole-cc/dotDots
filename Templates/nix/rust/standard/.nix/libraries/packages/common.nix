@@ -46,7 +46,7 @@ in {
           // optionalAttrs isLinux {
             wl-copy = "${wl-clipboard}/bin/wl-copy";
             wl-paste = "${wl-clipboard}/bin/wl-paste";
-            rg = "${ripgrep-all}/bin/rga";
+            ripgrep--all = "${ripgrep-all}/bin/rga";
           }
         );
         scripts = mkBins scripts;
@@ -120,12 +120,17 @@ in {
           ff = mkPkg {
             inherit pkgs;
             name = "ff";
-            command = "${fd} --absolute-path \"$@\"";
+            command = "${fd} --hidden";
+          };
+          fa = mkPkg {
+            inherit pkgs;
+            name = "ff";
+            command = "${fd} --absolute-path --hidden";
           };
           rga = mkPkg {
             inherit pkgs;
             name = "rga";
-            command = "${ripgrep--all} --hidden \"$@\"";
+            command = "${ripgrep--all} --hidden";
           };
 
           #~@ Script Helpers
