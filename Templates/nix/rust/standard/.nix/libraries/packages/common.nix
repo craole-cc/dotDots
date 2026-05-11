@@ -13,7 +13,8 @@ in {
   }: let
     cfg = variant.common;
     inherit (pkgs.stdenv) isLinux;
-  in {
+  in
+    {
       kind = "common";
       all = [];
     }
@@ -111,10 +112,17 @@ in {
             name = "reload";
             command = "${commit}; ${direnv} reload";
           };
+          check = mkPkg {
+            inherit pkgs;
+            name = "check";
+            command ="cd ${paths.flake} && ${commit}; nix flake check";
+          };
           format = mkPkg {
             inherit pkgs;
             name = "format";
-            command = "${commit}; nix fmt";
+            command = ''
+              cd ${paths.flake} && ${commit}; nix fmt
+            '';
           };
           ff = mkPkg {
             inherit pkgs;
