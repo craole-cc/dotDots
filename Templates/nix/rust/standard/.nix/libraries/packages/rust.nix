@@ -120,9 +120,11 @@ Toolchain file resolution order:
   */
   mkRust = {
     pkgs,
+    # variant ? {},
     variant ? {
       rust = {
-        channel = "nightly";
+        # channel = "nightly";
+        channel = "stable";
         extraExtensions = [];
         extraTargets = [];
         includeAnalyzer = false;
@@ -245,37 +247,37 @@ Toolchain file resolution order:
         };
 
     packages = with pkgs;
-        {inherit gcc;}
-        // optionalAttrs stdenv.isDarwin {inherit libiconv;}
-        // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
-        // optionalAttrs cfg.includeExtra {
-          inherit
-            #~@ Watch
-            bacon
-            cargo-watch
-            #~@ Dependencies & Security
-            cargo-edit
-            cargo-outdated
-            cargo-audit
-            cargo-deny
-            #~@ Performance & Analysis
-            cargo-flamegraph
-            cargo-bloat
-            cargo-expand
-            #~@ Testing & Quality
-            cargo-nextest
-            cargo-tarpaulin
-            #~@ Formatting
-            cargo-make
-            ;
-        }
-        // optionalAttrs cfg.includeWeb {
-          inherit
-            binaryen
-            cargo-leptos
-            leptosfmt
-            ;
-        };
+      {inherit gcc;}
+      // optionalAttrs stdenv.isDarwin {inherit libiconv;}
+      // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
+      // optionalAttrs cfg.includeExtra {
+        inherit
+          #~@ Watch
+          bacon
+          cargo-watch
+          #~@ Dependencies & Security
+          cargo-edit
+          cargo-outdated
+          cargo-audit
+          cargo-deny
+          #~@ Performance & Analysis
+          cargo-flamegraph
+          cargo-bloat
+          cargo-expand
+          #~@ Testing & Quality
+          cargo-nextest
+          cargo-tarpaulin
+          #~@ Formatting
+          cargo-make
+          ;
+      }
+      // optionalAttrs cfg.includeWeb {
+        inherit
+          binaryen
+          cargo-leptos
+          leptosfmt
+          ;
+      };
 
     binaries = {
       packages = mkBins packages;
@@ -296,7 +298,7 @@ Toolchain file resolution order:
         RUST_SRC_PATH = "${package}/lib/rustlib/src/rust/library";
         RUSTFLAGS = optionalString cfg.nightly "-Z macro-backtrace";
         RUST_BACKTRACE =
-          if cfg.channel == "stable"
+          if cfg.stable
           then "0"
           else "full";
         RUST_LOG = "info";
