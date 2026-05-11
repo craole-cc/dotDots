@@ -3,7 +3,7 @@
   inherit (lib.lists) head toList;
   inherit (lib.packages) mkPkgs;
   inherit (lib.strings) concatNonEmpty escapeShellArg replaceStrings toLines;
-  inherit (lib.templates) mkBase mkDatabase mkEditor mkRust mkWeb;
+  inherit (lib.templates) mkCommon mkExtra mkDatabase mkEditor mkRust mkWeb;
   inherit (lib.trivial) readFile;
   arg = escapeShellArg;
 
@@ -12,13 +12,14 @@
     pkgs ? mkPkgs {},
     name ? "deploy-conf",
   }: let
-    inherit (variant) base editor database rust web;
+    inherit (variant) common editor extra database rust web;
 
     templates = (
       {}
-      // optionalAttrs base.enable (mkBase base)
+      // optionalAttrs common.enable (mkCommon common)
       // optionalAttrs database.enable (mkDatabase database)
       // optionalAttrs editor.enable (mkEditor editor)
+      // optionalAttrs extra.enable (mkExtra extra)
       // optionalAttrs rust.enable (mkRust rust)
       // optionalAttrs web.enable (mkWeb web)
     );

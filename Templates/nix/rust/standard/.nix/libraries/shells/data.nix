@@ -151,6 +151,14 @@
       includeMise = false;
     } (raw.base or true);
 
+    extra = normalizeFeature {
+      enable = false;
+      includeMise = false;
+      includeFetch = false;
+      includeGitTools = false;
+      includeLsd = false;
+    } (raw.extra or null);
+
     ai = normalizeAi (raw.ai or null);
 
     rust = let

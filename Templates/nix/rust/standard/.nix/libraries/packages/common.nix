@@ -16,11 +16,11 @@
       };
     },
   }: let
-    inherit (variant) base;
+    cfg = variant.base;
     inherit (pkgs.stdenv) isLinux;
   in (
     {kind = "base";}
-    // optionalAttrs base.enable (let
+    // optionalAttrs cfg.enable (let
       packages =
         {
           inherit
@@ -33,15 +33,13 @@
             gum
             jq
             nixd
-            ripgrep-all
             sd
             trashy
             undollar
             ;
           inherit (pkgs) gcc rust-script;
         }
-        // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;}
-        // optionalAttrs base.includeMise {inherit (pkgs) mise;};
+        // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;};
 
       binaries = {
         packages = with pkgs; (
@@ -49,6 +47,7 @@
           // optionalAttrs isLinux {
             wl-copy = "${wl-clipboard}/bin/wl-copy";
             wl-paste = "${wl-clipboard}/bin/wl-paste";
+            rg = "${ripgrep-all}/bin/rga";
           }
         );
         scripts = mkBins scripts;
@@ -91,6 +90,16 @@
               fi
             '';
           };
+          wl-copy = mkPkg {
+            inherit pkgs;
+            name = "wl-copy";
+            command = wl-copy;
+          };
+          wl-paste = mkPkg {
+            inherit pkgs;
+            name = "wl-paste";
+            command = wl-paste;
+          };
 
           #~@ Project
           glog = mkPkg {
@@ -108,15 +117,15 @@
             name = "format";
             command = "${commit}; nix fmt";
           };
-          rg = mkPkg {
-            inherit pkgs;
-            name = "rg";
-            command = "${binaries.packages.ripgrep-all} \"$@\"";
-          };
           ff = mkPkg {
             inherit pkgs;
             name = "ff";
             command = "${fd} --absolute-path \"$@\"";
+          };
+          rg = mkPkg {
+            inherit pkgs;
+            name = "rg";
+            command = rg;
           };
 
           #~@ Script Helpers
@@ -152,7 +161,7 @@
         printers = mkBin {
           inherit pkgs;
           prefix = "print";
-          sep = "_";
+          sep = "-";
           set = mkStyledOutput {inherit pkgs;};
         };
       in
