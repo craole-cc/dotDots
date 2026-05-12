@@ -81,6 +81,7 @@
       enable = false;
       includeCodex = false;
       includeClaude = false;
+      includeGemini = false;
       includeHermes = false;
       includeOpenClaw = false;
     };
@@ -90,18 +91,21 @@
       then {
         enable = true;
         includeCodex = true;
+        includeGemini = true;
       }
       else if value == "default"
       then {
         enable = true;
         includeCodex = true;
         includeClaude = true;
+        includeGemini = true;
       }
       else if value == "full"
       then {
         enable = true;
         includeCodex = true;
         includeClaude = true;
+        includeGemini = true;
         includeHermes = true;
         includeOpenClaw = true;
       }

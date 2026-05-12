@@ -8,6 +8,7 @@
     recursiveUpdate
     ;
   inherit (lib.lists) concatMap;
+  inherit (lib.meta) project;
   inherit
     (lib.packages)
     getSystem
@@ -27,6 +28,7 @@
     mkShells
     normalizeVariant
     ;
+  inherit (lib.strings) toJSON;
   inherit (lib.templates) deployTemplates;
 
   #╔═══════════════════════════════════════════════════════════╗
@@ -162,14 +164,20 @@
       ++ (common.all or [])
       ++ attrValues (formatting.packages.${getSystem pkgs} or {});
 
-    env = with modules;
-      {}
-      // (ai.env or {})
-      // (common.env or {})
-      // (extra.env or {})
-      // (database.env or {})
-      // (web.env or {})
-      // (rust.env or {})
+    env =
+      {
+        PROJECT_PATH = toString project.path;
+        PROJECT_NAME = project.name;
+        DEVSHELL_NAME = variant.__variantName or modules.variantName;
+        DEVSHELL = toJSON variant;
+        # DEVSHELL_VARIANT_RAW = toJSON raw;
+      }
+      // (modules.ai.env or {})
+      // (modules.common.env or {})
+      // (modules.extra.env or {})
+      // (modules.database.env or {})
+      // (modules.web.env or {})
+      // (modules.rust.env or {})
       // extraEnv;
 
     shellHook = "";
@@ -201,24 +209,21 @@
       inherit pkgs;
       variant = variants.final.default;
     };
+
     shells = let
+      ## Variant Normalization
+      #? Base shells use normalized `variants.final`. Editor shells inject into raw `variants.prev`
+      #? then normalize. See [AI Shell Variants Documentation](ai-shell-docs.md) for details.
       base =
         mapAttrs
-        (name: variant: let
-          spec = mkShellSpec {
-            inherit pkgs variant formatting extraPackages extraEnv;
-          };
-        in
-          spec
-          // {
-            env =
-              spec.env
-              // {
-                DEVSHELL_VARIANT_NAME = variant.__variantName or name;
-                DEVSHELL_VARIANT = builtins.toJSON variant;
-                DEVSHELL_VARIANT_RAW = builtins.toJSON variants.prev.${name};
-              };
-          })
+        (
+          name: variant: let
+            spec = mkShellSpec {
+              inherit pkgs variant formatting extraPackages extraEnv;
+            };
+          in
+            spec // {env = spec.env;}
+        )
         variants.final;
 
       editor = listToAttrs (
@@ -235,16 +240,7 @@
                   inherit pkgs formatting extraPackages extraEnv variant;
                 };
               in
-                spec
-                // {
-                  env =
-                    spec.env
-                    // {
-                      DEVSHELL_VARIANT_NAME = variant.__variantName or variantName;
-                      DEVSHELL_VARIANT = builtins.toJSON variant;
-                      DEVSHELL_VARIANT_RAW = builtins.toJSON raw;
-                    };
-                };
+                spec // {env = spec.env;};
             })
             (attrNames editorGroups)
         )

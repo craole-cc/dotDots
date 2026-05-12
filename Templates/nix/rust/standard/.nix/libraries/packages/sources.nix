@@ -34,7 +34,12 @@
         config =
           if config != null
           then config
-          else {allowUnfree = true;};
+          else {
+            allowUnfree = true;
+            permittedInsecurePackages = [
+              "openclaw-2026.3.12"
+            ];
+          };
         system =
           if isNotEmpty system
           then system

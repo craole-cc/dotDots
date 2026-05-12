@@ -9,12 +9,13 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Project                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
-  root = paths.flake;
-  name = baseNameOf root;
+  path = paths.flake;
+  name = baseNameOf path;
   cargo = let
-    cargoToml = root + "/Cargo.toml";
-    cargoExists = pathExists cargoToml;
+    toml = path + "/Cargo.toml";
   in
-    optionalAttrs cargoExists (fromTOML (readFile cargoToml));
-  project = {inherit root name;} // cargo;
+    optionalAttrs
+    (pathExists toml)
+    ((fromTOML (readFile toml)) // {path = toml;});
+  project = {inherit path name;} // cargo;
 in {inherit project;}

@@ -27,7 +27,7 @@
 
     env = mkEnvironment {inherit inputs pkgs self;};
   in {
-    inherit (cfg) lib ;
+    inherit (cfg) lib pkgs paths project repl;
     inherit (env) checks devShells formatter;
     legacyPackages =
       mapAttrs

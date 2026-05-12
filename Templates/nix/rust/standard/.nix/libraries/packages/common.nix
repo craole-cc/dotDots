@@ -17,6 +17,7 @@ in {
     {
       kind = "common";
       all = [];
+      env = {};
     }
     // optionalAttrs cfg.enable (let
       packages =
@@ -178,5 +179,7 @@ in {
       in
         auto // manual // printers;
       all = attrValues packages ++ attrValues scripts;
-    in {inherit all packages binaries scripts;});
+
+      env = {};
+    in {inherit all env packages binaries scripts;});
 }

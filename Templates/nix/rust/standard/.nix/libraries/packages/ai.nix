@@ -4,82 +4,86 @@ packages/ai.nix
 Resolve AI/LLM CLI tooling from a normalized variant attrset.
 */
 {lib}: let
-  inherit
-    (lib.attrsets)
-    attrValues
-    filterAttrs
-    mapAttrs
-    optionalAttrs
-    ;
+  inherit (lib.attrsets) attrValues filterAttrs optionalAttrs;
   inherit (lib.packages) mkBins mkCmds;
 in {
   mkAI = {
     pkgs,
-    variant ? {
-      ai = {
-        enable = false;
-        includeCodex = false;
-        includeClaude = false;
-        includeHermes = false;
-        includeOpenClaw = false;
-      };
-    },
+    variant ? {},
   }: let
     cfg = variant.ai or {};
-
-    registry = {
-      codex = {
-        enable = cfg.includeCodex or false;
-        package = pkgs.codex or null;
-      };
-      claude = {
-        enable = cfg.includeClaude or false;
-        package = pkgs.claude-code or null;
-      };
-      hermes = {
-        enable = cfg.includeHermes or false;
-        package = pkgs.hermes or null;
-      };
-      opencode = {
-        enable = cfg.includeOpenClaw or false;
-        package = pkgs.openclaw or null;
-      };
-    };
-
-    selected =
-      mapAttrs (_: v: v.package)
-      (filterAttrs (_: v: v.enable && v.package != null) registry);
-
-    bin = mkBins selected;
-
-    cmd =
-      (mkCmds bin (p: p))
-      // optionalAttrs (bin ? claude) {
-        cc = bin.claude;
-        cc-auto = "${bin.claude} --dangerously-skip-permissions";
-      }
-      // optionalAttrs (bin ? codex) {
-        cx = bin.codex;
-        cx-full = "${bin.codex} --full-auto";
-      }
-      // optionalAttrs (bin ? opencode) {
-        oc = bin.opencode;
-      }
-      // optionalAttrs (bin ? hermes) {
-        hm = bin.hermes;
+    llm = pkgs.llm-agents or {};
+  in
+    {
+      kind = "ai";
+      all = [];
+      env = {};
+    }
+    // optionalAttrs cfg.enable (let
+      packages = filterAttrs (_: v: v != null) {
+        codex =
+          if cfg.includeCodex
+          then (llm.codex or pkgs.codex or null)
+          else null;
+        claude =
+          if cfg.includeClaude
+          then (llm.claude-code or pkgs.claude-code or pkgs.claude-code-bin or null)
+          else null;
+        gemini =
+          if cfg.includeGemini
+          then (llm.gemini-cli or pkgs.gemini-cli-bin or pkgs.gemini-cli or null)
+          else null;
+        hermes =
+          if cfg.includeHermes
+          then (llm.hermes-agent or null)
+          else null;
+        openclaw =
+          if cfg.includeOpenClaw
+          then (llm.openclaw or pkgs.openclaw or null)
+          else null;
       };
 
-    env = optionalAttrs (cfg.enable or false) {
-      ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";
-      OPENAI_API_KEY = "$OPENAI_API_KEY";
-      GEMINI_API_KEY = "$GEMINI_API_KEY";
-      CODEX_UNSAFE_ALLOW_NO_SANDBOX = "0";
-    };
+      binaries = {
+        packages = mkBins packages;
+        scripts = mkBins scripts;
+        all = binaries.packages // binaries.scripts;
+      };
 
-    all = attrValues selected;
-  in {
-    kind = "ai";
-    inherit cfg registry selected all bin cmd env;
-    packages = selected;
-  };
+      scripts =
+        (mkCmds binaries (p: p))
+        // optionalAttrs (binaries ? codex) {
+          cx = binaries.codex;
+          cx-auto = "${binaries.codex} --full-auto";
+        }
+        // optionalAttrs (binaries ? claude) {
+          inherit (binaries) claude;
+          cc-auto = "${binaries.claude} --dangerously-skip-permissions";
+        }
+        // optionalAttrs (binaries ? gemini) {
+          gi = binaries.openclaw;
+        }
+        // optionalAttrs (binaries ? openclaw) {
+          claw = binaries.openclaw;
+        }
+        // optionalAttrs (binaries ? hermes) {
+          hma = binaries.hermes;
+        };
+
+      all = attrValues packages ++ attrValues scripts;
+
+      env =
+        {}
+        // optionalAttrs (cfg.includeClaude) {
+          ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";
+        }
+        // optionalAttrs (cfg.includeCodex) {
+          OPENAI_API_KEY = "$OPENAI_API_KEY";
+          CODEX_UNSAFE_ALLOW_NO_SANDBOX = "0";
+        }
+        // optionalAttrs (cfg.includeGemini) {
+          GEMINI_API_KEY = "$GEMINI_API_KEY";
+        }
+        // optionalAttrs (cfg.includeOpenClaw) {}
+        // optionalAttrs (cfg.includeHermes) {};
+    in {inherit all env packages binaries scripts;});
 }

@@ -14,7 +14,7 @@ Toolchain file resolution order:
 {lib}: let
   inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.lists) elem optionals unique;
-  inherit (lib.meta.project) root;
+  inherit (lib.meta) project;
   inherit (lib.packages) mkBins;
   inherit (lib.strings) optionalString;
   inherit (lib.trivial) fromTOML isNotEmpty pathExists readFile;
@@ -145,6 +145,7 @@ Toolchain file resolution order:
     # Toolchain file detection
 
     toolchain = let
+      root = project.path;
       rootToml = root + "/rust-toolchain.toml";
       rootBare = root + "/rust-toolchain";
       file =
