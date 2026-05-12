@@ -172,6 +172,8 @@
         DEVSHELL_NAME = variant.__variantName or modules.variantName;
         DEVSHELL = toJSON variant;
         DEVSHELL_RAW = toJSON raw;
+        DEVSHELL_AI = toJSON variant.ai;
+        DEVSHELL_RUST = toJSON variant.rust;
       }
       // (modules.ai.env or {})
       // (modules.common.env or {})
