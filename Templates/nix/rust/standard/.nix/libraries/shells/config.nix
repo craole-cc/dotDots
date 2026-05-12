@@ -149,6 +149,7 @@
   mkShellSpec = {
     pkgs,
     variant,
+    raw ? {},
     formatting,
     extraPackages ? [],
     extraEnv ? {},
@@ -170,7 +171,7 @@
         PROJECT_NAME = project.name;
         DEVSHELL_NAME = variant.__variantName or modules.variantName;
         DEVSHELL = toJSON variant;
-        # DEVSHELL_VARIANT_RAW = toJSON raw;
+        DEVSHELL_RAW = toJSON raw;
       }
       // (modules.ai.env or {})
       // (modules.common.env or {})
@@ -217,35 +218,28 @@
       base =
         mapAttrs
         (
-          name: variant: let
-            spec = mkShellSpec {
+          name: variant:
+            mkShellSpec {
               inherit pkgs variant formatting extraPackages extraEnv;
-            };
-          in
-            spec // {env = spec.env;}
+              raw = variants.prev.${name};
+            }
         )
         variants.final;
 
-      editor = listToAttrs (
-        concatMap
-        (
-          variantName:
-            map
-            (editorName: {
-              name = editorShellName variantName editorName;
-              value = let
-                raw = recursiveUpdate variants.prev.${variantName} {editor = editorName;};
-                variant = normalizeVariant raw;
-                spec = mkShellSpec {
-                  inherit pkgs formatting extraPackages extraEnv variant;
-                };
-              in
-                spec // {env = spec.env;};
-            })
-            (attrNames editorGroups)
-        )
-        (attrNames variants.prev)
-      );
+      editor = listToAttrs (concatMap (
+        variantName:
+          map (editorName: {
+            name = editorShellName variantName editorName;
+            value = let
+              raw = recursiveUpdate variants.prev.${variantName} {editor = editorName;};
+              variant = normalizeVariant raw;
+              spec = mkShellSpec {
+                inherit pkgs formatting extraPackages extraEnv variant raw; # ← thread raw in
+              };
+            in
+              spec;
+          }) (attrNames editorGroups)
+      ) (attrNames variants.prev));
     in
       base // editor;
 
