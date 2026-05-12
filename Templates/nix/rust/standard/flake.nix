@@ -21,17 +21,13 @@
   outputs = inputs @ {self, ...}: let
     cfg = import ./. {inherit inputs;};
     inherit (cfg) lib pkgs;
-    inherit (lib.attrsets) mapAttrs;
     inherit (lib.shells) mkEnvironment;
     inherit (lib.packages) mkPkgsPerSystem;
 
     env = mkEnvironment {inherit inputs pkgs self;};
   in {
     inherit (cfg) lib pkgs paths project repl;
-    inherit (env) checks devShells formatter;
-    legacyPackages =
-      mapAttrs
-      (_: sysPkgs: sysPkgs // env.packages)
-      (mkPkgsPerSystem {inherit inputs;});
+    inherit (env) checks devShells formatter packages;
+    legacyPackages = mkPkgsPerSystem {inherit inputs;};
   };
 }

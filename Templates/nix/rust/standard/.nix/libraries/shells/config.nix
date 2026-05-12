@@ -159,6 +159,7 @@
     packages = with modules;
       extraPackages
       ++ (rust.all or [])
+      ++ (ai.all or [])
       ++ (web.all or [])
       ++ (database.all or [])
       ++ (extra.all or [])
@@ -171,9 +172,17 @@
         PROJECT_NAME = project.name;
         DEVSHELL_NAME = variant.__variantName or modules.variantName;
         DEVSHELL = toJSON variant;
-        DEVSHELL_RAW = toJSON raw;
         DEVSHELL_AI = toJSON variant.ai;
         DEVSHELL_RUST = toJSON variant.rust;
+        DEVSHELL_WEB = toJSON variant.web;
+        DEVSHELL_EXTRA = toJSON variant.extra;
+        DEVSHELL_DATABASE = toJSON variant.database;
+        DEVSHELL_EDITOR = toJSON variant.editor;
+        DEVSHELL_RAW = toJSON (
+          if raw != null
+          then raw
+          else variant
+        );
       }
       // (modules.ai.env or {})
       // (modules.common.env or {})
@@ -181,6 +190,20 @@
       // (modules.database.env or {})
       // (modules.web.env or {})
       // (modules.rust.env or {})
+      // {
+        __DEVSHELL_NAME = variant.__variantName or "unknown";
+        __DEVSHELL_AI = toJSON variant.ai;
+        __DEVSHELL_RUST = toJSON variant.rust;
+        __DEVSHELL_WEB = toJSON variant.web;
+        __DEVSHELL_EXTRA = toJSON variant.extra;
+        __DEVSHELL_DATABASE = toJSON variant.database;
+        __DEVSHELL_EDITOR = toJSON variant.editor;
+        __DEVSHELL_RAW = toJSON (
+          if raw != null
+          then raw
+          else {}
+        );
+      }
       // extraEnv;
 
     shellHook = "";
@@ -233,10 +256,13 @@
           map (editorName: {
             name = editorShellName variantName editorName;
             value = let
-              raw = recursiveUpdate variants.prev.${variantName} {editor = editorName;};
+              raw =
+                recursiveUpdate
+                variants.prev.${variantName}
+                {editor = editorName;};
               variant = normalizeVariant raw;
               spec = mkShellSpec {
-                inherit pkgs formatting extraPackages extraEnv variant raw; # ← thread raw in
+                inherit pkgs formatting extraPackages extraEnv variant raw;
               };
             in
               spec;
