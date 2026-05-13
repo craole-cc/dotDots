@@ -74,12 +74,12 @@
       };
     };
 
-    editorAffinity = {
-      repo = "affinity-nix";
-      owner = "mrshmllow";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorAffinity = {
+    #   repo = "affinity-nix";
+    #   owner = "mrshmllow";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     editorHelix = {
       repo = "helix";
@@ -95,40 +95,40 @@
     #   inputs.nixpkgs.follows = "nixPackages";
     # };
 
-    editorNeovim = {
-      repo = "nvf";
-      owner = "notashelf";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorNeovim = {
+    #   repo = "nvf";
+    #   owner = "notashelf";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    editorTypix = {
-      repo = "typix";
-      owner = "loqusion";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorTypix = {
+    #   repo = "typix";
+    #   owner = "loqusion";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    editorVSCode = {
-      repo = "vscode-insiders-nix";
-      owner = "auguwu";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorVSCode = {
+    #   repo = "vscode-insiders-nix";
+    #   owner = "auguwu";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    editorVSCodeExtensions = {
-      repo = "nix-vscode-extensions";
-      owner = "nix-community";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorVSCodeExtensions = {
+    #   repo = "nix-vscode-extensions";
+    #   owner = "nix-community";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    secretsManager = {
-      repo = "agenix";
-      owner = "ryantm";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # secretsManager = {
+    #   repo = "agenix";
+    #   owner = "ryantm";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     shellDankMaterial = {
       # ref = "stable";
@@ -144,56 +144,56 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
-    shellCaelestia = {
-      repo = "shell";
-      owner = "caelestia-dots";
-      type = "github";
-      inputs = {
-        #> Follows stable to avoid broken app2unit 1.0.3 in nixpkgs-unstable.
-        #> app2unit fixupPhase looks for 'A2U__TERMINAL_HANDLER=xdg-terminal-exec'
-        #> which no longer exists in the binary post upstream source changes.
-        #> Revisit when unstable's app2unit derivation is fixed.
-        nixpkgs.follows = "nixPackagesStable";
-      };
-    };
+    # shellCaelestia = {
+    #   repo = "shell";
+    #   owner = "caelestia-dots";
+    #   type = "github";
+    #   inputs = {
+    #     #> Follows stable to avoid broken app2unit 1.0.3 in nixpkgs-unstable.
+    #     #> app2unit fixupPhase looks for 'A2U__TERMINAL_HANDLER=xdg-terminal-exec'
+    #     #> which no longer exists in the binary post upstream source changes.
+    #     #> Revisit when unstable's app2unit derivation is fixed.
+    #     nixpkgs.follows = "nixPackagesStable";
+    #   };
+    # };
 
-    shellNoctalia = {
-      repo = "noctalia-shell";
-      owner = "noctalia-dev";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # shellNoctalia = {
+    #   repo = "noctalia-shell";
+    #   owner = "noctalia-dev";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    shellPlasma = {
-      repo = "plasma-manager";
-      owner = "pjones";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-        home-manager.follows = "nixHomeManager";
-      };
-    };
+    # shellPlasma = {
+    #   repo = "plasma-manager";
+    #   owner = "pjones";
+    #   type = "github";
+    #   inputs = {
+    #     nixpkgs.follows = "nixPackages";
+    #     home-manager.follows = "nixHomeManager";
+    #   };
+    # };
 
-    shellQuick = {
-      repo = "quickshell";
-      owner = "outfoxxed";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # shellQuick = {
+    #   repo = "quickshell";
+    #   owner = "outfoxxed";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    styleManager = {
-      repo = "stylix";
-      owner = "nix-community";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # styleManager = {
+    #   repo = "stylix";
+    #   owner = "nix-community";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
-    styleCatppuccin = {
-      repo = "nix";
-      owner = "catppuccin";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # styleCatppuccin = {
+    #   repo = "nix";
+    #   owner = "catppuccin";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     treeFormatter = {
       repo = "treefmt-nix";
@@ -206,7 +206,7 @@
       repo = "llm-agents.nix";
       owner = "numtide";
       type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
+      # inputs.nixpkgs.follows = "nixPackages";
     };
   };
 }
