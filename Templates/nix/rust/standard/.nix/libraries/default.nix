@@ -53,6 +53,7 @@ in
       ./packages
       ./templates
       ./shells
+      ./modules
     ];
     ignore = ["tests" "assembly.nix" "format"];
   }
