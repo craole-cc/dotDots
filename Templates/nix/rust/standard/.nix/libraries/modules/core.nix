@@ -1,0 +1,153 @@
+{lib}: let
+  inherit
+    (lib.attrsets)
+    attrNames
+    listToAttrs
+    ;
+  inherit
+    (lib.lists)
+    concatMap
+    foldl'
+    optionals
+    reverseList
+    toList
+    unique
+    ;
+  inherit (lib.meta) project;
+  inherit
+    (lib.packages)
+    mkAI
+    mkCommon
+    mkDatabase
+    mkExtra
+    mkFormatter
+    mkRust
+    mkWeb
+    ;
+
+  collectPackages = {
+    selector,
+    modules,
+  }: let
+    normalizeName = package:
+      package.pname or (package.name or (
+        throw "Expected derivation-like value with pname or name"
+      ));
+  in
+    listToAttrs (
+      map
+      (package: {
+        name = normalizeName package;
+        value = package;
+      })
+      (unique (concatMap selector modules))
+    );
+
+  collectAttrs = {
+    selector,
+    modules,
+  }:
+    foldl'
+    (merged: module: merged // (selector module))
+    {}
+    modules;
+
+  collectMessages = {
+    selector,
+    modules,
+  }:
+    concatMap
+    (module:
+      optionals
+      ((selector module) != null)
+      (toList (selector module)))
+    modules;
+
+  collectModules = {
+    modules,
+    priority ? attrNames modules,
+  }: let
+    prioritized =
+      map
+      (
+        module:
+          modules.${
+            module
+          } or (
+            throw "collectModules: unknown module '${module}'"
+          )
+      )
+      priority;
+
+    ordered = reverseList prioritized;
+  in {
+    all = modules;
+    inherit priority prioritized ordered;
+  };
+
+  mkModules = {
+    inputs,
+    pkgs,
+    variant,
+  }: let
+    collected = collectModules {
+      priority = [
+        "formatting"
+        "rust"
+        "ai"
+        "web"
+        "database"
+        "extra"
+        "common"
+      ];
+      modules = {
+        ai = mkAI {inherit pkgs variant;};
+        common = mkCommon {inherit pkgs variant;};
+        database = mkDatabase {inherit pkgs variant;};
+        extra = mkExtra {inherit pkgs variant;};
+        formatting = mkFormatter {inherit inputs pkgs variant;};
+        rust = mkRust {inherit pkgs variant;};
+        web = mkWeb {inherit pkgs variant;};
+      };
+    };
+  in {
+    modules = collected.all;
+
+    packages = collectPackages {
+      selector = module:
+        module.packages.all or (module.pkgs or (module.packages or []));
+      modules = collected.prioritized;
+    };
+
+    binaries = collectAttrs {
+      selector = module:
+        module.binaries.all or (module.bin or (module.commands or (module.binaries or {})));
+      modules = collected.ordered;
+    };
+
+    variables =
+      {
+        PROJECT_PATH = toString project.path;
+        PROJECT_NAME = project.name;
+      }
+      // collectAttrs {
+        selector = module:
+          module.variables or (module.env or (module.environment or {}));
+        modules = collected.ordered;
+      };
+
+    messages = collectMessages {
+      selector = module:
+        module.messages or (module.shellHook or (module.shellHookParts or []));
+      modules = collected.prioritized;
+    };
+  };
+in {
+  inherit
+    collectModules
+    collectPackages
+    collectAttrs
+    collectMessages
+    mkModules
+    ;
+}

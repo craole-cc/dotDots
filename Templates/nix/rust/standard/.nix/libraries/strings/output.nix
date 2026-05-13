@@ -1,6 +1,15 @@
 {lib}: let
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.strings) concatStringsSep toUpper toJSON;
   inherit (lib.packages) mkPkgs;
+
+  mkEnvJSON = kind: prefix:  variant: {
+    "${prefix}_${toUpper kind}" = toJSON (
+      optionalAttrs
+      (variant != null && variant != {})
+      variant
+    );
+  };
 
   mkStyledOutput = {pkgs ? mkPkgs {}}: let
     gum = "${pkgs.gum}/bin/gum";
@@ -39,4 +48,4 @@
       --align center --width 60 --margin "1 2" --padding "1 2" \
       "${title}" "${content}"
   '';
-in {inherit mkStyledOutput mkSection mkHeader;}
+in {inherit mkEnvJSON mkStyledOutput mkSection mkHeader;}

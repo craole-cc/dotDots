@@ -5,181 +5,179 @@
 }: let
   inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
-  inherit (lib.strings) mkStyledOutput;
+  inherit (lib.strings) mkStyledOutput toJSON toUpper;
 in {
   mkCommon = {
     pkgs,
     variant ? {},
   }: let
-    cfg = variant.common;
-    inherit (pkgs.stdenv) isLinux;
+    kind = "common";
+    cfg = variant.${kind} or {enable = false;};
+    variables = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
+    inherit (pkgs.stdenv) isLinux isDarwin;
   in
-    {
-      kind = "common";
-      all = [];
-      env = {};
-    }
+    {inherit kind variables;}
     // optionalAttrs cfg.enable (let
-      packages =
-        {
-          inherit
-            (pkgs)
-            bat
-            direnv
-            fd
-            git
-            gnused
-            gum
-            jq
-            nixd
-            ripgrep
-            sd
-            trashy
-            undollar
-            watchexec
-            ;
-        }
-        // optionalAttrs isLinux {inherit (pkgs) wl-clipboard xclip xsel;};
+      packages = let
+        common = with pkgs;
+          {
+            inherit
+              bat
+              direnv
+              fd
+              git
+              gnused
+              gum
+              jq
+              nixd
+              ripgrep
+              sd
+              trashy
+              undollar
+              watchexec
+              ;
+          }
+          // optionalAttrs isDarwin {inherit libiconv;}
+          // optionalAttrs isLinux {inherit wl-clipboard xclip xsel;};
 
-      binaries = {
-        packages = with pkgs; (
-          mkBins packages
+        custom = let
+          auto =
+            optionalAttrs (paths ? scripts.default)
+            (mkPackages {
+              inherit pkgs;
+              dir = paths.scripts.default;
+              priority = ["sh" "bash" "py" "rb"];
+            });
+          manual = with binaries.packages; {
+            #~@ Clipboard
+            clip = mkPkg {
+              inherit pkgs;
+              name = "clip";
+              script = ''
+                if [ -n "$WAYLAND_DISPLAY" ]; then
+                  exec ${wl-copy} "$@"
+                elif [ -n "$DISPLAY" ]; then
+                  exec ${xclip} -selection clipboard "$@"
+                else
+                  exec pbcopy "$@"
+                fi
+              '';
+            };
+            pilc = mkPkg {
+              inherit pkgs;
+              name = "pilc";
+              script = ''
+                if [ -n "$WAYLAND_DISPLAY" ]; then
+                  exec ${wl-paste} "$@"
+                elif [ -n "$DISPLAY" ]; then
+                  exec ${xclip} -selection clipboard -o "$@"
+                else
+                  exec pbpaste "$@"
+                fi
+              '';
+            };
+
+            #~@ Project
+            glog = mkPkg {
+              inherit pkgs;
+              name = "glog";
+              command = "git log -1 --pretty=%B";
+            };
+            reload = mkPkg {
+              inherit pkgs;
+              name = "reload";
+              command = ''${direnv} reload'';
+            };
+            repl = mkPkg {
+              inherit pkgs;
+              name = "repl";
+              command = ''
+                nix repl .
+              '';
+            };
+            check = mkPkg {
+              inherit pkgs;
+              name = "check";
+              command = ''nix flake check'';
+            };
+            check-all = mkPkg {
+              inherit pkgs;
+              name = "check-all";
+              command = ''nix flake check --keep-going --all-systems'';
+            };
+            format = mkPkg {
+              inherit pkgs;
+              name = "format";
+              command = ''nix fmt'';
+            };
+            ff = mkPkg {
+              inherit pkgs;
+              name = "ff";
+              command = "${fd} --hidden";
+            };
+            fa = mkPkg {
+              inherit pkgs;
+              name = "fa";
+              command = "${fd} --absolute-path --hidden";
+            };
+            rga = mkPkg {
+              inherit pkgs;
+              name = "rga";
+              command = "${ripgrep--all} --hidden";
+            };
+
+            #~@ Script Helpers
+            find_cmd = mkPkg {
+              inherit pkgs;
+              name = "find_cmd";
+              script = ''command -v "$1" 2>/dev/null || true'';
+            };
+            require_cmd = mkPkg {
+              inherit pkgs;
+              name = "require_cmd";
+              script = ''
+                cmd="$(command -v "$1" 2>/dev/null || true)"
+                [ -n "''${cmd}" ] || {
+                  printf 'Error: required command not found: %s\n' "$1" >&2
+                  exit 1
+                }
+                printf '%s' "''${cmd}"
+              '';
+            };
+            is_true = mkPkg {
+              inherit pkgs;
+              name = "is_true";
+              script = ''
+                case "$(printf '%s' "''${1:-}" | tr '[:upper:]' '[:lower:]')" in
+                1 | yes | true | on | enable*) exit 0 ;;
+                *) exit 1 ;;
+                esac
+              '';
+            };
+          };
+
+          printers = mkBin {
+            inherit pkgs;
+            prefix = "print";
+            sep = "-";
+            set = mkStyledOutput {inherit pkgs;};
+          };
+        in
+          auto // manual // printers;
+        all = attrValues common ++ attrValues custom;
+      in {inherit all common custom;};
+
+      binaries = let
+        common = with pkgs; (
+          mkBins packages.common
           // optionalAttrs isLinux {
             wl-copy = "${wl-clipboard}/bin/wl-copy";
             wl-paste = "${wl-clipboard}/bin/wl-paste";
             ripgrep--all = "${ripgrep-all}/bin/rga";
           }
         );
-        scripts = mkBins scripts;
-        all = binaries.packages // binaries.scripts;
-      };
-
-      scripts = let
-        auto =
-          optionalAttrs (paths ? scripts.default)
-          (mkPackages {
-            inherit pkgs;
-            dir = paths.scripts.default;
-            priority = ["sh" "bash" "py" "rb"];
-          });
-        manual = with binaries.packages; {
-          #~@ Clipboard
-          clip = mkPkg {
-            inherit pkgs;
-            name = "clip";
-            script = ''
-              if [ -n "$WAYLAND_DISPLAY" ]; then
-                exec ${wl-copy} "$@"
-              elif [ -n "$DISPLAY" ]; then
-                exec ${xclip} -selection clipboard "$@"
-              else
-                exec pbcopy "$@"
-              fi
-            '';
-          };
-          pilc = mkPkg {
-            inherit pkgs;
-            name = "pilc";
-            script = ''
-              if [ -n "$WAYLAND_DISPLAY" ]; then
-                exec ${wl-paste} "$@"
-              elif [ -n "$DISPLAY" ]; then
-                exec ${xclip} -selection clipboard -o "$@"
-              else
-                exec pbpaste "$@"
-              fi
-            '';
-          };
-
-          #~@ Project
-          glog = mkPkg {
-            inherit pkgs;
-            name = "glog";
-            command = "git log -1 --pretty=%B";
-          };
-          reload = mkPkg {
-            inherit pkgs;
-            name = "reload";
-            command = ''${direnv} reload'';
-          };
-          repl = mkPkg {
-            inherit pkgs;
-            name = "repl";
-            command = ''
-              nix repl .
-            '';
-          };
-          check = mkPkg {
-            inherit pkgs;
-            name = "check";
-            command = ''nix flake check'';
-          };
-          check-all = mkPkg {
-            inherit pkgs;
-            name = "check-all";
-            command = ''nix flake check --keep-going --all-systems'';
-          };
-          format = mkPkg {
-            inherit pkgs;
-            name = "format";
-            command = ''nix fmt'';
-          };
-          ff = mkPkg {
-            inherit pkgs;
-            name = "ff";
-            command = "${fd} --hidden";
-          };
-          fa = mkPkg {
-            inherit pkgs;
-            name = "fa";
-            command = "${fd} --absolute-path --hidden";
-          };
-          rga = mkPkg {
-            inherit pkgs;
-            name = "rga";
-            command = "${ripgrep--all} --hidden";
-          };
-
-          #~@ Script Helpers
-          find_cmd = mkPkg {
-            inherit pkgs;
-            name = "find_cmd";
-            script = ''command -v "$1" 2>/dev/null || true'';
-          };
-          require_cmd = mkPkg {
-            inherit pkgs;
-            name = "require_cmd";
-            script = ''
-              cmd="$(command -v "$1" 2>/dev/null || true)"
-              [ -n "''${cmd}" ] || {
-                printf 'Error: required command not found: %s\n' "$1" >&2
-                exit 1
-              }
-              printf '%s' "''${cmd}"
-            '';
-          };
-          is_true = mkPkg {
-            inherit pkgs;
-            name = "is_true";
-            script = ''
-              case "$(printf '%s' "''${1:-}" | tr '[:upper:]' '[:lower:]')" in
-              1 | yes | true | on | enable*) exit 0 ;;
-              *) exit 1 ;;
-              esac
-            '';
-          };
-        };
-
-        printers = mkBin {
-          inherit pkgs;
-          prefix = "print";
-          sep = "-";
-          set = mkStyledOutput {inherit pkgs;};
-        };
-      in
-        auto // manual // printers;
-      all = attrValues packages ++ attrValues scripts;
-
-      env = {};
-    in {inherit all env packages binaries scripts;});
+        custom = mkBins packages.custom;
+        all = common // custom;
+      in {inherit all common custom;};
+    in {inherit packages binaries;});
 }

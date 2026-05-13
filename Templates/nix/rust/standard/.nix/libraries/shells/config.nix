@@ -7,7 +7,7 @@
     mapAttrs
     recursiveUpdate
     ;
-  inherit (lib.lists) concatMap;
+  inherit (lib.lists) concatMap foldl' reverseList unique;
   inherit (lib.meta) project;
   inherit
     (lib.packages)
@@ -124,27 +124,72 @@
   #╔═══════════════════════════════════════════════════════════╗
   #║ Modules                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
+  collectModules = {
+    modules,
+    priority ? attrNames modules,
+  }: let
+    prioritized =
+      map
+      (name: modules.${name} or (throw "collectModules: unknown module '${name}'"))
+      priority;
+
+    ordered = reverseList prioritized;
+  in {
+    all = modules;
+    inherit priority prioritized ordered;
+  };
+
+  collectPackages = f: xs: let
+    normalize = pkg:
+      pkg.pname or (pkg.name or (
+        throw "Expected derivation-like value with pname or name"
+      ));
+  in
+    listToAttrs (
+      map
+      (pkg: {
+        name = normalize pkg;
+        value = pkg;
+      })
+      (unique (concatMap f xs))
+    );
+
+  collectAttrs = f: xs:
+    foldl' (acc: x: acc // (f x)) {} xs;
 
   mkModules = {
     pkgs,
     variant,
-  }: {
-    ai = mkAI {inherit pkgs variant;};
-    common = mkCommon {inherit pkgs variant;};
-    extra = mkExtra {inherit pkgs variant;};
-    database = mkDatabase {inherit pkgs variant;};
-    rust = mkRust {inherit pkgs variant;};
-    web = mkWeb {inherit pkgs variant;};
+  }: let
+    collected = collectModules {
+      priority = [
+        "rust"
+        "ai"
+        "web"
+        "database"
+        "extra"
+        "common"
+      ];
+      modules = {
+        ai = mkAI {inherit pkgs variant;};
+        common = mkCommon {inherit pkgs variant;};
+        extra = mkExtra {inherit pkgs variant;};
+        database = mkDatabase {inherit pkgs variant;};
+        rust = mkRust {inherit pkgs variant;};
+        web = mkWeb {inherit pkgs variant;};
+      };
+    };
+  in {
+    modules = collected.all;
+    packages =
+      collectPackages
+      (m: m.packages.all or [])
+      collected.prioritized;
+    binaries =
+      collectAttrs
+      (m: m.binaries.all or {})
+      collected.ordered;
   };
-
-  mkExportedPackages = modules:
-    with modules;
-      common.all
-      ++ extra.all
-      ++ database.all
-      ++ web.all
-      ++ ai.all
-      ++ rust.all;
 
   mkShellSpec = {
     pkgs,
@@ -154,7 +199,7 @@
     extraPackages ? [],
     extraEnv ? {},
   }: let
-    modules = mkModules {inherit pkgs variant;};
+    inherit (mkModules {inherit pkgs variant;}) modules;
   in {
     packages = with modules;
       extraPackages
@@ -190,20 +235,20 @@
       // (modules.database.env or {})
       // (modules.web.env or {})
       // (modules.rust.env or {})
-      // {
-        __DEVSHELL_NAME = variant.__variantName or "unknown";
-        __DEVSHELL_AI = toJSON variant.ai;
-        __DEVSHELL_RUST = toJSON variant.rust;
-        __DEVSHELL_WEB = toJSON variant.web;
-        __DEVSHELL_EXTRA = toJSON variant.extra;
-        __DEVSHELL_DATABASE = toJSON variant.database;
-        __DEVSHELL_EDITOR = toJSON variant.editor;
-        __DEVSHELL_RAW = toJSON (
-          if raw != null
-          then raw
-          else {}
-        );
-      }
+      # // {
+      #   __DEVSHELL_NAME = variant.__variantName or "unknown";
+      #   __DEVSHELL_AI = toJSON variant.ai;
+      #   __DEVSHELL_RUST = toJSON variant.rust;
+      #   __DEVSHELL_WEB = toJSON variant.web;
+      #   __DEVSHELL_EXTRA = toJSON variant.extra;
+      #   __DEVSHELL_DATABASE = toJSON variant.database;
+      #   __DEVSHELL_EDITOR = toJSON variant.editor;
+      #   __DEVSHELL_RAW = toJSON (
+      #     if raw != null
+      #     then raw
+      #     else {}
+      #   );
+      # }
       // extraEnv;
 
     shellHook = "";
@@ -270,24 +315,19 @@
       ) (attrNames variants.prev));
     in
       base // editor;
-
-    defaultModules = mkModules {
-      inherit pkgs;
-      variant = variants.final.default;
-    };
   in {
     inherit templates;
     inherit (formatting) formatter checks;
 
     devShells = mkShells {inherit inputs shells;};
-
-    packages = listToAttrs (
-      map
-      (p: {
-        name = p.pname or p.name;
-        value = p;
+    inherit
+      (mkModules {
+        inherit pkgs;
+        variant = variants.final.default;
       })
-      (mkExportedPackages defaultModules)
-    );
+      modules
+      packages
+      binaries
+      ;
   };
 in {inherit mkEnvironment mkModules mkVariant mkVariants;}

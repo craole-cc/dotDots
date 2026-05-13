@@ -5,17 +5,28 @@
 }: let
   inherit (lib.attrsets) attrValues optionalAttrs;
   inherit (lib.packages) mkBins mkPkg mkPackages;
+  inherit (lib.strings) toJSON toUpper;
 in {
   mkExtra = {
     pkgs,
     variant ? {},
   }: let
-    cfg = variant.extra;
+    kind = "extra";
+    cfg =
+      variant.${
+        kind
+      } or {
+        enable = false;
+        includeMise = false;
+        includeFetch = false;
+        includeGitTools = false;
+        includeFileTools = false;
+        includeRustScript = false;
+      };
+    variables = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
+    all = [];
   in
-    {
-      kind = "extra";
-      all = [];
-    }
+    {inherit all kind env;}
     // optionalAttrs cfg.enable (let
       packages = with pkgs; (
         {}

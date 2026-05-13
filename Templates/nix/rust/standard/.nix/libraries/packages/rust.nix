@@ -233,7 +233,6 @@ Toolchain file resolution order:
 
     packages = with pkgs;
       {inherit gcc;}
-      // optionalAttrs stdenv.isDarwin {inherit libiconv;}
       // optionalAttrs (cfg.nightly && (!cfg.minimal)) {inherit cargo-careful;}
       // optionalAttrs cfg.includeExtra {
         inherit
@@ -279,23 +278,21 @@ Toolchain file resolution order:
       inherit all toolchain package packages binaries scripts components targets;
       inherit (package) paths version system;
       inherit (toolchain) channel;
-      env = {
-        # DEVSHELL_VARIANT_NAME = variant.__variantName or "unknown";
-        # DEVSHELL_VARIANT = builtins.toJSON variant;
-        RUST_SRC_PATH = "${package}/lib/rustlib/src/rust/library";
-        RUSTFLAGS = optionalString (cfg.nightly) "-Z macro-backtrace";
-        RUST_BACKTRACE =
-          if cfg.stable
-          then "0"
-          else "full";
-        RUST_LOG = "info";
-        CARGO_INCREMENTAL = "1";
-        RUST_CHANNEL = toolchain.channel;
-        RUST_TOOLCHAIN_FILE =
-          if toolchain.file != null
-          then toString toolchain.file
-          else "<channel>";
-      };
+      env ={
+          RUST_SRC_PATH = "${package}/lib/rustlib/src/rust/library";
+          RUSTFLAGS = optionalString (cfg.nightly) "-Z macro-backtrace";
+          RUST_BACKTRACE =
+            if cfg.stable
+            then "0"
+            else "full";
+          RUST_LOG = "info";
+          CARGO_INCREMENTAL = "1";
+          RUST_CHANNEL = toolchain.channel;
+          RUST_TOOLCHAIN_FILE =
+            if toolchain.file != null
+            then toString toolchain.file
+            else "<channel>";
+        };
     }
     // components;
 in {inherit mkRust rustProfiles;}
