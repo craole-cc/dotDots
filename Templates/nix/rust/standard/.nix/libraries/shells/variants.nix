@@ -207,17 +207,19 @@
   normalizeFormatter = value: let
     web = value.web or {};
     rust = value.rust or {};
-    database = value.database or {};
+    db = value.db or {};
 
     defaults = {
       enable =
         isEnabled (value.includeFormatter or false)
         || isEnabled (web.enable or false)
         || isEnabled (rust.enable or false)
-        || isEnabled (database.enable or false);
+        || isEnabled (db.enable or false);
 
       kind = "workflow";
       name = "formatter";
+
+      includeAlejandra = false;
 
       includeDeno =
         isEnabled (web.enable or false)
@@ -237,21 +239,21 @@
 
       sqlFormatters =
         {}
-        // optionalAttrs (isEnabled (database.includeSqlite or false)) {
+        // optionalAttrs (isEnabled (db.includeSqlite or false)) {
           sql-sqlite = {
             enable = true;
             dialect = "sqlite";
             includes = ["*.sql"];
           };
         }
-        // optionalAttrs (isEnabled (database.includePostgres or false)) {
+        // optionalAttrs (isEnabled (db.includePostgres or false)) {
           sql-postgresql = {
             enable = true;
             dialect = "postgresql";
             includes = ["*.sql"];
           };
         }
-        // optionalAttrs (isEnabled (database.includeMysql or false)) {
+        // optionalAttrs (isEnabled (db.includeMysql or false)) {
           sql-mysql = {
             enable = true;
             dialect = "mysql";
@@ -317,8 +319,9 @@
     ai = normalizeAi (value.ai or null);
     rust = normalizeRust (value.rust or null);
     web = normalizeWeb (value.web or null);
-    database = normalizeDatabase (value.database or null);
-    editor = normalizeEditor (value.editor or null);
+    db = normalizeDatabase (value.db or null);
+    fmt = normalizeFormatter (value.db or null);
+    ide = normalizeEditor (value.editor or null);
   };
 
   #╔═══════════════════════════════════════════════════════════╗
@@ -352,7 +355,7 @@
       full = {
         rust = true;
         web = true;
-        database = true;
+        db = true;
         ai = "full";
       };
 
@@ -406,7 +409,7 @@
           channel = "stable";
         };
         web = true;
-        database = true;
+        db = true;
       };
     };
 
@@ -565,7 +568,7 @@
         includeTrunk = false;
       };
 
-      database = {
+      db = {
         kind = "integration";
         name = "database";
         enable = false;
@@ -575,7 +578,7 @@
         includeSqlite = false;
       };
 
-      editor = {
+      ide = {
         kind = "workflow";
         name = "editor";
         enable = false;
@@ -586,20 +589,13 @@
         kind = "workflow";
         name = "formatter";
         enable = false;
-        web = {
-          enable = false;
-          includeDeno = false;
-          includePrettier = false;
-        };
-        rust = {
-          enable = false;
-          includeLeptos = false;
-          includeRustfmt = false;
-        };
-        database = {
-          enable = false;
-        };
-        sqlFormatters = {};
+        includeAlejandra = true;
+        includeDeno = false;
+        includePrettier = false;
+        includeLeptos = false;
+        includeRustfmt = false;
+        includeDatabase = false;
+        # sqlFormatters ={};
       };
     }
     overrides;

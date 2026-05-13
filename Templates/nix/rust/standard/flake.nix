@@ -20,14 +20,7 @@
 
   outputs = inputs @ {self, ...}: let
     cfg = import ./. {inherit inputs;};
-    inherit (cfg) lib pkgs;
-    inherit (lib.modules) mkConfig;
-    inherit (lib.packages) mkPkgsPerSystem;
+    inherit (cfg) lib;
   in
-    mkConfig {inherit inputs pkgs self;}
-    // {
-      inherit (cfg) lib pkgs paths project repl;
-      # inherit (env) checks devShells formatter packages;
-      legacyPackages = mkPkgsPerSystem {inherit inputs;};
-    };
+    lib.modules.mkConfig {inherit inputs self;};
 }

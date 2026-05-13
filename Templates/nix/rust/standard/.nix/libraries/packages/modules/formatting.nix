@@ -4,6 +4,7 @@
     filterAttrs
     mapAttrs
     optionalAttrs
+    updateAttrs
     recursiveUpdate
     ;
   inherit (lib.lists) elem toList;
@@ -140,25 +141,36 @@
   mkFormatter = {
     inputs,
     pkgs,
-    variant,
+    variant ? {},
     extraConfig ? {},
   }: let
-    cfg =
-      variant.formatter or {
-        enable = false;
+    cfg = updateAttrs {
+      name = "fmt";
+      value = variant;
+      default = {
+        enable = true;
         kind = "workflow";
         name = "formatter";
+        includeAlejandra = true;
+        includeDeno = false;
+        includePrettier = false;
+        includeRustfmt = false;
+        includeLeptosfmt = false;
+        includeDatabase = false;
+        sqlFormatters = updateAttrs {
+          name = "sqlFormatters";
+          value = variant.db.sqlFormatters;
+          default = {};
+        };
       };
-    fmt = mkTreefmt {inherit inputs pkgs variant extraConfig;};
+    };
+    fmt = mkTreefmt {
+      inherit inputs pkgs extraConfig;
+      variant = cfg;
+    };
   in {
-    inherit (cfg) enable kind name;
-    inherit
-      (fmt)
-      binaries
-      formatter
-      packages
-      variables
-      ;
+    configuration = cfg;
+    inherit (fmt) binaries formatter packages variables;
   };
 
   mkChecker = {

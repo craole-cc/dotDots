@@ -1,27 +1,25 @@
 {lib}: let
-  inherit (lib.attrsets) attrValues optionalAttrs;
+  inherit (lib.attrsets) optionalAttrs recursiveUpdate;
   inherit (lib.packages) mkBins;
-  inherit (lib.strings) toJSON toUpper;
 in {
   mkDatabase = {
     pkgs,
     variant ? {},
   }: let
-    kind = "database";
     cfg =
-      variant.${
-        kind
-      } or {
-        enable = false;
+      recursiveUpdate {
+        kind = "integration";
+        name = "database";
+        enable = true;
         includeMysql = false;
         includePostgres = false;
         includeRedis = false;
         includeSqlite = false;
-      };
-    env = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
-    all = [];
+      }
+      (optionalAttrs (variant ? db) variant.db);
+
   in
-    {inherit all kind env;}
+    {configuration = cfg;}
     // optionalAttrs cfg.enable (let
       packages = let
         common = with pkgs;
@@ -32,7 +30,7 @@ in {
           // optionalAttrs cfg.includeSqlite {inherit sqlite;};
 
         custom = {};
-        all = attrValues common ++ attrValues custom;
+        all = common // custom;
       in {inherit all common custom binaries;};
 
       binaries = let
@@ -40,5 +38,11 @@ in {
         custom = mkBins packages.custom;
         all = common // custom;
       in {inherit all common custom;};
-    in {inherit cfg packages binaries;});
+
+      variables =
+        {}
+        # // optionalAttrs cfg.includeClaude
+        # {ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";}
+        // {};
+    in {inherit variables packages binaries;});
 }

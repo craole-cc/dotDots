@@ -67,6 +67,17 @@ Attrset utilities for lib.attrsets.
   recursiveAttrs = conditions:
     foldl recursiveUpdate {} (attrValues conditions);
 
+  updateAttrs = {
+    name,
+    value,
+    default,
+  }:
+    recursiveUpdate default (
+      optionalAttrs
+      (lib.attrsets.hasAttr name value)
+      (lib.attrsets.getAttr name value)
+    );
+
   /**
   Remove attributes whose values are `null`.
 
@@ -163,6 +174,7 @@ in {
     recursiveAttrs
     compactAttrs
     mapFilterAttrs
+    updateAttrs
     toEnv
     ;
 }

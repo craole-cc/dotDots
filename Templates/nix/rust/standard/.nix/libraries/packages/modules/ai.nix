@@ -4,7 +4,7 @@ packages/ai.nix
 Resolve AI/LLM CLI tooling from a normalized variant attrset.
 */
 {lib}: let
-  inherit (lib.attrsets) isAttrs optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) optionalAttrs recursiveUpdate;
   inherit (lib.packages) mkBins mkPkg;
 in {
   mkAI = {
@@ -22,13 +22,9 @@ in {
         includeHermes = true;
         includeOpenClaw = true;
       }
-      (
-        optionalAttrs
-        (isAttrs variant && variant ? ai)
-        variant.ai
-      );
+      (optionalAttrs (variant ? ai) variant.ai);
   in
-    {variant = cfg;}
+    {configuration = cfg;}
     // optionalAttrs cfg.enable (let
       llm = pkgs.llm-agents or {};
       packages = let
@@ -136,5 +132,5 @@ in {
         }
         // optionalAttrs cfg.includeOpenClaw {}
         // optionalAttrs cfg.includeHermes {};
-    in {inherit variables packages binaries cfg;});
+    in {inherit variables packages binaries;});
 }

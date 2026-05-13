@@ -1,85 +1,71 @@
 {lib, ...}: let
-  inherit (lib.attrsets) attrValues optionalAttrs;
-  inherit (lib.packages) mkBin mkBins;
+  inherit (lib.attrsets) optionalAttrs recursiveUpdate;
+  inherit (lib.packages) mkBins mkBin;
 in {
   mkWeb = {
     pkgs,
-    variant ? {
-      web = {
-        enable = false;
+    variant ? {},
+  }: let
+    cfg =
+      recursiveUpdate {
+        kind = "integration";
+        name = "web";
+        enable = true;
         includeDeno = false;
         includePrettier = false;
         includeTrunk = false;
-        includePnpm = false;
-      };
-    },
-  }: let
-    raw = variant.web or {};
-
-    cfg = {
-      enable = raw.enable or false;
-
-      includeDeno =
-        raw.includeDeno or false
-        || raw.enable or false;
-
-      includePrettier =
-        raw.includePrettier or false
-        || raw.enable or false;
-
-      includeTrunk =
-        raw.includeTrunk or false;
-
-      includePnpm =
-        raw.includePnpm or false
-        || raw.enable or false;
-    };
+      }
+      (optionalAttrs (variant ? web) variant.web);
   in
-    {
-      kind = "web";
-      all = [];
-    }
+    {variant = cfg;}
     // optionalAttrs cfg.enable (let
-      packages = with pkgs;
+      packages = with pkgs; let
+        common =
+          {}
+          // optionalAttrs cfg.includeDeno {inherit deno;}
+          // optionalAttrs cfg.includePnpm {inherit pnpm;}
+          // optionalAttrs cfg.includePrettier {inherit prettierd;}
+          // optionalAttrs cfg.includeTrunk {inherit trunk;};
+
+        custom =
+          (optionalAttrs cfg.includePnpm (
+            mkBin {
+              inherit pkgs;
+              prefix = "pnpm-";
+              set = {
+                i = {command = "${pkgs.pnpm}/bin/pnpm install";};
+                a = {script = ''${pkgs.pnpm}/bin/pnpm add "$@"'';};
+                ad = {script = ''${pkgs.pnpm}/bin/pnpm add --save-dev "$@"'';};
+              };
+            }
+          ))
+          // (optionalAttrs cfg.includeDeno (
+            mkBin {
+              inherit pkgs;
+              prefix = "deno-";
+              set = {
+                dev = {script = ''${pkgs.deno}/bin/deno task dev "$@"'';};
+                run = {script = ''${pkgs.deno}/bin/deno run "$@"'';};
+                lint = {command = "${pkgs.deno}/bin/deno lint";};
+                fmt = {command = "${pkgs.deno}/bin/deno fmt";};
+                test = {script = ''${pkgs.deno}/bin/deno test "$@"'';};
+                check = {script = ''${pkgs.deno}/bin/deno check "$@"'';};
+              };
+            }
+          ));
+        all = common // custom;
+      in {inherit all common custom;};
+
+      binaries = let
+        common = mkBins packages.common;
+        custom = mkBins packages.custom;
+        all = common // custom;
+      in {inherit all common custom;};
+
+      variables =
         {}
-        // optionalAttrs cfg.includeDeno {inherit deno;}
-        // optionalAttrs cfg.includePnpm {inherit pnpm;}
-        // optionalAttrs cfg.includePrettier {inherit prettierd;}
-        // optionalAttrs cfg.includeTrunk {inherit trunk;};
-
-      scripts =
-        (optionalAttrs cfg.includePnpm (
-          mkBin {
-            inherit pkgs;
-            prefix = "pnpm-";
-            set = {
-              i = {command = "${pkgs.pnpm}/bin/pnpm install";};
-              a = {script = ''${pkgs.pnpm}/bin/pnpm add "$@"'';};
-              ad = {script = ''${pkgs.pnpm}/bin/pnpm add --save-dev "$@"'';};
-            };
-          }
-        ))
-        // (optionalAttrs cfg.includeDeno (
-          mkBin {
-            inherit pkgs;
-            prefix = "deno-";
-            set = {
-              dev = {script = ''${pkgs.deno}/bin/deno task dev "$@"'';};
-              run = {script = ''${pkgs.deno}/bin/deno run "$@"'';};
-              lint = {command = "${pkgs.deno}/bin/deno lint";};
-              fmt = {command = "${pkgs.deno}/bin/deno fmt";};
-              test = {script = ''${pkgs.deno}/bin/deno test "$@"'';};
-              check = {script = ''${pkgs.deno}/bin/deno check "$@"'';};
-            };
-          }
-        ));
-
-      binaries = {
-        packages = mkBins packages;
-        scripts = mkBins scripts;
-        all = binaries.packages // binaries.scripts;
-      };
-
-      all = attrValues packages ++ attrValues scripts;
-    in {inherit cfg packages scripts binaries all;});
+        # // optionalAttrs cfg.includeClaude
+        # {ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";}
+        // {};
+    in {inherit variables packages binaries;});
 }

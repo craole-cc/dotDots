@@ -2,6 +2,8 @@
   inherit
     (lib.attrsets)
     attrNames
+    attrValues
+    isAttrs
     listToAttrs
     ;
   inherit
@@ -21,6 +23,7 @@
     mkDatabase
     mkExtra
     mkFormatter
+    mkPkgsPerSystem
     mkRust
     mkWeb
     ;
@@ -54,8 +57,8 @@
       ));
 
     flattenToList = value:
-      if builtins.isAttrs value
-      then builtins.attrValues value
+      if isAttrs value
+      then attrValues value
       else toList value;
   in
     listToAttrs (
@@ -110,7 +113,7 @@
   mkModules = {
     inputs,
     pkgs,
-    variant ? {},
+    variant ? testVariant {},
   }: let
     collected = collectModules {
       priority = [
@@ -133,7 +136,7 @@
       };
     };
   in {
-    inherit variant;
+    configuration = variant;
     modules = collected.all;
 
     packages = collectPackages {
@@ -171,6 +174,9 @@
         module.messages or (module.shellHook or (module.shellHookParts or []));
       modules = collected.prioritized;
     };
+
+    inherit lib pkgs project;
+    legacyPackages = mkPkgsPerSystem {inherit inputs;};
   };
 in {
   inherit

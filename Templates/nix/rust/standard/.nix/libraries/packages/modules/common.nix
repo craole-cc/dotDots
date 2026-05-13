@@ -3,7 +3,7 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) attrValues isAttrs optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) attrValues  optionalAttrs recursiveUpdate;
   inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
   inherit (lib.strings) mkStyledOutput;
 in {
@@ -17,13 +17,9 @@ in {
         name = "common";
         enable = true;
       }
-      (
-        optionalAttrs
-        (isAttrs variant && variant ? common)
-        variant.common
-      );
+      (optionalAttrs (variant ? common) variant.common);
   in
-    {variant = cfg;}
+    {configuration = cfg;}
     // optionalAttrs cfg.enable (let
       packages = let
         inherit (pkgs.stdenv) isLinux isDarwin;
@@ -187,5 +183,7 @@ in {
         custom = mkBins packages.custom;
         all = common // custom;
       in {inherit all common custom;};
-    in {inherit cfg packages binaries;});
+
+      variables = {};
+    in {inherit variables packages binaries;});
 }
