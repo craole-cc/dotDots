@@ -37,17 +37,17 @@
 
   normalizeCommon = value:
     normalizeFeature {
-      enable = true;
       kind = "core";
       name = "common";
+      enable = true;
     }
     value;
 
   normalizeExtra = value: let
     default = {
-      enable = false;
       kind = "core";
       name = "extra";
+      enable = false;
       includeMise = false;
       includeFetch = false;
       includeGitTools = false;
@@ -99,9 +99,9 @@
 
   normalizeAi = value: let
     default = {
-      enable = false;
       kind = "workflow";
       name = "ai";
+      enable = false;
       includeCodex = false;
       includeClaude = false;
       includeGemini = false;
