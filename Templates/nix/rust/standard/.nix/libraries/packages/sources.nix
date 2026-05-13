@@ -90,12 +90,14 @@
 
     inputs' = optionalAttrs (inputs != null) inputs;
     foundName = findFirst (name: inputs' ? ${name}) null names;
+    result =
+      if foundName != null
+      then inputs'.${foundName}
+      else null;
   in
     if foundName == null && isNotEmpty error
     then throw errorMsg
-    else if foundName != null
-    then inputs'.${foundName}
-    else null;
+    else result;
 
   /**
     Resolve specific package set inputs from the flake input attribute set.
@@ -245,6 +247,7 @@ in {
     mkOverlays
     mkPkgs
     mkPkgsPerSystem
+    parseInput
     perSystem
     resolvePackages
     resolveOverlay
