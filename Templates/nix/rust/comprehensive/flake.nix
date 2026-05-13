@@ -7,7 +7,6 @@
     # AI = {
     #   url = "github:numtide/llm-agents.nix";
     #   inputs.nixpkgs.follows = "NixPackages";
-    #   inputs.blueprint.follows = "blueprint";
     # };
 
     Rust = {
@@ -20,15 +19,18 @@
     #   inputs.nixpkgs.follows = "NixPackages";
     # };
 
-    # Formatter = {
-    #   url = "github:numtide/treefmt-nix";
-    #   inputs.nixpkgs.follows = "NixPackages";
-    # };
+    Formatter = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "NixPackages";
+    };
   };
 
   outputs = inputs @ {self, ...}: let
     cfg = import ./. {inherit inputs;};
     inherit (cfg) lib;
+    inherit (lib.modules) mkConfig;
   in
-    lib.modules.mkConfig {inherit inputs self;};
+    removeAttrs (mkConfig {inherit inputs self;}) [
+      "modules"
+    ];
 }

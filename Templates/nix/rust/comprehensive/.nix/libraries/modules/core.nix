@@ -117,7 +117,7 @@
   }: let
     collected = collectModules {
       priority = [
-        # "formatting"
+        "formatting"
         # "rust"
         # "ai"
         # "web"
@@ -130,14 +130,14 @@
         common = mkCommon {inherit pkgs variant;};
         # database = mkDatabase {inherit pkgs variant;};
         # extra = mkExtra {inherit pkgs variant;};
-        # formatting = mkFormatter {inherit inputs pkgs variant;};
+        formatting = mkFormatter {inherit inputs pkgs variant;};
         # rust = mkRust {inherit pkgs variant;};
         # web = mkWeb {inherit pkgs variant;};
       };
     };
   in {
     configuration = variant;
-    # modules = collected.all;
+    modules = collected.all;
 
     packages = collectPackages {
       selector = module:
