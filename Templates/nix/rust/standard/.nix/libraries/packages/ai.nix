@@ -29,104 +29,106 @@ in {
       env = {};
     }
     // optionalAttrs cfg.enable (let
-      packages =
-        {}
-        // (
-          optionalAttrs
-          cfg.includeCodex
-          {codex = llm.codex or pkgs.codex or null;}
-        )
-        // (
-          optionalAttrs
-          cfg.includeClaude
-          {claude = llm.claude-code or pkgs.claude-code-bin or pkgs.claude-code or  null;}
-        )
-        // (
-          optionalAttrs
-          cfg.includeGemini
-          {gemini = llm.gemini-cli or pkgs.gemini-cli-bin or pkgs.gemini-cli or null;}
-        )
-        // (
-          optionalAttrs
-          cfg.includeOpenClaw
-          {openclaw = llm.openclaw or pkgs.openclaw or null;}
-        )
-        // (
-          optionalAttrs
-          cfg.includeHermes
-          {hermes = llm.hermes-agent or pkgs.hermes or null;}
-        )
-        // {};
+      packages = let
+        common =
+          {}
+          // (
+            optionalAttrs
+            cfg.includeCodex
+            {codex = llm.codex or pkgs.codex or null;}
+          )
+          // (
+            optionalAttrs
+            cfg.includeClaude
+            {claude = llm.claude-code or pkgs.claude-code-bin or pkgs.claude-code or  null;}
+          )
+          // (
+            optionalAttrs
+            cfg.includeGemini
+            {gemini = llm.gemini-cli or pkgs.gemini-cli-bin or pkgs.gemini-cli or null;}
+          )
+          // (
+            optionalAttrs
+            cfg.includeOpenClaw
+            {openclaw = llm.openclaw or pkgs.openclaw or null;}
+          )
+          // (
+            optionalAttrs
+            cfg.includeHermes
+            {hermes = llm.hermes-agent or pkgs.hermes or null;}
+          )
+          // {};
 
-      binaries = {
-        packages = mkBins packages;
-        scripts = mkBins scripts;
-        all = binaries.packages // binaries.scripts;
-      };
+        custom =
+          {}
+          // optionalAttrs (binaries.common ? codex) {
+            cx = mkPkg {
+              inherit pkgs;
+              name = "cx";
+              command = binaries.common.codex;
+            };
+            cx-auto = mkPkg {
+              inherit pkgs;
+              name = "cx-auto";
+              script = ''exec ${binaries.common.codex} --full-auto "$@"'';
+            };
+          }
+          // optionalAttrs (binaries.common ? claude-code) {
+            claude = mkPkg {
+              inherit pkgs;
+              name = "claude";
+              command = binaries.common.claude-code;
+            };
+            cc-auto = mkPkg {
+              inherit pkgs;
+              name = "cc-auto";
+              script = ''exec ${binaries.common.claude-code} --dangerously-skip-permissions "$@"'';
+            };
+          }
+          // optionalAttrs (binaries.common ? gemini) {
+            claude = mkPkg {
+              inherit pkgs;
+              name = "claude";
+              command = binaries.common.claude-code;
+            };
+            cc-auto = mkPkg {
+              inherit pkgs;
+              name = "cc-auto";
+              script = ''exec ${binaries.common.claude-code} --dangerously-skip-permissions "$@"'';
+            };
+          }
+          // optionalAttrs (binaries.common ? openclaw) {
+            claw = mkPkg {
+              inherit pkgs;
+              name = "claw";
+              command = binaries.common.openclaw;
+            };
+          }
+          // optionalAttrs (binaries.common ? hermes) {
+            hma = mkPkg {
+              inherit pkgs;
+              name = "hma";
+              command = binaries.common.hermes;
+            };
+          };
+        all = common // custom;
+      in {inherit all common custom;};
 
-      scripts =
-        {}
-        // optionalAttrs (binaries.packages ? codex) {
-          cx = mkPkg {
-            inherit pkgs;
-            name = "cx";
-            command = binaries.packages.codex;
-          };
-          cx-auto = mkPkg {
-            inherit pkgs;
-            name = "cx-auto";
-            script = ''exec ${binaries.packages.codex} --full-auto "$@"'';
-          };
-        }
-        // optionalAttrs (binaries.packages ? claude-code) {
-          claude = mkPkg {
-            inherit pkgs;
-            name = "claude";
-            command = binaries.packages.claude-code;
-          };
-          cc-auto = mkPkg {
-            inherit pkgs;
-            name = "cc-auto";
-            script = ''exec ${binaries.packages.claude-code} --dangerously-skip-permissions "$@"'';
-          };
-        }
-        // optionalAttrs (binaries.packages ? gemini) {
-          claude = mkPkg {
-            inherit pkgs;
-            name = "claude";
-            command = binaries.packages.claude-code;
-          };
-          cc-auto = mkPkg {
-            inherit pkgs;
-            name = "cc-auto";
-            script = ''exec ${binaries.packages.claude-code} --dangerously-skip-permissions "$@"'';
-          };
-        }
-        // optionalAttrs (binaries.packages ? openclaw) {
-          claw = mkPkg {
-            inherit pkgs;
-            name = "claw";
-            command = binaries.packages.openclaw;
-          };
-        }
-        // optionalAttrs (binaries.packages ? hermes) {
-          hma = mkPkg {
-            inherit pkgs;
-            name = "hma";
-            command = binaries.packages.hermes;
-          };
-        };
+      binaries = let
+        common = mkBins packages.common;
+        custom = mkBins packages.custom;
+        all = common // common;
+      in {inherit all common custom;};
 
-      all = attrValues packages ++ attrValues scripts;
 
       # binaries = {
       #   packages = mkBins packages;
       #   scripts = mkBins scripts;
-      #   all = binaries.packages // binaries.scripts;
+      #   all = binaries.common // binaries.scripts;
       # };
 
       # scripts = let
-      #   bin = binaries.packages;
+      #   bin = binaries.common;
       # in
       #   (mkCmds bin (p: p))
       #   // optionalAttrs (bin ? codex) {

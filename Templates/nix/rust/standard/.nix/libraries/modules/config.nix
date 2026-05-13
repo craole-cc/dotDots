@@ -48,7 +48,6 @@ in {
   in
     modules
     // {
-      inherit modules;
       checks = mkChecker {inherit inputs self variant;};
       formatter = modules.modules.formatting.formatter or null;
       devShells = mkShells {inherit inputs shells;};

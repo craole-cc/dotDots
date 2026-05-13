@@ -25,22 +25,45 @@
     mkWeb
     ;
 
+  # collectPackages = {
+  #   selector,
+  #   modules,
+  # }: let
+  #   normalizeName = package:
+  #     package.pname or (package.name or (
+  #       throw "Expected derivation-like value with pname or name"
+  #     ));
+  # in
+  #   listToAttrs (
+  #     map
+  #     (package: {
+  #       name = normalizeName package;
+  #       value = package;
+  #     })
+  #     (unique (concatMap selector modules))
+  #   );
+
   collectPackages = {
     selector,
     modules,
   }: let
-    normalizeName = package:
+    normalizePackageName = package:
       package.pname or (package.name or (
         throw "Expected derivation-like value with pname or name"
       ));
+
+    flattenToList = value:
+      if builtins.isAttrs value
+      then builtins.attrValues value
+      else toList value;
   in
     listToAttrs (
       map
       (package: {
-        name = normalizeName package;
+        name = normalizePackageName package;
         value = package;
       })
-      (unique (concatMap selector modules))
+      (unique (concatMap (x: flattenToList (selector x)) modules))
     );
 
   collectAttrs = {

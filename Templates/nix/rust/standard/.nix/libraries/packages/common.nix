@@ -11,12 +11,12 @@ in {
     pkgs,
     variant ? {},
   }: let
-    kind = "common";
-    cfg = variant.${kind} or {enable = false;};
-    variables = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
+    name = "common";
+    cfg = variant.${name} or {enable = false;};
+    variables = {"__VARIANT_${toUpper name}" = toJSON cfg;};
     inherit (pkgs.stdenv) isLinux isDarwin;
   in
-    {inherit kind variables;}
+    {inherit variables;}
     // optionalAttrs cfg.enable (let
       packages = let
         common = with pkgs;
@@ -48,7 +48,7 @@ in {
               dir = paths.scripts.default;
               priority = ["sh" "bash" "py" "rb"];
             });
-          manual = with binaries.packages; {
+          manual = with binaries.common; {
             #~@ Clipboard
             clip = mkPkg {
               inherit pkgs;

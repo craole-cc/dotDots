@@ -23,11 +23,11 @@
     inherit (cfg) lib pkgs;
     inherit (lib.modules) mkConfig;
     inherit (lib.packages) mkPkgsPerSystem;
-
-    env = mkConfig {inherit inputs pkgs self;};
-  in {
-    inherit (cfg) lib pkgs paths project repl;
-    inherit (env) checks devShells formatter packages;
-    legacyPackages = mkPkgsPerSystem {inherit inputs;};
-  };
+  in
+    mkConfig {inherit inputs pkgs self;}
+    // {
+      inherit (cfg) lib pkgs paths project repl;
+      # inherit (env) checks devShells formatter packages;
+      legacyPackages = mkPkgsPerSystem {inherit inputs;};
+    };
 }

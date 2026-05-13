@@ -26,6 +26,7 @@
     pkgs.writeShellScriptBin name (
       replaceStrings
       ["#__DEPLOY_CONF_CALLS__"]
+      [ "#__DEPLOY_TEMPLATE_CALLS__" ]
       [
         ''
           status=0

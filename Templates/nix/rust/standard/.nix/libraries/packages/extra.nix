@@ -26,7 +26,7 @@ in {
     variables = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
     all = [];
   in
-    {inherit all kind env;}
+    {inherit all kind variables;}
     // optionalAttrs cfg.enable (let
       packages = with pkgs; (
         {}
