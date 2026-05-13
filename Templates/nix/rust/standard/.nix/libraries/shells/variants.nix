@@ -507,6 +507,102 @@
     var = concatNonEmpty "_" [prefix kind name];
   in
     optionalAttrs (isNotEmpty val) {${var} = val;};
+
+  testVariant = overrides:
+    recursiveUpdate
+    {
+      __variantName = "test";
+
+      common = {
+        enable = true;
+        kind = "core";
+        name = "common";
+      };
+
+      extra = {
+        kind = "core";
+        name = "extra";
+        enable = false;
+        includeMise = false;
+        includeFetch = false;
+        includeGitTools = false;
+        includeFileTools = false;
+        includeRustScript = false;
+      };
+
+      ai = {
+        kind = "workflow";
+        name = "ai";
+        enable = false;
+        includeCodex = false;
+        includeClaude = false;
+        includeGemini = false;
+        includeHermes = false;
+        includeOpenClaw = false;
+      };
+
+      rust = {
+        kind = "toolchain";
+        name = "rust";
+        enable = false;
+        channel = "nightly";
+        minimal = false;
+        includeDocs = false;
+        includeAnalyzer = false;
+        includeWeb = false;
+        includeLeptos = false;
+        includeExtra = false;
+        extraTargets = [];
+        extraExtensions = [];
+      };
+
+      web = {
+        kind = "integration";
+        name = "web";
+        enable = false;
+        includeDeno = false;
+        includePrettier = false;
+        includeTrunk = false;
+      };
+
+      database = {
+        kind = "integration";
+        name = "database";
+        enable = false;
+        includeMysql = false;
+        includePostgres = false;
+        includeRedis = false;
+        includeSqlite = false;
+      };
+
+      editor = {
+        kind = "workflow";
+        name = "editor";
+        enable = false;
+        editors = [];
+      };
+
+      formatter = {
+        kind = "workflow";
+        name = "formatter";
+        enable = false;
+        web = {
+          enable = false;
+          includeDeno = false;
+          includePrettier = false;
+        };
+        rust = {
+          enable = false;
+          includeLeptos = false;
+          includeRustfmt = false;
+        };
+        database = {
+          enable = false;
+        };
+        sqlFormatters = {};
+      };
+    }
+    overrides;
 in {
   inherit
     editorGroups
@@ -516,6 +612,7 @@ in {
     mkVariants
     mkVariantShells
     toVariantJSON
+    testVariant
     normalizeAi
     normalizeCommon
     normalizeDatabase

@@ -24,6 +24,7 @@
     mkRust
     mkWeb
     ;
+  inherit (lib.shells) testVariant toVariantJSON;
 
   # collectPackages = {
   #   selector,
@@ -103,15 +104,13 @@
       priority;
 
     ordered = reverseList prioritized;
-  in {
     all = modules;
-    inherit priority prioritized ordered;
-  };
+  in {inherit all priority prioritized ordered;};
 
   mkModules = {
     inputs,
     pkgs,
-    variant,
+    variant ? {},
   }: let
     collected = collectModules {
       priority = [
@@ -134,6 +133,7 @@
       };
     };
   in {
+    inherit variant;
     modules = collected.all;
 
     packages = collectPackages {
@@ -157,7 +157,14 @@
         selector = module:
           module.variables or (module.env or (module.environment or {}));
         modules = collected.ordered;
-      };
+      }
+      // foldl'
+      (
+        merged: module:
+          merged // (toVariantJSON (module.cfg or (module.variant or {})))
+      )
+      {}
+      collected.ordered;
 
     messages = collectMessages {
       selector = module:

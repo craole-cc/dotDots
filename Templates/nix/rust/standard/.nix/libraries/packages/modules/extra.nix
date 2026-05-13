@@ -3,30 +3,31 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) attrValues optionalAttrs;
+  inherit (lib.attrsets) attrValues isAttrs optionalAttrs recursiveUpdate;
   inherit (lib.packages) mkBins mkPkg mkPackages;
-  inherit (lib.strings) toJSON toUpper;
 in {
   mkExtra = {
     pkgs,
     variant ? {},
   }: let
-    kind = "extra";
     cfg =
-      variant.${
-        kind
-      } or {
-        enable = false;
-        includeMise = false;
-        includeFetch = false;
-        includeGitTools = false;
-        includeFileTools = false;
-        includeRustScript = false;
-      };
-    variables = {"__VARIANT_${toUpper kind}" = toJSON cfg;};
-    all = [];
+      recursiveUpdate {
+        kind = "core";
+        name = "extra";
+        enable = true;
+        includeMise = true;
+        includeFetch = true;
+        includeGitTools = true;
+        includeFileTools = true;
+        includeRustScript = true;
+      }
+      (
+        optionalAttrs
+        (isAttrs variant && variant ? common)
+        variant.common
+      );
   in
-    {inherit all kind variables;}
+    {variant = cfg;}
     // optionalAttrs cfg.enable (let
       packages = with pkgs; (
         {}

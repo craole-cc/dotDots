@@ -3,22 +3,30 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) attrValues optionalAttrs;
+  inherit (lib.attrsets) attrValues isAttrs optionalAttrs recursiveUpdate;
   inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
-  inherit (lib.strings) mkStyledOutput toJSON toUpper;
+  inherit (lib.strings) mkStyledOutput;
 in {
   mkCommon = {
     pkgs,
     variant ? {},
   }: let
-    name = "common";
-    cfg = variant.${name} or {enable = false;};
-    variables = {"__VARIANT_${toUpper name}" = toJSON cfg;};
-    inherit (pkgs.stdenv) isLinux isDarwin;
+    cfg =
+      recursiveUpdate {
+        kind = "core";
+        name = "common";
+        enable = true;
+      }
+      (
+        optionalAttrs
+        (isAttrs variant && variant ? common)
+        variant.common
+      );
   in
-    {inherit variables;}
+    {variant = cfg;}
     // optionalAttrs cfg.enable (let
       packages = let
+        inherit (pkgs.stdenv) isLinux isDarwin;
         common = with pkgs;
           {
             inherit
@@ -179,5 +187,5 @@ in {
         custom = mkBins packages.custom;
         all = common // custom;
       in {inherit all common custom;};
-    in {inherit packages binaries;});
+    in {inherit cfg packages binaries;});
 }
