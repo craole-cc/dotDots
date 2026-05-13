@@ -3,15 +3,28 @@
 
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";
-    AI.url = "github:numtide/llm-agents.nix";
+
+    blueprint = {
+      url = "github:numtide/blueprint";
+      inputs.nixpkgs.follows = "NixPackages";
+    };
+
+    AI = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "NixPackages";
+      inputs.blueprint.follows = "blueprint";
+    };
+
     Rust = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "NixPackages";
     };
+
     OpenClaw = {
       url = "github:Scout-DJ/openclaw-nix";
       inputs.nixpkgs.follows = "NixPackages";
     };
+
     Formatter = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "NixPackages";

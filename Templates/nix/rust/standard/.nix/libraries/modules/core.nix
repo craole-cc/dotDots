@@ -126,13 +126,13 @@
         "common"
       ];
       modules = {
-        ai = mkAI {inherit pkgs variant;};
+        # ai = mkAI {inherit pkgs variant;};
         common = mkCommon {inherit pkgs variant;};
-        database = mkDatabase {inherit pkgs variant;};
-        extra = mkExtra {inherit pkgs variant;};
-        formatting = mkFormatter {inherit inputs pkgs variant;};
-        rust = mkRust {inherit pkgs variant;};
-        web = mkWeb {inherit pkgs variant;};
+        # database = mkDatabase {inherit pkgs variant;};
+        # extra = mkExtra {inherit pkgs variant;};
+        # formatting = mkFormatter {inherit inputs pkgs variant;};
+        # rust = mkRust {inherit pkgs variant;};
+        # web = mkWeb {inherit pkgs variant;};
       };
     };
   in {

@@ -58,6 +58,26 @@
       system: mkPkgs {inherit inputs system;}
     );
 
+  # parseInput = {
+  #   inputs ? null,
+  #   names,
+  #   error ? null,
+  # }: let
+  #   errorMsg =
+  #     if isString error
+  #     then "mkPkgs: Critical dependency '${error}' not found in inputs."
+  #     else "parseInput: could not resolve one of ${toString names} from inputs.";
+
+  #   inputs' = optionalAttrs (inputs != null) inputs;
+  #   foundName = findFirst (name: inputs' ? ${name}) null names;
+  #   result =
+  #     if foundName != null
+  #     then inputs'.${foundName}
+  #     else null;
+  # in
+  #   if (isEmpty result) && (isNotEmpty error)
+  #   then throw errorMsg
+  #   else result;
   parseInput = {
     inputs ? null,
     names,
@@ -70,14 +90,12 @@
 
     inputs' = optionalAttrs (inputs != null) inputs;
     foundName = findFirst (name: inputs' ? ${name}) null names;
-    result =
-      if foundName != null
-      then inputs'.${foundName}
-      else null;
   in
-    if (isEmpty result) && (isNotEmpty error)
+    if foundName == null && isNotEmpty error
     then throw errorMsg
-    else result;
+    else if foundName != null
+    then inputs'.${foundName}
+    else null;
 
   /**
     Resolve specific package set inputs from the flake input attribute set.
@@ -172,24 +190,28 @@
   */
   resolveOverlay = input: let
     noop = _: _: {};
-  in
-    #? 1. Immediate Safety
-    if isEmpty input
-    then noop
-    #? 2. Check for Modern Flake Overlay (overlays.default)
-    else if isAttrs input
-    then input.overlays.default or noop
-    #? 3. Check if the input is already a function
-    else if isFunction input
-    then input
-    #? 4. Fallback for paths (old-school imports)
-    else if isPath input || isString input
-    then let
-      src = import input;
+
+    fromPath = path: let
+      src = import path;
     in
       if isFunction src
       then src
-      else noop
+      else if isAttrs src
+      then src.overlays.default or src.overlay or noop
+      else noop;
+  in
+    if input == null
+    then noop
+    else if isFunction input
+    then input
+    else if isAttrs input && input ? overlays
+    then input.overlays.default or noop
+    else if isAttrs input && input ? overlay
+    then input.overlay
+    else if isAttrs input && input ? outPath
+    then fromPath input.outPath
+    else if isPath input || isString input
+    then fromPath input
     else noop;
 
   mkOverlays = {
@@ -225,5 +247,6 @@ in {
     mkPkgsPerSystem
     perSystem
     resolvePackages
+    resolveOverlay
     ;
 }

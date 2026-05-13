@@ -214,7 +214,8 @@ in {
 
   cfg.extensions =
     unique (variant.rust.extraExtensions ++ extraExtensions);
-  Toolchain detection
+
+  # Toolchain detection
 
   Toolchain files are detected from project.path:
 
@@ -247,7 +248,7 @@ in {
   base     = profiles.${profile} or profiles.default;
   explicit = parsed.components or [];
 
-  extensions = unique (base ++ explicit ++ cfg.extensions);
+  extensions = unique (base ++ explicit);
 
   The package derivation is created with:
 
@@ -557,14 +558,14 @@ in {
         #║ Components Resolution                                     ║
         #╚═══════════════════════════════════════════════════════════╝
         components = let
-          extensions =
+          extensions = unique (
             if file != null
             then let
               profile = parsed.profile or "default";
               base = profiles.${profile} or profiles.default;
               explicit = parsed.components or [];
             in
-              unique (base ++ explicit)
+              base ++ explicit
             else
               (
                 if cfg.minimal
@@ -574,7 +575,8 @@ in {
               ++ optionals cfg.includeFmt (features.formatting ++ features.linting)
               ++ optionals cfg.includeEditor features.editing
               ++ optionals cfg.includeDocs features.documentation
-              ++ cfg.extensions;
+              ++ cfg.extensions
+          );
         in {
           inherit extensions;
           hasClippy = elem "clippy" extensions;
