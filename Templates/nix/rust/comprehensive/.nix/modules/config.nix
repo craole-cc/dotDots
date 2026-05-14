@@ -155,7 +155,8 @@
       };
     };
 
-    formatter = exports.modules.raw.formatting.formatter;
+                  formatter =
+                     exports.modules.raw.formatting.formatter;
 
     packages = perSystem {
       inherit inputs;
