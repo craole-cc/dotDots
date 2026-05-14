@@ -1,118 +1,63 @@
-{ lib, pkgs }:
+/**
+  * Nix Library Assembly Module
+  *
+  * This module serves as the main entry point for building a comprehensive Nix
+  * library by composing multiple specialized namespaces in dependency order.
+  *
+  * Process:
+  * 1. Initializes with the standard nixpkgs lib (or custom lib if provided)
+  * 2. Bootstraps lib.assembly from assembly.nix for core assembly functionality
+  * 3. Sequentially merges each namespace into the accumulated library
+  *
+  * Dependencies are resolved in order, ensuring each namespace has access to
+  * previously loaded modules and the assembly utilities.
+  *
+  * Namespaces (in dependency order):
+  * - trivial: Basic utility functions and primitives
+  * - filesystem: File and path manipulation utilities
+  * - attrsets: Attribute set operations and transformations
+  * - strings: String processing and manipulation functions
+  * - packages: Package management and handling utilities
+  * - shells: Shell environment and configuration helpers
+  *
+  * @param {lib} lib - Optional custom Nix library to extend. Defaults to nixpkgs.lib
+  * @returns {lib} Extended library object containing all assembled namespaces and utilities
+*/
+/**
+  libraries/default.nix
+
+  Bootstrap lib.assembly from assembly.nix, then sequentially extend lib with
+  each namespace.  Order = dependency order; later entries see earlier ones on
+  their incoming `lib`.
+*/
+{ lib, paths }:
 let
-  inherit (lib.lists) filter;
-  inherit (lib.shells) mkTools;
-  inherit (lib.packages) resolveBin;
-
-  packageName = pkg: pkg.meta.name or pkg.name or pkg.pname or null;
-
-  inspectList =
-    packageList:
-    let
-      findAll = name: filter (pkg: packageName pkg == name) packageList;
-
-      hasPkg = name: findAll name != [ ];
-
-      findPkg =
-        name:
-        let
-          matches = findAll name;
-        in
-        if matches == [ ] then throw "repl.inspectList.findPkg: package not found: '${name}'" else builtins.head matches;
-
-      cmdPath =
-        name:
-        resolveBin {
-          inherit name;
-          drv = findPkg name;
-        };
-
-      cmdText = name: (findPkg name).text or null;
-
-      cmdInfo =
-        name:
-        let
-          pkg = findPkg name;
-        in
-        {
-          inherit name pkg;
-          packageName = packageName pkg;
-          path = resolveBin {
-            inherit name;
-            drv = pkg;
-          };
-          text = pkg.text or null;
-          meta = pkg.meta or { };
-        };
-
-      cmdTexts =
-        names:
-        map (name: {
-          inherit name;
-          text = cmdText name;
-        }) names;
-    in
-    {
-      inherit
-        packageList
-        findAll
-        hasPkg
-        findPkg
-        cmdPath
-        cmdText
-        cmdInfo
-        cmdTexts
-        ;
-    };
-
-  inspectAttrs =
-    packageSet:
-    let
-      hasPkg = name: packageSet ? ${name};
-
-      findPkg =
-        name: if hasPkg name then packageSet.${name} else throw "repl.inspectAttrs.findPkg: package not found: '${name}'";
-
-      cmdPath =
-        name:
-        resolveBin {
-          inherit name;
-          drv = findPkg name;
-        };
-
-      cmdText = name: (findPkg name).text or null;
-
-      cmdInfo =
-        name:
-        let
-          pkg = findPkg name;
-        in
-        {
-          inherit name pkg;
-          packageName = packageName pkg;
-          path = resolveBin {
-            inherit name;
-            drv = pkg;
-          };
-          text = pkg.text or null;
-          meta = pkg.meta or { };
-        };
-    in
-    {
-      inherit
-        hasPkg
-        findPkg
-        cmdPath
-        cmdText
-        cmdInfo
-        ;
-    };
-
-  tools = mkTools { inherit pkgs; };
+  lib' = lib.extend (
+    final: _:
+    import ./assembly.nix {
+      lib = final;
+      inherit paths;
+    }
+  );
 in
-{
-  inherit inspectList inspectAttrs;
-
-  tools = inspectList tools.packages;
-  pkgs = inspectAttrs pkgs;
+lib'.assembly.assemble {
+  start = lib';
+  scope = acc: acc;
+  extraArgs = { inherit paths; };
+  entries = [
+    ./trivial
+    ./meta
+    ./filesystem
+    ./attrsets
+    ./strings
+    ./packages
+    ./templates
+    ./shells
+    ./modules
+  ];
+  ignore = [
+    "tests"
+    "assembly.nix"
+    "format"
+  ];
 }

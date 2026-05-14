@@ -8,19 +8,19 @@ let
     let
       flake = ./.;
       nix = flake + "/.nix";
-      mkCfg = path: nix + "/${path}";
+      # mkCfg = path: nix + "/${path}";
     in
     {
       inherit flake nix;
       # downloads = flake + "/downloads";
       # environment = mkCfg "environment";
-      libraries = mkCfg "libraries";
+      # libraries = mkCfg "libraries";
       # modules = mkCfg "modules";
       scripts.default = flake + "/.bin";
       # templates.default = mkCfg "templates";
     };
 
-  lib = import paths.libraries {
+  lib = import paths.nix {
     inherit paths;
     lib = if inputs != null && inputs ? NixPackages then inputs.NixPackages.lib else (import <nixpkgs> { }).lib;
   };

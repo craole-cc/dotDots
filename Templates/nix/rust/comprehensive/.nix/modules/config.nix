@@ -161,7 +161,6 @@ let
         };
       };
 
-      # formatter.${system} = exports.modules.raw.formatting.formatter;
       formatter = exports.modules.raw.formatting.formatter;
 
       packages = perSystem {
