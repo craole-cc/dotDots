@@ -30,7 +30,66 @@
     inherit (cfg) lib;
     inherit (lib.modules) mkConfig;
   in
-    removeAttrs (mkConfig {inherit inputs self;}) [
-      "modules"
-    ];
+    mkConfig {
+      inherit inputs self;
+      configuration = let
+        common.enable = false;
+        extra = {
+          enable = false;
+          includeMise = false;
+          includeFetch = false;
+          includeGitTools = false;
+          includeFileTools = false;
+          includeRustScript = false;
+        };
+        ai = {
+          enable = false;
+          includeCodex = false;
+          includeClaude = false;
+          includeGemini = false;
+          includeHermes = false;
+          includeOpenClaw = false;
+        };
+        rust = {
+          enable = false;
+          channel = "nightly";
+          minimal = false;
+          includeDocs = false;
+          includeFmt = false;
+          includeAnalyzer = false;
+          includeWeb = false;
+          includeLeptos = false;
+          includeExtra = false;
+          extraTargets = [];
+          extraExtensions = [];
+        };
+        web = {
+          enable = false;
+          includeDeno = false;
+          includePrettier = false;
+          includeTrunk = false;
+        };
+        db = {
+          enable = false;
+          includeMysql = false;
+          includePostgres = false;
+          includeRedis = false;
+          includeSqlite = false;
+        };
+        ide = {
+          enable = false;
+          editors = [];
+        };
+        fmt = {
+          enable = false;
+          includeAlejandra = false;
+          includeDeno = false;
+          includePrettier = false;
+          includeLeptos = false;
+          includeRustfmt = false;
+          includeDatabase = false;
+          # sqlFormatters ={};
+        };
+      in {inherit ai common db extra fmt ide rust web;};
+    };
 }

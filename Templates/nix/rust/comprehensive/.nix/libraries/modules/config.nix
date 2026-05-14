@@ -15,6 +15,7 @@ in {
     inputs,
     self,
     pkgs ? mkPkgs {inherit inputs;},
+    configuration ? null,
     config ? {},
     extraPackages ? [],
     extraEnv ? {},
@@ -27,29 +28,28 @@ in {
     in {inherit raw final;};
 
     variant =
-      variants.final.${
-        variantName
-      } or (
-        throw "mkConfig: unknown variantName '${variantName}'"
-      );
+      if configuration != null
+      then configuration
+      else variants.final.${variantName} or (throw "mkConfig: unknown variantName '${variantName}'");
 
     modules = mkModules {inherit inputs pkgs variant;};
     # templates = deployTemplates {inherit pkgs variant;};
-    shells = mkVariantShells {
-      inherit
-        inputs
-        pkgs
-        variants
-        extraPackages
-        extraEnv
-        extraShellHook
-        ;
-    };
   in
     modules
     // {
       checks = mkChecker {inherit inputs self variant;};
-      formatter = modules.modules.formatting.formatter or null;
-      devShells = mkShells {inherit inputs shells;};
+      devShells = mkShells {
+        inherit inputs;
+        shells = mkVariantShells {
+          inherit
+            inputs
+            pkgs
+            variants
+            extraPackages
+            extraEnv
+            extraShellHook
+            ;
+        };
+      };
     };
 }

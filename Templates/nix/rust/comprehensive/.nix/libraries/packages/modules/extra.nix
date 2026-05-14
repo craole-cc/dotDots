@@ -28,10 +28,16 @@ in {
       packages = with pkgs; let
         common = (
           {}
-          // optionalAttrs cfg.includeRustScript {inherit cargo rust-script gcc;}
+          // optionalAttrs cfg.includeRustScript {
+            inherit cargo rust-script gcc;
+          }
           // optionalAttrs cfg.includeMise {inherit mise;}
-          // optionalAttrs cfg.includeFetch {inherit fastfetch microfetch nitch tokei onefetch;}
-          // optionalAttrs cfg.includeGitTools {inherit gitui gh jj;}
+          // optionalAttrs cfg.includeFetch {
+            inherit fastfetch microfetch nitch onefetch tokei;
+          }
+          // optionalAttrs cfg.includeGitTools {
+            inherit gitui gh jj;
+          }
           // optionalAttrs cfg.includeFileTools {inherit lsd;}
         );
 
@@ -46,7 +52,7 @@ in {
             priority = ["rs" "sh" "bash" "py" "rb"];
           })
           // (
-            with binaries.packages;
+            with binaries.common;
               {}
               // optionalAttrs cfg.includeFetch {
                 fetch = mkPkg {

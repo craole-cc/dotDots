@@ -8,6 +8,7 @@
     mapAttrs
     optionalAttrs
     recursiveUpdate
+    recursiveAttrs
     ;
   inherit
     (lib.lists)
@@ -525,36 +526,36 @@
       extra = {
         kind = "core";
         name = "extra";
-        enable = false;
-        includeMise = false;
-        includeFetch = false;
-        includeGitTools = false;
-        includeFileTools = false;
-        includeRustScript = false;
+        enable = true;
+        includeMise = true;
+        includeFetch = true;
+        includeGitTools = true;
+        includeFileTools = true;
+        includeRustScript = true;
       };
 
       ai = {
         kind = "workflow";
         name = "ai";
-        enable = false;
-        includeCodex = false;
-        includeClaude = false;
-        includeGemini = false;
-        includeHermes = false;
-        includeOpenClaw = false;
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+        includeGemini = true;
+        includeHermes = true;
+        includeOpenClaw = true;
       };
 
       rust = {
         kind = "toolchain";
         name = "rust";
-        enable = false;
+        enable = true;
         channel = "nightly";
-        minimal = false;
-        includeDocs = false;
-        includeAnalyzer = false;
-        includeWeb = false;
-        includeLeptos = false;
-        includeExtra = false;
+        minimal = true;
+        includeDocs = true;
+        includeAnalyzer = true;
+        includeWeb = true;
+        includeLeptos = true;
+        includeExtra = true;
         extraTargets = [];
         extraExtensions = [];
       };
@@ -562,39 +563,39 @@
       web = {
         kind = "integration";
         name = "web";
-        enable = false;
-        includeDeno = false;
-        includePrettier = false;
-        includeTrunk = false;
+        enable = true;
+        includeDeno = true;
+        includePrettier = true;
+        includeTrunk = true;
       };
 
       db = {
         kind = "integration";
         name = "database";
-        enable = false;
-        includeMysql = false;
-        includePostgres = false;
-        includeRedis = false;
-        includeSqlite = false;
+        enable = true;
+        includeMysql = true;
+        includePostgres = true;
+        includeRedis = true;
+        includeSqlite = true;
       };
 
       ide = {
         kind = "workflow";
         name = "editor";
-        enable = false;
+        enable = true;
         editors = [];
       };
 
       formatter = {
         kind = "workflow";
         name = "formatter";
-        enable = false;
+        enable = true;
         includeAlejandra = true;
-        includeDeno = false;
-        includePrettier = false;
-        includeLeptos = false;
-        includeRustfmt = false;
-        includeDatabase = false;
+        includeDeno = true;
+        includePrettier = true;
+        includeLeptos = true;
+        includeRustfmt = true;
+        includeDatabase = true;
         # sqlFormatters ={};
       };
     }

@@ -121,15 +121,15 @@
         # "rust"
         # "ai"
         # "web"
-        # "database"
-        # "extra"
+        "database"
+        "extra"
         "common"
       ];
       modules = {
         # ai = mkAI {inherit pkgs variant;};
         common = mkCommon {inherit pkgs variant;};
-        # database = mkDatabase {inherit pkgs variant;};
-        # extra = mkExtra {inherit pkgs variant;};
+        database = mkDatabase {inherit pkgs variant;};
+        extra = mkExtra {inherit pkgs variant;};
         formatting = mkFormatter {inherit inputs pkgs variant;};
         # rust = mkRust {inherit pkgs variant;};
         # web = mkWeb {inherit pkgs variant;};
@@ -138,10 +138,17 @@
   in {
     configuration = variant;
     modules = collected.all;
+    inherit (collected.all.formatting) formatter;
 
     packages = collectPackages {
       selector = module:
-        module.packages.all or (module.pkgs or (module.packages or []));
+        module.packages.all or
+          (
+          module.pkgs or
+            (
+            module.packages or []
+          )
+        );
       modules = collected.prioritized;
     };
 
@@ -174,7 +181,6 @@
         module.messages or (module.shellHook or (module.shellHookParts or []));
       modules = collected.prioritized;
     };
-
     inherit lib pkgs project;
     legacyPackages = mkPkgsPerSystem {inherit inputs;};
   };

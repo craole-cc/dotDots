@@ -1,23 +1,34 @@
 {lib}: let
-  inherit (lib.attrsets) optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) optionalAttrs recursiveAttrs recursiveUpdate;
   inherit (lib.packages) mkBins;
 in {
   mkDatabase = {
     pkgs,
     variant ? {},
   }: let
-    cfg =
-      recursiveUpdate {
+    cfg = recursiveAttrs {
+      "1" = {
         kind = "integration";
         name = "database";
-        enable = true;
+        enable = false;
         includeMysql = false;
         includePostgres = false;
         includeRedis = false;
         includeSqlite = false;
-      }
-      (optionalAttrs (variant ? db) variant.db);
-
+      };
+      "2" = variant.db;
+    };
+    # cfg =
+    #   recursiveUpdate {
+    #     kind = "integration";
+    #     name = "database";
+    #     enable = false;
+    #     includeMysql = false;
+    #     includePostgres = false;
+    #     includeRedis = false;
+    #     includeSqlite = false;
+    #   }
+    #   (optionalAttrs (variant ? db) variant.db);
   in
     {configuration = cfg;}
     // optionalAttrs cfg.enable (let

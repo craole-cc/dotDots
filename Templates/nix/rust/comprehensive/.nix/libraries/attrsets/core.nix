@@ -7,7 +7,10 @@ Attrset utilities for lib.attrsets.
   inherit
     (lib.attrsets)
     attrValues
+    getAttr
+    hasAttr
     filterAttrs
+    isAttrs
     mapAttrs
     optionalAttrs
     recursiveUpdate
@@ -65,7 +68,11 @@ Attrset utilities for lib.attrsets.
   A single attrset produced by recursively merging all values in `conditions`.
   */
   recursiveAttrs = conditions:
-    foldl recursiveUpdate {} (attrValues conditions);
+    foldl recursiveUpdate {} (
+      map
+      (v: optionalAttrs (isAttrs v && v != {}) v)
+      (attrValues conditions)
+    );
 
   updateAttrs = {
     name,
@@ -74,8 +81,8 @@ Attrset utilities for lib.attrsets.
   }:
     recursiveUpdate default (
       optionalAttrs
-      (lib.attrsets.hasAttr name value)
-      (lib.attrsets.getAttr name value)
+      (hasAttr name value)
+      (getAttr name value)
     );
 
   /**

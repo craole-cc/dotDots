@@ -11,6 +11,21 @@ in {
     pkgs,
     variant ? {},
   }: let
+    # cfg = updateAttrs {
+    #   name = "fmt";
+    #   value = variant;
+    #   default = {
+    #     enable = true;
+    #     kind = "workflow";
+    #     name = "formatter";
+    #     includeAlejandra = true;
+    #     includeDeno = false;
+    #     includePrettier = false;
+    #     includeRustfmt = false;
+    #     includeLeptosfmt = false;
+    #     includeDatabase = false;
+    #   };
+    # };
     cfg =
       recursiveUpdate {
         kind = "core";
@@ -67,6 +82,16 @@ in {
                 fi
               '';
             };
+            # wl-copy = mkPkg {
+            #   inherit pkgs;
+            #   name = "wl-copy";
+            #   command = wl-copy;
+            # };
+            # wl-paste = mkPkg {
+            #   inherit pkgs;
+            #   name = "wl-paste";
+            #   command = wl-paste;
+            # };
             pilc = mkPkg {
               inherit pkgs;
               name = "pilc";
@@ -168,7 +193,7 @@ in {
           };
         in
           auto // manual // printers;
-        all = attrValues common ++ attrValues custom;
+        all = common // custom;
       in {inherit all common custom;};
 
       binaries = let
