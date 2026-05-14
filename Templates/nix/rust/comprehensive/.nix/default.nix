@@ -45,6 +45,7 @@ lib'.assembly.assemble {
   scope = acc: acc;
   extraArgs = { inherit paths; };
   entries = [
+    ./repl.nix
     ./trivial
     ./meta
     ./filesystem

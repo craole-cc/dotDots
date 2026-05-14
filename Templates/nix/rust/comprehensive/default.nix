@@ -18,6 +18,7 @@ let
       # modules = mkCfg "modules";
       scripts.default = flake + "/.bin";
       # templates.default = mkCfg "templates";
+      repl = nix + "/repl.nix";
     };
 
   lib = import paths.nix {
@@ -35,5 +36,5 @@ in
     pkgs
     ;
   inherit (lib.meta) project;
-  repl = import paths.nix { inherit lib pkgs; };
+  repl = import paths.repl { inherit lib pkgs; };
 }

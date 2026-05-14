@@ -1,118 +1,104 @@
-{ lib, pkgs }:
-let
+{lib}: let
   inherit (lib.lists) filter;
   inherit (lib.shells) mkTools;
   inherit (lib.packages) resolveBin;
 
   packageName = pkg: pkg.meta.name or pkg.name or pkg.pname or null;
 
-  inspectList =
-    packageList:
-    let
-      findAll = name: filter (pkg: packageName pkg == name) packageList;
+  inspectList = packageList: let
+    findAll = name: filter (pkg: packageName pkg == name) packageList;
 
-      hasPkg = name: findAll name != [ ];
+    hasPkg = name: findAll name != [];
 
-      findPkg =
-        name:
-        let
-          matches = findAll name;
-        in
-        if matches == [ ] then throw "repl.inspectList.findPkg: package not found: '${name}'" else builtins.head matches;
-
-      cmdPath =
-        name:
-        resolveBin {
-          inherit name;
-          drv = findPkg name;
-        };
-
-      cmdText = name: (findPkg name).text or null;
-
-      cmdInfo =
-        name:
-        let
-          pkg = findPkg name;
-        in
-        {
-          inherit name pkg;
-          packageName = packageName pkg;
-          path = resolveBin {
-            inherit name;
-            drv = pkg;
-          };
-          text = pkg.text or null;
-          meta = pkg.meta or { };
-        };
-
-      cmdTexts =
-        names:
-        map (name: {
-          inherit name;
-          text = cmdText name;
-        }) names;
+    findPkg = name: let
+      matches = findAll name;
     in
-    {
-      inherit
-        packageList
-        findAll
-        hasPkg
-        findPkg
-        cmdPath
-        cmdText
-        cmdInfo
-        cmdTexts
-        ;
+      if matches == []
+      then throw "repl.inspectList.findPkg: package not found: '${name}'"
+      else builtins.head matches;
+
+    cmdPath = name:
+      resolveBin {
+        inherit name;
+        drv = findPkg name;
+      };
+
+    cmdText = name: (findPkg name).text or null;
+
+    cmdInfo = name: let
+      pkg = findPkg name;
+    in {
+      inherit name pkg;
+      packageName = packageName pkg;
+      path = resolveBin {
+        inherit name;
+        drv = pkg;
+      };
+      text = pkg.text or null;
+      meta = pkg.meta or {};
     };
 
-  inspectAttrs =
-    packageSet:
-    let
-      hasPkg = name: packageSet ? ${name};
+    cmdTexts = names:
+      map (name: {
+        inherit name;
+        text = cmdText name;
+      })
+      names;
+  in {
+    inherit
+      packageList
+      findAll
+      hasPkg
+      findPkg
+      cmdPath
+      cmdText
+      cmdInfo
+      cmdTexts
+      ;
+  };
 
-      findPkg =
-        name: if hasPkg name then packageSet.${name} else throw "repl.inspectAttrs.findPkg: package not found: '${name}'";
+  inspectAttrs = packageSet: let
+    hasPkg = name: packageSet ? ${name};
 
-      cmdPath =
-        name:
-        resolveBin {
-          inherit name;
-          drv = findPkg name;
-        };
+    findPkg = name:
+      if hasPkg name
+      then packageSet.${name}
+      else throw "repl.inspectAttrs.findPkg: package not found: '${name}'";
 
-      cmdText = name: (findPkg name).text or null;
+    cmdPath = name:
+      resolveBin {
+        inherit name;
+        drv = findPkg name;
+      };
 
-      cmdInfo =
-        name:
-        let
-          pkg = findPkg name;
-        in
-        {
-          inherit name pkg;
-          packageName = packageName pkg;
-          path = resolveBin {
-            inherit name;
-            drv = pkg;
-          };
-          text = pkg.text or null;
-          meta = pkg.meta or { };
-        };
-    in
-    {
-      inherit
-        hasPkg
-        findPkg
-        cmdPath
-        cmdText
-        cmdInfo
-        ;
+    cmdText = name: (findPkg name).text or null;
+
+    cmdInfo = name: let
+      pkg = findPkg name;
+    in {
+      inherit name pkg;
+      packageName = packageName pkg;
+      path = resolveBin {
+        inherit name;
+        drv = pkg;
+      };
+      text = pkg.text or null;
+      meta = pkg.meta or {};
     };
+  in {
+    inherit
+      hasPkg
+      findPkg
+      cmdPath
+      cmdText
+      cmdInfo
+      ;
+  };
+in {
+  mkRepl = pkgs: {
+    inherit inspectList inspectAttrs;
 
-  tools = mkTools { inherit pkgs; };
-in
-{
-  inherit inspectList inspectAttrs;
-
-  tools = inspectList tools.packages;
-  pkgs = inspectAttrs pkgs;
+    tools = inspectList (mkTools {inherit pkgs;}).packages;
+    pkgs = inspectAttrs pkgs;
+  };
 }
