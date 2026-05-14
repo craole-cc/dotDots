@@ -1,6 +1,7 @@
 # Links PowerShell Module
 
-A comprehensive PowerShell module for managing symbolic links, hard links, and junctions on Windows systems.
+A comprehensive PowerShell module for managing symbolic links, hard links, and
+junctions on Windows systems.
 
 ## Module Structure
 
@@ -32,7 +33,8 @@ Links/
    New-Item -ItemType Directory -Path $ModulePath -Force
    ```
 
-1. Copy all module files to the created directory, maintaining the folder structure.
+1. Copy all module files to the created directory, maintaining the folder
+   structure.
 
 1. Import the module:
 
@@ -208,7 +210,8 @@ The module includes comprehensive error handling:
 
 - PowerShell 5.0 or later
 - Windows operating system (for symbolic/hard link support)
-- Appropriate permissions for creating links (may require administrator privileges)
+- Appropriate permissions for creating links (may require administrator
+  privileges)
 
 ## Notes
 

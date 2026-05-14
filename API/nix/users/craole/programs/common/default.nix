@@ -1,4 +1,5 @@
-{lix, ...}: {
+{ lix, ... }:
+{
   # imports = [
   #   ./bat
   #   ./default

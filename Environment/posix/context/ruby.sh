@@ -19,8 +19,8 @@ GEM_HOME="$(ruby -e 'puts Gem.user_dir')/bin"
 # init_source --bin "$GEM_HOME"
 case ":${PATH}:" in *:"${GEM_HOME}":*) ;;
 *)
-  PATH="${PATH:+${PATH}:}${GEM_HOME}"
-  [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
-    printf "Appended to PATH: %s\n" "${GEM_HOME}"
-  ;;
+	PATH="${PATH:+${PATH}:}${GEM_HOME}"
+	[ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
+		printf "Appended to PATH: %s\n" "${GEM_HOME}"
+	;;
 esac

@@ -2,7 +2,8 @@
   lib,
   flatten ? false,
   ...
-}: let
+}:
+let
   __exports = {
     namespaced = {
       inherit
@@ -13,15 +14,14 @@
         traversal
         ;
     };
-    flattened = {} // access // construction // transformation // predicates // traversal // {};
+    flattened = { } // access // construction // transformation // predicates // traversal // { };
   };
 
   inherit (lib) filesystem path strings;
 
   access = {
     inherit (builtins) readFile;
-    inherit
-      (filesystem)
+    inherit (filesystem)
       baseNameOf
       dirOf
       hashFile
@@ -38,25 +38,17 @@
     inherit (path) subpath;
   };
 
-  transformation = {
-    inherit (path) append removePrefix;
-  };
+  transformation = { inherit (path) append removePrefix; };
 
   predicates = {
-    inherit
-      (filesystem)
-      isPath
-      pathIsDirectory
-      pathIsRegularFile
-      ;
+    inherit (filesystem) isPath pathIsDirectory pathIsRegularFile;
 
     inherit (path) isAbsolute hasPrefix hasStorePathPrefix;
     inherit (builtins) pathExists;
   };
 
   traversal = {
-    inherit
-      (filesystem)
+    inherit (filesystem)
       listFilesRecursive
       locateDominatingFile
       packagesFromDirectoryRecursive
@@ -64,6 +56,4 @@
       ;
   };
 in
-  if flatten
-  then __exports.namespaced // __exports.flattened
-  else __exports.namespaced
+if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced

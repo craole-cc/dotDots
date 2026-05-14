@@ -5,7 +5,8 @@
   user,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
@@ -28,8 +29,7 @@
     ];
     debug = false;
   };
-in {
-  config = mkIf cfg.enable {
-    inherit (cfg) home programs;
-  };
+in
+{
+  config = mkIf cfg.enable { inherit (cfg) home programs; };
 }

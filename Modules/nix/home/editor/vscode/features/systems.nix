@@ -4,7 +4,8 @@
   lix,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -54,11 +55,13 @@
       "[dotenv]"."editor.defaultFormatter" = "mkhl.shfmt";
     };
   };
-in {
+in
+{
   name = "systems";
   description = "Rust, shell and systems programming extensions";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -66,8 +69,8 @@ in {
         shell.extensions
       ];
       userSettings = mkMerge [
-        (rust.userSettings or {})
-        (shell.userSettings or {})
+        (rust.userSettings or { })
+        (shell.userSettings or { })
       ];
     };
 }

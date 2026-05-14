@@ -10,8 +10,8 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    protocol = ["wayland"];
-    categories = ["terminal"];
+    protocol = [ "wayland" ];
+    categories = [ "terminal" ];
   };
 
   ghostty = {
@@ -25,7 +25,7 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   kitty = {
@@ -39,7 +39,7 @@ _: {
       titleFlag = "--title";
       execFlag = "--";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   alacritty = {
@@ -53,7 +53,7 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   wezterm = {
@@ -67,7 +67,7 @@ _: {
       titleFlag = "--title";
       execFlag = "start --";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   konsole = {
@@ -81,7 +81,7 @@ _: {
       titleFlag = "--";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
     family = "plasma";
   };
 
@@ -97,7 +97,7 @@ _: {
       execFlag = "--";
     };
     family = "gnome";
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   xfce4-terminal = {
@@ -112,7 +112,7 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   cosmic-terminal = {
@@ -127,7 +127,7 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   pantheon-terminal = {
@@ -142,7 +142,7 @@ _: {
       titleFlag = "--title";
       execFlag = "-x";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 
   xterm = {
@@ -156,8 +156,8 @@ _: {
       titleFlag = "-T";
       execFlag = "-e";
     };
-    protocol = ["xorg"];
-    categories = ["terminal"];
+    protocol = [ "xorg" ];
+    categories = [ "terminal" ];
   };
 
   st = {
@@ -171,8 +171,8 @@ _: {
       titleFlag = "-t";
       execFlag = "-e";
     };
-    protocol = ["xorg"];
-    categories = ["terminal"];
+    protocol = [ "xorg" ];
+    categories = [ "terminal" ];
   };
 
   urxvt = {
@@ -186,8 +186,8 @@ _: {
       titleFlag = "-title";
       execFlag = "-e";
     };
-    protocol = ["xorg"];
-    categories = ["terminal"];
+    protocol = [ "xorg" ];
+    categories = [ "terminal" ];
   };
 
   tilix = {
@@ -201,6 +201,6 @@ _: {
       titleFlag = "--title";
       execFlag = "-e";
     };
-    categories = ["terminal"];
+    categories = [ "terminal" ];
   };
 }

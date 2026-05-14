@@ -3,13 +3,15 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "programs";
   mod = "direnv";
   cfg = config.${top}.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
   inherit (lix.modules.construction) mkIf;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
     enable = mkTrue mod;
     silent = mkTrue "silent mode";

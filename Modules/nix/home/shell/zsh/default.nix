@@ -1,4 +1,5 @@
-_: let
+_:
+let
   app = "zsh";
   isAllowed = false;
   # isAllowed = isIn app (
@@ -6,10 +7,10 @@ _: let
   #   ++ user.applications.allowed or []
   #   ++ [user.interface.shell or null]
   # );
-in {
-  programs.${app} =
-    {
-      enable = isAllowed;
-    }
-    // import ./settings.nix;
+in
+{
+  programs.${app} = {
+    enable = isAllowed;
+  }
+  // import ./settings.nix;
 }

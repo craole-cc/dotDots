@@ -38,9 +38,7 @@
               "dashboard"
               "workspaces"
             ];
-            middle = [
-              "windowtitle"
-            ];
+            middle = [ "windowtitle" ];
             right = [
               "volume"
               "media"
@@ -53,9 +51,7 @@
               "workspaces"
               "windowtitle"
             ];
-            middle = [
-              "clock"
-            ];
+            middle = [ "clock" ];
             right = [
               "volume"
               "network"
@@ -65,8 +61,7 @@
           };
         };
         floating = true;
-        media = {
-        };
+        media = { };
       };
       menu = {
         dashboard = {

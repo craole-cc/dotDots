@@ -2,9 +2,9 @@
 
 #{ Set the history file location }
 if [[ -n ${DOTS_CACHE:-} ]]; then
-  mkdir -p "${DOTS_CACHE}"
-  touch "${DOTS_CACHE}/history.bash"
-  export HISTFILE="${DOTS_CACHE}/history.bash"
+	mkdir -p "${DOTS_CACHE}"
+	touch "${DOTS_CACHE}/history.bash"
+	export HISTFILE="${DOTS_CACHE}/history.bash"
 fi
 
 #{ Append commands to the history file as soon as they are executed }
@@ -31,13 +31,13 @@ HISTIGNORE="ls:cd:clear:[ \t]*" #? Common commands and commands starting with sp
 
 #{ Increase the history file size limit
 if [[ -z ${PROMPT_COMMAND} ]]; then
-  PROMPT_COMMAND="history -a; history -n"
+	PROMPT_COMMAND="history -a; history -n"
 else
-  PROMPT_COMMAND="${PROMPT_COMMAND}; history -a; history -n"
+	PROMPT_COMMAND="${PROMPT_COMMAND}; history -a; history -n"
 fi
 
 #{ Enable Atuin for history management, if installed }
 if command -v atuin >/dev/null 2>&1; then
-  atuin_cmd="$(atuin init bash --disable-up-arrow --disable-down-arrow)"
-  eval "${atuin_cmd}"
+	atuin_cmd="$(atuin init bash --disable-up-arrow --disable-down-arrow)"
+	eval "${atuin_cmd}"
 fi

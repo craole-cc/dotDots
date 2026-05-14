@@ -1,4 +1,4 @@
-{lib, ...}:
+{ lib, ... }:
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
@@ -9,5 +9,8 @@ lib.assembly.importLibs {
     "web"
     "deploy.nix"
   ];
-  ignore = ["ai.nix" "rust.nix"];
+  ignore = [
+    "ai.nix"
+    "rust.nix"
+  ];
 }

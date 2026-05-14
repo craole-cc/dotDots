@@ -1,16 +1,12 @@
-{fonts, ...}: {
+{ fonts, ... }:
+{
   appearance = {
     rounding.scale = 1;
     spacing.scale = 1;
     padding.scale = 1;
     font = {
       family = {
-        inherit
-          (fonts)
-          sans
-          material
-          clock
-          ;
+        inherit (fonts) sans material clock;
         mono = fonts.monospace;
       };
       size.scale = 0.90;
@@ -29,7 +25,7 @@
         "foot"
         "ghostty"
       ];
-      audio = ["pavucontrol"];
+      audio = [ "pavucontrol" ];
       playback = [
         "mpv"
         "freetube"
@@ -136,7 +132,7 @@
     };
     vpn = {
       enabled = false;
-      provider = ["netbird"];
+      provider = [ "netbird" ];
     };
   };
 }

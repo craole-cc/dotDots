@@ -38,27 +38,27 @@ copy_config "${RUSTFMT_CONFIG:-}" "${RUSTFMT_CONFIG_USER:-}"
 #|->  Shell Completions
 case "${SHELL_TYPE}" in
 bash)
-  COMPLETIONS_RUSTUP="${RUST_HOME}/rustup_completions.bash"
-  if [ ! -f "${COMPLETIONS_RUSTUP}" ]; then
-    rustup completions bash >"${COMPLETIONS_RUSTUP}"
-  fi
+	COMPLETIONS_RUSTUP="${RUST_HOME}/rustup_completions.bash"
+	if [ ! -f "${COMPLETIONS_RUSTUP}" ]; then
+		rustup completions bash >"${COMPLETIONS_RUSTUP}"
+	fi
 
-  COMPLETIONS_CARGO="${RUST_HOME}/cargo_completions.bash"
-  if [ ! -f "${CARGO_COMPLETIONS_BASH}" ]; then
-    rustup completions bash cargo >"${COMPLETIONS_CARGO}"
-  fi
-  ;;
+	COMPLETIONS_CARGO="${RUST_HOME}/cargo_completions.bash"
+	if [ ! -f "${CARGO_COMPLETIONS_BASH}" ]; then
+		rustup completions bash cargo >"${COMPLETIONS_CARGO}"
+	fi
+	;;
 zsh)
-  COMPLETIONS_RUSTUP="${RUST_HOME}/rustup_completions.zsh"
-  if [ ! -f "${COMPLETIONS_RUSTUP}" ]; then
-    rustup completions zsh >"${COMPLETIONS_RUSTUP}"
-  fi
+	COMPLETIONS_RUSTUP="${RUST_HOME}/rustup_completions.zsh"
+	if [ ! -f "${COMPLETIONS_RUSTUP}" ]; then
+		rustup completions zsh >"${COMPLETIONS_RUSTUP}"
+	fi
 
-  COMPLETIONS_CARGO="${RUST_HOME}/cargo_completions.zsh"
-  if [ ! -f "${CARGO_COMPLETIONS_ZSH}" ]; then
-    rustup completions zsh cargo >"${COMPLETIONS_CARGO}"
-  fi
-  ;;
+	COMPLETIONS_CARGO="${RUST_HOME}/cargo_completions.zsh"
+	if [ ! -f "${CARGO_COMPLETIONS_ZSH}" ]; then
+		rustup completions zsh cargo >"${COMPLETIONS_CARGO}"
+	fi
+	;;
 *) ;;
 esac
 manage_env --init --var COMPLETIONS_RUSTUP --val "${COMPLETIONS_RUSTUP}"

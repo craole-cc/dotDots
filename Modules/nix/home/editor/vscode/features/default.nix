@@ -4,11 +4,13 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   inherit (lix.options.construction) mkTrue mkFalse;
   inherit (lix.attrsets.construction) listToAttrs;
 
-  load = path:
+  load =
+    path:
     import path {
       inherit
         lix
@@ -32,23 +34,19 @@
     ./web.nix
   ];
 
-  mkOption = f:
-    if f.default
-    then mkTrue f.description
-    else mkFalse f.description;
-in {
+  mkOption = f: if f.default then mkTrue f.description else mkFalse f.description;
+in
+{
   features = listToAttrs (
     map (f: {
       inherit (f) name;
       value = f.feature;
-    })
-    allFeatures
+    }) allFeatures
   );
   options = listToAttrs (
     map (f: {
       inherit (f) name;
       value = mkOption f;
-    })
-    allFeatures
+    }) allFeatures
   );
 }

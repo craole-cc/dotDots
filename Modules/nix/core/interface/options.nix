@@ -3,9 +3,11 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   inherit (lix.schema.ui) mkOptions;
-in {
-  options.${top}.${dom} = mkOptions {inherit host;};
+in
+{
+  options.${top}.${dom} = mkOptions { inherit host; };
 }

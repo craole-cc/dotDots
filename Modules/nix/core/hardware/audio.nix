@@ -4,7 +4,8 @@
   lib,
   top,
   ...
-}: let
+}:
+let
   dom = "hardware";
   mod = "audio";
   cfg = config.${top}.${dom}.${mod};
@@ -13,13 +14,12 @@
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = hw.hasAudio;
-      };
+    enable = mkEnableOption mod // {
+      default = hw.hasAudio;
+    };
   };
 
   config = mkIf cfg.enable {

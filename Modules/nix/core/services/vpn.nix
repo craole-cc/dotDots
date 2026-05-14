@@ -6,11 +6,12 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "services";
   mod = "vpn";
   cfg = config.${top}.${dom}.${mod};
-  vpnCfg = host.access.vpn or {};
+  vpnCfg = host.access.vpn or { };
 
   inherit (lib.attrsets) listToAttrs;
   inherit (lix.lists.predicates) isIn;
@@ -18,8 +19,7 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf str;
-  inherit
-    (pkgs)
+  inherit (pkgs)
     iproute2
     iptables
     openvpn
@@ -31,16 +31,15 @@
     name = app;
     value = {
       executable = getExe pkgs.${app};
-      extraArgs = ["--netns=vpn"];
+      extraArgs = [ "--netns=vpn" ];
     };
   };
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = isIn "vpn" (host.functionalities or []);
-      };
+    enable = mkEnableOption mod // {
+      default = isIn "vpn" (host.functionalities or [ ]);
+    };
     configFile = mkOption {
       description = "Path to .ovpn config (outside Nix store)";
       default = vpnCfg.configFile or "/etc/openvpn/vpn.ovpn";
@@ -48,7 +47,7 @@ in {
     };
     apps = mkOption {
       description = "Apps to route through the VPN namespace";
-      default = vpnCfg.apps or [];
+      default = vpnCfg.apps or [ ];
       type = listOf str;
     };
   };
@@ -65,8 +64,8 @@ in {
     systemd.services = {
       vpn-netns = {
         description = "Create VPN network namespace";
-        wantedBy = ["multi-user.target"];
-        before = ["vpn-veth.service"];
+        wantedBy = [ "multi-user.target" ];
+        before = [ "vpn-veth.service" ];
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
@@ -78,10 +77,10 @@ in {
       #~@ Step 2: veth pair bridges main → vpn namespace
       vpn-veth = {
         description = "Bridge main namespace to VPN namespace";
-        wantedBy = ["multi-user.target"];
-        after = ["vpn-netns.service"];
-        requires = ["vpn-netns.service"];
-        before = ["vpn-tunnel.service"];
+        wantedBy = [ "multi-user.target" ];
+        after = [ "vpn-netns.service" ];
+        requires = [ "vpn-netns.service" ];
+        before = [ "vpn-tunnel.service" ];
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
@@ -106,12 +105,12 @@ in {
       #~@ Step 3: OpenVPN runs inside the vpn namespace
       vpn-tunnel = {
         description = "OpenVPN inside VPN network namespace";
-        wantedBy = ["multi-user.target"];
+        wantedBy = [ "multi-user.target" ];
         after = [
           "vpn-veth.service"
           "agenix.service"
         ];
-        requires = ["vpn-veth.service"];
+        requires = [ "vpn-veth.service" ];
         serviceConfig = {
           Type = "simple";
           ExecStart = writeShellScript "vpn-start" ''
@@ -128,13 +127,13 @@ in {
 
     #~@ Step 4: wrap target apps via firejail → vpn netns
     programs.firejail = {
-      enable = cfg.apps != [];
+      enable = cfg.apps != [ ];
       wrappedBinaries = listToAttrs (map mkWrapped cfg.apps);
     };
 
     #~@ Required kernel settings
     boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
-    environment.systemPackages = [openvpn];
+    environment.systemPackages = [ openvpn ];
   };
 }

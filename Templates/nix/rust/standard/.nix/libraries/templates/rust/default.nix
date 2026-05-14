@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkRust = set:
+  mkRust =
+    set:
     optionalAttrs set.enable (
       {
         cargo = {
@@ -10,20 +12,30 @@
         };
         rust-analyzer = {
           source = ./rust-analyzer.toml;
-          target = [".rust-analyzer.toml" "rust-analyzer.toml"];
+          target = [
+            ".rust-analyzer.toml"
+            "rust-analyzer.toml"
+          ];
         };
         rustfmt = {
           source = ./rustfmt.toml;
-          target = [".rustfmt.toml" "rustfmt.toml"];
+          target = [
+            ".rustfmt.toml"
+            "rustfmt.toml"
+          ];
         };
       }
       // optionalAttrs set.includeToolchain {
         toolchain = {
           source = ./rust-toolchain.toml;
-          target = ["rust-toolchain.toml" "rust-toolchain"];
+          target = [
+            "rust-toolchain.toml"
+            "rust-toolchain"
+          ];
         };
       }
     );
-in {
+in
+{
   inherit mkRust;
 }

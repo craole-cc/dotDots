@@ -1,12 +1,10 @@
-{
-  lix,
-  interface,
-  ...
-}: let
+{ lix, interface, ... }:
+let
   inherit (lix.modules.construction) mkIf;
   inherit (interface.ui) panel compositor;
   isDank = panel == "dms-shell";
-in {
+in
+{
   config = mkIf isDank {
     programs.dms-shell.enable = true;
     services.displayManager.dms-greeter = {

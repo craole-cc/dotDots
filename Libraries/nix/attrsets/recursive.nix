@@ -1,14 +1,10 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{ _, lib, ... }:
+let
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.debug.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
   inherit (_.attrsets.predicates) isTyped;
-  inherit
-    (lib.attrsets)
+  inherit (lib.attrsets)
     filterAttrs
     isAttrs
     isDerivation
@@ -16,96 +12,98 @@
     ;
 
   /**
-  Recursively applies `mkDefault` to all leaf values in an attribute set.
+    Recursively applies `mkDefault` to all leaf values in an attribute set.
 
-  Preserves special module types (those with `_type`) and derivations unchanged.
+    Preserves special module types (those with `_type`) and derivations unchanged.
 
-  # Type
-  ```nix
-  update :: a -> a
-  ```
+    # Type
+    ```nix
+    update :: a -> a
+    ```
 
-  # Examples
-  ```nix
-  update { enable = true; port = 8080; }
-  # => { enable = mkDefault true; port = mkDefault 8080; }
+    # Examples
+    ```nix
+    update { enable = true; port = 8080; }
+    # => { enable = mkDefault true; port = mkDefault 8080; }
 
-  # Nested attrsets
-  update { services.nginx = { enable = true; port = 80; }; }
-  # => all leaf values wrapped in mkDefault
+    # Nested attrsets
+    update { services.nginx = { enable = true; port = 80; }; }
+    # => all leaf values wrapped in mkDefault
 
-  # Preserves special types and derivations unchanged
-  update { enable = lib.mkEnableOption "service"; port = 8080; }
-  # => { enable = lib.mkEnableOption "service"; port = mkDefault 8080; }
-  ```
+    # Preserves special types and derivations unchanged
+    update { enable = lib.mkEnableOption "service"; port = 8080; }
+    # => { enable = lib.mkEnableOption "service"; port = mkDefault 8080; }
+    ```
   */
-  update = value:
-    if isTyped value
-    then value
-    else if isAttrs value && !isDerivation value
-    then mapAttrs (_key: update) value
-    else mkDefaultStub value;
+  update =
+    value:
+    if isTyped value then
+      value
+    else if isAttrs value && !isDerivation value then
+      mapAttrs (_key: update) value
+    else
+      mkDefaultStub value;
 
   /**
-  Deep merge two attribute sets with module-aware handling.
+    Deep merge two attribute sets with module-aware handling.
 
-  Similar to `lib.recursiveUpdate` but respects module system semantics —
-  special types in `prev` are protected from being clobbered, while special
-  types in `next` are allowed to override.
+    Similar to `lib.recursiveUpdate` but respects module system semantics —
+    special types in `prev` are protected from being clobbered, while special
+    types in `next` are allowed to override.
 
-  # Type
-  ```nix
-  updateDeep :: AttrSet -> AttrSet -> AttrSet
-  ```
+    # Type
+    ```nix
+    updateDeep :: AttrSet -> AttrSet -> AttrSet
+    ```
 
-  # Examples
-  ```nix
-  updateDeep
-    { a = 1; b = { c = 2; }; }
-    { b = { d = 3; }; e = 4; }
-  # => { a = 1; b = { c = 2; d = 3; }; e = 4; }
+    # Examples
+    ```nix
+    updateDeep
+      { a = 1; b = { c = 2; }; }
+      { b = { d = 3; }; e = 4; }
+    # => { a = 1; b = { c = 2; d = 3; }; e = 4; }
 
-  # Preserves _type in prev
-  updateDeep
-    { enable = lib.mkEnableOption "foo"; }
-    { enable = true; }
-  # => { enable = lib.mkEnableOption "foo"; }  # prev special type wins
+    # Preserves _type in prev
+    updateDeep
+      { enable = lib.mkEnableOption "foo"; }
+      { enable = true; }
+    # => { enable = lib.mkEnableOption "foo"; }  # prev special type wins
 
-  # Allows _type override from next
-  updateDeep
-    { enable = true; }
-    { enable = lib.mkForce false; }
-  # => { enable = lib.mkForce false; }          # next special type wins
-  ```
+    # Allows _type override from next
+    updateDeep
+      { enable = true; }
+      { enable = lib.mkForce false; }
+    # => { enable = lib.mkForce false; }          # next special type wins
+    ```
   */
-  updateDeep = prev: next:
-    if isTyped prev
-    then prev
-    else if isTyped next
-    then next
-    else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
-    then
+  updateDeep =
+    prev: next:
+    if isTyped prev then
+      prev
+    else if isTyped next then
+      next
+    else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next then
       mapAttrs (
         name: prevValue:
-          if next ? ${name}
-          then let
+        if next ? ${name} then
+          let
             nextValue = next.${name};
           in
-            if isTyped prevValue
-            then prevValue
-            else if isTyped nextValue
-            then nextValue
-            else updateDeep prevValue nextValue
-          else prevValue
-      )
-      prev
+          if isTyped prevValue then
+            prevValue
+          else if isTyped nextValue then
+            nextValue
+          else
+            updateDeep prevValue nextValue
+        else
+          prevValue
+      ) prev
       // filterAttrs (name: _value: !prev ? ${name}) next
-    else next;
-in {
-  inherit
-    update
-    updateDeep
-    ;
+    else
+      next;
+in
+{
+  inherit update updateDeep;
 
   __tests = runTests {
     update = {
@@ -155,32 +153,32 @@ in {
         };
         outcome =
           updateDeep
-          {
-            a = 1;
-            b = {
-              c = 2;
+            {
+              a = 1;
+              b = {
+                c = 2;
+              };
+            }
+            {
+              b = {
+                d = 3;
+              };
+              e = 4;
             };
-          }
-          {
-            b = {
-              d = 3;
-            };
-            e = 4;
-          };
       };
 
       preservesPrevSpecialType = mkTest {
         desired = {
           enable = mkEnableOptionStub "foo";
         };
-        outcome = updateDeep {enable = mkEnableOptionStub "foo";} {enable = true;};
+        outcome = updateDeep { enable = mkEnableOptionStub "foo"; } { enable = true; };
       };
 
       allowsNextSpecialType = mkTest {
         desired = {
           enable = mkForceStub false;
         };
-        outcome = updateDeep {enable = true;} {enable = mkForceStub false;};
+        outcome = updateDeep { enable = true; } { enable = mkForceStub false; };
       };
 
       mergesModuleArgsShallow = mkTest {
@@ -194,20 +192,20 @@ in {
         };
         outcome =
           updateDeep
-          {
-            _module = {
-              args = {
-                x = 1;
+            {
+              _module = {
+                args = {
+                  x = 1;
+                };
+              };
+            }
+            {
+              _module = {
+                args = {
+                  y = 2;
+                };
               };
             };
-          }
-          {
-            _module = {
-              args = {
-                y = 2;
-              };
-            };
-          };
       };
 
       primitiveOverride = mkTest {

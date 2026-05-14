@@ -1,36 +1,37 @@
-{_, ...}: let
+{ _, ... }:
+let
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
   /**
-  Development languages - programming and scripting languages.
+    Development languages - programming and scripting languages.
 
-  Supported languages for development environment configuration.
+    Supported languages for development environment configuration.
 
-  # Categories
-  - Systems: rust, zig, c, cpp, go
-  - Scripting: python, javascript, typescript, lua
-  - Shell: sh, bash, pwsh, powershell
-  - Functional: haskell, nix
+    # Categories
+    - Systems: rust, zig, c, cpp, go
+    - Scripting: python, javascript, typescript, lua
+    - Shell: sh, bash, pwsh, powershell
+    - Functional: haskell, nix
 
-  # Structure
-  ```nix
-  {
-    values = [ "python" "rust" "zig" "nix" ... ];
-    validator = { check, list };
-  }
-  ```
+    # Structure
+    ```nix
+    {
+      values = [ "python" "rust" "zig" "nix" ... ];
+      validator = { check, list };
+    }
+    ```
 
-  # Usage
-  ```nix
-  # Validate a language
-  languages.validator.check { name = "Python"; }  # => true
+    # Usage
+    ```nix
+    # Validate a language
+    languages.validator.check { name = "Python"; }  # => true
 
-  # Check if user knows multiple languages
-  _lib.lists.predicates.isIn ["python" "rust"] _lib.lists.enums.development.languages.values true
+    # Check if user knows multiple languages
+    _lib.lists.predicates.isIn ["python" "rust"] _lib.lists.enums.development.languages.values true
 
-  # Get all supported languages
-  _lib.devLanguages.values
-  ```
+    # Get all supported languages
+    _lib.devLanguages.values
+    ```
   */
   languages = mkEnum [
     #~@ Systems languages
@@ -55,7 +56,8 @@
     "elixir"
     "ocaml"
   ];
-in {
+in
+{
   inherit languages;
 
   __rootAliases = {

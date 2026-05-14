@@ -1,9 +1,11 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkWeb = set:
+  mkWeb =
+    set:
     optionalAttrs set.enable (
-      {}
+      { }
       // optionalAttrs set.includeDeno {
         deno = {
           source = ./deno.jsonc;
@@ -13,7 +15,10 @@
       // optionalAttrs set.includePrettier {
         prettier = {
           source = ./prettierrc;
-          target = [".prettierrc" "prettier.config.json"];
+          target = [
+            ".prettierrc"
+            "prettier.config.json"
+          ];
         };
       }
       // optionalAttrs set.includeTrunk {
@@ -30,4 +35,7 @@
         };
       }
     );
-in {inherit mkWeb;}
+in
+{
+  inherit mkWeb;
+}

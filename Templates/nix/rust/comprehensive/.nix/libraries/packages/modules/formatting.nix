@@ -1,4 +1,8 @@
-{lib}: let
+{
+  lib,
+  paths,
+  ...
+}: let
   inherit (lib.attrsets) optionalAttrs recursiveAttrs;
   inherit (lib.lists) elem toList;
   inherit
@@ -9,14 +13,32 @@
     perSystem
     resolvePackages
     ;
+  inherit (lib.strings) optionalString;
 
   mkFormatter = {
     inputs,
     pkgs,
+    self ? null,
     variant ? {},
     projectRootFile ? null,
-  }:
-    mkTreefmt {inherit inputs pkgs projectRootFile variant;};
+  }: let
+    system = getSystemOrDefault {inherit pkgs;};
+    result = mkTreefmt {
+      inherit
+        inputs
+        pkgs
+        projectRootFile
+        self
+        variant
+        ;
+    };
+  in {
+    formatter = {
+      ${system} = result.formatter;
+    }; # ? ready for flake output
+    ${system} = result.formatter; # ? direct access if needed
+    raw = result;
+  };
 
   mkChecker = {
     inputs,
@@ -29,7 +51,13 @@
       fn = pkgs: {
         formatting =
           (mkTreefmt {
-            inherit inputs pkgs projectRootFile variant;
+            inherit
+              inputs
+              pkgs
+              projectRootFile
+              self
+              variant
+              ;
           }).check
           self;
       };
@@ -38,6 +66,7 @@
   mkTreefmt = {
     inputs,
     pkgs,
+    self ? null,
     variant ? {},
     projectRootFile ? "flake.nix",
   }: let
@@ -46,7 +75,8 @@
 
     for = {
       allBut = systems: !(elem system (toList systems));
-      all = {systems ? defineSystems}: elem system (toList systems);
+      all = {systems ? defineSystems}:
+        elem system (toList systems);
     };
 
     cfg = let
@@ -76,28 +106,24 @@
       set4 = {
         includeRustfmt = set3.includeRustfmt || ((rust.enable or false) && (rust.includeFmt or false));
         includeLeptosfmt =
-          set3.includeLeptosfmt
-          && (
-            (rust.enable or false)
-            && (rust.includeFmt or false)
-            && (rust.includeLeptos or false)
-          );
-        includeDeno = set3.includeDeno && for.allBut "riscv64-linux"; # platform guard always applies
+          set3.includeLeptosfmt && (rust.enable or false) && (rust.includeFmt or false) && (rust.includeLeptos or false);
+        includeDeno = set3.includeDeno && for.allBut "riscv64-linux";
         includePrettier = set3.includePrettier && (web.enable or false);
         includeXmllint = set3.includeXmllint || (web.enable or false);
-        includeSqlfmt =
-          set3.includeSqlfmt
-          || ((db.enable or false) && !set3.includeSqruff);
-        includeSqruff =
-          set3.includeSqruff
-          || ((db.enable or false) && !set3.includeSqlfmt);
+        includeSqlfmt = set3.includeSqlfmt || ((db.enable or false) && !set3.includeSqruff);
+        includeSqruff = set3.includeSqruff || ((db.enable or false) && !set3.includeSqlfmt);
         includeSqlite = (db.enable or false) && (db.includeSqlite or false);
         includePostgres = (db.enable or false) && (db.includePostgres or false);
         includeMysql = (db.enable or false) && (db.includeMysql or false);
         includeMariaDB = (db.enable or false) && (db.includeMariaDB or false);
       };
     in {
-      inherit set1 set2 set3 set4;
+      inherit
+        set1
+        set2
+        set3
+        set4
+        ;
       final = recursiveAttrs {inherit set3 set4;};
     };
     configuration = cfg.final;
@@ -108,6 +134,7 @@
         taplo.enable = true;
         yamlfmt.enable = true;
       }
+      // optionalAttrs includeAlejandra {alejandra.enable = true;}
       // optionalAttrs includeNixfmt {
         nixfmt = {
           enable = true;
@@ -116,9 +143,7 @@
           indent = 2;
         };
       }
-      // optionalAttrs includeAlejandra {alejandra.enable = true;}
       // optionalAttrs includeStatix {statix.enable = true;}
-      // optionalAttrs includeRustfmt {rustfmt.enable = true;}
       // optionalAttrs includeShfmt {
         shfmt = {
           enable = true;
@@ -133,26 +158,27 @@
           extra-checks = ["all"];
         };
       }
+      // optionalAttrs includeRustfmt {rustfmt.enable = true;}
       // optionalAttrs includeLeptosfmt {leptosfmt.enable = true;}
       // optionalAttrs includeDeno {deno.enable = true;}
-      // optionalAttrs includeXmllint {xmllint.enable = true;}
       // optionalAttrs includePrettier {
         prettier = {
           enable = true;
           package = pkgs.prettierd;
         };
       }
+      // optionalAttrs includeXmllint {xmllint.enable = true;}
       // optionalAttrs includeSqlfmt {
         sql-formatter = {
           enable = true;
           dialect =
-            if includeSqlite
+            if configuration.includeSqlite
             then "sqlite"
-            else if includePostgres
+            else if configuration.includePostgres
             then "postgresql"
-            else if includeMysql
+            else if configuration.includeMysql
             then "mysql"
-            else if includeMariaDB
+            else if configuration.includeMariaDB
             then "mariadb"
             else null;
         };
@@ -160,39 +186,58 @@
       // optionalAttrs includeSqruff {sqruff.enable = true;};
 
     settings = {
-      excludes = ["node_modules" ".git" "target" "dist"];
+      excludes = [
+        "node_modules"
+        ".git"
+        "target"
+        "dist"
+      ];
       formatter =
         {}
-        // optionalAttrs
-        (programs.deno.enable && programs.yamlfmt.enable)
-        {deno.excludes = ["*.yaml" "*.yml"];};
+        // optionalAttrs ((programs ? deno) && programs.deno.enable && (programs ? yamlfmt) && programs.yamlfmt.enable) {
+          deno.excludes = [
+            "*.yaml"
+            "*.yml"
+          ];
+        };
     };
 
-    eval = treefmt.lib.evalModule pkgs {
-      inherit projectRootFile programs settings;
-    };
+    localRoot = toString paths.flake; # for `nix fmt` (interactive, writable)
+    storeRoot = toString self; # for `nix flake check` (sandbox)
+
+    eval = treefmt.lib.evalModule pkgs {inherit projectRootFile programs settings;};
     build = eval.config.build;
-    formatter = build.wrapper;
+
     packages = let
       common = build.programs;
-      custom = {treefmt = build.wrapper;};
+      custom = {
+        # Interactive formatter: anchored to local path, always writable
+        treefmt = pkgs.writeShellScriptBin "treefmt" ''
+          exec ${build.wrapper}/bin/treefmt --tree-root ${localRoot} "$@"
+        '';
+      };
       all = common // custom;
-    in {inherit common custom all;};
+    in {
+      inherit common custom all;
+    };
 
     binaries = let
       common = mkBins packages.common;
       custom = mkBins packages.custom;
       all = common // custom;
-    in {inherit all common custom;};
+    in {
+      inherit all common custom;
+    };
 
     variables = {};
   in {
+    formatter = packages.all.treefmt;
     inherit
       binaries
       build
       cfg
+      configuration
       eval
-      formatter
       packages
       programs
       projectRootFile
@@ -201,4 +246,6 @@
       ;
     inherit (build) check;
   };
-in {inherit mkChecker mkFormatter mkTreefmt;}
+in {
+  inherit mkChecker mkFormatter mkTreefmt;
+}

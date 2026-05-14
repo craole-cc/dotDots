@@ -1,4 +1,5 @@
-{_, ...}: let
+{ _, ... }:
+let
   __doc = ''
     Hardware capability normalization.
     Derives boolean flags from `host.functionalities` and device specs,
@@ -6,7 +7,7 @@
   '';
 
   __exports = {
-    internal = {inherit mkHardware defaults;};
+    internal = { inherit mkHardware defaults; };
     external = {
       mkHardwareSchema = mkHardware;
     };
@@ -38,41 +39,43 @@
       timeout = 5;
       efiMount = "/boot";
       kernelPkg = null;
-      modules = [];
+      modules = [ ];
     };
   };
 
   /**
-    Derive hardware capability flags from a host definition.
+      Derive hardware capability flags from a host definition.
 
-    Uses enum values directly to avoid hardcoded strings — dualboot
-    variants are derived from `hostFunctionalities`, GUI detection
-    uses `desktopEnvironments` and `windowManagers` enum values.
+      Uses enum values directly to avoid hardcoded strings — dualboot
+      variants are derived from `hostFunctionalities`, GUI detection
+      uses `desktopEnvironments` and `windowManagers` enum values.
 
-    # Type
-  ```
-    mkHardware :: { host :: AttrSet } -> AttrSet
-  ```
+      # Type
+    ```
+      mkHardware :: { host :: AttrSet } -> AttrSet
+    ```
 
-    # Examples
-  ```nix
-    mkHardware {
-      host = {
-        functionalities = ["efi" "audio" "dualboot-windows"];
-        devices.network = ["eth0"];
-        interface.desktopEnvironment = "gnome";
-      };
-    }
-    # => { hasEfi = true; hasAudio = true; dualBootWindows = true; hasDualBoot = true; hasNetwork = true; hasGui = true; ... }
-  ```
+      # Examples
+    ```nix
+      mkHardware {
+        host = {
+          functionalities = ["efi" "audio" "dualboot-windows"];
+          devices.network = ["eth0"];
+          interface.desktopEnvironment = "gnome";
+        };
+      }
+      # => { hasEfi = true; hasAudio = true; dualBootWindows = true; hasDualBoot = true; hasNetwork = true; hasGui = true; ... }
+    ```
   */
-  mkHardware = {host}: let
-    fun = host.functionalities or [];
-    iface = host.interface or {};
-    boot = host.devices.boot or {};
-    de = iface.desktopEnvironment or null;
-    wm = iface.windowManager or null;
-  in
+  mkHardware =
+    { host }:
+    let
+      fun = host.functionalities or [ ];
+      iface = host.interface or { };
+      boot = host.devices.boot or { };
+      de = iface.desktopEnvironment or null;
+      wm = iface.windowManager or null;
+    in
     defaults
     // {
       hasEfi = isIn "efi" fun;
@@ -81,10 +84,10 @@
       hasPrinter = isIn "printer" fun;
       hasScanner = isIn "scanner" fun;
       hasWebcam = isIn "webcam" fun;
-      hasVideoCam = isIn ["video" "webcam"] fun;
+      hasVideoCam = isIn [ "video" "webcam" ] fun;
       dualBootWindows = isIn "dualboot-windows" fun;
       hasDualBoot = isIn dualBootValues fun;
-      hasNetwork = host.devices.network or [] != [];
+      hasNetwork = host.devices.network or [ ] != [ ];
       hasGui =
         (de != null && de != "none" && isIn de desktopEnvironments.values)
         || (wm != null && wm != "none" && isIn wm windowManagers.values);
@@ -93,12 +96,12 @@
         timeout = iface.bootLoaderTimeout or defaults.boot.timeout;
         efiMount = boot.efiSysMountPoint or defaults.boot.efiMount;
         kernelPkg = host.packages.kernel or null;
-        modules = host.modules or [];
+        modules = host.modules or [ ];
       };
     };
 in
-  __exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = __exports.external;
-  }
+__exports.internal
+// {
+  inherit __doc;
+  __rootAliases = __exports.external;
+}

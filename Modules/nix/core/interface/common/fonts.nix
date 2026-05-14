@@ -5,13 +5,14 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "fonts";
   cfg = config.${top}.${dom}.${mod};
 
-  user = host.users.data.primary or {};
-  userFonts = user.interface.style.fonts or {};
+  user = host.users.data.primary or { };
+  userFonts = user.interface.style.fonts or { };
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
@@ -27,13 +28,12 @@
     noto-fonts-color-emoji
     victor-mono
   ];
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {
+      default = true;
+    };
     packages = mkOption {
       description = "Font packages to install";
       default = defaultPackages;
@@ -74,10 +74,10 @@ in {
         };
         subpixel.rgba = "rgb";
         defaultFonts = {
-          monospace = [cfg.monospace];
-          sansSerif = [cfg.sans];
-          serif = [cfg.serif];
-          emoji = [cfg.emoji];
+          monospace = [ cfg.monospace ];
+          sansSerif = [ cfg.sans ];
+          serif = [ cfg.serif ];
+          emoji = [ cfg.emoji ];
         };
       };
     };

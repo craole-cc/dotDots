@@ -34,12 +34,12 @@ STARSHIP_THEME="${STARSHIP_HOME}/themes/${starship_theme}.toml"
 
 #{ Update the theme }
 if [ -f "${STARSHIP_THEME}" ]; then
-  cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}" ||
-    symbiolink --force \
-      --src "${STARSHIP_THEME}" \
-      --lnk "${STARSHIP_CONFIG}"
+	cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}" ||
+		symbiolink --force \
+			--src "${STARSHIP_THEME}" \
+			--lnk "${STARSHIP_CONFIG}"
 else
-  printf "Invalid Starship Theme: %s\n" "${STARSHIP_THEME}"
+	printf "Invalid Starship Theme: %s\n" "${STARSHIP_THEME}"
 fi
 
 # case "${SHELL_TYPE}" in

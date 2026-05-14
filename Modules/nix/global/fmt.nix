@@ -1,4 +1,5 @@
-{dots, ...}: let
+{ dots, ... }:
+let
   inherit (dots) pkgs src;
   inherit (pkgs.lib) makeBinPath;
   inherit (pkgs) writeShellScriptBin runCommand;
@@ -27,29 +28,28 @@
     export PATH=${formatterPath}:$PATH
     exec ${pkgs.treefmt}/bin/treefmt "$@"
   '';
-in {
-  formatters = formatters ++ [treefmtWrapper];
+in
+{
+  formatters = formatters ++ [ treefmtWrapper ];
   formatter = treefmtWrapper;
-  checks.formatting =
-    runCommand "check-formatting" {buildInputs = formatters;}
-    ''
-      export TMPDIR=$(mktemp -d)
-      cd $TMPDIR
+  checks.formatting = runCommand "check-formatting" { buildInputs = formatters; } ''
+    export TMPDIR=$(mktemp -d)
+    cd $TMPDIR
 
-      cp -r ${src}/* .
-      chmod -R +w .
+    cp -r ${src}/* .
+    chmod -R +w .
 
-      for config in shellcheckrc .shellcheckrc treefmt.toml .treefmt.toml rustfmt.toml .rustfmt.toml markdownlint.yaml .markdownlint.yaml typos.toml .typos.toml; do
-        if [ -f ${src}/$config ]; then
-          cp ${src}/$config .
-          chmod +w $config 2>/dev/null || true
-        fi
-      done
+    for config in shellcheckrc .shellcheckrc treefmt.toml .treefmt.toml rustfmt.toml .rustfmt.toml markdownlint.yaml .markdownlint.yaml typos.toml .typos.toml; do
+      if [ -f ${src}/$config ]; then
+        cp ${src}/$config .
+        chmod +w $config 2>/dev/null || true
+      fi
+    done
 
-      ${treefmtWrapper}/bin/treefmt --no-cache --fail-on-change
+    ${treefmtWrapper}/bin/treefmt --no-cache --fail-on-change
 
-      cd /
-      rm -rf $TMPDIR
-      touch $out
-    '';
+    cd /
+    rm -rf $TMPDIR
+    touch $out
+  '';
 }

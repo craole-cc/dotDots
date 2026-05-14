@@ -1,4 +1,5 @@
-{_, ...}: let
+{ _, ... }:
+let
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.attrsets.merging) recursiveUpdate;
@@ -12,18 +13,16 @@
   inherit (_.types.combinators) submodule;
 
   __exports = {
-    internal =
-      composites
-      // {
-        inherit
-          defaults
-          normalizeKeyboard
-          mkKeyboard
-          mkKeybindings
-          ;
-        keyboardDefaults = defaults.keyboard;
-        mkHyprKeybindings = mkKeybindings.hyprland;
-      };
+    internal = composites // {
+      inherit
+        defaults
+        normalizeKeyboard
+        mkKeyboard
+        mkKeybindings
+        ;
+      keyboardDefaults = defaults.keyboard;
+      mkHyprKeybindings = mkKeybindings.hyprland;
+    };
     external = {
       mkKeyboardSchema = mkKeyboard;
     };
@@ -59,14 +58,14 @@
           vimKeybinds = mkEnableOption "Vim-style hjkl navigation bindings";
           bindings = mkOption {
             type = attrsOf keybinding;
-            default = {};
+            default = { };
           };
         };
       };
     };
   };
 
-  mod = ["SUPER"];
+  mod = [ "SUPER" ];
 
   defaults = {
     keyboard = {
@@ -81,7 +80,7 @@
           action = "$TERMINAL";
         };
         terminalSec = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "Grave";
           action = "$TERMINAL_SEC";
         };
@@ -91,7 +90,7 @@
           action = "$BROWSER";
         };
         browserSec = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "B";
           action = "$BROWSER_SEC";
         };
@@ -106,7 +105,7 @@
           action = "$VISUAL";
         };
         visualSec = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "V";
           action = "$VISUAL_SEC";
         };
@@ -116,7 +115,7 @@
           action = "$FILE_MANAGER";
         };
         fileManagerSec = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "E";
           action = "$FILE_MANAGER_SEC";
         };
@@ -126,7 +125,7 @@
           action = "$LAUNCHER";
         };
         launcherSec = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "SPACE";
           action = "$LAUNCHER_SEC";
         };
@@ -139,22 +138,22 @@
           action = "";
         };
         fullscreen = {
-          mod = ["ALT"];
+          mod = [ "ALT" ];
           key = "RETURN";
           action = "";
         };
         maximize = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "M";
           action = "";
         };
         float = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "F";
           action = "";
         };
         pin = {
-          mod = mod ++ ["CTRL"];
+          mod = mod ++ [ "CTRL" ];
           key = "F";
           action = "";
         };
@@ -186,7 +185,7 @@
           action = "";
         };
         windowCycle = {
-          mod = ["ALT"];
+          mod = [ "ALT" ];
           key = "TAB";
           action = "";
         };
@@ -198,39 +197,37 @@
           action = "loginctl lock-session";
         };
         logout = {
-          mod = mod ++ ["CTRL"];
+          mod = mod ++ [ "CTRL" ];
           key = "L";
           action = "loginctl terminate-session self";
         };
         sleep = {
-          mod = mod ++ ["CTRL"];
+          mod = mod ++ [ "CTRL" ];
           key = "S";
           action = "systemctl suspend";
         };
         reboot = {
-          mod = mod ++ ["CTRL"];
+          mod = mod ++ [ "CTRL" ];
           key = "R";
           action = "systemctl reboot";
         };
         reboot_soft = {
-          mod =
-            mod
-            ++ [
-              "CTRL"
-              "SHIFT"
-            ];
+          mod = mod ++ [
+            "CTRL"
+            "SHIFT"
+          ];
           key = "R";
           action = "systemctl soft-reboot";
         };
         shutdown = {
-          mod = mod ++ ["CTRL"];
+          mod = mod ++ [ "CTRL" ];
           key = "Q";
           action = "systemctl poweroff";
         };
 
         # ── Screenshots ──────────────────────────────────────────────────────────
         screenshot = {
-          mod = [];
+          mod = [ ];
           key = "PRINT";
           action = "";
         };
@@ -240,58 +237,58 @@
           action = "";
         };
         screenshotWindow = {
-          mod = mod ++ ["SHIFT"];
+          mod = mod ++ [ "SHIFT" ];
           key = "PRINT";
           action = "";
         };
 
         # ── Media ────────────────────────────────────────────────────────────────
         mediaPlay = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioPlay";
           action = "playerctl play-pause";
         };
         mediaPrev = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioPrev";
           action = "playerctl previous";
         };
         mediaNext = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioNext";
           action = "playerctl next";
         };
 
         # ── Audio ────────────────────────────────────────────────────────────────
         volumeUp = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioRaiseVolume";
           action = "wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%+";
         };
         volumeDown = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioLowerVolume";
           action = "wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%-";
         };
         volumeMute = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioMute";
           action = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         };
         micMute = {
-          mod = [];
+          mod = [ ];
           key = "XF86AudioMicMute";
           action = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
         };
 
         # ── Backlight ────────────────────────────────────────────────────────────
         brightnessUp = {
-          mod = [];
+          mod = [ ];
           key = "XF86MonBrightnessUp";
           action = "brightnessctl set +5%";
         };
         brightnessDown = {
-          mod = [];
+          mod = [ ];
           key = "XF86MonBrightnessDown";
           action = "brightnessctl set 5%-";
         };
@@ -300,35 +297,34 @@
   };
 
   /**
-  Recursively converts all `mod` list fields to space-separated strings.
-  Applied at the output boundary so consumers always receive strings.
+    Recursively converts all `mod` list fields to space-separated strings.
+    Applied at the output boundary so consumers always receive strings.
   */
-  normalizeKeyboard = kb:
+  normalizeKeyboard =
+    kb:
     mapAttrs (
       k: v:
-        if k == "mod" && isList v
-        then concatStringsSep " " v
-        else if isAttrs v
-        then normalizeKeyboard v
-        else v
-    )
-    kb;
+      if k == "mod" && isList v then
+        concatStringsSep " " v
+      else if isAttrs v then
+        normalizeKeyboard v
+      else
+        v
+    ) kb;
 
-  mkKeyboard = {
-    host,
-    user ? {},
-  }:
-    normalizeKeyboard (
-      recursiveUpdate (recursiveUpdate defaults.keyboard (host.keyboard or {})) (user.keyboard or {})
-    );
+  mkKeyboard =
+    {
+      host,
+      user ? { },
+    }:
+    normalizeKeyboard (recursiveUpdate (recursiveUpdate defaults.keyboard (host.keyboard or { })) (user.keyboard or { }));
 
   mkKeybindings = {
-    hyprland = kb:
+    hyprland =
+      kb:
       map (b: "${b.mod}, ${b.key}, exec, ${b.action}") (
-        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (
-          attrValues kb.bindings
-        )
+        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (attrValues kb.bindings)
       );
   };
 in
-  __exports.internal // {__rootAliases = __exports.external;}
+__exports.internal // { __rootAliases = __exports.external; }

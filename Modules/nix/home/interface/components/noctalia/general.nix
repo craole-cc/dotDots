@@ -2,22 +2,22 @@
   lib,
   config,
   nixosConfig,
-}: let
+}:
+let
   inherit (lib.attrsets) hasAttrByPath;
-  isEnabled = app:
-    ((hasAttrByPath ["programs" app "enable"] config) && config.programs.${app}.enable)
-    || ((hasAttrByPath ["services" app "enable"] config) && config.services.${app}.enable)
-    || ((hasAttrByPath ["services" app "enable"] nixosConfig) && nixosConfig.services.${app}.enable)
-    || ((hasAttrByPath ["services" app "enable"] nixosConfig) && nixosConfig.services.${app}.enable)
+  isEnabled =
+    app:
+    ((hasAttrByPath [ "programs" app "enable" ] config) && config.programs.${app}.enable)
+    || ((hasAttrByPath [ "services" app "enable" ] config) && config.services.${app}.enable)
+    || ((hasAttrByPath [ "services" app "enable" ] nixosConfig) && nixosConfig.services.${app}.enable)
+    || ((hasAttrByPath [ "services" app "enable" ] nixosConfig) && nixosConfig.services.${app}.enable)
+    || ((hasAttrByPath [ "wayland" "windowManager" app "enable" ] config) && config.wayland.windowManager.${app}.enable)
     || (
-      (hasAttrByPath ["wayland" "windowManager" app "enable"] config)
-      && config.wayland.windowManager.${app}.enable
-    )
-    || (
-      (hasAttrByPath ["services" "desktopManager" app "enable"] nixosConfig)
+      (hasAttrByPath [ "services" "desktopManager" app "enable" ] nixosConfig)
       && nixosConfig.services.desktopManager.${app}.enable
     );
-in {
+in
+{
   general = {
     allowPanelsOnScreenWithoutBar = true;
     animationDisabled = false;

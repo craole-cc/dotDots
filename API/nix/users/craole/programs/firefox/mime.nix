@@ -1,8 +1,5 @@
-{
-  lib,
-  command,
-  ...
-}: let
+{ lib, command, ... }:
+let
   inherit (lib.attrsets) listToAttrs;
 
   mimeTypes = [
@@ -27,10 +24,10 @@
     map (mimeType: {
       name = mimeType;
       value = "${command}.desktop";
-    })
-    mimeTypes
+    }) mimeTypes
   );
-in {
+in
+{
   associations.added = associations;
   defaultApplications = associations;
 }

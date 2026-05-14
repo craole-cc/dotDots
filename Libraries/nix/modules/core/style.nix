@@ -1,16 +1,12 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) isAttrs optionalAttrs;
   inherit (lib.lists) elemAt head length;
   inherit (lib.strings) splitString;
   inherit (lib.modules) mkForce;
 
   exports = {
-    internal = {
-      inherit
-        mkFonts
-        mkStyle
-        ;
-    };
+    internal = { inherit mkFonts mkStyle; };
     external = {
       # mkCoreFonts = mkFonts;
       # mkCoreStyle = mkStyle;
@@ -19,46 +15,49 @@
 
   cursor.size = 24;
 
-  defaultFonts = {
-    pkgs,
-    config ? {},
-  }: let
-    cfg = config.fonts or {};
-  in {
-    packages =
-      cfg.packages or (with pkgs; [
-        maple-mono.NF-unhinted
-        material-icons
-        material-symbols
-        monaspace
-        noto-fonts
-        noto-fonts-cjk-sans
-        noto-fonts-color-emoji
-        victor-mono
-      ]);
+  defaultFonts =
+    {
+      pkgs,
+      config ? { },
+    }:
+    let
+      cfg = config.fonts or { };
+    in
+    {
+      packages =
+        cfg.packages or (with pkgs; [
+          maple-mono.NF-unhinted
+          material-icons
+          material-symbols
+          monaspace
+          noto-fonts
+          noto-fonts-cjk-sans
+          noto-fonts-color-emoji
+          victor-mono
+        ]);
 
-    emoji = cfg.emoji or ["Noto Color Emoji"];
-    monospace =
-      cfg.monospace or [
-        "Maple Mono NF"
-        "Victor Mono"
-        "Monaspace Radon"
-      ];
-    serif = cfg.serif or ["Noto Serif"];
-    sansSerif = cfg.sansSerif or ["Noto Sans"];
-  };
+      emoji = cfg.emoji or [ "Noto Color Emoji" ];
+      monospace =
+        cfg.monospace or [
+          "Maple Mono NF"
+          "Victor Mono"
+          "Monaspace Radon"
+        ];
+      serif = cfg.serif or [ "Noto Serif" ];
+      sansSerif = cfg.sansSerif or [ "Noto Sans" ];
+    };
 
   #> Parse theme string "catppuccin frappe" -> { family = "catppuccin"; variant = "frappe"; }
-  parseTheme = themeStr: let
-    parts = splitString " " themeStr;
-    family = head parts;
-    variant =
-      if (length parts) > 1
-      then elemAt parts 1
-      else null;
-  in {
-    inherit family variant;
-  };
+  parseTheme =
+    themeStr:
+    let
+      parts = splitString " " themeStr;
+      family = head parts;
+      variant = if (length parts) > 1 then elemAt parts 1 else null;
+    in
+    {
+      inherit family variant;
+    };
 
   themeRegistry = {
     catppuccin = {
@@ -104,114 +103,113 @@
     };
   };
 
-  resolveTheme = {
-    pkgs,
-    themeStr,
-  }: let
-    parsed = parseTheme themeStr;
-    themeFamily = themeRegistry.${parsed.family} or null;
-    variant =
-      if themeFamily != null && parsed.variant != null
-      then themeFamily.variants.${parsed.variant} or null
-      else null;
-  in
-    if variant == null
-    then null
-    else {
-      inherit (variant) scheme;
-      inherit (variant) polarity;
-      cursor = {
-        package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
-        inherit (variant.cursor) name size;
+  resolveTheme =
+    { pkgs, themeStr }:
+    let
+      parsed = parseTheme themeStr;
+      themeFamily = themeRegistry.${parsed.family} or null;
+      variant =
+        if themeFamily != null && parsed.variant != null then themeFamily.variants.${parsed.variant} or null else null;
+    in
+    if variant == null then
+      null
+    else
+      {
+        inherit (variant) scheme;
+        inherit (variant) polarity;
+        cursor = {
+          package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
+          inherit (variant.cursor) name size;
+        };
       };
-    };
 
-  mkFonts = {
-    pkgs,
-    host ? {},
-    ...
-  }: let
-    fonts = defaultFonts {
-      inherit pkgs;
-      config = host.interface or {};
-    };
-  in {
-    fonts = {
-      inherit (fonts) packages;
-      enableDefaultPackages = true;
-      fontconfig = {
-        enable = true;
-        hinting = {
+  mkFonts =
+    {
+      pkgs,
+      host ? { },
+      ...
+    }:
+    let
+      fonts = defaultFonts {
+        inherit pkgs;
+        config = host.interface or { };
+      };
+    in
+    {
+      fonts = {
+        inherit (fonts) packages;
+        enableDefaultPackages = true;
+        fontconfig = {
           enable = true;
-          style = "slight";
-        };
-        antialias = true;
-        subpixel.rgba = "rgb";
-        defaultFonts = {
-          inherit
-            (fonts)
-            emoji
-            monospace
-            serif
-            sansSerif
-            ;
+          hinting = {
+            enable = true;
+            style = "slight";
+          };
+          antialias = true;
+          subpixel.rgba = "rgb";
+          defaultFonts = {
+            inherit (fonts)
+              emoji
+              monospace
+              serif
+              sansSerif
+              ;
+          };
         };
       };
+      environment.sessionVariables = {
+        FONT_MONOSPACE = head fonts.monospace;
+        FONT_SERIF = head fonts.serif;
+        FONT_SANS = head fonts.sansSerif;
+        FONT_EMOJI = head fonts.emoji;
+      };
     };
-    environment.sessionVariables = {
-      FONT_MONOSPACE = head fonts.monospace;
-      FONT_SERIF = head fonts.serif;
-      FONT_SANS = head fonts.sansSerif;
-      FONT_EMOJI = head fonts.emoji;
-    };
-  };
 
-  mkStyle = {
-    host,
-    pkgs,
-    ...
-  }: let
-    style = host.interface.style or {};
-    wallpapers = host.paths.wallpapers or null;
+  mkStyle =
+    { host, pkgs, ... }:
+    let
+      style = host.interface.style or { };
+      wallpapers = host.paths.wallpapers or null;
 
-    theme =
-      style.theme or {
-        dark = "catppuccin frappe";
-        light = "catppuccin latte";
+      theme =
+        style.theme or {
+          dark = "catppuccin frappe";
+          light = "catppuccin latte";
+        };
+
+      current = style.current or "dark";
+      currentThemeStr = theme.${current} or theme.dark;
+      resolvedTheme = resolveTheme {
+        inherit pkgs;
+        themeStr = currentThemeStr;
       };
 
-    current = style.current or "dark";
-    currentThemeStr = theme.${current} or theme.dark;
-    resolvedTheme = resolveTheme {
-      inherit pkgs;
-      themeStr = currentThemeStr;
-    };
+      #> Parse for variant name (for wallpaper lookup)
+      parsed = parseTheme currentThemeStr;
+      variantName = parsed.variant or "frappe";
 
-    #> Parse for variant name (for wallpaper lookup)
-    parsed = parseTheme currentThemeStr;
-    variantName = parsed.variant or "frappe";
+      #> Wallpaper resolution - handle both attrset and string formats
+      wallpaperConfig = style.wallpaper or null;
+      wallpaperPath =
+        if wallpaperConfig != null then
+          #> New format: { dark = ./path; light = ./path; }
+          if isAttrs wallpaperConfig then
+            wallpaperConfig.${current} or null
+          #> Old format: direct path string
+          else
+            wallpaperConfig
+        #> Fallback to wallpapers directory
+        else if wallpapers != null then
+          wallpapers + "/${current}.jpg"
+        else
+          null;
 
-    #> Wallpaper resolution - handle both attrset and string formats
-    wallpaperConfig = style.wallpaper or null;
-    wallpaperPath =
-      if wallpaperConfig != null
-      then
-        #> New format: { dark = ./path; light = ./path; }
-        if isAttrs wallpaperConfig
-        then wallpaperConfig.${current} or null
-        #> Old format: direct path string
-        else wallpaperConfig
-      #> Fallback to wallpapers directory
-      else if wallpapers != null
-      then wallpapers + "/${current}.jpg"
-      else null;
-
-    #> Font configuration
-    fonts = defaultFonts {
-      inherit pkgs;
-      config = host.interface or {};
-    };
-  in
+      #> Font configuration
+      fonts = defaultFonts {
+        inherit pkgs;
+        config = host.interface or { };
+      };
+    in
     optionalAttrs (resolvedTheme != null) {
       stylix = {
         enable = true;
@@ -265,21 +263,12 @@
         THEME_FAMILY = parsed.family;
         THEME_VARIANT = variantName;
         THEME_POLARITY = resolvedTheme.polarity;
-        WALLPAPER_DARK =
-          if wallpaperConfig != null && isAttrs wallpaperConfig
-          then toString wallpaperConfig.dark
-          else "";
-        WALLPAPER_LIGHT =
-          if wallpaperConfig != null && isAttrs wallpaperConfig
-          then toString wallpaperConfig.light
-          else "";
-        WALLPAPER_CURRENT =
-          if wallpaperPath != null
-          then toString wallpaperPath
-          else "";
+        WALLPAPER_DARK = if wallpaperConfig != null && isAttrs wallpaperConfig then toString wallpaperConfig.dark else "";
+        WALLPAPER_LIGHT = if wallpaperConfig != null && isAttrs wallpaperConfig then toString wallpaperConfig.light else "";
+        WALLPAPER_CURRENT = if wallpaperPath != null then toString wallpaperPath else "";
       };
     };
 
-  exports = {inherit mkFonts mkStyle;};
+  exports = { inherit mkFonts mkStyle; };
 in
-  exports.internal // {__rootAliases = exports.external;}
+exports.internal // { __rootAliases = exports.external; }

@@ -2,7 +2,10 @@
 
 ## Project Overview
 
-Create a high-performance command-line tool that builds colon-separated directory paths from a filesystem tree, with sophisticated filtering and sorting capabilities. This tool should significantly outperform shell script equivalents through compiled language optimizations and efficient algorithms.
+Create a high-performance command-line tool that builds colon-separated
+directory paths from a filesystem tree, with sophisticated filtering and sorting
+capabilities. This tool should significantly outperform shell script equivalents
+through compiled language optimizations and efficient algorithms.
 
 ## Core Requirements
 
@@ -17,8 +20,10 @@ Implement a CLI tool with the following arguments:
 **Optional Arguments:**
 
 - `--exclude <PATTERN>` or `-e <PATTERN>`: Exclude pattern (repeatable)
-- `--ignore-file <PATH>` or `-i <PATH>`: Path to ignore file for additional patterns
-- `--sort <TYPE>` or `-s <TYPE>`: Sort method (alphabetical, size, modified, depth, none)
+- `--ignore-file <PATH>` or `-i <PATH>`: Path to ignore file for additional
+  patterns
+- `--sort <TYPE>` or `-s <TYPE>`: Sort method (alphabetical, size, modified,
+  depth, none)
 - `--depth <NUM>` or `-d <NUM>`: Maximum recursion depth (0 = unlimited)
 - `--help` or `-h`: Display usage information
 - `--version` or `-V`: Display version information
@@ -29,18 +34,23 @@ Implement a CLI tool with the following arguments:
 
 - Recursively traverse the target directory tree
 - Collect all directories (not files) that meet filtering criteria
-- Handle filesystem permissions gracefully (skip inaccessible directories with warnings)
+- Handle filesystem permissions gracefully (skip inaccessible directories with
+  warnings)
 - Support symbolic link handling (follow/don't follow with option)
 
 #### 2. Hierarchical Ignore System
 
 Implement a sophisticated ignore pattern system:
 
-- **Automatic `.ignore` file discovery**: Find and parse all `.ignore` files in the directory tree
-- **Hierarchical scope**: Each `.ignore` file affects only directories at or below its location
-- **Pattern inheritance**: Child directories inherit patterns from parent `.ignore` files
+- **Automatic `.ignore` file discovery**: Find and parse all `.ignore` files in
+  the directory tree
+- **Hierarchical scope**: Each `.ignore` file affects only directories at or
+  below its location
+- **Pattern inheritance**: Child directories inherit patterns from parent
+  `.ignore` files
 - **CLI pattern overlay**: Command-line exclude patterns apply globally
-- **Ignore file updates**: Optionally append CLI patterns to specified ignore file
+- **Ignore file updates**: Optionally append CLI patterns to specified ignore
+  file
 
 **Ignore File Format:**
 
@@ -91,9 +101,12 @@ Implement multiple sort methods:
 
 - **Parallel directory traversal**: Use thread pools for concurrent I/O
 - **Memory-efficient data structures**: Minimize allocations during traversal
-- **Smart ignore pattern compilation**: Pre-compile patterns into efficient matchers
-- **Early pruning**: Skip entire subtrees when parent directories match exclude patterns
-- **Lazy evaluation**: Only compute expensive operations (size, mtime) when needed for sorting
+- **Smart ignore pattern compilation**: Pre-compile patterns into efficient
+  matchers
+- **Early pruning**: Skip entire subtrees when parent directories match exclude
+  patterns
+- **Lazy evaluation**: Only compute expensive operations (size, mtime) when
+  needed for sorting
 
 ## Technical Specifications
 
@@ -111,7 +124,8 @@ Implement multiple sort methods:
 
 - Windows, macOS, Linux compatibility
 - Handle platform-specific path separators
-- Respect platform-specific ignore patterns (.DS_Store on macOS, Thumbs.db on Windows)
+- Respect platform-specific ignore patterns (.DS_Store on macOS, Thumbs.db on
+  Windows)
 
 ### Configuration
 
@@ -241,4 +255,6 @@ export BUILD_PATH=$(buildir -t ./build --exclude "cache" --sort modified)
 - Clean, maintainable codebase suitable for long-term maintenance
 - Comprehensive test coverage (>90%)
 
-This implementation should serve as a foundation for a production-ready tool that can be integrated into build systems, development workflows, and automation scripts where performance and reliability are critical.
+This implementation should serve as a foundation for a production-ready tool
+that can be integrated into build systems, development workflows, and automation
+scripts where performance and reliability are critical.

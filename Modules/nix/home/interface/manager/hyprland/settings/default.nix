@@ -8,11 +8,13 @@
   keys,
   withRules ? true,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
-in {
+in
+{
   settings = mkMerge [
-    (import ./core.nix {inherit apps keyboard;})
+    (import ./core.nix { inherit apps keyboard; })
     (import ./io.nix {
       inherit
         apps

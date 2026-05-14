@@ -1,16 +1,14 @@
-{
-  pkgs,
-  lib,
-  ...
-}: let
+{ pkgs, lib, ... }:
+let
   inherit (lib.lists) optionals;
-in {
+in
+{
   programs.yazi = {
     enable = true;
     shellWrapperName = "y";
   };
 
   home = {
-    packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
+    packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [ mactag ];
   };
 }

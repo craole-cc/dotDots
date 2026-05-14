@@ -4,53 +4,72 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
-      system: let
-        src = import ./. {inherit inputs system;};
-        inherit (src) name lib paths pkgs description;
+      system:
+      let
+        src = import ./. { inherit inputs system; };
+        inherit (src)
+          name
+          lib
+          paths
+          pkgs
+          description
+          ;
         inherit (lib.strings) readFile;
         inherit (pkgs) substituteAll symlinkJoin writeShellScriptBin;
 
         e = src.env;
 
         #> Build-time script substitution — @cmd@ and var name placeholders
-        mkScript = {
-          scriptPath,
-          cmd,
-          extraSubstitutions ? {},
-        }:
-          substituteAll ({
+        mkScript =
+          {
+            scriptPath,
+            cmd,
+            extraSubstitutions ? { },
+          }:
+          substituteAll (
+            {
               src = scriptPath;
               inherit cmd;
               isExecutable = true;
             }
-            // extraSubstitutions);
+            // extraSubstitutions
+          );
 
         scripts = symlinkJoin {
           name = "${name}-scripts";
           paths = [
-            (writeShellScriptBin "mpv" (readFile (mkScript {
-              scriptPath = paths.bin.mpv.store;
-              cmd = "${pkgs.mpv}/bin/mpv";
-              extraSubstitutions = {cfgVar = e.mpv.cfg.var;};
-            })))
-            (writeShellScriptBin "mpd" (readFile (mkScript {
-              scriptPath = paths.bin.mpd.store;
-              cmd = "${pkgs.mpd}/bin/mpd";
-              extraSubstitutions = {
-                cfgVar = e.mpd.cfg.var;
-                musicVar = e.music.var;
-              };
-            })))
-            (writeShellScriptBin "ytd" (readFile (mkScript {
-              scriptPath = paths.bin.ytd.store;
-              cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
-              extraSubstitutions = {
-                cfgVar = e.ytd.cfg.var;
-                downloadsVar = e.downloads.var;
-              };
-            })))
+            (writeShellScriptBin "mpv" (
+              readFile (mkScript {
+                scriptPath = paths.bin.mpv.store;
+                cmd = "${pkgs.mpv}/bin/mpv";
+                extraSubstitutions = {
+                  cfgVar = e.mpv.cfg.var;
+                };
+              })
+            ))
+            (writeShellScriptBin "mpd" (
+              readFile (mkScript {
+                scriptPath = paths.bin.mpd.store;
+                cmd = "${pkgs.mpd}/bin/mpd";
+                extraSubstitutions = {
+                  cfgVar = e.mpd.cfg.var;
+                  musicVar = e.music.var;
+                };
+              })
+            ))
+            (writeShellScriptBin "ytd" (
+              readFile (mkScript {
+                scriptPath = paths.bin.ytd.store;
+                cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
+                extraSubstitutions = {
+                  cfgVar = e.ytd.cfg.var;
+                  downloadsVar = e.downloads.var;
+                };
+              })
+            ))
           ];
         };
 
@@ -60,7 +79,8 @@
           ytdlp = pkgs.yt-dlp;
         };
         #> Flatten nested { var, val } leaves -> { VAR = "val"; } for mkShell
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           # env = listToAttrs (
           #   map ({
@@ -106,7 +126,7 @@
               xclip
               yt-dlp
             ])
-            ++ [scripts];
+            ++ [ scripts ];
 
           shellHook = ''
             #> Runtime paths — $HOME expands here correctly

@@ -86,12 +86,12 @@ alias cpu10="ps auxf | sort -nr -k 3 | head -10"
 alias cpua="ps auxf | sort -nr -k 3"
 
 eo() {
-  # if weHave emojify; then
-  if emojify --version type >/dev/null 2>&1; then
-    emojify "$*"
-  else
-    printf "%s$*"
-  fi
+	# if weHave emojify; then
+	if emojify --version type >/dev/null 2>&1; then
+		emojify "$*"
+	else
+		printf "%s$*"
+	fi
 }
 
 # ----------------------------
@@ -106,9 +106,9 @@ alias bc="bc -ql"
 alias md="mkdir --parents --verbose"
 alias ln='ln -i'
 mcd() {
-  newdir="$*"
-  mkdir --parents "$newdir"
-  cd "$newdir" || return
+	newdir="$*"
+	mkdir --parents "$newdir"
+	cd "$newdir" || return
 }
 alias mkcd='mcd'
 
@@ -175,21 +175,21 @@ alias yt_mp3="yt-dlp --extract-audio --audio-format mp3 --audio-quality 0"
 
 case $sys_INFO in
 *Windows*)
-  alias copy="clip.exe"
-  alias paste="powershell.exe Get-Clipboard"
-  ;;
+	alias copy="clip.exe"
+	alias paste="powershell.exe Get-Clipboard"
+	;;
 *Mac*)
-  alias copy="pbcopy"
-  alias paste="pbpaste"
-  ;;
+	alias copy="pbcopy"
+	alias paste="pbpaste"
+	;;
 *Linux*)
-  alias copy="xclip -sel clip"
-  alias paste="xclip -sel clip -o"
-  ;;
+	alias copy="xclip -sel clip"
+	alias paste="xclip -sel clip -o"
+	;;
 *)
-  alias copy="/dev/clipboard"
-  alias paste="cat /dev/clipboard"
-  ;;
+	alias copy="/dev/clipboard"
+	alias paste="cat /dev/clipboard"
+	;;
 esac
 
 alias ko='eko -n'

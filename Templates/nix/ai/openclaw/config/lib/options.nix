@@ -1,6 +1,8 @@
-{lib}: let
+{ lib }:
+let
   inherit (lib.types) enum port strMatching;
-in {
+in
+{
   openclawOptionTypes = {
     #? A non-empty string — useful for required string options.
     nonEmptyStr = strMatching ".+";
@@ -9,7 +11,12 @@ in {
     inherit port;
 
     #? A log level enum.
-    logLevel = enum ["debug" "info" "warn" "error"];
+    logLevel = enum [
+      "debug"
+      "info"
+      "warn"
+      "error"
+    ];
 
     #? A TLS cipher suite string.
     cipherSuite = strMatching "[A-Z0-9_-]+";

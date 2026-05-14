@@ -1,4 +1,5 @@
-{paths, ...}: {
+{ paths, ... }:
+{
   AutofillAddressEnabled = true;
   AutofillCreditCardEnabled = false;
   DefaultDownloadDirectory = paths.downloads;

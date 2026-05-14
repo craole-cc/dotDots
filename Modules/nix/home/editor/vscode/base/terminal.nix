@@ -1,4 +1,5 @@
-{mkDefault, ...}: {
+{ mkDefault, ... }:
+{
   userSettings = {
     "terminal.integrated.fontSize" = mkDefault 18;
     "terminal.integrated.fontWeight" = 500;
@@ -7,9 +8,7 @@
     "terminal.integrated.lineHeight" = 1.2;
 
     "terminal.integrated.allowMnemonics" = true;
-    "terminal.integrated.commandsToSkipShell" = [
-      "workbench.action.terminal.copySelection"
-    ];
+    "terminal.integrated.commandsToSkipShell" = [ "workbench.action.terminal.copySelection" ];
     "terminal.integrated.confirmOnExit" = "never";
     "terminal.integrated.copyOnSelection" = true;
     "terminal.integrated.cursorBlinking" = true;

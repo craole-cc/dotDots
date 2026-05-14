@@ -1,6 +1,8 @@
 # DOTS PowerShell Profile Loader
 
-A flexible, configuration-driven PowerShell profile loader that provides fine-grained control over script and module loading across multiple directories and environments.
+A flexible, configuration-driven PowerShell profile loader that provides
+fine-grained control over script and module loading across multiple directories
+and environments.
 
 ## Features
 
@@ -102,7 +104,8 @@ Global exclusion patterns applied to all loading operations. Supports:
 
 ### OrderFiles
 
-Customizable list of configuration file names to search for in directories. Default:
+Customizable list of configuration file names to search for in directories.
+Default:
 
 ```json
 [
@@ -128,7 +131,8 @@ Array of path configurations defining what to load.
 }
 ```
 
-**Path**: Relative path from `$env:DOTS` environment variable **Modules**: Array of module/directory names to load
+**Path**: Relative path from `$env:DOTS` environment variable **Modules**: Array
+of module/directory names to load
 
 #### Module Loading Behavior
 
@@ -170,7 +174,8 @@ The loader searches for local config files using the `OrderFiles` setting:
 skip
 ```
 
-**Empty File:** Files are no longer treated as skip by default - empty files allow normal loading.
+**Empty File:** Files are no longer treated as skip by default - empty files
+allow normal loading.
 
 #### Local Excludes
 
@@ -280,7 +285,8 @@ Configuration files are automatically detected by content:
 
 ### Global Function Scoping
 
-All functions defined in loaded scripts are automatically made available in the global scope, ensuring they're accessible throughout your PowerShell session.
+All functions defined in loaded scripts are automatically made available in the
+global scope, ensuring they're accessible throughout your PowerShell session.
 
 ### Smart File Filtering
 
@@ -291,7 +297,8 @@ The loader includes intelligent filtering:
 
 ### PSModulePath Management
 
-Include paths are automatically added to `$env:PSModulePath` for proper module discovery.
+Include paths are automatically added to `$env:PSModulePath` for proper module
+discovery.
 
 ## Examples
 
@@ -433,4 +440,5 @@ DEBUG: >>= DOTS =<<     ✓ utils.psm1 (module)
 
 ## License
 
-This project is provided as-is for educational and practical use in PowerShell environments.
+This project is provided as-is for educational and practical use in PowerShell
+environments.

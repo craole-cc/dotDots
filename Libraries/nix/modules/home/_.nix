@@ -1,8 +1,5 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{ _, lib, ... }:
+let
   __doc = ''
     Produce the complete Home Manager option block for the current host.
 
@@ -35,56 +32,52 @@
   inherit (lib) extend;
 
   /**
-  Produce the complete Home Manager option block for the current host.
+    Produce the complete Home Manager option block for the current host.
 
-  Configures Home Manager to reuse the system package set, forward shared
-  special arguments, and generate per-user configurations through the
-  home user builder.
+    Configures Home Manager to reuse the system package set, forward shared
+    special arguments, and generate per-user configurations through the
+    home user builder.
 
-  # Args:
-    host: The current host definition.
-    specialArgs: Arguments forwarded into Home Manager modules.
-    inputs: Canonically resolved flake inputs.
-    modules: Resolved Home Manager module set.
-    tree: Repository tree metadata used by downstream user builders.
+    # Args:
+      host: The current host definition.
+      specialArgs: Arguments forwarded into Home Manager modules.
+      inputs: Canonically resolved flake inputs.
+      modules: Resolved Home Manager module set.
+      tree: Repository tree metadata used by downstream user builders.
 
-  # Returns:
-    A module fragment defining the `home-manager` configuration block.
+    # Returns:
+      A module fragment defining the `home-manager` configuration block.
   */
-  mkModules = {
-    host,
-    specialArgs,
-    inputs,
-    modules,
-    tree,
-  }: {
-    home-manager = {
-      backupFileExtension = "BaC";
-      overwriteBackup = true;
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      extraSpecialArgs =
-        specialArgs
-        // {
-          lib = extend (
-            _self: _super: {
-              hm = inputs.home-manager.lib.hm or {};
-            }
-          );
+  mkModules =
+    {
+      host,
+      specialArgs,
+      inputs,
+      modules,
+      tree,
+    }:
+    {
+      home-manager = {
+        backupFileExtension = "BaC";
+        overwriteBackup = true;
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        extraSpecialArgs = specialArgs // {
+          lib = extend (_self: _super: { hm = inputs.home-manager.lib.hm or { }; });
         };
-      users = mkUsers {
-        inherit
-          inputs
-          modules
-          host
-          tree
-          ;
+        users = mkUsers {
+          inherit
+            inputs
+            modules
+            host
+            tree
+            ;
+        };
       };
     };
-  };
 in
-  __exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = __exports.external;
-  }
+__exports.internal
+// {
+  inherit __doc;
+  __rootAliases = __exports.external;
+}

@@ -5,7 +5,8 @@
   pkgs,
   user,
   ...
-}: let
+}:
+let
   app = "foot";
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
@@ -21,7 +22,8 @@
       inherit (user) interface;
     }
     && ((elem app allowed) || isPrimary || isSecondary);
-in {
+in
+{
   config = mkIf isAllowed {
     programs.${app} = {
       enable = true;
@@ -42,8 +44,7 @@ in {
         '')
       ];
       sessionVariables =
-        optionalAttrs isPrimary {TERMINAL = "feet";}
-        // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
+        optionalAttrs isPrimary { TERMINAL = "feet"; } // optionalAttrs isSecondary { TERMINAL_ALT = "feet"; };
     };
   };
 }

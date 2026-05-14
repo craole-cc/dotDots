@@ -20,16 +20,17 @@ build
 
 ## nixpkgs Pinning Policy
 
-> **Warning (verbatim from numtide):**
-> "This flake is only built and tested against its pinned nixpkgs-unstable
-> input. If you set `openclaw.inputs.nixpkgs.follows = 'nixpkgs'`, your nixpkgs
-> must also track nixpkgs-unstable and be reasonably current — using a stable
-> release branch (e.g. nixos-25.05) will break eventually. Omitting follows
-> costs you a second nixpkgs evaluation but guarantees you get the combination
-> we ship in CI — and lets you pull pre-built binaries from our binary cache
-> instead of rebuilding everything against your nixpkgs."
+> **Warning (verbatim from numtide):** "This flake is only built and tested
+> against its pinned nixpkgs-unstable input. If you set
+> `openclaw.inputs.nixpkgs.follows = 'nixpkgs'`, your nixpkgs must also track
+> nixpkgs-unstable and be reasonably current — using a stable release branch
+> (e.g. nixos-25.05) will break eventually. Omitting follows costs you a second
+> nixpkgs evaluation but guarantees you get the combination we ship in CI — and
+> lets you pull pre-built binaries from our binary cache instead of rebuilding
+> everything against your nixpkgs."
 
-This flake pins `nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable"` unconditionally.
+This flake pins `nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable"`
+unconditionally.
 
 ## Module Options
 

@@ -3,14 +3,16 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "programs";
   mod = "starship";
   cfg = config.${top}.${dom}.${mod};
   # inherit (config.${top}.interface) shellPrompt;
   inherit (lix.options.construction) mkEnable;
   inherit (lix.modules.construction) mkIf;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
     enable = mkEnable {
       description = "Starship Prompt";
@@ -19,9 +21,5 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable;
-    };
-  };
+  config = mkIf cfg.enable { programs.${mod} = { inherit (cfg) enable; }; };
 }

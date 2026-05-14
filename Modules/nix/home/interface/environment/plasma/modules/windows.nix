@@ -1,4 +1,5 @@
-{nixosConfig, ...}: {
+{ nixosConfig, ... }:
+{
   kwin = {
     edgeBarrier = 0;
     cornerBarrier = false;
@@ -61,7 +62,7 @@
           value = "dolphin";
           type = "substring";
         };
-        window-types = ["normal"];
+        window-types = [ "normal" ];
       };
       apply = {
         noborder = {
@@ -80,7 +81,7 @@
           value = "foot-quake";
           type = "substring";
         };
-        "window-types" = ["dock"];
+        "window-types" = [ "dock" ];
       };
       apply = {
         noborder = {

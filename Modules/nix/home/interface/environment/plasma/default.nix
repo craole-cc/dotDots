@@ -7,7 +7,8 @@
   pkgs,
   src,
   ...
-}: let
+}:
+let
   app = "plasma";
   alt = "kde";
   opt = [
@@ -21,12 +22,13 @@
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 
-  packages = import ./packages.nix {inherit pkgs;};
-in {
+  packages = import ./packages.nix { inherit pkgs; };
+in
+{
   config = mkIf isAllowed {
     programs = optionalAttrs (config.programs ? ${app}) {
       ${app} = mkMerge [
-        {enable = true;}
+        { enable = true; }
         (import ./bindings)
         # // import ./files
         (import ./modules {

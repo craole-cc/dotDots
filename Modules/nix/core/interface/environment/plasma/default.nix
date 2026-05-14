@@ -4,10 +4,12 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
-in {
+in
+{
   config = mkIf (cfg.desktopEnvironment == "plasma") {
     services.desktopManager.plasma6 = {
       enable = true;

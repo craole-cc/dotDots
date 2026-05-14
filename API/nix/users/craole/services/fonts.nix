@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   home.packages = with pkgs; [
     maple-mono.NF
     monaspace
@@ -9,13 +10,13 @@
     antialiasing = true;
     subpixelRendering = "rgb";
     defaultFonts = {
-      emoji = ["Noto Color Emoji"];
+      emoji = [ "Noto Color Emoji" ];
       monospace = [
         "Maple Mono NF"
         "Monaspace Radon"
       ];
-      serif = ["Noto Serif"];
-      sansSerif = ["Noto Sans"];
+      serif = [ "Noto Serif" ];
+      sansSerif = [ "Noto Sans" ];
     };
   };
 }

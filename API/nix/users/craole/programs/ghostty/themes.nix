@@ -1,7 +1,8 @@
 let
   light = "Catppuccin Latte";
   dark = "Catppuccin Frappe";
-in {
+in
+{
   programs.ghostty = {
     settings.theme = "light:${light},dark:${dark}";
     themes = {

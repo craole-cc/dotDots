@@ -1,5 +1,1 @@
-{
-  programs.chromium.commandLineArgs = [
-    "--disable-features=AutofillSavePaymentMethods"
-  ];
-}
+{ programs.chromium.commandLineArgs = [ "--disable-features=AutofillSavePaymentMethods" ]; }

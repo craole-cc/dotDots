@@ -1,7 +1,7 @@
 {
   input = {
-    keyboard = {};
-    mice = [];
-    touchpads = [];
+    keyboard = { };
+    mice = [ ];
+    touchpads = [ ];
   };
 }

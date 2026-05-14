@@ -7,7 +7,7 @@ _: {
     };
     exec = "yazi";
     needsTerminal = true;
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   lf = {
@@ -18,7 +18,7 @@ _: {
     };
     exec = "lf";
     needsTerminal = true;
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   ranger = {
@@ -29,7 +29,7 @@ _: {
     };
     exec = "ranger";
     needsTerminal = true;
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   nnn = {
@@ -40,7 +40,7 @@ _: {
     };
     exec = "nnn";
     needsTerminal = true;
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   broot = {
@@ -51,7 +51,7 @@ _: {
     };
     exec = "broot";
     needsTerminal = true;
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   nautilus = {
@@ -61,7 +61,7 @@ _: {
       class = "org.gnome.Nautilus";
     };
     exec = "nautilus";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   dolphin = {
@@ -71,7 +71,7 @@ _: {
       class = "org.kde.dolphin";
     };
     exec = "dolphin";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   thunar = {
@@ -81,7 +81,7 @@ _: {
       class = "Thunar";
     };
     exec = "thunar";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   nemo = {
@@ -91,7 +91,7 @@ _: {
       class = "nemo";
     };
     exec = "nemo";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   pcmanfm = {
@@ -101,7 +101,7 @@ _: {
       class = "Pcmanfm";
     };
     exec = "pcmanfm";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   doublecmd = {
@@ -111,7 +111,7 @@ _: {
       class = "doublecmd";
     };
     exec = "doublecmd";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   krusader = {
@@ -121,7 +121,7 @@ _: {
       class = "org.kde.krusader";
     };
     exec = "krusader";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   cosmic-files = {
@@ -131,7 +131,7 @@ _: {
       class = "com.system76.CosmicFiles";
     };
     exec = "cosmic-files";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   pantheon-files = {
@@ -141,7 +141,7 @@ _: {
       class = "io.elementary.files";
     };
     exec = "io.elementary.files";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 
   spacefm = {
@@ -151,6 +151,6 @@ _: {
       class = "spacefm";
     };
     exec = "spacefm";
-    categories = ["file-manager"];
+    categories = [ "file-manager" ];
   };
 }

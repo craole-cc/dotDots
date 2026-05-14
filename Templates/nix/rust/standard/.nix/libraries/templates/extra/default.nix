@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkBase = set:
+  mkBase =
+    set:
     optionalAttrs set.enable (
       {
         envrc = {
@@ -16,8 +18,14 @@
       // optionalAttrs set.includeMise {
         mise = {
           source = ./mise.toml;
-          target = [".mise.toml" "mise.toml"];
+          target = [
+            ".mise.toml"
+            "mise.toml"
+          ];
         };
       }
     );
-in {inherit mkBase;}
+in
+{
+  inherit mkBase;
+}

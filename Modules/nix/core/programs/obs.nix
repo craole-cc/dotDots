@@ -6,7 +6,8 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "programs";
   mod = "obs-studio";
   cfg = config.${top}.${dom}.${mod};
@@ -18,7 +19,8 @@
   inherit (lix.options.construction) mkEnable mkOption mkTrue;
   inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
     enable = mkTrue "OBS Studio";
     enableVirtualCamera = mkEnable {
@@ -27,7 +29,8 @@ in {
     };
     plugins = mkOption {
       description = "Optional plugins for OBS.";
-      default = with pins;
+      default =
+        with pins;
         [
           droidcam-obs
           input-overlay
@@ -39,16 +42,10 @@ in {
           obs-source-switcher
           obs-vertical-canvas
         ]
-        ++ optionals (displayProtocol == "wayland") [
-          wlrobs
-        ];
+        ++ optionals (displayProtocol == "wayland") [ wlrobs ];
       type = listOf package;
     };
   };
 
-  config = mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable enableVirtualCamera plugins;
-    };
-  };
+  config = mkIf cfg.enable { programs.${mod} = { inherit (cfg) enable enableVirtualCamera plugins; }; };
 }

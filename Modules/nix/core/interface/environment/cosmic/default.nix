@@ -3,10 +3,12 @@
   lib,
   top,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
-in {
+in
+{
   config = mkIf (cfg.desktopEnvironment == "cosmic") {
     services.desktopManager.cosmic = {
       enable = true;

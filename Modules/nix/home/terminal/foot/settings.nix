@@ -1,6 +1,8 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.modules) mkDefault mkForce;
-in {
+in
+{
   main = {
     app-id = "foot";
     dpi-aware = mkForce "yes";

@@ -890,11 +890,11 @@ editing commands.
 
 ## Use of '\\t'
 
-For clarity in documentation, we have used the expression '\\t' to indicate a tab
-character (0x09) in the scripts. However, most versions of sed do not recognize
-the '\\t' abbreviation, so when typing these scripts from the command line, you
-should press the TAB key instead. '\\t' is supported as a regular expression meta
-character in awk, perl, and HHsed, sedmod, and GNU sed v3.02.80.
+For clarity in documentation, we have used the expression '\\t' to indicate a
+tab character (0x09) in the scripts. However, most versions of sed do not
+recognize the '\\t' abbreviation, so when typing these scripts from the command
+line, you should press the TAB key instead. '\\t' is supported as a regular
+expression meta character in awk, perl, and HHsed, sedmod, and GNU sed v3.02.80.
 
 ## Versions
 

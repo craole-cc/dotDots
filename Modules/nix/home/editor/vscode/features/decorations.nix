@@ -4,7 +4,8 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -250,11 +251,13 @@
       "gruntfuggly.todo-tree"
     ];
   };
-in {
+in
+{
   name = "decorations";
   description = "Inline highlights, guides and visual aids";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -267,13 +270,13 @@ in {
         todos.extensions
       ];
       userSettings = mkMerge [
-        (errorLens.userSettings or {})
-        (indentation.userSettings or {})
-        (colorize.userSettings or {})
-        (output.userSettings or {})
-        (lineWidth.userSettings or {})
-        (comments.userSettings or {})
-        (todos.userSettings or {})
+        (errorLens.userSettings or { })
+        (indentation.userSettings or { })
+        (colorize.userSettings or { })
+        (output.userSettings or { })
+        (lineWidth.userSettings or { })
+        (comments.userSettings or { })
+        (todos.userSettings or { })
       ];
     };
 }

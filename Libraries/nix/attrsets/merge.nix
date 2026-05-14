@@ -3,7 +3,8 @@
   _,
   lib,
   ...
-}: let
+}:
+let
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
@@ -12,28 +13,25 @@
   debug = mkModuleDebug __moduleRef;
 
   /**
-  Merge two attrsets, with `override` winning on key conflicts.
+    Merge two attrsets, with `override` winning on key conflicts.
 
-  Equivalent to `base // override` but with type guards and a named
-  interface that reads clearly at the call site.
+    Equivalent to `base // override` but with type guards and a named
+    interface that reads clearly at the call site.
 
-  # Type
-  ```nix
-  merge :: { base :: AttrSet, override :: AttrSet } -> AttrSet
-  ```
+    # Type
+    ```nix
+    merge :: { base :: AttrSet, override :: AttrSet } -> AttrSet
+    ```
 
-  # Examples
-  ```nix
-  merge { base = { a = 1; b = 2; }; override = { b = 99; c = 3; }; }
-  # => { a = 1; b = 99; c = 3; }
-  ```
+    # Examples
+    ```nix
+    merge { base = { a = 1; b = 2; }; override = { b = 99; c = 3; }; }
+    # => { a = 1; b = 99; c = 3; }
+    ```
   */
-  merge = {
-    base,
-    override,
-  }:
-    if !isAttrs base
-    then
+  merge =
+    { base, override }:
+    if !isAttrs base then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -44,8 +42,7 @@
           input = base;
         }
       )
-    else if !isAttrs override
-    then
+    else if !isAttrs override then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -56,45 +53,46 @@
           input = override;
         }
       )
-    else base // override;
+    else
+      base // override;
 
   /**
-  Merge two attrsets using a resolver function for key conflicts.
+    Merge two attrsets using a resolver function for key conflicts.
 
-  The resolver receives `{ key, base, override }` and returns the value
-  to use for that key.
+    The resolver receives `{ key, base, override }` and returns the value
+    to use for that key.
 
-  # Type
-  ```nix
-  mergeWith :: { resolver :: { key :: string, base :: a, override :: a } -> a, base :: AttrSet, override :: AttrSet } -> AttrSet
-  ```
+    # Type
+    ```nix
+    mergeWith :: { resolver :: { key :: string, base :: a, override :: a } -> a, base :: AttrSet, override :: AttrSet } -> AttrSet
+    ```
 
-  # Examples
-  ```nix
-  # Sum conflicting numeric values
-  mergeWith {
-    resolver = { key, base, override }: base + override;
-    base     = { a = 1; b = 2; };
-    override = { b = 10; c = 3; };
-  }
-  # => { a = 1; b = 12; c = 3; }
+    # Examples
+    ```nix
+    # Sum conflicting numeric values
+    mergeWith {
+      resolver = { key, base, override }: base + override;
+      base     = { a = 1; b = 2; };
+      override = { b = 10; c = 3; };
+    }
+    # => { a = 1; b = 12; c = 3; }
 
-  # Concatenate conflicting list values
-  mergeWith {
-    resolver = { key, base, override }: base ++ override;
-    base     = { tags = ["a"]; };
-    override = { tags = ["b"]; };
-  }
-  # => { tags = ["a" "b"]; }
-  ```
+    # Concatenate conflicting list values
+    mergeWith {
+      resolver = { key, base, override }: base ++ override;
+      base     = { tags = ["a"]; };
+      override = { tags = ["b"]; };
+    }
+    # => { tags = ["a" "b"]; }
+    ```
   */
-  mergeWith = {
-    resolver,
-    base,
-    override,
-  }:
-    if !isFunction resolver
-    then
+  mergeWith =
+    {
+      resolver,
+      base,
+      override,
+    }:
+    if !isFunction resolver then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -105,8 +103,7 @@
           input = resolver;
         }
       )
-    else if !isAttrs base
-    then
+    else if !isAttrs base then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -117,8 +114,7 @@
           input = base;
         }
       )
-    else if !isAttrs override
-    then
+    else if !isAttrs override then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -133,42 +129,39 @@
       (base // override)
       // mapAttrs (
         key: value:
-          if base ? ${key} && override ? ${key}
-          then
-            resolver {
-              inherit key;
-              base = base.${key};
-              override = override.${key};
-            }
-          else value
+        if base ? ${key} && override ? ${key} then
+          resolver {
+            inherit key;
+            base = base.${key};
+            override = override.${key};
+          }
+        else
+          value
       ) (base // override);
 
   /**
-  Recursively merge two attrsets.
+    Recursively merge two attrsets.
 
-  Nested attrsets are merged deeply rather than replaced wholesale.
-  Non-attrset values in `override` win over those in `base`.
+    Nested attrsets are merged deeply rather than replaced wholesale.
+    Non-attrset values in `override` win over those in `base`.
 
-  # Type
-  ```nix
-  mergeDeep :: { base :: AttrSet, override :: AttrSet } -> AttrSet
-  ```
+    # Type
+    ```nix
+    mergeDeep :: { base :: AttrSet, override :: AttrSet } -> AttrSet
+    ```
 
-  # Examples
-  ```nix
-  mergeDeep {
-    base     = { a.b = 1; a.c = 2; x = 0; };
-    override = { a.b = 99; y = 1; };
-  }
-  # => { a.b = 99; a.c = 2; x = 0; y = 1; }
-  ```
+    # Examples
+    ```nix
+    mergeDeep {
+      base     = { a.b = 1; a.c = 2; x = 0; };
+      override = { a.b = 99; y = 1; };
+    }
+    # => { a.b = 99; a.c = 2; x = 0; y = 1; }
+    ```
   */
-  mergeDeep = {
-    base,
-    override,
-  }:
-    if !isAttrs base
-    then
+  mergeDeep =
+    { base, override }:
+    if !isAttrs base then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -179,8 +172,7 @@
           input = base;
         }
       )
-    else if !isAttrs override
-    then
+    else if !isAttrs override then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -191,34 +183,32 @@
           input = override;
         }
       )
-    else recursiveUpdate base override;
+    else
+      recursiveUpdate base override;
 
   /**
-  Apply defaults: fill in missing keys from `defaults` without overriding
-  any keys already present in `attrs`.
+    Apply defaults: fill in missing keys from `defaults` without overriding
+    any keys already present in `attrs`.
 
-  Equivalent to `defaults // attrs`, named for clarity.
+    Equivalent to `defaults // attrs`, named for clarity.
 
-  # Type
-  ```nix
-  withDefaults :: { attrs :: AttrSet, defaults :: AttrSet } -> AttrSet
-  ```
+    # Type
+    ```nix
+    withDefaults :: { attrs :: AttrSet, defaults :: AttrSet } -> AttrSet
+    ```
 
-  # Examples
-  ```nix
-  withDefaults {
-    attrs    = { color = "red"; };
-    defaults = { color = "blue"; size = "medium"; };
-  }
-  # => { color = "red"; size = "medium"; }
-  ```
+    # Examples
+    ```nix
+    withDefaults {
+      attrs    = { color = "red"; };
+      defaults = { color = "blue"; size = "medium"; };
+    }
+    # => { color = "red"; size = "medium"; }
+    ```
   */
-  withDefaults = {
-    attrs,
-    defaults,
-  }:
-    if !isAttrs attrs
-    then
+  withDefaults =
+    { attrs, defaults }:
+    if !isAttrs attrs then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -229,8 +219,7 @@
           input = attrs;
         }
       )
-    else if !isAttrs defaults
-    then
+    else if !isAttrs defaults then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -241,8 +230,10 @@
           input = defaults;
         }
       )
-    else defaults // attrs;
-in {
+    else
+      defaults // attrs;
+in
+{
   inherit
     merge
     mergeWith
@@ -286,7 +277,7 @@ in {
           base = {
             a = 1;
           };
-          override = {};
+          override = { };
         };
       };
     };
@@ -300,12 +291,7 @@ in {
         };
         command = "mergeWith { resolver = { base, override, ... }: base + override; base = { a = 1; b = 2; }; override = { b = 10; c = 3; }; }";
         outcome = mergeWith {
-          resolver = {
-            base,
-            override,
-            ...
-          }:
-            base + override;
+          resolver = { base, override, ... }: base + override;
           base = {
             a = 1;
             b = 2;
@@ -325,17 +311,12 @@ in {
         };
         command = ''mergeWith { resolver = { base, override, ... }: base ++ override; base = { tags = ["a"]; }; override = { tags = ["b"]; }; }'';
         outcome = mergeWith {
-          resolver = {
-            base,
-            override,
-            ...
-          }:
-            base ++ override;
+          resolver = { base, override, ... }: base ++ override;
           base = {
-            tags = ["a"];
+            tags = [ "a" ];
           };
           override = {
-            tags = ["b"];
+            tags = [ "b" ];
           };
         };
       };
@@ -390,7 +371,7 @@ in {
         };
         command = ''withDefaults { attrs = {}; defaults = { color = "blue"; size = "medium"; }; }'';
         outcome = withDefaults {
-          attrs = {};
+          attrs = { };
           defaults = {
             color = "blue";
             size = "medium";

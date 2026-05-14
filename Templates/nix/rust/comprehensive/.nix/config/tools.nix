@@ -13,7 +13,8 @@
   channel ? "nightly",
   includeEditor ? false,
   ...
-}: let
+}:
+let
   inherit (pkgs.lib.attrsets) attrValues mapAttrs mapAttrsToList;
   inherit (pkgs.lib.lists) filter;
   inherit (pkgs.lib.strings) concatStringsSep hasPrefix;
@@ -81,14 +82,10 @@
     inherit (jetbrains) rust-rover;
   };
 
-  bin =
-    mapAttrs
-    (name: drv: "${drv}/bin/${drv.meta.mainProgram or name}")
-    tools
-    // {
-      cargo = "${rust}/bin/cargo";
-      rustc = "${rust}/bin/rustc";
-    };
+  bin = mapAttrs (name: drv: "${drv}/bin/${drv.meta.mainProgram or name}") tools // {
+    cargo = "${rust}/bin/cargo";
+    rustc = "${rust}/bin/rustc";
+  };
 
   cmd = {
     inherit rust;
@@ -102,8 +99,8 @@
     clippy = "${bin.cargo} clippy -- -D warnings";
     coverage = "${bin.cargo} tarpaulin --out Html --output-dir coverage";
     edit = "\"$VISUAL\" \"$PWD\" > /dev/null 2>&1 & disown";
-    green = ''${bin.gum} style --foreground=82'';
-    grey = ''${bin.gum} style --foreground=250'';
+    green = "${bin.gum} style --foreground=82";
+    grey = "${bin.gum} style --foreground=250";
     gt = "${bin.gitui}";
     info = "${bin.tokei}; ${bin.onefetch}";
     init = ''
@@ -122,7 +119,7 @@
         ${cmd.yn} "Allow direnv?" && direnv allow .envrc 2>/dev/null || true
       fi
     '';
-    leptosfmtv = ''${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2'';
+    leptosfmtv = "${bin.leptosfmt} --version 2>&1 | cut -d ' ' -f2";
     lint = ''
       ${cmd.init}
       ${cmd.yn} "Proceed with linting?" ||
@@ -133,7 +130,7 @@
       ${bin.cargo} clippy         || failed=1
       exit $failed
     '';
-    magenta = ''${bin.gum} style --foreground=212'';
+    magenta = "${bin.gum} style --foreground=212";
     markdownlint = bin.markdownlint-cli2;
     markdownlintv = ''
       ${bin.markdownlint-cli2} --version 2>&1 |
@@ -141,9 +138,9 @@
     '';
     misev = ''${bin.mise} version 2>/dev/null | rg -o '^[0-9]+\.[0-9]+\.[0-9]+'  '';
     prettiest = bin.prettierd;
-    prettiestv = ''${cmd.prettiest} --version 2>&1 | cut -d ' ' -f2'';
-    red = ''${bin.gum} style --foreground=196'';
-    reload = ''${bin.direnv} reload'';
+    prettiestv = "${cmd.prettiest} --version 2>&1 | cut -d ' ' -f2";
+    red = "${bin.gum} style --foreground=196";
+    reload = "${bin.direnv} reload";
     reset = ''
       ${cmd.yn} "Clean cargo build cache?" && ${bin.cargo} clean
       ${cmd.yn} "Remove lock files? (flake.lock + Cargo.lock)" && {
@@ -205,17 +202,14 @@
     watch-lint = "${cmd.watch} 'clippy -- -D warnings'";
     watch-run = "${cmd.watch} 'run'";
     watch-test = "${cmd.watch} 'nextest run'";
-    yellow = ''${bin.gum} style --foreground=226'';
-    yn = ''${bin.gum} confirm'';
+    yellow = "${bin.gum} style --foreground=226";
+    yn = "${bin.gum} confirm";
   };
 
-  packages =
-    [rust]
-    ++ (attrValues tools)
-    ++ (
-      mapAttrsToList
-      (name: val: pkgs.writeShellScriptBin name ''${val} "$@"'')
-      (removeAttrs cmd ["rust"])
-    );
+  packages = [
+    rust
+  ]
+  ++ (attrValues tools)
+  ++ (mapAttrsToList (name: val: pkgs.writeShellScriptBin name ''${val} "$@"'') (removeAttrs cmd [ "rust" ]));
 in
-  {inherit packages;} // cmd
+{ inherit packages; } // cmd

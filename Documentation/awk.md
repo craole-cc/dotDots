@@ -29,8 +29,8 @@ echo "
 '/manager/ {print}' => filter based on pattern 'NF { $1=$1; print }' => remove
 all whitespace
 
-printf "\\n==>> awk \<<===\\n" echo "$geekstut" | # awk '{print}' awk 'NF { $1=$1;
-print }'
+printf "\\n==>> awk \<<===\\n" echo "$geekstut" | # awk '{print}' awk 'NF {
+$1=$1; print }'
 
 echo "$tomcat" | awk -F'[/|=]' -vOFS='\\t' '{print $3, $5, $NF}'
 

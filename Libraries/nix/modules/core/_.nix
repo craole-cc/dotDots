@@ -1,4 +1,5 @@
-{_, ...}: let
+{ _, ... }:
+let
   __doc = ''
     Build the host-specific core module list used during system evaluation.
 
@@ -30,44 +31,46 @@
   inherit (_.modules.construction) mkHome;
 
   /**
-  Build the host-specific core module list used during system evaluation.
+    Build the host-specific core module list used during system evaluation.
 
-  Produces the base module stack for a host by combining low-level hardware,
-  networking, environment, services, programs, users, and home-manager glue.
-  The result is returned as a module list suitable for `evalModules`.
+    Produces the base module stack for a host by combining low-level hardware,
+    networking, environment, services, programs, users, and home-manager glue.
+    The result is returned as a module list suitable for `evalModules`.
 
-  # Args:
-    host: The enriched host definition.
-    nixpkgs: The resolved nixpkgs source/configuration attrset.
-    inputs: Canonically resolved flake inputs.
-    modules: Resolved input-provided module sets.
-    specialArgs: Extra arguments forwarded into module evaluation.
+    # Args:
+      host: The enriched host definition.
+      nixpkgs: The resolved nixpkgs source/configuration attrset.
+      inputs: Canonically resolved flake inputs.
+      modules: Resolved input-provided module sets.
+      specialArgs: Extra arguments forwarded into module evaluation.
 
-  # Returns:
-    A list of modules for the target host, including any host-local imports.
+    # Returns:
+      A list of modules for the target host, including any host-local imports.
   */
-  mkModules = {
-    host,
-    nixpkgs,
-    inputs,
-    modules,
-    specialArgs,
-    tree,
-  }: [
-    {inherit nixpkgs;}
-    (mkHome {
-      inherit
-        host
-        specialArgs
-        tree
-        inputs
-        ;
-      modules = modules.home;
-    })
-  ];
+  mkModules =
+    {
+      host,
+      nixpkgs,
+      inputs,
+      modules,
+      specialArgs,
+      tree,
+    }:
+    [
+      { inherit nixpkgs; }
+      (mkHome {
+        inherit
+          host
+          specialArgs
+          tree
+          inputs
+          ;
+        modules = modules.home;
+      })
+    ];
 in
-  __exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = __exports.external;
-  }
+__exports.internal
+// {
+  inherit __doc;
+  __rootAliases = __exports.external;
+}

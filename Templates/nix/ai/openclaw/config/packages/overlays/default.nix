@@ -9,7 +9,8 @@
 #   clean (only flake.nix + dot-files) and makes the dependency graph explicit:
 #   overlays/ depends on packages/openclaw and packages/gh-tools, never the
 #   other way around.
-{packages}: final: _prev: {
+{ packages }:
+final: _prev: {
   # Inject the pre-built derivations for the host system.
   # Downstream consumers that import this overlay get the exact derivations
   # that CI built and cached — no recompilation needed.

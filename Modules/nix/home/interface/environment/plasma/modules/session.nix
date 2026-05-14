@@ -19,7 +19,7 @@ _: {
   session = {
     sessionRestore = {
       restoreOpenApplicationsOnLogin = "onLastLogout";
-      excludeApplications = [];
+      excludeApplications = [ ];
     };
     general.askForConfirmationOnLogout = false;
   };

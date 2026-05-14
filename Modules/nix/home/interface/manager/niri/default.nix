@@ -5,7 +5,8 @@
   config,
   src,
   ...
-}: let
+}:
+let
   app = "niri";
   inherit (lib.modules) mkIf;
   inherit (lix.attrsets.predicates) waylandEnabled;
@@ -13,14 +14,13 @@
   isAllowed =
     waylandEnabled {
       inherit config;
-      interface = user.interface or {};
+      interface = user.interface or { };
     }
     && (user.interface.windowManager or null) == app;
-in {
+in
+{
   config = mkIf isAllowed {
-    xdg.configFile."niri/config.kdl" = mkIf (src != null) {
-      source = src + "/Configuration/niri/default.kdl";
-    };
+    xdg.configFile."niri/config.kdl" = mkIf (src != null) { source = src + "/Configuration/niri/default.kdl"; };
 
     programs = {
       # ${app} = #TODO: Niri flake is outdated
@@ -29,7 +29,7 @@ in {
       #   // import ./layout.nix
       #   // import ./settings.nix;
 
-      niriswitcher = import ./switcher {inherit user;};
+      niriswitcher = import ./switcher { inherit user; };
     };
   };
 }

@@ -1,9 +1,10 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.lists) elem;
   inherit (lib.attrsets) recursiveUpdate;
 
   __exports = {
-    internal = {inherit defaults mkLocale;};
+    internal = { inherit defaults mkLocale; };
     external = {
       defaultLocale = defaults;
       mkSchemaLocale = mkLocale;
@@ -20,13 +21,15 @@
     dualBootWindows = false;
   };
 
-  mkLocale = {
-    host,
-    user ? {},
-  }: let
-    merged = recursiveUpdate (host.localization or {}) (user.localization or {});
-    fun = host.functionalities or [];
-  in
-    defaults // merged // {dualBootWindows = elem "dualboot-windows" fun;};
+  mkLocale =
+    {
+      host,
+      user ? { },
+    }:
+    let
+      merged = recursiveUpdate (host.localization or { }) (user.localization or { });
+      fun = host.functionalities or [ ];
+    in
+    defaults // merged // { dualBootWindows = elem "dualboot-windows" fun; };
 in
-  __exports.internal // {__rootAliases = __exports.external;}
+__exports.internal // { __rootAliases = __exports.external; }

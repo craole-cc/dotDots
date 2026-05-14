@@ -5,7 +5,8 @@
   lib,
   top,
   ...
-}: let
+}:
+let
   dom = "system";
   mod = "locale";
   cfg = config.${top}.${dom}.${mod};
@@ -13,20 +14,18 @@
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     bool
     float
     nullOr
     str
     ;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {
+      default = true;
+    };
     timeZone = mkOption {
       description = "System timezone";
       default = loc.timeZone;

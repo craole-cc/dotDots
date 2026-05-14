@@ -5,7 +5,8 @@
   lib,
   top,
   ...
-}: let
+}:
+let
   dom = "hardware";
   mod = "filesystems";
   cfg = config.${top}.${dom}.${mod};
@@ -16,13 +17,12 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
-in {
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {
+      default = true;
+    };
     udisks = mkOption {
       description = "Enable udisks2 for automounting removable media";
       default = hw.hasGui;
@@ -33,18 +33,14 @@ in {
   config = mkIf cfg.enable {
     fileSystems = mapAttrs (
       _: fs:
-        {
-          inherit (fs) device;
-          inherit (fs) fsType;
-        }
-        // (
-          if fs.options or [] == []
-          then {}
-          else {inherit (fs) options;}
-        )
-    ) (host.devices.file or {});
+      {
+        inherit (fs) device;
+        inherit (fs) fsType;
+      }
+      // (if fs.options or [ ] == [ ] then { } else { inherit (fs) options; })
+    ) (host.devices.file or { });
 
-    swapDevices = map (s: {inherit (s) device;}) (host.devices.swap or []);
+    swapDevices = map (s: { inherit (s) device; }) (host.devices.swap or [ ]);
 
     services.udisks2 = mkIf cfg.udisks {
       enable = true;

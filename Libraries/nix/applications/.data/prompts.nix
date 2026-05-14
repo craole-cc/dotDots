@@ -4,8 +4,8 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["fish"];
-    shells = ["fish"];
+    engine = [ "fish" ];
+    shells = [ "fish" ];
     maturity = "stable";
   };
   liquidprompt = {
@@ -13,9 +13,9 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["bash"];
+    engine = [ "bash" ];
     config = {
-      lang = ["bash"];
+      lang = [ "bash" ];
       file = ".liquidpromptrc";
       home = "$HOME";
     };
@@ -30,8 +30,8 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["nu"];
-    shells = ["nushell"];
+    engine = [ "nu" ];
+    shells = [ "nushell" ];
     maturity = "young";
   };
   ohmyposh = {
@@ -39,9 +39,9 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["go"];
+    engine = [ "go" ];
     config = {
-      lang = ["toml"];
+      lang = [ "toml" ];
       file = "zen.toml";
       home = "$XDG_CONFIG_HOME/ohmyposh";
     };
@@ -59,13 +59,13 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["zsh"];
+    engine = [ "zsh" ];
     config = {
-      lang = ["zsh"];
+      lang = [ "zsh" ];
       file = ".p10k.zsh";
       home = "$HOME";
     };
-    shells = ["zsh"];
+    shells = [ "zsh" ];
     maturity = "stable";
   };
   powerline = {
@@ -73,9 +73,9 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["python"];
+    engine = [ "python" ];
     config = {
-      lang = ["json"];
+      lang = [ "json" ];
       file = "config.json";
       home = "$XDG_CONFIG_HOME/powerline";
     };
@@ -92,7 +92,7 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["go"];
+    engine = [ "go" ];
     shells = [
       "bash"
       "zsh"
@@ -106,7 +106,7 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["rust"];
+    engine = [ "rust" ];
     shells = [
       "bash"
       "zsh"
@@ -119,13 +119,13 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["zsh"];
+    engine = [ "zsh" ];
     config = {
-      lang = ["zsh"];
+      lang = [ "zsh" ];
       file = ".zpreztorc";
       home = "$HOME";
     };
-    shells = ["zsh"];
+    shells = [ "zsh" ];
     maturity = "stable";
   };
   pure = {
@@ -133,8 +133,8 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["zsh"];
-    shells = ["zsh"];
+    engine = [ "zsh" ];
+    shells = [ "zsh" ];
     maturity = "stable";
   };
   spaceship = {
@@ -142,13 +142,13 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["zsh"];
+    engine = [ "zsh" ];
     config = {
-      lang = ["zsh"];
+      lang = [ "zsh" ];
       file = "spaceship.zsh";
       home = "$XDG_CONFIG_HOME/spaceship";
     };
-    shells = ["zsh"];
+    shells = [ "zsh" ];
     maturity = "stable";
   };
   starship = {
@@ -156,9 +156,9 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["rust"];
+    engine = [ "rust" ];
     config = {
-      lang = ["toml"];
+      lang = [ "toml" ];
       file = "starship.toml";
       home = "$XDG_CONFIG_HOME";
     };
@@ -178,8 +178,8 @@ _: {
       "shell"
       "prompt"
     ];
-    engine = ["fish"];
-    shells = ["fish"];
+    engine = [ "fish" ];
+    shells = [ "fish" ];
     maturity = "stable";
   };
 }

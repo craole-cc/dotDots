@@ -92,8 +92,9 @@ in
 
 ## `__exports` Convention
 
-Internal exports use bare `inherit` — names are used as-is within the module tree.
-External exports **must be namespaced** to avoid collisions at the root level.
+Internal exports use bare `inherit` — names are used as-is within the module
+tree. External exports **must be namespaced** to avoid collisions at the root
+level.
 
 ```nix
 __exports = {
@@ -113,14 +114,18 @@ __exports = {
 };
 ```
 
-The naming pattern for external keys is `<domain><FunctionName>` — e.g. `toApplication*`, `mkUser*`, `hasConfig*`. Bare `inherit` in `external` is only appropriate when the name is already globally unambiguous.
+The naming pattern for external keys is `<domain><FunctionName>` — e.g.
+`toApplication*`, `mkUser*`, `hasConfig*`. Bare `inherit` in `external` is only
+appropriate when the name is already globally unambiguous.
 
 ## Docstring Format (`/** */`)
 
 - Summary sentence(s) first — plain prose, no heading
 - Edge cases / defaults / guards in a second paragraph if needed
-- `# Type` block — pseudo-signature using `::`, named record args, `|` for unions, `?` suffix or inline comment for optionals
-- `# Examples` block — at least two: one typical case, one boundary/edge case with a comment explaining what it demonstrates
+- `# Type` block — pseudo-signature using `::`, named record args, `|` for
+  unions, `?` suffix or inline comment for optionals
+- `# Examples` block — at least two: one typical case, one boundary/edge case
+  with a comment explaining what it demonstrates
 - Indent body content by 2 spaces inside the `/** */`
 - Fenced code blocks are flush with the left margin of the docstring
 
@@ -155,7 +160,8 @@ __tests = runTests {
 - `resolvesX` — for lookup / alias resolution
 - `caseSensitiveWithExact` / `caseInsensitiveByDefault` — for case behaviour
 
-Cover at minimum: the happy path, the rejection path, and any case-sensitivity or default-value behaviour.
+Cover at minimum: the happy path, the rejection path, and any case-sensitivity
+or default-value behaviour.
 
 ---
 
@@ -201,4 +207,5 @@ Cover at minimum: the happy path, the rejection path, and any case-sensitivity o
 Depends on: <comma-separated list>
 ```
 
-Surfaces as a readable string in `nix repl` and is exported via `inherit __docs;`.
+Surfaces as a readable string in `nix repl` and is exported via
+`inherit __docs;`.

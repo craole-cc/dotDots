@@ -1,8 +1,10 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.lists) elem;
   inherit (lib.strings) hasPrefix;
 
-  isSystemDefaultUser = name:
+  isSystemDefaultUser =
+    name:
     (hasPrefix "nixbld" name)
     || (hasPrefix "systemd-" name)
     || (hasPrefix "systemd-" name)
@@ -22,6 +24,6 @@
       "gdm"
     ]);
 
-  exports = {inherit isSystemDefaultUser;};
+  exports = { inherit isSystemDefaultUser; };
 in
-  exports // {__rootAliases = exports;}
+exports // { __rootAliases = exports; }

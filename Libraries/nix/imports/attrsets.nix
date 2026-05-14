@@ -2,7 +2,8 @@
   lib,
   flatten ? false,
   ...
-}: let
+}:
+let
   __exports = {
     namespaced = {
       inherit
@@ -13,14 +14,13 @@
         transformation
         ;
     };
-    flattened = {} // access // construction // merging // predicates // transformation // {};
+    flattened = { } // access // construction // merging // predicates // transformation // { };
   };
 
   inherit (lib) attrsets;
 
   access = {
-    inherit
-      (attrsets)
+    inherit (attrsets)
       attrNames
       attrValues
       getAttr
@@ -32,8 +32,7 @@
   };
 
   construction = {
-    inherit
-      (attrsets)
+    inherit (attrsets)
       genAttrs
       listToAttrs
       nameValuePair
@@ -42,8 +41,7 @@
   };
 
   transformation = {
-    inherit
-      (attrsets)
+    inherit (attrsets)
       concatMapAttrs
       filterAttrs
       filterAttrsRecursive
@@ -57,8 +55,7 @@
   };
 
   merging = {
-    inherit
-      (attrsets)
+    inherit (attrsets)
       intersectAttrs
       mergeAttrsList
       recursiveUpdate
@@ -68,8 +65,7 @@
   };
 
   predicates = {
-    inherit
-      (attrsets)
+    inherit (attrsets)
       hasAttr
       hasAttrByPath
       isAttrs
@@ -77,6 +73,4 @@
       ;
   };
 in
-  if flatten
-  then __exports.namespaced // __exports.flattened
-  else __exports.namespaced
+if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced

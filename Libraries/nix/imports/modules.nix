@@ -2,23 +2,17 @@
   lib,
   flatten ? false,
   ...
-}: let
+}:
+let
   __exports = {
-    namespaced = {
-      inherit
-        construction
-        evaluation
-        migration
-        ;
-    };
-    flattened = {} // construction // evaluation // migration // {};
+    namespaced = { inherit construction evaluation migration; };
+    flattened = { } // construction // evaluation // migration // { };
   };
 
   inherit (lib) modules extend;
 
   construction = {
-    inherit
-      (modules)
+    inherit (modules)
       mkAfter
       mkAssert
       mkBefore
@@ -39,8 +33,7 @@
   };
 
   evaluation = {
-    inherit
-      (modules)
+    inherit (modules)
       evalModules
       evalOptionValue
       importApply
@@ -51,8 +44,7 @@
   };
 
   migration = {
-    inherit
-      (modules)
+    inherit (modules)
       doRename
       mkAliasAndWrapDefsWithPriority
       mkAliasAndWrapDefinitions
@@ -67,6 +59,4 @@
       ;
   };
 in
-  if flatten
-  then __exports.namespaced // __exports.flattened
-  else __exports.namespaced
+if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced

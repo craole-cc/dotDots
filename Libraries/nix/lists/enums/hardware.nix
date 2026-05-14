@@ -1,42 +1,43 @@
-{_, ...}: let
+{ _, ... }:
+let
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.std.lists) length;
 
   /**
-  Host functionalities - hardware and firmware capabilities.
+    Host functionalities - hardware and firmware capabilities.
 
-  Defines what physical or firmware features are available on the system.
-  Used for conditional configuration based on hardware presence.
+    Defines what physical or firmware features are available on the system.
+    Used for conditional configuration based on hardware presence.
 
-  # Categories
-  - Input: keyboard, touchpad, touchscreen
-  - Storage: storage, nvme, ssd, hdd
-  - Network: network, wired, wireless, bluetooth
-  - Display: video, gpu, amdgpu, nvidiagpu, intelgpu
-  - Audio: audio, speakers, microphone
-  - Security: tpm, fingerprint, smartcard, secureboot
-  - Power: battery, power-management
-  - Virtualization: virtualization, kvm
-  - Boot: efi, bios, dualboot-windows, dualboot-macos
-  - Peripherals: webcam, printer, scanner
+    # Categories
+    - Input: keyboard, touchpad, touchscreen
+    - Storage: storage, nvme, ssd, hdd
+    - Network: network, wired, wireless, bluetooth
+    - Display: video, gpu, amdgpu, nvidiagpu, intelgpu
+    - Audio: audio, speakers, microphone
+    - Security: tpm, fingerprint, smartcard, secureboot
+    - Power: battery, power-management
+    - Virtualization: virtualization, kvm
+    - Boot: efi, bios, dualboot-windows, dualboot-macos
+    - Peripherals: webcam, printer, scanner
 
-  # Structure
-  ```nix
-  {
-    values = [ ... ];      # List of valid functionality names
-    validator = { ... };   # Case-insensitive validator
-  }
-  ```
+    # Structure
+    ```nix
+    {
+      values = [ ... ];      # List of valid functionality names
+      validator = { ... };   # Case-insensitive validator
+    }
+    ```
 
-  # Usage
-  ```nix
-  # Check if a functionality is valid
-  _lib.hostFunctionalities.validator.check { name = "bluetooth"; }  # => true
+    # Usage
+    ```nix
+    # Check if a functionality is valid
+    _lib.hostFunctionalities.validator.check { name = "bluetooth"; }  # => true
 
-  # Get all valid functionalities
-  _lib.hostFunctionalities.values
-  ```
+    # Get all valid functionalities
+    _lib.hostFunctionalities.values
+    ```
   */
   functionalities = mkEnum [
     #~@ Input devices
@@ -96,33 +97,33 @@
   ];
 
   /**
-  CPU brands - processor manufacturer identification.
+    CPU brands - processor manufacturer identification.
 
-  Identifies the CPU vendor for architecture-specific optimizations
-  and driver selection.
+    Identifies the CPU vendor for architecture-specific optimizations
+    and driver selection.
 
-  # Supported Brands
-  - amd: AMD processors (Ryzen, EPYC, Threadripper)
-  - intel: Intel processors (Core, Xeon, Pentium)
-  - arm: ARM-based processors (Apple Silicon, Snapdragon)
-  - risc-v: RISC-V architecture processors
+    # Supported Brands
+    - amd: AMD processors (Ryzen, EPYC, Threadripper)
+    - intel: Intel processors (Core, Xeon, Pentium)
+    - arm: ARM-based processors (Apple Silicon, Snapdragon)
+    - risc-v: RISC-V architecture processors
 
-  # Structure
-  ```nix
-  {
-    values = [ "amd" "intel" "arm" "risc-v" ];
-    validator = { check, list };
-  }
-  ```
+    # Structure
+    ```nix
+    {
+      values = [ "amd" "intel" "arm" "risc-v" ];
+      validator = { check, list };
+    }
+    ```
 
-  # Usage
-  ```nix
-  # Validate a CPU brand
-  _lib.cpuBrands.validator.check { name = "AMD"; }  # => true (case-insensitive)
+    # Usage
+    ```nix
+    # Validate a CPU brand
+    _lib.cpuBrands.validator.check { name = "AMD"; }  # => true (case-insensitive)
 
-  # Check if value is in list
-  _lib.inList "amd" _lib.cpuBrands.values
-  ```
+    # Check if value is in list
+    _lib.inList "amd" _lib.cpuBrands.values
+    ```
   */
   cpuBrands = mkEnum [
     "amd"
@@ -132,28 +133,28 @@
   ];
 
   /**
-  CPU power modes - processor power management profiles.
+    CPU power modes - processor power management profiles.
 
-  Defines power/performance trade-off profiles for CPU governor configuration.
+    Defines power/performance trade-off profiles for CPU governor configuration.
 
-  # Modes
-  - performance: Maximum performance, higher power consumption
-  - powerSaving: Maximum battery life, reduced performance
-  - balanced: Optimal balance between performance and power
+    # Modes
+    - performance: Maximum performance, higher power consumption
+    - powerSaving: Maximum battery life, reduced performance
+    - balanced: Optimal balance between performance and power
 
-  # Structure
-  ```nix
-  {
-    values = [ "performance" "powerSaving" "balanced" ];
-    validator = { check, list };
-  }
-  ```
+    # Structure
+    ```nix
+    {
+      values = [ "performance" "powerSaving" "balanced" ];
+      validator = { check, list };
+    }
+    ```
 
-  # Usage
-  ```nix
-  # Validate power mode selection
-  _lib.cpuPowerModes.validator.check { name = "Performance"; }  # => true
-  ```
+    # Usage
+    ```nix
+    # Validate power mode selection
+    _lib.cpuPowerModes.validator.check { name = "Performance"; }  # => true
+    ```
   */
   cpuPowerModes = mkEnum [
     "performance"
@@ -162,38 +163,39 @@
   ];
 
   /**
-  GPU brands - graphics card manufacturer identification.
+    GPU brands - graphics card manufacturer identification.
 
-  Identifies the GPU vendor for driver selection and hardware acceleration.
+    Identifies the GPU vendor for driver selection and hardware acceleration.
 
-  # Supported Brands
-  - amd: AMD Radeon graphics
-  - intel: Intel integrated/discrete graphics
-  - nvidia: NVIDIA GeForce/Quadro graphics
+    # Supported Brands
+    - amd: AMD Radeon graphics
+    - intel: Intel integrated/discrete graphics
+    - nvidia: NVIDIA GeForce/Quadro graphics
 
-  # Structure
-  ```nix
-  {
-    values = [ "amd" "intel" "nvidia" ];
-    validator = { check, list };
-  }
-  ```
+    # Structure
+    ```nix
+    {
+      values = [ "amd" "intel" "nvidia" ];
+      validator = { check, list };
+    }
+    ```
 
-  # Usage
-  ```nix
-  # Validate GPU brand
-  _lib.gpuBrands.validator.check { name = "NVIDIA"; }  # => true
+    # Usage
+    ```nix
+    # Validate GPU brand
+    _lib.gpuBrands.validator.check { name = "NVIDIA"; }  # => true
 
-  # Check multiple GPUs
-  _lib.areAllInList ["amd" "intel"] _lib.gpuBrands.values true
-  ```
+    # Check multiple GPUs
+    _lib.areAllInList ["amd" "intel"] _lib.gpuBrands.values true
+    ```
   */
   gpuBrands = mkEnum [
     "amd"
     "intel"
     "nvidia"
   ];
-in {
+in
+{
   inherit
     functionalities
     gpuBrands

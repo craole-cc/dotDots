@@ -1,21 +1,22 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
   mkSource = group: name: ./. + "/${group}/${name}";
 
-  mkEntry = {
-    group,
-    name,
-    prefix ? ".",
-  }: {
-    source = mkSource group name;
-    target =
-      if prefix == ""
-      then name
-      else "${prefix}${group}/${name}";
-  };
+  mkEntry =
+    {
+      group,
+      name,
+      prefix ? ".",
+    }:
+    {
+      source = mkSource group name;
+      target = if prefix == "" then name else "${prefix}${group}/${name}";
+    };
 
-  mkEditor = editor:
+  mkEditor =
+    editor:
     optionalAttrs editor.enable (
       optionalAttrs editor.base {
         editorconfig = {
@@ -24,15 +25,24 @@
         };
         shellcheck = {
           source = mkSource "common" "shellcheckrc";
-          target = [".shellcheckrc" "shellcheckrc"];
+          target = [
+            ".shellcheckrc"
+            "shellcheckrc"
+          ];
         };
         markdownlint = {
           source = mkSource "common" "markdownlint-cli2.yaml";
-          target = [".markdownlint-cli2.yaml" "markdownlint-cli2.yaml"];
+          target = [
+            ".markdownlint-cli2.yaml"
+            "markdownlint-cli2.yaml"
+          ];
         };
         treefmt = {
           source = mkSource "common" "treefmt.toml";
-          target = [".treefmt.toml" "treefmt.toml"];
+          target = [
+            ".treefmt.toml"
+            "treefmt.toml"
+          ];
         };
       }
       // optionalAttrs editor.helix {
@@ -126,4 +136,7 @@
         };
       }
     );
-in {inherit mkEditor;}
+in
+{
+  inherit mkEditor;
+}

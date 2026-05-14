@@ -132,14 +132,16 @@
   };
 
   applications = {
-    browser = let
-      firefox = "twilight";
-      chromium = "chromium";
-    in {
-      inherit firefox chromium;
-      primary = firefox;
-      secondary = chromium;
-    };
+    browser =
+      let
+        firefox = "twilight";
+        chromium = "chromium";
+      in
+      {
+        inherit firefox chromium;
+        primary = firefox;
+        secondary = chromium;
+      };
     editor = {
       tty = {
         primary = "helix";

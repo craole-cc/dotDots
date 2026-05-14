@@ -4,7 +4,8 @@
   lix,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -86,11 +87,13 @@
       "emilast.logfilehighlighter"
     ];
   };
-in {
+in
+{
   name = "markup";
   description = "Markdown, TOML, YAML, config format extensions";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -100,10 +103,10 @@ in {
         tooling.extensions
       ];
       userSettings = mkMerge [
-        (markdown.userSettings or {})
-        (dataFormats.userSettings or {})
-        (typst.userSettings or {})
-        (tooling.userSettings or {})
+        (markdown.userSettings or { })
+        (dataFormats.userSettings or { })
+        (typst.userSettings or { })
+        (tooling.userSettings or { })
       ];
     };
 }

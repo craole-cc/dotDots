@@ -4,20 +4,22 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   app = "nushell";
   inherit (lix.lists.predicates) isIn;
   inherit (lib.lists) optional;
   inherit (lib.modules) mkMerge;
 
   isAllowed = isIn app (
-    (user.shells or [])
-    ++ (user.applications.allowed or [])
+    (user.shells or [ ])
+    ++ (user.applications.allowed or [ ])
     ++ (optional ((user.interface.shell or null) != null) user.interface.shell)
   );
-in {
+in
+{
   programs.${app} = mkMerge [
-    {enable = isAllowed;}
+    { enable = isAllowed; }
     # (import ./plugins.nix {inherit pkgs;})
     (import ./settings.nix)
   ];

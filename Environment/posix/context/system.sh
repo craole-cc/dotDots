@@ -11,4 +11,4 @@ manage_env --set --var SYS_KERN --val "$(os.kernel.fetch || true)"
 manage_env --set --var SYS_ARCH --val "$(os.arch.fetch || true)"
 manage_env --set --var SYS_HOST --val "$(hostname.fetch || true)"
 manage_env --set --var SYS_INFO \
-  --val "${SYS_TYPE:?} ${SYS_NAME:?} | ${SYS_KERN:?} | ${SYS_ARCH:?} | ${USER:?}@${SYS_HOST:?}"
+	--val "${SYS_TYPE:?} ${SYS_NAME:?} | ${SYS_KERN:?} | ${SYS_ARCH:?} | ${USER:?}@${SYS_HOST:?}"

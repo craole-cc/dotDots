@@ -1,4 +1,5 @@
-{mkMerge, ...}: {
+{ mkMerge, ... }:
+{
   settings.bind = [
     "CTRL ALT, R, submap, resize"
     "CTRL ALT, F, submap, focus"

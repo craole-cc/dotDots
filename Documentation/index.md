@@ -1,7 +1,6 @@
 # 🔗 symdoc - Documentation Index
 
-> Auto-generated on 2025-12-17 21:28:48
-> Mirroring: '/home/craole/.dots/Bin'
+> Auto-generated on 2025-12-17 21:28:48 Mirroring: '/home/craole/.dots/Bin'
 
 ---
 

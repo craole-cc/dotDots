@@ -19,9 +19,9 @@ The four most important mental-model facts:
 2. `tree` is the canonical path registry. Paths are never hardcoded — they are
    looked up through `tree.store.*`.
 3. The repo is divided into five strictly separated roles: `Libraries/nix`
-   (infrastructure), `API/nix` (data), `Modules/nix` (behavior),
-   `Templates/nix` (reusable kits), `Configuration/` and `Environment/`
-   (system-level declarations).
+   (infrastructure), `API/nix` (data), `Modules/nix` (behavior), `Templates/nix`
+   (reusable kits), `Configuration/` and `Environment/` (system-level
+   declarations).
 4. `API/nix` is the source of truth for all hosts and users. It is data only —
    no logic lives there.
 
@@ -37,14 +37,18 @@ Read `flake.nix` and `default.nix` in full.
 
 From `flake.nix` you will learn:
 
-- All external inputs and what they provide (editors, shells, styling, secrets, formatters, etc.).
-- That `mkFlake` and `mkSystems` drive output construction — these are defined inside `Libraries/nix`.
+- All external inputs and what they provide (editors, shells, styling, secrets,
+  formatters, etc.).
+- That `mkFlake` and `mkSystems` drive output construction — these are defined
+  inside `Libraries/nix`.
 - That `inputsWrapped` normalises inputs before they reach modules.
 
 From `default.nix` you will learn:
 
-- The full directory tree expressed as `stems` — this is the authoritative path map. Every path in the repo has a `tree.store.*` equivalent.
-- That `lix` is imported from `Libraries/nix` and exposed as the shared namespace.
+- The full directory tree expressed as `stems` — this is the authoritative path
+  map. Every path in the repo has a `tree.store.*` equivalent.
+- That `lix` is imported from `Libraries/nix` and exposed as the shared
+  namespace.
 - That `schema` is derived from `tree` and produces `hosts` and `users`.
 
 ### Step 2 — Read the Architecture
@@ -115,11 +119,11 @@ This is the only export mechanism. Its arguments:
 - `filename = __moduleName` — **optional**. When included, `mkModuleExports`
   automatically generates a namespaced alias for every function in `functions`
   by appending the module name in PascalCase. For example, in a module named
-  `groups`, `mkStandard` is also exported as `mkStandardGroups`. This is how
-  the `lix` namespace avoids collisions across modules in the same domain.
+  `groups`, `mkStandard` is also exported as `mkStandardGroups`. This is how the
+  `lix` namespace avoids collisions across modules in the same domain.
 - `doc` — the layer/dependency documentation string (see below)
-- `functions` — attrset of exported symbols; may include both bare `inherit`
-  and explicit aliases under custom names
+- `functions` — attrset of exported symbols; may include both bare `inherit` and
+  explicit aliases under custom names
 - `tests` — the `runTests { ... }` block
 
 Do not invent alternative export shapes. All modules end with this call.
@@ -136,13 +140,14 @@ A multiline string with this format:
 Depends on: <comma-separated list>
 ```
 
-The layer number and `Depends on:` line are mandatory for non-leaf modules.
-Read them before editing to understand the module's position in the dependency
-graph. Leaf modules (no intra-domain dependencies) omit `Depends on:`.
+The layer number and `Depends on:` line are mandatory for non-leaf modules. Read
+them before editing to understand the module's position in the dependency graph.
+Leaf modules (no intra-domain dependencies) omit `Depends on:`.
 
 #### Namespaced aliases in practice
 
-From a `nix-repl` inspection of `applications.groups` (module filename `groups`):
+From a `nix-repl` inspection of `applications.groups` (module filename
+`groups`):
 
 ```nix
 mkGroups         = «lambda mkStandard ...»   # bare name from functions.inherit
@@ -161,8 +166,10 @@ its definition, in this order:
 
 1. One-line summary (plain prose, no heading)
 2. Optional second paragraph for edge cases, defaults, or guards
-3. `# Type` block — pseudo-signature using `::`, named record args, `|` for unions, `?` suffix or inline comment for optionals
-4. `# Examples` block — at minimum one typical case and one boundary/edge case, each with a comment explaining what it demonstrates
+3. `# Type` block — pseudo-signature using `::`, named record args, `|` for
+   unions, `?` suffix or inline comment for optionals
+4. `# Examples` block — at minimum one typical case and one boundary/edge case,
+   each with a comment explaining what it demonstrates
 
 #### Naming prefix conventions
 
@@ -263,20 +270,20 @@ contains substantive logic — verify before reading it as a source of truth.
 
 ### Step 4 — Locate the API
 
-Browse `API/nix/hosts/` and `API/nix/users/`. This directory is the
-source of truth for all host and user declarations in the repo.
+Browse `API/nix/hosts/` and `API/nix/users/`. This directory is the source of
+truth for all host and user declarations in the repo.
 
-`API/nix/hosts/<host>/` declares what a machine is: its hardware profile,
-system role, which inputs and modules it uses, and which users are assigned to
-it. It contains no module logic — `mkSystems` in
+`API/nix/hosts/<host>/` declares what a machine is: its hardware profile, system
+role, which inputs and modules it uses, and which users are assigned to it. It
+contains no module logic — `mkSystems` in
 `Libraries/nix/modules/construction.nix` reads this data and evaluates it.
 
 `API/nix/users/<user>/` declares user identity, app preferences, shell config,
 and theme choices. `mkHome` wires these into Home Manager via
 `Libraries/nix/modules/home/users.nix`.
 
-If a task appears host-specific or user-specific, verify the source of truth
-is here before touching anything in `Modules/nix`.
+If a task appears host-specific or user-specific, verify the source of truth is
+here before touching anything in `Modules/nix`.
 
 ### Step 5 — Inspect the Module Layers
 
@@ -293,9 +300,9 @@ For each file, check first whether it is an aggregator or a substantive module.
 
 ### Step 6 — Inspect the Templates
 
-Browse `Templates/nix/`. This directory contains reusable kit sets exposed
-via `tree.store.kit.*` and merged into the flake outputs directly from
-`flake.nix`. The kits are split into:
+Browse `Templates/nix/`. This directory contains reusable kit sets exposed via
+`tree.store.kit.*` and merged into the flake outputs directly from `flake.nix`.
+The kits are split into:
 
 - `common/` — shared across all contexts
 - `dev/` — development environment templates
@@ -310,7 +317,8 @@ the right home before introducing new structure.
 ## Key Relationships to Hold
 
 - Libraries/nix
-  - **provides**: lix namespace, filesystem tools, schema constructors, module builders, application registry and query system
+  - **provides**: lix namespace, filesystem tools, schema constructors, module
+    builders, application registry and query system
 
 - API/nix
   - **consumes**: schema constructors from Libraries/nix
@@ -348,9 +356,12 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 
 ## What to Verify Before Editing
 
-1. Does `tree` already model the path you intend to add? Check `default.nix` stems before introducing new path conventions.
-2. Is the `default.nix` you are about to edit an aggregator or does it own behavior? Open it and check before assuming.
-3. Does a library helper already exist for the pattern you are about to write? Check `Libraries/nix/` before adding new logic to a module.
+1. Does `tree` already model the path you intend to add? Check `default.nix`
+   stems before introducing new path conventions.
+2. Is the `default.nix` you are about to edit an aggregator or does it own
+   behavior? Open it and check before assuming.
+3. Does a library helper already exist for the pattern you are about to write?
+   Check `Libraries/nix/` before adding new logic to a module.
 4. Are you putting data in a module or behavior in API? Both are wrong.
 
 ---
@@ -372,8 +383,10 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 Adapters should:
 
 1. Tell the agent to read this file first.
-2. Add only tool-specific notes (file watching, shell commands, diff format, model-specific constraints).
-3. Not duplicate content from this file or from `ARCHITECTURE.md`, `CONVENTIONS.md`, or `TASKS.md`.
+2. Add only tool-specific notes (file watching, shell commands, diff format,
+   model-specific constraints).
+3. Not duplicate content from this file or from `ARCHITECTURE.md`,
+   `CONVENTIONS.md`, or `TASKS.md`.
 
 Example adapter structure:
 

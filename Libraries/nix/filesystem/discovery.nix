@@ -1,8 +1,5 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{ _, lib, ... }:
+let
   inherit (_.content.empty) isNotEmpty;
   inherit (lib.filesystem) listFilesRecursive packagesFromDirectoryRecursive;
   inherit (lib.strings) hasSuffix;
@@ -26,24 +23,25 @@
   };
 
   /**
-  List all files under a directory, recursively.
+    List all files under a directory, recursively.
 
-  # Type
-  ```nix
-  listRecursively :: path -> [path]
-  ```
+    # Type
+    ```nix
+    listRecursively :: path -> [path]
+    ```
   */
   listRecursively = listFilesRecursive;
 
   /**
-  Build a recursive package attrset from a directory using `callPackage`.
+    Build a recursive package attrset from a directory using `callPackage`.
 
-  # Type
-  ```nix
-  listPackagesRecursively :: AttrSet -> path -> AttrSet
-  ```
+    # Type
+    ```nix
+    listPackagesRecursively :: AttrSet -> path -> AttrSet
+    ```
   */
-  listPackagesRecursively = pkgs: path:
+  listPackagesRecursively =
+    pkgs: path:
     packagesFromDirectoryRecursive {
       inherit (pkgs) callPackage;
       directory = path;
@@ -64,30 +62,32 @@
   ];
 
   /**
-  List all `.nix` files under a directory, excluding common boilerplate
-  files and directories.
+    List all `.nix` files under a directory, excluding common boilerplate
+    files and directories.
 
-  # Type
-  ```nix
-  listNixModules :: path -> [path]
-  ```
+    # Type
+    ```nix
+    listNixModules :: path -> [path]
+    ```
   */
-  listNixModules = path: let
-    isNixFile = file: hasSuffix ".nix" (baseNameOf file);
-    isExcludedFile = file: elem (baseNameOf file) defaultFilesToExclude;
-    isExcludedFolder = file: elem (dirOf file) defaultFoldersToExclude;
-    files = listFilesRecursive path;
-  in
+  listNixModules =
+    path:
+    let
+      isNixFile = file: hasSuffix ".nix" (baseNameOf file);
+      isExcludedFile = file: elem (baseNameOf file) defaultFilesToExclude;
+      isExcludedFolder = file: elem (dirOf file) defaultFoldersToExclude;
+      files = listFilesRecursive path;
+    in
     filter (file: isNixFile file && !isExcludedFile file && !isExcludedFolder file) files;
 
   /**
-  List all `.nix` file paths under a directory as strings.
+    List all `.nix` file paths under a directory as strings.
 
-  # Type
-  ```nix
-  listNix :: path -> [string]
-  ```
+    # Type
+    ```nix
+    listNix :: path -> [string]
+    ```
   */
   listNix = path: filter isNotEmpty (map toString (listFilesRecursive path));
 in
-  exports // {__rootAliases = exports;}
+exports // { __rootAliases = exports; }

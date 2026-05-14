@@ -4,7 +4,8 @@
   lix,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -26,8 +27,8 @@
       "nix.enableLanguageServer" = true;
       "nix.serverPath" = "nixd";
       "nix.serverSettings"."nixd" = {
-        "formatting"."command" = ["alejandra"];
-        "diagnostic"."suppress" = ["sema-primop-overridden"];
+        "formatting"."command" = [ "alejandra" ];
+        "diagnostic"."suppress" = [ "sema-primop-overridden" ];
       };
     };
   };
@@ -42,11 +43,13 @@
       "direnv.restart.automatic" = true;
     };
   };
-in {
+in
+{
   name = "nix";
   description = "Nix language and tooling extensions";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -54,8 +57,8 @@ in {
         direnv.extensions
       ];
       userSettings = mkMerge [
-        (nixLsp.userSettings or {})
-        (direnv.userSettings or {})
+        (nixLsp.userSettings or { })
+        (direnv.userSettings or { })
       ];
     };
 }

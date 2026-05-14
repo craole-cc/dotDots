@@ -5,14 +5,16 @@
   host,
   keyboard,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   inherit (lix.hardware.display) mkHyprlandMonitors;
   inherit (lix.schema.io) mkHyprKeybindings;
 
   mod = keyboard.modifier;
-in {
-  monitor = mkHyprlandMonitors {inherit host;};
+in
+{
+  monitor = mkHyprlandMonitors { inherit host; };
 
   input = {
     touchpad = {
@@ -27,9 +29,7 @@ in {
 
   bind = mkHyprKeybindings keyboard;
 
-  bindr = [
-    "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"
-  ];
+  bindr = [ "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}" ];
 
   #~@ Locked binds — active even when screen is locked
   bindl = [

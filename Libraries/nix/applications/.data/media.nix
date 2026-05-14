@@ -6,7 +6,7 @@ _: {
       class = "mpv";
     };
     exec = "mpv";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   vlc = {
@@ -16,7 +16,7 @@ _: {
       class = "vlc";
     };
     exec = "vlc";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   celluloid = {
@@ -26,7 +26,7 @@ _: {
       class = "io.github.celluloid_player.Celluloid";
     };
     exec = "celluloid";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   totem = {
@@ -36,7 +36,7 @@ _: {
       class = "org.gnome.Totem";
     };
     exec = "totem";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   rhythmbox = {
@@ -46,7 +46,7 @@ _: {
       class = "org.gnome.Rhythmbox3";
     };
     exec = "rhythmbox";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   elisa = {
@@ -56,7 +56,7 @@ _: {
       class = "org.kde.elisa";
     };
     exec = "elisa";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   strawberry = {
@@ -66,7 +66,7 @@ _: {
       class = "org.strawberrymusicplayer.strawberry";
     };
     exec = "strawberry";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   audacious = {
@@ -76,7 +76,7 @@ _: {
       class = "audacious";
     };
     exec = "audacious";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   lollypop = {
@@ -86,7 +86,7 @@ _: {
       class = "org.gnome.Lollypop";
     };
     exec = "lollypop";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 
   shortwave = {
@@ -96,6 +96,6 @@ _: {
       class = "de.haeckerfelix.Shortwave";
     };
     exec = "shortwave";
-    categories = ["media"];
+    categories = [ "media" ];
   };
 }

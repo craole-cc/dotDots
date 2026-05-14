@@ -1,7 +1,6 @@
 # Purpose: Security scanning — Trivy, grype, and sops secret lint.
 # Maintainer: openclaw-flake contributors
 name: Security Scan
-
 on:
   push:
     branches: ["main", "master"]
@@ -10,20 +9,16 @@ on:
   schedule:
     # Run weekly on Mondays at 06:00 UTC.
     - cron: "0 6 * * 1"
-
 permissions:
   contents: read
   security-events: write # upload SARIF to GitHub Security tab
-
 jobs:
   trivy-scan:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install Nix
         uses: cachix/install-nix-action@v26
         with:
@@ -32,13 +27,10 @@ jobs:
             experimental-features = nix-command flakes
             extra-substituters = https://cache.numtide.com
             extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
-
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@main
-
       - name: Build openclaw derivation
         run: nix build .#openclaw --print-build-logs
-
       - name: Run Trivy on built derivation
         uses: aquasecurity/trivy-action@master
         with:
@@ -48,35 +40,28 @@ jobs:
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
           exit-code: "1"
-
       - name: Upload Trivy SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
           category: trivy
-
   grype-scan:
     name: Grype vulnerability scan
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install Nix
         uses: cachix/install-nix-action@v26
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
-
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@main
-
       - name: Build openclaw derivation
         run: nix build .#openclaw --print-build-logs
-
       - name: Run grype
         uses: anchore/scan-action@v3
         with:
@@ -84,22 +69,18 @@ jobs:
           output-format: sarif
           fail-build: true
           severity-cutoff: high
-
       - name: Upload grype SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
           category: grype
-
   sops-lint:
     name: sops secret lint
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Check for unencrypted secret patterns in tracked files
         run: |
           echo "==> Scanning tracked files for unencrypted secret patterns..."
@@ -135,7 +116,6 @@ jobs:
           fi
 
           echo "sops-lint: no unencrypted secrets found in tracked files."
-
       - name: Verify sops-encrypted files are valid YAML
         run: |
           for f in $(git ls-files 'secrets/*.yaml'); do

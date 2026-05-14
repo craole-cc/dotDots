@@ -2,7 +2,8 @@
   lib,
   flatten ? false,
   ...
-}: let
+}:
+let
   __exports = {
     namespaced = {
       inherit
@@ -12,11 +13,10 @@
         primitives
         ;
     };
-    flattened = {} // access // combinators // predicates // primitives // {};
+    flattened = { } // access // combinators // predicates // primitives // { };
   };
 
-  inherit
-    (lib)
+  inherit (lib)
     attrsets
     filesystem
     lists
@@ -25,13 +25,10 @@
     types
     ;
 
-  access = {
-    inherit (builtins) typeOf;
-  };
+  access = { inherit (builtins) typeOf; };
 
   combinators = {
-    inherit
-      (types)
+    inherit (types)
       attrs
       attrsOf
       either
@@ -48,8 +45,7 @@
   };
 
   primitives = {
-    inherit
-      (types)
+    inherit (types)
       bool
       commas
       envVar
@@ -73,8 +69,7 @@
     inherit (trivial) isBool isFunction;
     inherit (filesystem) isPath;
     inherit (lists) isList;
-    inherit
-      (strings)
+    inherit (strings)
       isString
       isConvertibleWithToString
       isStringLike
@@ -83,6 +78,4 @@
       ;
   };
 in
-  if flatten
-  then __exports.namespaced // __exports.flattened
-  else __exports.namespaced
+if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced

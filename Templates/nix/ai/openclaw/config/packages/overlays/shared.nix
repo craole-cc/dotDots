@@ -7,6 +7,4 @@
 #   mkPackagesFor :: system -> attrset of derivations
 # The overlay calls it with `final.system` so it always resolves to the
 # correct architecture without the caller having to know the system string.
-{mkPackagesFor}: final: _prev: {
-  inherit (mkPackagesFor final.system) openclaw gh-tools;
-}
+{ mkPackagesFor }: final: _prev: { inherit (mkPackagesFor final.system) openclaw gh-tools; }

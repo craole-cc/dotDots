@@ -5,9 +5,9 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["xorg"];
+    protocol = [ "xorg" ];
     independent = false;
-    engine = ["c"];
+    engine = [ "c" ];
     config = [
       "javascript"
       "css"
@@ -20,9 +20,9 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = false;
-    engine = ["rust"];
+    engine = [ "rust" ];
     config = [
       "ron"
       "css"
@@ -34,10 +34,10 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["xorg"];
+    protocol = [ "xorg" ];
     independent = true;
-    engine = ["haskell"];
-    config = ["css"];
+    engine = [ "haskell" ];
+    config = [ "css" ];
     maturity = "young";
   };
   dms-shell = {
@@ -46,10 +46,10 @@ _: {
       "notifier"
     ];
     family = "dms";
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = true;
-    engine = ["go"];
-    config = ["qml"];
+    engine = [ "go" ];
+    config = [ "qml" ];
     maturity = "young";
   };
   dunst = {
@@ -62,8 +62,8 @@ _: {
       "xorg"
     ];
     independent = true;
-    engine = ["c"];
-    config = ["ini"];
+    engine = [ "c" ];
+    config = [ "ini" ];
     maturity = "stable";
   };
   fnott = {
@@ -71,10 +71,10 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = true;
-    engine = ["c"];
-    config = ["ini"];
+    engine = [ "c" ];
+    config = [ "ini" ];
     maturity = "stable";
   };
   gnome-shell = {
@@ -83,7 +83,7 @@ _: {
       "notifier"
     ];
     family = "gnome";
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = false;
     engine = [
       "c"
@@ -100,10 +100,10 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = true;
-    engine = ["c"];
-    config = ["ini"];
+    engine = [ "c" ];
+    config = [ "ini" ];
     maturity = "stable";
   };
   notification-daemon = {
@@ -111,10 +111,10 @@ _: {
       "interface"
       "notifier"
     ];
-    protocol = ["xorg"];
+    protocol = [ "xorg" ];
     independent = false;
-    engine = ["c"];
-    config = ["ini"];
+    engine = [ "c" ];
+    config = [ "ini" ];
     maturity = "legacy";
   };
   plasmashell = {
@@ -123,7 +123,7 @@ _: {
       "notifier"
     ];
     family = "plasma";
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     independent = false;
     engine = [
       "c++"
@@ -141,9 +141,9 @@ _: {
       "notifier"
     ];
     family = "xfce";
-    protocol = ["xorg"];
+    protocol = [ "xorg" ];
     independent = false;
-    engine = ["c"];
+    engine = [ "c" ];
     config = [
       "rc"
       "css"

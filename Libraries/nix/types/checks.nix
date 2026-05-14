@@ -1,11 +1,11 @@
-{_, ...}: let
+{ _, ... }:
+let
   inherit (_.attrsets) attrNames attrValues mapAttrs;
   inherit (_.lists) elem all head;
   inherit (_.types) anything oneOf;
   inherit (_.strings) concatStringsSep match;
   inherit (_.types.generators) validate;
-  inherit
-    (_.types.predicates)
+  inherit (_.types.predicates)
     isAttrs
     isBinaryString
     isBool
@@ -22,7 +22,8 @@
   str = {
     type = "string";
     check = isString;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.str";
         argName = "value";
@@ -37,7 +38,8 @@
   bool = {
     type = "bool";
     check = isBool;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.bool";
         argName = "value";
@@ -52,7 +54,8 @@
   int = {
     type = "int";
     check = isInt;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.int";
         argName = "value";
@@ -67,7 +70,8 @@
   float = {
     type = "float";
     check = isFloat;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.float";
         argName = "value";
@@ -82,7 +86,8 @@
   path = {
     type = "path";
     check = isPath;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.path";
         argName = "value";
@@ -97,7 +102,8 @@
   binary = {
     type = "binary";
     check = isBinaryString;
-    validate = value:
+    validate =
+      value:
       validate {
         fnName = "type.binary";
         argName = "value";
@@ -114,10 +120,7 @@
     inherit subtype;
     type = "nullOr";
     check = v: v == null || subtype.check v;
-    validate = value:
-      if value == null
-      then value
-      else subtype.validate value;
+    validate = value: if value == null then value else subtype.validate value;
     default = null;
     description = "Either ${subtype.description or subtype.type} or null";
   };
@@ -126,17 +129,19 @@
     inherit subtype;
     type = "listOf";
     check = v: isList v && all subtype.check v;
-    validate = value: let
-      validated = validate {
-        fnName = "type.listOf";
-        argName = "value";
-        desired = "list";
-        predicate = isList;
-        outcome = value;
-      };
-    in
+    validate =
+      value:
+      let
+        validated = validate {
+          fnName = "type.listOf";
+          argName = "value";
+          desired = "list";
+          predicate = isList;
+          outcome = value;
+        };
+      in
       map subtype.validate validated;
-    default = [];
+    default = [ ];
     description = "A list of ${subtype.description or subtype.type}";
   };
 
@@ -144,17 +149,19 @@
     inherit subtype;
     type = "attrsOf";
     check = v: isAttrs v && all subtype.check (attrValues v);
-    validate = value: let
-      validated = validate {
-        fnName = "type.attrsOf";
-        argName = "value";
-        desired = "attrset";
-        predicate = isAttrs;
-        outcome = value;
-      };
-    in
+    validate =
+      value:
+      let
+        validated = validate {
+          fnName = "type.attrsOf";
+          argName = "value";
+          desired = "attrset";
+          predicate = isAttrs;
+          outcome = value;
+        };
+      in
       mapAttrs (_: subtype.validate) validated;
-    default = {};
+    default = { };
     description = "An attribute set of ${subtype.description or subtype.type}";
   };
 
@@ -162,10 +169,12 @@
     inherit values;
     type = "enum";
     check = v: elem v values;
-    validate = value:
-      if elem value values
-      then value
-      else throw "type.enum: expected one of [${concatStringsSep ", " (map toString values)}], got ${toString value}";
+    validate =
+      value:
+      if elem value values then
+        value
+      else
+        throw "type.enum: expected one of [${concatStringsSep ", " (map toString values)}], got ${toString value}";
     default = head values;
     description = "One of: ${concatStringsSep ", " (map toString values)}";
   };
@@ -187,12 +196,14 @@
       b
     ];
     check = v: a.check v || b.check v;
-    validate = value:
-      if a.check value
-      then a.validate value
-      else if b.check value
-      then b.validate value
-      else throw "type.either: expected ${a.description or a.type} or ${b.description or b.type}, got ${typeOf value}";
+    validate =
+      value:
+      if a.check value then
+        a.validate value
+      else if b.check value then
+        b.validate value
+      else
+        throw "type.either: expected ${a.description or a.type} or ${b.description or b.type}, got ${typeOf value}";
     inherit (a) default;
     description = "${a.description or a.type} or ${b.description or b.type}";
   };
@@ -224,7 +235,7 @@
     type = "lazy";
     inherit schemaFn;
     check = isAttrs;
-    validate = value: schema.validate (schemaFn {}) value;
+    validate = value: schema.validate (schemaFn { }) value;
     default = null;
     description = "A lazily evaluated submodule";
   };
@@ -234,10 +245,12 @@
     type = "strMatching";
     inherit pattern;
     check = v: isString v && match pattern v != null;
-    validate = value:
-      if isString value && match pattern value != null
-      then value
-      else throw "type.strMatching: string must match pattern '${pattern}', got '${value}'";
+    validate =
+      value:
+      if isString value && match pattern value != null then
+        value
+      else
+        throw "type.strMatching: string must match pattern '${pattern}', got '${value}'";
     default = "";
     description = "A string matching pattern '${pattern}'";
   };
@@ -247,10 +260,12 @@
     type = "intBetween";
     inherit min max;
     check = v: isInt v && v >= min && v <= max;
-    validate = value:
-      if isInt value && value >= min && value <= max
-      then value
-      else throw "type.intBetween: integer must be between ${toString min} and ${toString max}, got ${toString value}";
+    validate =
+      value:
+      if isInt value && value >= min && value <= max then
+        value
+      else
+        throw "type.intBetween: integer must be between ${toString min} and ${toString max}, got ${toString value}";
     default = min;
     description = "An integer between ${toString min} and ${toString max}";
   };
@@ -259,18 +274,20 @@
   nonEmptyListOf = subtype: {
     type = "nonEmptyListOf";
     inherit subtype;
-    check = v: isList v && v != [] && all subtype.check v;
-    validate = value: let
-      validated = validate {
-        fnName = "type.nonEmptyListOf";
-        argName = "value";
-        desired = "list";
-        predicate = v: isList v && v != [];
-        outcome = value;
-      };
-    in
+    check = v: isList v && v != [ ] && all subtype.check v;
+    validate =
+      value:
+      let
+        validated = validate {
+          fnName = "type.nonEmptyListOf";
+          argName = "value";
+          desired = "list";
+          predicate = v: isList v && v != [ ];
+          outcome = value;
+        };
+      in
       map subtype.validate validated;
-    default = [];
+    default = [ ];
     description = "A non-empty list of ${subtype.description or subtype.type}";
   };
 
@@ -279,30 +296,29 @@
     type = "attrsWith";
     inherit requiredKeys;
     check = v: isAttrs v && all (key: v ? ${key}) requiredKeys;
-    validate = value:
-      if isAttrs value && all (key: value ? ${key}) requiredKeys
-      then value
-      else throw "type.attrsWith: attribute set must have keys [${concatStringsSep ", " requiredKeys}]";
-    default = {};
+    validate =
+      value:
+      if isAttrs value && all (key: value ? ${key}) requiredKeys then
+        value
+      else
+        throw "type.attrsWith: attribute set must have keys [${concatStringsSep ", " requiredKeys}]";
+    default = { };
     description = "An attribute set with required keys: ${concatStringsSep ", " requiredKeys}";
   };
 
   # Port number
-  port =
-    intBetween 1 65535
-    // {
-      type = "port";
-      description = "A valid port number (1-65535)";
-    };
+  port = intBetween 1 65535 // {
+    type = "port";
+    description = "A valid port number (1-65535)";
+  };
 
   # Positive integer
   positiveInt = {
     type = "positiveInt";
     check = v: isInt v && v > 0;
-    validate = value:
-      if isInt value && value > 0
-      then value
-      else throw "type.positiveInt: must be a positive integer, got ${toString value}";
+    validate =
+      value:
+      if isInt value && value > 0 then value else throw "type.positiveInt: must be a positive integer, got ${toString value}";
     default = 1;
     description = "A positive integer";
   };
@@ -311,14 +327,14 @@
   nonNegativeInt = {
     type = "nonNegativeInt";
     check = v: isInt v && v >= 0;
-    validate = value:
-      if isInt value && value >= 0
-      then value
-      else throw "type.nonNegativeInt: must be non-negative, got ${toString value}";
+    validate =
+      value:
+      if isInt value && value >= 0 then value else throw "type.nonNegativeInt: must be non-negative, got ${toString value}";
     default = 0;
     description = "A non-negative integer";
   };
-in {
+in
+{
   any = anything;
   inherit
     oneOf

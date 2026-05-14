@@ -1,25 +1,26 @@
 # Shell Scripting Style Guide
 
-> **Author:** Craig Cole
-> **Version:** 1.0
-> **License:** MIT
-> **Source:** [dotDots](https://github.com/craole-cc/dotDots.git)
+> **Author:** Craig Cole **Version:** 1.0 **License:** MIT **Source:**
+> [dotDots](https://github.com/craole-cc/dotDots.git)
 
 ## Overview
 
-This style guide defines the conventions for writing shell scripts in this codebase. It is based on personal best practices, ShellCheck recommendations (`# shellcheck enable=all`), and a focus on maintainability, clarity, and POSIX compliance.
+This style guide defines the conventions for writing shell scripts in this
+codebase. It is based on personal best practices, ShellCheck recommendations
+(`# shellcheck enable=all`), and a focus on maintainability, clarity, and POSIX
+compliance.
 
 ## 1. Interpreter and ShellCheck
 
-- Always start scripts with `#!/bin/sh` for POSIX compliance, or `#!/bin/bash` if Bash features are required.
+- Always start scripts with `#!/bin/sh` for POSIX compliance, or `#!/bin/bash`
+  if Bash features are required.
 - Always include `# shellcheck enable=all` at the top of each script.
 - Use `# shellcheck disable=SC####` only if absolutely neceessary
 - Run ShellCheck on all scripts before committing.
 
 ## 2. Script Structure
 
-- **Sub-functions:**
-  Every script must define the following functions:
+- **Sub-functions:** Every script must define the following functions:
   - `main`
   - `cleanup`
   - `set_defaults`
@@ -27,14 +28,13 @@ This style guide defines the conventions for writing shell scripts in this codeb
   - `parse_arguments`
   - `establish_environment`
   - `execute_process`
-- **Function Order:**
-  Place `main` at the top, followed by `cleanup`, then the rest in logical order.
-- **Execution:**
-  End every script with `main "$@"`.
-- **Trap:**
-  `main` must always set a `trap` to call `cleanup` on `EXIT HUP INT TERM`.
-- **Cleanup:**
-  `cleanup` is always called before defining local variables in `set_defaults`.
+- **Function Order:** Place `main` at the top, followed by `cleanup`, then the
+  rest in logical order.
+- **Execution:** End every script with `main "$@"`.
+- **Trap:** `main` must always set a `trap` to call `cleanup` on
+  `EXIT HUP INT TERM`.
+- **Cleanup:** `cleanup` is always called before defining local variables in
+  `set_defaults`.
 
 ## 3. Argument Parsing
 
@@ -45,20 +45,15 @@ This style guide defines the conventions for writing shell scripts in this codeb
 
 ## 4. Code Style
 
-- **Output:**
-  Always use `printf '%s\n'` over `echo`.
-- **String Comparison:**
-  Use `case` for all string comparisons, not `if`.
-- **Variable References:**
-  Always use braces: `${var}` (even when not required).
-- **Quoting:**
-  Always quote variable expansions: `"${var}"`
-- **Exhaustiveness:**
-  Ensure `case` statements are exhaustive with `*) ... ;;` as default, even for error handling.
-- **Tests:**
-  Use `[ ... ]` for POSIX scripts. Use `[[ ... ]]` only in Bash/Ksh scripts.
-- **Indentation:**
-  Use 2 spaces per indentation level.
+- **Output:** Always use `printf '%s\n'` over `echo`.
+- **String Comparison:** Use `case` for all string comparisons, not `if`.
+- **Variable References:** Always use braces: `${var}` (even when not required).
+- **Quoting:** Always quote variable expansions: `"${var}"`
+- **Exhaustiveness:** Ensure `case` statements are exhaustive with `*) ... ;;`
+  as default, even for error handling.
+- **Tests:** Use `[ ... ]` for POSIX scripts. Use `[[ ... ]]` only in Bash/Ksh
+  scripts.
+- **Indentation:** Use 2 spaces per indentation level.
 - **Comments:**
   - Use `#{ ... }` for structural or section comments.
   - Use `#|-> ...` for metadata or grouped variable comments.
@@ -76,18 +71,21 @@ This style guide defines the conventions for writing shell scripts in this codeb
 
 - All defaults are set in `set_defaults`.
 - Always reset the environment in `set_defaults` by calling `cleanup`.
-- Use environment variables for configuration, but always provide sensible fallbacks.
+- Use environment variables for configuration, but always provide sensible
+  fallbacks.
 
 ## 7. Error Handling
 
 - Use `set -e` (strict mode) to encourage clean code.
 - Always check for required arguments and print errors to `stderr`.
-- Use clear, tagged error messages (e.g., `pout-tagged --tag "[ERROR]" --ctx "${fn_name}" --msg "..."`).
+- Use clear, tagged error messages (e.g.,
+  `pout-tagged --tag "[ERROR]" --ctx "${fn_name}" --msg "..."`).
 - Exit with non-zero status on error.
 
 ## 8. Documentation
 
-- Every function must have a `#DOC` block describing its purpose, usage, arguments, and return values.
+- Every function must have a `#DOC` block describing its purpose, usage,
+  arguments, and return values.
 - Provide a usage/help function for every script.
 
 ## 9. Miscellaneous
@@ -225,4 +223,5 @@ main "$@"
 - [ShellCheck](https://www.shellcheck.net/)
 - [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 
-_This style guide is a living document. Update as needed to reflect evolving best practices and project needs._
+_This style guide is a living document. Update as needed to reflect evolving
+best practices and project needs._

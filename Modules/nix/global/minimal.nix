@@ -1,7 +1,7 @@
-{dots, ...}: let
+{ dots, ... }:
+let
   description = "Minimal Dev Environment";
-  inherit
-    (dots)
+  inherit (dots)
     cache
     lix
     pkgs
@@ -13,21 +13,26 @@
   #| Packages                               |
   #|────────────────────────────────────────|
 
-  packages = with pkgs;
+  packages =
+    with pkgs;
     [
-      bat #? Cat clone with syntax highlighting
-      fd #? Fast find alternative
-      gnused #? GNU stream editor
-      jq #? JSON query processor
-      lsd #? LSDeluxe file lister
+      bat # ? Cat clone with syntax highlighting
+      fd # ? Fast find alternative
+      gnused # ? GNU stream editor
+      jq # ? JSON query processor
+      lsd # ? LSDeluxe file lister
       nitch # ? System fetch written in nim
       nixd # ? Nix language daemon
-      ripgrep-all #? Fast grep alternative
-      sd #? Intuitive find & replace CLI (sed alternative)
-      onefetch #? Git repository summary on your terminal
-      undollar #? Remove leading dollar signs
+      ripgrep-all # ? Fast grep alternative
+      sd # ? Intuitive find & replace CLI (sed alternative)
+      onefetch # ? Git repository summary on your terminal
+      undollar # ? Remove leading dollar signs
     ]
-    ++ optionals stdenv.isLinux [xclip wl-clipboard xsel];
+    ++ optionals stdenv.isLinux [
+      xclip
+      wl-clipboard
+      xsel
+    ];
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
   #|────────────────────────────────────────|
@@ -110,4 +115,12 @@
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in {inherit description packages env shellHook;}
+in
+{
+  inherit
+    description
+    packages
+    env
+    shellHook
+    ;
+}

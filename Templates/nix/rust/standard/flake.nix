@@ -26,9 +26,11 @@
     # };
   };
 
-  outputs = inputs @ {self, ...}: let
-    cfg = import ./. {inherit inputs;};
-    inherit (cfg) lib;
-  in
-    lib.modules.mkConfig {inherit inputs self;};
+  outputs =
+    inputs@{ self, ... }:
+    let
+      cfg = import ./. { inherit inputs; };
+      inherit (cfg) lib;
+    in
+    lib.modules.mkConfig { inherit inputs self; };
 }

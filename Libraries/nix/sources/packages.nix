@@ -1,8 +1,5 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{ _, lib, ... }:
+let
   __doc = ''
     Input Packages Resolution
 
@@ -41,108 +38,111 @@
     };
   };
 
-  mkCore = {
-    inputs ? {},
-    names ? [],
-  }:
+  mkCore =
+    {
+      inputs ? { },
+      names ? [ ],
+    }:
     mkOne {
       attrs = "legacyPackages";
-      inputs = (resolveInputs {}).resolved // inputs;
-      names =
-        [
-          "nixpkgs"
-          "nixpkgs-stable"
-          "nixpkgs-unstable"
-        ]
-        ++ names;
+      inputs = (resolveInputs { }).resolved // inputs;
+      names = [
+        "nixpkgs"
+        "nixpkgs-stable"
+        "nixpkgs-unstable"
+      ]
+      ++ names;
     };
 
-  mkHome = {
-    inputs ? {},
-    names ? [],
-  }:
+  mkHome =
+    {
+      inputs ? { },
+      names ? [ ],
+    }:
     mkOne {
       attrs = "packages";
-      inputs = (resolveInputs {}).resolved // inputs;
-      names =
-        [
-          "age"
-          "caelestia"
-          "catppuccin"
-          "dank-material-shell"
-          "dms-plugin-registry"
-          "fresh-editor"
-          "helix"
-          "home-manager"
-          "llm-agents"
-          "noctalia-shell"
-          "nvf"
-          "plasma"
-          "quickshell"
-          "treefmt"
-          "typix"
-          "vscode-insiders"
-          "zen-browser"
-        ]
-        ++ names;
+      inputs = (resolveInputs { }).resolved // inputs;
+      names = [
+        "age"
+        "caelestia"
+        "catppuccin"
+        "dank-material-shell"
+        "dms-plugin-registry"
+        "fresh-editor"
+        "helix"
+        "home-manager"
+        "llm-agents"
+        "noctalia-shell"
+        "nvf"
+        "plasma"
+        "quickshell"
+        "treefmt"
+        "typix"
+        "vscode-insiders"
+        "zen-browser"
+      ]
+      ++ names;
     };
 
-  fromInputs = {
-    inputs,
-    system,
-    input,
-  }:
-    inputs.${input}.packages.${system} or {};
+  fromInputs =
+    {
+      inputs,
+      system,
+      input,
+    }:
+    inputs.${input}.packages.${system} or { };
 
-  mkOne = {
-    inputs,
-    attrs,
-    names,
-  }:
+  mkOne =
+    {
+      inputs,
+      attrs,
+      names,
+    }:
     listToAttrs (
       map (name: {
         inherit name;
-        value = inputs.${name}.${attrs} or {};
-      })
-      names
+        value = inputs.${name}.${attrs} or { };
+      }) names
     );
 
-  mkAll = {
-    host ? {},
-    inputs ? {},
-    config ? {},
-    coreNames ? [],
-    homeNames ? [],
-  }: let
-    config' = let
-      p = host.packages;
-    in
-      {
-        allowUnfree = p.allowUnfree or true;
-        allowBroken = p.allowBroken or false;
-      }
-      // config;
+  mkAll =
+    {
+      host ? { },
+      inputs ? { },
+      config ? { },
+      coreNames ? [ ],
+      homeNames ? [ ],
+    }:
+    let
+      config' =
+        let
+          p = host.packages;
+        in
+        {
+          allowUnfree = p.allowUnfree or true;
+          allowBroken = p.allowBroken or false;
+        }
+        // config;
 
-    inputs' = (resolveInputs {}).resolved // inputs;
+      inputs' = (resolveInputs { }).resolved // inputs;
 
-    packages =
-      mkCore {
+      packages =
+        mkCore {
+          inputs = inputs';
+          names = coreNames;
+        }
+        // mkHome {
+          inputs = inputs';
+          names = homeNames;
+        };
+
+      overlays = mkOverlays {
+        inherit packages;
         inputs = inputs';
-        names = coreNames;
-      }
-      // mkHome {
-        inputs = inputs';
-        names = homeNames;
+        config = config';
       };
 
-    overlays = mkOverlays {
-      inherit packages;
-      inputs = inputs';
-      config = config';
-    };
-
-    nixpkgs =
-      {
+      nixpkgs = {
         inherit overlays;
         config = config';
         hostPlatform = host.system or builtins.currentSystem or "x86_64-linux";
@@ -151,14 +151,15 @@
         inherit host;
         input = inputs'.nixpkgs or null;
       };
-  in {
-    inherit nixpkgs packages overlays;
-    inputs = inputs';
-    config = config';
-  };
+    in
+    {
+      inherit nixpkgs packages overlays;
+      inputs = inputs';
+      config = config';
+    };
 in
-  __exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = __exports.external;
-  }
+__exports.internal
+// {
+  inherit __doc;
+  __rootAliases = __exports.external;
+}

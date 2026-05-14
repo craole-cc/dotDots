@@ -1,8 +1,9 @@
-{homeDir, ...}: {
+{ homeDir, ... }:
+{
   audio = {
     cavaFrameRate = 30;
     externalMixer = "pwvucontrol || pavucontrol";
-    mprisBlacklist = [];
+    mprisBlacklist = [ ];
     preferredPlayer = "mpv";
     visualizerType = "linear";
     volumeOverdrive = false;

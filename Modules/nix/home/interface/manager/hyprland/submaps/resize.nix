@@ -1,6 +1,6 @@
 {
   resize.settings = {
-    bind = [", escape, submap, reset"];
+    bind = [ ", escape, submap, reset" ];
     binde = [
       ", right, resizeactive, 10 0"
       ", left, resizeactive, -10 0"

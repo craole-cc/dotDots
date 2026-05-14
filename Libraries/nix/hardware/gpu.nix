@@ -1,13 +1,9 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{ _, lib, ... }:
+let
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) removeAttrs;
-  inherit
-    (lib.lists)
+  inherit (lib.lists)
     elemAt
     filter
     imap0
@@ -21,55 +17,61 @@
     "8086" = "intel";
   };
 
-  parseLine = line: let
-    parts = splitString " " (replaceStrings ["\""] [" "] line);
-    bus = elemAt parts 0;
-    class = elemAt parts 2;
-    vendor = elemAt parts 5;
-    device = elemAt parts 6;
-  in {
-    busId = "PCI:${replaceStrings [":"] [""] bus}";
-    vendorId = vendor;
-    deviceId = device;
-    brand = vendorMap.${vendor} or "unknown";
-    isGPU = class == "0300";
-  };
+  parseLine =
+    line:
+    let
+      parts = splitString " " (replaceStrings [ "\"" ] [ " " ] line);
+      bus = elemAt parts 0;
+      class = elemAt parts 2;
+      vendor = elemAt parts 5;
+      device = elemAt parts 6;
+    in
+    {
+      busId = "PCI:${replaceStrings [ ":" ] [ "" ] bus}";
+      vendorId = vendor;
+      deviceId = device;
+      brand = vendorMap.${vendor} or "unknown";
+      isGPU = class == "0300";
+    };
 
   /**
-  Parse `lspci -mm` output into a list of GPU descriptor attrsets.
+    Parse `lspci -mm` output into a list of GPU descriptor attrsets.
 
-  Only entries with PCI class `0300` are included. The `isGPU` field is
-  stripped from results.
+    Only entries with PCI class `0300` are included. The `isGPU` field is
+    stripped from results.
 
-  # Type
-  ```nix
-  parseLspci :: string -> [{ busId, vendorId, deviceId, brand, index }]
-  ```
+    # Type
+    ```nix
+    parseLspci :: string -> [{ busId, vendorId, deviceId, brand, index }]
+    ```
   */
-  parseLspci = lspciOutput: let
-    lines = filter (l: l != "") (splitString "\n" lspciOutput);
-    parsed = imap0 (i: line: parseLine line // {index = i;}) lines;
-    gpus = filter (gpu: gpu.isGPU) parsed;
-  in
-    map (gpu: removeAttrs gpu ["isGPU"]) gpus;
+  parseLspci =
+    lspciOutput:
+    let
+      lines = filter (l: l != "") (splitString "\n" lspciOutput);
+      parsed = imap0 (i: line: parseLine line // { index = i; }) lines;
+      gpus = filter (gpu: gpu.isGPU) parsed;
+    in
+    map (gpu: removeAttrs gpu [ "isGPU" ]) gpus;
 
   /**
-  Build a GPU list from `lspci -mm` output, annotating each entry with
-  `primary = false` and `secondary = false` for downstream assignment.
+    Build a GPU list from `lspci -mm` output, annotating each entry with
+    `primary = false` and `secondary = false` for downstream assignment.
 
-  # Type
-  ```nix
-  fromLspciMm :: string -> [AttrSet]
-  ```
+    # Type
+    ```nix
+    fromLspciMm :: string -> [AttrSet]
+    ```
   */
-  fromLspciMm = lspciMm:
+  fromLspciMm =
+    lspciMm:
     map (
       gpu:
-        gpu
-        // {
-          primary = false;
-          secondary = false;
-        }
+      gpu
+      // {
+        primary = false;
+        secondary = false;
+      }
     ) (parseLspci lspciMm);
 
   testLspciInput = ''
@@ -88,56 +90,56 @@
       ;
   };
 in
-  exports
-  // {
-    __rootAliases = exports;
+exports
+// {
+  __rootAliases = exports;
 
-    __tests = runTests {
-      parseLspci = {
-        onlyIncludesGPUs = mkTest {
-          desired = 2;
-          outcome = length (parseLspci testLspciInput);
-          command = "length (parseLspci testLspciInput)";
-        };
-        firstIsNvidia = mkTest {
-          desired = "nvidia";
-          outcome = (elemAt (parseLspci testLspciInput) 0).brand;
-          command = "(elemAt (parseLspci testLspciInput) 0).brand";
-        };
-        secondIsAmd = mkTest {
-          desired = "amd";
-          outcome = (elemAt (parseLspci testLspciInput) 1).brand;
-          command = "(elemAt (parseLspci testLspciInput) 1).brand";
-        };
-        correctIndex = mkTest {
-          desired = 0;
-          outcome = (elemAt (parseLspci testLspciInput) 0).index;
-          command = "(elemAt (parseLspci testLspciInput) 0).index";
-        };
+  __tests = runTests {
+    parseLspci = {
+      onlyIncludesGPUs = mkTest {
+        desired = 2;
+        outcome = length (parseLspci testLspciInput);
+        command = "length (parseLspci testLspciInput)";
       };
-
-      fromLspciMm = {
-        sameCount = mkTest {
-          desired = 2;
-          outcome = length (fromLspciMm testLspciInput);
-          command = "length (fromLspciMm testLspciInput)";
-        };
-        primaryFalse = mkTest {
-          desired = false;
-          outcome = (elemAt (fromLspciMm testLspciInput) 0).primary;
-          command = "(elemAt (fromLspciMm testLspciInput) 0).primary";
-        };
-        secondaryFalse = mkTest {
-          desired = false;
-          outcome = (elemAt (fromLspciMm testLspciInput) 0).secondary;
-          command = "(elemAt (fromLspciMm testLspciInput) 0).secondary";
-        };
+      firstIsNvidia = mkTest {
+        desired = "nvidia";
+        outcome = (elemAt (parseLspci testLspciInput) 0).brand;
+        command = "(elemAt (parseLspci testLspciInput) 0).brand";
       };
-
-      vendorMap = {
-        hasNvidia = mkTest' "nvidia" vendorMap."10de";
-        hasAmd = mkTest' "amd" vendorMap."1002";
-        hasIntel = mkTest' "intel" vendorMap."8086";
+      secondIsAmd = mkTest {
+        desired = "amd";
+        outcome = (elemAt (parseLspci testLspciInput) 1).brand;
+        command = "(elemAt (parseLspci testLspciInput) 1).brand";
+      };
+      correctIndex = mkTest {
+        desired = 0;
+        outcome = (elemAt (parseLspci testLspciInput) 0).index;
+        command = "(elemAt (parseLspci testLspciInput) 0).index";
       };
     };
-  }
+
+    fromLspciMm = {
+      sameCount = mkTest {
+        desired = 2;
+        outcome = length (fromLspciMm testLspciInput);
+        command = "length (fromLspciMm testLspciInput)";
+      };
+      primaryFalse = mkTest {
+        desired = false;
+        outcome = (elemAt (fromLspciMm testLspciInput) 0).primary;
+        command = "(elemAt (fromLspciMm testLspciInput) 0).primary";
+      };
+      secondaryFalse = mkTest {
+        desired = false;
+        outcome = (elemAt (fromLspciMm testLspciInput) 0).secondary;
+        command = "(elemAt (fromLspciMm testLspciInput) 0).secondary";
+      };
+    };
+
+    vendorMap = {
+      hasNvidia = mkTest' "nvidia" vendorMap."10de";
+      hasAmd = mkTest' "amd" vendorMap."1002";
+      hasIntel = mkTest' "intel" vendorMap."8086";
+    };
+  };
+}

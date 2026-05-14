@@ -36,21 +36,21 @@
       "Ctrl+Alt+L"
     ];
     "Log Out" = "Ctrl+Alt+Del";
-    "LogOut" = [];
+    "LogOut" = [ ];
     "Reboot Without Confirmation" = [
       "Meta+Ctrl+R"
       "Ctrl+Alt+R"
     ];
-    "Reboot" = [];
-    "Shut Down" = [];
+    "Reboot" = [ ];
+    "Shut Down" = [ ];
   };
 
   mediacontrol = {
-    mediavolumedown = [];
-    mediavolumeup = [];
+    mediavolumedown = [ ];
+    mediavolumeup = [ ];
     nextmedia = "Media Next";
     pausemedia = "Media Pause";
-    playmedia = [];
+    playmedia = [ ];
     playpausemedia = "Media Play";
     previousmedia = "Media Previous";
     stopmedia = "Media Stop";
@@ -68,7 +68,7 @@
     "PowerOff" = "Power Off";
     "Sleep" = "Sleep";
     "Toggle Keyboard Backlight" = "Keyboard Light On/Off";
-    "Turn Off Screen" = [];
+    "Turn Off Screen" = [ ];
     "powerProfile" = [
       "Battery"
       "Meta+B"

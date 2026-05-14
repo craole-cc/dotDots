@@ -68,24 +68,42 @@
     };
 
     Tiling.padding = 4;
-    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/b49616c0-ed3b-4b52-96bb-371b57ef64ab"."[Tiling][3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9][]" = "";
-    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"layoutDirection\":\"vertical\",\"tiles\":[{\"height\":0.5},{\"height\":0.5}],\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/4a75fc45-66ef-457e-8112-c3c5c4db2d71".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/6b27df1b-6f11-48f3-8bb6-97a7a603f165".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
-    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/197399ba-7544-4c10-90db-dc25b0dd0244".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/14d2eb36-ff2f-42fc-8b2c-abf052ae4ffd/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/197399ba-7544-4c10-90db-dc25b0dd0244".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/b49616c0-ed3b-4b52-96bb-371b57ef64ab"."[Tiling][3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9][]" =
+      "";
+    "Tiling/3040216e-31b3-41b6-9b91-767980dc298f/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/197399ba-7544-4c10-90db-dc25b0dd0244".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"layoutDirection\":\"vertical\",\"tiles\":[{\"height\":0.5},{\"height\":0.5}],\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/4a75fc45-66ef-457e-8112-c3c5c4db2d71".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/6b27df1b-6f11-48f3-8bb6-97a7a603f165".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/3f37f39a-b4ec-4ceb-8c77-8ac4460f53f9/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/197399ba-7544-4c10-90db-dc25b0dd0244".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/197399ba-7544-4c10-90db-dc25b0dd0244".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+    "Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles =
+      "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
     Xwayland.Scale = 1;
     "org.kde.kdecoration2".theme = "__aurorae__svg__CatppuccinFrappe-Modern";
   };

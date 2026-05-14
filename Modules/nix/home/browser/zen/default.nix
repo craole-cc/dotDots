@@ -6,7 +6,8 @@
   pkgs,
   user,
   ...
-}: let
+}:
+let
   inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.strings.transformation) normalize;
@@ -19,8 +20,8 @@
     "zen-beta"
     "twilight"
   ];
-  apps = user.applications or {};
-  allowed = normalize (apps.allowed or []);
+  apps = user.applications or { };
+  allowed = normalize (apps.allowed or [ ]);
   primary = normalize (apps.browser.primary or "");
   secondary = normalize (apps.browser.secondary or "");
   isPrimary = isIn opts primary;
@@ -35,13 +36,16 @@
         ]
         ++ allowed
       )
-    then "twilight"
-    else "beta";
+    then
+      "twilight"
+    else
+      "beta";
   darwinName = "${name}-${variant}";
   pkgName = "zen-${variant}";
 
   enable = isPrimary || isSecondary || isAllowed;
-in {
+in
+{
   config = mkIf enable {
     programs.zen-browser = {
       inherit enable name;
@@ -53,26 +57,27 @@ in {
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
-        (import ./search.nix {inherit host;})
+        (import ./search.nix { inherit host; })
         (import ./settings.nix)
       ];
       policies = mkMerge [
-        (import ./policies.nix {inherit config;})
-        (import ./extensions.nix {inherit lix;})
-        (import ./preferences.nix {inherit lix;})
+        (import ./policies.nix { inherit config; })
+        (import ./extensions.nix { inherit lix; })
+        (import ./preferences.nix { inherit lix; })
       ];
     };
 
     home = {
       sessionVariables =
-        if isPrimary
-        then {
-          BROWSER = pkgName;
-          BROWSER_PRI = pkgName;
-        }
-        else if isSecondary
-        then {BROWSER_SEC = pkgName;}
-        else {};
+        if isPrimary then
+          {
+            BROWSER = pkgName;
+            BROWSER_PRI = pkgName;
+          }
+        else if isSecondary then
+          { BROWSER_SEC = pkgName; }
+        else
+          { };
     };
   };
 }

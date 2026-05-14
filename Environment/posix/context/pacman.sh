@@ -14,7 +14,7 @@
 
 #* Verify Instalation *#
 if ! type pacman >/dev/null 2>&1; then
-  return
+	return
 fi
 
 # _______________________________________ EXPORT<|

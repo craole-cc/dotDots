@@ -51,7 +51,7 @@ _: {
       class = "vesktop";
     };
     exec = "vesktop";
-    categories = ["communication"];
+    categories = [ "communication" ];
     family = "chromium";
     channel = "stable";
   };

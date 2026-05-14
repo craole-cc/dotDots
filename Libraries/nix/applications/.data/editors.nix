@@ -68,7 +68,7 @@ _: {
     };
     exec = "emacs";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     family = "emacs";
     channel = "stable";
   };
@@ -80,7 +80,7 @@ _: {
       class = "Fleet";
     };
     exec = "fleet";
-    categories = ["editor"];
+    categories = [ "editor" ];
     family = "jetbrains";
     channel = "beta";
   };
@@ -93,7 +93,7 @@ _: {
     };
     exec = "fresh";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -104,7 +104,7 @@ _: {
       class = "org.gnome.gedit";
     };
     exec = "gedit";
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -131,7 +131,7 @@ _: {
     };
     exec = "hx";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -173,7 +173,7 @@ _: {
       class = "org.kde.kate";
     };
     exec = "kate";
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -198,7 +198,7 @@ _: {
       class = "lite-xl";
     };
     exec = "lite-xl";
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -210,7 +210,7 @@ _: {
     };
     exec = "micro";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -221,7 +221,7 @@ _: {
       class = "org.xfce.mousepad";
     };
     exec = "mousepad";
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -233,7 +233,7 @@ _: {
     };
     exec = "nano";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -245,7 +245,7 @@ _: {
     };
     exec = "nvim";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     family = "vim";
     channel = "stable";
   };
@@ -304,7 +304,7 @@ _: {
       title = "Sublime Text";
     };
     exec = "subl";
-    categories = ["editor"];
+    categories = [ "editor" ];
     channel = "stable";
   };
 
@@ -316,7 +316,7 @@ _: {
     };
     exec = "vim";
     needsTerminal = true;
-    categories = ["editor"];
+    categories = [ "editor" ];
     family = "vim";
     channel = "stable";
   };

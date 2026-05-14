@@ -7,13 +7,13 @@ _: {
     kind = "graphical";
     family = "cosmic";
     independent = false;
-    engine = ["rust"];
+    engine = [ "rust" ];
     config = [
       "ron"
       "css"
     ];
     maturity = "young";
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     toolkit = "iced";
   };
   dms-greeter = {
@@ -24,10 +24,10 @@ _: {
     family = "dms";
     kind = "graphical";
     independent = true;
-    engine = ["rust"];
-    config = ["toml"];
+    engine = [ "rust" ];
+    config = [ "toml" ];
     maturity = "young";
-    protocol = ["wayland"];
+    protocol = [ "wayland" ];
     toolkit = "gtk4";
   };
   gdm = {
@@ -38,7 +38,7 @@ _: {
     kind = "graphical";
     family = "gnome";
     independent = false;
-    engine = ["c"];
+    engine = [ "c" ];
     config = [
       "javascript"
       "css"
@@ -58,8 +58,8 @@ _: {
     family = "greetd";
     kind = "daemon";
     independent = true;
-    engine = ["rust"];
-    config = ["toml"];
+    engine = [ "rust" ];
+    config = [ "toml" ];
     maturity = "stable";
     protocol = [
       "wayland"
@@ -76,8 +76,8 @@ _: {
     ];
     kind = "terminal";
     independent = true;
-    engine = ["rust"];
-    config = ["toml"];
+    engine = [ "rust" ];
+    config = [ "toml" ];
     maturity = "young";
     protocol = [
       "wayland"
@@ -94,8 +94,8 @@ _: {
     ];
     kind = "graphical";
     independent = true;
-    engine = ["c"];
-    config = ["ini"];
+    engine = [ "c" ];
+    config = [ "ini" ];
     maturity = "legacy";
     protocol = [
       "wayland"
@@ -110,8 +110,8 @@ _: {
     ];
     kind = "terminal";
     independent = true;
-    engine = ["zig"];
-    config = ["ini"];
+    engine = [ "zig" ];
+    config = [ "ini" ];
     maturity = "young";
     protocol = [
       "wayland"
@@ -133,7 +133,7 @@ _: {
       "c++"
       "qml"
     ];
-    config = ["qml"];
+    config = [ "qml" ];
     maturity = "stable";
     protocol = [
       "wayland"
@@ -149,7 +149,7 @@ _: {
     family = "greetd";
     kind = "graphical";
     independent = true;
-    engine = ["rust"];
+    engine = [ "rust" ];
     config = [
       "toml"
       "css"
@@ -169,7 +169,7 @@ _: {
     family = "plasma";
     kind = "graphical";
     independent = true;
-    engine = ["c++"];
+    engine = [ "c++" ];
     config = [
       "qml"
       "ini"
@@ -188,8 +188,8 @@ _: {
     ];
     kind = "terminal";
     independent = true;
-    engine = ["rust"];
-    config = ["shell"];
+    engine = [ "rust" ];
+    config = [ "shell" ];
     maturity = "stable";
     protocol = [
       "wayland"

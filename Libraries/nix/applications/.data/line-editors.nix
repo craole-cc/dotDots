@@ -4,13 +4,13 @@ _: {
       "shell"
       "line-editor"
     ];
-    engine = ["bash"];
+    engine = [ "bash" ];
     config = {
-      lang = ["bash"];
+      lang = [ "bash" ];
       file = ".blerc";
       home = "$HOME";
     };
-    shells = ["bash"];
+    shells = [ "bash" ];
     maturity = "young";
   };
   readline = {
@@ -18,9 +18,9 @@ _: {
       "shell"
       "line-editor"
     ];
-    engine = ["c"];
+    engine = [ "c" ];
     config = {
-      lang = ["readline"];
+      lang = [ "readline" ];
       file = ".inputrc";
       home = "$HOME";
     };
@@ -40,7 +40,7 @@ _: {
       "c"
       "zsh"
     ];
-    shells = ["zsh"];
+    shells = [ "zsh" ];
     maturity = "stable";
   };
 }

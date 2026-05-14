@@ -4,10 +4,12 @@
   modulesPath,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkDefault;
-in {
-  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+in
+{
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   # ==================== HARDWARE ====================
   hardware = {
@@ -48,7 +50,7 @@ in {
   # ==================== BOOT ====================
   boot = {
     kernelPackages = mkDefault pkgs.linuxPackages_latest;
-    extraModulePackages = [];
+    extraModulePackages = [ ];
     extraModprobeConfig = "options nvidia_drm modeset=1 fbdev=1";
 
     initrd = {
@@ -105,7 +107,7 @@ in {
     ];
 
     # nouveau only — simpledrm is built-in and ignores this list
-    blacklistedKernelModules = ["nouveau"];
+    blacklistedKernelModules = [ "nouveau" ];
   };
 
   # ==================== DISPLAY / WAYLAND ====================

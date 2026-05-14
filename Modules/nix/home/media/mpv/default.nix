@@ -5,16 +5,18 @@
   host,
   pkgs,
   ...
-}: let
+}:
+let
   app = "mpv";
   inherit (lib.modules) mkMerge;
   inherit (lix.lists.predicates) isIn;
-  isAllowed = isIn "video" (host.functionalities or []);
-in {
+  isAllowed = isIn "video" (host.functionalities or [ ]);
+in
+{
   programs.${app} = mkMerge [
-    {enable = isAllowed;}
+    { enable = isAllowed; }
     (import ./bindings.nix)
-    (import ./settings.nix {inherit pkgs;})
+    (import ./settings.nix { inherit pkgs; })
   ];
-  home.packages = with pkgs; [ffmpeg-full];
+  home.packages = with pkgs; [ ffmpeg-full ];
 }

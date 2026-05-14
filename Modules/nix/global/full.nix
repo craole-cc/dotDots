@@ -1,7 +1,7 @@
-{dots, ...}: let
+{ dots, ... }:
+let
   description = "Exhaustive Shell";
-  inherit
-    (dots)
+  inherit (dots)
     allowAI
     lix
     system
@@ -107,152 +107,149 @@
   };
 
   #> Generate applications from commands using mkShellApp
-  applications = let
-    #> Merge all app into attrsets from mkShellApp
-    mergeApps = foldl' (acc: apps: acc // apps) {};
+  applications =
+    let
+      #> Merge all app into attrsets from mkShellApp
+      mergeApps = foldl' (acc: apps: acc // apps) { };
 
-    #> Convert commands to mkShellApp calls
-    allApps =
-      mapAttrsToList (
+      #> Convert commands to mkShellApp calls
+      allApps = mapAttrsToList (
         name: cfg:
-          mkShellApp {
-            inherit pkgs;
-            inherit (cfg) command description;
-            inherit name;
-            prefix = cfg.prefix or dots.prefix;
-            inputs = cfg.inputs or [];
-            aliases = cfg.aliases or [];
-          }
-      )
-      commands;
-  in
+        mkShellApp {
+          inherit pkgs;
+          inherit (cfg) command description;
+          inherit name;
+          prefix = cfg.prefix or dots.prefix;
+          inputs = cfg.inputs or [ ];
+          aliases = cfg.aliases or [ ];
+        }
+      ) commands;
+    in
     mergeApps allApps;
 
   #> Generate command list for shellHook
-  commandList = let
-    mainCmd = commands.${dots.name};
+  commandList =
+    let
+      mainCmd = commands.${dots.name};
 
-    #> Group aliases by domain
-    groups = [
-      {
-        name = "System/Info";
-        aliases = [
-          "info"
-          "hosts"
-        ];
-      }
-      {
-        name = "Build/Rebuild";
-        aliases = [
-          "boot"
-          "dry"
-          "rebuild"
-          "check"
-          "fmt"
-        ];
-      }
-      {
-        name = "Maintenance/Utilities";
-        aliases = [
-          "clean"
-          "list"
-          "help"
-        ];
-      }
-      {
-        name = "Interaction/REPL";
-        aliases = ["repl"];
-      }
-      {
-        name = "Discovery/Search";
-        aliases = ["search"];
-      }
-      {
-        name = "Version Control/Update";
-        aliases = [
-          "update"
-          "sync"
-          "status"
-          # "binit"
-        ];
-      }
-    ];
+      #> Group aliases by domain
+      groups = [
+        {
+          name = "System/Info";
+          aliases = [
+            "info"
+            "hosts"
+          ];
+        }
+        {
+          name = "Build/Rebuild";
+          aliases = [
+            "boot"
+            "dry"
+            "rebuild"
+            "check"
+            "fmt"
+          ];
+        }
+        {
+          name = "Maintenance/Utilities";
+          aliases = [
+            "clean"
+            "list"
+            "help"
+          ];
+        }
+        {
+          name = "Interaction/REPL";
+          aliases = [ "repl" ];
+        }
+        {
+          name = "Discovery/Search";
+          aliases = [ "search" ];
+        }
+        {
+          name = "Version Control/Update";
+          aliases = [
+            "update"
+            "sync"
+            "status"
+            # "binit"
+          ];
+        }
+      ];
 
-    #> Flatten and add headers
-    allCommands =
-      concatMapStringsSep "\n" (
-        group: let
+      #> Flatten and add headers
+      allCommands = concatMapStringsSep "\n" (
+        group:
+        let
           header = "\n${group.name}:\n";
           #> Filter aliases by group
-          cmds = filter (a: builtins.elem a.name group.aliases) (mainCmd.aliases or []);
+          cmds = filter (a: builtins.elem a.name group.aliases) (mainCmd.aliases or [ ]);
           #> Format each command
-          maxNameLength =
-            foldl' (
-              max: cmd: let
-                len = stringLength "${dots.prefix}${cmd.name}";
-              in
-                if len > max
-                then len
-                else max
-            )
-            0
-            cmds;
-          formatCmd = cmd: let
-            padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
-            spaces = concatStrings (genList (_: " ") padding);
-          in "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          maxNameLength = foldl' (
+            max: cmd:
+            let
+              len = stringLength "${dots.prefix}${cmd.name}";
+            in
+            if len > max then len else max
+          ) 0 cmds;
+          formatCmd =
+            cmd:
+            let
+              padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
+              spaces = concatStrings (genList (_: " ") padding);
+            in
+            "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
-          if cmds != []
-          then header + concatMapStringsSep "\n" formatCmd cmds
-          else ""
-      )
-      groups;
-  in
+        if cmds != [ ] then header + concatMapStringsSep "\n" formatCmd cmds else ""
+      ) groups;
+    in
     allCommands;
 
   #|───────────────────────────────────────────────────────────────|
   #| Packages                                                      |
   #|───────────────────────────────────────────────────────────────|
 
-  packages = with pkgs;
+  packages =
+    with pkgs;
     [
-      bat #? Cat clone with syntax highlighting
-      cargo #? Rust package manager
-      direnv #? Environment management per directory
-      dos2unix #? Line ending converter
-      eza #? Modern ls replacement
-      fd #? Fast find alternative
-      gcc #? GNU C compiler
-      gitui #? Git terminal UI
-      gnused #? GNU stream editor
-      imagemagick #? Image processing
-      jq #? JSON query processor
-      lsd #? LSDeluxe file lister
-      mise #? Polyglot version manager
-      mtr #? Network diagnostic tool
-      nil #? Nix language server
-      nitch #? System fetch written in nim
-      nix-output-monitor #? Build output monitor
-      nix-tree #? Nix dependency visualizer
-      nixd #? Nix language daemon
-      nushell #? Modern shell language
-      onefetch #? Git repository summary
-      pandoc #? Universal document converter
-      poppler-utils #? PDF utilities (pdfunite, pdfseparate)
-      qpdf #? PDF transformation
-      ripgrep #? Fast grep alternative
-      rust-script #? Rust scripting
-      rustc #? Rust compiler
-      sd #? Intuitive find & replace CLI (sed alternative)
-      starship #? Cross-shell prompt
-      statix #? Lints and suggestions for nix
-      tldr #? Simplified man pages
-      tokei #? Code statistics tool
-      typst #? Modern LaTeX alternative
-      undollar #? Remove leading dollar signs
-      watchexec #? File watcher and executor
-      yazi #? Terminal file manager
-      zoxide #? Smart cd replacement
+      bat # ? Cat clone with syntax highlighting
+      cargo # ? Rust package manager
+      direnv # ? Environment management per directory
+      dos2unix # ? Line ending converter
+      eza # ? Modern ls replacement
+      fd # ? Fast find alternative
+      gcc # ? GNU C compiler
+      gitui # ? Git terminal UI
+      gnused # ? GNU stream editor
+      imagemagick # ? Image processing
+      jq # ? JSON query processor
+      lsd # ? LSDeluxe file lister
+      mise # ? Polyglot version manager
+      mtr # ? Network diagnostic tool
+      nil # ? Nix language server
+      nitch # ? System fetch written in nim
+      nix-output-monitor # ? Build output monitor
+      nix-tree # ? Nix dependency visualizer
+      nixd # ? Nix language daemon
+      nushell # ? Modern shell language
+      onefetch # ? Git repository summary
+      pandoc # ? Universal document converter
+      poppler-utils # ? PDF utilities (pdfunite, pdfseparate)
+      qpdf # ? PDF transformation
+      ripgrep # ? Fast grep alternative
+      rust-script # ? Rust scripting
+      rustc # ? Rust compiler
+      sd # ? Intuitive find & replace CLI (sed alternative)
+      starship # ? Cross-shell prompt
+      statix # ? Lints and suggestions for nix
+      tldr # ? Simplified man pages
+      tokei # ? Code statistics tool
+      typst # ? Modern LaTeX alternative
+      undollar # ? Remove leading dollar signs
+      watchexec # ? File watcher and executor
+      yazi # ? Terminal file manager
+      zoxide # ? Smart cd replacement
     ]
     ++ formatters
     ++ (attrValues applications)
@@ -261,11 +258,14 @@
       wl-clipboard
       xsel
     ])
-    ++ (optionals allowAI (with (inputPkgs "llm-agents"); [
-      codex
-      claude-code-bin
-      perplexity-mcp
-    ])); #? Linux clipboard tools
+    ++ (optionals allowAI (
+      with (inputPkgs "llm-agents");
+      [
+        codex
+        claude-code-bin
+        perplexity-mcp
+      ]
+    )); # ? Linux clipboard tools
 
   #|───────────────────────────────────────────────────────────────|
   #| Shell Configuration                                           |
@@ -340,7 +340,8 @@
     printf "%s\n\n" "${commandList}"
     printf "  Run %shelp for detailed help information\n\n" "${dots.prefix}"
   '';
-in {
+in
+{
   inherit
     description
     packages

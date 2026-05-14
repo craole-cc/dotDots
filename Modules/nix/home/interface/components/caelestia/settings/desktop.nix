@@ -40,14 +40,14 @@
       occupiedLabel = "󰮯";
       activeLabel = "󰮯";
       capitalisation = "preserve";
-      specialWorkspaceIcons = [];
+      specialWorkspaceIcons = [ ];
     };
 
     tray = {
       background = false;
       recolour = true;
       compact = true;
-      iconSubs = [];
+      iconSubs = [ ];
     };
 
     status = {

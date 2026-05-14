@@ -2,25 +2,21 @@
   # icons,
   host,
   ...
-}: let
+}:
+let
   # inherit (icons.nixos) snowflake;
   inherit (host) stateVersion;
   inherit (host.packages) unstable;
 
   core = {
-    channel =
-      if unstable
-      then "unstable"
-      else stateVersion;
+    channel = if unstable then "unstable" else stateVersion;
     # icon = icons.nixos.snowflake;
   };
   home = {
-    channel =
-      if unstable
-      then "master"
-      else "release-${stateVersion}";
+    channel = if unstable then "master" else "release-${stateVersion}";
   };
-in {
+in
+{
   search = {
     default = "duck";
     privateDefault = "brave";
@@ -28,9 +24,7 @@ in {
     engines = {
       bing = {
         name = "Bing";
-        urls = [
-          {template = "https://www.bing.com/search?q={searchTerms}";}
-        ];
+        urls = [ { template = "https://www.bing.com/search?q={searchTerms}"; } ];
         metaData = {
           alias = "@mb";
         };
@@ -38,9 +32,7 @@ in {
 
       brave = {
         name = "Brave";
-        urls = [
-          {template = "https://search.brave.com/search?q={searchTerms}";}
-        ];
+        urls = [ { template = "https://search.brave.com/search?q={searchTerms}"; } ];
         definedAliases = [
           "b"
           "@b"
@@ -68,9 +60,7 @@ in {
 
       github = {
         name = "GitHub";
-        urls = [
-          {template = "https://github.com/search?q={searchTerms}";}
-        ];
+        urls = [ { template = "https://github.com/search?q={searchTerms}"; } ];
         definedAliases = [
           "gh"
           "@gh"
@@ -179,7 +169,7 @@ in {
       nixos-wiki = {
         # inherit (core) icon;
         name = "NixOS Wiki";
-        urls = [{template = "https://wiki.nixos.org/w/index.php?search={searchTerms}";}];
+        urls = [ { template = "https://wiki.nixos.org/w/index.php?search={searchTerms}"; } ];
         # iconMapObj."16" = "https://wiki.nixos.org/favicon.ico";
         definedAliases = [
           "nw"
@@ -219,7 +209,7 @@ in {
             ];
           }
         ];
-        definedAliases = ["@p"];
+        definedAliases = [ "@p" ];
       };
 
       wikipedia = {
@@ -244,13 +234,13 @@ in {
             ];
           }
         ];
-        definedAliases = ["@wp"];
+        definedAliases = [ "@wp" ];
       };
 
       wiktionary = {
         name = "Wiktionary";
         urls = [
-          {template = "https://en.wiktionary.org/w/index.php?search={searchTerms}";}
+          { template = "https://en.wiktionary.org/w/index.php?search={searchTerms}"; }
 
           {
             template = "https://en.wiktionary.org/wiki/%s";
@@ -281,13 +271,13 @@ in {
             ];
           }
         ];
-        definedAliases = ["@yt"];
+        definedAliases = [ "@yt" ];
       };
 
       youglish = {
         name = "YouGlish";
-        urls = [{template = "https://youglish.com/pronounce/{searchTerms}/english";}];
-        definedAliases = ["@yg"];
+        urls = [ { template = "https://youglish.com/pronounce/{searchTerms}/english"; } ];
+        definedAliases = [ "@yg" ];
       };
     };
 

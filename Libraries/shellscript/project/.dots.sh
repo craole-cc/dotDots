@@ -8,32 +8,32 @@ src_name="$(basename "${scr_path}")"
 workspace="${1:-"${DOTS}"}"
 
 pout_error() {
-  printf "[ERROR] %s ===" "${src_name}" "$*" >&2
-  exit 1
+	printf "[ERROR] %s ===" "${src_name}" "$*" >&2
+	exit 1
 }
 
 pout_debug() {
-  case "${debug:-}" in
-    '' | off | no | false) return ;;
-    1 | on | true | *)
-      printf "[DEBUG] %s === %s\n" "${src_name}" "$*"
-      ;;
-  esac
+	case "${debug:-}" in
+	'' | off | no | false) return ;;
+	1 | on | true | *)
+		printf "[DEBUG] %s === %s\n" "${src_name}" "$*"
+		;;
+	esac
 }
 
 #{ Ensure the DOTS variable is defined
 if [ -n "${workspace:-}" ]; then
-  pout_debug "Workspace:" "${workspace}"
+	pout_debug "Workspace:" "${workspace}"
 else
-  pout_error "The path to DOTS directory must be set.\n" >&2
+	pout_error "The path to DOTS directory must be set.\n" >&2
 fi
 
 #{ Use devnix from here on
-CMD_DEVNIX="$(command -v devnix 2> /dev/null || true)"
+CMD_DEVNIX="$(command -v devnix 2>/dev/null || true)"
 CMD_DEVNIX="${CMD_DEVNIX:-"${workspace}/Libraries/shellscript/project/nix/devnix"}"
 if [ -x "${CMD_DEVNIX}" ]; then
-  pout_debug "CMD_DEVNIX" "${CMD_DEVNIX}"
-  "${CMD_DEVNIX}" "${workspace}"
+	pout_debug "CMD_DEVNIX" "${CMD_DEVNIX}"
+	"${CMD_DEVNIX}" "${workspace}"
 else
-  pout_error "Missing loader script:" "${CMD_DEVNIX}"
+	pout_error "Missing loader script:" "${CMD_DEVNIX}"
 fi

@@ -1,4 +1,5 @@
-{user, ...}: {
+{ user, ... }:
+{
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -22,6 +23,6 @@
         };
       };
     };
-    includes = [];
+    includes = [ ];
   };
 }

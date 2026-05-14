@@ -4,7 +4,8 @@
   lix,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -54,11 +55,13 @@
       "powershell.integratedConsole.suppressStartupBanner" = true;
     };
   };
-in {
+in
+{
   name = "scripting";
   description = "Python, Nushell, PowerShell extensions";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -67,9 +70,9 @@ in {
         powershell.extensions
       ];
       userSettings = mkMerge [
-        (python.userSettings or {})
-        (nushell.userSettings or {})
-        (powershell.userSettings or {})
+        (python.userSettings or { })
+        (nushell.userSettings or { })
+        (powershell.userSettings or { })
       ];
     };
 }

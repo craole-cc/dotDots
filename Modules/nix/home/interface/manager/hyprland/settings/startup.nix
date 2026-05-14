@@ -1,5 +1,5 @@
 {
-  env = ["XDG_CURRENT_DESKTOP,Hyprland"];
+  env = [ "XDG_CURRENT_DESKTOP,Hyprland" ];
   exec-once = [
     # ============================================
     # D-Bus & Environment Setup

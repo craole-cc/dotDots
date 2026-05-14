@@ -1,6 +1,8 @@
-{lix, ...}: let
+{ lix, ... }:
+let
   inherit (lix.attrsets.generators) locked;
-in {
+in
+{
   Preferences = locked {
     ## Browser UI and Behavior
     "browser.aboutConfig.showWarning" = false;

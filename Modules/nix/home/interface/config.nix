@@ -6,7 +6,8 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   cfg = config.${top}.${dom};
   inherit (lib.modules) mkForce;
@@ -40,18 +41,15 @@
       default = pkgs.candy-icons;
     };
   };
-in {
+in
+{
   # _module.args = {inherit cursor icons;};
   _module.args.${dom} = cfg;
 
   gtk = {
     enable = mkForce true;
-    iconTheme = mkForce {
-      inherit (icons) package name;
-    };
-    cursorTheme = mkForce {
-      inherit (cursor) package name size;
-    };
+    iconTheme = mkForce { inherit (icons) package name; };
+    cursorTheme = mkForce { inherit (cursor) package name size; };
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
     gtk4 = {
       theme = null;
@@ -84,7 +82,7 @@ in {
         # fonts.enable = false;
       };
       zen-browser = {
-        profileNames = [user.name];
+        profileNames = [ user.name ];
       };
     };
   };

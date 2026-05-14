@@ -81,6 +81,7 @@ let
     "zen.view.experimental-rounded-view" = false; # ? Enable rounded corners (if available)
     "zen.theme.content-element-separation" = 8; # ? Border size around window (default 8)
   };
-in {
+in
+{
   settings = forAll // forZen;
 }

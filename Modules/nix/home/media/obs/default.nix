@@ -6,22 +6,23 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   app = "obs-studio";
   inherit (lix.lists.predicates) isIn;
-  isAllowed = isIn "video" (host.functionalities or []);
-in {
-  programs.${app} =
-    {
-      enable = isAllowed;
-    }
-    // import ./plugins.nix {
-      inherit
-        pkgs
-        lib
-        lix
-        user
-        config
-        ;
-    };
+  isAllowed = isIn "video" (host.functionalities or [ ]);
+in
+{
+  programs.${app} = {
+    enable = isAllowed;
+  }
+  // import ./plugins.nix {
+    inherit
+      pkgs
+      lib
+      lix
+      user
+      config
+      ;
+  };
 }

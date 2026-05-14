@@ -1,8 +1,5 @@
+{ lix, pkgs, ... }:
 {
-  lix,
-  pkgs,
-  ...
-}: {
   imports = lix.filesystem.importers.importAll ./.;
   home.packages = with pkgs; [
     # karere

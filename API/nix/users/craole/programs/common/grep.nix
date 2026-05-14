@@ -12,7 +12,7 @@
 
     fd = {
       enable = true;
-      extraOptions = ["--absolute-path"];
+      extraOptions = [ "--absolute-path" ];
       ignores = [
         ".git/"
         "archives"

@@ -4,7 +4,8 @@
   lix,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -56,24 +57,26 @@
   };
   codex = mkVSCodeSubFeature {
     enabled = false;
-    extensions = [];
-    userSettings = {};
+    extensions = [ ];
+    userSettings = { };
   };
   gemini = mkVSCodeSubFeature {
     enabled = false;
-    extensions = [];
-    userSettings = {};
+    extensions = [ ];
+    userSettings = { };
   };
   continue = mkVSCodeSubFeature {
     enabled = false;
-    extensions = [];
-    userSettings = {};
+    extensions = [ ];
+    userSettings = { };
   };
-in {
+in
+{
   name = "ai";
   description = "AI assistance extensions";
   default = true;
-  feature = enabled:
+  feature =
+    enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -84,11 +87,11 @@ in {
         continue.extensions
       ];
       userSettings = mkMerge [
-        (copilot.userSettings or {})
-        (codeium.userSettings or {})
-        (codex.userSettings or {})
-        (gemini.userSettings or {})
-        (continue.userSettings or {})
+        (copilot.userSettings or { })
+        (codeium.userSettings or { })
+        (codex.userSettings or { })
+        (gemini.userSettings or { })
+        (continue.userSettings or { })
       ];
     };
 }

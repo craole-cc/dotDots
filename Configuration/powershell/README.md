@@ -1,6 +1,8 @@
 # DOTS PowerShell Profile Loader
 
-A flexible, configuration-driven PowerShell profile loader that provides fine-grained control over script and module loading across multiple directories and environments.
+A flexible, configuration-driven PowerShell profile loader that provides
+fine-grained control over script and module loading across multiple directories
+and environments.
 
 ## Features
 
@@ -22,4 +24,5 @@ A flexible, configuration-driven PowerShell profile loader that provides fine-gr
 
 ## Documentation
 
-For detailed documentation, please refer to the [wiki](../../Documentation/PowerShell.md).
+For detailed documentation, please refer to the
+[wiki](../../Documentation/PowerShell.md).

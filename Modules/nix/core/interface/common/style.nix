@@ -6,20 +6,20 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "style";
   cfg = config.${top}.${dom}.${mod};
 
-  user = host.users.data.primary or {};
-  style = user.interface.style or {};
+  user = host.users.data.primary or { };
+  style = user.interface.style or { };
   wallpapers = host.paths.wallpapers or null;
 
   inherit (lib.modules) mkIf mkForce;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     enum
     int
     nullOr
@@ -70,15 +70,15 @@
   #~@ Cursor resolution — user override takes precedence over theme default
   cursorName = style.cursor.${style.current or "dark"} or null;
   cursorResolved =
-    if cursorName != null
-    then {
-      name = cursorName;
-      package = getPackage {
-        inherit pkgs;
-        target = cursorName;
-        default = pkgs.material-cursors;
-      };
-    }
+    if cursorName != null then
+      {
+        name = cursorName;
+        package = getPackage {
+          inherit pkgs;
+          target = cursorName;
+          default = pkgs.material-cursors;
+        };
+      }
     else
       currentTheme.cursor or {
         name = "default";
@@ -86,18 +86,18 @@
       };
 
   wallpaperPath =
-    if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper
-    then /. + cfg.wallpaper
-    else if wallpapers != null && hasPrefix "/nix/store" wallpapers
-    then /. + (wallpapers + "/${cfg.polarity}.jpg")
-    else null;
-in {
+    if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper then
+      /. + cfg.wallpaper
+    else if wallpapers != null && hasPrefix "/nix/store" wallpapers then
+      /. + (wallpapers + "/${cfg.polarity}.jpg")
+    else
+      null;
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = currentTheme != null;
-      };
+    enable = mkEnableOption mod // {
+      default = currentTheme != null;
+    };
     theme = mkOption {
       description = "Current theme name";
       default = style.theme.${style.current or "dark"} or "Catppuccin Frappé";
@@ -121,11 +121,9 @@ in {
       default = style.cursor.size or 24;
       type = int;
     };
-    autoSwitch =
-      mkEnableOption "automatic dark/light switching"
-      // {
-        default = style.autoSwitch or true;
-      };
+    autoSwitch = mkEnableOption "automatic dark/light switching" // {
+      default = style.autoSwitch or true;
+    };
   };
 
   config = mkIf (cfg.enable && currentTheme != null) {
@@ -141,35 +139,39 @@ in {
       };
 
       #TODO: Take this from the API/Schema
-      icons = let
-        set = pkgs.candy-icons;
-      in {
-        enable = true;
-        package = set;
-        light = set.name;
-        dark = set.name;
-      };
+      icons =
+        let
+          set = pkgs.candy-icons;
+        in
+        {
+          enable = true;
+          package = set;
+          light = set.name;
+          dark = set.name;
+        };
 
-      fonts = let
-        fontCfg = config.${top}.interface.fonts;
-      in {
-        monospace = {
-          package = pkgs.maple-mono.NF-unhinted;
-          name = fontCfg.monospace;
+      fonts =
+        let
+          fontCfg = config.${top}.interface.fonts;
+        in
+        {
+          monospace = {
+            package = pkgs.maple-mono.NF-unhinted;
+            name = fontCfg.monospace;
+          };
+          sansSerif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.sans;
+          };
+          serif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.serif;
+          };
+          emoji = {
+            package = pkgs.noto-fonts-color-emoji;
+            name = fontCfg.emoji;
+          };
         };
-        sansSerif = {
-          package = pkgs.noto-fonts;
-          name = fontCfg.sans;
-        };
-        serif = {
-          package = pkgs.noto-fonts;
-          name = fontCfg.serif;
-        };
-        emoji = {
-          package = pkgs.noto-fonts-color-emoji;
-          name = fontCfg.emoji;
-        };
-      };
 
       opacity = {
         terminal = 0.9;

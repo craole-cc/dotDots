@@ -1,7 +1,9 @@
 _: {
   baseArgs = {
-    minimal = {};
-    default = {includeExtras = true;};
+    minimal = { };
+    default = {
+      includeExtras = true;
+    };
     stable = {
       channel = "stable";
       includeExtras = true;
@@ -15,12 +17,20 @@ _: {
     };
   };
   baseDeployArgs = {
-    minimal = {};
-    default = {};
-    stable = {};
-    full = {includeWeb = true;};
+    minimal = { };
+    default = { };
+    stable = { };
+    full = {
+      includeWeb = true;
+    };
   };
-  editorNames = ["vscode" "helix" "zed" "rustrover" "neovim"];
+  editorNames = [
+    "vscode"
+    "helix"
+    "zed"
+    "rustrover"
+    "neovim"
+  ];
   editorSuffixes = {
     vscode = "Vscode";
     helix = "Helix";

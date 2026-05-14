@@ -1,4 +1,5 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.strings) concatStringsSep;
   toRegex = list: "^(${concatStringsSep "|" list})$";
   common = [
@@ -16,11 +17,12 @@
     "gtk-layer-shell"
   ];
   layers = common ++ panels;
-in {
+in
+{
   layerrule = [
     "blur on, match:namespace ${toRegex layers}"
     "xray on, match:namespace ${toRegex panels}"
     "ignore_alpha 0.2, match:namespace ${toRegex panels}"
-    "ignore_alpha 0.5, match:namespace ${toRegex (common ++ ["music"])}"
+    "ignore_alpha 0.5, match:namespace ${toRegex (common ++ [ "music" ])}"
   ];
 }
