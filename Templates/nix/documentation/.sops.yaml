@@ -1,0 +1,6 @@
+keys:
+  - &me age14jmmdjz3gpnk9zq9ph3vwjat45hqdcqysxxpnwvnnp929sq5he7qcs3fc8
+creation_rules:
+  - path_regex: secrets/.*
+    key_groups:
+      - age: [*me]

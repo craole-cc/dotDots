@@ -1,4 +1,0 @@
-{ lib }:
-{
-  leaf = true;
-}

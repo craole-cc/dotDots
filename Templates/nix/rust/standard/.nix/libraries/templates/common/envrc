@@ -1,8 +1,0 @@
-# shellcheck disable=SC2148,SC1090
-
-use flake .
-if [ -n "${TOOL_SCRIPTS:-}" ]; then
-  PATH_add "$TOOL_SCRIPTS/bin"
-fi
-
-PATH_add ./scripts

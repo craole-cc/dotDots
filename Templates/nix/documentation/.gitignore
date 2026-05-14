@@ -1,0 +1,43 @@
+# Nix
+/result
+/result-*
+/.direnv
+/.envrc.local
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Plain dotenv files
+.env
+.env.*
+!.env.example
+
+# Age private keys — never commit these
+keys.txt
+*.agekey
+.config/age/
+.config/sops/age/
+
+# Optional: plaintext local secrets
+secrets/*.env
+secrets/*.plain.*
+secrets/*.decrypted.*
+secrets/*-plain.yaml
+secrets/*-decrypted.yaml
+
+# Keep encrypted SOPS files
+!secrets/*.yaml
+!secrets/*.yml
+!secrets/*.json
+!secrets/*.env.enc

@@ -1,4 +1,0 @@
-{ value }:
-{
-  alpha = value;
-}
