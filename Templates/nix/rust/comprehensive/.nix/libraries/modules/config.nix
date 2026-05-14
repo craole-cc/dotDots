@@ -19,13 +19,14 @@
     ;
   inherit
     (lib.packages)
-    mkChecker
-    mkPkgs
+    getSystem
     mkAI
+    mkChecker
     mkCommon
     mkDatabase
     mkExtra
     mkFormatter
+    mkPkgs
     mkPkgsPerSystem
     mkRust
     mkWeb
@@ -106,10 +107,7 @@
       variables
       messages
       ;
-    inherit (modules.raw.formatting) formatter;
     configuration = variant;
-
-    legacyPackages = mkPkgsPerSystem {inherit inputs;};
   };
 
   mkConfig = {
@@ -123,6 +121,8 @@
     extraShellHook ? "",
     variantName ? "default",
   }: let
+    # system = pkgs.stdenv.hostPlatform.system;
+    system = getSystem pkgs;
     variants = let
       raw = mkVariants config;
       final = mapAttrs (_: normalizeVariant) raw;
@@ -150,5 +150,13 @@
       };
     };
   in
-    modules // {inherit checks devShells;};
+    modules
+    // {
+      inherit checks devShells;
+      formatter = {${system} = modules.raw.formatting.formatter;};
+      packages = {${system} = modules.eval;};
+
+      # inherit (modules.raw.formatting) formatter;
+      legacyPackages = mkPkgsPerSystem {inherit inputs;};
+    };
 in {inherit mkModules mkConfig;}
