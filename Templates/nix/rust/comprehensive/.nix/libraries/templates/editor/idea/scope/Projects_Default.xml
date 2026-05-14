@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <component name="DependencyValidationManager">
-  <scope name="Project_Default" pattern="file:src//*||file:tests//*" />
+  <scope name="Project_Default" pattern="file:src//*||file:tests//*"/>
 </component>
