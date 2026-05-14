@@ -1,7 +1,0 @@
-= Conclusion
-
-The research question can be answered directly: biblical principles and modern psychological counselling can be combined effectively in the care of Major Depressive Disorder when Scripture remains the theological foundation and counselling methods are used as wise, subordinate tools. The Bible offers a credible framework for depression through lament, divine nearness, burden-bearing, rest for the weary, and the renewal of the mind. Psalm 34:18, Psalm 42, Psalm 88, Matthew 11:28–30, Galatians 6:2, Romans 12:2, and 1 Kings 19 shape this care @niv2011.
-
-CBT contributes practical methods for identifying hopeless thoughts, challenging cognitive distortions, and reducing withdrawal through behavioural activation @beck2011. Person-centred therapy contributes empathy, unconditional positive regard, and genuineness, which reduce shame and create emotional safety @rogers1961. Together, these approaches help the church care for people with MDD in ways that are compassionate, practical, ethically responsible, and spiritually meaningful.
-
-The most faithful church-based response to depression is therefore integrated rather than one-dimensional. It listens, prays, supports, refers when needed, and honours both the dignity of the person and the seriousness of the illness. In that form, church counselling becomes a place where biblical hope and psychological wisdom cooperate for healing.

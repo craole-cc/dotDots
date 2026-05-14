@@ -32,9 +32,11 @@
   #v(1.2em)
   Winsome Cole
   #v(0.85em)
+  Christian Counselling
+  #v(0.85em)
   Caribbean Bible Institute
   #v(0.85em)
-  Tamar Reynolds
+  Tamar Royal-Reynolds
   #v(0.85em)
   May 15, 2026
 ]
