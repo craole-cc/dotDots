@@ -27,10 +27,7 @@
         ;
     };
   in
-    result
-    // {
-      formatter = {${system} = result.formatter;};
-    };
+    result // {formatter = {${system} = result.formatter;};};
 
   mkChecker = {
     inputs,
