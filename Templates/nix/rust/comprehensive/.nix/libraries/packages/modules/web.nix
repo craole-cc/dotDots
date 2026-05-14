@@ -1,58 +1,67 @@
 {lib, ...}: let
-  inherit (lib.attrsets) optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) optionalAttrs recursiveAttrs;
   inherit (lib.packages) mkBins mkBin;
 in {
   mkWeb = {
     pkgs,
     variant ? {},
   }: let
-    cfg =
-      recursiveUpdate {
+    name = "web";
+    cfg = let
+      set1 = {
+        inherit name;
         kind = "integration";
-        name = "web";
-        enable = true;
+        enable = false;
         includeDeno = false;
-        includePrettier = false;
+        includePnpm = false;
         includeTrunk = false;
-      }
-      (optionalAttrs (variant ? web) variant.web);
+      };
+      set2 = variant.web or {};
+      set3 = recursiveAttrs {inherit set1 set2;};
+      set4 = {};
+    in {
+      inherit set1 set2 set3 set4;
+      final = recursiveAttrs {inherit set3 set4;};
+    };
+    configuration = cfg.final;
   in
-    {variant = cfg;}
-    // optionalAttrs cfg.enable (let
-      packages = with pkgs; let
-        common =
+    {inherit configuration;}
+    // optionalAttrs configuration.enable (with configuration; let
+      packages = let
+        common = with pkgs;
           {}
-          // optionalAttrs cfg.includeDeno {inherit deno;}
-          // optionalAttrs cfg.includePnpm {inherit pnpm;}
-          // optionalAttrs cfg.includePrettier {inherit prettierd;}
-          // optionalAttrs cfg.includeTrunk {inherit trunk;};
+          // optionalAttrs includeDeno {inherit deno;}
+          // optionalAttrs includePnpm {inherit pnpm;}
+          // optionalAttrs includeTrunk {inherit trunk;};
 
         custom =
-          (optionalAttrs cfg.includePnpm (
+          optionalAttrs includePnpm (
             mkBin {
               inherit pkgs;
-              prefix = "pnpm-";
+              prefix = "pnpm";
+              sep = "-";
               set = {
-                i = {command = "${pkgs.pnpm}/bin/pnpm install";};
-                a = {script = ''${pkgs.pnpm}/bin/pnpm add "$@"'';};
-                ad = {script = ''${pkgs.pnpm}/bin/pnpm add --save-dev "$@"'';};
+                i = {command = "pnpm install";};
+                a = {script = ''pnpm add "$@"'';};
+                ad = {script = ''pnpm add --save-dev "$@"'';};
               };
             }
-          ))
-          // (optionalAttrs cfg.includeDeno (
+          )
+          // optionalAttrs includeDeno (
             mkBin {
               inherit pkgs;
-              prefix = "deno-";
+              prefix = "deno";
+              sep = "-";
               set = {
-                dev = {script = ''${pkgs.deno}/bin/deno task dev "$@"'';};
-                run = {script = ''${pkgs.deno}/bin/deno run "$@"'';};
-                lint = {command = "${pkgs.deno}/bin/deno lint";};
-                fmt = {command = "${pkgs.deno}/bin/deno fmt";};
-                test = {script = ''${pkgs.deno}/bin/deno test "$@"'';};
-                check = {script = ''${pkgs.deno}/bin/deno check "$@"'';};
+                dev = {script = ''deno task dev "$@"'';};
+                run = {script = ''deno run "$@"'';};
+                lint = {command = "deno lint";};
+                fmt = {command = "deno fmt";};
+                test = {script = ''deno test "$@"'';};
+                check = {script = ''deno check "$@"'';};
               };
             }
-          ));
+          );
         all = common // custom;
       in {inherit all common custom;};
 
@@ -62,10 +71,7 @@ in {
         all = common // custom;
       in {inherit all common custom;};
 
-      variables =
-        {}
-        # // optionalAttrs cfg.includeClaude
-        # {ANTHROPIC_API_KEY = "$ANTHROPIC_API_KEY";}
-        // {};
-    in {inherit variables packages binaries;});
+      variables = {};
+      messages = null;
+    in {inherit variables packages binaries messages;});
 }

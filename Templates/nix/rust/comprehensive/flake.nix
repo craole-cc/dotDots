@@ -4,10 +4,10 @@
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # AI = {
-    #   url = "github:numtide/llm-agents.nix";
-    #   inputs.nixpkgs.follows = "NixPackages";
-    # };
+    AI = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "NixPackages";
+    };
 
     Rust = {
       url = "github:oxalica/rust-overlay";
@@ -33,48 +33,48 @@
     mkConfig {
       inherit inputs self;
       configuration = let
-        common.enable = false;
+        common.enable = true;
         extra = {
-          enable = false;
-          includeMise = false;
-          includeFetch = false;
-          includeGitTools = false;
-          includeFileTools = false;
-          includeRustScript = false;
+          enable = true;
+          includeMise = true;
+          includeFetch = true;
+          includeGitTools = true;
+          includeFileTools = true;
+          includeRustScript = true;
         };
         ai = {
-          enable = false;
-          includeCodex = false;
-          includeClaude = false;
-          includeGemini = false;
-          includeHermes = false;
-          includeOpenClaw = false;
+          enable = true;
+          includeCodex = true;
+          includeClaude = true;
+          includeGemini = true;
+          includeHermes = true;
+          includeOpenClaw = true;
         };
         rust = {
-          enable = false;
+          enable = true;
           channel = "nightly";
-          minimal = false;
-          includeDocs = false;
-          includeFmt = false;
-          includeAnalyzer = false;
-          includeWeb = false;
-          includeLeptos = false;
-          includeExtra = false;
+          minimal = true;
+          includeDocs = true;
+          includeFmt = true;
+          includeAnalyzer = true;
+          includeWeb = true;
+          includeLeptos = true;
+          includeExtra = true;
           extraTargets = [];
           extraExtensions = [];
         };
         web = {
-          enable = false;
-          includeDeno = false;
-          includePrettier = false;
-          includeTrunk = false;
+          enable = true;
+          includeDeno = true;
+          includePnpm = true;
+          includeTrunk = true;
         };
         db = {
-          enable = false;
-          includeMysql = false;
-          includePostgres = false;
-          includeRedis = false;
-          includeSqlite = false;
+          enable = true;
+          includeMysql = true;
+          includePostgres = true;
+          includeMariaDB = true;
+          includeSqlite = true;
         };
         ide = {
           enable = false;

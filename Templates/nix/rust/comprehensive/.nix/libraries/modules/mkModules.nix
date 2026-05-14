@@ -18,7 +18,7 @@
   inherit (lib.meta) project;
   inherit
     (lib.packages)
-    mkAI
+    # mkAI
     mkCommon
     mkDatabase
     mkExtra
@@ -29,15 +29,12 @@
     ;
   inherit (lib.shells) testVariant toVariantJSON;
 
-  # ---------------------------------------------------------------------------
-  # Helpers
-  # ---------------------------------------------------------------------------
-
-  # Safely get a field from a module, returning `default` if absent or wrong type.
-  # `pred` is an optional type guard (e.g. isAttrs, isList) — pass `_: true` to skip.
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Getters                                                   ║
+  #╚═══════════════════════════════════════════════════════════╝
   safeGet = {
     module,
-    keys, # list of candidate attribute names, tried in order
+    keys,
     default,
     pred ? (_: true),
   }: let
@@ -53,11 +50,83 @@
     then found
     else default;
 
-  # ---------------------------------------------------------------------------
-  # Collectors
-  # ---------------------------------------------------------------------------
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Selectors                                                 ║
+  #╚═══════════════════════════════════════════════════════════╝
+  selectPackages = module: let
+    raw = safeGet {
+      inherit module;
+      keys = ["packages" "pkgs"];
+      default = [];
+      pred = _: true;
+    };
+    unwrap = v:
+      if isAttrs v && v ? all && isAttrs v.all
+      then v.all
+      else v;
+    normalised = unwrap raw;
+  in
+    if isAttrs normalised
+    then attrValues normalised
+    else toList normalised;
 
-  # Returns an attrset of named derivations (deduped by pname/name).
+  selectBinaries = module: let
+    raw = safeGet {
+      inherit module;
+      keys = ["binaries" "bin" "commands"];
+      default = {};
+      pred = isAttrs;
+    };
+    isWrapped = raw ? all && isAttrs raw.all;
+  in
+    if isWrapped then raw.all else raw;
+
+  selectVariables = module:
+    safeGet {
+      inherit module;
+      keys = ["variables" "env" "environment"];
+      default = {};
+      pred = isAttrs;
+    };
+
+  selectConfiguration = module: let
+    raw = safeGet {
+      inherit module;
+      keys = ["configuration" "cfg" "variant"];
+      default = {};
+      pred = isAttrs;
+    };
+  in
+    if raw ? final && isAttrs raw.final
+    then raw.final
+    else raw;
+
+  selectMessaging = module:
+    safeGet {
+      inherit module;
+      keys = ["messages" "shellHook" "shellHookParts"];
+      default = null;
+      pred = _: true;
+    };
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Normalizer                                                ║
+  #╚═══════════════════════════════════════════════════════════╝
+  #? Ensures every module exposes the same standard fields,
+  #? regardless of what the underlying mk* function returned.
+  normalizeModule = module: {
+    packages      = selectPackages      module;  # list of derivations
+    binaries      = selectBinaries      module;  # attrset of name → store path
+    variables     = selectVariables     module;  # attrset of env vars
+    configuration = selectConfiguration module;  # flat resolved cfg attrset
+    messages      = selectMessaging     module;  # list of strings | null
+  };
+
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Collectors                                                ║
+  #╚═══════════════════════════════════════════════════════════╝
+  #? Returns an attrset of named derivations (deduped by pname/name).
+  #? Expects selector to return a list (guaranteed after normalizeModule).
   collectPackages = {
     selector,
     modules,
@@ -66,20 +135,11 @@
       pkg.pname or (pkg.name or (
         throw "collectPackages: derivation missing pname and name"
       ));
-
-    # selector may return an attrset OR a list — normalise to list.
-    flatten = v:
-      if isAttrs v
-      then attrValues v
-      else toList v;
   in
     listToAttrs (
       map
-      (pkg: {
-        name = normalizeName pkg;
-        value = pkg;
-      })
-      (unique (concatMap (m: flatten (selector m)) modules))
+      (pkg: {name = normalizeName pkg; value = pkg;})
+      (unique (concatMap (m: selector m) modules))
     );
 
   # Returns an attrset, last writer wins (ordered = highest-priority module last).
@@ -100,115 +160,27 @@
     (m: optionals ((selector m) != null) (toList (selector m)))
     modules;
 
-  # ---------------------------------------------------------------------------
-  # Module resolution
-  # ---------------------------------------------------------------------------
-
   collectModules = {
     modules,
     priority ? attrNames modules,
   }: let
-    prioritized =
-      map (
-        k:
-          modules.${k} or (throw "collectModules: unknown module '${k}'")
+    #? Resolve in priority order, normalizing each module on the way in.
+    #? After this point every element has the same standard shape.
+    prioritized = map (k:
+      normalizeModule (
+        modules.${k} or (throw "collectModules: unknown module '${k}'")
       )
-      priority;
-    ordered = reverseList prioritized; # highest-priority module is last → wins in foldl'
+    ) priority;
+    #? highest-priority module is last → wins in foldl'
+    ordered = reverseList prioritized;
+    #? Preserve raw mk* outputs so callers can still access module-specific
+    #? fields (e.g. modules.formatting.formatter, modules.formatting.eval).
     all = modules;
   in {inherit all priority prioritized ordered;};
 
-  # ---------------------------------------------------------------------------
-  # Package selector
-  # ---------------------------------------------------------------------------
-  # Modules expose packages in different shapes:
-  #   { packages = <drv-attrset> }                        — simple flat attrset
-  #   { packages = [ <drv> … ] }                          — list of derivations
-  #   { packages = { all = …; common = …; custom = …; } } — mkTreefmt-style wrapper
-  #   { pkgs = <drv-attrset or list> }                    — legacy name
-  #   (nothing)                                           — return []
-  #
-  # collectPackages expects a *list* of derivations from this selector —
-  # it dedupes and re-keys them itself.
-  packageSelector = module: let
-    raw = safeGet {
-      inherit module;
-      keys = ["packages" "pkgs"];
-      default = [];
-      pred = _: true; # accept any shape; we discriminate below
-    };
-    # Unwrap mkTreefmt-style { all = …; common = …; custom = …; }
-    unwrap = v:
-      if isAttrs v && v ? all && isAttrs v.all
-      then v.all
-      else v;
-    normalised = unwrap raw;
-  in
-    # normalised is now either an attrset of drvs or a list of drvs
-    if isAttrs normalised
-    then attrValues normalised
-    else toList normalised;
-
-  # ---------------------------------------------------------------------------
-  # Binary selector
-  # ---------------------------------------------------------------------------
-  binarySelector = module:
-    safeGet {
-      inherit module;
-      keys = ["binaries" "bin" "commands"];
-      default = {};
-      pred = isAttrs;
-    };
-
-  # The `binaries` field of mkTreefmt is also a wrapper ({ all, common, custom }).
-  # Unwrap it the same way.
-  flatBinarySelector = module: let
-    raw = binarySelector module;
-    isWrapped = raw ? all && isAttrs raw.all;
-  in
-    if isWrapped
-    then raw.all
-    else raw;
-
-  # ---------------------------------------------------------------------------
-  # Variable selector
-  # ---------------------------------------------------------------------------
-  variableSelector = module:
-    safeGet {
-      inherit module;
-      keys = ["variables" "env" "environment"];
-      default = {};
-      pred = isAttrs;
-    };
-
-  # The cfg we want to serialise is the *final* resolved config, not the debug
-  # wrapper.  Modules should expose it as `cfg.final` or just `cfg` (flat).
-  cfgSelector = module: let
-    raw = safeGet {
-      inherit module;
-      keys = ["configuration" "cfg" "variant"];
-      default = {};
-      pred = isAttrs;
-    };
-  in
-    if raw ? final && isAttrs raw.final
-    then raw.final
-    else raw;
-
-  # ---------------------------------------------------------------------------
-  # Message selector
-  # ---------------------------------------------------------------------------
-  messageSelector = module:
-    safeGet {
-      inherit module;
-      keys = ["messages" "shellHook" "shellHookParts"];
-      default = null;
-      pred = _: true;
-    };
-
-  # ---------------------------------------------------------------------------
-  # mkModules
-  # ---------------------------------------------------------------------------
+  #╔═══════════════════════════════════════════════════════════╗
+  #║ Constructors                                              ║
+  #╚═══════════════════════════════════════════════════════════╝
   mkModules = {
     inputs,
     pkgs,
@@ -217,41 +189,41 @@
     collected = collectModules {
       priority = [
         "formatting"
-        # "rust"
+        "rust"
         # "ai"
-        # "web"
+        "web"
         "database"
         "extra"
         "common"
       ];
       modules = {
         # ai        = mkAI      {inherit pkgs variant;};
-        common = mkCommon {inherit pkgs variant;};
-        database = mkDatabase {inherit pkgs variant;};
-        extra = mkExtra {inherit pkgs variant;};
-        formatting = mkFormatter {inherit inputs pkgs variant;};
-        # rust      = mkRust    {inherit pkgs variant;};
-        # web       = mkWeb     {inherit pkgs variant;};
+        common    = mkCommon   {inherit pkgs variant;};
+        database  = mkDatabase {inherit pkgs variant;};
+        extra     = mkExtra    {inherit pkgs variant;};
+        formatting= mkFormatter{inherit inputs pkgs variant;};
+        rust      = mkRust     {inherit pkgs variant;};
+        web       = mkWeb      {inherit pkgs variant;};
       };
     };
+    #? Raw mk* outputs — use for module-specific fields not in the standard shape.
+    modules = collected.all;
 
-    # ------------------------------------------------------------------
-    # Derived collections
-    # ------------------------------------------------------------------
+    #╔═══════════════════════════════════════════════════════════╗
+    #║ Derived Collections                                       ║
+    #╚═══════════════════════════════════════════════════════════╝
+    #? All collectors use collected.prioritized / .ordered —
+    #? normalized modules with guaranteed field shapes.
 
-    # Named attrset of derivations (deduped).
     packages = collectPackages {
-      selector = packageSelector;
-      modules = collected.prioritized;
+      selector = m: m.packages;  # list after normalizeModule
+      modules  = collected.prioritized;
     };
+    eval = attrValues packages;  # flat list, ready for devShell.packages
 
-    # Flat list of derivations — useful for devShell `packages = [ ... ]`.
-    eval = attrValues packages;
-
-    # Named attrset of binary paths.
     binaries = collectAttrs {
-      selector = flatBinarySelector;
-      modules = collected.ordered;
+      selector = m: m.binaries;
+      modules  = collected.ordered;
     };
 
     variables =
@@ -260,36 +232,47 @@
         PROJECT_NAME = project.name;
       }
       // collectAttrs {
-        selector = variableSelector;
-        modules = collected.ordered;
+        selector = m: m.variables;
+        modules  = collected.ordered;
       }
       // foldl'
-      (merged: m: merged // (toVariantJSON (cfgSelector m)))
+      (merged: m: merged // (toVariantJSON m.configuration))
       {}
       collected.ordered;
 
     messages = collectMessages {
-      selector = messageSelector;
-      modules = collected.prioritized;
+      selector = m: m.messages;
+      modules  = collected.prioritized;
     };
   in {
-    inherit variant;
+    inherit
+      lib
+      pkgs
+      project
+      modules
+      packages
+      eval
+      binaries
+      variables
+      messages
+      ;
+    inherit (modules.formatting) formatter;
     configuration = variant;
-    modules = collected.all;
-
-    inherit packages eval binaries variables messages;
-
-    inherit (collected.all.formatting) formatter;
-    inherit lib pkgs project;
 
     legacyPackages = mkPkgsPerSystem {inherit inputs;};
   };
 in {
   inherit
-    collectModules
-    collectPackages
     collectAttrs
     collectMessages
+    collectModules
+    collectPackages
     mkModules
+    normalizeModule
+    selectBinaries
+    selectConfiguration
+    selectMessaging
+    selectPackages
+    selectVariables
     ;
 }

@@ -1,7 +1,15 @@
 {lib}: let
-  inherit (lib.attrsets) mapAttrs;
-  inherit (lib.modules) mkModules;
-  inherit (lib.packages) mkChecker mkPkgs;
+  inherit (lib.attrsets) attrValues mapAttrs;
+  inherit
+    (lib.modules)
+    collectModules
+    collectPackages
+    collectMessages
+    collectAttrs
+    normalizeModule
+    ;
+  inherit (lib.lists) foldl';
+  inherit (lib.meta) project;
   inherit
     (lib.shells)
     mkVariantShells
@@ -9,8 +17,101 @@
     mkVariants
     normalizeVariant
     ;
+  inherit
+    (lib.packages)
+    mkChecker
+    mkPkgs
+    # mkAI
+    mkCommon
+    mkDatabase
+    mkExtra
+    mkFormatter
+    mkPkgsPerSystem
+    mkRust
+    mkWeb
+    ;
+  inherit (lib.shells) testVariant toVariantJSON;
   # inherit (lib.templates) deployTemplates;
-in {
+
+  mkModules = {
+    inputs,
+    pkgs,
+    variant ? testVariant {},
+  }: let
+    collected = collectModules {
+      priority = [
+        "formatting"
+        "rust"
+        # "ai"
+        "web"
+        "database"
+        "extra"
+        "common"
+      ];
+      modules = {
+        # ai = mkAI {inherit pkgs variant;};
+        common = mkCommon {inherit pkgs variant;};
+        database = mkDatabase {inherit pkgs variant;};
+        extra = mkExtra {inherit pkgs variant;};
+        formatting = mkFormatter {inherit inputs pkgs variant;};
+        rust = mkRust {inherit pkgs variant;};
+        web = mkWeb {inherit pkgs variant;};
+      };
+    };
+    modules = with collected; {
+      raw = all;
+      normalized = mapAttrs (_: normalizeModule) all;
+    };
+    #╔═══════════════════════════════════════════════════════════╗
+    #║ Derived Collections                                       ║
+    #╚═══════════════════════════════════════════════════════════╝
+    packages = collectPackages {
+      selector = m: m.packages;
+      modules = collected.prioritized;
+    };
+    eval = attrValues packages;
+
+    binaries = collectAttrs {
+      selector = m: m.binaries;
+      modules = collected.ordered;
+    };
+
+    variables =
+      {
+        PROJECT_PATH = toString project.path;
+        PROJECT_NAME = project.name;
+      }
+      // collectAttrs {
+        selector = m: m.variables;
+        modules = collected.ordered;
+      }
+      // foldl'
+      (merged: m: merged // (toVariantJSON m.configuration))
+      {}
+      collected.ordered;
+
+    messages = collectMessages {
+      selector = m: m.messages;
+      modules = collected.prioritized;
+    };
+  in {
+    inherit
+      lib
+      pkgs
+      project
+      modules
+      packages
+      eval
+      binaries
+      variables
+      messages
+      ;
+    inherit (modules.raw.formatting) formatter;
+    configuration = variant;
+
+    legacyPackages = mkPkgsPerSystem {inherit inputs;};
+  };
+
   mkConfig = {
     inputs,
     self,
@@ -34,23 +135,20 @@ in {
 
     modules = mkModules {inherit inputs pkgs variant;};
     # templates = deployTemplates {inherit pkgs variant;};
-  in
-    modules
-    // {
-      inherit configuration variant;
-      checks = mkChecker {inherit inputs self variant;};
-      devShells = mkShells {
-        inherit inputs;
-        shells = mkVariantShells {
-          inherit
-            inputs
-            pkgs
-            variants
-            extraPackages
-            extraEnv
-            extraShellHook
-            ;
-        };
+    checks = mkChecker {inherit inputs self variant;};
+    devShells = mkShells {
+      inherit inputs;
+      shells = mkVariantShells {
+        inherit
+          inputs
+          pkgs
+          variants
+          extraPackages
+          extraEnv
+          extraShellHook
+          ;
       };
     };
-}
+  in
+    modules // {inherit checks devShells;};
+in {inherit mkModules mkConfig;}

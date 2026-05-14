@@ -3,7 +3,7 @@
   paths,
   ...
 }: let
-  inherit (lib.attrsets) attrValues optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) optionalAttrs recursiveAttrs;
   inherit (lib.packages) mkBins mkBin mkPkg mkPackages;
   inherit (lib.strings) mkStyledOutput;
 in {
@@ -11,31 +11,24 @@ in {
     pkgs,
     variant ? {},
   }: let
-    # cfg = updateAttrs {
-    #   name = "fmt";
-    #   value = variant;
-    #   default = {
-    #     enable = true;
-    #     kind = "workflow";
-    #     name = "formatter";
-    #     includeAlejandra = true;
-    #     includeDeno = false;
-    #     includePrettier = false;
-    #     includeRustfmt = false;
-    #     includeLeptosfmt = false;
-    #     includeDatabase = false;
-    #   };
-    # };
-    cfg =
-      recursiveUpdate {
-        kind = "core";
-        name = "common";
+    name = "common";
+    cfg = let
+      set1 = {
+        inherit name;
         enable = true;
-      }
-      (optionalAttrs (variant ? common) variant.common);
+        kind = "core";
+      };
+      set2 = variant.${name} or {};
+      set3 = recursiveAttrs {inherit set1 set2;};
+      set4 = {};
+    in {
+      inherit set1 set2 set3 set4;
+      final = recursiveAttrs {inherit set3 set4;};
+    };
+    configuration = cfg.final;
   in
-    {configuration = cfg;}
-    // optionalAttrs cfg.enable (let
+    {inherit configuration;}
+    // optionalAttrs configuration.enable (let
       inherit (pkgs.stdenv) isLinux isDarwin;
       packages = let
         common = with pkgs;
@@ -152,7 +145,7 @@ in {
             rga = mkPkg {
               inherit pkgs;
               name = "rga";
-              command = "${ripgrep--all} --hidden";
+              command = "${ripgrep-all} --hidden";
             };
 
             #~@ Script Helpers
@@ -202,7 +195,7 @@ in {
           // optionalAttrs isLinux {
             wl-copy = "${wl-clipboard}/bin/wl-copy";
             wl-paste = "${wl-clipboard}/bin/wl-paste";
-            ripgrep--all = "${ripgrep-all}/bin/rga";
+            ripgrep-all = "${ripgrep-all}/bin/rga";
           }
         );
         custom = mkBins packages.custom;
