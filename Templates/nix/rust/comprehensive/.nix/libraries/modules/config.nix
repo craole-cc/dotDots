@@ -37,6 +37,7 @@ in {
   in
     modules
     // {
+      inherit configuration variant;
       checks = mkChecker {inherit inputs self variant;};
       devShells = mkShells {
         inherit inputs;

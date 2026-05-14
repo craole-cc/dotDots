@@ -81,14 +81,19 @@
           editors = [];
         };
         fmt = {
-          enable = false;
-          includeAlejandra = false;
-          includeDeno = false;
-          includePrettier = false;
-          includeLeptos = false;
-          includeRustfmt = false;
-          includeDatabase = false;
-          # sqlFormatters ={};
+          enable = true;
+          includeAlejandra = true;
+          includeNixfmt = true;
+          includeShfmt = true;
+          includeShellcheck = true;
+          includeStatix = true;
+          includeDeno = true;
+          includePrettier = true;
+          includeRustfmt = true;
+          includeLeptosfmt = true;
+          includeSqlfmt = true;
+          includeSqruff = true;
+          includeXmllint = true;
         };
       in {inherit ai common db extra fmt ide rust web;};
     };
