@@ -3,7 +3,7 @@
   inherit (lib.modules) mkModules;
   inherit (lib.strings) toJSON toLines;
 
-  mkShell = {
+  mkDevShell = {
     inputs,
     pkgs,
     variant,
@@ -34,6 +34,4 @@
       extraShellHook
     ];
   };
-in {
-  inherit mkShell;
-}
+in {  inherit mkDevShell; }

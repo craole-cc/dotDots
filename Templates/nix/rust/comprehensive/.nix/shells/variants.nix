@@ -8,7 +8,6 @@
     mapAttrs
     optionalAttrs
     recursiveUpdate
-    recursiveAttrs
     ;
   inherit
     (lib.lists)
