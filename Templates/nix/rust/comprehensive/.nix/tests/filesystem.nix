@@ -1,13 +1,17 @@
-{ lib, assertMsg }:
-let
-  inherit (lib.filesystem)
+{
+  lib,
+  assertMsg,
+}: let
+  inherit
+    (lib.filesystem)
     foldersToExclude
     isNixFile
     isIncludedDir
     collectFromDir
     collectPaths
     ;
-  inherit (lib.filesystem)
+  inherit
+    (lib.filesystem)
     importPaths
     importAttrs
     importLibs
@@ -22,8 +26,7 @@ let
   nestedDir = fixture + "/nested";
   attrsDir = fixture + "/attrs";
   libsDir = fixture + "/libs";
-in
-{
+in {
   foldersToExclude = assertMsg (
     builtins.elem "tmp" foldersToExclude && builtins.elem "review" foldersToExclude
   ) "foldersToExclude exposes excluded directory names";
@@ -40,46 +43,49 @@ in
   ) "isIncludedDir accepts real directories except excluded ones";
 
   normalizeInputPath = assertMsg (
-    (normalizeInput { } plainDir) == {
+    (normalizeInput {} plainDir)
+    == {
       recurse = false;
       namespace = null;
-      args = { };
-      priority = [ ];
-      ignore = [ ];
+      args = {};
+      priority = [];
+      ignore = [];
       path = plainDir;
     }
   ) "normalizeInput normalizes a path input";
 
   normalizeInputList = assertMsg (
-    (normalizeInput { } [ plainDir ]) == {
+    (normalizeInput {} [plainDir])
+    == {
       recurse = false;
       namespace = null;
-      args = { };
-      priority = [ ];
-      ignore = [ ];
-      path = [ plainDir ];
+      args = {};
+      priority = [];
+      ignore = [];
+      path = [plainDir];
     }
   ) "normalizeInput normalizes a list input";
 
   normalizeInputAttrs = assertMsg (
-    (normalizeInput { } {
+    (normalizeInput {} {
       path = libsDir;
       recurse = true;
       namespace = "demo";
       args = {
         value = 7;
       };
-      priority = [ "base.nix" ];
-      ignore = [ "tests" ];
-    }) == {
+      priority = ["base.nix"];
+      ignore = ["tests"];
+    })
+    == {
       path = libsDir;
       recurse = true;
       namespace = "demo";
       args = {
         value = 7;
       };
-      priority = [ "base.nix" ];
-      ignore = [ "tests" ];
+      priority = ["base.nix"];
+      ignore = ["tests"];
     }
   ) "normalizeInput preserves explicit attribute input";
 
@@ -95,8 +101,9 @@ in
     (collectFromDir {
       path = plainDir;
       recurse = false;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (plainDir + "/a.nix")
       (plainDir + "/z.nix")
     ]
@@ -106,8 +113,9 @@ in
     (collectFromDir {
       path = nestedDir;
       recurse = false;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (nestedDir + "/root.nix")
       (nestedDir + "/has-default")
     ]
@@ -117,8 +125,9 @@ in
     (collectFromDir {
       path = nestedDir;
       recurse = true;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (nestedDir + "/root.nix")
       (nestedDir + "/deep/leaf.nix")
       (nestedDir + "/has-default")
@@ -133,21 +142,23 @@ in
         "deep"
         "has-default"
       ];
-    }) == [ (nestedDir + "/root.nix") ]
+    })
+    == [(nestedDir + "/root.nix")]
   ) "collectFromDir respects ignore names";
 
   collectPathsReturnsList = assertMsg (isList (collectPaths {
     path = fixture;
     recurse = true;
-    ignore = [ ];
+    ignore = [];
   })) "collectPaths returns a list";
 
   collectPathsDir = assertMsg (
     (collectPaths {
       path = plainDir;
       recurse = false;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (plainDir + "/a.nix")
       (plainDir + "/z.nix")
     ]
@@ -157,8 +168,9 @@ in
     (collectPaths {
       path = plainDir + "/a.nix";
       recurse = false;
-      ignore = [ ];
-    }) == [ (plainDir + "/a.nix") ]
+      ignore = [];
+    })
+    == [(plainDir + "/a.nix")]
   ) "collectPaths handles a single file input";
 
   collectPathsList = assertMsg (
@@ -168,8 +180,9 @@ in
         (plainDir + "/z.nix")
       ];
       recurse = false;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (plainDir + "/a.nix")
       (plainDir + "/z.nix")
     ]
@@ -183,15 +196,17 @@ in
         "deep"
         "has-default"
       ];
-    }) == [ (nestedDir + "/root.nix") ]
+    })
+    == [(nestedDir + "/root.nix")]
   ) "collectPaths respects ignore names";
 
   importPaths = assertMsg (
     (importPaths {
       path = nestedDir;
       recurse = true;
-      ignore = [ ];
-    }) == [
+      ignore = [];
+    })
+    == [
       (nestedDir + "/root.nix")
       (nestedDir + "/deep/leaf.nix")
       (nestedDir + "/has-default")
@@ -206,18 +221,20 @@ in
         "deep"
         "has-default"
       ];
-    }) == [ (nestedDir + "/root.nix") ]
+    })
+    == [(nestedDir + "/root.nix")]
   ) "importPaths supports ignore";
 
   importsAlias = assertMsg (
     (lib.filesystem.imports {
       path = nestedDir;
       recurse = false;
-      ignore = [ ];
-    }) == (importPaths {
+      ignore = [];
+    })
+    == (importPaths {
       path = nestedDir;
       recurse = false;
-      ignore = [ ];
+      ignore = [];
     })
   ) "imports is an alias of importPaths";
 
@@ -227,8 +244,9 @@ in
       args = {
         value = 9;
       };
-      ignore = [ ];
-    }) == {
+      ignore = [];
+    })
+    == {
       __meta = {
         names = [
           "alpha"
@@ -254,11 +272,12 @@ in
       args = {
         value = 9;
       };
-      ignore = [ "beta.nix" ];
-    }) == {
+      ignore = ["beta.nix"];
+    })
+    == {
       __meta = {
-        names = [ "alpha" ];
-        values = [ 9 ];
+        names = ["alpha"];
+        values = [9];
         all = {
           alpha = 9;
         };
@@ -268,7 +287,8 @@ in
   ) "importAttrs supports ignore";
 
   importLibs = assertMsg (
-    (importLibs libsDir) == {
+    (importLibs libsDir)
+    == {
       libs = {
         base = 1;
         derived = 2;
@@ -303,8 +323,9 @@ in
         "base.nix"
         "derived.nix"
       ];
-      ignore = [ ];
-    }) == {
+      ignore = [];
+    })
+    == {
       custom = {
         base = 1;
         derived = 2;
@@ -335,19 +356,20 @@ in
     (importLibs {
       path = libsDir;
       namespace = "custom";
-      ignore = [ "derived.nix" ];
-    }) == {
+      ignore = ["derived.nix"];
+    })
+    == {
       custom = {
         base = 1;
       };
       __meta.custom = {
         namespace = "custom";
-        names = [ "base" ];
-        values = [ 1 ];
+        names = ["base"];
+        values = [1];
         all = {
           base = 1;
         };
-        paths = [ (libsDir + "/base.nix") ];
+        paths = [(libsDir + "/base.nix")];
       };
     }
   ) "importLibs supports ignore";

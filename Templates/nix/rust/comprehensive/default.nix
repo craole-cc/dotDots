@@ -2,33 +2,32 @@
   description ? "Rust development environment with AI Tools",
   inputs ? null,
   system ? null,
-}:
-let
-  paths =
-    let
-      flake = ./.;
-      nix = flake + "/.nix";
-      # mkCfg = path: nix + "/${path}";
-    in
-    {
-      inherit flake nix;
-      # downloads = flake + "/downloads";
-      # environment = mkCfg "environment";
-      # libraries = mkCfg "libraries";
-      # modules = mkCfg "modules";
-      scripts.default = flake + "/.bin";
-      # templates.default = mkCfg "templates";
-      repl = nix + "/repl.nix";
-    };
+}: let
+  paths = let
+    flake = ./.;
+    nix = flake + "/.nix";
+    # mkCfg = path: nix + "/${path}";
+  in {
+    inherit flake nix;
+    # downloads = flake + "/downloads";
+    # environment = mkCfg "environment";
+    # libraries = mkCfg "libraries";
+    # modules = mkCfg "modules";
+    scripts.default = flake + "/.bin";
+    # templates.default = mkCfg "templates";
+    repl = nix + "/repl.nix";
+  };
 
   lib = import paths.nix {
     inherit paths;
-    lib = if inputs != null && inputs ? NixPackages then inputs.NixPackages.lib else (import <nixpkgs> { }).lib;
+    lib =
+      if inputs != null && inputs ? NixPackages
+      then inputs.NixPackages.lib
+      else (import <nixpkgs> {}).lib;
   };
 
-  pkgs = lib.packages.mkPkgs { inherit inputs system; };
-in
-{
+  pkgs = lib.packages.mkPkgs {inherit inputs system;};
+in {
   inherit
     description
     lib
@@ -36,5 +35,5 @@ in
     pkgs
     ;
   inherit (lib.meta) project;
-  repl = import paths.repl { inherit lib pkgs; };
+  repl = import paths.repl {inherit lib pkgs;};
 }

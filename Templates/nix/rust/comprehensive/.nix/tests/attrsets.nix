@@ -1,20 +1,22 @@
-{ lib, assertMsg }:
-let
-  inherit (lib.attrsets)
+{
+  lib,
+  assertMsg,
+}: let
+  inherit
+    (lib.attrsets)
     optionalAttr
     recursiveAttrs
     compactAttrs
     mapFilterAttrs
     toEnv
     ;
-in
-{
-  optionalAttrTrue = assertMsg ((optionalAttr true "foo" 42) == { foo = 42; }) "optionalAttr true";
+in {
+  optionalAttrTrue = assertMsg ((optionalAttr true "foo" 42) == {foo = 42;}) "optionalAttr true";
 
-  optionalAttrFalse = assertMsg ((optionalAttr false "foo" 42) == { }) "optionalAttr false";
+  optionalAttrFalse = assertMsg ((optionalAttr false "foo" 42) == {}) "optionalAttr false";
 
   optionalAttrDynamicName = assertMsg (
-    (optionalAttr true "feature-flag" false) == { "feature-flag" = false; }
+    (optionalAttr true "feature-flag" false) == {"feature-flag" = false;}
   ) "optionalAttr preserves dynamic attribute names and values";
 
   recursiveAttrs = assertMsg (
@@ -28,14 +30,15 @@ in
           e = 3;
         };
       };
-    }) == {
+    })
+    == {
       a.b = 1;
       c.b = 2;
       c.d.e = 3;
     }
   ) "recursiveAttrs merges";
 
-  recursiveAttrsEmpty = assertMsg (recursiveAttrs { } == { }) "recursiveAttrs handles an empty attrset";
+  recursiveAttrsEmpty = assertMsg (recursiveAttrs {} == {}) "recursiveAttrs handles an empty attrset";
 
   compactAttrs = assertMsg (
     (compactAttrs {
@@ -43,7 +46,8 @@ in
       b = null;
       enabled = false;
       c = "";
-    }) == {
+    })
+    == {
       a = 1;
       enabled = false;
       c = "";
@@ -51,11 +55,15 @@ in
   ) "compactAttrs removes null";
 
   mapFilterAttrs = assertMsg (
-    (mapFilterAttrs (n: v: if v == null then null else "${n}_x${toString v}") {
+    (mapFilterAttrs (n: v:
+      if v == null
+      then null
+      else "${n}_x${toString v}") {
       a = 1;
       b = null;
       c = 2;
-    }) == {
+    })
+    == {
       a = "a_x1";
       c = "c_x2";
     }
@@ -66,7 +74,8 @@ in
       VERSION = 1;
       DEBUG = true;
       NULL = null;
-    }) == {
+    })
+    == {
       VERSION = "1";
       DEBUG = "true";
     }

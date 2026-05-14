@@ -1,4 +1,3 @@
-{ lib }:
-{
+{lib}: {
   mounted = true;
 }

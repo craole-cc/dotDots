@@ -1,9 +1,7 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkRust =
-    set:
+  mkRust = set:
     optionalAttrs set.enable (
       {
         cargo = {
@@ -35,7 +33,6 @@ let
         };
       }
     );
-in
-{
+in {
   inherit mkRust;
 }

@@ -1,6 +1,9 @@
-{ lib, assertMsg }:
-let
-  inherit (lib.strings)
+{
+  lib,
+  assertMsg,
+}: let
+  inherit
+    (lib.strings)
     optionalString
     ensurePrefix
     ensureSuffix
@@ -9,8 +12,7 @@ let
     lines
     words
     ;
-in
-{
+in {
   optionalStringTrue = assertMsg (
     optionalString true " enabled" == " enabled"
   ) "optionalString keeps the original string when enabled";
@@ -35,7 +37,8 @@ in
       ""
       null
       "log"
-    ] == "var/log"
+    ]
+    == "var/log"
   ) "concatNonEmpty joins only non-empty segments";
 
   lines = assertMsg (
@@ -44,7 +47,8 @@ in
       ""
       null
       "beta"
-    ] == "alpha\nbeta"
+    ]
+    == "alpha\nbeta"
   ) "lines joins non-empty segments with newlines";
 
   words = assertMsg (
@@ -53,6 +57,7 @@ in
       ""
       null
       "test"
-    ] == "cargo test"
+    ]
+    == "cargo test"
   ) "words joins non-empty segments with spaces";
 }

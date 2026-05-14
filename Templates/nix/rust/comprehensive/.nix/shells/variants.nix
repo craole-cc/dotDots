@@ -1,6 +1,6 @@
-{ lib }:
-let
-  inherit (lib.attrsets)
+{lib}: let
+  inherit
+    (lib.attrsets)
     attrNames
     attrValues
     isAttrs
@@ -10,7 +10,8 @@ let
     recursiveUpdate
     recursiveAttrs
     ;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     concatLists
     concatMap
     elem
@@ -19,7 +20,8 @@ let
     unique
     ;
   inherit (lib.shells) mkShell;
-  inherit (lib.strings)
+  inherit
+    (lib.strings)
     concatNonEmpty
     isString
     optionalString
@@ -28,7 +30,8 @@ let
     toUpper
     toPascalCase
     ;
-  inherit (lib.trivial)
+  inherit
+    (lib.trivial)
     hasAny
     isDisabled
     isEnabled
@@ -39,29 +42,28 @@ let
   #║ Core                                                      ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  normalizeCommon =
-    value:
+  normalizeCommon = value:
     normalizeFeature {
       kind = "core";
       name = "common";
       enable = true;
-    } value;
+    }
+    value;
 
-  normalizeExtra =
-    value:
-    let
-      default = {
-        kind = "core";
-        name = "extra";
-        enable = false;
-        includeMise = false;
-        includeFetch = false;
-        includeGitTools = false;
-        includeFileTools = false;
-        includeRustScript = false;
-      };
-    in
-    if isEnabled value then
+  normalizeExtra = value: let
+    default = {
+      kind = "core";
+      name = "extra";
+      enable = false;
+      includeMise = false;
+      includeFetch = false;
+      includeGitTools = false;
+      includeFileTools = false;
+      includeRustScript = false;
+    };
+  in
+    if isEnabled value
+    then
       default
       // {
         enable = true;
@@ -71,17 +73,15 @@ let
         includeFileTools = true;
         includeRustScript = true;
       }
-    else
-      normalizeFeature default value;
+    else normalizeFeature default value;
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Toolchain                                                 ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  normalizeRust =
-    value:
-    let
-      default = normalizeFeature {
+  normalizeRust = value: let
+    default =
+      normalizeFeature {
         enable = false;
         kind = "toolchain";
         name = "rust";
@@ -92,64 +92,64 @@ let
         includeWeb = false;
         includeLeptos = false;
         includeExtra = false;
-        extraTargets = [ ];
-        extraExtensions = [ ];
-      } value;
-      alias = isAttrs value && isEnabled (value.includeRust or false);
-    in
-    default // { enable = default.enable || alias; };
+        extraTargets = [];
+        extraExtensions = [];
+      }
+      value;
+    alias = isAttrs value && isEnabled (value.includeRust or false);
+  in
+    default // {enable = default.enable || alias;};
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Workflow                                                  ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  normalizeAi =
-    value:
-    let
-      default = {
-        kind = "workflow";
-        name = "ai";
-        enable = false;
-        includeCodex = false;
-        includeClaude = false;
-        includeGemini = false;
-        includeHermes = false;
-        includeOpenClaw = false;
-      };
+  normalizeAi = value: let
+    default = {
+      kind = "workflow";
+      name = "ai";
+      enable = false;
+      includeCodex = false;
+      includeClaude = false;
+      includeGemini = false;
+      includeHermes = false;
+      includeOpenClaw = false;
+    };
 
-      preset =
-        if value == "minimal" then
-          {
-            enable = true;
-            includeCodex = true;
-            includeGemini = true;
-          }
-        else if value == "default" then
-          {
-            enable = true;
-            includeCodex = true;
-            includeClaude = true;
-            includeGemini = true;
-          }
-        else if value == "full" then
-          {
-            enable = true;
-            includeCodex = true;
-            includeClaude = true;
-            includeGemini = true;
-            includeHermes = true;
-            includeOpenClaw = true;
-          }
-        else if isEnabled value then
-          {
-            enable = true;
-            includeCodex = true;
-            includeClaude = true;
-          }
-        else
-          { };
-    in
-    if isAttrs value then default // preset // value else default // preset;
+    preset =
+      if value == "minimal"
+      then {
+        enable = true;
+        includeCodex = true;
+        includeGemini = true;
+      }
+      else if value == "default"
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+        includeGemini = true;
+      }
+      else if value == "full"
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+        includeGemini = true;
+        includeHermes = true;
+        includeOpenClaw = true;
+      }
+      else if isEnabled value
+      then {
+        enable = true;
+        includeCodex = true;
+        includeClaude = true;
+      }
+      else {};
+  in
+    if isAttrs value
+    then default // preset // value
+    else default // preset;
 
   editorGroups = {
     helix = [
@@ -187,124 +187,116 @@ let
   knownEditors = concatLists (attrValues editorGroups);
 
   #? toPascalCase handles the hyphen: rust-rover → RustRover
-  editorShellName =
-    tier: editor:
+  editorShellName = tier: editor:
     concatNonEmpty "" [
       tier
       "With"
       (toPascalCase editor)
     ];
 
-  normalizeEditor =
-    value:
-    let
-      default = {
-        enable = false;
-        kind = "workflow";
-        name = "editor";
-        editors = [ ];
-      };
+  normalizeEditor = value: let
+    default = {
+      enable = false;
+      kind = "workflow";
+      name = "editor";
+      editors = [];
+    };
 
-      mkGroups = resolved: mapAttrs (_: members: hasAny members resolved) editorGroups;
+    mkGroups = resolved: mapAttrs (_: members: hasAny members resolved) editorGroups;
 
-      resolve = input: unique (filter (e: elem e knownEditors) (map toLower (toList input)));
+    resolve = input: unique (filter (e: elem e knownEditors) (map toLower (toList input)));
 
-      mkResult =
-        resolved:
-        default
-        // {
-          enable = true;
-          editors = resolved;
-        }
-        // mkGroups resolved;
-    in
-    if isDisabled value then
-      default // mkGroups [ ]
-    else if isEnabled value then
-      (default // { enable = true; }) // mkGroups [ ]
-    else if isString value && toLower value == "all" then
-      mkResult knownEditors
-    else
-      mkResult (resolve value);
+    mkResult = resolved:
+      default
+      // {
+        enable = true;
+        editors = resolved;
+      }
+      // mkGroups resolved;
+  in
+    if isDisabled value
+    then default // mkGroups []
+    else if isEnabled value
+    then (default // {enable = true;}) // mkGroups []
+    else if isString value && toLower value == "all"
+    then mkResult knownEditors
+    else mkResult (resolve value);
 
-  normalizeFormatter =
-    value:
-    let
-      web = value.web or { };
-      rust = value.rust or { };
-      db = value.db or { };
+  normalizeFormatter = value: let
+    web = value.web or {};
+    rust = value.rust or {};
+    db = value.db or {};
 
-      defaults = {
-        enable =
-          isEnabled (value.includeFormatter or false)
-          || isEnabled (web.enable or false)
-          || isEnabled (rust.enable or false)
-          || isEnabled (db.enable or false);
+    defaults = {
+      enable =
+        isEnabled (value.includeFormatter or false)
+        || isEnabled (web.enable or false)
+        || isEnabled (rust.enable or false)
+        || isEnabled (db.enable or false);
 
-        kind = "workflow";
-        name = "formatter";
+      kind = "workflow";
+      name = "formatter";
 
-        includeAlejandra = false;
+      includeAlejandra = false;
 
-        includeDeno = isEnabled (web.enable or false) && isEnabled (web.includeDeno or false);
+      includeDeno = isEnabled (web.enable or false) && isEnabled (web.includeDeno or false);
 
-        includePrettier = isEnabled (web.enable or false) && isEnabled (web.includePrettier or false);
+      includePrettier = isEnabled (web.enable or false) && isEnabled (web.includePrettier or false);
 
-        includeRustfmt = isEnabled (rust.enable or false);
+      includeRustfmt = isEnabled (rust.enable or false);
 
-        includeLeptosfmt =
-          (isEnabled (rust.enable or false) && isEnabled (web.enable or false)) || isEnabled (rust.includeLeptos or false);
+      includeLeptosfmt =
+        (isEnabled (rust.enable or false) && isEnabled (web.enable or false)) || isEnabled (rust.includeLeptos or false);
 
-        sqlFormatters =
-          { }
-          // optionalAttrs (isEnabled (db.includeSqlite or false)) {
-            sql-sqlite = {
-              enable = true;
-              dialect = "sqlite";
-              includes = [ "*.sql" ];
-            };
-          }
-          // optionalAttrs (isEnabled (db.includePostgres or false)) {
-            sql-postgresql = {
-              enable = true;
-              dialect = "postgresql";
-              includes = [ "*.sql" ];
-            };
-          }
-          // optionalAttrs (isEnabled (db.includeMysql or false)) {
-            sql-mysql = {
-              enable = true;
-              dialect = "mysql";
-              includes = [ "*.sql" ];
-            };
+      sqlFormatters =
+        {}
+        // optionalAttrs (isEnabled (db.includeSqlite or false)) {
+          sql-sqlite = {
+            enable = true;
+            dialect = "sqlite";
+            includes = ["*.sql"];
           };
-      };
-    in
+        }
+        // optionalAttrs (isEnabled (db.includePostgres or false)) {
+          sql-postgresql = {
+            enable = true;
+            dialect = "postgresql";
+            includes = ["*.sql"];
+          };
+        }
+        // optionalAttrs (isEnabled (db.includeMysql or false)) {
+          sql-mysql = {
+            enable = true;
+            dialect = "mysql";
+            includes = ["*.sql"];
+          };
+        };
+    };
+  in
     normalizeFeature defaults (value.formatter or null);
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Integration                                               ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  normalizeWeb =
-    value:
-    let
-      default = normalizeFeature {
+  normalizeWeb = value: let
+    default =
+      normalizeFeature {
         enable = false;
         kind = "integration";
         name = "web";
         includeDeno = false;
         includePrettier = false;
         includeTrunk = false;
-      } value;
-      alias = isAttrs value && isEnabled (value.includeWeb or false);
-    in
-    default // { enable = default.enable || alias; };
+      }
+      value;
+    alias = isAttrs value && isEnabled (value.includeWeb or false);
+  in
+    default // {enable = default.enable || alias;};
 
-  normalizeDatabase =
-    value:
-    let
-      default = normalizeFeature {
+  normalizeDatabase = value: let
+    default =
+      normalizeFeature {
         enable = false;
         kind = "integration";
         name = "database";
@@ -312,25 +304,24 @@ let
         includePostgres = false;
         includeRedis = false;
         includeSqlite = false;
-      } value;
-      alias = isAttrs value && isEnabled (value.includeDatabase or false);
-    in
-    default // { enable = default.enable || alias; };
+      }
+      value;
+    alias = isAttrs value && isEnabled (value.includeDatabase or false);
+  in
+    default // {enable = default.enable || alias;};
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Orchestrators                                             ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  normalizeFeature =
-    default: value:
-    if isDisabled value then
-      default // { enable = false; }
-    else if isAttrs value then
-      default // value // { enable = isEnabled (value.enable or true); }
-    else if isEnabled value then
-      default // { enable = true; }
-    else
-      default;
+  normalizeFeature = default: value:
+    if isDisabled value
+    then default // {enable = false;}
+    else if isAttrs value
+    then default // value // {enable = isEnabled (value.enable or true);}
+    else if isEnabled value
+    then default // {enable = true;}
+    else default;
 
   normalizeVariant = value: {
     __variantName = value.__variantName or null;
@@ -347,17 +338,15 @@ let
   #╔═══════════════════════════════════════════════════════════╗
   #║ Constructors                                              ║
   #╚═══════════════════════════════════════════════════════════╝
-  mkVariant =
-    {
-      config,
-      name,
-      raw,
-    }:
-    recursiveUpdate config (raw // { __variantName = name; });
+  mkVariant = {
+    config,
+    name,
+    raw,
+  }:
+    recursiveUpdate config (raw // {__variantName = name;});
 
-  mkVariants =
-    config:
-    mapAttrs (name: raw: mkVariant { inherit config name raw; }) {
+  mkVariants = config:
+    mapAttrs (name: raw: mkVariant {inherit config name raw;}) {
       minimal = {
         common = true;
         ai = "minimal";
@@ -431,59 +420,59 @@ let
       };
     };
 
-  updateVariant =
-    {
-      variant,
-      raw ? { },
-      name ? variant.__variantName or null,
-    }:
-    normalizeVariant (recursiveUpdate variant (raw // { __variantName = name; }));
+  updateVariant = {
+    variant,
+    raw ? {},
+    name ? variant.__variantName or null,
+  }:
+    normalizeVariant (recursiveUpdate variant (raw // {__variantName = name;}));
 
-  updateVariants =
-    { variants, config }:
+  updateVariants = {
+    variants,
+    config,
+  }:
     mapAttrs (
       name: variant:
-      updateVariant {
-        inherit name variant;
-        raw = config.${name} or { };
-      }
-    ) variants;
-
-  mkVariantShells =
-    {
-      inputs,
-      pkgs,
-      variants,
-      extraPackages ? [ ],
-      extraEnv ? { },
-      extraShellHook ? "",
-    }:
-    let
-      base = mapAttrs (
-        variantName: variant:
-        mkShell {
-          inherit
-            inputs
-            pkgs
-            variant
-            extraPackages
-            extraEnv
-            extraShellHook
-            ;
-          raw = variants.raw.${variantName};
+        updateVariant {
+          inherit name variant;
+          raw = config.${name} or {};
         }
-      ) variants.final;
+    )
+    variants;
 
-      editor = listToAttrs (
-        concatMap (
-          variantName:
+  mkVariantShells = {
+    inputs,
+    pkgs,
+    variants,
+    extraPackages ? [],
+    extraEnv ? {},
+    extraShellHook ? "",
+  }: let
+    base =
+      mapAttrs (
+        variantName: variant:
+          mkShell {
+            inherit
+              inputs
+              pkgs
+              variant
+              extraPackages
+              extraEnv
+              extraShellHook
+              ;
+            raw = variants.raw.${variantName};
+          }
+      )
+      variants.final;
+
+    editor = listToAttrs (
+      concatMap (
+        variantName:
           map (
-            editorName:
-            let
-              raw = recursiveUpdate variants.raw.${variantName} { editor = editorName; };
+            editorName: let
+              raw = recursiveUpdate variants.raw.${variantName} {editor = editorName;};
               variant = normalizeVariant raw;
-            in
-            {
+            in {
               name = editorShellName variantName editorName;
               value = mkShell {
                 inherit
@@ -498,28 +487,25 @@ let
               };
             }
           ) (attrNames editorGroups)
-        ) (attrNames variants.raw)
-      );
-    in
+      ) (attrNames variants.raw)
+    );
+  in
     base // editor;
 
-  toVariantJSON =
-    variant:
-    let
-      prefix = "__VARIANT";
-      val = optionalString (isNotEmpty variant) (toJSON variant);
-      kind = optionalString (variant ? kind) (toUpper variant.kind);
-      name = optionalString (variant ? name) (toUpper variant.name);
-      var = concatNonEmpty "_" [
-        prefix
-        kind
-        name
-      ];
-    in
-    optionalAttrs (isNotEmpty val) { ${var} = val; };
+  toVariantJSON = variant: let
+    prefix = "__VARIANT";
+    val = optionalString (isNotEmpty variant) (toJSON variant);
+    kind = optionalString (variant ? kind) (toUpper variant.kind);
+    name = optionalString (variant ? name) (toUpper variant.name);
+    var = concatNonEmpty "_" [
+      prefix
+      kind
+      name
+    ];
+  in
+    optionalAttrs (isNotEmpty val) {${var} = val;};
 
-  testVariant =
-    overrides:
+  testVariant = overrides:
     recursiveUpdate {
       __variantName = "test";
 
@@ -562,8 +548,8 @@ let
         includeWeb = true;
         includeLeptos = true;
         includeExtra = true;
-        extraTargets = [ ];
-        extraExtensions = [ ];
+        extraTargets = [];
+        extraExtensions = [];
       };
 
       web = {
@@ -589,7 +575,7 @@ let
         kind = "workflow";
         name = "editor";
         enable = true;
-        editors = [ ];
+        editors = [];
       };
 
       formatter = {
@@ -604,9 +590,9 @@ let
         includeDatabase = true;
         # sqlFormatters ={};
       };
-    } overrides;
-in
-{
+    }
+    overrides;
+in {
   inherit
     editorGroups
     editorShellName

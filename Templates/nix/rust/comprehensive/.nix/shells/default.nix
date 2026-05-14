@@ -1,4 +1,4 @@
-{ lib, ... }:
+{lib, ...}:
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
@@ -7,5 +7,5 @@ lib.assembly.importLibs {
     "data.nix"
     "config.nix"
   ];
-  ignore = [ "scripts.nix" ];
+  ignore = ["scripts.nix"];
 }

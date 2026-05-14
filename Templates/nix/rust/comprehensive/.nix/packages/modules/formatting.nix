@@ -26,13 +26,11 @@
         variant
         ;
     };
-  in {
-    formatter = {
-      ${system} = result.formatter;
-    }; # ? ready for flake output
-    ${system} = result.formatter; # ? direct access if needed
-    raw = result;
-  };
+  in
+    result
+    // {
+      formatter = {${system} = result.formatter;};
+    };
 
   mkChecker = {
     inputs,
@@ -97,6 +95,7 @@
       set2 = variant.fmt or {};
       set3 = recursiveAttrs {inherit set1 set2;};
       set4 = {
+        # includeNixfmt = set3.includeNixfmt && !set3.includeAlejandra;\
         includeNixfmt = set3.includeNixfmt && !set3.includeAlejandra;
         includeRustfmt = set3.includeRustfmt || ((rust.enable or false) && (rust.includeFmt or false));
         includeLeptosfmt =

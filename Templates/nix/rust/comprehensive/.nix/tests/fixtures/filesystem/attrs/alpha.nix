@@ -1,4 +1,3 @@
-{ value }:
-{
+{value}: {
   alpha = value;
 }

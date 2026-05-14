@@ -1,4 +1,3 @@
-{ lib }:
-{
+{lib}: {
   root = true;
 }
