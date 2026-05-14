@@ -99,7 +99,7 @@ in {
       binaries = let
         common = mkBins packages.common;
         custom = mkBins packages.custom;
-        all = common // custom; # was `common // common` — bug fixed
+        all = common // custom;
       in {inherit all common custom;};
 
       variables =

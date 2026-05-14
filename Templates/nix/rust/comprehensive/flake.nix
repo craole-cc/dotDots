@@ -6,7 +6,7 @@
 
     AI = {
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "NixPackages";
+      # inputs.nixpkgs.follows = "NixPackages";
     };
 
     Rust = {

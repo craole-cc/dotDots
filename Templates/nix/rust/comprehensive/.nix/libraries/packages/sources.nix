@@ -37,7 +37,8 @@
           else {
             allowUnfree = true;
             permittedInsecurePackages = [
-              "openclaw-2026.3.12"
+              # "openclaw-2026.3.12"
+              # "openclaw-2026.5.7"
             ];
           };
         system =
@@ -192,26 +193,25 @@
   */
   resolveOverlay = input: let
     noop = _: _: {};
-
     fromPath = path: let
       src = import path;
     in
-      if isFunction src
-      then src
-      else if isAttrs src
+      if isAttrs src
       then src.overlays.default or src.overlay or noop
+      else if isFunction src
+      then src
       else noop;
   in
     if input == null
     then noop
-    else if isFunction input
-    then input
     else if isAttrs input && input ? overlays
     then input.overlays.default or noop
     else if isAttrs input && input ? overlay
     then input.overlay
     else if isAttrs input && input ? outPath
     then fromPath input.outPath
+    else if isFunction input
+    then input
     else if isPath input || isString input
     then fromPath input
     else noop;
@@ -223,7 +223,7 @@
     packages = resolvePackages inputs;
   in
     [
-      # (resolveOverlay packages.ai)
+      (resolveOverlay packages.ai)
       (resolveOverlay packages.openclaw)
       (resolveOverlay packages.rust)
     ]

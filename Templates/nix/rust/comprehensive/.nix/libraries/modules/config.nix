@@ -21,7 +21,7 @@
     (lib.packages)
     mkChecker
     mkPkgs
-    # mkAI
+    mkAI
     mkCommon
     mkDatabase
     mkExtra
@@ -42,14 +42,14 @@
       priority = [
         "formatting"
         "rust"
-        # "ai"
+        "ai"
         "web"
         "database"
         "extra"
         "common"
       ];
       modules = {
-        # ai = mkAI {inherit pkgs variant;};
+        ai = mkAI {inherit pkgs variant;};
         common = mkCommon {inherit pkgs variant;};
         database = mkDatabase {inherit pkgs variant;};
         extra = mkExtra {inherit pkgs variant;};
