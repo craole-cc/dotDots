@@ -110,7 +110,11 @@
 
         specialArgs =
           {
-            inherit host class;
+            inherit
+              host
+              class
+              inputs
+              ;
           }
           // extraArgs
           // {
@@ -310,4 +314,3 @@ in
 #   inherit __doc;
 #   __rootAliases = __exports.external;
 # }
-
