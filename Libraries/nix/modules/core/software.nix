@@ -188,8 +188,8 @@
 
     environment.shellAliases = {
       dots-switch = "nh os switch ${dots}";
-      dots-update = "nix flake update ${dots}";
-      dots-upgrade = "nix flake update ${dots} && nh os switch ${dots}";
+      dots-update = "nix flake update --flake ${dots}";
+      dots-upgrade = "nix flake update --flake ${dots} && nh os switch ${dots}";
       dots-boot = "nh os boot ${dots}";
       dots-test = "nh os test ${dots}";
       dots-build = "nh os build ${dots}";
