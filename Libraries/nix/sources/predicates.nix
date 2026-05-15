@@ -24,7 +24,7 @@
   inherit (_.filesystem.access) readFile;
   inherit (_.filesystem.resolution) getFlake;
   inherit (_.lists.predicates) any;
-  inherit (_.attrsets.transformation) attrValues;
+  inherit (_.attrsets.access) attrValues;
   inherit (_.strings.predicates) hasInfix;
   inherit (_.strings.construction) fromJSON;
 

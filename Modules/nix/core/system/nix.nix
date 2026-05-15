@@ -11,7 +11,7 @@
   mod = "nix";
   cfg = config.${top}.${dom}.${mod};
 
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) either int str;
   inherit (lix.modules.core.software) mkNix;
@@ -33,11 +33,13 @@ in {
   };
 
   config = mkIf cfg.enable (
-    mkNix {inherit host pkgs;}
-    // {
-      nix.settings.max-jobs = cfg.maxJobs;
-      system.stateVersion = cfg.stateVersion;
-    }
+    mkMerge [
+      (mkNix {inherit host pkgs;})
+      {
+        nix.settings.max-jobs = cfg.maxJobs;
+        system.stateVersion = cfg.stateVersion;
+      }
+    ]
   );
 }
 # {
