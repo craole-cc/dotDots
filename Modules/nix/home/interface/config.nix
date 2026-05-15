@@ -67,21 +67,4 @@ in {
     platformTheme.name = "gtk";
     style.name = "kvantum";
   };
-
-  stylix = {
-    # enable = false;
-    # polarity = "light";
-    targets = {
-      qt.enable = mkForce false;
-      foot = {
-        enable = true;
-        colors.enable = false; # ? Stylix is using the deprecated [colors]
-        opacity.enable = false;
-        # fonts.enable = false;
-      };
-      zen-browser = {
-        profileNames = [user.name];
-      };
-    };
-  };
 }

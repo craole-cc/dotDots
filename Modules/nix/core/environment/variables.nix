@@ -35,23 +35,23 @@
   registry = let
     editor = editors.commands {
       inherit pkgs system inputs;
-      cfg = apps.editor or {};
+      config = apps.editor or {};
     };
     browser = browsers.commands {
       inherit pkgs system inputs;
-      cfg = apps.browser or {};
+      config = apps.browser or {};
     };
     terminal = terminals.commands {
       inherit pkgs system inputs;
-      cfg = apps.terminal or {};
+      config = apps.terminal or {};
     };
     launcher = launchers.commands {
       inherit pkgs system inputs;
-      cfg = apps.launcher or {};
+      config = apps.launcher or {};
     };
     bar = bars.commands {
       inherit pkgs system inputs;
-      cfg = apps.bar or {};
+      config = apps.bar or {};
     };
 
     default =

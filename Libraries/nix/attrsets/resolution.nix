@@ -382,10 +382,17 @@
     e = parseVscodeExt entry;
   in
     byPaths {
-      attrset = {
-        nixpkgs = pkgs.vscode-extensions;
-        market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
-      };
+      attrset =
+        {
+          nixpkgs = pkgs.vscode-extensions;
+        }
+        // optionalAttrs (
+          inputs ? nix-vscode-extensions
+          && inputs.nix-vscode-extensions ? extensions
+          && hasAttrByPath [system "vscode-marketplace"] inputs.nix-vscode-extensions.extensions
+        ) {
+          market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
+        };
       paths = [
         [
           "nixpkgs"

@@ -33,27 +33,27 @@
   registry = let
     editor = editors.packages {
       inherit pkgs system inputs;
-      cfg = apps.editor or {};
+      config = apps.editor or {};
     };
 
     browser = browsers.packages {
       inherit pkgs system inputs;
-      cfg = apps.browser or {};
+      config = apps.browser or {};
     };
 
     terminal = terminals.packages {
       inherit pkgs system inputs;
-      cfg = apps.terminal or {};
+      config = apps.terminal or {};
     };
 
     launcher = launchers.packages {
       inherit pkgs system inputs;
-      cfg = apps.launcher or {};
+      config = apps.launcher or {};
     };
 
     bar = bars.packages {
       inherit pkgs system inputs;
-      cfg = apps.bar or {};
+      config = apps.bar or {};
     };
 
     wayland = optionals (displayProtocol == "wayland") (with pkgs; []);

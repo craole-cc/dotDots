@@ -1,15 +1,13 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.paths) mkSessionPaths;
   inherit (_.modules.home.programs) mkApps;
   inherit (_.modules.home.style) mkStyle;
   inherit (_.schema._) mkUI mkLocale mkApplications;
-  inherit (lib.attrsets) mapAttrs;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists.construction) optionals;
+  inherit (_.lists.transformation) flatten;
 
   __exports = {
     internal = {inherit mkUsers;};
@@ -37,51 +35,28 @@
     tree,
   }:
     mapAttrs (
-      name: user: {
+      name: cfg: {
         nixosConfig,
         config,
         pkgs,
         ...
       }: let
-        enrichedUser =
-          user
-          // {
-            inherit name;
-          };
-        enrichedInterface = mkUI {
-          inherit host;
-          user = enrichedUser;
-        };
+        user = cfg // {inherit name;};
+        enrichedInterface = mkUI {inherit host user;};
         inputsForHome = mkApps {inherit user inputs modules;};
-        derivedPaths = mkSessionPaths {
-          inherit
-            config
-            host
-            user
-            pkgs
-            tree
-            ;
-        };
+        derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
+        hmi = inputsForHome;
       in {
+        # disabledModules = optionals (enrichedInterface.windowManager != "niri") [
+        #   ../../../../Modules/nix/home/interface/manager/niri
+        # ];
+
         _module.args = {
           style = mkStyle {inherit host user;};
-          user =
-            enrichedUser
-            // {
-              interface = enrichedInterface;
-            };
-          apps = mkApplications {
-            inherit host;
-            user = enrichedUser;
-          };
-          keyboard = mkKeyboard {
-            inherit host;
-            user = enrichedUser;
-          };
-          locale = mkLocale {
-            inherit host;
-            user = enrichedUser;
-          };
+          user = user // {interface = enrichedInterface;};
+          apps = mkApplications {inherit host user;};
+          keyboard = mkKeyboard {inherit host user;};
+          locale = mkLocale {inherit host user;};
           paths = derivedPaths;
           inherit inputsForHome;
         };
@@ -89,16 +64,31 @@
         home = {inherit (nixosConfig.system) stateVersion;};
 
         imports =
-          (with inputsForHome; [
-            caelestia.module
-            catppuccin.module
-            dank-material-shell.module
-            dms-plugin-registry.module
-            noctalia-shell.module
-            nvf.module
-            plasma.module
-            zen-browser.module
-          ])
+          []
+          ++ optionals
+          (hmi?caelestia.module)
+          [hmi.caelestia.module]
+          ++ optionals
+          (hmi?catppuccin.module)
+          [hmi.catppuccin.module]
+          ++ optionals
+          (hmi?dank-material-shell.module)
+          [hmi.dank-material-shell.module]
+          ++ optionals
+          (hmi?dms-plugin-registry.module)
+          [hmi.dms-plugin-registry.module]
+          ++ optionals
+          (hmi?noctalia-shell.module)
+          [hmi.noctalia-shell.module]
+          ++ optionals
+          (hmi?nvf.module)
+          [hmi.nvf.module]
+          ++ optionals
+          (hmi?plasma.module)
+          [hmi.plasma.module]
+          ++ optionals
+          (hmi?zen-browser.module)
+          [hmi.zen-browser.module]
           ++ [tree.store.mod.home]
           ++ (user.imports or []);
       }

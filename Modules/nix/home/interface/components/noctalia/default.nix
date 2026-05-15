@@ -8,7 +8,8 @@
   inputsForHome,
   ...
 }: let
-  app = "noctalia-shell";
+  name = "noctalia-shell";
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.hardware.display) getNames getPrimaryName;
 
@@ -16,13 +17,17 @@
   primary = desired != null;
 
   # Check if the program option exists in home-manager
-  # programExists = config ? programs.${app};
+  # programExists = config ? programs.${name};
 
   # Only enable if both conditions are met
   # enable = (primary || allowed) && programExists;
   # enable = primary || allowed;
 
-  enable = inputsForHome.noctalia-shell.isAllowed;
+  enable =
+    config ? programs.${name}
+    && (inputsForHome ? ${name})
+    && inputsForHome.${name}.isAllowed;
+
   monitors = {
     all = getNames {inherit host;};
     primary = getPrimaryName {inherit host;};
@@ -31,25 +36,31 @@
   terminal = user.applications.terminal.primary;
   wallpapers = homeDir + "/Pictures/Wallpapers";
 in {
-  config = mkIf enable {
-    programs.${app} = mkMerge [
-      {
-        enable = true;
-        settings = mkMerge [
-          (import ./bar.nix {inherit monitors;})
-          (import ./color.nix {})
-          (import ./control.nix {inherit terminal;})
-          (import ./desktop.nix {inherit monitors wallpapers;})
-          (import ./general.nix {inherit lib config nixosConfig;})
-          (import ./info.nix {inherit host monitors;})
-          (import ./output.nix {inherit homeDir;})
-        ];
-      }
-    ];
+  config = mkIf enable (mkMerge [
+    {
+      programs = mkMerge [
+        (optionalAttrs enable {
+          ${name} = mkMerge [
+            {
+              enable = true;
+              settings = mkMerge [
+                (import ./bar.nix {inherit monitors;})
+                (import ./color.nix {})
+                (import ./control.nix {inherit terminal;})
+                (import ./desktop.nix {inherit monitors wallpapers;})
+                (import ./general.nix {inherit lib config nixosConfig;})
+                (import ./info.nix {inherit host monitors;})
+                (import ./output.nix {inherit homeDir;})
+              ];
+            }
+          ];
+        })
+      ];
 
-    home = {
-      sessionVariables.BAR = desired;
-      shellAliases = mkIf primary {bar = "${app} &";};
-    };
-  };
+      home = {
+        sessionVariables.BAR = desired;
+        shellAliases = mkIf primary {bar = "${name} &";};
+      };
+    }
+  ]);
 }

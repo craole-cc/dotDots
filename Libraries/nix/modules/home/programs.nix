@@ -178,25 +178,9 @@
     flavors = normalizeNames (cfg.flavors or []);
     variants = mapAttrs (_: normalizeNames) (cfg.variants or {});
     isAllowed = condition (
-      {
-        inherit
-          cfg
-          name
-          names
-          flavors
-          variants
-          ;
-      }
-      // context
+      {inherit cfg name names flavors variants;} // context
     );
-    module = mkModule {
-      inherit
-        inputs
-        modules
-        name
-        variant
-        ;
-    };
+    module = mkModule {inherit inputs modules name variant;};
   in {
     inherit isAllowed module;
   };
@@ -245,10 +229,13 @@
       hasAnyApp,
       bar,
       ...
-    }: let
-      dankNames = normalizeNames (["dank-material-shell"] ++ (defaults.apps."dank-material-shell".aliases or []));
-    in
-      hasAnyApp dankNames [bar];
+    }:
+      hasAnyApp (
+        normalizeNames (
+          ["dank-material-shell"]
+          ++ (defaults.apps."dank-material-shell".aliases or [])
+        )
+      ) [bar];
 
     appSpecs = {
       plasma.condition = {
@@ -284,17 +271,6 @@
 
       "dank-material-shell".condition = isDankAllowed;
       "dms-plugin-registry".condition = isDankAllowed;
-
-      # "dank-material-shell".condition = {
-      #   names,
-      #   hasAnyApp,
-      #   bar,
-      #   ...
-      # }:
-      #   hasAnyApp names [bar];
-
-      # "dms-plugin-registry".condition = args:
-      #   appSpecs."dank-material-shell".condition args;
 
       "noctalia-shell".condition = {
         names,
@@ -332,20 +308,10 @@
       };
     };
   in
-    mapAttrs (
-      name: spec:
-        mkApp (
-          {
-            inherit
-              context
-              name
-              inputs
-              modules
-              ;
-          }
-          // spec
-        )
-    )
+    mapAttrs (name: spec:
+      mkApp (
+        {inherit context name inputs modules;} // spec
+      ))
     appSpecs;
 
   mkPrograms = {
@@ -408,12 +374,15 @@
       userCategory = attrByPath ["applications" category] {} user;
       hostCategory = attrByPath ["applications" category] {} host;
       optionPath = splitString "." option;
-      name = normalizeName (attrByPath optionPath (attrByPath optionPath default hostCategory) userCategory);
+      name = normalizeName (
+        attrByPath optionPath (
+          attrByPath optionPath default hostCategory
+        )
+        userCategory
+      );
       command = getCommand category name;
       class = getClass command;
-    in {
-      inherit command class;
-    };
+    in {inherit command class;};
 
     mkCategory = category: options:
       mapAttrs (

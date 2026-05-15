@@ -1,8 +1,9 @@
 {_, ...}: let
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.predicates) hasAttrByPath;
+  inherit (_.lists.predicates) all;
   inherit (_.lists.selection) filter;
-  inherit (_.lists.transformation) unique;
+  inherit (_.lists.transformation) concatMap unique;
   inherit (_.strings.predicates) hasInfix;
   inherit (_.strings.transformation) toLower;
   inherit (_.types.predicates) isFunction;
@@ -24,16 +25,16 @@
     info = {
       pkgs,
       inputs ? {},
-      system ? "x86_64-linux",
+      system ? "x86_64-linux", #TODO: use getSystemOrDefault {}
       name,
     }: let
-      appInfo = appMap.${name} or null;
+      app = appMap.${name} or null;
     in
-      if appInfo != null
+      if app != null
       then
-        if isFunction appInfo
-        then appInfo {inherit pkgs inputs system;}
-        else appInfo
+        if isFunction app
+        then app {inherit pkgs inputs system;}
+        else app
       else {
         cmd = name;
         pkg = null;
@@ -44,10 +45,10 @@
       pkgs,
       inputs ? {},
       system ? "x86_64-linux",
-      appConfig ? {},
+      config ? {},
     }: let
-      primary = attrByPath ["primary"] defaultApp appConfig;
-      secondary = attrByPath ["secondary"] null appConfig;
+      primary = attrByPath ["primary"] defaultApp config;
+      secondary = attrByPath ["secondary"] null config;
 
       # Normalize user input first
       normalizedPrimary =
@@ -78,11 +79,13 @@
       ];
 
       # Try input path first (from specialArgs), then pkg
-      getPkg = i:
-        if i.inputPath != null
+      getPkg = i: let
+        inputPath = normalizeInputPath i.inputPath;
+      in
+        if inputPath != null
         then
-          if hasAttrByPath i.inputPath inputs
-          then attrByPath i.inputPath null inputs
+          if hasAttrByPath inputPath inputs
+          then attrByPath inputPath null inputs
           else i.pkg
         else i.pkg;
 
@@ -94,10 +97,10 @@
       pkgs,
       inputs ? {},
       system ? "x86_64-linux",
-      appConfig ? {},
+      config ? {},
     }: let
-      primary = attrByPath ["primary"] defaultApp appConfig;
-      secondary = attrByPath ["secondary"] null appConfig;
+      primary = attrByPath ["primary"] defaultApp config;
+      secondary = attrByPath ["secondary"] null config;
 
       # Normalize user input first
       normalizedPrimary =
@@ -168,6 +171,24 @@
     then "firefox"
     # Default to input if no match
     else input;
+
+  normalizeInputPath = path:
+    if path == null
+    then null
+    else if builtins.isString path
+    then [path]
+    else if builtins.isList path
+    then let
+      flattened = concatMap (segment:
+        if builtins.isList segment
+        then segment
+        else [segment])
+      path;
+    in
+      if all builtins.isString flattened
+      then flattened
+      else null
+    else null;
 
   # Application Maps
   browsers = mkApp {
@@ -483,13 +504,13 @@
       system ? "x86_64-linux",
       name,
     }: let
-      appInfo = editorMap.${name} or null;
+      app = editorMap.${name} or null;
     in
-      if appInfo != null
+      if app != null
       then
-        if isFunction appInfo
-        then appInfo {inherit pkgs inputs system;}
-        else appInfo
+        if isFunction app
+        then app {inherit pkgs inputs system;}
+        else app
       else {
         cmd = name;
         pkg = null;
@@ -500,12 +521,12 @@
       pkgs,
       inputs ? {},
       system ? "x86_64-linux",
-      editorConfig ? {},
+      config ? {},
     }: let
-      ttyPrimary = attrByPath ["tty" "primary"] "helix" editorConfig;
-      ttySecondary = attrByPath ["tty" "secondary"] null editorConfig;
-      guiPrimary = attrByPath ["gui" "primary"] null editorConfig;
-      guiSecondary = attrByPath ["gui" "secondary"] null editorConfig;
+      ttyPrimary = attrByPath ["tty" "primary"] "helix" config;
+      ttySecondary = attrByPath ["tty" "secondary"] null config;
+      guiPrimary = attrByPath ["gui" "primary"] null config;
+      guiSecondary = attrByPath ["gui" "secondary"] null config;
 
       getInfo = name:
         if name != null
@@ -527,11 +548,13 @@
         (getInfo guiSecondary)
       ];
 
-      getPkg = i:
-        if i.inputPath != null
+      getPkg = i: let
+        inputPath = normalizeInputPath i.inputPath;
+      in
+        if inputPath != null
         then
-          if hasAttrByPath i.inputPath inputs
-          then attrByPath i.inputPath null inputs
+          if hasAttrByPath inputPath inputs
+          then attrByPath inputPath null inputs
           else i.pkg
         else i.pkg;
 
@@ -543,10 +566,10 @@
       pkgs,
       inputs ? {},
       system ? "x86_64-linux",
-      editorConfig ? {},
+      config ? {},
     }: let
-      ttyPrimary = attrByPath ["tty" "primary"] "helix" editorConfig;
-      guiPrimary = attrByPath ["gui" "primary"] null editorConfig;
+      ttyPrimary = attrByPath ["tty" "primary"] "helix" config;
+      guiPrimary = attrByPath ["gui" "primary"] null config;
 
       ttyInfo = info {
         inherit pkgs inputs system;

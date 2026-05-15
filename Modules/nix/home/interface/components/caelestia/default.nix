@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   pkgs,
   locale,
   style,
@@ -8,56 +9,44 @@
   inputsForHome,
   ...
 }: let
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;
   inherit (style) fonts;
   name = "caelestia";
   kind = "bar";
-
-  packages = with pkgs; [
-    aubio
-    brightnessctl
-    ddcutil
-    glibc
-    libgcc
-    cava
-    lm_sensors
-  ];
-  enable = inputsForHome.caelestia.isAllowed;
-  programs = {
-    ${name} = mkMerge [
-      {inherit enable;}
-      (import ./cli {})
-      (import ./settings {
-        inherit
-          locale
-          fonts
-          mkMerge
-          paths
-          vimKeybinds
-          ;
-      })
-    ];
-  };
-  services = {
-    mako.enable = mkForce false;
-  };
-
-  cfg = {
-    inherit
-      enable
-      name
-      kind
-      programs
-      services
-      ;
-    home = {inherit packages;};
-  };
-in
-{
-  config = mkIf cfg.enable (mkMerge [
+  enable =
+    config ? programs.${name}
+    && (inputsForHome ? ${name})
+    && inputsForHome.${name}.isAllowed;
+in {
+  config = mkIf enable (mkMerge [
+    (import ./hyprland.nix {inherit mod;})
     {
-      inherit (cfg) programs home services;
+      programs = mkMerge [
+        (optionalAttrs enable {
+          ${name} = mkMerge [
+            {enable = true;}
+            (import ./cli {})
+            (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
+          ];
+        })
+      ];
+      home = {
+        packages = with pkgs; [
+          aubio
+          brightnessctl
+          ddcutil
+          glibc
+          libgcc
+          cava
+          lm_sensors
+        ];
+      };
+      services = {
+        mako.enable = mkForce false;
+      };
+
       systemd.user.services.caelestia = {
         Unit.ConditionEnvironment = [
           "|XDG_CURRENT_DESKTOP=Hyprland"
@@ -65,6 +54,5 @@ in
         ];
       };
     }
-    (import ./hyprland.nix {inherit mod;})
   ]);
 }

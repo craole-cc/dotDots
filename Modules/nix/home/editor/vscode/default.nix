@@ -32,6 +32,7 @@
     name = "vscode";
     kind = "editor";
     category = "gui";
+    customPackage = pkgs.vscode-fhs;
     resolutionHints = [
       "vscode-insiders"
       "code"
