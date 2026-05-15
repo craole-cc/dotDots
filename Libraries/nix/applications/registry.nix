@@ -166,7 +166,8 @@
     ]
     else null;
 
-  all = importRegistry ./.data;
+  # all = importRegistry ./.data;
+  all = importRegistry ./data;
 in
   meta.exports.local
   // {

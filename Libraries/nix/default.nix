@@ -27,6 +27,7 @@
         "archive"
         "internal"
         "imports"
+        "data"
         "test"
         "tmp"
         "temp"
