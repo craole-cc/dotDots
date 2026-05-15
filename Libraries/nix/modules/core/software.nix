@@ -1,7 +1,31 @@
 {_, ...}: let
   meta = let
     doc = ''
-      #TODO: Add relevant file documentation
+      # Core Software [Layer 3]
+
+      NixOS system configuration builders for core software concerns.
+
+      Provides `mkNix` for declarative Nix daemon configuration - including
+      binary cache auto-detection, experimental features, and file descriptor
+      limits - and `mkClean` for automated store maintenance via `nh`.
+
+      ## Cache Resolution
+
+      `mkNix` resolves binary caches in two layers:
+
+      - `common`: auto-detected from the flake lock file and kernel selection.
+        Numtide is injected when any input is owned by `numtide`. Nyx/Chaotic
+        is injected when a CachyOS kernel is requested.
+      - `custom`: declared in `host.caches`, merged over `common` via
+        `recursiveUpdate` so per-host overrides win.
+
+      Entries with `enable = false` are filtered out before use.
+
+      ## Dependencies
+
+      - `_.sources.predicates`    - lockFileHas
+      - `_.attrsets.*`            - construction, merging, transformation
+      - `_.modules.construction`  - mkForce
     '';
     functions = {inherit mkNix mkClean;};
     exports = {
@@ -20,6 +44,33 @@
   inherit (_.sources.predicates) lockFileHas;
   inherit (_.strings.predicates) hasInfix;
 
+  /**
+    Build a NixOS configuration fragment for the Nix daemon and system state.
+
+    Detects required binary caches from the flake lock file and kernel selection,
+    merges them with any host-declared overrides, and emits `nix.settings`,
+    `system.stateVersion`, and the nix-daemon file descriptor limit.
+
+    # Type
+  ```nix
+    mkNix :: { host :: AttrSet, pkgs :: AttrSet, tree :: AttrSet } -> AttrSet
+  ```
+
+    # Examples
+  ```nix
+    mkNix { inherit host pkgs tree; }
+    # => {
+    #   system.stateVersion = "25.11";
+    #   nix.settings = {
+    #     experimental-features = [ "nix-command" "flakes" "pipe-operators" ];
+    #     substituters = [ "https://cache.numtide.com" "https://geo-mirror.chaotic.cx/" ];
+    #     trusted-public-keys = [ "cache.numtide.com-1:..." "nyx.chaotic.cx-1:..." ];
+    #     ...
+    #   };
+    #   systemd.services.nix-daemon.serviceConfig.LimitNOFILE = "65536 1048576";
+    # }
+  ```
+  */
   mkNix = {
     host,
     pkgs,
@@ -37,7 +88,7 @@
       value = "numtide";
     };
 
-    cache = let
+    caches = let
       common =
         optionalAttrs requiresNumtide {
           numtide = {
@@ -67,13 +118,35 @@
       ];
       max-jobs = host.specs.cpu.cores or "auto";
       trusted-users = ["@wheel"];
-      substituters = map (c: c.sub) cache.all;
-      trusted-public-keys = map (c: c.key) cache.all;
+      substituters = map (c: c.sub) caches.all;
+      trusted-public-keys = map (c: c.key) caches.all;
     };
 
     systemd.services.nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
   };
 
+  /**
+    Build a NixOS configuration fragment for automated Nix store maintenance.
+
+    Enables `nh clean` with a retention policy of 3 days or 5 generations,
+    whichever is greater, pointed at the host's flake path.
+
+    # Type
+  ```nix
+    mkClean :: { host :: AttrSet } -> AttrSet
+  ```
+
+    # Examples
+  ```nix
+    mkClean { host = { paths.dots = "/home/craole/.dots"; }; }
+    # => {
+    #   programs.nh.enable = true;
+    #   programs.nh.clean.enable = true;
+    #   programs.nh.clean.extraArgs = "--keep-since 3d --keep 5";
+    #   programs.nh.flake = "/home/craole/.dots";
+    # }
+  ```
+  */
   mkClean = {host, ...}: {
     programs.nh = {
       enable = true;
