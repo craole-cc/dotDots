@@ -188,11 +188,15 @@
 
     environment.shellAliases = {
       dots-switch = "nh os switch ${dots}";
+      dots-update = "nix flake update ${dots}";
+      dots-upgrade = "nix flake update ${dots} && nh os switch ${dots}";
       dots-boot = "nh os boot ${dots}";
       dots-test = "nh os test ${dots}";
       dots-build = "nh os build ${dots}";
       dots-clean = "nh clean all ${keepArgs}";
+      dots-clean-all = "nh clean all --keep 1";
       dots-gc = "nix store gc";
+      dots-gens = "nh os info";
       dots-optimise = "nix store optimise";
       dots-repair = "nix store verify --repair";
       dots-dev = "nix develop ${dots}";
