@@ -1,15 +1,22 @@
-{lib, ...}: let
-  inherit (lib.attrsets) hasAttr;
-  inherit (lib.modules) mkForce;
-  inherit (lib.strings) hasInfix optionalString;
-
-  exports = {
-    internal = {inherit mkNix mkClean;};
-    external = {
-      # mkCoreFonts = mkFonts;
-      # mkCoreStyle = mkStyle;
+{_, ...}: let
+  meta = let
+    doc = ''
+      #TODO: Add relevant file documentation
+    '';
+    functions = {inherit mkNix mkClean;};
+    exports = {
+      local = functions;
+      alias = functions;
     };
-  };
+  in {inherit doc exports functions;};
+
+  inherit (_.attrsets.access) attrValues;
+  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.attrsets.predicates) hasAttr;
+  inherit (_.lists.construction) optionals;
+  inherit (_.modules.construction) mkForce;
+  inherit (_.sources.predicates) lockFileHas;
+  inherit (_.strings.predicates) hasInfix;
 
   mkNix = {
     host,
@@ -20,38 +27,51 @@
     isCachy = kernelRequested != null && (hasInfix "cachyos" kernelRequested);
     isChaotic = kernelRequested != null && hasAttr kernelRequested pkgs;
 
-    nyxSub = optionalString (isCachy || isChaotic) "https://nyx.chaotic.cx/";
-    nyxKey = optionalString (isCachy || isChaotic) "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
-    # cachySub = lib.strings.optionalString isCachy "https://drakon64-nixos-cachyos-kernel.cachix.org/";
-    # cachyKey = lib.strings.optionalString isCachy "drakon64-nixos-cachyos-kernel.cachix.org-1:J3gjZ9N6S05pyLA/P0M5y7jXpSxO/i0rshrieQJi5D0=";
+    requiresNyx = isCachy || isChaotic;
+    requiresNumtide = lockFileHas {
+      path = host.paths.dots;
+      field = "owner";
+      value = "numtide";
+    };
+
+    userCaches = host.caches or {};
+
+    autoCaches =
+      optionals requiresNumtide [
+        {
+          sub = "https://cache.numtide.com";
+          key = "cache.numtide.com-1:dGZlQILjUw6nfhbyU3aRjVm4iklknCKEIh5+OR2TXVY=";
+        }
+      ]
+      ++ optionals (
+        requiresNyx
+        && !(hasAttr "nyx" userCaches || hasAttr "chaotic" userCaches)
+      ) [
+        {
+          sub = "https://nyx.chaotic.cx/";
+          key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
+        }
+      ];
+
+    allCaches =
+      attrValues (filterAttrs (_: c: c.enable or true) userCaches)
+      ++ autoCaches;
   in {
-    system = {
-      stateVersion = host.stateVersion or "25.11";
+    system.stateVersion = host.stateVersion or "25.11";
+
+    nix.settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+        "pipe-operators"
+      ];
+      max-jobs = host.specs.cpu.cores or "auto";
+      trusted-users = ["@wheel"];
+      substituters = map (c: c.sub) allCaches;
+      trusted-public-keys = map (c: c.key) allCaches;
     };
 
-    nix = {
-      settings = {
-        experimental-features = [
-          "nix-command"
-          "flakes"
-          "pipe-operators"
-        ];
-        max-jobs = host.specs.cpu.cores or "auto";
-        trusted-users = ["@wheel"];
-        substituters = [
-          "${nyxSub}"
-          # "${cachySub}"
-        ];
-        trusted-public-keys = [
-          "${nyxKey}"
-          # "${cachyKey}"
-        ];
-      };
-    };
-
-    systemd.services = {
-      nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
-    };
+    systemd.services.nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
   };
 
   mkClean = {host, ...}: {
@@ -64,7 +84,9 @@
       flake = host.paths.dots;
     };
   };
-
-  exports = {inherit mkNix mkClean;};
 in
-  exports.internal // {__rootAliases = exports.external;}
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
+  }

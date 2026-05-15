@@ -10,9 +10,7 @@
       local = functions;
       alias = functions;
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.applications.generators) userApplication;
   inherit (_.strings.predicates) hasInfix;
