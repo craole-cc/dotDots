@@ -91,14 +91,13 @@
     host,
     pkgs,
     tree,
+    kernel ? (host.packages.kernel or null),
     caches ? (host.caches or {}),
+    max-jobs ? (host.specs.cpu.cores or "auto"),
+    stateVersion ? host.stateVersion,
     ...
   }: let
-    kernelRequested = host.packages.kernel or null;
-    isCachy = kernelRequested != null && (hasInfix "cachyos" kernelRequested);
-    isChaotic = kernelRequested != null && hasAttr kernelRequested pkgs;
-
-    requiresNyx = isCachy || isChaotic;
+    requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
       path = tree.store.default;
       field = "owner";
@@ -125,15 +124,15 @@
         (_: c: c.enable or true)
         (recursiveUpdate common custom));
   in {
-    system.stateVersion = host.stateVersion or "25.11";
+    system = {inherit stateVersion;};
 
     nix.settings = {
+      inherit max-jobs;
       experimental-features = [
         "nix-command"
         "flakes"
         "pipe-operators"
       ];
-      max-jobs = host.specs.cpu.cores or "auto";
       trusted-users = ["@wheel"];
       substituters = map (c: c.sub) caches';
       trusted-public-keys = map (c: c.key) caches';

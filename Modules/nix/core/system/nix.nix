@@ -49,7 +49,7 @@ in {
       '';
       default = host.paths.dots;
       defaultText = literalExpression "host.paths.dots";
-      example = "/home/craole/.dots";
+      example = literalExpression ''/home/craole/.dots'';
       type = str;
     };
 
@@ -60,7 +60,7 @@ in {
       '';
       default = host.packages.kernel or null;
       defaultText = literalExpression "host.packages.kernel or null";
-      example = literalExpression ''"linuxPackages_cachyos-lto"'';
+      example = literalExpression ''linuxPackages_cachyos-lto'';
       type = nullOr str;
     };
 
@@ -117,13 +117,9 @@ in {
     mkMerge [
       (mkNix {
         inherit host pkgs tree;
-        inherit (cfg) kernel caches;
+        inherit (cfg) kernel caches max-jobs stateVersion;
       })
       (mkMaintenance {inherit (cfg) dots;})
-      {
-        nix.settings = {inherit (cfg) max-jobs;};
-        system = {inherit (cfg) stateVersion;};
-      }
     ]
   );
 }
