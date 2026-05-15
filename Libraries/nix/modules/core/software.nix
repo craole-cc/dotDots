@@ -156,11 +156,16 @@
 
   # Examples
   ```nix
-  mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; } => {
-      programs.nh.enable = true;
-      programs.nh.clean.enable = true;
-      programs.nh.clean.extraArgs = "--keep-since 3d --keep 5";
-      programs.nh.flake = "/home/craole/.dots";
+  mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; }
+  => {
+      programs.nh = {
+        enable = true;
+        clean = {
+          enable = true;
+          extraArgs = "--keep-since 3d --keep 5";
+        };
+        flake = "/home/craole/.dots";
+      };
       environment.shellAliases = {
         nix-clean    = "nh clean all --keep-since 3d --keep 5";
         nix-gc       = "nix store gc";
@@ -168,7 +173,7 @@
         nix-repair   = "nix store verify --repair";
       };
     }
-    ```
+  ```
   */
   mkMaintenance = {host, ...}: let
     dots = host.paths.dots or null;
