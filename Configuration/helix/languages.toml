@@ -1,51 +1,91 @@
-use-grammars = { only = [
-  "rust",
-  "html",
-  "css",
-  "sql",
-  "python",
-  "bash",
-  "make",
-  "toml",
-  "json",
-  "json5",
-  "yaml",
-  "markdown",
-  "awk",
-  "nu",
-  "nix",
-] }
-
-[[languages]]
-name = "rust"
-
-[language-server.rust-analyzer.config]
-cargo = { buildScripts = { enable = true }, features = "all" }
-check = { features = "all" }
-procMacro = { enable = true }
-
-[language-server.rust-analyzer.config.inlayHints]
-# chainingHints = { enable = false }
-# lifetimeElisionHints = { enable = false, useParameterNames = false }
-# parameterHints = { enable = false }
-# renderColons = false
-# typeHints = { hideNamedConstructor = true, hideClosureInitialization = true }
-
-[language-server.tailwind-ls]
-args = ["--stdio"]
-command = "tailwindcss-language-server"
-
-[language-server.tailwind-ls.config]
-tailwindCSS = { experimental = { classRegex = ["class=\"(.*)\""] } }
+[[language]]
+auto-format = true
+language-servers = ["nixd"]
+name = "nix"
+[language.formatter]
+command = "alejandra"
 
 [[language]]
-language-servers = ["rust-analyzer", "tailwind-ls"]
+auto-format = true
+name = "bash"
+[language.formatter]
+arguments = "--posix --apply-ignore --case-indent --space-redirects --write"
+command = "shfmt"
+[language.indent]
+tab-width = 2
+unit = "\t"
+
+[[language]]
+auto-format = true
+language-servers = ["rust-analyzer"]
 name = "rust"
 
 [[language]]
-language-servers = ["vscode-css-language-server", "tailwind-ls"]
-name = "css"
+auto-format = true
+language-servers = ["rubocop", "solargraph"]
+name = "ruby"
+[language.formatter]
+args = ["exec", "stree", "format"]
+command = "bundle"
 
 [[language]]
-language-servers = ["vscode-html-language-server", "tailwind-ls"]
-name = "html"
+auto-format = true
+name = "python"
+[language.formatter]
+args = []
+command = "ruff"
+
+[[language]]
+name = "sql"
+[language.formatter]
+args = ["--reindent", "--indent_width", "2", "--keywords", "upper", "--identifiers", "lower", "-"]
+command = "sqlformat"
+
+[[language]]
+auto-format = true
+name = "toml"
+[language.formatter]
+args = ["format", "-"]
+command = "taplo"
+
+[[language]]
+auto-format = true
+name = "json"
+[language.formatter]
+args = ["fmt", "-", "--ext", "json"]
+command = "deno"
+
+[[language]]
+auto-format = true
+name = "markdown"
+[language.formatter]
+args = ["fmt", "-", "--ext", "md"]
+command = "deno"
+
+[[language]]
+auto-format = true
+name = "typescript"
+[language.formatter]
+args = ["fmt", "-", "--ext", "ts"]
+command = "deno"
+
+[[language]]
+auto-format = true
+name = "tsx"
+[language.formatter]
+args = ["fmt", "-", "--ext", "tsx"]
+command = "deno"
+
+[[language]]
+auto-format = true
+name = "javascript"
+[language.formatter]
+args = ["fmt", "-", "--ext", "js"]
+command = "deno"
+
+[[language]]
+auto-format = true
+name = "jsx"
+[language.formatter]
+args = ["fmt", "-", "--ext", "jsx"]
+command = "deno"

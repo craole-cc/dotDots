@@ -56,7 +56,6 @@
   inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.lists.construction) optionals;
   inherit (_.modules.construction) mkForce;
   inherit (_.sources.predicates) lockFileHas;
   inherit (_.strings.predicates) hasInfix;
@@ -92,6 +91,7 @@
     host,
     pkgs,
     tree,
+    caches ? (host.caches or {}),
     ...
   }: let
     kernelRequested = host.packages.kernel or null;
@@ -105,7 +105,7 @@
       value = "numtide";
     };
 
-    caches = let
+    caches' = let
       common =
         optionalAttrs requiresNumtide {
           numtide = {
@@ -119,11 +119,11 @@
             key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
           };
         };
-      custom = host.caches or {};
-      all = attrValues (filterAttrs
+      custom = caches;
+    in
+      attrValues (filterAttrs
         (_: c: c.enable or true)
         (recursiveUpdate common custom));
-    in {inherit common custom all;};
   in {
     system.stateVersion = host.stateVersion or "25.11";
 
@@ -135,8 +135,8 @@
       ];
       max-jobs = host.specs.cpu.cores or "auto";
       trusted-users = ["@wheel"];
-      substituters = map (c: c.sub) caches.all;
-      trusted-public-keys = map (c: c.key) caches.all;
+      substituters = map (c: c.sub) caches';
+      trusted-public-keys = map (c: c.key) caches';
     };
 
     systemd.services.nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
@@ -175,8 +175,7 @@
     }
   ```
   */
-  mkMaintenance = {host, ...}: let
-    dots = host.paths.dots or null;
+  mkMaintenance = {dots, ...}: let
     keepArgs = "--keep-since 3d --keep 5";
   in {
     programs.nh = {
@@ -188,7 +187,7 @@
       flake = dots;
     };
 
-    environment.shellAliases = optionalAttrs (dots != null) {
+    environment.shellAliases = {
       nix-clean = "nh clean all ${keepArgs}";
       nix-gc = "nix store gc";
       nix-optimise = "nix store optimise";
