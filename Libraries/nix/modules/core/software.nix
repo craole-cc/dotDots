@@ -7,7 +7,8 @@
 
       Provides `mkNix` for declarative Nix daemon configuration - including
       binary cache auto-detection, experimental features, and file descriptor
-      limits - and `mkMaintenance` for automated store maintenance via `nh`.
+      limits - and `mkMaintenance` for automated store maintenance via `nh`
+      with convenience shell aliases.
 
       ## Cache Resolution
 
@@ -20,6 +21,19 @@
         `recursiveUpdate` so per-host overrides win.
 
       Entries with `enable = false` are filtered out before use.
+
+      ## Maintenance
+
+      `mkMaintenance` enables `nh clean` on a timer with a retention policy
+      of 3 days or 5 generations, whichever is greater. It also exposes shell
+      aliases for manual store operations:
+
+      - `nix-clean`    - run `nh clean` with the configured retention policy
+      - `nix-gc`       - run `nix store gc`
+      - `nix-optimise` - run `nix store optimise`
+      - `nix-repair`   - run `nix store verify --repair`
+
+      ## Dependencies
 
       ## Dependencies
 
@@ -129,35 +143,51 @@
   };
 
   /**
-    Build a NixOS configuration fragment for automated Nix store maintenance.
+  Build a NixOS configuration fragment for automated Nix store maintenance.
 
-    Enables `nh clean` with a retention policy of 3 days or 5 generations,
-    whichever is greater, pointed at the host's flake path.
+  Enables `nh clean` on a systemd timer with a retention policy of 3 days or
+  5 generations, whichever is greater. Also exposes shell aliases for manual
+  store operations when `host.paths.dots` is set.
 
-    # Type
+  # Type
   ```nix
-    mkMaintenance :: { host :: AttrSet } -> AttrSet
+  mkMaintenance :: { host :: AttrSet } -> AttrSet
   ```
 
-    # Examples
+  # Examples
   ```nix
-    mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; }
-    # => {
-    #   programs.nh.enable = true;
-    #   programs.nh.clean.enable = true;
-    #   programs.nh.clean.extraArgs = "--keep-since 3d --keep 5";
-    #   programs.nh.flake = "/home/craole/.dots";
-    # }
-  ```
+  mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; } => {
+      programs.nh.enable = true;
+      programs.nh.clean.enable = true;
+      programs.nh.clean.extraArgs = "--keep-since 3d --keep 5";
+      programs.nh.flake = "/home/craole/.dots";
+      environment.shellAliases = {
+        nix-clean    = "nh clean all --keep-since 3d --keep 5";
+        nix-gc       = "nix store gc";
+        nix-optimise = "nix store optimise";
+        nix-repair   = "nix store verify --repair";
+      };
+    }
+    ```
   */
-  mkMaintenance = {host, ...}: {
+  mkMaintenance = {host, ...}: let
+    dots = host.paths.dots or null;
+    keepArgs = "--keep-since 3d --keep 5";
+  in {
     programs.nh = {
       enable = true;
       clean = {
         enable = true;
-        extraArgs = "--keep-since 3d --keep 5";
+        extraArgs = keepArgs;
       };
-      flake = host.paths.dots;
+      flake = dots;
+    };
+
+    environment.shellAliases = optionalAttrs (dots != null) {
+      nix-clean = "nh clean all ${keepArgs}";
+      nix-gc = "nix store gc";
+      nix-optimise = "nix store optimise";
+      nix-repair = "nix store verify --repair";
     };
   };
 in
