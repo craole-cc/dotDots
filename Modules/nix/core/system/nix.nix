@@ -31,7 +31,9 @@
     [
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
     ]
-    ++ optionals isChaotic ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
+    ++ optionals isChaotic [
+      # "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="
+    ];
 in {
   options.${top}.${dom}.${mod} = {
     enable =

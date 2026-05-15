@@ -18,7 +18,7 @@
 
   inherit (config.${top}.interface) displayProtocol;
   inherit (lib.modules) mkIf;
-  inherit (lib.lists) optionals;
+  inherit (lib.lists) optionals unique;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf package;
   inherit
@@ -30,30 +30,37 @@
     bars
     ;
 
-  editorPkgs = editors.packages {
-    inherit pkgs system inputs;
-    editorConfig = apps.editor or {};
-  };
-  browserPkgs = browsers.packages {
-    inherit pkgs system inputs;
-    appConfig = apps.browser or {};
-  };
-  terminalPkgs = terminals.packages {
-    inherit pkgs system inputs;
-    appConfig = apps.terminal or {};
-  };
-  launcherPkgs = launchers.packages {
-    inherit pkgs system inputs;
-    appConfig = apps.launcher or {};
-  };
-  barPkgs = bars.packages {
-    inherit pkgs system inputs;
-    appConfig = apps.bar or {};
-  };
-  waylandPkgs = optionals (displayProtocol == "wayland") (with pkgs; [weston]);
+  registry = let
+    editor = editors.packages {
+      inherit pkgs system inputs;
+      cfg = apps.editor or {};
+    };
 
-  defaultPackages = with pkgs;
-    [
+    browser = browsers.packages {
+      inherit pkgs system inputs;
+      cfg = apps.browser or {};
+    };
+
+    terminal = terminals.packages {
+      inherit pkgs system inputs;
+      cfg = apps.terminal or {};
+    };
+
+    launcher = launchers.packages {
+      inherit pkgs system inputs;
+      cfg = apps.launcher or {};
+    };
+
+    bar = bars.packages {
+      inherit pkgs system inputs;
+      cfg = apps.bar or {};
+    };
+
+    wayland = optionals (displayProtocol == "wayland") (with pkgs; []);
+    linux = optionals (pkgs.stdenv.isLinux) (with pkgs; [wl-clipboard xsel]);
+    darwin = optionals (pkgs.stdenv.isDarwin) (with pkgs; []);
+
+    default = with pkgs; [
       #~@ Nix
       alejandra
       nixfmt
@@ -120,18 +127,32 @@
       fend
       figlet
       lolcat
-    ]
-    ++ waylandPkgs;
+    ];
+
+    common = editor ++ browser ++ terminal ++ launcher ++ bar;
+    system = wayland ++ linux ++ darwin;
+    all = default ++ common ++ system;
+  in {
+    inherit
+      editor
+      browser
+      terminal
+      launcher
+      bar
+      wayland
+      linux
+      darwin
+      common
+      system
+      all
+      ;
+  };
 in {
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {default = true;};
     default = mkOption {
       description = "Base system packages";
-      default = defaultPackages;
+      default = registry.all;
       type = listOf package;
     };
     extra = mkOption {
@@ -142,9 +163,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages =
-      cfg.default ++ cfg.extra ++ editorPkgs ++ browserPkgs ++ terminalPkgs ++ launcherPkgs ++ barPkgs;
-
+    environment.systemPackages = unique (cfg.default ++ cfg.extra);
     programs.xwayland.enable = true;
   };
 }

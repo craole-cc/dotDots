@@ -39,7 +39,6 @@
       })
     ];
   };
-
   services = {
     mako.enable = mkForce false;
   };
@@ -54,7 +53,8 @@
       ;
     home = {inherit packages;};
   };
-in {
+in
+{
   config = mkIf cfg.enable (mkMerge [
     {
       inherit (cfg) programs home services;

@@ -13,21 +13,13 @@
       2. Generating per-system flake-style output matrices from a function.
     '';
     functions = {
-      inherit
-        mkSystems
-        mkFlake
-        mkCore
-        mkHome
-        mkTree
-        ;
+      inherit mkSystems mkFlake mkCore mkHome mkTree;
     };
     exports = {
       local = functions;
-      alias = functions;
+      store = functions;
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   # __doc = ''
   #   Module Evaluation and System Generation
@@ -109,17 +101,9 @@
           };
 
         specialArgs =
-          {
-            inherit
-              host
-              class
-              inputs
-              ;
-          }
+          {inherit host class inputs;}
           // extraArgs
-          // {
-            tree = tree';
-          };
+          // {tree = tree';};
 
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
@@ -141,11 +125,7 @@
               specialArgs
               // {
                 inherit (fromInputs.all) modulesPath baseModules;
-                modules =
-                  fromInputs
-                  // {
-                    host = fromHost;
-                  };
+                modules = fromInputs // {host = fromHost;};
               };
             modules =
               fromInputs.base
@@ -160,7 +140,9 @@
         };
       in
         if class == "darwin"
-        then moduleArgs.fromEval // {system = moduleArgs.fromEval.config.system.build.toplevel;}
+        then
+          moduleArgs.fromEval
+          // {system = moduleArgs.fromEval.config.system.build.toplevel;}
         else moduleArgs.fromEval
     )
     schema.hosts;
@@ -192,12 +174,7 @@
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit
-        host
-        specialArgs
-        tree
-        inputs
-        ;
+      inherit host specialArgs tree inputs;
       modules = modules.home;
     })
   ];
@@ -234,15 +211,12 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lib = extend (_self: _super: {hm = inputs.home-manager.lib.hm or {};});
+          lib = extend (_self: _super: {
+            hm = inputs.home-manager.lib.hm or {};
+          });
         };
       users = mkUsers {
-        inherit
-          inputs
-          modules
-          host
-          tree
-          ;
+        inherit inputs modules host tree;
       };
     };
   };
@@ -274,20 +248,10 @@
     hosts ? {},
     fn,
   }: let
-    inherit
-      (getSystems {
-        inherit
-          flake
-          nixpkgs
-          legacyPackages
-          system
-          hosts
-          ;
-      })
-      pkgsFor
-      derived
-      all
-      ;
+    systems = getSystems {
+      inherit flake nixpkgs legacyPackages system hosts;
+    };
+    inherit (systems) pkgsFor derived all;
 
     perSystem = (genAttrs all) (
       sys:
@@ -307,10 +271,5 @@ in
   meta.exports.local
   // {
     __docs = meta.doc;
-    __rootAliases = meta.exports.alias;
+    __rootAliases = meta.exports.store;
   }
-# __exports.internal
-# // {
-#   inherit __doc;
-#   __rootAliases = __exports.external;
-# }

@@ -13,7 +13,7 @@ excludes = [
   "Assets/**",
   "*.diff",
   "*.patch",
-
+  "AGENTS.md",
   "**/dump.nix",
   "**/.bin/**",
   "**/.config/**",

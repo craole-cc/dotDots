@@ -8,10 +8,14 @@ let
       else {path = arg;};
 
     inherit (spec) path;
-    description = spec.description or "";
 
-    hasFlake = pathExists (path + "/flake.nix");
-  in {inherit path description;};
+    defaultNix =
+      if pathExists (path + "/default.nix")
+      then import (path + "/default.nix") {}
+      else {};
+
+    description = spec.description or (defaultNix.description or "");
+  in {   inherit path description; };
 
   templates =
     {
@@ -27,10 +31,12 @@ let
         path = ./media;
         description = "Comprehensive Media Environment";
       };
-      rust = mkTemplate {
-        path = ./rust/comprehensive;
-        description = "Rust development environment with AI Tools";
-      };
+
+      rust = mkTemplate ./rust/comprehensive;
+      # rust = mkTemplate {
+      #   path = ./rust/comprehensive;
+      #   description = "Rust development environment with AI Tools";
+      # };
       rustspace = mkTemplate {
         path = ./rust/workspace;
         description = "Rust workspace with multiple crates";

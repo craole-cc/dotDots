@@ -28,8 +28,8 @@
     any
     elem
     isList
-    toList
     ;
+  inherit (lib.lists) toList;
   inherit (_.types.generators) validate;
 
   /**
@@ -78,7 +78,7 @@
     direct = attrByPath fullPath false attrset;
     withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
   in
-    direct || withEnable;
+    (direct == true) || withEnable;
 
   # Shared argument validation for anyEnabled / allEnabled
   validateArgs = fnName: {

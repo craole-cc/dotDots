@@ -8,7 +8,9 @@
 }: let
   app = "niri";
   inherit (lib.modules) mkIf;
+  inherit (lib.options) mkOption;
   inherit (lix.attrsets.predicates) waylandEnabled;
+  inherit (lib.types) attrsOf anything submodule;
 
   isAllowed =
     waylandEnabled {
@@ -17,6 +19,13 @@
     }
     && (user.interface.windowManager or null) == app;
 in {
+  options.programs.niriswitcher = mkOption {
+    default = {};
+    type = submodule {
+      freeformType = attrsOf anything;
+    };
+  };
+
   config = mkIf isAllowed {
     xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
 
