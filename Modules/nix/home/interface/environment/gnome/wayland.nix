@@ -1,10 +1,12 @@
-{ config, lib, ... }:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib.modules) mkIf;
   inherit (config.dots.interface) display desktop;
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "wayland";
-in
-{
+in {
   config = mkIf cfgEnabled {
     environment.sessionVariables = {
       #{ Enable Wayland for Firefox

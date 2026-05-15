@@ -1,19 +1,18 @@
-{ _, ... }:
-let
+{_, ...}: let
   inherit (_.attrsets.predicates) isAttrs;
 
   /**
-    Check whether a value is a test result record produced by `mkTest`.
+  Check whether a value is a test result record produced by `mkTest`.
 
-    A test record has `desired`, `result`, and `passed` fields.
+  A test record has `desired`, `result`, and `passed` fields.
 
-    # Type
-    ```nix
-    isTest :: any -> bool
-    ```
+  # Type
+  ```nix
+  isTest :: any -> bool
+  ```
   */
   isTest = v: isAttrs v && v ? desired && v ? result && v ? passed;
 
-  exports = { inherit isTest; };
+  exports = {inherit isTest;};
 in
-exports // { __rootAliases = exports; }
+  exports // {__rootAliases = exports;}

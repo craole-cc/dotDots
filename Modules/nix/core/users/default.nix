@@ -6,8 +6,7 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   dom = "users";
   cfg = config.${top}.${dom};
 
@@ -18,11 +17,10 @@ let
   inherit (lib.options) mkOption;
   inherit (lib.types) bool;
 
-  hostUsers = host.users.data.enabled or { };
-  adminNames = host.users.names.elevated or [ ];
+  hostUsers = host.users.data.enabled or {};
+  adminNames = host.users.names.elevated or [];
   inherit (host.hardware) hasNetwork;
-in
-{
+in {
   options.${top}.${dom} = {
     execWheelOnly = mkOption {
       description = "Restrict sudo to wheel group members";
@@ -34,41 +32,45 @@ in
   config = {
     security.sudo = {
       inherit (cfg) execWheelOnly;
-      extraRules = map (name: {
-        users = [ name ];
-        commands = [
-          {
-            command = "ALL";
-            options = [
-              "SETENV"
-              "NOPASSWD"
-            ];
-          }
-        ];
-      }) adminNames;
+      extraRules =
+        map (name: {
+          users = [name];
+          commands = [
+            {
+              command = "ALL";
+              options = [
+                "SETENV"
+                "NOPASSWD"
+              ];
+            }
+          ];
+        })
+        adminNames;
     };
 
     users = {
-      groups = mapAttrs (_: _: { }) hostUsers;
+      groups = mapAttrs (_: _: {}) hostUsers;
 
-      users = mapAttrs (name: user: {
-        isNormalUser = user.role != "service";
-        isSystemUser = user.role == "service";
-        description = user.description or name;
-        password = user.password or null;
-        group = name;
-        extraGroups =
-          optionals (user.role != "service") [ "users" ]
-          ++ optionals (isIn (user.role or null) [
-            "admin"
-            "administrator"
-          ]) [ "wheel" ]
-          ++ optionals hasNetwork [ "networkmanager" ];
-        shell = package {
-          inherit pkgs;
-          target = head (user.shells or [ "bash" ]);
-        };
-      }) hostUsers;
+      users =
+        mapAttrs (name: user: {
+          isNormalUser = user.role != "service";
+          isSystemUser = user.role == "service";
+          description = user.description or name;
+          password = user.password or null;
+          group = name;
+          extraGroups =
+            optionals (user.role != "service") ["users"]
+            ++ optionals (isIn (user.role or null) [
+              "admin"
+              "administrator"
+            ]) ["wheel"]
+            ++ optionals hasNetwork ["networkmanager"];
+          shell = package {
+            inherit pkgs;
+            target = head (user.shells or ["bash"]);
+          };
+        })
+        hostUsers;
     };
   };
 }

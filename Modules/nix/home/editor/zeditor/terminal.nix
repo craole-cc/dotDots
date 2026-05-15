@@ -11,7 +11,7 @@
     option_as_meta = true;
     copy_on_select = true;
     button = false;
-    env = { };
+    env = {};
     line_height = "standard";
     toolbar = {
       title = true;

@@ -1,5 +1,8 @@
-{ _, lib, ... }:
-let
+{
+  _,
+  lib,
+  ...
+}: let
   __doc = ''
     Input Modules Resolution
 
@@ -32,55 +35,54 @@ let
   };
 
   /**
-    Look up a module by name and variant from a modules attrset.
+  Look up a module by name and variant from a modules attrset.
 
-    # Type
-    ```nix
-    mkOne :: { name :: string, modules :: AttrSet?, variant :: string? } -> module
-    ```
+  # Type
+  ```nix
+  mkOne :: { name :: string, modules :: AttrSet?, variant :: string? } -> module
+  ```
   */
-  mkOne =
-    {
-      name,
-      inputs ? { },
-      modules ? { },
-      variant ? "default",
-    }:
-    let
-      mods = if isEmpty modules then inputs.home or (mkAll { }).home else modules.home or modules;
-    in
-    mods.${name}.${variant} or { };
+  mkOne = {
+    name,
+    inputs ? {},
+    modules ? {},
+    variant ? "default",
+  }: let
+    mods =
+      if isEmpty modules
+      then inputs.home or (mkAll {}).home
+      else modules.home or modules;
+  in
+    mods.${name}.${variant} or {};
 
   /**
-    Return the list of core NixOS/Darwin modules for a host class.
+  Return the list of core NixOS/Darwin modules for a host class.
 
-    # Type
-    ```nix
-    mkCore :: { class :: "nixos" | "darwin" } -> [module]
-    ```
+  # Type
+  ```nix
+  mkCore :: { class :: "nixos" | "darwin" } -> [module]
+  ```
   */
-  mkCore =
-    {
-      inputs,
-      class ? "nixos",
-    }:
+  mkCore = {
+    inputs,
+    class ? "nixos",
+  }:
     (
-      if class == "darwin" then
-        [
-          (inputs.age.darwinModules.default or { })
-          (inputs.home-manager.darwinModules.home-manager or { })
-          (inputs.stylix.darwinModules.stylix or { })
-        ]
-      else
-        [
-          (inputs.age.nixosModules.age or { })
-          (inputs.catppuccin.nixosModules.default or { })
-          (inputs.chaotic.nixosModules.default or { })
-          (inputs.dank-material-shell.nixosModules.default or { })
-          (inputs.dms-plugin-registry.nixosModules.default or { })
-          (inputs.home-manager.nixosModules.home-manager or { })
-          (inputs.stylix.nixosModules.stylix or { })
-        ]
+      if class == "darwin"
+      then [
+        (inputs.age.darwinModules.default or {})
+        (inputs.home-manager.darwinModules.home-manager or {})
+        (inputs.stylix.darwinModules.stylix or {})
+      ]
+      else [
+        (inputs.age.nixosModules.age or {})
+        (inputs.catppuccin.nixosModules.default or {})
+        (inputs.chaotic.nixosModules.default or {})
+        (inputs.dank-material-shell.nixosModules.default or {})
+        (inputs.dms-plugin-registry.nixosModules.default or {})
+        (inputs.home-manager.nixosModules.home-manager or {})
+        (inputs.stylix.nixosModules.stylix or {})
+      ]
     )
     ++ optionals (class == "darwin") [
       {
@@ -93,63 +95,62 @@ let
     ];
 
   /**
-    Attrset of all home-manager modules provided by flake inputs.
+  Attrset of all home-manager modules provided by flake inputs.
   */
-  mkHome =
-    { inputs }:
-    {
-      dank-material-shell = {
-        default = inputs.dank-material-shell.homeModules.default or { };
-        niri = inputs.dank-material-shell.homeModules.niri or { };
-      };
-      dms-plugin-registry = inputs.dms-plugin-registry.homeModules or { };
-      noctalia-shell = inputs.noctalia-shell.homeModules or { };
-      caelestia = inputs.caelestia.homeManagerModules or { };
-      catppuccin = inputs.catppuccin.homeModules or { };
-      nvf = {
-        default = inputs.nvf.homeManagerModules.default or { };
-      };
-      plasma = {
-        default = inputs.plasma.homeModules.plasma-manager or { };
-      };
-      zen-browser = {
-        twilight = inputs.zen-browser.homeModules.twilight or { };
-        default = inputs.zen-browser.homeModules.default or { };
-        beta = inputs.zen-browser.homeModules.beta or { };
-      };
+  mkHome = {inputs}: {
+    dank-material-shell = {
+      default = inputs.dank-material-shell.homeModules.default or {};
+      niri = inputs.dank-material-shell.homeModules.niri or {};
     };
+    dms-plugin-registry = inputs.dms-plugin-registry.homeModules or {};
+    noctalia-shell = inputs.noctalia-shell.homeModules or {};
+    caelestia = inputs.caelestia.homeManagerModules or {};
+    catppuccin = inputs.catppuccin.homeModules or {};
+    nvf = {
+      default = inputs.nvf.homeManagerModules.default or {};
+    };
+    plasma = {
+      default = inputs.plasma.homeModules.plasma-manager or {};
+    };
+    zen-browser = {
+      twilight = inputs.zen-browser.homeModules.twilight or {};
+      default = inputs.zen-browser.homeModules.default or {};
+      beta = inputs.zen-browser.homeModules.beta or {};
+    };
+  };
 
   /**
-    Build the full module attrset for a host.
+  Build the full module attrset for a host.
 
-    # Type
-    ```nix
-    mkAll :: { class :: "nixos" | "darwin" } -> { all, base, core, home, path, ... }
-    ```
+  # Type
+  ```nix
+  mkAll :: { class :: "nixos" | "darwin" } -> { all, base, core, home, path, ... }
+  ```
   */
-  mkAll =
-    {
-      inputs ? { },
-      class ? "nixos",
-      ...
-    }:
-    let
-      inputs' = if inputs ? nixpkgs then inputs else (resolveInputs { }).resolved;
+  mkAll = {
+    inputs ? {},
+    class ? "nixos",
+    ...
+  }: let
+    inputs' =
+      if inputs ? nixpkgs
+      then inputs
+      else (resolveInputs {}).resolved;
 
-      path = "${inputs'.nixpkgs}/nixos/modules";
-      base = import "${path}/module-list.nix";
-      core = mkCore {
-        inherit class;
-        inputs = inputs';
-      };
-      home = mkHome { inputs = inputs'; };
-      all = {
-        baseModules = base;
-        coreModules = core;
-        homeModules = home;
-        modulesPath = path;
-      };
-    in
+    path = "${inputs'.nixpkgs}/nixos/modules";
+    base = import "${path}/module-list.nix";
+    core = mkCore {
+      inherit class;
+      inputs = inputs';
+    };
+    home = mkHome {inputs = inputs';};
+    all = {
+      baseModules = base;
+      coreModules = core;
+      homeModules = home;
+      modulesPath = path;
+    };
+  in
     {
       inherit
         all
@@ -161,8 +162,8 @@ let
     }
     // all;
 in
-__exports.internal
-// {
-  inherit __doc;
-  __rootAliases = __exports.external;
-}
+  __exports.internal
+  // {
+    inherit __doc;
+    __rootAliases = __exports.external;
+  }

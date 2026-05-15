@@ -7,11 +7,9 @@
   paths,
   rootAliases,
   runTests,
-}:
-let
-  handleCollisions = import ./collisions.nix { inherit lib collisionStrategy; };
-in
-{
+}: let
+  handleCollisions = import ./collisions.nix {inherit lib collisionStrategy;};
+in {
   ${names.lib} = import ./assemble.nix {
     inherit
       handleCollisions
@@ -20,8 +18,7 @@ in
       rootAliases
       ;
     library = lib.fixedPoints.makeExtensible (
-      self:
-      let
+      self: let
         safe = handleCollisions {
           msg = "Custom library has collisions with nixpkgs lib";
           overrides = self;
@@ -44,9 +41,9 @@ in
               ;
           };
         };
-        results = scan paths.libraries [ ];
+        results = scan paths.libraries [];
       in
-      results.modules // { __rootAliases = results.rootAliases; }
+        results.modules // {__rootAliases = results.rootAliases;}
     );
   };
 }

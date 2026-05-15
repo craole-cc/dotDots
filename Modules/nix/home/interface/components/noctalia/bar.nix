@@ -1,5 +1,4 @@
-{ monitors, ... }:
-{
+{monitors, ...}: {
   bar = {
     backgroundOpacity = 0.95;
     density = "default";
@@ -7,7 +6,7 @@
     floating = false;
     marginHorizontal = 1;
     marginVertical = 0.06;
-    monitors = [ monitors.all ];
+    monitors = [monitors.all];
     outerCorners = false;
     position = "top";
     showCapsule = false;
@@ -95,11 +94,11 @@
       right = [
         {
           id = "Tray";
-          blacklist = [ ];
+          blacklist = [];
           colorizeIcons = false;
           drawerEnabled = true;
           hidePassive = false;
-          pinned = [ ];
+          pinned = [];
         }
         {
           id = "SystemMonitor";
@@ -115,7 +114,7 @@
           useMonospaceFont = true;
           usePrimaryColor = true;
         }
-        { id = "ScreenRecorder"; }
+        {id = "ScreenRecorder";}
         {
           hideWhenZero = false;
           id = "NotificationHistory";

@@ -1,8 +1,6 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.modules) mkForce;
-in
-{
+in {
   programs.vscode.profiles.default.userSettings = mkForce {
     # Editor Basics
     "editor.fontSize" = 18;

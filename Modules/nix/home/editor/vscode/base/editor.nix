@@ -1,5 +1,4 @@
-{ mkDefault, ... }:
-{
+{mkDefault, ...}: {
   userSettings = {
     #~@ Basics
     "editor.fontSize" = mkDefault 18.0;

@@ -84,8 +84,7 @@ let
       position = 1003;
     };
   };
-in
-{
+in {
   inherit
     containersForce
     containers

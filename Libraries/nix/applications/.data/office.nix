@@ -6,7 +6,7 @@ _: {
       class = "libreoffice";
     };
     exec = "libreoffice";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 
   libreoffice-writer = {
@@ -29,7 +29,7 @@ _: {
       class = "libreoffice-calc";
     };
     exec = "libreoffice --calc";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 
   libreoffice-impress = {
@@ -39,7 +39,7 @@ _: {
       class = "libreoffice-impress";
     };
     exec = "libreoffice --impress";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 
   onlyoffice = {
@@ -49,7 +49,7 @@ _: {
       class = "onlyoffice-desktopeditors";
     };
     exec = "onlyoffice-desktopeditors";
-    categories = [ "office" ];
+    categories = ["office"];
     family = "chromium";
   };
 
@@ -90,7 +90,7 @@ _: {
       class = "org.pwmt.zathura";
     };
     exec = "zathura";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 
   evince = {
@@ -100,7 +100,7 @@ _: {
       class = "org.gnome.Evince";
     };
     exec = "evince";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 
   okular = {
@@ -110,6 +110,6 @@ _: {
       class = "org.kde.okular";
     };
     exec = "okular";
-    categories = [ "office" ];
+    categories = ["office"];
   };
 }

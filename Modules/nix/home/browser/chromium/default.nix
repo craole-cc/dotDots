@@ -4,8 +4,7 @@
   user,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.strings) toUpper;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf;
@@ -14,27 +13,32 @@ let
 
   name = "chromium";
   target = user.applications.browser.chromium;
-  normalizedTarget = if target == null then "default" else target;
+  normalizedTarget =
+    if target == null
+    then "default"
+    else target;
 
   matches = pred: str: match pred str != null;
 
   variant =
     #| Brave
-    if matches "brave" target then
-      "brave"
+    if matches "brave" target
+    then "brave"
     #| Chrome
-    else if matches "chrome" target then
-      "google-chrome"
+    else if matches "chrome" target
+    then "google-chrome"
     #| Chromium
-    else if normalizedTarget == "default" || matches "chromium" target || matches "ungoogled" target then
-      "chromium"
+    else if normalizedTarget == "default" || matches "chromium" target || matches "ungoogled" target
+    then "chromium"
     #| Vivaldi
-    else if matches "viv" target then
-      "vivaldi"
-    else
-      null;
+    else if matches "viv" target
+    then "vivaldi"
+    else null;
 
-  package = if variant != null then pkgs.${variant} else null;
+  package =
+    if variant != null
+    then pkgs.${variant}
+    else null;
 
   enable = webGui && variant != null;
 
@@ -43,19 +47,27 @@ let
     val = toJSON {
       criteria = {
         inherit webGui;
-        targetRequested = if target == null then "undefined" else target;
+        targetRequested =
+          if target == null
+          then "undefined"
+          else target;
         normalized = normalizedTarget;
         valid = enable;
       };
       resolved = {
-        variant = if variant != null then variant else "none";
-        packageName = if package != null then package.name else "none";
+        variant =
+          if variant != null
+          then variant
+          else "none";
+        packageName =
+          if package != null
+          then package.name
+          else "none";
       };
     };
   };
-in
-{
-  programs.chromium = mkIf enable { inherit enable package; };
+in {
+  programs.chromium = mkIf enable {inherit enable package;};
 
-  home.sessionVariables = optionalAttrs enable { ${debug.key} = debug.val; };
+  home.sessionVariables = optionalAttrs enable {${debug.key} = debug.val;};
 }

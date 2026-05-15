@@ -4,13 +4,13 @@
   _,
   lib,
   ...
-}:
-let
+}: let
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     hasAttr
     filterAttrs
     listToAttrs
@@ -20,30 +20,30 @@ let
   debug = mkModuleDebug __moduleRef;
 
   /**
-    Get an attribute value with a fallback default.
+  Get an attribute value with a fallback default.
 
-    Unlike `attrs.key or default`, works with dynamic key names and
-    correctly handles the case where the key exists but holds null.
+  Unlike `attrs.key or default`, works with dynamic key names and
+  correctly handles the case where the key exists but holds null.
 
-    # Type
-    ```nix
-    valueOr :: { attrs :: AttrSet, key :: string, default :: a } -> a
-    ```
+  # Type
+  ```nix
+  valueOr :: { attrs :: AttrSet, key :: string, default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    valueOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }  # => "bar"
-    valueOr { attrs = { foo = null; }; key = "foo"; default = "?"; }   # => null
-    valueOr { attrs = {};              key = "foo"; default = "?"; }   # => "?"
-    ```
+  # Examples
+  ```nix
+  valueOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }  # => "bar"
+  valueOr { attrs = { foo = null; }; key = "foo"; default = "?"; }   # => null
+  valueOr { attrs = {};              key = "foo"; default = "?"; }   # => "?"
+  ```
   */
-  valueOr =
-    {
-      attrs,
-      key,
-      default,
-    }:
-    if !isAttrs attrs then
+  valueOr = {
+    attrs,
+    key,
+    default,
+  }:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -54,34 +54,33 @@ let
           input = attrs;
         }
       )
-    else if hasAttr key attrs then
-      attrs.${key}
-    else
-      default;
+    else if hasAttr key attrs
+    then attrs.${key}
+    else default;
 
   /**
-    Get a deeply nested attribute value, returning a default if any key
-    along the path is missing.
+  Get a deeply nested attribute value, returning a default if any key
+  along the path is missing.
 
-    # Type
-    ```nix
-    nestedOr :: { attrs :: AttrSet, path :: [string], default :: a } -> a
-    ```
+  # Type
+  ```nix
+  nestedOr :: { attrs :: AttrSet, path :: [string], default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    nestedOr { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }  # => 1
-    nestedOr { attrs = { a.b = 1; };   path = ["a" "x" "c"]; default = 0; }  # => 0
-    nestedOr { attrs = {};              path = ["a"];          default = 0; }  # => 0
-    ```
+  # Examples
+  ```nix
+  nestedOr { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }  # => 1
+  nestedOr { attrs = { a.b = 1; };   path = ["a" "x" "c"]; default = 0; }  # => 0
+  nestedOr { attrs = {};              path = ["a"];          default = 0; }  # => 0
+  ```
   */
-  nestedOr =
-    {
-      attrs,
-      path,
-      default,
-    }:
-    if !isAttrs attrs then
+  nestedOr = {
+    attrs,
+    path,
+    default,
+  }:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -92,7 +91,8 @@ let
           input = attrs;
         }
       )
-    else if !isList path then
+    else if !isList path
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -104,30 +104,38 @@ let
         }
       )
     else
-      foldl' (acc: key: if isAttrs acc && hasAttr key acc then acc.${key} else default) attrs path;
+      foldl' (acc: key:
+        if isAttrs acc && hasAttr key acc
+        then acc.${key}
+        else default)
+      attrs
+      path;
 
   /**
-    Return a new attrset containing only the listed keys.
+  Return a new attrset containing only the listed keys.
 
-    Missing keys are silently omitted — no error is thrown.
+  Missing keys are silently omitted — no error is thrown.
 
-    # Type
-    ```nix
-    pick :: { attrs :: AttrSet, keys :: [string] } -> AttrSet
-    ```
+  # Type
+  ```nix
+  pick :: { attrs :: AttrSet, keys :: [string] } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    pick { attrs = { a = 1; b = 2; c = 3; }; keys = ["a" "c"]; }
-    # => { a = 1; c = 3; }
+  # Examples
+  ```nix
+  pick { attrs = { a = 1; b = 2; c = 3; }; keys = ["a" "c"]; }
+  # => { a = 1; c = 3; }
 
-    pick { attrs = { a = 1; }; keys = ["a" "z"]; }
-    # => { a = 1; }
-    ```
+  pick { attrs = { a = 1; }; keys = ["a" "z"]; }
+  # => { a = 1; }
+  ```
   */
-  pick =
-    { attrs, keys }:
-    if !isAttrs attrs then
+  pick = {
+    attrs,
+    keys,
+  }:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -138,7 +146,8 @@ let
           input = attrs;
         }
       )
-    else if !isList keys then
+    else if !isList keys
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -149,31 +158,33 @@ let
           input = keys;
         }
       )
-    else
-      filterAttrs (key: _: elem key keys) attrs;
+    else filterAttrs (key: _: elem key keys) attrs;
 
   /**
-    Return a new attrset with the listed keys removed.
+  Return a new attrset with the listed keys removed.
 
-    Missing keys are silently ignored.
+  Missing keys are silently ignored.
 
-    # Type
-    ```nix
-    omit :: { attrs :: AttrSet, keys :: [string] } -> AttrSet
-    ```
+  # Type
+  ```nix
+  omit :: { attrs :: AttrSet, keys :: [string] } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    omit { attrs = { a = 1; b = 2; c = 3; }; keys = ["b"]; }
-    # => { a = 1; c = 3; }
+  # Examples
+  ```nix
+  omit { attrs = { a = 1; b = 2; c = 3; }; keys = ["b"]; }
+  # => { a = 1; c = 3; }
 
-    omit { attrs = { a = 1; }; keys = ["z"]; }
-    # => { a = 1; }
-    ```
+  omit { attrs = { a = 1; }; keys = ["z"]; }
+  # => { a = 1; }
+  ```
   */
-  omit =
-    { attrs, keys }:
-    if !isAttrs attrs then
+  omit = {
+    attrs,
+    keys,
+  }:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -184,7 +195,8 @@ let
           input = attrs;
         }
       )
-    else if !isList keys then
+    else if !isList keys
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -195,35 +207,34 @@ let
           input = keys;
         }
       )
-    else
-      filterAttrs (key: _: !(elem key keys)) attrs;
+    else filterAttrs (key: _: !(elem key keys)) attrs;
 
   /**
-    Rename a single key in an attrset, preserving all other keys.
+  Rename a single key in an attrset, preserving all other keys.
 
-    A no-op if `from` does not exist.
+  A no-op if `from` does not exist.
 
-    # Type
-    ```nix
-    renameKey :: { attrs :: AttrSet, from :: string, to :: string } -> AttrSet
-    ```
+  # Type
+  ```nix
+  renameKey :: { attrs :: AttrSet, from :: string, to :: string } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    renameKey { attrs = { foo = 1; bar = 2; }; from = "foo"; to = "baz"; }
-    # => { baz = 1; bar = 2; }
+  # Examples
+  ```nix
+  renameKey { attrs = { foo = 1; bar = 2; }; from = "foo"; to = "baz"; }
+  # => { baz = 1; bar = 2; }
 
-    renameKey { attrs = { a = 1; }; from = "x"; to = "y"; }
-    # => { a = 1; }   (no-op — "x" didn't exist)
-    ```
+  renameKey { attrs = { a = 1; }; from = "x"; to = "y"; }
+  # => { a = 1; }   (no-op — "x" didn't exist)
+  ```
   */
-  renameKey =
-    {
-      attrs,
-      from,
-      to,
-    }:
-    if !isAttrs attrs then
+  renameKey = {
+    attrs,
+    from,
+    to,
+  }:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -234,34 +245,34 @@ let
           input = attrs;
         }
       )
-    else if !(hasAttr from attrs) then
-      attrs
+    else if !(hasAttr from attrs)
+    then attrs
     else
       (omit {
         inherit attrs;
-        keys = [ from ];
+        keys = [from];
       })
       // {
         "${to}" = attrs.${from};
       };
 
   /**
-    Transform all keys in an attrset using a function.
+  Transform all keys in an attrset using a function.
 
-    # Type
-    ```nix
-    mapKeys :: (string -> string) -> AttrSet -> AttrSet
-    ```
+  # Type
+  ```nix
+  mapKeys :: (string -> string) -> AttrSet -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    mapKeys (key: "prefix_" + key) { foo = 1; bar = 2; }
-    # => { prefix_foo = 1; prefix_bar = 2; }
-    ```
+  # Examples
+  ```nix
+  mapKeys (key: "prefix_" + key) { foo = 1; bar = 2; }
+  # => { prefix_foo = 1; prefix_bar = 2; }
+  ```
   */
-  mapKeys =
-    fn: attrs:
-    if !isAttrs attrs then
+  mapKeys = fn: attrs:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -277,26 +288,27 @@ let
         mapAttrsToList (key: val: {
           name = fn key;
           value = val;
-        }) attrs
+        })
+        attrs
       );
 
   /**
-    Remove all keys whose value is null.
+  Remove all keys whose value is null.
 
-    # Type
-    ```nix
-    compact :: AttrSet -> AttrSet
-    ```
+  # Type
+  ```nix
+  compact :: AttrSet -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    compact { a = 1; b = null; c = "x"; }
-    # => { a = 1; c = "x"; }
-    ```
+  # Examples
+  ```nix
+  compact { a = 1; b = null; c = "x"; }
+  # => { a = 1; c = "x"; }
+  ```
   */
-  compact =
-    attrs:
-    if !isAttrs attrs then
+  compact = attrs:
+    if !isAttrs attrs
+    then
       throw (
         debug.withLoc {
           function = mkFn {
@@ -307,10 +319,8 @@ let
           input = attrs;
         }
       )
-    else
-      filterAttrs (_: val: val != null) attrs;
-in
-{
+    else filterAttrs (_: val: val != null) attrs;
+in {
   inherit
     compact
     nestedOr
@@ -348,7 +358,7 @@ in
         desired = "?";
         command = ''valueOr { attrs = {}; key = "foo"; default = "?"; }'';
         outcome = valueOr {
-          attrs = { };
+          attrs = {};
           key = "foo";
           default = "?";
         };
@@ -401,8 +411,8 @@ in
         desired = 0;
         command = ''nestedOr { attrs = {}; path = ["a"]; default = 0; }'';
         outcome = nestedOr {
-          attrs = { };
-          path = [ "a" ];
+          attrs = {};
+          path = ["a"];
           default = 0;
         };
       };
@@ -457,7 +467,7 @@ in
             b = 2;
             c = 3;
           };
-          keys = [ "b" ];
+          keys = ["b"];
         };
       };
       missingKeysIgnored = mkTest {
@@ -469,7 +479,7 @@ in
           attrs = {
             a = 1;
           };
-          keys = [ "z" ];
+          keys = ["z"];
         };
       };
     };

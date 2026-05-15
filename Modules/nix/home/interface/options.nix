@@ -5,16 +5,16 @@
   lix,
   top,
   ...
-}:
-let
+}: let
   dom = "interface";
 
   inherit (lib.types) nullOr str;
   inherit (lix.types.options) mkTrue mkOption mkEnumOption;
   inherit (lix.schema.ui) mkUI;
 
-  ui = mkUI { inherit host user; };
-  inherit (ui.composites)
+  ui = mkUI {inherit host user;};
+  inherit
+    (ui.composites)
     types
     shells
     desktopEnvironments
@@ -22,14 +22,13 @@ let
     displayProtocols
     windowManagers
     ;
-in
-{
+in {
   options.${top}.${dom} = {
     enable = mkTrue dom;
 
     available = mkOption {
       description = "Available interfaces";
-      default = { inherit desktopEnvironments windowManagers; };
+      default = {inherit desktopEnvironments windowManagers;};
     };
 
     desktopEnvironment = mkEnumOption {

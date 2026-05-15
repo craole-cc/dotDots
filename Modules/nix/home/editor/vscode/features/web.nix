@@ -4,8 +4,7 @@
   lix,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -29,7 +28,7 @@ let
         "jsx"
         "tsx"
       ];
-      "cssvar.ignore" = [ ];
+      "cssvar.ignore" = [];
     };
   };
 
@@ -59,13 +58,11 @@ let
       "[scss]"."editor.defaultFormatter" = "esbenp.prettier-vscode";
     };
   };
-in
-{
+in {
   name = "web";
   description = "Web development extensions";
   default = true;
-  feature =
-    enabled:
+  feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -74,9 +71,9 @@ in
         prettier.extensions
       ];
       userSettings = mkMerge [
-        (tailwind.userSettings or { })
-        (deno.userSettings or { })
-        (prettier.userSettings or { })
+        (tailwind.userSettings or {})
+        (deno.userSettings or {})
+        (prettier.userSettings or {})
       ];
     };
 }

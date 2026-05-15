@@ -1,7 +1,7 @@
-{ dots, ... }:
-let
+{dots, ...}: let
   description = "Minimal Dev Environment";
-  inherit (dots)
+  inherit
+    (dots)
     cache
     lix
     pkgs
@@ -13,20 +13,23 @@ let
   #| Packages                               |
   #|────────────────────────────────────────|
 
-  packages =
-    with pkgs;
+  packages = with pkgs;
     [
       bat # ? Cat clone with syntax highlighting
       fd # ? Fast find alternative
+      direnv
+      git
       gnused # ? GNU stream editor
+      gum
       jq # ? JSON query processor
       lsd # ? LSDeluxe file lister
       nitch # ? System fetch written in nim
       nixd # ? Nix language daemon
+      onefetch # ? Git repository summary on your terminal
       ripgrep-all # ? Fast grep alternative
       sd # ? Intuitive find & replace CLI (sed alternative)
-      onefetch # ? Git repository summary on your terminal
-      undollar # ? Remove leading dollar signs
+      sops
+      undollar # ? Remove leading dollar signs age
     ]
     ++ optionals stdenv.isLinux [
       xclip
@@ -115,8 +118,7 @@ let
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
-in
-{
+in {
   inherit
     description
     packages

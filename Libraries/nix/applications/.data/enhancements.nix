@@ -4,9 +4,9 @@ _: {
       "shell"
       "enhancement"
     ];
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = {
-      lang = [ "toml" ];
+      lang = ["toml"];
       file = "config.toml";
       home = "$XDG_CONFIG_HOME/atuin";
     };
@@ -24,7 +24,7 @@ _: {
       "shell"
       "enhancement"
     ];
-    engine = [ "go" ];
+    engine = ["go"];
     config = null;
     shells = [
       "bash"
@@ -39,9 +39,9 @@ _: {
       "shell"
       "enhancement"
     ];
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = {
-      lang = [ "toml" ];
+      lang = ["toml"];
       file = "config.toml";
       home = "$XDG_DATA_HOME/mcfly";
     };
@@ -58,7 +58,7 @@ _: {
       "shell"
       "enhancement"
     ];
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = null;
     shells = [
       "bash"
@@ -73,7 +73,7 @@ _: {
       "shell"
       "enhancement"
     ];
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = null;
     shells = [
       "bash"

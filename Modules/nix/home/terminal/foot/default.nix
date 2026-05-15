@@ -6,8 +6,7 @@
   pkgs,
   # tree,
   ...
-}:
-let
+}: let
   inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
@@ -16,22 +15,20 @@ let
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
     inherit pkgs;
-    scripts =
-      let
-        # script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
-        script = ./wrapper.sh;
-      in
-      {
-        feet = script;
-        feet-quake = {
-          inherit script;
-          extraArgs = [ "--quake" ];
-        };
-        feet-monitor = {
-          inherit script;
-          extraArgs = [ "--monitor" ];
-        };
+    scripts = let
+      # script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
+      script = ./wrapper.sh;
+    in {
+      feet = script;
+      feet-quake = {
+        inherit script;
+        extraArgs = ["--quake"];
       };
+      feet-monitor = {
+        inherit script;
+        extraArgs = ["--monitor"];
+      };
+    };
   };
 
   #~@ Desktop entries
@@ -75,21 +72,22 @@ let
       "feet"
     ];
     requiresWayland = true;
-    extraPackages = wrappers ++ [
-      desktop
-      quake
-    ];
+    extraPackages =
+      wrappers
+      ++ [
+        desktop
+        quake
+      ];
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
-        (import ./settings.nix { inherit lib; })
+        (import ./settings.nix {inherit lib;})
         (import ./input.nix)
         (import ./themes.nix)
       ];
     };
     debug = false;
   };
-in
-{
-  config = mkIf cfg.enable { inherit (cfg) programs home; };
+in {
+  config = mkIf cfg.enable {inherit (cfg) programs home;};
 }

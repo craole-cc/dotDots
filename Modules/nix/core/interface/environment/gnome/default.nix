@@ -4,12 +4,10 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
-in
-{
+in {
   config = mkIf (cfg.desktopEnvironment == "gnome") {
     services.desktopManager.gnome.enable = true;
     environment.gnome.excludePackages = with pkgs; [

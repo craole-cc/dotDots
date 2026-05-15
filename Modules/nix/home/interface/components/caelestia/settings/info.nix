@@ -1,5 +1,8 @@
-{ locale, paths, ... }:
 {
+  locale,
+  paths,
+  ...
+}: {
   services = {
     audioIncrement = 0.1;
     brightnessIncrement = 0.1;

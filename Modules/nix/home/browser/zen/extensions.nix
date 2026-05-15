@@ -1,8 +1,6 @@
-{ lix, ... }:
-let
+{lix, ...}: let
   inherit (lix.applications.firefox) extensionSettings extensionEntry;
-in
-{
+in {
   ExtensionSettings = extensionSettings {
     "{446900e4-71c2-419f-a6a7-df9c091e268b}" = extensionEntry {
       id = "bitwarden-password-manager";

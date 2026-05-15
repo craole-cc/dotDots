@@ -1,48 +1,47 @@
-{ _, ... }:
-let
+{_, ...}: let
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
 
   /**
-    Shells - command-line shell options.
+  Shells - command-line shell options.
 
-    Available interactive shells for user sessions and scripting.
+  Available interactive shells for user sessions and scripting.
 
-    # POSIX-Compatible
-    - bash: Bourne Again SHell (most common)
-    - zsh: Z Shell (extended Bourne, powerful)
-    - sh: POSIX shell (basic)
-    - dash: Debian Almquist Shell (fast, minimal)
+  # POSIX-Compatible
+  - bash: Bourne Again SHell (most common)
+  - zsh: Z Shell (extended Bourne, powerful)
+  - sh: POSIX shell (basic)
+  - dash: Debian Almquist Shell (fast, minimal)
 
-    # Modern
-    - fish: Friendly Interactive SHell (user-friendly)
-    - nushell: Structured data shell (typed, tables)
-    - pwsh: PowerShell Core (object-oriented)
-    - elvish: Expressive programming language shell
+  # Modern
+  - fish: Friendly Interactive SHell (user-friendly)
+  - nushell: Structured data shell (typed, tables)
+  - pwsh: PowerShell Core (object-oriented)
+  - elvish: Expressive programming language shell
 
-    # Alternative
-    - tcsh: C Shell (BSD heritage)
-    - ksh: Korn Shell (UNIX standard)
+  # Alternative
+  - tcsh: C Shell (BSD heritage)
+  - ksh: Korn Shell (UNIX standard)
 
-    # Structure
-    ```nix
-    {
-      values = [ "bash" "zsh" "fish" "nushell" ... ];
-      validator = { check, list };
-    }
-    ```
+  # Structure
+  ```nix
+  {
+    values = [ "bash" "zsh" "fish" "nushell" ... ];
+    validator = { check, list };
+  }
+  ```
 
-    # Usage
-    ```nix
-    # Validate shell selection
-    _lib.shells.validator.check { name = "ZSH"; }  # => true
+  # Usage
+  ```nix
+  # Validate shell selection
+  _lib.shells.validator.check { name = "ZSH"; }  # => true
 
-    # Check if shell is POSIX-compatible
-    _lib.inList config.shell ["bash" "sh"]
+  # Check if shell is POSIX-compatible
+  _lib.inList config.shell ["bash" "sh"]
 
-    # List all available shells
-    _lib.shells.values
-    ```
+  # List all available shells
+  _lib.shells.values
+  ```
   */
   shells = mkEnum [
     "bash"
@@ -57,8 +56,7 @@ let
     "tcsh"
     "zsh"
   ];
-in
-{
+in {
   inherit shells;
 
   __rootAliases = {

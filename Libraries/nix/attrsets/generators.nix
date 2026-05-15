@@ -1,81 +1,83 @@
-{ _, lib, ... }:
-let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (_.debug.assertions) mkTest mkThrows;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isString typeOf;
   inherit (lib.attrsets) isAttrs mapAttrs;
 
   /**
-    Lock attribute values with metadata.
+  Lock attribute values with metadata.
 
-    Wraps each value in an attribute set with a specified status and value structure.
-    Commonly used for browser policies, configuration management, or any scenario
-    where values need to be marked as locked/managed.
+  Wraps each value in an attribute set with a specified status and value structure.
+  Commonly used for browser policies, configuration management, or any scenario
+  where values need to be marked as locked/managed.
 
-    # Type
-    ```nix
-    lock :: string -> AttrSet -> AttrSet
-    ```
+  # Type
+  ```nix
+  lock :: string -> AttrSet -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    lock "locked" {
-      homepage = "https://example.com";
-      searchEngine = "DuckDuckGo";
-    }
-    # => {
-    #   homepage = { Value = "https://example.com"; Status = "locked"; };
-    #   searchEngine = { Value = "DuckDuckGo"; Status = "locked"; };
-    # }
-    ```
+  # Examples
+  ```nix
+  lock "locked" {
+    homepage = "https://example.com";
+    searchEngine = "DuckDuckGo";
+  }
+  # => {
+  #   homepage = { Value = "https://example.com"; Status = "locked"; };
+  #   searchEngine = { Value = "DuckDuckGo"; Status = "locked"; };
+  # }
+  ```
   */
-  lock =
-    status: attrs:
-    if !isString status then
-      throw "lockAttrs: status must be a string, got ${typeOf status}"
-    else if !isAttrs attrs then
-      throw "lockAttrs: attrs must be an attribute set, got ${typeOf attrs}"
+  lock = status: attrs:
+    if !isString status
+    then throw "lockAttrs: status must be a string, got ${typeOf status}"
+    else if !isAttrs attrs
+    then throw "lockAttrs: attrs must be an attribute set, got ${typeOf attrs}"
     else
       mapAttrs (_key: value: {
         Value = value;
         Status = status;
-      }) attrs;
+      })
+      attrs;
 
   /**
-    Lock attributes with "locked" status (convenience wrapper).
+  Lock attributes with "locked" status (convenience wrapper).
 
-    Equivalent to `lock "locked"`.
+  Equivalent to `lock "locked"`.
 
-    # Type
-    ```nix
-    locked :: AttrSet -> AttrSet
-    ```
+  # Type
+  ```nix
+  locked :: AttrSet -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    locked { homepage = "https://example.com"; trackingProtection = true; }
-    ```
+  # Examples
+  ```nix
+  locked { homepage = "https://example.com"; trackingProtection = true; }
+  ```
   */
   locked = lock "locked";
 
   /**
-    Lock attributes with "managed" status (convenience wrapper).
+  Lock attributes with "managed" status (convenience wrapper).
 
-    Equivalent to `lock "managed"`.
+  Equivalent to `lock "managed"`.
 
-    # Type
-    ```nix
-    managed :: AttrSet -> AttrSet
-    ```
+  # Type
+  ```nix
+  managed :: AttrSet -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    managed { proxy = "http://proxy.example.com"; }
-    ```
+  # Examples
+  ```nix
+  managed { proxy = "http://proxy.example.com"; }
+  ```
   */
   managed = lock "managed";
-in
-{
+in {
   inherit lock locked managed;
 
   __rootAliases = {
@@ -93,7 +95,7 @@ in
             Status = "locked";
           };
         };
-        outcome = lock "locked" { x = 1; };
+        outcome = lock "locked" {x = 1;};
       };
 
       nested = mkTest {
@@ -118,11 +120,11 @@ in
       };
 
       empty = mkTest {
-        desired = { };
-        outcome = lock "locked" { };
+        desired = {};
+        outcome = lock "locked" {};
       };
 
-      invalidStatus = mkThrows (lock 123 { x = 1; });
+      invalidStatus = mkThrows (lock 123 {x = 1;});
       invalidAttrs = mkThrows (lock "locked" "not-an-attrset");
     };
 
@@ -134,7 +136,7 @@ in
             Status = "locked";
           };
         };
-        outcome = locked { enable = true; };
+        outcome = locked {enable = true;};
       };
     };
 
@@ -146,7 +148,7 @@ in
             Status = "managed";
           };
         };
-        outcome = managed { url = "https://example.com"; };
+        outcome = managed {url = "https://example.com";};
       };
     };
   };

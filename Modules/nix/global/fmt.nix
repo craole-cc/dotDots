@@ -1,5 +1,4 @@
-{ dots, ... }:
-let
+{dots, ...}: let
   inherit (dots) pkgs src;
   inherit (pkgs.lib) makeBinPath;
   inherit (pkgs) writeShellScriptBin runCommand;
@@ -28,11 +27,10 @@ let
     export PATH=${formatterPath}:$PATH
     exec ${pkgs.treefmt}/bin/treefmt "$@"
   '';
-in
-{
-  formatters = formatters ++ [ treefmtWrapper ];
+in {
+  formatters = formatters ++ [treefmtWrapper];
   formatter = treefmtWrapper;
-  checks.formatting = runCommand "check-formatting" { buildInputs = formatters; } ''
+  checks.formatting = runCommand "check-formatting" {buildInputs = formatters;} ''
     export TMPDIR=$(mktemp -d)
     cd $TMPDIR
 

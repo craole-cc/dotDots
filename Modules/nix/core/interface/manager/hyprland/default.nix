@@ -3,12 +3,10 @@
   lib,
   top,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
-in
-{
+in {
   config = mkIf (cfg.windowManager == "hyprland") {
     programs.hyprland = {
       enable = true;

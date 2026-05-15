@@ -7,7 +7,7 @@ _: {
     enableClipboardHistory = true;
     # iconMode = "candy";
     ignoreMouseInput = false;
-    pinnedExecs = [ ];
+    pinnedExecs = [];
     position = "center";
     showCategories = true;
     sortByMostUsed = true;
@@ -46,16 +46,16 @@ _: {
     position = "close_to_bar_button";
     shortcuts = {
       left = [
-        { id = "WiFi"; }
-        { id = "Bluetooth"; }
-        { id = "ScreenRecorder"; }
-        { id = "WallpaperSelector"; }
+        {id = "WiFi";}
+        {id = "Bluetooth";}
+        {id = "ScreenRecorder";}
+        {id = "WallpaperSelector";}
       ];
       right = [
-        { id = "Notifications"; }
-        { id = "PowerProfile"; }
-        { id = "KeepAwake"; }
-        { id = "NightLight"; }
+        {id = "Notifications";}
+        {id = "PowerProfile";}
+        {id = "KeepAwake";}
+        {id = "NightLight";}
       ];
     };
   };

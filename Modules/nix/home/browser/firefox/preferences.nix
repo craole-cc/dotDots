@@ -1,8 +1,6 @@
-{ lix, ... }:
-let
+{lix, ...}: let
   inherit (lix.applications.firefox) mkLockedAttrs;
-in
-{
+in {
   Preferences = mkLockedAttrs {
     ## Browser UI and Behavior
     "browser.aboutConfig.showWarning" = false;

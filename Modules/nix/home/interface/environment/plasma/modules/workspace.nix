@@ -2,11 +2,9 @@
   # pkgs,
   config,
   ...
-}:
-let
+}: let
   wallpapers = config.home.homeDirectory + "/Pictures/Wallpapers";
-in
-{
+in {
   workspace = {
     clickItemTo = "select";
     enableMiddleClickPaste = true;

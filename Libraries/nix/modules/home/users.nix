@@ -1,5 +1,8 @@
-{ _, lib, ... }:
-let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.paths) mkSessionPaths;
@@ -9,48 +12,47 @@ let
   inherit (lib.attrsets) mapAttrs;
 
   __exports = {
-    internal = { inherit mkUsers; };
+    internal = {inherit mkUsers;};
     external = {
       mkHomeUsers = mkUsers;
     };
   };
 
   /**
-    Build the attrset passed directly to `home-manager.users`.
+  Build the attrset passed directly to `home-manager.users`.
 
-    Each key is a username; each value is the per-user home-manager module
-    function. Static store paths come in via `paths` (from `mkPaths`);
-    runtime filesystem paths are derived per-user via `mkSessionPaths`.
+  Each key is a username; each value is the per-user home-manager module
+  function. Static store paths come in via `paths` (from `mkPaths`);
+  runtime filesystem paths are derived per-user via `mkSessionPaths`.
 
-    # Type
-    ```
-    mkUsers :: { host :: AttrSet, paths :: AttrSet } -> AttrSet
-    ```
+  # Type
+  ```
+  mkUsers :: { host :: AttrSet, paths :: AttrSet } -> AttrSet
+  ```
   */
-  mkUsers =
-    {
-      host,
-      inputs,
-      modules,
-      tree,
-    }:
+  mkUsers = {
+    host,
+    inputs,
+    modules,
+    tree,
+  }:
     mapAttrs (
-      name: user:
-      {
+      name: user: {
         nixosConfig,
         config,
         pkgs,
         ...
-      }:
-      let
-        enrichedUser = user // {
-          inherit name;
-        };
+      }: let
+        enrichedUser =
+          user
+          // {
+            inherit name;
+          };
         enrichedInterface = mkUI {
           inherit host;
           user = enrichedUser;
         };
-        inputsForHome = mkApps { inherit user inputs modules; };
+        inputsForHome = mkApps {inherit user inputs modules;};
         derivedPaths = mkSessionPaths {
           inherit
             config
@@ -60,13 +62,14 @@ let
             tree
             ;
         };
-      in
-      {
+      in {
         _module.args = {
-          style = mkStyle { inherit host user; };
-          user = enrichedUser // {
-            interface = enrichedInterface;
-          };
+          style = mkStyle {inherit host user;};
+          user =
+            enrichedUser
+            // {
+              interface = enrichedInterface;
+            };
           apps = mkApplications {
             inherit host;
             user = enrichedUser;
@@ -83,7 +86,7 @@ let
           inherit inputsForHome;
         };
 
-        home = { inherit (nixosConfig.system) stateVersion; };
+        home = {inherit (nixosConfig.system) stateVersion;};
 
         imports =
           (with inputsForHome; [
@@ -96,9 +99,9 @@ let
             plasma.module
             zen-browser.module
           ])
-          ++ [ tree.store.mod.home ]
-          ++ (user.imports or [ ]);
+          ++ [tree.store.mod.home]
+          ++ (user.imports or []);
       }
     ) (homeUsers host);
 in
-__exports.internal // { __rootAliases = __exports.external; }
+  __exports.internal // {__rootAliases = __exports.external;}

@@ -6,7 +6,7 @@ _: {
       class = "brave-browser";
     };
     exec = "brave";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "chromium";
     channel = "stable";
   };
@@ -18,7 +18,7 @@ _: {
       class = "chromium-browser";
     };
     exec = "chromium";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "chromium";
     channel = "stable";
   };
@@ -30,7 +30,7 @@ _: {
       class = "firefox";
     };
     exec = "firefox";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "firefox";
     channel = "stable";
   };
@@ -42,7 +42,7 @@ _: {
       class = "org.gnome.Epiphany";
     };
     exec = "epiphany";
-    categories = [ "browser" ];
+    categories = ["browser"];
     channel = "stable";
   };
 
@@ -53,7 +53,7 @@ _: {
       class = "org.kde.falkon";
     };
     exec = "falkon";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "chromium";
     channel = "stable";
   };
@@ -65,7 +65,7 @@ _: {
       class = "firefox";
     };
     exec = "firefox-esr";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "firefox";
     channel = "esr";
   };
@@ -77,7 +77,7 @@ _: {
       class = "firefoxNightly";
     };
     exec = "firefox-nightly";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "firefox";
     channel = "nightly";
   };
@@ -89,7 +89,7 @@ _: {
       class = "LibreWolf";
     };
     exec = "librewolf";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "firefox";
     channel = "stable";
   };
@@ -101,7 +101,7 @@ _: {
       class = "qutebrowser";
     };
     exec = "qutebrowser";
-    categories = [ "browser" ];
+    categories = ["browser"];
     channel = "stable";
   };
 
@@ -112,7 +112,7 @@ _: {
       class = "Tor Browser";
     };
     exec = "tor-browser";
-    categories = [ "browser" ];
+    categories = ["browser"];
     channel = "stable";
   };
 
@@ -123,7 +123,7 @@ _: {
       class = "vivaldi-stable";
     };
     exec = "vivaldi";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "chromium";
     channel = "stable";
   };
@@ -136,7 +136,7 @@ _: {
       title = "Zen Twilight";
     };
     exec = "zen-twilight";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "zen";
     channel = "twilight";
   };
@@ -148,7 +148,7 @@ _: {
       class = "zen-beta";
     };
     exec = "zen-beta";
-    categories = [ "browser" ];
+    categories = ["browser"];
     family = "zen";
     channel = "beta";
   };

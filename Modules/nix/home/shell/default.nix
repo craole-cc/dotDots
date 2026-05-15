@@ -5,21 +5,19 @@
   pkgs,
   user,
   ...
-}:
-let
+}: let
   inherit (lix.attrsets.resolution) package;
   inherit (lix.filesystem.importers) importAll;
-in
-{
+in {
   home = {
     inherit (host) stateVersion;
     packages = map (
       shell:
-      package {
-        inherit pkgs;
-        target = shell;
-      }
-    ) (user.shells or [ ]);
+        package {
+          inherit pkgs;
+          target = shell;
+        }
+    ) (user.shells or []);
   };
 
   imports = importAll ./.;

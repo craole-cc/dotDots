@@ -6,8 +6,7 @@
   user,
   nixosConfig,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   inherit (nixosConfig.location) latitude longitude provider;
   inherit (pkgs) replaceVarsWith;
@@ -18,7 +17,7 @@ let
   usegeoclue = provider == "geoclue2";
 
   #~@ Enable condition
-  style = user.interface.style or host.interface.style or { };
+  style = user.interface.style or host.interface.style or {};
   enable = style.autoSwitch or true;
 
   #~@ Theme → caelestia flavour mapping
@@ -32,10 +31,17 @@ let
   darkTheme = style.theme.dark or "Catppuccin Frappé";
   lightTheme = style.theme.light or "Catppuccin Latte";
 
-  caelestiaFlavour =
-    polarity:
-    themeToFlavour.${if polarity == "dark" then darkTheme else lightTheme}
-      or (if polarity == "dark" then "frappe" else "latte");
+  caelestiaFlavour = polarity:
+    themeToFlavour.${
+      if polarity == "dark"
+      then darkTheme
+      else lightTheme
+    }
+      or (
+      if polarity == "dark"
+      then "frappe"
+      else "latte"
+    );
 
   vscodeThemes = {
     "Catppuccin Frappé" = "Catppuccin Frappé";
@@ -46,8 +52,7 @@ let
     "Kaolin Valley Light" = "Kaolin Valley Light";
   };
 
-  toggle =
-    polarity:
+  toggle = polarity:
     replaceVarsWith {
       src = ./toggle.sh;
       replacements = {
@@ -55,8 +60,16 @@ let
         cfgPolarity = polarity;
         cfgCaelestiaFlavour = caelestiaFlavour polarity;
         cfgVscodeTheme =
-          vscodeThemes.${if polarity == "dark" then darkTheme else lightTheme}
-            or (if polarity == "dark" then "Kaolin Temple" else "Kaolin Valley Light");
+          vscodeThemes.${
+            if polarity == "dark"
+            then darkTheme
+            else lightTheme
+          }
+            or (
+            if polarity == "dark"
+            then "Kaolin Temple"
+            else "Kaolin Valley Light"
+          );
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
@@ -65,8 +78,7 @@ let
       name = "nixos-theme";
       isExecutable = true;
     };
-in
-{
+in {
   services.darkman = mkIf enable {
     inherit enable;
     settings = {

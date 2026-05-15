@@ -2,19 +2,19 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
-    namespaced = { inherit access construction predicates; };
-    flattened = { } // access // construction // predicates // { };
+    namespaced = {inherit access construction predicates;};
+    flattened = {} // access // construction // predicates // {};
   };
 
   inherit (lib) options types;
 
-  access = { inherit (options) showFiles showOption; };
+  access = {inherit (options) showFiles showOption;};
 
   construction = {
-    inherit (options)
+    inherit
+      (options)
       mergeUniqueOption
       mkEnableOption
       mkOption
@@ -29,4 +29,6 @@ let
     inherit (types) isOptionType;
   };
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

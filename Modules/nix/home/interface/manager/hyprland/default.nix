@@ -10,8 +10,7 @@
   paths,
   nixosConfig,
   ...
-}:
-let
+}: let
   dom = "interface";
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
@@ -23,28 +22,31 @@ let
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
-  addons = import ./addons { inherit lib mkMerge paths; };
-in
-{
+  addons = import ./addons {inherit lib mkMerge paths;};
+in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {
-      default = windowManager == "hyprland";
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = windowManager == "hyprland";
+      };
     withAddons = mkOption {
       description = "Enable hyprland addons";
       default = true;
       type = bool;
     };
-    withRules = mkEnableOption "Window rules" // {
-      default = true;
-    };
+    withRules =
+      mkEnableOption "Window rules"
+      // {
+        default = true;
+      };
   };
 
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
-        plugins = [ ];
+        plugins = [];
       }
       (import ./settings {
         inherit
@@ -59,7 +61,7 @@ in
         inherit (cfg) withRules;
         keys = cfgTop.interface.keyboard;
       })
-      (import ./submaps { inherit mkMerge; })
+      (import ./submaps {inherit mkMerge;})
     ];
 
     programs = mkIf cfg.withAddons addons.programs;

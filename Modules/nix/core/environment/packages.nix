@@ -7,14 +7,13 @@
   inputs,
   top,
   ...
-}:
-let
+}: let
   dom = "environment";
   mod = "packages";
   cfg = config.${top}.${dom}.${mod};
 
-  user = host.users.data.primary or { };
-  apps = user.applications or { };
+  user = host.users.data.primary or {};
+  apps = user.applications or {};
   inherit (pkgs.stdenv.hostPlatform) system;
 
   inherit (config.${top}.interface) displayProtocol;
@@ -22,7 +21,8 @@ let
   inherit (lib.lists) optionals;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf package;
-  inherit (lix.applications.resolution)
+  inherit
+    (lix.applications.resolution)
     editors
     browsers
     terminals
@@ -32,28 +32,27 @@ let
 
   editorPkgs = editors.packages {
     inherit pkgs system inputs;
-    editorConfig = apps.editor or { };
+    editorConfig = apps.editor or {};
   };
   browserPkgs = browsers.packages {
     inherit pkgs system inputs;
-    appConfig = apps.browser or { };
+    appConfig = apps.browser or {};
   };
   terminalPkgs = terminals.packages {
     inherit pkgs system inputs;
-    appConfig = apps.terminal or { };
+    appConfig = apps.terminal or {};
   };
   launcherPkgs = launchers.packages {
     inherit pkgs system inputs;
-    appConfig = apps.launcher or { };
+    appConfig = apps.launcher or {};
   };
   barPkgs = bars.packages {
     inherit pkgs system inputs;
-    appConfig = apps.bar or { };
+    appConfig = apps.bar or {};
   };
-  waylandPkgs = optionals (displayProtocol == "wayland") (with pkgs; [ weston ]);
+  waylandPkgs = optionals (displayProtocol == "wayland") (with pkgs; [weston]);
 
-  defaultPackages =
-    with pkgs;
+  defaultPackages = with pkgs;
     [
       #~@ Nix
       alejandra
@@ -123,12 +122,13 @@ let
       lolcat
     ]
     ++ waylandPkgs;
-in
-{
+in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     default = mkOption {
       description = "Base system packages";
       default = defaultPackages;
@@ -136,7 +136,7 @@ in
     };
     extra = mkOption {
       description = "Additional packages to install";
-      default = [ ];
+      default = [];
       type = listOf package;
     };
   };

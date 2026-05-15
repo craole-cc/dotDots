@@ -1,5 +1,4 @@
-{ config, ... }:
-{
+{config, ...}: {
   AutofillAddressEnabled = true;
   AutofillCreditCardEnabled = false;
   DefaultDownloadDirectory = config.home.homeDirectory + "/Downloads";

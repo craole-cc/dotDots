@@ -1,5 +1,4 @@
-{ vimKeybinds, ... }:
-{
+{vimKeybinds, ...}: {
   controlCenter = {
     sizes = {
       heightMult = 0.75;
@@ -39,7 +38,7 @@
     actionPrefix = ">";
     enableDangerousActions = false;
     dragThreshold = 50;
-    hiddenApps = [ ];
+    hiddenApps = [];
     useFuzzy = {
       apps = true;
       actions = true;

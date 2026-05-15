@@ -1,7 +1,6 @@
 let
   alpha = 0.95;
-in
-{
+in {
   #~@ Primary Color Theme (Dark - Catppuccin Frappe)
   #? Theme 1, accessed via initial-color-theme=1
   colors-dark = {

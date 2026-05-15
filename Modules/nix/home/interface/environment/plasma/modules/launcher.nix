@@ -4,6 +4,6 @@
     key = "Meta+~";
     command = "feet --quake";
   };
-  krunner = { };
-  spectacle = { };
+  krunner = {};
+  spectacle = {};
 }

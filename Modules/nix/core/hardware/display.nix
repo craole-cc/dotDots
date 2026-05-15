@@ -4,8 +4,7 @@
   lib,
   top,
   ...
-}:
-let
+}: let
   dom = "hardware";
   mod = "display";
   cfg = config.${top}.${dom}.${mod};
@@ -17,12 +16,13 @@ let
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool str;
-in
-{
+in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     xkbLayout = mkOption {
       description = "XKB keyboard layout";
       default = "us";
@@ -43,7 +43,10 @@ in
   config = mkIf cfg.enable {
     services.xserver = mkIf (!isWayland) {
       enable = true;
-      videoDrivers = if cfg.nvidia then [ "nvidia" ] else [ ];
+      videoDrivers =
+        if cfg.nvidia
+        then ["nvidia"]
+        else [];
       xkb = {
         layout = cfg.xkbLayout;
         variant = cfg.xkbVariant;

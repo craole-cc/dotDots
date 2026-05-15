@@ -1,9 +1,8 @@
 let
   arch = "x86_64";
   os = "linux";
-in
-{
-  imports = [ ./hardware-configuration.nix ];
+in {
+  imports = [./hardware-configuration.nix];
 
   stateVersion = "25.05";
   system = "${arch}-${os}";
@@ -78,7 +77,7 @@ in
       };
     };
 
-    swap = [ { device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe"; } ];
+    swap = [{device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe";}];
 
     network = [
       "eno1"
@@ -165,7 +164,7 @@ in
             to = 65534;
           }
         ];
-        ports = [ ];
+        ports = [];
       };
     };
     nameservers = [

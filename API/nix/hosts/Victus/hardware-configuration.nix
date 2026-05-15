@@ -3,12 +3,10 @@
   lib,
   modulesPath,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkDefault;
-in
-{
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+in {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
   boot = {
     initrd = {
@@ -20,12 +18,11 @@ in
         "sd_mod"
         "rtsx_pci_sdmmc"
       ];
-      luks.devices."luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d".device =
-        "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
-      kernelModules = [ ];
+      luks.devices."luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d".device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
+      kernelModules = [];
     };
-    kernelModules = [ "kvm-amd" ];
-    extraModulePackages = [ ];
+    kernelModules = ["kvm-amd"];
+    extraModulePackages = [];
   };
 
   fileSystems = {
@@ -44,7 +41,7 @@ in
     };
   };
 
-  swapDevices = [ ];
+  swapDevices = [];
 
   networking = {
     networkmanager.enable = true;

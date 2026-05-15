@@ -30,9 +30,9 @@
 
     #| Language Integrations
     enable_language_server = true;
-    language_servers = [ "..." ];
-    languages = { };
+    language_servers = ["..."];
+    languages = {};
     jupyter.enabled = true;
-    code_actions_on_format = { };
+    code_actions_on_format = {};
   };
 }

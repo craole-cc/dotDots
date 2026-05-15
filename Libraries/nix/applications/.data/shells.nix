@@ -1,84 +1,84 @@
 _: {
   bash = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     config = {
-      lang = [ "bash" ];
+      lang = ["bash"];
       file = ".bashrc";
       home = "$HOME";
     };
-    engine = [ "c" ];
+    engine = ["c"];
     interactive = true;
     posix = true;
     system = true;
     maturity = "stable";
   };
   dash = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     config = {
-      lang = [ "sh" ];
+      lang = ["sh"];
       file = ".profile";
       home = "$HOME";
     };
-    engine = [ "c" ];
+    engine = ["c"];
     interactive = true;
     maturity = "stable";
     posix = true;
     system = true;
   };
   elvish = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = false;
     interactive = true;
     system = false;
-    engine = [ "go" ];
+    engine = ["go"];
     config = {
-      lang = [ "elvish" ];
+      lang = ["elvish"];
       file = "rc.elv";
       home = "$XDG_CONFIG_HOME/elvish";
     };
     maturity = "young";
   };
   fish = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = false;
     interactive = true;
     system = false;
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = {
-      lang = [ "fish" ];
+      lang = ["fish"];
       file = "config.fish";
       home = "$XDG_CONFIG_HOME/fish";
     };
     maturity = "stable";
   };
   ksh = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = true;
     interactive = true;
     system = true;
-    engine = [ "c" ];
+    engine = ["c"];
     config = {
-      lang = [ "ksh" ];
+      lang = ["ksh"];
       file = ".kshrc";
       home = "$HOME";
     };
     maturity = "stable";
   };
   nushell = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = false;
     interactive = true;
     system = false;
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = {
-      lang = [ "nu" ];
+      lang = ["nu"];
       file = "config.nu";
       home = "$XDG_CONFIG_HOME/nushell";
     };
     maturity = "young";
   };
   pwsh = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = false;
     interactive = true;
     system = false;
@@ -87,46 +87,46 @@ _: {
       "csharp"
     ];
     config = {
-      lang = [ "powershell" ];
+      lang = ["powershell"];
       file = "profile.ps1";
       home = "$XDG_CONFIG_HOME/powershell";
     };
     maturity = "stable";
   };
   sh = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = true;
     interactive = false;
     system = true;
-    engine = [ "c" ];
+    engine = ["c"];
     config = {
-      lang = [ "sh" ];
+      lang = ["sh"];
       file = ".profile";
       home = "$HOME";
     };
     maturity = "legacy";
   };
   tcsh = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = false;
     interactive = true;
     system = false;
-    engine = [ "c" ];
+    engine = ["c"];
     config = {
-      lang = [ "csh" ];
+      lang = ["csh"];
       file = ".tcshrc";
       home = "$HOME";
     };
     maturity = "legacy";
   };
   zsh = {
-    categories = [ "shell" ];
+    categories = ["shell"];
     posix = true;
     interactive = true;
     system = true;
-    engine = [ "c" ];
+    engine = ["c"];
     config = {
-      lang = [ "zsh" ];
+      lang = ["zsh"];
       file = ".zshrc";
       home = "$HOME";
     };

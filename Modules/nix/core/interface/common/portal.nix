@@ -4,8 +4,7 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
 
   cfg = config.${top}.interface;
@@ -21,27 +20,28 @@ let
     pkgs.xdg-desktop-portal-gtk
   ];
 
-  defaultPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  defaultPortals = [pkgs.xdg-desktop-portal-gtk];
 
   portals =
-    if cfg.windowManager == "hyprland" then
-      hyprlandPortals
-    else if cfg.windowManager == "niri" then
-      niriPortals
-    else
-      defaultPortals;
+    if cfg.windowManager == "hyprland"
+    then hyprlandPortals
+    else if cfg.windowManager == "niri"
+    then niriPortals
+    else defaultPortals;
 
   # Route Settings portal to darkman when autoSwitch is on,
   # otherwise fall through to gtk
-  settingsImpl = if autoSwitch then [ "darkman" ] else [ "gtk" ];
-in
-{
+  settingsImpl =
+    if autoSwitch
+    then ["darkman"]
+    else ["gtk"];
+in {
   config = mkIf cfg.enable {
     xdg.portal = {
       enable = true;
       extraPortals = portals;
       config = {
-        common.default = [ "*" ];
+        common.default = ["*"];
         hyprland = mkIf (cfg.windowManager == "hyprland") {
           default = [
             "hyprland"

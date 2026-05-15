@@ -1,5 +1,4 @@
-{ mod, ... }:
-{
+{mod, ...}: {
   wayland.windowManager.hyprland.settings = {
     bindl = [
       #~@ Media controls

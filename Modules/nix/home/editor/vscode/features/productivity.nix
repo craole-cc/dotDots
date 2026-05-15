@@ -4,8 +4,7 @@
   lix,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.lists) flatten;
   inherit (lib.modules) mkMerge;
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
@@ -114,13 +113,11 @@ let
       "smcpeak.default-keys-windows"
     ];
   };
-in
-{
+in {
   name = "productivity";
   description = "Workflow, file management and utility extensions";
   default = true;
-  feature =
-    enabled:
+  feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -134,14 +131,14 @@ in
         keybindings.extensions
       ];
       userSettings = mkMerge [
-        (files.userSettings or { })
-        (text.userSettings or { })
-        (env.userSettings or { })
-        (license.userSettings or { })
-        (spelling.userSettings or { })
-        (runners.userSettings or { })
-        (viewers.userSettings or { })
-        (keybindings.userSettings or { })
+        (files.userSettings or {})
+        (text.userSettings or {})
+        (env.userSettings or {})
+        (license.userSettings or {})
+        (spelling.userSettings or {})
+        (runners.userSettings or {})
+        (viewers.userSettings or {})
+        (keybindings.userSettings or {})
       ];
     };
 }

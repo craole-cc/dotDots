@@ -1,6 +1,10 @@
-{ _, lib, ... }:
-let
-  inherit (_.schema._)
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit
+    (_.schema._)
     mkUI
     mkHome
     mkLocale
@@ -10,61 +14,56 @@ let
   inherit (lib.lists) head;
 
   __exports = {
-    internal = { inherit mkHost mkCore hostOrDefault; };
+    internal = {inherit mkHost mkCore hostOrDefault;};
     external = {
       mkCoreSchema = mkCore;
     };
   };
 
-  mkHost =
-    {
-      hosts,
-      name ? null,
-    }:
+  mkHost = {
+    hosts,
+    name ? null,
+  }:
     hosts.${name} or (throw "Host '${name}' not found. Available hosts: ${toString (attrNames hosts)}");
 
-  hostOrDefault =
-    {
-      hosts,
-      name ? null,
-    }:
-    if name == null then
-      mkHost { inherit hosts name; }
-    else if hosts != { } then
-      head (attrValues hosts)
-    else
-      throw "No hosts available";
+  hostOrDefault = {
+    hosts,
+    name ? null,
+  }:
+    if name == null
+    then mkHost {inherit hosts name;}
+    else if hosts != {}
+    then head (attrValues hosts)
+    else throw "No hosts available";
 
   /**
-    Enrich a single host with user data, interface normalization, and metadata.
+  Enrich a single host with user data, interface normalization, and metadata.
   */
-  mkCore =
-    {
-      name,
-      host,
-      users,
-    }:
-    let
-      enrichedUser = mkHome { inherit host users; };
-      enrichedUI = mkUI {
-        inherit host;
-        user = enrichedUser.data.primary;
-      };
-      enrichedLocale = mkLocale {
-        inherit host;
-        user = enrichedUser.data.primary;
-      };
-      enrichedHardware = mkHardware { inherit host; };
-      enrichment = {
-        inherit name;
-        inherit (host.paths) dots;
-        system = host.specs.platform or "x86_64-linux";
-        users = enrichedUser;
-        interface = enrichedUI;
-        localization = enrichedLocale;
-        hardware = enrichedHardware;
-      };
-    in
+  mkCore = {
+    name,
+    host,
+    users,
+  }: let
+    enrichedUser = mkHome {inherit host users;};
+    enrichedUI = mkUI {
+      inherit host;
+      user = enrichedUser.data.primary;
+    };
+    enrichedLocale = mkLocale {
+      inherit host;
+      user = enrichedUser.data.primary;
+    };
+    enrichedHardware = mkHardware {inherit host;};
+    enrichment = {
+      inherit name;
+      inherit (host.paths) dots;
+      system = host.specs.platform or "x86_64-linux";
+      users = enrichedUser;
+      interface = enrichedUI;
+      localization = enrichedLocale;
+      hardware = enrichedHardware;
+    };
+  in
     host // enrichment;
 in
-__exports.internal // { __rootAliases = __exports.external; }
+  __exports.internal // {__rootAliases = __exports.external;}

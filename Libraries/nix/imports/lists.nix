@@ -2,8 +2,7 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
     namespaced = {
       inherit
@@ -15,13 +14,14 @@ let
         transformation
         ;
     };
-    flattened = { } // access // construction // reduction // predicates // selection // transformation // { };
+    flattened = {} // access // construction // reduction // predicates // selection // transformation // {};
   };
 
   inherit (lib) lists;
 
   access = {
-    inherit (lists)
+    inherit
+      (lists)
       elemAt
       count
       findFirst
@@ -35,7 +35,8 @@ let
   };
 
   construction = {
-    inherit (lists)
+    inherit
+      (lists)
       genList
       range
       optional
@@ -47,7 +48,8 @@ let
   };
 
   transformation = {
-    inherit (lists)
+    inherit
+      (lists)
       flatten
       flattenDepth
       imap0
@@ -64,7 +66,8 @@ let
   };
 
   selection = {
-    inherit (lists)
+    inherit
+      (lists)
       drop
       dropWhile
       filter
@@ -77,7 +80,8 @@ let
   };
 
   reduction = {
-    inherit (lists)
+    inherit
+      (lists)
       concatLists
       concatMap
       foldl'
@@ -86,7 +90,8 @@ let
   };
 
   predicates = {
-    inherit (lists)
+    inherit
+      (lists)
       all
       any
       elem
@@ -95,4 +100,6 @@ let
       ;
   };
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

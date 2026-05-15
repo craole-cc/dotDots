@@ -3,8 +3,7 @@
   _,
   lib,
   ...
-}:
-let
+}: let
   __exports = {
     internal = {
       inherit
@@ -49,35 +48,34 @@ let
   debug = mkModuleDebug __moduleRef;
 
   /**
-      Internal helper — evaluate `mkAny`-style matching logic.
+    Internal helper — evaluate `mkAny`-style matching logic.
 
-      Returns `true` when at least one pattern matches at least one input value.
-      Both `patterns` and `input` may be a single string or a list of strings;
-      this function normalises them before matching.
+    Returns `true` when at least one pattern matches at least one input value.
+    Both `patterns` and `input` may be a single string or a list of strings;
+    this function normalises them before matching.
 
-      Throws a structured error when `patterns` is neither a string nor a list.
+    Throws a structured error when `patterns` is neither a string nor a list.
 
-      # Type
-    ```
-      mkAny :: { name, fn, checker, patterns, input } -> bool
-    ```
+    # Type
+  ```
+    mkAny :: { name, fn, checker, patterns, input } -> bool
+  ```
   */
-  mkAny =
-    {
-      name,
-      fn,
-      checker,
-      patterns,
-      input,
-    }:
-    let
-      ps = toList patterns;
-      vs = toList input;
-    in
-    if !(isString patterns || isList patterns) then
+  mkAny = {
+    name,
+    fn,
+    checker,
+    patterns,
+    input,
+  }: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    if !(isString patterns || isList patterns)
+    then
       throw (
         debug.withDoc {
-          function = mkFn { inherit name fn; };
+          function = mkFn {inherit name fn;};
           message = "patterns must be a string or list of strings";
           signature = "string | [string] -> string | [string] -> bool";
           input = patterns;
@@ -87,39 +85,37 @@ let
           };
         }
       )
-    else
-      any (p: any (v: checker p v) vs) ps;
+    else any (p: any (v: checker p v) vs) ps;
 
   /**
-      Internal helper — evaluate `mkAll`-style matching logic.
+    Internal helper — evaluate `mkAll`-style matching logic.
 
-      Returns `true` when every input value is matched by at least one pattern.
-      Both `patterns` and `input` may be a single string or a list of strings;
-      this function normalises them before matching.
+    Returns `true` when every input value is matched by at least one pattern.
+    Both `patterns` and `input` may be a single string or a list of strings;
+    this function normalises them before matching.
 
-      Throws a structured error when `patterns` is neither a string nor a list.
+    Throws a structured error when `patterns` is neither a string nor a list.
 
-      # Type
-    ```
-      mkAll :: { name, fn, checker, patterns, input } -> bool
-    ```
+    # Type
+  ```
+    mkAll :: { name, fn, checker, patterns, input } -> bool
+  ```
   */
-  mkAll =
-    {
-      name,
-      fn,
-      checker,
-      patterns,
-      input,
-    }:
-    let
-      ps = toList patterns;
-      vs = toList input;
-    in
-    if !(isString patterns || isList patterns) then
+  mkAll = {
+    name,
+    fn,
+    checker,
+    patterns,
+    input,
+  }: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    if !(isString patterns || isList patterns)
+    then
       throw (
         debug.withDoc {
-          function = mkFn { inherit name fn; };
+          function = mkFn {inherit name fn;};
           message = "patterns must be a string or list of strings";
           signature = "string | [string] -> string | [string] -> bool";
           input = patterns;
@@ -129,112 +125,115 @@ let
           };
         }
       )
-    else
-      all (v: any (p: checker p v) ps) vs;
+    else all (v: any (p: checker p v) ps) vs;
 
   /**
-      Build an infix-search predicate with optional case normalisation.
+    Build an infix-search predicate with optional case normalisation.
 
-      When `caseSensitive` is `false` both the pattern and the candidate string
-      are lowercased before the `hasInfix` test, making the match
-      case-insensitive.
+    When `caseSensitive` is `false` both the pattern and the candidate string
+    are lowercased before the `hasInfix` test, making the match
+    case-insensitive.
 
-      # Type
-    ```
-      mkChecker :: bool -> string -> string -> bool
-    ```
+    # Type
+  ```
+    mkChecker :: bool -> string -> string -> bool
+  ```
 
-      # Examples
-    ```nix
-      (mkChecker true)  "Foo" "foobar"   # => false  (uppercase F ≠ lowercase f)
-      (mkChecker false) "Foo" "foobar"   # => true   (both normalised to lowercase)
-    ```
+    # Examples
+  ```nix
+    (mkChecker true)  "Foo" "foobar"   # => false  (uppercase F ≠ lowercase f)
+    (mkChecker false) "Foo" "foobar"   # => true   (both normalised to lowercase)
+  ```
   */
-  mkChecker =
-    caseSensitive:
-    let
-      normalize = s: if caseSensitive then s else toLower s;
-    in
+  mkChecker = caseSensitive: let
+    normalize = s:
+      if caseSensitive
+      then s
+      else toLower s;
+  in
     pattern: str: hasInfix (normalize pattern) (normalize str);
 
   /**
-    Check whether any pattern appears as a substring of any input string.
+  Check whether any pattern appears as a substring of any input string.
 
-    Accepts either a single string or a list of strings for both arguments.
-    Matching is case-insensitive by default; pass `{ caseSensitive = true; }`
-    to override.
+  Accepts either a single string or a list of strings for both arguments.
+  Matching is case-insensitive by default; pass `{ caseSensitive = true; }`
+  to override.
 
-    # Calling conventions
+  # Calling conventions
 
-    ## Positional (most common)
-    ```nix
-      contains patterns input
-    ```
+  ## Positional (most common)
+  ```nix
+    contains patterns input
+  ```
 
-    ## Attrset — patterns and input supplied together
-    ```nix
-      contains { patterns = ...; input = ...; caseSensitive = false; }
-    ```
+  ## Attrset — patterns and input supplied together
+  ```nix
+    contains { patterns = ...; input = ...; caseSensitive = false; }
+  ```
 
-    ## Options partial application — supply options first, input later
-    ```nix
-      let cs = contains { caseSensitive = true; };
-      in cs patterns input
-    ```
+  ## Options partial application — supply options first, input later
+  ```nix
+    let cs = contains { caseSensitive = true; };
+    in cs patterns input
+  ```
 
-    # Type
-    ```nix
-      contains :: string | [string] -> string | [string] -> bool
-      contains :: { patterns, input, caseSensitive? } -> bool
-      contains :: { caseSensitive? } -> string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+    contains :: string | [string] -> string | [string] -> bool
+    contains :: { patterns, input, caseSensitive? } -> bool
+    contains :: { caseSensitive? } -> string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-      contains "foo" "foobar"                             # => true
-      contains ["foo" "bar"] "foobar"                     # => true
-      contains "foo" ["baz" "foobar"]                     # => true
-      contains ["foo" "bar"] ["baz"]                      # => false
+  # Examples
+  ```nix
+    contains "foo" "foobar"                             # => true
+    contains ["foo" "bar"] "foobar"                     # => true
+    contains "foo" ["baz" "foobar"]                     # => true
+    contains ["foo" "bar"] ["baz"]                      # => false
 
-      contains { patterns = "Foo"; input = "foobar"; }    # => true  (case-insensitive)
-      contains { caseSensitive = true; } "Foo" "foobar"   # => false
-    ```
+    contains { patterns = "Foo"; input = "foobar"; }    # => true  (case-insensitive)
+    contains { caseSensitive = true; } "Foo" "foobar"   # => false
+  ```
   */
-  contains =
-    patternsOrAttrs: inputOrPatterns:
-    let
-      name = "contains";
-      fn = contains;
+  contains = patternsOrAttrs: inputOrPatterns: let
+    name = "contains";
+    fn = contains;
 
-      #> Detect which calling convention was used.
-      #? Attrset call:  contains { patterns = …; input = …; }
-      #? Options call:  contains { caseSensitive = …; } patterns input
-      #? Positional:    contains patterns input
-      isAttrsetCall = isAttrs patternsOrAttrs && patternsOrAttrs ? patterns && patternsOrAttrs ? input;
+    #> Detect which calling convention was used.
+    #? Attrset call:  contains { patterns = …; input = …; }
+    #? Options call:  contains { caseSensitive = …; } patterns input
+    #? Positional:    contains patterns input
+    isAttrsetCall = isAttrs patternsOrAttrs && patternsOrAttrs ? patterns && patternsOrAttrs ? input;
 
-      isOptsCall = isAttrs patternsOrAttrs && !(patternsOrAttrs ? patterns) && !(patternsOrAttrs ? input);
+    isOptsCall = isAttrs patternsOrAttrs && !(patternsOrAttrs ? patterns) && !(patternsOrAttrs ? input);
 
-      #? Fall back to case-insensitive matching unless the caller opts out.
-      caseSensitive = if isAttrsetCall || isOptsCall then patternsOrAttrs.caseSensitive or false else false;
+    #? Fall back to case-insensitive matching unless the caller opts out.
+    caseSensitive =
+      if isAttrsetCall || isOptsCall
+      then patternsOrAttrs.caseSensitive or false
+      else false;
 
-      checker = mkChecker caseSensitive;
-    in
-    if isAttrsetCall then
+    checker = mkChecker caseSensitive;
+  in
+    if isAttrsetCall
+    then
       # { patterns, input[, caseSensitive] }
       mkAny {
         inherit checker name fn;
         inherit (patternsOrAttrs) input;
         inherit (patternsOrAttrs) patterns;
       }
-    else if isOptsCall then
+    else if isOptsCall
+    then
       # { caseSensitive } -> patterns -> input
       (
         actualInput:
-        mkAny {
-          inherit checker name fn;
-          input = actualInput;
-          patterns = inputOrPatterns;
-        }
+          mkAny {
+            inherit checker name fn;
+            input = actualInput;
+            patterns = inputOrPatterns;
+          }
       )
     else
       # patterns input  (plain positional)
@@ -244,23 +243,22 @@ let
         patterns = patternsOrAttrs;
       };
   /**
-    Check whether any input string starts with any of the given patterns.
+  Check whether any input string starts with any of the given patterns.
 
-    # Type
-    ```nix
-    startsWith :: string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+  startsWith :: string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-    startsWith "foo" "foobar"           # => true
-    startsWith ["foo" "bar"] "foobar"   # => true
-    startsWith "foo" ["baz" "foobar"]   # => true
-    startsWith ["foo" "bar"] ["baz"]    # => false
-    ```
+  # Examples
+  ```nix
+  startsWith "foo" "foobar"           # => true
+  startsWith ["foo" "bar"] "foobar"   # => true
+  startsWith "foo" ["baz" "foobar"]   # => true
+  startsWith ["foo" "bar"] ["baz"]    # => false
+  ```
   */
-  startsWith =
-    patterns: input:
+  startsWith = patterns: input:
     mkAny {
       name = "startsWith";
       fn = startsWith;
@@ -269,23 +267,22 @@ let
     };
 
   /**
-    Check whether any input string ends with any of the given patterns.
+  Check whether any input string ends with any of the given patterns.
 
-    # Type
-    ```nix
-    endsWith :: string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+  endsWith :: string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-    endsWith "bar" "foobar"           # => true
-    endsWith ["foo" "bar"] "foobar"   # => true
-    endsWith "bar" ["baz" "foobar"]   # => true
-    endsWith ["foo" "bar"] ["baz"]    # => false
-    ```
+  # Examples
+  ```nix
+  endsWith "bar" "foobar"           # => true
+  endsWith ["foo" "bar"] "foobar"   # => true
+  endsWith "bar" ["baz" "foobar"]   # => true
+  endsWith ["foo" "bar"] ["baz"]    # => false
+  ```
   */
-  endsWith =
-    patterns: input:
+  endsWith = patterns: input:
     mkAny {
       name = "endsWith";
       fn = endsWith;
@@ -294,21 +291,20 @@ let
     };
 
   /**
-    Check whether ALL input strings contain at least one of the given patterns.
+  Check whether ALL input strings contain at least one of the given patterns.
 
-    # Type
-    ```nix
-    containsAll :: string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+  containsAll :: string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-    containsAll "foo" ["foobar" "fooX"]  # => true  (every input has "foo")
-    containsAll "foo" ["foobar" "baz"]   # => false ("baz" doesn't contain "foo")
-    ```
+  # Examples
+  ```nix
+  containsAll "foo" ["foobar" "fooX"]  # => true  (every input has "foo")
+  containsAll "foo" ["foobar" "baz"]   # => false ("baz" doesn't contain "foo")
+  ```
   */
-  containsAll =
-    patterns: input:
+  containsAll = patterns: input:
     mkAll {
       name = "containsAll";
       fn = containsAll;
@@ -317,21 +313,20 @@ let
     };
 
   /**
-    Check whether ALL input strings start with at least one of the given patterns.
+  Check whether ALL input strings start with at least one of the given patterns.
 
-    # Type
-    ```nix
-    startsWithAll :: string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+  startsWithAll :: string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-    startsWithAll "foo" ["foobar" "fooX"]  # => true
-    startsWithAll "foo" ["foobar" "barX"]  # => false
-    ```
+  # Examples
+  ```nix
+  startsWithAll "foo" ["foobar" "fooX"]  # => true
+  startsWithAll "foo" ["foobar" "barX"]  # => false
+  ```
   */
-  startsWithAll =
-    patterns: input:
+  startsWithAll = patterns: input:
     mkAll {
       name = "startsWithAll";
       fn = startsWithAll;
@@ -340,21 +335,20 @@ let
     };
 
   /**
-    Check whether ALL input strings end with at least one of the given patterns.
+  Check whether ALL input strings end with at least one of the given patterns.
 
-    # Type
-    ```nix
-    endsWithAll :: string | [string] -> string | [string] -> bool
-    ```
+  # Type
+  ```nix
+  endsWithAll :: string | [string] -> string | [string] -> bool
+  ```
 
-    # Examples
-    ```nix
-    endsWithAll "bar" ["foobar" "bazbar"]  # => true
-    endsWithAll "bar" ["foobar" "bazX"]    # => false
-    ```
+  # Examples
+  ```nix
+  endsWithAll "bar" ["foobar" "bazbar"]  # => true
+  endsWithAll "bar" ["foobar" "bazX"]    # => false
+  ```
   */
-  endsWithAll =
-    patterns: input:
+  endsWithAll = patterns: input:
     mkAll {
       name = "endsWithAll";
       fn = endsWithAll;
@@ -363,394 +357,394 @@ let
     };
 
   /**
-    Check whether a value is a string.
+  Check whether a value is a string.
 
-    # Type
-    ```nix
-    isString :: any -> bool
-    ```
+  # Type
+  ```nix
+  isString :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isString "foo"  # => true
-    isString 42     # => false
-    isString null   # => false
-    ```
+  # Examples
+  ```nix
+  isString "foo"  # => true
+  isString 42     # => false
+  isString null   # => false
+  ```
   */
   isString = value: lib.strings.isString value;
 
   /**
-    Check whether a string is a binary digit — exactly `"0"` or `"1"`.
+  Check whether a string is a binary digit — exactly `"0"` or `"1"`.
 
-    # Type
-    ```nix
-    isBinary :: any -> bool
-    ```
+  # Type
+  ```nix
+  isBinary :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isBinary "0"    # => true
-    isBinary "1"    # => true
-    isBinary "yes"  # => false
-    isBinary 1      # => false
-    ```
+  # Examples
+  ```nix
+  isBinary "0"    # => true
+  isBinary "1"    # => true
+  isBinary "yes"  # => false
+  isBinary 1      # => false
+  ```
   */
   isBinary = s: typeOf s == "string" && ((s == "0" || s == "1") || (s || !s));
 
   /**
-    Check whether a value can be converted to a string via `toString`.
+  Check whether a value can be converted to a string via `toString`.
 
-    Includes strings, paths, numbers, booleans, and attrsets with a `__toString`
-    or `outPath` attribute.
+  Includes strings, paths, numbers, booleans, and attrsets with a `__toString`
+  or `outPath` attribute.
 
-    # Type
-    ```nix
-    isStringConvertible :: any -> bool
-    ```
+  # Type
+  ```nix
+  isStringConvertible :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isStringConvertible "foo"       # => true
-    isStringConvertible 42          # => true
-    isStringConvertible /etc/hosts  # => true
-    isStringConvertible { a = 1; }  # => false
-    ```
+  # Examples
+  ```nix
+  isStringConvertible "foo"       # => true
+  isStringConvertible 42          # => true
+  isStringConvertible /etc/hosts  # => true
+  isStringConvertible { a = 1; }  # => false
+  ```
   */
   isConvertible = lib.strings.isConvertibleWithToString;
 
   /**
-    Check whether a value is string-like — a string or a value with `outPath`.
+  Check whether a value is string-like — a string or a value with `outPath`.
 
-    Useful for accepting both strings and derivations/packages wherever a path
-    or string is expected.
+  Useful for accepting both strings and derivations/packages wherever a path
+  or string is expected.
 
-    # Type
-    ```nix
-    isLike :: any -> bool
-    ```
+  # Type
+  ```nix
+  isLike :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isLike "foo"                # => true
-    isLike { outPath = "..."; } # => true
-    isLike 42                   # => false
-    ```
+  # Examples
+  ```nix
+  isLike "foo"                # => true
+  isLike { outPath = "..."; } # => true
+  isLike 42                   # => false
+  ```
   */
   isLike = lib.strings.isStringLike;
 
   /**
-    Check whether a string is a valid POSIX filename component.
+  Check whether a string is a valid POSIX filename component.
 
-    A valid POSIX name contains only alphanumerics, hyphens, underscores, and dots,
-    and does not start with a hyphen.
+  A valid POSIX name contains only alphanumerics, hyphens, underscores, and dots,
+  and does not start with a hyphen.
 
-    # Type
-    ```nix
-    isPOSIX :: string -> bool
-    ```
+  # Type
+  ```nix
+  isPOSIX :: string -> bool
+  ```
 
-    # Examples
-    ```nix
-    isPOSIX "foo-bar"   # => true
-    isPOSIX "foo bar"   # => false (space not allowed)
-    isPOSIX "-foo"      # => false (cannot start with hyphen)
-    ```
+  # Examples
+  ```nix
+  isPOSIX "foo-bar"   # => true
+  isPOSIX "foo bar"   # => false (space not allowed)
+  isPOSIX "-foo"      # => false (cannot start with hyphen)
+  ```
   */
   isPOSIX = isValidPosixName;
 in
-__exports.internal
-// {
-  __rootAliases = __exports.external;
+  __exports.internal
+  // {
+    __rootAliases = __exports.external;
 
-  __tests = runTests {
-    contains = {
-      singlePattern = mkTest {
-        desired = true;
-        command = ''contains "foo" "foobar"'';
-        outcome = contains "foo" "foobar";
+    __tests = runTests {
+      contains = {
+        singlePattern = mkTest {
+          desired = true;
+          command = ''contains "foo" "foobar"'';
+          outcome = contains "foo" "foobar";
+        };
+        listPattern = mkTest {
+          desired = true;
+          command = ''contains ["foo" "bar"] "foobar"'';
+          outcome = contains ["foo" "bar"] "foobar";
+        };
+        listInput = mkTest {
+          desired = true;
+          command = ''contains "foo" ["baz" "foobar"]'';
+          outcome = contains "foo" [
+            "baz"
+            "foobar"
+          ];
+        };
+        noMatch = mkTest {
+          desired = false;
+          command = ''contains ["foo" "bar"] ["baz"]'';
+          outcome = contains ["foo" "bar"] ["baz"];
+        };
       };
-      listPattern = mkTest {
-        desired = true;
-        command = ''contains ["foo" "bar"] "foobar"'';
-        outcome = contains [ "foo" "bar" ] "foobar";
+      startsWith = {
+        matches = mkTest {
+          desired = true;
+          command = ''startsWith "foo" "foobar"'';
+          outcome = startsWith "foo" "foobar";
+        };
+        noMatch = mkTest {
+          desired = false;
+          command = ''startsWith "bar" "foobar"'';
+          outcome = startsWith "bar" "foobar";
+        };
+        listInput = mkTest {
+          desired = true;
+          command = ''startsWith "foo" ["foobar" "fooX"]'';
+          outcome = startsWith "foo" [
+            "foobar"
+            "fooX"
+          ];
+        };
       };
-      listInput = mkTest {
-        desired = true;
-        command = ''contains "foo" ["baz" "foobar"]'';
-        outcome = contains "foo" [
-          "baz"
-          "foobar"
-        ];
+      endsWith = {
+        matches = mkTest {
+          desired = true;
+          command = ''endsWith "bar" "foobar"'';
+          outcome = endsWith "bar" "foobar";
+        };
+        noMatch = mkTest {
+          desired = false;
+          command = ''endsWith "foo" "foobar"'';
+          outcome = endsWith "foo" "foobar";
+        };
+        listInput = mkTest {
+          desired = true;
+          command = ''endsWith "bar" ["foobar" "bazbar"]'';
+          outcome = endsWith "bar" [
+            "foobar"
+            "bazbar"
+          ];
+        };
       };
-      noMatch = mkTest {
-        desired = false;
-        command = ''contains ["foo" "bar"] ["baz"]'';
-        outcome = contains [ "foo" "bar" ] [ "baz" ];
+      containsAll = {
+        allMatch = mkTest {
+          desired = true;
+          command = ''containsAll "foo" ["foobar" "fooX"]'';
+          outcome = containsAll "foo" [
+            "foobar"
+            "fooX"
+          ];
+        };
+        notAllMatch = mkTest {
+          desired = false;
+          command = ''containsAll "foo" ["foobar" "baz"]'';
+          outcome = containsAll "foo" [
+            "foobar"
+            "baz"
+          ];
+        };
       };
-    };
-    startsWith = {
-      matches = mkTest {
-        desired = true;
-        command = ''startsWith "foo" "foobar"'';
-        outcome = startsWith "foo" "foobar";
+      startsWithAll = {
+        allMatch = mkTest {
+          desired = true;
+          command = ''startsWithAll "foo" ["foobar" "fooX"]'';
+          outcome = startsWithAll "foo" [
+            "foobar"
+            "fooX"
+          ];
+        };
+        notAllMatch = mkTest {
+          desired = false;
+          command = ''startsWithAll "foo" ["foobar" "barX"]'';
+          outcome = startsWithAll "foo" [
+            "foobar"
+            "barX"
+          ];
+        };
       };
-      noMatch = mkTest {
-        desired = false;
-        command = ''startsWith "bar" "foobar"'';
-        outcome = startsWith "bar" "foobar";
+      endsWithAll = {
+        allMatch = mkTest {
+          desired = true;
+          command = ''endsWithAll "bar" ["foobar" "bazbar"]'';
+          outcome = endsWithAll "bar" [
+            "foobar"
+            "bazbar"
+          ];
+        };
+        notAllMatch = mkTest {
+          desired = false;
+          command = ''endsWithAll "bar" ["foobar" "bazX"]'';
+          outcome = endsWithAll "bar" [
+            "foobar"
+            "bazX"
+          ];
+        };
       };
-      listInput = mkTest {
-        desired = true;
-        command = ''startsWith "foo" ["foobar" "fooX"]'';
-        outcome = startsWith "foo" [
-          "foobar"
-          "fooX"
-        ];
-      };
-    };
-    endsWith = {
-      matches = mkTest {
-        desired = true;
-        command = ''endsWith "bar" "foobar"'';
-        outcome = endsWith "bar" "foobar";
-      };
-      noMatch = mkTest {
-        desired = false;
-        command = ''endsWith "foo" "foobar"'';
-        outcome = endsWith "foo" "foobar";
-      };
-      listInput = mkTest {
-        desired = true;
-        command = ''endsWith "bar" ["foobar" "bazbar"]'';
-        outcome = endsWith "bar" [
-          "foobar"
-          "bazbar"
-        ];
-      };
-    };
-    containsAll = {
-      allMatch = mkTest {
-        desired = true;
-        command = ''containsAll "foo" ["foobar" "fooX"]'';
-        outcome = containsAll "foo" [
-          "foobar"
-          "fooX"
-        ];
-      };
-      notAllMatch = mkTest {
-        desired = false;
-        command = ''containsAll "foo" ["foobar" "baz"]'';
-        outcome = containsAll "foo" [
-          "foobar"
-          "baz"
-        ];
-      };
-    };
-    startsWithAll = {
-      allMatch = mkTest {
-        desired = true;
-        command = ''startsWithAll "foo" ["foobar" "fooX"]'';
-        outcome = startsWithAll "foo" [
-          "foobar"
-          "fooX"
-        ];
-      };
-      notAllMatch = mkTest {
-        desired = false;
-        command = ''startsWithAll "foo" ["foobar" "barX"]'';
-        outcome = startsWithAll "foo" [
-          "foobar"
-          "barX"
-        ];
-      };
-    };
-    endsWithAll = {
-      allMatch = mkTest {
-        desired = true;
-        command = ''endsWithAll "bar" ["foobar" "bazbar"]'';
-        outcome = endsWithAll "bar" [
-          "foobar"
-          "bazbar"
-        ];
-      };
-      notAllMatch = mkTest {
-        desired = false;
-        command = ''endsWithAll "bar" ["foobar" "bazX"]'';
-        outcome = endsWithAll "bar" [
-          "foobar"
-          "bazX"
-        ];
-      };
-    };
 
-    isString = {
-      detectsString = mkTest {
-        desired = true;
-        command = ''isString "foo"'';
-        outcome = isString "foo";
+      isString = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isString "foo"'';
+          outcome = isString "foo";
+        };
+        detectsEmpty = mkTest {
+          desired = true;
+          command = ''isString ""'';
+          outcome = isString "";
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isString 42";
+          outcome = isString 42;
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isString null";
+          outcome = isString null;
+        };
+        rejectsBool = mkTest {
+          desired = false;
+          command = "isString true";
+          outcome = isString true;
+        };
+        rejectsList = mkTest {
+          desired = false;
+          command = "isString []";
+          outcome = isString [];
+        };
       };
-      detectsEmpty = mkTest {
-        desired = true;
-        command = ''isString ""'';
-        outcome = isString "";
-      };
-      rejectsInt = mkTest {
-        desired = false;
-        command = "isString 42";
-        outcome = isString 42;
-      };
-      rejectsNull = mkTest {
-        desired = false;
-        command = "isString null";
-        outcome = isString null;
-      };
-      rejectsBool = mkTest {
-        desired = false;
-        command = "isString true";
-        outcome = isString true;
-      };
-      rejectsList = mkTest {
-        desired = false;
-        command = "isString []";
-        outcome = isString [ ];
-      };
-    };
 
-    isBinary = {
-      detectsZero = mkTest {
-        desired = true;
-        command = ''isBinary "0"'';
-        outcome = isBinary "0";
+      isBinary = {
+        detectsZero = mkTest {
+          desired = true;
+          command = ''isBinary "0"'';
+          outcome = isBinary "0";
+        };
+        detectsOne = mkTest {
+          desired = true;
+          command = ''isBinary "1"'';
+          outcome = isBinary "1";
+        };
+        rejectsOtherString = mkTest {
+          desired = false;
+          command = ''isBinary "yes"'';
+          outcome = isBinary "yes";
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isBinary 1";
+          outcome = isBinary 1;
+        };
+        rejectsEmpty = mkTest {
+          desired = false;
+          command = ''isBinary ""'';
+          outcome = isBinary "";
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isBinary null";
+          outcome = isBinary null;
+        };
       };
-      detectsOne = mkTest {
-        desired = true;
-        command = ''isBinary "1"'';
-        outcome = isBinary "1";
-      };
-      rejectsOtherString = mkTest {
-        desired = false;
-        command = ''isBinary "yes"'';
-        outcome = isBinary "yes";
-      };
-      rejectsInt = mkTest {
-        desired = false;
-        command = "isBinary 1";
-        outcome = isBinary 1;
-      };
-      rejectsEmpty = mkTest {
-        desired = false;
-        command = ''isBinary ""'';
-        outcome = isBinary "";
-      };
-      rejectsNull = mkTest {
-        desired = false;
-        command = "isBinary null";
-        outcome = isBinary null;
-      };
-    };
 
-    isConvertible = {
-      detectsString = mkTest {
-        desired = true;
-        command = ''isConvertible "foo"'';
-        outcome = isConvertible "foo";
+      isConvertible = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isConvertible "foo"'';
+          outcome = isConvertible "foo";
+        };
+        detectsInt = mkTest {
+          desired = true;
+          command = "isConvertible 42";
+          outcome = isConvertible 42;
+        };
+        detectsBool = mkTest {
+          desired = true;
+          command = "isConvertible true";
+          outcome = isConvertible true;
+        };
+        detectsToStringAttrs = mkTest {
+          desired = true;
+          command = ''isConvertible { __toString = _: "x"; }'';
+          outcome = isConvertible {__toString = _: "x";};
+        };
+        detectsOutPath = mkTest {
+          desired = true;
+          command = ''isConvertible { outPath = "/nix/store/foo"; }'';
+          outcome = isConvertible {outPath = "/nix/store/foo";};
+        };
+        rejectsPlainAttrs = mkTest {
+          desired = false;
+          command = "isConvertible { a = 1; }";
+          outcome = isConvertible {a = 1;};
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isConvertible null";
+          outcome = isConvertible null;
+        };
       };
-      detectsInt = mkTest {
-        desired = true;
-        command = "isConvertible 42";
-        outcome = isConvertible 42;
-      };
-      detectsBool = mkTest {
-        desired = true;
-        command = "isConvertible true";
-        outcome = isConvertible true;
-      };
-      detectsToStringAttrs = mkTest {
-        desired = true;
-        command = ''isConvertible { __toString = _: "x"; }'';
-        outcome = isConvertible { __toString = _: "x"; };
-      };
-      detectsOutPath = mkTest {
-        desired = true;
-        command = ''isConvertible { outPath = "/nix/store/foo"; }'';
-        outcome = isConvertible { outPath = "/nix/store/foo"; };
-      };
-      rejectsPlainAttrs = mkTest {
-        desired = false;
-        command = "isConvertible { a = 1; }";
-        outcome = isConvertible { a = 1; };
-      };
-      rejectsNull = mkTest {
-        desired = false;
-        command = "isConvertible null";
-        outcome = isConvertible null;
-      };
-    };
 
-    isLike = {
-      detectsString = mkTest {
-        desired = true;
-        command = ''isLike "foo"'';
-        outcome = isLike "foo";
+      isLike = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isLike "foo"'';
+          outcome = isLike "foo";
+        };
+        detectsOutPath = mkTest {
+          desired = true;
+          command = ''isLike { outPath = "/nix/store/foo"; }'';
+          outcome = isLike {outPath = "/nix/store/foo";};
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isLike 42";
+          outcome = isLike 42;
+        };
+        rejectsPlainAttrs = mkTest {
+          desired = false;
+          command = "isLike { a = 1; }";
+          outcome = isLike {a = 1;};
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isLike null";
+          outcome = isLike null;
+        };
       };
-      detectsOutPath = mkTest {
-        desired = true;
-        command = ''isLike { outPath = "/nix/store/foo"; }'';
-        outcome = isLike { outPath = "/nix/store/foo"; };
-      };
-      rejectsInt = mkTest {
-        desired = false;
-        command = "isLike 42";
-        outcome = isLike 42;
-      };
-      rejectsPlainAttrs = mkTest {
-        desired = false;
-        command = "isLike { a = 1; }";
-        outcome = isLike { a = 1; };
-      };
-      rejectsNull = mkTest {
-        desired = false;
-        command = "isLike null";
-        outcome = isLike null;
-      };
-    };
 
-    isPOSIX = {
-      detectsSimpleName = mkTest {
-        desired = true;
-        command = ''isPOSIX "foo"'';
-        outcome = isPOSIX "foo";
-      };
-      detectsHyphenated = mkTest {
-        desired = true;
-        command = ''isPOSIX "foo-bar"'';
-        outcome = isPOSIX "foo-bar";
-      };
-      detectsUnderscored = mkTest {
-        desired = true;
-        command = ''isPOSIX "foo_bar"'';
-        outcome = isPOSIX "foo_bar";
-      };
-      detectsDotted = mkTest {
-        desired = true;
-        command = ''isPOSIX "foo.bar"'';
-        outcome = isPOSIX "foo.bar";
-      };
-      rejectsSpace = mkTest {
-        desired = false;
-        command = ''isPOSIX "foo bar"'';
-        outcome = isPOSIX "foo bar";
-      };
-      rejectsLeadingHyphen = mkTest {
-        desired = false;
-        command = ''isPOSIX "-foo"'';
-        outcome = isPOSIX "-foo";
-      };
-      rejectsSlash = mkTest {
-        desired = false;
-        command = ''isPOSIX "foo/bar"'';
-        outcome = isPOSIX "foo/bar";
+      isPOSIX = {
+        detectsSimpleName = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo"'';
+          outcome = isPOSIX "foo";
+        };
+        detectsHyphenated = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo-bar"'';
+          outcome = isPOSIX "foo-bar";
+        };
+        detectsUnderscored = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo_bar"'';
+          outcome = isPOSIX "foo_bar";
+        };
+        detectsDotted = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo.bar"'';
+          outcome = isPOSIX "foo.bar";
+        };
+        rejectsSpace = mkTest {
+          desired = false;
+          command = ''isPOSIX "foo bar"'';
+          outcome = isPOSIX "foo bar";
+        };
+        rejectsLeadingHyphen = mkTest {
+          desired = false;
+          command = ''isPOSIX "-foo"'';
+          outcome = isPOSIX "-foo";
+        };
+        rejectsSlash = mkTest {
+          desired = false;
+          command = ''isPOSIX "foo/bar"'';
+          outcome = isPOSIX "foo/bar";
+        };
       };
     };
-  };
-}
+  }

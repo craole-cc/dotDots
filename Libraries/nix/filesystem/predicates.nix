@@ -1,5 +1,8 @@
-{ _, lib, ... }:
-let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (_.filesystem.paths) flakeOrNull;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
@@ -22,157 +25,157 @@ let
   };
 
   /**
-    Check whether a path exists on disk at evaluation time.
+  Check whether a path exists on disk at evaluation time.
 
-    Useful for conditionally importing local files or setting fallback
-    configurations. Note: the path must be accessible to the Nix evaluator.
+  Useful for conditionally importing local files or setting fallback
+  configurations. Note: the path must be accessible to the Nix evaluator.
 
-    # Type
-    ```nix
-    pathExists :: path | string -> bool
-    ```
+  # Type
+  ```nix
+  pathExists :: path | string -> bool
+  ```
   */
   pathExists = path: builtins.pathExists path;
 
   /**
-    Check whether a value is a Nix path type (not a string).
+  Check whether a value is a Nix path type (not a string).
 
-    # Type
-    ```nix
-    isPath :: any -> bool
-    ```
+  # Type
+  ```nix
+  isPath :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isPath /etc/hosts  # => true
-    isPath "/etc"      # => false
-    ```
+  # Examples
+  ```nix
+  isPath /etc/hosts  # => true
+  isPath "/etc"      # => false
+  ```
   */
   isPath = path: lib.strings.isPath path;
 
   /**
-    Check whether a value is a Nix store path.
+  Check whether a value is a Nix store path.
 
-    # Type
-    ```nix
-    isStorePath :: any -> bool
-    ```
+  # Type
+  ```nix
+  isStorePath :: any -> bool
+  ```
 
-    # Examples
-    ```nix
-    isStorePath "/nix/store/abc123-foo"  # => true
-    isStorePath "/etc/hosts"             # => false
-    ```
+  # Examples
+  ```nix
+  isStorePath "/nix/store/abc123-foo"  # => true
+  isStorePath "/etc/hosts"             # => false
+  ```
   */
   inherit (lib.strings) isStorePath;
 
   /**
-    Check whether a path refers to a `.nix` file.
+  Check whether a path refers to a `.nix` file.
 
-    # Type
-    ```nix
-    isNixFile :: path | string -> bool
-    ```
+  # Type
+  ```nix
+  isNixFile :: path | string -> bool
+  ```
   */
   isNixFile = file: hasSuffix ".nix" (baseNameOf file);
 
   /**
-    Check whether the basename of a path matches any entry in an exclusion list.
+  Check whether the basename of a path matches any entry in an exclusion list.
 
-    # Type
-    ```nix
-    isExcludedFile :: path | string -> [string] -> bool
-    ```
+  # Type
+  ```nix
+  isExcludedFile :: path | string -> [string] -> bool
+  ```
   */
   isExcludedFile = path: filesToExclude: elem (baseNameOf path) filesToExclude;
 
   /**
-    Check whether the immediate parent directory of a path is in an exclusion list.
+  Check whether the immediate parent directory of a path is in an exclusion list.
 
-    # Type
-    ```nix
-    isInExcludedFolder :: path | string -> [string] -> bool
-    ```
+  # Type
+  ```nix
+  isInExcludedFolder :: path | string -> [string] -> bool
+  ```
   */
   isInExcludedFolder = path: foldersToExclude: elem (dirOf path) foldersToExclude;
 
   /**
-    Check whether a path is a valid flake root (contains a `flake.nix`).
+  Check whether a path is a valid flake root (contains a `flake.nix`).
 
-    # Type
-    ```nix
-    isFlakePath :: path | string -> bool
-    ```
+  # Type
+  ```nix
+  isFlakePath :: path | string -> bool
+  ```
   */
-  isFlakePath = path: (flakeOrNull { inherit path; }) != null;
+  isFlakePath = path: (flakeOrNull {inherit path;}) != null;
 in
-exports.internal
-// {
-  __rootAliases = exports.external;
-  __tests = runTests {
-    isNixFile = {
-      detectsNixExtension = mkTest' true (isNixFile "/foo/bar.nix");
-      rejectsNonNix = mkTest' false (isNixFile "/foo/bar.txt");
-      rejectsNoExtension = mkTest' false (isNixFile "/foo/bar");
-    };
+  exports.internal
+  // {
+    __rootAliases = exports.external;
+    __tests = runTests {
+      isNixFile = {
+        detectsNixExtension = mkTest' true (isNixFile "/foo/bar.nix");
+        rejectsNonNix = mkTest' false (isNixFile "/foo/bar.txt");
+        rejectsNoExtension = mkTest' false (isNixFile "/foo/bar");
+      };
 
-    isExcludedFile = {
-      detectsExcluded = mkTest {
-        desired = true;
-        outcome = isExcludedFile "/foo/default.nix" [
-          "default.nix"
-          "flake.nix"
-        ];
-        command = ''isExcludedFile "/foo/default.nix" ["default.nix" "flake.nix"]'';
+      isExcludedFile = {
+        detectsExcluded = mkTest {
+          desired = true;
+          outcome = isExcludedFile "/foo/default.nix" [
+            "default.nix"
+            "flake.nix"
+          ];
+          command = ''isExcludedFile "/foo/default.nix" ["default.nix" "flake.nix"]'';
+        };
+        allowsNonExcluded = mkTest {
+          desired = false;
+          outcome = isExcludedFile "/foo/bar.nix" [
+            "default.nix"
+            "flake.nix"
+          ];
+          command = ''isExcludedFile "/foo/bar.nix" ["default.nix" "flake.nix"]'';
+        };
+        emptyList = mkTest {
+          desired = false;
+          outcome = isExcludedFile "/foo/default.nix" [];
+          command = ''isExcludedFile "/foo/default.nix" []'';
+        };
       };
-      allowsNonExcluded = mkTest {
-        desired = false;
-        outcome = isExcludedFile "/foo/bar.nix" [
-          "default.nix"
-          "flake.nix"
-        ];
-        command = ''isExcludedFile "/foo/bar.nix" ["default.nix" "flake.nix"]'';
-      };
-      emptyList = mkTest {
-        desired = false;
-        outcome = isExcludedFile "/foo/default.nix" [ ];
-        command = ''isExcludedFile "/foo/default.nix" []'';
-      };
-    };
 
-    isInExcludedFolder = {
-      detectsExcludedParent = mkTest {
-        desired = true;
-        outcome = isInExcludedFolder "/foo/review/bar.nix" [
-          "review"
-          "tmp"
-        ];
-        command = ''isInExcludedFolder "/foo/review/bar.nix" ["review" "tmp"]'';
+      isInExcludedFolder = {
+        detectsExcludedParent = mkTest {
+          desired = true;
+          outcome = isInExcludedFolder "/foo/review/bar.nix" [
+            "review"
+            "tmp"
+          ];
+          command = ''isInExcludedFolder "/foo/review/bar.nix" ["review" "tmp"]'';
+        };
+        allowsNonExcludedParent = mkTest {
+          desired = false;
+          outcome = isInExcludedFolder "/foo/src/bar.nix" [
+            "review"
+            "tmp"
+          ];
+          command = ''isInExcludedFolder "/foo/src/bar.nix" ["review" "tmp"]'';
+        };
       };
-      allowsNonExcludedParent = mkTest {
-        desired = false;
-        outcome = isInExcludedFolder "/foo/src/bar.nix" [
-          "review"
-          "tmp"
-        ];
-        command = ''isInExcludedFolder "/foo/src/bar.nix" ["review" "tmp"]'';
-      };
-    };
 
-    tryFlake = {
-      rejectsNonExistentPath = mkTest {
-        desired = null;
-        outcome = flakeOrNull { path = "/this/path/does/not/exist/at/all"; };
-        command = ''tryFlake { path = "/this/path/does/not/exist/at/all"; }'';
+      tryFlake = {
+        rejectsNonExistentPath = mkTest {
+          desired = null;
+          outcome = flakeOrNull {path = "/this/path/does/not/exist/at/all";};
+          command = ''tryFlake { path = "/this/path/does/not/exist/at/all"; }'';
+        };
       };
-    };
 
-    isFlakePath = {
-      rejectsNonExistentPath = mkTest {
-        desired = false;
-        outcome = isFlakePath "/this/path/does/not/exist/at/all";
-        command = ''isFlakePath "/this/path/does/not/exist/at/all"'';
+      isFlakePath = {
+        rejectsNonExistentPath = mkTest {
+          desired = false;
+          outcome = isFlakePath "/this/path/does/not/exist/at/all";
+          command = ''isFlakePath "/this/path/does/not/exist/at/all"'';
+        };
       };
     };
-  };
-}
+  }

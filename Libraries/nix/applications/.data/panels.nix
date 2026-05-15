@@ -9,9 +9,9 @@ _: {
       "c"
       "lua"
     ];
-    config = [ "lua" ];
+    config = ["lua"];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "cairo";
   };
 
@@ -26,9 +26,9 @@ _: {
       "c++"
       "qml"
     ];
-    config = [ "qml" ];
+    config = ["qml"];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "qt6";
   };
 
@@ -39,13 +39,13 @@ _: {
     ];
     family = "cinnamon";
     independent = false;
-    engine = [ "c" ];
+    engine = ["c"];
     config = [
       "javascript"
       "css"
     ];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "gtk3";
   };
 
@@ -56,13 +56,13 @@ _: {
     ];
     family = "cosmic";
     independent = false;
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = [
       "ron"
       "css"
     ];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "iced";
   };
 
@@ -73,10 +73,10 @@ _: {
     ];
     family = "dms";
     independent = true;
-    engine = [ "go" ];
-    config = [ "qml" ];
+    engine = ["go"];
+    config = ["qml"];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "qt6";
   };
 
@@ -86,7 +86,7 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "rust" ];
+    engine = ["rust"];
     config = [
       "yuck"
       "scss"
@@ -105,13 +105,13 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "python" ];
+    engine = ["python"];
     config = [
       "python"
       "scss"
     ];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "gtk4";
   };
 
@@ -144,13 +144,13 @@ _: {
       "interface"
     ];
     independent = false;
-    engine = [ "c" ];
+    engine = ["c"];
     config = [
       "json"
       "shell"
     ];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "xcb";
   };
 
@@ -161,13 +161,13 @@ _: {
     ];
     family = "hyprland";
     independent = true;
-    engine = [ "typescript" ];
+    engine = ["typescript"];
     config = [
       "typescript"
       "scss"
     ];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
@@ -177,10 +177,10 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "c" ];
-    config = [ "shell" ];
+    engine = ["c"];
+    config = ["shell"];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "xcb";
   };
 
@@ -190,10 +190,10 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "c++" ];
-    config = [ "qml" ];
+    engine = ["c++"];
+    config = ["qml"];
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "qt6";
   };
 
@@ -203,13 +203,13 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "python" ];
+    engine = ["python"];
     config = [
       "json"
       "css"
     ];
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
@@ -242,13 +242,13 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "c++" ];
+    engine = ["c++"];
     config = [
       "ini"
       "shell"
     ];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "cairo";
   };
 
@@ -262,7 +262,7 @@ _: {
       "python"
       "c"
     ];
-    config = [ "python" ];
+    config = ["python"];
     maturity = "stable";
     protocol = [
       "xorg"
@@ -278,13 +278,13 @@ _: {
     ];
     family = "sway";
     independent = false;
-    engine = [ "c" ];
+    engine = ["c"];
     config = [
       "shell"
       "json"
     ];
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "cairo";
   };
 
@@ -294,10 +294,10 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "c" ];
-    config = [ "ini" ];
+    engine = ["c"];
+    config = ["ini"];
     maturity = "legacy";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "pango";
   };
 
@@ -307,13 +307,13 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "c++" ];
+    engine = ["c++"];
     config = [
       "jsonc"
       "css"
     ];
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     toolkit = "gtk3";
   };
 
@@ -328,7 +328,7 @@ _: {
       "vala"
       "c"
     ];
-    config = [ "css" ];
+    config = ["css"];
     maturity = "stable";
     protocol = [
       "xorg"
@@ -344,13 +344,13 @@ _: {
       "interface"
     ];
     independent = false;
-    engine = [ "c" ];
+    engine = ["c"];
     config = [
       "rc"
       "css"
     ];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "gtk3";
   };
 
@@ -361,10 +361,10 @@ _: {
       "interface"
     ];
     independent = true;
-    engine = [ "haskell" ];
-    config = [ "haskell" ];
+    engine = ["haskell"];
+    config = ["haskell"];
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     toolkit = "xft";
   };
 }

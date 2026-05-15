@@ -1,10 +1,9 @@
-{ user, ... }:
-{
+{user, ...}: {
   programs.git = {
     enable = true;
     lfs.enable = true;
     settings = {
-      user = { inherit (user.git) name email; };
+      user = {inherit (user.git) name email;};
       core = {
         whitespace = "trailing-space,space-before-tab";
       };
@@ -20,6 +19,6 @@
         };
       };
     };
-    includes = [ ];
+    includes = [];
   };
 }

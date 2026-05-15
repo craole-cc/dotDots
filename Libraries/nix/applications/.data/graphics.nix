@@ -6,7 +6,7 @@ _: {
       class = "gimp";
     };
     exec = "gimp";
-    categories = [ "graphics" ];
+    categories = ["graphics"];
   };
 
   inkscape = {
@@ -16,7 +16,7 @@ _: {
       class = "org.inkscape.Inkscape";
     };
     exec = "inkscape";
-    categories = [ "graphics" ];
+    categories = ["graphics"];
   };
 
   krita = {
@@ -26,7 +26,7 @@ _: {
       class = "org.kde.krita";
     };
     exec = "krita";
-    categories = [ "graphics" ];
+    categories = ["graphics"];
   };
 
   blender = {
@@ -36,7 +36,7 @@ _: {
       class = "blender";
     };
     exec = "blender";
-    categories = [ "graphics" ];
+    categories = ["graphics"];
   };
 
   darktable = {
@@ -46,6 +46,6 @@ _: {
       class = "darktable";
     };
     exec = "darktable";
-    categories = [ "graphics" ];
+    categories = ["graphics"];
   };
 }

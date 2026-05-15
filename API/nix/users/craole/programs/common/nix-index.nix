@@ -1,5 +1,4 @@
-{ config, ... }:
-{
+{config, ...}: {
   programs.nix-index = {
     enableBashIntegration = config.programs.bash.enable;
     enableZshIntegration = config.programs.zsh.enable;

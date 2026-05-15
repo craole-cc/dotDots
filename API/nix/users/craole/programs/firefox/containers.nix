@@ -1,5 +1,4 @@
-{ app, ... }:
-let
+{app, ...}: let
   pinsForce = true;
   pins = {
     "GitHub" = {
@@ -86,12 +85,12 @@ let
     };
   };
 in
-{
-  inherit containersForce containers;
-}
-// (
-  if app == "zen-browser" then
-    {
+  {
+    inherit containersForce containers;
+  }
+  // (
+    if app == "zen-browser"
+    then {
       inherit
         pins
         pinsForce
@@ -99,6 +98,5 @@ in
         spacesForce
         ;
     }
-  else
-    { }
-)
+    else {}
+  )

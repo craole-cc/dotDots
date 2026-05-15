@@ -3,8 +3,11 @@
 # Per-module debug helper factory.
 # Binds a namespace path to a set of error-formatting functions so every
 # throw/trace in a module automatically includes its fully-qualified location.
-{ _, lib, ... }:
-let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (_.debug.format) mkRef mkThrownUsage mkExample;
   inherit (_.debug.trace) traceFn;
   inherit (_.types.predicates) isList;
@@ -13,250 +16,238 @@ let
   inherit (lib.strings) isString splitString toJSON;
 
   /**
-    Tag a function value with its name so `withDoc` / `withLoc` can both
-    build the qualified ref string and trace the function value.
+  Tag a function value with its name so `withDoc` / `withLoc` can both
+  build the qualified ref string and trace the function value.
 
-    Pass the result as `function =` — the helpers detect whether they
-    received a plain string or a NamedFn and behave accordingly.
+  Pass the result as `function =` — the helpers detect whether they
+  received a plain string or a NamedFn and behave accordingly.
 
-    # Type
-    ```nix
-    mkFn :: { name :: string, fn :: function } -> NamedFn
-    ```
+  # Type
+  ```nix
+  mkFn :: { name :: string, fn :: function } -> NamedFn
+  ```
 
-    # Examples
-    ```nix
-    # With function tracing
-    throw (_debug.withDoc {
-      function  = mkFn { name = "normalize"; fn = normalize; };
-      message   = "nested lists are not supported";
-      ...
-    })
+  # Examples
+  ```nix
+  # With function tracing
+  throw (_debug.withDoc {
+    function  = mkFn { name = "normalize"; fn = normalize; };
+    message   = "nested lists are not supported";
+    ...
+  })
 
-    # Plain string — no function tracing, always works
-    throw (_debug.withLoc {
-      function = "trimStart";
-      message  = "chars must be a string or null";
-      inherit input;
-    })
-    ```
+  # Plain string — no function tracing, always works
+  throw (_debug.withLoc {
+    function = "trimStart";
+    message  = "chars must be a string or null";
+    inherit input;
+  })
+  ```
   */
-  mkFn =
-    { name, fn }:
-    {
-      inherit name fn;
-      _type = "namedFn";
-    };
+  mkFn = {
+    name,
+    fn,
+  }: {
+    inherit name fn;
+    _type = "namedFn";
+  };
 
   _isNamedFn = v: isAttrs v && v._type or null == "namedFn";
 
   # Extract the name string from either a NamedFn or a plain string
-  _name =
-    function:
-    if _isNamedFn function then
-      function.name
-    else if isString function then
-      function
-    else
-      throw "debug.module: `function` must be a string or mkFn result";
+  _name = function:
+    if _isNamedFn function
+    then function.name
+    else if isString function
+    then function
+    else throw "debug.module: `function` must be a string or mkFn result";
 
   /**
-    Create a set of debug helpers bound to a module's namespace path.
+  Create a set of debug helpers bound to a module's namespace path.
 
-    Accepts a dotted string (from `__moduleRef`), a path list, or an
-    attrset `{ path?, name? }`.
+  Accepts a dotted string (from `__moduleRef`), a path list, or an
+  attrset `{ path?, name? }`.
 
-    # Type
-    ```nix
-    mkModuleDebug :: string | [string] | { path :: [string]?, name :: string? } -> ModuleDebug
-    ```
+  # Type
+  ```nix
+  mkModuleDebug :: string | [string] | { path :: [string]?, name :: string? } -> ModuleDebug
+  ```
+
+  # Usage
+  ```nix
+  {_, __moduleRef, ...}: let
+    _debug = _.debug.module.mkModuleDebug __moduleRef;
+    inherit (_debug) mkFn mkExample;
+  in {
+    myFn = input:
+      if bad
+      then throw (_debug.withDoc {
+        function  = mkFn { name = "myFn"; fn = myFn; };
+        message   = "bad input";
+        signature = "string -> string";
+        example   = mkExample { command = ''myFn "x"''; result = ''"X"''; };
+        inherit input;
+      })
+      else ...;
+  }
+  ```
+  */
+  mkModule = pathOrArgs: let
+    normalized =
+      if isString pathOrArgs
+      then {
+        path = splitString "." pathOrArgs;
+        name = null;
+      }
+      else if isList pathOrArgs
+      then {
+        path = pathOrArgs;
+        name = null;
+      }
+      else {
+        path = pathOrArgs.path or [];
+        name = pathOrArgs.name or null;
+      };
+
+    modulePath = normalized.path;
+    moduleName = normalized.name;
+
+    ref = fname:
+      mkRef {
+        path = modulePath;
+        name = moduleName;
+        function = fname;
+      };
+
+    # Resolve ref string and optionally emit a traceFn, then return msg
+    _emit = function: msg:
+      if _isNamedFn function
+      then
+        traceFn {
+          name = ref function.name;
+          inherit (function) fn;
+          result = msg;
+        }
+      else msg;
+  in rec {
+    inherit mkFn mkExample;
+
+    /**
+    Return a throw-ready error string with full usage context.
+
+    `function` accepts either a plain string or a `mkFn` result.
+    When a `mkFn` result is passed the function value is traced to stderr.
 
     # Usage
     ```nix
-    {_, __moduleRef, ...}: let
-      _debug = _.debug.module.mkModuleDebug __moduleRef;
-      inherit (_debug) mkFn mkExample;
-    in {
-      myFn = input:
-        if bad
-        then throw (_debug.withDoc {
-          function  = mkFn { name = "myFn"; fn = myFn; };
-          message   = "bad input";
-          signature = "string -> string";
-          example   = mkExample { command = ''myFn "x"''; result = ''"X"''; };
-          inherit input;
-        })
-        else ...;
-    }
+    then throw (_debug.withDoc {
+      function  = mkFn { name = "normalize"; fn = normalize; };
+      message   = "nested lists are not supported";
+      signature = "string | [string] | null -> string | [string] | null";
+      example   = mkExample { command = "..."; result = "..."; };
+      inherit input;
+    })
     ```
-  */
-  mkModule =
-    pathOrArgs:
-    let
-      normalized =
-        if isString pathOrArgs then
-          {
-            path = splitString "." pathOrArgs;
-            name = null;
-          }
-        else if isList pathOrArgs then
-          {
-            path = pathOrArgs;
-            name = null;
-          }
-        else
-          {
-            path = pathOrArgs.path or [ ];
-            name = pathOrArgs.name or null;
-          };
-
-      modulePath = normalized.path;
-      moduleName = normalized.name;
-
-      ref =
-        fname:
-        mkRef {
-          path = modulePath;
-          name = moduleName;
-          function = fname;
-        };
-
-      # Resolve ref string and optionally emit a traceFn, then return msg
-      _emit =
-        function: msg:
-        if _isNamedFn function then
-          traceFn {
-            name = ref function.name;
-            inherit (function) fn;
-            result = msg;
-          }
-        else
-          msg;
+    */
+    withDoc = {
+      function,
+      message,
+      signature,
+      input,
+      example ? null,
+    }: let
+      fnRef = ref (_name function);
+      thrown = mkThrownUsage {
+        ref = fnRef;
+        inherit
+          message
+          input
+          signature
+          example
+          ;
+      };
     in
-    rec {
-      inherit mkFn mkExample;
+      _emit function thrown;
 
-      /**
-        Return a throw-ready error string with full usage context.
+    /**
+    Return a throw-ready error string with location only (no signature/example).
 
-        `function` accepts either a plain string or a `mkFn` result.
-        When a `mkFn` result is passed the function value is traced to stderr.
+    # Usage
+    ```nix
+    then throw (_debug.withLoc {
+      function = mkFn { name = "trimStart"; fn = trimStart; };
+      message  = "chars must be a string or null";
+      inherit input;
+    })
+    ```
+    */
+    withLoc = {
+      function,
+      message,
+      input,
+    }: let
+      thrown = "${message}\ninput: ${toJSON input}";
+    in
+      _emit function thrown;
 
-        # Usage
-        ```nix
-        then throw (_debug.withDoc {
-          function  = mkFn { name = "normalize"; fn = normalize; };
-          message   = "nested lists are not supported";
-          signature = "string | [string] | null -> string | [string] | null";
-          example   = mkExample { command = "..."; result = "..."; };
-          inherit input;
-        })
-        ```
-      */
-      withDoc =
-        {
-          function,
-          message,
-          signature,
-          input,
-          example ? null,
-        }:
-        let
-          fnRef = ref (_name function);
-          thrown = mkThrownUsage {
-            ref = fnRef;
-            inherit
-              message
-              input
-              signature
-              example
-              ;
-          };
-        in
-        _emit function thrown;
+    /**
+    Throw with full usage context via `addErrorContext`.
 
-      /**
-        Return a throw-ready error string with location only (no signature/example).
+    Stack trace points into debug/module.nix. Prefer `withDoc + throw`
+    when call-site trace location matters.
+    */
+    throwDoc = {
+      function,
+      message,
+      signature,
+      input,
+      example ? null,
+    }: let
+      fnRef = ref (_name function);
+      thrown = mkThrownUsage {
+        ref = fnRef;
+        inherit
+          message
+          input
+          signature
+          example
+          ;
+      };
+    in
+      addErrorContext "from call site" (throw (_emit function thrown));
 
-        # Usage
-        ```nix
-        then throw (_debug.withLoc {
-          function = mkFn { name = "trimStart"; fn = trimStart; };
-          message  = "chars must be a string or null";
-          inherit input;
-        })
-        ```
-      */
-      withLoc =
-        {
-          function,
-          message,
-          input,
-        }:
-        let
-          thrown = "${message}\ninput: ${toJSON input}";
-        in
-        _emit function thrown;
+    /**
+    Throw with location-only context via `addErrorContext`.
+    */
+    throwLoc = {
+      function,
+      message,
+      input,
+    }: let
+      thrown = "${message}\ninput: ${toJSON input}";
+    in
+      addErrorContext "from call site" (throw (_emit function thrown));
 
-      /**
-        Throw with full usage context via `addErrorContext`.
+    /**
+    Format a plain error string without throwing or tracing.
 
-        Stack trace points into debug/module.nix. Prefer `withDoc + throw`
-        when call-site trace location matters.
-      */
-      throwDoc =
-        {
-          function,
-          message,
-          signature,
-          input,
-          example ? null,
-        }:
-        let
-          fnRef = ref (_name function);
-          thrown = mkThrownUsage {
-            ref = fnRef;
-            inherit
-              message
-              input
-              signature
-              example
-              ;
-          };
-        in
-        addErrorContext "from call site" (throw (_emit function thrown));
+    # Examples
+    ```nix
+    _debug.mkError { function = "normalize"; message = "unexpected null"; }
+    # => "lix.strings.transform.normalize: unexpected null"
+    ```
+    */
+    mkError = {
+      function,
+      message,
+    }: "${ref (_name function)}: ${message}";
 
-      /**
-        Throw with location-only context via `addErrorContext`.
-      */
-      throwLoc =
-        {
-          function,
-          message,
-          input,
-        }:
-        let
-          thrown = "${message}\ninput: ${toJSON input}";
-        in
-        addErrorContext "from call site" (throw (_emit function thrown));
-
-      /**
-        Format a plain error string without throwing or tracing.
-
-        # Examples
-        ```nix
-        _debug.mkError { function = "normalize"; message = "unexpected null"; }
-        # => "lix.strings.transform.normalize: unexpected null"
-        ```
-      */
-      mkError = { function, message }: "${ref (_name function)}: ${message}";
-
-      inherit ref;
-    };
+    inherit ref;
+  };
 
   exports = {
     inherit mkModule mkFn;
     mkModuleDebug = mkModule;
   };
 in
-exports // { __rootAliases = exports; }
+  exports // {__rootAliases = exports;}

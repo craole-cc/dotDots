@@ -1,13 +1,16 @@
-{ apps, keyboard, ... }:
-let
-  inherit (apps)
+{
+  apps,
+  keyboard,
+  ...
+}: let
+  inherit
+    (apps)
     browser
     editor
     launcher
     terminal
     ;
-in
-{
+in {
   "$MOD" = keyboard.mod;
   "$browser" = browser.primary.command;
   "$browserAlt" = browser.secondary.command;
@@ -18,7 +21,7 @@ in
   "$terminal" = terminal.primary.command;
   "$terminalAlt" = terminal.secondary.command;
 
-  env = [ "XDG_CURRENT_DESKTOP,Hyprland" ];
+  env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
     # sensitivity = 0.2;
 

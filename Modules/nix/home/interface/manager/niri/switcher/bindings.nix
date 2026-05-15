@@ -1,5 +1,4 @@
-{ user, ... }:
-{
+{user, ...}: {
   keys = {
     modifier = user.interface.keyboard.modifier or "Super";
     switch = {

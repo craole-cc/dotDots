@@ -7,8 +7,7 @@
   keyboard,
   inputsForHome,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;
   inherit (style) fonts;
@@ -27,8 +26,8 @@ let
   enable = inputsForHome.caelestia.isAllowed;
   programs = {
     ${name} = mkMerge [
-      { inherit enable; }
-      (import ./cli { })
+      {inherit enable;}
+      (import ./cli {})
       (import ./settings {
         inherit
           locale
@@ -53,10 +52,9 @@ let
       programs
       services
       ;
-    home = { inherit packages; };
+    home = {inherit packages;};
   };
-in
-{
+in {
   config = mkIf cfg.enable (mkMerge [
     {
       inherit (cfg) programs home services;
@@ -67,6 +65,6 @@ in
         ];
       };
     }
-    (import ./hyprland.nix { inherit mod; })
+    (import ./hyprland.nix {inherit mod;})
   ]);
 }

@@ -1,9 +1,8 @@
 let
   arch = "x86_64";
   os = "linux";
-in
-{
-  imports = [ ./hardware-configuration.nix ];
+in {
+  imports = [./hardware-configuration.nix];
 
   stateVersion = "25.11";
   system = "${arch}-${os}";
@@ -59,7 +58,7 @@ in
   ];
 
   devices = {
-    boot = { };
+    boot = {};
 
     file = {
       "/" = {
@@ -89,7 +88,7 @@ in
       };
     };
 
-    swap = [ ];
+    swap = [];
 
     network = [
       "enp9s0"
@@ -192,7 +191,7 @@ in
             to = 65534;
           }
         ];
-        ports = [ ];
+        ports = [];
       };
     };
 

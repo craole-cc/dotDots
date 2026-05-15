@@ -1,1 +1,1 @@
-{ ashell.enable = true; }
+{ashell.enable = true;}

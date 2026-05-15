@@ -3,11 +3,11 @@
   themes = {
     light = {
       "inherits" = "kaolin-light";
-      "ui.background" = { };
+      "ui.background" = {};
     };
     dark = {
       "inherits" = "kaolin-light";
-      "ui.background" = { };
+      "ui.background" = {};
     };
   };
 }

@@ -2,17 +2,17 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
-    namespaced = { inherit access predicates transformation; };
-    flattened = { } // access // predicates // transformation // { };
+    namespaced = {inherit access predicates transformation;};
+    flattened = {} // access // predicates // transformation // {};
   };
 
   inherit (lib) sources;
 
   access = {
-    inherit (sources)
+    inherit
+      (sources)
       commitIdFromGitRepo
       repoRevToName
       revOrTag
@@ -22,10 +22,11 @@ let
       ;
   };
 
-  predicates = { inherit (sources) canCleanSource pathHasContext pathIsGitRepo; };
+  predicates = {inherit (sources) canCleanSource pathHasContext pathIsGitRepo;};
 
   transformation = {
-    inherit (sources)
+    inherit
+      (sources)
       cleanSource
       cleanSourceFilter
       cleanSourceWith
@@ -35,4 +36,6 @@ let
       ;
   };
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

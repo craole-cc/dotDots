@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   programs = {
     #~@ Browser
     zen-browser = {
@@ -35,12 +34,12 @@
           engines = {
             bing = {
               name = "Bing";
-              urls = [ { template = "https://www.bing.com/search?q={searchTerms}"; } ];
+              urls = [{template = "https://www.bing.com/search?q={searchTerms}";}];
               metaData.alias = "@mb";
             };
             brave = {
               name = "Brave";
-              urls = [ { template = "https://search.brave.com/search?q={searchTerms}"; } ];
+              urls = [{template = "https://search.brave.com/search?q={searchTerms}";}];
               definedAliases = [
                 "b"
                 "@b"
@@ -48,7 +47,7 @@
             };
             github = {
               name = "GitHub";
-              urls = [ { template = "https://github.com/search?q={searchTerms}"; } ];
+              urls = [{template = "https://github.com/search?q={searchTerms}";}];
               definedAliases = [
                 "gh"
                 "@gh"
@@ -146,7 +145,7 @@
             };
             nixos-wiki = {
               name = "NixOS Wiki";
-              urls = [ { template = "https://wiki.nixos.org/w/index.php?search={searchTerms}"; } ];
+              urls = [{template = "https://wiki.nixos.org/w/index.php?search={searchTerms}";}];
               iconMapObj."16" = "https://wiki.nixos.org/favicon.ico";
               definedAliases = [
                 "nw"
@@ -202,12 +201,12 @@
                   ];
                 }
               ];
-              definedAliases = [ "@wp" ];
+              definedAliases = ["@wp"];
             };
             wiktionary = {
               name = "Wiktionary";
               urls = [
-                { template = "https://en.wiktionary.org/w/index.php?search={searchTerms}"; }
+                {template = "https://en.wiktionary.org/w/index.php?search={searchTerms}";}
                 {
                   template = "https://en.wiktionary.org/wiki/%s";
                   params = [
@@ -236,12 +235,12 @@
                   ];
                 }
               ];
-              definedAliases = [ "@yt" ];
+              definedAliases = ["@yt"];
             };
             youglish = {
               name = "YouGlish";
-              urls = [ { template = "https://youglish.com/pronounce/{searchTerms}/english"; } ];
-              definedAliases = [ "@yg" ];
+              urls = [{template = "https://youglish.com/pronounce/{searchTerms}/english";}];
+              definedAliases = ["@yg"];
             };
           };
           order = [
@@ -371,34 +370,33 @@
   };
 
   #~@ XDG MIME associations
-  xdg.mimeApps =
-    let
-      types = [
-        "application/x-extension-shtml"
-        "application/x-extension-xhtml"
-        "application/x-extension-html"
-        "application/x-extension-xht"
-        "application/x-extension-htm"
-        "x-scheme-handler/unknown"
-        "x-scheme-handler/mailto"
-        "x-scheme-handler/chrome"
-        "x-scheme-handler/about"
-        "x-scheme-handler/https"
-        "x-scheme-handler/http"
-        "application/xhtml+xml"
-        "application/json"
-        "text/plain"
-        "text/html"
-      ];
-      associations = lib.attrsets.listToAttrs (
-        map (app: {
-          name = app;
-          value = "zen.desktop";
-        }) types
-      );
-    in
-    {
-      associations.added = associations;
-      defaultApplications = associations;
-    };
+  xdg.mimeApps = let
+    types = [
+      "application/x-extension-shtml"
+      "application/x-extension-xhtml"
+      "application/x-extension-html"
+      "application/x-extension-xht"
+      "application/x-extension-htm"
+      "x-scheme-handler/unknown"
+      "x-scheme-handler/mailto"
+      "x-scheme-handler/chrome"
+      "x-scheme-handler/about"
+      "x-scheme-handler/https"
+      "x-scheme-handler/http"
+      "application/xhtml+xml"
+      "application/json"
+      "text/plain"
+      "text/html"
+    ];
+    associations = lib.attrsets.listToAttrs (
+      map (app: {
+        name = app;
+        value = "zen.desktop";
+      })
+      types
+    );
+  in {
+    associations.added = associations;
+    defaultApplications = associations;
+  };
 }

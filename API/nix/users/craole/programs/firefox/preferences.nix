@@ -1,5 +1,4 @@
-{ mkLockedAttrs, ... }:
-{
+{mkLockedAttrs, ...}: {
   Preferences = mkLockedAttrs {
     ## Browser UI and Behavior
     "browser.aboutConfig.showWarning" = false;

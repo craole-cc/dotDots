@@ -4,8 +4,7 @@
   lix,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -35,13 +34,11 @@ let
       "tailscale.vscode-tailscale"
     ];
   };
-in
-{
+in {
   name = "infrastructure";
   description = "Docker, SQL, DevOps extensions";
   default = false;
-  feature =
-    enabled:
+  feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -50,9 +47,9 @@ in
         networking.extensions
       ];
       userSettings = mkMerge [
-        (docker.userSettings or { })
-        (sql.userSettings or { })
-        (networking.userSettings or { })
+        (docker.userSettings or {})
+        (sql.userSettings or {})
+        (networking.userSettings or {})
       ];
     };
 }

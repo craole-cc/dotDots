@@ -6,14 +6,14 @@ _: {
       "interface"
     ];
     compositor = "muffin";
-    greeters = [ "lightdm" ];
+    greeters = ["lightdm"];
     layouts = [
       "floating"
       "stacking"
     ];
-    notifier = [ "cinnamon" ];
-    panel = [ "cinnamon" ];
-    protocol = [ "xorg" ];
+    notifier = ["cinnamon"];
+    panel = ["cinnamon"];
+    protocol = ["xorg"];
     scope = "desktop";
   };
 
@@ -32,9 +32,9 @@ _: {
       "stacking"
       "tiling"
     ];
-    notifier = [ "cosmic-notifications" ];
-    panel = [ "cosmic-panel" ];
-    protocol = [ "wayland" ];
+    notifier = ["cosmic-notifications"];
+    panel = ["cosmic-panel"];
+    protocol = ["wayland"];
     scope = "desktop";
   };
 
@@ -44,14 +44,14 @@ _: {
       "interface"
     ];
     compositor = "mutter";
-    greeters = [ "gdm" ];
+    greeters = ["gdm"];
     layouts = [
       "floating"
       "stacking"
       "tiling"
     ];
-    notifier = [ "gnome-shell" ];
-    panel = [ "gnome-shell" ];
+    notifier = ["gnome-shell"];
+    panel = ["gnome-shell"];
     protocol = [
       "wayland"
       "xorg"
@@ -65,15 +65,15 @@ _: {
       "interface"
     ];
     compositor = "gala";
-    greeters = [ "lightdm" ];
+    greeters = ["lightdm"];
     layouts = [
       "floating"
       "stacking"
       "tiling"
     ];
-    notifier = [ "notification-daemon" ];
-    panel = [ "wingpanel" ];
-    protocol = [ "xorg" ];
+    notifier = ["notification-daemon"];
+    panel = ["wingpanel"];
+    protocol = ["xorg"];
     scope = "desktop";
   };
 
@@ -92,8 +92,8 @@ _: {
       "stacking"
       "tiling"
     ];
-    notifier = [ "plasmashell" ];
-    panel = [ "plasmashell" ];
+    notifier = ["plasmashell"];
+    panel = ["plasmashell"];
     protocol = [
       "wayland"
       "xorg"
@@ -107,14 +107,14 @@ _: {
       "interface"
     ];
     compositor = "xfwm4";
-    greeters = [ "lightdm" ];
+    greeters = ["lightdm"];
     layouts = [
       "floating"
       "stacking"
     ];
-    notifier = [ "xfce4-notifyd" ];
-    panel = [ "xfce4-panel" ];
-    protocol = [ "xorg" ];
+    notifier = ["xfce4-notifyd"];
+    panel = ["xfce4-panel"];
+    protocol = ["xorg"];
     scope = "desktop";
   };
 
@@ -152,7 +152,7 @@ _: {
       "nwg-panel"
       "eww"
     ];
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     scope = "compositor";
   };
 
@@ -185,7 +185,7 @@ _: {
       "waybar"
       "eww"
     ];
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     scope = "compositor";
   };
 
@@ -216,7 +216,7 @@ _: {
       "waybar"
       "eww"
     ];
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     scope = "compositor";
   };
 
@@ -249,7 +249,7 @@ _: {
       "swaybar"
       "eww"
     ];
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     scope = "compositor";
   };
 
@@ -270,13 +270,13 @@ _: {
       "floating"
       "stacking"
     ];
-    notifier = [ "dunst" ];
+    notifier = ["dunst"];
     panel = [
       "awesome"
       "polybar"
       "xmobar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 
@@ -296,13 +296,13 @@ _: {
       "floating"
       "stacking"
     ];
-    notifier = [ "dunst" ];
+    notifier = ["dunst"];
     panel = [
       "polybar"
       "lemonbar"
       "xmobar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 
@@ -322,14 +322,14 @@ _: {
       "floating"
       "stacking"
     ];
-    notifier = [ "dunst" ];
+    notifier = ["dunst"];
     panel = [
       "i3bar"
       "polybar"
       "lemonbar"
       "xmobar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 
@@ -357,7 +357,7 @@ _: {
       "polybar"
       "lemonbar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 
@@ -377,13 +377,13 @@ _: {
       "floating"
       "stacking"
     ];
-    notifier = [ "dunst" ];
+    notifier = ["dunst"];
     panel = [
       "qtile"
       "polybar"
       "xmobar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 
@@ -403,13 +403,13 @@ _: {
       "floating"
       "stacking"
     ];
-    notifier = [ "dunst" ];
+    notifier = ["dunst"];
     panel = [
       "xmobar"
       "polybar"
       "lemonbar"
     ];
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     scope = "compositor";
   };
 }

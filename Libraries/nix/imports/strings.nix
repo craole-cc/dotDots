@@ -2,8 +2,7 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
     namespaced = {
       inherit
@@ -13,13 +12,14 @@ let
         transformation
         ;
     };
-    flattened = { } // access // construction // predicates // transformation // { };
+    flattened = {} // access // construction // predicates // transformation // {};
   };
 
   inherit (lib) strings;
 
   access = {
-    inherit (strings)
+    inherit
+      (strings)
       match
       split
       stringLength
@@ -29,7 +29,8 @@ let
   };
 
   construction = {
-    inherit (strings)
+    inherit
+      (strings)
       charToInt
       concatImapStringsSep
       concatMapStringsSep
@@ -44,7 +45,8 @@ let
   };
 
   transformation = {
-    inherit (strings)
+    inherit
+      (strings)
       escape
       escapeNixString
       escapeRegex
@@ -63,7 +65,8 @@ let
   };
 
   predicates = {
-    inherit (strings)
+    inherit
+      (strings)
       hasInfix
       hasPrefix
       hasSuffix
@@ -72,4 +75,6 @@ let
       ;
   };
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

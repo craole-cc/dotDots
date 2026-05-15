@@ -4,8 +4,7 @@
   src,
   __moduleRef,
   ...
-}:
-let
+}: let
   inherit (_.content.fallback) firstNonEmpty;
   inherit (_.content.empty) isNotEmpty;
   inherit (_.debug.assertions) mkTest mkTest';
@@ -13,7 +12,8 @@ let
   inherit (_.debug.runners) runTests;
   inherit (_.filesystem.paths) getFlakePath;
   inherit (_.hardware.system) getSystems;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     attrByPath
     attrValues
     filterAttrs
@@ -23,7 +23,8 @@ let
     optionalAttrs
     ;
   inherit (lib.debug) traceIf;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     filter
     findFirst
     head
@@ -68,7 +69,8 @@ let
       optionalAttr = optional;
     };
     external = {
-      inherit (internal)
+      inherit
+        (internal)
         flakeAttrs
         getAttrByPaths
         getAttrOrDefault
@@ -88,26 +90,30 @@ let
   };
 
   /**
-    Get an attribute value, throwing if the key is absent.
+  Get an attribute value, throwing if the key is absent.
 
-    Use when the key is required and absence is a programming error.
-    For optional keys use `orDefault` or `orNull`.
+  Use when the key is required and absence is a programming error.
+  For optional keys use `orDefault` or `orNull`.
 
-    # Type
-    ```nix
-    getAttr :: { attrs :: AttrSet, name :: string } -> a
-    ```
+  # Type
+  ```nix
+  getAttr :: { attrs :: AttrSet, name :: string } -> a
+  ```
 
-    # Examples
-    ```nix
-    getAttr { attrs = { a = "hello"; }; name = "a"; }  # => "hello"
-    getAttr { attrs = {};               name = "a"; }  # => throws
-    getAttr { attrs = { a = ""; };      name = "a"; }  # => ""  (empty is valid)
-    ```
+  # Examples
+  ```nix
+  getAttr { attrs = { a = "hello"; }; name = "a"; }  # => "hello"
+  getAttr { attrs = {};               name = "a"; }  # => throws
+  getAttr { attrs = { a = ""; };      name = "a"; }  # => ""  (empty is valid)
+  ```
   */
-  getAttr =
-    { attrs, name }:
-    attrs.${name} or (throw (
+  getAttr = {
+    attrs,
+    name,
+  }:
+    attrs.${
+      name
+    } or (throw (
       debug.mkError {
         function = "getAttr";
         message = "attribute '${name}' is missing";
@@ -115,190 +121,189 @@ let
     ));
 
   /**
-    Get an attribute value, falling back to `default` if missing or empty.
+  Get an attribute value, falling back to `default` if missing or empty.
 
-    Unlike `attrs.key or default`, treats empty strings, empty lists, and
-    empty attrsets as absent.
+  Unlike `attrs.key or default`, treats empty strings, empty lists, and
+  empty attrsets as absent.
 
-    # Type
-    ```nix
-    orDefault :: { attrs :: AttrSet, name :: string, default :: a } -> a
-    ```
+  # Type
+  ```nix
+  orDefault :: { attrs :: AttrSet, name :: string, default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }  # => "hello"
-    orDefault { attrs = { a = "";      }; name = "a"; default = "fallback"; }  # => "fallback"
-    orDefault { attrs = {};               name = "a"; default = "fallback"; }  # => "fallback"
-    orDefault { attrs = { a = 0;       }; name = "a"; default = 42;         }  # => 0
-    orDefault { attrs = { a = false;   }; name = "a"; default = true;       }  # => false
-    orDefault { attrs = { a = [];      }; name = "a"; default = [1 2];      }  # => [1 2]
-    ```
+  # Examples
+  ```nix
+  orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }  # => "hello"
+  orDefault { attrs = { a = "";      }; name = "a"; default = "fallback"; }  # => "fallback"
+  orDefault { attrs = {};               name = "a"; default = "fallback"; }  # => "fallback"
+  orDefault { attrs = { a = 0;       }; name = "a"; default = 42;         }  # => 0
+  orDefault { attrs = { a = false;   }; name = "a"; default = true;       }  # => false
+  orDefault { attrs = { a = [];      }; name = "a"; default = [1 2];      }  # => [1 2]
+  ```
   */
-  orDefault =
-    {
-      attrs,
-      name,
-      default,
-    }:
-    if attrs ? ${name} && isNotEmpty attrs.${name} then attrs.${name} else default;
+  orDefault = {
+    attrs,
+    name,
+    default,
+  }:
+    if attrs ? ${name} && isNotEmpty attrs.${name}
+    then attrs.${name}
+    else default;
 
   /**
-    Get an attribute value, falling back to `default` only if the key is absent.
+  Get an attribute value, falling back to `default` only if the key is absent.
 
-    Unlike `orDefault`, preserves empty strings, empty lists, and empty attrsets.
+  Unlike `orDefault`, preserves empty strings, empty lists, and empty attrsets.
 
-    # Type
-    ```nix
-    orNull :: { attrs :: AttrSet, name :: string, default :: a } -> a
-    ```
+  # Type
+  ```nix
+  orNull :: { attrs :: AttrSet, name :: string, default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    orNull { attrs = { a = ""; };   name = "a"; default = "fallback"; }  # => ""
-    orNull { attrs = { a = []; };   name = "a"; default = [1];         }  # => []
-    orNull { attrs = {};             name = "a"; default = "fallback"; }  # => "fallback"
-    orNull { attrs = { a = null; }; name = "a"; default = "fallback"; }  # => null
-    ```
+  # Examples
+  ```nix
+  orNull { attrs = { a = ""; };   name = "a"; default = "fallback"; }  # => ""
+  orNull { attrs = { a = []; };   name = "a"; default = [1];         }  # => []
+  orNull { attrs = {};             name = "a"; default = "fallback"; }  # => "fallback"
+  orNull { attrs = { a = null; }; name = "a"; default = "fallback"; }  # => null
+  ```
   */
-  orNull =
-    {
-      attrs,
-      name,
-      default,
-    }:
+  orNull = {
+    attrs,
+    name,
+    default,
+  }:
     attrs.${name} or default;
 
   /**
-    Resolve an attribute by trying multiple paths in order.
+  Resolve an attribute by trying multiple paths in order.
 
-    Returns the value at the first matching path, or `default` if none exist.
+  Returns the value at the first matching path, or `default` if none exist.
 
-    # Type
-    ```nix
-    byPaths :: { attrset :: AttrSet, paths :: [[string]], default :: a } -> a
-    ```
+  # Type
+  ```nix
+  byPaths :: { attrset :: AttrSet, paths :: [[string]], default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    byPaths {
-      attrset = { foo.bar = 1; baz.qux = 2; };
-      paths   = [["missing"] ["foo" "bar"] ["baz" "qux"]];
-      default = null;
-    }
-    # => 1  (first match: foo.bar)
-    ```
+  # Examples
+  ```nix
+  byPaths {
+    attrset = { foo.bar = 1; baz.qux = 2; };
+    paths   = [["missing"] ["foo" "bar"] ["baz" "qux"]];
+    default = null;
+  }
+  # => 1  (first match: foo.bar)
+  ```
   */
-  byPaths =
-    {
-      attrset,
-      paths,
-      default ? { },
-    }:
-    let
-      matched = filter (path: hasAttrByPath path attrset) paths;
-    in
-    if isNotEmpty matched then attrByPath (head matched) default attrset else default;
+  byPaths = {
+    attrset,
+    paths,
+    default ? {},
+  }: let
+    matched = filter (path: hasAttrByPath path attrset) paths;
+  in
+    if isNotEmpty matched
+    then attrByPath (head matched) default attrset
+    else default;
 
   /**
-    Resolve a nested attribute under any of several possible parent names.
+  Resolve a nested attribute under any of several possible parent names.
 
-    # Type
-    ```nix
-    nestedByPaths :: { attrset :: AttrSet, parents :: string | [string], target :: string | [string], default :: a } -> a
-    ```
+  # Type
+  ```nix
+  nestedByPaths :: { attrset :: AttrSet, parents :: string | [string], target :: string | [string], default :: a } -> a
+  ```
 
-    # Examples
-    ```nix
-    nestedByPaths {
-      attrset = inputs;
-      parents = ["zenBrowser" "zen-browser" "zen"];
-      target  = "homeModules";
-    }
-    ```
+  # Examples
+  ```nix
+  nestedByPaths {
+    attrset = inputs;
+    parents = ["zenBrowser" "zen-browser" "zen"];
+    target  = "homeModules";
+  }
+  ```
   */
-  nestedByPaths =
-    {
-      attrset,
-      parents,
-      target,
-      default ? { },
-    }:
+  nestedByPaths = {
+    attrset,
+    parents,
+    target,
+    default ? {},
+  }:
     byPaths {
       inherit attrset default;
-      paths = map (parent: [ parent ] ++ toList target) (toList parents);
+      paths = map (parent: [parent] ++ toList target) (toList parents);
     };
 
   /**
-    Get `legacyPackages` from a nixpkgs flake for a given system.
+  Get `legacyPackages` from a nixpkgs flake for a given system.
 
-    # Type
-    ```nix
-    packages :: { nixpkgs :: Flake?, system :: string?, priority :: [string]? } -> AttrSet
-    ```
+  # Type
+  ```nix
+  packages :: { nixpkgs :: Flake?, system :: string?, priority :: [string]? } -> AttrSet
+  ```
   */
-  packages =
-    {
-      nixpkgs ? import <nixpkgs> { },
-      system ? null,
-      priority ? null,
-    }:
-    let
-      targetSystem = system;
+  packages = {
+    nixpkgs ? import <nixpkgs> {},
+    system ? null,
+    priority ? null,
+  }: let
+    targetSystem = system;
+  in
+    if priority != null
+    then let
+      sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
     in
-    if priority != null then
-      let
-        sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
-      in
       (findFirst (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null) nixpkgs.legacyPackages (
         attrValues sources
-      )).${targetSystem}
-    else
-      nixpkgs.legacyPackages.${targetSystem};
+      )).${
+        targetSystem
+      }
+    else nixpkgs.legacyPackages.${targetSystem};
 
   /**
-    Resolve a package from `pkgs` by trying one or more names in order.
+  Resolve a package from `pkgs` by trying one or more names in order.
 
-    # Type
-    ```nix
-    package :: { pkgs :: AttrSet, target :: string | [string], default :: a } -> Derivation | a
-    ```
+  # Type
+  ```nix
+  package :: { pkgs :: AttrSet, target :: string | [string], default :: a } -> Derivation | a
+  ```
 
-    # Examples
-    ```nix
-    package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
-    ```
+  # Examples
+  ```nix
+  package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
+  ```
   */
-  package =
-    {
-      pkgs,
-      target,
-      default ? null,
-    }:
+  package = {
+    pkgs,
+    target,
+    default ? null,
+  }:
     byPaths {
       attrset = pkgs;
-      paths = map (name: [ name ]) (toList target);
+      paths = map (name: [name]) (toList target);
       inherit default;
     };
 
   /**
-    Map a shell name to its nixpkgs package.
+  Map a shell name to its nixpkgs package.
 
-    Falls back to `pkgs.bashInteractive` for unknown names.
+  Falls back to `pkgs.bashInteractive` for unknown names.
 
-    # Type
-    ```nix
-    shellPackage :: { pkgs :: AttrSet, name :: string } -> Derivation
-    ```
+  # Type
+  ```nix
+  shellPackage :: { pkgs :: AttrSet, name :: string } -> Derivation
+  ```
 
-    # Examples
-    ```nix
-    shellPackage { inherit pkgs; name = "zsh"; }     # => pkgs.zsh
-    shellPackage { inherit pkgs; name = "unknown"; } # => pkgs.bashInteractive
-    ```
+  # Examples
+  ```nix
+  shellPackage { inherit pkgs; name = "zsh"; }     # => pkgs.zsh
+  shellPackage { inherit pkgs; name = "unknown"; } # => pkgs.bashInteractive
+  ```
   */
-  shellPackage =
-    { pkgs, name }:
+  shellPackage = {
+    pkgs,
+    name,
+  }:
     {
       "bash" = pkgs.bashInteractive;
       "fish" = pkgs.fish;
@@ -306,79 +311,76 @@ let
       "powershell" = pkgs.powershell;
       "zsh" = pkgs.zsh;
     }
-    .${name} or pkgs.bashInteractive;
+    .${
+      name
+    } or pkgs.bashInteractive;
 
   /**
-    Build a name → packages attrset by resolving `inputs.<name>.<attr>` for
-    each name in `names`.
+  Build a name → packages attrset by resolving `inputs.<name>.<attr>` for
+  each name in `names`.
 
-    # Type
-    ```nix
-    mkPkgSet :: { attr :: string, names :: [string] } -> AttrSet
-    ```
+  # Type
+  ```nix
+  mkPkgSet :: { attr :: string, names :: [string] } -> AttrSet
+  ```
   */
-  inputPackages =
-    {
-      inputs,
-      attrs,
-      names,
-    }:
+  inputPackages = {
+    inputs,
+    attrs,
+    names,
+  }:
     listToAttrs (
       map (name: {
         inherit name;
-        value = inputs.${name}.${attrs} or { };
-      }) names
+        value = inputs.${name}.${attrs} or {};
+      })
+      names
     );
 
   /**
-    Parse a VSCode extension identifier into { publisher, name }.
+  Parse a VSCode extension identifier into { publisher, name }.
 
-    Accepts either "publisher.name" string or { publisher; name; } attrset.
+  Accepts either "publisher.name" string or { publisher; name; } attrset.
 
-    # Type
-    ```nix
-    parseVscodeExt :: string | { publisher :: string, name :: string }
-                  -> { publisher :: string, name :: string }
-    ```
+  # Type
+  ```nix
+  parseVscodeExt :: string | { publisher :: string, name :: string }
+                -> { publisher :: string, name :: string }
+  ```
   */
-  parseVscodeExt =
-    entry:
-    if lib.strings.isString entry then
-      let
-        parts = lib.strings.splitString "." entry;
-      in
-      {
-        publisher = lib.lists.elemAt parts 0;
-        name = lib.lists.elemAt parts 1;
-      }
-    else
-      entry;
+  parseVscodeExt = entry:
+    if lib.strings.isString entry
+    then let
+      parts = lib.strings.splitString "." entry;
+    in {
+      publisher = lib.lists.elemAt parts 0;
+      name = lib.lists.elemAt parts 1;
+    }
+    else entry;
 
   /**
-    Resolve a single VSCode extension, trying nixpkgs first then marketplace.
+  Resolve a single VSCode extension, trying nixpkgs first then marketplace.
 
-    # Type
-    ```nix
-    vscodePackage :: {
-      pkgs    :: AttrSet,
-      inputs  :: AttrSet,
-      system  :: string,
-      entry   :: string | { publisher :: string, name :: string },
-      default :: a?
-    } -> Derivation | a
-    ```
+  # Type
+  ```nix
+  vscodePackage :: {
+    pkgs    :: AttrSet,
+    inputs  :: AttrSet,
+    system  :: string,
+    entry   :: string | { publisher :: string, name :: string },
+    default :: a?
+  } -> Derivation | a
+  ```
   */
-  vscodePackage =
-    {
-      pkgs,
-      inputs,
-      system ? pkgs.stdenv.hostPlatform.system,
-      entry,
-      default ? null,
-    }:
-    let
-      e = parseVscodeExt entry;
-    in
+  vscodePackage = {
+    pkgs,
+    inputs,
+    system ? pkgs.stdenv.hostPlatform.system,
+    entry,
+    default ? null,
+  }: let
+    e = parseVscodeExt entry;
+  in
     byPaths {
       attrset = {
         nixpkgs = pkgs.vscode-extensions;
@@ -400,165 +402,171 @@ let
     };
 
   /**
-    Resolve a list of VSCode extensions, silently dropping any not found.
+  Resolve a list of VSCode extensions, silently dropping any not found.
 
-    # Type
-    ```nix
-    vscodePackages :: {
-      pkgs   :: AttrSet,
-      inputs :: AttrSet,
-      system :: string?,
-      entries :: [string | { publisher :: string, name :: string }]
-    } -> [Derivation]
-    ```
+  # Type
+  ```nix
+  vscodePackages :: {
+    pkgs   :: AttrSet,
+    inputs :: AttrSet,
+    system :: string?,
+    entries :: [string | { publisher :: string, name :: string }]
+  } -> [Derivation]
+  ```
   */
-  vscodePackages =
-    {
-      pkgs,
-      inputs,
-      system ? pkgs.stdenv.hostPlatform.system,
-      entries,
-    }:
+  vscodePackages = {
+    pkgs,
+    inputs,
+    system ? pkgs.stdenv.hostPlatform.system,
+    entries,
+  }:
     lib.lists.filter (x: x != null) (
       map (
         entry:
-        vscodePackage {
-          inherit
-            pkgs
-            inputs
-            system
-            entry
-            ;
-        }
-      ) entries
+          vscodePackage {
+            inherit
+              pkgs
+              inputs
+              system
+              entry
+              ;
+          }
+      )
+      entries
     );
 
   /**
-    Conditionally include a single attribute in an attrset merge.
+  Conditionally include a single attribute in an attrset merge.
 
-    Returns `{ name = attrs.name; }` if the attribute exists and is non-empty,
-    otherwise `{}`.
+  Returns `{ name = attrs.name; }` if the attribute exists and is non-empty,
+  otherwise `{}`.
 
-    # Type
-    ```nix
-    optional :: { attrs :: AttrSet, name :: string } -> AttrSet
-    ```
+  # Type
+  ```nix
+  optional :: { attrs :: AttrSet, name :: string } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    { inherit foo bar; }
-    // optional { attrs = config; name = "baz"; }
-    // optional { attrs = config; name = "qux"; }
-    ```
+  # Examples
+  ```nix
+  { inherit foo bar; }
+  // optional { attrs = config; name = "baz"; }
+  // optional { attrs = config; name = "qux"; }
+  ```
   */
-  optional = { attrs, name }: if attrs ? name && isNotEmpty attrs.${name} then { ${name} = attrs.${name}; } else { };
+  optional = {
+    attrs,
+    name,
+  }:
+    if attrs ? name && isNotEmpty attrs.${name}
+    then {${name} = attrs.${name};}
+    else {};
 
-  flakeAttrs =
-    {
-      self ? { },
-      path ? src,
-    }:
-    let
-      normalizedPath = getFlakePath { inherit self path; };
-      derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
-      failureReason =
-        if normalizedPath == null then
-          "path normalization failed"
-        else if derived == null then
-          "getFlake returned null"
-        else if (derived._type or null) != "flake" then
-          "invalid flake type: ${derived._type or "null"}"
-        else
-          "unknown";
-    in
-    if self != { } then
-      self
+  flakeAttrs = {
+    self ? {},
+    path ? src,
+  }: let
+    normalizedPath = getFlakePath {inherit self path;};
+    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    failureReason =
+      if normalizedPath == null
+      then "path normalization failed"
+      else if derived == null
+      then "getFlake returned null"
+      else if (derived._type or null) != "flake"
+      then "invalid flake type: ${derived._type or "null"}"
+      else "unknown";
+  in
+    if self != {}
+    then self
     else
       traceIf ((derived._type or null) != "flake") "❌ Flake load failed: ${toString path} (${failureReason})" (
-        derived // { srcPath = path; }
+        derived // {srcPath = path;}
       );
 
-  hostAttrs =
-    {
-      self ? { },
-      path ? src,
-      hosts ? { },
-      flake ? { },
-      nixosConfigurations ? { },
-      system ? null,
-    }:
-    let
-      derived =
-        findFirst
-          (
-            hostConfig:
-            (hostConfig.config.nixpkgs.hostPlatform.system or null)
-            == (if system != null then system else (getSystems { inherit hosts; }).system)
+  hostAttrs = {
+    self ? {},
+    path ? src,
+    hosts ? {},
+    flake ? {},
+    nixosConfigurations ? {},
+    system ? null,
+  }: let
+    derived =
+      findFirst
+      (
+        hostConfig:
+          (hostConfig.config.nixpkgs.hostPlatform.system or null)
+          == (
+            if system != null
+            then system
+            else (getSystems {inherit hosts;}).system
           )
-          null
-          (
-            attrValues (
-              if nixosConfigurations != { } then
-                nixosConfigurations
-              else
-                (flake.nixosConfigurations or (flakeAttrs { inherit self path; }).nixosConfigurations or { })
-            )
-          );
-    in
+      )
+      null
+      (
+        attrValues (
+          if nixosConfigurations != {}
+          then nixosConfigurations
+          else (flake.nixosConfigurations or (flakeAttrs {inherit self path;}).nixosConfigurations or {})
+        )
+      );
+  in
     traceIf ((derived.class or null) != "nixos") "❌ Failed to derive current host" (
-      derived // { name = derived.config.networking.hostName; }
+      derived // {name = derived.config.networking.hostName;}
     );
 
   /**
-    Build the `nixpkgs` source attribute appropriate for the host class.
+  Build the `nixpkgs` source attribute appropriate for the host class.
 
-    Darwin uses `source`; NixOS uses `flake.source`. Resolves `root` from
-    `inputs.nixpkgs` when not explicitly provided.
+  Darwin uses `source`; NixOS uses `flake.source`. Resolves `root` from
+  `inputs.nixpkgs` when not explicitly provided.
 
-    # Type
-    ```
-    inputSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
-    ```
+  # Type
+  ```
+  inputSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    inputSource { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
-    # => { source = nixpkgs; }
+  # Examples
+  ```nix
+  inputSource { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  # => { source = nixpkgs; }
 
-    inputSource { inputs.nixpkgs = nixpkgs; }
-    # => { flake.source = nixpkgs; }
-    ```
+  inputSource { inputs.nixpkgs = nixpkgs; }
+  # => { flake.source = nixpkgs; }
+  ```
   */
-  inputSource =
-    {
-      host ? { },
-      root ? null,
-      inputs ? { },
-      ...
-    }:
-    let
-      root' = firstNonEmpty [
-        root
-        (inputs.nixpkgs or null)
-      ];
-    in
-    if (host.class or "nixos") == "darwin" then { source = root'; } else { flake.source = root'; };
+  inputSource = {
+    host ? {},
+    root ? null,
+    inputs ? {},
+    ...
+  }: let
+    root' = firstNonEmpty [
+      root
+      (inputs.nixpkgs or null)
+    ];
+  in
+    if (host.class or "nixos") == "darwin"
+    then {source = root';}
+    else {flake.source = root';};
 
-  nixpkgs =
-    {
-      system,
-      config,
-      overlays,
-      inputs,
-      ...
-    }:
+  nixpkgs = {
+    system,
+    config,
+    overlays,
+    inputs,
+    ...
+  }:
     {
       hostPlatform = system;
       inherit config overlays;
     }
     // (
-      with inputs.nixpkgs;
-      (if (host.class or "nixos") == "darwin" then { source = outPath; } else { flake.source = outPath; })
+      with inputs.nixpkgs; (
+        if (host.class or "nixos") == "darwin"
+        then {source = outPath;}
+        else {flake.source = outPath;}
+      )
     );
 
   __doc = ''
@@ -568,197 +576,197 @@ let
     gracefully, and resolving values from multiple potential sources.
   '';
 in
-exports.internal
-// {
-  inherit __doc;
-  __rootAliases = exports.external;
-  __tests = runTests {
-    getAttr = {
-      returnsValueWhenPresent = mkTest {
-        desired = "hello";
-        outcome = getAttr {
+  exports.internal
+  // {
+    inherit __doc;
+    __rootAliases = exports.external;
+    __tests = runTests {
+      getAttr = {
+        returnsValueWhenPresent = mkTest {
+          desired = "hello";
+          outcome = getAttr {
+            attrs = {
+              a = "hello";
+            };
+            name = "a";
+          };
+          command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
+        };
+        preservesEmptyString = mkTest {
+          desired = "";
+          outcome = getAttr {
+            attrs = {
+              a = "";
+            };
+            name = "a";
+          };
+          command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
+        };
+        throwsWhenMissing = mkTest {
+          desired = {
+            success = false;
+            value = false;
+          };
+          outcome = tryEval (getAttr {
+            attrs = {};
+            name = "a";
+          });
+          command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
+        };
+      };
+
+      orDefault = {
+        returnsValueWhenPresent = mkTest {
+          desired = "hello";
+          outcome = orDefault {
+            attrs = {
+              a = "hello";
+            };
+            name = "a";
+            default = "fallback";
+          };
+          command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
+        };
+        fallsBackOnEmptyString = mkTest {
+          desired = "fallback";
+          outcome = orDefault {
+            attrs = {
+              a = "";
+            };
+            name = "a";
+            default = "fallback";
+          };
+          command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+        };
+        fallsBackOnMissing = mkTest {
+          desired = "fallback";
+          outcome = orDefault {
+            attrs = {};
+            name = "a";
+            default = "fallback";
+          };
+          command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
+        };
+        preservesZero = mkTest' 0 (orDefault {
           attrs = {
-            a = "hello";
+            a = 0;
           };
           name = "a";
-        };
-        command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
-      };
-      preservesEmptyString = mkTest {
-        desired = "";
-        outcome = getAttr {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-        };
-        command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
-      };
-      throwsWhenMissing = mkTest {
-        desired = {
-          success = false;
-          value = false;
-        };
-        outcome = tryEval (getAttr {
-          attrs = { };
-          name = "a";
+          default = 42;
         });
-        command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
+        preservesFalse = mkTest' false (orDefault {
+          attrs = {
+            a = false;
+          };
+          name = "a";
+          default = true;
+        });
+        fallsBackOnEmpty = mkTest' [1 2] (orDefault {
+          attrs = {
+            a = [];
+          };
+          name = "a";
+          default = [
+            1
+            2
+          ];
+        });
       };
-    };
 
-    orDefault = {
-      returnsValueWhenPresent = mkTest {
-        desired = "hello";
-        outcome = orDefault {
+      orNull = {
+        preservesEmptyString = mkTest {
+          desired = "";
+          outcome = orNull {
+            attrs = {
+              a = "";
+            };
+            name = "a";
+            default = "fallback";
+          };
+          command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+        };
+        preservesEmptyList = mkTest {
+          desired = [];
+          outcome = orNull {
+            attrs = {
+              a = [];
+            };
+            name = "a";
+            default = [1];
+          };
+          command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
+        };
+        fallsBackOnMissing = mkTest {
+          desired = "fallback";
+          outcome = orNull {
+            attrs = {};
+            name = "a";
+            default = "fallback";
+          };
+          command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
+        };
+        preservesNull = mkTest' null (orNull {
           attrs = {
-            a = "hello";
+            a = null;
           };
           name = "a";
           default = "fallback";
-        };
-        command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
+        });
       };
-      fallsBackOnEmptyString = mkTest {
-        desired = "fallback";
-        outcome = orDefault {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-      };
-      fallsBackOnMissing = mkTest {
-        desired = "fallback";
-        outcome = orDefault {
-          attrs = { };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
-      };
-      preservesZero = mkTest' 0 (orDefault {
-        attrs = {
-          a = 0;
-        };
-        name = "a";
-        default = 42;
-      });
-      preservesFalse = mkTest' false (orDefault {
-        attrs = {
-          a = false;
-        };
-        name = "a";
-        default = true;
-      });
-      fallsBackOnEmpty = mkTest' [ 1 2 ] (orDefault {
-        attrs = {
-          a = [ ];
-        };
-        name = "a";
-        default = [
-          1
-          2
-        ];
-      });
-    };
 
-    orNull = {
-      preservesEmptyString = mkTest {
-        desired = "";
-        outcome = orNull {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-      };
-      preservesEmptyList = mkTest {
-        desired = [ ];
-        outcome = orNull {
-          attrs = {
-            a = [ ];
-          };
-          name = "a";
-          default = [ 1 ];
-        };
-        command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
-      };
-      fallsBackOnMissing = mkTest {
-        desired = "fallback";
-        outcome = orNull {
-          attrs = { };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
-      };
-      preservesNull = mkTest' null (orNull {
-        attrs = {
-          a = null;
-        };
-        name = "a";
-        default = "fallback";
-      });
-    };
-
-    optional = {
-      includesWhenPresent = mkTest {
-        desired = {
-          baz = "yes";
-        };
-        outcome = optional {
-          attrs = {
+      optional = {
+        includesWhenPresent = mkTest {
+          desired = {
             baz = "yes";
           };
-          name = "baz";
-        };
-        command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
-      };
-      excludesWhenMissing = mkTest' { } (optional {
-        attrs = { };
-        name = "baz";
-      });
-      excludesWhenEmpty = mkTest' { } (optional {
-        attrs = {
-          baz = "";
-        };
-        name = "baz";
-      });
-    };
-
-    byPaths = {
-      returnsFirstMatch = mkTest {
-        desired = 1;
-        outcome = byPaths {
-          attrset = {
-            foo.bar = 1;
-            baz.qux = 2;
+          outcome = optional {
+            attrs = {
+              baz = "yes";
+            };
+            name = "baz";
           };
-          paths = [
-            [ "missing" ]
-            [
-              "foo"
-              "bar"
-            ]
-            [
-              "baz"
-              "qux"
-            ]
-          ];
-          default = null;
+          command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
         };
-        command = "byPaths: first match is foo.bar";
+        excludesWhenMissing = mkTest' {} (optional {
+          attrs = {};
+          name = "baz";
+        });
+        excludesWhenEmpty = mkTest' {} (optional {
+          attrs = {
+            baz = "";
+          };
+          name = "baz";
+        });
       };
-      fallsBackToDefault = mkTest' null (byPaths {
-        attrset = { };
-        paths = [ [ "missing" ] ];
-        default = null;
-      });
+
+      byPaths = {
+        returnsFirstMatch = mkTest {
+          desired = 1;
+          outcome = byPaths {
+            attrset = {
+              foo.bar = 1;
+              baz.qux = 2;
+            };
+            paths = [
+              ["missing"]
+              [
+                "foo"
+                "bar"
+              ]
+              [
+                "baz"
+                "qux"
+              ]
+            ];
+            default = null;
+          };
+          command = "byPaths: first match is foo.bar";
+        };
+        fallsBackToDefault = mkTest' null (byPaths {
+          attrset = {};
+          paths = [["missing"]];
+          default = null;
+        });
+      };
     };
-  };
-}
+  }

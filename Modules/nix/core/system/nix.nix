@@ -5,8 +5,7 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   dom = "system";
   mod = "nix";
   cfg = config.${top}.${dom}.${mod};
@@ -16,7 +15,8 @@ let
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasInfix;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     either
     int
     listOf
@@ -26,17 +26,19 @@ let
   kernelRequested = host.packages.kernel or null;
   isChaotic = kernelRequested != null && (hasInfix "cachyos" kernelRequested || hasAttr kernelRequested pkgs);
 
-  substituters = [ "https://cache.numtide.com" ] ++ optionals isChaotic [ "https://nyx.chaotic.cx/" ];
-  trustedKeys = [
-    "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-  ]
-  ++ optionals isChaotic [ "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=" ];
-in
-{
+  substituters = ["https://cache.numtide.com"] ++ optionals isChaotic ["https://nyx.chaotic.cx/"];
+  trustedKeys =
+    [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ]
+    ++ optionals isChaotic ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
+in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     stateVersion = mkOption {
       description = "NixOS state version";
       default = host.stateVersion or "25.11";
@@ -69,7 +71,7 @@ in
         "pipe-operators"
       ];
       max-jobs = cfg.maxJobs;
-      trusted-users = [ "@wheel" ];
+      trusted-users = ["@wheel"];
       substituters = cfg.extraSubstituters;
       trusted-public-keys = cfg.extraTrustedKeys;
     };

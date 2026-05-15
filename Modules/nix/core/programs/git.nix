@@ -3,15 +3,13 @@
   lix,
   top,
   ...
-}:
-let
+}: let
   dom = "programs";
   mod = "git";
   cfg = config.${top}.${dom}.${mod};
   inherit (lix.options.construction) mkTrue;
   inherit (lix.modules.construction) mkIf;
-in
-{
+in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";
     enableLFS = mkTrue "Large File Storage for Git";

@@ -3,7 +3,7 @@
   languages.language = [
     {
       name = "nix";
-      language-servers = [ "nixd" ];
+      language-servers = ["nixd"];
       formatter.command = "alejandra";
       # diagnostic.suppress = ["sema-primop-overridden"];
       auto-format = true;
@@ -22,7 +22,7 @@
     }
     {
       name = "rust";
-      language-servers = [ "rust-analyzer" ];
+      language-servers = ["rust-analyzer"];
       auto-format = true;
     }
     {

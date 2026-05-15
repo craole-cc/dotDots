@@ -2,17 +2,17 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
-    namespaced = { inherit testing tracing; };
-    flattened = { } // testing // tracing // { };
+    namespaced = {inherit testing tracing;};
+    flattened = {} // testing // tracing // {};
   };
 
   inherit (lib) debug;
 
   tracing = {
-    inherit (debug)
+    inherit
+      (debug)
       traceIf
       traceVal
       traceValFn
@@ -24,6 +24,8 @@ let
       ;
   };
 
-  testing = { inherit (debug) runTests testAllTrue; };
+  testing = {inherit (debug) runTests testAllTrue;};
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

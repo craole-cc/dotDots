@@ -6,7 +6,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 
@@ -17,7 +17,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 
@@ -28,7 +28,7 @@ _: {
     ];
     language = "rust";
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     role = "standalone";
   };
 
@@ -39,7 +39,7 @@ _: {
     ];
     language = "vala";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "embedded";
   };
 
@@ -50,7 +50,7 @@ _: {
     ];
     language = "c++";
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     role = "standalone";
   };
 
@@ -61,7 +61,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 
@@ -86,7 +86,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "embedded";
   };
 
@@ -111,7 +111,7 @@ _: {
     ];
     language = "rust";
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     role = "standalone";
   };
 
@@ -122,7 +122,7 @@ _: {
     ];
     language = "c";
     maturity = "legacy";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 
@@ -133,7 +133,7 @@ _: {
     ];
     language = "python";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 
@@ -144,7 +144,7 @@ _: {
     ];
     language = "zig";
     maturity = "young";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     role = "standalone";
   };
 
@@ -155,7 +155,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "wayland" ];
+    protocol = ["wayland"];
     role = "standalone";
   };
 
@@ -166,7 +166,7 @@ _: {
     ];
     language = "c";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "embedded";
   };
 
@@ -177,7 +177,7 @@ _: {
     ];
     language = "haskell";
     maturity = "stable";
-    protocol = [ "xorg" ];
+    protocol = ["xorg"];
     role = "standalone";
   };
 }

@@ -1,36 +1,33 @@
-{ _, ... }:
-let
-  meta =
-    let
-      doc = ''
-        Module Evaluation and System Generation
+{_, ...}: let
+  meta = let
+    doc = ''
+      Module Evaluation and System Generation
 
-        Provides the orchestration layer for turning discovered hosts, resolved
-        flake inputs, generated package sets, and assembled module lists into
-        fully evaluated system configurations.
+      Provides the orchestration layer for turning discovered hosts, resolved
+      flake inputs, generated package sets, and assembled module lists into
+      fully evaluated system configurations.
 
-        This file is responsible for two major tasks:
+      This file is responsible for two major tasks:
 
-        1. Evaluating host systems via `evalModules`.
-        2. Generating per-system flake-style output matrices from a function.
-      '';
-      functions = {
-        inherit
-          mkSystems
-          mkFlake
-          mkCore
-          mkHome
-          mkTree
-          ;
-      };
-      exports = {
-        local = functions;
-        alias = functions;
-      };
-    in
-    {
-      inherit doc exports functions;
+      1. Evaluating host systems via `evalModules`.
+      2. Generating per-system flake-style output matrices from a function.
+    '';
+    functions = {
+      inherit
+        mkSystems
+        mkFlake
+        mkCore
+        mkHome
+        mkTree
+        ;
     };
+    exports = {
+      local = functions;
+      alias = functions;
+    };
+  in {
+    inherit doc exports functions;
+  };
 
   # __doc = ''
   #   Module Evaluation and System Generation
@@ -75,244 +72,242 @@ let
   inherit (_.sources.packages) mkPackages;
 
   /**
-    Evaluate all hosts from the discovered schema into concrete system outputs.
+  Evaluate all hosts from the discovered schema into concrete system outputs.
 
-    Builds the repository tree, derives the host schema, resolves flake inputs,
-    generates package and module sets for each host, and evaluates the final
-    module graph through `lib.modules.evalModules`.
+  Builds the repository tree, derives the host schema, resolves flake inputs,
+  generates package and module sets for each host, and evaluates the final
+  module graph through `lib.modules.evalModules`.
 
-    For Darwin hosts, this also exposes the built system derivation under
-    `system` for easier downstream consumption.
+  For Darwin hosts, this also exposes the built system derivation under
+  `system` for easier downstream consumption.
 
-    # Args:
-      self: Optional already-evaluated flake.
-      path: Filesystem path to the source flake.
-      args: Extra arguments merged into `specialArgs`.
-      ...: Additional arguments reserved for future extension.
+  # Args:
+    self: Optional already-evaluated flake.
+    path: Filesystem path to the source flake.
+    args: Extra arguments merged into `specialArgs`.
+    ...: Additional arguments reserved for future extension.
 
-    # Returns:
-      An attrset keyed by host name, where each value is the evaluated module
-      result for that host.
+  # Returns:
+    An attrset keyed by host name, where each value is the evaluated module
+    result for that host.
   */
-  mkSystems =
-    {
-      inputs,
-      tree,
-      schema,
-      extraArgs ? { },
-      ...
-    }:
+  mkSystems = {
+    inputs,
+    tree,
+    schema,
+    extraArgs ? {},
+    ...
+  }:
     mapAttrs (
-      _: host:
-      let
+      _: host: let
         inherit (host.paths) dots;
         class = host.class or "nixos";
-        tree' = tree // {
-          local = tree.mkLocal dots;
-        };
-
-        specialArgs = {
-          inherit host class;
-        }
-        // extraArgs
-        // {
-          tree = tree';
-        };
-
-        flakeArgs =
-          let
-            packages = mkPackages { inherit host inputs; };
-            modules = mkModules { inherit class inputs; };
-          in
-          {
-            inherit inputs packages modules;
-          };
-
-        moduleArgs =
-          let
-            fromInputs = flakeArgs.modules;
-            fromHost = mkCore {
-              inherit host specialArgs;
-              inherit (flakeArgs) modules inputs;
-              inherit (flakeArgs.packages) nixpkgs;
-              tree = tree';
-            };
-            fromEval = evalModules {
-              specialArgs = specialArgs // {
-                inherit (fromInputs.all) modulesPath baseModules;
-                modules = fromInputs // {
-                  host = fromHost;
-                };
-              };
-              modules =
-                fromInputs.base
-                ++ fromInputs.core
-                ++ fromHost
-                ++ (host.imports or [ ])
-                ++ [ tree'.store.mod.core ]
-                ++ [ { config._module.args = specialArgs; } ];
-            };
-          in
-          {
-            inherit fromInputs fromHost fromEval;
-          };
-      in
-      if class == "darwin" then
-        moduleArgs.fromEval // { system = moduleArgs.fromEval.config.system.build.toplevel; }
-      else
-        moduleArgs.fromEval
-    ) schema.hosts;
-
-  /**
-    Build the host-specific core module list used during system evaluation.
-
-    Produces the base module stack for a host by combining low-level hardware,
-    networking, environment, services, programs, users, and home-manager glue.
-    The result is returned as a module list suitable for `evalModules`.
-
-    # Args:
-      host: The enriched host definition.
-      nixpkgs: The resolved nixpkgs source/configuration attrset.
-      inputs: Canonically resolved flake inputs.
-      modules: Resolved input-provided module sets.
-      specialArgs: Extra arguments forwarded into module evaluation.
-
-    # Returns:
-      A list of modules for the target host, including any host-local imports.
-  */
-  mkCore =
-    {
-      host,
-      nixpkgs,
-      inputs,
-      modules,
-      specialArgs,
-      tree,
-    }:
-    [
-      { inherit nixpkgs; }
-      (mkHome {
-        inherit
-          host
-          specialArgs
+        tree' =
           tree
-          inputs
-          ;
-        modules = modules.home;
-      })
-    ];
+          // {
+            local = tree.mkLocal dots;
+          };
+
+        specialArgs =
+          {
+            inherit host class;
+          }
+          // extraArgs
+          // {
+            tree = tree';
+          };
+
+        flakeArgs = let
+          packages = mkPackages {inherit host inputs;};
+          modules = mkModules {inherit class inputs;};
+        in {
+          inherit inputs packages modules;
+        };
+
+        moduleArgs = let
+          fromInputs = flakeArgs.modules;
+          fromHost = mkCore {
+            inherit host specialArgs;
+            inherit (flakeArgs) modules inputs;
+            inherit (flakeArgs.packages) nixpkgs;
+            tree = tree';
+          };
+          fromEval = evalModules {
+            specialArgs =
+              specialArgs
+              // {
+                inherit (fromInputs.all) modulesPath baseModules;
+                modules =
+                  fromInputs
+                  // {
+                    host = fromHost;
+                  };
+              };
+            modules =
+              fromInputs.base
+              ++ fromInputs.core
+              ++ fromHost
+              ++ (host.imports or [])
+              ++ [tree'.store.mod.core]
+              ++ [{config._module.args = specialArgs;}];
+          };
+        in {
+          inherit fromInputs fromHost fromEval;
+        };
+      in
+        if class == "darwin"
+        then moduleArgs.fromEval // {system = moduleArgs.fromEval.config.system.build.toplevel;}
+        else moduleArgs.fromEval
+    )
+    schema.hosts;
 
   /**
-    Produce the complete Home Manager option block for the current host.
+  Build the host-specific core module list used during system evaluation.
 
-    Configures Home Manager to reuse the system package set, forward shared
-    special arguments, and generate per-user configurations through the
-    home user builder.
+  Produces the base module stack for a host by combining low-level hardware,
+  networking, environment, services, programs, users, and home-manager glue.
+  The result is returned as a module list suitable for `evalModules`.
 
-    # Args:
-      host: The current host definition.
-      specialArgs: Arguments forwarded into Home Manager modules.
-      inputs: Canonically resolved flake inputs.
-      modules: Resolved Home Manager module set.
-      tree: Repository tree metadata used by downstream user builders.
+  # Args:
+    host: The enriched host definition.
+    nixpkgs: The resolved nixpkgs source/configuration attrset.
+    inputs: Canonically resolved flake inputs.
+    modules: Resolved input-provided module sets.
+    specialArgs: Extra arguments forwarded into module evaluation.
 
-    # Returns:
-      A module fragment defining the `home-manager` configuration block.
+  # Returns:
+    A list of modules for the target host, including any host-local imports.
   */
-  mkHome =
-    {
-      host,
-      specialArgs,
-      inputs,
-      modules,
-      tree,
-    }:
-    {
-      home-manager = {
-        backupFileExtension = "BaC";
-        overwriteBackup = true;
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        extraSpecialArgs = specialArgs // {
-          lib = extend (_self: _super: { hm = inputs.home-manager.lib.hm or { }; });
+  mkCore = {
+    host,
+    nixpkgs,
+    inputs,
+    modules,
+    specialArgs,
+    tree,
+  }: [
+    {inherit nixpkgs;}
+    (mkHome {
+      inherit
+        host
+        specialArgs
+        tree
+        inputs
+        ;
+      modules = modules.home;
+    })
+  ];
+
+  /**
+  Produce the complete Home Manager option block for the current host.
+
+  Configures Home Manager to reuse the system package set, forward shared
+  special arguments, and generate per-user configurations through the
+  home user builder.
+
+  # Args:
+    host: The current host definition.
+    specialArgs: Arguments forwarded into Home Manager modules.
+    inputs: Canonically resolved flake inputs.
+    modules: Resolved Home Manager module set.
+    tree: Repository tree metadata used by downstream user builders.
+
+  # Returns:
+    A module fragment defining the `home-manager` configuration block.
+  */
+  mkHome = {
+    host,
+    specialArgs,
+    inputs,
+    modules,
+    tree,
+  }: {
+    home-manager = {
+      backupFileExtension = "BaC";
+      overwriteBackup = true;
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      extraSpecialArgs =
+        specialArgs
+        // {
+          lib = extend (_self: _super: {hm = inputs.home-manager.lib.hm or {};});
         };
-        users = mkUsers {
-          inherit
-            inputs
-            modules
-            host
-            tree
-            ;
-        };
+      users = mkUsers {
+        inherit
+          inputs
+          modules
+          host
+          tree
+          ;
       };
     };
+  };
 
   /**
-    Generate system-indexed flake-style outputs from a function.
+  Generate system-indexed flake-style outputs from a function.
 
-    Evaluates the provided function for every supported system, then inverts
-    the result so top-level output names map to per-system values such as
-    `packages.<system>.*`, `devShells.<system>.*`, or similar output groups.
+  Evaluates the provided function for every supported system, then inverts
+  the result so top-level output names map to per-system values such as
+  `packages.<system>.*`, `devShells.<system>.*`, or similar output groups.
 
-    # Args:
-      flake: Optional flake providing legacy package sets.
-      nixpkgs: Optional nixpkgs input.
-      legacyPackages: Optional pre-evaluated legacy package attrset.
-      system: Preferred system to use for deriving output names.
-      hosts: Optional host definitions used to derive supported systems.
-      fn: Function receiving `{ system, pkgs }` and returning flake-style outputs.
+  # Args:
+    flake: Optional flake providing legacy package sets.
+    nixpkgs: Optional nixpkgs input.
+    legacyPackages: Optional pre-evaluated legacy package attrset.
+    system: Preferred system to use for deriving output names.
+    hosts: Optional host definitions used to derive supported systems.
+    fn: Function receiving `{ system, pkgs }` and returning flake-style outputs.
 
-    # Returns:
-      An attrset whose top-level keys are output groups and whose values are
-      attrsets keyed by system.
+  # Returns:
+    An attrset whose top-level keys are output groups and whose values are
+    attrsets keyed by system.
   */
-  mkFlake =
-    {
-      flake ? { },
-      nixpkgs ? { },
-      legacyPackages ? { },
-      system ? null,
-      hosts ? { },
-      fn,
-    }:
-    let
-      inherit
-        (getSystems {
-          inherit
-            flake
-            nixpkgs
-            legacyPackages
-            system
-            hosts
-            ;
-        })
-        pkgsFor
-        derived
-        all
-        ;
+  mkFlake = {
+    flake ? {},
+    nixpkgs ? {},
+    legacyPackages ? {},
+    system ? null,
+    hosts ? {},
+    fn,
+  }: let
+    inherit
+      (getSystems {
+        inherit
+          flake
+          nixpkgs
+          legacyPackages
+          system
+          hosts
+          ;
+      })
+      pkgsFor
+      derived
+      all
+      ;
 
-      perSystem = (genAttrs all) (
-        sys:
+    perSystem = (genAttrs all) (
+      sys:
         fn {
           system = sys;
           pkgs = pkgsFor sys;
         }
-      );
+    );
 
-      names = attrNames (fn {
-        system = derived;
-        pkgs = pkgsFor derived;
-      });
-    in
+    names = attrNames (fn {
+      system = derived;
+      pkgs = pkgsFor derived;
+    });
+  in
     genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
 in
-meta.exports.local
-// {
-  __docs = meta.doc;
-  __rootAliases = meta.exports.alias;
-}
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
+  }
 # __exports.internal
 # // {
 #   inherit __doc;
 #   __rootAliases = __exports.external;
 # }
+

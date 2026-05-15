@@ -1,5 +1,8 @@
-{ lib, keyboard, ... }:
-let
+{
+  lib,
+  keyboard,
+  ...
+}: let
   inherit (lib.lists) elem flatten range;
   inherit (keyboard) mod;
   cat = lib.lists.concatMap;
@@ -8,90 +11,79 @@ let
   numWorkspaces = map toString (range 0 9);
   fWorkspaces = map (n: "F${toString n}") (range 1 12);
 
-  directions =
-    let
-      left = "l";
-      right = "r";
-      up = "u";
-      down = "d";
-    in
-    {
-      inherit
-        left
-        right
-        up
-        down
-        ;
-      h = left;
-      l = right;
-      k = up;
-      j = down;
-    };
+  directions = let
+    left = "l";
+    right = "r";
+    up = "u";
+    down = "d";
+  in {
+    inherit
+      left
+      right
+      up
+      down
+      ;
+    h = left;
+    l = right;
+    k = up;
+    j = down;
+  };
 
-  mkWorkspaceVariant =
-    {
-      command,
-      class,
-      workspace,
-      key,
-      extraMod ? "",
-      workdir ? null,
-    }:
-    let
-      cmd =
-        if workdir != null then
-          if
-            (elem class [
-              "foot"
-              "feet"
-              "com.mitchellh.ghostty"
-              "yazi"
-            ])
-          then
-            ''${command} --working-directory="${workdir}"''
-          else
-            "cd ${workdir} && ${command}"
-        else
-          command;
+  mkWorkspaceVariant = {
+    command,
+    class,
+    workspace,
+    key,
+    extraMod ? "",
+    workdir ? null,
+  }: let
+    cmd =
+      if workdir != null
+      then
+        if
+          (elem class [
+            "foot"
+            "feet"
+            "com.mitchellh.ghostty"
+            "yazi"
+          ])
+        then ''${command} --working-directory="${workdir}"''
+        else "cd ${workdir} && ${command}"
+      else command;
 
-      moveScript = "for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done";
-      modStr = "${mod}${lib.optionalString (extraMod != "") " ${extraMod}"}";
-    in
-    {
-      bind = "${modStr},${key},togglespecialworkspace,${workspace}";
-      exec =
-        if (class == "microsoft-edge") then
-          ''sh -c "${cmd} & ${moveScript}"''
-        else
-          "[workspace special:${workspace} silent] ${cmd}";
-      rule = [
-        "workspace special:${workspace} silent, match:class ^(${class})$"
-        "suppress_event fullscreen maximize, match:class ^(${class})$"
-      ];
-    };
-
-  mkWorkspace =
-    name:
-    {
-      key,
-      primary,
-      secondary,
-      workdir ? null,
-    }:
-    [
-      (mkWorkspaceVariant {
-        inherit (primary) command class;
-        inherit key workdir;
-        workspace = name;
-        extraMod = "ALT";
-      })
-      (mkWorkspaceVariant {
-        inherit (secondary) command class;
-        inherit key workdir;
-        workspace = "${name}Alt";
-        extraMod = "ALT SHIFT";
-      })
+    moveScript = "for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done";
+    modStr = "${mod}${lib.optionalString (extraMod != "") " ${extraMod}"}";
+  in {
+    bind = "${modStr},${key},togglespecialworkspace,${workspace}";
+    exec =
+      if (class == "microsoft-edge")
+      then ''sh -c "${cmd} & ${moveScript}"''
+      else "[workspace special:${workspace} silent] ${cmd}";
+    rule = [
+      "workspace special:${workspace} silent, match:class ^(${class})$"
+      "suppress_event fullscreen maximize, match:class ^(${class})$"
     ];
+  };
+
+  mkWorkspace = name: {
+    key,
+    primary,
+    secondary,
+    workdir ? null,
+  }: [
+    (mkWorkspaceVariant {
+      inherit (primary) command class;
+      inherit key workdir;
+      workspace = name;
+      extraMod = "ALT";
+    })
+    (mkWorkspaceVariant {
+      inherit (secondary) command class;
+      inherit key workdir;
+      workspace = "${name}Alt";
+      extraMod = "ALT SHIFT";
+    })
+  ];
 
   specialWorkspaces = {
     # browser = {
@@ -116,19 +108,18 @@ let
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
 
-  mkDirectionalBinds =
-    {
-      modifier ? mod,
-      action,
-    }:
+  mkDirectionalBinds = {
+    modifier ? mod,
+    action,
+  }:
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
-in
-{
+in {
   specialWorkspaceNames = flatten (
     mat (name: _: [
       name
       "${name}Alt"
-    ]) specialWorkspaces
+    ])
+    specialWorkspaces
   );
   windowrule = cat (v: v.rule) allVariants;
   exec-once = map (v: v.exec) allVariants;
@@ -137,22 +128,25 @@ in
     (map (v: v.bind) allVariants)
 
     (cat (
-      n:
-      let
-        ws = if n == "0" then "10" else n;
-      in
-      [
-        "${mod},${n},workspace,${ws}"
-        "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
-      ]
-    ) numWorkspaces)
+        n: let
+          ws =
+            if n == "0"
+            then "10"
+            else n;
+        in [
+          "${mod},${n},workspace,${ws}"
+          "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
+        ]
+      )
+      numWorkspaces)
 
     (cat (n: [
-      "${mod},${n},workspace,name:${n}"
-      "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}"
-    ]) fWorkspaces)
+        "${mod},${n},workspace,name:${n}"
+        "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}"
+      ])
+      fWorkspaces)
 
-    (mkDirectionalBinds { action = "movefocus"; })
+    (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
       modifier = "${mod} SHIFT";
       action = "swapwindow";

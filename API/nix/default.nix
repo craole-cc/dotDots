@@ -297,4 +297,4 @@
 #     ;
 #   inherit normalizeInterface;
 # }
-{ }
+{}

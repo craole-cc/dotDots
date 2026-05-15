@@ -4,16 +4,15 @@
   apps,
   mkMerge,
   ...
-}:
-let
-  workspaces = import ./workspaces.nix { inherit lib keyboard apps; };
-  gaps = import ./gaps.nix { inherit (workspaces) specialWorkspaceNames; };
+}: let
+  workspaces = import ./workspaces.nix {inherit lib keyboard apps;};
+  gaps = import ./gaps.nix {inherit (workspaces) specialWorkspaceNames;};
   window = import ./window.nix;
-  layer = import ./layer.nix { inherit lib; };
+  layer = import ./layer.nix {inherit lib;};
 in
-mkMerge [
-  layer
-  workspaces
-  gaps
-  window
-]
+  mkMerge [
+    layer
+    workspaces
+    gaps
+    window
+  ]

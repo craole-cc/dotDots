@@ -1,7 +1,7 @@
-{ dots, ... }:
-let
+{dots, ...}: let
   description = "Exhaustive Shell";
-  inherit (dots)
+  inherit
+    (dots)
     allowAI
     lix
     system
@@ -107,111 +107,114 @@ let
   };
 
   #> Generate applications from commands using mkShellApp
-  applications =
-    let
-      #> Merge all app into attrsets from mkShellApp
-      mergeApps = foldl' (acc: apps: acc // apps) { };
+  applications = let
+    #> Merge all app into attrsets from mkShellApp
+    mergeApps = foldl' (acc: apps: acc // apps) {};
 
-      #> Convert commands to mkShellApp calls
-      allApps = mapAttrsToList (
+    #> Convert commands to mkShellApp calls
+    allApps =
+      mapAttrsToList (
         name: cfg:
-        mkShellApp {
-          inherit pkgs;
-          inherit (cfg) command description;
-          inherit name;
-          prefix = cfg.prefix or dots.prefix;
-          inputs = cfg.inputs or [ ];
-          aliases = cfg.aliases or [ ];
-        }
-      ) commands;
-    in
+          mkShellApp {
+            inherit pkgs;
+            inherit (cfg) command description;
+            inherit name;
+            prefix = cfg.prefix or dots.prefix;
+            inputs = cfg.inputs or [];
+            aliases = cfg.aliases or [];
+          }
+      )
+      commands;
+  in
     mergeApps allApps;
 
   #> Generate command list for shellHook
-  commandList =
-    let
-      mainCmd = commands.${dots.name};
+  commandList = let
+    mainCmd = commands.${dots.name};
 
-      #> Group aliases by domain
-      groups = [
-        {
-          name = "System/Info";
-          aliases = [
-            "info"
-            "hosts"
-          ];
-        }
-        {
-          name = "Build/Rebuild";
-          aliases = [
-            "boot"
-            "dry"
-            "rebuild"
-            "check"
-            "fmt"
-          ];
-        }
-        {
-          name = "Maintenance/Utilities";
-          aliases = [
-            "clean"
-            "list"
-            "help"
-          ];
-        }
-        {
-          name = "Interaction/REPL";
-          aliases = [ "repl" ];
-        }
-        {
-          name = "Discovery/Search";
-          aliases = [ "search" ];
-        }
-        {
-          name = "Version Control/Update";
-          aliases = [
-            "update"
-            "sync"
-            "status"
-            # "binit"
-          ];
-        }
-      ];
+    #> Group aliases by domain
+    groups = [
+      {
+        name = "System/Info";
+        aliases = [
+          "info"
+          "hosts"
+        ];
+      }
+      {
+        name = "Build/Rebuild";
+        aliases = [
+          "boot"
+          "dry"
+          "rebuild"
+          "check"
+          "fmt"
+        ];
+      }
+      {
+        name = "Maintenance/Utilities";
+        aliases = [
+          "clean"
+          "list"
+          "help"
+        ];
+      }
+      {
+        name = "Interaction/REPL";
+        aliases = ["repl"];
+      }
+      {
+        name = "Discovery/Search";
+        aliases = ["search"];
+      }
+      {
+        name = "Version Control/Update";
+        aliases = [
+          "update"
+          "sync"
+          "status"
+          # "binit"
+        ];
+      }
+    ];
 
-      #> Flatten and add headers
-      allCommands = concatMapStringsSep "\n" (
-        group:
-        let
+    #> Flatten and add headers
+    allCommands =
+      concatMapStringsSep "\n" (
+        group: let
           header = "\n${group.name}:\n";
           #> Filter aliases by group
-          cmds = filter (a: builtins.elem a.name group.aliases) (mainCmd.aliases or [ ]);
+          cmds = filter (a: builtins.elem a.name group.aliases) (mainCmd.aliases or []);
           #> Format each command
-          maxNameLength = foldl' (
-            max: cmd:
-            let
-              len = stringLength "${dots.prefix}${cmd.name}";
-            in
-            if len > max then len else max
-          ) 0 cmds;
-          formatCmd =
-            cmd:
-            let
-              padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
-              spaces = concatStrings (genList (_: " ") padding);
-            in
-            "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          maxNameLength =
+            foldl' (
+              max: cmd: let
+                len = stringLength "${dots.prefix}${cmd.name}";
+              in
+                if len > max
+                then len
+                else max
+            )
+            0
+            cmds;
+          formatCmd = cmd: let
+            padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
+            spaces = concatStrings (genList (_: " ") padding);
+          in "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
-        if cmds != [ ] then header + concatMapStringsSep "\n" formatCmd cmds else ""
-      ) groups;
-    in
+          if cmds != []
+          then header + concatMapStringsSep "\n" formatCmd cmds
+          else ""
+      )
+      groups;
+  in
     allCommands;
 
   #|───────────────────────────────────────────────────────────────|
   #| Packages                                                      |
   #|───────────────────────────────────────────────────────────────|
 
-  packages =
-    with pkgs;
+  packages = with pkgs;
     [
       bat # ? Cat clone with syntax highlighting
       cargo # ? Rust package manager
@@ -259,8 +262,7 @@ let
       xsel
     ])
     ++ (optionals allowAI (
-      with (inputPkgs "llm-agents");
-      [
+      with (inputPkgs "llm-agents"); [
         codex
         claude-code-bin
         perplexity-mcp
@@ -340,8 +342,7 @@ let
     printf "%s\n\n" "${commandList}"
     printf "  Run %shelp for detailed help information\n\n" "${dots.prefix}"
   '';
-in
-{
+in {
   inherit
     description
     packages

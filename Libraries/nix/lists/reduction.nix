@@ -1,7 +1,10 @@
-{ __moduleRef, _, ... }:
-let
+{
+  __moduleRef,
+  _,
+  ...
+}: let
   __exports = {
-    internal = { inherit combineValidators combineValidatorsOr; };
+    internal = {inherit combineValidators combineValidatorsOr;};
     external = {
       combineValidatorsLists = combineValidators;
       combineValidatorsListsOr = combineValidatorsOr;
@@ -18,26 +21,26 @@ let
   _debug = mkModuleDebug __moduleRef;
 
   /**
-    Combine multiple validators with AND logic. Returns true only if ALL validators pass.
+  Combine multiple validators with AND logic. Returns true only if ALL validators pass.
 
-    # Type
-    ```nix
-    combineValidators :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
-    ```
+  # Type
+  ```nix
+  combineValidators :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
+  ```
 
-    # Examples
-    ```nix
-    combined = combineValidators [
-      (mkValidator { list = ["user_alice" "user_bob"]; })
-      (mkPredicateValidator (hasPrefix "user_"))
-    ];
-    combined.check "user_alice"    # => true
-    combined.check "user_charlie"  # => false
-    ```
+  # Examples
+  ```nix
+  combined = combineValidators [
+    (mkValidator { list = ["user_alice" "user_bob"]; })
+    (mkPredicateValidator (hasPrefix "user_"))
+  ];
+  combined.check "user_alice"    # => true
+  combined.check "user_charlie"  # => false
+  ```
   */
-  combineValidators =
-    validators:
-    if !isList validators then
+  combineValidators = validators:
+    if !isList validators
+    then
       throw (
         _debug.withDoc {
           function = "combineValidators";
@@ -50,34 +53,33 @@ let
           };
         }
       )
-    else
-      {
-        check = name: all (v: v.check name) validators;
-        inherit validators;
-      };
+    else {
+      check = name: all (v: v.check name) validators;
+      inherit validators;
+    };
 
   /**
-    Combine multiple validators with OR logic. Returns true if ANY validator passes.
+  Combine multiple validators with OR logic. Returns true if ANY validator passes.
 
-    # Type
-    ```nix
-    combineValidatorsOr :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
-    ```
+  # Type
+  ```nix
+  combineValidatorsOr :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
+  ```
 
-    # Examples
-    ```nix
-    combined = combineValidatorsOr [
-      (mkValidator { list = ["alice" "bob"]; })
-      (mkValidator { list = ["charlie" "dave"]; })
-    ];
-    combined.check "alice"    # => true
-    combined.check "charlie"  # => true
-    combined.check "eve"      # => false
-    ```
+  # Examples
+  ```nix
+  combined = combineValidatorsOr [
+    (mkValidator { list = ["alice" "bob"]; })
+    (mkValidator { list = ["charlie" "dave"]; })
+  ];
+  combined.check "alice"    # => true
+  combined.check "charlie"  # => true
+  combined.check "eve"      # => false
+  ```
   */
-  combineValidatorsOr =
-    validators:
-    if !isList validators then
+  combineValidatorsOr = validators:
+    if !isList validators
+    then
       throw (
         _debug.withDoc {
           function = "combineValidatorsOr";
@@ -90,23 +92,21 @@ let
           };
         }
       )
-    else
-      {
-        check = name: any (v: v.check name) validators;
-        inherit validators;
-      };
+    else {
+      check = name: any (v: v.check name) validators;
+      inherit validators;
+    };
 in
-__exports.internal
-// {
-  __rootAliases = __exports.external;
+  __exports.internal
+  // {
+    __rootAliases = __exports.external;
 
-  __tests = runTests {
-    combineValidators = {
-      requiresAllToPass = mkTest {
-        desired = true;
-        command = ''(combineValidators [allowlist prefix]).check "user_alice"'';
-        outcome =
-          let
+    __tests = runTests {
+      combineValidators = {
+        requiresAllToPass = mkTest {
+          desired = true;
+          command = ''(combineValidators [allowlist prefix]).check "user_alice"'';
+          outcome = let
             allowlist = mkValidator {
               list = [
                 "user_alice"
@@ -115,17 +115,16 @@ __exports.internal
             };
             prefix = mkPredicateValidator (hasPrefix "user_");
           in
-          (combineValidators [
-            allowlist
-            prefix
-          ]).check
+            (combineValidators [
+              allowlist
+              prefix
+            ]).check
             "user_alice";
-      };
-      failsIfAnyFails = mkTest {
-        desired = false;
-        command = ''(combineValidators [allowlist prefix]).check "user_charlie"'';
-        outcome =
-          let
+        };
+        failsIfAnyFails = mkTest {
+          desired = false;
+          command = ''(combineValidators [allowlist prefix]).check "user_charlie"'';
+          outcome = let
             allowlist = mkValidator {
               list = [
                 "user_alice"
@@ -134,20 +133,19 @@ __exports.internal
             };
             prefix = mkPredicateValidator (hasPrefix "user_");
           in
-          (combineValidators [
-            allowlist
-            prefix
-          ]).check
+            (combineValidators [
+              allowlist
+              prefix
+            ]).check
             "user_charlie";
+        };
       };
-    };
 
-    combineValidatorsOr = {
-      passesIfAnyPasses = mkTest {
-        desired = true;
-        command = ''(combineValidatorsOr [list1 list2]).check "alice"'';
-        outcome =
-          let
+      combineValidatorsOr = {
+        passesIfAnyPasses = mkTest {
+          desired = true;
+          command = ''(combineValidatorsOr [list1 list2]).check "alice"'';
+          outcome = let
             list1 = mkValidator {
               list = [
                 "alice"
@@ -161,17 +159,16 @@ __exports.internal
               ];
             };
           in
-          (combineValidatorsOr [
-            list1
-            list2
-          ]).check
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
             "alice";
-      };
-      passesWithSecondList = mkTest {
-        desired = true;
-        command = ''(combineValidatorsOr [list1 list2]).check "charlie"'';
-        outcome =
-          let
+        };
+        passesWithSecondList = mkTest {
+          desired = true;
+          command = ''(combineValidatorsOr [list1 list2]).check "charlie"'';
+          outcome = let
             list1 = mkValidator {
               list = [
                 "alice"
@@ -185,17 +182,16 @@ __exports.internal
               ];
             };
           in
-          (combineValidatorsOr [
-            list1
-            list2
-          ]).check
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
             "charlie";
-      };
-      failsIfNonePasses = mkTest {
-        desired = false;
-        command = ''(combineValidatorsOr [list1 list2]).check "eve"'';
-        outcome =
-          let
+        };
+        failsIfNonePasses = mkTest {
+          desired = false;
+          command = ''(combineValidatorsOr [list1 list2]).check "eve"'';
+          outcome = let
             list1 = mkValidator {
               list = [
                 "alice"
@@ -209,12 +205,12 @@ __exports.internal
               ];
             };
           in
-          (combineValidatorsOr [
-            list1
-            list2
-          ]).check
+            (combineValidatorsOr [
+              list1
+              list2
+            ]).check
             "eve";
+        };
       };
     };
-  };
-}
+  }

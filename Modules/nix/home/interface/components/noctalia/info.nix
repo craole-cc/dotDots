@@ -1,5 +1,8 @@
-{ host, monitors, ... }:
 {
+  host,
+  monitors,
+  ...
+}: {
   calendar = {
     cards = [
       {
@@ -41,7 +44,7 @@
     enabled = true;
     location = "top_right";
     lowUrgencyDuration = 3;
-    monitors = [ monitors.primary ];
+    monitors = [monitors.primary];
     normalUrgencyDuration = 8;
     overlayLayer = true;
     respectExpireTimeout = false;
@@ -78,7 +81,7 @@
       3
     ];
     "location" = "top_right";
-    monitors = [ monitors.primary ];
+    monitors = [monitors.primary];
     overlayLayer = true;
   };
 

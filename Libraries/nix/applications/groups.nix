@@ -1,39 +1,36 @@
-{ _, ... }:
-let
-  meta =
-    let
-      doc = ''
-        Application group builders (Layer 3).
+{_, ...}: let
+  meta = let
+    doc = ''
+      Application group builders (Layer 3).
 
-        Provides semantic grouping functions that partition an application set
-        by well-known fields (maturity, protocol, scope, capability, config),
-        and a composable standard grouping builder used by section constructors.
+      Provides semantic grouping functions that partition an application set
+      by well-known fields (maturity, protocol, scope, capability, config),
+      and a composable standard grouping builder used by section constructors.
 
-        All group keys are prefixed with "by" via mkNamed.
+      All group keys are prefixed with "by" via mkNamed.
 
-        Depends on: applications {queries, primitives, selection}.
-      '';
-      functions = {
-        inherit
-          mkCapability
-          mkConfig
-          mkMaturity
-          mkProtocol
-          mkScope
-          mkStandard
-          ;
-        mkGroups = mkStandard;
-      };
-      exports = {
-        local = all // functions;
-        alias = {
-          mkApplicationGroups = mkStandard;
-        };
-      };
-    in
-    {
-      inherit doc exports functions;
+      Depends on: applications {queries, primitives, selection}.
+    '';
+    functions = {
+      inherit
+        mkCapability
+        mkConfig
+        mkMaturity
+        mkProtocol
+        mkScope
+        mkStandard
+        ;
+      mkGroups = mkStandard;
     };
+    exports = {
+      local = all // functions;
+      alias = {
+        mkApplicationGroups = mkStandard;
+      };
+    };
+  in {
+    inherit doc exports functions;
+  };
 
   all = _.applications.filters.groups;
   inherit (_.applications.predicates) hasField hasListField;
@@ -49,250 +46,241 @@ let
   inherit (_.lists.transformation) unique;
 
   /**
-    Partition an application set by the distinct values of the `maturity` field.
-    Entries where `maturity` is absent or `null` are excluded.
+  Partition an application set by the distinct values of the `maturity` field.
+  Entries where `maturity` is absent or `null` are excluded.
 
-    # Type
-    ```nix
-    mkMaturity :: { set :: AttrSet } -> { ${maturity} :: AttrSet }
-    ```
+  # Type
+  ```nix
+  mkMaturity :: { set :: AttrSet } -> { ${maturity} :: AttrSet }
+  ```
 
-    # Examples
-    ```nix
-    mkMaturity { set = { a = { maturity = "stable"; }; b = { maturity = "beta"; }; }; }
-    # => { stable = { a = ...; }; beta = { b = ...; }; }
-    ```
+  # Examples
+  ```nix
+  mkMaturity { set = { a = { maturity = "stable"; }; b = { maturity = "beta"; }; }; }
+  # => { stable = { a = ...; }; beta = { b = ...; }; }
+  ```
   */
-  mkMaturity =
-    { set }:
+  mkMaturity = {set}:
     mkEq {
       inherit set;
       field = "maturity";
     };
 
   /**
-    Index an application set by members of the `protocol` list field.
-    An entry appears under every protocol value it lists.
+  Index an application set by members of the `protocol` list field.
+  An entry appears under every protocol value it lists.
 
-    # Type
-    ```nix
-    mkProtocol :: { set :: AttrSet } -> { ${protocol} :: AttrSet }
-    ```
+  # Type
+  ```nix
+  mkProtocol :: { set :: AttrSet } -> { ${protocol} :: AttrSet }
+  ```
 
-    # Examples
-    ```nix
-    mkProtocol {
-      set = { a = { protocol = ["wayland" "xorg"]; }; b = { protocol = ["wayland"]; }; };
-    }
-    # => { wayland = { a = ...; b = ...; }; xorg = { a = ...; }; }
-    ```
+  # Examples
+  ```nix
+  mkProtocol {
+    set = { a = { protocol = ["wayland" "xorg"]; }; b = { protocol = ["wayland"]; }; };
+  }
+  # => { wayland = { a = ...; b = ...; }; xorg = { a = ...; }; }
+  ```
   */
-  mkProtocol =
-    { set }:
+  mkProtocol = {set}:
     mkMember {
       inherit set;
       field = "protocol";
     };
 
   /**
-    Partition an application set by the distinct values of the `scope` field.
-    Entries where `scope` is absent or `null` are excluded.
+  Partition an application set by the distinct values of the `scope` field.
+  Entries where `scope` is absent or `null` are excluded.
 
-    # Type
-    ```nix
-    mkScope :: { set :: AttrSet } -> { ${scope} :: AttrSet }
-    ```
+  # Type
+  ```nix
+  mkScope :: { set :: AttrSet } -> { ${scope} :: AttrSet }
+  ```
 
-    # Examples
-    ```nix
-    mkScope { set = { a = { scope = "user"; }; b = { scope = "system"; }; }; }
-    # => { user = { a = ...; }; system = { b = ...; }; }
-    ```
+  # Examples
+  ```nix
+  mkScope { set = { a = { scope = "user"; }; b = { scope = "system"; }; }; }
+  # => { user = { a = ...; }; system = { b = ...; }; }
+  ```
   */
-  mkScope =
-    { set }:
+  mkScope = {set}:
     mkEq {
       inherit set;
       field = "scope";
     };
 
   /**
-    Build a capability map for an application set across a fixed set of
-    boolean capability fields. Each key contains the subset of entries that
-    have that capability set to true. Empty subsets are omitted.
+  Build a capability map for an application set across a fixed set of
+  boolean capability fields. Each key contains the subset of entries that
+  have that capability set to true. Empty subsets are omitted.
 
-    # Type
-    ```nix
-    mkCapability :: { set :: AttrSet } -> { ${capability} :: AttrSet }
-    ```
+  # Type
+  ```nix
+  mkCapability :: { set :: AttrSet } -> { ${capability} :: AttrSet }
+  ```
 
-    # Examples
-    ```nix
-    mkCapability {
-      set = {
-        a = { acceleration = true;  compositing = false; };
-        b = { acceleration = true;  compositing = true;  };
-      };
-    }
-    # => { acceleration = { a = ...; b = ...; }; compositing = { b = ...; }; }
+  # Examples
+  ```nix
+  mkCapability {
+    set = {
+      a = { acceleration = true;  compositing = false; };
+      b = { acceleration = true;  compositing = true;  };
+    };
+  }
+  # => { acceleration = { a = ...; b = ...; }; compositing = { b = ...; }; }
 
-    # Capabilities with no matching entries are omitted
-    mkCapability { set = { a = { floating = false; }; }; }
-    # => {}
-    ```
+  # Capabilities with no matching entries are omitted
+  mkCapability { set = { a = { floating = false; }; }; }
+  # => {}
+  ```
   */
-  mkCapability =
-    { set }:
-    let
-      fields = [
-        "acceleration"
-        "compositing"
-        "floating"
-        "fuzzy"
-        "history"
-        "navigation"
-        "remote"
-        "stacking"
-        "tiling"
-      ];
-    in
-    filterAttrs (_: v: v != { }) (genAttrs fields (field: withFlag { inherit field set; }));
+  mkCapability = {set}: let
+    fields = [
+      "acceleration"
+      "compositing"
+      "floating"
+      "fuzzy"
+      "history"
+      "navigation"
+      "remote"
+      "stacking"
+      "tiling"
+    ];
+  in
+    filterAttrs (_: v: v != {}) (genAttrs fields (field: withFlag {inherit field set;}));
 
   /**
-    Partition an application set by the value of `config.file`.
-    Entries without `config` or with a null `config.file` are excluded.
+  Partition an application set by the value of `config.file`.
+  Entries without `config` or with a null `config.file` are excluded.
 
-    # Type
-    ```nix
-    mkConfig :: { set :: AttrSet } -> { ${configFile} :: AttrSet }
-    ```
+  # Type
+  ```nix
+  mkConfig :: { set :: AttrSet } -> { ${configFile} :: AttrSet }
+  ```
 
-    # Examples
-    ```nix
-    mkConfig {
-      set = {
-        a = { config = { file = ".bashrc"; }; };
-        b = { config = { file = ".zshrc";  }; };
-        c = {};
-      };
-    }
-    # => { ".bashrc" = { a = ...; }; ".zshrc" = { b = ...; }; }
-    ```
+  # Examples
+  ```nix
+  mkConfig {
+    set = {
+      a = { config = { file = ".bashrc"; }; };
+      b = { config = { file = ".zshrc";  }; };
+      c = {};
+    };
+  }
+  # => { ".bashrc" = { a = ...; }; ".zshrc" = { b = ...; }; }
+  ```
   */
-  mkConfig =
-    { set }:
-    let
-      getFile = toValue { field = "config.file"; };
-      withCfg = filterAttrs (_: a: toValue { field = "config"; } a != null) set;
-      keys = unique (filter (v: v != null) (map getFile (attrValues withCfg)));
-    in
+  mkConfig = {set}: let
+    getFile = toValue {field = "config.file";};
+    withCfg = filterAttrs (_: a: toValue {field = "config";} a != null) set;
+    keys = unique (filter (v: v != null) (map getFile (attrValues withCfg)));
+  in
     genAttrs keys (file: filterAttrs (_: a: getFile a == file) set);
 
   /**
-    Build a combined grouping attrset from an application set, prefixed with
-    `by`. Well-known fields (`maturity`, `protocol`, `config`, `capability`,
-    `scope`) use their dedicated builders; unknown fields in `eq` use `mkEq`
-    and unknown fields in `member` use `mkMember`.
+  Build a combined grouping attrset from an application set, prefixed with
+  `by`. Well-known fields (`maturity`, `protocol`, `config`, `capability`,
+  `scope`) use their dedicated builders; unknown fields in `eq` use `mkEq`
+  and unknown fields in `member` use `mkMember`.
 
-    # Type
-    ```nix
-    mkStandard :: {
-      set    :: AttrSet,
-      eq     :: [string],  # optional, default []
-      member :: [string],  # optional, default []
-      fields :: [string],  # optional, default [] — well-known semantic fields
-    } -> AttrSet
-    ```
+  # Type
+  ```nix
+  mkStandard :: {
+    set    :: AttrSet,
+    eq     :: [string],  # optional, default []
+    member :: [string],  # optional, default []
+    fields :: [string],  # optional, default [] — well-known semantic fields
+  } -> AttrSet
+  ```
 
-    # Examples
-    ```nix
-    mkStandard {
-      set    = { ... };
-      eq     = ["role"];
-      member = ["engine"];
-      fields = ["protocol" "maturity"];
-    }
-    # => { byRole = ...; byEngine = ...; byProtocol = ...; byMaturity = ...; }
+  # Examples
+  ```nix
+  mkStandard {
+    set    = { ... };
+    eq     = ["role"];
+    member = ["engine"];
+    fields = ["protocol" "maturity"];
+  }
+  # => { byRole = ...; byEngine = ...; byProtocol = ...; byMaturity = ...; }
 
-    # Well-known fields use dedicated builders
-    mkStandard { set = { ... }; fields = ["capability"]; }
-    # => { byCapability = { acceleration = ...; compositing = ...; }; }
-    ```
+  # Well-known fields use dedicated builders
+  mkStandard { set = { ... }; fields = ["capability"]; }
+  # => { byCapability = { acceleration = ...; compositing = ...; }; }
+  ```
   */
-  mkStandard =
-    {
-      set,
-      eq ? [
-        "compositor"
-        "family"
-        "kind"
-        "role"
-        "scope"
-        "surface"
-        "toolkit"
-      ],
-      member ? [
-        "config.lang"
-        "engine"
-        "greeters"
-        "layouts"
-        "panel"
-        "protocol"
-        "shells"
-      ],
-      fields ? [
-        "capability"
-        "protocol"
-        "maturity"
-      ],
-    }:
-    let
-      perField = {
-        maturity =
-          optionalAttrs
-            (hasField {
-              inherit set;
-              field = "maturity";
-            })
-            (mkMaturity {
-              inherit set;
-            });
+  mkStandard = {
+    set,
+    eq ? [
+      "compositor"
+      "family"
+      "kind"
+      "role"
+      "scope"
+      "surface"
+      "toolkit"
+    ],
+    member ? [
+      "config.lang"
+      "engine"
+      "greeters"
+      "layouts"
+      "panel"
+      "protocol"
+      "shells"
+    ],
+    fields ? [
+      "capability"
+      "protocol"
+      "maturity"
+    ],
+  }: let
+    perField = {
+      maturity =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "maturity";
+        })
+        (mkMaturity {
+          inherit set;
+        });
 
-        protocol =
-          optionalAttrs
-            (hasListField {
-              inherit set;
-              field = "protocol";
-            })
-            (mkProtocol {
-              inherit set;
-            });
+      protocol =
+        optionalAttrs
+        (hasListField {
+          inherit set;
+          field = "protocol";
+        })
+        (mkProtocol {
+          inherit set;
+        });
 
-        config =
-          optionalAttrs
-            (hasField {
-              inherit set;
-              field = "config";
-            })
-            (mkConfig {
-              inherit set;
-            });
+      config =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "config";
+        })
+        (mkConfig {
+          inherit set;
+        });
 
-        capability = mkCapability { inherit set; };
+      capability = mkCapability {inherit set;};
 
-        scope =
-          optionalAttrs
-            (hasField {
-              inherit set;
-              field = "scope";
-            })
-            (mkScope {
-              inherit set;
-            });
-      };
-      allFields = unique (eq ++ member ++ fields);
-    in
-    filterAttrs (_: v: v != { }) (
+      scope =
+        optionalAttrs
+        (hasField {
+          inherit set;
+          field = "scope";
+        })
+        (mkScope {
+          inherit set;
+        });
+    };
+    allFields = unique (eq ++ member ++ fields);
+  in
+    filterAttrs (_: v: v != {}) (
       listToAttrs (
         map (field: {
           name = toName {
@@ -300,22 +288,26 @@ let
             prefix = "by";
           };
           value =
-            perField.${field} or (
-              if isIn field eq then
-                optionalAttrs (hasField { inherit set field; }) (mkEq {
+            perField.${
+              field
+            } or (
+              if isIn field eq
+              then
+                optionalAttrs (hasField {inherit set field;}) (mkEq {
                   inherit set field;
                 })
               else
-                optionalAttrs (hasListField { inherit set field; }) (mkMember {
+                optionalAttrs (hasListField {inherit set field;}) (mkMember {
                   inherit set field;
                 })
             );
-        }) allFields
+        })
+        allFields
       )
     );
 in
-meta.exports.local
-// {
-  __docs = meta.doc;
-  __rootAliases = meta.exports.alias;
-}
+  meta.exports.local
+  // {
+    __docs = meta.doc;
+    __rootAliases = meta.exports.alias;
+  }

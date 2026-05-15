@@ -5,8 +5,7 @@
   self,
   flake,
   safe,
-}:
-{
+}: {
   #~@ Primary references
   library = names.lib;
   inherit lib names flake;

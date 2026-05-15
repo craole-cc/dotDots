@@ -3,7 +3,7 @@ _: {
   # with mpv-unwrapped;
   #   wrapper {mpv = override {ffmpeg = ffmpeg-full;};};
 
-  defaultProfiles = [ "gpu-hq" ];
+  defaultProfiles = ["gpu-hq"];
 
   # config = {
   #   profile = "gpu-hq";
@@ -12,5 +12,5 @@ _: {
   #   cache-default = 4000000;
   # };
 
-  includes = [ "$DOTS/Configuration/mpv/config" ];
+  includes = ["$DOTS/Configuration/mpv/config"];
 }

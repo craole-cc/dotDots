@@ -5,7 +5,7 @@ _: {
       command = "vicinae";
     };
     exec = "vicinae";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   rofi = {
@@ -15,7 +15,7 @@ _: {
       class = "rofi";
     };
     exec = "rofi -show drun";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   wofi = {
@@ -25,7 +25,7 @@ _: {
       class = "wofi";
     };
     exec = "wofi --show drun";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   fuzzel = {
@@ -35,7 +35,7 @@ _: {
       class = "fuzzel";
     };
     exec = "fuzzel";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   anyrun = {
@@ -45,7 +45,7 @@ _: {
       class = "anyrun";
     };
     exec = "anyrun";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   walker = {
@@ -55,7 +55,7 @@ _: {
       class = "walker";
     };
     exec = "walker";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   tofi = {
@@ -65,7 +65,7 @@ _: {
       class = "tofi";
     };
     exec = "tofi-drun";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   albert = {
@@ -75,7 +75,7 @@ _: {
       class = "albert";
     };
     exec = "albert";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   ulauncher = {
@@ -85,7 +85,7 @@ _: {
       class = "ulauncher";
     };
     exec = "ulauncher";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   krunner = {
@@ -95,7 +95,7 @@ _: {
       class = "krunner";
     };
     exec = "krunner";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   dmenu = {
@@ -104,7 +104,7 @@ _: {
       command = "dmenu_run";
     };
     exec = "dmenu_run";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   xfce4-appfinder = {
@@ -114,7 +114,7 @@ _: {
       class = "xfce4-appfinder";
     };
     exec = "xfce4-appfinder";
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   # builtin launchers — no exec, managed by the DE/WM itself
@@ -125,7 +125,7 @@ _: {
     };
     exec = "";
     builtin = true;
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   slingshot = {
@@ -135,7 +135,7 @@ _: {
     };
     exec = "";
     builtin = true;
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   cinnamon-menu = {
@@ -145,7 +145,7 @@ _: {
     };
     exec = "";
     builtin = true;
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 
   cosmic-launcher = {
@@ -155,6 +155,6 @@ _: {
     };
     exec = "";
     builtin = true;
-    categories = [ "launcher" ];
+    categories = ["launcher"];
   };
 }

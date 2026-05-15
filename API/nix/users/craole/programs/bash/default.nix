@@ -1,11 +1,13 @@
-{ user, lib, ... }:
-let
+{
+  user,
+  lib,
+  ...
+}: let
   app = "bash";
   inherit (lib.lists) elem;
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
-in
-{
+in {
   programs.${app}.enable = isAllowed;
   imports = [
     # ./settings.nix

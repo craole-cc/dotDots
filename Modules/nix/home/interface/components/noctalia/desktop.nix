@@ -1,9 +1,11 @@
-{ monitors, wallpapers }:
 {
+  monitors,
+  wallpapers,
+}: {
   desktopWidgets = {
     enabled = false;
     gridSnap = false;
-    monitorWidgets = [ ];
+    monitorWidgets = [];
   };
 
   dock = {
@@ -15,9 +17,9 @@
     enabled = true;
     floatingRatio = 1;
     inactiveIndicators = true;
-    monitors = [ monitors.primary ];
+    monitors = [monitors.primary];
     onlySameOutput = false;
-    pinnedApps = [ "code" ];
+    pinnedApps = ["code"];
     pinnedStatic = true;
     size = 1.5;
   };

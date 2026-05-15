@@ -5,8 +5,7 @@ let
   # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
   # theme = "light:Rose Pine Dawn,dark:Rose Moon";
   # theme = "light:BlulocoLight,dark:Catppuccin Frappe";
-in
-{
+in {
   settings.theme = "light:${light},dark:${dark}";
   # themes = {
   #   catppuccin-mocha = {

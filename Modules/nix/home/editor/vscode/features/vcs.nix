@@ -4,8 +4,7 @@
   lix,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) flatten;
@@ -48,13 +47,11 @@ let
       "jjk.jjk"
     ];
   };
-in
-{
+in {
   name = "vcs";
   description = "Git, jj and version control extensions";
   default = true;
-  feature =
-    enabled:
+  feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -62,8 +59,8 @@ in
         jujutsu.extensions
       ];
       userSettings = mkMerge [
-        (git.userSettings or { })
-        (jujutsu.userSettings or { })
+        (git.userSettings or {})
+        (jujutsu.userSettings or {})
       ];
     };
 }

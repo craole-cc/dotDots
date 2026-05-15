@@ -1,5 +1,4 @@
-{ fonts, ... }:
-{
+{fonts, ...}: {
   appearance = {
     rounding.scale = 1;
     spacing.scale = 1;
@@ -25,7 +24,7 @@
         "foot"
         "ghostty"
       ];
-      audio = [ "pavucontrol" ];
+      audio = ["pavucontrol"];
       playback = [
         "mpv"
         "freetube"
@@ -132,7 +131,7 @@
     };
     vpn = {
       enabled = false;
-      provider = [ "netbird" ];
+      provider = ["netbird"];
     };
   };
 }

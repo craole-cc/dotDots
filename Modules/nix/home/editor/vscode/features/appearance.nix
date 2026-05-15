@@ -4,8 +4,7 @@
   pkgs,
   inputs,
   ...
-}:
-let
+}: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
   inherit (lib.modules) mkDefault mkMerge;
   inherit (lib.lists) flatten;
@@ -202,7 +201,7 @@ let
           "base" = "autohotkey";
           "color" = "blue-400";
           "lightColor" = "grey-600";
-          "ids" = [ "ahk2" ];
+          "ids" = ["ahk2"];
         }
       ];
     };
@@ -246,13 +245,11 @@ let
       "custom-ui-style.watch" = true;
     };
   };
-in
-{
+in {
   name = "appearance";
   description = "Themes, icons and UI chrome extensions";
   default = true;
-  feature =
-    enabled:
+  feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
       extensions = flatten [
@@ -262,10 +259,10 @@ in
         customUI.extensions
       ];
       userSettings = mkMerge [
-        (themes.userSettings or { })
-        (icons.userSettings or { })
-        (animations.userSettings or { })
-        (customUI.userSettings or { })
+        (themes.userSettings or {})
+        (icons.userSettings or {})
+        (animations.userSettings or {})
+        (customUI.userSettings or {})
         {
           #~@ Window
           "window.autoDetectColorScheme" = true;

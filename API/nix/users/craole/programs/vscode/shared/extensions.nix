@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   programs.vscode = {
     package = pkgs.vscodium;
     profiles.default.extensions = with pkgs.vscode-extensions; [

@@ -1,1 +1,1 @@
-{ historyControl = [ "ignoreboth" ]; }
+{historyControl = ["ignoreboth"];}
