@@ -58,19 +58,7 @@
     else mapAttrs (_: toEnums) input;
 
   all = {
-    shells =
-      toEnums shell
-      // {
-        queried =
-          toEnums shell.queried
-          // {
-            #? non-nullable override — system shell must always be set
-            system = mkEnum {
-              values = shell.queried.system;
-              nullable = false;
-            };
-          };
-      };
+    shells = toEnums shell;
     interface = toEnums interface;
   };
 in

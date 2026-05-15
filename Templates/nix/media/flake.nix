@@ -1,12 +1,14 @@
 {
+  description = "Comprehensive Media Environment";
+
   inputs = {
-    nixurl = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    inputs:
-    inputs.flake-utils.lib.eachDefaultSystem (
+    inputs @ {flake-utils, ...}:
+    flake-utils.lib.eachDefaultSystem (
       system:
       let
         src = import ./. { inherit inputs system; };

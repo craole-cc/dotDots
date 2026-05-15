@@ -14,8 +14,9 @@
 
     #~@ Host interface
     wm = host.interface.windowManager or null;
-    shell = host.interface.shell or null;
-    prompt = host.interface.prompt or null;
+    shellConfig = host.interface.shell or {};
+    shell = shellConfig.interactive or shellConfig.system or null;
+    prompt = shellConfig.prompt or null;
   in {
     programs = {
       #~@ Shell

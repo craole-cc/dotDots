@@ -262,11 +262,13 @@
       xsel
     ])
     ++ (optionals allowAI (
-      with (inputPkgs "llm-agents"); [
+      [ollama-cpu]
+      ++ (with (inputPkgs "llm-agents"); [
         codex
-        claude-code-bin
-        perplexity-mcp
-      ]
+        gemini-cli
+        # claude-code-bin
+        # perplexity-mcp
+      ])
     )); # ? Linux clipboard tools
 
   #|───────────────────────────────────────────────────────────────|

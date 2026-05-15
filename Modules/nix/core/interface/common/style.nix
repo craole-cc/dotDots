@@ -3,6 +3,7 @@
   host,
   lib,
   lix,
+  options,
   pkgs,
   top,
   ...
@@ -15,6 +16,7 @@
   style = user.interface.style or {};
   wallpapers = host.paths.wallpapers or null;
 
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkForce;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
@@ -91,6 +93,8 @@
     else if wallpapers != null && hasPrefix "/nix/store" wallpapers
     then /. + (wallpapers + "/${cfg.polarity}.jpg")
     else null;
+
+  hasStylix = options ? stylix;
 in {
   options.${top}.${dom}.${mod} = {
     enable =
@@ -128,63 +132,66 @@ in {
       };
   };
 
-  config = mkIf (cfg.enable && currentTheme != null) {
-    stylix = {
-      enable = true;
-      base16Scheme = "${pkgs.base16-schemes}/share/themes/${currentTheme.scheme}.yaml";
-      image = wallpaperPath;
-      inherit (currentTheme) polarity;
-
-      cursor = {
-        inherit (cursorResolved) name package;
-        size = cfg.cursorSize;
-      };
-
-      #TODO: Take this from the API/Schema
-      icons = let
-        set = pkgs.candy-icons;
-      in {
+  config = mkIf (cfg.enable && currentTheme != null) (
+    optionalAttrs hasStylix {
+      stylix = {
         enable = true;
-        package = set;
-        light = set.name;
-        dark = set.name;
-      };
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${currentTheme.scheme}.yaml";
+        image = wallpaperPath;
+        inherit (currentTheme) polarity;
 
-      fonts = let
-        fontCfg = config.${top}.interface.fonts;
-      in {
-        monospace = {
-          package = pkgs.maple-mono.NF-unhinted;
-          name = fontCfg.monospace;
+        cursor = {
+          inherit (cursorResolved) name package;
+          size = cfg.cursorSize;
         };
-        sansSerif = {
-          package = pkgs.noto-fonts;
-          name = fontCfg.sans;
+
+        #TODO: Take this from the API/Schema
+        icons = let
+          set = pkgs.candy-icons;
+        in {
+          enable = true;
+          package = set;
+          light = set.name;
+          dark = set.name;
         };
-        serif = {
-          package = pkgs.noto-fonts;
-          name = fontCfg.serif;
+
+        fonts = let
+          fontCfg = config.${top}.interface.fonts;
+        in {
+          monospace = {
+            package = pkgs.maple-mono.NF-unhinted;
+            name = fontCfg.monospace;
+          };
+          sansSerif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.sans;
+          };
+          serif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.serif;
+          };
+          emoji = {
+            package = pkgs.noto-fonts-color-emoji;
+            name = fontCfg.emoji;
+          };
         };
-        emoji = {
-          package = pkgs.noto-fonts-color-emoji;
-          name = fontCfg.emoji;
+
+        opacity = {
+          terminal = 0.9;
+          popups = 0.95;
+        };
+
+        targets = {
+          qt.enable = mkForce false;
         };
       };
-
-      opacity = {
-        terminal = 0.9;
-        popups = 0.95;
+    }
+    // {
+      environment.sessionVariables = {
+        THEME_CURRENT = cfg.polarity;
+        THEME_NAME = cfg.theme;
+        WALLPAPER_CURRENT = lib.optionalString (wallpaperPath != null) (toString wallpaperPath);
       };
-
-      targets = {
-        qt.enable = mkForce false;
-      };
-    };
-
-    environment.sessionVariables = {
-      THEME_CURRENT = cfg.polarity;
-      THEME_NAME = cfg.theme;
-      WALLPAPER_CURRENT = lib.optionalString (wallpaperPath != null) (toString wallpaperPath);
-    };
-  };
+    }
+  );
 }

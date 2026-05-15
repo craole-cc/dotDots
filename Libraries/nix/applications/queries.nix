@@ -45,13 +45,10 @@
   };
 
   all = _.applications.filters.queries;
-  inherit
-    (_.applications.groups)
-    mkCapabilityGroups
-    mkMaturityGroups
-    mkProtocolGroups
-    mkScopeGroups
-    ;
+  groupMkCapability = _.applications.groups.mkCapability;
+  groupMkMaturity = _.applications.groups.mkMaturity;
+  groupMkProtocol = _.applications.groups.mkProtocol;
+  groupMkScope = _.applications.groups.mkScope;
   inherit (_.applications.predicates) hasField hasListField;
   inherit (_.applications.primitives) toValue toName;
   inherit (_.applications.selection) withFlag withoutFlag;
@@ -467,7 +464,7 @@
     })
     (mkNamed {
       prefix = "has";
-      set = mkCapabilityGroups {inherit set;};
+      set = groupMkCapability {inherit set;};
     });
 
   mkMaturity = {set}:
@@ -478,7 +475,7 @@
     })
     (mkNamed {
       prefix = "is";
-      set = mkMaturityGroups {inherit set;};
+      set = groupMkMaturity {inherit set;};
     });
 
   mkProtocol = {set}:
@@ -489,7 +486,7 @@
     })
     (mkNamed {
       prefix = "for";
-      set = mkProtocolGroups {inherit set;};
+      set = groupMkProtocol {inherit set;};
     });
 
   mkScope = {set}:
@@ -500,7 +497,7 @@
     })
     (mkNamed {
       prefix = "as";
-      set = mkScopeGroups {inherit set;};
+      set = groupMkScope {inherit set;};
     });
 
   mkEngine = {set}:

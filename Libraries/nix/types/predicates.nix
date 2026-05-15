@@ -36,8 +36,6 @@
       ;
   };
 
-  std = _.types.predicates;
-
   /**
   Return the Nix type of a value as a string.
 
@@ -58,7 +56,7 @@
   typeOf null         # => "null"
   ```
   */
-  typeOf = input: std.typeOf input;
+  typeOf = builtins.typeOf;
 
   /**
   Check whether a value is a boolean.
@@ -75,7 +73,7 @@
   isBool 1      # => false
   ```
   */
-  isBool = input: std.isBool input;
+  isBool = builtins.isBool;
 
   /**
   Check whether a value is a floating point number.
@@ -91,7 +89,7 @@
   isFloat 1    # => false
   ```
   */
-  isFloat = input: std.isFloat input;
+  isFloat = input: builtins.typeOf input == "float";
 
   /**
   Check whether a value is a function.
@@ -107,7 +105,7 @@
   isFunction "hello"  # => false
   ```
   */
-  isFunction = input: std.isFunction input;
+  isFunction = builtins.isFunction;
 
   /**
   Check whether a value is an integer.
@@ -124,6 +122,6 @@
   isInt "1"  # => false
   ```
   */
-  isInt = input: std.isInt input;
+  isInt = input: builtins.typeOf input == "int";
 in
   __exports.internal // {__rootAliases = __exports.external;}

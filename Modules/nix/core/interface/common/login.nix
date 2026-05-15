@@ -9,7 +9,7 @@
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
   user = host.users.data.primary or {};
-  useDms = cfg.windowShell == "dms" && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
+  useDms = cfg.panel == "dms-shell" && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
 in {
   config = mkIf (cfg.displayManager != null) {
     services.displayManager = {

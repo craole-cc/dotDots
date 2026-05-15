@@ -13,7 +13,7 @@
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
 
-  isAllowed = isIn opt ((user.applications.allowed or []) ++ [(user.interface.prompt or null)]);
+  isAllowed = isIn opt ((user.applications.allowed or []) ++ [(user.interface.shell.prompt or null)]);
 in {
   config = mkIf isAllowed {
     # home.file.".config/starship.toml" = {

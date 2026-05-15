@@ -137,7 +137,25 @@
       };
     };
 
+    desktopEnvironment = mkOptionEnum {
+      description = "Desktop Environment";
+      default = defaults.desktopEnvironment;
+      input = enums.environment.desktop.values;
+    };
+
+    windowManager = mkOptionEnum {
+      description = "Window Manager / Compositor";
+      default = defaults.windowManager;
+      input = enums.environment.window.values;
+    };
+
     greeter = mkOptionEnum {
+      description = "Display Manager";
+      default = defaults.greeter;
+      input = enums.greeters.values;
+    };
+
+    displayManager = mkOptionEnum {
       description = "Display Manager";
       default = defaults.greeter;
       input = enums.greeters.values;
@@ -147,6 +165,18 @@
       description = "Display Protocol";
       default = defaults.protocol;
       input = enums.protocols.values;
+    };
+
+    displayProtocol = mkOptionEnum {
+      description = "Display Protocol";
+      default = defaults.protocol;
+      input = enums.protocols.values;
+    };
+
+    defaultSession = mkOption {
+      description = "Default display manager session";
+      default = defaults.session;
+      type = nullOr str;
     };
 
     panel = mkOptionEnum {
@@ -170,7 +200,7 @@
       window = mkOptionEnum {
         description = "Windowing compositor";
         default = defaults.compositor.window;
-        input = enums.compositors.window.values;
+        input = enums.environment.window.values;
       };
     };
 
@@ -178,27 +208,27 @@
       system = mkOptionEnum {
         description = "System shell";
         default = defaults.shell.system;
-        input = appEnums.shells.queried.system.values; # non-nullable override
+        input = appEnums.shells.shells.all.values;
       };
       interactive = mkOptionEnum {
         description = "Interactive shell";
         default = defaults.shell.interactive;
-        input = appEnums.shells.queried.interactive.values;
+        input = appEnums.shells.shells.all.values;
       };
       prompt = mkOptionEnum {
         description = "Shell prompt";
         default = defaults.shell.prompt;
-        input = appEnums.shells.queried.prompts.values;
+        input = appEnums.shells.prompts.all.values;
       };
       lineEditor = mkOptionEnum {
         description = "Line editor / readline replacement";
         default = defaults.shell.lineEditor;
-        input = appEnums.shells.queried.lineEditors.values;
+        input = appEnums.shells.lineEditors.all.values;
       };
       enhancements = mkOptionEnums {
         description = "Shell enhancements (history, navigation, fuzzy)";
         default = defaults.shell.enhancements;
-        input = appEnums.shells.queried.enhancements.values;
+        input = appEnums.shells.enhancements.all.values;
       };
     };
 

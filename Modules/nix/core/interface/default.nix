@@ -4,17 +4,14 @@
   lix,
   top,
   ...
-}: let
-  dom = "interface";
-  # cfg = config.${top}.${dom};
-
-  inherit (lix.schema.ui) mkOptions;
-  # ui = mkUI {inherit host;};
-in {
+}: {
   # imports = lix.filesystem.importers.importAllPaths ./.;
   imports = [
+    ./common
     ./config.nix
+    ./environment
+    ./manager
     ./options.nix
+    ./style/dms
   ];
-  options.${top}.${dom} = mkOptions {inherit host;};
 }

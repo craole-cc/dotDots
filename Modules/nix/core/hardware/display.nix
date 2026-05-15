@@ -13,7 +13,7 @@
   isWayland = iface.displayProtocol == "wayland";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkDefault mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool str;
 in {
@@ -55,9 +55,8 @@ in {
 
     programs.xwayland.enable = isWayland;
 
-    xdg.portal = {
-      enable = true;
-      xdgOpenUsePortal = true;
-    };
+    hardware.nvidia.open = mkIf cfg.nvidia (mkDefault false);
+
+    xdg.portal.xdgOpenUsePortal = true;
   };
 }

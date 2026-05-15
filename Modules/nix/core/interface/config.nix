@@ -1,10 +1,11 @@
 {
+  config,
   lix,
-  interface,
+  top,
   ...
 }: let
   inherit (lix.modules.construction) mkIf;
-  inherit (interface.ui) panel compositor;
+  inherit (config.${top}.interface) panel compositor;
   isDank = panel == "dms-shell";
 in {
   config = mkIf isDank {

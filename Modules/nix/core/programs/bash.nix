@@ -9,7 +9,7 @@
   mod = "bash";
   cfg = config.${top}.${dom}.${mod};
   user = host.users.data.primary or {};
-  inherit (config.${top}.interface) shell;
+  shell = config.${top}.interface.shell.interactive or null;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.options.construction) mkEnable mkTrue;
   inherit (lix.modules.construction) mkIf;
