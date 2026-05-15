@@ -21,6 +21,7 @@
   mkNix = {
     host,
     pkgs,
+    tree,
     ...
   }: let
     kernelRequested = host.packages.kernel or null;
@@ -29,7 +30,7 @@
 
     requiresNyx = isCachy || isChaotic;
     requiresNumtide = lockFileHas {
-      path = host.paths.dots;
+      path = tree.store.default;
       field = "owner";
       value = "numtide";
     };

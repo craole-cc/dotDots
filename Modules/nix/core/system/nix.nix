@@ -5,6 +5,7 @@
   lix,
   pkgs,
   top,
+  tree,
   ...
 }: let
   dom = "system";
@@ -34,7 +35,7 @@ in {
 
   config = mkIf cfg.enable (
     mkMerge [
-      (mkNix {inherit host pkgs;})
+      (mkNix {inherit host pkgs tree;})
       {
         nix.settings.max-jobs = cfg.maxJobs;
         system.stateVersion = cfg.stateVersion;
