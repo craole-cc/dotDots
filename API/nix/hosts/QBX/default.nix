@@ -20,6 +20,13 @@ in {
     kernel = "linuxPackages_cachyos-lto";
   };
 
+  caches = {
+    nyx = {
+      sub = "https://geo-mirror.chaotic.cx/";
+      key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
+    };
+  };
+
   specs = {
     machine = "desktop";
 
