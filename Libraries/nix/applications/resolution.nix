@@ -3,7 +3,8 @@
   inherit (_.attrsets.predicates) hasAttrByPath;
   inherit (_.lists.predicates) all;
   inherit (_.lists.selection) filter;
-  inherit (_.lists.transformation) concatMap unique;
+  inherit (_.lists.transformation) unique;
+  inherit (_.lists.reduction) concatMap;
   inherit (_.strings.predicates) hasInfix;
   inherit (_.strings.transformation) toLower;
   inherit (_.types.predicates) isFunction;
