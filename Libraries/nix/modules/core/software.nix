@@ -187,10 +187,19 @@
     };
 
     environment.shellAliases = {
-      nix-clean = "nh clean all ${keepArgs}";
-      nix-gc = "nix store gc";
-      nix-optimise = "nix store optimise";
-      nix-repair = "nix store verify --repair";
+      dots-switch = "nh os switch ${dots}";
+      dots-boot = "nh os boot ${dots}";
+      dots-test = "nh os test ${dots}";
+      dots-build = "nh os build ${dots}";
+      dots-clean = "nh clean all ${keepArgs}";
+      dots-gc = "nix store gc";
+      dots-optimise = "nix store optimise";
+      dots-repair = "nix store verify --repair";
+      dots-dev = "nix develop ${dots}";
+      dots-dev-full = "nix develop ${dots}#full";
+      dots-dev-minimal = "nix develop ${dots}#minimal";
+      dots-dev-media = "nix develop ${dots}#media";
+      dots-repl = "nix repl ${dots}#repl";
     };
   };
 in
