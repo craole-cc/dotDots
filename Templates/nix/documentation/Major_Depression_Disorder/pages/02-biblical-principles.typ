@@ -1,4 +1,4 @@
-= Biblical Principles for Addressing Depression
+= Biblical Principles
 
 Scripture does not treat depression as foreign to the life of people who trust in God. Instead, it gives language for the very experiences that often accompany Major Depressive Disorder: hopelessness, sorrow, guilt, isolation, fatigue, and the loss of meaning. Psalm 34:18 presents God as near to the brokenhearted, a truth that matters deeply when supporting depressed believers who may feel that God is distant or uninterested. The verse does not erase pain; it counters the lie that suffering means abandonment. For Christian helpers, this means the first response should not be correction but presence, reassurance, and patient care.
 

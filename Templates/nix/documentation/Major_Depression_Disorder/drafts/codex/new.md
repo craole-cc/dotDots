@@ -60,10 +60,10 @@ toward hope in God (New International Version, 2011, Ps. 42:5). The psalmist
 does not suppress sorrow or pretend to be spiritually strong. Instead, the text
 holds together grief, questioning, memory, and hope. This is important for
 pastoral care because many distressed believers feel shame for experiencing
-sadness, anxiety, or spiritual dryness. Lament teaches that  can
-bring their pain honestly before God. Churches can apply this principle by
-making space for grief, testimony, confession, and prayer without rushing people
-toward shallow optimism.
+sadness, anxiety, or spiritual dryness. Lament teaches that can bring their pain
+honestly before God. Churches can apply this principle by making space for
+grief, testimony, confession, and prayer without rushing people toward shallow
+optimism.
 
 Another key biblical principle is the ministry of comfort within the community
 of faith. Paul writes that God is the “Father of compassion and the God of all

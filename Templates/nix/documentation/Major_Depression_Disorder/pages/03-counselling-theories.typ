@@ -1,4 +1,4 @@
-= Modern Counselling Approaches in a Church Context
+= Counselling Theories
 
 Cognitive Behavioural Therapy (CBT) is especially relevant to Major Depressive Disorder because depression is often maintained by negative automatic thoughts and cognitive distortions. A depressed person may repeatedly think, “I am worthless,” “Nothing will ever change,” “I have failed everyone,” or “There is no point trying.” CBT helps the person notice these thoughts, test them against evidence, and replace rigid or distorted conclusions with more balanced interpretations @beck2011. This is not a denial of suffering; it is a practical method for interrupting hopelessness, self-blame, and the mental narrowing that often accompanies depression.
 

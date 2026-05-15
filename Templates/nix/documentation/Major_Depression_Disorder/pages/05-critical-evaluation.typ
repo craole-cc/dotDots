@@ -1,4 +1,4 @@
-= Critical Evaluation and Ethical Considerations
+= Critical Thinking
 
 A faith-integrated approach to depression has important strengths. First, it is holistic. Major Depressive Disorder affects thought, emotion, body, relationships, and spiritual life, so it is helpful to respond on multiple levels rather than with a single explanation. Second, it reduces stigma. When churches treat depression as a legitimate condition, people are more likely to seek help early instead of hiding symptoms behind spiritual language or ministry activity. Third, it fits the church’s relational structure. Many people will speak to a trusted church member, ministry leader, or lay counsellor before they ever contact a clinic, which makes the church a valuable place for identification, support, and referral @worthington2016.
 
