@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  lix,
   pkgs,
   top,
   ...
@@ -13,11 +14,10 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) either int str;
+  inherit (lix.modules.core.software) mkNix;
 in {
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {default = true;};
+    enable = mkEnableOption mod // {default = true;};
 
     stateVersion = mkOption {
       description = "NixOS state version";
@@ -33,7 +33,7 @@ in {
   };
 
   config = mkIf cfg.enable (
-    lib.modules.core.mkNix {inherit host pkgs;}
+    mkNix {inherit host pkgs;}
     // {
       nix.settings.max-jobs = cfg.maxJobs;
       system.stateVersion = cfg.stateVersion;
