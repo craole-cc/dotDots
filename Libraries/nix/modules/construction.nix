@@ -21,38 +21,6 @@
     };
   in {inherit doc exports functions;};
 
-  # __doc = ''
-  #   Module Evaluation and System Generation
-
-  #   Provides the orchestration layer for turning discovered hosts, resolved
-  #   flake inputs, generated package sets, and assembled module lists into
-  #   fully evaluated system configurations.
-
-  #   This file is responsible for two major tasks:
-
-  #   1. Evaluating host systems via `evalModules`.
-  #   2. Generating per-system flake-style output matrices from a function.
-  # '';
-
-  # __exports = {
-  #   internal = {
-  #     inherit
-  #       mkSystems
-  #       mkFlake
-  #       mkCore
-  #       mkHome
-  #       mkTree
-  #       ;
-  #   };
-  #   external = {
-  #     inherit mkSystems mkFlake;
-  #     mkModulesSystems = mkSystems;
-  #     mkModulesCore = mkCore;
-  #     mkModulesHome = mkHome;
-  #     mkModulesFlake = mkFlake;
-  #   };
-  # };
-
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -108,9 +76,7 @@
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
           modules = mkModules {inherit class inputs;};
-        in {
-          inherit inputs packages modules;
-        };
+        in {inherit inputs packages modules;};
 
         moduleArgs = let
           fromInputs = flakeArgs.modules;
@@ -215,9 +181,7 @@
             hm = inputs.home-manager.lib.hm or {};
           });
         };
-      users = mkUsers {
-        inherit inputs modules host tree;
-      };
+      users = mkUsers {inherit inputs modules host tree;};
     };
   };
 

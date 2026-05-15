@@ -40,6 +40,7 @@
       fixedWidthNumber
       fixedWidthString
       floatToString
+      fromJSON
       optionalString
       ;
   };
