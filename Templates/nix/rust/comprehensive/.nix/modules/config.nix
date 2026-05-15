@@ -7,19 +7,18 @@
     collectMessages
     collectAttrs
     normalizeModule
+    mkShells
     ;
   inherit (lib.lists) foldl';
   inherit (lib.meta) project;
   inherit
     (lib.shells)
     mkVariantShells
-    mkShells
     mkVariants
     normalizeVariant
     ;
   inherit
     (lib.packages)
-    getSystem
     mkAI
     mkChecker
     mkCommon
@@ -119,8 +118,6 @@
     extraShellHook ? "",
     variantName ? "default",
   }: let
-    # system = pkgs.stdenv.hostPlatform.system;
-    system = getSystem pkgs;
     variants = let
       raw = mkVariants config;
       final = mapAttrs (_: normalizeVariant) raw;
