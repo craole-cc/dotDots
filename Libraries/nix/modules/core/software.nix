@@ -7,7 +7,7 @@
 
       Provides `mkNix` for declarative Nix daemon configuration - including
       binary cache auto-detection, experimental features, and file descriptor
-      limits - and `mkClean` for automated store maintenance via `nh`.
+      limits - and `mkMaintenance` for automated store maintenance via `nh`.
 
       ## Cache Resolution
 
@@ -27,10 +27,13 @@
       - `_.attrsets.*`            - construction, merging, transformation
       - `_.modules.construction`  - mkForce
     '';
-    functions = {inherit mkNix mkClean;};
+    functions = {inherit mkNix mkMaintenance;};
     exports = {
       local = functions;
-      alias = functions;
+      alias = {
+        inherit (functions) mkNix;
+        mkNixMaintenance = mkMaintenance;
+      };
     };
   in {inherit doc exports functions;};
 
@@ -133,12 +136,12 @@
 
     # Type
   ```nix
-    mkClean :: { host :: AttrSet } -> AttrSet
+    mkMaintenance :: { host :: AttrSet } -> AttrSet
   ```
 
     # Examples
   ```nix
-    mkClean { host = { paths.dots = "/home/craole/.dots"; }; }
+    mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; }
     # => {
     #   programs.nh.enable = true;
     #   programs.nh.clean.enable = true;
@@ -147,7 +150,7 @@
     # }
   ```
   */
-  mkClean = {host, ...}: {
+  mkMaintenance = {host, ...}: {
     programs.nh = {
       enable = true;
       clean = {
