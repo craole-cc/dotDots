@@ -458,7 +458,7 @@
           window = name;
         };
         panel = "dms-shell";
-        notifier = "dms-shell";
+        notifier = null;
         apps = recursiveUpdate defaults.apps {
           launcher.sec = "dms-shell";
           terminal.pri = "foot";
