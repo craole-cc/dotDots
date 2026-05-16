@@ -214,7 +214,7 @@ in {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
     # desktopEnvironment = "plasma";
-    # windowManager = "hyprland";
+    windowManager = "hyprland";
     # displayProtocol = "wayland";
     # session = "niri";
     # keyboard = {

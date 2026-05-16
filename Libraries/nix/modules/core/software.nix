@@ -174,37 +174,116 @@
     }
   ```
   */
-  mkMaintenance = {dots, ...}: let
-    keepArgs = "--keep-since 3d --keep 5";
+  mkMaintenance = {
+    dots,
+    pkgs,
+    ...
+  }: let
+    keepArgs = "--keep-since 3d --keep 3";
+    fetch = pkgs.writeShellApplication {
+      name = "fetch";
+      runtimeInputs = with pkgs; [
+        fastfetch
+        nitch
+        onefetch
+        tokei
+        git
+      ];
+      text = ''
+        mode="normal"
+        target="''${1:-.}"
+
+        case "''${1:-}" in
+          --full)
+            mode="full"
+            target="''${2:-.}"
+            ;;
+        esac
+
+        if [ ! -d "$target" ]; then
+          printf 'fetch: directory not found: %s\n' "$target" >&2
+          exit 1
+        fi
+
+        cd "$target" || exit 1
+
+        onefetch_min() {
+          onefetch \
+            --no-art \
+            --no-title \
+            --no-color-palette \
+            --disabled-fields \
+              project \
+              description \
+              head \
+              version \
+              created \
+              languages \
+              dependencies \
+              authors \
+              commits \
+              lines-of-code \
+              churn \
+              size \
+              contributors \
+              url \
+              license
+        }
+
+        case "$mode" in
+          full)
+            nitch
+            printf '\n'
+            if [ -d .git ]; then
+              onefetch
+              printf '\n'
+            fi
+            tokei .
+            ;;
+          *)
+            fastfetch
+            printf '\n'
+            if [ -d .git ]; then
+              onefetch_min
+            fi
+            ;;
+        esac
+      '';
+    };
   in {
     programs.nh = {
-      enable = true;
       clean = {
         enable = true;
         extraArgs = keepArgs;
       };
+      enable = true;
       flake = dots;
     };
 
-    environment.shellAliases = {
-      dots-switch = "nh os switch ${dots}";
-      dots-update = "nix flake update --flake ${dots}";
-      dots-upgrade = "nix flake update --flake ${dots} && nh os switch ${dots}";
-      dots-boot = "nh os boot ${dots}";
-      dots-test = "nh os test ${dots}";
-      dots-build = "nh os build ${dots}";
-      dots-clean = "nh clean all ${keepArgs}";
-      dots-clean-all = "nh clean all --keep 1";
-      dots-gc = "nix store gc";
-      dots-gens = "nh os info";
-      dots-optimise = "nix store optimise";
-      dots-repair = "nix store verify --repair";
-      dots-dev = "nix develop ${dots}";
-      dots-dev-full = "nix develop ${dots}#full";
-      dots-dev-minimal = "nix develop ${dots}#minimal";
-      dots-dev-media = "nix develop ${dots}#media";
-      dots-repl = "nix repl ${dots}#repl";
-      dots-cd = "cd ${dots}";
+    environment = {
+      systemPackages = [fetch];
+      shellAliases = {
+        dots-switch = "nh os switch ${dots}";
+        dots-update = "nix flake update --flake ${dots}";
+        dots-upgrade = "nix flake update --flake ${dots} && nh os switch ${dots}";
+        dots-boot = "nh os boot ${dots}";
+        dots-test = "nh os test ${dots}";
+        dots-build = "nh os build ${dots}";
+        dots-clean = "nh clean all ${keepArgs}";
+        dots-clean-all = "nh clean all --keep 1";
+        dots-gc = "nix store gc";
+        dots-gens = "nh os info";
+        dots-optimise = "nix store optimise";
+        dots-repair = "nix store verify --repair";
+        dots-dev = "nix develop ${dots}";
+        dots-dev-full = "nix develop ${dots}#full";
+        dots-dev-minimal = "nix develop ${dots}#minimal";
+        dots-dev-media = "nix develop ${dots}#media";
+        dots-repl = "nix repl ${dots}#repl";
+        dots-cd = "cd ${dots}";
+        dots-fetch = "fetch ${dots}";
+        dots-fetch-full = "fetch --full ${dots}";
+      };
     };
   };
 in

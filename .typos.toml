@@ -3,4 +3,5 @@ locale = "en-us"
 
 [default.extend-words]
 "nitch" = "nitch"
+"optimise" = "optimise"
 "dots-fetch" = "dots-fetch"

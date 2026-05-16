@@ -55,9 +55,9 @@
   appEnums = _.applications.enums;
   iface = _.applications.filters.queries.interface;
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Data                                                      ║
-  #╚═══════════════════════════════════════════════════════════╝
+  #|------------------------------------------------------|
+  #| Data ------------------------------------------------|
+  #|------------------------------------------------------|
   defaults = {
     inherit (io.defaults) keyboard;
     panel = null;
@@ -279,18 +279,18 @@
     };
   };
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Display                                                   ║
-  #╚═══════════════════════════════════════════════════════════╝
+  #|------------------------------------------------------|
+  #| Display ---------------------------------------------|
+  #|------------------------------------------------------|
   dmsByProtocol = genAttrs (attrNames iface.protocols.all) (
     protocol: attrNames (filterAttrs (_: g: elem protocol (g.protocol or [])) iface.greeters.all)
   );
 
   dmsFor = protocols: unique (concatMap (p: dmsByProtocol.${p} or []) protocols);
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Environment                                               ║
-  #╚═══════════════════════════════════════════════════════════╝
+  #|------------------------------------------------------|
+  #| Environment -----------------------------------------|
+  #|------------------------------------------------------|
   mkEnv = args: let
     protocols = args.protocols or (toList args.protocol or []);
     protocol = args.protocol or (optionalString (args ? protocols) (head args.protocols));
@@ -650,9 +650,9 @@
     };
   };
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Resolution                                                ║
-  #╚═══════════════════════════════════════════════════════════╝
+  #|------------------------------------------------------|
+  #| Resolution ------------------------------------------|
+  #|------------------------------------------------------|
   keys = {
     selection = {
       desktopEnvironment = desktopEnvironments;
@@ -690,9 +690,9 @@
     }
     else throw "Unknown ${key}: ${name}.";
 
-  #╔═══════════════════════════════════════════════════════════╗
-  #║ Normalization                                             ║
-  #╚═══════════════════════════════════════════════════════════╝
+  #|------------------------------------------------------|
+  #| Normalization ---------------------------------------|
+  #|------------------------------------------------------|
   resolve = {
     key,
     interface,
@@ -752,9 +752,26 @@
       interface.display.protocol or interface.session.protocol or environment.config.displayProtocol.preferred
           or defaults.protocol;
 
-    session =
-      interface.defaultSession or interface.session or configs.wm.defaultSession or configs.de.defaultSession
-          or windowManager.name or desktopEnvironment.name or defaults.session;
+    # session =
+    #   interface.defaultSession or interface.session or configs.wm.defaultSession or configs.de.defaultSession
+    #       or windowManager.name or desktopEnvironment.name or defaults.session;
+    session = let
+      fromInterface = interface.defaultSession or (interface.session or null);
+      fromWm = configs.wm.defaultSession or (configs.de.defaultSession or null);
+      fromEnv =
+        if windowManager.name != null
+        then windowManager.name
+        else if desktopEnvironment.name != null
+        then desktopEnvironment.name
+        else null;
+    in
+      if fromInterface != null
+      then fromInterface
+      else if fromWm != null
+      then fromWm
+      else if fromEnv != null
+      then fromEnv
+      else defaults.session;
 
     shell = {
       system = interface.shell.system or interface.shell.login or defaults.shell.system;
@@ -780,6 +797,7 @@
         shell
         session
         ;
+      defaultSession = session;
       desktopEnvironment = desktopEnvironment.name;
       windowManager = windowManager.name;
       displayManager = greeter;
@@ -787,6 +805,7 @@
       enable = enabled != [];
     }
     // (genAttrs keys.resolution (key: resolve {inherit key interface configs;}));
+
   mkUI = {
     user ? {},
     host,

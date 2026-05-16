@@ -1,4 +1,3 @@
-# interface/common/login.nix
 {
   config,
   host,
@@ -10,10 +9,14 @@
   cfg = config.${top}.interface;
   user = host.users.data.primary or {};
   useDms = cfg.panel == "dms-shell" && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
+  defaultSession =
+    if cfg.windowManager == "hyprland" && config.programs.hyprland.withUWSM
+    then "hyprland-uwsm"
+    else cfg.defaultSession;
 in {
   config = mkIf (cfg.displayManager != null) {
     services.displayManager = {
-      inherit (cfg) defaultSession;
+      inherit defaultSession;
       autoLogin = mkIf (user.autoLogin or false) {
         enable = true;
         user = user.name or null;

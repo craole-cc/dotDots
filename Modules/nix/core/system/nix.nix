@@ -119,7 +119,10 @@ in {
         inherit host pkgs tree;
         inherit (cfg) kernel caches max-jobs stateVersion;
       })
-      (mkMaintenance {inherit (cfg) dots;})
+      (mkMaintenance {
+        inherit (cfg) dots;
+        inherit pkgs;
+      })
     ]
   );
 }
