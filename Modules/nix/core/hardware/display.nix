@@ -55,8 +55,8 @@ in {
 
     programs.xwayland.enable = isWayland;
 
-    hardware.nvidia.open = mkIf cfg.nvidia (mkDefault false);
+    # hardware.nvidia.open = mkIf cfg.nvidia (mkDefault false);
 
-    xdg.portal.xdgOpenUsePortal = true;
+    # xdg.portal.xdgOpenUsePortal = true;
   };
 }
