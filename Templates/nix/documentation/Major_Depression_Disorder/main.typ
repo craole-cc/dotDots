@@ -42,7 +42,7 @@
   #v(0.85em)
   Caribbean Bible Institute
   #v(0.85em)
-  Tamar Royal-Reynolds
+  Tamara Royal-Reynolds
   #v(0.85em)
   May 15, 2026
 ]
