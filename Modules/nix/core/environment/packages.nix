@@ -164,6 +164,5 @@ in {
 
   config = mkIf cfg.enable {
     environment.systemPackages = unique (cfg.default ++ cfg.extra);
-    programs.xwayland.enable = true;
   };
 }

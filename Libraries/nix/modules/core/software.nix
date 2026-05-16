@@ -204,6 +204,7 @@
       dots-dev-minimal = "nix develop ${dots}#minimal";
       dots-dev-media = "nix develop ${dots}#media";
       dots-repl = "nix repl ${dots}#repl";
+      dots-cd = "cd ${dots}";
     };
   };
 in
