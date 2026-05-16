@@ -3,124 +3,91 @@
 
   exports = {
     internal = {inherit mkServices;};
-    external = {
-      mkCoreServices = mkServices;
-    };
+    external = {mkCoreServices = mkServices;};
   };
 
-  # mkServices = {
-  #   host,
-  #   config,
-  #   ...
-  # }: let
-  #   #~@ User profile
-  #   user = host.users.data.primary or {};
+  /**
+    Build a NixOS configuration fragment for display/session services.
 
-  #   #~@ Host interface
-  #   wm = host.interface.windowManager or null;
-  #   de = host.interface.desktopEnvironment or null;
-  #   dp = host.interface.displayProtocol or "wayland";
-  #   dm = host.interface.displayManager or null;
-  #   bar = host.interface.bar or user.interface.bar or null;
+    Derives the active session name from `defaultSession`, then
+    `windowManager`, then `desktopEnvironment`, with a `hyprland-uwsm`
+    override when `config.programs.hyprland.withUWSM` is true. Enables the
+    appropriate display manager, desktop-manager modules, auto-login, DMS
+    greeter detection, GDM TTY suppression, and GUI-gated udisks2.
 
-  #   #~@ Derived state
-  #   session =
-  #     if wm != null
-  #     then wm
-  #     else de;
-  #   hasGui = de != null || wm != null;
-  #   useDms = bar == "dms" && (wm == "niri" || wm == "hyprland");
-  # in {
-  #   services = {
-  #     #~@ Input
-  #     iio-niri.enable = wm == "niri"; # ? Sensor integration for niri
+    XDG portal configuration is intentionally excluded — portal.nix owns
+    that slice.
 
-  #     #~@ Desktop environments
-  #     desktopManager = {
-  #       cosmic = {
-  #         enable = de == "cosmic";
-  #         showExcludedPkgsWarning = false;
-  #       };
+    # Type
+  ```nix
+    mkServices :: {
+      config             :: AttrSet,
+      windowManager      :: String | null,
+      desktopEnvironment :: String | null,
+      displayProtocol    :: String,
+      displayManager     :: String | null,
+      defaultSession     :: String | null,
+      panel              :: String | null,
+      autoLogin          :: Bool,
+      autoLoginUser      :: String | null,
+    } -> AttrSet
+  ```
 
-  #       gnome.enable = de == "gnome";
-  #       plasma6.enable = de == "plasma";
-  #     };
-
-  #     #~@ Display manager
-  #     displayManager = {
-  #       autoLogin = {
-  #         enable = user.autoLogin or false;
-  #         user = user.name or null;
-  #       };
-
-  #       defaultSession =
-  #         if (session == "hyprland" && config.programs.hyprland.withUWSM)
-  #         then "hyprland-uwsm"
-  #         else session;
-
-  #       #? COSMIC native greeter - disabled when DMS active
-  #       cosmic-greeter.enable = de == "cosmic" && !useDms;
-  #       dms-greeter.enable = useDms;
-
-  #       gdm = {
-  #         enable = dm == "gdm" && !useDms;
-  #         wayland = dp == "wayland";
-  #       };
-
-  #       sddm = {
-  #         enable = dm == "sddm" && !useDms;
-  #         wayland.enable = dp == "wayland";
-  #       };
-
-  #       ly.enable = dm == "ly";
-  #     };
-
-  #     #~@ Hardware
-  #     udisks2 = optionalAttrs hasGui {
-  #       enable = true;
-  #       mountOnMedia = true; # ? Auto-mount removable media under /media
-  #     };
-  #   };
-
-  #   #~@ Systemd — suppress redundant TTY sessions when using GDM
-  #   systemd.services = optionalAttrs (dm == "gdm") {
-  #     "getty@tty1".enable = false;
-  #     "autovt@tty1".enable = false;
-  #   };
-
-  #   xdg.portal = {
-  #     enable = true;
-  #     #   config = {
-  #     #     common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
-  #     #   };
-  #   };
-  # };
+    # Examples
+  ```nix
+    mkServices {
+      inherit config;
+      windowManager  = "hyprland";
+      displayManager = "sddm";
+      displayProtocol = "wayland";
+      defaultSession = null;
+      panel = null;
+      autoLogin = false;
+      autoLoginUser = null;
+      desktopEnvironment = null;
+    }
+    # => {
+    #   services.displayManager.defaultSession = "hyprland-uwsm"; # when withUWSM
+    #   services.displayManager.sddm = { enable = true; wayland.enable = true; };
+    #   services.iio-niri.enable = false;
+    #   ...
+    # }
+  ```
+  */
   mkServices = {
-    host,
     config,
     windowManager ? null,
     desktopEnvironment ? null,
     displayProtocol ? "wayland",
     displayManager ? null,
+    defaultSession ? null,
     panel ? null,
     autoLogin ? false,
     autoLoginUser ? null,
     ...
   }: let
     useDms = panel == "dms-shell" && (windowManager == "niri" || windowManager == "hyprland");
-    session =
-      if windowManager != null
+    hasGui = desktopEnvironment != null || windowManager != null;
+
+    # Session resolution: explicit override > wm > de, then hyprland-uwsm
+    # promotion when withUWSM is active.
+    baseSession =
+      if defaultSession != null
+      then defaultSession
+      else if windowManager != null
       then windowManager
       else desktopEnvironment;
-    hasGui = desktopEnvironment != null || windowManager != null;
-    defaultSession =
+
+    resolvedSession =
       if windowManager == "hyprland" && config.programs.hyprland.withUWSM
       then "hyprland-uwsm"
-      else session;
+      else baseSession;
   in {
     services = {
+      #~@ Input
       iio-niri.enable = windowManager == "niri";
 
+      #~@ Desktop environments
       desktopManager = {
         cosmic = {
           enable = desktopEnvironment == "cosmic";
@@ -130,37 +97,43 @@
         plasma6.enable = desktopEnvironment == "plasma";
       };
 
+      #~@ Display manager
       displayManager = {
-        inherit defaultSession;
+        defaultSession = resolvedSession;
+
         autoLogin = {
           enable = autoLogin;
           user = autoLoginUser;
         };
+
         cosmic-greeter.enable = desktopEnvironment == "cosmic" && !useDms;
         dms-greeter.enable = useDms || displayManager == "dms-greeter";
+
         gdm = {
           enable = displayManager == "gdm" && !useDms;
           wayland = displayProtocol == "wayland";
         };
+
         sddm = {
           enable = displayManager == "sddm" && !useDms;
           wayland.enable = displayProtocol == "wayland";
         };
+
         ly.enable = displayManager == "ly";
       };
 
+      #~@ Hardware
       udisks2 = optionalAttrs hasGui {
         enable = true;
         mountOnMedia = true;
       };
     };
 
+    #~@ Suppress redundant TTY sessions when GDM is the display manager
     systemd.services = optionalAttrs (displayManager == "gdm") {
       "getty@tty1".enable = false;
       "autovt@tty1".enable = false;
     };
-
-    xdg.portal.enable = true;
   };
 in
   exports.internal // {__rootAliases = exports.external;}

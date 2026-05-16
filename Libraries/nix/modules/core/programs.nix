@@ -1,72 +1,48 @@
-{_, ...}: let
-  inherit (_.lists.predicates) isIn;
-
+{...}: let
   exports = {
     internal = {inherit mkPrograms;};
-    external = {
-      mkCorePrograms = mkPrograms;
-    };
+    external = {mkCorePrograms = mkPrograms;};
   };
 
-  mkPrograms = {host, ...}: let
-    #~@ User profile
-    user = host.users.data.primary or {};
+  /**
+    Build a NixOS configuration fragment for interface-derived programs.
 
-    #~@ Host interface
-    wm = host.interface.windowManager or null;
-    shellConfig = host.interface.shell or {};
-    shell = shellConfig.interactive or shellConfig.system or null;
-    prompt = shellConfig.prompt or null;
-  in {
+    Covers only programs that have no leaf module owner: the active window
+    manager and XWayland. All other programs (bash, direnv, git, starship,
+    obs-studio) are owned by their respective leaf modules under
+    Modules/nix/core/programs/ and must not be emitted here.
+
+    # Type
+  ```nix
+    mkPrograms :: {
+      windowManager      :: String | null,
+      enableHyprlandUWSM :: Bool,
+    } -> AttrSet
+  ```
+
+    # Examples
+  ```nix
+    mkPrograms { windowManager = "hyprland"; enableHyprlandUWSM = true; }
+    # => {
+    #   programs.hyprland = { enable = true; withUWSM = true; };
+    #   programs.niri.enable = false;
+    #   programs.xwayland.enable = true;
+    # }
+  ```
+  */
+  mkPrograms = {
+    windowManager ? null,
+    enableHyprlandUWSM ? true,
+    ...
+  }: {
     programs = {
-      #~@ Shell
-      bash = {
-        enable = isIn "bash" ([shell] ++ (user.shells or []));
-        blesh.enable = true;
-        undistractMe.enable = true;
-      };
-
-      direnv = {
-        enable = true;
-        silent = true;
-        settings.global = {
-          log_format = "-";
-          log_filter = "^$";
-          load_dotenv = true;
-        };
-      };
-
-      starship.enable = prompt == "starship";
-
-      #~@ Version control
-      git = {
-        enable = true;
-        lfs.enable = true;
-        prompt.enable = true;
-      };
-
-      #~@ Window managers
       hyprland = {
-        enable = wm == "hyprland";
-        withUWSM = true;
+        enable = windowManager == "hyprland";
+        withUWSM = enableHyprlandUWSM;
       };
-      niri = {
-        enable = wm == "niri";
-      };
-
-      #~@ Media
-      obs-studio = {
-        enable = isIn ["video" "webcam"] (host.functionalities or []);
-        enableVirtualCamera = true;
-      };
-
-      #~@ Display
-      xwayland = {
-        enable = true;
-      };
+      niri.enable = windowManager == "niri";
+      xwayland.enable = true;
     };
   };
-
-  exports = {inherit mkPrograms;};
 in
   exports.internal // {__rootAliases = exports.external;}
