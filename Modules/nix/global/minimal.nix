@@ -1,24 +1,71 @@
 {dots, ...}: let
   description = "Minimal Dev Environment";
-  inherit
-    (dots)
-    cache
-    lix
-    pkgs
-    system
-    ;
+  inherit (dots) cache lix pkgs system;
   inherit (lix.lists.construction) optionals;
 
   #|---------------------------------------------------------|
-  #| Packages                               |
+  #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
-
   fetcher = "fastfetch";
   is_cmd = pkgs.writeShellScriptBin "is_cmd" ''
     command -v "$@" >/dev/null 2>&1
   '';
+  dots-fetch = pkgs.writeShellApplication {
+    name = "dots-fetch";
+    runtimeInputs = with pkgs; [
+      fastfetch
+      nitch
+      onefetch
+      tokei
+      git
+    ];
+    text = ''
+      onefetch_min() {
+        onefetch \
+          --no-art \
+          --no-title \
+          --no-color-palette \
+          --disabled-fields \
+            project \
+            description \
+            head \
+            version \
+            created \
+            languages \
+            dependencies \
+            authors \
+            commits \
+            lines-of-code \
+            churn \
+            size \
+            contributors \
+            url \
+            license
+      }
+
+      if [ "''${1:-}" = "--full" ]; then
+        nitch
+        printf '\n'
+        if [ -d .git ]; then
+          onefetch
+          printf '\n'
+        fi
+        tokei .
+      else
+        fastfetch
+        printf '\n'
+        if [ -d .git ]; then
+          onefetch_min
+        fi
+      fi
+    '';
+  };
   packages =
-    [pkgs."${fetcher}" is_cmd]
+    [
+      pkgs."${fetcher}"
+      is_cmd
+      dots-fetch
+    ]
     ++ (
       with pkgs;
         [
@@ -114,16 +161,11 @@
     fi
 
     #> Display shell information with the defined fetcher
-    if is_cmd ${fetcher} >/dev/null 2>&1; then ${fetcher}; fi
-
-    #> Display repository summary with onefetch if in a git repository
-    if [ -d .git ] && is_cmd onefetch; then
-      onefetch \
-      --no-art \
-      --no-title \
-      --no-color-palette \
-      --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
-    fi
+    if is_cmd dots-fetch; then
+      dots-fetch
+    elif is_cmd ${fetcher}; then
+      ${fetcher}
+    else :; fi
   '';
 in {
   inherit

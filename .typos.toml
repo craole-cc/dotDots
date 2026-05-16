@@ -1,0 +1,6 @@
+[default]
+locale = "en-us"
+
+[default.extend-words]
+"nitch" = "nitch"
+"dots-fetch" = "dots-fetch"
