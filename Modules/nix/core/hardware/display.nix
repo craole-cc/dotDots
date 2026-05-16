@@ -40,23 +40,23 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
-    services.xserver = mkIf (!isWayland) {
-      enable = true;
-      videoDrivers =
-        if cfg.nvidia
-        then ["nvidia"]
-        else [];
-      xkb = {
-        layout = cfg.xkbLayout;
-        variant = cfg.xkbVariant;
-      };
-    };
+  # config = mkIf cfg.enable {
+  #   services.xserver = mkIf (!isWayland) {
+  #     enable = true;
+  #     videoDrivers =
+  #       if cfg.nvidia
+  #       then ["nvidia"]
+  #       else [];
+  #     xkb = {
+  #       layout = cfg.xkbLayout;
+  #       variant = cfg.xkbVariant;
+  #     };
+  #   };
 
-    programs.xwayland.enable = isWayland;
+  #   programs.xwayland.enable = isWayland;
 
-    # hardware.nvidia.open = mkIf cfg.nvidia (mkDefault false);
+  #   hardware.nvidia.open = mkIf cfg.nvidia (mkDefault false);
 
-    # xdg.portal.xdgOpenUsePortal = true;
-  };
+  #   xdg.portal.xdgOpenUsePortal = true;
+  # };
 }
