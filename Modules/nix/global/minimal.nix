@@ -9,13 +9,16 @@
     ;
   inherit (lix.lists.construction) optionals;
 
-  #|────────────────────────────────────────|
+  #|---------------------------------------------------------|
   #| Packages                               |
-  #|────────────────────────────────────────|
+  #|---------------------------------------------------------|
 
   fetcher = "fastfetch";
+  is_cmd = pkgs.writeShellScriptBin "is_cmd" ''
+    command -v "$@" >/dev/null 2>&1
+  '';
   packages =
-    [pkgs."${fetcher}"]
+    [pkgs."${fetcher}" is_cmd]
     ++ (
       with pkgs;
         [
@@ -43,15 +46,13 @@
           xsel
         ]
     );
-  #|────────────────────────────────────────|
-  #| Shell Configuration                    |
-  #|────────────────────────────────────────|
+  #|---------------------------------------------------------|
+  #| Shell Configuration  -----------------------------------|
+  #|---------------------------------------------------------|
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
-    FETCHER = fetcher;
   };
-
   shellHook = ''
     #> Determine host info dynamically
     HOSTNAME="$(hostname)"
@@ -106,19 +107,17 @@
     fi
 
     #> Use starship for prompt
-    if command -v starship >/dev/null 2>&1; then
+    if is_cmd starship; then
       STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
 
-    #> Display shell information with nitch
-    if command -v ${fetcher} >/dev/null 2>&1; then
-      ${fetcher}
-    fi
+    #> Display shell information with the defined fetcher
+    if is_cmd ${fetcher} >/dev/null 2>&1; then ${fetcher}; fi
 
     #> Display repository summary with onefetch if in a git repository
-    if [ -d .git ] && command -v onefetch >/dev/null 2>&1; then
+    if [ -d .git ] && is_cmd onefetch; then
       onefetch \
       --no-art \
       --no-title \
