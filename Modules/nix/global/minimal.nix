@@ -13,35 +13,43 @@
   #| Packages                               |
   #|────────────────────────────────────────|
 
-  packages = with pkgs;
-    [
-      bat # ? Cat clone with syntax highlighting
-      fd # ? Fast find alternative
-      direnv
-      git
-      gnused # ? GNU stream editor
-      gum
-      jq # ? JSON query processor
-      lsd # ? LSDeluxe file lister
-      nitch # ? System fetch written in nim
-      nixd # ? Nix language daemon
-      onefetch # ? Git repository summary on your terminal
-      ripgrep-all # ? Fast grep alternative
-      sd # ? Intuitive find & replace CLI (sed alternative)
-      sops
-      undollar # ? Remove leading dollar signs age
-    ]
-    ++ optionals stdenv.isLinux [
-      xclip
-      wl-clipboard
-      xsel
-    ];
+  fetcher = "fastfetch";
+  packages =
+    [pkgs."${fetcher}"]
+    ++ (
+      with pkgs;
+        [
+          alejandra
+          bat # ? Cat clone with syntax highlighting
+          fd # ? Fast find alternative
+          direnv
+          git
+          gnused # ? GNU stream editor
+          gum
+          jq # ? JSON query processor
+          lsd # ? LSDeluxe file lister
+          nixd # ? Nix language daemon
+          onefetch # ? Git repository summary on your terminal
+          ripgrep # ? Fast grep alternative
+          ripgrep-all # ? Ripgrep, for PDFs, E-Books, Office documents, zip, tar.gz, etc.
+          sd # ? Intuitive find & replace CLI (sed alternative)
+          sops
+          age
+          undollar # ? Remove leading dollar signs age
+        ]
+        ++ optionals stdenv.isLinux [
+          xclip
+          wl-clipboard
+          xsel
+        ]
+    );
   #|────────────────────────────────────────|
   #| Shell Configuration                    |
   #|────────────────────────────────────────|
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
+    FETCHER = fetcher;
   };
 
   shellHook = ''
@@ -105,8 +113,8 @@
     fi
 
     #> Display shell information with nitch
-    if command -v nitch >/dev/null 2>&1; then
-      nitch
+    if command -v ${fetcher} >/dev/null 2>&1; then
+      ${fetcher}
     fi
 
     #> Display repository summary with onefetch if in a git repository
