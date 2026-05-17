@@ -15,12 +15,15 @@
   inherit (config.${top}.interface) displayProtocol;
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
-  inherit (lix.options.construction) mkEnable mkOption mkTrue;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkTrue "OBS Studio";
+    enable = mkEnable {
+      description = "OBS Studio";
+      condition = hw.hasVideoCam;
+    };
     enableVirtualCamera = mkEnable {
       description = "OBS virtual camara";
       condition = hw.hasVideoCam;

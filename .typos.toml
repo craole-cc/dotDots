@@ -1,7 +1,49 @@
+# File selection options
+[files]
+extend-exclude = [
+    "vendor/**",
+    "**/*.min.js",
+    "**/*.lock"
+]
+ignore-hidden = true
+ignore-files = true
+ 
+# Default engine behavior
 [default]
+binary = false
+check-filename = true
+check-file = true
+unicode = true
 locale = "en-us"
-
+ 
+# Custom dictionary entries
+[default.extend-identifiers]
+myidentifier = "myidentifier"  # Always valid
+mispeled = "misspelled"  # Will be corrected
+# "nitch" = "nitch"
+# "optimise" = "optimise"
+# "dots-fetch" = "dots-fetch"
+ 
 [default.extend-words]
 "nitch" = "nitch"
 "optimise" = "optimise"
 "dots-fetch" = "dots-fetch"
+
+ 
+# Custom ignore patterns
+[default.extend-ignore-re]
+# Ignore code blocks in markdown
+- "(?s)```.*?```"
+# Ignore inline code in markdown
+- "`[^`]+`"
+ 
+# Type-specific configurations
+[type.js]
+# JavaScript-specific settings
+[type.js.extend-identifiers]
+getElementsByClassName = "getElementsByClassName"
+ 
+[type.py]
+# Python-specific settings
+[type.py.extend-identifiers]
+arange = "arange"  # NumPy function

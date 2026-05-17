@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  lix,
   pkgs,
   top,
   ...
@@ -10,83 +11,123 @@
   mod = "fonts";
   cfg = config.${top}.${dom}.${mod};
 
-  user = host.users.data.primary or {};
-  userFonts = user.interface.style.fonts or {};
-
+  inherit (lib.attrsets) recursiveUpdate;
+  inherit (lib.lists) unique;
+  inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf package str;
+  inherit (lix.modules.core.style) mkFonts;
 
-  defaultPackages = with pkgs; [
-    maple-mono.NF-unhinted
-    material-icons
-    material-symbols
-    monaspace
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-color-emoji
-    victor-mono
-  ];
+  user =
+    recursiveUpdate {
+      interface.style.fonts = {
+        clock = "Rubik";
+        emoji = "Noto Color Emoji";
+        material = "Material Symbols Sharp";
+        monospace = "Maple Mono NF";
+        sansSerif = "Monaspace Radon Frozen";
+        serif = "Noto Serif";
+      };
+    }
+    (host.users.data.primary or {});
+
+  seed = let
+    fonts = user.interface.style.fonts;
+
+    packages = let
+      pkgsMap = with pkgs; {
+        "Rubik" = [rubik];
+        "Maple Mono NF" = [maple-mono.NF-unhinted];
+        "Monaspace Radon Frozen" = [monaspace];
+        "Victor Mono" = [victor-mono];
+        "Noto Serif" = [noto-fonts];
+        "Noto Color Emoji" = [noto-fonts-color-emoji];
+        "Material Symbols Sharp" = [material-symbols];
+        "Material Icons" = [material-icons];
+      };
+
+      pkgsFor = name: pkgsMap.${name} or [];
+
+      common = with pkgs; [
+        noto-fonts
+        noto-fonts-cjk-sans
+        material-icons
+      ];
+
+      custom = with fonts; (
+        []
+        ++ pkgsFor clock
+        ++ pkgsFor emoji
+        ++ pkgsFor Material
+        ++ pkgsFor monospace
+        ++ pkgsFor sansSerif
+        ++ pkgsFor serif
+      );
+
+      all = unique (common ++ custom);
+    in {inherit all common custom;};
+  in
+    fonts // {inherit packages;};
 in {
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
-    packages = mkOption {
-      description = "Font packages to install";
-      default = defaultPackages;
-      type = listOf package;
-    };
-    monospace = mkOption {
-      description = "Monospace font";
-      default = userFonts.monospace or "Maple Mono NF";
+    enable = mkEnableOption mod // {default = true;};
+
+    clock = mkOption {
+      description = "Clock/UI font";
+      default = seed.clock;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.clock or "Rubik"'';
       type = str;
     };
-    sans = mkOption {
-      description = "Sans-serif font";
-      default = userFonts.sans or "Monaspace Radon Frozen";
-      type = str;
-    };
-    serif = mkOption {
-      description = "Serif font";
-      default = userFonts.serif or "Noto Serif";
-      type = str;
-    };
+
     emoji = mkOption {
       description = "Emoji font";
-      default = userFonts.emoji or "Noto Color Emoji";
+      default = seed.emoji;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.emoji or "Noto Color Emoji"'';
       type = str;
     };
-  };
 
-  config = mkIf cfg.enable {
-    fonts = {
-      inherit (cfg) packages;
-      enableDefaultPackages = true;
-      fontconfig = {
-        enable = true;
-        antialias = true;
-        hinting = {
-          enable = true;
-          style = "slight";
-        };
-        subpixel.rgba = "rgb";
-        defaultFonts = {
-          monospace = [cfg.monospace];
-          sansSerif = [cfg.sans];
-          serif = [cfg.serif];
-          emoji = [cfg.emoji];
-        };
-      };
+    material = mkOption {
+      description = "Material icons/symbols font";
+      default = seed.material;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.material or "Material Symbols Sharp"'';
+      type = str;
     };
 
-    environment.sessionVariables = {
-      FONT_MONOSPACE = cfg.monospace;
-      FONT_SANS = cfg.sans;
-      FONT_SERIF = cfg.serif;
-      FONT_EMOJI = cfg.emoji;
+    monospace = mkOption {
+      description = "Monospace font";
+      default = seed.monospace;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.monospace or "Maple Mono NF"'';
+      type = str;
+    };
+
+    sansSerif = mkOption {
+      description = "Sans-serif font";
+      default = seed.sansSerif;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.sansSerif or "Monaspace Radon Frozen"'';
+      type = str;
+    };
+
+    serif = mkOption {
+      description = "Serif font";
+      default = seed.serif;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.fonts.serif or "Noto Serif"'';
+      type = str;
+    };
+
+    packages = mkOption {
+      description = "Font packages to install, derived from active font selections";
+      default = seed.packages.all;
+      defaultText = literalExpression ''
+        unique (with seed.packages; (common ++ custom for each of clock, emoji, monospace, sansSerif, serif))
+      '';
+      type = listOf package;
     };
   };
+
+  config = mkIf cfg.enable (
+    mkFonts {
+      inherit pkgs;
+      inherit (cfg) clock emoji material monospace sansSerif serif packages;
+    }
+  );
 }

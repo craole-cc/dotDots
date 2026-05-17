@@ -12,7 +12,7 @@
   loc = host.localization;
 
   inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit
     (lib.types)
     bool
@@ -30,31 +30,37 @@ in {
     timeZone = mkOption {
       description = "System timezone";
       default = loc.timeZone;
+      defaultText = literalExpression "host.localization.timeZone";
       type = nullOr str;
     };
     defaultLocale = mkOption {
       description = "Default locale";
       default = loc.defaultLocale;
+      defaultText = literalExpression "host.localization.defaultLocale";
       type = nullOr str;
     };
     latitude = mkOption {
       description = "Geolocation latitude";
       default = loc.latitude;
+      defaultText = literalExpression "host.localization.latitude";
       type = nullOr float;
     };
     longitude = mkOption {
       description = "Geolocation longitude";
       default = loc.longitude;
+      defaultText = literalExpression "host.localization.longitude";
       type = nullOr float;
     };
     locator = mkOption {
       description = "Location provider";
       default = loc.locator;
+      defaultText = literalExpression "host.localization.locator";
       type = str;
     };
     dualBootWindows = mkOption {
       description = "Hardware clock for Windows dual-boot";
       default = loc.dualBootWindows;
+      defaultText = literalExpression "host.localization.dualBootWindows";
       type = bool;
     };
   };

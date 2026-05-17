@@ -11,7 +11,7 @@
   inherit (lix.schema.ui) mkUI;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf nullOr str submodule;
-  
+
   ui = mkUI {inherit host user;};
 in {
   options.${top}.${dom} = {

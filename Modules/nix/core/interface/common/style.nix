@@ -14,12 +14,12 @@
 
   user = host.users.data.primary or {};
   style = user.interface.style or {};
-  wallpapers = host.paths.wallpapers or null;
 
+  inherit (lib.modules) mkIf;
+  inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf mkForce;
-  inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
+  inherit (lib.modules) mkForce;
   inherit
     (lib.types)
     enum
@@ -32,17 +32,14 @@
   themeMap = {
     "Catppuccin Frappé" = {
       scheme = "catppuccin-frappe";
-      caelestiaScheme = "catppuccin-frappe";
       polarity = "dark";
       cursor = {
         name = "catppuccin-frappe-dark-cursors";
         package = pkgs.catppuccin-cursors.frappeDark;
       };
     };
-
     "Catppuccin Latte" = {
       scheme = "catppuccin-latte";
-      caelestiaScheme = "catppuccin-latte";
       polarity = "light";
       cursor = {
         name = "catppuccin-latte-light-cursors";
@@ -68,16 +65,13 @@
   };
 
   currentTheme = themeMap.${cfg.theme} or null;
-
-  #~@ Cursor resolution — user override takes precedence over theme default
-  cursorName = style.cursor.${style.current or "dark"} or null;
   cursorResolved =
-    if cursorName != null
+    if cfg.cursor != null
     then {
-      name = cursorName;
+      name = cfg.cursor;
       package = getPackage {
         inherit pkgs;
-        target = cursorName;
+        target = cfg.cursor;
         default = pkgs.material-cursors;
       };
     }
@@ -90,8 +84,8 @@
   wallpaperPath =
     if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper
     then /. + cfg.wallpaper
-    else if wallpapers != null && hasPrefix "/nix/store" wallpapers
-    then /. + (wallpapers + "/${cfg.polarity}.jpg")
+    else if cfg.wallpapersRoot != null && hasPrefix "/nix/store" cfg.wallpapersRoot
+    then /. + (cfg.wallpapersRoot + "/${cfg.polarity}.jpg")
     else null;
 
   hasStylix = options ? stylix;
@@ -100,16 +94,18 @@ in {
     enable =
       mkEnableOption mod
       // {
-        default = currentTheme != null;
+        default = true;
       };
     theme = mkOption {
       description = "Current theme name";
-      default = style.theme.${style.current or "dark"} or "Catppuccin Frappé";
+      default = (style.theme or {}).${style.current or "dark"} or "Catppuccin Frappé";
+      defaultText = literalExpression ''(host.users.data.primary.interface.style.theme or {})[host.users.data.primary.interface.style.current or "dark"] or "Catppuccin Frappé"'';
       type = str;
     };
     polarity = mkOption {
       description = "Theme polarity";
       default = style.current or "dark";
+      defaultText = literalExpression ''host.users.data.primary.interface.style.current or "dark"'';
       type = enum [
         "dark"
         "light"
@@ -117,12 +113,26 @@ in {
     };
     wallpaper = mkOption {
       description = "Wallpaper path override";
-      default = style.wallpaper.${style.current or "dark"} or null;
+      default = (style.wallpaper or {}).${style.current or "dark"} or null;
+      defaultText = literalExpression ''(host.users.data.primary.interface.style.wallpaper or {})[host.users.data.primary.interface.style.current or "dark"] or null'';
+      type = nullOr str;
+    };
+    wallpapersRoot = mkOption {
+      description = "Wallpaper directory used when no explicit wallpaper override is set.";
+      default = host.paths.wallpapers or null;
+      defaultText = literalExpression "host.paths.wallpapers or null";
+      type = nullOr str;
+    };
+    cursor = mkOption {
+      description = "Cursor theme override";
+      default = (style.cursor or {}).${style.current or "dark"} or null;
+      defaultText = literalExpression ''(host.users.data.primary.interface.style.cursor or {})[host.users.data.primary.interface.style.current or "dark"] or null'';
       type = nullOr str;
     };
     cursorSize = mkOption {
       description = "Cursor size in pixels";
-      default = style.cursor.size or 24;
+      default = (style.cursor or {}).size or 24;
+      defaultText = literalExpression ''host.users.data.primary.interface.style.cursor.size or 24'';
       type = int;
     };
     autoSwitch =
@@ -145,7 +155,6 @@ in {
           size = cfg.cursorSize;
         };
 
-        #TODO: Take this from the API/Schema
         icons = let
           set = pkgs.candy-icons;
         in {
@@ -156,7 +165,7 @@ in {
         };
 
         fonts = let
-          fontCfg = config.${top}.interface.fonts;
+          fontCfg = config.${top}.${dom}.fonts;
         in {
           monospace = {
             package = pkgs.maple-mono.NF-unhinted;
@@ -181,16 +190,17 @@ in {
           popups = 0.95;
         };
 
-        targets = {
-          qt.enable = mkForce false;
-        };
+        targets.qt.enable = mkForce false;
       };
     }
     // {
       environment.sessionVariables = {
         THEME_CURRENT = cfg.polarity;
         THEME_NAME = cfg.theme;
-        WALLPAPER_CURRENT = lib.optionalString (wallpaperPath != null) (toString wallpaperPath);
+        WALLPAPER_CURRENT =
+          if wallpaperPath != null
+          then toString wallpaperPath
+          else "";
       };
     }
   );

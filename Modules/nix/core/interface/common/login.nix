@@ -39,7 +39,8 @@ in {
   config = mkIf cfg.enable (
     mkServices {
       inherit config;
-      inherit (cfg)
+      inherit
+        (cfg)
         windowManager
         desktopEnvironment
         displayProtocol
