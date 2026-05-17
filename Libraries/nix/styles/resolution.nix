@@ -22,7 +22,7 @@
           ;
       };
       alias = {
-        resolveIcons   = icons;
+        resolveIcons = icons;
         resolveCursors = cursors;
         resolveOpacity = opacity;
       };
@@ -34,7 +34,7 @@
   inherit (_.attrsets.resolution) getPackage;
   inherit (_.content.empty) isEmpty isNotEmpty;
   inherit (_.strings.transformation) toPascal;
-  inherit (_.style.filters) lookup;
+  inherit (_.styles.filters) lookup;
   inherit (_.types.predicates) isAttrs;
 
   # ── Icons ──────────────────────────────────────────────────────────────────
@@ -47,19 +47,28 @@
     else if isAttrs input && input ? name
     then {
       inherit (input) name;
-      package = getPackage {inherit pkgs; target = input.name;};
+      package = getPackage {
+        inherit pkgs;
+        target = input.name;
+      };
     }
     else let
-      result = lookup input _.style.filters.queries.icons.all;
+      result = lookup input _.styles.filters.queries.icons.all;
     in
       if isNotEmpty result
       then {
         name = result.key;
-        package = getPackage {inherit pkgs; target = result.entry.names.package;};
+        package = getPackage {
+          inherit pkgs;
+          target = result.entry.names.package;
+        };
       }
       else {
         name = input;
-        package = getPackage {inherit pkgs; target = input;};
+        package = getPackage {
+          inherit pkgs;
+          target = input;
+        };
       };
 
   icons = {
@@ -68,7 +77,7 @@
     dark ? {},
   }: {
     light = resolveOneIcon pkgs light;
-    dark  = resolveOneIcon pkgs dark;
+    dark = resolveOneIcon pkgs dark;
   };
 
   # ── Cursors ────────────────────────────────────────────────────────────────
@@ -77,12 +86,15 @@
     pkgs,
     polarity,
     accent ? "teal",
-    variants ? {light = "latte"; dark = "frappe";},
+    variants ? {
+      light = "latte";
+      dark = "frappe";
+    },
     size ? 24,
   }: let
     variant = variants.${polarity};
   in {
-    name    = "catppuccin-${variant}-${accent}-cursors";
+    name = "catppuccin-${variant}-${accent}-cursors";
     package = pkgs.catppuccin-cursors.${variant + (toPascal accent)};
     inherit size;
   };
@@ -97,8 +109,8 @@
   }: let
     catppuccinArgs =
       {inherit pkgs polarity;}
-      // optionalAttrs (isNotEmpty size)    {inherit size;}
-      // optionalAttrs (isNotEmpty accent)  {inherit accent;}
+      // optionalAttrs (isNotEmpty size) {inherit size;}
+      // optionalAttrs (isNotEmpty accent) {inherit accent;}
       // optionalAttrs (isNotEmpty variants) {inherit variants;};
   in
     if isEmpty input
@@ -108,28 +120,45 @@
     else if isAttrs input && input ? name
     then {
       inherit (input) name;
-      package = getPackage {inherit pkgs; target = input.name;};
+      package = getPackage {
+        inherit pkgs;
+        target = input.name;
+      };
       size =
-        if input ? size          then input.size
-        else if isNotEmpty size  then size
+        if input ? size
+        then input.size
+        else if isNotEmpty size
+        then size
         else 24;
     }
     else let
-      result = lookup input _.style.filters.queries.cursors.all;
+      result = lookup input _.styles.filters.queries.cursors.all;
     in
       if isNotEmpty result
       then
         if result.key == "catppuccin"
         then resolveCatppuccin catppuccinArgs
         else {
-          name    = result.entry.names.${polarity} or result.key;
-          package = getPackage {inherit pkgs; target = result.entry.names.package;};
-          size    = if isNotEmpty size then size else (result.entry.size or 24);
+          name = result.entry.names.${polarity} or result.key;
+          package = getPackage {
+            inherit pkgs;
+            target = result.entry.names.package;
+          };
+          size =
+            if isNotEmpty size
+            then size
+            else (result.entry.size or 24);
         }
       else {
-        name    = input;
-        package = getPackage {inherit pkgs; target = input;};
-        size    = if isNotEmpty size then size else 24;
+        name = input;
+        package = getPackage {
+          inherit pkgs;
+          target = input;
+        };
+        size =
+          if isNotEmpty size
+          then size
+          else 24;
       };
 
   cursors = {
@@ -142,12 +171,12 @@
   }: let
     args = polarity: input:
       {inherit pkgs polarity input;}
-      // optionalAttrs (isNotEmpty size)    {inherit size;}
-      // optionalAttrs (isNotEmpty accent)  {inherit accent;}
+      // optionalAttrs (isNotEmpty size) {inherit size;}
+      // optionalAttrs (isNotEmpty accent) {inherit accent;}
       // optionalAttrs (isNotEmpty variants) {inherit variants;};
   in {
     light = resolveOneCursor (args "light" light);
-    dark  = resolveOneCursor (args "dark"  dark);
+    dark = resolveOneCursor (args "dark" dark);
   };
 
   # ── Opacity ────────────────────────────────────────────────────────────────
@@ -156,11 +185,14 @@
     light ? {},
     dark ? {},
   }: let
-    base = {terminal = 0.9; popups = 0.95;};
+    base = {
+      terminal = 0.9;
+      popups = 0.95;
+    };
   in
     recursiveUpdate {
       light = base;
-      dark  = base;
+      dark = base;
     } {inherit light dark;};
 in
   meta.exports.local

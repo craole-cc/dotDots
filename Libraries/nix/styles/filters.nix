@@ -44,14 +44,16 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
 
-  registry = _.style.registry.all;
+  registry = _.styles.registry.all;
 
   keysFromMembers = field: set:
     unique (
       builtins.concatMap (entry: let
         val = entry.${field} or [];
       in
-        if isList val then val else [])
+        if isList val
+        then val
+        else [])
       (attrValues set)
     );
 
@@ -71,7 +73,8 @@
     groups ? {},
     queries ? (_: {}),
   }: let
-    byCategory = genAttrs
+    byCategory =
+      genAttrs
       (keysFromMembers "categories" registry)
       (category: filterAttrs (_: entry: isIn category (entry.categories or [])) registry);
     ofCategory = category: byCategory.${category} or {};
@@ -82,13 +85,20 @@
   };
 
   registryItems = set:
-    map (key: {inherit key; entry = set.${key};}) (attrNames set);
+    map (key: {
+      inherit key;
+      entry = set.${key};
+    }) (attrNames set);
 
   lookup = name: set: let
     items = registryItems set;
     byKey =
       if set ? ${name}
-      then {inherit name; key = name; entry = set.${name};}
+      then {
+        inherit name;
+        key = name;
+        entry = set.${name};
+      }
       else null;
     byAlias =
       findFirst
@@ -96,14 +106,16 @@
       null
       items;
   in
-    if isEmpty name   then null
-    else if isNotEmpty byKey   then byKey
+    if isEmpty name
+    then null
+    else if isNotEmpty byKey
+    then byKey
     else byAlias;
 
   default = mkFilters {
     inherit registry;
     queries = {byCategory, ...}: let
-      icons   = mkSection {set = byCategory.icons   or {};};
+      icons = mkSection {set = byCategory.icons   or {};};
       cursors = mkSection {set = byCategory.cursors or {};};
     in {
       inherit icons cursors;

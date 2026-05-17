@@ -23,16 +23,20 @@
 
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
-  inherit (_.style.filters.queries) icons cursors;
-  inherit (_.style.registry) isRegistryAttrset;
+  inherit (_.styles.filters.queries) icons cursors;
+  inherit (_.styles.registry) isRegistryAttrset;
 
   toEnums = input:
     if isRegistryAttrset input
-    then mkEnum {values = input; nullable = true;}
+    then
+      mkEnum {
+        values = input;
+        nullable = true;
+      }
     else mapAttrs (_: toEnums) input;
 
   all = {
-    icons   = toEnums icons.all;
+    icons = toEnums icons.all;
     cursors = toEnums cursors.all;
   };
 in

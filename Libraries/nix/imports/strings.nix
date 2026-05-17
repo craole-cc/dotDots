@@ -59,6 +59,7 @@
       removeSuffix
       replaceStrings
       splitString
+      splitStringBy
       toLower
       toUpper
       trim

@@ -11,15 +11,17 @@
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) either package str;
-  inherit (lix.style.icons) types;
+  inherit (lix.styles.types) icons;
 
   user = host.users.data.primary.interface.style.icons or {};
-  seed = {
-    light = "candy-icons";
-    dark = "candy-icons";
+  seed = let
+    common = "candy-icons";
+  in {
+    light = common;
+    dark = common;
   };
 
-  type = either (either str package) types.core;
+  type = either (either str package) icons.core;
   userPath = "host.users.data.primary.interface.style.icons";
   example = literalExpression ''
     # as a string (resolved via registry)
