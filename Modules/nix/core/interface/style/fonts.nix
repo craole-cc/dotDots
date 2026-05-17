@@ -8,15 +8,16 @@
   ...
 }: let
   dom = "interface";
-  mod = "fonts";
-  cfg = config.${top}.${dom}.${mod};
+  mod = "style";
+  sub = "fonts";
+  cfg = config.${top}.${dom}.${mod}.${sub};
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.lists) unique;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.modules) mkIf;
   inherit (lib.types) listOf package str;
-  inherit (lix.modules.core.style) mkFonts;
+  inherit (lix.modules.core.style) resolveFonts;
 
   user =
     recursiveUpdate {
@@ -69,7 +70,7 @@
   in
     fonts // {inherit packages;};
 in {
-  options.${top}.${dom}.${mod} = {
+  options..${top}.${dom}.${mod}.${sub} = {
     enable = mkEnableOption mod // {default = true;};
 
     clock = mkOption {
@@ -123,11 +124,4 @@ in {
       type = listOf package;
     };
   };
-
-  config = mkIf cfg.enable (
-    mkFonts {
-      inherit pkgs;
-      inherit (cfg) clock emoji material monospace sansSerif serif packages;
-    }
-  );
 }

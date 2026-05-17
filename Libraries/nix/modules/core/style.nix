@@ -1,6 +1,6 @@
 {
   lib,
-  path,
+  # paths,
   ...
 }: let
   meta = let
@@ -91,7 +91,7 @@
   toPascal = s: toUpper (substring 0 1 s) + substring 1 (-1) s;
 
   resolveWallpapers = {
-    pkgs,
+    tree,
     dots ? "$DOTS",
     pics ? "$HOME/Pictures",
     light ? {},
@@ -107,7 +107,8 @@
 
     repos =
       {
-        path = path + bases.dots;
+        # path = paths.src + bases.dots;
+        path = tree.store.default + bases.dots;
         dots = dots + bases.dots;
         user = pics + bases.user;
       }
@@ -142,12 +143,11 @@
     },
     cursors ? {},
     themes ? {},
-    size ? 24,
   }: let
     getCursor = polarity: {
       name = "catppuccin-${variant.${polarity}}-${accent}-cursors";
       package = pkgs.catppuccin-cursors.${variant.${polarity} + (toPascal accent)};
-      size = cursors.size or size;
+      size = cursors.size or 24;
     };
 
     getTheme = polarity:
@@ -238,7 +238,9 @@
     recursiveUpdate ((resolveCatppuccin (
       {
         inherit pkgs;
-        cursors = {inherit light dark;};
+        cursors =
+          {inherit light dark;}
+          // optionalAttrs (size != null) {inherit size;};
       }
       // optionalAttrs (accent != null) {inherit accent;}
       // optionalAttrs (variant != null) {inherit variant;}
@@ -348,7 +350,7 @@
 
   mkStyle = {
     pkgs,
-    dots ? "$DOTS",
+    tree,
     polarity ? "dark",
     accent ? null,
     variant ? null,
@@ -357,7 +359,7 @@
     icons ? (resolveIcons {inherit pkgs;}),
     opacity ? (resolveOpacity {}),
     theme ? (resolveThemes {inherit pkgs accent variant;}),
-    wallpapers ? (resolveWallpapers {inherit pkgs;}),
+    wallpapers ? (resolveWallpapers {inherit tree;}),
     enableStylix ? false,
     ...
   }: let
