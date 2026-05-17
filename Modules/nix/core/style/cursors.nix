@@ -5,9 +5,8 @@
   top,
   ...
 }: let
-  dom = "interface";
-  mod = "style";
-  sub = "cursors";
+  dom = "style";
+  mod = "cursors";
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf either int nullOr package str;
@@ -83,8 +82,8 @@
       inherit example type;
     };
 in {
-  options.${top}.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption sub // {default = true;};
+  options.${top}.${dom}.${mod} = {
+    enable = mkEnableOption mod // {default = true;};
     light = mkPolarityOption "light";
     dark = mkPolarityOption "dark";
 
