@@ -113,8 +113,8 @@
         light = "Catppuccin Latte";
       };
       icons = {
-        dark = "candy";
-        light = "candy";
+        dark = "candy-icons";
+        light = "candy-icons";
       };
       cursor = {
         dark = "material";

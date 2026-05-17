@@ -9,37 +9,19 @@
   dom = "interface";
   mod = "style";
   sub = "opacity";
-  cfg = config.${top}.${dom}.${mod}.${sub};
 
-  inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.modules) mkIf;
-  inherit (lib.types) attrsOf anything float;
-  inherit (lix.modules.core.style) resolveOpacity;
+  inherit (lix.types.style) opacity;
 
   user = host.users.data.primary.interface.style.opacity or {};
   seed = let
-    default = {
+    common = {
       terminal = 0.9;
       popups = 0.95;
     };
   in {
-    # inherit (default) terminal popups;
-    light = default;
-    dark = default;
-  };
-
-  types.opacity = submodule {
-    options = {
-      terminal = mkOption {
-        description = "Terminal background opacity (0.0-1.0)";
-        type = float;
-      };
-      popups = mkOption {
-        description = "Popup/overlay background opacity (0.0-1.0)";
-        type = float;
-      };
-    };
+    light = common;
+    dark = common;
   };
 in {
   options.${top}.${dom}.${mod}.${sub} = {
@@ -52,7 +34,7 @@ in {
         host.users.data.primary.interface.style.opacity.light or
           { terminal = 0.9; popups = 0.95; }
       '';
-      type = types.opacity;
+      type = opacity.core;
     };
 
     dark = mkOption {
@@ -62,7 +44,7 @@ in {
         host.users.data.primary.interface.style.opacity.dark or
           { terminal = 0.9; popups = 0.95; }
       '';
-      type = types.opacity;
+      type = opacity.core;
     };
   };
 }

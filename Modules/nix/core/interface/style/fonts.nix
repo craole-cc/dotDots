@@ -70,7 +70,7 @@
   in
     fonts // {inherit packages;};
 in {
-  options..${top}.${dom}.${mod}.${sub} = {
+  options.${top}.${dom}.${mod}.${sub} = {
     enable = mkEnableOption mod // {default = true;};
 
     clock = mkOption {
