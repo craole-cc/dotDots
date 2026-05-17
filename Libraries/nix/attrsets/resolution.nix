@@ -6,15 +6,23 @@
   ...
 }: let
   inherit (_.content.fallback) firstNonEmpty;
-  inherit (_.content.empty) isNotEmpty;
-  inherit (_.debug.assertions) mkTest mkTest';
+  inherit (_.content.empty) isNotEmpty isEmpty;
+  inherit (_.debug.assertions) withContext mkTest mkTest';
+  inherit (_.debug.tracing) addErrorContext;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
   inherit (_.filesystem.paths) getFlakePath;
+  inherit (_.lists.predicates) all elem isList;
+  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.predicates) isString;
+  inherit (_.strings.transformation) splitStringBy;
   inherit (_.hardware.system) getSystems;
+
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.predicates) hasAttr isAttrs;
+
   inherit
     (lib.attrsets)
-    attrByPath
     attrValues
     filterAttrs
     genAttrs
@@ -33,28 +41,33 @@
   inherit (builtins) getFlake tryEval;
 
   debug = mkModuleDebug __moduleRef;
-
   exports = rec {
     internal = {
       inherit
         byPaths
-        flakeAttrs
+        flakeAttrs # TODO: Move to sources.inputs or sources.modules
         getAttr
-        hostAttrs
-        inputPackages
-        inputSource
+        hostAttrs # TODO: Move to sources.inputs or sources.modules
+        inputPackages # TODO: Move to sources.packages
+        inputSource # TODO: Move to sources.inputs
         nestedByPaths
-        nixpkgs
+        withRef
+        mkRef
+        nixpkgs # TODO: Move to sources.inputs or sources.packages
         optional
         orDefault
         orNull
-        package
-        packages
-        shellPackage
-        parseVscodeExt
-        vscodePackage
-        vscodePackages
+        package # TODO: Move to sources.packages or applications.registry
+        packages # TODO: Move to sources.packages
+        shellPackage # TODO: Move to sources.packages or applications.registry
+        parseVscodeExt # TODO: Move to applications.vscode or applications.registry
+        vscodePackage # TODO: Move to applications.vscode or applications.registry
+        vscodePackages # TODO: Move to applications.vscode or applications.registry
+        normalizePath
         ;
+      mkAttrRef = mkRef;
+      getAttrWithRef = withRef;
+      normalizeAttrPath = normalizePath;
       getAttrByPaths = byPaths;
       getAttrOrDefault = orDefault;
       getAttrOrNull = orNull;
@@ -84,10 +97,130 @@
         optionalAttr
         ;
       mkInputPackages = inputPackages;
-      mkVSCodePackages = vscodePackages;
-      mkVSCodePackage = vscodePackage;
+      mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
+      mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
     };
   };
+
+  normalizePath = path: let
+    stems =
+      if isList path
+      then path
+      else
+        assert withContext {
+          name = "normalizePath";
+          assertion = isString path;
+          message = "`path` must be a string or list of strings";
+          context = "normalizing attribute path";
+        };
+          splitStringBy (_: sep: elem sep ["." "/"]) false path;
+
+    validated = (
+      assert withContext {
+        name = "normalizeAttrPath";
+        assertion = isList stems;
+        message = "normalized path must be a list of path segments";
+        context = "normalizing attribute path";
+      };
+      assert withContext {
+        name = "normalizeAttrPath";
+        assertion = all isString stems;
+        message = "each path segment must be a string";
+        context = "normalizing attribute path";
+      };
+      assert withContext {
+        name = "normalizeAttrPath";
+        assertion = all (stem: stem != "") stems;
+        message = "path segments must not be empty";
+        context = "normalizing attribute path";
+      }; stems
+    );
+  in {
+    stems = validated;
+    ref = concatStringsSep "." validated;
+  };
+
+  mkRef = {
+    name,
+    path,
+  }: let
+    inherit (normalizePath path) ref;
+    validated = (
+      assert withContext {
+        name = "mkRef";
+        assertion = isString name;
+        message = "`name` must be a string";
+        context = "constructing attribute reference";
+      };
+      assert withContext {
+        name = "mkRef";
+        assertion = name != "";
+        message = "`name` must not be empty";
+        context = "constructing attribute reference";
+      }; name
+    );
+  in
+    addErrorContext
+    "while constructing ref for `${validated}`"
+    (
+      if isEmpty ref
+      then validated
+      else "${validated}.${ref}"
+    );
+
+  withRef = {
+    base,
+    path,
+  }: let
+    validated = (
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = isAttrs base;
+        message = "`base` must be an attrset like { name, value; }";
+        context = "resolving config reference";
+      };
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = hasAttr "name" base;
+        message = "`base` is missing required attribute `name`";
+        context = "resolving config reference";
+      };
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = hasAttr "value" base;
+        message = "`base` is missing required attribute `value`";
+        context = "resolving config reference";
+      };
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = isString base.name;
+        message = "`base.name` must be a string";
+        context = "resolving config reference";
+      };
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = base.name != "";
+        message = "`base.name` must not be empty";
+        context = "resolving config reference";
+      };
+      assert withContext {
+        name = "getAttrWithRef";
+        assertion = isAttrs base.value;
+        message = "`base.value` must be an attrset";
+        context = "resolving config reference";
+      }; base
+    );
+
+    inherit (validated) name value;
+    inherit (normalizePath path) stems;
+    ref = mkRef {inherit name path;};
+  in
+    addErrorContext
+    "while resolving `${ref}`"
+    {
+      inherit ref;
+      cfg = attrByPath stems {} value;
+    };
 
   /**
   Get an attribute value, throwing if the key is absent.

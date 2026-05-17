@@ -12,6 +12,5 @@
     ./environment
     ./manager
     ./options.nix
-    ./style/dms
   ];
 }

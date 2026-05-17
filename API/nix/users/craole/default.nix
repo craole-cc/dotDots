@@ -104,30 +104,32 @@
       #   brightnessDown = "XF86MonBrightnessDown";
       # };
     };
-    style = {
-      autoSwitch = true;
-      theme = {
-        polarity = "dark";
-        accent = "teal";
-        dark = "Catppuccin Frappé";
-        light = "Catppuccin Latte";
-      };
-      icons = {
-        dark = "candy-icons";
-        light = "candy-icons";
-      };
-      cursor = {
-        dark = "material";
-        light = "material";
-      };
-      fonts = {
-        emoji = "Noto Color Emoji";
-        monospace = "Maple Mono NF";
-        sans = "Monaspace Radon Frozen";
-        serif = "Noto Serif";
-        material = "Material Symbols Sharp";
-        clock = "Rubik";
-      };
+  };
+
+  style = {
+    autoSwitch = true;
+    theme = {
+      polarity = "dark";
+      accent = "teal";
+      dark = "Catppuccin Frappé";
+      light = "Catppuccin Latte";
+    };
+    icons = {
+      dark = "candy-icons";
+      light = "candy-icons";
+    };
+    cursors = {
+      accent = "mauve";
+      dark = "material";
+      light = "material";
+    };
+    fonts = {
+      emoji = "Noto Color Emoji";
+      monospace = "Maple Mono NF";
+      sans = "Monaspace Radon Frozen";
+      serif = "Noto Serif";
+      material = "Material Symbols Sharp";
+      clock = "Rubik";
     };
   };
 

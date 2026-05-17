@@ -1,5 +1,5 @@
 {
-  # host,
+  host,
   lib,
   lix,
   top,
@@ -11,43 +11,26 @@
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf either int nullOr package str;
   inherit (lix.styles.cursors.types) core;
-
-  normalizePath = let
-    # TODO: Move to filesystem.transformation
-    inherit (lix.lists.predicates) elem;
-    inherit (lix.lists.predicates) isList;
-    inherit (lix.strings.transformation) splitStringBy;
-  in
-    path:
-      if isList path
-      then path
-      else (splitStringBy (_: sep: elem sep ["." "/"]) false path);
-
-  getCfgWithRef = path: let
-    # TODO: Move to attrsets.resolution
-    inherit (lix.attrsets.access) attrByPath;
-    inherit (lix.lists.access) head;
-    inherit (lix.strings.construction) concatStringsSep;
-    path' = normalizePath path;
-  in {
-    ref = concatStringsSep "." path';
-    cfg = attrByPath path' {} (head path');
-  };
+  inherit (lix.attrsets.resolution) withRef;
 
   seed = let
-    user = getCfgWithRef [
-      "host"
-      "users"
-      "data"
-      "primary"
-      "interface"
-      "style"
-      "cursor"
-    ];
+    user = withRef {
+      base = {
+        name = "host";
+        value = host;
+      };
+      path = [
+        "users"
+        "data"
+        "primary"
+        "style"
+        "cursors"
+      ];
+    };
     inherit (user) ref cfg;
     name = "catppuccin";
   in {
-    inherit ref cfg;
+    inherit user ref cfg;
     light = cfg.light or name;
     dark = cfg.dark or name;
     size = cfg.size or 32;
@@ -59,30 +42,33 @@
       };
   };
 
-  type = either (either str package) core;
-  # userPath = "host.users.data.primary.interface.style.cursor";
-  example = literalExpression ''
-    # as a string (resolved via registry)
-    "material"
-
-    # as a package
-    pkgs.material-cursors
-
-    # as a resolved attrset
-    { name = "material_dark_cursors"; package = pkgs.material-cursors; size = 32; }
-  '';
-
-  mkDefaultText = polarity: literalExpression ''${seed.ref}.${polarity} or "${seed.${polarity}}"'';
-  mkDescription = polarity: "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";
+  # TODO: Move to styles.types.cursors.polarity.core
   mkPolarityOption = polarity:
     mkOption {
-      description = mkDescription polarity;
+      description = "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";
       default = seed.${polarity};
-      defaultText = mkDefaultText polarity;
-      inherit example type;
+      defaultText = literalExpression ''${seed.ref}.${polarity} or "${seed.${polarity}}"'';
+      example = literalExpression ''
+        # as a string (resolved via registry)
+        "material"
+
+        # as a package
+        pkgs.material-cursors
+
+        # as a resolved attrset
+        { name = "material_dark_cursors"; package = pkgs.material-cursors; size = 32; }
+      '';
+      type = either (either str package) core;
     };
 in {
   options.${top}.${dom}.${mod} = {
+    _test = mkOption {
+      description = "test stuff";
+      default = seed;
+      # defaultText = literalExpression ''${seed.ref}.size or 24'';
+      # type = lib.types.raw;
+    };
+
     enable = mkEnableOption mod // {default = true;};
     light = mkPolarityOption "light";
     dark = mkPolarityOption "dark";
@@ -103,7 +89,7 @@ in {
 
     variants = mkOption {
       description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it";
-      default = seed.variant;
+      default = seed.variants;
       defaultText = literalExpression ''${seed.ref}.variants or null'';
       type = nullOr (attrsOf str);
     };

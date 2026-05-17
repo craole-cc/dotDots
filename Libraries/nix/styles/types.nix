@@ -15,7 +15,7 @@
     exports = {
       local = {inherit icons cursors opacity;};
       alias = {
-        iconType   = icons;
+        iconType = icons;
         cursorType = cursors;
         opacityType = opacity;
       };
@@ -72,9 +72,18 @@
     };
   };
 
-  icons   = {core = iconSubmodule;   home = iconSubmodule;};
-  cursors = {core = cursorSubmodule; home = cursorSubmodule;};
-  opacity = {core = opacitySubmodule; home = opacitySubmodule;};
+  icons = {
+    core = iconSubmodule;
+    home = iconSubmodule;
+  };
+  cursors = {
+    core = cursorSubmodule;
+    home = cursorSubmodule;
+  };
+  opacity = {
+    core = opacitySubmodule;
+    home = opacitySubmodule;
+  };
 in
   meta.exports.local
   // {

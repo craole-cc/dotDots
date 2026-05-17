@@ -2,6 +2,7 @@
 # Use mkTest for documented tests, mkTest' for terse one-liners.
 {lib, ...}: let
   inherit (lib) deepSeq;
+  inherit (lib.debug) addErrorContext;
   inherit (builtins) tryEval;
 
   _build = desired: outcome: command: let
@@ -11,6 +12,28 @@
     result = value;
     passed = desired == value;
   };
+
+  assertMsgFunc = {
+    name,
+    assertion,
+    message,
+  }: let
+    inherit (lib.asserts) assertMsg;
+  in
+    assertMsg assertion "${name}: ${message}";
+
+  withContext = {
+    name,
+    assertion,
+    message,
+    context,
+  }: let
+  in
+    addErrorContext
+    "while ${context}"
+    (assert assertMsgFunc {
+      inherit name assertion message;
+    }; true);
 
   /**
   Create a named test case with desired output, outcome expression, and an
@@ -80,6 +103,14 @@
       outcome = tryEval outcome;
     };
 
-  exports = {inherit mkTest mkTest' mkThrows;};
+  exports = {
+    local = {
+      inherit mkTest mkTest' mkThrows assertMsgFunc withContext;
+    };
+    alias = {
+      inherit mkTest mkTest' mkThrows assertMsgFunc;
+      assertWithContext = withContext;
+    };
+  };
 in
-  exports // {__rootAliases = exports;}
+  exports.local // {__rootAliases = exports.alias;}

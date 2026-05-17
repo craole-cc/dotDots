@@ -8,7 +8,7 @@
     flattened = {} // testing // tracing // {};
   };
 
-  inherit (lib) debug;
+  inherit (lib) debug asserts;
 
   tracing = {
     inherit
@@ -21,7 +21,9 @@
       traceValSeq
       traceValSeqN
       traceValIfNot
+      addErrorContext
       ;
+    inherit (asserts) assertMsg;
   };
 
   testing = {inherit (debug) runTests testAllTrue;};
