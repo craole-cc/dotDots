@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   meta = let
     doc = ''
       # Style - Cursors
@@ -16,7 +12,7 @@
       ## Functions
 
       - `lookup`  - fuzzy lookup by registry key or alias, returns { key, entry } or null
-      - `resolve` - takes pkgs + { light, dark, size, accent, variant }
+      - `resolve` - takes pkgs + { light, dark, size, accent, variants }
                     returns { light, dark } each with { name, package, size }
 
       ## Types
@@ -41,14 +37,17 @@
     };
   in {inherit doc exports;};
 
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.attrsets.merging) recursiveUpdate;
   inherit (_.attrsets.resolution) package;
   inherit (_.filesystem.importers) importAllMerged;
+  inherit (_.lists.access) findFirst;
   inherit (_.lists.predicates) elem;
-  inherit (_.types.predicates) isAttrs isString;
-  inherit (lib.attrsets) attrNames optionalAttrs recursiveUpdate;
-  inherit (lib.lists) findFirst;
-  inherit (lib.options) mkOption;
-  inherit (lib.types) either int nullOr str submodule;
+  inherit (_.options.construction) mkOption;
+  inherit (_.strings.transformation) toPascal;
+  inherit (_.types.combinators) submodule;
+  inherit (_.types.predicates) int str isAttrs;
 
   registry = importAllMerged ./data {};
 
@@ -79,19 +78,16 @@
     pkgs,
     polarity,
     accent ? "teal",
-    variant ? {
+    variants ? {
       light = "latte";
       dark = "frappe";
     },
     size ? 24,
   }: let
-    toPascal = str:
-      lib.strings.toUpper (lib.strings.substring 0 1 str)
-      + lib.strings.substring 1 (-1) str;
-    activeVariant = variant.${polarity};
+    variant = variants.${polarity};
   in {
-    name = "catppuccin-${activeVariant}-${accent}-cursors";
-    package = pkgs.catppuccin-cursors.${activeVariant + (toPascal accent)};
+    name = "catppuccin-${variant}-${accent}-cursors";
+    package = pkgs.catppuccin-cursors.${variant + (toPascal accent)};
     inherit size;
   };
 
@@ -101,7 +97,7 @@
     input,
     size ? null,
     accent ? null,
-    variant ? null,
+    variants ? null,
   }:
     if isAttrs input && input ? package
     then input
@@ -112,7 +108,12 @@
         inherit pkgs;
         target = input.name;
       };
-      size = input.size or size or 24;
+      size =
+        if input ? size
+        then input.size
+        else if size != null
+        then size
+        else 24;
     }
     else let
       result = lookup input;
@@ -122,9 +123,10 @@
         if result.key == "catppuccin"
         then
           resolveCatppuccin (
-            {inherit pkgs polarity size;}
+            {inherit pkgs polarity;}
+            // optionalAttrs (size != null) {inherit size;}
             // optionalAttrs (accent != null) {inherit accent;}
-            // optionalAttrs (variant != null) {inherit variant;}
+            // optionalAttrs (variants != null) {inherit variants;}
           )
         else {
           name = result.entry.names.${polarity} or result.key;
@@ -132,7 +134,10 @@
             inherit pkgs;
             target = result.entry.names.package;
           };
-          size = size or result.entry.size or 24;
+          size =
+            if size != null
+            then size
+            else (result.entry.size or 24);
         }
       else {
         name = input;
@@ -140,7 +145,10 @@
           inherit pkgs;
           target = input;
         };
-        size = size or 24;
+        size =
+          if size != null
+          then size
+          else 24;
       };
 
   resolve = {
@@ -149,7 +157,7 @@
     dark ? {},
     size ? null,
     accent ? null,
-    variant ? null,
+    variants ? null,
   }: let
     args = polarity: input:
       {
@@ -157,7 +165,7 @@
       }
       // optionalAttrs (size != null) {inherit size;}
       // optionalAttrs (accent != null) {inherit accent;}
-      // optionalAttrs (variant != null) {inherit variant;};
+      // optionalAttrs (variants != null) {inherit variants;};
   in
     recursiveUpdate {
       light = resolveOne (args "light" light);
