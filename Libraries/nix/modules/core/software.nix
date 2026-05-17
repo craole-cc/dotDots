@@ -90,7 +90,7 @@
   mkNix = {
     host,
     pkgs,
-    tree,
+    store,
     kernel ? (host.packages.kernel or null),
     caches ? (host.caches or {}),
     max-jobs ? (host.specs.cpu.cores or "auto"),
@@ -99,7 +99,7 @@
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
-      path = tree.store.default;
+      path = store;
       field = "owner";
       value = "numtide";
     };

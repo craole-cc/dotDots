@@ -1,6 +1,7 @@
 {
   config,
   host,
+  tree,
   lib,
   lix,
   top,
@@ -20,7 +21,7 @@
   user =
     recursiveUpdate {
       interface.style.wallpapers = {
-        dots = "$DOTS";
+        dots = host.dots or "$DOTS";
         pics = "$HOME/Pictures";
         light = {};
         dark = {};

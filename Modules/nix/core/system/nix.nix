@@ -116,8 +116,9 @@ in {
   config = mkIf cfg.enable (
     mkMerge [
       (mkNix {
-        inherit host pkgs tree;
+        inherit host pkgs;
         inherit (cfg) kernel caches max-jobs stateVersion;
+        store = tree.store.default;
       })
       (mkMaintenance {
         inherit (cfg) dots;

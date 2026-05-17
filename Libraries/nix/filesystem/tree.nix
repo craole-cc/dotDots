@@ -205,8 +205,6 @@
         default = (construct {root = src;}).store;
       }
       // mapAttrs (_: resolveStore src) stems';
-  in {
-    inherit mkLocal store;
-  };
+  in {inherit mkLocal store;};
 in
   exports.internal // {__rootAliases = exports.external;}
