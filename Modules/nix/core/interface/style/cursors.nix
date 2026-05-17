@@ -1,119 +1,73 @@
 {
-  config,
   host,
   lib,
   lix,
-  pkgs,
   top,
   ...
 }: let
   dom = "interface";
   mod = "style";
   sub = "cursors";
-  cfg = config.${top}.${dom}.${mod}.${sub};
 
-  inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.modules) mkIf;
-  inherit (lib.types) attrsOf anything int nullOr str;
-  inherit (lix.modules.core.style) resolveCursors;
+  inherit (lib.types) either int nullOr package str;
+  inherit (lix.style.cursors) types;
 
-  user =
-    recursiveUpdate {
-      interface.style.cursors = {
-        size = 24;
-        accent = null;
-        variant = null;
-        light = {};
-        dark = {};
-      };
-    }
-    (host.users.data.primary or {});
+  user = host.users.data.primary.interface.style.cursor or {};
+  seed = {
+    light = "catppuccin";
+    dark = "catppuccin";
+    size = 24;
+  };
 
-  seed = let
-    c = user.interface.style.cursors;
-  in
-    resolveCursors (
-      {
-        inherit pkgs;
-        inherit (c) size light dark;
-      }
-      // (
-        if c.accent != null
-        then {inherit (c) accent;}
-        else {}
-      )
-      // (
-        if c.variant != null
-        then {inherit (c) variant;}
-        else {}
-      )
-    )
-    // {
-      inherit (c) size accent variant light dark;
+  type = either (either str package) types.core;
+  userPath = "host.users.data.primary.interface.style.cursor";
+  example = literalExpression ''
+    # as a string (resolved via registry)
+    "material"
+
+    # as a package
+    pkgs.material-cursors
+
+    # as a resolved attrset
+    { name = "material_dark_cursors"; package = pkgs.material-cursors; size = 32; }
+  '';
+
+  mkDefaultText = polarity: literalExpression ''${userPath}.${polarity} or "${seed.${polarity}}"'';
+  mkDescription = polarity: "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";
+  mkPolarityOption = polarity:
+    mkOption {
+      description = mkDescription polarity;
+      default = user.${polarity} or seed.${polarity};
+      defaultText = mkDefaultText polarity;
+      inherit example type;
     };
 in {
   options.${top}.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable = mkEnableOption sub // {default = true;};
+
+    light = mkPolarityOption "light";
+    dark = mkPolarityOption "dark";
 
     size = mkOption {
-      description = "Cursor size in pixels";
-      default = seed.size;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.cursors.size or 24'';
+      description = "Global cursor size in pixels, used when not set per polarity";
+      default = user.size or seed.size;
+      defaultText = literalExpression ''${userPath}.size or 24'';
       type = int;
     };
 
     accent = mkOption {
-      description = "Cursor accent override (null = inherit from theme.accent)";
-      default = seed.accent;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.cursors.accent or null'';
+      description = "Catppuccin accent color for cursor themes that support it";
+      default = user.accent or null;
+      defaultText = literalExpression ''${userPath}.accent or null'';
       type = nullOr str;
     };
 
     variant = mkOption {
-      description = "Cursor variant override (null = inherit from theme.variant)";
-      default = seed.variant;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.cursors.variant or null'';
-      type = nullOr (attrsOf str);
-    };
-
-    light = mkOption {
-      description = "Overrides for the light-polarity cursor set (name, package, size)";
-      default = seed.light;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.cursors.light or {}'';
-      type = attrsOf anything;
-    };
-
-    dark = mkOption {
-      description = "Overrides for the dark-polarity cursor set (name, package, size)";
-      default = seed.dark;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.cursors.dark or {}'';
-      type = attrsOf anything;
-    };
-
-    resolved = mkOption {
-      description = "Resolved cursor attrset ({ light, dark } each with name, package, size), derived from active options";
-      default = resolveCursors (
-        {
-          inherit pkgs;
-          size = cfg.size;
-          light = cfg.light;
-          dark = cfg.dark;
-        }
-        // (
-          if cfg.accent != null
-          then {inherit (cfg) accent;}
-          else {}
-        )
-        // (
-          if cfg.variant != null
-          then {inherit (cfg) variant;}
-          else {}
-        )
-      );
-      defaultText = literalExpression "resolveCursors { inherit pkgs size light dark; } // optional accent variant";
-      type = attrsOf anything;
-      readOnly = true;
+      description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it";
+      default = user.variant or null;
+      defaultText = literalExpression ''${userPath}.variant or null'';
+      type = nullOr (lib.types.attrsOf str);
     };
   };
 }

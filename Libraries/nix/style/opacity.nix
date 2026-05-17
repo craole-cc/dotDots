@@ -43,8 +43,8 @@
       };
     };
   in {
-    core = type;
-    home = type;
+    core = common;
+    home = common;
   };
 
   resolve = {

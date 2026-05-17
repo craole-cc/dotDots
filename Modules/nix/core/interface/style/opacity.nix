@@ -1,5 +1,4 @@
 {
-  config,
   host,
   lib,
   lix,
@@ -11,40 +10,34 @@
   sub = "opacity";
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lix.types.style) opacity;
+  inherit (lix.style.opacity) types;
 
   user = host.users.data.primary.interface.style.opacity or {};
-  seed = let
-    common = {
+  seed = {
+    light = {
       terminal = 0.9;
       popups = 0.95;
     };
-  in {
-    light = common;
-    dark = common;
+    dark = {
+      terminal = 0.9;
+      popups = 0.95;
+    };
   };
+
+  userPath = "host.users.data.primary.interface.style.opacity";
+  mkDefaultText = polarity: literalExpression ''${userPath}.${polarity} or { terminal = 0.9; popups = 0.95; }'';
+  mkDescription = polarity: "Opacity values for the ${polarity} polarity";
+  mkPolarityOption = polarity:
+    mkOption {
+      description = mkDescription polarity;
+      default = user.${polarity} or seed.${polarity};
+      defaultText = mkDefaultText polarity;
+      type = types.core;
+    };
 in {
   options.${top}.${dom}.${mod}.${sub} = {
     enable = mkEnableOption sub // {default = true;};
-
-    light = mkOption {
-      description = "Opacity values for the light polarity";
-      default = user.light or seed.light;
-      defaultText = literalExpression ''
-        host.users.data.primary.interface.style.opacity.light or
-          { terminal = 0.9; popups = 0.95; }
-      '';
-      type = opacity.core;
-    };
-
-    dark = mkOption {
-      description = "Opacity values for the dark polarity";
-      default = user.dark or seed.dark;
-      defaultText = literalExpression ''
-        host.users.data.primary.interface.style.opacity.dark or
-          { terminal = 0.9; popups = 0.95; }
-      '';
-      type = opacity.core;
-    };
+    light = mkPolarityOption "light";
+    dark = mkPolarityOption "dark";
   };
 }

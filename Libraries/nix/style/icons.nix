@@ -50,7 +50,7 @@
   inherit (lib.options) mkOption;
   inherit (lib.types) str submodule;
 
-  registry = importAllMerged ./data/icons.nix {};
+  registry = importAllMerged ./data {};
 
   registryItems = map (key: {
     inherit key;
