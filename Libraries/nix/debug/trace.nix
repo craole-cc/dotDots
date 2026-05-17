@@ -1,4 +1,4 @@
-# Trace helpers — print debug info to stderr during evaluation, return a value.
+# Trace helpers - print debug info to stderr during evaluation, return a value.
 # All functions are lazy: they only fire if the result is actually demanded.
 {
   _,

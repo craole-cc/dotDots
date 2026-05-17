@@ -55,6 +55,7 @@
       int
       lines
       number
+      package
       path
       pathInStore
       separatedString

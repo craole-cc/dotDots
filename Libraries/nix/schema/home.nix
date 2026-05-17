@@ -52,8 +52,8 @@
 
   /**
   Merge global user config with host principal config for all principals.
-  `enable`, `autoLogin`, and `role` are always sourced from the principal —
-  never from global user data — so host intent cannot be overridden.
+  `enable`, `autoLogin`, and `role` are always sourced from the principal -
+  never from global user data - so host intent cannot be overridden.
 
   Type: getAll :: { users :: AttrSet, host :: Host } -> AttrSet
 
@@ -200,9 +200,9 @@
     users: Global user definitions.
 
   Returns:
-    names: Attrset of username lists — `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primaryUser`.
-    count: Attrset of counts   — `total`, `enabled`, `interactive`, `elevated`.
-    data:  Attrset of full user configs — `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primary`.
+    names: Attrset of username lists - `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primaryUser`.
+    count: Attrset of counts   - `total`, `enabled`, `interactive`, `elevated`.
+    data:  Attrset of full user configs - `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primary`.
   */
   mkHome = {
     host,

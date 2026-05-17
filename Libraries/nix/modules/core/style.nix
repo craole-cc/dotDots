@@ -31,7 +31,7 @@
       All data builders return `{ light = {...}; dark = {...}; }`.
       `mkStyle` selects the active variant via `polarity` (default: `"dark"`).
       Changing `polarity` flips theme, cursor, wallpaper, icons, and opacity atomically.
-      Font data (`resolveFonts`) is not polarity-split — fonts are consistent across polarities.
+      Font data (`resolveFonts`) is not polarity-split - fonts are consistent across polarities.
 
       ## Wallpapers
 
@@ -54,7 +54,7 @@
 
       Stylix integration is opt-in via `enableStylix = true` in `mkStyle`.
       When disabled, font and wallpaper session variables are still emitted.
-      `stylix.targets.qt` is always disabled — Qt theming is handled separately.
+      `stylix.targets.qt` is always disabled - Qt theming is handled separately.
 
       ## Dependencies
 

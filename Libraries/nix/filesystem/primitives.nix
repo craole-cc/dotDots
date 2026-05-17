@@ -69,8 +69,8 @@
   Accepts any of:
   - a Nix path literal  (`./foo`, `/abs/path`)
   - an absolute string  (`"/abs/path"`)
-  - a relative string   (`"rel/path"`) — resolved against `src`
-  - a list of segments  (`["a" "b"]`) — joined and resolved against `src`
+  - a relative string   (`"rel/path"`) - resolved against `src`
+  - a list of segments  (`["a" "b"]`) - joined and resolved against `src`
 
   # Type
   ```
@@ -165,7 +165,7 @@
     Build a resolved `{ store, local }` path from a root and a stem.
 
     `store` is a proper Nix path value safe to use in `imports`. `local` is a
-    string for interpolation. Accepts flexible calling patterns — attrset, bare
+    string for interpolation. Accepts flexible calling patterns - attrset, bare
     string, or bare list. Root defaults to `src`.
 
     # Type
@@ -195,7 +195,7 @@
       then arg
       else if isString arg || isList arg
       then {stem = arg;}
-      else throw "construct: expected attrset, string, or list — got: ${typeOf arg}";
+      else throw "construct: expected attrset, string, or list - got: ${typeOf arg}";
 
     root = normalized.root or src;
     stem = normalized.stem or [];

@@ -53,7 +53,7 @@
     then head match
     else head candidates;
 
-  # Shared wmctrl fallback — all Xorg stacking environments use the same call.
+  # Shared wmctrl fallback - all Xorg stacking environments use the same call.
   mkWmctrl = app: let
     m = head (identify app);
   in "sh -c 'wmctrl -a \"${m.value}\" || ${app.exec}'";
@@ -82,7 +82,7 @@
       else "app_id";
   in "sh -c 'swaymsg [${criterion}=\"${m.value}\"] focus || ${app.exec}'";
 
-  # River has no focus-by-id protocol — launch only.
+  # River has no focus-by-id protocol - launch only.
   river = app: app.exec;
 
   # ── Xorg window managers ──────────────────────────────────────────────────

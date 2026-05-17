@@ -1,13 +1,9 @@
 {_, ...}: let
   meta = let
     doc = ''
-      # Style - Cursors
+      Style - Cursors
 
       Registry, resolver, and types for cursor theme configuration.
-
-      ## Data
-
-      - `registry` - pure cursor theme entries keyed by canonical name
 
       ## Functions
 
@@ -24,7 +20,6 @@
       local = {
         inherit
           lookup
-          registry
           resolve
           types
           ;
@@ -32,56 +27,49 @@
       alias = {
         resolveCursors = resolve;
         lookupCursor = lookup;
-        cursorRegistry = registry;
       };
     };
   in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
-  inherit (_.attrsets.resolution) package;
-  inherit (_.filesystem.importers) importAllMerged;
+  inherit (_.attrsets.resolution) getPackage;
+  inherit (_.content.empty) isEmpty isNotEmpty;
   inherit (_.lists.access) findFirst;
   inherit (_.lists.predicates) elem;
   inherit (_.options.construction) mkOption;
   inherit (_.strings.transformation) toPascal;
   inherit (_.types.combinators) submodule;
-  inherit (_.types.predicates) int str isAttrs;
+  inherit (_.types.predicates) isAttrs;
+  inherit (_.types.primitives) int package str;
 
-  registry = importAllMerged ./data {};
+  registry = _.style.filters.queries.cursors.all;
 
-  registryItems = map (key: {
-    inherit key;
-    entry = registry.${key};
-  }) (attrNames registry);
+  registryItems = map (key: {inherit key; entry = registry.${key};}) (attrNames registry);
 
-  lookup = name: let
-    byKey =
-      if registry ? ${name}
-      then {
-        key = name;
-        entry = registry.${name};
-      }
-      else null;
-    byAlias =
-      findFirst
-      (item: elem name (item.entry.names.aliases or []))
-      null
-      registryItems;
-  in
-    if byKey != null
-    then byKey
-    else byAlias;
+  lookup = name:
+    if isEmpty name
+    then null
+    else let
+      byKey =
+        if registry ? ${name}
+        then {key = name; entry = registry.${name};}
+        else null;
+      byAlias =
+        findFirst
+        (item: elem name (item.entry.names.aliases or []))
+        null
+        registryItems;
+    in
+      if isNotEmpty byKey
+      then byKey
+      else byAlias;
 
   resolveCatppuccin = {
     pkgs,
     polarity,
     accent ? "teal",
-    variants ? {
-      light = "latte";
-      dark = "frappe";
-    },
+    variants ? {light = "latte"; dark = "frappe";},
     size ? 24,
   }: let
     variant = variants.${polarity};
@@ -98,57 +86,47 @@
     size ? null,
     accent ? null,
     variants ? null,
-  }:
-    if isAttrs input && input ? package
+  }: let
+    catppuccinArgs =
+      {inherit pkgs polarity;}
+      // optionalAttrs (isNotEmpty size) {inherit size;}
+      // optionalAttrs (isNotEmpty accent) {inherit accent;}
+      // optionalAttrs (isNotEmpty variants) {inherit variants;};
+  in
+    if isEmpty input
+    then resolveCatppuccin catppuccinArgs
+    else if isAttrs input && input ? package
     then input
     else if isAttrs input && input ? name
     then {
       inherit (input) name;
-      package = package {
-        inherit pkgs;
-        target = input.name;
-      };
+      package = getPackage {inherit pkgs; target = input.name;};
       size =
         if input ? size
         then input.size
-        else if size != null
+        else if isNotEmpty size
         then size
         else 24;
     }
     else let
       result = lookup input;
     in
-      if result != null
+      if isNotEmpty result
       then
         if result.key == "catppuccin"
-        then
-          resolveCatppuccin (
-            {inherit pkgs polarity;}
-            // optionalAttrs (size != null) {inherit size;}
-            // optionalAttrs (accent != null) {inherit accent;}
-            // optionalAttrs (variants != null) {inherit variants;}
-          )
+        then resolveCatppuccin catppuccinArgs
         else {
           name = result.entry.names.${polarity} or result.key;
-          package = package {
-            inherit pkgs;
-            target = result.entry.names.package;
-          };
+          package = getPackage {inherit pkgs; target = result.entry.names.package;};
           size =
-            if size != null
+            if isNotEmpty size
             then size
             else (result.entry.size or 24);
         }
       else {
         name = input;
-        package = package {
-          inherit pkgs;
-          target = input;
-        };
-        size =
-          if size != null
-          then size
-          else 24;
+        package = getPackage {inherit pkgs; target = input;};
+        size = if isNotEmpty size then size else 24;
       };
 
   resolve = {
@@ -160,17 +138,14 @@
     variants ? null,
   }: let
     args = polarity: input:
-      {
-        inherit pkgs polarity input;
-      }
-      // optionalAttrs (size != null) {inherit size;}
-      // optionalAttrs (accent != null) {inherit accent;}
-      // optionalAttrs (variants != null) {inherit variants;};
-  in
-    recursiveUpdate {
-      light = resolveOne (args "light" light);
-      dark = resolveOne (args "dark" dark);
-    } {};
+      {inherit pkgs polarity input;}
+      // optionalAttrs (isNotEmpty size) {inherit size;}
+      // optionalAttrs (isNotEmpty accent) {inherit accent;}
+      // optionalAttrs (isNotEmpty variants) {inherit variants;};
+  in {
+    light = resolveOne (args "light" light);
+    dark  = resolveOne (args "dark" dark);
+  };
 
   cursorSubmodule = submodule {
     options = {
@@ -180,7 +155,7 @@
       };
       package = mkOption {
         description = "Cursor theme package";
-        type = lib.types.package;
+        type = package;
       };
       size = mkOption {
         description = "Cursor size in pixels";

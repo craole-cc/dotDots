@@ -38,13 +38,13 @@
   prefix, or against the effective `root` directory for bare relative paths.
 
   Supported prefixes:
-  - `/…`        — absolute, returned unchanged
-  - `root:/…`   — treated as absolute, returned unchanged
-  - `dots:…`    — resolved relative to `dots`
-  - `$DOTS/…`   — resolved relative to `dots`
-  - `home:…`    — resolved relative to `home`
-  - `$HOME/…`   — resolved relative to `home`
-  - bare string — resolved relative to the effective `root` dir
+  - `/…`        - absolute, returned unchanged
+  - `root:/…`   - treated as absolute, returned unchanged
+  - `dots:…`    - resolved relative to `dots`
+  - `$DOTS/…`   - resolved relative to `dots`
+  - `home:…`    - resolved relative to `home`
+  - `$HOME/…`   - resolved relative to `home`
+  - bare string - resolved relative to the effective `root` dir
 
   # Type
   ```
@@ -59,13 +59,13 @@
   ```
 
   # Arguments
-  - `default` — fallback when `user.paths` has no entry at `path`
-  - `root`    — base for bare relatives: `"home"`, `"dots"`, or an absolute
+  - `default` - fallback when `user.paths` has no entry at `path`
+  - `root`    - base for bare relatives: `"home"`, `"dots"`, or an absolute
                 path string (default: `"home"`)
-  - `path`    — key path into `user.paths` to query (default: `[]`)
-  - `dots`    — absolute path to the dotfiles root
-  - `home`    — absolute path to the user home directory
-  - `user`    — user attrset; `user.paths` is queried when `path` is set
+  - `path`    - key path into `user.paths` to query (default: `[]`)
+  - `dots`    - absolute path to the dotfiles root
+  - `home`    - absolute path to the user home directory
+  - `user`    - user attrset; `user.paths` is queried when `path` is set
 
   # Examples
   ```nix

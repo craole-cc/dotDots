@@ -27,11 +27,11 @@
 
   /**
   Build a multi-language group where sibling languages share a common parent
-  directory. Each language is a peer — none derives from another.
+  directory. Each language is a peer - none derives from another.
 
   `default` always points to `nix` as the project-primary language.
 
-  Used for: `Libraries`, `Packages`, `API`, `Templates` — all follow the
+  Used for: `Libraries`, `Packages`, `API`, `Templates` - all follow the
   pattern `<parent>/<language>/`.
 
   # Type
@@ -85,18 +85,18 @@
   /**
   Raw stem segment lists for every well-known location in the project tree.
 
-  Stems are plain lists of strings — pass them to `construct` or `concat`
+  Stems are plain lists of strings - pass them to `construct` or `concat`
   as the `stem` argument. They are the source of truth that `mkTree`
   resolves into `{ store, local }` pairs.
 
   # Group shapes
-  - `lib`    — language peers: `Libraries/<lang>/`
-  - `pkg`    — language peers + nix sub-dirs: `Packages/<lang>/`
-  - `api`    — language peers + nix sub-dirs: `API/<lang>/`
-  - `kit`    — language peers + nix template types: `Templates/<lang>/`
-  - `res`    — `Assets/` with typed sub-dirs as flat siblings
-  - `cfg`    — flat single-key group
-  - `env`    — flat single-key group
+  - `lib`    - language peers: `Libraries/<lang>/`
+  - `pkg`    - language peers + nix sub-dirs: `Packages/<lang>/`
+  - `api`    - language peers + nix sub-dirs: `API/<lang>/`
+  - `kit`    - language peers + nix template types: `Templates/<lang>/`
+  - `res`    - `Assets/` with typed sub-dirs as flat siblings
+  - `cfg`    - flat single-key group
+  - `env`    - flat single-key group
 
   # Examples
   ```nix
@@ -140,8 +140,8 @@
 
   Built-in groups are always present. Callers extend or override them via:
 
-  - `bases` — change the root segment of any group, re-deriving all keys
-  - `stems` — patch individual keys, add new keys, or replace a whole group
+  - `bases` - change the root segment of any group, re-deriving all keys
+  - `stems` - patch individual keys, add new keys, or replace a whole group
               (a group with a `default` key takes over the full derivation;
               otherwise keys merge deeply, preserving siblings)
 
@@ -158,8 +158,8 @@
   ```
 
   # Arguments
-  - `bases` — override the root segment of any built-in group
-  - `stems` — override/extend individual keys or add new groups
+  - `bases` - override the root segment of any built-in group
+  - `stems` - override/extend individual keys or add new groups
 
   # Examples
   ```nix

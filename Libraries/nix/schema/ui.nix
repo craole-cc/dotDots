@@ -95,10 +95,10 @@
   };
 
   enums = {
-    # Shell enums — toEnums already walked the shell filter tree.
+    # Shell enums - toEnums already walked the shell filter tree.
     inherit (appEnums) shells;
 
-    # Interface enums — toEnums walked the interface filter tree.
+    # Interface enums - toEnums walked the interface filter tree.
     # Each sub-key is either an Enum (leaf) or a nested attrset of Enums.
     greeters = appEnums.interface.greeters.all;
     protocols = appEnums.interface.protocols.all;

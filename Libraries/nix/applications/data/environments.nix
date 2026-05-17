@@ -118,7 +118,7 @@ _: {
     scope = "desktop";
   };
 
-  #~@ Standalone WMs — Wayland
+  #~@ Standalone WMs - Wayland
   hyprland = {
     categories = [
       "environment"
@@ -253,7 +253,7 @@ _: {
     scope = "compositor";
   };
 
-  #~@ Standalone WMs — Xorg
+  #~@ Standalone WMs - Xorg
   awesome = {
     categories = [
       "environment"

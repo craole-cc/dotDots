@@ -31,7 +31,7 @@
   /**
   Return `value` if non-empty, otherwise `default`.
 
-  The primary defaulting function — covers null, `""`, `[]`, and `{}`.
+  The primary defaulting function - covers null, `""`, `[]`, and `{}`.
 
   # Type
   ```nix
@@ -58,7 +58,7 @@
   /**
   Return `content` if not null, otherwise `default`.
 
-  Stricter than `orDefault` — only guards against null. Use when you need to
+  Stricter than `orDefault` - only guards against null. Use when you need to
   preserve empty strings, lists, or attrsets.
 
   # Type
@@ -84,7 +84,7 @@
   /**
   Throw if `content` is empty, otherwise return it.
 
-  Use when a value is required and there is no meaningful fallback — makes
+  Use when a value is required and there is no meaningful fallback - makes
   the missing-value failure loud and located rather than silently propagating
   an empty value downstream.
 
@@ -117,7 +117,7 @@
   /**
   Return the first non-empty value from a list, or null if all are empty.
 
-  Single-arg so stays curried — the list is the whole input.
+  Single-arg so stays curried - the list is the whole input.
 
   # Type
   ```nix
@@ -165,7 +165,7 @@
   /**
   Apply `fn` to `value` if not null, otherwise return `default`.
 
-  Like `mapOrDefault` but with a null-only guard — empty strings and lists
+  Like `mapOrDefault` but with a null-only guard - empty strings and lists
   are still passed to `fn`.
 
   # Type
@@ -191,7 +191,7 @@
   /**
   Apply `fn` to `content` if non-empty, otherwise throw.
 
-  The strict counterpart to `mapOrDefault` — use when the value is required
+  The strict counterpart to `mapOrDefault` - use when the value is required
   for the transformation to make sense and an empty input is always a bug.
 
   # Type

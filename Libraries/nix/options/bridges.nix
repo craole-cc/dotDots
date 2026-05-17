@@ -44,7 +44,7 @@
 
   # Examples
   ```nix
-    # Primitive via string — resolves to lib.types.str with correct merge
+    # Primitive via string - resolves to lib.types.str with correct merge
     mkOption { type = toOptionType "str"; }
 
     # Primitive via attrset

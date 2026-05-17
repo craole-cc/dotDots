@@ -114,7 +114,7 @@
   /**
   Return a new attrset containing only the listed keys.
 
-  Missing keys are silently omitted — no error is thrown.
+  Missing keys are silently omitted - no error is thrown.
 
   # Type
   ```nix
@@ -225,7 +225,7 @@
   # => { baz = 1; bar = 2; }
 
   renameKey { attrs = { a = 1; }; from = "x"; to = "y"; }
-  # => { a = 1; }   (no-op — "x" didn't exist)
+  # => { a = 1; }   (no-op - "x" didn't exist)
   ```
   */
   renameKey = {

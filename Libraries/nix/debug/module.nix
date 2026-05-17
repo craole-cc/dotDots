@@ -19,7 +19,7 @@
   Tag a function value with its name so `withDoc` / `withLoc` can both
   build the qualified ref string and trace the function value.
 
-  Pass the result as `function =` — the helpers detect whether they
+  Pass the result as `function =` - the helpers detect whether they
   received a plain string or a NamedFn and behave accordingly.
 
   # Type
@@ -36,7 +36,7 @@
     ...
   })
 
-  # Plain string — no function tracing, always works
+  # Plain string - no function tracing, always works
   throw (_debug.withLoc {
     function = "trimStart";
     message  = "chars must be a string or null";

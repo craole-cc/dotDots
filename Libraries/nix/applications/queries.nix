@@ -342,7 +342,7 @@
   # => { singleTags = { a = { tags = [ "x" ]; }; };
   #      multiTags  = { b = { tags = [ "x" "y" ]; }; }; }
 
-  # Non-list field — hasListField guard fires, field skipped
+  # Non-list field - hasListField guard fires, field skipped
   mkLengthFor {
     set     = { a = { tags = "x"; }; };
     lengths = ["tags"];

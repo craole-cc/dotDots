@@ -117,7 +117,7 @@ _: {
     categories = ["launcher"];
   };
 
-  # builtin launchers — no exec, managed by the DE/WM itself
+  # builtin launchers - no exec, managed by the DE/WM itself
   gnome-shell-overview = {
     names = {
       package = "gnome-shell";

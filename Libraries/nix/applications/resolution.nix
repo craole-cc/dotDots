@@ -4,16 +4,16 @@
   inherit (_.lists.predicates) all;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.lists.reduction) concatMap;
-  inherit (_.strings.predicates) hasInfix;
-  inherit (_.strings.transformation) toLower;
-  inherit (_.types.predicates) isFunction;
+  inherit (_.lists.reduction) concatmap;
+  inherit (_.strings.predicates) hasinfix;
+  inherit (_.strings.transformation) tolower;
+  inherit (_.types.predicates) isfunction;
 
   /**
-  mkApp - Create a generic application handler with flake support
+  mkapp - create a generic application handler with flake support
 
-  # Arguments
-  - appMap: Attribute set mapping app names to functions that return {cmd, pkg, inputPath}
+  # arguments
+  - appmap: attribute set mapping app names to functions that return {cmd, pkg, inputpath}
   - defaultApp: Default app name if none specified
 
   # Returns
@@ -209,7 +209,7 @@
         #TODO: zen-twilight and zen-beta both use `zen` as the binary name
         #      but the flake input resolves differently per variant.
         #      The correct package (twilight vs beta) is not being installed
-        #      reliably — needs investigation into how browserZen flake
+        #      reliably - needs investigation into how browserZen flake
         #      exposes packages and whether inputPath resolution is working.
         # cmd = "zen-twilight";
         cmd = "zen";

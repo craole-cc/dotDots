@@ -101,7 +101,7 @@
       isRegistryAttrset { bash = { categories = [ "shell" ]; }; }
       # => true
 
-      # Intermediate grouping node — values are not registry entries
+      # Intermediate grouping node - values are not registry entries
       isRegistryAttrset { system = { bash = { categories = [ "shell" ]; }; }; }
       # => false
 

@@ -54,7 +54,7 @@
   /**
   Create a typed example record for use in usage hints.
 
-  Must be passed to `mkUsage` / `withDoc` — raw attrsets are rejected at
+  Must be passed to `mkUsage` / `withDoc` - raw attrsets are rejected at
   render time.
 
   # Type

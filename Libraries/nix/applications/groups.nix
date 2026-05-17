@@ -190,7 +190,7 @@
     set    :: AttrSet,
     eq     :: [string],  # optional, default []
     member :: [string],  # optional, default []
-    fields :: [string],  # optional, default [] — well-known semantic fields
+    fields :: [string],  # optional, default [] - well-known semantic fields
   } -> AttrSet
   ```
 

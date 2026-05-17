@@ -48,7 +48,7 @@
   /**
   Import all `.nix` modules found by `meta.listNixModules`.
 
-  Delegates listing entirely to `meta` — no duplicate exclusion logic here.
+  Delegates listing entirely to `meta` - no duplicate exclusion logic here.
 
   # Type
   ```nix
@@ -163,7 +163,7 @@
   Return paths of all `.nix` files (except `default.nix`) and
   subdirectories with `default.nix` under `dir`, without importing them.
 
-  Prefer this over `importAll` when used in NixOS `imports` — paths give
+  Prefer this over `importAll` when used in NixOS `imports` - paths give
   better error traces and enable `disabledModules` to work correctly.
 
   # Type

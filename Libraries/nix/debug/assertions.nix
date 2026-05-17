@@ -38,7 +38,7 @@
     _build desired outcome command;
 
   /**
-  Positional shorthand for `mkTest` — no command string.
+  Positional shorthand for `mkTest` - no command string.
 
   Useful in enum and validator test blocks where the expression is self-evident.
 
@@ -58,7 +58,7 @@
   /**
   Create a test case that expects evaluation to throw.
 
-  Uses `builtins.tryEval` to catch the error — the test passes only if
+  Uses `builtins.tryEval` to catch the error - the test passes only if
   evaluation fails.
 
   # Type

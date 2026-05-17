@@ -1,34 +1,25 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   meta = let
     doc = ''
-      # Style - Icons
+      Style - Icons
 
       Registry, resolver, and types for icon theme configuration.
-
-      ## Data
-
-      - `registry` - pure icon theme entries keyed by canonical name
 
       ## Functions
 
       - `lookup`  - fuzzy lookup by registry key or alias, returns { key, entry } or null
-      - `resolve` - takes `pkgs` + `{ light, dark }` (string | package | { name, package })
-                    returns `{ light, dark }` each with `{ name, package }`
+      - `resolve` - takes pkgs + { light, dark } (string | package | { name, package })
+                    returns { light, dark } each with { name, package }
 
       ## Types
 
-      - `types.core` - NixOS submodule: `{ name, package }`
-      - `types.home` - home-manager submodule: `{ name, package }`
+      - `types.core` - NixOS submodule: { name, package }
+      - `types.home` - home-manager submodule: { name, package }
     '';
     exports = {
       local = {
         inherit
           lookup
-          registry
           resolve
           types
           ;
@@ -36,73 +27,63 @@
       alias = {
         resolveIcons = resolve;
         lookupIcon = lookup;
-        iconRegistry = registry;
       };
     };
   in {inherit doc exports;};
 
-  inherit (_.attrsets.resolution) package;
-  inherit (_.filesystem.importers) importAllMerged;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.resolution) getPackage;
+  inherit (_.content.empty) isEmpty isNotEmpty;
+  inherit (_.lists.access) findFirst;
   inherit (_.lists.predicates) elem;
-  inherit (_.types.predicates) isAttrs isString;
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.lists) findFirst;
-  inherit (lib.options) mkOption;
-  inherit (lib.types) str submodule;
+  inherit (_.options.construction) mkOption;
+  inherit (_.types.combinators) submodule;
+  inherit (_.types.predicates) isAttrs;
+  inherit (_.types.primitives) package str;
 
-  registry = importAllMerged ./data {};
+  registry = _.style.filters.queries.icons.all;
 
-  registryItems = map (key: {
-    inherit key;
-    entry = registry.${key};
-  }) (attrNames registry);
+  registryItems = map (key: {inherit key; entry = registry.${key};}) (attrNames registry);
 
-  lookup = name: let
-    byKey =
-      if registry ? ${name}
-      then {
-        key = name;
-        entry = registry.${name};
-      }
-      else null;
-    byAlias =
-      findFirst
-      (item: elem name (item.entry.names.aliases or []))
-      null
-      registryItems;
-  in
-    if byKey != null
-    then byKey
-    else byAlias;
+  lookup = name:
+    if isEmpty name
+    then null
+    else let
+      byKey =
+        if registry ? ${name}
+        then {key = name; entry = registry.${name};}
+        else null;
+      byAlias =
+        findFirst
+        (item: elem name (item.entry.names.aliases or []))
+        null
+        registryItems;
+    in
+      if isNotEmpty byKey
+      then byKey
+      else byAlias;
 
   resolveOne = pkgs: input:
-    if isAttrs input && input ? package
+    if isEmpty input
+    then {}
+    else if isAttrs input && input ? package
     then input
     else if isAttrs input && input ? name
     then {
       inherit (input) name;
-      package = package {
-        inherit pkgs;
-        target = input.name;
-      };
+      package = getPackage {inherit pkgs; target = input.name;};
     }
     else let
       result = lookup input;
     in
-      if result != null
+      if isNotEmpty result
       then {
         name = result.key;
-        package = package {
-          inherit pkgs;
-          target = result.entry.names.package;
-        };
+        package = getPackage {inherit pkgs; target = result.entry.names.package;};
       }
       else {
         name = input;
-        package = package {
-          inherit pkgs;
-          target = input;
-        };
+        package = getPackage {inherit pkgs; target = input;};
       };
 
   resolve = {
@@ -111,7 +92,7 @@
     dark ? {},
   }: {
     light = resolveOne pkgs light;
-    dark = resolveOne pkgs dark;
+    dark  = resolveOne pkgs dark;
   };
 
   iconSubmodule = submodule {
@@ -122,7 +103,7 @@
       };
       package = mkOption {
         description = "Icon theme package";
-        type = lib.types.package;
+        type = package;
       };
     };
   };

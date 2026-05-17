@@ -43,7 +43,7 @@
       toEnums { bash = { categories = [ "shell" ]; }; }
       # => Enum { values = { bash = ... }; nullable = true; ... }
 
-      # Intermediate node — recurses into subtrees
+      # Intermediate node - recurses into subtrees
       toEnums { system = { bash = { categories = [ "shell" ]; }; }; }
       # => { system = Enum { ... }; }
   ```

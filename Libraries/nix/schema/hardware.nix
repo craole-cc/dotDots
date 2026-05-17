@@ -45,7 +45,7 @@
   /**
     Derive hardware capability flags from a host definition.
 
-    Uses enum values directly to avoid hardcoded strings — dualboot
+    Uses enum values directly to avoid hardcoded strings - dualboot
     variants are derived from `hostFunctionalities`, GUI detection
     uses `desktopEnvironments` and `windowManagers` enum values.
 

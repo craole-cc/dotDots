@@ -15,7 +15,7 @@
     appropriate display manager, desktop-manager modules, auto-login, DMS
     greeter detection, GDM TTY suppression, and GUI-gated udisks2.
 
-    XDG portal configuration is intentionally excluded — portal.nix owns
+    XDG portal configuration is intentionally excluded - portal.nix owns
     that slice.
 
     # Type

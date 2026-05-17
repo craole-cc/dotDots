@@ -9,19 +9,19 @@
       by category intersection, boolean flags, or protocol affinity.
 
       Top-level sections:
-        needsTerminal  — apps requiring a host terminal emulator
-        shell          — shells, prompts, enhancements, line editors
-        interface      — compositors, environments, greeters, notifiers, panels, protocols
-        terminal       — terminal emulators (with wayland/xorg/wrappable sub-sets)
-        launcher       — app launchers (standalone and builtin)
-        editor         — text editors, IDEs, database editors
-        browser        — web browsers (by family and channel)
-        fileManager    — file managers (graphical and TUI)
-        media          — media players and audio apps
-        graphics       — image and graphics editors
-        office         — office and document apps
-        communication  — messengers and email clients
-        monitor        — system monitors (graphical and TUI)
+        needsTerminal  - apps requiring a host terminal emulator
+        shell          - shells, prompts, enhancements, line editors
+        interface      - compositors, environments, greeters, notifiers, panels, protocols
+        terminal       - terminal emulators (with wayland/xorg/wrappable sub-sets)
+        launcher       - app launchers (standalone and builtin)
+        editor         - text editors, IDEs, database editors
+        browser        - web browsers (by family and channel)
+        fileManager    - file managers (graphical and TUI)
+        media          - media players and audio apps
+        graphics       - image and graphics editors
+        office         - office and document apps
+        communication  - messengers and email clients
+        monitor        - system monitors (graphical and TUI)
 
       Top-level partitions by category, family, and channel are
       available under filters.groups.
@@ -164,7 +164,7 @@
 
       /**
       Terminal emulators. Protocol affinity and wrap capability are exposed
-      as queries rather than sub-sections — use `terminal.queries.forWayland`,
+      as queries rather than sub-sections - use `terminal.queries.forWayland`,
       `terminal.queries.forXorg`, and `terminal.queries.isWrappable` directly.
       */
       terminal = mkSection {set = mapAttrs (_: a: a // {wrappable = (a.wrap or null) != null;}) byCategory.terminal;};
@@ -177,7 +177,7 @@
 
       /**
       Text editors and IDEs. Category membership distinguishes pure editors,
-      IDEs, and database editors — use `editor.queries.forIde`,
+      IDEs, and database editors - use `editor.queries.forIde`,
       `editor.queries.forDatabase`, and `editor.queries.isTui` directly.
       */
       editor = mkSection {set = byCategory.editor;};

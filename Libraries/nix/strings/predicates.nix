@@ -48,7 +48,7 @@
   debug = mkModuleDebug __moduleRef;
 
   /**
-    Internal helper — evaluate `mkAny`-style matching logic.
+    Internal helper - evaluate `mkAny`-style matching logic.
 
     Returns `true` when at least one pattern matches at least one input value.
     Both `patterns` and `input` may be a single string or a list of strings;
@@ -88,7 +88,7 @@
     else any (p: any (v: checker p v) vs) ps;
 
   /**
-    Internal helper — evaluate `mkAll`-style matching logic.
+    Internal helper - evaluate `mkAll`-style matching logic.
 
     Returns `true` when every input value is matched by at least one pattern.
     Both `patterns` and `input` may be a single string or a list of strings;
@@ -167,12 +167,12 @@
     contains patterns input
   ```
 
-  ## Attrset — patterns and input supplied together
+  ## Attrset - patterns and input supplied together
   ```nix
     contains { patterns = ...; input = ...; caseSensitive = false; }
   ```
 
-  ## Options partial application — supply options first, input later
+  ## Options partial application - supply options first, input later
   ```nix
     let cs = contains { caseSensitive = true; };
     in cs patterns input
@@ -374,7 +374,7 @@
   isString = value: lib.strings.isString value;
 
   /**
-  Check whether a string is a binary digit — exactly `"0"` or `"1"`.
+  Check whether a string is a binary digit - exactly `"0"` or `"1"`.
 
   # Type
   ```nix
@@ -413,7 +413,7 @@
   isConvertible = lib.strings.isConvertibleWithToString;
 
   /**
-  Check whether a value is string-like — a string or a value with `outPath`.
+  Check whether a value is string-like - a string or a value with `outPath`.
 
   Useful for accepting both strings and derivations/packages wherever a path
   or string is expected.

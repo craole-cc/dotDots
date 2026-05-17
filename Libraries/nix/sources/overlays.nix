@@ -26,7 +26,7 @@
     };
   };
 
-  #~@ Core overlays — stable/unstable nixpkgs channels
+  #~@ Core overlays - stable/unstable nixpkgs channels
 
   stableOverlay = {
     inputs,
@@ -46,9 +46,9 @@
     fromUnstable = import (inputs.nixpkgs-unstable or inputs.nixpkgs) {inherit system config;};
   };
 
-  #~@ Home overlays — flake input packages
+  #~@ Home overlays - flake input packages
 
-  #> Flattened — exposes each input's default package directly on pkgs
+  #> Flattened - exposes each input's default package directly on pkgs
   #> e.g. pkgs.helix = inputs.editorHelix.packages.${system}.default
   flattenedOverlay = {packages}: _final: prev: let
     system = systemOf prev;
@@ -69,18 +69,18 @@
       packages
     );
 
-  #> Variant expansion — explicitly expose named variants for known multi-output inputs
+  #> Variant expansion - explicitly expose named variants for known multi-output inputs
   #> Avoids forcing evaluation of entire nixpkgs attrsets (which causes AAAAAASomeThingsFailToEvaluate)
   variantOverlay = {packages}: _final: prev: let
     system = systemOf prev;
     zen = packages."zen-browser".${system} or {};
   in {
-    #> zen-browser — required by the zen-browser HM module which looks up pkgs.zen-twilight
+    #> zen-browser - required by the zen-browser HM module which looks up pkgs.zen-twilight
     zen-twilight = zen.twilight or zen.default or null;
     zen-beta = zen.beta or zen.default or null;
   };
 
-  #> Categorised — exposes all input package sets under pkgs.fromInputs.<name>
+  #> Categorised - exposes all input package sets under pkgs.fromInputs.<name>
   #> e.g. pkgs.fromInputs.helix = { default = ...; helix = ...; }
   fromInputsOverlay = {packages}: _final: prev: let
     system = systemOf prev;

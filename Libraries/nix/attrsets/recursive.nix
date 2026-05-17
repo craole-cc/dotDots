@@ -49,7 +49,7 @@
   /**
   Deep merge two attribute sets with module-aware handling.
 
-  Similar to `lib.recursiveUpdate` but respects module system semantics —
+  Similar to `lib.recursiveUpdate` but respects module system semantics -
   special types in `prev` are protected from being clobbered, while special
   types in `next` are allowed to override.
 

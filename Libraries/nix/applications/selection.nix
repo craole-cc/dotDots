@@ -175,7 +175,7 @@
       resolveConfig { set = { app1 = { config = { home = ".config"; file = "foot/foot.ini"; }; }; }; }
       # => { app1 = { config = { home = ".config"; file = "foot/foot.ini"; path = ".config/foot/foot.ini"; }; }; }
 
-      # Flat form — no wrapping needed
+      # Flat form - no wrapping needed
       resolveConfig { app1 = { config = { home = ".config"; file = "foot/foot.ini"; }; }; }
       # => { app1 = { config = { ... path = ".config/foot/foot.ini"; }; }; }
   ```

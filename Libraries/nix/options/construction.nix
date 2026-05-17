@@ -89,7 +89,7 @@
 
   # Examples
   ```nix
-    # Primitive via string — resolves to lib.types.str with correct merge
+    # Primitive via string - resolves to lib.types.str with correct merge
     mkOption { type = toOptionType "str"; }
 
     # Primitive via attrset
@@ -247,7 +247,7 @@
       input = sh.enums.system;
     }
 
-    # List of values — equivalent to mkOptionEnums
+    # List of values - equivalent to mkOptionEnums
     mkOptionEnum {
       description = "shell enhancements";
       input       = sh.enums.enhancements;

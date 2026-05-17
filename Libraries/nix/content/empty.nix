@@ -1,13 +1,11 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
-  inherit (lib.lists) isList;
-  inherit (lib.attrsets) isAttrs;
-  inherit (lib.strings) isString trim stringLength;
+  inherit (_.lists.predicates) isList;
+  inherit (_.attrsets.predicates) isAttrs;
+  inherit (_.strings.predicates) isString;
+  inherit (_.strings.transformation) trim;
+  inherit (_.strings.access) stringLength;
 
   /**
   Check if a value is considered "empty" for defaulting purposes.

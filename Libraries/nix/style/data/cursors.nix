@@ -13,7 +13,7 @@ _: {
   catppuccin = {
     names = {
       package = null;
-      aliases = ["catppuccin" "catppuccin-cursors"];
+      aliases = ["catppuccin-cursors"];
     };
     size = 24;
     categories = ["cursors"];

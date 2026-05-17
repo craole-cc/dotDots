@@ -50,7 +50,7 @@
   inherit (lib.attrsets) isAttrs;
 
   /**
-  Check whether a value is a "special" typed attrset — one with a `_type` attribute.
+  Check whether a value is a "special" typed attrset - one with a `_type` attribute.
 
   Used internally to detect tagged union values produced by `lib.types`.
 

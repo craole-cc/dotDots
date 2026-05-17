@@ -11,17 +11,17 @@
       Composable partition builders for application attribute sets.
 
       Each builder accepts a `field`, a source `set`, and caller-supplied
-      output key names — key names are never hardcoded.  Semantic wrappers
+      output key names - key names are never hardcoded.  Semantic wrappers
       fix `field` for well-known registry fields (maturity, protocol, scope,
       capability, config, independence, engine).  `mkQuery` composes them
       into a single partitioned view.
 
       ## Dependencies
 
-      - `applications.selection`  — withFlag, withoutFlag, withValue
-      - `applications.predicates` — field accessors and membership tests
-      - `applications.groups`     — pre-grouped sets consumed by builders
-      - `applications.primitives` — low-level field readers
+      - `applications.selection`  - withFlag, withoutFlag, withValue
+      - `applications.predicates` - field accessors and membership tests
+      - `applications.groups`     - pre-grouped sets consumed by builders
+      - `applications.primitives` - low-level field readers
     '';
     functions = {inherit mkBool;};
     exports = {
@@ -87,7 +87,7 @@
     then
       throw (withDoc {
         function = "mkBool";
-        message = "trueKey must be a string — it becomes the output attribute name for flag=true items";
+        message = "trueKey must be a string - it becomes the output attribute name for flag=true items";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
         input = trueKey;
         example = mkExample {
@@ -99,7 +99,7 @@
     then
       throw (withDoc {
         function = "mkBool";
-        message = "falseKey must be a string — it becomes the output attribute name for flag=false items";
+        message = "falseKey must be a string - it becomes the output attribute name for flag=false items";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
         input = falseKey;
         example = mkExample {
@@ -111,7 +111,7 @@
     then
       throw (withDoc {
         function = "mkBool";
-        message = "trueKey and falseKey must be different strings — they cannot both write to the same output key";
+        message = "trueKey and falseKey must be different strings - they cannot both write to the same output key";
         signature = "{ field :: string, trueKey :: string, falseKey :: string, set :: AttrSet } -> AttrSet";
         input = {inherit trueKey falseKey;};
         example = mkExample {

@@ -217,7 +217,7 @@
   /**
     mkScriptWrapper - Copies a POSIX shell script from the dotfiles tree into the nix
     store and wraps it in a named binary. The script is stored immutably at build time,
-    making the resulting binary self-contained and reproducible across machines — while
+    making the resulting binary self-contained and reproducible across machines - while
     the source script remains a single canonical file usable anywhere POSIX is available.
 
     # Arguments
