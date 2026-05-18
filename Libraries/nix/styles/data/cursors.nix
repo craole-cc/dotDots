@@ -1,5 +1,7 @@
-_: {
-  cursors = {
+_: let
+  category = "cursors";
+in {
+  "${category}" = {
     material = {
       names = {
         package = "material-cursors";
@@ -7,8 +9,7 @@ _: {
         dark = "material_dark_cursors";
         aliases = ["material"];
       };
-      size = 32;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     catppuccin = {
@@ -16,8 +17,7 @@ _: {
         package = null;
         aliases = ["catppuccin-cursors"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     bibata-modern-classic = {
@@ -27,8 +27,7 @@ _: {
         dark = "Bibata-Modern-Classic";
         aliases = ["bibata" "bibata-classic"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     bibata-modern-ice = {
@@ -38,8 +37,7 @@ _: {
         dark = "Bibata-Modern-Ice";
         aliases = ["bibata-ice"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     bibata-modern-amber = {
@@ -49,8 +47,7 @@ _: {
         dark = "Bibata-Modern-Amber";
         aliases = ["bibata-amber"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     volantes-light = {
@@ -60,8 +57,7 @@ _: {
         dark = "volantes_light_cursors";
         aliases = ["volantes-light-cursors"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     volantes-dark = {
@@ -71,8 +67,7 @@ _: {
         dark = "volantes_dark_cursors";
         aliases = ["volantes-dark-cursors"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     adwaita = {
@@ -82,8 +77,7 @@ _: {
         dark = "Adwaita";
         aliases = ["adwaita-cursors" "gnome"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
 
     breeze = {
@@ -93,8 +87,7 @@ _: {
         dark = "breeze_cursors";
         aliases = ["breeze-cursors"];
       };
-      size = 24;
-      categories = ["cursors"];
+      categories = [category];
     };
   };
 }

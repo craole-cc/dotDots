@@ -12,7 +12,7 @@
     '';
     functions = {
       inherit
-        all
+        entries
         mkRegistry
         importRegistry
         isRegistryAttrset
@@ -21,7 +21,7 @@
         ;
     };
     exports = {
-      local = all // functions;
+      local = entries // functions;
       alias = {};
     };
   in {
@@ -83,6 +83,7 @@
   ```
   */
   importRegistry = path: mkRegistry (importAllMerged path {});
+  entries = importRegistry ./data;
 
   /**
       Return `true` when `tree` is a non-empty attribute set whose first value
@@ -129,7 +130,7 @@
   ```
   */
   lookup = name: category: let
-    app = all.${name} or (throw "Unknown app '${name}' in registry.");
+    app = entries.${name} or (throw "Unknown app '${name}' in registry.");
   in
     if elem category (app.categories or [])
     then app
@@ -165,9 +166,6 @@
       }
     ]
     else null;
-
-  # all = importRegistry ./.data;
-  all = importRegistry ./data;
 in
   meta.exports.local
   // {

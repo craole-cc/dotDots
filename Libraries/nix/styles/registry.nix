@@ -29,7 +29,7 @@
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.filesystem.importers) importAllMerged;
+  inherit (_.filesystem.importers) importRegistry;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) elem isList;
   inherit (_.lists.selection) filter;
@@ -40,15 +40,21 @@
     then filter (value: value != null && value != "") values
     else [];
 
-  mkRegistry = data:
-    mapAttrs (
-      _: entry:
-        entry
-        // {categories = normalizeList (entry.categories or []);}
-    )
-    data;
-
-  importRegistry = path: mkRegistry (importAllMerged path {});
+  # mkRegistry = data:
+  #   mapAttrs (
+  #     section: set:
+  #       mapAttrs (
+  #         _: entry:
+  #           entry
+  #           // {
+  #             categories = normalizeList ((entry.categories or []) ++ [section]);
+  #           }
+  #       )
+  #       set
+  #   )
+  #   data;
+  # importRegistry = path: mkRegistry (importAllMerged path {});
+  entries = importRegistry {root = ./.;};
 
   isRegistryAttrset = tree:
     (tree != {})
@@ -65,8 +71,6 @@
     if elem category (entry.categories or [])
     then entry
     else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (entry.categories or [])}";
-
-  entries = importRegistry ./data;
 in
   meta.exports.local
   // {

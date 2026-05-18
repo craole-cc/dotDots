@@ -1,11 +1,13 @@
-_: {
-  icons = {
+_: let
+  category = "icons";
+in {
+  "${category}" = {
     candy-icons = {
       names = {
         package = "candy-icons";
         aliases = ["candy"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     papirus = {
@@ -13,7 +15,7 @@ _: {
         package = "papirus-icon-theme";
         aliases = ["papirus-icon-theme"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     papirus-dark = {
@@ -21,7 +23,7 @@ _: {
         package = "papirus-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
       variant = "dark";
     };
 
@@ -30,7 +32,7 @@ _: {
         package = "adwaita-icon-theme";
         aliases = ["adwaita-icon-theme" "gnome"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     hicolor = {
@@ -38,7 +40,7 @@ _: {
         package = "hicolor-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     numix = {
@@ -46,7 +48,7 @@ _: {
         package = "numix-icon-theme";
         aliases = ["numix-icon-theme"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     numix-circle = {
@@ -54,7 +56,7 @@ _: {
         package = "numix-icon-theme-circle";
         aliases = ["numix-circle-icon-theme"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     tela = {
@@ -62,7 +64,7 @@ _: {
         package = "tela-icon-theme";
         aliases = ["tela-icon-theme"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     tela-circle = {
@@ -70,7 +72,7 @@ _: {
         package = "tela-circle-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     fluent = {
@@ -78,7 +80,7 @@ _: {
         package = "fluent-icon-theme";
         aliases = ["fluent-icon-theme"];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     kora = {
@@ -86,7 +88,7 @@ _: {
         package = "kora-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     moka = {
@@ -94,7 +96,7 @@ _: {
         package = "moka-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
     };
 
     faba = {
@@ -102,7 +104,7 @@ _: {
         package = "faba-icon-theme";
         aliases = [];
       };
-      categories = ["icons"];
+      categories = [category];
     };
   };
 }

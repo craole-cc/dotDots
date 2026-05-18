@@ -21,7 +21,7 @@
       // transformation;
   };
 
-  inherit (lib) attrsets;
+  inherit (lib) attrsets trivial;
 
   access = {
     inherit
@@ -59,6 +59,7 @@
       removeAttrByPath
       setAttrByPath
       ;
+    inherit (trivial) functionArgs;
   };
 
   aggregation = {

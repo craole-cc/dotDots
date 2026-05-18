@@ -1,4 +1,5 @@
 {
+  _,
   src,
   lib,
   ...
@@ -12,22 +13,35 @@
     evaluated before their inputs or modules are parsed.
   '';
 
+  functions = {inherit getFlakePath mkPath getFlake;};
+  aliases = {mkFilePath = mkPath;};
+
   __exports = {
-    internal = {
-      inherit getFlakePath;
-      getFlake = getFlake';
-    };
-    external = {
-      inherit getFlakePath;
-      inherit (__exports.internal) getFlake;
-    };
+    internal = functions // aliases;
+    external = {inherit (functions) getFlakePath getFlake';} // aliases;
   };
 
-  inherit (builtins) getFlake;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.debug) traceIf;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
+
+  inherit (_.attrsets.resolution) normalizePath;
+  inherit (_.content.emptiness) isEmpty;
+  inherit (_.strings.transformation) concatStringsSep;
+
+  mkPath = {
+    root,
+    stems ? [],
+  }:
+    if isEmpty stems
+    then root
+    else root + "/${concatStringsSep "/" ((normalizePath stems).path)}";
+
+  getFlakeBuiltin =
+    optionalAttrs
+    (builtins ? getFlake)
+    {inherit (builtins) getFlake;};
 
   # pathHasPrefix = path.hasPrefix;
   # isStorePath = path.hasStorePathPrefix;
@@ -77,13 +91,16 @@
   # Returns:
     The evaluated flake attributes, including an appended `srcPath`.
   */
-  getFlake' = {
+  getFlake = {
     flake ? {},
     path ? src,
   }: let
     normalizedPath = getFlakePath {inherit flake path;};
 
-    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    derived =
+      optionalAttrs
+      (normalizedPath != null && builtins ? getGlake)
+      (builtins.getFlake normalizedPath);
 
     failureReason =
       if normalizedPath == null

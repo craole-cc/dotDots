@@ -21,6 +21,7 @@
 
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.resolution) byPaths;
+  inherit (_.content.emptiness) isEmpty;
   inherit (_.filesystem.resolution) getFlake;
   inherit (_.lists.predicates) any;
   inherit (_.attrsets.transformation) attrValues;
@@ -50,14 +51,25 @@
   sourceInput = {
     host ? {},
     input ? null,
-  }: let
-    class = host.class or "nixos";
-  in
-    optionalAttrs (input == null) (
-      if (class == "darwin")
+    ...
+  }:
+    optionalAttrs (isEmpty input)
+    (
+      if  (host.class or "nixos") == "darwin"
       then {source = input;}
       else {flake.source = input;}
     );
+  # sourceInput = {
+  #   host ? {},
+  #   input ? null,
+  # }: let
+  #   class = host.class or "nixos";
+  # in
+  #   optionalAttrs (input == null) (
+  #     if (class == "darwin")
+  #     then {source = input;}
+  #     else {flake.source = input;}
+  #   );
 
   /**
   Resolves, normalizes, and categorizes flake inputs.

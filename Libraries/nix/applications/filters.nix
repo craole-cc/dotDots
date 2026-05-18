@@ -53,7 +53,7 @@
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.predicates) isIn;
-  registry = _.applications.registry.all;
+  registry = _.applications.registry.entries;
 
   /**
   Build a standard section from an application set, producing a consistent

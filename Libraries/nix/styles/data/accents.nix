@@ -1,60 +1,62 @@
-_: {
-  accents = {
+_: let
+  category = "accents";
+in {
+  "${category}" = {
     rosewater = {
       aliases = ["rose" "rosé"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     flamingo = {
       aliases = ["coral"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     pink = {
       aliases = ["hotpink" "hot-pink"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     mauve = {
       aliases = ["purple" "violet"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     red = {
       aliases = ["scarlet"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     maroon = {
       aliases = ["burgundy" "wine"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     peach = {
       aliases = ["orange" "apricot"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     yellow = {
       aliases = ["gold"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     green = {
       aliases = ["lime"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     teal = {
       aliases = ["cyan" "aqua" "turquoise"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     sky = {
       aliases = ["lightblue" "light-blue"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     sapphire = {
       aliases = ["azure" "cerulean"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     blue = {
       aliases = ["navy" "cobalt"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
     lavender = {
       aliases = ["lilac" "magenta"];
-      categories = ["accents"];
+      categories = [category "catppuccin"];
     };
   };
 }
