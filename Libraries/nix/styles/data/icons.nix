@@ -1,106 +1,108 @@
 _: {
-  candy-icons = {
-    names = {
-      package = "candy-icons";
-      aliases = ["candy"];
+  icons = {
+    candy-icons = {
+      names = {
+        package = "candy-icons";
+        aliases = ["candy"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  papirus = {
-    names = {
-      package = "papirus-icon-theme";
-      aliases = ["papirus-icon-theme"];
+    papirus = {
+      names = {
+        package = "papirus-icon-theme";
+        aliases = ["papirus-icon-theme"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  papirus-dark = {
-    names = {
-      package = "papirus-icon-theme";
-      aliases = [];
+    papirus-dark = {
+      names = {
+        package = "papirus-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
+      variant = "dark";
     };
-    categories = ["icons"];
-    variant = "dark";
-  };
 
-  adwaita = {
-    names = {
-      package = "adwaita-icon-theme";
-      aliases = ["adwaita-icon-theme" "gnome"];
+    adwaita = {
+      names = {
+        package = "adwaita-icon-theme";
+        aliases = ["adwaita-icon-theme" "gnome"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  hicolor = {
-    names = {
-      package = "hicolor-icon-theme";
-      aliases = [];
+    hicolor = {
+      names = {
+        package = "hicolor-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  numix = {
-    names = {
-      package = "numix-icon-theme";
-      aliases = ["numix-icon-theme"];
+    numix = {
+      names = {
+        package = "numix-icon-theme";
+        aliases = ["numix-icon-theme"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  numix-circle = {
-    names = {
-      package = "numix-icon-theme-circle";
-      aliases = ["numix-circle-icon-theme"];
+    numix-circle = {
+      names = {
+        package = "numix-icon-theme-circle";
+        aliases = ["numix-circle-icon-theme"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  tela = {
-    names = {
-      package = "tela-icon-theme";
-      aliases = ["tela-icon-theme"];
+    tela = {
+      names = {
+        package = "tela-icon-theme";
+        aliases = ["tela-icon-theme"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  tela-circle = {
-    names = {
-      package = "tela-circle-icon-theme";
-      aliases = [];
+    tela-circle = {
+      names = {
+        package = "tela-circle-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  fluent = {
-    names = {
-      package = "fluent-icon-theme";
-      aliases = ["fluent-icon-theme"];
+    fluent = {
+      names = {
+        package = "fluent-icon-theme";
+        aliases = ["fluent-icon-theme"];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  kora = {
-    names = {
-      package = "kora-icon-theme";
-      aliases = [];
+    kora = {
+      names = {
+        package = "kora-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  moka = {
-    names = {
-      package = "moka-icon-theme";
-      aliases = [];
+    moka = {
+      names = {
+        package = "moka-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
-  };
 
-  faba = {
-    names = {
-      package = "faba-icon-theme";
-      aliases = [];
+    faba = {
+      names = {
+        package = "faba-icon-theme";
+        aliases = [];
+      };
+      categories = ["icons"];
     };
-    categories = ["icons"];
   };
 }

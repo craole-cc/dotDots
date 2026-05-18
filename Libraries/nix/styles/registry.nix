@@ -12,7 +12,7 @@
     '';
     functions = {
       inherit
-        all
+        entries
         mkRegistry
         importRegistry
         isRegistryAttrset
@@ -20,7 +20,7 @@
         ;
     };
     exports = {
-      local = all // functions;
+      local = functions;
       alias = {};
     };
   in {
@@ -60,13 +60,13 @@
     );
 
   lookup = name: category: let
-    entry = all.${name} or (throw "Unknown style entry '${name}' in registry.");
+    entry = entries.${name} or (throw "Unknown style entry '${name}' in registry.");
   in
     if elem category (entry.categories or [])
     then entry
     else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (entry.categories or [])}";
 
-  all = importRegistry ./data;
+  entries = importRegistry ./data;
 in
   meta.exports.local
   // {

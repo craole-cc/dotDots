@@ -7,13 +7,18 @@
     namespaced = {
       inherit
         access
+        aggregation
         construction
-        merging
         predicates
         transformation
         ;
     };
-    flattened = {} // access // construction // merging // predicates // transformation // {};
+    flattened =
+      access
+      // aggregation
+      // construction
+      // predicates
+      // transformation;
   };
 
   inherit (lib) attrsets;
@@ -56,7 +61,7 @@
       ;
   };
 
-  merging = {
+  aggregation = {
     inherit
       (attrsets)
       intersectAttrs

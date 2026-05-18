@@ -19,19 +19,16 @@
       Depends on: style.registry.
     '';
     functions = {
-      inherit
-        lookup
-        mkFilters
-        mkSection
-        ;
-      mkFilterSection = mkSection;
+      inherit lookup mkFilters mkSection;
+    };
+    aliases = {
+      mkStyleFilterSection = mkSection;
+      toStyleFilters = mkFilters;
+      lookupStyle = lookup;
     };
     exports = {
-      local = default // functions;
-      alias = {
-        toStyleFilters = mkFilters;
-        lookupStyle = lookup;
-      };
+      local = default // functions // aliases;
+      alias = aliases;
     };
   in {
     inherit doc exports functions;
@@ -47,7 +44,19 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
 
-  registry = _.styles.registry.all;
+  registry = _.styles.registry.entries;
+
+  default = mkFilters {
+    inherit registry;
+    queries = {byCategory, ...}: let
+      icons = mkSection {set = byCategory.icons or {};};
+      cursors = mkSection {set = byCategory.cursors or {};};
+      flavors = mkSection {set = byCategory.flavors or {};};
+      accents = mkSection {set = byCategory.accents or {};};
+    in {
+      inherit icons cursors flavors accents;
+    };
+  };
 
   keysFromMembers = field: set:
     unique (
@@ -114,18 +123,6 @@
     else if isNotEmpty byKey
     then byKey
     else byAlias;
-
-  default = mkFilters {
-    inherit registry;
-    queries = {byCategory, ...}: let
-      icons = mkSection {set = byCategory.icons or {};};
-      cursors = mkSection {set = byCategory.cursors or {};};
-      flavors = mkSection {set = byCategory.flavors or {};};
-      accents = mkSection {set = byCategory.accents or {};};
-    in {
-      inherit icons cursors flavors accents;
-    };
-  };
 in
   meta.exports.local
   // {
