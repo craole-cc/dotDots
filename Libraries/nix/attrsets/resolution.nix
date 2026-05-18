@@ -5,21 +5,20 @@
   __moduleRef,
   ...
 }: let
-  inherit (_.content.fallback) firstNonEmpty;
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.predicates) hasAttr isAttrs;
   inherit (_.content.empty) isNotEmpty isEmpty;
+  inherit (_.content.fallback) firstNonEmpty;
   inherit (_.debug.assertions) withContext mkTest mkTest';
-  inherit (_.debug.tracing) addErrorContext;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
+  inherit (_.debug.tracing) addErrorContext;
   inherit (_.filesystem.paths) getFlakePath;
+  inherit (_.hardware.system) getSystems;
   inherit (_.lists.predicates) all elem isList;
   inherit (_.strings.construction) concatStringsSep;
   inherit (_.strings.predicates) isString;
   inherit (_.strings.transformation) splitStringBy;
-  inherit (_.hardware.system) getSystems;
-
-  inherit (_.attrsets.access) attrByPath;
-  inherit (_.attrsets.predicates) hasAttr isAttrs;
 
   inherit
     (lib.attrsets)
@@ -52,7 +51,7 @@
         inputSource # TODO: Move to sources.inputs
         nestedByPaths
         withRef
-        mkRef
+        toRef
         nixpkgs # TODO: Move to sources.inputs or sources.packages
         optional
         orDefault
@@ -65,7 +64,7 @@
         vscodePackages # TODO: Move to applications.vscode or applications.registry
         normalizePath
         ;
-      mkAttrRef = mkRef;
+      getAttrRef = toRef;
       getAttrWithRef = withRef;
       normalizeAttrPath = normalizePath;
       getAttrByPaths = byPaths;
@@ -140,20 +139,20 @@
     ref = concatStringsSep "." validated;
   };
 
-  mkRef = {
+  toRef = {
     name,
     path,
   }: let
     inherit (normalizePath path) ref;
     validated = (
       assert withContext {
-        name = "mkRef";
+        name = "getAttrRef";
         assertion = isString name;
         message = "`name` must be a string";
         context = "constructing attribute reference";
       };
       assert withContext {
-        name = "mkRef";
+        name = "getAttrRef";
         assertion = name != "";
         message = "`name` must not be empty";
         context = "constructing attribute reference";
@@ -213,7 +212,7 @@
 
     inherit (validated) name value;
     inherit (normalizePath path) stems;
-    ref = mkRef {inherit name path;};
+    ref = toRef {inherit name path;};
   in
     addErrorContext
     "while resolving `${ref}`"
