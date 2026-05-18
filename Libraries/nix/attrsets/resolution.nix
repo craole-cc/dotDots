@@ -7,7 +7,7 @@
 }: let
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
-  inherit (_.content.empty) isNotEmpty isEmpty;
+  inherit (_.content.emptiness) isNotEmpty isEmpty;
   inherit (_.content.fallback) firstNonEmpty;
   inherit (_.debug.assertions) withContext mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
@@ -16,7 +16,7 @@
   inherit (_.filesystem.paths) getFlakePath;
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.predicates) all elem isList;
-  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.predicates) isString;
   inherit (_.strings.transformation) splitStringBy;
 
@@ -50,8 +50,7 @@
         inputPackages # TODO: Move to sources.packages
         inputSource # TODO: Move to sources.inputs
         nestedByPaths
-        withRef
-        toRef
+        withPath
         nixpkgs # TODO: Move to sources.inputs or sources.packages
         optional
         orDefault
@@ -64,8 +63,7 @@
         vscodePackages # TODO: Move to applications.vscode or applications.registry
         normalizePath
         ;
-      getAttrRef = toRef;
-      getAttrWithRef = withRef;
+      getAttrWithPath = withPath;
       normalizeAttrPath = normalizePath;
       getAttrByPaths = byPaths;
       getAttrOrDefault = orDefault;
@@ -102,123 +100,110 @@
   };
 
   normalizePath = path: let
+    fn = {
+      name = "normalizePath";
+      context = "normalizing attribute path";
+    };
+
     stems =
       if isList path
       then path
       else
         assert withContext {
-          name = "normalizePath";
+          inherit (fn) name context;
           assertion = isString path;
           message = "`path` must be a string or list of strings";
-          context = "normalizing attribute path";
         };
           splitStringBy (_: sep: elem sep ["." "/"]) false path;
 
     validated = (
       assert withContext {
-        name = "normalizeAttrPath";
+        inherit (fn) name context;
         assertion = isList stems;
         message = "normalized path must be a list of path segments";
-        context = "normalizing attribute path";
       };
       assert withContext {
-        name = "normalizeAttrPath";
+        inherit (fn) name context;
         assertion = all isString stems;
         message = "each path segment must be a string";
-        context = "normalizing attribute path";
       };
       assert withContext {
-        name = "normalizeAttrPath";
+        inherit (fn) name context;
         assertion = all (stem: stem != "") stems;
         message = "path segments must not be empty";
-        context = "normalizing attribute path";
       }; stems
     );
   in {
-    stems = validated;
-    ref = concatStringsSep "." validated;
+    path = validated;
+    reference =
+      optionalString
+      (isNotEmpty validated)
+      (concatStringsSep "." validated);
   };
 
-  toRef = {
-    name,
-    path,
-  }: let
-    inherit (normalizePath path) ref;
-    validated = (
-      assert withContext {
-        name = "getAttrRef";
-        assertion = isString name;
-        message = "`name` must be a string";
-        context = "constructing attribute reference";
-      };
-      assert withContext {
-        name = "getAttrRef";
-        assertion = name != "";
-        message = "`name` must not be empty";
-        context = "constructing attribute reference";
-      }; name
-    );
-  in
-    addErrorContext
-    "while constructing ref for `${validated}`"
-    (
-      if isEmpty ref
-      then validated
-      else "${validated}.${ref}"
-    );
-
-  withRef = {
+  withPath = {
     base,
-    path,
+    path ? [],
   }: let
-    validated = (
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = isAttrs base;
-        message = "`base` must be an attrset like { name, value; }";
-        context = "resolving config reference";
-      };
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = hasAttr "name" base;
-        message = "`base` is missing required attribute `name`";
-        context = "resolving config reference";
-      };
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = hasAttr "value" base;
-        message = "`base` is missing required attribute `value`";
-        context = "resolving config reference";
-      };
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = isString base.name;
-        message = "`base.name` must be a string";
-        context = "resolving config reference";
-      };
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = base.name != "";
-        message = "`base.name` must not be empty";
-        context = "resolving config reference";
-      };
-      assert withContext {
-        name = "getAttrWithRef";
-        assertion = isAttrs base.value;
-        message = "`base.value` must be an attrset";
-        context = "resolving config reference";
-      }; base
-    );
+    fn = {
+      name = "getAttrWithName";
+      context = "resolving config reference";
+    };
 
-    inherit (validated) name value;
-    inherit (normalizePath path) stems;
-    ref = toRef {inherit name path;};
+    validated = {
+      base = (
+        assert withContext {
+          inherit (fn) name context;
+          assertion = isAttrs base;
+          message = "`base` must be an attrset like { name, value; }";
+        };
+        assert withContext {
+          inherit (fn) name context;
+          assertion = hasAttr "name" base;
+          message = "`base` is missing required attribute `name`";
+        };
+        assert withContext {
+          inherit (fn) name context;
+          assertion = hasAttr "value" base;
+          message = "`base` is missing required attribute `value`";
+        };
+        assert withContext {
+          inherit (fn) name context;
+          assertion = isString base.name;
+          message = "`base.name` must be a string";
+        };
+        assert withContext {
+          inherit (fn) name context;
+          assertion = base.name != "";
+          message = "`base.name` must not be empty";
+        };
+        assert withContext {
+          inherit (fn) name context;
+          assertion = isAttrs base.value;
+          message = "`base.value` must be an attrset";
+        }; base
+      );
+
+      path =
+        (
+          assert withContext {
+            inherit (fn) name context;
+            assertion = isString path || isList path;
+            message = "`path` must be a string or list";
+          };
+            normalizePath path
+        ).path;
+    };
+
+    inherit (validated.base) name value;
+    stems = validated.path;
   in
     addErrorContext
-    "while resolving `${ref}`"
+    "while resolving `${name}`"
     {
-      inherit ref;
-      cfg = attrByPath stems {} value;
+      inherit name;
+      path = (normalizePath ([name] ++ stems)).reference;
+      value = attrByPath stems {} value;
     };
 
   /**

@@ -14,7 +14,7 @@
   inherit (lib.types) bool nullOr str;
   inherit (lix.modules.core.services) mkServices;
 
-  # Pure data seed — only used in option defaults, never in config block.
+  # Pure data seed - only used in option defaults, never in config block.
   # All other interface options (windowManager, displayManager, shell.*, etc.)
   # are already declared by options.nix via mkOptions { inherit host; }.
   user = host.users.data.primary or {};

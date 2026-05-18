@@ -5,7 +5,7 @@ result-*
 # direnv cache
 .direnv/
 
-# Local environment overrides — contains secrets, never commit
+# Local environment overrides - contains secrets, never commit
 .envrc.local
 
 # Encrypted secrets are committed; plaintext YAML is not

@@ -4,7 +4,7 @@
   __moduleRef,
   ...
 }: let
-  inherit (_.content.empty) isEmpty;
+  inherit (_.content.emptiness) isEmpty;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;

@@ -1,7 +1,7 @@
 {_, ...}: let
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.predicates) isAttrs;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) isList;

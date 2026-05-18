@@ -72,9 +72,9 @@
       };
     };
   },
-}:
-let
-  inherit (builtins)
+}: let
+  inherit
+    (builtins)
     head
     hasAttr
     isAttrs
@@ -82,111 +82,121 @@ let
     tail
     ;
 
-  findFirst =
-    names: set:
-    if names == [ ] then
-      null
-    else
-      let
-        n = head names;
-      in
-      if hasAttr n set then n else findFirst (tail names) set;
-
-  nixpkgs =
-    let
-      n =
-        if isAttrs inputs then
-          findFirst [
-            "NixPkgsUnstable"
-            "NixPackagesUnstable"
-            "nixpkgs-unstable"
-            "NixPackages"
-            "NixPkgs"
-            "nixpkgs-stable"
-            "nixpkgs"
-          ] inputs
-        else
-          null;
-      cfg = { inherit system config; };
+  findFirst = names: set:
+    if names == []
+    then null
+    else let
+      n = head names;
     in
-    if n != null then import inputs.${n} cfg else import <nixpkgs> cfg;
+      if hasAttr n set
+      then n
+      else findFirst (tail names) set;
 
-  libraries =
-    let
-      lib' = if isAttrs lib then lib else nixpkgs.lib;
-    in
-    if paths ? libraries && pathExists paths.libraries then import paths.libraries { lib = lib'; } else lib';
+  nixpkgs = let
+    n =
+      if isAttrs inputs
+      then
+        findFirst [
+          "NixPkgsUnstable"
+          "NixPackagesUnstable"
+          "nixpkgs-unstable"
+          "NixPackages"
+          "NixPkgs"
+          "nixpkgs-stable"
+          "nixpkgs"
+        ]
+        inputs
+      else null;
+    cfg = {inherit system config;};
+  in
+    if n != null
+    then import inputs.${n} cfg
+    else import <nixpkgs> cfg;
+
+  libraries = let
+    lib' =
+      if isAttrs lib
+      then lib
+      else nixpkgs.lib;
+  in
+    if paths ? libraries && pathExists paths.libraries
+    then import paths.libraries {lib = lib';}
+    else lib';
   inherit (libraries.strings) concatStringsSep isString toUpper;
   inherit (libraries.lists) elem;
   inherit (libraries.attrsets) listToAttrs;
-  environment =
-    let
-      toolKinds = [
-        "bin"
-        "cfg"
+  environment = let
+    toolKinds = [
+      "bin"
+      "cfg"
+    ];
+    validKinds = ["src"] ++ toolKinds;
+    dataKinds = [
+      "music"
+      "videos"
+      "pictures"
+      "downloads"
+    ];
+
+    mkVar = parts: toUpper (concatStringsSep sep parts);
+
+    #> Flat entry - reads .local from the matching paths leaf
+    mkKindEnv = kind: {
+      var = mkVar [
+        name
+        (
+          if kind == "src"
+          then "root"
+          else kind
+        )
       ];
-      validKinds = [ "src" ] ++ toolKinds;
-      dataKinds = [
-        "music"
-        "videos"
-        "pictures"
-        "downloads"
+      val =
+        if kind == "src"
+        then paths.src.local
+        else paths.${kind}.base.local;
+    };
+
+    #> Nested entry - reads .local for each toolKind from paths
+    mkToolEnv = tool:
+      listToAttrs (
+        map (kind: {
+          name = kind;
+          value = {
+            var = mkVar [
+              name
+              tool
+              kind
+            ];
+            val = paths.${kind}.${tool}.local;
+          };
+        })
+        toolKinds
+      );
+
+    #> Data dir entry - reads from paths.data
+    mkDataEnv = dir: {
+      var = mkVar [
+        name
+        dir
       ];
+      val = paths.data.${dir}.local;
+    };
 
-      mkVar = parts: toUpper (concatStringsSep sep parts);
-
-      #> Flat entry — reads .local from the matching paths leaf
-      mkKindEnv = kind: {
-        var = mkVar [
-          name
-          (if kind == "src" then "root" else kind)
-        ];
-        val = if kind == "src" then paths.src.local else paths.${kind}.base.local;
-      };
-
-      #> Nested entry — reads .local for each toolKind from paths
-      mkToolEnv =
-        tool:
-        listToAttrs (
-          map (kind: {
-            name = kind;
-            value = {
-              var = mkVar [
-                name
-                tool
-                kind
-              ];
-              val = paths.${kind}.${tool}.local;
-            };
-          }) toolKinds
-        );
-
-      #> Data dir entry — reads from paths.data
-      mkDataEnv = dir: {
-        var = mkVar [
-          name
-          dir
-        ];
-        val = paths.data.${dir}.local;
-      };
-
-      mkEnv =
-        args:
-        if isString args then
-          if elem args validKinds then
-            throw "mkEnv: '${args}' is a kind — use { key = \"${args}\"; flat = true; }"
-          else if elem args dataKinds then
-            mkDataEnv args
-          else
-            mkToolEnv args
-        else if args.flat or false then
-          if !(elem args.key validKinds) then
-            throw "mkEnv: invalid kind '${args.key}', must be one of ${toString validKinds}"
-          else
-            mkKindEnv args.key
-        else
-          throw "mkEnv: expected a string or { key; flat = true; }";
-    in
+    mkEnv = args:
+      if isString args
+      then
+        if elem args validKinds
+        then throw "mkEnv: '${args}' is a kind - use { key = \"${args}\"; flat = true; }"
+        else if elem args dataKinds
+        then mkDataEnv args
+        else mkToolEnv args
+      else if args.flat or false
+      then
+        if !(elem args.key validKinds)
+        then throw "mkEnv: invalid kind '${args.key}', must be one of ${toString validKinds}"
+        else mkKindEnv args.key
+      else throw "mkEnv: expected a string or { key; flat = true; }";
+  in
     {
       src = mkEnv {
         key = "src";
@@ -208,10 +218,10 @@ let
       map (dir: {
         name = dir;
         value = mkEnv dir;
-      }) dataKinds
+      })
+      dataKinds
     );
-in
-{
+in {
   inherit
     description
     name

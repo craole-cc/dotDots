@@ -10,11 +10,11 @@
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf either int nullOr package str;
-  inherit (lix.styles.cursors.types) core;
-  inherit (lix.attrsets.resolution) withRef;
+  inherit (lix.styles.types.cursors) core;
+  inherit (lix.attrsets.resolution) withPath;
 
   seed = let
-    user = withRef {
+    user = withPath {
       base = {
         name = "host";
         value = host;
@@ -27,16 +27,16 @@
         "cursors"
       ];
     };
-    inherit (user) ref cfg;
+    inherit (user) path value;
     name = "catppuccin";
   in {
-    inherit user ref cfg;
-    light = cfg.light or name;
-    dark = cfg.dark or name;
-    size = cfg.size or 32;
-    accent = cfg.accent or "teal";
+    inherit path;
+    light = value.light or name;
+    dark = value.dark or name;
+    size = value.size or 32;
+    accent = value.accent or "teal";
     variants =
-      cfg.variants or {
+      value.variants or {
         light = "latte";
         dark = "frappe";
       };
@@ -47,7 +47,7 @@
     mkOption {
       description = "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";
       default = seed.${polarity};
-      defaultText = literalExpression ''${seed.ref}.${polarity} or "${seed.${polarity}}"'';
+      defaultText = literalExpression ''${seed.path}.${polarity} or "${seed.${polarity}}"'';
       example = literalExpression ''
         # as a string (resolved via registry)
         "material"
@@ -62,12 +62,11 @@
     };
 in {
   options.${top}.${dom}.${mod} = {
-    _test = mkOption {
-      description = "test stuff";
-      default = seed;
-      # defaultText = literalExpression ''${seed.ref}.size or 24'';
-      # type = lib.types.raw;
-    };
+    # _test = mkOption {
+    #   description = "test stuff";
+    #   default = seed;
+    #   defaultText = literalExpression ''${seed.path}.size or 24'';
+    # };
 
     enable = mkEnableOption mod // {default = true;};
     light = mkPolarityOption "light";
@@ -76,21 +75,21 @@ in {
     size = mkOption {
       description = "Global cursor size in pixels, used when not overridden per polarity";
       default = seed.size;
-      defaultText = literalExpression ''${seed.ref}.size or 24'';
+      defaultText = literalExpression ''${seed.path}.size or 24'';
       type = int;
     };
 
     accent = mkOption {
       description = "Catppuccin accent color for cursor themes that support it";
       default = seed.accent;
-      defaultText = literalExpression ''${seed.ref}.accent or null'';
+      defaultText = literalExpression ''${seed.path}.accent or null'';
       type = nullOr str;
     };
 
     variants = mkOption {
       description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it";
       default = seed.variants;
-      defaultText = literalExpression ''${seed.ref}.variants or null'';
+      defaultText = literalExpression ''${seed.path}.variants or null'';
       type = nullOr (attrsOf str);
     };
   };

@@ -64,7 +64,7 @@ spirit.[^1]
 
 ### Imago Dei, Dignity, and Compassionate Care
 
-A foundational biblical principle for counseling care is the **imago Dei**—the
+A foundational biblical principle for counseling care is the **imago Dei**-the
 belief that all humans are created in the image of God, possessing inherent
 worth and dignity regardless of their level of functioning or mental stability.
 This doctrine grounds a posture of respect, patience, and non-stigmatizing care
@@ -111,7 +111,7 @@ patterns, interpretations, and inner dialogue matter profoundly, resonating with
 the cognitive focus of CBT.[^1]
 
 At the same time, biblical transformation is not merely cognitive; it involves
-the orientation of the heart—affections, desires, and worship—toward God.
+the orientation of the heart-affections, desires, and worship-toward God.
 Integrative church-based counseling, therefore, should link cognitive
 restructuring with spiritual practices such as prayer, meditation on Scripture,
 confession, and participation in worship, recognizing that emotional and mental
@@ -150,11 +150,11 @@ framework, the therapist’s primary task is not to give advice or direct the
 client but to understand the client’s internal frame of reference and respond in
 ways that communicate acceptance and understanding.
 
-The core conditions entail, first, the therapist’s congruence—being real and
+The core conditions entail, first, the therapist’s congruence-being real and
 transparent rather than hiding behind a professional façade; second,
-unconditional positive regard—a deep, nonjudgmental acceptance of the client as
+unconditional positive regard-a deep, nonjudgmental acceptance of the client as
 a person, even if specific behaviors are not condoned; and third, empathic
-understanding—accurately sensing and reflecting the client’s feelings and
+understanding-accurately sensing and reflecting the client’s feelings and
 meanings as if they were one’s own, yet maintaining an “as if” stance that
 preserves appropriate boundaries. These conditions are believed to foster a
 sense of safety and trust that enables clients to explore painful experiences,
@@ -256,8 +256,8 @@ surrounding mental health issues by normalizing help-seeking and showing that
 attending to emotions and thoughts is consistent with Christian
 discipleship.[^1]
 
-Second, integration leverages the church’s unique strengths—community, spiritual
-practices, and long-term relationships—alongside empirically supported
+Second, integration leverages the church’s unique strengths-community, spiritual
+practices, and long-term relationships-alongside empirically supported
 therapeutic tools. Congregants often benefit from a combination of structured
 interventions and ongoing relational support from small groups, mentors, and
 pastoral staff, which can provide continuity beyond the time-limited nature of
@@ -271,7 +271,7 @@ may not have sufficient training to address complex or severe mental disorders,
 and attempting to use CBT or person-centered methods without adequate
 supervision can inadvertently harm counselees or delay needed referrals to
 licensed professionals. Another limitation is the potential for theological or
-psychological reductionism—either reducing all distress to sin and spiritual
+psychological reductionism-either reducing all distress to sin and spiritual
 issues or, conversely, treating people primarily as psychological systems while
 neglecting spiritual realities.[^1]
 

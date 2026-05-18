@@ -53,7 +53,7 @@
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.modules.construction) mkForce;

@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (lib.filesystem) listFilesRecursive packagesFromDirectoryRecursive;
   inherit (lib.strings) hasSuffix;
   inherit (lib.lists) filter map elem;

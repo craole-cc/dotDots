@@ -1,4 +1,4 @@
-# Purpose: CI pipeline — nix flake check, format check, and NixOS VM test.
+# Purpose: CI pipeline - nix flake check, format check, and NixOS VM test.
 # Maintainer: openclaw-flake contributors
 name: CI
 on:

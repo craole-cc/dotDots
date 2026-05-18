@@ -8,13 +8,19 @@
       inherit
         access
         construction
-        reduction
+        aggregation
         predicates
         selection
         transformation
         ;
     };
-    flattened = {} // access // construction // reduction // predicates // selection // transformation // {};
+    flattened =
+      access
+      // aggregation
+      // construction
+      // predicates
+      // selection
+      // transformation;
   };
 
   inherit (lib) lists;
@@ -59,7 +65,7 @@
       sort
       sortOn
       unique
-      uniqueBy
+      uniqueStrings
       zipLists
       zipListsWith
       ;
@@ -79,7 +85,7 @@
       ;
   };
 
-  reduction = {
+  aggregation = {
     inherit
       (lists)
       concatLists

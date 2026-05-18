@@ -10,19 +10,19 @@ file rather than duplicate its content.
 
 A Lix-centered Nix flake for cross-system dotfiles, host definitions, user
 profiles, and reusable configuration modules. It is not a simple home-manager
-wrapper — it has a fully custom library (`lix`) and a typed schema system
+wrapper - it has a fully custom library (`lix`) and a typed schema system
 driving host and user evaluation.
 
 The four most important mental-model facts:
 
 1. `lix` is the custom standard library. Everything flows through it.
-2. `tree` is the canonical path registry. Paths are never hardcoded — they are
+2. `tree` is the canonical path registry. Paths are never hardcoded - they are
    looked up through `tree.store.*`.
 3. The repo is divided into five strictly separated roles: `Libraries/nix`
    (infrastructure), `API/nix` (data), `Modules/nix` (behavior), `Templates/nix`
    (reusable kits), `Configuration/` and `Environment/` (system-level
    declarations).
-4. `API/nix` is the source of truth for all hosts and users. It is data only —
+4. `API/nix` is the source of truth for all hosts and users. It is data only -
    no logic lives there.
 
 ---
@@ -31,7 +31,7 @@ The four most important mental-model facts:
 
 Follow this order on first contact with the repo. Do not skip steps.
 
-### Step 1 — Orient
+### Step 1 - Orient
 
 Read `flake.nix` and `default.nix` in full.
 
@@ -39,19 +39,19 @@ From `flake.nix` you will learn:
 
 - All external inputs and what they provide (editors, shells, styling, secrets,
   formatters, etc.).
-- That `mkFlake` and `mkSystems` drive output construction — these are defined
+- That `mkFlake` and `mkSystems` drive output construction - these are defined
   inside `Libraries/nix`.
 - That `inputsWrapped` normalises inputs before they reach modules.
 
 From `default.nix` you will learn:
 
-- The full directory tree expressed as `stems` — this is the authoritative path
+- The full directory tree expressed as `stems` - this is the authoritative path
   map. Every path in the repo has a `tree.store.*` equivalent.
 - That `lix` is imported from `Libraries/nix` and exposed as the shared
   namespace.
 - That `schema` is derived from `tree` and produces `hosts` and `users`.
 
-### Step 2 — Read the Architecture
+### Step 2 - Read the Architecture
 
 Read `Documentation/ai/ARCHITECTURE.md`.
 
@@ -67,7 +67,7 @@ flake.nix
       -> mkHome #? Home Manager via Modules/nix/home
 ```
 
-### Step 3 — Learn the Library Conventions
+### Step 3 - Learn the Library Conventions
 
 Open any module under `Libraries/nix/` and read it with these questions in mind.
 
@@ -75,7 +75,7 @@ Open any module under `Libraries/nix/` and read it with these questions in mind.
 
 Every `lix` module takes `{ _, __moduleDir, ... }` as its argument set, and
 optionally `__moduleName` when namespaced aliases are needed. The `_` argument
-is the entire `lix` namespace — the library itself, passed as a single attrset.
+is the entire `lix` namespace - the library itself, passed as a single attrset.
 Modules never use relative imports; they access everything through `_`.
 
 #### Module structure (canonical ordering)
@@ -83,7 +83,7 @@ Modules never use relative imports; they access everything through `_`.
 ```nix
 { _,
   __moduleDir,
-  __moduleName,   # optional — include when namespaced aliases are wanted
+  __moduleName,   # optional - include when namespaced aliases are wanted
   ...
 }: let
   inherit (_.some.namespace) foo bar;   # 1. inherits at top of let
@@ -115,16 +115,16 @@ in
 
 This is the only export mechanism. Its arguments:
 
-- `directory = __moduleDir` — always present, used for filesystem introspection
-- `filename = __moduleName` — **optional**. When included, `mkModuleExports`
+- `directory = __moduleDir` - always present, used for filesystem introspection
+- `filename = __moduleName` - **optional**. When included, `mkModuleExports`
   automatically generates a namespaced alias for every function in `functions`
   by appending the module name in PascalCase. For example, in a module named
   `groups`, `mkStandard` is also exported as `mkStandardGroups`. This is how the
   `lix` namespace avoids collisions across modules in the same domain.
-- `doc` — the layer/dependency documentation string (see below)
-- `functions` — attrset of exported symbols; may include both bare `inherit` and
+- `doc` - the layer/dependency documentation string (see below)
+- `functions` - attrset of exported symbols; may include both bare `inherit` and
   explicit aliases under custom names
-- `tests` — the `runTests { ... }` block
+- `tests` - the `runTests { ... }` block
 
 Do not invent alternative export shapes. All modules end with this call.
 
@@ -166,22 +166,22 @@ its definition, in this order:
 
 1. One-line summary (plain prose, no heading)
 2. Optional second paragraph for edge cases, defaults, or guards
-3. `# Type` block — pseudo-signature using `::`, named record args, `|` for
+3. `# Type` block - pseudo-signature using `::`, named record args, `|` for
    unions, `?` suffix or inline comment for optionals
-4. `# Examples` block — at minimum one typical case and one boundary/edge case,
+4. `# Examples` block - at minimum one typical case and one boundary/edge case,
    each with a comment explaining what it demonstrates
 
 #### Naming prefix conventions
 
 | Prefix       | Meaning                                    |
 | ------------ | ------------------------------------------ |
-| `mk*`        | Constructor — builds or derives something  |
-| `to*`        | Converter — transforms input to output     |
-| `has*`       | Predicate — boolean, checks presence       |
-| `is*`        | Predicate — boolean, checks identity/state |
-| `normalize*` | Cleaner — strips nulls, sentinels, empties |
-| `keysFrom*`  | Extractor — derives canonical key sets     |
-| `resolve*`   | Resolver — materialises a deferred value   |
+| `mk*`        | Constructor - builds or derives something  |
+| `to*`        | Converter - transforms input to output     |
+| `has*`       | Predicate - boolean, checks presence       |
+| `is*`        | Predicate - boolean, checks identity/state |
+| `normalize*` | Cleaner - strips nulls, sentinels, empties |
+| `keysFrom*`  | Extractor - derives canonical key sets     |
+| `resolve*`   | Resolver - materialises a deferred value   |
 
 #### Generated attrset key prefixes
 
@@ -266,16 +266,16 @@ Section headings in long files use box-drawing characters:
 Many `default.nix` files are pure aggregators. They use
 `lix.filesystem.importers.importAll` or `importAllPaths` to load every sibling
 file and re-export them as a merged attrset. Do not assume a `default.nix`
-contains substantive logic — verify before reading it as a source of truth.
+contains substantive logic - verify before reading it as a source of truth.
 
-### Step 4 — Locate the API
+### Step 4 - Locate the API
 
 Browse `API/nix/hosts/` and `API/nix/users/`. This directory is the source of
 truth for all host and user declarations in the repo.
 
 `API/nix/hosts/<host>/` declares what a machine is: its hardware profile, system
 role, which inputs and modules it uses, and which users are assigned to it. It
-contains no module logic — `mkSystems` in
+contains no module logic - `mkSystems` in
 `Libraries/nix/modules/construction.nix` reads this data and evaluates it.
 
 `API/nix/users/<user>/` declares user identity, app preferences, shell config,
@@ -285,28 +285,28 @@ and theme choices. `mkHome` wires these into Home Manager via
 If a task appears host-specific or user-specific, verify the source of truth is
 here before touching anything in `Modules/nix`.
 
-### Step 5 — Inspect the Module Layers
+### Step 5 - Inspect the Module Layers
 
 Open `Modules/nix/global/default.nix`. This is where `devShells`, `formatter`,
 and `checks` are defined for the flake outputs.
 
-Open `Modules/nix/core/default.nix`. This is the NixOS system behavior layer —
+Open `Modules/nix/core/default.nix`. This is the NixOS system behavior layer -
 shared across all hosts.
 
-Open `Modules/nix/home/default.nix`. This is the Home Manager behavior layer —
+Open `Modules/nix/home/default.nix`. This is the Home Manager behavior layer -
 shared across all users.
 
 For each file, check first whether it is an aggregator or a substantive module.
 
-### Step 6 — Inspect the Templates
+### Step 6 - Inspect the Templates
 
 Browse `Templates/nix/`. This directory contains reusable kit sets exposed via
 `tree.store.kit.*` and merged into the flake outputs directly from `flake.nix`.
 The kits are split into:
 
-- `common/` — shared across all contexts
-- `dev/` — development environment templates
-- `media/` — media-related templates
+- `common/` - shared across all contexts
+- `dev/` - development environment templates
+- `media/` - media-related templates
 
 When a task calls for a reusable pattern that is not host- or user-specific and
 does not belong in `Libraries/nix`, check whether a kit in `Templates/nix` is

@@ -48,7 +48,7 @@ in {
       };
       secondary = {
         brand = "nvidia";
-        busId = "PCI:1:0:0"; # 01:00.0 — confirmed by lspci
+        busId = "PCI:1:0:0"; # 01:00.0 - confirmed by lspci
         model = "GTX 1050 Ti"; # EVGA GP107, subsystem 3842:6253
       };
       mode = "reverse-sync"; # AMD renders; NVIDIA outputs sync through PRIME
@@ -125,7 +125,7 @@ in {
         priority = 1;
       };
 
-      # Optional 3rd monitor — motherboard HDMI (AMD iGPU, card1-HDMI-A-2)
+      # Optional 3rd monitor - motherboard HDMI (AMD iGPU, card1-HDMI-A-2)
       # "HDMI-A-2" = {
       #   brand = "ACER";
       #   resolution = "1920x1080";

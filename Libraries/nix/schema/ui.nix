@@ -28,13 +28,13 @@
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.merging) recursiveUpdate;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.access) head;
   inherit (_.lists.construction) optional toList;
   inherit (_.lists.predicates) elem;
-  inherit (_.lists.reduction) concatMap;
+  inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.transformation) unique;
   inherit
     (_.options.construction)

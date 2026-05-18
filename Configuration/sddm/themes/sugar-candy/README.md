@@ -3,7 +3,7 @@ Sugar series of SDDM themes. It's so extremely sweet your pancreas will have
 difficulties digesting its awesomeness.
 
 Sweeten the login experience for your users, your family and yourself. Sugar
-Candy works on almost all major distributions—see below—and focuses on a
+Candy works on almost all major distributions-see below-and focuses on a
 straight forward user experience and superb functionality while still offering
 vast customization possibilities.
 
@@ -23,11 +23,11 @@ Your secret sauce is located at ./sddm/themes/sugar-candy/theme.conf! There are
 
 **From within KDE Plasma**
 
-If you are on [KDE Plasma](https://www.kde.org/plasma-desktop)—by default
+If you are on [KDE Plasma](https://www.kde.org/plasma-desktop)-by default
 [Manjaro](https://manjaro.org/), [OpenSuse](https://www.opensuse.org/),
 [Neon](https://neon.kde.org/), [Kubuntu](https://kubuntu.org/),
 [KaOS](https://kaosx.us/) or [Chakra](https://www.chakralinux.org/) for
-example—you are lucky and can simply go to your system settings and under
+example-you are lucky and can simply go to your system settings and under
 "Startup and Shutdown" followed by "Login Screen (SDDM)" click "Get New Theme".
 From there search for "Sugar Candy" and install.
 
@@ -65,7 +65,7 @@ including:
 [`Qt Graphical Effects`](https://doc.qt.io/archives/qt-5.11/qtgraphicaleffects-index.html),
 [`Qt SVG`](https://doc.qt.io/archives/qt-5.11/qtsvg-index.html),
 [`Qt Quick Layouts`](https://doc.qt.io/archives/qt-5.11/qtquicklayouts-index.html)
-each `>= 5.11`—_see below for distro specific package names_
+each `>= 5.11`-_see below for distro specific package names_
 
 _Make sure these are installed with their required version or higher! SDDM might
 need an enabled system service/daemon to work. This is often done automatically
@@ -303,7 +303,7 @@ SDDM Sugar Candy. If not, see <https://www.gnu.org/licenses/>
 
 ### Other awesome projects
 
-- [Chili—the hottest login theme for KDE Plasma](https://www.opendesktop.org/p/1214121)
+- [Chili-the hottest login theme for KDE Plasma](https://www.opendesktop.org/p/1214121)
 - [Chili stand-alone fork for SDDM only](https://www.opendesktop.org/p/1240784)
 - [Flat OSX like aurorae window decorations for your Linux desktop](https://www.opendesktop.org/p/1199822)
   and [its high contrast version](https://www.opendesktop.org/p/1246756)

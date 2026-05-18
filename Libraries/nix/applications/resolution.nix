@@ -4,7 +4,7 @@
   inherit (_.lists.predicates) all;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.lists.reduction) concatmap;
+  inherit (_.lists.aggregation) concatmap;
   inherit (_.strings.predicates) hasinfix;
   inherit (_.strings.transformation) tolower;
   inherit (_.types.predicates) isfunction;

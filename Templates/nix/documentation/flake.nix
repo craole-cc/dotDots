@@ -1,5 +1,5 @@
 {
-  description = "Research & document writing dev shell — Typst + AI agents";
+  description = "Research & document writing dev shell - Typst + AI agents";
 
   #╔═══════════════════════════════════════════════════════════╗
   #║ Binary cache                                              ║

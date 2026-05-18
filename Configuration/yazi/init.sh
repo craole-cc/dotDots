@@ -19,7 +19,7 @@ for f in keymap.toml theme.toml init.lua; do
 	[ -f "$YAZI_CONF/$f" ] && ln -sf "$YAZI_CONF/$f" "$YAZI_HOME/$f"
 done
 
-# Plugins — each subdir becomes a plugin
+# Plugins - each subdir becomes a plugin
 if [ -d "$YAZI_CONF/plugins" ]; then
 	mkdir -p "$YAZI_HOME/plugins"
 	for plugin_dir in "$YAZI_CONF/plugins"/*/; do

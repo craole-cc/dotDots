@@ -21,7 +21,7 @@
   };
 
   inherit (_.attrsets.access) attrByPath;
-  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit
     (_.lists.predicates)
     all

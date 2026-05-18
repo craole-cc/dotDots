@@ -13,7 +13,7 @@
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.construction) optionals;
-  inherit (lix.lists.reduction) foldl';
+  inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.selection) filter;
   inherit (lix.lists.construction) genList;
   inherit (lix.strings.access) stringLength;

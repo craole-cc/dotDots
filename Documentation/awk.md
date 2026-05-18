@@ -4,8 +4,8 @@
 
 ## Built-In Variables
 
-Awk’s built-in variables include the field variables—$1, $2, $3, and so on ($0
-is the entire line) — that break a line of text into individual words or pieces
+Awk’s built-in variables include the field variables-$1, $2, $3, and so on ($0
+is the entire line) - that break a line of text into individual words or pieces
 called fields.
 
 | Variable | Description                                                                                                                                                                                                                                           |

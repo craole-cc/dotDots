@@ -82,7 +82,7 @@ in {
       "amdgpu.modeset=1"
       "amd_pstate=active"
 
-      #? simpledrm is built into the NixOS kernel — it cannot be blacklisted.
+      #? simpledrm is built into the NixOS kernel - it cannot be blacklisted.
       #? These params prevent it from binding to the EFI framebuffer device,
       #? leaving the NVIDIA PCI slot free for nvidia_drm to claim at stage-2.
       "video=efifb:off"
@@ -104,7 +104,7 @@ in {
       "lsm=landlock,yama,bpf"
     ];
 
-    # nouveau only — simpledrm is built-in and ignores this list
+    # nouveau only - simpledrm is built-in and ignores this list
     blacklistedKernelModules = ["nouveau"];
   };
 
@@ -113,7 +113,7 @@ in {
   # NVIDIA-connected monitors appear as PRIME outputs on card1.
   environment.sessionVariables.WLR_DRM_DEVICES = "/dev/dri/card1";
 
-  # amdgpu first sets the init order — AMD registers before NVIDIA.
+  # amdgpu first sets the init order - AMD registers before NVIDIA.
   services.xserver.videoDrivers = [
     "amdgpu"
     "nvidia"

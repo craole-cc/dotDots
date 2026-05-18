@@ -45,7 +45,7 @@
   inherit (_.lists.construction) mkCheckList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any;
-  inherit (_.lists.reduction) foldl';
+  inherit (_.lists.aggregation) foldl';
   inherit (_.lists.transformation) sort;
   inherit (_.strings.access) stringLength;
   inherit (_.lists.construction) toList;

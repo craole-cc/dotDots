@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.content.fallback) orDefault;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;

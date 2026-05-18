@@ -310,7 +310,7 @@ test_ligatures() {
   #DOC { CN Only }
   #DOC   cv96: Full width quotes (“ / ” / ‘ / ’)
   #DOC   cv97: Full width ellipsis (…)
-  #DOC   cv98: Full width emdash (—)
+  #DOC   cv98: Full width emdash (-)
   #DOC   cv99: Traditional centered punctuations
   #DOC Stylistic Sets (ssXX)
   #DOC   ss01: Broken multiple equals ligatures (==, ===, !=, !== ...)

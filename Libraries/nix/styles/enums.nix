@@ -6,7 +6,7 @@
       Converts the style registry into typed enums, recursively
       walking nested registry trees and wrapping leaf sets with `mkEnum`.
 
-      Provides pre-built enums for icons and cursors.
+      Provides pre-built enums for icons, cursors, flavors, and accents.
 
       Depends on: style.filters style.registry lists.construction.
     '';
@@ -23,7 +23,7 @@
 
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
-  inherit (_.styles.filters.queries) icons cursors;
+  inherit (_.styles.filters.queries) icons cursors flavors accents;
   inherit (_.styles.registry) isRegistryAttrset;
 
   toEnums = input:
@@ -38,6 +38,8 @@
   all = {
     icons = toEnums icons.all;
     cursors = toEnums cursors.all;
+    flavors = toEnums flavors.all;
+    accents = toEnums accents.all;
   };
 in
   meta.exports.local

@@ -4,7 +4,7 @@
     "immediate on, match:class ^(osu!|cs2)$"
     "float on, match:title ^(Picture-in-Picture)$"
     "pin on, match:title ^(Picture-in-Picture)$"
-    "workspace special silent, match:title ^(Firefox — Sharing Indicator)$"
+    "workspace special silent, match:title ^(Firefox - Sharing Indicator)$"
     "workspace special silent, match:title ^(.*is sharing (your screen|a window).)$"
     "workspace 9 silent, match:title ^(Spotify( Premium)?)$"
     "idle_inhibit focus, match:class ^(mpv|.+exe|celluloid)$"

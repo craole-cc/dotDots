@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck enable=all
 # =============================================================================
-# play-media — A POSIX shell music player frontend for mpv
+# play-media - A POSIX shell music player frontend for mpv
 # =============================================================================
 # DESCRIPTION:
 #   Searches configured media directories for audio files matching given search
@@ -10,13 +10,13 @@
 #   combining local files and remote URLs.
 #
 # DEPENDENCIES:
-#   mpv    — media player          (https://mpv.io)
-#   fd     — fast file finder      (https://github.com/sharkdp/fd)
-#   yt-dlp — optional URL support  (https://github.com/yt-dlp/yt-dlp)
+#   mpv    - media player          (https://mpv.io)
+#   fd     - fast file finder      (https://github.com/sharkdp/fd)
+#   yt-dlp - optional URL support  (https://github.com/yt-dlp/yt-dlp)
 #
 # ENVIRONMENT:
-#   MUSIC       — base music directory (falls back to ~/Music)
-#   MEDIA_DIRS  — colon- or newline-separated list of directories to search;
+#   MUSIC       - base music directory (falls back to ~/Music)
+#   MEDIA_DIRS  - colon- or newline-separated list of directories to search;
 #                 overrides the default candidates when set
 #
 # PERMISSIONS:
@@ -75,7 +75,7 @@ manage_environment() {
 			#> Clear all transient state so re-runs don't bleed into each other
 			unset args SEARCH_COUNT PLAYLIST EXTRA_DIRS NO_PWD matches_nl matches_delim
 
-			#> DELIMITER: unit separator (ASCII 31 / \037) — safe for paths with
+			#> DELIMITER: unit separator (ASCII 31 / \037) - safe for paths with
 			#?   spaces, tabs, or special chars; never appears in filenames
 			: "${DELIMITER:="$(printf "\037")"}"
 
@@ -88,7 +88,7 @@ manage_environment() {
 			#> SHUFFLE: passed to mpv as --shuffle when non-empty
 			: "${SHUFFLE:=}"
 
-			#> DRY_RUN: when set, preview only — no playback
+			#> DRY_RUN: when set, preview only - no playback
 			: "${DRY_RUN:=}"
 			;;
 
@@ -117,7 +117,7 @@ parse_arguments() {
 		case "$1" in
 
 		-h | --help)
-			#> Print usage and exit cleanly — no playback
+			#> Print usage and exit cleanly - no playback
 			usage
 			exit 0
 			;;
@@ -128,7 +128,7 @@ parse_arguments() {
 			;;
 
 		-x | --shuffle)
-			#> Enable mpv shuffle — applies to the entire final playlist
+			#> Enable mpv shuffle - applies to the entire final playlist
 			SHUFFLE=true
 			;;
 
@@ -189,7 +189,7 @@ parse_arguments() {
 # =============================================================================
 
 define_media_dirs() {
-	#> Normalize externally-supplied MEDIA_DIRS if set — callers may use colons
+	#> Normalize externally-supplied MEDIA_DIRS if set - callers may use colons
 	#? or newlines as delimiters (e.g. from a shell config or env file)
 	case "${MEDIA_DIRS:-}" in
 	?*)
@@ -198,7 +198,7 @@ define_media_dirs() {
 		;;
 	esac
 
-	#? Build candidate list — explicit dirs take priority via -m / EXTRA_DIRS;
+	#? Build candidate list - explicit dirs take priority via -m / EXTRA_DIRS;
 	#? if none were given, fall back to standard locations in priority order:
 	#?   1. $MUSIC env var (user-defined base)
 	#?   2. ~/Music (XDG conventional location)
@@ -225,7 +225,7 @@ define_media_dirs() {
 		"") continue ;;
 		esac
 
-		#> Expand leading ~ manually — POSIX sh won't expand ~ inside quotes
+		#> Expand leading ~ manually - POSIX sh won't expand ~ inside quotes
 		case "${dir}" in
 		~/*) dir="${HOME}/${dir#~/}" ;;
 		~) dir="${HOME}" ;;
@@ -268,7 +268,7 @@ define_media_dirs() {
 # =============================================================================
 
 find_media() {
-	#? $1 — search pattern; empty string means "match everything"
+	#? $1 - search pattern; empty string means "match everything"
 	pattern=$1
 
 	#> Split MEDIA_DIRS on DELIMITER into positional params
@@ -309,7 +309,7 @@ find_media() {
 				"${pattern}" 2>/dev/null || true
 			;;
 		*)
-			#> Load-all mode: no pattern — return every supported audio file
+			#> Load-all mode: no pattern - return every supported audio file
 			fd \
 				--type f \
 				--search-path "${search_dir}" \
@@ -395,9 +395,9 @@ play() {
 # =============================================================================
 
 print_list() {
-	#? $1    — section title
-	#? $2    — DELIMITER-separated list of items
-	#? $3... — optional flags: --count / -n  |  --no-count / -x
+	#? $1    - section title
+	#? $2    - DELIMITER-separated list of items
+	#? $3... - optional flags: --count / -n  |  --no-count / -x
 	title="$1"
 	list="$2"
 	shift 2

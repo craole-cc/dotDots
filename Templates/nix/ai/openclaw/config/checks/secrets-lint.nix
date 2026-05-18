@@ -1,5 +1,5 @@
-{ pkgs, ... }:
-pkgs.runCommand "secrets-lint" { } ''
+{pkgs, ...}:
+pkgs.runCommand "secrets-lint" {} ''
   echo "==> Scanning repository sources for leaked secret patterns..."
 
   source_root=${../..}
@@ -29,7 +29,7 @@ pkgs.runCommand "secrets-lint" { } ''
   )
 
   if [ "$FOUND" -eq 1 ]; then
-    echo "secrets-lint: leaked secret pattern detected — aborting."
+    echo "secrets-lint: leaked secret pattern detected - aborting."
     exit 1
   fi
 

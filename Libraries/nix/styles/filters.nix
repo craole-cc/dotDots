@@ -7,12 +7,14 @@
       Each top-level key maps to a domain section exposing
       { all, default, groups, queries } via mkSection.
 
-      Also provides fuzzy `lookup` — resolves a name or alias to a
+      Also provides fuzzy `lookup` - resolves a name or alias to a
       { key, entry } pair by searching the filtered registry subset.
 
       Top-level queries:
-        icons   - icon themes
-        cursors - cursor themes
+        icons    - icon themes
+        cursors  - cursor themes
+        flavors  - catppuccin flavors
+        accents  - catppuccin accents
 
       Depends on: style.registry.
     '';
@@ -38,8 +40,9 @@
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) filterAttrs;
-  inherit (_.content.empty) isEmpty isNotEmpty;
+  inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.lists.access) findFirst;
+  inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.predicates) elem isIn isList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
@@ -48,7 +51,7 @@
 
   keysFromMembers = field: set:
     unique (
-      builtins.concatMap (entry: let
+      concatMap (entry: let
         val = entry.${field} or [];
       in
         if isList val
@@ -102,7 +105,7 @@
       else null;
     byAlias =
       findFirst
-      (item: elem name (item.entry.names.aliases or []))
+      (item: elem name (item.entry.aliases or item.entry.names.aliases or []))
       null
       items;
   in
@@ -115,10 +118,12 @@
   default = mkFilters {
     inherit registry;
     queries = {byCategory, ...}: let
-      icons = mkSection {set = byCategory.icons   or {};};
+      icons = mkSection {set = byCategory.icons or {};};
       cursors = mkSection {set = byCategory.cursors or {};};
+      flavors = mkSection {set = byCategory.flavors or {};};
+      accents = mkSection {set = byCategory.accents or {};};
     in {
-      inherit icons cursors;
+      inherit icons cursors flavors accents;
     };
   };
 in

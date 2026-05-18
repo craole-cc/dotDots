@@ -4,40 +4,58 @@
   lib,
   ...
 }: let
+  functions = {
+    inherit
+      capitalize
+      indent
+      normalize
+      replaceAll
+      toCamel
+      toLower'
+      toPascal
+      toScreamingSnake
+      toSnake
+      toTitle
+      toUpper'
+      trim
+      trimEnd
+      trimStart
+      ;
+  };
+  aliases = {
+    # capitalizeString = capitalize;
+    toCamelCase = toCamel;
+    toLowerCase = toLower';
+    toPascalCase = toPascal;
+    toScreamingSnakeCase = toScreamingSnake;
+    toSnakeCase = toSnake;
+    toTitleCase = toTitle;
+    toUpperCase = toUpper';
+    # trimString = trim;
+    # trimStringEnd = trimEnd;
+    # trimStringStart = trimStart;
+    # replaceAllStrings = replaceAll;
+    # normalizeString = normalize;
+  };
   __exports = {
-    internal = {
-      inherit
-        capitalize
-        indent
-        normalize
-        replaceAll
-        toCamel
-        toLower'
-        toPascal
-        toScreamingSnake
-        toSnake
-        toTitle
-        toUpper'
-        trim
-        trimEnd
-        trimStart
-        ;
-    };
-    external = {
-      capitalizeString = capitalize;
-      toCamelCase = toCamel;
-      toLowerCase = toLower';
-      toPascalCase = toPascal;
-      toScreamingSnakeCase = toScreamingSnake;
-      toSnakeCase = toSnake;
-      toTitleCase = toTitle;
-      toUpperCase = toUpper';
-      trimString = trim;
-      trimStringEnd = trimEnd;
-      trimStringStart = trimStart;
-      replaceAllStrings = replaceAll;
-      normalizeString = normalize;
-    };
+    internal = functions // aliases;
+    external =
+      aliases
+      // {
+        capitalizeString = capitalize;
+        toCamelCase = toCamel;
+        toLowerCase = toLower';
+        toPascalCase = toPascal;
+        toScreamingSnakeCase = toScreamingSnake;
+        toSnakeCase = toSnake;
+        toTitleCase = toTitle;
+        toUpperCase = toUpper';
+        trimString = trim;
+        trimStringEnd = trimEnd;
+        trimStringStart = trimStart;
+        replaceAllStrings = replaceAll;
+        normalizeString = normalize;
+      };
   };
   _debug = mkModuleDebug __moduleRef;
   inherit (_debug) mkFn mkExample;
@@ -59,7 +77,7 @@
   inherit (_.strings.construction) concatStringsSep;
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
-  inherit (_.content.empty) isEmpty;
+  inherit (_.content.emptiness) isEmpty;
   inherit (lib.lists) any genList map;
 
   #? Internal: apply a string transform to a string or each item in a list.
@@ -79,6 +97,7 @@
   };
 
   _normalizeSymbols = s: _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
+
   /**
   Convert a string or list of strings to lower case.
 

@@ -28,7 +28,7 @@
 
   inherit (_.applications.primitives) toValue;
   inherit (_.attrsets.access) attrByPath;
-  inherit (_.attrsets.merging) recursiveUpdate;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.attrsets.predicates) isAttrs;
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# init-db.sh — Initialize the local SQLite database for craole.cc
+# init-db.sh - Initialize the local SQLite database for craole.cc
 # Usage: ./scripts/init-db.sh [-f | --force | --reset]
 #
 # By default, skips initialization if the database already exists.
@@ -29,14 +29,14 @@ if [ -t 1 ]; then
 	CLR_WARNING=$(_tput setaf 214) # amber
 	CLR_RESET=$(_tput sgr0)
 
-	#? Tier 2: Safe tput — base 8 colors (nearly universal)
+	#? Tier 2: Safe tput - base 8 colors (nearly universal)
 	[ -z "${CLR_FAILURE:-}" ] && CLR_FAILURE=$(_tput setaf 1) # red
 	[ -z "${CLR_SUCCESS:-}" ] && CLR_SUCCESS=$(_tput setaf 2) # green
 	[ -z "${CLR_INFO:-}" ] && CLR_INFO=$(_tput setaf 4)       # blue
 	[ -z "${CLR_WARNING:-}" ] && CLR_WARNING=$(_tput setaf 3) # yellow
 	[ -z "${CLR_RESET:-}" ] && CLR_RESET=$(_tput sgr0)
 
-	#? Tier 3: Hardcoded ANSI (last resort — no tput or $TERM)
+	#? Tier 3: Hardcoded ANSI (last resort - no tput or $TERM)
 	[ -z "${CLR_FAILURE:-}" ] && CLR_FAILURE=$(printf '\033[1;31m')
 	[ -z "${CLR_SUCCESS:-}" ] && CLR_SUCCESS=$(printf '\033[1;32m')
 	[ -z "${CLR_INFO:-}" ] && CLR_INFO=$(printf '\033[1;34m')

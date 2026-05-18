@@ -225,7 +225,7 @@ in {
         #║ Packages                                                  ║
         #╚═══════════════════════════════════════════════════════════╝
         package = let
-          rust-bin = pkgs.rust-bin or (throw "lib.packages.mkRust: pkgs.rust-bin not found — is the rust-overlay applied?");
+          rust-bin = pkgs.rust-bin or (throw "lib.packages.mkRust: pkgs.rust-bin not found - is the rust-overlay applied?");
         in
           if file != null
           then rust-bin.fromRustupToolchainFile toolchain.file
@@ -266,7 +266,7 @@ in {
             // optionalAttrs configuration.includeWeb {inherit binaryen cargo-leptos leptosfmt;};
           custom = {
             rust = let
-              rust-bin = pkgs.rust-bin or (throw "lib.packages.mkRust: pkgs.rust-bin not found — is the rust-overlay applied?");
+              rust-bin = pkgs.rust-bin or (throw "lib.packages.mkRust: pkgs.rust-bin not found - is the rust-overlay applied?");
             in
               if file != null
               then rust-bin.fromRustupToolchainFile toolchain.file

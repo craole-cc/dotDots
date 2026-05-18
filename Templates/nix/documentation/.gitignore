@@ -24,7 +24,7 @@
 !.env.example
 !.envrc
 
-# Age private keys — never commit these
+# Age private keys - never commit these
 keys.txt
 *.agekey
 .config/age/

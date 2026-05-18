@@ -58,7 +58,7 @@
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.access) length;
   inherit (_.lists.predicates) isIn;
-  inherit (_.lists.reduction) concatMap foldl';
+  inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.transformation) toPascal;

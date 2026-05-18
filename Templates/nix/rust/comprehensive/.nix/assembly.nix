@@ -4,7 +4,7 @@ libraries/assembly.nix
 Self-contained assembly and filesystem-import helpers.
 
 Provides `assemble`, path-discovery utilities, and `importLibs` using only
-stock nixpkgs lib — no custom extensions, no circular dependencies.
+stock nixpkgs lib - no custom extensions, no circular dependencies.
 
 Intended as a zero-dependency bootstrap that other library namespaces
 (filesystem, attrsets, strings, …) can import without causing recursion.
@@ -25,7 +25,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
   paths,
   ...
 }: let
-  # stdlib — only stock nixpkgs lib, nothing custom
+  # stdlib - only stock nixpkgs lib, nothing custom
   inherit (lib.attrsets) attrNames attrValues filterAttrs;
   inherit
     (lib.filesystem)
@@ -81,7 +81,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
 
   Each file receives the *already-extended* `lib`, so `attrs.nix` can call
   functions defined in `strings.nix`, and `paths.nix` can call functions from
-  both earlier files — with no fixed-point needed.
+  both earlier files - with no fixed-point needed.
 
   ```nix
   myLib = assemble {
@@ -100,7 +100,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
 
   ## 2 – Priority + ignore: control load order explicitly
 
-  `meta.nix` defines `mkVersion` and `mkLabel` — foundational helpers that
+  `meta.nix` defines `mkVersion` and `mkLabel` - foundational helpers that
   later files depend on.  `legacy.nix` is obsolete and must be skipped.
 
   ```nix
@@ -611,7 +611,7 @@ Intended as a zero-dependency bootstrap that other library namespaces
   };
 in {
   /**
-  `lib.assembly` — all helpers live here so the file can be merged
+  `lib.assembly` - all helpers live here so the file can be merged
   directly into lib:
 
   ```nix

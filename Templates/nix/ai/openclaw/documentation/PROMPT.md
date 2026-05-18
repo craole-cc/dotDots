@@ -1,7 +1,7 @@
 # OpenClaw Flake Initialization Prompt
 
 You are an expert Nix/NixOS engineer. Your FIRST deliverable is this file
-itself, saved as PROMPT.md at the repository root — a human-readable record of
+itself, saved as PROMPT.md at the repository root - a human-readable record of
 the specification that produced the repo.
 
 After writing PROMPT.md, generate every remaining file listed below, in full,
@@ -21,20 +21,20 @@ your canonical structural reference. Key facts from that repo:
   lives under ./modules, keeping the root clean.
 - overlays/ and patches/ are separate from packages/ in llm-agents because
   overlays compose _across_ packages and need a different evaluation context. We
-  replicate this separation — but we colocate them under ./modules so the root
+  replicate this separation - but we colocate them under ./modules so the root
   only ever holds flake.nix.
-- devshell.nix is a standalone file consumed by blueprint — do NOT inline it
+- devshell.nix is a standalone file consumed by blueprint - do NOT inline it
   into flake.nix. Keep it as ./modules/devshell.nix.
 - treefmt.nix is likewise a standalone file at ./modules/treefmt.nix.
 - checks/ is a real directory (./modules/checks/) discovered by blueprint. Do
   NOT merge checks into flake.nix.
 
-  CRITICAL — nixpkgs pinning policy (verbatim from numtide): "This flake is only
+  CRITICAL - nixpkgs pinning policy (verbatim from numtide): "This flake is only
   built and tested against its pinned nixpkgs-unstable input. If you set
   openclaw.inputs.nixpkgs.follows = 'nixpkgs', your nixpkgs must also track
-  nixpkgs-unstable and be reasonably current — using a stable release branch
+  nixpkgs-unstable and be reasonably current - using a stable release branch
   (e.g. nixos-25.05) will break eventually. Omitting follows costs you a second
-  nixpkgs evaluation but guarantees you get the combination we ship in CI — and
+  nixpkgs evaluation but guarantees you get the combination we ship in CI - and
   lets you pull pre-built binaries from our binary cache instead of rebuilding
   everything against your nixpkgs."
 
@@ -48,19 +48,19 @@ your canonical structural reference. Key facts from that repo:
 
 Every file below must be generated in full.
 
-ROOT (dot-files + flake only — nothing else) PROMPT.md # This specification
+ROOT (dot-files + flake only - nothing else) PROMPT.md # This specification
 (first file output) flake.nix # Single flake; delegates everything to ./modules
-flake.lock # Fully pinned; stub SHAs are acceptable — mark them .envrc # use
+flake.lock # Fully pinned; stub SHAs are acceptable - mark them .envrc # use
 flake + .envrc.local pattern .gitignore # result, .direnv, secrets/_.yaml
 (not_.yaml.enc) README.md # Quickstart, nixpkgs warning, module options table
 
-MODULES (blueprint src = ./modules — all Nix lives here) modules/ devshell.nix #
+MODULES (blueprint src = ./modules - all Nix lives here) modules/ devshell.nix #
 numtide/devshell commands list (not inline in flake) treefmt.nix # treefmt-nix
 config for all formatters
 
     packages/
       openclaw/
-        default.nix                 # stdenv.mkDerivation — deterministic fetchFromGitHub
+        default.nix                 # stdenv.mkDerivation - deterministic fetchFromGitHub
         wrapper.nix                 # makeWrapper: runtime PATH, config flags
       gh-tools/
         default.nix                 # pkgs.gh + wrapper reading GITHUB_TOKEN from env
@@ -94,10 +94,10 @@ security-scan.yml # Trivy/grype + sops lint
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ FLAKE STRUCTURE (flake.nix)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The flake.nix must be MINIMAL — all logic delegates to blueprint. Model it
+The flake.nix must be MINIMAL - all logic delegates to blueprint. Model it
 closely on <https://github.com/numtide/llm-agents.nix/blob/main/flake.nix>.
 
-inputs: nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable" # NO follows — see
+inputs: nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable" # NO follows - see
 nixpkgs pinning policy above systems.url = "github:nix-systems/default"
 blueprint = { url = "github:numtide/blueprint"; inputs.nixpkgs.follows =
 "nixpkgs"; inputs.systems.follows = "systems"; } treefmt-nix = { url =
@@ -126,7 +126,7 @@ default = import ./modules/openclaw; }; };
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Overlays live _inside_ packages/ because they are a composition of the packages
-built in the sibling directories. They are not standalone — they reference
+built in the sibling directories. They are not standalone - they reference
 `openclaw` and `gh-tools` derivations from ../openclaw and ../gh-tools.
 
 overlays/default.nix: Called with `{ packages }` (the blueprint packages
@@ -173,7 +173,7 @@ camera=()"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 All defined in modules/openclaw/config.nix using lib.mkOption with type,
-default, description, and example for every option. No `with lib;` — use
+default, description, and example for every option. No `with lib;` - use
 explicit lib. prefixes throughout.
 
 services.openclaw.enable bool, default false services.openclaw.package package,
@@ -190,7 +190,7 @@ listOf str, default []
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ DEVELOPER SHELL (modules/devshell.nix)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Use numtide/devshell `commands` list pattern — NOT raw buildInputs.
+Use numtide/devshell `commands` list pattern - NOT raw buildInputs.
 
 Commands to expose: fmt → treefmt check → nix flake check build → nix build
 .#openclaw run → nix run .#openclaw test → nix build
@@ -204,14 +204,14 @@ OPENCLAW_LOG_LEVEL OPENCLAW_PORT SOPS_AGE_KEY_FILE GITHUB_TOKEN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ FORMATTING (modules/treefmt.nix)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-nixfmt-rfc-style _.nix prettier_.md _.json_.yaml _.yml shfmt _.sh (indent: 2,
+nixfmt-rfc-style _.nix prettier_.md _.json_.yaml _.yml shfmt_.sh (indent: 2,
 simplify: true) taplo _.toml deadnix --edit (remove unused bindings) statix
 (lint anti-patterns) Exclude: [ "flake.lock" "_.age" "secrets/\*.yaml" ]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ CHECKS (modules/checks/)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-checks/openclaw-unit.nix — real lib.nixosTest:
+checks/openclaw-unit.nix - real lib.nixosTest:
 
 - Boot minimal NixOS VM, import modules/openclaw
 - Enable services.openclaw on port 8080
@@ -220,11 +220,11 @@ checks/openclaw-unit.nix — real lib.nixosTest:
 - Assert process runs as non-root DynamicUser
 - Assert /proc/<pid>/status shows CapPrm: 0000000000000000
 
-checks/secrets-lint.nix — runCommand that greps the build output path for: BEGIN
+checks/secrets-lint.nix - runCommand that greps the build output path for: BEGIN
 PRIVATE KEY, BEGIN RSA PRIVATE KEY, AKIA[A-Z0-9]{16}, password\s*=\s*"[^"]+"
 Fail if any match found.
 
-checks/format.nix — treefmt --fail-on-change wrapped as a Nix check.
+checks/format.nix - treefmt --fail-on-change wrapped as a Nix check.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ OUTPUT CONTRACTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -268,9 +268,9 @@ security-scan.yml:
 3. lib.mkOption with type + default + description + example on every option.
 4. lib.mkIf config.services.openclaw.enable guards in service/security modules.
 5. lib.types.package for package options, never raw pkgs references.
-6. No `with lib;` anywhere — explicit lib. prefixes only.
+6. No `with lib;` anywhere - explicit lib. prefixes only.
 7. devshell uses `commands` list, not buildInputs.
-8. flake.nix stays under 60 lines — all logic in ./modules.
+8. flake.nix stays under 60 lines - all logic in ./modules.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ DELIVERABLE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

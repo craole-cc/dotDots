@@ -23,66 +23,72 @@
   in {inherit doc exports;};
 
   inherit (_.options.construction) mkOption;
-  inherit (_.types.combinators) submodule;
+  inherit (_.types.combinators) nullOr submodule;
   inherit (_.types.primitives) float int package str;
 
-  iconSubmodule = submodule {
-    options = {
-      name = mkOption {
-        description = "Icon theme canonical registry key";
-        type = str;
-      };
-      package = mkOption {
-        description = "Icon theme package";
-        type = package;
-      };
-    };
-  };
-
-  cursorSubmodule = submodule {
-    options = {
-      name = mkOption {
-        description = "Cursor theme name";
-        type = str;
-      };
-      package = mkOption {
-        description = "Cursor theme package";
-        type = package;
-      };
-      size = mkOption {
-        description = "Cursor size in pixels";
-        type = int;
-        default = 24;
+  icons = let
+    common = submodule {
+      options = {
+        name = mkOption {
+          description = "Icon theme canonical registry key";
+          type = nullOr str;
+          default = null;
+        };
+        package = mkOption {
+          description = "Icon theme package";
+          type = nullOr package;
+          default = null;
+        };
       };
     };
+  in {
+    core = common;
+    home = common;
   };
 
-  opacitySubmodule = submodule {
-    options = {
-      terminal = mkOption {
-        description = "Terminal background opacity (0.0-1.0)";
-        default = 0.9;
-        type = float;
-      };
-      popups = mkOption {
-        description = "Popup/overlay background opacity (0.0-1.0)";
-        default = 0.95;
-        type = float;
+  cursors = let
+    common = submodule {
+      options = {
+        name = mkOption {
+          description = "Cursor theme name";
+          type = nullOr str;
+          default = null;
+        };
+        package = mkOption {
+          description = "Cursor theme package";
+          type = nullOr package;
+          default = null;
+        };
+        size = mkOption {
+          description = "Cursor size in pixels";
+          type = int;
+          default = 24;
+        };
       };
     };
+  in {
+    core = common;
+    home = common;
   };
 
-  icons = {
-    core = iconSubmodule;
-    home = iconSubmodule;
-  };
-  cursors = {
-    core = cursorSubmodule;
-    home = cursorSubmodule;
-  };
-  opacity = {
-    core = opacitySubmodule;
-    home = opacitySubmodule;
+  opacity = let
+    common = submodule {
+      options = {
+        terminal = mkOption {
+          description = "Terminal background opacity (0.0-1.0)";
+          default = 0.9;
+          type = float;
+        };
+        popups = mkOption {
+          description = "Popup/overlay background opacity (0.0-1.0)";
+          default = 0.95;
+          type = float;
+        };
+      };
+    };
+  in {
+    core = common;
+    home = common;
   };
 in
   meta.exports.local

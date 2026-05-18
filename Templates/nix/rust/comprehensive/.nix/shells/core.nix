@@ -147,11 +147,11 @@ Shell finalization helpers for lib.shells.
   /**
   Merge two *resolved* shell specs (attrsets with `shell` + `__meta`).
 
-  - `packages`  — appended left ++ right
-  - `env`       — right wins on conflict (`recursiveUpdate`)
-  - `shellHook` — concatenated with a newline separator
-  - `name`      — `"left-name+right-name"`, falling back to kind labels
-  - `kind`      — `"left-kind+right-kind"`, falling back to whichever exists
+  - `packages`  - appended left ++ right
+  - `env`       - right wins on conflict (`recursiveUpdate`)
+  - `shellHook` - concatenated with a newline separator
+  - `name`      - `"left-name+right-name"`, falling back to kind labels
+  - `kind`      - `"left-kind+right-kind"`, falling back to whichever exists
 
   # Type
 

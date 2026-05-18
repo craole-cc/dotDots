@@ -86,13 +86,13 @@ in
 2. `__exports`
 3. `__imports`
 4. functions (each preceded by its `/** */` docstring)
-5. `in` clause — `__exports.internal // { __rootAliases, __docs, __tests }`
+5. `in` clause - `__exports.internal // { __rootAliases, __docs, __tests }`
 
 ---
 
 ## `__exports` Convention
 
-Internal exports use bare `inherit` — names are used as-is within the module
+Internal exports use bare `inherit` - names are used as-is within the module
 tree. External exports **must be namespaced** to avoid collisions at the root
 level.
 
@@ -114,17 +114,17 @@ __exports = {
 };
 ```
 
-The naming pattern for external keys is `<domain><FunctionName>` — e.g.
+The naming pattern for external keys is `<domain><FunctionName>` - e.g.
 `toApplication*`, `mkUser*`, `hasConfig*`. Bare `inherit` in `external` is only
 appropriate when the name is already globally unambiguous.
 
 ## Docstring Format (`/** */`)
 
-- Summary sentence(s) first — plain prose, no heading
+- Summary sentence(s) first - plain prose, no heading
 - Edge cases / defaults / guards in a second paragraph if needed
-- `# Type` block — pseudo-signature using `::`, named record args, `|` for
+- `# Type` block - pseudo-signature using `::`, named record args, `|` for
   unions, `?` suffix or inline comment for optionals
-- `# Examples` block — at least two: one typical case, one boundary/edge case
+- `# Examples` block - at least two: one typical case, one boundary/edge case
   with a comment explaining what it demonstrates
 - Indent body content by 2 spaces inside the `/** */`
 - Fenced code blocks are flush with the left margin of the docstring
@@ -153,12 +153,12 @@ __tests = runTests {
 };
 ```
 
-**Test naming conventions** — names should read as assertions:
+**Test naming conventions** - names should read as assertions:
 
-- `allowsX` / `deniesX` — for boolean predicates
-- `returnsX` / `exportsX` — for value/shape checks
-- `resolvesX` — for lookup / alias resolution
-- `caseSensitiveWithExact` / `caseInsensitiveByDefault` — for case behaviour
+- `allowsX` / `deniesX` - for boolean predicates
+- `returnsX` / `exportsX` - for value/shape checks
+- `resolvesX` - for lookup / alias resolution
+- `caseSensitiveWithExact` / `caseInsensitiveByDefault` - for case behaviour
 
 Cover at minimum: the happy path, the rejection path, and any case-sensitivity
 or default-value behaviour.
@@ -201,7 +201,7 @@ or default-value behaviour.
 ```md
 <Title> (Layer N).
 
-<What this module provides — 2–4 sentences.>
+<What this module provides - 2–4 sentences.>
 <Mention any notable behaviour shared across functions.>
 
 Depends on: <comma-separated list>

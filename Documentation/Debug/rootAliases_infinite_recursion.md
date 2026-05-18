@@ -18,7 +18,7 @@ the library builds and evaluates correctly. The error surfaces at:
 Libraries/nix/applications/groups.nix:31:9 all = \_.applications.filters.groups;
 ^
 
-Where `_` is `self` — the extensible library's fixed point.
+Where `_` is `self` - the extensible library's fixed point.
 
 ## Error Trace (truncated)
 
@@ -34,18 +34,18 @@ Run with `--show-trace` to get the full trace if not already visible.
 
 Please read and reason over the following files (relative to repo root):
 
-- `Libraries/nix/default.nix` — entry point, receives `rootAliases` flag
-- `Libraries/nix/internal/default.nix` — builds the `library` via
+- `Libraries/nix/default.nix` - entry point, receives `rootAliases` flag
+- `Libraries/nix/internal/default.nix` - builds the `library` via
   `makeExtensible`; contains the `rootAliases` branch logic
-- `Libraries/nix/internal/env.nix` — constructs the module environment;
+- `Libraries/nix/internal/env.nix` - constructs the module environment;
   `_ = self`
-- `Libraries/nix/internal/scan.nix` — recursively scans `.nix` files; extracts
+- `Libraries/nix/internal/scan.nix` - recursively scans `.nix` files; extracts
   `_rootAliases` from each imported module
-- `Libraries/nix/internal/meta.nix` — `mkModuleExports` helper that creates
+- `Libraries/nix/internal/meta.nix` - `mkModuleExports` helper that creates
   `__rootAliases` (double underscore)
-- `Libraries/nix/internal/assemble.nix` — final assembly; wraps `library` into
+- `Libraries/nix/internal/assemble.nix` - final assembly; wraps `library` into
   `lix`
-- `Libraries/nix/applications/groups.nix`— the file where recursion is detected;
+- `Libraries/nix/applications/groups.nix`- the file where recursion is detected;
   examine how it defines `_rootAliases`, what it exports, and whether it uses
   `mkModuleExports`
 
@@ -66,7 +66,7 @@ Both `attrNames results.rootAliases` and the `//` operator force evaluation of
 the **key set** of `results.rootAliases`. Trace whether computing those keys
 anywhere requires forcing `_.applications.filters.groups` (i.e.,
 `self.applications...`), which itself requires `self` to already be fully
-resolved — creating a cycle.
+resolved - creating a cycle.
 
 Specifically check: does any module's `_rootAliases` attribute set have
 **dynamically computed keys** that involve `_`/`self`? For example:
@@ -91,7 +91,7 @@ there's a transform somewhere that renames `__rootAliases` → `_rootAliases`
 
 If modules use `mkModuleExports` but scan looks for `_rootAliases`, then
 `results.rootAliases` should always be `{}` when `rootAliases = true`, and the
-`rootAliases = true` branch should be a no-op — yet it still causes infinite
+`rootAliases = true` branch should be a no-op - yet it still causes infinite
 recursion. This would mean something else triggers the cycle.
 
 ### 3. `filterAttrs` forcing values during `__meta` construction
@@ -132,7 +132,7 @@ Confirm or refute this exact chain. If refuted, trace the actual path using
 
 When `rootAliases = false`, `self = results.modules` (no `//`). Accessing
 `self.applications` directly projects into `results.modules.applications`, which
-is a concrete attrset built from directory scanning — no
+is a concrete attrset built from directory scanning - no
 `attrNames results.rootAliases` is ever needed. The
 `results.modules.applications` key is determinable from `readDir` output alone,
 without evaluating any module body.
@@ -143,7 +143,7 @@ without evaluating any module body.
    chain of forced thunks)
 2. **Confirm or deny the `_rootAliases` vs `__rootAliases` naming mismatch** and
    whether it's a related or separate bug
-3. **Propose a fix** — likely one or more of:
+3. **Propose a fix** - likely one or more of:
    - Wrap `rootAliases` value expressions with
      `builtins.unsafeDiscardStringContext` or use `lib.lazyDerivation`-style
      indirection

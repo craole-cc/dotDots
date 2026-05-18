@@ -6,13 +6,12 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    inputs @ {flake-utils, ...}:
+  outputs = inputs @ {flake-utils, ...}:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        src = import ./. { inherit inputs system; };
-        inherit (src)
+      system: let
+        src = import ./. {inherit inputs system;};
+        inherit
+          (src)
           name
           lib
           paths
@@ -24,13 +23,12 @@
 
         e = src.env;
 
-        #> Build-time script substitution — @cmd@ and var name placeholders
-        mkScript =
-          {
-            scriptPath,
-            cmd,
-            extraSubstitutions ? { },
-          }:
+        #> Build-time script substitution - @cmd@ and var name placeholders
+        mkScript = {
+          scriptPath,
+          cmd,
+          extraSubstitutions ? {},
+        }:
           substituteAll (
             {
               src = scriptPath;
@@ -81,8 +79,7 @@
           ytdlp = pkgs.yt-dlp;
         };
         #> Flatten nested { var, val } leaves -> { VAR = "val"; } for mkShell
-      in
-      {
+      in {
         devShells.default = pkgs.mkShell {
           # env = listToAttrs (
           #   map ({
@@ -128,10 +125,10 @@
               xclip
               yt-dlp
             ])
-            ++ [ scripts ];
+            ++ [scripts];
 
           shellHook = ''
-            #> Runtime paths — $HOME expands here correctly
+            #> Runtime paths - $HOME expands here correctly
             export ${e.mpv.cfg.var}="${e.mpv.cfg.val}"
             export ${e.mpd.cfg.var}="${e.mpd.cfg.val}"
             export ${e.ytd.cfg.var}="${e.ytd.cfg.val}"

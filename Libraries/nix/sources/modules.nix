@@ -12,7 +12,7 @@
   '';
 
   inherit (_.sources.source) resolveInputs;
-  inherit (_.content.empty) isEmpty;
+  inherit (_.content.emptiness) isEmpty;
   inherit (lib.lists) optionals;
 
   __exports = {

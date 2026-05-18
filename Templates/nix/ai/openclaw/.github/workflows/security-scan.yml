@@ -1,4 +1,4 @@
-# Purpose: Security scanning — Trivy, grype, and sops secret lint.
+# Purpose: Security scanning - Trivy, grype, and sops secret lint.
 # Maintainer: openclaw-flake contributors
 name: Security Scan
 on:

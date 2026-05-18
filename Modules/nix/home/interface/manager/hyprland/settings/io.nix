@@ -29,7 +29,7 @@ in {
 
   bindr = ["${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"];
 
-  #~@ Locked binds — active even when screen is locked
+  #~@ Locked binds - active even when screen is locked
   bindl = [
     ", XF86AudioPlay, exec, playerctl play-pause"
     ", XF86AudioPrev, exec, playerctl previous"
