@@ -1,6 +1,6 @@
 {dots, ...}: let
   description = "Minimal Dev Environment";
-  inherit (dots) cache lix pkgs system;
+  inherit (dots) cache lix pkgs system inputPkgs;
   inherit (lix.lists.construction) optionals;
 
   #|---------------------------------------------------------|
@@ -69,13 +69,15 @@
     ++ (
       with pkgs;
         [
+          age
           alejandra
           bat # ? Cat clone with syntax highlighting
-          fd # ? Fast find alternative
           direnv
+          fd # ? Fast find alternative
           git
           gnused # ? GNU stream editor
           gum
+          inputPkgs.codex
           jq # ? JSON query processor
           lsd # ? LSDeluxe file lister
           nixd # ? Nix language daemon
@@ -84,7 +86,6 @@
           ripgrep-all # ? Ripgrep, for PDFs, E-Books, Office documents, zip, tar.gz, etc.
           sd # ? Intuitive find & replace CLI (sed alternative)
           sops
-          age
           undollar # ? Remove leading dollar signs age
         ]
         ++ optionals stdenv.isLinux [
