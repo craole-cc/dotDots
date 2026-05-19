@@ -40,8 +40,7 @@
   inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isFunction isList isString;
   inherit (_.styles.registry.groups.byCategory) cursors;
-
-  mkCatppuccin = _.styles.resolution.catppuccin.cursors.mkOne;
+  mkCatppuccin = _.styles.catppuccin.cursors.mkOne;
 
   mkRegistry = {
     group,

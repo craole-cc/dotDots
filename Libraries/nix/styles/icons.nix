@@ -39,6 +39,42 @@
   inherit (_.types.predicates) isAttrs isFunction isList isString;
   inherit (_.styles.registry.groups.byCategory) icons;
 
+  data = let
+    raw = icons;
+
+    seed = {icon = "candy-icons";};
+
+    registry = {
+      icons = mkRegistry {
+        group = "icon";
+        registry = raw;
+      };
+    };
+
+    families = let
+      byFamily = family:
+        filter
+        (name: raw.${name}.family == family)
+        registry.icons.names;
+    in {
+      inherit byFamily;
+    };
+  in {inherit raw seed registry families;};
+  inherit (data) raw seed registry;
+
+  normalize = {
+    value,
+    polarity,
+  }: let
+    selected =
+      if isEmpty value
+      then seed.icon
+      else mkPolarity.selection {inherit value polarity;};
+  in
+    if isString selected
+    then registry.icons.lookup selected
+    else selected;
+
   mkRegistry = {
     group,
     registry,
@@ -77,9 +113,7 @@
         message = "unknown ${group} `${input}` - valid: ${toString names}";
       };
         registry.${resolved};
-  in {
-    inherit registry names aliases lookup;
-  };
+  in {inherit registry names aliases lookup;};
 
   mkPolarity = {
     pair = input: let
@@ -163,47 +197,6 @@
           message = "expected null, string, list, or attrset, got `${typeOf value}`";
         }; null;
   };
-
-  data = let
-    raw = icons;
-
-    seed = {
-      icon = "candy-icons";
-    };
-
-    registry = {
-      icons = mkRegistry {
-        group = "icon";
-        registry = raw;
-      };
-    };
-
-    families = let
-      byFamily = family:
-        filter
-        (name: raw.${name}.family == family)
-        registry.icons.names;
-    in {
-      inherit byFamily;
-    };
-
-    normalize = {
-      value,
-      polarity,
-    }: let
-      selected =
-        if isEmpty value
-        then seed.icon
-        else mkPolarity.selection {inherit value polarity;};
-    in
-      if isString selected
-      then registry.icons.lookup selected
-      else selected;
-  in {
-    inherit raw seed registry families normalize;
-  };
-
-  inherit (data) raw seed registry families normalize;
 
   mkOne = {
     pkgs,

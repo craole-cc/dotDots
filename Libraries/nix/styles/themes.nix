@@ -19,7 +19,7 @@
     inherit doc exports;
   };
 
-  inherit (_.attrsets.access) attrNames getAttr;
+  inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
@@ -33,8 +33,7 @@
   inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isFunction isList isString;
   inherit (_.styles.registry.queries.themes) all;
-
-  mkCatppuccin = _.styles.resolution.catppuccin.themes.mkOne;
+  mkCatppuccin = _.styles.catppuccin.themes.mkOne;
 
   mkRegistry = {
     group,
