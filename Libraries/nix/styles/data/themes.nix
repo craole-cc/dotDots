@@ -1,8 +1,8 @@
 _: {
-  #  Catppuccin
+  # ── Catppuccin ─────────────────────────────────────────────────────────────
   catppuccin-latte = {
     aliases = ["latte" "catppuccin-light"];
-    categories = ["catppuccin" "light"];
+    family = "catppuccin";
     polarity = "light";
     name = "Catppuccin Latte";
     scheme = "catppuccin-latte";
@@ -10,8 +10,8 @@ _: {
   };
 
   catppuccin-frappe = {
-    aliases = ["frappe" "frappé"];
-    categories = ["catppuccin" "dark"];
+    aliases = ["frappe" "frappé" "catppuccin-frappe"];
+    family = "catppuccin";
     polarity = "dark";
     name = "Catppuccin Frappé";
     scheme = "catppuccin-frappe";
@@ -20,7 +20,7 @@ _: {
 
   catppuccin-macchiato = {
     aliases = ["macchiato"];
-    categories = ["catppuccin" "dark"];
+    family = "catppuccin";
     polarity = "dark";
     name = "Catppuccin Macchiato";
     scheme = "catppuccin-macchiato";
@@ -29,17 +29,17 @@ _: {
 
   catppuccin-mocha = {
     aliases = ["mocha" "catppuccin-dark"];
-    categories = ["catppuccin" "dark"];
+    family = "catppuccin";
     polarity = "dark";
     name = "Catppuccin Mocha";
     scheme = "catppuccin-mocha";
     package = "catppuccin";
   };
 
-  #  Rosé Pine
+  # ── Rosé Pine ──────────────────────────────────────────────────────────────
   rose-pine = {
     aliases = ["rosepine" "rose-pine-main"];
-    categories = ["rose-pine" "dark"];
+    family = "rose-pine";
     polarity = "dark";
     name = "Rosé Pine";
     scheme = "rose-pine";
@@ -48,7 +48,7 @@ _: {
 
   rose-pine-moon = {
     aliases = ["rosepine-moon" "pine-moon"];
-    categories = ["rose-pine" "dark"];
+    family = "rose-pine";
     polarity = "dark";
     name = "Rosé Pine Moon";
     scheme = "rose-pine-moon";
@@ -57,17 +57,17 @@ _: {
 
   rose-pine-dawn = {
     aliases = ["rosepine-dawn" "pine-dawn" "rose-pine-light"];
-    categories = ["rose-pine" "light"];
+    family = "rose-pine";
     polarity = "light";
     name = "Rosé Pine Dawn";
     scheme = "rose-pine-dawn";
     package = "rose-pine-gtk-theme";
   };
 
-  #  Gruvbox
+  # ── Gruvbox ────────────────────────────────────────────────────────────────
   gruvbox-dark = {
-    aliases = ["gruvbox" "gruvbox-hard-dark" "gruvbox-medium-dark"];
-    categories = ["gruvbox" "dark"];
+    aliases = ["gruvbox" "gruvbox-hard-dark"];
+    family = "gruvbox";
     polarity = "dark";
     name = "Gruvbox Dark";
     scheme = "gruvbox-dark-hard";
@@ -75,8 +75,8 @@ _: {
   };
 
   gruvbox-light = {
-    aliases = ["gruvbox-hard-light" "gruvbox-medium-light"];
-    categories = ["gruvbox" "light"];
+    aliases = ["gruvbox-hard-light"];
+    family = "gruvbox";
     polarity = "light";
     name = "Gruvbox Light";
     scheme = "gruvbox-light-hard";
@@ -85,7 +85,7 @@ _: {
 
   gruvbox-material-dark = {
     aliases = ["gruvbox-material" "gruvmaterial-dark"];
-    categories = ["gruvbox" "dark"];
+    family = "gruvbox";
     polarity = "dark";
     name = "Gruvbox Material Dark";
     scheme = "gruvbox-material-dark-hard";
@@ -94,36 +94,36 @@ _: {
 
   gruvbox-material-light = {
     aliases = ["gruvmaterial-light"];
-    categories = ["gruvbox" "light"];
+    family = "gruvbox";
     polarity = "light";
     name = "Gruvbox Material Light";
     scheme = "gruvbox-material-light-hard";
     package = "gruvbox-gtk-theme";
   };
 
-  #  Blue Loco
+  # ── Blue Loco ──────────────────────────────────────────────────────────────
   blueloco-dark = {
     aliases = ["blueloco" "blue-loco-dark"];
-    categories = ["blueloco" "dark"];
+    family = "blueloco";
     polarity = "dark";
     name = "Blue Loco Dark";
     scheme = "blueloco-dark";
-    package = null; # not yet in nixpkgs — resolver falls back to stylix scheme only
+    package = null;
   };
 
   blueloco-light = {
     aliases = ["blue-loco-light"];
-    categories = ["blueloco" "light"];
+    family = "blueloco";
     polarity = "light";
     name = "Blue Loco Light";
     scheme = "blueloco-light";
     package = null;
   };
 
-  #  Tokyo Night
+  # ── Tokyo Night ────────────────────────────────────────────────────────────
   tokyo-night = {
     aliases = ["tokyonight" "tokyo-night-dark"];
-    categories = ["tokyo-night" "dark"];
+    family = "tokyo-night";
     polarity = "dark";
     name = "Tokyo Night";
     scheme = "tokyo-night-dark";
@@ -132,7 +132,7 @@ _: {
 
   tokyo-night-storm = {
     aliases = ["tokyonight-storm"];
-    categories = ["tokyo-night" "dark"];
+    family = "tokyo-night";
     polarity = "dark";
     name = "Tokyo Night Storm";
     scheme = "tokyo-night-storm";
@@ -141,27 +141,27 @@ _: {
 
   tokyo-night-light = {
     aliases = ["tokyonight-light" "tokyo-night-day"];
-    categories = ["tokyo-night" "light"];
+    family = "tokyo-night";
     polarity = "light";
     name = "Tokyo Night Light";
     scheme = "tokyo-night-light";
     package = "tokyo-night-gtk";
   };
 
-  #  Dracula
+  # ── Dracula ────────────────────────────────────────────────────────────────
   dracula = {
     aliases = ["dracula-dark"];
-    categories = ["dracula" "dark"];
+    family = "dracula";
     polarity = "dark";
     name = "Dracula";
     scheme = "dracula";
     package = "dracula-theme";
   };
 
-  #  Nord
+  # ── Nord ───────────────────────────────────────────────────────────────────
   nord = {
     aliases = ["nordic" "nord-dark"];
-    categories = ["nord" "dark"];
+    family = "nord";
     polarity = "dark";
     name = "Nord";
     scheme = "nord";
@@ -170,17 +170,17 @@ _: {
 
   nord-light = {
     aliases = ["nordic-light"];
-    categories = ["nord" "light"];
+    family = "nord";
     polarity = "light";
     name = "Nord Light";
     scheme = "nord-light";
     package = "nordic";
   };
 
-  #  Everforest
+  # ── Everforest ─────────────────────────────────────────────────────────────
   everforest-dark = {
     aliases = ["everforest"];
-    categories = ["everforest" "dark"];
+    family = "everforest";
     polarity = "dark";
     name = "Everforest Dark";
     scheme = "everforest-dark-hard";
@@ -189,17 +189,17 @@ _: {
 
   everforest-light = {
     aliases = [];
-    categories = ["everforest" "light"];
+    family = "everforest";
     polarity = "light";
     name = "Everforest Light";
     scheme = "everforest-light-hard";
     package = "everforest-gtk-theme";
   };
 
-  #  Kanagawa 
+  # ── Kanagawa ───────────────────────────────────────────────────────────────
   kanagawa = {
     aliases = ["kanagawa-wave"];
-    categories = ["kanagawa" "dark"];
+    family = "kanagawa";
     polarity = "dark";
     name = "Kanagawa Wave";
     scheme = "kanagawa";
@@ -208,7 +208,7 @@ _: {
 
   kanagawa-dragon = {
     aliases = [];
-    categories = ["kanagawa" "dark"];
+    family = "kanagawa";
     polarity = "dark";
     name = "Kanagawa Dragon";
     scheme = "kanagawa-dragon";
@@ -217,7 +217,7 @@ _: {
 
   kanagawa-lotus = {
     aliases = ["kanagawa-light"];
-    categories = ["kanagawa" "light"];
+    family = "kanagawa";
     polarity = "light";
     name = "Kanagawa Lotus";
     scheme = "kanagawa-lotus";

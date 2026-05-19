@@ -1,21 +1,25 @@
 _: {
   latte = {
     aliases = ["light" "day" "daytime" "morning" "sun"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
+    polarity = "light";
   };
 
   frappe = {
     aliases = ["frappé" "muted" "soft" "dusk" "evening"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
+    polarity = "dark";
   };
 
   macchiato = {
     aliases = ["mac" "mid" "medium" "cozy" "rainy"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
+    polarity = "dark";
   };
 
   mocha = {
     aliases = ["dark" "night" "darkest" "original"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
+    polarity = "dark";
   };
 }

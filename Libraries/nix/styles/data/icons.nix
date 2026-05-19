@@ -1,14 +1,14 @@
 _: {
   candy-icons = {
     aliases = ["candy"];
-    categories = ["icons"];
+    family = "candy";
     package = "candy-icons";
     name = "candy-icons";
   };
 
   papirus = {
     aliases = ["papirus-icon-theme"];
-    categories = ["icons"];
+    family = "papirus";
     package = "papirus-icon-theme";
     polarity = {
       light = {name = "Papirus";};
@@ -18,70 +18,70 @@ _: {
 
   adwaita = {
     aliases = ["adwaita-icon-theme" "gnome"];
-    categories = ["icons"];
+    family = "adwaita";
     package = "adwaita-icon-theme";
     name = "Adwaita";
   };
 
   hicolor = {
     aliases = [];
-    categories = ["icons"];
+    family = "hicolor";
     package = "hicolor-icon-theme";
     name = "hicolor";
   };
 
   numix = {
     aliases = ["numix-icon-theme"];
-    categories = ["icons"];
+    family = "numix";
     package = "numix-icon-theme";
     name = "Numix";
   };
 
   numix-circle = {
     aliases = ["numix-circle-icon-theme"];
-    categories = ["icons"];
+    family = "numix";
     package = "numix-icon-theme-circle";
     name = "Numix-Circle";
   };
 
   tela = {
     aliases = ["tela-icon-theme"];
-    categories = ["icons"];
+    family = "tela";
     package = "tela-icon-theme";
     name = "Tela";
   };
 
   tela-circle = {
     aliases = [];
-    categories = ["icons"];
+    family = "tela";
     package = "tela-circle-icon-theme";
     name = "Tela-Circle";
   };
 
   fluent = {
     aliases = ["fluent-icon-theme"];
-    categories = ["icons"];
+    family = "fluent";
     package = "fluent-icon-theme";
     name = "Fluent";
   };
 
   kora = {
     aliases = [];
-    categories = ["icons"];
+    family = "kora";
     package = "kora-icon-theme";
     name = "Kora";
   };
 
   moka = {
     aliases = [];
-    categories = ["icons"];
+    family = "moka";
     package = "moka-icon-theme";
     name = "Moka";
   };
 
   faba = {
     aliases = [];
-    categories = ["icons"];
+    family = "faba";
     package = "faba-icon-theme";
     name = "Faba";
   };

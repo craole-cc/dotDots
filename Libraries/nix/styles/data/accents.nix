@@ -1,71 +1,71 @@
 _: {
   rosewater = {
     aliases = ["rose" "rosé"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   flamingo = {
     aliases = ["coral"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   pink = {
     aliases = ["hotpink" "hot-pink"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   mauve = {
     aliases = ["purple" "violet"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   red = {
     aliases = ["scarlet"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   maroon = {
     aliases = ["burgundy" "wine"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   peach = {
     aliases = ["orange" "apricot"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   yellow = {
     aliases = ["gold"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   green = {
     aliases = ["lime"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   teal = {
     aliases = ["cyan" "aqua" "turquoise"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   sky = {
     aliases = ["lightblue" "light-blue"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   sapphire = {
     aliases = ["azure" "cerulean"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   blue = {
     aliases = ["navy" "cobalt"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 
   lavender = {
     aliases = ["lilac" "magenta"];
-    categories = ["catppuccin"];
+    family = "catppuccin";
   };
 }
