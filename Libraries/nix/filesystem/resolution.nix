@@ -28,7 +28,7 @@
 
   inherit (_.attrsets.resolution) normalizePath;
   inherit (_.content.emptiness) isEmpty;
-  inherit (_.strings.transformation) concatStringsSep;
+  inherit (_.strings.construction) concat;
 
   mkPath = {
     root,
@@ -36,7 +36,7 @@
   }:
     if isEmpty stems
     then root
-    else root + "/${concatStringsSep "/" ((normalizePath stems).path)}";
+    else root + "/${concat "/" ((normalizePath stems).path)}";
 
   getFlakeBuiltin =
     optionalAttrs

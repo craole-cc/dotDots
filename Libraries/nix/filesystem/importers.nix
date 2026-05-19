@@ -1,16 +1,18 @@
 {_, ...}: let
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) listToAttrs;
-  inherit (_.attrsets.transformation) filterAttrs functionArgs;
+  inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs;
+  inherit (_.lists.construction) toList;
   inherit (_.filesystem.meta) listNixModules;
   inherit (_.filesystem.resolution) mkPath;
   inherit (_.filesystem.traversal) readDir;
   inherit (_.lists.aggregation) foldl';
-  inherit (_.lists.transformation) flatten;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) flatten unique;
   inherit (_.strings.access) substring stringLength;
   inherit (_.strings.predicates) hasSuffix;
+  inherit (_.types.predicates) isPath isString;
 
   exports = {
     inherit
@@ -201,24 +203,43 @@
   in
     foldl' (acc: mod: acc // mod) {} (map (name: import (dir + "/${name}") args) (nixFilesIn entries));
 
-  importRegistry = {
-    root,
-    stems ? ["data"],
-    recursive ? false,
-    args ? {},
-  }: let
+  importRegistry = arg: let
+    normalized =
+      if isPath arg || isString arg
+      then {
+        root = arg;
+        stems = ["data"];
+        recursive = true;
+        args = {};
+      }
+      else arg;
+
+    inherit (normalized) root args recursive;
+    stems = normalized.stems or ["data"];
+    category = normalized.category or null;
+
     path = mkPath {inherit root stems;};
     entries = readDir path;
 
     stemOf = name: substring 0 (stringLength name - 4) name;
 
     direct = listToAttrs (
-      map (name: {
-        name = stemOf name;
-        value = importWithArgs {
-          path = path + "/${name}";
-          inherit args;
-        };
+      map (name: let
+        stem = stemOf name;
+      in {
+        name = stem;
+        value = let
+          raw = importWithArgs {
+            path = path + "/${name}";
+            inherit args;
+          };
+        in
+          mapAttrs (_: entry:
+            entry
+            // {
+              categories = unique ((toList (entry.categories or [])) ++ [stem]);
+            })
+          raw;
       })
       (nixFilesIn entries)
     );
@@ -232,6 +253,7 @@
         // importRegistry {
           inherit root args recursive;
           stems = stems ++ [name];
+          category = name;
         })
       {}
       (subDirsIn entries)

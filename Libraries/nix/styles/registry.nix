@@ -13,7 +13,7 @@
     functions = {
       inherit
         entries
-        mkRegistry
+        # mkRegistry
         importRegistry
         isRegistryAttrset
         lookup
@@ -23,9 +23,7 @@
       local = functions;
       alias = {};
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -40,21 +38,7 @@
     then filter (value: value != null && value != "") values
     else [];
 
-  # mkRegistry = data:
-  #   mapAttrs (
-  #     section: set:
-  #       mapAttrs (
-  #         _: entry:
-  #           entry
-  #           // {
-  #             categories = normalizeList ((entry.categories or []) ++ [section]);
-  #           }
-  #       )
-  #       set
-  #   )
-  #   data;
-  # importRegistry = path: mkRegistry (importAllMerged path {});
-  entries = importRegistry {root = ./.;};
+  entries = importRegistry ./.;
 
   isRegistryAttrset = tree:
     (tree != {})

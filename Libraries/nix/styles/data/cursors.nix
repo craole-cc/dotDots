@@ -1,93 +1,66 @@
-_: let
-  category = "cursors";
-in {
-  "${category}" = {
-    material = {
-      names = {
-        package = "material-cursors";
-        light = "material_light_cursors";
-        dark = "material_dark_cursors";
-        aliases = ["material"];
-      };
-      categories = [category];
-    };
+_: {
+  catppuccin = {
+    aliases = ["catppuccin-cursors"];
+    categories = ["cursors" "catppuccin"];
+    generated = true;
+  };
 
-    catppuccin = {
-      names = {
-        package = null;
-        aliases = ["catppuccin-cursors"];
-      };
-      categories = [category];
+  material = {
+    aliases = ["material"];
+    categories = ["cursors"];
+    package = "material-cursors";
+    polarity = {
+      light = {name = "material_light_cursors";};
+      dark = {name = "material_dark_cursors";};
     };
+  };
 
-    bibata-modern-classic = {
-      names = {
-        package = "bibata-cursors";
-        light = "Bibata-Modern-Classic";
-        dark = "Bibata-Modern-Classic";
-        aliases = ["bibata" "bibata-classic"];
-      };
-      categories = [category];
-    };
+  bibata-modern-classic = {
+    aliases = ["bibata" "bibata-classic"];
+    categories = ["cursors"];
+    package = "bibata-cursors";
+    name = "Bibata-Modern-Classic";
+  };
 
-    bibata-modern-ice = {
-      names = {
-        package = "bibata-cursors";
-        light = "Bibata-Modern-Ice";
-        dark = "Bibata-Modern-Ice";
-        aliases = ["bibata-ice"];
-      };
-      categories = [category];
-    };
+  bibata-modern-ice = {
+    aliases = ["bibata-ice"];
+    categories = ["cursors"];
+    package = "bibata-cursors";
+    name = "Bibata-Modern-Ice";
+  };
 
-    bibata-modern-amber = {
-      names = {
-        package = "bibata-cursors";
-        light = "Bibata-Modern-Amber";
-        dark = "Bibata-Modern-Amber";
-        aliases = ["bibata-amber"];
-      };
-      categories = [category];
-    };
+  bibata-modern-amber = {
+    aliases = ["bibata-amber"];
+    categories = ["cursors"];
+    package = "bibata-cursors";
+    name = "Bibata-Modern-Amber";
+  };
 
-    volantes-light = {
-      names = {
-        package = "volantes-cursors";
-        light = "volantes_light_cursors";
-        dark = "volantes_light_cursors";
-        aliases = ["volantes-light-cursors"];
-      };
-      categories = [category];
-    };
+  volantes-light = {
+    aliases = ["volantes-light-cursors"];
+    categories = ["cursors"];
+    package = "volantes-cursors";
+    name = "volantes_light_cursors";
+  };
 
-    volantes-dark = {
-      names = {
-        package = "volantes-cursors";
-        light = "volantes_dark_cursors";
-        dark = "volantes_dark_cursors";
-        aliases = ["volantes-dark-cursors"];
-      };
-      categories = [category];
-    };
+  volantes-dark = {
+    aliases = ["volantes-dark-cursors"];
+    categories = ["cursors"];
+    package = "volantes-cursors";
+    name = "volantes_dark_cursors";
+  };
 
-    adwaita = {
-      names = {
-        package = "adwaita-icon-theme";
-        light = "Adwaita";
-        dark = "Adwaita";
-        aliases = ["adwaita-cursors" "gnome"];
-      };
-      categories = [category];
-    };
+  adwaita = {
+    aliases = ["adwaita-cursors" "gnome"];
+    categories = ["cursors"];
+    package = "adwaita-icon-theme";
+    name = "Adwaita";
+  };
 
-    breeze = {
-      names = {
-        package = "kdePackages.breeze";
-        light = "breeze_cursors";
-        dark = "breeze_cursors";
-        aliases = ["breeze-cursors"];
-      };
-      categories = [category];
-    };
+  breeze = {
+    aliases = ["breeze-cursors"];
+    categories = ["cursors"];
+    package = "kdePackages.breeze";
+    name = "breeze_cursors";
   };
 }

@@ -7,16 +7,13 @@
       Each top-level key maps to a domain section exposing
       { all, default, groups, queries } via mkSection.
 
-      Also provides fuzzy `lookup` - resolves a name or alias to a
-      { key, entry } pair by searching the filtered registry subset.
-
       Top-level queries:
         icons    - icon themes
         cursors  - cursor themes
         flavors  - catppuccin flavors
         accents  - catppuccin accents
 
-      Depends on: style.registry.
+      Depends on: styles.registry.
     '';
     functions = {
       inherit
@@ -33,36 +30,49 @@
         lookupStyle = lookup;
       };
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.lists.access) findFirst;
-  inherit (_.lists.predicates) elem;
+  inherit (_.lists.aggregation) concatMap foldl';
+  inherit (_.lists.transformation) unique;
+  inherit (_.lists.predicates) elem isIn;
 
   registry = _.styles.registry.entries;
 
-  mkSection = {
-    set,
+  mkFilters = {
+    registry,
     groups ? {},
-    queries ? {},
-  }: {
-    all = set;
-    default = set;
-    inherit groups queries;
-  };
+    queries ? (_: {}),
+  }: let
+    allEntries =
+      concatMap
+      (ns: map (key: registry.${ns}.${key}) (attrNames registry.${ns}))
+      (attrNames registry);
 
-  mkFilters = {registry}: {
+    allCategories = unique (
+      concatMap (entry: entry.categories or []) allEntries
+    );
+
+    byCategory = genAttrs allCategories (
+      category:
+        foldl' (
+          acc: ns:
+            acc
+            // (
+              filterAttrs
+              (_: entry: elem category (entry.categories or []))
+              registry.${ns}
+            )
+        ) {} (attrNames registry)
+    );
+  in {
     default = registry;
-    groups = {};
-    queries = {
-      icons = mkSection {set = registry.icons or {};};
-      cursors = mkSection {set = registry.cursors or {};};
-      flavors = mkSection {set = registry.flavors or {};};
-      accents = mkSection {set = registry.accents or {};};
-    };
+    groups = {inherit byCategory;} // groups;
+    queries = queries {inherit byCategory;};
   };
 
   registryItems = set:
@@ -93,7 +103,36 @@
     then byKey
     else byAlias;
 
-  default = mkFilters {inherit registry;};
+  mkSection = {
+    set,
+    groups ? {},
+    queries ? {},
+  }: let
+    # Only include queries that actually return non-empty sets
+    activeQueries = filterAttrs (_: v: v != {}) queries;
+  in {
+    all = set;
+    inherit groups;
+    queries = activeQueries;
+  };
+
+  default = mkFilters {
+    inherit registry;
+    queries = {byCategory, ...}:
+      filterAttrs (_: section: section.all != {}) (
+        mapAttrs (name: set:
+          mkSection {
+            inherit set;
+            queries = filterAttrs (_: v: v != {}) {
+              hasAliases = filterAttrs (_: e: (e.aliases or e.names.aliases or []) != []) set;
+              noAliases = filterAttrs (_: e: (e.aliases or e.names.aliases or []) == []) set;
+              hasPackage = filterAttrs (_: e: (e.names.package or null) != null) set;
+              hasVariant = filterAttrs (_: e: e ? variant) set;
+              hasNames = filterAttrs (_: e: e ? names) set;
+            };
+          }) (filterAttrs (name: _: name != "catppuccin") byCategory)
+      );
+  };
 in
   meta.exports.local
   // {

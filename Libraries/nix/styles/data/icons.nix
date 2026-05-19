@@ -1,110 +1,88 @@
-_: let
-  category = "icons";
-in {
-  "${category}" = {
-    candy-icons = {
-      names = {
-        package = "candy-icons";
-        aliases = ["candy"];
-      };
-      categories = [category];
-    };
+_: {
+  candy-icons = {
+    aliases = ["candy"];
+    categories = ["icons"];
+    package = "candy-icons";
+    name = "candy-icons";
+  };
 
-    papirus = {
-      names = {
-        package = "papirus-icon-theme";
-        aliases = ["papirus-icon-theme"];
-      };
-      categories = [category];
+  papirus = {
+    aliases = ["papirus-icon-theme"];
+    categories = ["icons"];
+    package = "papirus-icon-theme";
+    polarity = {
+      light = {name = "Papirus";};
+      dark = {name = "Papirus-Dark";};
     };
+  };
 
-    papirus-dark = {
-      names = {
-        package = "papirus-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-      variant = "dark";
-    };
+  adwaita = {
+    aliases = ["adwaita-icon-theme" "gnome"];
+    categories = ["icons"];
+    package = "adwaita-icon-theme";
+    name = "Adwaita";
+  };
 
-    adwaita = {
-      names = {
-        package = "adwaita-icon-theme";
-        aliases = ["adwaita-icon-theme" "gnome"];
-      };
-      categories = [category];
-    };
+  hicolor = {
+    aliases = [];
+    categories = ["icons"];
+    package = "hicolor-icon-theme";
+    name = "hicolor";
+  };
 
-    hicolor = {
-      names = {
-        package = "hicolor-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-    };
+  numix = {
+    aliases = ["numix-icon-theme"];
+    categories = ["icons"];
+    package = "numix-icon-theme";
+    name = "Numix";
+  };
 
-    numix = {
-      names = {
-        package = "numix-icon-theme";
-        aliases = ["numix-icon-theme"];
-      };
-      categories = [category];
-    };
+  numix-circle = {
+    aliases = ["numix-circle-icon-theme"];
+    categories = ["icons"];
+    package = "numix-icon-theme-circle";
+    name = "Numix-Circle";
+  };
 
-    numix-circle = {
-      names = {
-        package = "numix-icon-theme-circle";
-        aliases = ["numix-circle-icon-theme"];
-      };
-      categories = [category];
-    };
+  tela = {
+    aliases = ["tela-icon-theme"];
+    categories = ["icons"];
+    package = "tela-icon-theme";
+    name = "Tela";
+  };
 
-    tela = {
-      names = {
-        package = "tela-icon-theme";
-        aliases = ["tela-icon-theme"];
-      };
-      categories = [category];
-    };
+  tela-circle = {
+    aliases = [];
+    categories = ["icons"];
+    package = "tela-circle-icon-theme";
+    name = "Tela-Circle";
+  };
 
-    tela-circle = {
-      names = {
-        package = "tela-circle-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-    };
+  fluent = {
+    aliases = ["fluent-icon-theme"];
+    categories = ["icons"];
+    package = "fluent-icon-theme";
+    name = "Fluent";
+  };
 
-    fluent = {
-      names = {
-        package = "fluent-icon-theme";
-        aliases = ["fluent-icon-theme"];
-      };
-      categories = [category];
-    };
+  kora = {
+    aliases = [];
+    categories = ["icons"];
+    package = "kora-icon-theme";
+    name = "Kora";
+  };
 
-    kora = {
-      names = {
-        package = "kora-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-    };
+  moka = {
+    aliases = [];
+    categories = ["icons"];
+    package = "moka-icon-theme";
+    name = "Moka";
+  };
 
-    moka = {
-      names = {
-        package = "moka-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-    };
-
-    faba = {
-      names = {
-        package = "faba-icon-theme";
-        aliases = [];
-      };
-      categories = [category];
-    };
+  faba = {
+    aliases = [];
+    categories = ["icons"];
+    package = "faba-icon-theme";
+    name = "Faba";
   };
 }

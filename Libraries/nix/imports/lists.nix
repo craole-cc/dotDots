@@ -91,7 +91,8 @@
       concatLists
       concatMap
       foldl'
-      foldr
+      foldl
+      foldlr
       ;
   };
 
