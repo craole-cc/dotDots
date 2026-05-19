@@ -19,9 +19,7 @@
         mkCatppuccin = mkFamily;
       };
     };
-  in {
-    inherit doc exports;
-  };
+  in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames getAttr;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
@@ -111,16 +109,18 @@
           group = "flavor";
           registry = raw.flavors;
         };
+
         byPolarity = polarity:
           filter
           (name: raw.flavors.${name}.polarity == polarity)
           base.names;
-      in
-        base
-        // {
+
+        polarized = {
           dark = byPolarity "dark";
           light = byPolarity "light";
         };
+      in
+        base // polarized;
     };
   in {inherit raw seed registry;};
   inherit (data) raw seed registry;
@@ -129,20 +129,45 @@
     pair = input: let
       spec =
         if isFunction input
-        then {fn = input;}
+        then {
+          fn = input;
+          args = [];
+        }
         else input;
 
       fn = assert withContext {
         name = "mkPolarity.pair";
         context = "building polarity pair wrapper";
-        assertion = isAttrs spec && hasAttr "fn" spec && isFunction spec.fn;
-        message = "expected a function or an attrset with `fn` as a function";
+        assertion =
+          isAttrs spec
+          && hasAttr "fn" spec
+          && isFunction spec.fn
+          && ((spec.args or []) == [] || isList (spec.args or []));
+        message = "expected a function or an attrset with `fn` as a function and optional `args` as a list";
       };
         spec.fn;
-    in {
-      light = args: fn (args // {polarity = "light";});
-      dark = args: fn (args // {polarity = "dark";});
-    };
+
+      allowed = (spec.args or []) ++ ["polarity"];
+
+      validate = args: let
+        invalid =
+          filter
+          (name: !(isIn name allowed))
+          (attrNames args);
+      in
+        assert withContext {
+          name = "mkPolarity.pair";
+          context = "validating polarity pair arguments";
+          assertion = invalid == [];
+          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
+        }; args;
+    in
+      args: let
+        checked = validate args;
+      in {
+        light = fn (checked // {polarity = "light";});
+        dark = fn (checked // {polarity = "dark";});
+      };
 
     selection = {
       group,
@@ -294,10 +319,11 @@
     in
       resolve (base // override);
 
-    mkPair = mkPolarity.pair mkOne;
-  in {
-    inherit mkOne mkPair;
-  };
+    mkPair = mkPolarity.pair {
+      fn = mkOne;
+      args = ["pkgs" "cursor" "accent" "flavor" "size"];
+    };
+  in {inherit mkOne mkPair;};
 
   themes = let
     resolve = {
@@ -355,7 +381,10 @@
     in
       resolve (base // override);
 
-    mkPair = mkPolarity.pair mkOne;
+    mkPair = mkPolarity.pair {
+      fn = mkOne;
+      args = ["pkgs" "theme" "accent" "flavor"];
+    };
   in {inherit mkOne mkPair;};
 
   mkFamily = {

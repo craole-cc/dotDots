@@ -38,7 +38,7 @@ _: {
 
   #  Rosé Pine
   rose-pine = {
-    aliases = ["rosepine" "rose-pine-main"];
+    aliases = ["rosepine" "rose-pine-main" "pine"];
     family = "rose-pine";
     polarity = "dark";
     name = "Rosé Pine";
@@ -47,7 +47,7 @@ _: {
   };
 
   rose-pine-moon = {
-    aliases = ["rosepine-moon" "pine-moon"];
+    aliases = ["rosepine-moon" "pine-moon" "moon"];
     family = "rose-pine";
     polarity = "dark";
     name = "Rosé Pine Moon";
@@ -56,7 +56,7 @@ _: {
   };
 
   rose-pine-dawn = {
-    aliases = ["rosepine-dawn" "pine-dawn" "rose-pine-light"];
+    aliases = ["rosepine-dawn" "pine-dawn" "rose-pine-light" "dawn"];
     family = "rose-pine";
     polarity = "light";
     name = "Rosé Pine Dawn";
@@ -66,7 +66,7 @@ _: {
 
   #  Gruvbox
   gruvbox-dark = {
-    aliases = ["gruvbox" "gruvbox-hard-dark"];
+    aliases = ["gruvbox" "gruvbox-hard-dark" "gruv" "groovy"];
     family = "gruvbox";
     polarity = "dark";
     name = "Gruvbox Dark";
@@ -84,7 +84,7 @@ _: {
   };
 
   gruvbox-material-dark = {
-    aliases = ["gruvbox-material" "gruvmaterial-dark"];
+    aliases = ["gruvbox-material" "gruvmaterial-dark" "material"];
     family = "gruvbox";
     polarity = "dark";
     name = "Gruvbox Material Dark";
@@ -103,7 +103,7 @@ _: {
 
   #  Blue Loco
   blueloco-dark = {
-    aliases = ["blueloco" "blue-loco-dark"];
+    aliases = ["blueloco" "blue-loco-dark" "loco-dark" "loco" "loco-night"];
     family = "blueloco";
     polarity = "dark";
     name = "Blue Loco Dark";
@@ -112,7 +112,7 @@ _: {
   };
 
   blueloco-light = {
-    aliases = ["blue-loco-light"];
+    aliases = ["blue-loco-light" "loco-light" "loco-day"];
     family = "blueloco";
     polarity = "light";
     name = "Blue Loco Light";
@@ -122,7 +122,7 @@ _: {
 
   #  Tokyo Night
   tokyo-night = {
-    aliases = ["tokyonight" "tokyo-night-dark"];
+    aliases = ["tokyonight" "tokyo-night-dark" "tok"];
     family = "tokyo-night";
     polarity = "dark";
     name = "Tokyo Night";

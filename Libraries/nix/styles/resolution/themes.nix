@@ -3,125 +3,273 @@
     doc = ''
       Theme resolution (Layer 3).
 
-      Dispatches any theme input to { light, dark } each
-      { name, scheme, package, polarity, flavor, accent }.
-      Catppuccin family entries delegate to the catppuccin resolver.
+      Builds theme outputs as either one polarity (`mkOne`) or both polarities
+      (`mkPair`). Empty theme input falls back to generated Catppuccin themes.
+      Registry entries support normalized alias lookup.
 
-      Depends on: styles.registry, styles.resolution.catppuccin, attrsets.resolution.
+      Depends on: styles.registry, styles.resolution.catppuccin,
+      attrsets.resolution.
     '';
     exports = {
-      local = {inherit resolve resolvePair;};
-      alias = {resolveTheme = resolve;};
+      local = {
+        inherit data mkOne mkPair;
+        inherit (data) registry;
+      };
+      alias = {
+        mkTheme = mkOne;
+        mkThemes = mkPair;
+        resolveTheme = mkOne;
+      };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
   inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.debug.assertions) withContext;
-  inherit (_.styles.registry) lookup;
-  inherit (_.types.predicates) isString;
+  inherit (_.lists.access) elemAt length;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.predicates) isIn;
+  inherit (_.lists.selection) filter;
+  inherit (_.strings.transformation) toLowerCase;
+  inherit (_.types.access) typeOf;
+  inherit (_.types.predicates) isAttrs isFunction isList isString;
+  inherit (_.styles.registry.queries.themes) all;
 
-  registry = _.styles.registry.queries.themes.all;
+  mkCatppuccin = _.styles.resolution.catppuccin.themes.mkOne;
 
-  /**
-    Resolve a static (non-catppuccin) theme entry to { name, scheme, package, polarity }.
+  mkRegistry = {
+    group,
+    registry,
+  }: let
+    names = attrNames registry;
+    aliases =
+      foldl'
+      (
+        acc: value:
+          acc
+          // {${toLowerCase value} = value;}
+          // listToAttrs (
+            map
+            (name: {inherit name value;})
+            (
+              map
+              toLowerCase
+              (registry.${value}.aliases or [])
+            )
+          )
+      )
+      {}
+      names;
 
-    Both polarities receive the same resolved record — consumers select the
-    slot matching their current polarity.
+    lookup = input: let
+      fn = {
+        name = "${group}.lookup";
+        context = "looking up ${group}";
+      };
+      value = toLowerCase input;
+      resolved = aliases.${value} or value;
+    in
+      assert withContext {
+        inherit (fn) name context;
+        assertion = isIn resolved names;
+        message = "unknown ${group} `${input}` - valid: ${toString names}";
+      };
+        registry.${resolved};
+  in {
+    inherit registry names aliases lookup;
+  };
 
-    # Type
-  ```nix
-    resolveStatic :: { entry :: attrset, pkgs :: pkgs } -> { name :: string, scheme :: string | null, package :: derivation | null, polarity :: string }
-  ```
-  */
-  resolveStatic = {
-    entry,
-    pkgs,
-  }: {
-    inherit (entry) name polarity;
-    scheme = entry.scheme or null;
-    package =
-      if isNotEmpty (entry.package or null)
-      then
-        getPackage {
-          inherit pkgs;
-          target = entry.package;
+  mkPolarity = {
+    pair = input: let
+      spec =
+        if isFunction input
+        then {
+          fn = input;
+          args = [];
         }
-      else null;
+        else input;
+
+      fn = assert withContext {
+        name = "mkPolarity.pair";
+        context = "building polarity pair wrapper";
+        assertion =
+          isAttrs spec
+          && hasAttr "fn" spec
+          && isFunction spec.fn
+          && ((spec.args or []) == [] || isList (spec.args or []));
+        message = "expected a function or an attrset with `fn` as a function and optional `args` as a list";
+      };
+        spec.fn;
+
+      allowed = (spec.args or []) ++ ["polarity"];
+
+      validate = args: let
+        invalid =
+          filter
+          (name: !(isIn name allowed))
+          (attrNames args);
+      in
+        assert withContext {
+          name = "mkPolarity.pair";
+          context = "validating polarity pair arguments";
+          assertion = invalid == [];
+          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
+        }; args;
+    in
+      args: let
+        checked = validate args;
+      in {
+        light = fn (checked // {polarity = "light";});
+        dark = fn (checked // {polarity = "dark";});
+      };
+
+    selection = {
+      value,
+      polarity,
+    }: let
+      fn = {
+        name = "themes.selectByPolarity";
+        context = "selecting ${polarity} theme input";
+      };
+    in
+      if value == null
+      then null
+      else if isString value
+      then value
+      else if isList value
+      then
+        assert withContext {
+          inherit (fn) name context;
+          assertion = length value == 2;
+          message = "list input must have exactly 2 elements [darkVal lightVal], got ${toString (length value)}";
+        };
+          if polarity == "dark"
+          then elemAt value 0
+          else elemAt value 1
+      else if isAttrs value
+      then
+        assert withContext {
+          inherit (fn) name context;
+          assertion = hasAttr polarity value;
+          message = "theme attrset input is missing `${polarity}` key";
+        };
+          value.${polarity}
+      else
+        assert withContext {
+          inherit (fn) name context;
+          assertion = false;
+          message = "expected null, string, list, or attrset, got `${typeOf value}`";
+        }; null;
   };
 
-  mkBoth = mkOne: args: {
-    light = mkOne (args // {polarity = "light";});
-    dark = mkOne (args // {polarity = "dark";});
+  data = let
+    raw = all;
+
+    registry = {
+      themes = mkRegistry {
+        group = "theme";
+        registry = raw;
+      };
+    };
+
+    normalize = {
+      value,
+      polarity,
+    }: let
+      selected = mkPolarity.selection {inherit value polarity;};
+    in
+      if isString selected
+      then registry.themes.lookup selected
+      else selected;
+  in {
+    inherit raw registry normalize;
   };
 
-  /**
-    Resolve any theme input to a single variant for the given polarity.
+  inherit (data) registry normalize;
 
-    Input shapes accepted:
-    - `""`                        → catppuccin default theme for this polarity
-    - string (family=catppuccin)  → delegate to catppuccin.mkTheme
-    - string (other families)     → static resolved record from registry entry
-
-    # Type
-  ```nix
-    resolve :: { pkgs :: pkgs, polarity :: string?, theme :: string?, accent :: string | [ string string ] | { light :: string, dark :: string }?, flavor :: string | [ string string ] | { light :: string, dark :: string }? } -> { name :: string, scheme :: string | null, package :: derivation | null, polarity :: string }
-  ```
-
-    # Examples
-  ```nix
-    resolve { inherit pkgs; }
-    resolve { inherit pkgs; theme = "rose-pine"; polarity = "light"; }
-    resolve { inherit pkgs; theme = "gruvbox-dark"; accent = "sky"; }
-  ```
-  */
-  resolve = {
+  mkOne = {
     pkgs,
     polarity ? "dark",
-    theme ? "",
+    theme ? null,
     accent ? null,
     flavor ? null,
   }: let
     fn = {
-      name = "themes.resolve";
-      context = "resolving theme for ${polarity}";
+      name = "themes.mkOne";
+      context = "building theme for ${polarity}";
     };
+
+    entry =
+      if isEmpty theme
+      then null
+      else
+        normalize {
+          inherit polarity;
+          value = theme;
+        };
   in
-    if isEmpty theme
-    then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
-    else if isString theme
-    then let
-      inherit (lookup theme registry) entry;
-    in
-      if (entry.family or null) == "catppuccin"
-      then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
-      else resolveStatic {inherit entry pkgs;}
+    if entry == null
+    then
+      mkCatppuccin {
+        inherit pkgs polarity accent flavor;
+      }
+    else if isAttrs entry && ((entry.family or null) == "catppuccin")
+    then
+      mkCatppuccin {
+        inherit pkgs polarity accent flavor;
+      }
+    else if isAttrs entry && hasAttr "name" entry && hasAttr "polarity" entry
+    then
+      assert withContext {
+        inherit (fn) name context;
+        assertion = entry.polarity == polarity;
+        message = "theme entry polarity `${entry.polarity}` does not match requested `${polarity}`";
+      }; {
+        inherit (entry) name polarity;
+        scheme = entry.scheme or null;
+        package =
+          if isNotEmpty (entry.package or null)
+          then
+            getPackage {
+              inherit pkgs;
+              target = entry.package;
+            }
+          else null;
+        flavor = flavor;
+        accent = accent;
+      }
+    else if isAttrs entry && hasAttr "name" entry
+    then {
+      inherit (entry) name;
+      polarity = entry.polarity or polarity;
+      scheme = entry.scheme or null;
+      package =
+        if isNotEmpty (entry.package or null)
+        then
+          getPackage {
+            inherit pkgs;
+            target = entry.package;
+          }
+        else null;
+      flavor = flavor;
+      accent = accent;
+    }
     else
       assert withContext {
         inherit (fn) name context;
         assertion = false;
-        message = "expected null or string, got `${toString theme}`";
+        message = "normalized theme entry is invalid";
       }; null;
 
-  /**
-    Resolve a theme for both polarities.
-
-    Returns `{ light, dark }` each containing the resolved theme record.
-
-    # Type
-  ```nix
-    resolvePair :: { pkgs :: pkgs, theme :: string?, accent :: string | [ string string ] | { light :: string, dark :: string }?, flavor :: string | [ string string ] | { light :: string, dark :: string }? } -> { light :: { ... }, dark :: { ... } }
-  ```
-
-    # Examples
-  ```nix
-    resolvePair { inherit pkgs; }
-    resolvePair { inherit pkgs; theme = "nord"; }
-    resolvePair { inherit pkgs; theme = "catppuccin-mocha"; accent = [ "sapphire" "sky" ]; }
-  ```
-  */
-  resolvePair = mkBoth resolve;
+  mkPair = mkPolarity.pair {
+    fn = mkOne;
+    args = ["pkgs" "theme" "accent" "flavor"];
+  };
 in
   meta.exports.local
   // {

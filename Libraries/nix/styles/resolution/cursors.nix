@@ -33,69 +33,101 @@
   inherit (_.lists.access) elemAt length;
   inherit (_.lists.aggregation) foldl';
   inherit (_.lists.predicates) isIn;
+  inherit (_.lists.selection) filter;
   inherit (_.strings.transformation) toLowerCase;
   inherit (_.types.access) typeOf;
-  inherit (_.types.predicates) isAttrs isList isString;
+  inherit (_.types.predicates) isAttrs isFunction isList isString;
   inherit (_.styles.registry.groups.byCategory) cursors;
+
   mkCatppuccin = _.styles.resolution.catppuccin.cursors.mkOne;
 
-  data = let
-    raw = cursors;
-
-    seed = {
-      size = 24;
-    };
-
-    mkRegistry = {
-      group,
-      registry,
-    }: let
-      names = attrNames registry;
-      aliases =
-        foldl'
-        (
-          acc: value:
-            acc
-            // {${toLowerCase value} = value;}
-            // listToAttrs (
+  mkRegistry = {
+    group,
+    registry,
+  }: let
+    names = attrNames registry;
+    aliases =
+      foldl'
+      (
+        acc: value:
+          acc
+          // {${toLowerCase value} = value;}
+          // listToAttrs (
+            map
+            (name: {inherit name value;})
+            (
               map
-              (name: {inherit name value;})
-              (
-                map
-                toLowerCase
-                (registry.${value}.aliases or [])
-              )
+              toLowerCase
+              (registry.${value}.aliases or [])
             )
-        )
-        {}
-        names;
+          )
+      )
+      {}
+      names;
 
-      lookup = input: let
-        fn = {
-          name = "${group}.lookup";
-          context = "looking up ${group}";
-        };
-        value = toLowerCase input;
-        resolved = aliases.${value} or value;
+    lookup = input: let
+      fn = {
+        name = "${group}.lookup";
+        context = "looking up ${group}";
+      };
+      value = toLowerCase input;
+      resolved = aliases.${value} or value;
+    in
+      assert withContext {
+        inherit (fn) name context;
+        assertion = isIn resolved names;
+        message = "unknown ${group} `${input}` - valid: ${toString names}";
+      };
+        registry.${resolved};
+  in {
+    inherit registry names aliases lookup;
+  };
+
+  mkPolarity = {
+    pair = input: let
+      spec =
+        if isFunction input
+        then {
+          fn = input;
+          args = [];
+        }
+        else input;
+
+      fn = assert withContext {
+        name = "mkPolarity.pair";
+        context = "building polarity pair wrapper";
+        assertion =
+          isAttrs spec
+          && hasAttr "fn" spec
+          && isFunction spec.fn
+          && ((spec.args or []) == [] || isList (spec.args or []));
+        message = "expected a function or an attrset with `fn` as a function and optional `args` as a list";
+      };
+        spec.fn;
+
+      allowed = (spec.args or []) ++ ["polarity"];
+
+      validate = args: let
+        invalid =
+          filter
+          (name: !(isIn name allowed))
+          (attrNames args);
       in
         assert withContext {
-          inherit (fn) name context;
-          assertion = isIn resolved names;
-          message = "unknown ${group} `${input}` - valid: ${toString names}";
-        };
-          registry.${resolved};
-    in {
-      inherit registry names aliases lookup;
-    };
-
-    registry = {
-      cursors = mkRegistry {
-        group = "cursor";
-        registry = raw;
+          name = "mkPolarity.pair";
+          context = "validating polarity pair arguments";
+          assertion = invalid == [];
+          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
+        }; args;
+    in
+      args: let
+        checked = validate args;
+      in {
+        light = fn (checked // {polarity = "light";});
+        dark = fn (checked // {polarity = "dark";});
       };
-    };
 
-    selectByPolarity = {
+    selection = {
       value,
       polarity,
     }: let
@@ -103,8 +135,10 @@
         name = "cursors.selectByPolarity";
         context = "selecting ${polarity} cursor input";
       };
-      isConcreteCursor = isAttrs value && ((hasAttr "package" value) || (hasAttr "name" value));
-      isPolarizedCursor = isAttrs value && !isConcreteCursor;
+      isConcreteCursor =
+        isAttrs value && ((hasAttr "package" value) || (hasAttr "name" value));
+      isPolarizedCursor =
+        isAttrs value && !isConcreteCursor;
     in
       if value == null
       then null
@@ -136,12 +170,27 @@
           assertion = false;
           message = "expected null, string, list, or attrset, got `${typeOf value}`";
         }; null;
+  };
+
+  data = let
+    raw = cursors;
+
+    seed = {
+      size = 24;
+    };
+
+    registry = {
+      cursors = mkRegistry {
+        group = "cursor";
+        registry = raw;
+      };
+    };
 
     normalize = {
       value,
       polarity,
     }: let
-      selected = selectByPolarity {inherit value polarity;};
+      selected = mkPolarity.selection {inherit value polarity;};
     in
       if isString selected
       then registry.cursors.lookup selected
@@ -151,42 +200,6 @@
   };
 
   inherit (data) seed registry normalize;
-
-  resolveEntry = {
-    entry,
-    polarity,
-    size,
-    pkgs,
-  }: let
-    fn = {
-      name = "cursors.resolveEntry";
-      context = "resolving cursor entry for ${polarity}";
-    };
-
-    cursorName =
-      if isAttrs (entry.polarity or null)
-      then
-        assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr polarity entry.polarity;
-          message = "polarity-aware entry missing `${polarity}` key";
-        };
-          entry.polarity.${polarity}.name
-      else
-        assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr "name" entry;
-          message = "cursor entry has no `name` and polarity is not an attrset";
-        };
-          entry.name;
-  in {
-    name = cursorName;
-    package = getPackage {
-      inherit pkgs;
-      target = entry.package;
-    };
-    inherit size;
-  };
 
   mkOne = {
     pkgs,
@@ -200,6 +213,7 @@
       name = "cursors.mkOne";
       context = "building cursor for ${polarity}";
     };
+
     entry =
       if isEmpty cursor
       then null
@@ -214,23 +228,47 @@
       mkCatppuccin {
         inherit pkgs polarity accent flavor size;
       }
-    else if isAttrs entry && hasAttr "package" entry && hasAttr "name" entry
+    else if isAttrs entry && (entry.generated or false)
     then
-      if entry.generated or false
-      then
-        mkCatppuccin {
-          inherit pkgs polarity accent flavor size;
-        }
-      else
-        resolveEntry {
-          inherit entry polarity size pkgs;
-        }
+      mkCatppuccin {
+        inherit pkgs polarity accent flavor size;
+      }
+    else if isAttrs entry && hasAttr "package" entry && isAttrs (entry.polarity or null)
+    then let
+      resolved = assert withContext {
+        inherit (fn) name context;
+        assertion = hasAttr polarity entry.polarity;
+        message = "polarity-aware cursor entry missing `${polarity}` key";
+      };
+        entry.polarity.${polarity};
+    in
+      assert withContext {
+        inherit (fn) name context;
+        assertion = hasAttr "name" resolved;
+        message = "resolved polarity cursor entry has no `name`";
+      }; {
+        name = resolved.name;
+        package = getPackage {
+          inherit pkgs;
+          target = entry.package;
+        };
+        inherit size;
+      }
+    else if isAttrs entry && hasAttr "package" entry && hasAttr "name" entry
+    then {
+      inherit (entry) name;
+      package = getPackage {
+        inherit pkgs;
+        target = entry.package;
+      };
+      inherit size;
+    }
     else if isAttrs entry && hasAttr "package" entry
     then
       assert withContext {
         inherit (fn) name context;
-        assertion = hasAttr "name" entry;
-        message = "cursor attrset has `package` but no `name`";
+        assertion = false;
+        message = "cursor entry has `package` but neither top-level `name` nor polarity-aware `name`";
       }; null
     else
       assert withContext {
@@ -239,9 +277,9 @@
         message = "normalized cursor entry is invalid";
       }; null;
 
-  mkPair = {pkgs, ...} @ args: {
-    light = mkOne (args // {polarity = "light";});
-    dark = mkOne (args // {polarity = "dark";});
+  mkPair = mkPolarity.pair {
+    fn = mkOne;
+    args = ["pkgs" "cursor" "accent" "flavor" "size"];
   };
 in
   meta.exports.local
