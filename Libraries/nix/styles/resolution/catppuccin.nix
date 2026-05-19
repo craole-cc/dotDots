@@ -131,18 +131,18 @@
         if isFunction input
         then {fn = input;}
         else input;
-    in
-      assert withContext {
+
+      fn = assert withContext {
         name = "mkPolarity.pair";
         context = "building polarity pair wrapper";
         assertion = isAttrs spec && hasAttr "fn" spec && isFunction spec.fn;
         message = "expected a function or an attrset with `fn` as a function";
       };
-        args:
-          with spec; {
-            light = fn (args // {polarity = "light";});
-            dark = fn (args // {polarity = "dark";});
-          };
+        spec.fn;
+    in {
+      light = args: fn (args // {polarity = "light";});
+      dark = args: fn (args // {polarity = "dark";});
+    };
 
     selection = {
       group,
@@ -216,7 +216,65 @@
       then accents.lookup selected
       else flavors.lookup selected;
 
+  mkOverride = {
+    input,
+    group,
+    polarity,
+    argument,
+    context,
+  }: let
+    value =
+      if isEmpty input
+      then null
+      else
+        mkPolarity.selection {
+          inherit group polarity;
+          value = input;
+        };
+    kind = classify value;
+  in
+    if isEmpty input
+    then {}
+    else if kind == "accent"
+    then {accent = value;}
+    else if kind == "flavor"
+    then {flavor = value;}
+    else
+      assert withContext {
+        name = "catppuccin.mkOverride";
+        inherit context;
+        assertion = false;
+        message = "unsupported `${argument}` `${toString input}` - expected a catppuccin accent, flavor, or empty value";
+      }; null;
+
   cursors = let
+    resolve = {
+      pkgs,
+      polarity,
+      size,
+      accent,
+      flavor,
+    }: let
+      accent' = normalize {
+        inherit polarity;
+        group = "accent";
+        value = accent;
+      };
+      flavor' = normalize {
+        inherit polarity;
+        group = "flavor";
+        value = flavor;
+      };
+      target = concat "" [flavor' (toTitleCase accent')];
+    in {
+      name = "catppuccin-${flavor'}-${accent'}-cursors";
+      package = getPackage {
+        pkgs = pkgs.catppuccin-cursors;
+        inherit target;
+      };
+      inherit size target;
+    };
+
     mkOne = {
       pkgs,
       polarity ? "dark",
@@ -224,216 +282,78 @@
       accent ? seed.accent.${polarity},
       flavor ? seed.flavor.${polarity},
       size ? seed.size,
-      ...
     }: let
-      fn = {
-        name = "catppuccin.cursors.mkOne";
+      base = {inherit pkgs polarity size accent flavor;};
+      override = mkOverride {
+        input = cursor;
+        group = "accent";
+        inherit polarity;
+        argument = "cursor";
         context = "building catppuccin cursor variant";
       };
-
-      cursor' = let
-        value =
-          if isEmpty cursor
-          then null
-          else
-            mkPolarity.selection {
-              group = "accent";
-              value = cursor;
-              inherit polarity;
-            };
-
-        kind = classify value;
-      in {inherit value kind;};
     in
-      if isEmpty cursor
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = accent;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = flavor;
-        };
-        target = concat "" [flavor' (toTitleCase accent')];
-      in {
-        name = "catppuccin-${flavor'}-${accent'}-cursors";
-        package = getPackage {
-          pkgs = pkgs.catppuccin-cursors;
-          inherit target;
-        };
-        inherit size target;
-      }
-      else if cursor'.kind == "accent"
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = cursor'.value;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = flavor;
-        };
-        target = concat "" [flavor' (toTitleCase accent')];
-      in {
-        name = "catppuccin-${flavor'}-${accent'}-cursors";
-        package = getPackage {
-          pkgs = pkgs.catppuccin-cursors;
-          inherit target;
-        };
-        inherit size target;
-      }
-      else if cursor'.kind == "flavor"
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = accent;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = cursor'.value;
-        };
-        target = concat "" [flavor' (toTitleCase accent')];
-      in {
-        name = "catppuccin-${flavor'}-${accent'}-cursors";
-        package = getPackage {
-          pkgs = pkgs.catppuccin-cursors;
-          inherit target;
-        };
-        inherit size target;
-      }
-      else
-        assert withContext {
-          inherit (fn) name context;
-          assertion = false;
-          message = "unsupported `cursor` `${toString cursor}` - expected a catppuccin accent, flavor, or empty value";
-        }; null;
+      resolve (base // override);
 
     mkPair = mkPolarity.pair mkOne;
-  in {inherit mkOne mkPair;};
+  in {
+    inherit mkOne mkPair;
+  };
 
   themes = let
+    resolve = {
+      pkgs,
+      polarity,
+      accent,
+      flavor,
+    }: let
+      fn = {
+        name = "catppuccin.themes.resolve";
+        context = "resolving catppuccin theme variant";
+      };
+      accent' = normalize {
+        inherit polarity;
+        group = "accent";
+        value = accent;
+      };
+      flavor' = normalize {
+        inherit polarity;
+        group = "flavor";
+        value = flavor;
+      };
+      key = "catppuccin-${flavor'}";
+      entry = assert withContext {
+        inherit (fn) name context;
+        assertion = hasAttr key raw.themes;
+        message = "no theme entry for flavor `${flavor'}` (looked up `${key}`)";
+      };
+        getAttr key raw.themes;
+    in {
+      inherit (entry) name scheme;
+      package = getPackage {
+        inherit pkgs;
+        target = entry.package;
+      };
+      flavor = flavor';
+      accent = accent';
+    };
+
     mkOne = {
       pkgs,
       polarity ? "dark",
       theme ? null,
       accent ? seed.accent.${polarity},
       flavor ? seed.flavor.${polarity},
-      ...
     }: let
-      fn = {
-        name = "catppuccin.themes.mkOne";
+      base = {inherit pkgs polarity accent flavor;};
+      override = mkOverride {
+        input = theme;
+        group = "flavor";
+        inherit polarity;
+        argument = "theme";
         context = "building catppuccin theme variant";
       };
-      theme' = let
-        value =
-          if isEmpty theme
-          then null
-          else
-            mkPolarity.selection {
-              group = "flavor";
-              value = theme;
-              inherit polarity;
-            };
-        kind = classify value;
-      in {inherit value kind;};
     in
-      if isEmpty theme
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = accent;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = flavor;
-        };
-        key = "catppuccin-${flavor'}";
-        entry = assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr key raw.themes;
-          message = "no theme entry for flavor `${flavor'}` (looked up `${key}`)";
-        };
-          getAttr key raw.themes;
-      in {
-        inherit (entry) name scheme;
-        package = getPackage {
-          inherit pkgs;
-          target = entry.package;
-        };
-        flavor = flavor';
-        accent = accent';
-      }
-      else if theme'.kind == "accent"
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = theme'.value;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = flavor;
-        };
-        key = "catppuccin-${flavor'}";
-        entry = assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr key raw.themes;
-          message = "no theme entry for flavor `${flavor'}` (looked up `${key}`)";
-        };
-          getAttr key raw.themes;
-      in {
-        inherit (entry) name scheme;
-        package = getPackage {
-          inherit pkgs;
-          target = entry.package;
-        };
-        flavor = flavor';
-        accent = accent';
-      }
-      else if theme'.kind == "flavor"
-      then let
-        accent' = normalize {
-          inherit polarity;
-          group = "accent";
-          value = accent;
-        };
-        flavor' = normalize {
-          inherit polarity;
-          group = "flavor";
-          value = theme'.value;
-        };
-        key = "catppuccin-${flavor'}";
-        entry = assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr key raw.themes;
-          message = "no theme entry for flavor `${flavor'}` (looked up `${key}`)";
-        };
-          getAttr key raw.themes;
-      in {
-        inherit (entry) name scheme;
-        package = getPackage {
-          inherit pkgs;
-          target = entry.package;
-        };
-        flavor = flavor';
-        accent = accent';
-      }
-      else
-        assert withContext {
-          inherit (fn) name context;
-          assertion = false;
-          message = "unsupported `theme` `${toString theme}` - expected a catppuccin accent, flavor, or empty value";
-        }; null;
+      resolve (base // override);
 
     mkPair = mkPolarity.pair mkOne;
   in {inherit mkOne mkPair;};

@@ -17,7 +17,7 @@
 
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.content.emptiness) isEmpty;
+  inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.styles.registry) lookup;
   inherit (_.types.predicates) isString;
@@ -39,11 +39,10 @@
     entry,
     pkgs,
   }: {
-    name = entry.name;
+    inherit (entry) name polarity;
     scheme = entry.scheme or null;
-    polarity = entry.polarity;
     package =
-      if entry.package or null != null
+      if isNotEmpty (entry.package or null)
       then
         getPackage {
           inherit pkgs;
@@ -52,7 +51,7 @@
       else null;
   };
 
-  mkBoth = mkOne: {pkgs, ...} @ args: {
+  mkBoth = mkOne: args: {
     light = mkOne (args // {polarity = "light";});
     dark = mkOne (args // {polarity = "dark";});
   };
@@ -93,8 +92,7 @@
     then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
     else if isString theme
     then let
-      result = lookup theme registry;
-      entry = result.entry;
+      inherit (lookup theme registry) entry;
     in
       if (entry.family or null) == "catppuccin"
       then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
