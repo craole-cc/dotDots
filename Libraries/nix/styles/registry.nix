@@ -4,9 +4,9 @@
       Style registry data (Layer 0).
 
       Provides normalized style records from `./data`, with consistent
-      `categories` (list) fields. Supplies primitive tree inspection for
-      recursive processing, validated registry lookup, and registry-derived
-      identification metadata.
+      `categories` fields. Supplies primitive tree inspection for recursive
+      processing, validated registry lookup, registry-derived identification
+      metadata, and shared resolver helpers used by higher style layers.
 
       Depends on: filesystem.importers.
     '';
@@ -17,27 +17,268 @@
         importRegistry
         isRegistryAttrset
         lookup
+        mkRegistry
+        mkPolarity
+        normalize
+        mkData
         ;
     };
     exports = {
       local = functions // data.seed;
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
-  inherit (_.attrsets.access) attrNames attrValues;
-  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.access) attrNames attrValues getAttr;
+  inherit (_.attrsets.construction) genAttrs listToAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
+  inherit (_.content.emptiness) isEmpty;
+  inherit (_.debug.assertions) withContext;
   inherit (_.filesystem.importers) importRegistry;
-  inherit (_.lists.access) head;
+  inherit (_.lists.access) elemAt head length;
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals;
   inherit (_.lists.predicates) elem isList isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.types.predicates) isAttrs isString;
+  inherit (_.strings.transformation) toLowerCase;
+  inherit (_.types.access) typeOf;
+  inherit (_.types.predicates) isAttrs isFunction isString;
 
-  normalizeList = values: optionals (isList values) filter (value: value != null && value != "") values;
+  normalizeList = values:
+    optionals (isList values) (filter (value: value != null && value != "") values);
+
+  mkRegistry = {
+    group,
+    entries,
+  }: let
+    names = attrNames entries;
+
+    aliases =
+      foldl'
+      (
+        acc: value:
+          acc
+          // {${toLowerCase value} = value;}
+          // listToAttrs (
+            map
+            (name: {inherit name value;})
+            (
+              map
+              toLowerCase
+              (entries.${value}.aliases or [])
+            )
+          )
+      )
+      {}
+      names;
+
+    lookup' = input: let
+      fn = {
+        name = "${group}.lookup";
+        context = "looking up ${group}";
+      };
+      value = toLowerCase input;
+      resolved = aliases.${value} or value;
+    in
+      assert withContext {
+        inherit (fn) name context;
+        assertion = isIn resolved names;
+        message = "unknown ${group} `${input}` - valid: ${toString names}";
+      };
+        entries.${resolved};
+  in {
+    inherit entries names aliases;
+    lookup = lookup';
+  };
+
+  mkPolarity = {
+    pair = input: let
+      spec =
+        if isFunction input
+        then {
+          fn = input;
+          args = [];
+        }
+        else input;
+
+      fn = assert withContext {
+        name = "mkPolarity.pair";
+        context = "building polarity pair wrapper";
+        assertion =
+          isAttrs spec
+          && spec ? fn
+          && isFunction spec.fn
+          && ((spec.args or []) == [] || isList (spec.args or []));
+        message = "expected a function or an attrset with `fn` as a function and optional `args` as a list";
+      };
+        spec.fn;
+
+      allowed = (spec.args or []) ++ ["polarity"];
+
+      validate = args: let
+        invalid =
+          filter
+          (name: !(isIn name allowed))
+          (attrNames args);
+      in
+        assert withContext {
+          name = "mkPolarity.pair";
+          context = "validating polarity pair arguments";
+          assertion = invalid == [];
+          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
+        }; args;
+    in
+      args: let
+        checked = validate args;
+      in {
+        light = fn (checked // {polarity = "light";});
+        dark = fn (checked // {polarity = "dark";});
+      };
+
+    selection = {
+      value,
+      polarity,
+      group ? "value",
+    }: let
+      fn = {
+        name = "${group}.selectByPolarity";
+        context = "selecting ${polarity} ${group} input";
+      };
+
+      isConcrete =
+        isAttrs value && ((value ? package) || (value ? name));
+
+      isPolarized =
+        isAttrs value && !isConcrete;
+    in
+      if value == null
+      then null
+      else if isString value
+      then value
+      else if isList value
+      then
+        assert withContext {
+          inherit (fn) name context;
+          assertion = length value == 2;
+          message = "list input must have exactly 2 elements [darkVal lightVal], got ${toString (length value)}";
+        };
+          if polarity == "dark"
+          then elemAt value 0
+          else elemAt value 1
+      else if isConcrete
+      then value
+      else if isPolarized
+      then
+        assert withContext {
+          inherit (fn) name context;
+          assertion = builtins.hasAttr polarity value;
+          message = "${group} attrset input is missing `${polarity}` key";
+        };
+          getAttr polarity value
+      else
+        assert withContext {
+          inherit (fn) name context;
+          assertion = false;
+          message = "expected null, string, list, or attrset, got `${typeOf value}`";
+        }; null;
+  };
+
+  normalize = {
+    value,
+    polarity,
+    resolver,
+    group ? "value",
+    fallback ? null,
+  }: let
+    selected =
+      if isEmpty value && fallback != null
+      then fallback
+      else
+        mkPolarity.selection {
+          inherit value polarity group;
+        };
+  in
+    if isString selected
+    then resolver.lookup selected
+    else selected;
+
+  resolveSource = {
+    entries ? null,
+    groups ? null,
+    queries ? null,
+    from ? null,
+  }: let
+    sources =
+      filter
+      (x: x != null)
+      [entries groups queries from];
+  in
+    assert withContext {
+      name = "mkData.resolveSource";
+      context = "resolving mkData source";
+      assertion = length sources == 1;
+      message = "expected exactly one of `entries`, `groups`, `queries`, or `from`";
+    };
+      if entries != null
+      then entries
+      else if from != null
+      then from
+      else if groups != null
+      then groups
+      else queries;
+
+  mkData = {
+    group,
+    seed ? {},
+    entries ? null,
+    groups ? null,
+    queries ? null,
+    from ? null,
+    withFamilies ? true,
+  }: let
+    source = resolveSource {
+      inherit entries groups queries from;
+    };
+
+    resolvedEntries = assert withContext {
+      name = "mkData";
+      context = "constructing data for ${group}";
+      assertion = isAttrs source;
+      message = "resolved mkData source for `${group}` must be an attrset";
+    }; source;
+
+    resolver = mkRegistry {
+      inherit group;
+      entries = resolvedEntries;
+    };
+
+    families =
+      if withFamilies
+      then {
+        byFamily = family:
+          filter
+          (name: (resolvedEntries.${name}.family or null) == family)
+          resolver.names;
+      }
+      else {};
+
+    normalizeValue = {
+      value,
+      polarity,
+      fallback ? null,
+    }:
+      normalize {
+        inherit value polarity fallback;
+        inherit resolver group;
+      };
+  in {
+    entries = resolvedEntries;
+    inherit seed resolver families;
+    normalize = normalizeValue;
+  };
 
   data = {
     raw = importRegistry ./.;
@@ -60,16 +301,9 @@
     then entry
     else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (entry.categories or [])}";
 
-  #  Helpers
-
-  # Merge all namespace attrsets into one flat key→entry attrset.
-  # Used for byCategory/byPolarity where cross-namespace collision is acceptable
-  # (categories and polarity values don't collide with entry keys).
   flatRegistry = registry:
     foldl' (acc: ns: acc // registry.${ns}) {} (attrNames registry);
 
-  # Group a flat set by a scalar field.
-  # Output: { fieldVal = { key = entry } }
   groupByFieldFlat = field: flat: let
     keys = unique (filter isString (map (e: e.${field} or null) (attrValues flat)));
   in
@@ -78,9 +312,6 @@
         filterAttrs (_: e: (e.${field} or null) == k) flat
     );
 
-  # Group a namespaced registry by a scalar field, preserving namespace.
-  # Output: { fieldVal = { ns = { key = entry } } }
-  # Empty namespaces are dropped from each group.
   groupByField = field: registry: let
     allEntries = concatMap (ns: attrValues registry.${ns}) (attrNames registry);
     keys = unique (filter isString (map (e: e.${field} or null) allEntries));
@@ -89,14 +320,12 @@
       k:
         filterAttrs (_: ns: ns != {}) (
           mapAttrs (
-            ns: entries:
-              filterAttrs (_: e: (e.${field} or null) == k) entries
+            ns: entries':
+              filterAttrs (_: e: (e.${field} or null) == k) entries'
           )
           registry
         )
     );
-
-  #  mkSection
 
   mkSection = {
     set,
@@ -104,30 +333,29 @@
   }:
     {all = set;} // queries;
 
-  #  mkFilters
-
   mkFilters = {
     registry ? data.raw,
     extraGroups ? {},
     extraQueries ? {},
   }: let
-    entries = flatRegistry registry;
+    entries' = flatRegistry registry;
 
     groups' = let
       mk = field: groupByField field registry;
     in
       {
         byCategory =
-          genAttrs (unique (
+          genAttrs
+          (unique (
             concatMap
             (e: e.categories or [])
-            (attrValues entries)
+            (attrValues entries')
           ))
           (
             category:
               filterAttrs
               (_: e: isIn category (e.categories or []))
-              entries
+              entries'
           );
         byFamily = mk "family";
         byPolarity = mk "polarity";
