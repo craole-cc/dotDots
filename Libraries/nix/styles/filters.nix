@@ -1,141 +1,86 @@
 {_, ...}: let
   meta = let
     doc = ''
-      Style filters (Layer 4).
+      mkFilters — builds a structured filter/query surface over a registry.
 
-      Partitions the style registry into typed, queryable subsets.
-      Each top-level key maps to a domain section exposing
-      { all, default, groups, queries } via mkSection.
-
-      Top-level queries:
-        icons    - icon themes
-        cursors  - cursor themes
-        flavors  - catppuccin flavors
-        accents  - catppuccin accents
-
-      Depends on: styles.registry.
+      Groups auto-generated:
+        byCategory — entries grouped by each category string
+        byFamily   — entries grouped by family field
+        byPolarity — entries grouped by polarity (string only; attrset polarity skipped)
     '';
-    functions = {
-      inherit
-        lookup
-        mkFilters
-        mkSection
-        ;
-      mkFilterSection = mkSection;
-    };
     exports = {
-      local = default // functions;
-      alias = {
-        toStyleFilters = mkFilters;
-        lookupStyle = lookup;
-      };
+      local = { inherit mkFilters; };
+      alias = {};
     };
-  in {inherit doc exports functions;};
+  in { inherit doc exports; };
 
-  inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.construction) genAttrs;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
-  inherit (_.content.emptiness) isEmpty isNotEmpty;
-  inherit (_.lists.access) findFirst;
-  inherit (_.lists.aggregation) concatMap foldl';
-  inherit (_.lists.transformation) unique;
-  inherit (_.lists.predicates) elem isIn;
+  inherit (builtins)
+    attrNames attrValues concatMap elem filter foldl'
+    genAttrs isString mapAttrs unique;
+  inherit (_.attrsets) filterAttrs;
 
-  registry = _.styles.registry.entries;
-
-  mkFilters = {
-    registry,
-    groups ? {},
-    queries ? (_: {}),
-  }: let
-    allEntries =
-      concatMap
+  # Flatten registry into a list of entries
+  allEntries = registry:
+    concatMap
       (ns: map (key: registry.${ns}.${key}) (attrNames registry.${ns}))
       (attrNames registry);
 
-    allCategories = unique (
-      concatMap (entry: entry.categories or []) allEntries
+  # Generic group-by: extract a scalar key from each entry, skip nulls
+  groupBy = keyFn: entries:
+    let
+      keys = unique (filter (k: k != null) (map keyFn entries));
+    in
+      genAttrs keys (k:
+        foldl' (acc: entry:
+          if keyFn entry == k
+          then acc // { ${entry._key or (throw "entry missing _key")} = entry; }
+          else acc
+        ) {} entries
+      );
+
+  # Actually we want to work at the registry namespace level to preserve keys.
+  # Build a flat attrset of key→entry from a registry, then group.
+  flatRegistry = registry:
+    foldl' (acc: ns:
+      acc // registry.${ns}
+    ) {} (attrNames registry);
+
+  groupByField = field: flat:
+    let
+      entries   = attrValues flat;
+      keys      = unique (filter isString (map (e: e.${field} or null) entries));
+    in
+      genAttrs keys (k:
+        filterAttrs (_: e: (e.${field} or null) == k) flat
+      );
+
+  mkFilters = { registry, groups ? {}, queries ? (_: {}) }: let
+    flat          = flatRegistry registry;
+    entries       = attrValues flat;
+
+    # ── byCategory ──────────────────────────────────────────────────────────
+    allCategories = unique (concatMap (e: e.categories or []) entries);
+    byCategory    = genAttrs allCategories (category:
+      filterAttrs (_: e: elem category (e.categories or [])) flat
     );
 
-    byCategory = genAttrs allCategories (
-      category:
-        foldl' (
-          acc: ns:
-            acc
-            // (
-              filterAttrs
-              (_: entry: elem category (entry.categories or []))
-              registry.${ns}
-            )
-        ) {} (attrNames registry)
-    );
+    # ── byFamily ─────────────────────────────────────────────────────────────
+    byFamily = groupByField "family" flat;
+
+    # ── byPolarity (string only) ─────────────────────────────────────────────
+    byPolarity =
+      let
+        polarityKeys = unique (filter isString (map (e: e.polarity or null) entries));
+      in
+        genAttrs polarityKeys (pol:
+          filterAttrs (_: e: isString (e.polarity or null) && e.polarity == pol) flat
+        );
+
+    autoGroups = { inherit byCategory byFamily byPolarity; };
   in {
     default = registry;
-    groups = {inherit byCategory;} // groups;
-    queries = queries {inherit byCategory;};
+    groups  = autoGroups // groups;
+    queries = queries (autoGroups // groups);
   };
 
-  registryItems = set:
-    map (key: {
-      inherit key;
-      entry = set.${key};
-    }) (attrNames set);
-
-  lookup = name: set: let
-    items = registryItems set;
-    byKey =
-      if set ? ${name}
-      then {
-        inherit name;
-        key = name;
-        entry = set.${name};
-      }
-      else null;
-    byAlias =
-      findFirst
-      (item: elem name (item.entry.aliases or item.entry.names.aliases or []))
-      null
-      items;
-  in
-    if isEmpty name
-    then null
-    else if isNotEmpty byKey
-    then byKey
-    else byAlias;
-
-  mkSection = {
-    set,
-    groups ? {},
-    queries ? {},
-  }: let
-    # Only include queries that actually return non-empty sets
-    activeQueries = filterAttrs (_: v: v != {}) queries;
-  in {
-    all = set;
-    inherit groups;
-    queries = activeQueries;
-  };
-
-  default = mkFilters {
-    inherit registry;
-    queries = {byCategory, ...}:
-      filterAttrs (_: section: section.all != {}) (
-        mapAttrs (name: set:
-          mkSection {
-            inherit set;
-            queries = filterAttrs (_: v: v != {}) {
-              hasAliases = filterAttrs (_: e: (e.aliases or e.names.aliases or []) != []) set;
-              noAliases = filterAttrs (_: e: (e.aliases or e.names.aliases or []) == []) set;
-              hasPackage = filterAttrs (_: e: (e.names.package or null) != null) set;
-              hasVariant = filterAttrs (_: e: e ? variant) set;
-              hasNames = filterAttrs (_: e: e ? names) set;
-            };
-          }) (filterAttrs (name: _: name != "catppuccin") byCategory)
-      );
-  };
-in
-  meta.exports.local
-  // {
-    __docs = meta.doc;
-    __rootAliases = meta.exports.alias;
-  }
+in meta.exports.local // { __docs = meta.doc; __rootAliases = meta.exports.alias; }

@@ -1,296 +1,165 @@
 {_, ...}: let
   meta = let
     doc = ''
-      Style resolution (Layer 3).
-
-      ## Functions
-
-      - `cursor`  - { pkgs, polarity, accent?, flavors?, size? } -> { name, package, size }
-      - `cursors` - { pkgs, accent?, flavors?, size? } -> { light, dark }
-      - `theme`   - { polarity, accent?, flavors? } -> { name, flavor, accent, polarity }
-      - `themes`  - { accent?, flavors? } -> { light, dark }
-      - `resolve` - { pkgs, accent?, flavors?, size? } -> { cursors, themes }
+      catppuccin - registry-driven accent/flavor resolution plus cursor and theme
+      builders for the Catppuccin family.
     '';
     exports = {
-      local = {
-        inherit defaults cursor cursors theme themes resolve;
-      };
-      alias = {
-        resolveCursor = cursor;
-        resolveCursors = cursors;
-        resolveTheme = theme;
-        resolveThemes = themes;
-        resolveStyle = resolve;
-      };
+      local = {inherit accents flavors cursor cursors theme themes resolve defaults;};
+      alias = {};
     };
   in {inherit doc exports;};
 
-  inherit (_.attrsets.access) attrNames attrValues;
-  inherit (_.attrsets.aggregation) recursiveUpdate mapAttrsToList;
-  inherit (_.content.emptiness) isEmpty;
-  inherit (_.lists.transformation) uniqueStrings;
-  inherit (_.lists.aggregation) foldl';
+  # inherit () attrNames attrValues elem foldl' listToAttrs map;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.resolution) getPackage;
+  inherit (_.strings.transformation) toLowerCase toTitleCase toPascalCase;
   inherit (_.lists.predicates) isIn;
-  # inherit (_.sources.packages) getPackage;# TODO: Include when available
-  inherit (_.attrsets.resolution) getPackage; # TODO: Exclude when unavailable
-  inherit (_.strings.transformation) toTitleCase toLowerCase;
-  inherit (_.strings.construction) concat;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.access) head;
+  inherit (_.lists.selection) filter;
+  inherit (_.attrsets.construction) listToAttrs;
 
+  #  Accent registry
+  accents = let
+    registry = _.styles.filters.queries.accents.all;
+    names = attrNames registry;
+    aliases =
+      foldl' (
+        acc: name:
+          acc
+          // listToAttrs (map (a: {
+              name = a;
+              value = name;
+            })
+            (registry.${name}.aliases or []))
+      ) {}
+      names;
+    check = input: let
+      value = toLowerCase input;
+      normalized = aliases.${value} or value;
+    in
+      if isIn normalized names
+      then normalized
+      else throw "Invalid accent `${input}`. Valid: ${toString names}";
+  in {inherit registry names aliases check;};
+
+  #  Flavor registry
+  flavors = let
+    registry = _.styles.filters.queries.flavors.all;
+    names = attrNames registry;
+    aliases =
+      foldl' (
+        acc: name:
+          acc
+          // listToAttrs (map (a: {
+              name = a;
+              value = name;
+            })
+            (registry.${name}.aliases or []))
+      ) {}
+      names;
+    check = input: let
+      value = toLowerCase input;
+      normalized = aliases.${value} or value;
+    in
+      if isIn normalized names
+      then normalized
+      else throw "Invalid flavor `${input}`. Valid: ${toString names}";
+    # Convenience: which flavor names are light/dark
+    light = filter (n: registry.${n}.polarity == "light") names;
+    dark = filter (n: registry.${n}.polarity == "dark") names;
+  in {inherit registry names aliases check light dark;};
+
+  #  Cursor builder
+  # Returns { light, dark } each { name, package, size }
+  cursor = {
+    accent ? "blue",
+    flavor ? null, # if provided, drives the dark variant
+    size ? 24,
+    pkgs,
+  }: let
+    a = accents.check accent;
+    titleA = toTitleCase a;
+    darkFlavor =
+      if flavor != null
+      then flavors.check flavor
+      else "mocha";
+    lightFlavor = head flavors.light;
+    mkName = fl: "catppuccin-${fl}-${a}-cursors";
+    mkPkg = fl:
+      getPackage {
+        inherit pkgs;
+        target = "catppuccin-cursors.${fl}${toPascalCase a}"; #TODO: check this
+      };
+  in {
+    light = {
+      name = mkName lightFlavor;
+      package = mkPkg lightFlavor;
+      inherit size;
+    };
+    dark = {
+      name = mkName darkFlavor;
+      package = mkPkg darkFlavor;
+      inherit size;
+    };
+  };
+
+  #  Cursors (list form)
+  cursors = args: let
+    result = cursor args;
+  in [result.light result.dark];
+
+  #  Theme builder
+  # Returns { light, dark } each { name, scheme, package, polarity }
+  theme = {
+    accent ? "blue",
+    size ? null,
+    pkgs,
+  }: let
+    a = accents.check accent;
+    mkVariant = fl: let
+      entry = _.styles.filters.queries.themes.all.${"catppuccin-${fl}"} or
+        (throw "No catppuccin theme entry for flavor `${fl}`");
+    in {
+      name = entry.name;
+      scheme = entry.scheme;
+      package = _.attrsets.resolution.getPackage {
+        inherit pkgs;
+        target = entry.package;
+      };
+      polarity = entry.polarity;
+    };
+    lightFlavor = head flavors.light;
+    darkFlavor = "mocha";
+  in {
+    light = mkVariant lightFlavor;
+    dark = mkVariant darkFlavor;
+  };
+
+  #  Themes (list form) - was wrongly calling cursor, now calls theme
+  themes = args: let
+    result = theme args;
+  in [result.light result.dark];
+
+  #  Defaults
   defaults = {
-    accent = "teal";
-    accents = {
-      light = "sapphire";
-      dark = "sky";
-    };
-    flavors = {
-      light = "latte";
-      dark = "frappe";
-    };
+    accent = "blue";
+    flavor = "mocha";
     size = 24;
   };
 
-  enums = {
-    accents = let
-      known = {
-        rosewater = {
-          aliasMap = {
-            rose = "rosewater";
-            "rosé" = "rosewater";
-          };
-        };
-
-        flamingo = {
-          aliasMap = {
-            coral = "flamingo";
-          };
-        };
-
-        pink = {
-          aliasMap = {
-            hotpink = "pink";
-            hot-pink = "pink";
-          };
-        };
-
-        mauve = {
-          aliasMap = {
-            purple = "mauve";
-            violet = "mauve";
-          };
-        };
-
-        red = {
-          aliasMap = {
-            scarlet = "red";
-          };
-        };
-
-        maroon = {
-          aliasMap = {
-            burgundy = "maroon";
-            wine = "maroon";
-          };
-        };
-
-        peach = {
-          aliasMap = {
-            orange = "peach";
-            apricot = "peach";
-          };
-        };
-
-        yellow = {
-          aliasMap = {
-            gold = "yellow";
-          };
-        };
-
-        green = {
-          aliasMap = {
-            lime = "green";
-          };
-        };
-
-        teal = {
-          aliasMap = {
-            cyan = "teal";
-            aqua = "teal";
-            turquoise = "teal";
-          };
-        };
-
-        sky = {
-          aliasMap = {
-            lightblue = "sky";
-            light-blue = "sky";
-          };
-        };
-
-        sapphire = {
-          aliasMap = {
-            azure = "sapphire";
-            cerulean = "sapphire";
-          };
-        };
-
-        blue = {
-          aliasMap = {
-            navy = "blue";
-            cobalt = "blue";
-          };
-        };
-
-        lavender = {
-          aliasMap = {
-            lilac = "lavender";
-            magenta = "lavender";
-          };
-        };
-      };
-
-      names = attrNames known;
-
-      aliases =
-        foldl'
-        recursiveUpdate
-        {}
-        (mapAttrsToList (_: value: value.aliasMap or {}) known);
-
-      check = input: let
-        value = toLowerCase input;
-        normalized = aliases.${value} or value;
-      in
-        if isIn normalized names
-        then normalized
-        else throw "Invalid Catppuccin accent `${input}`. Expected one of: ${concat ", " names}";
-    in {
-      inherit names aliases check;
-    };
-
-    flavors = let
-      known = {
-        latte = {
-          aliasMap = {
-            light = "latte";
-            day = "latte";
-            daytime = "latte";
-            morning = "latte";
-            sun = "latte";
-          };
-        };
-
-        frappe = {
-          aliasMap = {
-            "frappé" = "frappe";
-            muted = "frappe";
-            soft = "frappe";
-            dusk = "frappe";
-            evening = "frappe";
-          };
-        };
-
-        macchiato = {
-          aliasMap = {
-            mac = "macchiato";
-            mid = "macchiato";
-            medium = "macchiato";
-            cozy = "macchiato";
-            rainy = "macchiato";
-          };
-        };
-
-        mocha = {
-          aliasMap = {
-            dark = "mocha";
-            night = "mocha";
-            darkest = "mocha";
-            original = "mocha";
-          };
-        };
-      };
-
-      names = attrNames known;
-
-      aliases =
-        foldl'
-        recursiveUpdate
-        {}
-        (mapAttrsToList (_: value: value.aliasMap or {}) known);
-
-      check = input: let
-        value = toLowerCase input;
-        normalized = aliases.${value} or value;
-      in
-        if isIn normalized names
-        then normalized
-        else throw "Invalid Catppuccin flavor `${input}`. Expected one of: ${concat ", " names}";
-    in {
-      inherit names aliases check;
-    };
-  };
-
-  cursor = {
-    pkgs,
-    polarity,
-    accents ? defaults.accent,
-    flavors ? defaults.flavors,
-    size ? defaults.size,
-  }: let
-    accent = accents.${polarity};
-    flavor = flavors.${polarity};
-  in {
-    name = "catppuccin-${flavor}-${accent}-cursors";
-    package = pkgs.catppuccin-cursors.${flavor + (toTitleCase accent)};
-    inherit size;
-  };
-
-  cursors = {
-    pkgs,
-    accents ? defaults.accent,
-    flavors ? defaults.flavors,
-    size ? defaults.size,
-  }: let
-    mk = polarity: cursor {inherit pkgs accents flavors size polarity;};
-  in {
-    light = mk "light";
-    dark = mk "dark";
-  };
-
-  theme = {
-    pkgs,
-    polarity,
-    accents ? defaults.accents,
-    flavors ? defaults.flavors,
-  }: let
-    target = "catppuccin";
-    accent = enums.accents.check accents.${polarity};
-    flavor = enums.flavors.check flavors.${polarity};
-  in {
-    inherit flavor accent;
-    name = toTitleCase (concat " " [target flavor]);
-    scheme = concat "-" [target flavor];
-    package = getPackage {inherit pkgs target;};
-  };
-
-  themes = {
-    pkgs,
-    accent ? defaults.accent,
-    flavors ? defaults.flavors,
-  }: let
-    mk = polarity: cursor {inherit pkgs accent flavors polarity;};
-  in {
-    light = mk "light";
-    dark = mk "dark";
-  };
-
+  #  Resolve (high-level)
   resolve = {
-    pkgs,
-    accents ? defaults.accent,
-    flavors ? defaults.flavors,
+    accent ? defaults.accent,
+    flavor ? defaults.flavor,
     size ? defaults.size,
+    pkgs,
   }: {
-    cursors = cursors {inherit pkgs accents flavors size;};
-    themes = themes {inherit pkgs accents flavors;};
+    cursors = cursor {inherit accent flavor size pkgs;};
+    themes = theme {inherit accent pkgs;};
+    accent = accents.check accent;
+    flavor = flavors.check flavor;
   };
 in
   meta.exports.local
