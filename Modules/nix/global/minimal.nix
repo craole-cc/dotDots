@@ -77,7 +77,7 @@
           git
           gnused # ? GNU stream editor
           gum
-          inputPkgs.codex
+          (inputPkgs "llm-agents").codex
           jq # ? JSON query processor
           lsd # ? LSDeluxe file lister
           nixd # ? Nix language daemon
