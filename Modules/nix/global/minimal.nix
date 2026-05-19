@@ -77,7 +77,6 @@
           git
           gnused # ? GNU stream editor
           gum
-          (inputPkgs "llm-agents").codex
           jq # ? JSON query processor
           lsd # ? LSDeluxe file lister
           nixd # ? Nix language daemon
@@ -88,6 +87,7 @@
           sops
           undollar # ? Remove leading dollar signs age
         ]
+        ++ (with (inputPkgs "llm-agents"); [codex])
         ++ optionals stdenv.isLinux [
           xclip
           wl-clipboard
