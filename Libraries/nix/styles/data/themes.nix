@@ -1,5 +1,5 @@
 _: {
-  # ── Catppuccin ─────────────────────────────────────────────────────────────
+  #  Catppuccin
   catppuccin-latte = {
     aliases = ["latte" "catppuccin-light"];
     family = "catppuccin";
@@ -36,7 +36,7 @@ _: {
     package = "catppuccin";
   };
 
-  # ── Rosé Pine ──────────────────────────────────────────────────────────────
+  #  Rosé Pine
   rose-pine = {
     aliases = ["rosepine" "rose-pine-main"];
     family = "rose-pine";
@@ -64,7 +64,7 @@ _: {
     package = "rose-pine-gtk-theme";
   };
 
-  # ── Gruvbox ────────────────────────────────────────────────────────────────
+  #  Gruvbox
   gruvbox-dark = {
     aliases = ["gruvbox" "gruvbox-hard-dark"];
     family = "gruvbox";
@@ -101,7 +101,7 @@ _: {
     package = "gruvbox-gtk-theme";
   };
 
-  # ── Blue Loco ──────────────────────────────────────────────────────────────
+  #  Blue Loco
   blueloco-dark = {
     aliases = ["blueloco" "blue-loco-dark"];
     family = "blueloco";
@@ -120,7 +120,7 @@ _: {
     package = null;
   };
 
-  # ── Tokyo Night ────────────────────────────────────────────────────────────
+  #  Tokyo Night
   tokyo-night = {
     aliases = ["tokyonight" "tokyo-night-dark"];
     family = "tokyo-night";
@@ -148,7 +148,7 @@ _: {
     package = "tokyo-night-gtk";
   };
 
-  # ── Dracula ────────────────────────────────────────────────────────────────
+  #  Dracula
   dracula = {
     aliases = ["dracula-dark"];
     family = "dracula";
@@ -158,7 +158,7 @@ _: {
     package = "dracula-theme";
   };
 
-  # ── Nord ───────────────────────────────────────────────────────────────────
+  #  Nord
   nord = {
     aliases = ["nordic" "nord-dark"];
     family = "nord";
@@ -177,7 +177,7 @@ _: {
     package = "nordic";
   };
 
-  # ── Everforest ─────────────────────────────────────────────────────────────
+  #  Everforest
   everforest-dark = {
     aliases = ["everforest"];
     family = "everforest";
@@ -196,7 +196,7 @@ _: {
     package = "everforest-gtk-theme";
   };
 
-  # ── Kanagawa ───────────────────────────────────────────────────────────────
+  #  Kanagawa
   kanagawa = {
     aliases = ["kanagawa-wave"];
     family = "kanagawa";
