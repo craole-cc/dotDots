@@ -12,7 +12,7 @@ _: {
   };
 
   macchiato = {
-    aliases = ["mac" "mid" "medium" "cozy" "rainy"];
+    aliases = ["mac" "macchiata" "mariatta" "mariacha" "mid" "medium" "cozy" "rainy"];
     family = "catppuccin";
     polarity = "dark";
   };

@@ -4,38 +4,45 @@
       Theme resolution (Layer 3).
 
       Dispatches any theme input to { light, dark } each
-      { name, scheme, package, polarity }.
+      { name, scheme, package, polarity, flavor, accent }.
+      Catppuccin family entries delegate to the catppuccin resolver.
 
-      Input shapes accepted:
-        ""                          → catppuccin default
-        string (family=catppuccin)  → delegate to catppuccin.theme
-        string (other families)     → static pair from registry entry
-
-      Depends on: styles.filters, styles.resolution.catppuccin, attrsets.resolution.
+      Depends on: styles.registry, styles.resolution.catppuccin, attrsets.resolution.
     '';
     exports = {
-      local = {inherit resolve;};
+      local = {inherit resolve resolvePair;};
       alias = {resolveTheme = resolve;};
     };
   in {inherit doc exports;};
 
-  inherit (_.content.emptiness) isEmpty;
+  inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.debug.assertions) assertMsgFunc;
-  inherit (_.styles.filters) lookup;
+  inherit (_.content.emptiness) isEmpty;
+  inherit (_.debug.assertions) withContext;
+  inherit (_.styles.registry) lookup;
   inherit (_.types.predicates) isString;
 
-  themeRegistry = _.styles.queries.themes.all;
+  registry = _.styles.registry.queries.themes.all;
 
-  # ── Helpers ────────────────────────────────────────────────────────────────
+  /**
+    Resolve a static (non-catppuccin) theme entry to { name, scheme, package, polarity }.
 
-  # Non-catppuccin entries have a single polarity; both slots get the same
-  # resolved record — consumers pick the one matching their current polarity.
-  staticPair = {
+    Both polarities receive the same resolved record — consumers select the
+    slot matching their current polarity.
+
+    # Type
+  ```nix
+    resolveStatic :: { entry :: attrset, pkgs :: pkgs } -> { name :: string, scheme :: string | null, package :: derivation | null, polarity :: string }
+  ```
+  */
+  resolveStatic = {
     entry,
     pkgs,
-  }: let
-    pkg =
+  }: {
+    name = entry.name;
+    scheme = entry.scheme or null;
+    polarity = entry.polarity;
+    package =
       if entry.package or null != null
       then
         getPackage {
@@ -43,36 +50,80 @@
           target = entry.package;
         }
       else null;
-    resolved = {
-      name = entry.name;
-      scheme = entry.scheme or null;
-      polarity = entry.polarity;
-      package = pkg;
-    };
-  in {
-    light = resolved;
-    dark = resolved;
   };
 
-  # ── Resolve ───────────────────────────────────────────────────────────────
+  mkBoth = mkOne: {pkgs, ...} @ args: {
+    light = mkOne (args // {polarity = "light";});
+    dark = mkOne (args // {polarity = "dark";});
+  };
 
+  /**
+    Resolve any theme input to a single variant for the given polarity.
+
+    Input shapes accepted:
+    - `""`                        → catppuccin default theme for this polarity
+    - string (family=catppuccin)  → delegate to catppuccin.mkTheme
+    - string (other families)     → static resolved record from registry entry
+
+    # Type
+  ```nix
+    resolve :: { pkgs :: pkgs, polarity :: string?, theme :: string?, accent :: string | [ string string ] | { light :: string, dark :: string }?, flavor :: string | [ string string ] | { light :: string, dark :: string }? } -> { name :: string, scheme :: string | null, package :: derivation | null, polarity :: string }
+  ```
+
+    # Examples
+  ```nix
+    resolve { inherit pkgs; }
+    resolve { inherit pkgs; theme = "rose-pine"; polarity = "light"; }
+    resolve { inherit pkgs; theme = "gruvbox-dark"; accent = "sky"; }
+  ```
+  */
   resolve = {
-    theme ? "",
-    accent ? "blue",
-    flavor ? "mocha",
     pkgs,
-  }:
+    polarity ? "dark",
+    theme ? "",
+    accent ? null,
+    flavor ? null,
+  }: let
+    fn = {
+      name = "themes.resolve";
+      context = "resolving theme for ${polarity}";
+    };
+  in
     if isEmpty theme
-    then _.styles.resolution.catppuccin.theme {inherit accent flavor pkgs;}
+    then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
     else if isString theme
     then let
-      result = lookup theme themeRegistry;
+      result = lookup theme registry;
       entry = result.entry;
     in
       if (entry.family or null) == "catppuccin"
-      then _.styles.resolution.catppuccin.theme {inherit accent flavor pkgs;}
-      else staticPair {inherit entry pkgs;}
-    else throw "themes.resolve: expected a string, got `${toString theme}`";
+      then _.styles.resolution.catppuccin.mkTheme {inherit pkgs polarity accent flavor;}
+      else resolveStatic {inherit entry pkgs;}
+    else
+      assert withContext {
+        inherit (fn) name context;
+        assertion = false;
+        message = "expected null or string, got `${toString theme}`";
+      }; null;
+
+  /**
+    Resolve a theme for both polarities.
+
+    Returns `{ light, dark }` each containing the resolved theme record.
+
+    # Type
+  ```nix
+    resolvePair :: { pkgs :: pkgs, theme :: string?, accent :: string | [ string string ] | { light :: string, dark :: string }?, flavor :: string | [ string string ] | { light :: string, dark :: string }? } -> { light :: { ... }, dark :: { ... } }
+  ```
+
+    # Examples
+  ```nix
+    resolvePair { inherit pkgs; }
+    resolvePair { inherit pkgs; theme = "nord"; }
+    resolvePair { inherit pkgs; theme = "catppuccin-mocha"; accent = [ "sapphire" "sky" ]; }
+  ```
+  */
+  resolvePair = mkBoth resolve;
 in
   meta.exports.local
   // {

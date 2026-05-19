@@ -17,7 +17,7 @@
       toSnake
       toTitle
       toUpper'
-      trim
+      trim'
       trimEnd
       trimStart
       ;
@@ -50,7 +50,7 @@
         toSnakeCase = toSnake;
         toTitleCase = toTitle;
         toUpperCase = toUpper';
-        trimString = trim;
+        trimString = trim';
         trimStringEnd = trimEnd;
         trimStringStart = trimStart;
         replaceAllStrings = replaceAll;
@@ -78,7 +78,7 @@
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
   inherit (_.content.emptiness) isEmpty;
-  inherit (lib.lists) any genList map;
+  inherit (lib.lists) any genList;
 
   #? Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -301,7 +301,7 @@
   trim null ["  a  " "  b  "]  # => ["a" "b"]
   ```
   */
-  trim = chars: input: trimStart chars (trimEnd chars input);
+  trim' = chars: input: trimStart chars (trimEnd chars input);
 
   /**
   Replace all occurrences of substrings in a string or list of strings.
@@ -730,16 +730,16 @@ in
           outcome = trimEnd "!" "foo!!!";
         };
       };
-      trim = {
+      trim' = {
         spaces = mkTest {
           desired = "foo bar";
           command = ''trim null "  foo bar  "'';
-          outcome = trim null "  foo bar  ";
+          outcome = trim' null "  foo bar  ";
         };
         customChar = mkTest {
           desired = "foo/bar";
           command = ''trim "/" "/foo/bar/"'';
-          outcome = trim "/" "/foo/bar/";
+          outcome = trim' "/" "/foo/bar/";
         };
       };
       replaceAll = {

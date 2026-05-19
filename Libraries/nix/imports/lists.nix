@@ -92,7 +92,7 @@
       concatMap
       foldl'
       foldl
-      foldlr
+      foldr
       ;
   };
 

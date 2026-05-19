@@ -39,7 +39,7 @@
     if (value == null)
     then true
     else if isString value
-    then stringLength (trim value) == 0
+    then ((value == "") || ((stringLength (trim value)) == 0))
     else if isList value
     then value == []
     else if isAttrs value
