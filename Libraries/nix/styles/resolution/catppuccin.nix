@@ -34,14 +34,17 @@
   in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.construction) listToAttrs;
+  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.lists.access) head;
+  inherit (_.content.emptiness) isEmpty isNotEmpty;
+  inherit (_.lists.access) elemAt head length;
   inherit (_.lists.aggregation) foldl';
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
   inherit (_.strings.transformation) toLowerCase toPascalCase;
   inherit (_.debug.assertions) withContext;
+  inherit (_.types.predicates) isAttrs isList isString;
+  inherit (_.styles.registry.groups.byFamily.catppuccin) accents cursors flavors themes;
 
   seed = {
     accent = {
@@ -55,22 +58,12 @@
     size = 32;
   };
 
-  resolve = {
-    accents ? seed.accents,
-    flavors ? seed.flavors,
-    size ? seed.size,
-    pkgs,
-  }: {
-    cursors = mkCursors {inherit accents flavors size pkgs;};
-    themes = mkThemes {inherit accents flavors pkgs;};
-    accent = accents.check accents;
-    flavor = flavors.check flavors;
-  };
-
   # Accent registry
   data = {
+    themes = {registry = themes;};
+    cursors = {registry = cursors;};
     accents = let
-      registry = _.styles.queries.accents.all;
+      registry = accents;
       names = attrNames registry;
       aliases =
         foldl' (
@@ -101,7 +94,7 @@
     # Flavor registry
 
     flavors = let
-      registry = _.styles.queries.flavors.all;
+      registry = flavors;
       names = attrNames registry;
       aliases =
         foldl' (
@@ -131,108 +124,194 @@
       dark = filter (name: registry.${name}.polarity == "dark") names;
     in {inherit registry names aliases check light dark;};
   };
-  # Cursor builder
+
+  # Cursors (both polarities)
   # Returns { light, dark } each { name, package, size }
+  # accent/flavor accept: string | [ lightVal darkVal ] | { light, dark }
+
+  mkCursors = {
+    pkgs,
+    accent ? null,
+    flavor ? null,
+    size ? seed.size,
+  }: let
+    mk = polarity:
+      mkCursor {
+        inherit pkgs polarity size;
+        accent = normalize {
+          inherit polarity;
+          group = "accent";
+          value = accent;
+        };
+        flavor = normalize {
+          inherit polarity;
+          group = "flavor";
+          value = flavor;
+        };
+      };
+  in {
+    light = mk "light";
+    dark = mk "dark";
+  };
+
+  # Cursor variant builder
+  # Takes polarity, returns { name, package, size }
 
   mkCursor = {
-    accent ? seed.accent,
-    flavor ? seed.flavor,
-    size ? seed.size,
     pkgs,
+    polarity ? "dark",
+    accent ? seed.accent.${polarity},
+    flavor ? seed.flavor.${polarity},
+    size ? seed.size,
   }: let
     fn = {
-      name = "catppuccin.cursor";
-      context = "building catppuccin cursor";
+      name = "mkCatppuccinCursor";
+      context = "building catppuccin cursor variant";
     };
-    accentName = data.accents.check accent;
-    darkFlavor = data.flavors.check flavor;
-    lightFlavor = head data.flavors.light;
-    mkName = flavorName: "catppuccin-${flavorName}-${accentName}-cursors";
-    mkPkg = flavorName:
-      getPackage {
-        inherit pkgs;
-        target = "catppuccin-cursors.${flavorName}${toPascalCase accentName}";
-      };
+    accentName = data.accents.check (normalize {
+      inherit polarity;
+      group = "accent";
+      value = accent;
+    });
+    flavorName = data.flavors.check (normalize {
+      inherit polarity;
+      group = "flavor";
+      value = flavor;
+    });
   in
     assert withContext {
       inherit (fn) name context;
       assertion = data.flavors.light != [];
       message = "no light flavors found in registry";
     }; {
-      light = {
-        name = mkName lightFlavor;
-        package = mkPkg lightFlavor;
-        inherit size;
+      name = "catppuccin-${flavorName}-${accentName}-cursors";
+      package = getPackage {
+        inherit pkgs;
+        target = "catppuccin-cursors.${flavorName}${toPascalCase accentName}";
       };
-      dark = {
-        name = mkName darkFlavor;
-        package = mkPkg darkFlavor;
-        inherit size;
-      };
+      inherit size;
     };
 
-  # Cursors (list form)
+  # Themes (both polarities)
+  # Returns { light, dark } each { name, scheme, package, polarity, flavor, accent }
+  # accent/flavor accept: string | [ lightVal darkVal ] | { light, dark }
+  mkThemes = {
+    pkgs,
+    accent ? null,
+    flavor ? null,
+  }: let
+    mk = polarity:
+      mkTheme {
+        inherit pkgs polarity;
+        accent = normalize {
+          inherit polarity;
+          group = "accent";
+          value = accent;
+        };
+        flavor = normalize {
+          inherit polarity;
+          group = "flavor";
+          value = flavor;
+        };
+      };
+  in {
+    light = mk "light";
+    dark = mk "dark";
+  };
 
-  mkCursors = args: let
-    result = mkCursor args;
-  in [result.light result.dark];
   # Theme variant builder
   # Takes polarity, returns { name, scheme, package, polarity }
-
   mkTheme = {
     pkgs,
     polarity ? "dark",
-    accent ? defaults.accent.${polarity},
-    flavor ? defaults.flavor.${polarity},
+    accent ? seed.accent.${polarity},
+    flavor ? seed.flavor.${polarity},
   }: let
     fn = {
       name = "mkCatppuccinTheme";
       context = "building catppuccin theme variant";
     };
 
-    accent' = accents.check (
-      if isAttrs accent
-      then accent.${polarity}
-      else accent
-    );
+    accent' = normalize {
+      inherit polarity;
+      group = "accents";
+      value = accent;
+    };
 
-    flavor' = flavors.check (
-      if isAttrs flavor
-      then flavor.${polarity}
-      else flavor
-    );
+    flavor' = normalize {
+      inherit polarity;
+      group = "flavors";
+      value = flavor;
+    };
 
     key = "catppuccin-${flavor'}";
-    entry = assert withContext {
+    theme = assert withContext {
       inherit (fn) name context;
-      assertion = _.styles.queries.themes.all ? ${key};
-      message = "no theme entry for flavor `${flavorName}` (looked up `${key}`)";
+      assertion = themes ? ${key};
+      message = "no theme entry for flavor `${flavor'}` (looked up `${key}`)";
     };
-      _.styles.queries.themes.all.${key};
+      themes.${key};
   in {
-    name = entry.name;
-    scheme = entry.scheme;
-    polarity = entry.polarity;
+    inherit (theme) name scheme;
     package = getPackage {
       inherit pkgs;
-      target = entry.package;
+      target = theme.package;
     };
     flavor = flavor';
     accent = accent';
   };
 
-  # Themes (both polarities)
-  # Returns { light, dark } each { name, scheme, package, polarity }
-
-  mkThemes = {
-    accent ? data.accent,
-    flavor ? data.flavor,
-    pkgs,
+  normalize = {
+    group,
+    value,
+    polarity,
   }: let
-    mk = polarity: mkTheme {inherit accent flavor pkgs polarity;};
-  in {
-    light = mk "light";
-    dark = mk "dark";
+    fn = {
+      name = "normalize";
+      context = "normalizing ${polarity} ${group} for catppuccin";
+    };
+  in
+    if value == null
+    then seed.${group}.${polarity}
+    else if isString value
+    then value
+    else if isList value
+    then
+      assert withContext {
+        inherit (fn) name context;
+        assertion = length value == 2;
+        message = "list input must have exactly 2 elements [lightVal darkVal], got ${
+          toString (length value)
+        }";
+      };
+        if polarity == "light"
+        then elemAt value 0
+        else elemAt value 1
+    else if isAttrs value
+    then
+      assert withContext {
+        inherit (fn) name context;
+        assertion = value ? ${polarity};
+        message = "attrset input is missing `${polarity}` key";
+      };
+        value.${polarity}
+    else
+      assert withContext {
+        inherit (fn) name context;
+        assertion = false;
+        message = "expected null, string, list, or attrset, got `${toString value}`";
+      }; null;
+
+  resolve = {
+    accents ? seed.accent,
+    flavors ? seed.flavor,
+    size ? seed.size,
+    pkgs,
+  }: {
+    cursors = mkCursors {inherit accents flavors size pkgs;};
+    themes = mkThemes {inherit accents flavors pkgs;};
+    accent = accents.check accents;
+    flavor = flavors.check flavors;
   };
 in
   meta.exports.local
