@@ -145,7 +145,7 @@ _: {
     polarity = "light";
     name = "Tokyo Night Light";
     scheme = "tokyo-night-light";
-    package = "tokyo-night-gtk";
+    package = "tokyonight-gtk-theme";
   };
 
   #  Dracula
