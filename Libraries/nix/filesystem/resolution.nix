@@ -38,11 +38,6 @@
     then root
     else root + "/${concat "/" ((normalizePath stems).path)}";
 
-  getFlakeBuiltin =
-    optionalAttrs
-    (builtins ? getFlake)
-    {inherit (builtins) getFlake;};
-
   # pathHasPrefix = path.hasPrefix;
   # isStorePath = path.hasStorePathPrefix;
   /**
@@ -100,7 +95,7 @@
     derived =
       optionalAttrs
       (normalizedPath != null && builtins ? getGlake)
-      (builtins.getFlake normalizedPath);
+      (let inherit (builtins) getFlake; in getFlake normalizedPath);
 
     failureReason =
       if normalizedPath == null

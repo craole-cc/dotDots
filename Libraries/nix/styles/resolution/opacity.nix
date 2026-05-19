@@ -1,8 +1,12 @@
 {_, ...}: let
   meta = let
     doc = ''
-      opacity - resolves terminal and popup opacity values for light and dark modes.
-      Accepts per-mode overrides; falls back to shared defaults.
+      Opacity resolution (Layer 3).
+
+      Resolves terminal and popup opacity for light and dark modes.
+      Per-mode overrides are merged over shared defaults via recursiveUpdate.
+
+      Depends on: attrsets.
     '';
     exports = {
       local = {inherit opacity;};
@@ -11,6 +15,8 @@
   in {inherit doc exports;};
 
   inherit (_.attrsets) recursiveUpdate;
+
+  # ── Resolve ───────────────────────────────────────────────────────────────
 
   opacity = {
     terminal ? 0.9,

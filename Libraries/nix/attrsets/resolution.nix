@@ -16,7 +16,7 @@
   inherit (_.filesystem.paths) getFlakePath;
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.predicates) all elem isList;
-  inherit (_.strings.construction) concat optionalString;
+  inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.predicates) isString;
   inherit (_.strings.transformation) splitStringBy;
 
@@ -138,7 +138,7 @@
     reference =
       optionalString
       (isNotEmpty validated)
-      (concat "." validated);
+      (concatStringsSep "." validated);
   };
 
   withPath = {

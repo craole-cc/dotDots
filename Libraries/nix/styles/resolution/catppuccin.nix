@@ -1,165 +1,238 @@
 {_, ...}: let
   meta = let
     doc = ''
-      catppuccin - registry-driven accent/flavor resolution plus cursor and theme
-      builders for the Catppuccin family.
+      Catppuccin resolution (Layer 3).
+
+      Registry-driven accent/flavor validation plus cursor and theme builders
+      for the Catppuccin family. Provides namespaced accent/flavor records with
+      check functions, and high-level resolve entry point.
+
+      Depends on: styles.filters, attrsets.resolution, strings.transformation.
     '';
     exports = {
-      local = {inherit accents flavors cursor cursors theme themes resolve defaults;};
-      alias = {};
+      local = {
+        inherit
+          mkCursor
+          mkCursors
+          mkTheme
+          mkThemes
+          resolve
+          ;
+        inherit (data) accents flavors;
+      };
+      alias = {
+        mkCatppuccinCursor = mkCursor;
+        mkCatppuccinCursors = mkCursors;
+        mkCatppuccinTheme = mkTheme;
+        mkCatppuccinThemes = mkThemes;
+        catppuccinFlavors = data.flavors;
+        catppuccinAccents = data.accents;
+        mkCatppuccin = resolve;
+        catppuccin = exports.local;
+      };
     };
   in {inherit doc exports;};
 
-  # inherit () attrNames attrValues elem foldl' listToAttrs map;
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.resolution) getPackage;
-  inherit (_.strings.transformation) toLowerCase toTitleCase toPascalCase;
-  inherit (_.lists.predicates) isIn;
-  inherit (_.lists.aggregation) foldl';
-  inherit (_.lists.access) head;
-  inherit (_.lists.selection) filter;
   inherit (_.attrsets.construction) listToAttrs;
+  inherit (_.attrsets.resolution) getPackage;
+  inherit (_.lists.access) head;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.predicates) isIn;
+  inherit (_.lists.selection) filter;
+  inherit (_.strings.transformation) toLowerCase toPascalCase;
+  inherit (_.debug.assertions) withContext;
 
-  #  Accent registry
-  accents = let
-    registry = _.styles.filters.queries.accents.all;
-    names = attrNames registry;
-    aliases =
-      foldl' (
-        acc: name:
-          acc
-          // listToAttrs (map (a: {
-              name = a;
-              value = name;
-            })
-            (registry.${name}.aliases or []))
-      ) {}
-      names;
-    check = input: let
-      value = toLowerCase input;
-      normalized = aliases.${value} or value;
-    in
-      if isIn normalized names
-      then normalized
-      else throw "Invalid accent `${input}`. Valid: ${toString names}";
-  in {inherit registry names aliases check;};
-
-  #  Flavor registry
-  flavors = let
-    registry = _.styles.filters.queries.flavors.all;
-    names = attrNames registry;
-    aliases =
-      foldl' (
-        acc: name:
-          acc
-          // listToAttrs (map (a: {
-              name = a;
-              value = name;
-            })
-            (registry.${name}.aliases or []))
-      ) {}
-      names;
-    check = input: let
-      value = toLowerCase input;
-      normalized = aliases.${value} or value;
-    in
-      if isIn normalized names
-      then normalized
-      else throw "Invalid flavor `${input}`. Valid: ${toString names}";
-    # Convenience: which flavor names are light/dark
-    light = filter (n: registry.${n}.polarity == "light") names;
-    dark = filter (n: registry.${n}.polarity == "dark") names;
-  in {inherit registry names aliases check light dark;};
-
-  #  Cursor builder
-  # Returns { light, dark } each { name, package, size }
-  cursor = {
-    accent ? "blue",
-    flavor ? null, # if provided, drives the dark variant
-    size ? 24,
-    pkgs,
-  }: let
-    a = accents.check accent;
-    titleA = toTitleCase a;
-    darkFlavor =
-      if flavor != null
-      then flavors.check flavor
-      else "mocha";
-    lightFlavor = head flavors.light;
-    mkName = fl: "catppuccin-${fl}-${a}-cursors";
-    mkPkg = fl:
-      getPackage {
-        inherit pkgs;
-        target = "catppuccin-cursors.${fl}${toPascalCase a}"; #TODO: check this
-      };
-  in {
-    light = {
-      name = mkName lightFlavor;
-      package = mkPkg lightFlavor;
-      inherit size;
+  seed = {
+    accent = {
+      light = "sapphire";
+      dark = "sky";
     };
-    dark = {
-      name = mkName darkFlavor;
-      package = mkPkg darkFlavor;
-      inherit size;
+    flavor = {
+      light = "latte";
+      dark = "frappe";
     };
+    size = 32;
   };
 
-  #  Cursors (list form)
-  cursors = args: let
-    result = cursor args;
-  in [result.light result.dark];
-
-  #  Theme builder
-  # Returns { light, dark } each { name, scheme, package, polarity }
-  theme = {
-    accent ? "blue",
-    size ? null,
-    pkgs,
-  }: let
-    a = accents.check accent;
-    mkVariant = fl: let
-      entry = _.styles.filters.queries.themes.all.${"catppuccin-${fl}"} or
-        (throw "No catppuccin theme entry for flavor `${fl}`");
-    in {
-      name = entry.name;
-      scheme = entry.scheme;
-      package = _.attrsets.resolution.getPackage {
-        inherit pkgs;
-        target = entry.package;
-      };
-      polarity = entry.polarity;
-    };
-    lightFlavor = head flavors.light;
-    darkFlavor = "mocha";
-  in {
-    light = mkVariant lightFlavor;
-    dark = mkVariant darkFlavor;
-  };
-
-  #  Themes (list form) - was wrongly calling cursor, now calls theme
-  themes = args: let
-    result = theme args;
-  in [result.light result.dark];
-
-  #  Defaults
-  defaults = {
-    accent = "blue";
-    flavor = "mocha";
-    size = 24;
-  };
-
-  #  Resolve (high-level)
   resolve = {
-    accent ? defaults.accent,
-    flavor ? defaults.flavor,
-    size ? defaults.size,
+    accents ? seed.accents,
+    flavors ? seed.flavors,
+    size ? seed.size,
     pkgs,
   }: {
-    cursors = cursor {inherit accent flavor size pkgs;};
-    themes = theme {inherit accent pkgs;};
-    accent = accents.check accent;
-    flavor = flavors.check flavor;
+    cursors = mkCursors {inherit accents flavors size pkgs;};
+    themes = mkThemes {inherit accents flavors pkgs;};
+    accent = accents.check accents;
+    flavor = flavors.check flavors;
+  };
+
+  # Accent registry
+  data = {
+    accents = let
+      registry = _.styles.queries.accents.all;
+      names = attrNames registry;
+      aliases =
+        foldl' (
+          acc: name:
+            acc
+            // listToAttrs (map (alias: {
+                name = alias;
+                value = name;
+              })
+              (registry.${name}.aliases or []))
+        ) {}
+        names;
+      check = input: let
+        fn = {
+          name = "accents.check";
+          context = "validating catppuccin accent";
+        };
+        value = toLowerCase input;
+        normalized = aliases.${value} or value;
+      in
+        assert withContext {
+          inherit (fn) name context;
+          assertion = isIn normalized names;
+          message = "invalid accent `${input}` - valid: ${toString names}";
+        }; normalized;
+    in {inherit registry names aliases check;};
+
+    # Flavor registry
+
+    flavors = let
+      registry = _.styles.queries.flavors.all;
+      names = attrNames registry;
+      aliases =
+        foldl' (
+          acc: name:
+            acc
+            // listToAttrs (map (alias: {
+                name = alias;
+                value = name;
+              })
+              (registry.${name}.aliases or []))
+        ) {}
+        names;
+      check = input: let
+        fn = {
+          name = "flavors.check";
+          context = "validating catppuccin flavor";
+        };
+        value = toLowerCase input;
+        normalized = aliases.${value} or value;
+      in
+        assert withContext {
+          inherit (fn) name context;
+          assertion = isIn normalized names;
+          message = "invalid flavor `${input}` - valid: ${toString names}";
+        }; normalized;
+      light = filter (name: registry.${name}.polarity == "light") names;
+      dark = filter (name: registry.${name}.polarity == "dark") names;
+    in {inherit registry names aliases check light dark;};
+  };
+  # Cursor builder
+  # Returns { light, dark } each { name, package, size }
+
+  mkCursor = {
+    accent ? seed.accent,
+    flavor ? seed.flavor,
+    size ? seed.size,
+    pkgs,
+  }: let
+    fn = {
+      name = "catppuccin.cursor";
+      context = "building catppuccin cursor";
+    };
+    accentName = data.accents.check accent;
+    darkFlavor = data.flavors.check flavor;
+    lightFlavor = head data.flavors.light;
+    mkName = flavorName: "catppuccin-${flavorName}-${accentName}-cursors";
+    mkPkg = flavorName:
+      getPackage {
+        inherit pkgs;
+        target = "catppuccin-cursors.${flavorName}${toPascalCase accentName}";
+      };
+  in
+    assert withContext {
+      inherit (fn) name context;
+      assertion = data.flavors.light != [];
+      message = "no light flavors found in registry";
+    }; {
+      light = {
+        name = mkName lightFlavor;
+        package = mkPkg lightFlavor;
+        inherit size;
+      };
+      dark = {
+        name = mkName darkFlavor;
+        package = mkPkg darkFlavor;
+        inherit size;
+      };
+    };
+
+  # Cursors (list form)
+
+  mkCursors = args: let
+    result = mkCursor args;
+  in [result.light result.dark];
+  # Theme variant builder
+  # Takes polarity, returns { name, scheme, package, polarity }
+
+  mkTheme = {
+    pkgs,
+    polarity ? "dark",
+    accent ? defaults.accent.${polarity},
+    flavor ? defaults.flavor.${polarity},
+  }: let
+    fn = {
+      name = "mkCatppuccinTheme";
+      context = "building catppuccin theme variant";
+    };
+
+    accent' = accents.check (
+      if isAttrs accent
+      then accent.${polarity}
+      else accent
+    );
+
+    flavor' = flavors.check (
+      if isAttrs flavor
+      then flavor.${polarity}
+      else flavor
+    );
+
+    key = "catppuccin-${flavor'}";
+    entry = assert withContext {
+      inherit (fn) name context;
+      assertion = _.styles.queries.themes.all ? ${key};
+      message = "no theme entry for flavor `${flavorName}` (looked up `${key}`)";
+    };
+      _.styles.queries.themes.all.${key};
+  in {
+    name = entry.name;
+    scheme = entry.scheme;
+    polarity = entry.polarity;
+    package = getPackage {
+      inherit pkgs;
+      target = entry.package;
+    };
+    flavor = flavor';
+    accent = accent';
+  };
+
+  # Themes (both polarities)
+  # Returns { light, dark } each { name, scheme, package, polarity }
+
+  mkThemes = {
+    accent ? data.accent,
+    flavor ? data.flavor,
+    pkgs,
+  }: let
+    mk = polarity: mkTheme {inherit accent flavor pkgs polarity;};
+  in {
+    light = mk "light";
+    dark = mk "dark";
   };
 in
   meta.exports.local

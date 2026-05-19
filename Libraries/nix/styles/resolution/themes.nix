@@ -1,70 +1,78 @@
 {_, ...}: let
   meta = let
     doc = ''
-      themes - dispatcher that resolves a theme string to { light, dark }
-      each containing { name, scheme, package, polarity }.
+      Theme resolution (Layer 3).
 
-      Catppuccin family entries delegate to the catppuccin resolver so accent
-      and flavor are honoured. All other entries return static { light, dark }
-      derived from the entry's own polarity field.
+      Dispatches any theme input to { light, dark } each
+      { name, scheme, package, polarity }.
+
+      Input shapes accepted:
+        ""                          → catppuccin default
+        string (family=catppuccin)  → delegate to catppuccin.theme
+        string (other families)     → static pair from registry entry
+
+      Depends on: styles.filters, styles.resolution.catppuccin, attrsets.resolution.
     '';
     exports = {
-      local = {inherit resolveTheme;};
-      alias = {theme = resolveTheme;};
+      local = {inherit resolve;};
+      alias = {resolveTheme = resolve;};
     };
   in {inherit doc exports;};
 
-  inherit (_.types.predicates) isString;
   inherit (_.content.emptiness) isEmpty;
   inherit (_.attrsets.resolution) getPackage;
+  inherit (_.debug.assertions) assertMsgFunc;
+  inherit (_.styles.filters) lookup;
+  inherit (_.types.predicates) isString;
 
-  themeRegistry = _.styles.filters.queries.themes.all;
+  themeRegistry = _.styles.queries.themes.all;
 
-  # For non-catppuccin entries: build a { light, dark } from a single static entry.
-  # If polarity="light" the entry goes in light; for "dark" in dark.
-  # Both slots get populated (fallback to opposite when only one exists).
+  # ── Helpers ────────────────────────────────────────────────────────────────
+
+  # Non-catppuccin entries have a single polarity; both slots get the same
+  # resolved record — consumers pick the one matching their current polarity.
   staticPair = {
     entry,
     pkgs,
   }: let
+    pkg =
+      if entry.package or null != null
+      then
+        getPackage {
+          inherit pkgs;
+          target = entry.package;
+        }
+      else null;
     resolved = {
       name = entry.name;
       scheme = entry.scheme or null;
       polarity = entry.polarity;
-      package =
-        if entry.package or null != null
-        then
-          getPackage {
-            inherit pkgs;
-            target = entry.package;
-          }
-        else null;
+      package = pkg;
     };
   in {
     light = resolved;
     dark = resolved;
   };
 
-  resolveTheme = {
+  # ── Resolve ───────────────────────────────────────────────────────────────
+
+  resolve = {
     theme ? "",
     accent ? "blue",
     flavor ? "mocha",
     pkgs,
   }:
     if isEmpty theme
-    then _.styles.resolution.catppuccin.theme {inherit accent pkgs;}
+    then _.styles.resolution.catppuccin.theme {inherit accent flavor pkgs;}
     else if isString theme
     then let
-      result = _.styles.filters.lookup theme themeRegistry;
+      result = lookup theme themeRegistry;
       entry = result.entry;
     in
       if (entry.family or null) == "catppuccin"
-      then
-        # Derive the catppuccin flavor from the entry key/name
-        # (entry key is e.g. "catppuccin-mocha"; pass flavor override through)
-        _.styles.resolution.catppuccin.theme {inherit accent flavor pkgs;}
+      then _.styles.resolution.catppuccin.theme {inherit accent flavor pkgs;}
       else staticPair {inherit entry pkgs;}
-    else throw "resolveTheme: expected a string, got `${toString theme}`";
+    else throw "themes.resolve: expected a string, got `${toString theme}`";
 in
   meta.exports.local
   // {

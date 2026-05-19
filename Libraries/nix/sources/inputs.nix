@@ -55,7 +55,7 @@
   }:
     optionalAttrs (isEmpty input)
     (
-      if  (host.class or "nixos") == "darwin"
+      if (host.class or "nixos") == "darwin"
       then {source = input;}
       else {flake.source = input;}
     );

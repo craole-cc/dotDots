@@ -1,41 +1,63 @@
 {_, ...}: let
   meta = let
     doc = ''
-      icons - dispatcher that resolves any icon input to { light, dark }
-      each containing { name, package }.
+      Icon resolution (Layer 3).
 
-      Input shapes:
-        ""         → default (candy-icons)
-        attrset with `package` → pass-through
-        attrset with `name`    → resolve package
-        string     → registry lookup; polarity-aware entries split by light/dark
+      Dispatches any icon input to { light, dark } each { name, package }.
+
+      Input shapes accepted:
+        ""                        → default (candy-icons)
+        attrset with `package`    → pass-through
+        attrset with `name`       → package resolved via getPackage
+        string                    → registry lookup:
+          entry.polarity attrset  → polarity-aware name selection
+          else                    → entry.name used for both polarities
+
+      Depends on: styles.filters, attrsets.resolution, types.predicates.
     '';
     exports = {
-      local = {inherit resolveIcons;};
-      alias = {icons = resolveIcons;};
+      local = {inherit resolve;};
+      alias = {resolveIcons = resolve;};
     };
   in {inherit doc exports;};
 
-  inherit (_.types.predicates) isAttrs isString;
   inherit (_.content.emptiness) isEmpty;
   inherit (_.attrsets.resolution) getPackage;
+  inherit (_.debug.assertions) assertMsgFunc;
+  inherit (_.styles.filters) lookup;
+  inherit (_.types.predicates) isAttrs isString;
 
-  iconRegistry = _.styles.filters.queries.icons.all;
+  iconRegistry = _.styles.queries.icons.all;
   defaultIconKey = "candy-icons";
+
+  # ── Helpers ────────────────────────────────────────────────────────────────
 
   resolveFromEntry = {
     entry,
-    polarity,
     pkgs,
+    ...
   }: let
-    pkg = getPackage {
-      inherit pkgs;
-      target = entry.package;
+    valid = assertMsgFunc {
+      name = "icons.resolveFromEntry";
+      assertion = entry ? package;
+      message = "icon entry `${entry.name or "?"}` has no `package`";
     };
+    pkg = assert valid;
+      getPackage {
+        inherit pkgs;
+        target = entry.package;
+      };
     resolveName = pol:
       if isAttrs (entry.polarity or null)
       then entry.polarity.${pol}.name
-      else entry.name or (throw "Icon entry `${entry._key or "?"}` has no name");
+      else let
+        hasName = assertMsgFunc {
+          name = "icons.resolveFromEntry";
+          assertion = entry ? name;
+          message = "icon entry has no `name` and polarity is not an attrset";
+        };
+      in
+        assert hasName; entry.name;
   in {
     light = {
       name = resolveName "light";
@@ -47,17 +69,23 @@
     };
   };
 
-  resolveIcons = {
+  # ── Resolve ───────────────────────────────────────────────────────────────
+
+  resolve = {
     icons ? "",
     polarity ? "dark",
     pkgs,
   }:
     if isEmpty icons
     then let
-      entry = iconRegistry.${defaultIconKey} or
-        (throw "Default icon entry `${defaultIconKey}` not found in registry");
+      valid = assertMsgFunc {
+        name = "icons.resolve";
+        assertion = iconRegistry ? ${defaultIconKey};
+        message = "default icon entry `${defaultIconKey}` not found in registry";
+      };
+      entry = assert valid; iconRegistry.${defaultIconKey};
     in
-      resolveFromEntry {inherit entry polarity pkgs;}
+      resolveFromEntry {inherit entry pkgs;}
     else if isAttrs icons && icons ? package
     then {
       light = icons;
@@ -65,10 +93,16 @@
     }
     else if isAttrs icons && icons ? name
     then let
-      pkg = getPackage {
-        inherit pkgs;
-        target = icons.package or (throw "icon attrset needs package");
+      valid = assertMsgFunc {
+        name = "icons.resolve";
+        assertion = icons ? package;
+        message = "icon attrset has `name` but no `package`";
       };
+      pkg = assert valid;
+        getPackage {
+          inherit pkgs;
+          target = icons.package;
+        };
     in {
       light = {
         inherit (icons) name;
@@ -81,13 +115,13 @@
     }
     else if isString icons
     then let
-      result = _.styles.filters.lookup icons iconRegistry;
+      result = lookup icons iconRegistry;
     in
       resolveFromEntry {
         entry = result.entry;
-        inherit polarity pkgs;
+        inherit pkgs;
       }
-    else throw "resolveIcons: unrecognised icons input `${toString icons}`";
+    else throw "icons.resolve: unrecognised input `${toString icons}`";
 in
   meta.exports.local
   // {

@@ -1,55 +1,74 @@
 {_, ...}: let
   meta = let
     doc = ''
-      cursors - dispatcher that resolves any cursor input to { light, dark }
-      each containing { name, package, size }.
+      Cursor resolution (Layer 3).
 
-      Input shapes:
-        ""         → catppuccin default cursor
-        attrset with `package` → pass-through
-        attrset with `name`    → resolve package via getPackage
-        string     → registry lookup; generated entries delegate to catppuccin resolver
+      Dispatches any cursor input to { light, dark } each { name, package, size }.
+
+      Input shapes accepted:
+        ""                        → catppuccin default (generated)
+        attrset with `package`    → pass-through, size injected
+        attrset with `name`       → package resolved via getPackage
+        string                    → registry lookup:
+          entry.generated = true  → delegate to catppuccin.cursor
+          entry.polarity attrset  → polarity-aware name selection
+          else                    → entry.name used for both polarities
+
+      Depends on: styles.filters, styles.resolution.catppuccin, types.predicates.
     '';
     exports = {
-      local = {inherit resolveCursor;};
-      alias = {cursor = resolveCursor;};
+      local = {inherit resolve;};
+      alias = {resolveCursor = resolve;};
     };
   in {inherit doc exports;};
 
-  inherit (_.types.predicates) isAttrs isString;
   inherit (_.content.emptiness) isEmpty;
   inherit (_.attrsets.resolution) getPackage;
+  inherit (_.debug.assertions) assertMsgFunc;
+  inherit (_.styles.filters) lookup;
+  inherit (_.types.predicates) isAttrs isString;
 
-  cursorRegistry = _.styles.filters.queries.cursors.all;
+  cursorRegistry = _.styles.queries.cursors.all;
+
+  # ── Helpers ────────────────────────────────────────────────────────────────
 
   mkBothFromEntry = {
     entry,
-    polarity,
     size,
     pkgs,
+    ...
   }: let
     resolveName = pol:
       if isAttrs (entry.polarity or null)
       then entry.polarity.${pol}.name
-      else entry.name or (throw "Cursor entry has no name");
-    resolvePackage = _.attrsets.resolution.getPackage {
+      else let
+        valid = assertMsgFunc {
+          name = "cursors.mkBothFromEntry";
+          assertion = entry ? name;
+          message = "cursor entry has no `name` and polarity is not an attrset";
+        };
+      in
+        assert valid; entry.name;
+    pkg = getPackage {
       inherit pkgs;
       target = entry.package;
     };
   in {
     light = {
       name = resolveName "light";
-      package = resolvePackage;
+      package = pkg;
       inherit size;
     };
     dark = {
       name = resolveName "dark";
-      package = resolvePackage;
+      package = pkg;
       inherit size;
     };
   };
 
-  resolveCursor = {
+  # ── Resolve ───────────────────────────────────────────────────────────────
+
+  resolve = {
     cursor ? "",
     polarity ? "dark",
     size ? 24,
@@ -57,22 +76,25 @@
     flavor ? "mocha",
     pkgs,
   }:
-  # 1. empty → catppuccin default
     if isEmpty cursor
     then _.styles.resolution.catppuccin.cursor {inherit accent flavor size pkgs;}
-    # 2. attrset passthrough (already has package derivation)
     else if isAttrs cursor && cursor ? package
     then {
       light = cursor // {inherit size;};
       dark = cursor // {inherit size;};
     }
-    # 3. attrset with name → resolve package
     else if isAttrs cursor && cursor ? name
     then let
-      pkg = getPackage {
-        inherit pkgs;
-        target = cursor.package or (throw "cursor attrset needs package attr");
+      valid = assertMsgFunc {
+        name = "cursors.resolve";
+        assertion = cursor ? package;
+        message = "cursor attrset has `name` but no `package`";
       };
+      pkg = assert valid;
+        getPackage {
+          inherit pkgs;
+          target = cursor.package;
+        };
     in {
       light = {
         inherit (cursor) name;
@@ -85,16 +107,15 @@
         inherit size;
       };
     }
-    # 4. string → registry lookup
     else if isString cursor
     then let
-      result = _.styles.filters.lookup cursor cursorRegistry;
+      result = lookup cursor cursorRegistry;
       entry = result.entry;
     in
       if entry.generated or false
       then _.styles.resolution.catppuccin.cursor {inherit accent flavor size pkgs;}
-      else mkBothFromEntry {inherit entry polarity size pkgs;}
-    else throw "resolveCursor: unfamiliar cursor input `${toString cursor}`";
+      else mkBothFromEntry {inherit entry size pkgs;}
+    else throw "cursors.resolve: unrecognised input `${toString cursor}`";
 in
   meta.exports.local
   // {
