@@ -3,29 +3,23 @@
     doc = ''
       Theme resolution (Layer 3).
 
-      Builds theme outputs as either one polarity (`mkOne`) or both polarities
-      (`mkPair`). Empty theme input falls back to generated Catppuccin themes.
-      Registry entries support normalized alias lookup.
+      Dispatches any theme input to { light, dark } each
+      { name, scheme, package, polarity, flavor, accent }.
+      Family entries resolve to the closest matching theme in the same family
+      for the requested polarity. Catppuccin family entries delegate to the
+      Catppuccin resolver.
 
-      Depends on: styles.registry, styles.resolution.catppuccin,
-      attrsets.resolution.
+      Depends on: styles.registry, styles.resolution.catppuccin, attrsets.resolution.
     '';
     exports = {
-      local = {
-        inherit data mkOne mkPair;
-        inherit (data) registry;
-      };
-      alias = {
-        mkTheme = mkOne;
-        mkThemes = mkPair;
-        resolveTheme = mkOne;
-      };
+      local = {inherit data mkOne mkPair;};
+      alias = {resolveTheme = mkOne;};
     };
   in {
     inherit doc exports;
   };
 
-  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.access) attrNames getAttr;
   inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
@@ -177,6 +171,15 @@
       };
     };
 
+    families = let
+      byFamily = family:
+        filter
+        (name: raw.${name}.family == family)
+        registry.themes.names;
+    in {
+      inherit byFamily;
+    };
+
     normalize = {
       value,
       polarity,
@@ -187,10 +190,48 @@
       then registry.themes.lookup selected
       else selected;
   in {
-    inherit raw registry normalize;
+    inherit raw registry families normalize;
   };
 
-  inherit (data) registry normalize;
+  inherit (data) raw registry families normalize;
+
+  resolveFamily = {
+    entry,
+    polarity,
+  }: let
+    fn = {
+      name = "themes.resolveFamily";
+      context = "resolving theme family for ${polarity}";
+    };
+
+    family = entry.family or null;
+    candidateNames =
+      if isString family
+      then families.byFamily family
+      else [];
+
+    candidate =
+      if isEmpty candidateNames
+      then null
+      else let
+        matches =
+          filter
+          (name: (raw.${name}.polarity or null) == polarity)
+          candidateNames;
+      in
+        if isEmpty matches
+        then null
+        else registry.themes.lookup (elemAt matches 0);
+  in
+    if candidate == null
+    then
+      mkCatppuccin {
+        inherit polarity;
+        pkgs = entry.pkgs or null;
+        accent = null;
+        flavor = null;
+      }
+    else candidate;
 
   mkOne = {
     pkgs,
@@ -218,30 +259,51 @@
       mkCatppuccin {
         inherit pkgs polarity accent flavor;
       }
-    else if isAttrs entry && ((entry.family or null) == "catppuccin")
+    else if isAttrs entry && (entry.family or null) == "catppuccin"
     then
       mkCatppuccin {
         inherit pkgs polarity accent flavor;
       }
-    else if isAttrs entry && hasAttr "name" entry && hasAttr "polarity" entry
-    then
-      assert withContext {
-        inherit (fn) name context;
-        assertion = entry.polarity == polarity;
-        message = "theme entry polarity `${entry.polarity}` does not match requested `${polarity}`";
-      }; {
-        inherit (entry) name polarity;
-        scheme = entry.scheme or null;
+    else if isAttrs entry && hasAttr "name" entry && hasAttr "family" entry
+    then let
+      familyCandidates =
+        filter
+        (name: (raw.${name}.family or null) == entry.family)
+        registry.themes.names;
+
+      samePolarity =
+        filter
+        (name: (raw.${name}.polarity or null) == polarity)
+        familyCandidates;
+
+      familyEntry =
+        if isEmpty samePolarity
+        then null
+        else registry.themes.lookup (elemAt samePolarity 0);
+    in
+      if familyEntry == null
+      then
+        mkCatppuccin {
+          inherit pkgs polarity accent flavor;
+        }
+      else if (familyEntry.family or null) == "catppuccin"
+      then
+        mkCatppuccin {
+          inherit pkgs polarity accent flavor;
+        }
+      else {
+        inherit (familyEntry) name polarity;
+        scheme = familyEntry.scheme or null;
         package =
-          if isNotEmpty (entry.package or null)
+          if isNotEmpty (familyEntry.package or null)
           then
             getPackage {
               inherit pkgs;
-              target = entry.package;
+              target = familyEntry.package;
             }
           else null;
-        flavor = flavor;
-        accent = accent;
+        flavor = familyEntry.flavor or null;
+        accent = familyEntry.accent or null;
       }
     else if isAttrs entry && hasAttr "name" entry
     then {
@@ -256,8 +318,8 @@
             target = entry.package;
           }
         else null;
-      flavor = flavor;
-      accent = accent;
+      flavor = entry.flavor or null;
+      accent = entry.accent or null;
     }
     else
       assert withContext {
