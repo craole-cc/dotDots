@@ -6,7 +6,7 @@
       Provides normalized style records from `./data`, with consistent
       `categories` fields. Supplies primitive tree inspection for recursive
       processing, validated registry lookup, registry-derived identification
-      metadata, and shared resolver helpers used by higher style layers.
+      metadata, and shared resolution helpers used by higher style layers.
 
       Depends on: filesystem.importers.
     '';
@@ -278,7 +278,7 @@
   normalize = {
     value,
     polarity,
-    resolver,
+    lookup,
     group ? "value",
     fallback ? null,
   }: let
@@ -291,7 +291,7 @@
         };
   in
     if isString selected
-    then resolver.lookup selected
+    then lookup selected
     else selected;
 
   data = {
@@ -387,7 +387,7 @@
       then "flavor"
       else domain;
 
-    resolver = mkRegistry {
+    resolved = mkRegistry {
       inherit group;
       entries = resolvedEntries;
     };
@@ -446,7 +446,7 @@
         byFamily = family:
           filter
           (name: (resolvedEntries.${name}.family or null) == family)
-          resolver.names;
+          resolved.names;
       }
       else {};
 
@@ -457,10 +457,10 @@
     }:
       normalize {
         inherit value polarity fallback;
-        inherit resolver group;
+        inherit resolved group;
       };
   in {
-    inherit domain seed resolver families;
+    inherit domain seed resolved families;
     entries = resolvedEntries;
     groups = selectedGroups;
     queries = selectedQueries;

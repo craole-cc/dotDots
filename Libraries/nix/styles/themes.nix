@@ -3,234 +3,47 @@
     doc = ''
       Theme resolution (Layer 3).
 
-      Dispatches any theme input to { light, dark } each
-      { name, scheme, package, polarity, flavor, accent }.
-      Family entries resolve to the closest matching theme in the same family
-      for the requested polarity. Catppuccin family entries delegate to the
-      Catppuccin resolver.
+      Builds theme outputs as either one polarity (`mkOne`) or both polarities
+      (`mkPair`). Empty theme input falls back to generated Catppuccin themes.
+      Registry entries support normalized alias lookup. Family entries resolve
+      to the closest matching theme in the same family for the requested
+      polarity.
 
-      Depends on: styles.registry, styles.resolution.catppuccin, attrsets.resolution.
+      Depends on: styles.registry, styles.catppuccin, attrsets.resolution.
     '';
+    alias = {
+      mkTheme = mkOne;
+      mkThemes = mkPair;
+      resolveTheme = mkOne;
+    };
     exports = {
-      local = {inherit data mkOne mkPair;};
-      alias = {resolveTheme = mkOne;};
+      local = {inherit data mkOne mkPair;} // alias;
+      inherit alias;
     };
   in {
     inherit doc exports;
   };
 
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.content.emptiness) isEmpty isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
-  inherit (_.lists.access) elemAt length;
-  inherit (_.lists.aggregation) foldl';
-  inherit (_.lists.predicates) isIn;
+  inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
-  inherit (_.strings.transformation) toLowerCase;
-  inherit (_.types.access) typeOf;
-  inherit (_.types.predicates) isAttrs isFunction isList isString;
-  inherit (_.styles.registry.queries.themes) all;
+  inherit (_.types.predicates) isAttrs;
+  inherit (_.styles.registry) mkData mkPolarity;
+
   mkCatppuccin = _.styles.catppuccin.themes.mkOne;
 
-  mkRegistry = {
-    group,
-    registry,
-  }: let
-    names = attrNames registry;
-    aliases =
-      foldl'
-      (
-        acc: value:
-          acc
-          // {${toLowerCase value} = value;}
-          // listToAttrs (
-            map
-            (name: {inherit name value;})
-            (
-              map
-              toLowerCase
-              (registry.${value}.aliases or [])
-            )
-          )
-      )
-      {}
-      names;
-
-    lookup = input: let
-      fn = {
-        name = "${group}.lookup";
-        context = "looking up ${group}";
-      };
-      value = toLowerCase input;
-      resolved = aliases.${value} or value;
-    in
-      assert withContext {
-        inherit (fn) name context;
-        assertion = isIn resolved names;
-        message = "unknown ${group} `${input}` - valid: ${toString names}";
-      };
-        registry.${resolved};
-  in {
-    inherit registry names aliases lookup;
+  data = mkData {
+    domain = "themes";
+    seed = {};
+    groupBy = ["byFamily"];
   };
 
-  mkPolarity = {
-    pair = input: let
-      spec =
-        if isFunction input
-        then {
-          fn = input;
-          args = [];
-        }
-        else input;
-
-      fn = assert withContext {
-        name = "mkPolarity.pair";
-        context = "building polarity pair wrapper";
-        assertion =
-          isAttrs spec
-          && hasAttr "fn" spec
-          && isFunction spec.fn
-          && ((spec.args or []) == [] || isList (spec.args or []));
-        message = "expected a function or an attrset with `fn` as a function and optional `args` as a list";
-      };
-        spec.fn;
-
-      allowed = (spec.args or []) ++ ["polarity"];
-
-      validate = args: let
-        invalid =
-          filter
-          (name: !(isIn name allowed))
-          (attrNames args);
-      in
-        assert withContext {
-          name = "mkPolarity.pair";
-          context = "validating polarity pair arguments";
-          assertion = invalid == [];
-          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
-        }; args;
-    in
-      args: let
-        checked = validate args;
-      in {
-        light = fn (checked // {polarity = "light";});
-        dark = fn (checked // {polarity = "dark";});
-      };
-
-    selection = {
-      value,
-      polarity,
-    }: let
-      fn = {
-        name = "themes.selectByPolarity";
-        context = "selecting ${polarity} theme input";
-      };
-    in
-      if value == null
-      then null
-      else if isString value
-      then value
-      else if isList value
-      then
-        assert withContext {
-          inherit (fn) name context;
-          assertion = length value == 2;
-          message = "list input must have exactly 2 elements [darkVal lightVal], got ${toString (length value)}";
-        };
-          if polarity == "dark"
-          then elemAt value 0
-          else elemAt value 1
-      else if isAttrs value
-      then
-        assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr polarity value;
-          message = "theme attrset input is missing `${polarity}` key";
-        };
-          value.${polarity}
-      else
-        assert withContext {
-          inherit (fn) name context;
-          assertion = false;
-          message = "expected null, string, list, or attrset, got `${typeOf value}`";
-        }; null;
-  };
-
-  data = let
-    raw = all;
-
-    registry = {
-      themes = mkRegistry {
-        group = "theme";
-        registry = raw;
-      };
-    };
-
-    families = let
-      byFamily = family:
-        filter
-        (name: raw.${name}.family == family)
-        registry.themes.names;
-    in {
-      inherit byFamily;
-    };
-
-    normalize = {
-      value,
-      polarity,
-    }: let
-      selected = mkPolarity.selection {inherit value polarity;};
-    in
-      if isString selected
-      then registry.themes.lookup selected
-      else selected;
-  in {
-    inherit raw registry families normalize;
-  };
-
-  inherit (data) raw registry families normalize;
-
-  resolveFamily = {
-    entry,
-    polarity,
-  }: let
-    fn = {
-      name = "themes.resolveFamily";
-      context = "resolving theme family for ${polarity}";
-    };
-
-    family = entry.family or null;
-    candidateNames =
-      if isString family
-      then families.byFamily family
-      else [];
-
-    candidate =
-      if isEmpty candidateNames
-      then null
-      else let
-        matches =
-          filter
-          (name: (raw.${name}.polarity or null) == polarity)
-          candidateNames;
-      in
-        if isEmpty matches
-        then null
-        else registry.themes.lookup (elemAt matches 0);
-  in
-    if candidate == null
-    then
-      mkCatppuccin {
-        inherit polarity;
-        pkgs = entry.pkgs or null;
-        accent = null;
-        flavor = null;
-      }
-    else candidate;
+  inherit (data) normalize groups;
+  inherit (data.resolved) lookup;
 
   mkOne = {
     pkgs,
@@ -244,14 +57,10 @@
       context = "building theme for ${polarity}";
     };
 
-    entry =
-      if isEmpty theme
-      then null
-      else
-        normalize {
-          inherit polarity;
-          value = theme;
-        };
+    entry = normalize {
+      inherit polarity;
+      value = theme;
+    };
   in
     if entry == null
     then
@@ -263,46 +72,54 @@
       mkCatppuccin {
         inherit pkgs polarity accent flavor;
       }
-    else if isAttrs entry && hasAttr "name" entry && hasAttr "family" entry
+    else if isAttrs entry && hasAttr "family" entry
     then let
-      familyCandidates =
-        filter
-        (name: (raw.${name}.family or null) == entry.family)
-        registry.themes.names;
+      candidates = groups.byFamily.${entry.family} or {};
 
-      samePolarity =
-        filter
-        (name: (raw.${name}.polarity or null) == polarity)
-        familyCandidates;
+      candidate = let
+        samePolarity =
+          filter
+          (
+            name: let
+              item = candidates.${name};
+            in
+              (item.polarity or null) == polarity || (item.polarity or null) == null
+          )
+          (attrNames candidates);
+      in
+        if isNotEmpty samePolarity
+        then lookup (elemAt samePolarity 0)
+        else null;
 
-      familyEntry =
-        if isEmpty samePolarity
-        then null
-        else registry.themes.lookup (elemAt samePolarity 0);
+      resolved =
+        if candidate != null
+        then candidate
+        else null;
     in
-      if familyEntry == null
+      if resolved == null
       then
         mkCatppuccin {
           inherit pkgs polarity accent flavor;
         }
-      else if (familyEntry.family or null) == "catppuccin"
+      else if (resolved.family or null) == "catppuccin"
       then
         mkCatppuccin {
           inherit pkgs polarity accent flavor;
         }
       else {
-        inherit (familyEntry) name polarity;
-        scheme = familyEntry.scheme or null;
+        inherit (resolved) name;
+        polarity = resolved.polarity or polarity;
+        scheme = resolved.scheme or null;
         package =
-          if isNotEmpty (familyEntry.package or null)
+          if isNotEmpty (resolved.package or null)
           then
             getPackage {
               inherit pkgs;
-              target = familyEntry.package;
+              target = resolved.package;
             }
           else null;
-        flavor = familyEntry.flavor or null;
-        accent = familyEntry.accent or null;
+        flavor = resolved.flavor or null;
+        accent = resolved.accent or null;
       }
     else if isAttrs entry && hasAttr "name" entry
     then {

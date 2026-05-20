@@ -10,36 +10,33 @@
 
       Depends on: styles.registry, attrsets.resolution.
     '';
-    exports = {
-      local = {
-        inherit data mkOne mkPair;
-        inherit (data) entries resolver;
-      };
-      alias = {
-        mkIcon = mkOne;
-        mkIcons = mkPair;
-      };
+    alias = {
+      mkIcon = mkOne;
+      mkIcons = mkPair;
     };
-  in {
-    inherit doc exports;
-  };
+    exports = {
+      local = {inherit data mkOne mkPair;} // alias;
+      inherit alias;
+    };
+  in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.content.emptiness) isEmpty isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
   inherit (_.types.predicates) isAttrs;
-  inherit (_.styles.registry) mkPolarity;
+  inherit (_.styles.registry) mkData mkPolarity;
 
-  data = _.styles.registry.mkData {
+  data = mkData {
     domain = "icons";
     seed = {icon = "candy-icons";};
-    groupBy = ["byFamily" "byPolarity"];
+    groupBy = ["byFamily"];
   };
-  inherit (data) seed resolver normalize groups;
+  inherit (data) seed normalize groups;
+  inherit (data.resolved) lookup;
 
   mkOne = {
     pkgs,
@@ -50,7 +47,6 @@
       name = "icons.mkOne";
       context = "building icon theme for ${polarity}";
     };
-    mkFallback = lookup: resolver.lookup lookup;
     entry = normalize {
       inherit polarity;
       value = icon;
@@ -68,18 +64,18 @@
               item = candidates.${name};
             in
               if isAttrs (item.polarity or null)
-              then hasAttr polarity candidate.polarity
+              then hasAttr polarity item.polarity
               else true
           )
           (attrNames candidates);
       in
-        if isEmpty samePolarity
-        then null
-        else resolver.lookup (elemAt samePolarity 0);
+        if isNotEmpty samePolarity
+        then lookup (elemAt samePolarity 0)
+        else null;
       resolved =
-        if isNotEmpty entry
+        if isNotEmpty candidate
         then candidate
-        else mkFallback seed.icon;
+        else lookup seed.icon;
     in
       if isAttrs (resolved.polarity or null)
       then let
