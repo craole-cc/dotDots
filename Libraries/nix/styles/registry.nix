@@ -50,6 +50,95 @@
   normalizeList = values:
     optionals (isList values) (filter (value: value != null && value != "") values);
 
+  flatRegistry = registry:
+    foldl' (acc: ns: acc // registry.${ns}) {} (attrNames registry);
+
+  groupByFieldFlat = field: flat: let
+    keys = unique (filter isString (map (e: e.${field} or null) (attrValues flat)));
+  in
+    genAttrs keys (
+      k:
+        filterAttrs (_: e: (e.${field} or null) == k) flat
+    );
+
+  groupByField = field: registry: let
+    allEntries = concatMap (ns: attrValues registry.${ns}) (attrNames registry);
+    keys = unique (filter isString (map (e: e.${field} or null) allEntries));
+  in
+    genAttrs keys (
+      k:
+        filterAttrs (_: ns: ns != {}) (
+          mapAttrs (
+            ns: entries':
+              filterAttrs (_: e: (e.${field} or null) == k) entries'
+          )
+          registry
+        )
+    );
+
+  mkSection = {
+    set,
+    queries ? {},
+  }:
+    {all = set;} // queries;
+
+  mkFilters = {
+    registry ? data.raw,
+    extraGroups ? {},
+    extraQueries ? {},
+  }: let
+    entries' = flatRegistry registry;
+
+    groups' = let
+      mk = field: groupByField field registry;
+    in
+      {
+        byCategory =
+          genAttrs
+          (unique (
+            concatMap
+            (e: e.categories or [])
+            (attrValues entries')
+          ))
+          (
+            category:
+              filterAttrs
+              (_: e: isIn category (e.categories or []))
+              entries'
+          );
+        byFamily = mk "family";
+        byPolarity = mk "polarity";
+      }
+      // extraGroups;
+
+    queries' = let
+      mk = {byCategory, ...}:
+        filterAttrs (_: section: section.all != {}) (
+          mapAttrs (
+            name: set:
+              mkSection {
+                inherit set;
+                queries = filterAttrs (_: v: v != {}) {
+                  hasAliases = filterAttrs (_: e: (e.aliases or []) != []) set;
+                  noAliases = filterAttrs (_: e: (e.aliases or []) == []) set;
+                  hasPackage = filterAttrs (_: e: (e.package or null) != null) set;
+                  hasVariant = filterAttrs (_: e: e ? variant) set;
+                  hasNames = filterAttrs (_: e: e ? names) set;
+                  byFamily = groupByFieldFlat "family" set;
+                  byPolarity = groupByFieldFlat "polarity" set;
+                };
+              }
+          )
+          byCategory
+        );
+    in
+      (mk groups') // extraQueries;
+  in {
+    entries = registry;
+    groups = groups';
+    queries = queries';
+  };
+
   mkRegistry = {
     group,
     entries,
@@ -205,81 +294,6 @@
     then resolver.lookup selected
     else selected;
 
-  resolveSource = {
-    entries ? null,
-    groups ? null,
-    queries ? null,
-    from ? null,
-  }: let
-    sources =
-      filter
-      (x: x != null)
-      [entries groups queries from];
-  in
-    assert withContext {
-      name = "mkData.resolveSource";
-      context = "resolving mkData source";
-      assertion = length sources == 1;
-      message = "expected exactly one of `entries`, `groups`, `queries`, or `from`";
-    };
-      if entries != null
-      then entries
-      else if from != null
-      then from
-      else if groups != null
-      then groups
-      else queries;
-
-  mkData = {
-    group,
-    seed ? {},
-    entries ? null,
-    groups ? null,
-    queries ? null,
-    from ? null,
-    withFamilies ? true,
-  }: let
-    source = resolveSource {
-      inherit entries groups queries from;
-    };
-
-    resolvedEntries = assert withContext {
-      name = "mkData";
-      context = "constructing data for ${group}";
-      assertion = isAttrs source;
-      message = "resolved mkData source for `${group}` must be an attrset";
-    }; source;
-
-    resolver = mkRegistry {
-      inherit group;
-      entries = resolvedEntries;
-    };
-
-    families =
-      if withFamilies
-      then {
-        byFamily = family:
-          filter
-          (name: (resolvedEntries.${name}.family or null) == family)
-          resolver.names;
-      }
-      else {};
-
-    normalizeValue = {
-      value,
-      polarity,
-      fallback ? null,
-    }:
-      normalize {
-        inherit value polarity fallback;
-        inherit resolver group;
-      };
-  in {
-    entries = resolvedEntries;
-    inherit seed resolver families;
-    normalize = normalizeValue;
-  };
-
   data = {
     raw = importRegistry ./.;
     seed = mkFilters {};
@@ -301,93 +315,156 @@
     then entry
     else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (entry.categories or [])}";
 
-  flatRegistry = registry:
-    foldl' (acc: ns: acc // registry.${ns}) {} (attrNames registry);
-
-  groupByFieldFlat = field: flat: let
-    keys = unique (filter isString (map (e: e.${field} or null) (attrValues flat)));
-  in
-    genAttrs keys (
-      k:
-        filterAttrs (_: e: (e.${field} or null) == k) flat
-    );
-
-  groupByField = field: registry: let
-    allEntries = concatMap (ns: attrValues registry.${ns}) (attrNames registry);
-    keys = unique (filter isString (map (e: e.${field} or null) allEntries));
-  in
-    genAttrs keys (
-      k:
-        filterAttrs (_: ns: ns != {}) (
-          mapAttrs (
-            ns: entries':
-              filterAttrs (_: e: (e.${field} or null) == k) entries'
-          )
-          registry
-        )
-    );
-
-  mkSection = {
-    set,
-    queries ? {},
-  }:
-    {all = set;} // queries;
-
-  mkFilters = {
-    registry ? data.raw,
-    extraGroups ? {},
-    extraQueries ? {},
+  resolveSource = {
+    domain ? null,
+    entries ? null,
+    groups ? null,
+    queries ? null,
+    from ? null,
   }: let
-    entries' = flatRegistry registry;
+    explicit =
+      filter
+      (x: x != null)
+      [entries groups queries from];
+  in
+    if explicit != []
+    then
+      assert withContext {
+        name = "mkData.resolveSource";
+        context = "resolving explicit mkData source";
+        assertion = length explicit == 1;
+        message = "expected at most one of `entries`, `groups`, `queries`, or `from`";
+      };
+        if entries != null
+        then entries
+        else if from != null
+        then from
+        else if groups != null
+        then groups
+        else queries
+    else
+      assert withContext {
+        name = "mkData.resolveSource";
+        context = "resolving mkData domain source";
+        assertion = domain != null && builtins.hasAttr domain data.seed.groups.byCategory;
+        message = "expected `domain` to match a key in `_.styles.registry.groups.byCategory`";
+      };
+        getAttr domain data.seed.groups.byCategory;
 
-    groups' = let
-      mk = field: groupByField field registry;
+  mkData = {
+    domain,
+    seed ? {},
+    entries ? null,
+    groups ? null,
+    queries ? null,
+    from ? null,
+    groupBy ? [],
+    queryBy ? [],
+    withFamilies ? true,
+  }: let
+    resolvedEntries = let
+      source = resolveSource {
+        inherit domain entries groups queries from;
+      };
     in
-      {
-        byCategory =
-          genAttrs
-          (unique (
-            concatMap
-            (e: e.categories or [])
-            (attrValues entries')
-          ))
-          (
-            category:
-              filterAttrs
-              (_: e: isIn category (e.categories or []))
-              entries'
-          );
-        byFamily = mk "family";
-        byPolarity = mk "polarity";
+      assert withContext {
+        name = "mkData";
+        context = "constructing data for ${domain}";
+        assertion = isAttrs source;
+        message = "resolved mkData source for `${domain}` must be an attrset";
+      }; source;
+
+    group =
+      if domain == "themes"
+      then "theme"
+      else if domain == "cursors"
+      then "cursor"
+      else if domain == "icons"
+      then "icon"
+      else if domain == "accents"
+      then "accent"
+      else if domain == "flavors"
+      then "flavor"
+      else domain;
+
+    resolver = mkRegistry {
+      inherit group;
+      entries = resolvedEntries;
+    };
+
+    availableGroups = {
+      byCategory = resolvedEntries;
+      byFamily = groupByFieldFlat "family" resolvedEntries;
+      byPolarity = groupByFieldFlat "polarity" resolvedEntries;
+    };
+
+    availableQueries = {
+      hasAliases = filterAttrs (_: e: (e.aliases or []) != []) resolvedEntries;
+      noAliases = filterAttrs (_: e: (e.aliases or []) == []) resolvedEntries;
+      hasPackage = filterAttrs (_: e: (e.package or null) != null) resolvedEntries;
+      hasVariant = filterAttrs (_: e: e ? variant) resolvedEntries;
+      hasNames = filterAttrs (_: e: e ? names) resolvedEntries;
+      byFamily = groupByFieldFlat "family" resolvedEntries;
+      byPolarity = groupByFieldFlat "polarity" resolvedEntries;
+    };
+
+    selectedGroups =
+      {byCategory = resolvedEntries;}
+      // listToAttrs (
+        map
+        (name: {
+          inherit name;
+          value = assert withContext {
+            name = "mkData.groups";
+            context = "selecting extra groups for ${domain}";
+            assertion = builtins.hasAttr name availableGroups;
+            message = "unknown groupBy `${name}` - valid: ${toString (attrNames availableGroups)}";
+          };
+            availableGroups.${name};
+        })
+        (filter (name: name != "byCategory") groupBy)
+      );
+
+    selectedQueries = listToAttrs (
+      map
+      (name: {
+        inherit name;
+        value = assert withContext {
+          name = "mkData.queries";
+          context = "selecting queries for ${domain}";
+          assertion = builtins.hasAttr name availableQueries;
+          message = "unknown queryBy `${name}` - valid: ${toString (attrNames availableQueries)}";
+        };
+          availableQueries.${name};
+      })
+      queryBy
+    );
+
+    families =
+      if withFamilies
+      then {
+        byFamily = family:
+          filter
+          (name: (resolvedEntries.${name}.family or null) == family)
+          resolver.names;
       }
-      // extraGroups;
+      else {};
 
-    queries' = let
-      mk = {byCategory, ...}:
-        filterAttrs (_: section: section.all != {}) (
-          mapAttrs (
-            name: set:
-              mkSection {
-                inherit set;
-                queries = filterAttrs (_: v: v != {}) {
-                  hasAliases = filterAttrs (_: e: (e.aliases or []) != []) set;
-                  noAliases = filterAttrs (_: e: (e.aliases or []) == []) set;
-                  hasPackage = filterAttrs (_: e: (e.package or null) != null) set;
-                  hasVariant = filterAttrs (_: e: e ? variant) set;
-                  hasNames = filterAttrs (_: e: e ? names) set;
-                  byFamily = groupByFieldFlat "family" set;
-                  byPolarity = groupByFieldFlat "polarity" set;
-                };
-              }
-          )
-          byCategory
-        );
-    in
-      (mk groups') // extraQueries;
+    normalizeValue = {
+      value,
+      polarity,
+      fallback ? null,
+    }:
+      normalize {
+        inherit value polarity fallback;
+        inherit resolver group;
+      };
   in {
-    entries = registry;
-    groups = groups';
-    queries = queries';
+    inherit domain seed resolver families;
+    entries = resolvedEntries;
+    groups = selectedGroups;
+    queries = selectedQueries;
+    normalize = normalizeValue;
   };
 in
   meta.exports.local
