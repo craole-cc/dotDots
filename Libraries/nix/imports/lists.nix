@@ -75,13 +75,12 @@
     inherit
       (lists)
       drop
-      dropWhile
+      dropEnd
       filter
       partition
-      splitAt
       sublist
       take
-      takeWhile
+      takeEnd
       ;
   };
 

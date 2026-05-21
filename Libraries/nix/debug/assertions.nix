@@ -1,25 +1,19 @@
 # Test case constructors.
 # Use mkTest for documented tests, mkTest' for terse one-liners.
-{lib, ...}: let
-  inherit (lib) deepSeq;
-  inherit (lib.debug) addErrorContext;
-  inherit (builtins) tryEval;
-
-  _build = desired: outcome: command: let
-    value = deepSeq outcome outcome;
-  in {
-    inherit desired command;
-    result = value;
-    passed = desired == value;
-  };
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (_.debug.assertions) assertMsg;
+  inherit (_.debug.tracing) addErrorContext tryEval;
+  inherit (lib.trivial) deepSeq;
 
   assertMsgFunc = {
     name,
     assertion,
     message,
-  }: let
-    inherit (lib.asserts) assertMsg;
-  in
+  }:
     assertMsg assertion "${name}: ${message}";
 
   withContext = {
@@ -34,6 +28,14 @@
     (assert assertMsgFunc {
       inherit name assertion message;
     }; true);
+
+  _build = desired: outcome: command: let
+    value = deepSeq outcome outcome;
+  in {
+    inherit desired command;
+    result = value;
+    passed = desired == value;
+  };
 
   /**
   Create a named test case with desired output, outcome expression, and an

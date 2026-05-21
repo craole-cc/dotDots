@@ -5,6 +5,15 @@
   lib,
   ...
 }: let
+  exports = {
+    inherit
+      trace
+      traceRaw
+      traceValue
+      traceFn
+      ;
+  };
+
   inherit (_.debug.format) renderDebugValue;
   inherit (lib.strings) typeOf;
 
@@ -114,14 +123,5 @@
       displayType = "function";
       displayValue = name;
     };
-
-  exports = {
-    inherit
-      trace
-      traceRaw
-      traceValue
-      traceFn
-      ;
-  };
 in
   exports // {__rootAliases = exports;}

@@ -321,6 +321,32 @@
           input = arg;
         });
 
+  # Internal: build a predicate that checks if any pattern matches any input value.
+  mkAnyPredicate = {
+    function,
+    checker,
+    patterns,
+    input,
+  }: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    if !(isString patterns || isList patterns)
+    then
+      throw (
+        _debug.withDoc {
+          inherit function;
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${function} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
+    else any (p: any (v: checker p v) vs) ps;
+
   # Internal: build a predicate that requires ALL inputs to match at least one pattern.
   mkAllPredicate = {
     function,
@@ -407,7 +433,7 @@ in
     __rootAliases = {
       boolToString = fromBool;
       concatStrings = concat;
-      # splitString = split;
+      splitString = split;
       stringToList = toList;
       mkAnyStringPredicate = mkAnyPredicate;
       mkAllStringPredicate = mkAllPredicate;
@@ -502,6 +528,50 @@ in
             "a,b"
             "c,d"
           ];
+        };
+        attrsetMultipleDelimiters = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = false;
+            input = "foo.bar-baz";
+          };
+        };
+        attrsetRetainDelimiter = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = ".";
+            input = "foo.bar-baz";
+          };
+        };
+        attrsetLeadingTrailing = mkTest {
+          desired = [
+            "foo"
+            "bar"
+          ];
+          command = ''split { delimiters = "."; include = false; input = ".foo.bar."; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = ".foo.bar.";
+          };
         };
       };
     };

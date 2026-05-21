@@ -1,6 +1,19 @@
 # Error message formatting and value rendering.
 # Provides the string-building primitives used by debug/module.nix and debug/trace.nix.
 {lib, ...}: let
+  exports = {
+    inherit
+      isExample
+      mkExample
+      mkNamespace
+      mkRef
+      mkThrownUsage
+      mkUsage
+      renderDebugValue
+      renderExample
+      ;
+  };
+
   inherit (lib.attrsets) isAttrs hasAttr;
   inherit (lib.strings) typeOf concatStringsSep toJSON;
 
@@ -163,18 +176,5 @@
     else if t == "null"
     then "null"
     else toJSON value;
-
-  exports = {
-    inherit
-      isExample
-      mkExample
-      mkNamespace
-      mkRef
-      mkThrownUsage
-      mkUsage
-      renderDebugValue
-      renderExample
-      ;
-  };
 in
   exports // {__rootAliases = exports;}

@@ -4,8 +4,13 @@
   ...
 }: let
   __exports = {
-    namespaced = {inherit testing tracing;};
-    flattened = {} // testing // tracing // {};
+    namespaced = {inherit assertions testing tracing;};
+    flattened =
+      {}
+      // assertions
+      // testing
+      // tracing
+      // {};
   };
 
   inherit (lib) debug asserts;
@@ -23,10 +28,16 @@
       traceValIfNot
       addErrorContext
       ;
+    inherit (builtins) tryEval;
+  };
+
+  assertions = {
     inherit (asserts) assertMsg;
   };
 
-  testing = {inherit (debug) runTests testAllTrue;};
+  testing = {
+    inherit (debug) runTests testAllTrue;
+  };
 in
   if flatten
   then __exports.namespaced // __exports.flattened

@@ -8,6 +8,11 @@
   lib,
   ...
 }: let
+  exports = {
+    inherit mkModule mkFn;
+    mkModuleDebug = mkModule;
+  };
+
   inherit (_.debug.format) mkRef mkThrownUsage mkExample;
   inherit (_.debug.trace) traceFn;
   inherit (_.types.predicates) isList;
@@ -243,11 +248,6 @@
     }: "${ref (_name function)}: ${message}";
 
     inherit ref;
-  };
-
-  exports = {
-    inherit mkModule mkFn;
-    mkModuleDebug = mkModule;
   };
 in
   exports // {__rootAliases = exports;}
