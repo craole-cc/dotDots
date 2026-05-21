@@ -24,10 +24,10 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.access) head;
-  inherit (_.lists.construction) filter;
+  inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
   inherit (_.types.predicates) isAttrs isBool isFunction isList isString;
-  inherit (_.strings.construction) concatStringsSep splitString splitStringBy;
+  inherit (_.strings.construction) concatStringsSep splitStringBy;
   inherit (_.strings.transformation) indent;
   toListOrig = _.lists.construction.toList;
 
@@ -320,6 +320,32 @@
           message = "first argument must be an attrset { delimiters, include, input }, a predicate function, or a delimiter string";
           input = arg;
         });
+
+  # Internal: build a predicate that checks if any pattern matches any input value.
+  mkAnyPredicate = {
+    function,
+    checker,
+    patterns,
+    input,
+  }: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    if !(isString patterns || isList patterns)
+    then
+      throw (
+        _debug.withDoc {
+          inherit function;
+          message = "patterns must be a string or list of strings";
+          signature = "string | [string] -> string | [string] -> bool";
+          input = patterns;
+          example = mkExample {
+            cmd = ''${function} "foo" ["bar" "baz"]'';
+            res = "true";
+          };
+        }
+      )
+    else any (p: any (v: checker p v) vs) ps;
 
   # Internal: build a predicate that requires ALL inputs to match at least one pattern.
   mkAllPredicate = {
