@@ -8,7 +8,7 @@
       concat
       fromBool
       split
-      toList
+      asList
       mkAnyPredicate
       mkAllPredicate
       indentedList
@@ -19,6 +19,7 @@
 
   _debug = mkModuleDebug __moduleRef;
 
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.format) mkExample;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.assertions) mkTest;
@@ -36,21 +37,21 @@
   /**
   Convert a single string, or list of strings, into a cleaned list.
 
-  Removes null values but preserves empty strings.
+  Removes null/empty values but preserves empty strings.
 
   # Type
   ```nix
-  toList :: string | [string | null] | null -> [string]
+  asList :: string | [string | null] | null -> [string]
   ```
 
   # Examples
   ```nix
-  toList "foo"               # => ["foo"]
-  toList ["foo" null "bar"]  # => ["foo" "bar"]
-  toList null                # => []
+  asList "foo"               # => ["foo"]
+  asList ["foo" null "bar"]  # => ["foo" "bar"]
+  asList null                # => []
   ```
   */
-  toList = value: filter (v: v != null) (toListOrig value);
+  asList = value: filter (v: isNotEmpty v) (toListOrig value);
 
   /**
   Concatenate a list of strings, or groups of strings, with a delimiter.
@@ -760,10 +761,11 @@ in
           ];
           command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
           outcome = split {
-            delimiters = prev: curr: isIn curr [
-              "."
-              "-"
-            ];
+            delimiters = prev: curr:
+              isIn curr [
+                "."
+                "-"
+              ];
             include = false;
             input = "foo.bar-baz";
           };
@@ -778,10 +780,12 @@ in
             "baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
-          outcome = split (prev: curr: isIn curr [
-            "."
-            "-"
-          ]) false "foo.bar-baz";
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          false "foo.bar-baz";
         };
         curriedIncludeTrue = mkTest {
           desired = [
@@ -790,10 +794,12 @@ in
             "-baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
-          outcome = split (prev: curr: isIn curr [
-            "."
-            "-"
-          ]) true "foo.bar-baz";
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          true "foo.bar-baz";
         };
         curriedListInput = mkTest {
           desired = [
