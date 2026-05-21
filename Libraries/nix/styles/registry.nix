@@ -40,7 +40,7 @@
   inherit (_.lists.access) elemAt head length;
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals toList;
-  inherit (_.lists.predicates) elem isList isIn;
+  inherit (_.lists.predicates) isList isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concat optionalString;
@@ -48,19 +48,6 @@
   inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isFunction isString;
 
-  # TODO: move _.strings.construction
-  toDomainName = domain:
-    {
-      themes = "theme";
-      cursors = "cursor";
-      icons = "icon";
-      accents = "accent";
-      flavors = "flavor";
-    }.${
-      domain
-    } or domain;
-
-  # TODO: move to lists or strings
   normalizeList = values:
     optionals
     (isList values)

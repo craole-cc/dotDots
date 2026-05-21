@@ -234,7 +234,7 @@
 
   # Raw predicate delimiter with bool include (attrset)
   split {
-    delimiters = (prev: curr: elem curr [ "." "-" ]);
+    delimiters = (prev: curr: isIn curr [ "." "-" ]);
     include    = false;
     input      = "foo.bar-baz";
   }
@@ -256,7 +256,7 @@
   # => [ "foo" "bar" ]
 
   # Curried form — drop-in for splitStringBy
-  split (prev: curr: elem curr [ "." "-" ]) false "foo.bar-baz"
+  split (prev: curr: isIn curr [ "." "-" ]) false "foo.bar-baz"
   # => [ "foo" "bar" "baz" ]
   ```
   */
@@ -567,7 +567,8 @@ in
         };
       };
       split = {
-        singleString = mkTest {
+        # ── Shorthand string form ──────────────────────────────────────────
+        shorthandSingleString = mkTest {
           desired = [
             "a"
             "b"
@@ -576,7 +577,7 @@ in
           command = ''split "," "a,b,c"'';
           outcome = split "," "a,b,c";
         };
-        listOfStrings = mkTest {
+        shorthandListOfStrings = mkTest {
           desired = [
             [
               "a"
@@ -592,6 +593,241 @@ in
             "a,b"
             "c,d"
           ];
+        };
+        shorthandMultiCharDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split "." "foo.bar.baz"'';
+          outcome = split "." "foo.bar.baz";
+        };
+
+        # ── Attrset form — include = false ────────────────────────────────
+        attrsetSingleDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = "."; include = false; input = "foo.bar.baz"; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = "foo.bar.baz";
+          };
+        };
+        attrsetMultipleDelimiters = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = false;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — include = string ───────────────────────────────
+        # Split on both "." and "-"; retain only "." at the start of the
+        # following chunk. The "-" before "baz" is discarded.
+        attrsetIncludeOneOfTwo = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = ".";
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — include = true ─────────────────────────────────
+        attrsetIncludeAll = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "-baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = true;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — list input ─────────────────────────────────────
+        attrsetListInput = mkTest {
+          desired = [
+            [
+              "foo"
+              "bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = [
+              "foo.bar"
+              "baz.qux"
+            ];
+          };
+        };
+        # List input where only one delimiter is retained across entries.
+        # "foo.bar" -> ["foo" ".bar"]
+        # "baz-qux" -> ["baz" "qux"]  (the "-" is not in the include set)
+        attrsetListInputWithInclude = mkTest {
+          desired = [
+            [
+              "foo"
+              ".bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = ".";
+            input = [
+              "foo.bar"
+              "baz-qux"
+            ];
+          };
+        };
+
+        # ── Attrset form — leading/trailing delimiters ────────────────────
+        attrsetLeadingTrailingDelimiters = mkTest {
+          desired = [
+            "foo"
+            "bar"
+          ];
+          command = ''split { delimiters = "."; include = false; input = ".foo.bar."; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = ".foo.bar.";
+          };
+        };
+        # Consecutive delimiters collapse — the empty chunk between them is filtered.
+        attrsetConsecutiveDelimiters = mkTest {
+          desired = [
+            "foo"
+            "baz"
+          ];
+          command = ''split { delimiters = "."; include = false; input = "foo..baz"; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = "foo..baz";
+          };
+        };
+
+        # ── Attrset form — raw predicate delimiter ────────────────────────
+        # `elem` is not in scope; use `isIn` (imported from _.lists.predicates).
+        attrsetPredicateDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = prev: curr: isIn curr [
+              "."
+              "-"
+            ];
+            include = false;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Curried form ──────────────────────────────────────────────────
+        # `elem` is not in scope; use `isIn` (imported from _.lists.predicates).
+        curriedIncludeFalse = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
+          outcome = split (prev: curr: isIn curr [
+            "."
+            "-"
+          ]) false "foo.bar-baz";
+        };
+        curriedIncludeTrue = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "-baz"
+          ];
+          command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
+          outcome = split (prev: curr: isIn curr [
+            "."
+            "-"
+          ]) true "foo.bar-baz";
+        };
+        curriedListInput = mkTest {
+          desired = [
+            [
+              "foo"
+              "bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split (prev: curr: curr == ".") false ["foo.bar" "baz.qux"]'';
+          outcome = split (prev: curr: curr == ".") false [
+            "foo.bar"
+            "baz.qux"
+          ];
+        };
+
+        # ── Edge cases ────────────────────────────────────────────────────
+        emptyString = mkTest {
+          desired = [];
+          command = ''split "." ""'';
+          outcome = split "." "";
+        };
+        noDelimiterPresent = mkTest {
+          desired = ["foobar"];
+          command = ''split "." "foobar"'';
+          outcome = split "." "foobar";
+        };
+        singleCharInput = mkTest {
+          desired = [];
+          command = ''split "." "."'';
+          outcome = split "." ".";
         };
       };
     };
