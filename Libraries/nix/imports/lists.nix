@@ -43,10 +43,11 @@
   construction = {
     inherit
       (lists)
+      concatLists
       genList
-      range
       optional
       optionals
+      range
       replicate
       singleton
       toList
@@ -87,7 +88,6 @@
   aggregation = {
     inherit
       (lists)
-      concatLists
       concatMap
       foldl'
       foldl

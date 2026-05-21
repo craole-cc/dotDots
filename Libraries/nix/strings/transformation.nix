@@ -64,7 +64,8 @@
 
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.lists.construction) toList;
-  inherit (_.debug.testing.assertions) mkTest withContext;
+  inherit (_.debug.testing) mkTest;
+  inherit (_.debug.assertions) withContext;
   inherit (_.debug.testing.runners) runTests;
   inherit (_.lists.construction) genList;
   inherit (_.lists.predicates) any isIn;

@@ -8,7 +8,6 @@
       concat
       fromBool
       split
-      toList
       mkAnyPredicate
       mkAllPredicate
       indentedList
@@ -24,55 +23,54 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.access) head;
-  inherit (_.lists.aggregation) concatLists;
+  inherit (_.lists.construction) concatLists asList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
   inherit (_.types.predicates) isAttrs isBool isFunction isList isString;
   inherit (_.strings.access) substring stringLength;
   inherit (_.strings.construction) concatStringsSep splitStringBy;
   inherit (_.strings.transformation) indent;
-  toListOrig = _.lists.construction.toList;
 
   /**
-  Convert a single string, or list of strings, into a cleaned list.
+  Concatenate a list of strings, or groups of strings, with an optional
+  delimiter.
 
-  Removes null values but preserves empty strings.
+  Accepts two calling conventions:
 
-  # Type
+  **Single-arg** — pass only the input list; delimiter defaults to `""`:
   ```nix
-  toList :: string | [string | null] | null -> [string]
+  concat ["a" "b" "c"]
   ```
 
-  # Examples
+  **Two-arg** — pass a delimiter then the input list:
   ```nix
-  toList "foo"               # => ["foo"]
-  toList ["foo" null "bar"]  # => ["foo" "bar"]
-  toList null                # => []
+  concat "," ["a" "b" "c"]
   ```
-  */
-  toList = value: filter (v: v != null) (toListOrig value);
 
-  /**
-  Concatenate a list of strings, or groups of strings, with a delimiter.
   Pass `null` as the delimiter to flatten a list of lists without joining.
   When given a flat list, `null` behaves like `""`.
 
   # Inputs
-  `delimiter`
-  : A string delimiter, or `null` to flatten/join without separator.
+
+  `delimiter` *(optional)*
+  : A string delimiter, or `null` to flatten/join without separator. Omit
+    entirely to use `""` — pass the input list as the sole argument.
 
   `input`
   : A list of strings, a list of lists of strings, or `null`.
 
   # Return
-  - If `delimiter` is a string and `input` is flat: `string`
-  - If `delimiter` is a string and `input` is nested: `[string]`
-  - If `delimiter` is `null` and `input` is nested: `[string]`
-  - If `delimiter` is `null` and `input` is flat: `string`
+  - If `input` is a flat list: `string`
+  - If `input` is a nested list and `delimiter` is a string: `[string]`
+  - If `input` is a nested list and `delimiter` is `null`: `[string]` (flattened)
   - If `input` is null or empty: `""` (or `[]` when `delimiter` is `null`)
 
   # Type
   ```nix
+  # Single-arg (delimiter defaults to "")
+  concat :: [string] | [[string]] | null -> string | [string]
+
+  # Two-arg
   concat :: string | null -> [string] | [[string]] | null -> string | [string]
   ```
 
@@ -84,37 +82,53 @@
 
   # Examples
   ```nix
+  # Single-arg form
+  concat ["a" "b" "c"]              # => "abc"
+  concat ["$HOME" "Pictures"]       # => "$HOMEPictures"
+
+  # Two-arg form
   concat "," ["a" "b" "c"]          # => "a,b,c"
-  concat "," [["a" "b"] ["c" "d"]]  # => ["a,b" "c,d"]
+  concat "/" ["$HOME" "Pictures"]   # => "$HOME/Pictures"
+  concat "," [["a" "b"] ["c" "d"]] # => ["a,b" "c,d"]
   concat null [["a" "b"] ["c" "d"]] # => ["a" "b" "c" "d"]
   concat null ["a" "b" "c"]         # => "abc"
+
+  # Empty / null input
   concat "," []                     # => ""
   concat null []                    # => []
   ```
   */
-  concat = delimiter: input:
-    if !(isString delimiter || delimiter == null)
-    then
-      throw (
-        _debug.withLoc {
+  concat = delimiterOrInput: let
+    isSingleArg = isList delimiterOrInput;
+    delimiter =
+      if isSingleArg
+      then ""
+      else delimiterOrInput;
+    concatenate = input:
+      if !(isString delimiter || delimiter == null)
+      then
+        throw (_debug.withLoc {
           function = "concat";
           message = "delimiter must be a string or null";
           input = delimiter;
-        }
-      )
-    else if (input == null) || (input == [])
-    then
-      if delimiter == null
-      then []
-      else ""
-    else if delimiter == null
-    then
-      if isList (head input)
-      then concatLists input
-      else concatStringsSep "" input
-    else if isList (head input)
-    then map (group: concatStringsSep delimiter group) input
-    else concatStringsSep delimiter input;
+        })
+      else if (input == null) || (input == [])
+      then
+        if delimiter == null
+        then []
+        else ""
+      else if delimiter == null
+      then
+        if isList (head input)
+        then concatLists input
+        else concatStringsSep "" input
+      else if isList (head input)
+      then map (group: concatStringsSep delimiter group) input
+      else concatStringsSep delimiter input;
+  in
+    if isSingleArg
+    then concatenate delimiterOrInput
+    else concatenate;
 
   /**
   Split a string or list of strings by one or more delimiters, with optional
@@ -234,7 +248,7 @@
 
   # Raw predicate delimiter with bool include (attrset)
   split {
-    delimiters = (prev: curr: elem curr [ "." "-" ]);
+    delimiters = (prev: curr: isIn curr [ "." "-" ]);
     include    = false;
     input      = "foo.bar-baz";
   }
@@ -256,7 +270,7 @@
   # => [ "foo" "bar" ]
 
   # Curried form — drop-in for splitStringBy
-  split (prev: curr: elem curr [ "." "-" ]) false "foo.bar-baz"
+  split (prev: curr: isIn curr [ "." "-" ]) false "foo.bar-baz"
   # => [ "foo" "bar" "baz" ]
   ```
   */
@@ -264,7 +278,7 @@
     mkPredicate = type: input:
       if type == "delimiters"
       #> Build a split predicate from a string or list of strings
-      then _prev: delimiters: isIn delimiters (toList input)
+      then _prev: delimiters: isIn delimiters (asList input)
       else if type == "includes"
       #> Build a retain predicate from bool, string, list, or function
       then
@@ -392,8 +406,8 @@
     patterns,
     input,
   }: let
-    ps = toList patterns;
-    vs = toList input;
+    ps = asList patterns;
+    vs = asList input;
   in
     if !(isString patterns || isList patterns)
     then
@@ -418,8 +432,8 @@
     patterns,
     input,
   }: let
-    ps = toList patterns;
-    vs = toList input;
+    ps = asList patterns;
+    vs = asList input;
   in
     if !(isString patterns || isList patterns)
     then
@@ -498,25 +512,25 @@ in
       boolToString = fromBool;
       concatStrings = concat;
       # splitString = split;
-      stringToList = toList;
+      # stringToList = asList;
       mkAnyStringPredicate = mkAnyPredicate;
       mkAllStringPredicate = mkAllPredicate;
     };
 
     __tests = runTests {
-      toList = {
+      asList = {
         singleString = mkTest {
           desired = ["foo"];
-          command = ''toList "foo"'';
-          outcome = toList "foo";
+          command = ''asList "foo"'';
+          outcome = asList "foo";
         };
         listWithNull = mkTest {
           desired = [
             "foo"
             "bar"
           ];
-          command = ''toList ["foo" null "bar"]'';
-          outcome = toList [
+          command = ''asList ["foo" null "bar"]'';
+          outcome = asList [
             "foo"
             null
             "bar"
@@ -524,8 +538,8 @@ in
         };
         nullInput = mkTest {
           desired = [];
-          command = "toList null";
-          outcome = toList null;
+          command = "asList null";
+          outcome = asList null;
         };
       };
       concat = {
@@ -567,7 +581,8 @@ in
         };
       };
       split = {
-        singleString = mkTest {
+        # ── Shorthand string form ──────────────────────────────────────────
+        shorthandSingleString = mkTest {
           desired = [
             "a"
             "b"
@@ -576,7 +591,7 @@ in
           command = ''split "," "a,b,c"'';
           outcome = split "," "a,b,c";
         };
-        listOfStrings = mkTest {
+        shorthandListOfStrings = mkTest {
           desired = [
             [
               "a"
@@ -592,6 +607,246 @@ in
             "a,b"
             "c,d"
           ];
+        };
+        shorthandMultiCharDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split "." "foo.bar.baz"'';
+          outcome = split "." "foo.bar.baz";
+        };
+
+        # ── Attrset form — include = false ────────────────────────────────
+        attrsetSingleDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = "."; include = false; input = "foo.bar.baz"; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = "foo.bar.baz";
+          };
+        };
+        attrsetMultipleDelimiters = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = false;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — include = string ───────────────────────────────
+        # Split on both "." and "-"; retain only "." at the start of the
+        # following chunk. The "-" before "baz" is discarded.
+        attrsetIncludeOneOfTwo = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = ".";
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — include = true ─────────────────────────────────
+        attrsetIncludeAll = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "-baz"
+          ];
+          command = ''split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = true;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Attrset form — list input ─────────────────────────────────────
+        attrsetListInput = mkTest {
+          desired = [
+            [
+              "foo"
+              "bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = [
+              "foo.bar"
+              "baz.qux"
+            ];
+          };
+        };
+        # List input where only one delimiter is retained across entries.
+        # "foo.bar" -> ["foo" ".bar"]
+        # "baz-qux" -> ["baz" "qux"]  (the "-" is not in the include set)
+        attrsetListInputWithInclude = mkTest {
+          desired = [
+            [
+              "foo"
+              ".bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }'';
+          outcome = split {
+            delimiters = [
+              "."
+              "-"
+            ];
+            include = ".";
+            input = [
+              "foo.bar"
+              "baz-qux"
+            ];
+          };
+        };
+
+        # ── Attrset form — leading/trailing delimiters ────────────────────
+        attrsetLeadingTrailingDelimiters = mkTest {
+          desired = [
+            "foo"
+            "bar"
+          ];
+          command = ''split { delimiters = "."; include = false; input = ".foo.bar."; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = ".foo.bar.";
+          };
+        };
+        # Consecutive delimiters collapse — the empty chunk between them is filtered.
+        attrsetConsecutiveDelimiters = mkTest {
+          desired = [
+            "foo"
+            "baz"
+          ];
+          command = ''split { delimiters = "."; include = false; input = "foo..baz"; }'';
+          outcome = split {
+            delimiters = ".";
+            include = false;
+            input = "foo..baz";
+          };
+        };
+
+        # ── Attrset form — raw predicate delimiter ────────────────────────
+        # `elem` is not in scope; use `isIn` (imported from _.lists.predicates).
+        attrsetPredicateDelimiter = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
+          outcome = split {
+            delimiters = prev: curr:
+              isIn curr [
+                "."
+                "-"
+              ];
+            include = false;
+            input = "foo.bar-baz";
+          };
+        };
+
+        # ── Curried form ──────────────────────────────────────────────────
+        # `elem` is not in scope; use `isIn` (imported from _.lists.predicates).
+        curriedIncludeFalse = mkTest {
+          desired = [
+            "foo"
+            "bar"
+            "baz"
+          ];
+          command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          false "foo.bar-baz";
+        };
+        curriedIncludeTrue = mkTest {
+          desired = [
+            "foo"
+            ".bar"
+            "-baz"
+          ];
+          command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          true "foo.bar-baz";
+        };
+        curriedListInput = mkTest {
+          desired = [
+            [
+              "foo"
+              "bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          command = ''split (prev: curr: curr == ".") false ["foo.bar" "baz.qux"]'';
+          outcome = split (prev: curr: curr == ".") false [
+            "foo.bar"
+            "baz.qux"
+          ];
+        };
+
+        # ── Edge cases ────────────────────────────────────────────────────
+        emptyString = mkTest {
+          desired = [];
+          command = ''split "." ""'';
+          outcome = split "." "";
+        };
+        noDelimiterPresent = mkTest {
+          desired = ["foobar"];
+          command = ''split "." "foobar"'';
+          outcome = split "." "foobar";
+        };
+        singleCharInput = mkTest {
+          desired = [];
+          command = ''split "." "."'';
+          outcome = split "." ".";
         };
       };
     };

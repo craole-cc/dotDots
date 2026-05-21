@@ -8,7 +8,7 @@
       concat
       fromBool
       split
-      asList
+      toList
       mkAnyPredicate
       mkAllPredicate
       indentedList
@@ -19,7 +19,6 @@
 
   _debug = mkModuleDebug __moduleRef;
 
-  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.format) mkExample;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.assertions) mkTest;
@@ -37,43 +36,73 @@
   /**
   Convert a single string, or list of strings, into a cleaned list.
 
-  Removes null/empty values but preserves empty strings.
+  Removes null values but preserves empty strings.
+
+  # Inputs
+
+  `value`
+  : A string, a list of strings or nulls, or null itself.
+
+  # Return
+
+  A flat list of strings with all null entries removed. Returns `[]` when
+  `value` is null or an empty list. A plain string is wrapped in a
+  single-element list. Empty strings in a list are kept.
 
   # Type
   ```nix
-  asList :: string | [string | null] | null -> [string]
+  toList :: string | [string | null] | null -> [string]
   ```
 
   # Examples
   ```nix
-  asList "foo"               # => ["foo"]
-  asList ["foo" null "bar"]  # => ["foo" "bar"]
-  asList null                # => []
+  toList "foo"               # => ["foo"]
+  toList ["foo" null "bar"]  # => ["foo" "bar"]
+  toList null                # => []
   ```
   */
-  asList = value: filter (v: isNotEmpty v) (toListOrig value);
+  toList = value: filter (v: v != null) (toListOrig value);
 
   /**
-  Concatenate a list of strings, or groups of strings, with a delimiter.
+  Concatenate a list of strings, or groups of strings, with an optional
+  delimiter.
+
+  Accepts two calling conventions:
+
+  **Single-arg** — pass only the input list; delimiter defaults to `""`:
+  ```nix
+  concat ["a" "b" "c"]
+  ```
+
+  **Two-arg** — pass a delimiter then the input list:
+  ```nix
+  concat "," ["a" "b" "c"]
+  ```
+
   Pass `null` as the delimiter to flatten a list of lists without joining.
   When given a flat list, `null` behaves like `""`.
 
   # Inputs
-  `delimiter`
-  : A string delimiter, or `null` to flatten/join without separator.
+
+  `delimiter` *(optional)*
+  : A string delimiter, or `null` to flatten/join without separator. Omit
+    entirely to use `""` — pass the input list as the sole argument.
 
   `input`
   : A list of strings, a list of lists of strings, or `null`.
 
   # Return
-  - If `delimiter` is a string and `input` is flat: `string`
-  - If `delimiter` is a string and `input` is nested: `[string]`
-  - If `delimiter` is `null` and `input` is nested: `[string]`
-  - If `delimiter` is `null` and `input` is flat: `string`
+  - If `input` is a flat list: `string`
+  - If `input` is a nested list and `delimiter` is a string: `[string]`
+  - If `input` is a nested list and `delimiter` is `null`: `[string]` (flattened)
   - If `input` is null or empty: `""` (or `[]` when `delimiter` is `null`)
 
   # Type
   ```nix
+  # Single-arg (delimiter defaults to "")
+  concat :: [string] | [[string]] | null -> string | [string]
+
+  # Two-arg
   concat :: string | null -> [string] | [[string]] | null -> string | [string]
   ```
 
@@ -85,37 +114,53 @@
 
   # Examples
   ```nix
+  # Single-arg form
+  concat ["a" "b" "c"]              # => "abc"
+  concat ["$HOME" "Pictures"]       # => "$HOMEPictures"
+
+  # Two-arg form
   concat "," ["a" "b" "c"]          # => "a,b,c"
-  concat "," [["a" "b"] ["c" "d"]]  # => ["a,b" "c,d"]
+  concat "/" ["$HOME" "Pictures"]   # => "$HOME/Pictures"
+  concat "," [["a" "b"] ["c" "d"]] # => ["a,b" "c,d"]
   concat null [["a" "b"] ["c" "d"]] # => ["a" "b" "c" "d"]
   concat null ["a" "b" "c"]         # => "abc"
+
+  # Empty / null input
   concat "," []                     # => ""
   concat null []                    # => []
   ```
   */
-  concat = delimiter: input:
-    if !(isString delimiter || delimiter == null)
-    then
-      throw (
-        _debug.withLoc {
+  concat = delimiterOrInput: let
+    isSingleArg = isList delimiterOrInput;
+    delimiter =
+      if isSingleArg
+      then ""
+      else delimiterOrInput;
+    concatenate = input:
+      if !(isString delimiter || delimiter == null)
+      then
+        throw (_debug.withLoc {
           function = "concat";
           message = "delimiter must be a string or null";
           input = delimiter;
-        }
-      )
-    else if (input == null) || (input == [])
-    then
-      if delimiter == null
-      then []
-      else ""
-    else if delimiter == null
-    then
-      if isList (head input)
-      then concatLists input
-      else concatStringsSep "" input
-    else if isList (head input)
-    then map (group: concatStringsSep delimiter group) input
-    else concatStringsSep delimiter input;
+        })
+      else if (input == null) || (input == [])
+      then
+        if delimiter == null
+        then []
+        else ""
+      else if delimiter == null
+      then
+        if isList (head input)
+        then concatLists input
+        else concatStringsSep "" input
+      else if isList (head input)
+      then map (group: concatStringsSep delimiter group) input
+      else concatStringsSep delimiter input;
+  in
+    if isSingleArg
+    then concatenate delimiterOrInput
+    else concatenate;
 
   /**
   Split a string or list of strings by one or more delimiters, with optional
@@ -761,11 +806,10 @@ in
           ];
           command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
           outcome = split {
-            delimiters = prev: curr:
-              isIn curr [
-                "."
-                "-"
-              ];
+            delimiters = prev: curr: isIn curr [
+              "."
+              "-"
+            ];
             include = false;
             input = "foo.bar-baz";
           };
@@ -780,12 +824,10 @@ in
             "baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
-          outcome = split (prev: curr:
-            isIn curr [
-              "."
-              "-"
-            ])
-          false "foo.bar-baz";
+          outcome = split (prev: curr: isIn curr [
+            "."
+            "-"
+          ]) false "foo.bar-baz";
         };
         curriedIncludeTrue = mkTest {
           desired = [
@@ -794,12 +836,10 @@ in
             "-baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
-          outcome = split (prev: curr:
-            isIn curr [
-              "."
-              "-"
-            ])
-          true "foo.bar-baz";
+          outcome = split (prev: curr: isIn curr [
+            "."
+            "-"
+          ]) true "foo.bar-baz";
         };
         curriedListInput = mkTest {
           desired = [

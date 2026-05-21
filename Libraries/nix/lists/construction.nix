@@ -6,7 +6,7 @@
   __exports = {
     internal = {
       inherit
-        toList'
+        asList
         mkCheckList
         mkEnum
         mkValidator
@@ -17,8 +17,8 @@
         ;
     };
     external = {
-      toList = toList';
       inherit
+        asList
         mkCheckList
         mkEnum
         mkValidator
@@ -49,19 +49,29 @@
 
   Removes null values but preserves empty strings.
 
+  # Inputs
+  `value`
+  : A string, a list of strings or nulls, or null itself.
+
+  # Return
+  A flat list of strings with all null entries removed. Returns `[]` when
+  `value` is null or an empty list. A plain string is wrapped in a
+  single-element list. Empty strings in a list are kept.
+
   # Type
   ```nix
-  toList' :: string | [string | null] | null -> [string]
+  asList :: string | [string | null] | null -> [string]
   ```
 
   # Examples
   ```nix
-  toList' "foo"               # => ["foo"]
-  toList' ["foo" null "bar"]  # => ["foo" "bar"]
-  toList' null                # => []
+  asList "foo"               # => ["foo"]
+  asList ["foo" null "bar"]  # => ["foo" "bar"]
+  asList ""                  # => [""]
+  asList null                # => []
   ```
   */
-  toList' = value: filter (v: v != null) (toList value);
+  asList = value: filter (v: v != null) (toList value);
 
   /**
   Generate a membership-checking predicate for a normalized list.
@@ -89,7 +99,7 @@
     check,
     exact ? false,
   }: let
-    checkList = toList' check;
+    checkList = asList check;
     normalizedList =
       if exact
       then checkList

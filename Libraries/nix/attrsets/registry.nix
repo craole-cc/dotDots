@@ -12,10 +12,12 @@
     '';
     functions = {
       inherit
-        # normalizeList
-        # flatten
-        # importRegistry
-        # isRegistry
+        normalizeList
+        flatten
+        groupByFieldFlat
+        groupByField
+        importRegistry
+        isRegistry
         lookupByCategory
         mkRegistry
         mkPolarity
@@ -26,7 +28,9 @@
       local = functions // {inherit data;};
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.access) attrNames attrValues getAttr;
   inherit (_.attrsets.predicates) hasAttr;
@@ -178,64 +182,63 @@
       else selected;
   };
 
-  # normalizeList = values:
-  #   optionals
-  #   (isList values)
-  #   (filter (value: isNotEmpty value) values);
+  normalizeList = values:
+    optionals
+    (isList values)
+    (filter (value: isNotEmpty value) values);
 
-  # TODO: Move to registry.flatte
   flatten = registry:
     foldl' (
       acc: namespace: acc // registry.${namespace}
     ) {} (attrNames registry);
 
-  # groupByFieldFlat = {
-  #   entries,
-  #   field,
-  # }: let
-  #   entries' = flatten entries;
-  #   keys = unique (filter isString (
-  #     map (entry: entry.${field} or null) (attrValues entries')
-  #   ));
-  # in
-  #   genAttrs keys (
-  #     key:
-  #       filterAttrs
-  #       (_: entry: (entry.${field} or null) == key)
-  #       entries'
-  #   );
+  groupByFieldFlat = {
+    entries,
+    field,
+  }: let
+    entries' = flatten entries;
+    keys = unique (filter isString (
+      map (entry: entry.${field} or null) (attrValues entries')
+    ));
+  in
+    genAttrs keys (
+      key:
+        filterAttrs
+        (_: entry: (entry.${field} or null) == key)
+        entries'
+    );
 
-  # groupByField = field: registry: let
-  #   entries =
-  #     concatMap
-  #     (domain: attrValues registry.${domain})
-  #     (attrNames registry);
+  groupByField = field: registry: let
+    entries =
+      concatMap
+      (domain: attrValues registry.${domain})
+      (attrNames registry);
 
-  #   keys =
-  #     unique
-  #     (filter isString (map (entry: entry.${field} or null) entries));
-  # in
-  #   genAttrs keys (
-  #     key:
-  #       filterAttrs
-  #       (_: domain: isNotEmpty domain)
-  #       (
-  #         mapAttrs
-  #         (
-  #           _: entries':
-  #             filterAttrs
-  #             (_: entry: (entry.${field} or null) == key)
-  #             entries'
-  #         )
-  #         registry
-  #       )
-  #   );
+    keys =
+      unique
+      (filter isString (map (entry: entry.${field} or null) entries));
+  in
+    genAttrs keys (
+      key:
+        filterAttrs
+        (_: domain: isNotEmpty domain)
+        (
+          mapAttrs
+          (
+            _: entries':
+              filterAttrs
+              (_: entry: (entry.${field} or null) == key)
+              entries'
+          )
+          registry
+        )
+    );
 
-  # mkSection = {
-  #   set,
-  #   queries ? {},
-  # }:
-  #   {all = set;} // queries;
+  mkSection = {
+    set,
+    queries ? {},
+  }:
+    {all = set;} // queries;
 
   isRegistry = tree:
     (tree != {})
