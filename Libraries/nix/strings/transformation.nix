@@ -74,11 +74,10 @@
     removePrefix
     removeSuffix
     replaceStrings
-    splitString
     toLower
     toUpper
     ;
-  inherit (_.strings.construction) concat;
+  inherit (_.strings.construction) concat splitString;
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
   inherit (_.content.emptiness) isEmpty;

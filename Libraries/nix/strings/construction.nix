@@ -27,6 +27,7 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
   inherit (_.types.predicates) isAttrs isBool isFunction isList isString;
+  inherit (_.strings.access) substring stringLength;
   inherit (_.strings.construction) concatStringsSep splitStringBy;
   inherit (_.strings.transformation) indent;
   toListOrig = _.lists.construction.toList;
@@ -81,12 +82,12 @@
     else concatStringsSep delimiter input;
 
   /**
-    Split a string or list of strings by one or more delimiters, with optional
-    retention of matched delimiter characters in the output.
+  Split a string or list of strings by one or more delimiters, with optional
+  retention of matched delimiter characters in the output.
 
-    Accepts three calling conventions:
+  Accepts three calling conventions:
 
-    **Attrset (friendly):**
+  **Attrset (friendly):**
   ```nix
     split {
       delimiters = "." | ["."] | (prev: curr: ...);
@@ -95,136 +96,136 @@
     }
   ```
 
-    **Shorthand string (drop-in for old API):**
+  **Shorthand string (drop-in for old API):**
   ```nix
     split "." "foo.bar.baz"
     split "." ["foo.bar" "baz.qux"]
   ```
 
-    **Curried (raw, drop-in for `splitStringBy`):**
+  **Curried (raw, drop-in for `splitStringBy`):**
   ```nix
     split predicate include input
   ```
 
-    In attrset mode, `delimiters` may be a string, list of strings, or a raw
-    predicate function. When a raw predicate function is passed, `include` must
-    also be a bool or raw predicate function — mixing a function delimiter with a
-    string/list include throws an error.
+  In attrset mode, `delimiters` may be a string, list of strings, or a raw
+  predicate function. When a raw predicate function is passed, `include` must
+  also be a bool or raw predicate function — mixing a function delimiter with a
+  string/list include throws an error.
 
-    Empty strings produced by leading, trailing, or consecutive delimiters are
-    filtered from the result.
+  Empty strings produced by leading, trailing, or consecutive delimiters are
+  filtered from the result.
 
-    # Inputs
+  # Inputs
 
-    `delimiters` (attrset) / `delimiter` (string) / `predicate` (curried)
-    : 1. What to split on. One of:
-         - `string` — single delimiter character or sequence
-         - `[string]` — list of delimiter characters or sequences
-         - `function` — raw `prev: curr: bool` predicate (curried mode always uses this form)
+  `delimiters` (attrset) / `delimiter` (string) / `predicate` (curried)
+  : 1. What to split on. One of:
+       - `string` — single delimiter character or sequence
+       - `[string]` — list of delimiter characters or sequences
+       - `function` — raw `prev: curr: bool` predicate (curried mode always uses this form)
 
-    `include` (attrset / curried)
-    : 2. Which delimiter characters to retain at the start of the next chunk. One of:
-         - `false` — discard all delimiters (default; implied by string shorthand)
-         - `true` — retain all delimiters
-         - `string` — retain only this delimiter
-         - `[string]` — retain only these delimiters
-         - `function` — raw `prev: curr: bool` predicate
+  `include` (attrset / curried)
+  : 2. Which delimiter characters to retain at the start of the next chunk. One of:
+       - `false` — discard all delimiters (default; implied by string shorthand)
+       - `true` — retain all delimiters
+       - `string` — retain only this delimiter
+       - `[string]` — retain only these delimiters
+       - `function` — raw `prev: curr: bool` predicate
 
-         When `delimiters` is a function, `include` must be `true`, `false`, or a function.
+       When `delimiters` is a function, `include` must be `true`, `false`, or a function.
 
-    `input`
-    : 3. String or list of strings. Nested lists throw an error.
+  `input`
+  : 3. String or list of strings. Nested lists throw an error.
 
-    # Return
+  # Return
 
-    If `input` is a string: `[string]`.
-    If `input` is a list of strings: `[[string]]`.
+  If `input` is a string: `[string]`.
+  If `input` is a list of strings: `[[string]]`.
 
-    Empty strings are always filtered from each result.
+  Empty strings are always filtered from each result.
 
-    # Dependencies
+  # Dependencies
 
-    - `_.strings.construction.splitStringBy`
-    - `_.types.predicates.isString`
-    - `_.types.predicates.isList`
-    - `_.lists.predicates.any`
-    - `_.lists.construction.filter`
+  - `_.strings.construction.splitStringBy`
+  - `_.types.predicates.isString`
+  - `_.types.predicates.isList`
+  - `_.lists.predicates.any`
+  - `_.lists.construction.filter`
 
-    # Type
+  # Type
   ```nix
-    # Attrset form
-    split :: {
-      delimiters :: string | [string] | (string -> string -> bool);
-      include    :: bool | string | [string] | (string -> string -> bool);
-      input      :: string | [string];
-    } -> [string] | [[string]]
+  # Attrset form
+  split :: {
+    delimiters :: string | [string] | (string -> string -> bool);
+    include    :: bool | string | [string] | (string -> string -> bool);
+    input      :: string | [string];
+  } -> [string] | [[string]]
 
-    # Shorthand string form (include = false)
-    split :: string -> string | [string] -> [string] | [[string]]
+  # Shorthand string form (include = false)
+  split :: string -> string | [string] -> [string] | [[string]]
 
-    # Curried form (splitStringBy drop-in)
-    split :: (string -> string -> bool) -> bool -> string | [string] -> [string] | [[string]]
+  # Curried form (splitStringBy drop-in)
+  split :: (string -> string -> bool) -> bool -> string | [string] -> [string] | [[string]]
   ```
 
-    # Examples
+  # Examples
   ```nix
-    # Shorthand string form
-    split "." "foo.bar.baz"
-    # => [ "foo" "bar" "baz" ]
+  # Shorthand string form
+  split "." "foo.bar.baz"
+  # => [ "foo" "bar" "baz" ]
 
-    split "." [ "foo.bar" "baz.qux" ]
-    # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
+  split "." [ "foo.bar" "baz.qux" ]
+  # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
 
-    # Single delimiter, discard it
-    split { delimiters = "."; include = false; input = "foo.bar.baz"; }
-    # => [ "foo" "bar" "baz" ]
+  # Single delimiter, discard it
+  split { delimiters = "."; include = false; input = "foo.bar.baz"; }
+  # => [ "foo" "bar" "baz" ]
 
-    # Multiple delimiters, discard all
-    split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }
-    # => [ "foo" "bar" "baz" ]
+  # Multiple delimiters, discard all
+  split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }
+  # => [ "foo" "bar" "baz" ]
 
-    # Multiple delimiters, retain only "."
-    split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }
-    # => [ "foo" ".bar" "baz" ]
+  # Multiple delimiters, retain only "."
+  split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }
+  # => [ "foo" ".bar" "baz" ]
 
-    # Multiple delimiters, retain all
-    split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }
-    # => [ "foo" ".bar" "-baz" ]
+  # Multiple delimiters, retain all
+  split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }
+  # => [ "foo" ".bar" "-baz" ]
 
-    # List of strings input
-    split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }
-    # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
+  # List of strings input
+  split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }
+  # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
 
-    # List input with retain
-    split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }
-    # => [ [ "foo" ".bar" ] [ "baz" "qux" ] ]
+  # List input with retain
+  split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }
+  # => [ [ "foo" ".bar" ] [ "baz" "qux" ] ]
 
-    # Raw predicate delimiter with bool include (attrset)
-    split {
-      delimiters = (prev: curr: builtins.elem curr [ "." "-" ]);
-      include    = false;
-      input      = "foo.bar-baz";
-    }
-    # => [ "foo" "bar" "baz" ]
+  # Raw predicate delimiter with bool include (attrset)
+  split {
+    delimiters = (prev: curr: elem curr [ "." "-" ]);
+    include    = false;
+    input      = "foo.bar-baz";
+  }
+  # => [ "foo" "bar" "baz" ]
 
-    # camelCase split via raw predicate
-    split {
-      delimiters = (prev: curr:
-        builtins.match "[a-z]" prev != null &&
-        builtins.match "[A-Z]" curr != null
-      );
-      include = true;
-      input   = "fooBarBaz";
-    }
-    # => [ "foo" "Bar" "Baz" ]
+  # camelCase split via raw predicate
+  split {
+    delimiters = (prev: curr:
+      match "[a-z]" prev != null &&
+      match "[A-Z]" curr != null
+    );
+    include = true;
+    input   = "fooBarBaz";
+  }
+  # => [ "foo" "Bar" "Baz" ]
 
-    # Leading/trailing delimiters — empty strings are filtered
-    split { delimiters = "."; include = false; input = ".foo.bar."; }
-    # => [ "foo" "bar" ]
+  # Leading/trailing delimiters — empty strings are filtered
+  split { delimiters = "."; include = false; input = ".foo.bar."; }
+  # => [ "foo" "bar" ]
 
-    # Curried form — drop-in for splitStringBy
-    split (prev: curr: builtins.elem curr [ "." "-" ]) false "foo.bar-baz"
-    # => [ "foo" "bar" "baz" ]
+  # Curried form — drop-in for splitStringBy
+  split (prev: curr: elem curr [ "." "-" ]) false "foo.bar-baz"
+  # => [ "foo" "bar" "baz" ]
   ```
   */
   split = let
@@ -245,10 +246,37 @@
       else throw "";
 
     #> Run splitStringBy and strip empty strings
-    splitOne = predicate: keepSplit: str:
-      filter
-      (x: x != null && x != "")
-      (splitStringBy predicate keepSplit str);
+    splitOne = splitPred: include: str: let
+      # splitStringBy only accepts Bool — retain all when we need post-filtering
+      keepSplit =
+        if isBool include
+        then include
+        else true;
+      raw =
+        filter (x: x != null && x != "")
+        (splitStringBy splitPred keepSplit str);
+
+      # For predicate includes: strip the leading delimiter from any chunk
+      # where the delimiter doesn't satisfy the include predicate
+      postFilter = chunks:
+        map (
+          chunk:
+            if stringLength chunk > 0
+            then let
+              first = substring 0 1 chunk;
+              rest = substring 1 (stringLength chunk - 1) chunk;
+            in
+              # If splitStringBy prepended a delimiter that include rejects, drop it
+              if splitPred "" first && !(include "" first)
+              then rest
+              else chunk
+            else chunk
+        )
+        chunks;
+    in
+      if isBool include
+      then raw
+      else postFilter raw;
 
     #> Shared inner logic once predicates are resolved
     process = delimiters: include: input:
@@ -311,8 +339,13 @@
             })
           else process arg (mkPredicate "includes" include) input
       # Shorthand string form — split "delimiter" input (include = false)
-      else if isString arg
-      then input: process (mkPredicate "delimiters" arg) (mkPredicate "includes" false) input
+      else if isString arg || isList arg
+      then
+        input:
+          process
+          (mkPredicate "delimiters" arg)
+          (mkPredicate "includes" false)
+          input
       # Bad first argument
       else
         throw (_debug.withLoc {

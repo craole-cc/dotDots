@@ -33,25 +33,25 @@
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) concatStringsSep optionalString;
-  inherit (_.strings.transformation) splitString toPascal;
+  inherit (_.strings.construction) concatStringsSep optionalString splitString;
+  inherit (_.strings.transformation) toPascal;
   inherit (_.attrsets.access) attrByPath attrValues;
 
   /**
-      Normalize a field identifier into a path segment list.
+  Normalize a field identifier into a path segment list.
 
-      Dotted strings are split on `"."`. Lists pass through unchanged.
+  Dotted strings are split on `"."`. Lists pass through unchanged.
 
-      # Type
+  # Type
   ```nix
-      asPath :: string | [string] -> [string]
+    asPath :: string | [string] -> [string]
   ```
 
-      # Examples
+  # Examples
   ```nix
-      asPath "a.b.c"      # => ["a" "b" "c"]
-      asPath ["a" "b"]    # => ["a" "b"]
-      asPath "simple"     # => ["simple"]
+    asPath "a.b.c"      # => ["a" "b" "c"]
+    asPath ["a" "b"]    # => ["a" "b"]
+    asPath "simple"     # => ["simple"]
   ```
   */
   asPath = field:
@@ -60,25 +60,25 @@
     else splitString "." field;
 
   /**
-      Safely read a possibly-nested field from an attribute set, returning
-      `default` when any path segment is absent.
+  Safely read a possibly-nested field from an attribute set, returning
+  `default` when any path segment is absent.
 
-      `field` may be a dotted string or a pre-split list; both forms are
-      normalized before traversal.
+  `field` may be a dotted string or a pre-split list; both forms are
+  normalized before traversal.
 
-      # Type
+  # Type
   ```nix
-      toValue :: {
-        field   :: string | [string],
-        default :: a,               # optional, default null
-      } -> AttrSet -> a | null
+    toValue :: {
+      field   :: string | [string],
+      default :: a,               # optional, default null
+    } -> AttrSet -> a | null
   ```
 
-      # Examples
+  # Examples
   ```nix
-      toValue { field = "a.b"; } { a = { b = 42; }; }   # => 42
-      toValue { field = "a.b"; } { a = {}; }             # => null
-      toValue { field = "x"; default = 0; } {}           # => 0
+    toValue { field = "a.b"; } { a = { b = 42; }; }   # => 42
+    toValue { field = "a.b"; } { a = {}; }             # => null
+    toValue { field = "x"; default = 0; } {}           # => 0
   ```
   */
   toValue = {
@@ -87,31 +87,31 @@
   }: app: attrByPath (asPath field) default app;
 
   /**
-      Derive a PascalCase-style identifier fragment from a field path, with
-      optional naming kind, prefix, and suffix.
+  Derive a PascalCase-style identifier fragment from a field path, with
+  optional naming kind, prefix, and suffix.
 
-      The field is normalized to a list, joined with `"-"`, then passed
-      through `toPascal`. When `kind = "group"` and `prefix` is omitted,
-      the default prefix is `"by"`.
+  The field is normalized to a list, joined with `"-"`, then passed
+  through `toPascal`. When `kind = "group"` and `prefix` is omitted,
+  the default prefix is `"by"`.
 
-      # Type
+  # Type
   ```nix
-      toName :: {
-        field  :: string | [string],
-        kind   :: string,    # optional, default "plain"
-        prefix :: string,    # optional, default depends on kind
-        suffix :: string,    # optional, default ""
-      } -> string
+    toName :: {
+      field  :: string | [string],
+      kind   :: string,    # optional, default "plain"
+      prefix :: string,    # optional, default depends on kind
+      suffix :: string,    # optional, default ""
+    } -> string
   ```
 
-      # Examples
+  # Examples
   ```nix
-      toName { field = "color"; }                          # => "Color"
-      toName { kind = "group"; field = "color"; }         # => "byColor"
-      toName { prefix = "is"; field = "enabled"; }        # => "isEnabled"
-      toName { kind = "group"; field = "config.lang"; }   # => "byConfigLang"
-      toName { prefix = "by"; field = ["a" "b"]; suffix = "Index"; }
-      # => "byABIndex"
+    toName { field = "color"; }                          # => "Color"
+    toName { kind = "group"; field = "color"; }         # => "byColor"
+    toName { prefix = "is"; field = "enabled"; }        # => "isEnabled"
+    toName { kind = "group"; field = "config.lang"; }   # => "byConfigLang"
+    toName { prefix = "by"; field = ["a" "b"]; suffix = "Index"; }
+    # => "byABIndex"
   ```
   */
   toName = {
@@ -129,23 +129,23 @@
     resolvedPrefix + toPascal normalized + suffix;
 
   /**
-      Normalize an optional scalar value.
+  Normalize an optional scalar value.
 
-      Treats `null`, the empty string, and the sentinel string `"none"` as
-      absent values and returns `null`. All other values pass through
-      unchanged.
+  Treats `null`, the empty string, and the sentinel string `"none"` as
+  absent values and returns `null`. All other values pass through
+  unchanged.
 
-      # Type
+  # Type
   ```nix
-      normalizeOptional :: a | null -> a | null
+    normalizeOptional :: a | null -> a | null
   ```
 
-      # Examples
+  # Examples
   ```nix
-      normalizeOptional null      # => null
-      normalizeOptional ""        # => null
-      normalizeOptional "none"    # => null
-      normalizeOptional "beta"    # => "beta"
+  normalizeOptional null      # => null
+  normalizeOptional ""        # => null
+  normalizeOptional "none"    # => null
+  normalizeOptional "beta"    # => "beta"
   ```
   */
   normalizeOptional = value:

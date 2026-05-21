@@ -42,6 +42,8 @@
       floatToString
       fromJSON
       optionalString
+      splitString
+      splitStringBy
       ;
   };
 
@@ -58,8 +60,6 @@
       removePrefix
       removeSuffix
       replaceStrings
-      splitString
-      splitStringBy
       toLower
       toUpper
       trim
