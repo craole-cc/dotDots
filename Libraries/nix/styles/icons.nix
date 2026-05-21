@@ -48,7 +48,7 @@
       context = "building icon theme for ${polarity}";
     };
     entry = normalize {
-      inherit polarity;
+      inherit lookup polarity seed;
       value = icon;
       fallback = seed.icon;
     };

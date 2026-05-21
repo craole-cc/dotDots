@@ -58,7 +58,7 @@
     };
 
     entry = normalize {
-      inherit polarity;
+      inherit polarity lookup;
       value = theme;
     };
   in
