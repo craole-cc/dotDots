@@ -12,7 +12,6 @@
     '';
     functions = {
       inherit
-        mkFilters
         normalizeList
         flatten
         importRegistry
@@ -20,12 +19,11 @@
         lookupByCategory
         mkRegistry
         mkPolarity
-        # normalizeWith
         mkData
         ;
     };
     exports = {
-      local = functions // data.seed;
+      local = functions // {inherit raw data;};
       alias = {};
     };
   in {
@@ -42,44 +40,13 @@
   inherit (_.lists.access) elemAt head length;
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals toList;
-  inherit (_.lists.predicates) all elem isList isIn;
+  inherit (_.lists.predicates) elem isList isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concat optionalString;
-  inherit (_.strings.transformation) toLowerCase toTitleCase;
+  inherit (_.strings.transformation) toTitleCase wrap;
   inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isFunction isString;
-
-  # TODO: Move to _.strings.construction
-  wrap = {
-    token,
-    input,
-    type ? "string",
-    sep ? "",
-  }: let
-    types = ["string" "list"];
-
-    asList = token': input':
-      map (item: concat "" [token' item token']) (toList input');
-
-    asString = token': input': sep':
-      concat sep' (asList token' input');
-  in
-    assert withContext {
-      name = "wrap";
-      context = concat " " ["wrapping" "string" "values"];
-      assertion = isIn type types;
-      message = concat " " [
-        "expected"
-        (asString "`" "type" "")
-        "to"
-        "be"
-        (asString "`" types " or ")
-      ];
-    };
-      if type == "list"
-      then asList token input
-      else asString token input sep;
 
   # TODO: move _.strings.construction
   toDomainName = domain:
@@ -158,85 +125,6 @@
       in
         isAttrs firstVal && firstVal ? categories
     );
-
-  mkFilters = {
-    registry ? data.raw,
-    extraGroups ? {},
-    extraQueries ? {},
-  }: let
-    entries' = flatten registry;
-
-    groups' = let
-      mk = field: groupByField field registry;
-    in
-      {
-        byCategory =
-          genAttrs
-          (unique (
-            concatMap
-            (entry: entry.categories or [])
-            (attrValues entries')
-          ))
-          (
-            category:
-              filterAttrs
-              (_: entry: isIn category (entry.categories or []))
-              entries'
-          );
-
-        byFamily = mk "family";
-        byPolarity = mk "polarity";
-      }
-      // extraGroups;
-
-    queries' = let
-      mk = {byCategory, ...}:
-        filterAttrs
-        (_: section: section.all != {})
-        (
-          mapAttrs
-          (
-            _: set:
-              mkSection {
-                inherit set;
-                queries =
-                  filterAttrs
-                  (_: value: value != {})
-                  {
-                    hasAliases =
-                      filterAttrs (_: entry: (entry.aliases or []) != []) set;
-
-                    noAliases =
-                      filterAttrs (_: entry: (entry.aliases or []) == []) set;
-
-                    hasPackage =
-                      filterAttrs (_: entry: (entry.package or null) != null) set;
-
-                    hasVariant =
-                      filterAttrs (_: entry: entry ? variant) set;
-
-                    hasNames =
-                      filterAttrs (_: entry: entry ? names) set;
-
-                    byFamily = groupByFieldFlat "family" set;
-                    byPolarity = groupByFieldFlat "polarity" set;
-                  };
-              }
-          )
-          byCategory
-        );
-    in
-      (mk groups') // extraQueries;
-  in {
-    entries = registry;
-    groups = groups';
-    queries = queries';
-  };
-
-  data = {
-    raw = importRegistry ./.;
-    seed = mkFilters {};
-  };
 
   mkPolarity = {
     pair = input: let
@@ -379,73 +267,17 @@
         }; null;
   };
 
-  # normalizeWith = {
-  #   value,
-  #   lookup,
-  #   seed ? {},
-  #   domain ? "value",
-  #   name ? null,
-  #   fallback ? null,
-  #   polarity ? null,
-  # }: let
-  #   fallback' =
-  #     if fallback != null
-  #     then fallback
-  #     else if name != null
-  #     then
-  #       assert withContext {
-  #         name = concat "." [domain "normalize"];
-  #         context = concat " " [
-  #           "resolving"
-  #           "default"
-  #           (wrap {
-  #             token = "`";
-  #             input = name;
-  #           })
-  #           "from"
-  #           "seed"
-  #         ];
-  #         assertion = hasAttr name seed;
-  #         message = concat " " [
-  #           "unknown seed key"
-  #           (wrap {
-  #             token = "`";
-  #             input = name;
-  #           })
-  #           "- valid:"
-  #           (wrap {
-  #             token = "`";
-  #             input = attrNames seed;
-  #             sep = ", ";
-  #           })
-  #         ];
-  #       };
-  #         getAttr name seed
-  #     else null;
-
-  #   selected =
-  #     if polarity != null
-  #     then
-  #       if isEmpty value && fallback' != null
-  #       then fallback'
-  #       else mkPolarity.selection {inherit value polarity domain;}
-  #     else if isEmpty value && fallback' != null
-  #     then fallback'
-  #     else value;
-  # in
-  #   if isString selected
-  #   then lookup selected
-  #   else selected;
-
   lookupByCategory = name: category: let
     fn = {
       name = "lookupByCategory";
-      context = concat " " ["looking" "up" "registry" "entry" "by" "category"];
+      context = concat " " [
+        "looking up registry entry by category"
+      ];
     };
 
     entry = assert withContext {
       inherit (fn) name context;
-      assertion = hasAttr name data.raw;
+      assertion = hasAttr name raw;
       message = concat " " [
         "unknown style entry"
         (wrap {
@@ -455,7 +287,7 @@
         "in registry"
       ];
     };
-      data.raw.${name};
+      raw.${name};
   in
     assert withContext {
       inherit (fn) name context;
@@ -683,45 +515,39 @@
 
   mkSource = {
     owner ? "mkSource",
-    domain ? null,
+    path ? ./.,
+    name,
     entries ? null,
     groups ? null,
     queries ? null,
     from ? null,
   }: let
-    explicit =
-      filter
-      isNotEmpty
-      [entries groups queries from];
-
-    name =
-      if isNotEmpty domain
-      then toDomainName domain
-      else "source";
+    data = importRegistry path;
+    explicit = filter isNotEmpty [entries groups queries from];
 
     value =
       if length explicit == 0
       then
         assert withContext {
           name = owner;
-          context = concat " " ["resolving" "domain" "source"];
+          context = concat " " ["resolving" "named" "source"];
           assertion =
-            isNotEmpty domain
-            && hasAttr domain data.raw;
+            isNotEmpty name
+            && hasAttr name data;
           message = concat " " [
             "expected"
             (wrap {
               token = "`";
-              input = "domain";
+              input = "name";
             })
             "to match a key in"
             (wrap {
               token = "`";
-              input = "data.raw";
+              input = "importRegistry path";
             })
           ];
         };
-          getAttr domain data.raw
+          getAttr name data
       else
         assert withContext {
           name = owner;
@@ -743,7 +569,9 @@
           else if isNotEmpty groups
           then groups
           else queries;
-  in {inherit name value;};
+  in {
+    inherit name value;
+  };
 
   mkRegistry = {
     owner ? "mkRegistry",
@@ -765,31 +593,37 @@
   in {
     inherit name entries lookup seed;
 
-    normalize = {
+    normalize = args @ {
       value,
       polarity ? null,
       key ? null,
       fallback ? null,
     }: let
+      fallback' =
+        if args ? fallback
+        then fallback
+        else if isNotEmpty key && hasAttr key seed
+        then getAttr key seed
+        else null;
+
       selected =
         if polarity != null
         then
-          if isEmpty value && fallback != null
-          then fallback
+          if isEmpty value && fallback' != null
+          then fallback'
           else
             mkPolarity.selection {
               inherit value polarity;
               domain = name;
             }
-        else if isEmpty value && fallback != null
-        then fallback
+        else if isEmpty value && fallback' != null
+        then fallback'
         else value;
     in
-      if isNotEmpty key
-      then
-        if hasAttr key entries
-        then getAttr key entries
-        else selected
+      if isNotEmpty key && hasAttr key entries
+      then getAttr key entries
+      else if isString selected
+      then lookup selected
       else selected;
   };
 
@@ -919,6 +753,7 @@
 
   mkData = {
     owner ? "mkData",
+    path ? ./.,
     domain ? null,
     seed ? {},
     entries ? null,
@@ -928,21 +763,33 @@
     groupBy ? [],
     queryBy ? [],
   }: let
+    name =
+      if isNotEmpty domain
+      then toDomainName domain
+      else baseNameOf path;
+
     source = mkSource {
-      inherit owner domain entries groups queries from;
+      inherit path name entries groups queries from;
+      owner = "mkSource";
     };
+
     registry = mkRegistry {
-      inherit owner seed;
+      inherit seed;
       inherit (source) name value;
+      owner = "mkRegistry";
     };
+
     analysis = mkAnalysis {
-      inherit owner registry groupBy queryBy;
+      inherit registry groupBy queryBy;
+      owner = "mkAnalysis";
     };
   in {
     inherit seed source registry analysis;
     inherit (registry) name entries lookup normalize;
     inherit (analysis) groups queries;
   };
+  raw = importRegistry ./.;
+  data = mkData {};
 in
   meta.exports.local
   // {

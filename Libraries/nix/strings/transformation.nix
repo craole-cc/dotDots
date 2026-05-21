@@ -1,7 +1,6 @@
 {
   __moduleRef,
   _,
-  lib,
   ...
 }: let
   functions = {
@@ -20,6 +19,7 @@
       trim'
       trimEnd
       trimStart
+      wrap
       ;
   };
   aliases = {
@@ -36,6 +36,7 @@
     # trimStringStart = trimStart;
     # replaceAllStrings = replaceAll;
     # normalizeString = normalize;
+    quote = wrap;
   };
   __exports = {
     internal = functions // aliases;
@@ -55,6 +56,7 @@
         trimStringStart = trimStart;
         replaceAllStrings = replaceAll;
         normalizeString = normalize;
+        quoteString = wrap;
       };
   };
   _debug = mkModuleDebug __moduleRef;
@@ -62,8 +64,10 @@
 
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.lists.construction) toList;
-  inherit (_.debug.testing.assertions) mkTest;
+  inherit (_.debug.testing.assertions) mkTest withContext;
   inherit (_.debug.testing.runners) runTests;
+  inherit (_.lists.construction) genList;
+  inherit (_.lists.predicates) any isIn;
   inherit (_.types.predicates) isList isString;
   inherit
     (_.strings.transformation)
@@ -74,11 +78,10 @@
     toLower
     toUpper
     ;
-  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.construction) concat;
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
   inherit (_.content.emptiness) isEmpty;
-  inherit (lib.lists) any genList;
 
   #? Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -409,7 +412,7 @@
       )
     else _applyStr (s: replaceAll [" " "_"] ["-" "-"] (toLower s)) input;
 
-  indent = n: concatStringsSep "" (genList (_: " ") n);
+  indent = n: concat "" (genList (_: " ") n);
 
   /**
   Capitalize the first character of a string or list of strings.
@@ -475,7 +478,7 @@
     go = s: let
       words = _splitWords s;
     in
-      builtins.head words + concatStringsSep "" (map capitalize (builtins.tail words));
+      builtins.head words + concat "" (map capitalize (builtins.tail words));
   in
     if isList input && any isList input
     then
@@ -514,7 +517,7 @@
   ```
   */
   toPascal = input: let
-    go = s: concatStringsSep "" (map capitalize (_splitWords s));
+    go = s: concat "" (map capitalize (_splitWords s));
   in
     if isList input && any isList input
     then
@@ -553,7 +556,7 @@
   ```
   */
   toSnake = input: let
-    go = s: concatStringsSep "_" (_splitWords s);
+    go = s: concat "_" (_splitWords s);
   in
     if isList input && any isList input
     then
@@ -592,7 +595,7 @@
   ```
   */
   toScreamingSnake = input: let
-    go = s: toUpper (concatStringsSep "_" (_splitWords s));
+    go = s: toUpper (concat "_" (_splitWords s));
   in
     if isList input && any isList input
     then
@@ -633,7 +636,7 @@
   ```
   */
   toTitle = input: let
-    go = s: concatStringsSep " " (map capitalize (_splitWords s));
+    go = s: concat " " (map capitalize (_splitWords s));
   in
     if isList input && any isList input
     then
@@ -653,6 +656,36 @@
         }
       )
     else _applyStr go input;
+
+  wrap = {
+    token ? "`",
+    input,
+    type ? "string",
+    sep ? "",
+  }: let
+    types = ["string" "list"];
+
+    asList = token': input':
+      map (item: concat "" [token' item token']) (toList input');
+
+    asString = token': input': sep':
+      concat sep' (asList token' input');
+  in
+    assert withContext {
+      name = concat "." ["strings" "construction" "wrap"];
+      context = concat " " ["wrapping" "string" "values"];
+      assertion = isIn type types;
+      message = concat " " [
+        "expected"
+        (asString "`" "type" "")
+        "to"
+        "be"
+        (asString "`" types " or ")
+      ];
+    };
+      if type == "list"
+      then asList token input
+      else asString token input sep;
 in
   __exports.internal
   // {

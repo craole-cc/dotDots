@@ -4,23 +4,33 @@
   lib,
   ...
 }: let
+  exports = {
+    inherit
+      concat
+      fromBool
+      split
+      toList
+      mkAnyPredicate
+      mkAllPredicate
+      indentedList
+      indentedForError
+      toDomainName
+      ;
+  };
+
   _debug = mkModuleDebug __moduleRef;
 
   inherit (_.debug.format) mkExample;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
+  inherit (_.lists.access) head;
+  inherit (_.lists.construction) filter;
+  inherit (_.lists.predicates) all any;
   inherit (_.types.predicates) isList isString;
-  inherit
-    (lib.lists)
-    all
-    any
-    filter
-    head
-    map
-    ;
-  inherit (lib.strings) concatStringsSep splitString;
+  inherit (_.strings.construction) concatStringsSep splitString;
   inherit (_.strings.transformation) indent;
+  toListOrig = _.lists.construction.toList;
 
   /**
   Convert a single string, or list of strings, into a cleaned list.
@@ -39,7 +49,7 @@
   toList null                # => []
   ```
   */
-  toList = value: filter (v: v != null) (lib.lists.toList value);
+  toList = value: filter (v: v != null) (toListOrig value);
 
   /**
   Concatenate a list of strings, or groups of strings, with a delimiter.
@@ -216,18 +226,16 @@
     then "true"
     else "false";
 
-  exports = {
-    inherit
-      concat
-      fromBool
-      split
-      toList
-      mkAnyPredicate
-      mkAllPredicate
-      indentedList
-      indentedForError
-      ;
-  };
+  toDomainName = domain:
+    {
+      themes = "theme";
+      cursors = "cursor";
+      icons = "icon";
+      accents = "accent";
+      flavors = "flavor";
+    }.${
+      domain
+    } or domain;
 in
   exports
   // {
