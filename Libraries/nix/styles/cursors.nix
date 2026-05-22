@@ -19,26 +19,25 @@
       local = {inherit data mkOne mkPair;} // alias;
       inherit alias;
     };
-  in {
-    inherit doc exports;
-  };
+  in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.predicates) hasAttr;
+  inherit (_.attrsets.registry) mkData mkPolarity;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.content.emptiness) isEmpty isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
   inherit (_.types.predicates) isAttrs;
-  inherit (_.styles.registry) mkData mkPolarity;
 
   mkCatppuccin = _.styles.catppuccin.cursors.mkOne;
 
   data = mkData {
+    path = ./.;
     domain = "cursors";
     seed = {size = 24;};
-    groupBy = ["byFamily"];
+    # groupBy = ["byFamily"];
   };
 
   inherit (data) seed normalize groups;

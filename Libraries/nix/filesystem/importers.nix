@@ -2,6 +2,7 @@
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs;
+  inherit (_.debug.assertions) withContext;
   inherit (_.lists.construction) toList;
   inherit (_.filesystem.meta) listNixModules;
   inherit (_.filesystem.resolution) mkPath;
@@ -11,8 +12,9 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) flatten unique;
   inherit (_.strings.access) substring stringLength;
+  inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasSuffix;
-  inherit (_.types.predicates) isPath isString;
+  inherit (_.types.predicates) isAttrs isPath isString;
 
   exports = {
     inherit
@@ -203,20 +205,31 @@
   in
     foldl' (acc: mod: acc // mod) {} (map (name: import (dir + "/${name}") args) (nixFilesIn entries));
 
-  importRegistry = arg: let
-    normalized =
-      if isPath arg || isString arg
-      then {
-        root = arg;
-        stems = ["data"];
-        recursive = true;
-        args = {};
-      }
-      else arg;
+  importRegistry = value: let
+    args =
+      if isPath value || isString value
+      then {root = value;}
+      else if isAttrs value
+      then value
+      else
+        assert withContext {
+          name = "importRegistry";
+          context = "validating importRegistry value";
+          assertion = false;
+          message = "expected `value` to be a path, string, or attrset";
+        }; null;
 
-    inherit (normalized) root args recursive;
-    stems = normalized.stems or ["data"];
-    category = normalized.category or null;
+    root = assert withContext {
+      name = "importRegistry";
+      context = concat " " ["resolving" "registry" "root"];
+      assertion = args ? root && (isPath args.root || isString args.root);
+      message = "expected `root` to be a path or string";
+    };
+      args.root;
+
+    stems = args.stems or ["data"];
+    recursive = args.recursive or true;
+    extraArgs = args.extraArgs or (args.args or {});
 
     path = mkPath {inherit root stems;};
     entries = readDir path;
@@ -231,7 +244,7 @@
         value = let
           raw = importWithArgs {
             path = path + "/${name}";
-            inherit args;
+            args = extraArgs;
           };
         in
           mapAttrs (_: entry:
@@ -251,9 +264,8 @@
       (acc: name:
         acc
         // importRegistry {
-          inherit root args recursive;
+          inherit root recursive extraArgs;
           stems = stems ++ [name];
-          category = name;
         })
       {}
       (subDirsIn entries)

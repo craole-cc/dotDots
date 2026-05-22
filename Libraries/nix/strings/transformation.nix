@@ -62,14 +62,16 @@
   _debug = mkModuleDebug __moduleRef;
   inherit (_debug) mkFn mkExample;
 
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.module) mkModuleDebug;
+  inherit (_.lists.access) head;
   inherit (_.lists.construction) toList;
   inherit (_.debug.testing) mkTest;
   inherit (_.debug.assertions) withContext;
   inherit (_.debug.testing.runners) runTests;
   inherit (_.lists.construction) genList;
   inherit (_.lists.predicates) any isIn;
-  inherit (_.types.predicates) isList isString;
+  inherit (_.types.predicates) isAttrs isList isString;
   inherit
     (_.strings.transformation)
     removePrefix
@@ -78,7 +80,7 @@
     toLower
     toUpper
     ;
-  inherit (_.strings.construction) concat splitString;
+  inherit (_.strings.construction) concat splitString optionalString;
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
   inherit (_.content.emptiness) isEmpty;
@@ -90,7 +92,11 @@
     else fn input;
 
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
-  _splitWords = s: splitString "-" (replaceStrings [" " "_"] ["-" "-"] (_normalizeSymbols (toLower s)));
+  _splitWords = s:
+    splitString "-" (
+      replaceStrings [" " "_"] ["-" "-"]
+      (_normalizeSymbols (toLower s))
+    );
 
   _symbolAliases = {
     "c++" = "cpp";
@@ -99,7 +105,8 @@
     "objc" = "objectivec";
   };
 
-  _normalizeSymbols = s: _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
+  _normalizeSymbols = s:
+    _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
 
   /**
   Convert a string or list of strings to lower case.
@@ -657,35 +664,106 @@
       )
     else _applyStr go input;
 
-  wrap = {
-    token ? "`",
-    input,
-    type ? "string",
-    sep ? "",
-  }: let
-    types = ["string" "list"];
+  # wrap = {
+  #   token ? "`",
+  #   input,
+  #   type ? "string",
+  #   sep ? "",
+  # }: let
+  #   types = ["string" "list"];
 
-    asList = token': input':
-      map (item: concat "" [token' item token']) (toList input');
+  #   asList = token': input':
+  #     map (item:
+  #       concat "" [
+  #         token'
+  #         (toString item)
+  #         token'
+  #       ]) (toList input');
 
-    asString = token': input': sep':
-      concat sep' (asList token' input');
-  in
-    assert withContext {
+  #   asString = token': input': sep':
+  #     concat sep' (asList token' (toString input'));
+  # in
+  #   assert withContext {
+  #     name = concat "." ["strings" "construction" "wrap"];
+  #     context = concat " " ["wrapping" "string" "values"];
+  #     assertion = isIn type types;
+  #     message = concat " " [
+  #       "expected"
+  #       (asString "`" "type" "")
+  #       "to"
+  #       "be"
+  #       (asString "`" types " or ")
+  #     ];
+  #   };
+  #     if type == "list"
+  #     then asList token input
+  #     else asString token input sep;
+  wrap = value: let
+    args =
+      if isAttrs value
+      then
+        (
+          if value ? input
+          then value
+          else if value ? text
+          then value // {input = value.text;}
+          else
+            assert withContext {
+              name = concat "." ["strings" "construction" "wrap"];
+              context = concat " " ["validating" "wrap" "input"];
+              assertion = false;
+              message = "expected attrset to have an `input` or `text` key";
+            }; null
+        )
+      else if isList value || isString value
+      then {input = value;}
+      else
+        assert withContext {
+          name = concat "." ["strings" "construction" "wrap"];
+          context = concat " " ["validating" "wrap" "value"];
+          assertion = false;
+          message = "expected `value` to be a string, list, or attrset";
+        }; null;
+
+    input = assert withContext {
       name = concat "." ["strings" "construction" "wrap"];
-      context = concat " " ["wrapping" "string" "values"];
-      assertion = isIn type types;
-      message = concat " " [
-        "expected"
-        (asString "`" "type" "")
-        "to"
-        "be"
-        (asString "`" types " or ")
-      ];
+      context = concat " " ["validating" "wrap" "input"];
+      assertion = isNotEmpty args.input;
+      message = "expected `input` to be a non-null value or a non-empty list";
     };
-      if type == "list"
-      then asList token input
-      else asString token input sep;
+      args.input;
+
+    token = let
+      token' = args.token or "`";
+    in
+      assert withContext {
+        name = concat "." ["strings" "construction" "wrap"];
+        context = concat " " ["validating" "wrap" "token"];
+        assertion = isString token' && token' != "";
+        message = "expected `token` to be a non-empty string";
+      }; token';
+
+    delimiter = let
+      sep =
+        args.delimiter or (
+          args.sep or (optionalString (isList args.input) " or ")
+        );
+    in
+      assert withContext {
+        name = concat "." ["strings" "construction" "wrap"];
+        context = concat " " ["validating" "wrap" "delimiter"];
+        assertion = isString sep;
+        message = "expected `delimiter` to be a string";
+      }; sep;
+
+    rendered =
+      map
+      (item: concat "" [token (toString item) token])
+      (toList input);
+  in
+    if isList input
+    then concat delimiter rendered
+    else head rendered;
 in
   __exports.internal
   // {

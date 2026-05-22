@@ -18,6 +18,7 @@
         groupByField
         importRegistry
         isRegistry
+        mkSource
         lookupByCategory
         mkRegistry
         mkPolarity
@@ -28,9 +29,7 @@
       local = functions // {inherit data;};
       alias = {};
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames attrValues getAttr;
   inherit (_.attrsets.predicates) hasAttr;
@@ -47,106 +46,133 @@
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concat optionalString toDomainName;
   inherit (_.strings.transformation) toTitleCase wrap;
+  inherit (_.strings.predicates) isValidPosixName;
   inherit (_.types.access) typeOf;
-  inherit (_.types.predicates) isAttrs isFunction isString;
+  inherit (_.types.predicates) isAttrs isFunction isPath isString;
 
   data = mkData {};
 
   mkData = {
     owner ? "mkData",
-    path ? ./.,
+    root ? null,
+    path ? null,
+    name ? baseNameOf root,
+    recursive ? true,
     domain ? null,
     seed ? {},
-    entries ? null,
-    groups ? null,
-    queries ? null,
-    from ? null,
+    # entries ? null,
+    # groups ? null,
+    # queries ? null,
+    # from ? null,
     groupBy ? [],
     queryBy ? [],
   }: let
     source = mkSource {
-      inherit domain owner path entries groups queries from;
+      inherit owner root path name recursive;
     };
 
     registry = mkRegistry {
-      inherit seed owner;
-      inherit (source) name value;
+      inherit owner seed source domain;
     };
 
     analysis = mkAnalysis {
       inherit owner registry groupBy queryBy;
     };
-  in {
-    inherit analysis registry seed;
-    inherit (source) path raw;
-    # inherit (registry) name entries lookup normalize;
-    # inherit (analysis) groups queries;
-  };
+  in {inherit analysis registry seed source;};
 
-  mkSource = {
-    owner ? "mkSource",
-    path ? ./.,
-    domain ? null,
-    entries ? null,
-    groups ? null,
-    queries ? null,
-    from ? null,
-  }: let
-    name =
-      if isNotEmpty domain
-      then toDomainName domain
-      else baseNameOf path;
-
-    raw = importRegistry path;
-    explicit = filter isNotEmpty [entries groups queries from];
-    value =
-      if length explicit == 0
-      then
-        if isNotEmpty name && hasAttr name raw
-        then getAttr name raw
-        else raw
+  mkSource = value: let
+    args =
+      if isAttrs value
+      then value
+      else if isPath value || isString value
+      then {path = value;}
       else
         assert withContext {
-          name = owner;
-          context = concat " " ["resolving" "explicit" "source"];
-          assertion = length explicit == 1;
-          message = concat " " [
-            "expected at most one of"
-            (wrap {
-              token = "`";
-              input = ["entries" "groups" "queries" "from"];
-              sep = ", ";
-            })
-          ];
-        };
-          if isNotEmpty entries
-          then entries
-          else if isNotEmpty from
-          then from
-          else if isNotEmpty groups
-          then groups
-          else queries;
-  in {inherit name path raw value;};
+          name = "mkSource";
+          context = "validating mkSource value";
+          assertion = false;
+          message = "expected `value` to be a path, string, or attrset";
+        }; null;
+
+    owner = args.owner or "mkSource";
+    recursive = args.recursive or true;
+    extraArgs = args.extraArgs or (args.args or {});
+
+    path = let
+      path' = args.root or (args.path or null);
+    in
+      assert withContext {
+        name = owner;
+        context = concat " " ["resolving" "source" "path"];
+        assertion = path' != null;
+        message = concat " " [
+          "expected either"
+          (wrap ["root" "path"])
+          "to be provided"
+        ];
+      }; path';
+
+    name = let
+      name' = args.name or (baseNameOf path);
+    in
+      assert withContext {
+        name = owner;
+        context = concat " " ["resolving" "source" "name"];
+        assertion = isString name' && isValidPosixName name';
+        message = concat " " [
+          "expected source name to be a valid POSIX name,"
+          "got"
+          (wrap name')
+        ];
+      }; name';
+
+    raw = let
+      raw' = importRegistry {inherit path recursive extraArgs;};
+    in
+      assert withContext {
+        name = owner;
+        context = concat " " ["importing" "registry" "source"];
+        assertion = isNotEmpty raw';
+        message = concat " " [
+          "expected"
+          (wrap "importRegistry")
+          "to return a non-empty attrset for"
+          (wrap name)
+        ];
+      }; raw';
+  in {inherit path name raw;};
 
   mkRegistry = {
     owner ? "mkRegistry",
-    name,
-    value,
+    domain,
+    source,
     seed ? {},
   }: let
+    name =
+      if domain != null
+      then toDomainName domain
+      else source.name;
+    inherit (source) raw;
+
     entries = assert withContext {
       name = owner;
       context = concat " " ["constructing" "registry" "for" name];
-      assertion = isAttrs value;
+      assertion = isAttrs raw && hasAttr name raw;
       message = concat " " [
-        "expected an attrset for resolved registry value:"
+        "expected an attrset containing the domain:"
         name
       ];
-    }; value;
+    }; raw;
+
+    derived = mkAnalysis {
+      inherit owner name;
+      registry = entries;
+    };
 
     lookup = key: getAttr key entries;
   in {
-    inherit name entries lookup seed;
+    inherit name seed source entries lookup;
+    inherit (derived) groups queries;
 
     normalize = args @ {
       value,
@@ -233,6 +259,235 @@
           registry
         )
     );
+
+  mkAnalysis = {
+    owner ? "mkAnalysis",
+    registry,
+    groupBy ? [],
+    queryBy ? [],
+  }: let
+    data = registry.entries;
+
+    group = {
+      inherit owner;
+      kind = "group";
+    };
+
+    query = {
+      inherit owner;
+      kind = "query";
+    };
+
+    mkGroup = args: mkMember (group // args);
+    mkGroups = available:
+      mkMembers (group
+        // {
+          inherit available;
+          names = groupBy;
+        });
+
+    mkQuery = args: mkMember (query // args);
+    mkQueries = available:
+      mkMembers (query
+        // {
+          inherit available;
+          names = queryBy;
+        });
+  in {
+    groups = mkGroups [
+      (mkGroup {
+        prefix = "by";
+        name = "Category";
+        value =
+          genAttrs
+          (
+            unique
+            (
+              concatMap (entry: entry.categories or [])
+              (attrValues data)
+            )
+          )
+          (
+            category:
+              filterAttrs
+              (_: entry: isIn category (entry.categories or []))
+              data
+          );
+      })
+      (mkGroup {
+        prefix = "by";
+        field = "family";
+        source = data;
+        flatten = true;
+      })
+      (mkGroup {
+        prefix = "by";
+        field = "polarity";
+        source = data;
+        flatten = true;
+      })
+    ];
+
+    queries = mkQueries [
+      (mkQuery {
+        prefix = "has";
+        name = "Aliases";
+        value =
+          filterAttrs
+          (_: entry: isNotEmpty (entry.aliases or []))
+          data;
+      })
+      (mkQuery {
+        prefix = "no";
+        name = "Aliases";
+        value =
+          filterAttrs
+          (_: entry: isEmpty (entry.aliases or []))
+          data;
+      })
+      (mkQuery {
+        prefix = "has";
+        name = "Package";
+        value =
+          filterAttrs
+          (_: entry: (entry.package or null) != null)
+          data;
+      })
+      (mkQuery {
+        prefix = "has";
+        name = "Variant";
+        value =
+          filterAttrs
+          (_: entry: entry ? variant)
+          data;
+      })
+      (mkQuery {
+        prefix = "has";
+        name = "Names";
+        value =
+          filterAttrs
+          (_: entry: entry ? names)
+          data;
+      })
+      (mkQuery {
+        prefix = "by";
+        field = "family";
+        source = data;
+        flatten = true;
+      })
+      (mkQuery {
+        prefix = "by";
+        field = "polarity";
+        source = data;
+        flatten = true;
+      })
+    ];
+  };
+
+  mkAnalysisOLD = {
+    owner ? "mkAnalysis",
+    registry,
+    groupBy ? [],
+    queryBy ? [],
+  }: let
+    data = registry.entries;
+
+    group = {
+      inherit owner;
+      kind = "group";
+    };
+
+    query = {
+      inherit owner;
+      kind = "query";
+    };
+
+    mkGroup = args: mkMember (group // args);
+    mkQuery = args: mkMember (query // args);
+
+    selectMembers = args: let
+      inherit (args) names available;
+      available' =
+        if isList available
+        then listToAttrs available
+        else available;
+    in
+      if names == []
+      then available'
+      else mkMembers args;
+  in {
+    groups = selectMembers (group
+      // {
+        names = groupBy;
+        available = [
+          (mkGroup {
+            prefix = "by";
+            name = "Category";
+            value =
+              genAttrs
+              (unique (concatMap (entry: entry.categories or []) (attrValues data)))
+              (category:
+                filterAttrs (_: entry: isIn category (entry.categories or [])) data);
+          })
+          (mkGroup {
+            prefix = "by";
+            field = "family";
+            source = data;
+            flatten = true;
+          })
+          (mkGroup {
+            prefix = "by";
+            field = "polarity";
+            source = data;
+            flatten = true;
+          })
+        ];
+      });
+
+    queries = selectMembers (query
+      // {
+        names = queryBy;
+        available = [
+          (mkQuery {
+            prefix = "has";
+            name = "Aliases";
+            value = filterAttrs (_: entry: isNotEmpty (entry.aliases or [])) data;
+          })
+          (mkQuery {
+            prefix = "no";
+            name = "Aliases";
+            value = filterAttrs (_: entry: isEmpty (entry.aliases or [])) data;
+          })
+          (mkQuery {
+            prefix = "has";
+            name = "Package";
+            value = filterAttrs (_: entry: (entry.package or null) != null) data;
+          })
+          (mkQuery {
+            prefix = "has";
+            name = "Variant";
+            value = filterAttrs (_: entry: entry ? variant) data;
+          })
+          (mkQuery {
+            prefix = "has";
+            name = "Names";
+            value = filterAttrs (_: entry: entry ? names) data;
+          })
+          (mkQuery {
+            prefix = "by";
+            field = "family";
+            source = data;
+            flatten = true;
+          })
+          (mkQuery {
+            prefix = "by";
+            field = "polarity";
+            source = data;
+            flatten = true;
+          })
+        ];
+      });
+  };
 
   mkSection = {
     set,
@@ -416,11 +671,10 @@
       inherit (fn) name context;
       assertion = isIn category (entry.categories or []);
       message = concat " " [
-        wrap
-        {
+        (wrap {
           token = "`";
           input = name;
-        }
+        })
         "does not satisfy category"
         (wrap {
           token = "`";
@@ -483,11 +737,10 @@
             message = concat " " [
               "unknown"
               kind
-              wrap
-              {
+              (wrap {
                 token = "`";
                 input = memberName;
-              }
+              })
               "- valid:"
               (wrap {
                 token = "`";
@@ -635,130 +888,6 @@
       name = name';
       value = value';
     };
-
-  mkAnalysis = {
-    owner ? "mkAnalysis",
-    registry,
-    groupBy ? [],
-    queryBy ? [],
-  }: let
-    data = registry.entries;
-
-    group = {
-      inherit owner;
-      kind = "group";
-    };
-
-    query = {
-      inherit owner;
-      kind = "query";
-    };
-
-    mkGroup = args: mkMember (group // args);
-    mkGroups = available:
-      mkMembers (group
-        // {
-          inherit available;
-          names = groupBy;
-        });
-
-    mkQuery = args: mkMember (query // args);
-    mkQueries = available:
-      mkMembers (query
-        // {
-          inherit available;
-          names = queryBy;
-        });
-  in {
-    groups = mkGroups [
-      (mkGroup {
-        prefix = "by";
-        name = "Category";
-        value =
-          genAttrs
-          (
-            unique
-            (
-              concatMap (entry: entry.categories or [])
-              (attrValues data)
-            )
-          )
-          (
-            category:
-              filterAttrs
-              (_: entry: isIn category (entry.categories or []))
-              data
-          );
-      })
-      (mkGroup {
-        prefix = "by";
-        field = "family";
-        source = data;
-        flatten = true;
-      })
-      (mkGroup {
-        prefix = "by";
-        field = "polarity";
-        source = data;
-        flatten = true;
-      })
-    ];
-
-    queries = mkQueries [
-      (mkQuery {
-        prefix = "has";
-        name = "Aliases";
-        value =
-          filterAttrs
-          (_: entry: isNotEmpty (entry.aliases or []))
-          data;
-      })
-      (mkQuery {
-        prefix = "no";
-        name = "Aliases";
-        value =
-          filterAttrs
-          (_: entry: isEmpty (entry.aliases or []))
-          data;
-      })
-      (mkQuery {
-        prefix = "has";
-        name = "Package";
-        value =
-          filterAttrs
-          (_: entry: (entry.package or null) != null)
-          data;
-      })
-      (mkQuery {
-        prefix = "has";
-        name = "Variant";
-        value =
-          filterAttrs
-          (_: entry: entry ? variant)
-          data;
-      })
-      (mkQuery {
-        prefix = "has";
-        name = "Names";
-        value =
-          filterAttrs
-          (_: entry: entry ? names)
-          data;
-      })
-      (mkQuery {
-        prefix = "by";
-        field = "family";
-        source = data;
-        flatten = true;
-      })
-      (mkQuery {
-        prefix = "by";
-        field = "polarity";
-        source = data;
-        flatten = true;
-      })
-    ];
-  };
 in
   meta.exports.local
   // {
