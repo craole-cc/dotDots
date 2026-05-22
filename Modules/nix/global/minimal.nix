@@ -87,7 +87,10 @@
           sops
           undollar # ? Remove leading dollar signs age
         ]
-        ++ (with (inputPkgs "llm-agents"); [codex])
+        ++ (with (inputPkgs "llm-agents"); [
+          codex
+          hermes-agent
+        ])
         ++ optionals stdenv.isLinux [
           xclip
           wl-clipboard

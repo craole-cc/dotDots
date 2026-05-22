@@ -29,21 +29,18 @@
       Depends on: applications {groups, queries, selection, primitives}.
     '';
 
-    functions = {
-      inherit mkFilters mkSection;
-      mkFilterSection = mkSection;
-    };
-
     exports = {
-      local = default // functions;
-      alias = {
+      internal = let
+        functions = {inherit mkFilters mkSection;};
+        aliases = {mkFilterSection = mkSection;};
+      in
+        {inherit functions aliases default;} // default // functions // aliases;
+      external = {
         toApplicationFilters = mkFilters;
-        # toApplicationFilterSection = mkSection;
+        toApplicationFilterSection = mkSection;
       };
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports;};
 
   inherit (_.applications.groups) mkGroups;
   inherit (_.applications.primitives) keysFromMembers keysFromOptional;
@@ -242,8 +239,9 @@
     };
   };
 in
-  meta.exports.local
-  // {
-    __docs = meta.doc;
-    __rootAliases = meta.exports.alias;
-  }
+  with meta.exports;
+    internal
+    // {
+      __docs = meta.doc;
+      __rootAliases = external;
+    }

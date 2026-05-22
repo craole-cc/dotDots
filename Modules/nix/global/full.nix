@@ -266,8 +266,10 @@
       ++ (with (inputPkgs "llm-agents"); [
         codex
         gemini-cli
-        # claude-code-bin
-        # perplexity-mcp
+        hermes-agent
+        openclaw
+        opencode
+        claude-code
       ])
     )); # ? Linux clipboard tools
 

@@ -9,8 +9,7 @@
   runTests,
 }: let
   handleCollisions = import ./collisions.nix {inherit lib collisionStrategy;};
-in {
-  ${names.lib} = import ./assemble.nix {
+  result = import ./assemble.nix {
     inherit
       handleCollisions
       lib
@@ -46,4 +45,4 @@ in {
         results.modules // {__rootAliases = results.rootAliases;}
     );
   };
-}
+in {${names.lib} = result;}

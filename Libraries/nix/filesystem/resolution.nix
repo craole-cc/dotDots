@@ -87,7 +87,7 @@
     The evaluated flake attributes, including an appended `srcPath`.
   */
   getFlake = {
-    flake ? {},
+    flake ? null,
     path ? src,
   }: let
     normalizedPath = getFlakePath {inherit flake path;};

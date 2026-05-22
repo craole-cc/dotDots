@@ -11,7 +11,7 @@
     the system evaluation pipeline.
   '';
 
-  inherit (_.sources.source) resolveInputs;
+  inherit (_.sources.inputs) resolveInputs;
   inherit (_.content.emptiness) isEmpty;
   inherit (lib.lists) optionals;
 
@@ -132,18 +132,20 @@
     class ? "nixos",
     ...
   }: let
-    inputs' =
+    resolved.inputs =
       if inputs ? nixpkgs
       then inputs
       else (resolveInputs {}).resolved;
 
-    path = "${inputs'.nixpkgs}/nixos/modules";
+    path = "${resolved.inputs.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";
     core = mkCore {
       inherit class;
-      inputs = inputs';
+      inherit (resolved) inputs;
     };
-    home = mkHome {inputs = inputs';};
+    home = mkHome {
+      inherit (resolved) inputs;
+    };
     all = {
       baseModules = base;
       coreModules = core;
@@ -151,16 +153,7 @@
       modulesPath = path;
     };
   in
-    {
-      inherit
-        all
-        base
-        core
-        home
-        path
-        ;
-    }
-    // all;
+    all // {inherit all base core home path;};
 in
   __exports.internal
   // {

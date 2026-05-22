@@ -5,13 +5,12 @@
       Provides shell-app and script-wrapper builders.
     '';
     functions = {inherit mkShellApp mkScriptWrapper mkScriptWrappers;};
+    aliases = functions;
     exports = {
-      local = functions;
-      alias = functions;
+      internal = functions // aliases;
+      alias = functions // {};
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrsToList;
@@ -319,8 +318,9 @@
     )
     scripts;
 in
-  meta.exports.local
-  // {
-    __docs = meta.doc;
-    __rootAliases = meta.exports.alias;
-  }
+  with meta.exports;
+    internal
+    // {
+      __docs = meta.doc;
+      __rootAliases = external;
+    }

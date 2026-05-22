@@ -3,30 +3,40 @@
   src,
   ...
 }: let
-  __doc = ''
-    Input Source Resolution
+  meta = let
+    doc = ''
+      Input Source Resolution
 
-    Parses the raw flake to extract, normalize, and categorize its inputs.
-    It maps arbitrarily named external flake inputs to a canonical internal
-    format to ensure downstream derivations are predictable.
+      Parses the raw flake to extract, normalize, and categorize its inputs.
+      It maps arbitrarily named external flake inputs to a canonical internal
+      format to ensure downstream derivations are predictable.
 
-    Also provides lock file predicates for querying persisted input metadata
-    purely, without evaluating the flake.
-  '';
-  functions = {inherit resolveInputs sourceInput;};
-  __exports = {
-    internal = functions;
-    external = functions;
-  };
+      Also provides lock file predicates for querying persisted input metadata
+      purely, without evaluating the flake.
+    '';
+
+    exports = let
+      internal = let
+        functions = {inherit resolveAll sourceOne;};
+        aliases = {
+          resolveInputs = resolveAll;
+          sourceInput = sourceOne;
+        };
+      in
+        {inherit functions aliases;} // functions // aliases;
+
+      external = {inherit (internal) resolveInputs sourceInput;};
+    in {inherit internal external;};
+  in {inherit doc exports;};
 
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.resolution) byPaths;
-  inherit (_.content.emptiness) isEmpty;
+  inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.filesystem.resolution) getFlake;
-  inherit (_.lists.predicates) any;
-  inherit (_.attrsets.transformation) attrValues;
-  inherit (_.strings.predicates) hasInfix;
-  inherit (_.strings.predicates) fromJSON;
+  # inherit (_.lists.predicates) any;
+  # inherit (_.attrsets.transformation) attrValues;
+  # inherit (_.strings.predicates) hasInfix;
+  # inherit (_.strings.predicates) fromJSON;
 
   /**
   Builds the registry source configuration attribute for a given input.
@@ -48,7 +58,7 @@
   # => { flake = { source = <home-manager-store-path>; }; }
   ```
   */
-  sourceInput = {
+  sourceOne = {
     host ? {},
     input ? null,
     ...
@@ -59,17 +69,6 @@
       then {source = input;}
       else {flake.source = input;}
     );
-  # sourceInput = {
-  #   host ? {},
-  #   input ? null,
-  # }: let
-  #   class = host.class or "nixos";
-  # in
-  #   optionalAttrs (input == null) (
-  #     if (class == "darwin")
-  #     then {source = input;}
-  #     else {flake.source = input;}
-  #   );
 
   /**
   Resolves, normalizes, and categorizes flake inputs.
@@ -90,56 +89,64 @@
     home: System builders, themes, editors, and other standard inputs.
     flake: The raw evaluated flake.
   */
-  resolveInputs = {
-    flake ? {},
+  resolveAll = {
+    flake ? null,
     path ? src,
+    inputs ? (getFlake {inherit flake path;}).inputs or {},
   }: let
-    #> Fetch the Flake
-    flake' = getFlake {inherit flake path;};
-
     #> Ensure we grab the inputs from the evaluated flake if `self` was empty
-    raw = flake'.inputs or {};
-    attrset = raw;
+    attrset = inputs;
 
-    #> Resolve Core Nixpkgs Channels (Sequential for safety)
-    nixpkgs = byPaths {
-      inherit attrset;
-      default = attrset.nixpkgs or {};
-      paths = [
-        ["nixosCore"]
-        ["nixPackages"]
-        ["nixosPackages"]
-        ["nixpkgs"]
-      ];
-    };
+    core = let
+      explicit = byPaths {
+        inherit attrset;
+        default = attrset.nixpkgs or {};
+        paths = [
+          ["nixosCore"]
+          ["nixPackages"]
+          ["nixosPackages"]
+          ["nixpkgs"]
+        ];
+      };
 
-    nixpkgs-stable = byPaths {
-      inherit attrset;
-      default = nixpkgs; # ? Fallback chain
-      paths = [
-        ["nixPackagesStable"]
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
-        ["nixpkgs-24.05"]
-        ["nixpkgs-24.11"]
-        ["nixpkgs-25.05"]
-        ["nixpkgs-25.11"]
-      ];
-    };
+      stable = byPaths {
+        inherit attrset;
+        paths = [
+          ["nixPackagesStable"]
+          ["nixosPackagesStable"]
+          ["nixpkgs-stable"]
+          ["nixpkgs-24.05"]
+          ["nixpkgs-24.11"]
+          ["nixpkgs-25.05"]
+          ["nixpkgs-25.11"]
+        ];
+      };
 
-    nixpkgs-unstable = byPaths {
-      inherit attrset;
-      default = nixpkgs-stable; # ? Fallback chain
-      paths = [
-        ["nixPackagesUnstable"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-beta"]
-        ["betaNix"]
-        ["nixpkgs-unstable"]
-      ];
-    };
+      unstable = byPaths {
+        inherit attrset;
+        paths = [
+          ["nixPackagesUnstable"]
+          ["nixosPackagesUnstable"]
+          ["nixpkgs-beta"]
+          ["betaNix"]
+          ["nixpkgs-unstable"]
+        ];
+      };
 
-    core = {inherit nixpkgs nixpkgs-stable nixpkgs-unstable;};
+      nixpkgs =
+        if isNotEmpty explicit
+        then explicit
+        else if isNotEmpty unstable
+        then unstable
+        else if isNotEmpty unstable
+        then unstable
+        else {};
+      # else throw "We should never have gotten to this point. nixpkgs is required";
+    in (
+      {inherit nixpkgs;}
+      // optionalAttrs (unstable != nixpkgs) {nixpkgs-unstable = unstable;}
+      // optionalAttrs (stable != nixpkgs) {nixpkgs-stable = stable;}
+    );
 
     #> Resolve Home and System Inputs
     home = {
@@ -373,20 +380,15 @@
         ];
       };
     };
-
-    resolved = core // home;
   in {
-    inherit
-      resolved
-      raw
-      core
-      home
-      ;
-    flake = flake';
+    inherit core home;
+    raw = inputs;
+    resolved = core // home;
   };
 in
-  __exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = __exports.external;
-  }
+  with meta.exports;
+    internal
+    // {
+      __rootAliases = external;
+      __docs = meta.doc;
+    }

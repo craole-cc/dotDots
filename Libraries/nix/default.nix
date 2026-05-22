@@ -90,10 +90,8 @@ in
     flake = flake';
     lib = lib';
 
-    names = let
-      inherit (lib'.attrsets) optionalAttrs;
-    in
-      defaults.names // (optionalAttrs (name != null) {lib = name;}) // names;
+    names =
+      defaults.names // (lib'.attrsets.optionalAttrs (name != null) {lib = name;}) // names;
 
     paths = paths';
 
