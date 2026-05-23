@@ -17,24 +17,29 @@
 
     exports = let
       internal = let
-        functions = {inherit resolveAll sourceOne;};
+        functions = {inherit normalize mkSource;};
         aliases = {
-          resolveInputs = resolveAll;
-          sourceInput = sourceOne;
+          normalizeInputs = normalize;
+          sourceInput = mkSource;
         };
       in
         {inherit functions aliases;} // functions // aliases;
 
-      external = {inherit (internal) resolveInputs sourceInput;};
+      external = {
+        resolveInputs = normalize;
+        mkInputSource = mkSource;
+      };
     in {inherit internal external;};
   in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.resolution) byPaths;
+  inherit (_.debug.assertions) withContext;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.filesystem.resolution) getFlake;
   inherit (_.strings.transformation) toLowerCase;
+  inherit (_.types.predicates) isAttrs isPath isString;
 
   /**
   Builds the registry source configuration attribute for a given input.
@@ -44,16 +49,16 @@
 
   # Type
   ```nix
-  sourceOne :: { host? :: AttrSet, input? :: any } -> AttrSet
+  mkSource:: { host? :: AttrSet, input? :: any } -> AttrSet
 
   # Examples
-  sourceOne { host = { class = "darwin"; }; input = inputs.nixpkgs; }
+  mkSource{ host = { class = "darwin"; }; input = inputs.nixpkgs; }
   => { source = <nixpkgs-store-path>; }
 
-  sourceOne { input = inputs.home-manager; }
+  mkSource{ input = inputs.home-manager; }
   => { flake = { source = <home-manager-store-path>; }; }
   */
-  sourceOne = {
+  mkSource = {
     host ? {},
     input ? null,
     ...
@@ -162,11 +167,26 @@
   tryNames :: { names :: [string], default? :: a } -> a
   ```
   */
-  resolveAll = {
-    flake ? null,
-    path ? src,
-    inputs ? (getFlake {inherit flake path;}).inputs or {},
-  }: let
+  normalize = value: let
+    args =
+      if isAttrs value && (value ? flake || value ? path || value ? inputs)
+      then value
+      else if isAttrs value
+      then {inputs = value;}
+      else if isPath value || isString value
+      then {path = value;}
+      else
+        assert withContext {
+          name = "normalize";
+          context = "validating normalize value";
+          assertion = false;
+          message = "expected `value` to be an inputs attrset, path, or string";
+        }; null;
+
+    flake = args.flake or null;
+    path = args.path or (args.src or null);
+    inputs = args.inputs or (getFlake {inherit flake path;}).inputs or {};
+
     tryNames = names: byNames {inherit inputs names;};
 
     core = let

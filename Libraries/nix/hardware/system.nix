@@ -28,7 +28,7 @@
   currentSystem = builtins.currentSystem or null;
 
   __exports = {
-    internal = {inherit systemOf getPackages getSystems;};
+    internal = {inherit systemOf getPackages getSystems getSystemOrDefault;};
     external = {inherit systemOf getPackages getSystems;};
   };
 
@@ -69,6 +69,7 @@
   */
   getPackages = {
     flake ? {},
+    inputs ? {},
     nixpkgs ? {},
     legacyPackages ? {},
     system ? null,
@@ -81,7 +82,12 @@
     pkgsBase =
       if legacyPackages != {}
       then legacyPackages
-      else flake.legacyPackages or nixpkgs.legacyPackages or {};
+      else
+        flake.legacyPackages or (
+          nixpkgs.legacyPackages or (
+            inputs.nixpkgs.legacyPackages or {}
+          )
+        );
 
     pkgsFor = sys:
       if sys == null
@@ -114,6 +120,7 @@
   */
   getSystems = {
     flake ? {},
+    inputs ? {},
     nixpkgs ? {},
     legacyPackages ? {},
     system ? null,
@@ -144,7 +151,7 @@
     #~@ System Packages
     inherit
       (getPackages {
-        inherit flake nixpkgs legacyPackages;
+        inherit flake inputs nixpkgs legacyPackages;
         system = derived;
       })
       pkgsBase
@@ -162,6 +169,23 @@
     system = derived;
     pkgs = pkgsFor derived;
   };
+
+  getSystemOrDefault = {
+    flake ? {},
+    inputs ? {},
+    nixpkgs ? {},
+    legacyPackages ? {},
+    system ? null,
+  }:
+    (getSystems {
+      inherit
+        flake
+        inputs
+        nixpkgs
+        legacyPackages
+        system
+        ;
+    }).system;
 in
   __exports.internal
   // {

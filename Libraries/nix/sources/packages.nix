@@ -12,7 +12,8 @@
   '';
 
   # Updated to the new function names
-  inherit (_.sources.inputs) resolveInputs sourceInput;
+  inherit (_.hardware.system) getSystemOrDefault;
+  inherit (_.sources.inputs) normalize mkSource;
   inherit (_.sources.overlays) mkOverlays;
   inherit (lib.attrsets) listToAttrs;
 
@@ -47,7 +48,7 @@
   }:
     mkOne {
       attrs = "legacyPackages";
-      inputs = (resolveInputs {}).resolved // inputs;
+      inputs = normalize inputs;
       names =
         [
           "nixpkgs"
@@ -63,7 +64,7 @@
   }:
     mkOne {
       attrs = "packages";
-      inputs = (resolveInputs {}).resolved // inputs;
+      inputs = normalize inputs;
       names =
         [
           "age"
@@ -115,15 +116,15 @@
     homeNames ? [],
   }: let
     config' = let
-      p = host.packages;
+      pkgs = host.packages;
     in
       {
-        allowUnfree = p.allowUnfree or true;
-        allowBroken = p.allowBroken or false;
+        allowUnfree = pkgs.allowUnfree or true;
+        allowBroken = pkgs.allowBroken or false;
       }
       // config;
 
-    inputs' = (resolveInputs {}).resolved // inputs;
+    inputs' = normalize inputs;
 
     packages =
       mkCore {
@@ -145,9 +146,9 @@
       {
         inherit overlays;
         config = config';
-        hostPlatform = host.system or builtins.currentSystem or "x86_64-linux";
+        hostPlatform = getSystemOrDefault {inherit (inputs') nixpkgs;};
       }
-      // sourceInput {
+      // mkSource {
         inherit host;
         input = inputs'.nixpkgs or null;
       };

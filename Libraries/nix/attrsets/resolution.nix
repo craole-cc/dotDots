@@ -7,7 +7,7 @@
 }: let
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
-  inherit (_.content.emptiness) isNotEmpty isEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.content.fallback) firstNonEmpty;
   inherit (_.debug.assertions) withContext mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
