@@ -60,9 +60,10 @@
     inherit (pkgs) mkShell;
 
     #> Filter out internal logic, archives, and formatting files
-    files = let
-      all = readDir ./.;
-      valid =
+    filesFor = dir:
+      let
+        all = readDir dir;
+      in
         filterAttrs (
           name: type:
             (type == "regular")
@@ -75,18 +76,21 @@
             && !(hasPrefix "review" name)
         )
         all;
-    in
-      valid;
 
-    #> Import the attrs from the valididated files
+    #> Import the attrs from the validated files
     configs =
-      mapAttrs' (
+      (mapAttrs' (
         file: _:
           nameValuePair
           (removeSuffix ".nix" file)
           (import (./. + "/${file}") {inherit dots;})
-      )
-      files;
+      ) (filesFor ./.))
+      // (mapAttrs' (
+        file: _:
+          nameValuePair
+          (removeSuffix ".nix" file)
+          (import (./AI + "/${file}") {inherit dots;})
+      ) (filesFor ./AI));
 
     #> Build the final derivations
     shells =
@@ -101,7 +105,7 @@
       )
       configs;
   in
-    shells // {default = shells.minimal;};
+    shells // {default = shells."hermes-minimal";};
 in {
   inherit checks devShells formatter;
 }
