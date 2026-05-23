@@ -74,12 +74,12 @@
       };
     };
 
-    # editorAffinity = {
-    #   repo = "affinity-nix";
-    #   owner = "mrshmllow";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    editorAffinity = {
+      repo = "affinity-nix";
+      owner = "mrshmllow";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
     editorHelix = {
       repo = "helix";
@@ -102,33 +102,33 @@
     #   inputs.nixpkgs.follows = "nixPackages";
     # };
 
-    # editorTypix = {
-    #   repo = "typix";
-    #   owner = "loqusion";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    editorTypix = {
+      repo = "typix";
+      owner = "loqusion";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
-    # editorVSCode = {
-    #   repo = "vscode-insiders-nix";
-    #   owner = "auguwu";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    editorVSCode = {
+      repo = "vscode-insiders-nix";
+      owner = "auguwu";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
-    # editorVSCodeExtensions = {
-    #   repo = "nix-vscode-extensions";
-    #   owner = "nix-community";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    editorVSCodeExtensions = {
+      repo = "nix-vscode-extensions";
+      owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
-    # secretsManager = {
-    #   repo = "agenix";
-    #   owner = "ryantm";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    secretsManager = {
+      repo = "agenix";
+      owner = "ryantm";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
     shellDankMaterial = {
       # ref = "stable";
@@ -137,6 +137,7 @@
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
+
     shellDankMaterialPlugins = {
       repo = "dms-plugin-registry";
       owner = "AvengeMedia";
@@ -181,19 +182,19 @@
     #   inputs.nixpkgs.follows = "nixPackages";
     # };
 
-    # styleManager = {
-    #   repo = "stylix";
-    #   owner = "nix-community";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    styleManager = {
+      repo = "stylix";
+      owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
-    # styleCatppuccin = {
-    #   repo = "nix";
-    #   owner = "catppuccin";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    styleCatppuccin = {
+      repo = "nix";
+      owner = "catppuccin";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
     treeFormatter = {
       repo = "treefmt-nix";

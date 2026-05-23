@@ -7,15 +7,21 @@
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
   packages = (
-    # with (inputPkgs "llm-agents"); [
-    with pkgs.llm-agents; [
+    (with pkgs; [cowsay hello hello-wayland])
+    ++ (with (inputPkgs "llm-agents"); [
       codex
-      # hermes-agent
-    ]
+      hermes-agent
+    ])
+    ++ (with (inputPkgs "vscode-insiders"); [
+      ])
+    ++ (with (inputPkgs "nix-vscode-extensions"); [
+      ])
+    ++ (with (inputPkgs "typix"); [
+      ])
   );
   #|---------------------------------------------------------|
   #| Shell Configuration  -----------------------------------|
   #|---------------------------------------------------------|
   env = {};
-  shellHook = '''';
+  shellHook = ''Be Productive, Be Commited, Be Resolute'';
 in {inherit description env packages shellHook;}
