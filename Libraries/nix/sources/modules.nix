@@ -135,7 +135,7 @@
     resolved.inputs =
       if inputs ? nixpkgs
       then inputs
-      else (resolveInputs {}).resolved;
+      else (resolveInputs {}).inputs;
 
     path = "${resolved.inputs.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";

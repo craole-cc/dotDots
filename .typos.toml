@@ -18,6 +18,7 @@ myidentifier = "myidentifier" # Always valid
 mispeled = "misspelled"       # Will be corrected
 "colour" = "color"
 "nitch" = "nitch"
+"favourites" = "favourites"
 
 [default.extend-words]
 # "nitch" = "nitch"

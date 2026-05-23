@@ -64,13 +64,13 @@
 
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.module) mkModuleDebug;
-  inherit (_.lists.access) head;
+  inherit (_.lists.access) head tail;
   inherit (_.lists.construction) toList;
   inherit (_.debug.testing) mkTest;
   inherit (_.debug.assertions) withContext;
   inherit (_.debug.testing.runners) runTests;
   inherit (_.lists.construction) genList;
-  inherit (_.lists.predicates) any isIn;
+  inherit (_.lists.predicates) any;
   inherit (_.types.predicates) isAttrs isList isString;
   inherit
     (_.strings.transformation)
@@ -128,13 +128,13 @@
       throw (
         _debug.withDoc {
           function = mkFn {
-            name = "toLower";
-            fn = toLower;
+            name = "toLower'";
+            fn = toLower';
           };
           message = "nested lists are not supported";
           signature = "string | [string] -> string | [string]";
           example = mkExample {
-            cmd = ''toLower ["FOO" "BAR"]'';
+            cmd = ''toLower' ["FOO" "BAR"]'';
             res = ''["foo" "bar"]'';
           };
           inherit input;
@@ -485,7 +485,7 @@
     go = s: let
       words = _splitWords s;
     in
-      builtins.head words + concat "" (map capitalize (builtins.tail words));
+      head words + concat "" (map capitalize (tail words));
   in
     if isList input && any isList input
     then

@@ -29,14 +29,12 @@
     in {inherit internal external;};
   in {inherit doc exports;};
 
-  inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.resolution) byPaths;
-  inherit (_.content.emptiness) isEmpty isNotEmpty;
+  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.filesystem.resolution) getFlake;
-  # inherit (_.lists.predicates) any;
-  # inherit (_.attrsets.transformation) attrValues;
-  # inherit (_.strings.predicates) hasInfix;
-  # inherit (_.strings.predicates) fromJSON;
+  inherit (_.strings.transformation) toLowerCase;
 
   /**
   Builds the registry source configuration attribute for a given input.
@@ -46,345 +44,368 @@
 
   # Type
   ```nix
-  sourceInput :: { host? :: AttrSet, input? :: any } -> AttrSet
-  ```
+  sourceOne :: { host? :: AttrSet, input? :: any } -> AttrSet
 
   # Examples
-  ```nix
-  sourceInput { host = { class = "darwin"; }; input = inputs.nixpkgs; }
-  # => { source = <nixpkgs-store-path>; }
+  sourceOne { host = { class = "darwin"; }; input = inputs.nixpkgs; }
+  => { source = <nixpkgs-store-path>; }
 
-  sourceInput { input = inputs.home-manager; }
-  # => { flake = { source = <home-manager-store-path>; }; }
-  ```
+  sourceOne { input = inputs.home-manager; }
+  => { flake = { source = <home-manager-store-path>; }; }
   */
   sourceOne = {
     host ? {},
     input ? null,
     ...
   }:
-    optionalAttrs (isEmpty input)
+    optionalAttrs (isNotEmpty input)
     (
       if (host.class or "nixos") == "darwin"
       then {source = input;}
       else {flake.source = input;}
     );
 
+  differentRev = left: right:
+    isNotEmpty left
+    && isNotEmpty right
+    && ((left.rev or null) != (right.rev or null));
+
   /**
-  Resolves, normalizes, and categorizes flake inputs.
+   Resolve a one-level flake input by trying the provided aliases in order.
 
-  Loads the current flake and maps inconsistently named inputs
-  (e.g., `nixosPackages`, `darwinNix`) to canonical internal names
-  (`nixpkgs`, `nix-darwin`). Categorizes them into `core`
-  (providing legacyPackages) and `home` (providing standard packages).
+   The lookup is case-insensitive. It lowercases the actual keys in `inputs`,
+   lowercases each candidate name, then delegates ordered resolution to `byPaths`.
 
-  # Args:
-    self: An already evaluated flake.
-    path: The filesystem path to the flake (defaults to `src`).
+   This catches case-only variations such as:
+   ```nix
+   ai
+   AI
+   llm
+   LLM
+   editorVscode
+   editorVSCode
+   EDITORVSCODE
+  ```
 
-  # Returns:
-    resolved: A merged set of all normalized inputs (`core // home`).
-    raw: The unmodified `inputs` block from the original flake.
-    core: Nixpkgs channels with built-in fallback chains.
-    home: System builders, themes, editors, and other standard inputs.
-    flake: The raw evaluated flake.
+   Semantic aliases must still be listed explicitly. For example,
+   nixPackagesStable, nixpkgsStable, and nixpkgs-stable are different
+   names, not merely case variants.
+
+   # Dependencies
+   - attrsets.resolution.byPaths
+   - strings.transformation.toLowerCase
+
+   # Type
+   byNames :: {
+     inputs :: AttrSet,
+     names :: [string],
+     default? :: a
+   } -> a
+
+   # Examples
+   byNames {
+     inputs.AI = "llm-agents";
+     names = ["ai" "llm" "llm-agents"];
+     default = null;
+   }
+   # => "llm-agents"
+
+   byNames {
+     inputs.editorVSCode = "vscode-insiders";
+     names = ["editorVscode" "vscode" "code"];
+     default = null;
+   }
+   # => "vscode-insiders"
+
+   byNames {
+     inputs.nixpkgs-stable = "stable";
+     names = ["nixPackagesStable" "nixpkgsStable" "nixpkgs-stable"];
+     default = null;
+   }
+   # => "stable"
+  */
+  byNames = {
+    inputs,
+    names,
+    default ? {},
+  }:
+    byPaths {
+      attrset = listToAttrs (
+        map
+        (name: {
+          name = toLowerCase name;
+          value = inputs.${name};
+        })
+        (attrNames inputs)
+      );
+      paths = map (name: [(toLowerCase name)]) names;
+      inherit default;
+    };
+
+  # TODO: Add dependencies and Examples to the doc
+  /**
+  Normalizes inputs of a flake
+
+  # Input
+  flake: An already evaluated flake. (optional)
+  path: The filesystem path to the flake (defaults to `src`).
+  inputs: Raw flake inputs. Defaults to `(defaults to current flake inputs)`.
+
+  # Returns
+  raw: The unmodified `inputs` block from the original flake.
+  core: Nixpkgs channels with built-in fallback chains.
+  home: System builders, themes, editors, and other standard inputs.
+  plus each normalized input at the top level.
+
+  # Type
+  ```nix
+  tryNames :: { names :: [string], default? :: a } -> a
+  ```
   */
   resolveAll = {
     flake ? null,
     path ? src,
     inputs ? (getFlake {inherit flake path;}).inputs or {},
   }: let
-    #> Ensure we grab the inputs from the evaluated flake if `self` was empty
-    attrset = inputs;
+    tryNames = names: byNames {inherit inputs names;};
 
     core = let
-      explicit = byPaths {
-        inherit attrset;
-        default = attrset.nixpkgs or {};
-        paths = [
-          ["nixosCore"]
-          ["nixPackages"]
-          ["nixosPackages"]
-          ["nixpkgs"]
+      explicit = byNames {
+        inherit inputs;
+        default = inputs.nixpkgs or {};
+        names = [
+          "nixosCore"
+          "nixPkgs"
+          "nixPackages"
+          "nixosPackages"
+          "nixpkgs"
         ];
       };
 
-      stable = byPaths {
-        inherit attrset;
-        paths = [
-          ["nixPackagesStable"]
-          ["nixosPackagesStable"]
-          ["nixpkgs-stable"]
-          ["nixpkgs-24.05"]
-          ["nixpkgs-24.11"]
-          ["nixpkgs-25.05"]
-          ["nixpkgs-25.11"]
-        ];
-      };
+      stable = tryNames [
+        "nixPackagesStable"
+        "nixosPackagesStable"
+        "stableNixpkgs"
+        "nixpkgsStable"
+        "nixpkgs-stable"
+        "nixpkgs_24_05"
+        "nixpkgs_24_11"
+        "nixpkgs_25_05"
+        "nixpkgs_25_11"
+        "nixpkgs-24.05"
+        "nixpkgs-24.11"
+        "nixpkgs-25.05"
+        "nixpkgs-25.11"
+      ];
 
-      unstable = byPaths {
-        inherit attrset;
-        paths = [
-          ["nixPackagesUnstable"]
-          ["nixosPackagesUnstable"]
-          ["nixpkgs-beta"]
-          ["betaNix"]
-          ["nixpkgs-unstable"]
-        ];
-      };
+      unstable = tryNames [
+        "nixPackagesUnstable"
+        "nixosPackagesUnstable"
+        "unstableNixpkgs"
+        "nixpkgsUnstable"
+        "nixpkgs-beta"
+        "betaNix"
+        "nixpkgs-unstable"
+      ];
 
       nixpkgs =
         if isNotEmpty explicit
         then explicit
         else if isNotEmpty unstable
         then unstable
-        else if isNotEmpty unstable
-        then unstable
-        else {};
-      # else throw "We should never have gotten to this point. nixpkgs is required";
+        else if isNotEmpty stable
+        then stable
+        else throw "We should never have gotten to this point. nixpkgs is required";
     in (
       {inherit nixpkgs;}
-      // optionalAttrs (unstable != nixpkgs) {nixpkgs-unstable = unstable;}
-      // optionalAttrs (stable != nixpkgs) {nixpkgs-stable = stable;}
+      // optionalAttrs (differentRev unstable nixpkgs) {nixpkgs-unstable = unstable;}
+      // optionalAttrs (differentRev stable nixpkgs) {nixpkgs-stable = stable;}
     );
 
-    #> Resolve Home and System Inputs
     home = {
-      nix-darwin = byPaths {
-        inherit attrset;
-        paths = [
-          ["darwin"]
-          ["nixDarwin"]
-          ["darwinNix"]
-          ["nix-darwin"]
-        ];
-      };
+      nix-darwin = tryNames [
+        "darwin"
+        "nixDarwin"
+        "darwinNix"
+        "nix-darwin"
+      ];
 
-      home-manager = byPaths {
-        inherit attrset;
-        paths = [
-          ["nixHomeManager"]
-          ["nixosHome"]
-          ["nixHome"]
-          ["homeManager"]
-          ["home"]
-          ["home-manager"]
-        ];
-      };
+      home-manager = tryNames [
+        "nixHomeManager"
+        "nixosHome"
+        "nixHome"
+        "homeManager"
+        "home"
+        "home-manager"
+      ];
 
-      age = byPaths {
-        inherit attrset;
-        paths = [
-          ["secretsManager"]
-          ["age"]
-          ["agenix"]
-        ];
-      };
+      age = tryNames [
+        "secretsManager"
+        "secretManager"
+        "age"
+        "agenix"
+      ];
 
-      catppuccin = byPaths {
-        inherit attrset;
-        paths = [
-          ["styleCatppuccin"]
-          ["catppuccinStyle"]
-          ["catppuccin"]
-        ];
-      };
+      catppuccin = tryNames [
+        "styleCatppuccin"
+        "catppuccinStyle"
+        "catppuccin"
+      ];
 
-      chaotic = byPaths {
-        inherit attrset;
-        paths = [
-          ["nixChaotic"]
-          ["kernelChaotic"]
-          ["chaoticKernel"]
-          ["chaotic"]
-        ];
-      };
+      chaotic = tryNames [
+        "nixChaotic"
+        "kernelChaotic"
+        "chaoticKernel"
+        "chaoticNyx"
+        "chaotic"
+      ];
 
-      stylix = byPaths {
-        inherit attrset;
-        paths = [
-          ["nixStyle"]
-          ["styleManager"]
-          ["stylix"]
-        ];
-      };
+      stylix = tryNames [
+        "nixStyle"
+        "styleManager"
+        "stylix"
+      ];
 
-      caelestia = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellCaelestia"]
-          ["caelestia-shell"]
-          ["caelestia"]
-        ];
-      };
+      caelestia = tryNames [
+        "shellCaelestia"
+        "caelestiaShell"
+        "caelestia-shell"
+        "caelestia"
+      ];
 
-      dank-material-shell = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellDankMaterial"]
-          ["shellDank"]
-          ["dank-material"]
-          ["dank"]
-          ["dms"]
-          ["dank-material-shell"]
-        ];
-      };
+      dank-material-shell = tryNames [
+        "shellDankMaterial"
+        "dankMaterialShell"
+        "shellDank"
+        "dank-material"
+        "dank-material-shell"
+        "dank"
+        "dms"
+      ];
 
-      dms-plugin-registry = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellDankMaterialPlugins"]
-          ["shellDankPlugins"]
-          ["dank-plugins"]
-          ["dank-plugin-registry"]
-          ["dms-plugins"]
-          ["dmsp"]
-          ["dank-plugin-registry"]
-        ];
-      };
+      dms-plugin-registry = tryNames [
+        "shellDankMaterialPlugins"
+        "dankMaterialShellPlugins"
+        "shellDankPlugins"
+        "dankMaterialPlugins"
+        "dank-plugins"
+        "dank-plugin-registry"
+        "dms-plugins"
+        "dmsp"
+      ];
 
-      fresh-editor = byPaths {
-        inherit attrset;
-        paths = [
-          ["fresh"]
-          ["freshEditor"]
-          ["editorFresh"]
-          ["fresh-editor"]
-        ];
-      };
+      fresh-editor = tryNames [
+        "fresh"
+        "freshEditor"
+        "editorFresh"
+        "fresh-editor"
+      ];
 
-      helix = byPaths {
-        inherit attrset;
-        paths = [
-          ["helix-editor"]
-          ["hx"]
-          ["helixEditor"]
-          ["editorHelix"]
-          ["editorHX"]
-          ["helix"]
-        ];
-      };
+      helix = tryNames [
+        "helix-editor"
+        "helixEditor"
+        "editorHelix"
+        "editorHX"
+        "hx"
+        "helix"
+      ];
 
-      llm-agents = byPaths {
-        inherit attrset;
-        paths = [
-          ["llm"]
-          ["aiAgents"]
-          ["ai-agents"]
-          ["llm-agents"]
-        ];
-      };
+      llm-agents = tryNames [
+        "ai"
+        "aiAgents"
+        "ai-agents"
+        "llm"
+        "llmAgents"
+        "llm-agents"
+      ];
 
-      noctalia-shell = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellNoctalia"]
-          ["noctalia-dev"]
-          ["noctalia"]
-          ["noctalia-shell"]
-        ];
-      };
+      noctalia-shell = tryNames [
+        "shellNoctalia"
+        "noctaliaShell"
+        "noctalia-dev"
+        "noctalia"
+        "noctalia-shell"
+      ];
 
-      nvf = byPaths {
-        inherit attrset;
-        paths = [
-          ["editorNeovim"]
-          ["neovim"]
-          ["nvim"]
-          ["neovimFlake"]
-          ["neoVim"]
-          ["nvf"]
-        ];
-      };
+      nvf = tryNames [
+        "editorNeovim"
+        "neovim"
+        "nvim"
+        "neovimFlake"
+        "neoVim"
+        "nvf"
+      ];
 
-      plasma = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellPlasma"]
-          ["plasma-manager"]
-          ["plasmaManager"]
-          ["kde"]
-          ["plasma"]
-        ];
-      };
+      plasma = tryNames [
+        "shellPlasma"
+        "plasma-manager"
+        "plasmaManager"
+        "kde"
+        "plasma"
+      ];
 
-      quickshell = byPaths {
-        inherit attrset;
-        paths = [
-          ["shellQuick"]
-          ["qtshell"]
-          ["qmlshell"]
-          ["quick"]
-          ["quickshell"]
-        ];
-      };
+      quickshell = tryNames [
+        "shellQuick"
+        "quickShell"
+        "qtshell"
+        "qmlshell"
+        "quick"
+        "quickshell"
+      ];
 
-      treefmt = byPaths {
-        inherit attrset;
-        paths = [
-          ["treeFormatter"]
-          ["fmtree"]
-          ["treefmt-nix"]
-          ["treefmt"]
-        ];
-      };
+      treefmt = tryNames [
+        "treeFormatter"
+        "treefmtNix"
+        "fmtree"
+        "treefmt-nix"
+        "treefmt"
+      ];
 
-      typix = byPaths {
-        inherit attrset;
-        paths = [
-          ["docTypix"]
-          ["typst"]
-          ["typ"]
-          ["typix"]
-        ];
-      };
+      typix = tryNames [
+        "docTypix"
+        "typst"
+        "typ"
+        "typix"
+      ];
 
-      vscode-insiders = byPaths {
-        inherit attrset;
-        paths = [
-          ["vscode"]
-          ["code"]
-          ["code-insiders"]
-          ["vsc"]
-          ["VSCode"]
-          ["editorVSCode"]
-          ["editorVscode"]
-          ["editorVscodeInsiders"]
-          ["vscode-insiders-nix"]
-          ["vscode-insiders"]
-        ];
-      };
+      vscode-insiders = tryNames [
+        "vscode"
+        "vscodeInsiders"
+        "vsCode"
+        "vsCodeInsiders"
+        "code"
+        "code-insiders"
+        "vsc"
+        "editorVSCode"
+        "editorVscode"
+        "editorVscodeInsiders"
+        "vscode-insiders-nix"
+        "vscode-insiders"
+      ];
 
-      nix-vscode-extensions = byPaths {
-        inherit attrset;
-        paths = [
-          ["editorVSCodeExtensions"]
-          ["editorVSCodeMarketplace"]
-          ["editorVscodeMarketplace"]
-          ["vscode-marketplace"]
-          ["vscode-extensions"]
-          ["nix-vscode-extensions"]
-        ];
-      };
+      nix-vscode-extensions = tryNames [
+        "editorVSCodeExtensions"
+        "editorVSCodeMarketplace"
+        "editorVscodeMarketplace"
+        "vscodeMarketplace"
+        "vscode-marketplace"
+        "vscodeExtensions"
+        "vscode-extensions"
+        "nix-vscode-extensions"
+      ];
 
-      zen-browser = byPaths {
-        inherit attrset;
-        paths = [
-          ["browserZen"]
-          ["firefoxZen"]
-          ["zen"]
-          ["zenBrowser"]
-          ["zenFirefox"]
-          ["twilight"]
-          ["zen-browser"]
-        ];
-      };
+      zen-browser = tryNames [
+        "browserZen"
+        "firefoxZen"
+        "zen"
+        "zenBrowser"
+        "zenFirefox"
+        "twilight"
+        "zen-browser"
+      ];
     };
-  in {
-    inherit core home;
-    raw = inputs;
-    resolved = core // home;
-  };
+  in
+    {raw = inputs;} // core // home;
 in
   with meta.exports;
     internal
