@@ -21,7 +21,7 @@
     in {inherit internal external;};
   in {inherit doc exports;};
 
-  inherit (_.fileSystem.importers) importRegistry;
+  inherit (_.filesystem.importers) importRegistry;
 in
   with meta.exports;
     internal

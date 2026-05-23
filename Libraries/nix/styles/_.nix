@@ -11,12 +11,7 @@
     '';
 
     exports = let
-      internal = let
-        functions = {inherit registry;};
-        aliases = {};
-      in
-        {inherit functions aliases;} // functions // aliases;
-
+      internal = registry;
       external = {registryOfStyles = registry;};
     in {inherit internal external;};
   in {inherit doc exports;};
