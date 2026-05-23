@@ -4,10 +4,10 @@
   inherit (_.lists.predicates) all;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.lists.aggregation) concatmap;
-  inherit (_.strings.predicates) hasinfix;
-  inherit (_.strings.transformation) tolower;
-  inherit (_.types.predicates) isfunction;
+  inherit (_.lists.aggregation) concatMap;
+  inherit (_.strings.predicates) hasInfix;
+  inherit (_.strings.transformation) toLower;
+  inherit (_.types.predicates) isFunction;
 
   /**
   mkapp - create a generic application handler with flake support

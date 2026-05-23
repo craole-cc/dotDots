@@ -17,7 +17,7 @@
       resolveTheme = mkOne;
     };
     exports = {
-      local = {inherit data mkOne mkPair;} // alias;
+      local = {inherit data mkOne mkPair types;} // alias;
       inherit alias;
     };
   in {
@@ -31,8 +31,11 @@
   inherit (_.debug.assertions) withContext;
   inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
-  inherit (_.types.predicates) isAttrs;
+  inherit (_.options.construction) mkOption;
   inherit (_.styles.registry) mkData mkPolarity;
+  inherit (_.types.combinators) nullOr submodule;
+  inherit (_.types.primitives) package str;
+  inherit (_.types.predicates) isAttrs;
 
   mkCatppuccin = _.styles.catppuccin.themes.mkOne;
 
@@ -44,6 +47,48 @@
 
   inherit (data) normalize groups;
   inherit (data.resolved) lookup;
+
+  types = let
+    common = submodule {
+      options = {
+        name = mkOption {
+          description = "Theme name";
+          type = nullOr str;
+          default = null;
+        };
+        package = mkOption {
+          description = "Theme package";
+          type = nullOr package;
+          default = null;
+        };
+        polarity = mkOption {
+          description = "Theme polarity";
+          type = nullOr str;
+          default = null;
+        };
+        scheme = mkOption {
+          description = "Theme scheme";
+          type = nullOr str;
+          default = null;
+        };
+        flavor = mkOption {
+          description = "Theme flavor";
+          type = nullOr str;
+          default = null;
+        };
+        accent = mkOption {
+          description = "Theme accent";
+          type = nullOr str;
+          default = null;
+        };
+      };
+    };
+  in {
+    theme = {
+      core = common;
+      home = common;
+    };
+  };
 
   mkOne = {
     pkgs,

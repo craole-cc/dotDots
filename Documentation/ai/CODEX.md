@@ -15,6 +15,8 @@ as the primary entrypoint.
 
 ## Boundaries
 
-- Architecture details live in `ARCHITECTURE.md`.
-- Repo rules live in `CONVENTIONS.md`.
-- Investigation flows live in `TASKS.md`.
+- Architecture details live in `../nix/architecture.md`.
+- Repo rules live in `../nix/conventions.md`.
+- Practical Nix discovery notes live in `../nix/discover.md`.
+- Style guidance lives in `../nix/style/`.
+- Investigation flows live in `../nix/tasks.md`.

@@ -1,26 +1,27 @@
 {_, ...}: let
   meta = let
     doc = ''
-      Source registry predicates (Layer 0).
+      Source registry predicates.
 
-      Provides primitive predicates for inspecting registry trees before
-      higher-level construction and resolution run. Currently exports
-      `hasCategories`, a boolean predicate that detects whether an attrset
-      looks like a registry leaf by checking that its first value is an
-      attrset containing a `categories` field.
+      Provides small, reusable checks for deciding whether an attrset looks
+      like a registry tree. The predicate is generic: it only checks that the
+      tree is non-empty and that the first value is itself an attrset.
 
-      Depends on: attrsets.access, content.emptiness, lists.access,
-      types.predicates.
+      Depends on: attrsets.access, content.emptiness, types.predicates.
     '';
 
     exports = let
       internal = let
-        functions = {inherit hasCategories;};
-        aliases = {isRegistry = hasCategories;};
+        functions = {inherit isRegistry;};
+        aliases = {
+          isRegistryTree = isRegistry;
+          isRegistryAttrs = isRegistry;
+        };
       in
         {inherit functions aliases;} // functions // aliases;
+
       external = {
-        isRegistryAttrs = hasCategories;
+        isRegistryAttrs = isRegistry;
       };
     in {inherit internal external;};
   in {inherit doc exports;};
@@ -31,38 +32,21 @@
   inherit (_.types.predicates) isAttrs;
 
   /**
-      Return `true` when `tree` is a non-empty attribute set whose first value
-      looks like a registry entry (i.e. is an attrset containing `categories`).
+    Return `true` when `tree` is a non-empty attrset whose first value is
+    itself an attrset.
 
-      Used to distinguish leaf registry sets from intermediate grouping nodes
-      during recursive enum construction.
+    This is intentionally loose: registry consumers can apply stronger domain
+    rules on top (for example checking for `categories`, `name`, or `value`).
 
-      # Type
-  ```nix
-      hasCategories :: AttrSet -> bool
-  ```
-
-      # Examples
-  ```nix
-      hasCategories { bash = { categories = [ "shell" ]; }; }
-      # => true
-
-      # Intermediate grouping node - values are not registry entries
-      hasCategories { system = { bash = { categories = [ "shell" ]; }; }; }
-      # => false
-
-      hasCategories {}
-      # => false
-  ```
+    # Type
+    ```nix
+    isRegistry :: AttrSet -> bool
+    ```
   */
-  hasCategories = raw:
-    (isNotEmpty raw)
-    && (
-      let
-        fields = head (attrValues raw);
-      in
-        isAttrs fields && fields ? categories
-    );
+  isRegistry = tree:
+    isAttrs tree
+    && isNotEmpty tree
+    && isAttrs (head (attrValues tree));
 in
   with meta.exports;
     internal

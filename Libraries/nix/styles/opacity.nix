@@ -9,14 +9,37 @@
       Depends on: attrsets.
     '';
     exports = {
-      local = {inherit opacity;};
+      local = {inherit opacity types;};
       alias = {};
     };
   in {inherit doc exports;};
 
   inherit (_.attrsets) recursiveUpdate;
+  inherit (_.options.construction) mkOption;
+  inherit (_.types.combinators) nullOr submodule;
+  inherit (_.types.primitives) float;
 
-  # ── Resolve ───────────────────────────────────────────────────────────────
+  types = let
+    common = submodule {
+      options = {
+        terminal = mkOption {
+          description = "Terminal background opacity (0.0-1.0)";
+          type = float;
+          default = 0.9;
+        };
+        popups = mkOption {
+          description = "Popup/overlay background opacity (0.0-1.0)";
+          type = float;
+          default = 0.95;
+        };
+      };
+    };
+  in {
+    opacity = {
+      core = common;
+      home = common;
+    };
+  };
 
   opacity = {
     terminal ? 0.9,

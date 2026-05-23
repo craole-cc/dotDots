@@ -15,6 +15,7 @@
 
   #~@ Short aliases
   l = lib;
+  _ = self;
   x = self;
   s = safe;
 

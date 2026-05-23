@@ -15,7 +15,7 @@
       mkIcons = mkPair;
     };
     exports = {
-      local = {inherit data mkOne mkPair;} // alias;
+      local = {inherit data mkOne mkPair types;} // alias;
       inherit alias;
     };
   in {inherit doc exports;};
@@ -27,8 +27,13 @@
   inherit (_.debug.assertions) withContext;
   inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
-  inherit (_.types.predicates) isAttrs;
+  inherit (_.options.construction) mkOption;
   inherit (_.styles.registry) mkData mkPolarity;
+  inherit (_.types.combinators) nullOr submodule;
+  inherit (_.types.primitives) package str;
+  inherit (_.types.predicates) isAttrs;
+
+  mkCatppuccin = _.styles.catppuccin.cursors.mkOne;
 
   data = mkData {
     domain = "icons";
@@ -37,6 +42,28 @@
   };
   inherit (data) seed normalize groups;
   inherit (data.resolved) lookup;
+
+  types = let
+    common = submodule {
+      options = {
+        name = mkOption {
+          description = "Icon theme canonical registry key";
+          type = nullOr str;
+          default = null;
+        };
+        package = mkOption {
+          description = "Icon theme package";
+          type = nullOr package;
+          default = null;
+        };
+      };
+    };
+  in {
+    icon = {
+      core = common;
+      home = common;
+    };
+  };
 
   mkOne = {
     pkgs,

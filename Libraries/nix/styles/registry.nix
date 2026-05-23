@@ -1,30 +1,34 @@
 {_, ...}: let
   meta = let
     doc = ''
-      Style registry data (Layer 0).
+      Style registry helpers.
 
-      Provides normalized style records from `./data`, with consistent
-      `categories` fields. Supplies primitive tree inspection for recursive
-      processing, validated registry lookup, registry-derived identification
-      metadata, and shared resolution helpers used by higher style layers.
+      Provides the reusable style-side registry façade on top of the shared
+      source-registry libraries. It handles style source loading, normalized
+      registry construction, category lookups, polarity selection, and the
+      grouped query views consumed by the icon, cursor, and theme layers.
 
-      Depends on: filesystem.importers.
+      Depends on: sources.registry.{construction,io,predicates,resolution},
+      attrsets, lists, strings, types.
     '';
     functions = {
       inherit
-        # normalizeList
-        # flatten
-        # importRegistry
-        # isRegistry
+        flatten
+        isRegistry
+        isRegistryAttrset
         lookupByCategory
-        mkRegistry
-        mkPolarity
         mkData
+        mkPolarity
+        mkRegistry
+        mkSource
+        normalize
         ;
     };
     exports = {
       local = functions // {inherit data;};
-      alias = {};
+      alias = {
+        isRegistryAttrset = isRegistry;
+      };
     };
   in {inherit doc exports functions;};
 
@@ -45,6 +49,11 @@
   inherit (_.strings.transformation) toTitleCase wrap;
   inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isFunction isString;
+  sourceImport = _.sources.registry.io.importRegistry;
+  sourceIsRegistry = _.sources.registry.predicates.isRegistryAttrs;
+  sourceMkRegistry = _.sources.registry.construction.mkRegistry;
+  sourceFlatten = _.sources.registry.construction.flatten;
+  sourceNormalize = _.sources.registry.resolution.normalize;
 
   data = mkData {};
 
@@ -65,18 +74,20 @@
     };
 
     registry = mkRegistry {
-      inherit seed owner;
-      inherit (source) name value;
+      inherit seed owner source groupBy queryBy;
     };
 
     analysis = mkAnalysis {
       inherit owner registry groupBy queryBy;
     };
   in {
-    inherit analysis registry seed;
-    inherit (source) path raw;
-    # inherit (registry) name entries lookup normalize;
-    # inherit (analysis) groups queries;
+    inherit analysis seed source;
+    registry = registry;
+    resolved = registry;
+    inherit (source) name path raw;
+    normalize = registry.normalize;
+    groups = analysis.groups;
+    queries = analysis.queries;
   };
 
   mkSource = {
@@ -88,13 +99,19 @@
     queries ? null,
     from ? null,
   }: let
-    name =
+    domainName =
       if isNotEmpty domain
       then toDomainName domain
+      else null;
+
+    raw = sourceImport path;
+    explicit = filter isNotEmpty [entries groups queries from];
+
+    name =
+      if isNotEmpty domainName
+      then domainName
       else baseNameOf path;
 
-    raw = importRegistry path;
-    explicit = filter isNotEmpty [entries groups queries from];
     value =
       if length explicit == 0
       then
@@ -122,33 +139,40 @@
           else if isNotEmpty groups
           then groups
           else queries;
-  in {inherit name path raw value;};
+
+    source = sourceNormalize {
+      inherit path raw value;
+      name = if isNotEmpty domainName then domainName else null;
+    };
+  in source;
+
+  normalize = value: mkSource value;
 
   mkRegistry = {
     owner ? "mkRegistry",
-    name,
-    value,
+    source,
     seed ? {},
+    groupBy ? [],
+    queryBy ? [],
   }: let
-    entries = assert withContext {
-      name = owner;
-      context = concat " " ["constructing" "registry" "for" name];
-      assertion = isAttrs value;
-      message = concat " " [
-        "expected an attrset for resolved registry value:"
-        name
-      ];
-    }; value;
+    registry = sourceMkRegistry {
+      inherit
+        owner
+        seed
+        source
+        groupBy
+        queryBy
+        ;
+    };
 
-    lookup = key: getAttr key entries;
-  in {
-    inherit name entries lookup seed;
+    lookup = key: getAttr key registry.entries;
 
     normalize = args @ {
       value,
       polarity ? null,
       key ? null,
       fallback ? null,
+      ...
     }: let
       fallback' =
         if args ? fallback
@@ -165,29 +189,32 @@
           else
             mkPolarity.selection {
               inherit value polarity;
-              domain = name;
+              domain = registry.name;
             }
         else if isEmpty value && fallback' != null
         then fallback'
         else value;
     in
-      if isNotEmpty key && hasAttr key entries
-      then getAttr key entries
+      if isNotEmpty key && hasAttr key registry.entries
+      then getAttr key registry.entries
       else if isString selected
       then lookup selected
       else selected;
-  };
+  in
+    registry
+    // {
+      inherit lookup normalize;
+    };
 
-  # normalizeList = values:
-  #   optionals
-  #   (isList values)
-  #   (filter (value: isNotEmpty value) values);
+  normalizeList = values:
+    if isList values
+    then filter (value: isNotEmpty value) values
+    else [values];
 
-  # TODO: Move to registry.flatte
-  flatten = registry:
-    foldl' (
-      acc: namespace: acc // registry.${namespace}
-    ) {} (attrNames registry);
+  flatten = sourceFlatten;
+
+  isRegistry = tree: sourceIsRegistry tree;
+  isRegistryAttrset = isRegistry;
 
   # groupByFieldFlat = {
   #   entries,
@@ -237,14 +264,6 @@
   # }:
   #   {all = set;} // queries;
 
-  isRegistry = tree:
-    (tree != {})
-    && (
-      let
-        firstVal = head (attrValues tree);
-      in
-        isAttrs firstVal && firstVal ? categories
-    );
 
   mkPolarity = {
     pair = input: let

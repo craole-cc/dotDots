@@ -5,13 +5,12 @@
 }: let
   meta = let
     doc = ''
-      Source registry I/O helpers.
+      Style registry namespace entrypoint.
 
-      Exposes the low-level registry importer used to read source trees into
-      attribute sets for higher source-registry layers.
+      Imports the style subtree and exposes it as a registry namespace for the
+      library assembly.
 
-      Depends on: filesystem.importers.importRegistry.
-
+      Depends on: sources.registry.io.importRegistry.
     '';
 
     exports = let
@@ -24,7 +23,7 @@
   inherit (_.strings.transformation) toCamel toTitle;
 
   registry = _.sources.registry.io.import ./.;
-  label = ["registy" "of" __moduleDirectory];
+  label = ["registry" "of" __moduleDirectory];
   alias = toCamel label;
   title = toTitle label;
 in

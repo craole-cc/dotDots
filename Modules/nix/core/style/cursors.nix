@@ -10,7 +10,7 @@
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf either int nullOr package str;
-  inherit (lix.styles.types.cursors) core;
+  inherit (lix.styles.cursors.types.polarity) core;
   inherit (lix.attrsets.resolution) withPath;
 
   seed = let
@@ -42,7 +42,7 @@
       };
   };
 
-  # TODO: Move to styles.types.cursors.polarity.core
+  # TODO: Move to styles.cursors.types.polarity.core
   mkPolarityOption = polarity:
     mkOption {
       description = "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";

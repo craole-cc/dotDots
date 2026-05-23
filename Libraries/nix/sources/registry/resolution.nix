@@ -1,42 +1,83 @@
 {_, ...}: let
   meta = let
-    # TODO: Update the doc
     doc = ''
-      Style registry data (Layer 0).
+      Source registry resolution helpers.
 
-      Provides normalized style records from `./data`, with consistent
-      `categories` fields. Supplies primitive tree inspection for recursive
-      processing, validated registry lookup, registry-derived identification
-      metadata, and shared resolution helpers used by higher style layers.
+      Turns paths or registry seed attrsets into canonical source records and
+      provides flexible lookups across nested registry trees. The helpers here
+      are intentionally generic so application-style and style-style registries
+      can share the same source seeding and selection layer.
 
-      Depends on: sources.registry.importer.
+      Depends on: filesystem.importers.importRegistry, attrsets.access,
+      lists.aggregation, lists.selection, lists.transformation,
+      debug.assertions, types.predicates.
     '';
+
     exports = let
       internal = let
         functions = {
-          inherit mkSource normalize;
+          inherit
+            byNames
+            lookup
+            mkSource
+            normalize
+            ;
         };
         aliases = {
-          normalizeEntry = normalize;
+          lookupRegistry = lookup;
+          mkRegistrySource = mkSource;
+          normalizeRegistrySource = normalize;
         };
       in
         {inherit functions aliases;} // functions // aliases;
+
       external = {
-        mkRegistyrySource = mkSource;
-        normalizeRegistryEntry = normalize;
+        inherit
+          lookup
+          mkSource
+          normalize
+          ;
       };
     in {inherit internal external;};
   in {inherit doc exports;};
 
+  inherit (_.attrsets.access) attrByPath getAttr;
+  inherit (_.attrsets.predicates) hasAttr;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.filesystem.importers) importRegistry;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.lists.access) head tail;
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) wrap;
-  inherit (_.strings.predicates) isValidPosixName;
+  inherit (_.strings.transformation) toLowerCase;
   inherit (_.types.predicates) isAttrs isPath isString;
 
-  #TODO: Add the nix-style documentation with headings input, return, dependencies, type and examples
+  /**
+    Normalize a registry source specification into a canonical source record.
+
+    Accepted inputs:
+    - a path or string, treated as the registry root
+    - an attrset containing `root`/`path` and optional overrides such as
+      `name`, `stems`, `recursive`, `extraArgs`, `raw`, or `value`
+
+    The returned record always contains:
+    - `name`
+    - `path`
+    - `root`
+    - `raw`
+    - `value`
+    - `stems`
+    - `recursive`
+    - `extraArgs`
+
+    # Type
+    ```nix
+    mkSource :: any -> AttrSet
+    ```
+  */
   mkSource = value: let
     args =
       if isAttrs value
@@ -46,62 +87,133 @@
       else
         assert withContext {
           name = "mkSource";
-          context = "validating mkSource value";
+          context = "validating registry source value";
           assertion = false;
           message = "expected `value` to be a path, string, or attrset";
         }; null;
 
-    owner = args.owner or "mkSource";
+    root = args.root or (args.path or null);
+    path = args.path or root;
+    name =
+      args.name or
+      (if path != null then baseNameOf (toString path) else "registry");
+    stems = args.stems or ["data"];
     recursive = args.recursive or true;
     extraArgs = args.extraArgs or (args.args or {});
+    raw =
+      args.raw or
+      (if root != null
+      then importRegistry {
+        inherit
+          root
+          stems
+          recursive
+          extraArgs
+          ;
+      }
+      else args.value or {});
+    value' = args.value or raw;
+  in {
+    inherit
+      extraArgs
+      name
+      path
+      raw
+      recursive
+      root
+      stems
+      ;
+    value = value';
+  };
 
-    path = let
-      path' = args.root or (args.path or null);
-    in
-      assert withContext {
-        name = owner;
-        context = concat " " ["resolving" "source" "path"];
-        assertion = path' != null;
-        message = concat " " [
-          "expected either"
-          (wrap ["root" "path"])
-          "to be provided"
-        ];
-      }; path';
+  /**
+    Generic lookup helper for nested registry trees.
 
-    name = let
-      name' = args.name or (baseNameOf path);
-    in
-      assert withContext {
-        name = owner;
-        context = concat " " ["resolving" "source" "name"];
-        assertion = isString name' && isValidPosixName name';
-        message = concat " " [
-          "expected source name to be a valid POSIX name,"
-          "got"
-          (wrap name')
-        ];
-      }; name';
+    When `path` is supplied, it is tried first. Otherwise `name`/`names` are
+    expanded into single-segment lookup paths and tried in order until one
+    resolves. Missing lookups fall back to `default`.
 
-    raw = let
-      raw' = importRegistry {inherit path recursive extraArgs;};
-    in
-      assert withContext {
-        name = owner;
-        context = concat " " ["importing" "registry" "source"];
-        assertion = isNotEmpty raw';
-        message = concat " " [
-          "expected"
-          (wrap "importRegistry")
-          "to return a non-empty attrset for"
-          (wrap name)
-        ];
-      }; raw';
-  in {inherit path name raw;};
+    # Type
+    ```nix
+    lookup :: {
+      registry :: AttrSet,
+      name? :: string,
+      names? :: [string],
+      path? :: [string] | string,
+      paths? :: [[string]] | [string],
+      default? :: any,
+      caseInsensitive? :: bool,
+    } -> any
+    ```
+  */
+  lookup = args@{
+    registry,
+    default ? null,
+    name ? null,
+    names ? [],
+    path ? null,
+    caseInsensitive ? false,
+    ...
+  }: let
+    normalizeSegment = segment:
+      if caseInsensitive && isString segment
+      then toLowerCase segment
+      else segment;
 
-  # TODO: Add the nix-style documentation with headings input, return, dependencies, type and examples
-  # TODO: Implement normalizeEntry for single-entry field coercion
-  normalize = {};
+    lookupPath = current: remaining:
+      if remaining == []
+      then current
+      else let
+        segment = head remaining;
+      in
+        if isAttrs current && hasAttr segment current
+        then lookupPath (getAttr segment current) (tail remaining)
+        else default;
+
+    candidateNames = unique (filter isString ((if name != null then [name] else []) ++ names));
+
+    resolveNames = remaining:
+      if remaining == []
+      then default
+      else let
+        candidate = normalizeSegment (head remaining);
+      in
+        if isAttrs registry && hasAttr candidate registry
+        then getAttr candidate registry
+        else resolveNames (tail remaining);
+  in
+    if path != null
+    then lookupPath registry (if builtins.isList path then map normalizeSegment path else [normalizeSegment path])
+    else resolveNames candidateNames;
+
+  /**
+    Lookup a list of registry names in order.
+
+    # Type
+    ```nix
+    byNames :: { registry :: AttrSet, names :: [string], default? :: any } -> any
+    ```
+  */
+  byNames = {
+    registry,
+    names,
+    default ? null,
+    caseInsensitive ? false,
+    ...
+  }:
+    lookup {
+      inherit
+        caseInsensitive
+        default
+        names
+        registry
+        ;
+    };
+
+  /**
+    Alias for `mkSource` so the public API reads more naturally.
+  */
+  normalize = value: mkSource value;
 in
   with meta.exports;
     internal

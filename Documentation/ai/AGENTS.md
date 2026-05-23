@@ -12,8 +12,8 @@
 
 - `flake.nix`
 - `default.nix`
-- `Libraries/nix/modules/construction.nix`
-- `Documentation/ai/ARCHITECTURE.md`
+- `Documentation/nix/README.md`
+- `Documentation/nix/architecture.md`
 
 ## Structure
 
@@ -33,7 +33,10 @@
 
 ## More
 
-- `ARCHITECTURE.md`: system model.
-- `CONVENTIONS.md`: repository rules.
-- `TASKS.md`: repeatable debugging and change entrypoints.
+- `Documentation/nix/README.md`: canonical Nix doc index.
+- `Documentation/nix/architecture.md`: system model.
+- `Documentation/nix/conventions.md`: repository rules.
+- `Documentation/nix/discover.md`: practical Nix discovery map.
+- `Documentation/nix/style/`: split Nix style guide with examples.
+- `Documentation/nix/tasks.md`: repeatable debugging and change entrypoints.
 - `CODEX.md`: Codex-specific adapter.

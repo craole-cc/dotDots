@@ -16,19 +16,22 @@
       mkCursors = mkPair;
     };
     exports = {
-      local = {inherit data mkOne mkPair;} // alias;
+      local = {inherit data mkOne mkPair types;} // alias;
       inherit alias;
     };
   in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.attrsets.registry) mkData mkPolarity;
   inherit (_.attrsets.resolution) getPackage;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.lists.access) elemAt;
   inherit (_.lists.selection) filter;
+  inherit (_.options.construction) mkOption;
+  inherit (_.styles.registry) mkData mkPolarity;
+  inherit (_.types.combinators) nullOr submodule;
+  inherit (_.types.primitives) int package str;
   inherit (_.types.predicates) isAttrs;
 
   mkCatppuccin = _.styles.catppuccin.cursors.mkOne;
@@ -39,9 +42,35 @@
     seed = {size = 24;};
     # groupBy = ["byFamily"];
   };
-
   inherit (data) seed normalize groups;
   inherit (data.resolved) lookup;
+
+  types = let
+    common = submodule {
+      options = {
+        name = mkOption {
+          description = "Cursor theme name";
+          type = nullOr str;
+          default = null;
+        };
+        package = mkOption {
+          description = "Cursor theme package";
+          type = nullOr package;
+          default = null;
+        };
+        size = mkOption {
+          description = "Cursor size in pixels";
+          type = int;
+          default = 24;
+        };
+      };
+    };
+  in {
+    polarity = {
+      core = common;
+      home = common;
+    };
+  };
 
   mkOne = {
     pkgs,

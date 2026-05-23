@@ -3,21 +3,25 @@
     doc = ''
       Source registry I/O helpers.
 
-      Exposes the low-level registry importer used to read source trees into
-      attribute sets for higher source-registry layers.
+      Provides the reusable filesystem importer used by higher-level source
+      registry libraries. This layer stays intentionally small: it exposes the
+      importer with a predictable name and keeps the rest of the registry logic
+      in the construction/resolution helpers.
 
       Depends on: filesystem.importers.importRegistry.
-
     '';
 
     exports = let
       internal = let
-        functions = {import = importRegistry;};
-        aliases = {inherit importRegistry;};
+        functions = {inherit importRegistry;};
+        aliases = {
+          import = importRegistry;
+          read = importRegistry;
+        };
       in
         {inherit functions aliases;} // functions // aliases;
 
-      external = {inherit (internal) importRegistry;};
+      external = {inherit importRegistry;};
     in {inherit internal external;};
   in {inherit doc exports;};
 

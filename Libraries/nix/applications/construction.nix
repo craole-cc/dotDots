@@ -322,5 +322,5 @@ in
     internal
     // {
       __docs = meta.doc;
-      __rootAliases = external;
+      __rootAliases = meta.exports.alias;
     }
