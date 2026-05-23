@@ -9,6 +9,7 @@
 }: let
   inherit (lib.lists) optionals;
   inherit (pkgs.stdenv) isLinux isDarwin;
+  path = ./.;
 
   #> Metadata & Dependency Injection
   dots = {
@@ -60,37 +61,29 @@
     inherit (pkgs) mkShell;
 
     #> Filter out internal logic, archives, and formatting files
-    filesFor = dir:
-      let
-        all = readDir dir;
-      in
-        filterAttrs (
-          name: type:
-            (type == "regular")
-            && hasSuffix ".nix" name
-            && !(elem name [
-              "default.nix"
-              "fmt.nix"
-            ])
-            && !(hasPrefix "archive" name)
-            && !(hasPrefix "review" name)
-        )
-        all;
+    filesFor = dir: let
+      all = readDir dir;
+    in
+      filterAttrs (
+        name: type:
+          (type == "regular")
+          && hasSuffix ".nix" name
+          && !(elem name [
+            "default.nix"
+            "fmt.nix"
+          ])
+          && !(hasPrefix "archive" name)
+          && !(hasPrefix "review" name)
+      )
+      all;
 
     #> Import the attrs from the validated files
-    configs =
-      (mapAttrs' (
-        file: _:
-          nameValuePair
-          (removeSuffix ".nix" file)
-          (import (./. + "/${file}") {inherit dots;})
-      ) (filesFor ./.))
-      // (mapAttrs' (
-        file: _:
-          nameValuePair
-          (removeSuffix ".nix" file)
-          (import (./AI + "/${file}") {inherit dots;})
-      ) (filesFor ./AI));
+    configs = mapAttrs' (
+      file: _:
+        nameValuePair
+        (removeSuffix ".nix" file)
+        (import (path + "/${file}") {inherit dots;})
+    ) (filesFor path);
 
     #> Build the final derivations
     shells =
@@ -105,7 +98,5 @@
       )
       configs;
   in
-    shells // {default = shells."hermes-minimal";};
-in {
-  inherit checks devShells formatter;
-}
+    shells // {default = shells."productivity";};
+in {inherit checks devShells formatter;}
