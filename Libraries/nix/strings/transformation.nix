@@ -92,10 +92,10 @@
     else fn input;
 
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
-  _splitWords = s:
+  _splitWords = text:
     splitString "-" (
       replaceStrings [" " "_"] ["-" "-"]
-      (_normalizeSymbols (toLower s))
+      (_normalizeSymbols (toLower text))
     );
 
   _symbolAliases = {
@@ -105,8 +105,8 @@
     "objc" = "objectivec";
   };
 
-  _normalizeSymbols = s:
-    _symbolAliases.${s} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] s);
+  _normalizeSymbols = text:
+    _symbolAliases.${text} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] text);
 
   /**
   Convert a string or list of strings to lower case.
@@ -210,10 +210,10 @@
           }
         )
       else chars;
-    go = s:
-      if hasPrefix c s
-      then go (removePrefix c s)
-      else s;
+    asStr = text:
+      if hasPrefix c text
+      then asStr (removePrefix c text)
+      else text;
   in
     input:
       if isList input && any isList input
@@ -233,7 +233,7 @@
             inherit input;
           }
         )
-      else _applyStr go input;
+      else _applyStr asStr input;
 
   /**
   Remove trailing occurrences of `chars` from a string or list of strings.
@@ -269,10 +269,10 @@
           }
         )
       else chars;
-    go = s:
-      if hasSuffix c s
-      then go (removeSuffix c s)
-      else s;
+    asStr = text:
+      if hasSuffix c text
+      then asStr (removeSuffix c text)
+      else text;
   in
     input:
       if isList input && any isList input
@@ -292,7 +292,7 @@
             inherit input;
           }
         )
-      else _applyStr go input;
+      else _applyStr asStr input;
 
   /**
   Remove leading and trailing occurrences of `chars` from a string or list of strings.
@@ -417,7 +417,7 @@
           inherit input;
         }
       )
-    else _applyStr (s: replaceAll [" " "_"] ["-" "-"] (toLower s)) input;
+    else _applyStr (text: replaceAll [" " "_"] ["-" "-"] (toLower text)) input;
 
   indent = n: concat "" (genList (_: " ") n);
 
@@ -440,10 +440,10 @@
   ```
   */
   capitalize = input: let
-    go = s:
-      if s == ""
+    asStr = text:
+      if text == ""
       then ""
-      else toUpper (substring 0 1 s) + substring 1 (stringLength s) s;
+      else toUpper (substring 0 1 text) + substring 1 (stringLength text) text;
   in
     if isList input && any isList input
     then
@@ -462,28 +462,29 @@
           inherit input;
         }
       )
-    else _applyStr go input;
+    else _applyStr asStr input;
 
   /**
   Convert a string or list of strings to camelCase.
 
   Splits on spaces, underscores, and hyphens.
+  When given a list, treats elements as pre-split words and joins them.
 
   # Type
   ```nix
-  toCamel :: string | [string] -> string | [string]
+  toCamel :: string | [string] -> string
   ```
 
   # Examples
   ```nix
-  toCamel "foo bar"           # => "fooBar"
-  toCamel "foo_bar_baz"       # => "fooBarBaz"
-  toCamel ["foo bar" "a_b"]   # => ["fooBar" "aB"]
+  toCamel "foo bar"                    # => "fooBar"
+  toCamel "foo_bar_baz"                # => "fooBarBaz"
+  toCamel ["registry" "of" "entry"]   # => "registryOfEntry"
   ```
   */
   toCamel = input: let
-    go = s: let
-      words = _splitWords s;
+    asStr = text: let
+      words = _splitWords text;
     in
       head words + concat "" (map capitalize (tail words));
   in
@@ -496,35 +497,38 @@
             fn = toCamel;
           };
           message = "nested lists are not supported";
-          signature = "string | [string] -> string | [string]";
+          signature = "string | [string] -> string";
           example = mkExample {
-            cmd = ''toCamel ["foo bar" "baz_qux"]'';
-            res = ''["fooBar" "bazQux"]'';
+            cmd = ''toCamel ["registry" "of" "entry"]'';
+            res = ''"registryOfEntry"'';
           };
           inherit input;
         }
       )
-    else _applyStr go input;
+    else if isList input
+    then concat "" ([(head input)] ++ map capitalize (tail input))
+    else asStr input;
 
   /**
   Convert a string or list of strings to PascalCase.
 
   Splits on spaces, underscores, and hyphens.
+  When given a list, treats elements as pre-split words and joins them.
 
   # Type
   ```nix
-  toPascal :: string | [string] -> string | [string]
+  toPascal :: string | [string] -> string
   ```
 
   # Examples
   ```nix
-  toPascal "foo bar"           # => "FooBar"
-  toPascal "foo_bar_baz"       # => "FooBarBaz"
-  toPascal ["foo bar" "a_b"]   # => ["FooBar" "AB"]
+  toPascal "foo bar"                   # => "FooBar"
+  toPascal "foo_bar_baz"               # => "FooBarBaz"
+  toPascal ["registry" "of" "entry"]  # => "RegistryOfEntry"
   ```
   */
   toPascal = input: let
-    go = s: concat "" (map capitalize (_splitWords s));
+    asStr = text: concat "" (map capitalize (_splitWords text));
   in
     if isList input && any isList input
     then
@@ -535,35 +539,38 @@
             fn = toPascal;
           };
           message = "nested lists are not supported";
-          signature = "string | [string] -> string | [string]";
+          signature = "string | [string] -> string";
           example = mkExample {
-            cmd = ''toPascal ["foo bar" "baz_qux"]'';
-            res = ''["FooBar" "BazQux"]'';
+            cmd = ''toPascal ["registry" "of" "entry"]'';
+            res = ''"RegistryOfEntry"'';
           };
           inherit input;
         }
       )
-    else _applyStr go input;
+    else if isList input
+    then concat "" (map capitalize input)
+    else asStr input;
 
   /**
   Convert a string or list of strings to snake_case.
 
   Splits on spaces, underscores, and hyphens. All lowercase.
+  When given a list, treats elements as pre-split words and joins them.
 
   # Type
   ```nix
-  toSnake :: string | [string] -> string | [string]
+  toSnake :: string | [string] -> string
   ```
 
   # Examples
   ```nix
-  toSnake "Foo Bar"           # => "foo_bar"
-  toSnake "fooBarBaz"         # => "foobarbaz"  (no camelCase splitting)
-  toSnake ["Foo Bar" "A-B"]   # => ["foo_bar" "a_b"]
+  toSnake "Foo Bar"                    # => "foo_bar"
+  toSnake "fooBarBaz"                  # => "foobarbaz"  (no camelCase splitting)
+  toSnake ["registry" "of" "entry"]   # => "registry_of_entry"
   ```
   */
   toSnake = input: let
-    go = s: concat "_" (_splitWords s);
+    asStr = text: concat "_" (_splitWords text);
   in
     if isList input && any isList input
     then
@@ -574,35 +581,38 @@
             fn = toSnake;
           };
           message = "nested lists are not supported";
-          signature = "string | [string] -> string | [string]";
+          signature = "string | [string] -> string";
           example = mkExample {
-            cmd = ''toSnake ["Foo Bar" "baz-qux"]'';
-            res = ''["foo_bar" "baz_qux"]'';
+            cmd = ''toSnake ["registry" "of" "entry"]'';
+            res = ''"registry_of_entry"'';
           };
           inherit input;
         }
       )
-    else _applyStr go input;
+    else if isList input
+    then concat "_" input
+    else asStr input;
 
   /**
   Convert a string or list of strings to SCREAMING_SNAKE_CASE.
 
   Splits on spaces, underscores, and hyphens. All uppercase.
+  When given a list, treats elements as pre-split words and joins them.
 
   # Type
   ```nix
-  toScreamingSnake :: string | [string] -> string | [string]
+  toScreamingSnake :: string | [string] -> string
   ```
 
   # Examples
   ```nix
-  toScreamingSnake "foo bar"        # => "FOO_BAR"
-  toScreamingSnake "fooBarBaz"      # => "FOOBARBAZ"
-  toScreamingSnake ["foo" "bar"]    # => ["FOO" "BAR"]
+  toScreamingSnake "foo bar"                   # => "FOO_BAR"
+  toScreamingSnake "fooBarBaz"                 # => "FOOBARBAZ"
+  toScreamingSnake ["registry" "of" "entry"]  # => "REGISTRY_OF_ENTRY"
   ```
   */
   toScreamingSnake = input: let
-    go = s: toUpper (concat "_" (_splitWords s));
+    asStr = text: toUpper (concat "_" (_splitWords text));
   in
     if isList input && any isList input
     then
@@ -613,37 +623,40 @@
             fn = toScreamingSnake;
           };
           message = "nested lists are not supported";
-          signature = "string | [string] -> string | [string]";
+          signature = "string | [string] -> string";
           example = mkExample {
-            cmd = ''toScreamingSnake ["foo bar" "baz_qux"]'';
-            res = ''["FOO_BAR" "BAZ_QUX"]'';
+            cmd = ''toScreamingSnake ["registry" "of" "entry"]'';
+            res = ''"REGISTRY_OF_ENTRY"'';
           };
           inherit input;
         }
       )
-    else _applyStr go input;
+    else if isList input
+    then toUpper (concat "_" input)
+    else asStr input;
 
   /**
   Convert a string or list of strings to Title Case.
 
   Splits on spaces, underscores, and hyphens. Each word is capitalized
   and rejoined with a single space.
+  When given a list, treats elements as pre-split words and joins them.
 
   # Type
   ```nix
-  toTitle :: string | [string] -> string | [string]
+  toTitle :: string | [string] -> string
   ```
 
   # Examples
   ```nix
-  toTitle "foo bar"           # => "Foo Bar"
-  toTitle "foo_bar_baz"       # => "Foo Bar Baz"
-  toTitle "the-quick-fox"     # => "The Quick Fox"
-  toTitle ["foo bar" "a_b"]   # => ["Foo Bar" "A B"]
+  toTitle "foo bar"                    # => "Foo Bar"
+  toTitle "foo_bar_baz"                # => "Foo Bar Baz"
+  toTitle "the-quick-fox"              # => "The Quick Fox"
+  toTitle ["registry" "of" "entry"]   # => "Registry Of Entry"
   ```
   */
   toTitle = input: let
-    go = s: concat " " (map capitalize (_splitWords s));
+    asStr = text: concat " " (map capitalize (_splitWords text));
   in
     if isList input && any isList input
     then
@@ -654,15 +667,17 @@
             fn = toTitle;
           };
           message = "nested lists are not supported";
-          signature = "string | [string] -> string | [string]";
+          signature = "string | [string] -> string";
           example = mkExample {
-            cmd = ''toTitle ["foo bar" "baz_qux"]'';
-            res = ''["Foo Bar" "Baz Qux"]'';
+            cmd = ''toTitle ["registry" "of" "entry"]'';
+            res = ''"Registry Of Entry"'';
           };
           inherit input;
         }
       )
-    else _applyStr go input;
+    else if isList input
+    then concat " " (map capitalize input)
+    else asStr input;
 
   # wrap = {
   #   token ? "`",
@@ -907,6 +922,66 @@ in
           desired = null;
           command = "normalize []";
           outcome = normalize [];
+        };
+      };
+      toCamel = {
+        singleString = mkTest {
+          desired = "fooBar";
+          command = ''toCamel "foo bar"'';
+          outcome = toCamel "foo bar";
+        };
+        wordList = mkTest {
+          desired = "registryOfEntry";
+          command = ''toCamel ["registry" "of" "entry"]'';
+          outcome = toCamel ["registry" "of" "entry"];
+        };
+      };
+      toPascal = {
+        singleString = mkTest {
+          desired = "FooBar";
+          command = ''toPascal "foo bar"'';
+          outcome = toPascal "foo bar";
+        };
+        wordList = mkTest {
+          desired = "RegistryOfEntry";
+          command = ''toPascal ["registry" "of" "entry"]'';
+          outcome = toPascal ["registry" "of" "entry"];
+        };
+      };
+      toSnake = {
+        singleString = mkTest {
+          desired = "foo_bar";
+          command = ''toSnake "Foo Bar"'';
+          outcome = toSnake "Foo Bar";
+        };
+        wordList = mkTest {
+          desired = "registry_of_entry";
+          command = ''toSnake ["registry" "of" "entry"]'';
+          outcome = toSnake ["registry" "of" "entry"];
+        };
+      };
+      toScreamingSnake = {
+        singleString = mkTest {
+          desired = "FOO_BAR";
+          command = ''toScreamingSnake "foo bar"'';
+          outcome = toScreamingSnake "foo bar";
+        };
+        wordList = mkTest {
+          desired = "REGISTRY_OF_ENTRY";
+          command = ''toScreamingSnake ["registry" "of" "entry"]'';
+          outcome = toScreamingSnake ["registry" "of" "entry"];
+        };
+      };
+      toTitle = {
+        singleString = mkTest {
+          desired = "Foo Bar";
+          command = ''toTitle "foo bar"'';
+          outcome = toTitle "foo bar";
+        };
+        wordList = mkTest {
+          desired = "Registry Of Entry";
+          command = ''toTitle ["registry" "of" "entry"]'';
+          outcome = toTitle ["registry" "of" "entry"];
         };
       };
     };

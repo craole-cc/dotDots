@@ -275,6 +275,7 @@
             env
             // {
               module = meta;
+              __moduleDirectory = meta.directory;
               __modulePath = meta.path;
               __moduleFile = meta.file;
               __moduleName = meta.name;

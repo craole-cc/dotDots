@@ -1,9 +1,6 @@
 {
   _,
-  __moduleRef,
-  __modulePath,
-  __moduleFile,
-  __moduleName,
+  __moduleDirectory,
   ...
 }: let
   meta = let
@@ -18,19 +15,18 @@
     '';
 
     exports = let
-      internal = {
-        inherit __moduleRef __modulePath __moduleName;
-        ref = __moduleRef;
-        path = __modulePath;
-        name = __moduleName;
-        file = __moduleFile;
-      };
-      # internal = registry // {inherit __moduleRef __modulePath __moduleName;};
-      external = {registryOfStyles = registry;};
+      aliases = {"${alias}" = registry;};
+      internal = registry // {inherit title;};
+      external = aliases;
     in {inherit internal external;};
   in {inherit doc exports;};
 
+  inherit (_.strings.transformation) toCamel toTitle;
+
   registry = _.sources.registry.io.import ./.;
+  label = ["registy" "of" __moduleDirectory];
+  alias = toCamel label;
+  title = toTitle label;
 in
   with meta.exports;
     internal
