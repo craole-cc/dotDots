@@ -4,7 +4,6 @@
     (lib.lists)
     filter
     head
-    map
     uniqueStrings
     ;
   inherit

@@ -12,7 +12,8 @@
 
     exports = let
       internal = registry;
-      external = {registryOfStyles = registry;};
+      # TODO: Derive registryOf<basename> using debug or meta
+      external = {registryOfApplications = registry;};
     in {inherit internal external;};
   in {inherit doc exports;};
 

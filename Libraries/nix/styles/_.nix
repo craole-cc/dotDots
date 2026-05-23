@@ -1,4 +1,11 @@
-{_, ...}: let
+{
+  _,
+  __moduleRef,
+  __modulePath,
+  __moduleFile,
+  __moduleName,
+  ...
+}: let
   meta = let
     doc = ''
       Source registry I/O helpers.
@@ -11,7 +18,14 @@
     '';
 
     exports = let
-      internal = registry;
+      internal = {
+        inherit __moduleRef __modulePath __moduleName;
+        ref = __moduleRef;
+        path = __modulePath;
+        name = __moduleName;
+        file = __moduleFile;
+      };
+      # internal = registry // {inherit __moduleRef __modulePath __moduleName;};
       external = {registryOfStyles = registry;};
     in {inherit internal external;};
   in {inherit doc exports;};
