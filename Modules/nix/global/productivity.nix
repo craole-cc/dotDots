@@ -5,11 +5,20 @@
   #|---------------------------------------------------------|
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
+  llm = inputPkgs "llm-agents";
+
   packages = (
-    (with pkgs; [cowsay hello hello-wayland])
-    ++ (with (inputPkgs "llm-agents"); [
+    (with pkgs; [nodejs_22])
+    ++ (with llm; [
       # codex
-      hermes-agent
+      (hermes-agent.overrideAttrs ({postInstall ? "", ...}: {
+        postInstall =
+          postInstall
+          + ''
+            mkdir -p "$out"/lib/python3.13/site-packages/scripts
+            cp -r "$src"/scripts/whatsapp-bridge "$out"/lib/python3.13/site-packages/scripts/
+          '';
+      }))
     ])
     # ++ (with (inputPkgs "vscode-insiders"); [default])
     # ++ (
