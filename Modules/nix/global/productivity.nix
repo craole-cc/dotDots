@@ -6,27 +6,35 @@
 in {
   inherit description;
 
-  packages = with pkgs; [
-    nodejs_22
-    ollama
-  ] ++ (with llms; [
-    hermes-agent
-  ]);
+  packages = (
+    []
+    ++ (with pkgs; [
+      nodejs_22
+      ollama
+    ])
+    ++ (with llms; [
+      hermes-agent
+    ])
+  );
 
   env = {
-    HERMES_INFERENCE_PROVIDER = "ollama";
-    HERMES_INFERENCE_MODEL = "qwen2.5-coder:3b";
     OLLAMA_HOST = "http://127.0.0.1:11434";
+    OLLAMA_CONTEXT_LENGTH = "64000";
+    OLLAMA_DEFAULT_MODEL = "qwen2.5-coder:3b";
+
+    OPENAI_API_BASE = "http://127.0.0.1:11434/v1";
+    OPENAI_BASE_URL = "http://127.0.0.1:11434/v1";
+
+    HERMES_INFERENCE_MODEL = "qwen2.5-coder:3b";
   };
 
   shellHook = ''
     gum style --italic --bold "Hermes Minimal"
     printf '%s\n' "Telegram stays as the front end for Hermes."
-    printf '%s\n' "Default provider: Ollama (free/local)."
-    printf '%s\n' "Default model: qwen2.5-coder:3b"
-    printf '%s\n' "Start the backend first: ollama serve"
-    printf '%s\n' "If needed, pull the model first: ollama pull qwen2.5-coder:3b"
-    printf '%s\n' "Then launch Hermes: hermes chat"
-    printf '%s\n' "Override at runtime: hermes --provider ollama --model <name> chat"
+    printf '%s\n' "Local backend: Ollama at %s" "$OPENAI_API_BASE"
+    printf '%s\n' "Default local model: %s""$OLLAMA_DEFAULT_MODEL"
+    printf '%s\n' "Start backend: ollama serve"
+    printf '%s\n' "Check models: curl %s/models"  "$OPENAI_API_BASE"
+    printf '%s\n' "Chat locally: hermes chat"
   '';
 }
