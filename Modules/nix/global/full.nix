@@ -265,11 +265,11 @@
       [ollama-cpu]
       ++ (with (inputPkgs "llm-agents"); [
         codex
-        gemini-cli
+        # gemini-cli
         hermes-agent
         openclaw
         opencode
-        claude-code
+        # claude-code
       ])
     )); # ? Linux clipboard tools
 

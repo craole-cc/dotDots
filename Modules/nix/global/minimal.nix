@@ -89,7 +89,7 @@
         ]
         ++ (with (inputPkgs "llm-agents"); [
           codex
-          hermes-agent
+          # hermes-agent
         ])
         ++ optionals stdenv.isLinux [
           xclip
