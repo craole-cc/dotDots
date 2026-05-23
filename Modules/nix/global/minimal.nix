@@ -1,6 +1,6 @@
 {dots, ...}: let
   description = "Minimal Dev Environment";
-  inherit (dots) cache lix pkgs system inputPkgs;
+  inherit (dots) cache lix pkgs system;
   inherit (lix.lists.construction) optionals;
 
   #|---------------------------------------------------------|
@@ -87,10 +87,6 @@
           sops
           undollar # ? Remove leading dollar signs age
         ]
-        ++ (with (inputPkgs "llm-agents"); [
-          codex
-          # hermes-agent
-        ])
         ++ optionals stdenv.isLinux [
           xclip
           wl-clipboard

@@ -81,7 +81,10 @@
     #> Import the attrs from the valididated files
     configs =
       mapAttrs' (
-        file: _: nameValuePair (removeSuffix ".nix" file) (import (./. + "/${file}") {inherit dots;})
+        file: _:
+          nameValuePair
+          (removeSuffix ".nix" file)
+          (import (./. + "/${file}") {inherit dots;})
       )
       files;
 
