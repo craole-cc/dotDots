@@ -806,10 +806,11 @@ in
           ];
           command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
           outcome = split {
-            delimiters = prev: curr: isIn curr [
-              "."
-              "-"
-            ];
+            delimiters = prev: curr:
+              isIn curr [
+                "."
+                "-"
+              ];
             include = false;
             input = "foo.bar-baz";
           };
@@ -824,10 +825,12 @@ in
             "baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
-          outcome = split (prev: curr: isIn curr [
-            "."
-            "-"
-          ]) false "foo.bar-baz";
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          false "foo.bar-baz";
         };
         curriedIncludeTrue = mkTest {
           desired = [
@@ -836,10 +839,12 @@ in
             "-baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
-          outcome = split (prev: curr: isIn curr [
-            "."
-            "-"
-          ]) true "foo.bar-baz";
+          outcome = split (prev: curr:
+            isIn curr [
+              "."
+              "-"
+            ])
+          true "foo.bar-baz";
         };
         curriedListInput = mkTest {
           desired = [

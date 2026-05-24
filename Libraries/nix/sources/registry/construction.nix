@@ -48,34 +48,35 @@
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) wrap;
-  inherit (_.types.predicates) isAttrs isString;
-  inherit (_.sources.registry.resolution)
+  inherit (_.types.predicates) isAttrs isList isString;
+  inherit
+    (_.sources.registry.resolution)
     lookup
     mkSource
     normalize
     ;
 
   /**
-    Normalize a list-like input into a filtered list.
+  Normalize a list-like input into a filtered list.
   */
   normalizeList = values:
-    if builtins.isList values
+    if isList values
     then filter (value: value != null && value != {}) values
     else [values];
 
   /**
-    Flatten a one-level registry of nested attrsets.
+  Flatten a one-level registry of nested attrsets.
 
-    This is useful for registry structures grouped by namespace.
+  This is useful for registry structures grouped by namespace.
   */
   flatten = registry:
     foldl' (acc: namespace: acc // registry.${namespace}) {} (attrNames registry);
 
   /**
-    Produce light-weight analysis groups for a flat registry attrset.
+  Produce light-weight analysis groups for a flat registry attrset.
 
-    `groupBy` and `queryBy` are lists of entry field names. For each field,
-    this returns an attrset keyed by distinct field values.
+  `groupBy` and `queryBy` are lists of entry field names. For each field,
+  this returns an attrset keyed by distinct field values.
   */
   mkAnalysis = {
     owner ? "mkAnalysis",
@@ -120,11 +121,11 @@
   };
 
   /**
-    Build a reusable registry object from a source record and seed data.
+  Build a reusable registry object from a source record and seed data.
 
-    The source's `value` is deep-merged with `seed` so the registry can be
-    pre-populated or overridden by callers. The returned object exposes the
-    merged `entries`, `lookup`, and a generic `normalize` helper.
+  The source's `value` is deep-merged with `seed` so the registry can be
+  pre-populated or overridden by callers. The returned object exposes the
+  merged `entries`, `lookup`, and a generic `normalize` helper.
   */
   mkRegistry = {
     owner ? "mkRegistry",
@@ -145,10 +146,7 @@
         ;
     };
 
-    lookupEntry = args@{
-      default ? null,
-      ...
-    }:
+    lookupEntry = args @ {default ? null, ...}:
       lookup (
         {
           registry = entries;
@@ -188,9 +186,7 @@
       seed
       source'
       ;
-    name = source'.name;
-    path = source'.path;
-    raw = source'.raw;
+    inherit (source') name path raw;
     value = entries;
     lookup = lookupEntry;
     normalize = normalizeEntry;

@@ -7,7 +7,7 @@
   inherit (_.lists.aggregation) concatMap;
   inherit (_.strings.predicates) hasInfix;
   inherit (_.strings.transformation) toLower;
-  inherit (_.types.predicates) isFunction;
+  inherit (_.types.predicates) isFunction isList;
 
   /**
   mkapp - create a generic application handler with flake support
@@ -178,10 +178,10 @@
     then null
     else if builtins.isString path
     then [path]
-    else if builtins.isList path
+    else if isList path
     then let
       flattened = concatMap (segment:
-        if builtins.isList segment
+        if isList segment
         then segment
         else [segment])
       path;

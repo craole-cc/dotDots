@@ -150,7 +150,7 @@
           assertion = hasAttr "name" variant;
           message = "resolved polarity cursor entry has no `name`";
         }; {
-          name = variant.name;
+          inherit (variant) name;
           package = getPackage {
             inherit pkgs;
             target = resolved.package;
@@ -186,7 +186,7 @@
         assertion = hasAttr "name" variant && hasAttr "package" entry;
         message = "resolved polarity cursor entry is invalid";
       }; {
-        name = variant.name;
+        inherit (variant) name;
         package = getPackage {
           inherit pkgs;
           target = entry.package;

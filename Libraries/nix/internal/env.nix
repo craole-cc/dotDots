@@ -5,24 +5,24 @@
   self,
   flake,
   safe,
-}: {
-  #~@ Primary references
-  library = names.lib;
-  inherit lib names flake paths;
-  inherit (paths) src;
-  ${names.top} = self; # ? custom library (extensible self)
-  lix = self; # ? custom library (extensible self)
+}: let
+  base = {
+    #~@ Primary references
+    library = names.lib;
+    inherit lib names flake paths;
+    inherit (paths) src;
+    ${names.top} = self; # ? custom library (extensible self)
+    lix = self; # ? custom library (extensible self)
 
-  #~@ Short aliases
-  l = lib;
-  _ = self;
-  x = self;
-  s = safe;
-
-  #~@ Structured access
-  libs = {
-    nixpkgs = lib;
-    custom = self;
-    inherit safe;
+    #~@ Short aliases
+    l = lib;
+    x = self;
+    s = safe;
   };
-}
+in
+  base
+  // (
+    if names.top == "_"
+    then {}
+    else {_ = self;}
+  )

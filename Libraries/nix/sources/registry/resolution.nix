@@ -53,30 +53,30 @@
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) wrap;
   inherit (_.strings.transformation) toLowerCase;
-  inherit (_.types.predicates) isAttrs isPath isString;
+  inherit (_.types.predicates) isAttrs isPath isList isString;
 
   /**
-    Normalize a registry source specification into a canonical source record.
+  Normalize a registry source specification into a canonical source record.
 
-    Accepted inputs:
-    - a path or string, treated as the registry root
-    - an attrset containing `root`/`path` and optional overrides such as
-      `name`, `stems`, `recursive`, `extraArgs`, `raw`, or `value`
+  Accepted inputs:
+  - a path or string, treated as the registry root
+  - an attrset containing `root`/`path` and optional overrides such as
+    `name`, `stems`, `recursive`, `extraArgs`, `raw`, or `value`
 
-    The returned record always contains:
-    - `name`
-    - `path`
-    - `root`
-    - `raw`
-    - `value`
-    - `stems`
-    - `recursive`
-    - `extraArgs`
+  The returned record always contains:
+  - `name`
+  - `path`
+  - `root`
+  - `raw`
+  - `value`
+  - `stems`
+  - `recursive`
+  - `extraArgs`
 
-    # Type
-    ```nix
-    mkSource :: any -> AttrSet
-    ```
+  # Type
+  ```nix
+  mkSource :: any -> AttrSet
+  ```
   */
   mkSource = value: let
     args =
@@ -96,22 +96,29 @@
     path = args.path or root;
     name =
       args.name or
-      (if path != null then baseNameOf (toString path) else "registry");
+      (
+        if path != null
+        then baseNameOf (toString path)
+        else "registry"
+      );
     stems = args.stems or ["data"];
     recursive = args.recursive or true;
     extraArgs = args.extraArgs or (args.args or {});
     raw =
       args.raw or
-      (if root != null
-      then importRegistry {
-        inherit
-          root
-          stems
-          recursive
-          extraArgs
-          ;
-      }
-      else args.value or {});
+      (
+        if root != null
+        then
+          importRegistry {
+            inherit
+              root
+              stems
+              recursive
+              extraArgs
+              ;
+          }
+        else args.value or {}
+      );
     value' = args.value or raw;
   in {
     inherit
@@ -127,26 +134,26 @@
   };
 
   /**
-    Generic lookup helper for nested registry trees.
+  Generic lookup helper for nested registry trees.
 
-    When `path` is supplied, it is tried first. Otherwise `name`/`names` are
-    expanded into single-segment lookup paths and tried in order until one
-    resolves. Missing lookups fall back to `default`.
+  When `path` is supplied, it is tried first. Otherwise `name`/`names` are
+  expanded into single-segment lookup paths and tried in order until one
+  resolves. Missing lookups fall back to `default`.
 
-    # Type
-    ```nix
-    lookup :: {
-      registry :: AttrSet,
-      name? :: string,
-      names? :: [string],
-      path? :: [string] | string,
-      paths? :: [[string]] | [string],
-      default? :: any,
-      caseInsensitive? :: bool,
-    } -> any
-    ```
+  # Type
+  ```nix
+  lookup :: {
+    registry :: AttrSet,
+    name? :: string,
+    names? :: [string],
+    path? :: [string] | string,
+    paths? :: [[string]] | [string],
+    default? :: any,
+    caseInsensitive? :: bool,
+  } -> any
+  ```
   */
-  lookup = args@{
+  lookup = args @ {
     registry,
     default ? null,
     name ? null,
@@ -170,7 +177,12 @@
         then lookupPath (getAttr segment current) (tail remaining)
         else default;
 
-    candidateNames = unique (filter isString ((if name != null then [name] else []) ++ names));
+    candidateNames = unique (filter isString ((
+        if name != null
+        then [name]
+        else []
+      )
+      ++ names));
 
     resolveNames = remaining:
       if remaining == []
@@ -183,16 +195,21 @@
         else resolveNames (tail remaining);
   in
     if path != null
-    then lookupPath registry (if builtins.isList path then map normalizeSegment path else [normalizeSegment path])
+    then
+      lookupPath registry (
+        if isList path
+        then map normalizeSegment path
+        else [normalizeSegment path]
+      )
     else resolveNames candidateNames;
 
   /**
-    Lookup a list of registry names in order.
+  Lookup a list of registry names in order.
 
-    # Type
-    ```nix
-    byNames :: { registry :: AttrSet, names :: [string], default? :: any } -> any
-    ```
+  # Type
+  ```nix
+  byNames :: { registry :: AttrSet, names :: [string], default? :: any } -> any
+  ```
   */
   byNames = {
     registry,
@@ -211,7 +228,7 @@
     };
 
   /**
-    Alias for `mkSource` so the public API reads more naturally.
+  Alias for `mkSource` so the public API reads more naturally.
   */
   normalize = value: mkSource value;
 in

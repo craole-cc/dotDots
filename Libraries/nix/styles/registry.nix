@@ -142,9 +142,13 @@
 
     source = sourceNormalize {
       inherit path raw value;
-      name = if isNotEmpty domainName then domainName else null;
+      name =
+        if isNotEmpty domainName
+        then domainName
+        else null;
     };
-  in source;
+  in
+    source;
 
   normalize = value: mkSource value;
 
@@ -263,7 +267,6 @@
   #   queries ? {},
   # }:
   #   {all = set;} // queries;
-
 
   mkPolarity = {
     pair = input: let

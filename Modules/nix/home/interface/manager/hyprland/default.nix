@@ -22,7 +22,10 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
-  addons = import ./addons {inherit lib mkMerge paths;};
+  mkAddons = target: let
+    addons = import ./addons {inherit lib mkMerge paths;};
+  in
+    mkIf cfg.withAddons addons.${target};
 in {
   options.${top}.${dom}.${mod} = {
     enable =
@@ -46,6 +49,7 @@ in {
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
+        configType = "lua";
         plugins = [];
       }
       (import ./settings {
@@ -64,7 +68,7 @@ in {
       (import ./submaps {inherit mkMerge;})
     ];
 
-    programs = mkIf cfg.withAddons addons.programs;
-    services = mkIf cfg.withAddons addons.services;
+    programs = mkAddons "programs";
+    services = mkAddons "services";
   };
 }

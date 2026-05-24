@@ -118,7 +118,7 @@
           assertion = hasAttr "name" variant;
           message = "resolved polarity icon entry has no `name`";
         }; {
-          name = variant.name;
+          inherit (variant) name;
           package = getPackage {
             inherit pkgs;
             target = resolved.package;

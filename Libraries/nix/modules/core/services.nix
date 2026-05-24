@@ -111,7 +111,6 @@
 
         gdm = {
           enable = displayManager == "gdm" && !useDms;
-          wayland = displayProtocol == "wayland";
         };
 
         sddm = {

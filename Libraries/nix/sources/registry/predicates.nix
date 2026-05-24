@@ -32,16 +32,16 @@
   inherit (_.types.predicates) isAttrs;
 
   /**
-    Return `true` when `tree` is a non-empty attrset whose first value is
-    itself an attrset.
+  Return `true` when `tree` is a non-empty attrset whose first value is
+  itself an attrset.
 
-    This is intentionally loose: registry consumers can apply stronger domain
-    rules on top (for example checking for `categories`, `name`, or `value`).
+  This is intentionally loose: registry consumers can apply stronger domain
+  rules on top (for example checking for `categories`, `name`, or `value`).
 
-    # Type
-    ```nix
-    isRegistry :: AttrSet -> bool
-    ```
+  # Type
+  ```nix
+  isRegistry :: AttrSet -> bool
+  ```
   */
   isRegistry = tree:
     isAttrs tree
