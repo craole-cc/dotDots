@@ -224,10 +224,6 @@
     ]);
 
   shellHook = ''
-    # trap '
-    #   stop-services --force
-    # ' EXIT
-
     start-services
     show-help
   '';
