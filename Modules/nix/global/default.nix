@@ -98,5 +98,5 @@
       )
       configs;
   in
-    shells // {default = shells."productivity";};
+    shells // {default = shells.minimal;};
 in {inherit checks devShells formatter;}
