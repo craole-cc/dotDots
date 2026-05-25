@@ -1,5 +1,6 @@
 {dots, ...}: let
   inherit (dots) pkgs inputPkgs;
+  hermes = (inputPkgs "llm-agents").hermes-agent;
 
   description = "AI Assistance";
 
@@ -8,133 +9,168 @@
     OLLAMA_BASE_URL = "$OLLAMA_LOCALHOST/v1";
     OLLAMA_CONTEXT_LENGTH = "64000";
     OLLAMA_DEFAULT_MODEL = "qwen2.5-coder:3b";
+    PRODUCTIVITY_AUTO_START = "1";
+    PRODUCTIVITY_STARTUP_TIMEOUT = "15";
   };
 
   packages =
-    (with pkgs; [
-      gum
-      jq
-      nodejs_22
-      ollama
-    ])
-    ++ (with (inputPkgs "llm-agents"); [hermes-agent])
+    (with pkgs; [curl gum jq nodejs_22 ollama])
+    ++ [hermes]
     ++ (let
-      mkBin = pkgs.writeShellScriptBin;
-      log = ''gum log --level'';
-      confirm = ''gum confirm'';
+      mkBin = name: runtimeInputs: text:
+        pkgs.writeShellApplication {inherit name runtimeInputs text;};
+
+      common-runtime = with pkgs; [coreutils gum procps];
+      api-runtime = with pkgs; [curl jq];
+      ollama-runtime = with pkgs; [ollama];
+      hermes-runtime = [hermes];
+
+      log = "gum log --level";
+      confirm = "gum confirm";
+      checker = pattern: ''pgrep -f "${pattern}" > /dev/null 2>&1'';
+      killer = pattern: ''pkill -f "${pattern}" > /dev/null 2>&1'';
 
       set-terminal = ''
-        if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-          terminal="${pkgs.foot}/bin/foot"
-        elif [ -n "$DISPLAY" ]; then
-          terminal="${pkgs.xterm}/bin/xterm"
-        else
-          ${log} error "No display server detected."
-          exit 1
-        fi
+        case "$XDG_SESSION_TYPE" in
+          wayland) terminal="${pkgs.foot}/bin/foot" ;;
+          *)
+            case "$DISPLAY" in
+              "")
+                ${log} error "No display server detected."
+                exit 1
+              ;;
+              *) terminal="${pkgs.xterm}/bin/xterm" ;;
+            esac
+          ;;
+        esac
       '';
 
       run = cmd: ''
-        $terminal -e bash -lc '${cmd}; exec bash' </dev/null >/dev/null 2>&1 &
-        disown $!
+        # shellcheck disable=SC2016
+        "$terminal" -e sh -lc '${cmd}
+        exec "''${SHELL:-/bin/sh}"' </dev/null >/dev/null 2>&1 &
       '';
 
-      kill-hermes = "pkill -f 'hermes gateway run'";
-      kill-ollama = "pkill -f 'ollama serve'";
+      wait-until = check: label: ''
+        timeout="''${PRODUCTIVITY_STARTUP_TIMEOUT:-15}"
+        elapsed=0
+        while [ "$elapsed" -lt "$timeout" ]; do
+          if ${check}; then
+            ${log} info "${label}"
+            exit 0
+          fi
+          sleep 1
+          elapsed=$((elapsed + 1))
+        done
+        ${log} warn "Timed out waiting for ${label}."
+        exit 1
+      '';
 
-      check-hermes = ''pgrep -f 'hermes gateway run' > /dev/null 2>&1'';
-      check-ollama = ''curl -sf "$OLLAMA_LOCALHOST" > /dev/null 2>&1'';
-      check-ollama-models = mkBin "ollama-models" ''
-        if ! ${check-ollama}; then
+      #~@ Ollama
+      kill-ollama = killer "ollama serve";
+      check-ollama = checker "ollama serve";
+      check-ollama-model = ''curl -sf "$OLLAMA_LOCALHOST/api/tags" | jq -e --arg model "$OLLAMA_DEFAULT_MODEL" 'any(.models[]?; .name == $model)' > /dev/null'';
+
+      show-ollama-models = mkBin "ollama-models" (common-runtime ++ api-runtime) ''
+        if ${check-ollama}; then :; else
           ${log} error "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?"
           exit 1
         fi
 
         ${log} info "Models available at $OLLAMA_LOCALHOST"
-        curl -sf "$OLLAMA_LOCALHOST/api/tags" \
-          | jq -r '.models[].name' \
-          | while read -r model; do gum style "  • $model"; done
-      '';
+        models="$(curl -sf "$OLLAMA_LOCALHOST/api/tags" | jq -r '.models[]?.name')"
 
-      start-hermes = mkBin "hermes-start" ''
-        ${set-terminal}
-
-        if ${check-hermes}; then
-          ${log} warn "Hermes Gateway already running - skipping."
+        if [ -z "$models" ]; then
+          ${log} warn "No models installed. Try: ollama pull $OLLAMA_DEFAULT_MODEL"
           exit 0
         fi
 
-        ${confirm} "Start Hermes Gateway?" || exit 0
-
-        ${run "hermes gateway run"}
-        ${log} info "Hermes Gateway launched via '$(basename $terminal)'."
-
-        sleep 1
-        if ${check-hermes}; then
-          ${log} info "Hermes Gateway is running."
-        else
-          ${log} warn "Hermes Gateway not yet detected - it may still be starting."
-        fi
+        printf '%s\n' "$models" | while read -r model; do
+          gum style "  • $model"
+        done
       '';
 
-      start-ollama = mkBin "ollama-start" ''
-        if ${check-ollama}; then
-          ${log} warn "Ollama already running at $OLLAMA_LOCALHOST - skipping."
-          exit 0
-        fi
+      start-ollama =
+        mkBin "ollama-start" (
+          common-runtime ++ api-runtime ++ ollama-runtime
+        ) ''
+          if ${check-ollama}; then
+            ${log} warn "Ollama already running at $OLLAMA_LOCALHOST - skipping."
+            exit 0
+          fi
+          ${confirm} "Start Ollama?" || exit 0
+          ${set-terminal}
+          ${run "ollama serve"}
+          ${log} info "Ollama launched via '$(basename "$terminal")'."
+          ${wait-until check-ollama "Ollama is reachable at '$OLLAMA_LOCALHOST'."}
+        '';
 
-        ${confirm} "Start Ollama?" || exit 0
+      stop-ollama =
+        mkBin "ollama-stop" (
+          common-runtime ++ api-runtime
+        ) ''
+          if ${check-ollama}; then :; else
+            ${log} warn "Ollama is not running."
+            exit 0
+          fi
+          force=0
+          for arg in "$@"; do
+            case "$arg" in --force) force=1 ;; esac
+          done
+          if [ "$force" = "0" ]; then
+            ${confirm} "Stop Ollama?" </dev/tty || exit 0
+          fi
+          if ${kill-ollama}; then
+            ${log} info "Ollama stopped."
+          else
+            ${log} error "Failed to stop Ollama."
+          fi
+        '';
 
-        ${set-terminal}
-        ${run "ollama serve"}
-        ${log} info "Ollama launched via '$(basename "$terminal")'."
-
-        sleep 1
-        if ${check-ollama}; then
-          ${log} info "Ollama is reachable at '$OLLAMA_LOCALHOST'."
-        else
-          ${log} warn "Ollama not yet reachable - it may still be starting."
-        fi
-      '';
-
-      chat-with-ollama = mkBin "ollama-chat" ''
+      chat-with-ollama = mkBin "ollama-chat" (common-runtime ++ api-runtime ++ ollama-runtime) ''
         if ! ${check-ollama}; then
           ${log} error "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?"
           exit 1
         fi
+        if ! ${check-ollama-model}; then
+          ${log} error "Model '$OLLAMA_DEFAULT_MODEL' is not installed."
+          ${log} info "Run: ollama pull $OLLAMA_DEFAULT_MODEL"
+          exit 1
+        fi
         ollama run "$OLLAMA_DEFAULT_MODEL"
       '';
-      chat-with-hermes = mkBin "hermes-chat" ''
-        hermes chat
-      '';
 
-      stop-ollama = mkBin "ollama-stop" ''
-        if ! ${check-ollama}; then
-          ${log} warn "Ollama is not running."
-          exit 0
-        fi
+      #~@ Hermes
+      check-hermes = checker "hermes gateway run";
+      kill-hermes = killer "hermes gateway run";
 
-        if [ "$1" != "--force" ]; then
-          ${confirm} "Stop Ollama?" </dev/tty || exit 0
-        fi
+      start-hermes =
+        mkBin "hermes-start" (
+          common-runtime ++ api-runtime ++ hermes-runtime
+        ) ''
+          if ${check-hermes}; then
+            ${log} warn "Hermes Gateway already running - skipping."
+            exit 0
+          fi
+          ${set-terminal}
+          ${confirm} "Start Hermes Gateway?" || exit 0
+          ${run "hermes gateway run"}
+          ${log} info "Hermes Gateway launched via '$(basename "$terminal")'."
+          ${wait-until check-hermes "Hermes Gateway is running."}
+        '';
 
-        if ${kill-ollama}; then
-          ${log} info "Ollama stopped."
-        else
-          ${log} error "Failed to stop Ollama."
-        fi
-      '';
-
-      stop-hermes = mkBin "hermes-stop" ''
-        if ! ${check-hermes}; then
+      stop-hermes = mkBin "hermes-stop" common-runtime ''
+        if ${check-hermes}; then :; else
           ${log} warn "Hermes Gateway is not running."
           exit 0
         fi
-
-        if [ "$1" != "--force" ]; then
+        force=0
+        for arg in "$@"; do
+          case "$arg" in --force) force=1 ;; esac
+        done
+        if [ "$force" = "0" ]; then
           ${confirm} "Stop Hermes Gateway?" </dev/tty || exit 0
         fi
-
         if ${kill-hermes}; then
           ${log} info "Hermes Gateway stopped."
         else
@@ -142,39 +178,45 @@
         fi
       '';
 
-      stop-all = mkBin "stop-services" ''
-        ollama-stop "$@"
-        hermes-stop "$@"
+      chat-with-hermes = mkBin "hermes-chat" hermes-runtime ''
+        hermes chat
       '';
 
-      start-all = mkBin "start-services" ''
+      #~@ All services
+      start-all = mkBin "start-services" [start-ollama start-hermes] ''
         ollama-start
         hermes-start
       '';
 
-      help-ollama = mkBin "ollama-help" ''
+      stop-all = mkBin "stop-services" [stop-ollama stop-hermes] ''
+        ollama-stop "$@"
+        hermes-stop "$@"
+      '';
+
+      #~@ Help
+      help-ollama = mkBin "ollama-help" (common-runtime ++ api-runtime) ''
         if ${check-ollama}; then
           gum style \
             "Ollama (server initiated)" \
             "  ollama-stop            stop Ollama" \
             "  ollama-models          list available models" \
-            "  ollama run <model>     chat with a model" \
-            "  ollama pull <model>    download a model" \
-            "  ollama-chat            chat with $OLLAMA_DEFAULT_MODEL"
+            "  ollama-chat            chat with $OLLAMA_DEFAULT_MODEL" \
+            "  ollama run <model>     chat with a specific model" \
+            "  ollama pull <model>    download a model"
         else
           gum style \
             "Ollama" \
             "  ollama-start           start Ollama" \
-            "  ollama run <model>     chat with a model" \
+            "  ollama run <model>     chat with a specific model" \
             "  ollama pull <model>    download a model"
         fi
       '';
 
-      help-hermes = mkBin "hermes-help" ''
+      help-hermes = mkBin "hermes-help" common-runtime ''
         if ${check-hermes}; then
           gum style \
             "Hermes (gateway initiated)" \
-            "  Gateway enables messaging via configured portals" \
+            "  Messaging via Telegram and other configured portals" \
             "  hermes-stop            stop Hermes Gateway" \
             "  hermes chat            chat locally in the terminal"
         else
@@ -186,17 +228,17 @@
         fi
       '';
 
-      help-services = mkBin "help-services" ''
+      help-services = mkBin "help-services" [pkgs.gum] ''
         gum style \
-          "Services" \
-          "  start-services           start missing services" \
-          "  stop-services            stop running services"
+          "All Services" \
+          "  start-services         start missing services" \
+          "  stop-services          stop running services"
       '';
 
       show-help = let
         mkSection = cmd: ''printf "%s\n\n" "$(${cmd})"'';
       in
-        mkBin "show-help" ''
+        mkBin "show-help" [pkgs.gum help-ollama help-hermes help-services] ''
           gum style --border rounded --padding "0 1" --align left "$(
             gum style --bold --italic "${description}"
             ${mkSection "ollama-help"}
@@ -213,7 +255,7 @@
       stop-hermes
       stop-ollama
 
-      check-ollama-models
+      show-ollama-models
       chat-with-ollama
       chat-with-hermes
 
@@ -224,7 +266,11 @@
     ]);
 
   shellHook = ''
-    start-services
-    show-help
+    if [ -t 1 ]; then
+      case "''${PRODUCTIVITY_AUTO_START:-1}" in
+        1) start-services ;;
+      esac
+      show-help
+    fi
   '';
 in {inherit description env packages shellHook;}
