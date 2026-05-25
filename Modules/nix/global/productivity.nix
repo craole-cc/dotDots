@@ -97,12 +97,15 @@
         fi
       '';
 
-      ollama-chat = mkBin "ollama-chat" ''
+      chat-with-ollama = mkBin "ollama-chat" ''
         if ! ${check-ollama}; then
           ${log} error "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?"
           exit 1
         fi
         ollama run "$OLLAMA_DEFAULT_MODEL"
+      '';
+      chat-with-hermes = mkBin "hermes-chat" ''
+        hermes chat
       '';
 
       stop-ollama = mkBin "ollama-stop" ''
@@ -211,7 +214,8 @@
       stop-ollama
 
       check-ollama-models
-      ollama-chat
+      chat-with-ollama
+      chat-with-hermes
 
       help-ollama
       help-hermes
