@@ -4,10 +4,10 @@
   description = "AI Assistance";
 
   env = {
-    OLLAMA_HOST = "http://127.0.0.1:11434";
+    OLLAMA_LOCALHOST = "http://127.0.0.1:11434";
+    OLLAMA_BASE_URL = "$OLLAMA_LOCALHOST/v1";
     OLLAMA_CONTEXT_LENGTH = "64000";
     OLLAMA_DEFAULT_MODEL = "qwen2.5-coder:3b";
-    OLLAMA_BASE_URL = "http://127.0.0.1:11434/v1";
   };
 
   packages =
@@ -23,7 +23,7 @@
       log = ''gum log --level'';
       confirm = ''gum confirm'';
 
-      set-term = ''
+      set-terminal = ''
         if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
           terminal="${pkgs.foot}/bin/foot"
         elif [ -n "$DISPLAY" ]; then
@@ -43,20 +43,22 @@
       kill-ollama = "pkill -f 'ollama serve'";
 
       check-hermes = ''pgrep -f 'hermes gateway run' > /dev/null 2>&1'';
-      check-ollama = ''curl -sf "$OLLAMA_HOST" > /dev/null 2>&1'';
+      check-ollama = ''curl -sf "$OLLAMA_LOCALHOST" > /dev/null 2>&1'';
       check-ollama-models = mkBin "ollama-models" ''
         if ! ${check-ollama}; then
-          ${log} error "Ollama not reachable at $OLLAMA_HOST - is it running?"
+          ${log} error "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?"
           exit 1
         fi
 
-        ${log} info "Models available at $OLLAMA_HOST"
-        curl -sf "$OLLAMA_HOST/api/tags" \
+        ${log} info "Models available at $OLLAMA_LOCALHOST"
+        curl -sf "$OLLAMA_LOCALHOST/api/tags" \
           | jq -r '.models[].name' \
           | while read -r model; do gum style "  • $model"; done
       '';
 
       start-hermes = mkBin "hermes-start" ''
+        ${set-terminal}
+
         if ${check-hermes}; then
           ${log} warn "Hermes Gateway already running - skipping."
           exit 0
@@ -64,7 +66,6 @@
 
         ${confirm} "Start Hermes Gateway?" || exit 0
 
-        ${set-term}
         ${run "hermes gateway run"}
         ${log} info "Hermes Gateway launched via '$(basename $terminal)'."
 
@@ -78,19 +79,19 @@
 
       start-ollama = mkBin "ollama-start" ''
         if ${check-ollama}; then
-          ${log} warn "Ollama already running at $OLLAMA_HOST - skipping."
+          ${log} warn "Ollama already running at $OLLAMA_LOCALHOST - skipping."
           exit 0
         fi
 
         ${confirm} "Start Ollama?" || exit 0
 
-        ${set-term}
+        ${set-terminal}
         ${run "ollama serve"}
         ${log} info "Ollama launched via '$(basename "$terminal")'."
 
         sleep 1
         if ${check-ollama}; then
-          ${log} info "Ollama is reachable at '$OLLAMA_HOST'."
+          ${log} info "Ollama is reachable at '$OLLAMA_LOCALHOST'."
         else
           ${log} warn "Ollama not yet reachable - it may still be starting."
         fi
@@ -98,7 +99,7 @@
 
       ollama-chat = mkBin "ollama-chat" ''
         if ! ${check-ollama}; then
-          ${log} error "Ollama not reachable at $OLLAMA_HOST - is it running?"
+          ${log} error "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?"
           exit 1
         fi
         ollama run "$OLLAMA_DEFAULT_MODEL"

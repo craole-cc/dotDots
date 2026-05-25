@@ -111,7 +111,6 @@
       gum confirm "Stop Hermes Gateway?" && hermes-stop || true
     fi
   '';
-
 in {
   inherit description;
 
