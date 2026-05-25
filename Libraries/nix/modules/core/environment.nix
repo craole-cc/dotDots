@@ -1,8 +1,23 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
+  meta = {
+    # TODO: Add the correct doc
+    doc = ''
+    '';
+
+    exports = {
+      internal = let
+        functions = {inherit mkEnvironment mkLocale;};
+        aliases = {};
+      in
+        {inherit functions aliases;}
+        // functions // aliases;
+      external = {
+        mkCoreEnvironment = mkEnvironment;
+        mkCoreLocale = mkLocale;
+      };
+    };
+  };
+
   inherit (_.lists.predicates) isIn;
   inherit
     (_.applications.resolution)
@@ -12,15 +27,7 @@
     launchers
     bars
     ;
-  inherit (lib.attrsets) optionalAttrs;
-
-  exports = {
-    internal = {inherit mkEnvironment mkLocale;};
-    external = {
-      mkCoreEnvironment = mkEnvironment;
-      mkCoreLocale = mkLocale;
-    };
-  };
+  inherit (_.attrsets.construction) optionalAttrs;
 
   mkEnvironment = {
     host,
@@ -28,6 +35,10 @@
     inputs,
     ...
   }: let
+    #~@ Paths
+    dots = host.paths.dots or null;
+    wallpapers = host.paths.wallpapers or null;
+
     #~@ User profile
     user = host.users.data.primary or {};
     apps = user.applications or {};
@@ -35,56 +46,29 @@
     #~@ Host interface
     dp = host.interface.displayProtocol or "wayland";
 
-    #~@ Paths
-    dots = host.paths.dots or null;
-    wallpapers = host.paths.wallpapers or null;
-
     #~@ System
     inherit (pkgs.stdenv.hostPlatform) system;
 
-    #~@ Application packages - resolved per host
-    editorPkgs = editors.packages {
-      inherit pkgs system inputs;
-      editorConfig = apps.editor or {};
-    };
-    browserPkgs = browsers.packages {
-      inherit pkgs system inputs;
-      appConfig = apps.browser or {};
-    };
-    terminalPkgs = terminals.packages {
-      inherit pkgs system inputs;
-      appConfig = apps.terminal or {};
-    };
-    launcherPkgs = launchers.packages {
-      inherit pkgs system inputs;
-      appConfig = apps.launcher or {};
-    };
-    barPkgs = bars.packages {
-      inherit pkgs system inputs;
-      appConfig = apps.bar or {};
-    };
-
-    #~@ Application commands - resolved per host
-    editorCmds = editors.commands {
-      inherit pkgs system inputs;
-      editorConfig = apps.editor or {};
-    };
-    browserCmds = browsers.commands {
-      inherit pkgs system inputs;
-      appConfig = apps.browser or {};
-    };
-    terminalCmds = terminals.commands {
-      inherit pkgs system inputs;
-      appConfig = apps.terminal or {};
-    };
-    launcherCmds = launchers.commands {
-      inherit pkgs system inputs;
-      appConfig = apps.launcher or {};
-    };
-    barCmds = bars.commands {
-      inherit pkgs system inputs;
-      appConfig = apps.bar or {};
-    };
+    # mkApp = set: kind: {
+    #   packages = set.packages {
+    #     inherit pkgs system inputs;
+    #     cfg = apps.${kind} or {};
+    #   };
+    #   commands = set.commands {
+    #     inherit pkgs system inputs;
+    #     cfg = apps.${kind} or {};
+    #   };
+    # };
+    mkApp = set: kind:
+      set {
+        inherit pkgs system inputs;
+        cfg = apps.${kind} or {};
+      };
+    editor = mkApp editors "editor";
+    browser = mkApp browsers "browser";
+    terminal = mkApp terminals "terminal";
+    launcher = mkApp launchers "launcher";
+    bar = mkApp bars "bar";
   in {
     environment = {
       systemPackages = with pkgs;
@@ -153,11 +137,11 @@
           figlet # ? ASCII art text banners
           lolcat # ? Rainbow pipe colorizer
         ]
-        ++ editorPkgs
-        ++ browserPkgs
-        ++ terminalPkgs
-        ++ launcherPkgs
-        ++ barPkgs;
+        ++ editor.packages
+        ++ browser.packages
+        ++ terminal.packages
+        ++ launcher.packages
+        ++ bar.packages;
 
       shellAliases = {
         #~@ File listing
@@ -187,52 +171,54 @@
           WALLPAPERS = wallpapers;
 
           #~@ Default applications
-          EDITOR = editorCmds.editor;
-          VISUAL = editorCmds.visual;
-          BROWSER = browserCmds.primary;
-          TERMINAL = terminalCmds.primary;
-          LAUNCHER = launcherCmds.primary;
-          BAR = barCmds.primary;
+
+          EDITOR = editor.commands.editor;
+          VISUAL = editor.commands.visual;
+          BROWSER = browser.commands.primary;
+          TERMINAL = terminal.commands.primary;
+          LAUNCHER = launcher.commands.primary;
+          BAR = bar.commands.primary;
         }
-        // (optionalAttrs (dp == "wayland") {
+        // (
           #~@ Wayland - toolkit and compositor backend hints
+          optionalAttrs (dp == "wayland") {
+            #? Clutter/GTK backend
+            CLUTTER_BACKEND = "wayland";
 
-          #? Clutter/GTK backend
-          CLUTTER_BACKEND = "wayland";
+            #? GTK backend
+            GDK_BACKEND = "wayland";
 
-          #? GTK backend
-          GDK_BACKEND = "wayland";
+            #? Java UI apps on Wayland
+            _JAVA_AWT_WM_NONREPARENTING = "1";
 
-          #? Java UI apps on Wayland
-          _JAVA_AWT_WM_NONREPARENTING = "1";
+            #? Firefox native Wayland backend
+            MOZ_ENABLE_WAYLAND = "1";
 
-          #? Firefox native Wayland backend
-          MOZ_ENABLE_WAYLAND = "1";
+            #? Chromium/Electron Wayland backend
+            NIXOS_OZONE_WL = "1";
 
-          #? Chromium/Electron Wayland backend
-          NIXOS_OZONE_WL = "1";
+            #? Qt platform
+            QT_QPA_PLATFORM = "wayland";
 
-          #? Qt platform
-          QT_QPA_PLATFORM = "wayland";
+            #? Disable Qt client-side decorations
+            QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
-          #? Disable Qt client-side decorations
-          QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+            #? Qt HiDPI auto-scaling
+            QT_AUTO_SCREEN_SCALE_FACTOR = "1";
 
-          #? Qt HiDPI auto-scaling
-          QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+            #? SDL2 Wayland backend
+            SDL_VIDEODRIVER = "wayland";
 
-          #? SDL2 Wayland backend
-          SDL_VIDEODRIVER = "wayland";
+            #? Software rendering fallback (Nvidia/VM)
+            WLR_RENDERER_ALLOW_SOFTWARE = "1";
 
-          #? Software rendering fallback (Nvidia/VM)
-          WLR_RENDERER_ALLOW_SOFTWARE = "1";
+            #? Disable hardware cursors (Nvidia/VM)
+            WLR_NO_HARDWARE_CURSORS = "1";
 
-          #? Disable hardware cursors (Nvidia/VM)
-          WLR_NO_HARDWARE_CURSORS = "1";
-
-          #? XDG session type hint for apps
-          XDG_SESSION_TYPE = "wayland";
-        });
+            #? XDG session type hint for apps
+            XDG_SESSION_TYPE = "wayland";
+          }
+        );
     };
   };
 
@@ -256,4 +242,9 @@
     i18n.defaultLocale = loc.defaultLocale or null;
   };
 in
-  exports.internal // {__rootAliases = exports.external;}
+  with meta.exports;
+    internal
+    // {
+      __doc = meta.doc;
+      __rootAliases = external;
+    }

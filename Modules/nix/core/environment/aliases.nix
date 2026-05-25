@@ -10,6 +10,7 @@
   cfg = config.${top}.${dom}.${mod};
   dots = host.paths.dots or null;
 
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf str;
@@ -22,7 +23,7 @@
         lt = "lsd --tree";
         lr = "lsd --long --git --recursive";
       }
-      // lib.optionalAttrs (dots != null) {
+      // optionalAttrs (dots != null) {
         #~@ Dotfiles management
         edit-dots = "$EDITOR ${dots}";
         ide-dots = "$VISUAL ${dots}";
@@ -53,5 +54,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {environment.shellAliases = cfg.default // cfg.extra;};
+  config = mkIf cfg.enable {
+    environment.shellAliases = cfg.default // cfg.extra;
+  };
 }

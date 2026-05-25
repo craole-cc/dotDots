@@ -22,27 +22,22 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
-  mkAddons = target: let
-    addons = import ./addons {inherit lib mkMerge paths;};
-  in
-    mkIf cfg.withAddons addons.${target};
+  mkAddons = target:
+    mkIf cfg.withAddons
+    (
+      import ./addons {inherit lib mkMerge paths;}
+    ).${
+      target
+    };
 in {
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = windowManager == "hyprland";
-      };
+    enable = mkEnableOption mod // {default = windowManager == "hyprland";};
     withAddons = mkOption {
       description = "Enable hyprland addons";
       default = true;
       type = bool;
     };
-    withRules =
-      mkEnableOption "Window rules"
-      // {
-        default = true;
-      };
+    withRules = mkEnableOption "Window rules" // {default = true;};
   };
 
   config = mkIf cfg.enable {

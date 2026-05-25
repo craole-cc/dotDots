@@ -1,53 +1,48 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit
-    (lib.attrsets)
-    getAttr
-    genAttrs
-    hasAttr
-    mapAttrs
-    optionalAttrs
-    ;
-  inherit (lib.lists) any elem optionals;
-  inherit (lib.debug) traceIf;
-  inherit (lib.modules) mkIf;
-  inherit
-    (lib.strings)
-    concatStringsSep
-    hasInfix
-    hasPrefix
-    isString
-    optionalString
-    toLower
-    ;
-  inherit (_.lists.predicates) isIn;
-  hasAudio = host: isIn "audio" (host.functionalities or []);
+{_, ...}: let
+  meta = {
+    # TODO: Add the correct doc
+    doc = ''
+    '';
 
-  exports = {
-    internal = {
-      inherit
-        mkBoot
-        mkAudio
-        mkFileSystem
-        mkFileSystems
-        mkNetwork
-        mkSwapDevice
-        ;
-    };
-    external = {
-      inherit
-        mkAudio
-        mkBoot
-        mkFileSystems
-        mkNetwork
-        ;
-      # mkCoreSwapDevice = mkSwapDevice;
-      # mkCoreFileSystem = mkFileSystem;
+    exports = {
+      internal = let
+        functions = {
+          inherit
+            mkBoot
+            mkAudio
+            mkFileSystem
+            mkFileSystems
+            mkNetwork
+            mkSwapDevice
+            ;
+        };
+        aliases = {};
+      in
+        {inherit functions aliases;}
+        // functions // aliases;
+      external = {
+        inherit
+          mkAudio
+          mkBoot
+          mkFileSystems
+          mkNetwork
+          ;
+      };
     };
   };
+
+  inherit (_.attrsets.access) getAttr;
+  inherit (_.attrsets.construction) genAttrs optionalAttrs;
+  inherit (_.attrsets.predicates) hasAttr;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists.construction) optionals;
+  inherit (_.lists.predicates) any isIn elem;
+  inherit (_.debug.tracing) traceIf;
+  inherit (_.modules) mkIf;
+  inherit (_.strings.construction) concatStringsSep optionalString;
+  inherit (_.strings.transformation) toLowerCase;
+  inherit (_.strings.predicates) hasInfix hasPrefix isString;
+  hasAudio = host: isIn "audio" (host.functionalities or []);
 
   mkFileSystem = _: fs: let
     base = {
@@ -136,7 +131,7 @@
     pkgs,
     ...
   }: let
-    bootLoader = toLower (host.interface.bootLoader or "systemd-boot");
+    bootLoader = toLowerCase (host.interface.bootLoader or "systemd-boot");
     bootLoaderTimeout = host.interface.bootLoaderTimeout or 5;
     efiSysMountPoint = host.devices.boot.efiSysMountPoint or "/boot";
 
@@ -152,7 +147,10 @@
     hasValidBootLoader = any (pattern: hasInfix pattern bootLoader) validBootLoaderPatterns;
 
     functionalities = host.functionalities or [];
-    hasDualBoot = any (f: hasInfix "dualboot" (toLower f) || hasInfix "dual-boot" (toLower f)) functionalities;
+    hasDualBoot = any (f:
+      hasInfix "dualboot" (toLowerCase f)
+      || hasInfix "dual-boot" (toLowerCase f))
+    functionalities;
     hasEfi = elem "efi" functionalities;
 
     kernel = rec {
@@ -296,4 +294,9 @@
     environment.systemPackages = with pkgs; [efibootmgr];
   };
 in
-  exports.internal // {__rootAliases = exports.external;}
+  with meta.exports;
+    internal
+    // {
+      __doc = meta.doc;
+      __rootAliases = external;
+    }
