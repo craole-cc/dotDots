@@ -44,7 +44,7 @@
     runtimes = let
       common = with pkgs; [coreutils gum procps];
       api = with pkgs; [curl jq];
-      ollama = [pkgs.ollama];
+      ollama = [llm.ollama];
       hermes = [llm.hermes-agent pkgs.nodejs_22];
       default = common ++ api;
     in {inherit common api ollama hermes default;};
@@ -175,10 +175,8 @@
       session = pkgs.writeShellApplication {
         name = "${name}-session";
         runtimeInputs = runtime;
-        text = ''
-          ${command}
-          exec "''${SHELL:-${pkgs.runtimeShell}}"
-        '';
+        # Removed exec shell so terminal closes when service exits
+        text = command;
       };
     in ''
       "$terminal" -e ${session}/bin/${name}-session \
@@ -309,7 +307,8 @@
 
       hermes = {
         title = "Hermes";
-        process = "hermes gateway run";
+        # Regex matches both the wrapper script and the node process it execs into
+        process = "hermes.*gateway";
         runtime = runtimes.hermes;
 
         wait.label = "Hermes gateway is running.";
@@ -466,7 +465,8 @@
   shellHook = ''
     if [ -t 1 ]; then
       case "''${AUTO_START:-1}" in
-        1) start-services --yes || true ;;
+        1) start-services --no-confirm || true ;;
+        *) ;;
       esac
       show-help
     fi
