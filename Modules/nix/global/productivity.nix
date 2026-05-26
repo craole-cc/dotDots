@@ -353,24 +353,24 @@
 
     all = {
       start = mkAll {
-        name = "start-services";
+        name = "start";
         action = "start";
       };
       stop = mkAll {
-        name = "stop-services";
+        name = "stop";
         action = "stop";
       };
       status = mkAll {
-        name = "services-status";
+        name = "status";
         action = "status";
         passthru = false;
       };
 
       help = mkBin "help-services" [pkgs.gum] ''
         gum style "All Services" \
-          "  start-services          start missing services" \
-          "  stop-services           stop running services" \
-          "  services-status         check all service statuses"
+          "  start                   start missing services" \
+          "  stop                    stop running services" \
+          "  status                  check all service statuses"
       '';
     };
 
