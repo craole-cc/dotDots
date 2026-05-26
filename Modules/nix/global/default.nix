@@ -12,7 +12,7 @@
   path = ./.;
 
   #> Metadata & Dependency Injection
-  dots = {
+  dots = rec {
     #~@ Metadata
     name = "dotDots";
     version = "2.0.0";
@@ -38,6 +38,7 @@
       ;
     inherit (import ./minimal.nix {inherit dots;}) packages;
     inputPkgs = input: lix.sources.packages.fromInputs {inherit input inputs system;};
+    llm = inputPkgs "llm-agents";
 
     #~@ Options
     allowAI = true;
