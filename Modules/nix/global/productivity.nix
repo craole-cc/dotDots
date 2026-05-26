@@ -36,6 +36,7 @@
     confirm = "gum confirm";
 
     mkHelpArgs = args: concatMapStringsSep " " (arg: "\"  ${arg}\"") args;
+
     #|---------------------------------------------------------|
     #| Runtime ------------------------------------------------|
     #|---------------------------------------------------------|
@@ -173,7 +174,6 @@
       session = pkgs.writeShellApplication {
         name = "${name}-session";
         runtimeInputs = runtime;
-        # Removed exec shell so terminal closes when service exits
         text = command;
       };
     in ''
@@ -434,6 +434,7 @@
     #|---------------------------------------------------------|
     show-help = let
       mkSection = cmd: ''printf "%s\n\n" "$(${cmd})"'';
+      hr = ''gum style --foreground 240 "────────────────────────────────────────"'';
     in
       mkBin "show-help" (
         [pkgs.gum all.help]
@@ -441,11 +442,13 @@
       ) ''
         gum style --border rounded --padding "0 1" --align left "$(
           gum style --bold --italic "${description}"
+          ${hr}
+
+          ${mkSection "help-services"}
 
           ${concatStringsSep "\n" (
           map (name: mkSection "${name}-help") names
         )}
-          ${mkSection "help-services"}
         )"
       '';
   in
