@@ -16,8 +16,8 @@
     OLLAMA_CONTEXT_LENGTH = "64000";
     OLLAMA_DEFAULT_MODEL = "qwen2.5-coder:3b";
 
-    AUTO_START = "1";
-    STARTUP_TIMEOUT = "15";
+    AUTO_START = 0;
+    STARTUP_TIMEOUT = 15;
   };
 
   #|---------------------------------------------------------|
@@ -470,7 +470,7 @@
     if [ -t 1 ]; then
       case "''${AUTO_START:-1}" in
         1) start-services --no-confirm || true ;;
-        *) ;;
+        *) start-services || true ;;
       esac
       show-help
     fi
