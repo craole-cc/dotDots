@@ -1,7 +1,7 @@
 {dots, ...}: let
   inherit (dots) pkgs lib llm;
   inherit (lib.attrsets) attrNames attrValues mapAttrs;
-  inherit (lib.lists) concatLists flatten;
+  inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
 
   description = "AI Assistance";
@@ -35,16 +35,14 @@
     log = "gum log --level";
     confirm = "gum confirm";
 
-    # Double-quote each arg so $variables inside help text expand
-    mkHelpArgs = args: concatMapStringsSep " " (arg: "\"${arg}\"") args;
-
+    mkHelpArgs = args: concatMapStringsSep " " (arg: "\"  ${arg}\"") args;
     #|---------------------------------------------------------|
     #| Runtime ------------------------------------------------|
     #|---------------------------------------------------------|
     runtimes = let
       common = with pkgs; [coreutils gum procps];
       api = with pkgs; [curl jq];
-      ollama = [llm.ollama];
+      ollama = [pkgs.ollama];
       hermes = [llm.hermes-agent pkgs.nodejs_22];
       default = common ++ api;
     in {inherit common api ollama hermes default;};
@@ -307,11 +305,11 @@
 
       hermes = {
         title = "Hermes";
-        # Regex matches both the wrapper script and the node process it execs into
         process = "hermes.*gateway";
+        command = "hermes gateway run";
         runtime = runtimes.hermes;
 
-        wait.label = "Hermes gateway is running.";
+        wait.label = "Hermes gateway is open and allowing messaging.";
 
         help = {
           active = [
@@ -452,7 +450,13 @@
       '';
   in
     concatLists [
-      (concatLists (map (svc: [svc.start svc.stop svc.status svc.help]) (attrValues commands)))
+      (concatLists (map (svc:
+        with svc; [
+          start
+          stop
+          status
+          help
+        ]) (attrValues commands)))
       (attrValues all)
     ]
     ++ [
