@@ -23,6 +23,18 @@
   };
 
   #|---------------------------------------------------------|
+  #| Runtime ------------------------------------------------|
+  #|---------------------------------------------------------|
+  runtimes = let
+    common = with pkgs; [coreutils gum procps];
+    api = with pkgs; [curl jq];
+    ollama = [pkgs.ollama];
+    hermes = [llm.hermes-agent pkgs.nodejs_22];
+    default = common ++ api;
+    all = default ++ ollama ++ hermes;
+  in {inherit common api ollama hermes default all;};
+
+  #|---------------------------------------------------------|
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
   packages = let
@@ -53,17 +65,6 @@
         then ''gum style --faint "  ${line}"''
         else ''gum style "  ${line}"'')
       content;
-
-    #|---------------------------------------------------------|
-    #| Runtime ------------------------------------------------|
-    #|---------------------------------------------------------|
-    runtimes = let
-      common = with pkgs; [coreutils gum procps];
-      api = with pkgs; [curl jq];
-      ollama = [pkgs.ollama];
-      hermes = [llm.hermes-agent pkgs.nodejs_22];
-      default = common ++ api;
-    in {inherit common api ollama hermes default;};
 
     #|---------------------------------------------------------|
     #| Terminal Detection -------------------------------------|
@@ -521,5 +522,5 @@
   '';
 in {
   inherit description env shellHook;
-  packages = packages ++ [hermes ollama];
+  packages = packages ++ runtimes.all;
 }
