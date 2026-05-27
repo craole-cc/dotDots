@@ -3,6 +3,9 @@
   inherit (lib.attrsets) attrNames attrValues isAttrs mapAttrs;
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
+  hermesSource = dots.inputs."hermes-agent".outPath;
+  telegramPython = pkgs.python312.withPackages (ps: [ps.python-telegram-bot]);
+  telegramSitePackages = "${telegramPython}/lib/python3.12/site-packages";
 
   description = "AI Assistance";
 
@@ -32,10 +35,9 @@
       ++ (with pkgs; [
         openai
         nodejs_22
+        jq
       ])
-      ++ (with pkgs.python313Packages; [
-        python-telegram-bot
-      ]);
+      ++ [telegramPython];
     default = common ++ api;
     all = default ++ ollama ++ hermes;
   in {inherit common api ollama hermes default all;};
@@ -54,6 +56,103 @@
 
     log = "gum log --level";
     confirm = "gum confirm";
+
+    prepare-hermes-messaging = ''
+      export HERMES_HOME="''${HERMES_HOME:-$HOME/.hermes}"
+      export PYTHONPATH="${telegramSitePackages}''${PYTHONPATH:+:$PYTHONPATH}"
+    '';
+
+    prepare-whatsapp-bridge = ''
+      bridge_src=${escapeShellArg "${hermesSource}/scripts/whatsapp-bridge"}
+      bridge_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
+      bridge_script="$bridge_dir/bridge.js"
+      gateway_json="$HERMES_HOME/gateway.json"
+
+      mkdir -p "$bridge_dir" "$HERMES_HOME"
+
+      cp -f \
+        "$bridge_src/allowlist.js" \
+        "$bridge_src/allowlist.test.mjs" \
+        "$bridge_src/bridge.js" \
+        "$bridge_src/package.json" \
+        "$bridge_src/package-lock.json" \
+        "$bridge_dir/"
+
+      if [ ! -d "$bridge_dir/node_modules" ] \
+        || [ "$bridge_src/package-lock.json" -nt "$bridge_dir/node_modules" ]
+      then
+        ${log} info "Installing WhatsApp bridge dependencies in $bridge_dir"
+        (
+          cd "$bridge_dir" || exit 1
+          npm ci --no-fund --no-audit --progress=false >/dev/null
+        )
+      fi
+
+      python - "$gateway_json" "$bridge_script" <<'PY'
+import json
+import pathlib
+import sys
+
+gateway_path = pathlib.Path(sys.argv[1])
+bridge_script = sys.argv[2]
+
+if gateway_path.exists():
+    try:
+        data = json.loads(gateway_path.read_text())
+    except Exception:
+        data = {}
+else:
+    data = {}
+
+platforms = data.setdefault("platforms", {})
+whatsapp = platforms.setdefault("whatsapp", {})
+extra = whatsapp.setdefault("extra", {})
+extra["bridge_script"] = bridge_script
+
+gateway_path.write_text(json.dumps(data, indent=2) + "\n")
+PY
+    '';
+
+    env-file-functions = ''
+      env_file="$HERMES_HOME/.env"
+      mkdir -p "$HERMES_HOME"
+      touch "$env_file"
+
+      env_get() {
+        key="$1"
+        sed -n "s/^''${key}=//p" "$env_file" | tail -n 1
+      }
+
+      env_set() {
+        key="$1"
+        value="$2"
+        python - "$env_file" "$key" "$value" <<'PY'
+import pathlib
+import sys
+
+env_path = pathlib.Path(sys.argv[1])
+key = sys.argv[2]
+value = sys.argv[3]
+
+lines = []
+if env_path.exists():
+    lines = env_path.read_text().splitlines()
+
+prefix = f"{key}="
+updated = False
+for index, line in enumerate(lines):
+    if line.startswith(prefix):
+        lines[index] = f"{key}={value}"
+        updated = True
+        break
+
+if not updated:
+    lines.append(f"{key}={value}")
+
+env_path.write_text("\n".join(lines) + "\n")
+PY
+      }
+    '';
 
     renderHelp = arg: let
       content =
@@ -350,7 +449,11 @@
       hermes = {
         title = "Hermes";
         process = "hermes.*gateway";
-        command = "hermes gateway run";
+        command = ''
+          ${prepare-hermes-messaging}
+          ${prepare-whatsapp-bridge}
+          exec hermes gateway run
+        '';
         runtime = runtimes.hermes;
 
         wait.label = "Hermes gateway is open and allowing messaging.";
@@ -358,6 +461,7 @@
         help = {
           common = [
             "hermes-status           Check Hermes Gateway status"
+            "hermes-whatsapp         Pair/configure WhatsApp bridge"
             "hermes-tui              Open Hermes TUI with default profile"
             "hermes-dev              Open Hermes TUI with the dev profile"
             "hermes-research         Open Hermes TUI with the research profile"
@@ -474,26 +578,104 @@
     #| Hermes-specific Commands -------------------------------|
     #|---------------------------------------------------------|
     hermes-tui = mkBin "hermes-tui" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes "$@"
     '';
     hermes-chat = mkBin "hermes-chat" runtimes.hermes ''
       ${log} warn "hermes-chat is deprecated; opening Hermes TUI instead"
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes "$@"
     '';
     hermes-dev = mkBin "hermes-dev" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes --profile dev "$@"
     '';
     hermes-research = mkBin "hermes-research" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes --profile research "$@"
     '';
     hermes-writing = mkBin "hermes-writing" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes --profile writing "$@"
     '';
     hermes-lab = mkBin "hermes-lab" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       exec hermes --profile lab "$@"
     '';
     hermes-setup = mkBin "hermes-setup" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
       hermes setup
+    '';
+    hermes-whatsapp = mkBin "hermes-whatsapp" runtimes.hermes ''
+      ${prepare-hermes-messaging}
+      ${prepare-whatsapp-bridge}
+      ${env-file-functions}
+
+      mode="$(env_get WHATSAPP_MODE)"
+      allowed_users="$(env_get WHATSAPP_ALLOWED_USERS)"
+      session_dir="$HERMES_HOME/whatsapp/session"
+      bridge_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
+
+      mkdir -p "$session_dir"
+
+      if [ -z "$mode" ]; then
+        ${log} info "Choose how Hermes should use WhatsApp"
+        choice="$(printf 'bot\nself-chat\n' | gum choose --header 'WhatsApp mode')"
+        case "$choice" in
+          bot|self-chat) mode="$choice" ;;
+          *)
+            ${log} error "WhatsApp setup cancelled"
+            exit 1
+          ;;
+        esac
+        env_set WHATSAPP_MODE "$mode"
+      fi
+
+      if [ -z "$allowed_users" ]; then
+        case "$mode" in
+          bot)
+            prompt='Allowed phone numbers (comma-separated, country code, no +; use * for anyone)'
+          ;;
+          *)
+            prompt='Your phone number (country code, no +)'
+          ;;
+        esac
+
+        allowed_users="$(gum input --prompt "$prompt: ")"
+        if [ -z "$allowed_users" ]; then
+          ${log} error "WhatsApp allowlist cannot be empty"
+          exit 1
+        fi
+        env_set WHATSAPP_ALLOWED_USERS "$allowed_users"
+      fi
+
+      if [ -f "$session_dir/creds.json" ]; then
+        if ${confirm} 'Existing WhatsApp session found. Re-pair now?'; then
+          rm -rf "$session_dir"
+          mkdir -p "$session_dir"
+        else
+          env_set WHATSAPP_ENABLED true
+          ${log} info "WhatsApp remains paired and enabled."
+          exit 0
+        fi
+      fi
+
+      (cd "$bridge_dir" && node ./bridge.js --pair-only --session "$session_dir")
+
+      if [ -f "$session_dir/creds.json" ]; then
+        env_set WHATSAPP_ENABLED true
+        ${log} info "WhatsApp paired successfully. Start Hermes with: hermes-start"
+      else
+        ${log} error "WhatsApp pairing did not complete. Re-run hermes-whatsapp."
+        exit 1
+      fi
     '';
 
     #|---------------------------------------------------------|
@@ -539,6 +721,7 @@
       hermes-writing
       hermes-lab
       hermes-setup
+      hermes-whatsapp
       show-help
     ];
 
