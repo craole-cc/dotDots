@@ -4,11 +4,6 @@
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
 
-  # inherit (inputPkgs "llm-agents") hermes-agent;
-  inherit (inputPkgs "hermes-agent") hermes-agent;
-  # ollama = pkgs.ollama;
-  # gemini-cli
-
   description = "AI Assistance";
 
   #|---------------------------------------------------------|
@@ -32,7 +27,17 @@
     common = with pkgs; [coreutils gum procps];
     api = with pkgs; [curl jq];
     ollama = [pkgs.ollama];
-    hermes = [hermes-agent pkgs.nodejs_22];
+    hermes =
+      [((inputPkgs "hermes-agent").default)]
+      ++ (with pkgs; [
+        nodejs_22
+      ])
+      ++ (with pkgs.python313Packages; [
+        python-telegram-bot
+        jishaku
+        docker
+        openai
+      ]);
     default = common ++ api;
     all = default ++ ollama ++ hermes;
   in {inherit common api ollama hermes default all;};

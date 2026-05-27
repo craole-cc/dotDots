@@ -74,6 +74,7 @@
           "dms-plugin-registry"
           "fresh-editor"
           "helix"
+          "hermes-agent"
           "home-manager"
           "llm-agents"
           "noctalia-shell"
