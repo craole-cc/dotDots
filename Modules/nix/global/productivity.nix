@@ -1,6 +1,6 @@
 {dots, ...}: let
   inherit (dots) pkgs lib llm;
-  inherit (lib.attrsets) attrNames attrValues mapAttrs;
+  inherit (lib.attrsets) attrNames attrValues isAttrs mapAttrs;
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
 
@@ -35,7 +35,22 @@
     log = "gum log --level";
     confirm = "gum confirm";
 
-    mkHelpArgs = args: concatMapStringsSep " " (arg: "\"  ${arg}\"") args;
+    renderHelp = arg: let
+      content =
+        if isAttrs arg
+        then arg.content or []
+        else arg;
+      faint =
+        if isAttrs arg
+        then arg.faint or false
+        else false;
+    in
+      concatMapStringsSep "\n"
+      (line:
+        if faint
+        then ''gum style --faint "  ${line}"''
+        else ''gum style "  ${line}"'')
+      content;
 
     #|---------------------------------------------------------|
     #| Runtime ------------------------------------------------|
@@ -87,14 +102,16 @@
       while [ "$elapsed" -lt "$timeout" ]; do
         if _wait_check; then
           ${log} info "${label}"
-          exit 0
+          break
         fi
         sleep 1
         elapsed=$((elapsed + 1))
       done
 
-      ${log} warn "Timed out waiting for ${label}"
-      exit 1
+      if [ "$elapsed" -ge "$timeout" ]; then
+        ${log} warn "Timed out waiting for ${label}"
+        exit 1
+      fi
     '';
 
     #|---------------------------------------------------------|
@@ -209,6 +226,7 @@
         }}
 
         ${set-terminal}
+        clear
 
         if [ "$assume_yes" -ne 1 ]; then
           ${confirm} "Start ${cfg.title}?" || exit 0
@@ -221,10 +239,13 @@
         if [ "$wait" -eq 1 ]; then
           ${mkWait check wait-label}
         fi
+
+        show-help
       '';
 
       stop = mkBin "${name}-stop" runtime ''
         force=0
+        clear
 
         ${parseStopArgs}
 
@@ -248,6 +269,8 @@
           ${log} error "Failed to stop ${cfg.title}."
           exit 1
         fi
+
+        show-help
       '';
 
       status = mkBin "${name}-status" runtime ''
@@ -265,10 +288,23 @@
         _help_check() {
           ${check}
         }
+
+        gum style "${cfg.title}"
+
         if _help_check; then
-          gum style "${cfg.title}" ${mkHelpArgs cfg.help.active}
+          ${renderHelp cfg.help.running}
+          ${renderHelp cfg.help.common}
+          ${renderHelp {
+          content = cfg.help.stopped;
+          faint = true;
+        }}
         else
-          gum style "${cfg.title}" ${mkHelpArgs cfg.help.inactive}
+          ${renderHelp cfg.help.stopped}
+          ${renderHelp cfg.help.common}
+          ${renderHelp {
+          content = cfg.help.running;
+          faint = true;
+        }}
         fi
       '';
     };
@@ -286,19 +322,18 @@
         wait.label = "Ollama is reachable at $OLLAMA_LOCALHOST.";
 
         help = {
-          active = [
-            "ollama-stop             stop Ollama"
-            "ollama-status           check Ollama status"
-            "ollama-models           list available models"
-            "ollama-chat             chat with $OLLAMA_DEFAULT_MODEL"
-            "ollama run <model>      chat with a specific model"
-            "ollama pull <model>     download a model"
+          common = [
+            "ollama-status           Check Ollama status"
+            "ollama-run <model>      Chat with a specific model"
+            "ollama-pull <model>     Download a model"
           ];
-          inactive = [
-            "ollama-start            start Ollama"
-            "ollama-status           check Ollama status"
-            "ollama run <model>      chat with a specific model"
-            "ollama pull <model>     download a model"
+          running = [
+            "ollama-stop             Stop Ollama"
+            "ollama-models           List available models"
+            "ollama-chat             Chat with $OLLAMA_DEFAULT_MODEL"
+          ];
+          stopped = [
+            "ollama-start            Start Ollama"
           ];
         };
       };
@@ -312,16 +347,16 @@
         wait.label = "Hermes gateway is open and allowing messaging.";
 
         help = {
-          active = [
-            "hermes-stop             stop Hermes Gateway"
-            "hermes-status           check Hermes Gateway status"
-            "hermes chat             chat locally in the terminal"
+          common = [
+            "hermes-status           Check Hermes Gateway status"
+            "hermes-chat             Chat locally in the terminal"
           ];
-          inactive = [
-            "hermes-start            start Hermes Gateway"
-            "hermes-status           check Hermes Gateway status"
-            "hermes setup            setup Hermes if not already done"
-            "hermes chat             chat locally in the terminal"
+          running = [
+            "hermes-stop             Stop Hermes Gateway"
+          ];
+          stopped = [
+            "hermes-start            Start Hermes Gateway"
+            "hermes-setup            Setup Hermes, if not already done"
           ];
         };
       };
@@ -368,9 +403,9 @@
 
       help = mkBin "help-services" [pkgs.gum] ''
         gum style "All Services" \
-          "  start                   start missing services" \
-          "  stop                    stop running services" \
-          "  status                  check all service statuses"
+          "  status                  Check all service statuses" \
+          "  start                   Start missing services" \
+          "  stop                    Stop running services"
       '';
     };
 
@@ -428,13 +463,16 @@
     hermes-chat = mkBin "hermes-chat" runtimes.hermes ''
       hermes chat
     '';
+    hermes-setup = mkBin "hermes-setup" runtimes.hermes ''
+      hermes setup
+    '';
 
     #|---------------------------------------------------------|
     #| Help Commands ------------------------------------------|
     #|---------------------------------------------------------|
     show-help = let
       mkSection = cmd: ''printf "%s\n\n" "$(${cmd})"'';
-      hr = ''gum style --foreground 240 "────────────────────────────────────────"'';
+      hr = ''gum style --faint "──────────────────────────────────────────────────────"'';
     in
       mkBin "show-help" (
         [pkgs.gum all.help]
@@ -466,14 +504,15 @@
       ollama-models
       ollama-chat
       hermes-chat
+      hermes-setup
       show-help
     ];
 
   shellHook = ''
     if [ -t 1 ]; then
       case "''${AUTO_START:-1}" in
-        1) start-services --no-confirm || true ;;
-        *) start-services || true ;;
+        1) start --no-confirm || true ;;
+        *) start || true ;;
       esac
       show-help
     fi
