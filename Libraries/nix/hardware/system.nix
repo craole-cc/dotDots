@@ -125,9 +125,13 @@
     legacyPackages ? {},
     system ? null,
     hosts ? {},
+    host ? {},
   }: let
     #~@ Types Lists
-    defined = flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts);
+    defined =
+      host.system or (
+        flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts)
+      );
     default = [
       "aarch64-darwin"
       "aarch64-linux"
@@ -172,6 +176,7 @@
 
   getSystemOrDefault = {
     flake ? {},
+    host ? {},
     inputs ? {},
     nixpkgs ? {},
     legacyPackages ? {},

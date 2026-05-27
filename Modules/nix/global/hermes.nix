@@ -1,11 +1,8 @@
 {dots, ...}: let
-  inherit (dots) pkgs lib inputs inputPkgs pythonPkgs;
+  inherit (dots) pkgs lib inputPkgs pythonPkgs;
   inherit (lib.attrsets) attrNames attrValues isAttrs mapAttrs;
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
-  hermesSource = inputs."hermes-agent".outPath;
-  telegramPython = pythonPkgs.withPackages (pkg: [pkg.python-telegram-bot]);
-  telegramSitePackages = "${telegramPython}/lib/python3.12/site-packages";
 
   description = "AI Assistance";
 
@@ -24,27 +21,37 @@
   };
 
   #|---------------------------------------------------------|
-  #| Runtime ------------------------------------------------|
+  #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
+  apps = {
+    common = {inherit (pkgs) coreutils gum procps curl jq;};
+    api = {inherit (pkgs) curl jq;};
+    hermes = {
+      agent = (inputPkgs "hermes-agent").default;
+      telegram = pythonPkgs.withPackages (pkg: [pkg.python-telegram-bot]);
+      inherit (pkgs) openai nodejs_22 jq;
+    };
+    ollama = {inherit (pkgs) ollama;};
+  };
+  paths = {
+    hermes = apps.hermes.agent.outPath;
+    telegram = "${apps.hermes.telegram}/lib/python3.12/site-packages";
+  };
   runtimes = let
-    common = with pkgs; [coreutils gum procps];
-    api = with pkgs; [curl jq];
-    ollama = [pkgs.ollama];
-    hermes =
-      [((inputPkgs "hermes-agent").default)]
-      ++ (with pkgs; [
-        openai
-        nodejs_22
-        jq
-      ])
-      ++ [telegramPython];
-    default = common ++ api;
+    common = attrNames apps.common;
+    api = attrNames apps.api;
+    ollama = attrNames apps.ollama;
+    hermes = attrNames apps.hermes;
+    # common = with pkgs; [coreutils gum procps];
+    # api = with pkgs; [curl jq];
+    # ollama = [pkgs.ollama];
+    # hermes =
+    #   (attrNames apps.core)
+    #   ++ (with pkgs; [openai nodejs_22 jq]);
+    default = common;
     all = default ++ ollama ++ hermes;
   in {inherit common api ollama hermes default all;};
 
-  #|---------------------------------------------------------|
-  #| Packages -----------------------------------------------|
-  #|---------------------------------------------------------|
   packages = let
     #|---------------------------------------------------------|
     #| Utilities ----------------------------------------------|
@@ -59,11 +66,11 @@
 
     prepare-hermes-messaging = ''
       export HERMES_HOME="''${HERMES_HOME:-$HOME/.hermes}"
-      export PYTHONPATH="${telegramSitePackages}''${PYTHONPATH:+:$PYTHONPATH}"
+      export PYTHONPATH="${paths.telegram}''${PYTHONPATH:+:$PYTHONPATH}"
     '';
 
     prepare-whatsapp-bridge = ''
-            bridge_src=${escapeShellArg "${hermesSource}/scripts/whatsapp-bridge"}
+            bridge_src=${escapeShellArg "${paths.hermes}/scripts/whatsapp-bridge"}
             bridge_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
             bridge_script="$bridge_dir/bridge.js"
             gateway_json="$HERMES_HOME/gateway.json"

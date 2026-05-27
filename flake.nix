@@ -6,11 +6,14 @@
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import ./. {inherit flake lib;}) lix tree schema top paths;
     inherit (lix.modules.construction) mkFlake mkSystems;
-    inherit (lix.sources.inputs) normalize;
+    # inherit (lix.attrsets.resolution) mkPkgs;
+    inherit (lix.sources.packages) mkAll;
 
-    args = {
-      inputs = normalize {inherit flake;};
-      inherit flake lix top;
+    args = let
+      src = mkAll {inherit flake;};
+    in {
+      inherit flake lix top src;
+      inherit (src) inputs;
     };
 
     resolved = mkFlake {

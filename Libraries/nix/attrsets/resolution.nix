@@ -5,41 +5,6 @@
   __moduleRef,
   ...
 }: let
-  inherit (_.attrsets.access) attrByPath;
-  inherit (_.attrsets.predicates) hasAttr isAttrs;
-  inherit (_.content.emptiness) isNotEmpty;
-  inherit (_.content.fallback) firstNonEmpty;
-  inherit (_.debug.assertions) withContext mkTest mkTest';
-  inherit (_.debug.module) mkModuleDebug;
-  inherit (_.debug.runners) runTests;
-  inherit (_.debug.tracing) addErrorContext;
-  inherit (_.filesystem.paths) getFlakePath;
-  inherit (_.hardware.system) getSystems;
-  inherit (_.lists.predicates) all elem isList;
-  inherit (_.strings.construction) concatStringsSep optionalString;
-  inherit (_.strings.predicates) isString;
-  inherit (_.strings.transformation) splitStringBy;
-
-  inherit
-    (lib.attrsets)
-    attrValues
-    filterAttrs
-    genAttrs
-    hasAttrByPath
-    listToAttrs
-    optionalAttrs
-    ;
-  inherit (lib.debug) traceIf;
-  inherit
-    (lib.lists)
-    filter
-    findFirst
-    head
-    toList
-    ;
-  inherit (builtins) getFlake tryEval;
-
-  debug = mkModuleDebug __moduleRef;
   exports = rec {
     internal = {
       inherit
@@ -73,6 +38,7 @@
       getNestedAttrByPaths = nestedByPaths;
       getPackage = package;
       getPkgs = packages;
+      mkPkgs = packages;
       getShellPackage = shellPackage;
       mkInputPackages = inputPackages;
       mkInputSource = inputSource;
@@ -93,11 +59,48 @@
         getShellPackage
         optionalAttr
         ;
+      mkPkgs = packages;
       mkInputPackages = inputPackages;
       mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
       mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
     };
   };
+
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.predicates) hasAttr isAttrs;
+  inherit (_.content.emptiness) isNotEmpty;
+  inherit (_.content.fallback) firstNonEmpty;
+  inherit (_.debug.assertions) withContext mkTest mkTest';
+  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.runners) runTests;
+  inherit (_.debug.tracing) addErrorContext;
+  inherit (_.filesystem.resolution) getFlakePath;
+  inherit (_.hardware.system) getSystems getSystemOrDefault;
+  inherit (_.lists.predicates) all elem isList;
+  inherit (_.strings.construction) concatStringsSep optionalString;
+  inherit (_.strings.predicates) isString;
+  inherit (_.strings.transformation) splitStringBy;
+
+  inherit
+    (lib.attrsets)
+    attrValues
+    filterAttrs
+    genAttrs
+    hasAttrByPath
+    listToAttrs
+    optionalAttrs
+    ;
+  inherit (lib.debug) traceIf;
+  inherit
+    (lib.lists)
+    filter
+    findFirst
+    head
+    toList
+    ;
+  inherit (builtins) getFlake tryEval;
+
+  debug = mkModuleDebug __moduleRef;
 
   normalizePath = path: let
     fn = {
@@ -360,19 +363,28 @@
   ```
   */
   packages = {
-    nixpkgs ? import <nixpkgs> {},
+    # nixpkgs ? import <nixpkgs> {},
+    # system ? null,
+    flake ? {},
+    inputs ? {},
+    nixpkgs ? {},
+    legacyPackages ? {},
     system ? null,
     priority ? null,
   }: let
-    targetSystem = system;
+    targetSystem = getSystemOrDefault {
+      inherit flake inputs nixpkgs legacyPackages system;
+    };
   in
     if priority != null
     then let
       sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
     in
-      (findFirst (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null) nixpkgs.legacyPackages (
-        attrValues sources
-      )).${
+      (findFirst
+        (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
+        nixpkgs.legacyPackages (
+          attrValues sources
+        )).${
         targetSystem
       }
     else nixpkgs.legacyPackages.${targetSystem};
@@ -586,10 +598,17 @@
     else {};
 
   flakeAttrs = {
+    flake ? {},
     self ? {},
     path ? src,
   }: let
-    normalizedPath = getFlakePath {inherit self path;};
+    normalizedPath = getFlakePath {
+      inherit path;
+      flake =
+        if isNotEmpty flake
+        then flake
+        else self;
+    };
     derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
     failureReason =
       if normalizedPath == null
