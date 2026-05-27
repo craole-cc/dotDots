@@ -558,7 +558,7 @@
       mode="$(env_get WHATSAPP_MODE)"
       allowed_users="$(env_get WHATSAPP_ALLOWED_USERS)"
       session_dir="$HERMES_HOME/whatsapp/session"
-      bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR:-''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge}"
+      bridge_dir="''${HERMES_WHATSAPP_BRIDGE_DIR:-''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge}"
 
       mkdir -p "$session_dir"
 
