@@ -186,6 +186,7 @@
       inherit
         flake
         inputs
+        host
         nixpkgs
         legacyPackages
         system

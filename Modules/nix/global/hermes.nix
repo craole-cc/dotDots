@@ -38,19 +38,29 @@
     telegram = "${apps.hermes.telegram}/lib/python3.12/site-packages";
   };
   runtimes = let
-    common = attrNames apps.common;
-    api = attrNames apps.api;
-    ollama = attrNames apps.ollama;
-    hermes = attrNames apps.hermes;
-    # common = with pkgs; [coreutils gum procps];
-    # api = with pkgs; [curl jq];
-    # ollama = [pkgs.ollama];
-    # hermes =
-    #   (attrNames apps.core)
-    #   ++ (with pkgs; [openai nodejs_22 jq]);
+    common = attrValues apps.common;
+    api = attrValues apps.api;
+    ollama = attrValues apps.ollama;
+    hermes = attrValues apps.hermes;
     default = common;
     all = default ++ ollama ++ hermes;
-  in {inherit common api ollama hermes default all;};
+  in {
+    inherit common api ollama hermes default all;
+  };
+  # runtimes = let
+  #   common = attrNames apps.common;
+  #   api = attrNames apps.api;
+  #   ollama = attrNames apps.ollama;
+  #   hermes = attrNames apps.hermes;
+  #   # common = with pkgs; [coreutils gum procps];
+  #   # api = with pkgs; [curl jq];
+  #   # ollama = [pkgs.ollama];
+  #   # hermes =
+  #   #   (attrNames apps.core)
+  #   #   ++ (with pkgs; [openai nodejs_22 jq]);
+  #   default = common;
+  #   all = default ++ ollama ++ hermes;
+  # in {inherit common api ollama hermes default all;};
 
   packages = let
     #|---------------------------------------------------------|
