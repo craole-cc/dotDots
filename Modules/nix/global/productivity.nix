@@ -60,8 +60,8 @@
     runtimes = let
       common = with pkgs; [coreutils gum procps];
       api = with pkgs; [curl jq];
-      ollama = [ollama];
-      hermes = [hermes pkgs.nodejs_22];
+      ollama = [pkgs.ollama];
+      hermes = [llm.hermes-agent pkgs.nodejs_22];
       default = common ++ api;
     in {inherit common api ollama hermes default;};
 
