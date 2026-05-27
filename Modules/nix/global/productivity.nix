@@ -3,6 +3,8 @@
   inherit (lib.attrsets) attrNames attrValues isAttrs mapAttrs;
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
+  hermes = llm.hermes-agent;
+  ollama = pkgs.ollama;
 
   description = "AI Assistance";
 
@@ -58,8 +60,8 @@
     runtimes = let
       common = with pkgs; [coreutils gum procps];
       api = with pkgs; [curl jq];
-      ollama = [pkgs.ollama];
-      hermes = [llm.hermes-agent pkgs.nodejs_22];
+      ollama = [ollama];
+      hermes = [hermes pkgs.nodejs_22];
       default = common ++ api;
     in {inherit common api ollama hermes default;};
 
@@ -517,4 +519,7 @@
       show-help
     fi
   '';
-in {inherit description env packages shellHook;}
+in {
+  inherit description env shellHook;
+  packages = packages ++ [hermes ollama];
+}
