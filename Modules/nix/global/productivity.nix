@@ -30,13 +30,11 @@
     hermes =
       [((inputPkgs "hermes-agent").default)]
       ++ (with pkgs; [
+        openai
         nodejs_22
       ])
       ++ (with pkgs.python313Packages; [
         python-telegram-bot
-        jishaku
-        docker
-        openai
       ]);
     default = common ++ api;
     all = default ++ ollama ++ hermes;
@@ -360,7 +358,11 @@
         help = {
           common = [
             "hermes-status           Check Hermes Gateway status"
-            "hermes-chat             Chat locally in the terminal"
+            "hermes-tui              Open Hermes TUI with default profile"
+            "hermes-dev              Open Hermes TUI with the dev profile"
+            "hermes-research         Open Hermes TUI with the research profile"
+            "hermes-writing          Open Hermes TUI with the writing profile"
+            "hermes-lab              Open Hermes TUI with the lab profile"
           ];
           running = [
             "hermes-stop             Stop Hermes Gateway"
@@ -471,8 +473,24 @@
     #|---------------------------------------------------------|
     #| Hermes-specific Commands -------------------------------|
     #|---------------------------------------------------------|
+    hermes-tui = mkBin "hermes-tui" runtimes.hermes ''
+      exec hermes "$@"
+    '';
     hermes-chat = mkBin "hermes-chat" runtimes.hermes ''
-      hermes chat
+      ${log} warn "hermes-chat is deprecated; opening Hermes TUI instead"
+      exec hermes "$@"
+    '';
+    hermes-dev = mkBin "hermes-dev" runtimes.hermes ''
+      exec hermes --profile dev "$@"
+    '';
+    hermes-research = mkBin "hermes-research" runtimes.hermes ''
+      exec hermes --profile research "$@"
+    '';
+    hermes-writing = mkBin "hermes-writing" runtimes.hermes ''
+      exec hermes --profile writing "$@"
+    '';
+    hermes-lab = mkBin "hermes-lab" runtimes.hermes ''
+      exec hermes --profile lab "$@"
     '';
     hermes-setup = mkBin "hermes-setup" runtimes.hermes ''
       hermes setup
@@ -514,7 +532,12 @@
     ++ [
       ollama-models
       ollama-chat
+      hermes-tui
       hermes-chat
+      hermes-dev
+      hermes-research
+      hermes-writing
+      hermes-lab
       hermes-setup
       show-help
     ];
