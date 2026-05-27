@@ -38,6 +38,7 @@
       ;
     inherit (import ./minimal.nix {inherit dots;}) packages;
     inputPkgs = input: lix.sources.packages.fromInputs {inherit input inputs system;};
+    pythonPkgs = pkgs.python312;
 
     #~@ Options
     allowAI = true;
