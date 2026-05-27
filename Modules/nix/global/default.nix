@@ -86,9 +86,11 @@
         (import (path + "/${file}") {inherit dots;})
     ) (filesFor path);
 
-    configs = file-configs // {
-      hermes = import ./ai/hermes {inherit dots;};
-    };
+    configs =
+      file-configs
+      // {
+        hermes = import ./ai/hermes {inherit dots;};
+      };
 
     #> Build the final derivations
     shells =

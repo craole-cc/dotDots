@@ -14,12 +14,11 @@ cp -f \
   "$bridge_dir/"
 
 if [ ! -d "$bridge_dir/node_modules" ] \
-  || [ "$bridge_src/package-lock.json" -nt "$bridge_dir/node_modules" ]
-then
+  || [ "$bridge_src/package-lock.json" -nt "$bridge_dir/node_modules" ]; then
   gum log --level info "Installing WhatsApp bridge dependencies in $bridge_dir"
   (
     cd "$bridge_dir" || exit 1
-    npm ci --no-fund --no-audit --progress=false >/dev/null
+    npm ci --no-fund --no-audit --progress=false > /dev/null
   )
 fi
 
