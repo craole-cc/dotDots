@@ -209,5 +209,11 @@
       type = "github";
       # inputs.nixpkgs.follows = "nixPackages";
     };
+
+    hermes = {
+      repo = "hermes-agent";
+      owner = "NousResearch";
+      type = "github";
+    };
   };
 }

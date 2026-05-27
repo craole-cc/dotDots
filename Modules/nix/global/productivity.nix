@@ -1,10 +1,13 @@
 {dots, ...}: let
-  inherit (dots) pkgs lib llm;
+  inherit (dots) pkgs lib inputPkgs;
   inherit (lib.attrsets) attrNames attrValues isAttrs mapAttrs;
   inherit (lib.lists) concatLists;
   inherit (lib.strings) concatStringsSep concatMapStringsSep escapeShellArg;
-  hermes = llm.hermes-agent;
-  ollama = pkgs.ollama;
+
+  # inherit (inputPkgs "llm-agents") hermes-agent;
+  inherit (inputPkgs "hermes-agent") hermes-agent;
+  # ollama = pkgs.ollama;
+  # gemini-cli
 
   description = "AI Assistance";
 
@@ -29,7 +32,7 @@
     common = with pkgs; [coreutils gum procps];
     api = with pkgs; [curl jq];
     ollama = [pkgs.ollama];
-    hermes = [llm.hermes-agent pkgs.nodejs_22];
+    hermes = [hermes-agent pkgs.nodejs_22];
     default = common ++ api;
     all = default ++ ollama ++ hermes;
   in {inherit common api ollama hermes default all;};

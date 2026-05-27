@@ -1,8 +1,4 @@
-{
-  _,
-  src,
-  ...
-}: let
+{_, ...}: let
   meta = let
     doc = ''
       Input Source Resolution
@@ -337,6 +333,11 @@
         "llm"
         "llmAgents"
         "llm-agents"
+      ];
+
+      hermes-agent = tryNames [
+        "hermes"
+        "hermes-agent"
       ];
 
       noctalia-shell = tryNames [
