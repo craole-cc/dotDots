@@ -79,12 +79,16 @@
       all;
 
     #> Import the attrs from the validated files
-    configs = mapAttrs' (
+    file-configs = mapAttrs' (
       file: _:
         nameValuePair
         (removeSuffix ".nix" file)
         (import (path + "/${file}") {inherit dots;})
     ) (filesFor path);
+
+    configs = file-configs // {
+      hermes = import ./ai/hermes {inherit dots;};
+    };
 
     #> Build the final derivations
     shells =

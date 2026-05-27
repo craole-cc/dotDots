@@ -80,95 +80,15 @@
     '';
 
     prepare-whatsapp-bridge = ''
-            bridge_src=${escapeShellArg "${paths.hermes}/scripts/whatsapp-bridge"}
-            bridge_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
-            bridge_script="$bridge_dir/bridge.js"
-            gateway_json="$HERMES_HOME/gateway.json"
-
-            mkdir -p "$bridge_dir" "$HERMES_HOME"
-
-            cp -f \
-              "$bridge_src/allowlist.js" \
-              "$bridge_src/allowlist.test.mjs" \
-              "$bridge_src/bridge.js" \
-              "$bridge_src/package.json" \
-              "$bridge_src/package-lock.json" \
-              "$bridge_dir/"
-
-            if [ ! -d "$bridge_dir/node_modules" ] \
-              || [ "$bridge_src/package-lock.json" -nt "$bridge_dir/node_modules" ]
-            then
-              ${log} info "Installing WhatsApp bridge dependencies in $bridge_dir"
-              (
-                cd "$bridge_dir" || exit 1
-                npm ci --no-fund --no-audit --progress=false >/dev/null
-              )
-            fi
-
-            python - "$gateway_json" "$bridge_script" <<'PY'
-      import json
-      import pathlib
-      import sys
-
-      gateway_path = pathlib.Path(sys.argv[1])
-      bridge_script = sys.argv[2]
-
-      if gateway_path.exists():
-          try:
-              data = json.loads(gateway_path.read_text())
-          except Exception:
-              data = {}
-      else:
-          data = {}
-
-      platforms = data.setdefault("platforms", {})
-      whatsapp = platforms.setdefault("whatsapp", {})
-      extra = whatsapp.setdefault("extra", {})
-      extra["bridge_script"] = bridge_script
-
-      gateway_path.write_text(json.dumps(data, indent=2) + "\n")
-      PY
+      export HERMES_WHATSAPP_BRIDGE_SRC=${escapeShellArg "${paths.hermes}/scripts/whatsapp-bridge"}
+      export HERMES_WHATSAPP_BRIDGE_DIR="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
+      export HERMES_WHATSAPP_GATEWAY_PY=${escapeShellArg "${./whatsapp-gateway.py}"}
+      ${builtins.readFile ./whatsapp-bridge.sh}
     '';
 
     env-file-functions = ''
-            env_file="$HERMES_HOME/.env"
-            mkdir -p "$HERMES_HOME"
-            touch "$env_file"
-
-            env_get() {
-              key="$1"
-              sed -n "s/^''${key}=//p" "$env_file" | tail -n 1
-            }
-
-            env_set() {
-              key="$1"
-              value="$2"
-              python - "$env_file" "$key" "$value" <<'PY'
-      import pathlib
-      import sys
-
-      env_path = pathlib.Path(sys.argv[1])
-      key = sys.argv[2]
-      value = sys.argv[3]
-
-      lines = []
-      if env_path.exists():
-          lines = env_path.read_text().splitlines()
-
-      prefix = f"{key}="
-      updated = False
-      for index, line in enumerate(lines):
-          if line.startswith(prefix):
-              lines[index] = f"{key}={value}"
-              updated = True
-              break
-
-      if not updated:
-          lines.append(f"{key}={value}")
-
-      env_path.write_text("\n".join(lines) + "\n")
-      PY
-            }
+      export HERMES_ENV_PY=${escapeShellArg "${./env.py}"}
+      ${builtins.readFile ./env.sh}
     '';
 
     renderHelp = arg: let
@@ -638,7 +558,7 @@
       mode="$(env_get WHATSAPP_MODE)"
       allowed_users="$(env_get WHATSAPP_ALLOWED_USERS)"
       session_dir="$HERMES_HOME/whatsapp/session"
-      bridge_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
+      bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR:-''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge}"
 
       mkdir -p "$session_dir"
 

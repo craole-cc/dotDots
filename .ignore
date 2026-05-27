@@ -3,3 +3,7 @@
 [tT]mp/
 [tT]emp/
 [bB]ackup/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/

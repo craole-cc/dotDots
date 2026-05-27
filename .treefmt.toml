@@ -127,6 +127,15 @@ includes = ["*.toml"]
 command = "taplo"
 options = ["format"]
 
+[formatter.ruff]
+includes = ["*.py"]
+command = "sh"
+options = [
+  "-euc",
+  "command -v ruff >/dev/null || exit 0",
+  "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
+]
+
 [formatter.stylua]
 includes = ["*.lua"]
 command = "stylua"

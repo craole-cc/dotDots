@@ -83,6 +83,7 @@
           onefetch # ? Git repository summary on your terminal
           ripgrep # ? Fast grep alternative
           ripgrep-all # ? Ripgrep, for PDFs, E-Books, Office documents, zip, tar.gz, etc.
+          ruff # ? Python formatter/linter
           sd # ? Intuitive find & replace CLI (sed alternative)
           sops
           undollar # ? Remove leading dollar signs age
