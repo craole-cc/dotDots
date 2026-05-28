@@ -12,24 +12,24 @@
   '';
 
   ollama-models = mkBin "ollama-models" runtimes.default ''
-    ${mkRequire {
+        ${mkRequire {
       check = "ollama-status >/dev/null 2>&1";
       msg = "Ollama not reachable at $OLLAMA_LOCALHOST - is it running?";
     }}
 
-    ${log} info "Models available at $OLLAMA_LOCALHOST"
+        ${log} info "Models available at $OLLAMA_LOCALHOST"
 
-    models="$(curl -sf "$OLLAMA_LOCALHOST/api/tags" | jq -r '.models[]?.name')"
+        models="$(curl -sf "$OLLAMA_LOCALHOST/api/tags" | jq -r '.models[]?.name')"
 
-    if [ -z "$models" ]; then
-      ${log} warn "No models installed. Try: ollama pull $OLLAMA_DEFAULT_MODEL"
-      exit 0
-    fi
+        if [ -z "$models" ]; then
+          ${log} warn "No models installed. Try: ollama pull $OLLAMA_DEFAULT_MODEL"
+          exit 0
+        fi
 
-    printf '%s
-' "$models" | while read -r model; do
-      gum style "  • $model"
-    done
+        printf '%s
+    ' "$models" | while read -r model; do
+          gum style "  • $model"
+        done
   '';
 
   ollama-chat = mkBin "ollama-chat" (runtimes.default ++ runtimes.ollama) ''

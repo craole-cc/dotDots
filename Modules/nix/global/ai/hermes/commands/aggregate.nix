@@ -2,10 +2,12 @@
   helpers,
   names,
   commands,
+  lib,
   ...
 }: let
   inherit (helpers) mkBin pkgs;
-in rec {
+  inherit (lib.strings) concatStringsSep;
+
   mkAll = {
     name,
     action,
@@ -19,12 +21,11 @@ in rec {
   in
     mkBin name bins ''
       failed=0
-      for service in ${builtins.concatStringsSep " " names}; do
+      for service in ${concatStringsSep " " names}; do
         "$service-${action}" ${args} || failed=1
       done
       exit "$failed"
     '';
-
   all = {
     start = mkAll {
       name = "start";
@@ -47,4 +48,4 @@ in rec {
         "  stop                    Stop running services"
     '';
   };
-}
+in {inherit all mkAll;}

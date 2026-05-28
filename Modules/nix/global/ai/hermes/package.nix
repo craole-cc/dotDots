@@ -1,7 +1,7 @@
 {
   description,
   dots,
-  env,
+  # env,
   ...
 }: let
   inherit (dots) pkgs lib inputPkgs pythonPkgs;
@@ -30,13 +30,9 @@
     hermes = attrValues apps.hermes;
     default = common;
     all = default ++ ollama ++ hermes;
-  in {
-    inherit common api ollama hermes default all;
-  };
+  in {inherit common api ollama hermes default all;};
 
-  derived = import ./commands {
-    inherit apps description dots paths runtimes;
-  };
+  derived = import ./commands {inherit apps description dots paths runtimes;};
 in {
   inherit apps paths runtimes;
   exports = derived ++ runtimes.all;

@@ -7,7 +7,7 @@
   inherit (dots) pkgs lib;
   inherit (lib.strings) escapeShellArg;
   inherit (helpers) confirm log mkBin renderHelp set-terminal;
-in rec {
+
   mkProcess = pattern: let
     cmd = action: ''${action} -f -- ${escapeShellArg pattern} >/dev/null 2>&1'';
   in {
@@ -207,17 +207,28 @@ in rec {
         ${renderHelp cfg.help.running}
         ${renderHelp cfg.help.common}
         ${renderHelp {
-          content = cfg.help.stopped;
-          faint = true;
-        }}
+        content = cfg.help.stopped;
+        faint = true;
+      }}
       else
         ${renderHelp cfg.help.stopped}
         ${renderHelp cfg.help.common}
         ${renderHelp {
-          content = cfg.help.running;
-          faint = true;
-        }}
+        content = cfg.help.running;
+        faint = true;
+      }}
       fi
     '';
   };
+in {
+  inherit
+    parseStartArgs
+    mkLaunch
+    parseStopArgs
+    mkProcess
+    mkRequire
+    mkWait
+    mkService
+    mkCheck
+    ;
 }

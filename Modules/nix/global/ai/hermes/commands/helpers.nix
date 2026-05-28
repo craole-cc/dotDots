@@ -6,8 +6,7 @@
   inherit (dots) pkgs lib;
   inherit (lib.attrsets) isAttrs;
   inherit (lib.strings) concatMapStringsSep escapeShellArg;
-in rec {
-  inherit pkgs;
+  inherit (lib.trivial) readFile;
 
   mkBin = name: runtimeInputs: text:
     pkgs.writeShellApplication {
@@ -16,6 +15,8 @@ in rec {
 
   log = "gum log --level";
   confirm = "gum confirm";
+in {
+  inherit pkgs log confirm mkBin;
 
   prepare-hermes-messaging = ''
     export HERMES_HOME="''${HERMES_HOME:-$HOME/.hermes}"
@@ -26,12 +27,12 @@ in rec {
     export HERMES_WHATSAPP_BRIDGE_SRC=${escapeShellArg "${paths.hermes}/scripts/whatsapp-bridge"}
     export HERMES_WHATSAPP_BRIDGE_DIR="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
     export HERMES_WHATSAPP_GATEWAY_PY=${escapeShellArg "${../middleware/whatsapp/gateway.py}"}
-    ${builtins.readFile ../middleware/whatsapp/bridge.sh}
+    ${readFile ../middleware/whatsapp/bridge.sh}
   '';
 
   env-file-functions = ''
     export HERMES_ENV_PY=${escapeShellArg "${../environment/env.py}"}
-    ${builtins.readFile ../environment/env.sh}
+    ${readFile ../environment/env.sh}
   '';
 
   renderHelp = arg: let

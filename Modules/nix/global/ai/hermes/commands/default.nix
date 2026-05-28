@@ -1,5 +1,5 @@
 {
-  apps,
+  # apps,
   description,
   dots,
   paths,
@@ -9,6 +9,9 @@
   inherit (dots) lib;
   inherit (lib.attrsets) attrNames attrValues mapAttrs;
   inherit (lib.lists) concatLists;
+
+  names = attrNames services;
+  commands = mapAttrs service-builder.mkService services;
 
   helpers = import ./helpers.nix {
     inherit dots paths;
@@ -23,11 +26,8 @@
     inherit runtimes;
   };
 
-  names = attrNames services;
-  commands = mapAttrs service-builder.mkService services;
-
   aggregate = import ./aggregate.nix {
-    inherit helpers names commands;
+    inherit helpers lib names commands;
   };
 
   ollama = import ./ollama.nix {
@@ -39,29 +39,30 @@
   };
 
   help = import ./help.nix {
-    inherit helpers description names commands;
+    inherit helpers lib description names commands;
     inherit (aggregate) all;
   };
 in
   concatLists [
-    (concatLists (map (svc: [
-        svc.start
-        svc.stop
-        svc.status
-        svc.help
-      ]) (attrValues commands)))
+    (concatLists (
+      map
+      (svc: with svc; [start stop status help])
+      (attrValues commands)
+    ))
     (attrValues aggregate.all)
   ]
-  ++ [
-    ollama.ollama-models
-    ollama.ollama-chat
-    hermes.hermes-tui
-    hermes.hermes-chat
-    hermes.hermes-dev
-    hermes.hermes-research
-    hermes.hermes-writing
-    hermes.hermes-lab
-    hermes.hermes-setup
-    hermes.hermes-whatsapp
-    help.show-help
-  ]
+  ++ (with ollama; [
+    ollama-models
+    ollama-chat
+  ])
+  ++ (with hermes; [
+    hermes-tui
+    hermes-chat
+    hermes-dev
+    hermes-research
+    hermes-writing
+    hermes-lab
+    hermes-setup
+    hermes-whatsapp
+  ])
+  ++ [help.show-help]
