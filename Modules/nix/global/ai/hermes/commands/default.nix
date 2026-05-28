@@ -29,19 +29,6 @@
   aggregate = import ./aggregate.nix {
     inherit helpers lib names commands;
   };
-
-  ollama = import ./ollama.nix {
-    inherit helpers runtimes service-builder;
-  };
-
-  hermes = import ./hermes.nix {
-    inherit helpers runtimes;
-  };
-
-  help = import ./help.nix {
-    inherit helpers lib description names commands;
-    inherit (aggregate) all;
-  };
 in
   concatLists [
     (concatLists (
@@ -51,18 +38,27 @@ in
     ))
     (attrValues aggregate.all)
   ]
-  ++ (with ollama; [
-    ollama-models
-    ollama-chat
-  ])
-  ++ (with hermes; [
-    hermes-tui
-    hermes-chat
-    hermes-dev
-    hermes-research
-    hermes-writing
-    hermes-lab
-    hermes-setup
-    hermes-whatsapp
-  ])
-  ++ [help.show-help]
+  ++ (with (import ./ollama.nix {
+      inherit helpers runtimes service-builder;
+    }); [
+      ollama-models
+      ollama-chat
+    ])
+  ++ (with (import ./hermes.nix {
+      inherit helpers runtimes;
+    }); [
+      hermes-tui
+      hermes-chat
+      hermes-dev
+      hermes-research
+      hermes-writing
+      hermes-lab
+      hermes-setup
+      hermes-whatsapp
+    ])
+  ++ [
+    ((import ./help.nix {
+      inherit helpers lib description names commands;
+      inherit (aggregate) all;
+    }).show-help)
+  ]
