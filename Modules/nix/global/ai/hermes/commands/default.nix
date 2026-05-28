@@ -44,12 +44,11 @@
   };
 in
   concatLists [
-    (concatLists (map (svc:
-      with svc; [
-        start
-        stop
-        status
-        help
+    (concatLists (map (svc: [
+        svc.start
+        svc.stop
+        svc.status
+        svc.help
       ]) (attrValues commands)))
     (attrValues aggregate.all)
   ]

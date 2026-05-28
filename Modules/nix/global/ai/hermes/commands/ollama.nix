@@ -3,15 +3,12 @@
   runtimes,
   service-builder,
   ...
-}: let
+}: rec {
   inherit (helpers) log mkBin;
   inherit (service-builder) mkRequire;
-in {
+
   check-ollama-model = ''
-    curl -sf "$OLLAMA_LOCALHOST/api/tags" \
-      | jq -e --arg model "$OLLAMA_DEFAULT_MODEL" \
-        'any(.models[]?; .name == $model)' \
-      >/dev/null
+    curl -sf "$OLLAMA_LOCALHOST/api/tags"       | jq -e --arg model "$OLLAMA_DEFAULT_MODEL"         'any(.models[]?; .name == $model)'       >/dev/null
   '';
 
   ollama-models = mkBin "ollama-models" runtimes.default ''
@@ -29,7 +26,8 @@ in {
       exit 0
     fi
 
-    printf '%s\n' "$models" | while read -r model; do
+    printf '%s
+' "$models" | while read -r model; do
       gum style "  • $model"
     done
   '';
