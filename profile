@@ -604,7 +604,10 @@ setup_utilities() {
         *) bin="$pkg" ;;
         esac
 		case "$(command -v "$bin" 2>/dev/null)" in
-		"") NIXPKGS_ALLOW_UNFREE=1 nix profile add "nixpkgs#$pkg" ;;
+		"")
+			NIXPKGS_ALLOW_UNFREE=1
+			nix profile add --impure "nixpkgs#$pkg"
+		 ;;
 		esac
 	done
 }
