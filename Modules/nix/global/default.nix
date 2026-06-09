@@ -105,5 +105,5 @@
       )
       configs;
   in
-    shells // {default = shells.hermes;};
+    shells // {default = shells.minimal;};
 in {inherit checks devShells formatter;}

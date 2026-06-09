@@ -112,6 +112,7 @@ configure() {
 	#? Add or remove entries here to control what setup_utilities provisions.
 	#~@ Adhoc utility packages (package_name — binary checked before install)
 	adhoc_packages="
+		antigravity-cli
 	  antigravity-fhs
 	  cfspeedtest
 		fd
@@ -131,15 +132,23 @@ configure() {
 	#? Mirror adhoc_packages plus any toolchain packages managed here.
 	#~@ Packages eligible for cleanup when found on the system PATH
 	cleanup_packages="
+		antigravity-cli
+	  antigravity-fhs
+	  cfspeedtest
+		fd
 		gh
 		gitui
+		gum
+		shellcheck
+	  shortwave
+	  speedtest-go
+	  speedtest-rs
+		shfmt
+		wl-clipboard
+	  ollama
+
 		rustup
 		tailscale
-		wl-clipboard
-		gum
-		fd
-		shellcheck
-		shfmt
 	"
 
 	# ── Primary Monitor ─────────────────────────────────────────────────────
