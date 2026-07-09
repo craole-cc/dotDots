@@ -1,138 +1,135 @@
 #!/bin/sh
 # shellcheck enable=all
-# ==============================================================================
-# profile — NixOS Bootstrap Script
-# ==============================================================================
-#
-# SYNOPSIS
-#   . ~/profile [COMMAND] [OPTIONS]
-#
-# DESCRIPTION
-#   Temporary bootstrap script for configuring a NixOS environment until the
-#   proper bootstrap project is built. Handles monitor layout, Tailscale VPN,
-#   utility installation, and Rust toolchain setup.
-#
-# COMMANDS
-#   monitors      Configure Hyprland monitor layout only
-#   tailscale     Install and connect Tailscale only
-#   utilities     Install utility tools only
-#   rust          Set up the Rust toolchain only
-#   tmux          Install tmux only
-#   all           Run all setup steps (default)
-#
-# OPTIONS
-#   Monitor — primary:
-#     --pri-name   NAME   Connector identifier         (default: HDMI-A-3)
-#     --pri-width  PX     Horizontal resolution        (default: 2560)
-#     --pri-height PX     Vertical resolution          (default: 1440)
-#     --pri-rate   HZ     Refresh rate                 (default: 100)
-#
-#   Monitor — secondary:
-#     --sec-name   NAME   Connector identifier         (default: DP-3)
-#     --sec-width  PX     Horizontal resolution        (default: 1600)
-#     --sec-height PX     Vertical resolution          (default: 900)
-#     --sec-rate   HZ     Refresh rate                 (default: 60)
-#     --sec-pos    POS    Placement: left|right|top|bottom  (default: top)
-#
-#   Monitor — tertiary:
-#     --ter-name   NAME   Connector identifier         (default: "")
-#     --ter-width  PX     Horizontal resolution        (default: 1920)
-#     --ter-height PX     Vertical resolution          (default: 1080)
-#     --ter-rate   HZ     Refresh rate                 (default: 60)
-#     --ter-pos    POS    Placement: left|right|top|bottom  (default: right)
-#
-#   Verbosity:
-#     -q, --quiet     Suppress all output (default)
-#     -d, --debug     Show detailed internal progress
-#     -v, --verbose   Trace all commands as they execute
-#         --dry-run   Preview actions without executing them
-#
-#   Other:
-#     -h, --help      Print this help and exit
-#
-# DEPENDENCIES
-#   Required:  nix, sudo, awk, sed
-#   Optional:  hyprctl, tailscale, fd, gum, wl-copy, shellcheck, shfmt, rustup
-#
-# AUTHOR
-#   craole
-#
-# VERSION
-#   0.1.0
-#
-# NOTES
-#   Sourced as `. ~/profile` so it can export environment changes to the
-#   calling shell. Running it as a child process (sh ~/profile) still works
-#   but any exported variables will be lost when the subshell exits.
-# ==============================================================================
 
+# TODO: We need an option for info:
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 configure() {
   # ── Metadata ────────────────────────────────────────────────────────────
-  #~@ Script identity
   name="profile"
+  home="${DOTS:-${HOME}}"
+  path="${home}/${name}"
+  host="$(hostname)"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.1.0"
-  dependencies="nix, sudo, awk, sed, hyprctl, tailscale, fd, gum, wl-copy, shellcheck, shfmt"
+  version="0.1.2"
+  dependencies_required="nix, sudo, awk, sed"
+  dependencies_optional="hyprctl, tailscale, fd, gum, wl-copy, shellcheck, shfmt, rustup"
 
-  # ── Verbosity ───────────────────────────────────────────────────────────
+  # ── Runtime ─────────────────────────────────────────────────────────────
   #? Levels: quiet | info | verbose | debug | dry
   verbosity="quiet"
-
-  # ── Print Functions ─────────────────────────────────────────────────────
-  #? Use gum for styled output when available; fall back to plain printf
-  case "$(command -v gum 2>/dev/null)" in
-  "")
-    #> Plain printf fallbacks — no external dependency
-    print_debug() { printf "debug: %s\n" "$*"; }
-    print_info() { printf "info:  %s\n" "$*"; }
-    print_warn() { printf "warn:  %s\n" "$*"; }
-    print_error() { printf "error: %s\n" "$*" >&2; }
-    print_success() { printf "ok:    %s\n" "$*"; }
-    ;;
-  *)
-    #> Styled gum output with log levels
-    print_debug() { gum log --level debug --message.foreground="99" "$*"; }
-    print_info() { gum log --level info "$*"; }
-    print_warn() { gum log --level warn "$*"; }
-    print_error() { gum log --level error "$*"; }
-    print_success() { gum log --level info "$*"; }
-    ;;
-  esac
-
-  # ── Defaults ────────────────────────────────────────────────────────────
-
   #? The active command to run
   command="all"
+
+  # ── Display ─────────────────────────────────────────────────────
+  #? Detect gum once; shared by all print functions and print_format
+  case "$(command -v gum 2>/dev/null)" in
+  "") _has_gum=0 ;;
+  *) _has_gum=1 ;;
+  esac
+
+  #? Internal dispatcher — not for direct use
+  _print() {
+    _p_level="$1"
+    shift
+
+    #> Validate level once — recurse as error if unknown
+    case "${_p_level}" in
+    debug | info | warn | error | success) ;;
+    *)
+      _print error "_print: unknown level '${_p_level}': $*"
+      return
+      ;;
+    esac
+
+    #> Dispatch to backend — invalid levels already handled above
+    case "${_has_gum}" in
+    1)
+      case "${_p_level}" in
+      debug) gum log --level debug --message.foreground="99" "$*" ;;
+      info) gum log --level info "$*" ;;
+      warn) gum log --level warn "$*" ;;
+      error) gum log --level error "$*" ;;
+      success) gum log --level info "$*" ;;
+      *) ;;
+      esac
+      ;;
+    *)
+      case "${_p_level}" in
+      debug) printf "debug: %s\n" "$*" ;;
+      info) printf "info:  %s\n" "$*" ;;
+      warn) printf "warn:  %s\n" "$*" ;;
+      error) printf "error: %s\n" "$*" >&2 ;;
+      success) printf "ok:    %s\n" "$*" ;;
+      *) ;;
+      esac
+      ;;
+    esac
+  }
+
+  print_error() { _print error "$*"; }
+  print_warn() { case "${verbosity}" in quiet) ;; *) _print warn "$*" ;; esac }
+  print_success() { case "${verbosity}" in quiet) ;; *) _print success "$*" ;; esac }
+  print_info() { case "${verbosity}" in quiet) ;; *) _print info "$*" ;; esac }
+  print_debug() { case "${verbosity}" in debug) _print debug "$*" ;; *) ;; esac }
+  print_verbose() { case "${verbosity}" in verbose | debug) _print info "$*" ;; *) ;; esac }
+  print_markdown() {
+    case "${_has_gum}" in
+    1) printf "%s\n" "$*" | gum format ;;
+    *) printf "%s\n" "$*" ;;
+    esac
+  }
+
+  # ── Host ───────────────────────────────────────────────────────
+  case "$(hostname)" in
+  Victus)
+    monitor_pri_name="eDP-1"
+    monitor_pri_width="1920"
+    monitor_pri_height="1080"
+    monitor_pri_rate="144"
+
+    monitor_sec_name="HDMI-A-1"
+    monitor_sec_width="1920"
+    monitor_sec_height="1080"
+    monitor_sec_rate="60"
+    monitor_sec_pos="mirror"
+
+    monitor_ter_name=""
+    monitor_ter_width="1920"
+    monitor_ter_height="1080"
+    monitor_ter_rate="60"
+    monitor_ter_pos="right"
+    ;;
+  QBX)
+    monitor_pri_name="HDMI-A-2"
+    monitor_pri_width="2560"
+    monitor_pri_height="1440"
+    monitor_pri_rate="100"
+
+    monitor_sec_name="DP-3"
+    monitor_sec_width="1600"
+    monitor_sec_height="900"
+    monitor_sec_rate="60"
+    monitor_sec_pos="top"
+
+    monitor_ter_name=""
+    monitor_ter_width="1920"
+    monitor_ter_height="1080"
+    monitor_ter_rate="60"
+    monitor_ter_pos="right"
+    ;;
+  *)
+    print_error "Unknown monitor setup; define profile mappings"
+    return 1
+    ;;
+  esac
 
   # ── Adhoc Packages ──────────────────────────────────────────────────────
   #? Packages installed on demand via `nix profile add` when absent from PATH.
   #? Add or remove entries here to control what setup_utilities provisions.
   #~@ Adhoc utility packages (package_name — binary checked before install)
   adhoc_packages="
-		antigravity-cli
-    antigravity-fhs
-    cfspeedtest
-		fd
-		gh
-		gitui
-		gum
-		shellcheck
-    shortwave
-    speedtest-go
-    speedtest-rs
-		shfmt
-		wl-clipboard
-    ollama
-			"
-
-  #? Packages to prune from nix profile once the system provides them.
-  #? Mirror adhoc_packages plus any toolchain packages managed here.
-  #~@ Packages eligible for cleanup when found on the system PATH
-  cleanup_packages="
-		antigravity-cli
 		antigravity-fhs
 		cfspeedtest
 		fd
@@ -146,223 +143,12 @@ configure() {
 		shfmt
 		wl-clipboard
 		ollama
-
 		rustup
 		tailscale
 	"
-
-  # ── Primary Monitor ─────────────────────────────────────────────────────
-  #? The main display — typically the highest-resolution panel
-  #~@ Primary monitor defaults
-  pri_name="HDMI-A-2"
-  pri_width="2560"
-  pri_height="1440"
-  pri_rate="100"
-
-  # ── Secondary Monitor ───────────────────────────────────────────────────
-  #? The secondary display and its position relative to the primary
-  #~@ Secondary monitor defaults
-  sec_name="DP-3"
-  sec_width="1600"
-  sec_height="900"
-  sec_rate="60"
-  sec_pos="top"
-
-  # ── Tertiary Monitor ────────────────────────────────────────────────────
-  #? Leave ter_name empty to disable tertiary monitor handling entirely
-  #~@ Tertiary monitor defaults
-  ter_name=""
-  ter_width="1920"
-  ter_height="1080"
-  ter_rate="60"
-  ter_pos="right"
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-# ------------------------------------------------------------------------------
-# require_arg FLAG VALUE
-# ------------------------------------------------------------------------------
-# Guards against a missing or flag-looking value after a flag that expects an
-# argument. Returns 1 and prints an error when the value is absent or starts
-# with "--".
-#
-# ARGUMENTS
-#   FLAG   — the flag name, used only in the error message  (e.g. --sec-pos)
-#   VALUE  — the next token from the argument list          (may be empty)
-# ------------------------------------------------------------------------------
-require_arg() {
-  case "${2:-}" in
-  "" | --*)
-    print_error "Flag '$1' requires an argument"
-    return 1
-    ;;
-  esac
-}
-
-# ── Usage ─────────────────────────────────────────────────────────────────────
-
-# ------------------------------------------------------------------------------
-# usage
-# ------------------------------------------------------------------------------
-# Prints command-line help to stdout.
-# ------------------------------------------------------------------------------
-usage() {
-  printf 'Usage: . ~/profile [COMMAND] [OPTIONS]\n\n'
-
-  printf 'Commands:\n'
-  printf '  monitors      Configure Hyprland monitor layout only\n'
-  printf '  tailscale     Install and connect Tailscale only\n'
-  printf '  utilities     Install utility tools only\n'
-  printf '  rust          Set up Rust toolchain only\n'
-  printf '  tmux        Install tmux only\n'
-  printf '  all           Run all setup steps (default)\n\n'
-
-  printf 'Monitor options — primary:\n'
-  printf '  --pri-name   NAME   Connector identifier       (default: HDMI-A-3)\n'
-  printf '  --pri-width  PX     Horizontal resolution      (default: 2560)\n'
-  printf '  --pri-height PX     Vertical resolution        (default: 1440)\n'
-  printf '  --pri-rate   HZ     Refresh rate               (default: 100)\n\n'
-
-  printf 'Monitor options — secondary:\n'
-  printf '  --sec-name   NAME   Connector identifier       (default: DP-3)\n'
-  printf '  --sec-width  PX     Horizontal resolution      (default: 1600)\n'
-  printf '  --sec-height PX     Vertical resolution        (default: 900)\n'
-  printf '  --sec-rate   HZ     Refresh rate               (default: 60)\n'
-  printf '  --sec-pos    POS    Placement: left|right|top|bottom  (default: top)\n\n'
-
-  printf 'Monitor options — tertiary (omit --ter-name to disable):\n'
-  printf '  --ter-name   NAME   Connector identifier       (default: disabled)\n'
-  printf '  --ter-width  PX     Horizontal resolution      (default: 1920)\n'
-  printf '  --ter-height PX     Vertical resolution        (default: 1080)\n'
-  printf '  --ter-rate   HZ     Refresh rate               (default: 60)\n'
-  printf '  --ter-pos    POS    Placement: left|right|top|bottom  (default: right)\n\n'
-
-  printf 'Verbosity:\n'
-  printf '  -q, --quiet     Suppress all output\n'
-  printf '  -d, --debug     Show detailed internal progress\n'
-  printf '  -v, --verbose   Show all commands as they run\n'
-  printf '      --dry-run   Show what would be done without doing it\n\n'
-
-  printf 'Other:\n'
-  printf '  -h, --help    Show this help\n'
-}
-
-# ── Argument Parsing ──────────────────────────────────────────────────────────
-
-# ------------------------------------------------------------------------------
-# parse_arguments "$@"
-# ------------------------------------------------------------------------------
-# Parses positional and flag arguments, populating the variables set by
-# configure(). Unknown flags are treated as errors.
-#
-# NOTE: Temporary shim — replace with proper CLI once the bootstrap project
-#       is built.
-# ------------------------------------------------------------------------------
-parse_arguments() {
-  while [ $# -gt 0 ]; do
-    case "$1" in
-    monitors | tailscale | utilities | rust | tmux | xdg | all) #> Named command — set as the operation to run
-      command="$1"
-      ;;
-
-    #? Primary monitor flags
-    --pri-name)
-      require_arg "$1" "$2" || return 1
-      pri_name="$2"
-      shift #? consume the value
-      ;;
-    --pri-width)
-      require_arg "$1" "$2" || return 1
-      pri_width="$2"
-      shift
-      ;;
-    --pri-height)
-      require_arg "$1" "$2" || return 1
-      pri_height="$2"
-      shift
-      ;;
-    --pri-rate)
-      require_arg "$1" "$2" || return 1
-      pri_rate="$2"
-      shift
-      ;;
-
-    #? Secondary monitor flags
-    --sec-name)
-      require_arg "$1" "$2" || return 1
-      sec_name="$2"
-      shift
-      ;;
-    --sec-width)
-      require_arg "$1" "$2" || return 1
-      sec_width="$2"
-      shift
-      ;;
-    --sec-height)
-      require_arg "$1" "$2" || return 1
-      sec_height="$2"
-      shift
-      ;;
-    --sec-rate)
-      require_arg "$1" "$2" || return 1
-      sec_rate="$2"
-      shift
-      ;;
-    --sec-pos)
-      require_arg "$1" "$2" || return 1
-      sec_pos="$2"
-      shift
-      ;;
-
-    #? Tertiary monitor flags
-    --ter-name)
-      require_arg "$1" "$2" || return 1
-      ter_name="$2"
-      shift
-      ;;
-    --ter-width)
-      require_arg "$1" "$2" || return 1
-      ter_width="$2"
-      shift
-      ;;
-    --ter-height)
-      require_arg "$1" "$2" || return 1
-      ter_height="$2"
-      shift
-      ;;
-    --ter-rate)
-      require_arg "$1" "$2" || return 1
-      ter_rate="$2"
-      shift
-      ;;
-    --ter-pos)
-      require_arg "$1" "$2" || return 1
-      ter_pos="$2"
-      shift
-      ;;
-
-    #? Verbosity flags
-    -q | --quiet) verbosity="quiet" ;;
-    -d | --debug) verbosity="debug" ;;
-    -v | --verbose) verbosity="verbose" ;;
-    --dry-run) verbosity="dry" ;;
-
-    -h | --help)
-      usage
-      return 0
-      ;;
-    *)
-      print_error "Unknown option: $1"
-      usage
-      return 1
-      ;;
-    esac
-    shift #? consume the flag
-  done
-}
-
-# ── Cleanup ───────────────────────────────────────────────────────────────────
 
 # ------------------------------------------------------------------------------
 # cleanup
@@ -373,19 +159,44 @@ parse_arguments() {
 # The candidate list is driven by $cleanup_packages, defined in configure().
 # ------------------------------------------------------------------------------
 cleanup() {
-  for pkg in $cleanup_packages; do
-    bin="$(command -v "$pkg" 2>/dev/null)"
-    case "${bin:-}" in
+  # shellcheck disable=SC2086
+  for pkg in ${adhoc_packages}; do
+    bin="${pkg}"
+    case "${pkg}" in
+    wl-clipboard) bin="wl-copy" ;;
+    antigravity-fhs) bin="antigravity" ;;
+    *) ;;
+    esac
+    bin_path="$(command -v "${bin}" 2>/dev/null)"
+    case "${bin_path:-}" in
     /run/current-system/sw/bin/* | /etc/profiles/per-user/*/bin/*)
-      #> Remove the nix-profile copy; ignore errors if already absent
-      nix profile remove "nixpkgs#$pkg" 2>/dev/null || true
-      case "$verbosity" in
-      quiet) ;;
-      *) print_info "cleanup: removed ${pkg} from nix profile (now provided by system)" ;;
-      esac
+      nix profile remove "nixpkgs#${pkg}" 2>/dev/null || true
+      print_info "cleanup: removed ${pkg} (now provided by system)"
       ;;
+    *) ;;
     esac
   done
+}
+
+# ------------------------------------------------------------------------------
+# require_arg FLAG VALUE
+# ------------------------------------------------------------------------------
+# Guards against a missing or flag-looking value after a flag that expects an
+# argument. Returns 1 and prints an error when the value is absent or starts
+# with "--".
+#
+# ARGUMENTS
+#   FLAG   — the flag name, used only in the error message  (e.g. --monitor-sec-pos)
+#   VALUE  — the next token from the argument list          (may be empty)
+# ------------------------------------------------------------------------------
+require_arg() {
+  case "${2:-}" in
+  "" | --*)
+    print_error "Flag '$1' requires an argument"
+    return 1
+    ;;
+  *) ;;
+  esac
 }
 
 # ── XDG/OpenURI workaround ────────────────────────────────────────────────────
@@ -399,19 +210,19 @@ cleanup() {
 # a user-local wrapper that delegates to gio.
 # ------------------------------------------------------------------------------
 setup_xdg_open() {
-  mkdir -p "$HOME/.local/bin"
+  mkdir -p "${HOME}/.local/bin"
 
-  cat >"$HOME/.local/bin/xdg-open" <<'EOF'
+  cat >"${HOME}/.local/bin/xdg-open" <<'EOF'
 #!/usr/bin/env sh
 exec gio open "$@"
 EOF
 
-  chmod +x "$HOME/.local/bin/xdg-open"
+  chmod +x "${HOME}/.local/bin/xdg-open"
 
-  case ":$PATH:" in
-  *":$HOME/.local/bin:"*) ;;
+  case ":${PATH}:" in
+  *":${HOME}/.local/bin:"*) ;;
   *)
-    PATH="$HOME/.local/bin:$PATH"
+    PATH="${HOME}/.local/bin:${PATH}"
     export PATH
     ;;
   esac
@@ -426,80 +237,101 @@ EOF
 # ------------------------------------------------------------------------------
 # Configures multi-monitor layout in Hyprland by editing hyprland.conf and
 # reloading the compositor. Skips the reload when current positions already
-# match the desired layout. Tertiary monitor handling is skipped when ter_name
+# match the desired layout. Tertiary monitor handling is skipped when monitor_ter_name
 # is empty.
-#
-# Reads globals: pri_name, pri_width, pri_height, pri_rate
-#                sec_name, sec_width, sec_height, sec_rate, sec_pos
-#                ter_name, ter_width, ter_height, ter_rate, ter_pos
 # ------------------------------------------------------------------------------
 setup_monitors() {
 
-  # ----------------------------------------------------------------------------
-  # build_res NAME WIDTH HEIGHT RATE
-  # ----------------------------------------------------------------------------
-  # Assembles the Hyprland resolution string from discrete components.
+  # ── Detect active compositor ──────────────────────────────────────────────
+  # HYPRLAND_INSTANCE_SIGNATURE and NIRI_SOCKET are set by their respective
+  # compositors for every process inside a live session. More reliable than
+  # checking `command -v` since the binaries can be on PATH without a session.
+  case "${HYPRLAND_INSTANCE_SIGNATURE:-}" in
+  ?*) _compositor="hyprland" ;;
+  *)
+    case "${NIRI_SOCKET:-}" in
+    ?*) _compositor="niri" ;;
+    *) _compositor="" ;;
+    esac
+    ;;
+  esac
+
+  case "${_compositor}" in
+  "")
+    print_info "setup_monitors: no supported compositor detected (Hyprland or niri); skipping"
+    return 0
+    ;;
+  *) ;;
+  esac
+
+  # --------------------------------------------------------------------------
+  # build_res WIDTH HEIGHT RATE
+  # --------------------------------------------------------------------------
   # Outputs: WIDTHxHEIGHT@RATE  (e.g. 2560x1440@100)
-  # ----------------------------------------------------------------------------
+  # Used by both compositor backends.
+  # --------------------------------------------------------------------------
   build_res() {
-    printf '%sx%s@%s' "$2" "$3" "$4"
+    printf '%sx%s@%s' "$1" "$2" "$3"
   }
 
-  # ----------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
   # calc_positions
-  # ----------------------------------------------------------------------------
-  # Derives the XY origin for each monitor based on the desired sec_pos (and
-  # ter_pos for a third panel). Populates pri_pos_xy, sec_pos_xy, and
-  # ter_pos_xy. Returns 1 for an unrecognised position value.
-  # ----------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
+  # Derives the XY origin for each monitor from monitor_sec_pos (and
+  # monitor_ter_pos when a third connector is configured).
+  # Populates: monitor_pri_pos_xy, monitor_sec_pos_xy, monitor_ter_pos_xy
+  # Compositor-agnostic — both backends use the same geometry.
+  # --------------------------------------------------------------------------
   calc_positions() {
-    case "$sec_pos" in
+    case "${monitor_sec_pos}" in
     left)
-      sec_pos_xy="0x0"
-      pri_pos_xy="${sec_width}x0"
+      monitor_sec_pos_xy="0x0"
+      monitor_pri_pos_xy="${monitor_sec_width}x0"
       ;;
     right)
-      pri_pos_xy="0x0"
-      sec_pos_xy="${pri_width}x0"
+      monitor_pri_pos_xy="0x0"
+      monitor_sec_pos_xy="${monitor_pri_width}x0"
       ;;
     top)
-      pri_pos_xy="0x${sec_height}"
-      sec_pos_xy="$(((pri_width - sec_width) / 2))x0"
+      monitor_pri_pos_xy="0x${monitor_sec_height}"
+      monitor_sec_pos_xy="$(((monitor_pri_width - monitor_sec_width) / 2))x0"
       ;;
     bottom)
-      pri_pos_xy="0x0"
-      sec_pos_xy="0x${pri_height}"
+      monitor_pri_pos_xy="0x0"
+      monitor_sec_pos_xy="0x${monitor_pri_height}"
+      ;;
+    mirror)
+      monitor_pri_pos_xy="0x0"
+      monitor_sec_pos_xy="auto"
       ;;
     *)
-      print_error "Unknown secondary monitor position: $sec_pos"
+      print_error "Unknown secondary monitor position: ${monitor_sec_pos}"
       return 1
       ;;
     esac
 
-    #? Only compute tertiary position when a connector is configured
-    case "${ter_name:-}" in
+    case "${monitor_ter_name:-}" in
     "") ;;
     *)
-      case "$ter_pos" in
+      case "${monitor_ter_pos}" in
       left)
-        ter_pos_xy="0x0"
-        #> Shift primary and secondary right by ter_width
-        pri_pos_xy="${ter_width}x${pri_pos_xy#*x}"
-        sec_pos_xy="${ter_width}x${sec_pos_xy#*x}"
+        monitor_ter_pos_xy="0x0"
+        monitor_pri_pos_xy="${monitor_ter_width}x${monitor_pri_pos_xy#*x}"
+        monitor_sec_pos_xy="${monitor_ter_width}x${monitor_sec_pos_xy#*x}"
         ;;
       right)
-        ter_pos_xy="${pri_width}x0"
+        monitor_ter_pos_xy="${monitor_pri_width}x0"
         ;;
       top)
-        ter_pos_xy="0x0"
-        pri_pos_xy="${pri_pos_xy%%x*}x${ter_height}"
-        sec_pos_xy="${sec_pos_xy%%x*}x${ter_height}"
+        monitor_ter_pos_xy="0x0"
+        monitor_pri_pos_xy="${monitor_pri_pos_xy%%x*}x${monitor_ter_height}"
+        monitor_sec_pos_xy="${monitor_sec_pos_xy%%x*}x${monitor_ter_height}"
         ;;
       bottom)
-        ter_pos_xy="0x${pri_height}"
+        monitor_ter_pos_xy="0x${monitor_pri_height}"
         ;;
       *)
-        print_error "Unknown tertiary monitor position: $ter_pos"
+        print_error "Unknown tertiary monitor position: ${monitor_ter_pos}"
         return 1
         ;;
       esac
@@ -507,49 +339,202 @@ setup_monitors() {
     esac
   }
 
-  # ----------------------------------------------------------------------------
-  # apply
-  # ----------------------------------------------------------------------------
-  # Queries current monitor positions via hyprctl, compares them against the
-  # desired layout, and rewrites hyprland.conf + reloads only when a change is
-  # needed.
-  # ----------------------------------------------------------------------------
-  apply() {
-    calc_positions || return 1
+  # --------------------------------------------------------------------------
+  # hyprland_apply
+  # --------------------------------------------------------------------------
+  # Issues `hyprctl keyword monitor` commands. Queries current layout first
+  # and skips the reload when positions already match.
+  # hyprctl failure is non-fatal: empty current position forces a reload,
+  # which is the safe worst case.
+  # --------------------------------------------------------------------------
+  hyprland_apply() {
+    _pri_res="$(build_res "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}")"
+    _sec_res="$(build_res "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}")"
 
-    pri_res="$(build_res "$pri_name" "$pri_width" "$pri_height" "$pri_rate")"
-    sec_res="$(build_res "$sec_name" "$sec_width" "$sec_height" "$sec_rate")"
-
-    pri_current="$(hyprctl monitors | awk '/Monitor '"$pri_name"'/{found=1} found && /at /{print $3; exit}')"
-    sec_current="$(hyprctl monitors | awk '/Monitor '"$sec_name"'/{found=1} found && /at /{print $3; exit}')"
-
-    _needs_reload=0
-    case "$pri_current" in
-    "$pri_pos_xy") ;;
-    *) _needs_reload=1 ;;
-    esac
-    case "$sec_current" in
-    "$sec_pos_xy") ;;
-    *) _needs_reload=1 ;;
-    esac
-
-    case "$_needs_reload" in
-    1)
-      hyprctl keyword monitor "$pri_name, ${pri_res}, ${pri_pos_xy}, 1"
-      hyprctl keyword monitor "$sec_name, ${sec_res}, ${sec_pos_xy}, 1"
-
-      case "${ter_name:-}" in
+    case "${monitor_sec_pos}" in
+    mirror)
+      case "${monitor_ter_name:-}" in
       "") ;;
       *)
-        ter_res="$(build_res "$ter_name" "$ter_width" "$ter_height" "$ter_rate")"
-        hyprctl keyword monitor "$ter_name, ${ter_res}, ${ter_pos_xy}, 1"
+        print_error "hyprland: tertiary monitor with monitor_sec_pos=mirror is not supported"
+        return 1
+        ;;
+      esac
+      hyprctl keyword monitor "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1"
+      hyprctl keyword monitor "${monitor_sec_name}, ${_sec_res}, auto, 1, mirror, ${monitor_pri_name}"
+      return 0
+      ;;
+    *) ;;
+    esac
+
+    #? Non-fatal: empty string on failure forces a reload (safe worst case)
+    _monitors="$(hyprctl monitors 2>/dev/null)" || _monitors=""
+    _pri_current="$(printf '%s\n' "${_monitors}" |
+      awk '/Monitor '"${monitor_pri_name}"'/{found=1} found && /at /{print $3; exit}')"
+    _sec_current="$(printf '%s\n' "${_monitors}" |
+      awk '/Monitor '"${monitor_sec_name}"'/{found=1} found && /at /{print $3; exit}')"
+
+    _needs_reload=0
+    case "${_pri_current}" in
+    "${monitor_pri_pos_xy}") ;;
+    *) _needs_reload=1 ;;
+    esac
+    case "${_sec_current}" in
+    "${monitor_sec_pos_xy}") ;;
+    *) _needs_reload=1 ;;
+    esac
+
+    case "${_needs_reload}" in
+    1)
+      hyprctl keyword monitor "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1"
+      hyprctl keyword monitor "${monitor_sec_name}, ${_sec_res}, ${monitor_sec_pos_xy}, 1"
+      case "${monitor_ter_name:-}" in
+      "") ;;
+      *)
+        _ter_res="$(build_res "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}")"
+        hyprctl keyword monitor "${monitor_ter_name}, ${_ter_res}, ${monitor_ter_pos_xy}, 1"
         ;;
       esac
       ;;
+    *) ;;
     esac
   }
 
-  apply
+  # --------------------------------------------------------------------------
+  # niri_get_pos OUTPUT_NAME
+  # --------------------------------------------------------------------------
+  # Parses `niri msg outputs` JSON (pretty-printed, one key per line) to
+  # extract the logical x,y position of the named output.
+  # Prints "XxY" on success; empty string when not found or output is off
+  # (logical: null). Empty result is non-fatal — callers treat it as unknown
+  # and apply the full reload, which is idempotent.
+  # --------------------------------------------------------------------------
+  niri_get_pos() {
+    niri msg outputs 2>/dev/null | awk -v target="$1" '
+      BEGIN { in_output=0; in_logical=0; x=""; y="" }
+
+      # Match the output block by name; reset state if another name is seen
+      /"name":/ {
+        if (index($0, "\"" target "\"")) {
+          in_output=1; in_logical=0; x=""; y=""
+        } else if (in_output) {
+          in_output=0; in_logical=0
+        }
+      }
+
+      # null logical means the output is off — skip
+      in_output && /"logical": *null/ { in_output=0 }
+
+      in_output && /"logical":/ { in_logical=1 }
+
+      in_logical && /"x":/ {
+        line=$0
+        sub(/.*"x": */, "", line)
+        sub(/[^0-9-].*/, "", line)
+        x=line
+      }
+      in_logical && /"y":/ {
+        line=$0
+        sub(/.*"y": */, "", line)
+        sub(/[^0-9-].*/, "", line)
+        y=line
+        printf "%sx%s", x, y
+        exit
+      }
+    '
+  }
+
+  # --------------------------------------------------------------------------
+  # niri_apply
+  # --------------------------------------------------------------------------
+  # Issues `niri msg output <name> mode <res> position x=<x> y=<y>` commands.
+  # Uses niri_get_pos to skip unchanged outputs (non-fatal if query fails).
+  #
+  # Mirror note: niri has no native output mirroring. When monitor_sec_pos is
+  # "mirror" we configure the primary only and warn; the secondary is left
+  # as-is rather than silently placed at an arbitrary position.
+  # --------------------------------------------------------------------------
+  niri_apply() {
+    _pri_res="$(build_res "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}")"
+    _sec_res="$(build_res "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}")"
+
+    case "${monitor_sec_pos}" in
+    mirror)
+      print_warn "niri: output mirroring is not supported; configuring primary only"
+      niri msg output "${monitor_pri_name}" \
+        mode "${_pri_res}" \
+        position x="${monitor_pri_pos_xy%%x*}" y="${monitor_pri_pos_xy#*x}"
+      return 0
+      ;;
+    *) ;;
+    esac
+
+    _pri_current="$(niri_get_pos "${monitor_pri_name}")" || _pri_current=""
+    _sec_current="$(niri_get_pos "${monitor_sec_name}")" || _sec_current=""
+
+    _needs_reload=0
+    case "${_pri_current}" in
+    "${monitor_pri_pos_xy}") ;;
+    *) _needs_reload=1 ;;
+    esac
+    case "${_sec_current}" in
+    "${monitor_sec_pos_xy}") ;;
+    *) _needs_reload=1 ;;
+    esac
+
+    case "${_needs_reload}" in
+    1)
+      niri msg output "${monitor_pri_name}" \
+        mode "${_pri_res}" \
+        position x="${monitor_pri_pos_xy%%x*}" y="${monitor_pri_pos_xy#*x}"
+
+      niri msg output "${monitor_sec_name}" \
+        mode "${_sec_res}" \
+        position x="${monitor_sec_pos_xy%%x*}" y="${monitor_sec_pos_xy#*x}"
+
+      case "${monitor_ter_name:-}" in
+      "") ;;
+      *)
+        _ter_res="$(build_res "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}")"
+        niri msg output "${monitor_ter_name}" \
+          mode "${_ter_res}" \
+          position x="${monitor_ter_pos_xy%%x*}" y="${monitor_ter_pos_xy#*x}"
+        ;;
+      esac
+      ;;
+    *) ;;
+    esac
+  }
+
+  # ── Dispatch ──────────────────────────────────────────────────────────────
+  calc_positions || return 1
+
+  case "${_compositor}" in
+  hyprland) hyprland_apply ;;
+  niri) niri_apply ;;
+  *) print_error "Unknown compositor: ${_compositor}" ;;
+  esac
+}
+
+#? Renders one monitor status line, or nothing if NAME is unset
+#? ARGS: LABEL NAME WIDTH HEIGHT RATE [POS]
+get_monitor_status() {
+  _label="$1" _name="$2" _width="$3" _height="$4" _rate="$5" _pos="${6:-}"
+  case "${_name}" in
+  "") return 0 ;;
+  *)
+    case "${_pos}" in
+    "")
+      printf -- "- %s: %s %sx%s@%s\n" \
+        "${_label}" "${_name}" "${_width:-?}" "${_height:-?}" "${_rate:-?}"
+      ;;
+    *)
+      printf -- "- %s: %s %sx%s@%s %s\n" \
+        "${_label}" "${_name}" "${_width:-?}" "${_height:-?}" "${_rate:-?}" "${_pos}"
+      ;;
+    esac
+    ;;
+  esac
 }
 
 # ── Tailscale ─────────────────────────────────────────────────────────────────
@@ -571,6 +556,7 @@ setup_tailscale() {
   install() {
     case "$(command -v tailscale 2>/dev/null)" in
     "") nix profile add nixpkgs#tailscale ;;
+    *) ;;
     esac
   }
 
@@ -591,7 +577,7 @@ setup_tailscale() {
     fi
 
     sudo tailscaled --state=/var/lib/tailscale/tailscaled.state 2>&1 |
-      tee /tmp/tailscaled.log >/dev/null &
+      sudo tee /tmp/tailscaled.log >/dev/null &
 
     sleep 2
   }
@@ -601,29 +587,13 @@ setup_tailscale() {
   # Brings the Tailscale node up if it is not already connected. When already
   # connected and verbosity is non-quiet, prints status for confirmation.
   # ----------------------------------------------------------------------------
+
   connect() {
     if ! tailscale status >/dev/null 2>&1; then
       sudo tailscale up
       return
     fi
-    case "$verbosity" in
-    quiet) ;;
-    *)
-      print_success "Tailscale already connected"
-      tailscale status
-      ;;
-    esac
-  }
-
-  restart_tailscale() {
-    sudo tailscale down 2>/dev/null || true
-    sudo pkill tailscaled 2>/dev/null || true
-
-    sudo tailscaled --state=/var/lib/tailscale/tailscaled.state \
-      >/tmp/tailscaled.log 2>&1 &
-
-    sleep 2
-    sudo tailscale up
+    print_success "Tailscale already connected"
   }
 
   install
@@ -642,17 +612,17 @@ setup_tailscale() {
 # package name is used for installation.
 # ------------------------------------------------------------------------------
 setup_utilities() {
-  for pkg in $adhoc_packages; do
-    bin="$pkg"
-    case "$pkg" in
+  # shellcheck disable=SC2086
+  for pkg in ${adhoc_packages}; do
+    bin="${pkg}"
+    case "${pkg}" in
     wl-clipboard) bin="wl-copy" ;;
-    *) bin="$pkg" ;;
+    antigravity-fhs) bin="antigravity" ;;
+    *) ;;
     esac
-    case "$(command -v "$bin" 2>/dev/null)" in
-    "")
-      NIXPKGS_ALLOW_UNFREE=1
-      nix profile add --impure "nixpkgs#$pkg"
-      ;;
+    case "$(command -v "${bin}" 2>/dev/null)" in
+    "") NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#${pkg}" ;;
+    *) ;;
     esac
   done
 }
@@ -661,7 +631,12 @@ fix_net() {
   sudo tailscale down 2>/dev/null || true
   sudo pkill tailscaled 2>/dev/null || true
 
-  sudo resolvectl revert "$(ip route | awk '/default/ { print $5; exit }')" 2>/dev/null || true
+  _iface="$(ip route 2>/dev/null | awk '/default/ { print $5; exit }')" || _iface=""
+  case "${_iface}" in "") ;; *)
+    sudo resolvectl revert "${_iface}" 2>/dev/null || true
+    ;;
+  esac
+
   sudo resolvectl flush-caches 2>/dev/null || true
 
   print_success "Stopped Tailscale and reset DNS for the default interface"
@@ -688,7 +663,7 @@ fix_net() {
 #
 # OPTIONS
 #   --no-ignore   Pass --no-ignore to fd (include files hidden by .gitignore etc.)
-#   --no-recurse  Reserved; currently unused
+#   --no-recurse  Do not recurse into subdirectories
 #
 # DEPENDENCIES
 #   gum      Interactive prompts
@@ -704,12 +679,12 @@ clip() {
     case "$1" in
     --no-ignore) no_ignore=1 ;;
     --no-recurse) no_recurse=1 ;;
-    *) clip_paths="$clip_paths $1" ;;
+    *) clip_paths="${clip_paths:+${clip_paths} }$1" ;;
     esac
     shift
   done
 
-  [ -z "$clip_paths" ] && clip_paths="."
+  [ -z "${clip_paths}" ] && clip_paths="."
 
   # ----------------------------------------------------------------------------
   # collect_files TARGET
@@ -722,24 +697,24 @@ clip() {
   collect_files() {
     target="$1"
 
-    #> Resolve relative paths — check $HOME first, then CWD
-    case "$target" in
+    #> Resolve relative paths — check ${HOME} first, then CWD
+    case "${target}" in
     /*) ;;
     *)
-      if [ -e "$HOME/$target" ]; then
-        target="$HOME/$target"
-      elif [ -e "./$target" ]; then
-        target="./$target"
+      if [ -e "${HOME}/${target}" ]; then
+        target="${HOME}/${target}"
+      elif [ -e "./${target}" ]; then
+        target="./${target}"
       fi
       ;;
     esac
 
-    if [ -f "$target" ]; then
+    if [ -f "${target}" ]; then
       #> Prompt for individual file inclusion
-      gum confirm "Include $target?" </dev/tty >/dev/tty 2>&1
+      gum confirm "Include ${target}?" </dev/tty >/dev/tty 2>&1
       exit_code=$?
-      case "$exit_code" in
-      0) printf "%s\n" "$target" ;; #? Confirmed — emit path
+      case "${exit_code}" in
+      0) printf "%s\n" "${target}" ;; #? Confirmed — emit path
       130)
         print_warn "clip: cancelled"
         return 1
@@ -747,10 +722,10 @@ clip() {
       *) ;; #? Declined — emit nothing
       esac
 
-    elif [ -d "$target" ]; then
+    elif [ -d "${target}" ]; then
       #> Prompt for directory handling strategy
       choice="$(gum choose \
-        --header "Directory: $target" \
+        --header "Directory: ${target}" \
         "all" "recurse" "skip" \
         </dev/tty)"
       exit_code=$?
@@ -759,33 +734,52 @@ clip() {
         print_warn "clip: cancelled"
         return 1
         ;;
+      *) ;;
       esac
 
-      case "$choice" in
+      case "${choice}" in
       all)
-        #> Emit every file under the directory recursively
+        #> Emit every file under the directory
         fd_args="--type file --hidden"
-        [ "$no_ignore" = "1" ] && fd_args="$fd_args --no-ignore"
+        case "${no_recurse}" in
+        1) fd_args="${fd_args} --max-depth 1" ;;
+        *) ;;
+        esac
+        case "${no_ignore}" in
+        1) fd_args="${fd_args} --no-ignore" ;;
+        *) ;;
+        esac
         # shellcheck disable=SC2086
-        fd $fd_args . "$target"
+        fd ${fd_args} . "${target}"
         ;;
       recurse)
         #> Inspect each immediate entry individually
         fd_args="--hidden --max-depth 1"
-        [ "$no_ignore" = "1" ] && fd_args="$fd_args --no-ignore"
+        case "${no_ignore}" in
+        1) fd_args="${fd_args} --no-ignore" ;;
+        *) ;;
+        esac
         _recurse_tmp="$(mktemp)"
         # shellcheck disable=SC2086
-        fd $fd_args . "$target" >"$_recurse_tmp"
+        fd ${fd_args} . "${target}" >"${_recurse_tmp}"
         while IFS= read -r item; do
-          collect_files "$item"
-        done <"$_recurse_tmp"
-        rm -f "$_recurse_tmp"
+          case "${no_recurse}" in
+          1)
+            if [ -d "${item}" ]; then
+              continue
+            fi
+            ;;
+          *) ;;
+          esac
+          collect_files "${item}"
+        done <"${_recurse_tmp}"
+        rm -f "${_recurse_tmp}"
         ;;
       skip | *) ;;
       esac
 
     else
-      print_error "clip: not found: $target"
+      print_error "clip: not found: ${target}"
     fi
   }
 
@@ -793,49 +787,52 @@ clip() {
   #> Accumulate all emitted paths into a temp file to avoid subshell scoping
   selected=""
   _collect_tmp="$(mktemp)"
-  for clip_path in $clip_paths; do
-    collect_files "$clip_path" >>"$_collect_tmp"
+  # shellcheck disable=SC2086
+  for clip_path in ${clip_paths}; do
+    collect_files "${clip_path}" >>"${_collect_tmp}"
   done
 
   #> Read collected paths back into $selected from the temp file
   while IFS= read -r file; do
-    selected="$(printf "%s\n%s" "$selected" "$file")"
-  done <"$_collect_tmp"
-  rm -f "$_collect_tmp"
+    selected="$(printf "%s\n%s" "${selected}" "${file}")"
+  done <"${_collect_tmp}"
+  rm -f "${_collect_tmp}"
 
   #> Strip blank lines introduced by the accumulation pattern
-  selected="$(printf "%s" "$selected" | sed '/^$/d')"
+  selected="$(printf "%s" "${selected}" | sed '/^$/d')"
 
-  case "$selected" in
+  case "${selected}" in
   "")
     print_error "clip: nothing selected"
     return 1
     ;;
+  *) ;;
   esac
 
   # ── Build clipboard content ────────────────────────────────────────────
-  file_count="$(printf "%s\n" "$selected" | wc -l)"
-  printf "INFO Building content from %s file(s)...\n" "$file_count" >/dev/tty
+  file_count="$(printf "%s\n" "${selected}" | wc -l | tr -d ' ')"
+  print_info "clip: Building content from ${file_count} file(s)..."
 
   #> Write $selected to a temp file so the while-read loop runs in the
   #  current shell (piping would create a subshell, losing $content)
   content=""
   _content_tmp="$(mktemp)"
-  printf "%s\n" "$selected" >"$_content_tmp"
+  printf "%s\n" "${selected}" >"${_content_tmp}"
 
   while IFS= read -r file; do
-    case "$verbosity" in
-    verbose) printf "INFO   adding %s\n" "$file" >/dev/tty ;;
-    debug) printf "  adding %s\n" "$file" >/dev/tty ;;
-    esac
-    #> Wrap each file in a fenced code block with its path as a header
-    content="$(printf '%s```\n# %s\n%s\n```\n\n' \
-      "$content" "$file" "$(cat "$file")")"
-  done <"$_content_tmp"
-  rm -f "$_content_tmp"
+    print_verbose "clip: adding ${file}"
 
-  printf "%s" "$content" | wl-copy
-  printf "INFO clip: copied %s file(s) to clipboard\n" "$file_count" >/dev/tty
+    #> Wrap each file in a fenced code block with its path as a header
+    # TODO: Command substitution strips trailing newlines, so files ending with \n (which is most of them) will have that stripped in the clipboard output. Not fixable without a temp file or || printf x trick, but worth noting in the function's doc comment.
+    file_content="$(cat "${file}")"
+    # shellcheck disable=SC2016
+    content="$(printf '%s```\n# %s\n%s\n```\n\n' \
+      "${content}" "${file}" "${file_content}")"
+  done <"${_content_tmp}"
+  rm -f "${_content_tmp}"
+
+  printf "%s" "${content}" | wl-copy
+  print_info "clip: copied ${file_count} file(s) to clipboard"
 }
 
 # ── Rust ──────────────────────────────────────────────────────────────────────
@@ -860,6 +857,7 @@ setup_rust() {
       print_info "Installing rustup..."
       nix profile add "nixpkgs#rustup"
       ;;
+    *) ;;
     esac
   }
 
@@ -898,33 +896,39 @@ setup_tmux() {
     print_info "Installing tmux..."
     nix profile add "nixpkgs#tmux"
     ;;
+  *) ;;
   esac
 }
 
 # ── Remote Helix + tmux workflow ──────────────────────────────────────────────
 
 # ------------------------------------------------------------------------------
-# pust_hx
+# push_hx
 # ------------------------------------------------------------------------------
 # Syncs local ~/.config/helix to craole@preci:~/.config/helix (one-way).
 # ------------------------------------------------------------------------------
-pust_hx() {
+push_hx() {
   case "$(command -v rsync 2>/dev/null)" in
   "")
     # Ensure rsync is available
-    nix profile add "nixpkgs#rsync" >/dev/null 2>&1
+    nix profile add "nixpkgs#rsync" >/dev/null 2>&1 || {
+      print_error "push_hx: failed to install rsync"
+      return 1
+    }
     ;;
+  *) ;;
   esac
 
   rsync -av --delete ~/.config/helix/ craole@preci:~/.config/helix/ || {
-    print_error "pust_hx: rsync failed"
+    print_error "push_hx: rsync failed"
     return 1
   }
 
-  print_success "pust_hx: synced Helix config to prec"
+  print_success "push_hx: synced Helix config to prec"
   # Ensure tmux is available (on local machine)
   case "$(command -v tmux 2>/dev/null)" in
   "") nix profile add "nixpkgs#tmux" >/dev/null 2>&1 ;;
+  *) ;;
   esac
 }
 
@@ -932,7 +936,7 @@ pust_hx() {
 # dev
 # ------------------------------------------------------------------------------
 # One-command remote dev entrypoint:
-#   1. Sync local Helix config to prec (pust_hx)
+#   1. Sync local Helix config to prec (push_hx)
 #   2. SSH into prec and attach/create tmux session "dots"
 #
 # ARGUMENTS
@@ -951,14 +955,14 @@ dev() {
     shift
   done
 
-  case "$no_sync" in
-  0) pust_hx ;;
+  case "${no_sync}" in
+  0) push_hx ;;
   *) ;;
   esac
 
   # Inline tmux attach/create logic (works on remote without extra setup)
   ssh craole@preci -t "tmux attach-session -t dots 2>/dev/null || tmux new-session -s dots"
-} && export -f pust_hx dev
+}
 
 # ── Orchestration ─────────────────────────────────────────────────────────────
 
@@ -979,51 +983,237 @@ execute() {
   # wrap the entire invocation cleanly.
   # ----------------------------------------------------------------------------
   run() {
-    case "$command" in
+    case "${command}" in
     monitors) setup_monitors ;;
     tailscale) setup_tailscale ;;
     utilities) setup_utilities ;;
     rust) setup_rust ;;
-    tmux) setup_tmux ;; xdg) setup_xdg_open ;;
+    tmux) setup_tmux ;;
+    xdg) setup_xdg_open ;;
     all)
       #~@ Full setup sequence
       setup_xdg_open
       setup_monitors
-      # setup_tailscale
+      setup_tailscale
       setup_utilities
       setup_rust
       setup_tmux
       ;;
+    *) ;;
     esac
   }
 
-  case "$verbosity" in
-  dry)
-    #> Preview only — print intent without side effects
-    printf "Would run: %s\n" "$command"
-    printf "  primary:    %s  %sx%s@%s\n" "$pri_name" "$pri_width" "$pri_height" "$pri_rate"
-    printf "  secondary:  %s  %sx%s@%s  pos=%s\n" \
-      "$sec_name" "$sec_width" "$sec_height" "$sec_rate" "$sec_pos"
-    case "${ter_name:-}" in
-    "") printf "  tertiary:   (disabled)\n" ;;
-    *) printf "  tertiary:   %s  %sx%s@%s  pos=%s\n" \
-      "$ter_name" "$ter_width" "$ter_height" "$ter_rate" "$ter_pos" ;;
-    esac
-    ;;
-  quiet)
-    #> Suppress all output by redirecting stdout and stderr
-    run >/dev/null 2>&1
-    ;;
-  info)
-    run
-    ;;
+  case "${verbosity}" in
   verbose)
-    #> Trace each command as the shell expands it
     set -x
     run
     set +x
     ;;
+  dry | debug)
+    printf "Would run: %s\n" "${command}"
+    printf "  primary:    %s  %sx%s@%s\n" \
+      "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}"
+    printf "  secondary:  %s  %sx%s@%s  pos=%s\n" \
+      "${monitor_sec_name}" "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}" "${monitor_sec_pos}"
+    case "${monitor_ter_name:-}" in
+    "") printf "  tertiary:   (disabled)\n" ;;
+    *) printf "  tertiary:   %s  %sx%s@%s  pos=%s\n" \
+      "${monitor_ter_name}" "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}" "${monitor_ter_pos}" ;;
+    esac
+    ;;
+  info) run ;;
+  quiet) run >/dev/null ;;
+  *) ;;
   esac
+}
+
+# ── Argument Parsing ──────────────────────────────────────────────────────────
+
+# ------------------------------------------------------------------------------
+# parse_arguments "$@"
+# ------------------------------------------------------------------------------
+# Parses positional and flag arguments, populating the variables set by
+# configure(). Unknown flags are treated as errors.
+#
+# NOTE: Temporary shim — replace with proper CLI once the bootstrap project
+#       is built.
+# ------------------------------------------------------------------------------
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    monitors | tailscale | utilities | rust | tmux | xdg | all) #> Named command — set as the operation to run
+      command="$1"
+      ;;
+
+    #? Primary monitor flags
+    --monitor-pri-name)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_name="$2"
+      shift #? consume the value
+      ;;
+    --monitor-pri-width)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_width="$2"
+      shift
+      ;;
+    --monitor-pri-height)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_height="$2"
+      shift
+      ;;
+    --monitor-pri-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_rate="$2"
+      shift
+      ;;
+
+    #? Secondary monitor flags
+    --monitor-sec-name)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_name="$2"
+      shift
+      ;;
+    --monitor-sec-width)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_width="$2"
+      shift
+      ;;
+    --monitor-sec-height)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_height="$2"
+      shift
+      ;;
+    --monitor-sec-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_rate="$2"
+      shift
+      ;;
+    --monitor-sec-pos)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_pos="$2"
+      shift
+      ;;
+
+    #? Tertiary monitor flags
+    --monitor-ter-name)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_name="$2"
+      shift
+      ;;
+    --monitor-ter-width)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_width="$2"
+      shift
+      ;;
+    --monitor-ter-height)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_height="$2"
+      shift
+      ;;
+    --monitor-ter-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_rate="$2"
+      shift
+      ;;
+    --monitor-ter-pos)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_pos="$2"
+      shift
+      ;;
+
+    #? Verbosity flags
+    -q | --quiet) verbosity="quiet" ;;
+    -d | --debug) verbosity="debug" ;;
+    -v | --verbose) verbosity="verbose" ;;
+    --dry-run) verbosity="dry" ;;
+
+    -h | --help)
+      usage
+      return 0
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      usage
+      return 1
+      ;;
+    esac
+    shift #? consume the flag
+  done
+}
+
+# ── Usage ─────────────────────────────────────────────────────────────────────
+
+# ------------------------------------------------------------------------------
+# usage
+# ------------------------------------------------------------------------------
+# Prints command-line help to stdout.
+# ------------------------------------------------------------------------------
+usage() {
+  #? Build the current-monitors block once, with unset monitors omitted entirely
+  _active_monitors="$(
+    {
+      get_monitor_status "Primary" "${monitor_pri_name:-}" "${monitor_pri_width:-}" "${monitor_pri_height:-}" "${monitor_pri_rate:-}"
+      get_monitor_status "Secondary" "${monitor_sec_name:-}" "${monitor_sec_width:-}" "${monitor_sec_height:-}" "${monitor_sec_rate:-}" "${monitor_sec_pos:-}"
+      get_monitor_status "Tertiary" "${monitor_ter_name:-}" "${monitor_ter_width:-}" "${monitor_ter_height:-}" "${monitor_ter_rate:-}" "${monitor_ter_pos:-}"
+    } | sed '/^$/d'
+  )"
+
+  _help="$(
+    cat <<EOF
+**Description:** _${description}_
+**Path:** _${path}_
+**Author:** _${author}_
+**Version:** _${version}_
+**Usage:** \`. ${name} [COMMAND] [OPTIONS]\`
+
+# COMMANDS
+  **monitors**      Configure monitor layout (Hyprland and niri)
+  **tailscale**     Install and connect Tailscale
+  **utilities**     Install utility tools
+  **rust**          Set up Rust toolchain
+  **tmux**          Install tmux
+  **all**           Run all setup steps (default)
+
+# MONITOR:
+  \`--monitor-{tag}-{flag}\` Set monitor configuration
+
+## Tags
+  - pri: primary
+  - sec: secondary
+  - ter: tertiary
+
+## Flags
+  - name: an empty name disables the monitor
+  - width: horizontal resolution
+  - height: vertical resolution
+  - rate: refresh rate
+  - pos: placement can be left, right, top, bottom, or mirror
+
+## Current
+${_active_monitors:- \(none configured)}
+
+# VERBOSITY
+  \`-q, --quiet\`            Suppress all output
+  \`-d, --debug\`            Show detailed internal progress
+  \`-v, --verbose\`          Show all commands as they run
+      \`--dry-run\`          Show what would be done without doing it
+
+# OTHER
+  \`-h, --help\`             Show this help
+
+# DEPENDENCIES
+  ## Required: _${dependencies_required}_
+  ## Optional: _${dependencies_optional}_
+
+# NOTES
+- Defaults are host-specific, resolved via \`hostname\` (current: _${host}_).
+- DE/WM is auto-detected via session environment
+- When sourced exported variables persist in the parent shell: \`. ${name}\`
+- When called as a subshell variables are lost: \`${name}\`
+EOF
+  )"
+
+  print_markdown "${_help}"
 }
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
@@ -1035,7 +1225,7 @@ execute() {
 # forwarding all script arguments to parse_arguments.
 # ------------------------------------------------------------------------------
 main() {
-  configure
-  parse_arguments "$@"
+  configure || return 1
+  parse_arguments "$@" || return 1
   execute
 } && main "$@"
