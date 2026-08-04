@@ -7,6 +7,8 @@
 }: let
   inherit (lib.modules) mkDefault;
 in {
+  nixpkgs.hostPlatform = mkDefault "x86_64-linux";
+
   imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
   # ==================== HARDWARE ====================

@@ -1,10 +1,12 @@
 {
   config,
   host,
+  inputs,
   lix,
   nixosConfig,
   pkgs,
   user,
+  lib,
   ...
 }: let
   inherit (lix.modules.construction) mkIf mkMerge;
@@ -38,7 +40,7 @@
     then "twilight"
     else "beta";
   darwinName = "${name}-${variant}";
-  pkgName = "zen-${variant}";
+  pkgName = if variant == "twilight" then "twilight" else "beta";
 
   enable = isPrimary || isSecondary || isAllowed;
 in {
@@ -47,7 +49,7 @@ in {
       inherit enable name;
       darwinAppName = darwinName;
       wrappedPackageName = pkgName;
-      package = pkgs."${pkgName}";
+      package = inputs.zen-browser.packages.${pkgs.system}.${pkgName};
       setAsDefaultBrowser = isPrimary;
       enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
       profiles.${user.name} = mkMerge [
@@ -67,11 +69,11 @@ in {
       sessionVariables =
         if isPrimary
         then {
-          BROWSER = pkgName;
-          BROWSER_PRI = pkgName;
+          BROWSER = lib.mkForce "zen";
+          BROWSER_PRI = lib.mkForce "zen";
         }
         else if isSecondary
-        then {BROWSER_SEC = pkgName;}
+        then {BROWSER_SEC = lib.mkForce "zen";}
         else {};
     };
   };

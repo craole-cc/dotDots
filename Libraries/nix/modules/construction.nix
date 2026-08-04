@@ -138,7 +138,10 @@
     specialArgs,
     tree,
   }: [
-    {inherit nixpkgs;}
+    {nixpkgs = {
+      flake.source = nixpkgs.outPath;
+      config.allowUnfree = host.packages.allowUnfree or true;
+    };}
     (mkHome {
       inherit host specialArgs tree inputs;
       modules = modules.home;
