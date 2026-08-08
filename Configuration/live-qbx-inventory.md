@@ -98,7 +98,8 @@ The following are not just package-presence questions and need explicit module o
 7. Environment names and values: especially `BROWSER`, `EDITOR`, `TERMINAL`, `LAUNCHER`, theme/wallpaper variables, and Qt/GTK/Wayland integration.
 8. Yazi: mtime linemode, column ratio, natural sorting, previewers, openers, and editor/media associations.
 9. MPV: the live file delegates to `$DOTS/Configuration/mpv/config`; that source must be compared directly.
-10. Media/download applications: qBittorrent paths, tracker policy, port settings, OBS profile/plugin settings, and media-editor associations. Secrets and credentials must not be copied.
+10. Development and remote-access tooling: the live user has VS Code with the Tailwind CSS and Tailscale extensions plus their language/settings integration. No global `tailwind`/`tailwindcss` executable was found. The live user profile provides `/home/craole/.nix-profile/bin/nix-ld`; no repository-owned `nix-ld` declaration currently exists. `tailscaled.service` is active and connected on QBX, with the `tailscale` client also available from `/home/craole/.nix-profile/bin`; no repository-owned Tailscale NixOS/service declaration currently exists. The live Tailscale state under `/var/lib/tailscale` must be preserved as host state and must never be copied into the repository. A VS Code Insiders server agent is running from the user's `.vscode-server-insiders` state; this is not currently represented as a NixOS/Home Manager service and must not be assumed to be recreated by a rebuild.
+11. Media/download applications: qBittorrent paths, tracker policy, port settings, OBS profile/plugin settings, and media-editor associations. Secrets and credentials must not be copied.
 
 ## Current Readiness Assessment
 
