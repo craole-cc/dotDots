@@ -1,5 +1,5 @@
 {config, top, ...}: {
   programs.gitui = {
-    enable = config.${top}.applications.utilities.gitui.enable;
+    enable = config.${top}.inputs.applications.utilities.gitui.enable;
   };
 }

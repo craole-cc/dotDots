@@ -13,8 +13,8 @@
 }: let
   dom = "interface";
   mod = "hyprland";
-  cfg = config.${top}.${dom}.${mod};
-  cfgTop = nixosConfig.${top};
+  cfg = config.${top}.inputs.${dom}.${mod};
+  cfgTop = nixosConfig.${top}.inputs;
   #> Use user.interface directly - already normalized per-user in mkUsers
   inherit (user.interface) windowManager;
 
@@ -30,7 +30,7 @@
       target
     };
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = windowManager == "hyprland";};
     withAddons = mkOption {
       description = "Enable hyprland addons";

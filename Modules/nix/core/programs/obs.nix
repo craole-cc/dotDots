@@ -9,17 +9,17 @@
 }: let
   dom = "programs";
   mod = "obs-studio";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   hw = host.hardware;
 
-  inherit (config.${top}.interface) displayProtocol;
+  inherit (config.${top}.inputs.interface) displayProtocol;
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
       description = "OBS Studio";
       condition = hw.hasVideoCam;

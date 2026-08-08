@@ -61,7 +61,7 @@
       type = either (either str package) core;
     };
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     # _test = mkOption {
     #   description = "test stuff";
     #   default = seed;

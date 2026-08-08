@@ -10,7 +10,7 @@
 }: let
   dom = "editors";
   mod = "vscode";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
   inherit (lix.modules.construction) mkIf mkMerge mkDefault;
   inherit (lix.attrsets.access) attrNames;
@@ -48,7 +48,7 @@
     debug = false;
   };
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
       description = mod;
       condition = appCfg.enable;

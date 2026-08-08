@@ -8,28 +8,35 @@
   ...
 }: let
   dom = "users";
-  cfg = config.${top}.${dom};
+  cfg = config.${top}.inputs.${dom};
 
   inherit (lix.attrsets.resolution) package;
   inherit (lix.lists.predicates) isIn;
-  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.attrsets) mapAttrs removeAttrs;
   inherit (lib.lists) head optionals;
   inherit (lib.options) mkOption;
-  inherit (lib.types) bool;
+  inherit (lib.types) anything bool;
 
   hostUsers = host.users.data.enabled or {};
   adminNames = host.users.names.elevated or [];
   inherit (host.hardware) hasNetwork;
+  publicProfiles = mapAttrs (_: user: removeAttrs user ["password"]) (host.users.data.all or {});
 in {
-  options.${top}.${dom} = {
+  options.${top}.inputs.${dom} = {
     execWheelOnly = mkOption {
       description = "Restrict sudo to wheel group members";
       default = true;
       type = bool;
     };
+    profiles = mkOption {
+      description = "Derived host user profiles for dots introspection; credential fields are omitted";
+      default = {};
+      type = anything;
+    };
   };
 
   config = {
+    ${top}.inputs.users.profiles = publicProfiles;
     security.sudo = {
       inherit (cfg) execWheelOnly;
       extraRules =

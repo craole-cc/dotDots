@@ -14,7 +14,7 @@
 
   ui = mkUI {inherit host user;};
 in {
-  options.${top}.${dom} = {
+  options.${top}.inputs.${dom} = {
     enable = mkEnableOption dom // {default = ui.enable;};
 
     desktopEnvironment = mkOption {

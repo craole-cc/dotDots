@@ -1,6 +1,6 @@
 {config, top, ...}: {
   programs.clock-rs = {
-    enable = config.${top}.applications.utilities.clock.enable;
+    enable = config.${top}.inputs.applications.utilities.clock.enable;
     settings = {
       general = {
         color = "magenta";

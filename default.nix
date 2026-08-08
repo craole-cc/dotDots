@@ -9,6 +9,7 @@
     top = "_";
     lib = "lix";
   },
+  topOverride ? null,
 }: let
   libraries = import paths.libraries {
     inherit
@@ -34,6 +35,7 @@
           rs = "rust";
         }
         // {
+          global = base ++ ["global"];
           hosts = base ++ ["hosts"];
           users = base ++ ["users"];
         };
@@ -138,10 +140,24 @@
       };
     };
   };
+  # `top` is resolved from the most authoritative source available: an
+  # explicit function argument (the CLI/embedding override), then DOTS_TOP,
+  # then the persisted API global names record, and finally root `names.top`.
+  global =
+    if tree.store.api.global != null
+    then import tree.store.api.global
+    else {};
+  envTop = builtins.getEnv "DOTS_TOP";
+  top =
+    if topOverride != null
+    then topOverride
+    else if envTop != ""
+    then envTop
+    else global.names.top or (names.top or "_");
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
 in {
-  inherit (names) top;
+  inherit top global;
   inherit
     lix
     paths

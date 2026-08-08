@@ -1,6 +1,6 @@
 {config, top, ...}: {
   programs.topgrade = {
-    enable = config.${top}.applications.utilities.topgrade.enable;
+    enable = config.${top}.inputs.applications.utilities.topgrade.enable;
     settings = {
       misc = {
         assume_yes = true;

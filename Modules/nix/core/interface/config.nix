@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (lix.modules.construction) mkIf;
-  inherit (config.${top}.interface) panel;
+  inherit (config.${top}.inputs.interface) panel;
   isDmsShell = panel == "dms-shell";
 in {
   config = mkIf isDmsShell {

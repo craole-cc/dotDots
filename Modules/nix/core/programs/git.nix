@@ -6,11 +6,11 @@
 }: let
   dom = "programs";
   mod = "git";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   inherit (lix.options.construction) mkTrue;
   inherit (lix.modules.construction) mkIf;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";
     enableLFS = mkTrue "Large File Storage for Git";
     enablePrompt = mkTrue "Utility functions via `git-prompt.sh`";

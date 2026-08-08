@@ -1,6 +1,6 @@
 {config, top, user, ...}: {
   programs.jujutsu = {
-    enable = config.${top}.applications.utilities.jujutsu.enable;
+    enable = config.${top}.inputs.applications.utilities.jujutsu.enable;
     settings = {
       user = {
         name = user.git.name or null;

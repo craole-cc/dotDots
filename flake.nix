@@ -4,7 +4,7 @@
   outputs = inputs @ {self, ...}: let
     flake = self;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import ./. {inherit flake lib;}) lix tree schema top paths;
+    inherit (import ./. {inherit flake lib;}) lix tree schema top paths global;
     inherit (lix.modules.construction) mkFlake mkSystems;
     # inherit (lix.attrsets.resolution) mkPkgs;
     inherit (lix.sources.packages) mkAll;
@@ -12,7 +12,7 @@
     args = let
       src = mkAll {inherit flake;};
     in {
-      inherit flake lix top src;
+      inherit flake lix top global src;
       inherit (src) inputs;
     };
 

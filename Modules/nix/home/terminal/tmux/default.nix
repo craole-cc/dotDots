@@ -1,7 +1,7 @@
 {config, top, ...}: {
   programs.tmux =
     {
-      enable = config.${top}.applications.utilities.tmux.enable;
+      enable = config.${top}.inputs.applications.utilities.tmux.enable;
     }
     # // import ./settings.nix
     // import ./plugins.nix;

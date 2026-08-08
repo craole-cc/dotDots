@@ -25,7 +25,7 @@
   ];
   apiUtilities = user.applications.utilities or {};
 in {
-  options.${top}.applications.utilities =
+  options.${top}.inputs.applications.utilities =
     lib.genAttrs utilityNames (name: {
       enable = lib.mkOption {
         description = "Enable the ${name} user utility";

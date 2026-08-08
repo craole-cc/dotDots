@@ -5,9 +5,9 @@
   top,
   ...
 }: let
-  cfg = config.${top}.services.remote.caddy;
+  cfg = config.${top}.inputs.services.remote.caddy;
 in {
-  options.${top}.services.remote.caddy.enable = lib.mkOption {
+  options.${top}.inputs.services.remote.caddy.enable = lib.mkOption {
     description = "Enable Caddy reverse-proxy remote access";
     default = host.access.remote.caddy.enable or false;
     type = lib.types.bool;

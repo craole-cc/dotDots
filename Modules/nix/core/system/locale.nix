@@ -8,7 +8,7 @@
 }: let
   dom = "system";
   mod = "locale";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   loc = host.localization;
 
   inherit (lib.modules) mkIf;
@@ -21,7 +21,7 @@
     str
     ;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

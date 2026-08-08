@@ -7,9 +7,9 @@
 }: let
   dom = "hardware";
   mod = "display";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
-  iface = config.${top}.interface;
+  iface = config.${top}.inputs.interface;
   isWayland = iface.displayProtocol == "wayland";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
@@ -17,7 +17,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool str;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

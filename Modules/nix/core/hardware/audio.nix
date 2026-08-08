@@ -7,14 +7,14 @@
 }: let
   dom = "hardware";
   mod = "audio";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
   hw = host.hardware;
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

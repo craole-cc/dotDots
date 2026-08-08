@@ -6,14 +6,14 @@
 }: let
   dom = "programs";
   mod = "hyprlock";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
-  wm = config.${top}.interface.windowManager or null;
+  wm = config.${top}.inputs.interface.windowManager or null;
 
   inherit (lix.options.construction) mkEnable;
   inherit (lix.modules.construction) mkIf;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
       description = "Hyprlock screen locker for Hyprland";
       condition = wm == "hyprland";

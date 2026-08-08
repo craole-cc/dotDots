@@ -7,7 +7,7 @@
 }: let
   dom = "hardware";
   mod = "bluetooth";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
   hw = host.hardware;
 
@@ -15,7 +15,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

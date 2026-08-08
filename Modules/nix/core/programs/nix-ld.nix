@@ -6,9 +6,9 @@
   top,
   ...
 }: let
-  cfg = config.${top}.programs.nix-ld;
+  cfg = config.${top}.inputs.programs.nix-ld;
 in {
-  options.${top}.programs.nix-ld.enable = lib.mkOption {
+  options.${top}.inputs.programs.nix-ld.enable = lib.mkOption {
     description = "Enable nix-ld for prebuilt dynamically linked development tools";
     default = host.capabilities.development;
     type = lib.types.bool;

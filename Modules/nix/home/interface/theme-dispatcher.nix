@@ -6,7 +6,7 @@
   user,
   ...
 }: let
-  cfg = config.${top}.interface.theme.dispatcher;
+  cfg = config.${top}.inputs.interface.theme.dispatcher;
   statePath = cfg.statePath;
   socketPath = cfg.socketPath;
   darkTheme = user.style.theme.dark or "Catppuccin Frappé";
@@ -117,7 +117,7 @@
     printf '%s' "$command" | ${pkgs.socat}/bin/socat - "UNIX-CONNECT:$socket"
   '';
 in {
-  options.${top}.interface.theme = {
+  options.${top}.inputs.interface.theme = {
     enable = lib.mkOption {
       description = "Enable live system-wide theme polarity management";
       default = user.style.autoSwitch or true;

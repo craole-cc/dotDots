@@ -9,7 +9,7 @@
 }: let
   dom = "services";
   mod = "vpn";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   vpnCfg = host.access.vpn or {};
 
   inherit (lib.attrsets) listToAttrs;
@@ -35,7 +35,7 @@
     };
   };
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

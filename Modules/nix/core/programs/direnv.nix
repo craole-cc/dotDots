@@ -6,11 +6,11 @@
 }: let
   dom = "programs";
   mod = "direnv";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
   inherit (lix.modules.construction) mkIf;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkTrue mod;
     silent = mkTrue "silent mode";
     dotenv = mkTrue "load .env files";

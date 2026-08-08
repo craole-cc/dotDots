@@ -8,7 +8,7 @@
   ...
 }: let
   dom = "interface";
-  cfg = config.${top}.${dom};
+  cfg = config.${top}.inputs.${dom};
   inherit (lib.modules) mkForce;
   # inherit (lib.strings) toLower;
   getPackage = lix.attrsets.resolution.package;

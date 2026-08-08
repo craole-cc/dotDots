@@ -32,8 +32,14 @@
   - hosts: Enriched host configurations
   - users: Raw user configurations
   */
+  # Host API records are intentionally flat declarations.  `mkCore` enriches
+  # each record after import; no namespace translation is applied here.
   mkSchema = {tree}: let
-    paths = {inherit (tree.store.api) users hosts;};
+    paths = {inherit (tree.store.api) global users hosts;};
+    global =
+      if paths.global != null
+      then import paths.global
+      else {};
     users =
       if paths.users != null
       then importAttrs paths.users
@@ -43,7 +49,7 @@
       then mapAttrs (name: host: mkCore {inherit name host users;}) (importAttrs paths.hosts)
       else {};
   in {
-    inherit users hosts;
+    inherit global users hosts;
   };
 in
   __exports.internal // {__rootAliases = __exports.external;}

@@ -5,9 +5,9 @@
   top,
   ...
 }: let
-  cfg = config.${top}.services.remote.ssh;
+  cfg = config.${top}.inputs.services.remote.ssh;
 in {
-  options.${top}.services.remote.ssh = {
+  options.${top}.inputs.services.remote.ssh = {
     enable = lib.mkOption {
       description = "Enable SSH remote access";
       default = host.access.remote.ssh.enable or (host.access.ssh or null) != null;

@@ -7,7 +7,7 @@
 }: let
   dom = "environment";
   mod = "aliases";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
   dots = host.paths.dots or null;
 
   inherit (lib.attrsets) optionalAttrs;
@@ -40,7 +40,7 @@
       };
   };
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     default = mkOption {
       description = "Default shell aliases";

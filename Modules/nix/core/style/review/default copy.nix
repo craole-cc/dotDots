@@ -11,7 +11,7 @@
 #   inherit (lix.modules.core.style) mkStyle;
 #   dom = "interface";
 #   mod = "style";
-#   cfg = config.${top}.${dom}.${mod};
+#   cfg = config.${top}.inputs.${dom}.${mod};
 #   inherit
 #     (cfg)
 #     cursors
@@ -25,7 +25,7 @@
 #   inherit (lib.types) enum bool;
 # in {
 #   imports = importAllPaths ./.;
-#   options.${top}.${dom}.${mod} = {
+#   options.${top}.inputs.${dom}.${mod} = {
 #     enable = mkEnableOption mod // {default = true;};
 #     polarity = mkOption {
 #       description = ''

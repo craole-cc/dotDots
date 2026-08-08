@@ -1,6 +1,6 @@
 {config, top, user, ...}: {
   programs.git = {
-    enable = config.${top}.applications.utilities.git.enable;
+    enable = config.${top}.inputs.applications.utilities.git.enable;
     lfs.enable = true;
     settings = {
       user = {

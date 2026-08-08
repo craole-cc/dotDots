@@ -1,5 +1,5 @@
 {config, top, ...}: {
   programs.btop = {
-    enable = config.${top}.applications.utilities.btop.enable;
+    enable = config.${top}.inputs.applications.utilities.btop.enable;
   };
 }

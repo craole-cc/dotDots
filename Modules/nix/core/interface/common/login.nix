@@ -7,7 +7,7 @@
   ...
 }: let
   dom = "interface";
-  cfg = config.${top}.${dom};
+  cfg = config.${top}.inputs.${dom};
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkOption;
@@ -19,7 +19,7 @@
   # are already declared by options.nix via mkOptions { inherit host; }.
   user = host.users.data.primary or {};
 in {
-  options.${top}.${dom} = {
+  options.${top}.inputs.${dom} = {
     autoLogin = mkOption {
       description = "Whether to enable automatic login for the primary user.";
       default = user.autoLogin or false;

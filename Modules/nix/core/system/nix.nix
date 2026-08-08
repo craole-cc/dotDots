@@ -10,14 +10,14 @@
 }: let
   dom = "system";
   mod = "nix";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf bool either int nullOr str submodule;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
 
     stateVersion = mkOption {

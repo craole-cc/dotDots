@@ -6,7 +6,7 @@
   isEnabled = pkg: config.programs.${pkg}.enable;
 in {
   programs.atuin = {
-    enable = config.${top}.applications.utilities.atuin.enable;
+    enable = config.${top}.inputs.applications.utilities.atuin.enable;
     daemon.enable = true;
     enableBashIntegration = isEnabled "bash";
     enableNushellIntegration = isEnabled "nushell";

@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  cfg = config.${top}.interface;
+  cfg = config.${top}.inputs.interface;
 in {
   config = mkIf (cfg.desktopEnvironment == "gnome") {
     services.desktopManager.gnome.enable = true;

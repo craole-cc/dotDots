@@ -7,14 +7,14 @@
 }: let
   dom = "system";
   mod = "clean";
-  cfg = config.${top}.${dom}.${mod};
-  nixCfg = config.${top}.${dom}.nix;
+  cfg = config.${top}.inputs.${dom}.${mod};
+  nixCfg = config.${top}.inputs.${dom}.nix;
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) nullOr str;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

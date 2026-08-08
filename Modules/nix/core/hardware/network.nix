@@ -8,7 +8,7 @@
 }: let
   dom = "hardware";
   mod = "network";
-  cfg = config.${top}.${dom}.${mod};
+  cfg = config.${top}.inputs.${dom}.${mod};
 
 
   hw = host.hardware;
@@ -29,7 +29,7 @@
     int
     ;
 in {
-  options.${top}.${dom}.${mod} = {
+  options.${top}.inputs.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {
