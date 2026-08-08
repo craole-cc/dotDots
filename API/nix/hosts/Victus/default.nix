@@ -147,6 +147,15 @@ in {
   access = {
     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFuAgYKymJKvky9sAhU0wjHPHbGt+Hg0KLOTIYjoZ9tw root@nixos";
     # age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
+
+    remote = {
+      ssh = {
+        enable = true;
+        keyOnly = true;
+      };
+      tailscale.enable = true;
+      caddy.enable = false;
+    };
     firewall = {
       # enable = true;
       tcp = {
@@ -188,6 +197,8 @@ in {
       ];
     };
   };
+
+  network.backend = "networkmanager";
 
   principals = [
     {

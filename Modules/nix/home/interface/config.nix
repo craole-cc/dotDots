@@ -20,20 +20,18 @@
 
   #~@ Cursor configuration
   cursor = rec {
-    # name = toLower (get style.cursor current "material_light_cursors");
-    name = "material_light_cursors";
+    name = cfg.cursors.name;
     package = getPackage {
       inherit pkgs;
       target = name;
       default = pkgs.material-cursors;
     };
-    size = 32;
+    size = cfg.cursors.size;
   };
 
   #~@ Icons configuration
   icons = rec {
-    # name = toLower (get style.icons current "candy-icons");
-    name = "candy-icons";
+    name = cfg.icons.name;
     package = getPackage {
       inherit pkgs;
       target = name;
@@ -48,11 +46,11 @@ in {
     enable = mkForce true;
     iconTheme = mkForce {inherit (icons) package name;};
     cursorTheme = mkForce {inherit (cursor) package name size;};
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = 0;
     gtk4 = {
       theme = null;
       # theme=config.gtk.theme;
-      extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+      extraConfig.gtk-application-prefer-dark-theme = 0;
     };
   };
 

@@ -366,6 +366,12 @@
       };
     };
 
+    downloads = resolve {
+      inherit home dots user;
+      path = ["dlds"];
+      default = "home:Downloads";
+    };
+
     api = {
       host = resolve {
         inherit home dots user;
@@ -382,6 +388,7 @@
       inherit
         api
         avatars
+        downloads
         dots
         home
         wallpapers

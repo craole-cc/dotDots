@@ -1,17 +1,17 @@
-{
+{config, top, ...}: {
   programs = {
     ripgrep = {
-      enable = true;
+      enable = config.${top}.applications.utilities.grep.enable;
       arguments = [
         "--max-columns-preview"
         "--colors=line:style:bold"
       ];
     };
 
-    ripgrep-all.enable = true;
+    ripgrep-all.enable = config.${top}.applications.utilities.grep.enable;
 
     fd = {
-      enable = true;
+      enable = config.${top}.applications.utilities.grep.enable;
       extraOptions = ["--absolute-path"];
       ignores = [
         ".git/"

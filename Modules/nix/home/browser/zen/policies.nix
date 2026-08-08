@@ -1,7 +1,7 @@
-{config, ...}: {
+{paths, ...}: {
   AutofillAddressEnabled = true;
   AutofillCreditCardEnabled = false;
-  DefaultDownloadDirectory = config.home.homeDirectory + "/Downloads";
+  DefaultDownloadDirectory = paths.downloads;
   DisableAppUpdate = true;
   DisableFeedbackCommands = true;
   DisableFirefoxStudies = true;

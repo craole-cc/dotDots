@@ -36,6 +36,36 @@
     then head (attrValues hosts)
     else throw "No hosts available";
 
+  mkAccess = host: let
+    raw = host.access or {};
+    remote = raw.remote or {};
+    ssh = remote.ssh or {};
+    tailscale = remote.tailscale or {};
+    caddy = remote.caddy or {};
+  in
+    raw
+    // {
+      remote = {
+        ssh = ssh // {
+          enable = ssh.enable or (raw.ssh or null) != null;
+          keyOnly = ssh.keyOnly or true;
+        };
+        tailscale = tailscale // {
+          enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
+        };
+        caddy = caddy // {enable = caddy.enable or false;};
+      };
+      tailscale = tailscale // {
+        enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
+      };
+    };
+
+  mkNetwork = host: let
+    network = host.network or {};
+  in {
+    backend = network.backend or "networkmanager";
+  };
+
   /**
   Enrich a single host with user data, interface normalization, and metadata.
   */
@@ -54,6 +84,8 @@
       user = enrichedUser.data.primary;
     };
     enrichedHardware = mkHardware {inherit host;};
+    enrichedAccess = mkAccess host;
+    enrichedNetwork = mkNetwork host;
     enrichment = {
       inherit name;
       inherit (host.paths) dots;
@@ -62,6 +94,8 @@
       interface = enrichedUI;
       localization = enrichedLocale;
       hardware = enrichedHardware;
+      access = enrichedAccess;
+      network = enrichedNetwork;
     };
   in
     host // enrichment;
