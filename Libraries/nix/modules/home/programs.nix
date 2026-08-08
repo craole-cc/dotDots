@@ -79,27 +79,6 @@
         "neovim"
       ];
 
-      "zen-browser" = {
-        aliases = normalizeNames [
-          "zen"
-          "zen-twilight"
-          "zen-beta"
-          "zen-default"
-        ];
-        variants = {
-          twilight = normalizeNames [
-            "zen"
-            "zen-twilight"
-            "zen twilight"
-          ];
-          beta = normalizeNames [
-            "zen-beta"
-            "zen-default"
-            "zen beta"
-            "zen default"
-          ];
-        };
-      };
     };
 
     mappings = {
@@ -320,9 +299,6 @@
     hostApps = host.applications or {};
     userApps = user.applications or {};
     programDefaults = removeAttrs programs ["tui"];
-    zenCfg = defaults.apps."zen-browser";
-    zenNames = normalizeNames (["zen-browser"] ++ (zenCfg.aliases or []));
-
     rawTerm = normalizeName (
       attrByPath ["terminal" "primary"] (attrByPath ["terminal" "primary"] programs.terminal.primary hostApps) userApps
     );
