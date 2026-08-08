@@ -47,6 +47,7 @@ in {
         displayManager
         defaultSession
         panel
+        compositor
         autoLogin
         autoLoginUser
         ;

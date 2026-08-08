@@ -12,8 +12,8 @@
     Derives the active session name from `defaultSession`, then
     `windowManager`, then `desktopEnvironment`, with a `hyprland-uwsm`
     override when `config.programs.hyprland.withUWSM` is true. Enables the
-    appropriate display manager, desktop-manager modules, auto-login, DMS
-    greeter detection, GDM TTY suppression, and GUI-gated udisks2.
+    appropriate display manager, desktop-manager modules, auto-login,
+    GDM TTY suppression, and GUI-gated udisks2.
 
     XDG portal configuration is intentionally excluded - portal.nix owns
     that slice.
@@ -28,6 +28,7 @@
       displayManager     :: String | null,
       defaultSession     :: String | null,
       panel              :: String | null,
+      compositor         :: AttrSet,
       autoLogin          :: Bool,
       autoLoginUser      :: String | null,
     } -> AttrSet
@@ -62,11 +63,11 @@
     displayManager ? null,
     defaultSession ? null,
     panel ? null,
+    compositor ? {},
     autoLogin ? false,
     autoLoginUser ? null,
     ...
   }: let
-    useDms = panel == "dms-shell" && (windowManager == "niri" || windowManager == "hyprland");
     hasGui = desktopEnvironment != null || windowManager != null;
 
     # Session resolution: explicit override > wm > de, then hyprland-uwsm
@@ -106,15 +107,19 @@
           user = autoLoginUser;
         };
 
-        cosmic-greeter.enable = desktopEnvironment == "cosmic" && !useDms;
-        dms-greeter.enable = useDms || displayManager == "dms-greeter";
+        cosmic-greeter.enable = desktopEnvironment == "cosmic";
+        dms-greeter = {
+          enable = displayManager == "dms-greeter";
+        } // optionalAttrs (displayManager == "dms-greeter") {
+          compositor.name = compositor.window or compositor.desktop;
+        };
 
         gdm = {
-          enable = displayManager == "gdm" && !useDms;
+          enable = displayManager == "gdm";
         };
 
         sddm = {
-          enable = displayManager == "sddm" && !useDms;
+          enable = displayManager == "sddm";
           wayland.enable = displayProtocol == "wayland";
         };
 
