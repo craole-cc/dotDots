@@ -11,6 +11,7 @@ in {
 
   paths = {
     dots = "/home/craole/.dots";
+    storage = "/mnt/Storage";
     # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
   };
 
