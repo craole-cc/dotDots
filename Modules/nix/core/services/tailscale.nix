@@ -1,8 +1,6 @@
-{config, lib, ...}: {
-  # Tailscale is the machine-to-machine VPN used for remote development,
-  # recovery access, and swarm communication. Keep it separate from the
-  # application VPN namespace configured by services/vpn.nix.
-  # QBX is explicitly a Tailscale-capable host; this must not depend on the
-  # normalized host record being available as a module argument.
-  services.tailscale.enable = lib.mkIf (config.networking.hostName == "QBX") true;
+{...}: {
+  # QBX is a Tailscale-capable host. Tailscale is required for remote
+  # development, recovery access, and swarm communication. This is separate
+  # from the application VPN namespace configured by services/vpn.nix.
+  services.tailscale.enable = true;
 }
