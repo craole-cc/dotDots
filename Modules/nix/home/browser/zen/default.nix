@@ -10,37 +10,31 @@
   ...
 }: let
   inherit (lix.modules.construction) mkIf mkMerge;
-  inherit (lix.lists.predicates) isIn;
+  inherit (lix.applications.registry) resolve;
+  inherit (lix.applications.runtime) resolvePackage;
   inherit (lix.strings.transformation) normalize;
-  inherit (lix.strings.predicates) contains;
 
   name = "Zen";
-  opts = [
-    "zen"
-    "zen-twilight"
-    "zen-beta"
-    "twilight"
-  ];
   apps = user.applications or {};
   allowed = normalize (apps.allowed or []);
   primary = normalize (apps.browser.primary or "");
   secondary = normalize (apps.browser.secondary or "");
-  isPrimary = isIn opts primary;
-  isSecondary = isIn opts secondary;
-  isAllowed = isIn opts allowed;
-  variant =
-    if
-      contains "twilight" (
-        [
-          primary
-          secondary
-        ]
-        ++ allowed
-      )
-    then "twilight"
-    else "beta";
+  browser = value: resolve {inherit value; category = "browser";};
+  twilight = resolve {
+    value = "zen-twilight";
+    category = "browser";
+  };
+  isZen = value: value != "" && (browser value).family == "zen";
+  isPrimary = isZen primary;
+  isSecondary = isZen secondary;
+  isAllowed = builtins.any isZen allowed;
+  variant = twilight.package.attribute;
   darwinName = "${name}-${variant}";
-  pkgName = if variant == "twilight" then "twilight" else "beta";
+  package = resolvePackage {
+    app = twilight;
+    inherit inputs pkgs;
+    system = pkgs.system;
+  };
 
   enable = isPrimary || isSecondary || isAllowed;
 in {
@@ -48,8 +42,8 @@ in {
     programs.zen-browser = {
       inherit enable name;
       darwinAppName = darwinName;
-      wrappedPackageName = pkgName;
-      package = inputs.zen-browser.packages.${pkgs.system}.${pkgName};
+      wrappedPackageName = variant;
+      package = package;
       setAsDefaultBrowser = isPrimary;
       enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
       profiles.${user.name} = mkMerge [

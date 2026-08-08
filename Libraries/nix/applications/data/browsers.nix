@@ -129,6 +129,11 @@ _: {
   };
 
   zen-twilight = {
+    aliases = ["twilight" "zen"];
+    package = {
+      source = "zen-browser";
+      attribute = "twilight";
+    };
     names = {
       package = "zen-browser";
       command = "zen-twilight";
@@ -142,6 +147,11 @@ _: {
   };
 
   zen-beta = {
+    aliases = ["beta" "zen-beta"];
+    package = {
+      source = "zen-browser";
+      attribute = "beta";
+    };
     names = {
       package = "zen-browser-beta";
       command = "zen-beta";

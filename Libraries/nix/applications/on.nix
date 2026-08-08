@@ -35,7 +35,7 @@
   inherit (_.lists.selection) filter;
   inherit (_.strings.construction) concatStringsSep;
 
-  registry = _.applications.registry.default;
+  registry = _.applications.registry.entries;
 
   # Protocol list for a named environment entry.
   envProtocol = env: (registry.${env} or {}).protocol or [];

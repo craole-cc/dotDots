@@ -17,11 +17,15 @@
         importRegistry
         isRegistryAttrset
         lookup
+        resolve
         identify
         ;
     };
     exports = {
-      local = entries // functions;
+      local = entries // functions // {
+        all = entries;
+        default = entries;
+      };
       alias = {};
     };
   in {
@@ -29,11 +33,14 @@
   };
 
   inherit (_.applications.primitives) normalizeList normalizeOptional;
-  inherit (_.attrsets.access) attrValues;
-  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.filesystem.importers) importAllMerged;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) elem;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.strings.predicates) isString;
   inherit (_.types.predicates) isAttrs;
 
   /**
@@ -62,12 +69,24 @@
   */
   mkRegistry = data:
     mapAttrs (
-      _: app:
+      name: app:
         app
         // {
+          inherit name;
+          aliases = unique (
+            filter isString (
+              [name]
+              ++ (app.aliases or [])
+              ++ (builtins.attrValues (app.names or {}))
+            )
+          );
           categories = normalizeList (app.categories or []);
           channel = normalizeOptional (app.channel or null);
           family = normalizeOptional (app.family or null);
+          package = app.package or {
+            source = null;
+            attribute = (app.names.package or null);
+          };
         }
     )
     data;
@@ -146,6 +165,20 @@
       identify :: AppRecord -> [{ type :: string, value :: string }] | null
   ```
   */
+  resolve = {
+    value,
+    category ? null,
+  }:
+    let
+      candidates = filterAttrs (_: app: elem value app.aliases) entries;
+      app = entries.${value} or (if candidates == {} then null else (entries.${head (attrNames candidates)}));
+    in
+      if app == null
+      then throw "Unknown app '${value}' in registry."
+      else if category != null && !(elem category app.categories)
+      then throw "'${value}' does not satisfy category '${category}'. Its categories: ${toString app.categories}"
+      else app;
+
   identify = app:
     if app.names ? title
     then [
@@ -171,4 +204,25 @@ in
   // {
     __docs = meta.doc;
     __rootAliases = meta.exports.alias;
+    __tests = let
+      inherit (_.debug.assertions) mkTest;
+      inherit (_.debug.runners) runTests;
+    in
+      runTests {
+        canonicalRecord = mkTest {
+          desired = "zen-twilight";
+          outcome = (resolve {value = "zen-twilight"; category = "browser";}).name;
+          command = "(resolve {value = \"zen-twilight\"; category = \"browser\";}).name";
+        };
+        aliasRecord = mkTest {
+          desired = "zen-twilight";
+          outcome = (resolve {value = "twilight"; category = "browser";}).name;
+          command = "(resolve {value = \"twilight\"; category = \"browser\";}).name";
+        };
+        twilightPackage = mkTest {
+          desired = "twilight";
+          outcome = (resolve {value = "zen-twilight";}).package.attribute;
+          command = "(resolve {value = \"zen-twilight\";}).package.attribute";
+        };
+      };
   }

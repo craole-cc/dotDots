@@ -9,7 +9,7 @@
 
       Depends on: applications.registry applications.primitives.
     '';
-    functions = {inherit resolveExec mkApps;};
+    functions = {inherit resolveExec resolvePackage mkApps;};
     exports = {
       local = functions;
       alias = functions;
@@ -18,8 +18,10 @@
     inherit doc exports functions;
   };
 
-  inherit (_.applications.registry) all;
+  inherit (_.applications.registry) entries;
   inherit (_.applications.primitives) toValue;
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.predicates) isAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
 
   /**
@@ -56,10 +58,33 @@
   mkApps :: Pkgs -> AttrSet
   ```
   */
-  mkApps = pkgs:
+  resolvePackage = {
+    app,
+    pkgs,
+    inputs ? {},
+    system ? "x86_64-linux",
+  }:
+    let
+      spec = app.package or {};
+      source = spec.source or null;
+      attribute = spec.attribute or app.names.package or null;
+      sourcePackages =
+        if source != null && isAttrs (inputs.${source} or null)
+        then attrByPath ["packages" system] {} inputs.${source}
+        else {};
+    in
+      if sourcePackages != {}
+      then sourcePackages.${attribute} or (pkgs.${attribute} or null)
+      else pkgs.${attribute} or null;
+
+  mkApps = {
+    pkgs,
+    inputs ? {},
+    system ? "x86_64-linux",
+  }:
     mapAttrs (
       _: app: let
-        pkg = pkgs.${app.names.package} or null;
+        pkg = resolvePackage {inherit app pkgs inputs system;};
       in
         app
         // {inherit pkg;}
@@ -69,7 +94,7 @@
           else {}
         )
     )
-    all;
+    entries;
 in
   meta.exports.local
   // {
