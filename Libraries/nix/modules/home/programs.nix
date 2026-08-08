@@ -4,6 +4,7 @@
   ...
 }: let
   inherit (_.sources.modules) mkModule;
+  inherit (_.applications.registry) resolve;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs;
   inherit
@@ -333,18 +334,8 @@
     getCommand = category: name: let
       n = normalizeName name;
       cmd =
-        if category == "browser" && isIn zenNames n
-        then
-          attrByPath [
-            "browser"
-            (
-              if hasInfix "twilight" n || n == "zen"
-              then "zen-twilight"
-              else "zen-beta"
-            )
-          ]
-          n
-          mappings.command
+        if category == "browser"
+        then (resolve {value = n; inherit category;}).exec
         else if category == "editor" && hasInfix "code" n
         then attrByPath ["editor" "vscode"] "code" mappings.command
         else if category == "editor" && hasInfix "zed" n
@@ -380,8 +371,12 @@
         )
         userCategory
       );
-      command = getCommand category name;
-      class = getClass command;
+      app =
+        if category == "browser"
+        then resolve {value = name; inherit category;}
+        else null;
+      command = if app != null then app.exec else getCommand category name;
+      class = if app != null then app.names.class or command else getClass command;
     in {inherit command class;};
 
     mkCategory = category: options:

@@ -136,11 +136,11 @@ _: {
     };
     names = {
       package = "zen-browser";
-      command = "zen-twilight";
+      command = "zen";
       class = "zen-twilight";
       title = "Zen Twilight";
     };
-    exec = "zen-twilight";
+    exec = "zen";
     categories = ["browser"];
     family = "zen";
     channel = "twilight";
