@@ -13,6 +13,29 @@ The live system is currently running generation `nixos-system-QBX-26.05.20260418
 - A setting becomes rebuild-owned only when its source is represented by a repository module, API/user policy, or an explicit source file under `Configuration/`.
 - Generated settings must be compared with their owning module's output rather than treated as independent source configuration.
 
+## Scope Tiers
+
+The registry is intentionally broader than the current QBX rebuild target. A registry record means an application is available for selection; it does not mean it should be installed, configured, or preserved in this rebuild.
+
+### Current QBX Preservation Target
+
+The immediate target is the application and setting surface actually selected by the live QBX configuration: Hyprland, DMS, Foot, Fuzzel, Vicinae, Waybar/session integration, Zen Twilight, the active shells/editors/file manager/media tools, system services, environment variables, themes, and the user modules that currently generate them.
+
+### Registry-Defined But Deferred
+
+These records remain useful and must not be deleted, but they are explicitly outside the current rebuild scope:
+
+| Registry record | Registry location | Current decision |
+|---|---|---|
+| `epiphany` | `applications/data/browsers.nix` | Defined for future browser selection; not a current QBX target |
+| `jetbrains.*` | `applications/data/editors.nix` | Defined editor family; not a current QBX target |
+| `caelestia` | `applications/data/panels.nix` and environment compatibility data | Defined/retained for future selection; not the current panel |
+| `wezterm` | `applications/data/terminals.nix` | Defined terminal; not a current QBX target |
+| `albert` | `applications/data/launchers.nix` | Defined launcher; not a current QBX target |
+| `vscodium` | `applications/data/editors.nix` | Defined editor; not a current QBX target |
+
+The live presence of residual directories such as `.config/epiphany`, `.config/JetBrains`, `.config/caelestia`, `.config/wezterm`, `.config/albert`, and `.config/VSCodium` is therefore not evidence that they should be reproduced in the immediate candidate generation. They should remain untouched as user state unless a separate cleanup or migration is requested.
+
 ## Live Desktop And Session Surface
 
 | Live evidence | Observed setting or behavior | Repository owner/status |
