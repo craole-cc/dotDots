@@ -98,6 +98,11 @@
   Attrset of all home-manager modules provided by flake inputs.
   */
   mkHome = {inputs}: {
+    dms-shell = {
+      default = inputs.dank-material-shell.homeModules.default or {};
+      niri = inputs.dank-material-shell.homeModules.niri or {};
+    };
+    # Compatibility key for consumers not yet migrated.
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};

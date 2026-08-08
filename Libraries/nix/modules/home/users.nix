@@ -72,8 +72,8 @@
           (hmi?catppuccin.module)
           [hmi.catppuccin.module]
           ++ optionals
-          (hmi?dank-material-shell.module)
-          [hmi.dank-material-shell.module]
+          (hmi?dms-shell.module)
+          [hmi.dms-shell.module]
           ++ optionals
           (hmi?dms-plugin-registry.module)
           [hmi.dms-plugin-registry.module]

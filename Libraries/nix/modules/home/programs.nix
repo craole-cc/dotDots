@@ -62,9 +62,10 @@
         "caelestia-shell"
         "cls"
       ];
-      "dank-material-shell".aliases = normalizeNames [
-        "dms"
+      "dms-shell".aliases = normalizeNames [
         "dank"
+        "dms"
+        "dank-material-shell"
       ];
       "dms-plugin-registry".aliases = normalizeNames [
         "dmsp"
@@ -183,7 +184,12 @@
       dark = normalizeName (t.dark or "");
     };
 
-    bar = normalizeName (attrByPath ["bar"] null apps);
+    barInput = attrByPath ["bar"] null apps;
+    bar = normalizeName barInput;
+    selectedPanel =
+      if bar == null
+      then null
+      else resolve {value = bar; category = "panel";};
     browserInput = attrByPath ["browser" "primary"] null apps;
     legacyBrowser = attrByPath ["browser" "firefox"] "twilight" apps;
     browser = normalizeName (if browserInput == null then legacyBrowser else browserInput);
@@ -200,6 +206,7 @@
       inherit
         appsAllowed
         bar
+        selectedPanel
         theme
         de
         browser
@@ -209,17 +216,12 @@
         ;
     };
 
-    isDankAllowed = {
-      hasAnyApp,
-      bar,
+    isDmsShellAllowed = {
+      selectedPanel,
       ...
     }:
-      hasAnyApp (
-        normalizeNames (
-          ["dank-material-shell"]
-          ++ (defaults.apps."dank-material-shell".aliases or [])
-        )
-      ) [bar];
+      selectedPanel != null
+      && selectedPanel.name == "dms-shell";
 
     appSpecs = {
       plasma.condition = {
@@ -253,8 +255,8 @@
       }:
         hasAnyApp names [bar];
 
-      "dank-material-shell".condition = isDankAllowed;
-      "dms-plugin-registry".condition = isDankAllowed;
+      "dms-shell".condition = isDmsShellAllowed;
+      "dms-plugin-registry".condition = isDmsShellAllowed;
 
       "noctalia-shell".condition = {
         names,
