@@ -234,5 +234,25 @@ in
           outcome = (resolve {value = "zen-twilight";}).package.attribute;
           command = "(resolve {value = \"zen-twilight\";}).package.attribute";
         };
+        dmsShellDank = mkTest {
+          desired = "dms-shell";
+          outcome = (resolve {value = "dank"; category = "panel";}).name;
+          command = "(resolve {value = \"dank\"; category = \"panel\";}).name";
+        };
+        dmsShellDms = mkTest {
+          desired = "dms-shell";
+          outcome = (resolve {value = "dms"; category = "panel";}).name;
+          command = "(resolve {value = \"dms\"; category = \"panel\";}).name";
+        };
+        dmsShellFull = mkTest {
+          desired = "dms-shell";
+          outcome = (resolve {value = "dank-material-shell"; category = "panel";}).name;
+          command = "(resolve {value = \"dank-material-shell\"; category = \"panel\";}).name";
+        };
+        dmsGreeterDistinct = mkTest {
+          desired = "dms-greeter";
+          outcome = (resolve {value = "dms-greeter"; category = "greeter";}).name;
+          command = "(resolve {value = \"dms-greeter\"; category = \"greeter\";}).name";
+        };
       };
   }

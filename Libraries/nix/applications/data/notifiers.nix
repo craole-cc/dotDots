@@ -41,6 +41,7 @@ _: {
     maturity = "young";
   };
   dms-shell = {
+    aliases = ["dank" "dms" "dank-material-shell"];
     categories = [
       "interface"
       "notifier"
