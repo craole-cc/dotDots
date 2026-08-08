@@ -205,7 +205,10 @@
     };
 
     bar = normalizeName (attrByPath ["bar"] null apps);
-    firefox = normalizeName (attrByPath ["browser" "firefox"] "" apps);
+    browserInput = attrByPath ["browser" "primary"] null apps;
+    legacyBrowser = attrByPath ["browser" "firefox"] "twilight" apps;
+    browser = normalizeName (if browserInput == null then legacyBrowser else browserInput);
+    selectedBrowser = resolve {value = browser; category = "browser";};
 
     tty = let
       t = attrByPath ["editor" "tty"] {} apps;
@@ -220,7 +223,8 @@
         bar
         theme
         de
-        firefox
+        browser
+        selectedBrowser
         hasAnyApp
         tty
         ;
@@ -292,20 +296,13 @@
           tty.secondary
         ];
 
-      "zen-browser" = let
-        variant =
-          if hasInfix "twilight" firefox || firefox == "zen"
-          then "twilight"
-          else "beta";
-      in {
-        inherit variant;
+      "zen-browser" = {
+        variant = selectedBrowser.channel or "default";
         condition = {
-          names,
-          hasAnyApp,
-          firefox,
+          selectedBrowser,
           ...
         }:
-          hasAnyApp names [firefox];
+          (selectedBrowser.family or "") == "zen";
       };
     };
   in
