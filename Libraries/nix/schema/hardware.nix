@@ -32,6 +32,7 @@
     dualBootWindows = false;
     hasDualBoot = false;
     hasNetwork = false;
+    hasFilesystems = false;
     hasGui = false;
     boot = {
       loader = "systemd-boot";
@@ -85,6 +86,7 @@
       dualBootWindows = isIn "dualboot-windows" fun;
       hasDualBoot = isIn dualBootValues fun;
       hasNetwork = host.devices.network or [] != [];
+      hasFilesystems = (host.devices.file or {}) != {};
       hasGui =
         (de != null && de != "none" && isIn de desktopEnvironments.values)
         || (wm != null && wm != "none" && isIn wm windowManagers.values);

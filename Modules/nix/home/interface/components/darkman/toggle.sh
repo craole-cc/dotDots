@@ -7,6 +7,7 @@ CMD_SD="@cmdSd@"
 CMD_DCONF="@cmdDconf@"
 CMD_NOTIFY="@cmdNotify@"
 CMD_WALLMAN="@cmdWallman@"
+CMD_THEME_TOGGLE="@cmdThemeToggle@"
 CFG_POLARITY="@cfgPolarity@"
 CFG_API="@cfgApi@"
 CFG_CAELESTIA_FLAVOUR="@cfgCaelestiaFlavour@"
@@ -106,5 +107,9 @@ printf 'Notifying...\n'
 #> Update state file
 mkdir -p "$(dirname "${STATE_FILE}")"
 printf '%s\n' "${CFG_POLARITY}" > "$STATE_FILE"
+
+#> Notify the shared live theme dispatcher. It owns Foot/GTK/Qt reactions and
+# emits the session polarity event; failure is non-fatal during login races.
+"${CMD_THEME_TOGGLE}" "${CFG_POLARITY}" 2> /dev/null || true
 
 printf '=== Done ===\n'

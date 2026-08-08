@@ -66,6 +66,31 @@
     backend = network.backend or "networkmanager";
   };
 
+  # Development capability precedence, strongest to weakest:
+  # 1. Explicit host.capabilities.development = false disables it absolutely.
+  # 2. Explicit host.capabilities.development = true enables it absolutely.
+  # 3. host.hardened = true disables inferred development capability.
+  # 4. host.functionalities containing "development" enables it.
+  # 5. Any enabled interactive user's capabilities containing "development" enables it.
+  # 6. Otherwise non-hardened hosts default to true.
+  mkDevelopmentCapability = {host, interactiveUsers}: let
+    explicit = (host.capabilities or {}).development or null;
+    hardened = host.hardened or false;
+    hostDeclared = builtins.elem "development" (host.functionalities or []);
+    userDeclared = builtins.any (u: builtins.elem "development" (u.capabilities or [])) (attrValues interactiveUsers);
+  in
+    if explicit != null
+    then explicit
+    else if hardened
+    then false
+    else hostDeclared || userDeclared || true;
+
+  mkStorage = host: let
+    raw = host.storage or {};
+  in {
+    filesystemsRequired = raw.filesystemsRequired or (host.class or "nixos" == "nixos");
+  };
+
   /**
   Enrich a single host with user data, interface normalization, and metadata.
   */
@@ -86,6 +111,13 @@
     enrichedHardware = mkHardware {inherit host;};
     enrichedAccess = mkAccess host;
     enrichedNetwork = mkNetwork host;
+    enrichedCapabilities = {
+      development = mkDevelopmentCapability {
+        inherit host;
+        interactiveUsers = enrichedUser.data.interactive;
+      };
+    };
+    enrichedStorage = mkStorage host;
     enrichment = {
       inherit name;
       inherit (host.paths) dots;
@@ -96,6 +128,8 @@
       hardware = enrichedHardware;
       access = enrichedAccess;
       network = enrichedNetwork;
+      capabilities = enrichedCapabilities;
+      storage = enrichedStorage;
     };
   in
     host // enrichment;
