@@ -6,6 +6,7 @@
   nixosConfig,
   pkgs,
   user,
+  paths,
   lib,
   ...
 }: let
@@ -53,7 +54,7 @@ in {
         (import ./settings.nix)
       ];
       policies = mkMerge [
-        (import ./policies.nix {inherit config;})
+        (import ./policies.nix {inherit paths;})
         (import ./extensions.nix {inherit lix;})
         (import ./preferences.nix {inherit lix;})
       ];

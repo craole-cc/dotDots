@@ -1,6 +1,6 @@
-{
+{config, top, ...}: {
   programs.nh = {
-    enable = true;
+    enable = config.${top}.applications.utilities.nh.enable;
     clean = {
       enable = true;
       dates = "daily";

@@ -10,6 +10,7 @@
   mod = "network";
   cfg = config.${top}.${dom}.${mod};
 
+
   hw = host.hardware;
   access = host.access or {};
   fw = access.firewall or {};
@@ -23,6 +24,7 @@
     listOf
     nullOr
     str
+    enum
     attrsOf
     int
     ;
@@ -53,6 +55,12 @@ in {
       default = host.devices.network or [];
       type = listOf str;
     };
+    backend = mkOption {
+      description = "Network configuration backend";
+      default = host.network.backend or "networkmanager";
+      type = enum ["networkmanager" "networkd"];
+    };
+
     gnupg = mkOption {
       description = "Enable GnuPG agent with SSH support";
       default = true;
@@ -91,7 +99,7 @@ in {
     networking = {
       inherit (cfg) hostName;
       inherit (cfg) hostId;
-      networkmanager.enable = true;
+      networkmanager.enable = cfg.backend == "networkmanager";
       inherit (cfg) nameservers;
       interfaces = genAttrs cfg.devices (_: {
         useDHCP = true;
@@ -108,10 +116,6 @@ in {
     programs.gnupg.agent = mkIf cfg.gnupg {
       enable = true;
       enableSSHSupport = true;
-    };
-
-    services.openssh = {
-      enable = true;
     };
 
     environment.systemPackages = with pkgs; [

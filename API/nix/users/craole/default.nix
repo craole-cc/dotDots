@@ -174,6 +174,25 @@
       "yazi"
       "vim"
     ];
+    utilities = {
+      atuin.enable = false;
+      bat.enable = true;
+      btop.enable = true;
+      clock.enable = true;
+      direnv.enable = true;
+      git.enable = true;
+      gitui.enable = true;
+      github.enable = true;
+      grep.enable = true;
+      home-manager.enable = true;
+      jujutsu.enable = true;
+      nh.enable = true;
+      nix-index.enable = true;
+      topgrade.enable = true;
+      tmux.enable = true;
+      yazi.enable = true;
+      delta.enable = true;
+    };
   };
 
   paths = rec {

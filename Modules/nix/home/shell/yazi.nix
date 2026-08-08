@@ -1,12 +1,14 @@
 {
   pkgs,
   lib,
+  config,
+  top,
   ...
 }: let
   inherit (lib.lists) optionals;
 in {
   programs.yazi = {
-    enable = true;
+    enable = config.${top}.applications.utilities.yazi.enable;
     shellWrapperName = "y";
   };
 

@@ -1,10 +1,10 @@
-{
+{config, top, ...}: {
   programs = {
     gh = {
-      enable = true;
+      enable = config.${top}.applications.utilities.github.enable;
     };
     gh-dash = {
-      enable = true;
+      enable = config.${top}.applications.utilities.github.enable;
     };
   };
 }

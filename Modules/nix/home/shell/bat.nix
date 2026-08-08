@@ -1,6 +1,6 @@
-_: {
+{config, top, ...}: {
   programs.bat = {
-    enable = true;
+    enable = config.${top}.applications.utilities.bat.enable;
     config = {
       pager = "less -F";
       # theme = "dark";

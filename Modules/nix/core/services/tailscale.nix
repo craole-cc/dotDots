@@ -1,6 +1,19 @@
-{...}: {
-  # QBX is a Tailscale-capable host. Tailscale is required for remote
-  # development, recovery access, and swarm communication. This is separate
-  # from the application VPN namespace configured by services/vpn.nix.
-  services.tailscale.enable = true;
+{
+  config,
+  host,
+  lib,
+  top,
+  ...
+}: let
+  cfg = config.${top}.services.remote.tailscale;
+in {
+  options.${top}.services.remote.tailscale = {
+    enable = lib.mkOption {
+    description = "Enable Tailscale remote access";
+    default = host.access.remote.tailscale.enable or host.access.tailscale.enable or (lib.elem "vpn" (host.functionalities or []));
+    type = lib.types.bool;
+    };
+  };
+
+  config.services.tailscale.enable = cfg.enable;
 }

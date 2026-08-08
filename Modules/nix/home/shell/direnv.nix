@@ -1,6 +1,6 @@
-{
+{config, top, ...}: {
   programs.direnv = {
-    enable = true;
+    enable = config.${top}.applications.utilities.direnv.enable;
     silent = true;
     mise.enable = true;
   };

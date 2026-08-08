@@ -10,7 +10,7 @@
 
   inherit (lix.schema.ui) mkUI;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) attrsOf nullOr str submodule;
+  inherit (lib.types) attrsOf nullOr str submodule int;
 
   ui = mkUI {inherit host user;};
 in {
@@ -86,6 +86,27 @@ in {
       description = "Desktop notification daemon";
       default = ui.notifier;
       type = nullOr str;
+    };
+
+    icons = {
+      name = mkOption {
+        description = "Active icon theme";
+        default = user.style.icons.dark or "candy-icons";
+        type = str;
+      };
+    };
+
+    cursors = {
+      name = mkOption {
+        description = "Active cursor theme";
+        default = user.style.cursors.dark or "material_light_cursors";
+        type = str;
+      };
+      size = mkOption {
+        description = "Cursor size";
+        default = user.style.cursors.size or 32;
+        type = int;
+      };
     };
   };
 }
