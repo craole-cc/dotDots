@@ -1,16 +1,12 @@
 {
-  user,
   config,
-  lix,
+  top,
   ...
 }: let
-  app = "atuin";
-  inherit (lix.lists.predicates) isIn;
-  isAllowed = isIn app (user.applications.allowed or []);
   isEnabled = pkg: config.programs.${pkg}.enable;
 in {
-  programs.${app} = {
-    enable = isAllowed;
+  programs.atuin = {
+    enable = config.${top}.applications.utilities.atuin.enable;
     daemon.enable = true;
     enableBashIntegration = isEnabled "bash";
     enableNushellIntegration = isEnabled "nushell";

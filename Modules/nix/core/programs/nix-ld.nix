@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lib,
   pkgs,
   top,
@@ -9,7 +10,7 @@
 in {
   options.${top}.programs.nix-ld.enable = lib.mkOption {
     description = "Enable nix-ld for prebuilt dynamically linked development tools";
-    default = true;
+    default = host.capabilities.development;
     type = lib.types.bool;
   };
 

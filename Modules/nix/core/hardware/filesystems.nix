@@ -11,6 +11,7 @@
   cfg = config.${top}.${dom}.${mod};
 
   hw = host.hardware;
+  storage = host.storage;
 
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) mkIf;
@@ -18,11 +19,12 @@
   inherit (lib.types) bool;
 in {
   options.${top}.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {default = hw.hasFilesystems;};
+    filesystemsRequired = mkOption {
+      description = "Require host.devices.file to declare at least one filesystem";
+      default = storage.filesystemsRequired;
+      type = bool;
+    };
     udisks = mkOption {
       description = "Enable udisks2 for automounting removable media";
       default = hw.hasGui;
@@ -30,8 +32,14 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
-    fileSystems = mapAttrs (
+  config = {
+    assertions = [
+      {
+        assertion = !cfg.filesystemsRequired || hw.hasFilesystems;
+        message = "No filesystem declarations found. Add host.devices.file for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
+      }
+    ];
+    fileSystems = mkIf cfg.enable (mapAttrs (
       _: fs:
         {
           inherit (fs) device;
@@ -42,11 +50,11 @@ in {
           then {}
           else {inherit (fs) options;}
         )
-    ) (host.devices.file or {});
+    ) (host.devices.file or {}));
 
-    swapDevices = map (s: {inherit (s) device;}) (host.devices.swap or []);
+    swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
 
-    services.udisks2 = mkIf cfg.udisks {
+    services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
       enable = true;
       mountOnMedia = true;
     };

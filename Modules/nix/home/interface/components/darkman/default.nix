@@ -74,6 +74,7 @@
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
         cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
+        cmdThemeToggle = "theme-toggle";
       };
       name = "nixos-theme";
       isExecutable = true;

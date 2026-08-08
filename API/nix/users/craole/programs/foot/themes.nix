@@ -1,4 +1,5 @@
 {
+  include = "~/.config/foot/theme.ini";
   colors = {
     alpha = 0.95; # Slight transparency (1.0 = opaque)
   };
