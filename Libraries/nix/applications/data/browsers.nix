@@ -147,7 +147,7 @@ _: {
   };
 
   zen-beta = {
-    aliases = ["beta" "zen-beta"];
+    aliases = ["beta"];
     package = {
       source = "zen-browser";
       attribute = "beta";

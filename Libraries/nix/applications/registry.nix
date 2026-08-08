@@ -219,6 +219,16 @@ in
           outcome = (resolve {value = "twilight"; category = "browser";}).name;
           command = "(resolve {value = \"twilight\"; category = \"browser\";}).name";
         };
+        betaAlias = mkTest {
+          desired = "zen-beta";
+          outcome = (resolve {value = "beta"; category = "browser";}).name;
+          command = "(resolve {value = \"beta\"; category = \"browser\";}).name";
+        };
+        zenAlias = mkTest {
+          desired = "zen-twilight";
+          outcome = (resolve {value = "zen"; category = "browser";}).name;
+          command = "(resolve {value = \"zen\"; category = \"browser\";}).name";
+        };
         twilightPackage = mkTest {
           desired = "twilight";
           outcome = (resolve {value = "zen-twilight";}).package.attribute;
