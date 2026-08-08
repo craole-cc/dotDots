@@ -5,8 +5,8 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.lists.aggregation) concatMap;
-  inherit (_.strings.predicates) hasInfix;
-  inherit (_.strings.transformation) toLower;
+  inherit (_.applications.registry) resolve;
+  inherit (_.applications.runtime) resolvePackage;
   inherit (_.types.predicates) isFunction isList;
 
   /**
@@ -52,14 +52,8 @@
       secondary = attrByPath ["secondary"] null config;
 
       # Normalize user input first
-      normalizedPrimary =
-        if primary != null
-        then detectBrowserVariant primary
-        else null;
-      normalizedSecondary =
-        if secondary != null
-        then detectBrowserVariant secondary
-        else null;
+      normalizedPrimary = primary;
+      normalizedSecondary = secondary;
 
       getInfo = name:
         if name != null
@@ -104,14 +98,8 @@
       secondary = attrByPath ["secondary"] null config;
 
       # Normalize user input first
-      normalizedPrimary =
-        if primary != null
-        then detectBrowserVariant primary
-        else null;
-      normalizedSecondary =
-        if secondary != null
-        then detectBrowserVariant secondary
-        else null;
+      normalizedPrimary = primary;
+      normalizedSecondary = secondary;
 
       primaryInfo =
         if normalizedPrimary != null
@@ -144,34 +132,8 @@
     inherit info packages commands;
   };
 
-  # Helper to detect browser variant (similar to detectFirefoxVariant)
-  # TODO: move to parse.nix
-  detectBrowserVariant = input: let
-    lowerInput = toLower input;
-  in
-    # Zen Browser variants
-    if hasInfix "zen" lowerInput && (hasInfix "beta" lowerInput || hasInfix "nightly" lowerInput)
-    then "zen-beta"
-    else if hasInfix "zen" lowerInput
-    then "zen-twilight"
-    # Edge/Chromium variants
-    else if hasInfix "edge" lowerInput
-    then "edge"
-    else if hasInfix "chrome" lowerInput && hasInfix "google" lowerInput
-    then "chrome"
-    else if hasInfix "chromium" lowerInput
-    then "chromium"
-    # Other browsers
-    else if hasInfix "brave" lowerInput
-    then "brave"
-    else if hasInfix "vivaldi" lowerInput
-    then "vivaldi"
-    else if hasInfix "floorp" lowerInput
-    then "floorp"
-    else if hasInfix "firefox" lowerInput
-    then "firefox"
-    # Default to input if no match
-    else input;
+  # Compatibility shim: application identity is resolved by the registry.
+  detectBrowserVariant = input: input;
 
   normalizeInputPath = path:
     if path == null
@@ -203,37 +165,28 @@
 
       "zen-twilight" = {
         pkgs,
-        system,
+        inputs ? {},
+        system ? "x86_64-linux",
         ...
-      }: {
-        #TODO: zen-twilight and zen-beta both use `zen` as the binary name
-        #      but the flake input resolves differently per variant.
-        #      The correct package (twilight vs beta) is not being installed
-        #      reliably - needs investigation into how browserZen flake
-        #      exposes packages and whether inputPath resolution is working.
-        # cmd = "zen-twilight";
-        cmd = "zen";
-        pkg = pkgs.zen-browser or null;
-        inputPath = [
-          "zen-browser"
-          system
-          "twilight"
-        ];
+      }: let
+        app = resolve {value = "zen-twilight"; category = "browser";};
+      in {
+        cmd = app.exec or app.names.command or "zen";
+        pkg = resolvePackage {inherit app pkgs inputs system;};
+        inputPath = null;
       };
 
       "zen-beta" = {
         pkgs,
-        system,
+        inputs ? {},
+        system ? "x86_64-linux",
         ...
-      }: {
-        # cmd = "zen-beta";
-        cmd = "zen";
-        pkg = pkgs.zen-browser or null;
-        inputPath = [
-          "zen-browser"
-          system
-          "beta"
-        ];
+      }: let
+        app = resolve {value = "zen-beta"; category = "browser";};
+      in {
+        cmd = app.exec or app.names.command or "zen";
+        pkg = resolvePackage {inherit app pkgs inputs system;};
+        inputPath = null;
       };
 
       chromium = {pkgs, ...}: {
