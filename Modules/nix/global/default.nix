@@ -12,7 +12,7 @@
   path = ./.;
 
   #> Toolchain policy from .config/toolchain.toml
-  toolchain = builtins.fromTOML (builtins.readFile ../../.config/toolchain.toml);
+  toolchain = builtins.fromTOML (builtins.readFile ../../../.config/toolchain.toml);
 
   #> Metadata & Dependency Injection
   dots = rec {
@@ -22,6 +22,7 @@
     cache = ".cache";
     prefix = ".";
     toolchainSchema = toolchain.schema or 1;
+    toolchainPolicy = toolchain;
 
     #~@ Imports
     inherit
@@ -108,6 +109,28 @@
           }
       )
       configs;
+    toolchainMatches = with pkgs; [
+      (bat.version == toolchain.tools.bat)
+      (cargo.version == toolchain.tools.cargo)
+      (direnv.version == toolchain.tools.direnv)
+      (eza.version == toolchain.tools.eza)
+      (fd.version == toolchain.tools.fd)
+      (gcc.version == toolchain.tools.gcc)
+      (jq.version == toolchain.tools.jq)
+      (lsd.version == toolchain.tools.lsd)
+      (mise.version == toolchain.tools.mise)
+      (nushell.version == toolchain.tools.nushell)
+      (pandoc.version == toolchain.tools.pandoc)
+      (ripgrep.version == toolchain.tools.ripgrep)
+      (rustc.version == toolchain.tools.rustc)
+      (sd.version == toolchain.tools.sd)
+      (starship.version == toolchain.tools.starship)
+      (tldr.version == toolchain.tools.tldr)
+      (typst.version == toolchain.tools.typst)
+      (yazi.version == toolchain.tools.yazi)
+      (zoxide.version == toolchain.tools.zoxide)
+    ];
   in
+    assert builtins.all (match: match) toolchainMatches;
     shells // {default = shells.minimal;};
 in {inherit checks devShells formatter;}
