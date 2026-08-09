@@ -1,5 +1,6 @@
 {_, ...}: let
   inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs;
   inherit (_.debug.assertions) withContext;
@@ -86,6 +87,12 @@
   /**
     Import each immediate subdirectory of `dir` as a module, keyed by name.
 
+    If `dir/default.nix` exists, its declared attrset is recursively merged
+    underneath every imported entry.  The entry remains the override, so a
+    named record wins for keys it declares while inheriting unspecified keys
+    from the directory declaration.  An absent or empty directory declaration
+    leaves the historical import behavior unchanged.
+
     # Type
   ```nix
     importAttrs :: path -> AttrSet
@@ -94,11 +101,15 @@
   importAttrs = dir: let
     entries = readDir dir;
     dirNames = filter (name: entries.${name} == "directory") (attrNames entries);
+    domainDefault =
+      if entries ? "default.nix"
+      then import (dir + "/default.nix")
+      else {};
   in
     listToAttrs (
       map (name: {
         inherit name;
-        value = import (dir + "/${name}");
+        value = recursiveUpdate domainDefault (import (dir + "/${name}"));
       })
       dirNames
     );
