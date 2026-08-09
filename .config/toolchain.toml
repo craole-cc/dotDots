@@ -26,3 +26,6 @@ tldr = "3.4.4"
 typst = "0.14.2"
 yazi = "26.5.6"
 zoxide = "0.9.9"
+[tasks]
+check = { description = "Verify toolchain freshness and run flake check", run = ["python3 scripts/sync_toolchain.py --check", "nix flake check --no-build"] }
+toolchain-sync = { description = "Regenerate toolchain adapters from .config/toolchain.toml", run = "python3 scripts/sync_toolchain.py" }
