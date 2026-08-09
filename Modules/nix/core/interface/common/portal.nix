@@ -36,7 +36,32 @@
     then ["darkman"]
     else ["gtk"];
 in {
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    xdg.portal = {
+      enable = true;
+      extraPortals = portals;
+      config = {
+        common.default = ["*"];
+        hyprland = mkIf (cfg.windowManager == "hyprland") {
+          default = [
+            "hyprland"
+            "gtk"
+          ];
+          "org.freedesktop.impl.portal.Settings" = settingsImpl;
+        };
+        niri = mkIf (cfg.windowManager == "niri") {
+          default = [
+            "gnome"
+            "gtk"
+          ];
+          "org.freedesktop.impl.portal.Settings" = settingsImpl;
+        };
+      };
+    };
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     xdg.portal = {
       enable = true;
       extraPortals = portals;
@@ -59,4 +84,6 @@ in {
       };
     };
   };
+    }
+  ];
 }

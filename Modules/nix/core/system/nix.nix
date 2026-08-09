@@ -113,7 +113,22 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (
+  config = lib.mkMerge [
+    (mkIf cfg.enable (
+    mkMerge [
+      (mkNix {
+        inherit host pkgs;
+        inherit (cfg) kernel caches max-jobs stateVersion;
+        store = tree.store.default;
+      })
+      (mkMaintenance {
+        inherit (cfg) dots;
+        inherit pkgs;
+      })
+    ]
+  ))
+    {
+      ${top}.output = mkIf cfg.enable (
     mkMerge [
       (mkNix {
         inherit host pkgs;
@@ -126,4 +141,6 @@ in {
       })
     ]
   );
+    }
+  ];
 }

@@ -6,6 +6,7 @@
   nixosConfig,
   pkgs,
   src,
+  top,
   ...
 }: let
   app = "plasma";
@@ -23,7 +24,8 @@
 
   packages = import ./packages.nix {inherit pkgs;};
 in {
-  config = mkIf isAllowed {
+config = lib.mkMerge [
+    (mkIf isAllowed {
     programs = optionalAttrs (config.programs ? ${app}) {
       ${app} = mkMerge [
         {enable = true;}
@@ -46,5 +48,30 @@ in {
       };
       inherit packages;
     };
-  };
+  })
+    {${top}.output = mkIf isAllowed {
+    programs = optionalAttrs (config.programs ? ${app}) {
+      ${app} = mkMerge [
+        {enable = true;}
+        (import ./bindings)
+        # // import ./files
+        (import ./modules {
+          inherit
+            src
+            pkgs
+            config
+            nixosConfig
+            ;
+        })
+      ];
+    };
+
+    home = {
+      shellAliases = {
+        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/.cache/plasma-config-dump.nix";
+      };
+      inherit packages;
+    };
+  };}
+  ];
 }

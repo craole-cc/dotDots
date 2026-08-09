@@ -40,7 +40,19 @@ in {
     };
   };
 
-  config = mkIf (cfg.enable && !(nixCfg.enable or false)) {
+  config = lib.mkMerge [
+    (mkIf (cfg.enable && !(nixCfg.enable or false)) {
+    programs.nh = {
+      enable = true;
+      clean = {
+        enable = true;
+        extraArgs = "--keep-since ${cfg.keepSince} --keep ${cfg.keepCount}";
+      };
+      inherit (cfg) flake;
+    };
+  })
+    {
+      ${top}.output = mkIf (cfg.enable && !(nixCfg.enable or false)) {
     programs.nh = {
       enable = true;
       clean = {
@@ -50,4 +62,6 @@ in {
       inherit (cfg) flake;
     };
   };
+    }
+  ];
 }

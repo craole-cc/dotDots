@@ -22,7 +22,22 @@ in {
       };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    services.pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      jack.enable = true;
+      wireplumber.enable = true;
+    };
+
+    services.pulseaudio.enable = false;
+    security.rtkit.enable = true;
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     services.pipewire = {
       enable = true;
       alsa.enable = true;
@@ -35,4 +50,6 @@ in {
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
   };
+    }
+  ];
 }

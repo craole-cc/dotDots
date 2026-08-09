@@ -112,7 +112,14 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    environment.sessionVariables = cfg.default // cfg.extra;
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     environment.sessionVariables = cfg.default // cfg.extra;
   };
+    }
+  ];
 }

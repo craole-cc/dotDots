@@ -2,6 +2,7 @@
   lib,
   lix,
   user,
+  top,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
@@ -13,7 +14,8 @@
   isAllowed = isIn app (user.applications.allowed or []);
   enable = isPri || isSec || isAllowed;
 in {
-  config = mkIf enable {
+config = lib.mkMerge [
+    (mkIf enable {
     programs.${app} = mkMerge [
       {inherit enable;}
       (import ./plugins.nix)
@@ -32,5 +34,26 @@ in {
         EDITOR_SEC_NAME = app;
       }
       else {};
-  };
+  })
+    {${top}.output = mkIf enable {
+    programs.${app} = mkMerge [
+      {inherit enable;}
+      (import ./plugins.nix)
+      (import ./settings.nix)
+    ];
+
+    home.sessionVariables =
+      if isPri
+      then {
+        EDITOR_PRI = app;
+        EDITOR_PRI_NAME = app;
+      }
+      else if isSec
+      then {
+        EDITOR_SEC = app;
+        EDITOR_SEC_NAME = app;
+      }
+      else {};
+  };}
+  ];
 }

@@ -36,7 +36,26 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (
+  config = lib.mkMerge [
+    (mkIf cfg.enable (
+    mkServices {
+      inherit config;
+      inherit
+        (cfg)
+        windowManager
+        desktopEnvironment
+        displayProtocol
+        displayManager
+        defaultSession
+        panel
+        compositor
+        autoLogin
+        autoLoginUser
+        ;
+    }
+  ))
+    {
+      ${top}.output = mkIf cfg.enable (
     mkServices {
       inherit config;
       inherit
@@ -53,4 +72,6 @@ in {
         ;
     }
   );
+    }
+  ];
 }

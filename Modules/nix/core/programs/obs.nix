@@ -47,5 +47,10 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};};
+  config = lib.mkMerge [
+    (mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};})
+    {
+      ${top}.output = mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};};
+    }
+  ];
 }

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  top,
   ...
 }: let
   inherit (lib.modules) mkIf;
@@ -8,7 +9,8 @@
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "xserver";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable;
 in {
-  config = mkIf cfgEnabled {
+config = lib.mkMerge [
+    (mkIf cfgEnabled {
     services.xserver = {
       enable = true;
       videoDrivers =
@@ -20,5 +22,19 @@ in {
         variant = "";
       };
     };
-  };
+  })
+    {${top}.output = mkIf cfgEnabled {
+    services.xserver = {
+      enable = true;
+      videoDrivers =
+        if nvidiaEnabled
+        then ["nvidia"]
+        else [];
+      xkb = {
+        layout = "us";
+        variant = "";
+      };
+    };
+  };}
+  ];
 }

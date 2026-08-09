@@ -65,7 +65,23 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    time = {
+      inherit (cfg) timeZone;
+      hardwareClockInLocalTime = cfg.dualBootWindows;
+    };
+
+    location = mkIf (cfg.latitude != null && cfg.longitude != null) {
+      inherit (cfg) latitude;
+      inherit (cfg) longitude;
+      provider = cfg.locator;
+    };
+
+    i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     time = {
       inherit (cfg) timeZone;
       hardwareClockInLocalTime = cfg.dualBootWindows;
@@ -79,4 +95,6 @@ in {
 
     i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
   };
+    }
+  ];
 }

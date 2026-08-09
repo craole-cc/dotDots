@@ -4,6 +4,7 @@
   lix,
   user,
   pkgs,
+  top,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
@@ -19,10 +20,16 @@
     debug = false;
   };
 in {
-  config = mkIf cfg.enable (mkMerge [
+config = lib.mkMerge [
+    (mkIf cfg.enable (mkMerge [
     {inherit (cfg) programs home;}
     (import ./hyprland.nix {inherit lib config;})
-  ]);
+  ]))
+    {${top}.output = mkIf cfg.enable (mkMerge [
+    {inherit (cfg) programs home;}
+    (import ./hyprland.nix {inherit lib config;})
+  ]);}
+  ];
 }
 #TODO: Update the userApplicationConfig to take the launcher command
 

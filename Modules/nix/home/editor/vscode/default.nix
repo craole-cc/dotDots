@@ -56,5 +56,8 @@ in {
     withExtensions = features.options;
   };
 
-  config = mkIf cfg.enable {inherit (appCfg) home programs;};
+config = lib.mkMerge [
+    (mkIf cfg.enable {inherit (appCfg) home programs;})
+    {${top}.output = mkIf cfg.enable {inherit (appCfg) home programs;};}
+  ];
 }

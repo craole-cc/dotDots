@@ -28,7 +28,19 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    hardware.bluetooth = {
+      enable = true;
+      inherit (cfg) powerOnBoot;
+    };
+
+    services.blueman.enable = true;
+
+    # environment.systemPackages = [pkgs.bluez];
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     hardware.bluetooth = {
       enable = true;
       inherit (cfg) powerOnBoot;
@@ -38,4 +50,6 @@ in {
 
     # environment.systemPackages = [pkgs.bluez];
   };
+    }
+  ];
 }

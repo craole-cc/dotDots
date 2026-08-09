@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  lib,
   top,
   ...
 }: let
@@ -20,7 +21,14 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    programs.${mod}.enable = cfg.enable;
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     programs.${mod}.enable = cfg.enable;
   };
+    }
+  ];
 }

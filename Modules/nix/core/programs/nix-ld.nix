@@ -14,8 +14,16 @@ in {
     type = lib.types.bool;
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+    programs.nix-ld.enable = cfg.enable;
+    environment.systemPackages = [pkgs.nix-ld];
+  })
+    {
+      ${top}.output = lib.mkIf cfg.enable {
     programs.nix-ld.enable = cfg.enable;
     environment.systemPackages = [pkgs.nix-ld];
   };
+    }
+  ];
 }

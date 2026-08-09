@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  lib,
   top,
   ...
 }: let
@@ -26,7 +27,19 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    programs.${mod} = {
+      inherit (cfg) enable silent;
+      settings.global = {
+        log_format = cfg.format;
+        log_filter = cfg.filter;
+        load_dotenv = cfg.dotenv;
+      };
+    };
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     programs.${mod} = {
       inherit (cfg) enable silent;
       settings.global = {
@@ -36,4 +49,6 @@ in {
       };
     };
   };
+    }
+  ];
 }

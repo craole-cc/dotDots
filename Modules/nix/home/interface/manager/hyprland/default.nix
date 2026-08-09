@@ -40,7 +40,8 @@ in {
     withRules = mkEnableOption "Window rules" // {default = true;};
   };
 
-  config = mkIf cfg.enable {
+config = lib.mkMerge [
+    (mkIf cfg.enable {
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
@@ -65,5 +66,32 @@ in {
 
     programs = mkAddons "programs";
     services = mkAddons "services";
-  };
+  })
+    {${top}.output = mkIf cfg.enable {
+    wayland.windowManager.hyprland = mkMerge [
+      {
+        enable = true;
+        configType = "lua";
+        plugins = [];
+      }
+      (import ./settings {
+        inherit
+          host
+          lib
+          lix
+          apps
+          user
+          keyboard
+          mkMerge
+          ;
+        inherit (cfg) withRules;
+        keys = cfgTop.interface.keyboard;
+      })
+      (import ./submaps {inherit mkMerge;})
+    ];
+
+    programs = mkAddons "programs";
+    services = mkAddons "services";
+  };}
+  ];
 }

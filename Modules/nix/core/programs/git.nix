@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  lib,
   top,
   ...
 }: let
@@ -16,11 +17,22 @@ in {
     enablePrompt = mkTrue "Utility functions via `git-prompt.sh`";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    programs.${mod} = {
+      inherit (cfg) enable;
+      lfs.enable = cfg.enableLFS;
+      prompt.enable = cfg.enablePrompt;
+    };
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     programs.${mod} = {
       inherit (cfg) enable;
       lfs.enable = cfg.enableLFS;
       prompt.enable = cfg.enablePrompt;
     };
   };
+    }
+  ];
 }

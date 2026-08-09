@@ -4,6 +4,7 @@
   lib,
   config,
   src,
+  top,
   ...
 }: let
   name = "niri";
@@ -27,7 +28,8 @@ in {
   #   };
   # };
 
-  config = mkIf isAllowed {
+config = lib.mkMerge [
+    (mkIf isAllowed {
     xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
 
     programs = {
@@ -39,5 +41,19 @@ in {
 
       # niriswitcher = import ./switcher {inherit user;};
     };
-  };
+  })
+    {${top}.output = mkIf isAllowed {
+    xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
+
+    programs = {
+      # ${app} = #TODO: Niri flake is outdated
+      #   {enable = true;}
+      #   // import ./bindings.nix
+      #   // import ./layout.nix
+      #   // import ./settings.nix;
+
+      # niriswitcher = import ./switcher {inherit user;};
+    };
+  };}
+  ];
 }

@@ -3,6 +3,7 @@
   lix,
   host,
   pkgs,
+  top,
   ...
 }: let
   # app = "kdenlive";
@@ -10,7 +11,8 @@
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn "video" (host.functionalities or []);
 in {
-  config = mkIf isAllowed {
+config = lib.mkMerge [
+    (mkIf isAllowed {
     home.packages = with pkgs; [
       kdePackages.kdenlive
       shotcut
@@ -19,5 +21,16 @@ in {
       doublecmd
       # davinci-resolve
     ];
-  };
+  })
+    {${top}.output = mkIf isAllowed {
+    home.packages = with pkgs; [
+      kdePackages.kdenlive
+      shotcut
+      darktable
+      ansel
+      doublecmd
+      # davinci-resolve
+    ];
+  };}
+  ];
 }

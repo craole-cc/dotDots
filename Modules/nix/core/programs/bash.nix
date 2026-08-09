@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  lib,
   top,
   ...
 }: let
@@ -26,11 +27,22 @@ in {
     undistractMe = mkTrue "Undistract Me";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    programs.${mod} = {
+      inherit (cfg) enable;
+      blesh.enable = cfg.blesh;
+      undistractMe.enable = cfg.undistractMe;
+    };
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     programs.${mod} = {
       inherit (cfg) enable;
       blesh.enable = cfg.blesh;
       undistractMe.enable = cfg.undistractMe;
     };
   };
+    }
+  ];
 }

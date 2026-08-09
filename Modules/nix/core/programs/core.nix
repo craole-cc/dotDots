@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  lib,
   top,
   ...
 }: let
@@ -15,11 +16,22 @@
   inherit (lix.modules.construction) mkIf;
   inherit (lix.modules.core.programs) mkPrograms;
 in {
-  config = mkIf iface.enable (
+  config = lib.mkMerge [
+    (mkIf iface.enable (
+    mkPrograms {
+      windowManager = iface.windowManager;
+      # enableHyprlandUWSM defaults to true in mkPrograms; override here
+      # if a top-level option is ever added to ${top}.programs.hyprland.
+    }
+  ))
+    {
+      ${top}.output = mkIf iface.enable (
     mkPrograms {
       windowManager = iface.windowManager;
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
     }
   );
+    }
+  ];
 }

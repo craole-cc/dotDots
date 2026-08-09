@@ -95,7 +95,42 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [
+    (mkIf cfg.enable {
+    networking = {
+      inherit (cfg) hostName;
+      inherit (cfg) hostId;
+      networkmanager.enable = cfg.backend == "networkmanager";
+      inherit (cfg) nameservers;
+      interfaces = genAttrs cfg.devices (_: {
+        useDHCP = true;
+      });
+      firewall = {
+        inherit (cfg.firewall) enable;
+        allowedTCPPorts = cfg.firewall.tcpPorts;
+        allowedTCPPortRanges = cfg.firewall.tcpRanges;
+        allowedUDPPorts = cfg.firewall.udpPorts;
+        allowedUDPPortRanges = cfg.firewall.udpRanges;
+      };
+    };
+
+    programs.gnupg.agent = mkIf cfg.gnupg {
+      enable = true;
+      enableSSHSupport = true;
+    };
+
+    environment.systemPackages = with pkgs; [
+      dig
+      speedtest-cli
+      speedtest-go
+      mtr
+      curl
+      wget
+      tldr
+    ];
+  })
+    {
+      ${top}.output = mkIf cfg.enable {
     networking = {
       inherit (cfg) hostName;
       inherit (cfg) hostId;
@@ -128,4 +163,6 @@ in {
       tldr
     ];
   };
+    }
+  ];
 }

@@ -5,6 +5,7 @@
   user,
   pkgs,
   # tree,
+  top,
   ...
 }: let
   inherit (lix.modules.construction) mkIf mkMerge;
@@ -89,5 +90,8 @@
     debug = false;
   };
 in {
-  config = mkIf cfg.enable {inherit (cfg) programs home;};
+config = lib.mkMerge [
+    (mkIf cfg.enable {inherit (cfg) programs home;})
+    {${top}.output = mkIf cfg.enable {inherit (cfg) programs home;};}
+  ];
 }

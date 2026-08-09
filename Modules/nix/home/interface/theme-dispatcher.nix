@@ -164,7 +164,8 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
+config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
     home.packages = [toggle];
     systemd.user.services.dotdots-theme-dispatcher = {
       Unit = {
@@ -180,5 +181,23 @@ in {
       Install.WantedBy = ["graphical-session.target"];
     };
     warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
-  };
+  })
+    {${top}.output = lib.mkIf cfg.enable {
+    home.packages = [toggle];
+    systemd.user.services.dotdots-theme-dispatcher = {
+      Unit = {
+        Description = "dotDots live theme polarity dispatcher";
+        After = ["graphical-session.target"];
+        PartOf = ["graphical-session.target"];
+      };
+      Service = {
+        ExecStart = dispatcherService;
+        Restart = "on-failure";
+        Environment = ["DOTDOTS_THEME_SOCKET=%t/dotdots-theme.sock"];
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
+    warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
+  };}
+  ];
 }

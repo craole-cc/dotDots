@@ -20,11 +20,22 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+    services.openssh = {
+      enable = cfg.enable;
+      settings.PasswordAuthentication = !cfg.keyOnly;
+      settings.KbdInteractiveAuthentication = !cfg.keyOnly;
+    };
+  })
+    {
+      ${top}.output = lib.mkIf cfg.enable {
     services.openssh = {
       enable = cfg.enable;
       settings.PasswordAuthentication = !cfg.keyOnly;
       settings.KbdInteractiveAuthentication = !cfg.keyOnly;
     };
   };
+    }
+  ];
 }
