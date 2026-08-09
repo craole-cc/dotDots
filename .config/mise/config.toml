@@ -1,0 +1,10 @@
+# Portable project tasks. The Nix flake provides the environment on Nix-capable systems.
+# On Windows or non-Nix hosts, mise installs the tools from .config/mise.toml.
+
+[tasks.check]
+description = "Verify toolchain freshness and run flake check"
+run = ["python3 scripts/sync_toolchain.py --check", "nix flake check --no-build"]
+
+[tasks.toolchain-sync]
+description = "Regenerate toolchain adapters from .config/toolchain.toml"
+run = "python3 scripts/sync_toolchain.py"

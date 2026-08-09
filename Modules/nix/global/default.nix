@@ -11,6 +11,9 @@
   inherit (pkgs.stdenv) isLinux isDarwin;
   path = ./.;
 
+  #> Toolchain policy from .config/toolchain.toml
+  toolchain = builtins.fromTOML (builtins.readFile ../../.config/toolchain.toml);
+
   #> Metadata & Dependency Injection
   dots = rec {
     #~@ Metadata
@@ -18,6 +21,7 @@
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
+    toolchainSchema = toolchain.schema or 1;
 
     #~@ Imports
     inherit
