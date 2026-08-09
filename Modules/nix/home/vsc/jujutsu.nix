@@ -8,4 +8,5 @@
       };
     };
   };
+  ${top}.output.programs.jujutsu = config.programs.jujutsu;
 }

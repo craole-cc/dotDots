@@ -5,4 +5,5 @@
     enableZshIntegration = config.programs.zsh.enable;
     enableFishIntegration = config.programs.fish.enable;
   };
+  ${top}.output.programs.nix-index = config.programs.nix-index;
 }

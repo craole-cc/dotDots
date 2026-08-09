@@ -5,4 +5,5 @@
     }
     # // import ./settings.nix
     // import ./plugins.nix;
+  ${top}.output.programs.tmux = config.programs.tmux;
 }

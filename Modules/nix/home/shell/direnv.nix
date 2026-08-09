@@ -4,4 +4,5 @@
     silent = true;
     mise.enable = true;
   };
+  ${top}.output.programs.direnv = config.programs.direnv;
 }

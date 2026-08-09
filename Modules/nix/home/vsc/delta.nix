@@ -4,4 +4,5 @@
     enableGitIntegration = true;
     enableJujutsuIntegration = true;
   };
+  ${top}.output.programs.delta = config.programs.delta;
 }

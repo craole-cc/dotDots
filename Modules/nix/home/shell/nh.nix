@@ -6,4 +6,5 @@
       dates = "daily";
     };
   };
+  ${top}.output.programs.nh = config.programs.nh;
 }

@@ -24,4 +24,5 @@
     };
     includes = [];
   };
+  ${top}.output.programs.git = config.programs.git;
 }

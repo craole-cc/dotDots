@@ -7,4 +7,8 @@
       enable = config.${top}.inputs.applications.utilities.github.enable;
     };
   };
+  ${top}.output.programs = {
+    gh = config.programs.gh;
+    gh-dash = config.programs.gh-dash;
+  };
 }

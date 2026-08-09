@@ -13,5 +13,10 @@ in {
     type = lib.types.bool;
   };
 
-  config.services.caddy.enable = cfg.enable;
+  config = {
+    services.caddy.enable = cfg.enable;
+    ${top}.output = lib.mkIf cfg.enable {
+      services.caddy.enable = cfg.enable;
+    };
+  };
 }

@@ -19,4 +19,5 @@ in {
       search_mode = "prefix";
     };
   };
+  ${top}.output.programs.atuin = config.programs.atuin;
 }

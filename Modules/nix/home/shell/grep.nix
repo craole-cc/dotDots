@@ -22,4 +22,9 @@
       ];
     };
   };
+  ${top}.output.programs = {
+    ripgrep = config.programs.ripgrep;
+    ripgrep-all = config.programs.ripgrep-all;
+    fd = config.programs.fd;
+  };
 }

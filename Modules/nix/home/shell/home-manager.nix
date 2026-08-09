@@ -5,4 +5,9 @@
   };
   news.display = "silent";
   manual.html.enable = true;
+  ${top}.output = {
+    programs.home-manager = config.programs.home-manager;
+    news.display = "silent";
+    manual.html.enable = true;
+  };
 }

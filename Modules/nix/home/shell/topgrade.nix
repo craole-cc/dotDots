@@ -13,4 +13,5 @@
       };
     };
   };
+  ${top}.output.programs.topgrade = config.programs.topgrade;
 }

@@ -15,4 +15,8 @@ in {
   home = {
     packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
   };
+  ${top}.output = {
+    programs.yazi = config.programs.yazi;
+    home.packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
+  };
 }

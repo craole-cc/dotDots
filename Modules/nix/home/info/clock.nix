@@ -22,4 +22,5 @@
       };
     };
   };
+  ${top}.output.programs.clock-rs = config.programs.clock-rs;
 }
