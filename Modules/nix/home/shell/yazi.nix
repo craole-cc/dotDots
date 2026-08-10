@@ -6,7 +6,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.lists) optionals;
   payload = {
     programs.yazi = {

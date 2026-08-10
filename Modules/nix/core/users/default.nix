@@ -12,7 +12,7 @@
 
   inherit (lix.attrsets.resolution) package;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.attrsets) mapAttrs removeAttrs;
   inherit (lib.lists) head optionals;
   inherit (lib.options) mkOption;

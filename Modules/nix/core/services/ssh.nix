@@ -15,7 +15,7 @@
       settings.KbdInteractiveAuthentication = !cfg.keyOnly;
     };
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.services.remote.ssh = {
     enable = lib.mkOption {

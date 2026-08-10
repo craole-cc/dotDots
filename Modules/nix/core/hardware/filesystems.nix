@@ -46,7 +46,7 @@
       mountOnMedia = true;
     };
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasFilesystems;};

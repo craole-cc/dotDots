@@ -5,7 +5,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   isEnabled = pkg: config.programs.${pkg}.enable;
   payload = {
     programs.atuin = {

@@ -11,7 +11,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;

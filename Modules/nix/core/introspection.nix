@@ -7,7 +7,7 @@
 }: let
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.options) isOption;
-  inherit (lib.types) anything unspecified;
+  inherit (lib.types) anything;
 
   # ---- introspection surface ----
   # `config._` is the read-only introspection surface with three facets:
@@ -74,11 +74,11 @@ in {
     output = lib.mkOption {
       description = "Staged config output intended for writing (not evaluated config)";
       default = {};
-      # `unspecified` delegates to the module system's built-in merge: attrsets
-      # merge recursively and lists concatenate, so multiple modules can stage
+      # `anything` recursively to the module system's built-in merge: attrsets
+      # merge recursively; list handling follows the inferred value type, so multiple modules can stage
       # the same top-level key (e.g. `assertions`, `swapDevices`) without
       # conflict.  This is a staging area, not a typed schema.
-      type = unspecified;
+      type = anything;
     };
   };
 

@@ -17,7 +17,7 @@
       prompt.enable = cfg.enablePrompt;
     };
     };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";

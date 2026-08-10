@@ -6,7 +6,7 @@
   ...
 }: let
   enable = config.${top}.inputs.applications.utilities.bat.enable;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 
   payload = {
     programs.bat = {

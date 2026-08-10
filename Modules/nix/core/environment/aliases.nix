@@ -43,7 +43,7 @@
   payload = {
     environment.shellAliases = cfg.default // cfg.extra;
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};

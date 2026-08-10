@@ -1,5 +1,5 @@
 {config, lib, lix, top, ...}: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   payload = {
 
       programs.direnv = {

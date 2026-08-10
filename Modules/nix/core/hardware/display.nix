@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   lix,
   top,
   ...
@@ -10,13 +11,13 @@
 
   iface = config.${top}.inputs.interface;
   isWayland = iface.displayProtocol == "wayland";
+  nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
-  inherit (lix.lists.construction) optionals;
   inherit (lix.modules.construction) mkDefault mkIf mkMerge;
-  inherit (lix.modules.core._) mkStaged;
-  inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.strings.predicates) versionAtLeast;
-  inherit (lix.types.primitives) bool str;
+  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.types) bool str;
 
   nvidiaVersionAtLeast = version:
     versionAtLeast config.hardware.nvidia.package.version version;
@@ -24,19 +25,31 @@
   payload = {
     services.xserver = mkIf (!isWayland) {
       enable = true;
-      videoDrivers = optionals cfg.nvidia.enable ["nvidia"];
+      videoDrivers =
+        if cfg.nvidia.enable
+        then ["nvidia"]
+        else [];
       xkb = {
         layout = cfg.xkbLayout;
         variant = cfg.xkbVariant;
       };
     };
     programs.xwayland.enable = isWayland;
-    hardware.nvidia = with cfg.nvidia; {
-      open = mkDefault open;
-      gsp.enable = mkDefault gsp.enable;
-      powerManagement.kernelSuspendNotifier = mkDefault powerManagement.kernelSuspendNotifier;
+    hardware.nvidia = {
+      open = mkDefault cfg.nvidia.open;
+      gsp.enable = mkDefault cfg.nvidia.gsp.enable;
+      powerManagement.kernelSuspendNotifier =
+        mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
     };
     xdg.portal.xdgOpenUsePortal = true;
+  };
+  outputPayload = payload // {
+    hardware.nvidia = {
+      open = cfg.nvidia.open;
+      gsp.enable = cfg.nvidia.gsp.enable;
+      powerManagement.kernelSuspendNotifier =
+        cfg.nvidia.powerManagement.kernelSuspendNotifier;
+    };
   };
 in {
   options.${top}.inputs.${dom}.${mod} = {
@@ -54,7 +67,7 @@ in {
     nvidia = {
       enable = mkOption {
         description = "Enable nvidia video driver";
-        default = config.hardware.nvidia.modesetting.enable or false;
+        default = nvidiaEnabled;
         type = bool;
       };
       open = mkOption {
@@ -76,7 +89,7 @@ in {
   };
 
   config = mkMerge (mkStaged {
-    inherit top payload;
+    inherit top payload outputPayload;
     condition = cfg.enable;
   });
 }

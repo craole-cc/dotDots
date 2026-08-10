@@ -12,7 +12,7 @@
     programs.nix-ld.enable = cfg.enable;
     environment.systemPackages = [pkgs.nix-ld];
     };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.programs.nix-ld.enable = lib.mkOption {
     description = "Enable nix-ld for prebuilt dynamically linked development tools";

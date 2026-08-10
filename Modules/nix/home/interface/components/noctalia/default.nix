@@ -9,7 +9,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   name = "noctalia-shell";
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge;

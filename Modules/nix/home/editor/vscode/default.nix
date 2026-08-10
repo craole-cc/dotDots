@@ -8,7 +8,7 @@
   user,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   dom = "editors";
   mod = "vscode";
   cfg = config.${top}.inputs.${dom}.${mod};

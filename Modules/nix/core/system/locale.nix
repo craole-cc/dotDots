@@ -35,7 +35,7 @@
 
     i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable =

@@ -17,7 +17,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lix.attrsets.resolution) packages;
   inherit (lix.lists.construction) optionals;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lix.types.combinators) either listOf;
   inherit (lix.types.primitives) bool package str;
 in {

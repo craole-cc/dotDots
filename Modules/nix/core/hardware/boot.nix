@@ -15,7 +15,7 @@
   inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.debug.tracing) traceIf;
   inherit (lix.modules.construction) mkIf mkMerge;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lix.lists.enums.gui) bootLoaders;
   inherit (lix.lists.predicates) any;
   inherit (lix.options.construction) mkTrue mkOption;

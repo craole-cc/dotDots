@@ -3,9 +3,10 @@
     top,
     condition ? true,
     payload,
+    outputPayload ? payload,
   }: [
     (lib.mkIf condition payload)
-    {${top}.output = lib.mkIf condition payload;}
+    {${top}.output = lib.mkIf condition outputPayload;}
   ];
 
   meta = {

@@ -7,7 +7,7 @@
   user,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   cfg = config.${top}.inputs.interface.theme.dispatcher;
   statePath = cfg.statePath;
   socketPath = cfg.socketPath;

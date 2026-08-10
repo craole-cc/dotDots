@@ -59,7 +59,7 @@
       };
     };
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;

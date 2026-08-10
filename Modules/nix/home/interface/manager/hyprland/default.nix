@@ -19,7 +19,7 @@
   inherit (user.interface) windowManager;
 
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
