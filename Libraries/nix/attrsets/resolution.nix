@@ -458,6 +458,9 @@
   `default`
   : Fallback value if a target package is not found. Defaults to `null`.
 
+  `filterNulls`
+  : Optional boolean. If `true`, removes `null` values from the resolved targets list. Defaults to `false`.
+
   # Type
   > packages :: AttrSet -> (AttrSet | [ (Derivation | a) ])
 
@@ -470,10 +473,19 @@
 
     ```nix
     [
-      null
+      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
       «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
-      «derivation /nix/store/83iq3ssrjjn625in6bkw373f4frzmx47-firefox-140.11.0esr.drv»
-      «derivation /nix/store/khck9yp1kh927q442rpslapg122ni1v0-firefox-151.0.1.drv»
+      «derivation /nix/store/f54312vhnici0xd0b5j6i1kijlalwcjg-git-2.54.0.drv»
+    ]
+    ```
+
+  - Filtering unresolved packages:
+  > packages { inherit pkgs; targets = [ "bluez" pkgs.git "non-existent-package" ]; filterNulls = true; }
+
+    ```nix
+    [
+      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
+      «derivation /nix/store/f54312vhnici0xd0b5j6i1kijlalwcjg-git-2.54.0.drv»
     ]
     ```
 
@@ -483,32 +495,29 @@
     ```nix
     [
       «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
-      «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
       «derivation /nix/store/k85579sh6msm09n1673prc988qbb75ik-git-2.48.1.drv»
     ]
-  ```
+    ```
   */
   packages = {
-    # System package set context options
+    #? System package set context options
     flake ? {},
     inputs ? {},
     nixpkgs ? {},
     legacyPackages ? {},
     system ? null,
     priority ? null,
-    # Package target resolution options
+    #? Package target resolution options
     pkgs ? null,
     targets ? null,
     default ? null,
     filterNulls ? false,
   }: let
-    # 1. Resolve the active `pkgs` set (use explicit `pkgs` if passed, else derive from flake/system context)
-    targetSystem = getSystemOrDefault {
-      inherit flake inputs nixpkgs legacyPackages system;
-    };
-
     resolved = {
-      inherit default;
+      system = getSystemOrDefault {
+        inherit flake inputs nixpkgs legacyPackages system;
+      };
+
       pkgs =
         if pkgs != null
         then pkgs
@@ -517,13 +526,13 @@
           sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
         in
           (findFirst
-            (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
+            (nixpkgsSource: nixpkgsSource.legacyPackages.${resolved.system} or null != null)
             nixpkgs.legacyPackages (
               attrValues sources
             )).${
-            targetSystem
+            resolved.system
           }
-        else nixpkgs.legacyPackages.${targetSystem};
+        else nixpkgs.legacyPackages.${resolved.system};
 
       targets = map (
         target:
@@ -542,30 +551,6 @@
         else resolved.targets
       )
     else resolved.pkgs;
-
-  # /**
-  # Resolve a package from `pkgs` by trying one or more names in order.
-
-  # # Type
-  # ```nix
-  # package :: { pkgs :: AttrSet, target :: string | [string], default :: a } -> Derivation | a
-  # ```
-
-  # # Examples
-  # ```nix
-  # package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
-  # ```
-  # */
-  # package = {
-  #   pkgs,
-  #   target,
-  #   default ? null,
-  # }:
-  #   byPaths {
-  #     attrset = pkgs;
-  #     paths = map (name: [name]) (toList target);
-  #     inherit default;
-  #   };
 
   /**
   Map a shell name to its nixpkgs package.
