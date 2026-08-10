@@ -14,7 +14,7 @@
   };
 
   inherit (_.debug.format) mkRef mkThrownUsage mkExample;
-  inherit (_.debug.trace) traceFn;
+  inherit (_.debug.tracing) traceFn;
   inherit (_.types.predicates) isList;
   inherit (lib.attrsets) isAttrs;
   inherit (lib.debug) addErrorContext;

@@ -59,6 +59,7 @@
       (lists)
       flatten
       flattenDepth
+      filter
       imap0
       imap1
       naturalSort

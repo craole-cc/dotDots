@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   lix,
   pkgs,
   top,
@@ -15,7 +14,7 @@
   inherit (lix.attrsets.access) getAttr;
   inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.debug.tracing) traceIf;
-  inherit (lix.modules.construction) mkIf;
+  inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.modules.core._) mkStaged;
   inherit (lix.lists.enums.gui) bootLoaders;
   inherit (lix.lists.predicates) any;
@@ -160,7 +159,7 @@ in {
     };
   };
 
-  config = lib.mkMerge (mkStaged {
+  config = mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

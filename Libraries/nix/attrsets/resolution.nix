@@ -66,7 +66,10 @@
     };
   };
 
-  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.access) attrByPath attrValues;
+  inherit (_.attrsets.predicates) hasAttrByPath;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
+  inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.content.fallback) firstNonEmpty;
@@ -77,27 +80,15 @@
   inherit (_.filesystem.resolution) getFlakePath;
   inherit (_.hardware.system) getSystems getSystemOrDefault;
   inherit (_.lists.predicates) all elem isList;
+  inherit (_.lists.access) head findFirst;
+  inherit (_.lists.construction) toList;
+  inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.predicates) isString;
   inherit (_.strings.transformation) splitStringBy;
+  inherit (_.types.predicates) isDerivation;
 
-  inherit
-    (lib.attrsets)
-    attrValues
-    filterAttrs
-    genAttrs
-    hasAttrByPath
-    listToAttrs
-    optionalAttrs
-    ;
   inherit (lib.debug) traceIf;
-  inherit
-    (lib.lists)
-    filter
-    findFirst
-    head
-    toList
-    ;
   inherit (builtins) getFlake tryEval;
 
   debug = mkModuleDebug __moduleRef;
@@ -390,28 +381,57 @@
     else nixpkgs.legacyPackages.${targetSystem};
 
   /**
-  Resolve a package from `pkgs` by trying one or more names in order.
+    Resolve a package from `pkgs` by trying one or more names in order.
+    If target is already a package derivation, returns it directly.
 
-  # Type
-  ```nix
-  package :: { pkgs :: AttrSet, target :: string | [string], default :: a } -> Derivation | a
-  ```
+    # Type
+    ```nix
+    package :: { pkgs :: AttrSet, target :: Derivation | string | [string], default :: a } -> Derivation | a
 
-  # Examples
-  ```nix
+  Examples
+  Nix
+
   package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
-  ```
+  package { inherit pkgs; target = "bluez"; }
+  package { inherit pkgs; target = pkgs.bluez; }
   */
   package = {
     pkgs,
     target,
     default ? null,
   }:
-    byPaths {
-      attrset = pkgs;
-      paths = map (name: [name]) (toList target);
-      inherit default;
-    };
+    if isDerivation target
+    then target
+    else
+      byPaths {
+        attrset = pkgs;
+        paths = map (name: [name]) (toList target);
+        inherit default;
+      };
+
+  # /**
+  # Resolve a package from `pkgs` by trying one or more names in order.
+
+  # # Type
+  # ```nix
+  # package :: { pkgs :: AttrSet, target :: string | [string], default :: a } -> Derivation | a
+  # ```
+
+  # # Examples
+  # ```nix
+  # package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
+  # ```
+  # */
+  # package = {
+  #   pkgs,
+  #   target,
+  #   default ? null,
+  # }:
+  #   byPaths {
+  #     attrset = pkgs;
+  #     paths = map (name: [name]) (toList target);
+  #     inherit default;
+  #   };
 
   /**
   Map a shell name to its nixpkgs package.

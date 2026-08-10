@@ -74,6 +74,7 @@
       hasSuffix
       isString
       isValidPosixName
+      versionAtLeast
       ;
   };
 in

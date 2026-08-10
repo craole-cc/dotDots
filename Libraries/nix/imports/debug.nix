@@ -18,6 +18,7 @@
   tracing = {
     inherit
       (debug)
+      trace
       traceIf
       traceVal
       traceValFn
@@ -25,7 +26,6 @@
       traceSeqN
       traceValSeq
       traceValSeqN
-      traceValIfNot
       addErrorContext
       ;
     inherit (builtins) tryEval;
