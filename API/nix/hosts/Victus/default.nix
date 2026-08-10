@@ -95,7 +95,7 @@ in {
       "eDP-1" = {
         brand = "AUO";
         resolution = "1920x1080";
-        refreshRate = 144.15;
+        refreshRate = 144;
         scale = 1;
         position = "0x0";
         size = 15.6;
