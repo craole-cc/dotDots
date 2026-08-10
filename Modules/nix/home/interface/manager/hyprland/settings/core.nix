@@ -7,19 +7,22 @@
     (apps)
     browser
     editor
+    explorer
     launcher
     terminal
     ;
 in {
   "$MOD" = keyboard.mod;
-  "$browser" = browser.primary.command;
-  "$browserAlt" = browser.secondary.command;
-  "$editor" = editor.primary.command;
-  "$editorAlt" = editor.secondary.command;
-  "$launcher" = launcher.primary.command;
-  "$launcherAlt" = launcher.secondary.command;
-  "$terminal" = terminal.primary.command;
-  "$terminalAlt" = terminal.secondary.command;
+  "$BROWSER" = browser.primary.command;
+  "$BROWSER_SEC" = browser.secondary.command;
+  "$VISUAL" = editor.primary.command;
+  "$VISUAL_SEC" = editor.secondary.command;
+  "$FILE_MANAGER" = explorer.primary.command;
+  "$FILE_MANAGER_SEC" = explorer.secondary.command;
+  "$LAUNCHER" = launcher.primary.command;
+  "$LAUNCHER_SEC" = launcher.secondary.command;
+  "$TERMINAL" = terminal.primary.command;
+  "$TERMINAL_SEC" = terminal.secondary.command;
 
   env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
