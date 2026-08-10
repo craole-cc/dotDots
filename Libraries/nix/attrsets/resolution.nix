@@ -5,65 +5,71 @@
   __moduleRef,
   ...
 }: let
-  exports = rec {
-    internal = {
-      inherit
-        byPaths
-        flakeAttrs # TODO: Move to sources.inputs or sources.modules
-        getAttr
-        hostAttrs # TODO: Move to sources.inputs or sources.modules
-        inputPackages # TODO: Move to sources.packages
-        inputSource # TODO: Move to sources.inputs
-        nestedByPaths
-        withPath
-        nixpkgs # TODO: Move to sources.inputs or sources.packages
-        optional
-        orDefault
-        orNull
-        package # TODO: Move to sources.packages or applications.registry
-        packages # TODO: Move to sources.packages
-        shellPackage # TODO: Move to sources.packages or applications.registry
-        parseVscodeExt # TODO: Move to applications.vscode or applications.registry
-        vscodePackage # TODO: Move to applications.vscode or applications.registry
-        vscodePackages # TODO: Move to applications.vscode or applications.registry
-        normalizePath
-        ;
-      getAttrWithPath = withPath;
-      normalizeAttrPath = normalizePath;
-      getAttrByPaths = byPaths;
-      getAttrOrDefault = orDefault;
-      getAttrOrNull = orNull;
-      getFlake = flakeAttrs;
-      getHost = hostAttrs;
-      getNestedAttrByPaths = nestedByPaths;
-      getPackage = package;
-      getPkgs = packages;
-      mkPkgs = packages;
-      getShellPackage = shellPackage;
-      mkInputPackages = inputPackages;
-      mkInputSource = inputSource;
-      optionalAttr = optional;
-    };
-    external = {
-      inherit
-        (internal)
-        flakeAttrs
-        getAttrByPaths
-        getAttrOrDefault
-        getAttrOrNull
-        getFlake
-        getHost
-        getNestedAttrByPaths
-        getPackage
-        getPkgs
-        getShellPackage
-        optionalAttr
-        ;
-      mkPkgs = packages;
-      mkInputPackages = inputPackages;
-      mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
-      mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
-    };
+  __doc = ''
+    Attribute set resolution and lookup utilities.
+
+    Provides tools for navigating nested structures, handling missing attributes
+    gracefully, and resolving values from multiple potential sources.
+  '';
+
+  __exports = {
+    inherit
+      byPaths
+      flakeAttrs # TODO: Move to sources.inputs or sources.modules
+      getAttr
+      hostAttrs # TODO: Move to sources.inputs or sources.modules
+      inputPackages # TODO: Move to sources.packages
+      inputSource # TODO: Move to sources.inputs
+      nestedByPaths
+      withPath
+      nixpkgs # TODO: Move to sources.inputs or sources.packages
+      optional
+      orDefault
+      orNull
+      package # TODO: Move to sources.packages or applications.registry
+      packages # TODO: Move to sources.packages
+      shellPackage # TODO: Move to sources.packages or applications.registry
+      parseVscodeExt # TODO: Move to applications.vscode or applications.registry
+      vscodePackage # TODO: Move to applications.vscode or applications.registry
+      vscodePackages # TODO: Move to applications.vscode or applications.registry
+      normalizePath
+      ;
+    getAttrWithPath = withPath;
+    normalizeAttrPath = normalizePath;
+    getAttrByPaths = byPaths;
+    getAttrOrDefault = orDefault;
+    getAttrOrNull = orNull;
+    getFlake = flakeAttrs;
+    getHost = hostAttrs;
+    getNestedAttrByPaths = nestedByPaths;
+    getPackage = package;
+    getPkgs = packages;
+    mkPkgs = packages;
+    getShellPackage = shellPackage;
+    mkInputPackages = inputPackages;
+    mkInputSource = inputSource;
+    optionalAttr = optional;
+  };
+
+  __rootAliases = {
+    inherit
+      (__exports)
+      flakeAttrs
+      getAttrByPaths
+      getAttrOrDefault
+      getAttrOrNull
+      getFlake
+      getHost
+      getNestedAttrByPaths
+      getPackage
+      getPkgs
+      getShellPackage
+      optionalAttr
+      ;
+    mkPkgs = packages;
+    mkInputPackages = inputPackages;
+    mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
+    mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
   };
 
   inherit (_.attrsets.access) attrByPath attrValues;
@@ -76,7 +82,7 @@
   inherit (_.debug.assertions) withContext mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
-  inherit (_.debug.tracing) addErrorContext;
+  inherit (_.debug.tracing) addErrorContext traceIf;
   inherit (_.filesystem.resolution) getFlakePath;
   inherit (_.hardware.system) getSystems getSystemOrDefault;
   inherit (_.lists.predicates) all elem isList;
@@ -87,8 +93,6 @@
   inherit (_.strings.predicates) isString;
   inherit (_.strings.transformation) splitStringBy;
   inherit (_.types.predicates) isDerivation;
-
-  inherit (lib.debug) traceIf;
   inherit (builtins) getFlake tryEval;
 
   debug = mkModuleDebug __moduleRef;
@@ -345,55 +349,77 @@
       paths = map (parent: [parent] ++ toList target) (toList parents);
     };
 
+  # /**
+  # Get `legacyPackages` from a nixpkgs flake for a given system.
+
+  # # Type
+  # ```nix
+  # packages :: { nixpkgs :: Flake?, system :: string?, priority :: [string]? } -> AttrSet
+  # ```
+  # */
+  # packages = {
+  #   # nixpkgs ? import <nixpkgs> {},
+  #   # system ? null,
+  #   flake ? {},
+  #   inputs ? {},
+  #   nixpkgs ? {},
+  #   legacyPackages ? {},
+  #   system ? null,
+  #   priority ? null,
+  # }: let
+  #   targetSystem = getSystemOrDefault {
+  #     inherit flake inputs nixpkgs legacyPackages system;
+  #   };
+  # in
+  #   if priority != null
+  #   then let
+  #     sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
+  #   in
+  #     (findFirst
+  #       (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
+  #       nixpkgs.legacyPackages (
+  #         attrValues sources
+  #       )).${
+  #       targetSystem
+  #     }
+  #   else nixpkgs.legacyPackages.${targetSystem};
+
   /**
-  Get `legacyPackages` from a nixpkgs flake for a given system.
+  Resolve a package from `pkgs` by trying one or more names in order.
+  If target is already a package derivation, returns it directly.
+
+  # Input
+  `pkgs`
+  : the nixpkgs attrset to search for packages.
+
+  `target`
+  : a string or list of strings representing the package name(s) to search for.
+    If a list is provided, the first matching package will be returned.
+
+  `default`
+  : a fallback value to return if none of the specified package names are found.
+    If not provided, defaults to `null`.
 
   # Type
+  > package :: { pkgs :: AttrSet, target :: Derivation | string | [string], default :: a } -> Derivation | a
+
+  # Examples
+  - package { inherit pkgs; target = ["firefox-non-existent" "firefox-beta" "firefox-esr" "firefox"]; }
+
   ```nix
-  packages :: { nixpkgs :: Flake?, system :: string?, priority :: [string]? } -> AttrSet
+  «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
   ```
-  */
-  packages = {
-    # nixpkgs ? import <nixpkgs> {},
-    # system ? null,
-    flake ? {},
-    inputs ? {},
-    nixpkgs ? {},
-    legacyPackages ? {},
-    system ? null,
-    priority ? null,
-  }: let
-    targetSystem = getSystemOrDefault {
-      inherit flake inputs nixpkgs legacyPackages system;
-    };
-  in
-    if priority != null
-    then let
-      sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
-    in
-      (findFirst
-        (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
-        nixpkgs.legacyPackages (
-          attrValues sources
-        )).${
-        targetSystem
-      }
-    else nixpkgs.legacyPackages.${targetSystem};
+  - package { inherit pkgs; target = "bluez"; }
 
-  /**
-    Resolve a package from `pkgs` by trying one or more names in order.
-    If target is already a package derivation, returns it directly.
+  ```nix
+  «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
+  ```
 
-    # Type
-    ```nix
-    package :: { pkgs :: AttrSet, target :: Derivation | string | [string], default :: a } -> Derivation | a
+  - package { inherit pkgs; target = pkgs.bluez; }
 
-  Examples
-  Nix
-
-  package { inherit pkgs; target = ["firefox-beta" "firefox-esr" "firefox"]; }
-  package { inherit pkgs; target = "bluez"; }
-  package { inherit pkgs; target = pkgs.bluez; }
+  ```nix
+  «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
+  ```
   */
   package = {
     pkgs,
@@ -408,6 +434,97 @@
         paths = map (name: [name]) (toList target);
         inherit default;
       };
+
+  /**
+  Resolve package attribute sets or individual package derivations.
+
+  Modes:
+  1. _System Package Set Resolution (when `targets` is null/omitted)_. Extracts and returns the `legacyPackages.${system}` attribute set from flake inputs or nixpkgs.
+
+  2. _Target Package List Resolution (when `targets` is provided)_. Resolves a list of strings, preference fallback lists, or package derivations into concrete derivations.
+
+  # Input
+  `pkgs`
+  : Optional nixpkgs attrset. If omitted when resolving targets, it will be automatically resolved using flake/inputs/system parameters.
+
+  `targets`
+  : Optional list of package names, fallback lists, or derivations to resolve.
+
+  `flake` / `inputs` / `nixpkgs` / `legacyPackages` / `system` / `priority`
+  : Flake resolution context arguments (used to compute `pkgs` if `pkgs` is not explicitly passed).
+
+  `default`
+  : Fallback value if a target package is not found. Defaults to `null`.
+
+  # Type
+  > packages :: AttrSet -> (AttrSet | [ (Derivation | a) ])
+
+  # Examples
+  - Resolving a system pkgs set:
+    packages { inherit flake system; }
+
+  - Resolving target package derivations:
+    packages { inherit pkgs; targets = [ "bluez" ["firefox-beta" "firefox"] pkgs.git ]; }
+
+  - Resolving target package derivations directly from flake inputs:
+  > packages { inherit flake system; targets = [ "bluez" "git" ]; }
+
+  ```nix
+  [
+    «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
+    «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
+    «derivation /nix/store/k85579sh6msm09n1673prc988qbb75ik-git-2.48.1.drv»
+  ]
+  ```
+  */
+  packages = {
+    # System package set context options
+    flake ? {},
+    inputs ? {},
+    nixpkgs ? {},
+    legacyPackages ? {},
+    system ? null,
+    priority ? null,
+    # Package target resolution options
+    pkgs ? null,
+    targets ? null,
+    default ? null,
+  }: let
+    # 1. Resolve the active `pkgs` set (use explicit `pkgs` if passed, else derive from flake/system context)
+    targetSystem = getSystemOrDefault {
+      inherit flake inputs nixpkgs legacyPackages system;
+    };
+
+    resolved = {
+      inherit default targets;
+      pkgs =
+        if pkgs != null
+        then pkgs
+        else if priority != null
+        then let
+          sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
+        in
+          (findFirst
+            (nixpkgsSource: nixpkgsSource.legacyPackages.${targetSystem} or null != null)
+            nixpkgs.legacyPackages (
+              attrValues sources
+            )).${
+            targetSystem
+          }
+        else nixpkgs.legacyPackages.${targetSystem};
+    };
+  in
+    # 2. Branch based on whether target packages were requested
+    if targets == null
+    then resolved.pkgs
+    else
+      map (
+        target:
+          package {
+            inherit (resolved) pkgs default;
+            inherit target;
+          }
+      ) (toList resolved.targets);
 
   # /**
   # Resolve a package from `pkgs` by trying one or more names in order.
@@ -732,204 +849,194 @@
       )
     );
 
-  __doc = ''
-    Attribute set resolution and lookup utilities.
-
-    Provides tools for navigating nested structures, handling missing attributes
-    gracefully, and resolving values from multiple potential sources.
-  '';
-in
-  exports.internal
-  // {
-    inherit __doc;
-    __rootAliases = exports.external;
-    __tests = runTests {
-      getAttr = {
-        returnsValueWhenPresent = mkTest {
-          desired = "hello";
-          outcome = getAttr {
-            attrs = {
-              a = "hello";
-            };
-            name = "a";
+  __tests = runTests {
+    getAttr = {
+      returnsValueWhenPresent = mkTest {
+        desired = "hello";
+        outcome = getAttr {
+          attrs = {
+            a = "hello";
           };
-          command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
+          name = "a";
         };
-        preservesEmptyString = mkTest {
-          desired = "";
-          outcome = getAttr {
-            attrs = {
-              a = "";
-            };
-            name = "a";
-          };
-          command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
-        };
-        throwsWhenMissing = mkTest {
-          desired = {
-            success = false;
-            value = false;
-          };
-          outcome = tryEval (getAttr {
-            attrs = {};
-            name = "a";
-          });
-          command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
-        };
+        command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
       };
+      preservesEmptyString = mkTest {
+        desired = "";
+        outcome = getAttr {
+          attrs = {
+            a = "";
+          };
+          name = "a";
+        };
+        command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
+      };
+      throwsWhenMissing = mkTest {
+        desired = {
+          success = false;
+          value = false;
+        };
+        outcome = tryEval (getAttr {
+          attrs = {};
+          name = "a";
+        });
+        command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
+      };
+    };
 
-      orDefault = {
-        returnsValueWhenPresent = mkTest {
-          desired = "hello";
-          outcome = orDefault {
-            attrs = {
-              a = "hello";
-            };
-            name = "a";
-            default = "fallback";
-          };
-          command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
-        };
-        fallsBackOnEmptyString = mkTest {
-          desired = "fallback";
-          outcome = orDefault {
-            attrs = {
-              a = "";
-            };
-            name = "a";
-            default = "fallback";
-          };
-          command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-        };
-        fallsBackOnMissing = mkTest {
-          desired = "fallback";
-          outcome = orDefault {
-            attrs = {};
-            name = "a";
-            default = "fallback";
-          };
-          command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
-        };
-        preservesZero = mkTest' 0 (orDefault {
+    orDefault = {
+      returnsValueWhenPresent = mkTest {
+        desired = "hello";
+        outcome = orDefault {
           attrs = {
-            a = 0;
+            a = "hello";
           };
           name = "a";
-          default = 42;
-        });
-        preservesFalse = mkTest' false (orDefault {
+          default = "fallback";
+        };
+        command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
+      };
+      fallsBackOnEmptyString = mkTest {
+        desired = "fallback";
+        outcome = orDefault {
           attrs = {
-            a = false;
+            a = "";
           };
           name = "a";
-          default = true;
-        });
-        fallsBackOnEmpty = mkTest' [1 2] (orDefault {
+          default = "fallback";
+        };
+        command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+      };
+      fallsBackOnMissing = mkTest {
+        desired = "fallback";
+        outcome = orDefault {
+          attrs = {};
+          name = "a";
+          default = "fallback";
+        };
+        command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
+      };
+      preservesZero = mkTest' 0 (orDefault {
+        attrs = {
+          a = 0;
+        };
+        name = "a";
+        default = 42;
+      });
+      preservesFalse = mkTest' false (orDefault {
+        attrs = {
+          a = false;
+        };
+        name = "a";
+        default = true;
+      });
+      fallsBackOnEmpty = mkTest' [1 2] (orDefault {
+        attrs = {
+          a = [];
+        };
+        name = "a";
+        default = [
+          1
+          2
+        ];
+      });
+    };
+
+    orNull = {
+      preservesEmptyString = mkTest {
+        desired = "";
+        outcome = orNull {
+          attrs = {
+            a = "";
+          };
+          name = "a";
+          default = "fallback";
+        };
+        command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+      };
+      preservesEmptyList = mkTest {
+        desired = [];
+        outcome = orNull {
           attrs = {
             a = [];
           };
           name = "a";
-          default = [
-            1
-            2
-          ];
-        });
+          default = [1];
+        };
+        command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
       };
-
-      orNull = {
-        preservesEmptyString = mkTest {
-          desired = "";
-          outcome = orNull {
-            attrs = {
-              a = "";
-            };
-            name = "a";
-            default = "fallback";
-          };
-          command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-        };
-        preservesEmptyList = mkTest {
-          desired = [];
-          outcome = orNull {
-            attrs = {
-              a = [];
-            };
-            name = "a";
-            default = [1];
-          };
-          command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
-        };
-        fallsBackOnMissing = mkTest {
-          desired = "fallback";
-          outcome = orNull {
-            attrs = {};
-            name = "a";
-            default = "fallback";
-          };
-          command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
-        };
-        preservesNull = mkTest' null (orNull {
-          attrs = {
-            a = null;
-          };
+      fallsBackOnMissing = mkTest {
+        desired = "fallback";
+        outcome = orNull {
+          attrs = {};
           name = "a";
           default = "fallback";
-        });
+        };
+        command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
       };
+      preservesNull = mkTest' null (orNull {
+        attrs = {
+          a = null;
+        };
+        name = "a";
+        default = "fallback";
+      });
+    };
 
-      optional = {
-        includesWhenPresent = mkTest {
-          desired = {
+    optional = {
+      includesWhenPresent = mkTest {
+        desired = {
+          baz = "yes";
+        };
+        outcome = optional {
+          attrs = {
             baz = "yes";
           };
-          outcome = optional {
-            attrs = {
-              baz = "yes";
-            };
-            name = "baz";
-          };
-          command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
-        };
-        excludesWhenMissing = mkTest' {} (optional {
-          attrs = {};
           name = "baz";
-        });
-        excludesWhenEmpty = mkTest' {} (optional {
-          attrs = {
-            baz = "";
-          };
-          name = "baz";
-        });
-      };
-
-      byPaths = {
-        returnsFirstMatch = mkTest {
-          desired = 1;
-          outcome = byPaths {
-            attrset = {
-              foo.bar = 1;
-              baz.qux = 2;
-            };
-            paths = [
-              ["missing"]
-              [
-                "foo"
-                "bar"
-              ]
-              [
-                "baz"
-                "qux"
-              ]
-            ];
-            default = null;
-          };
-          command = "byPaths: first match is foo.bar";
         };
-        fallsBackToDefault = mkTest' null (byPaths {
-          attrset = {};
-          paths = [["missing"]];
-          default = null;
-        });
+        command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
       };
+      excludesWhenMissing = mkTest' {} (optional {
+        attrs = {};
+        name = "baz";
+      });
+      excludesWhenEmpty = mkTest' {} (optional {
+        attrs = {
+          baz = "";
+        };
+        name = "baz";
+      });
     };
-  }
+
+    byPaths = {
+      returnsFirstMatch = mkTest {
+        desired = 1;
+        outcome = byPaths {
+          attrset = {
+            foo.bar = 1;
+            baz.qux = 2;
+          };
+          paths = [
+            ["missing"]
+            [
+              "foo"
+              "bar"
+            ]
+            [
+              "baz"
+              "qux"
+            ]
+          ];
+          default = null;
+        };
+        command = "byPaths: first match is foo.bar";
+      };
+      fallsBackToDefault = mkTest' null (byPaths {
+        attrset = {};
+        paths = [["missing"]];
+        default = null;
+      });
+    };
+  };
+in
+  __exports // {inherit __doc __tests __rootAliases;}
