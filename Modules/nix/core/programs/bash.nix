@@ -17,6 +17,14 @@
   inherit (lix.lists.predicates) isIn;
   inherit (lix.options.construction) mkEnable mkTrue;
   inherit (lix.modules.construction) mkIf;
+  payload = {
+    programs.${mod} = {
+      inherit (cfg) enable;
+      blesh.enable = cfg.blesh;
+      undistractMe.enable = cfg.undistractMe;
+    };
+    };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
@@ -27,22 +35,8 @@ in {
     undistractMe = mkTrue "Undistract Me";
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable;
-      blesh.enable = cfg.blesh;
-      undistractMe.enable = cfg.undistractMe;
-    };
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable;
-      blesh.enable = cfg.blesh;
-      undistractMe.enable = cfg.undistractMe;
-    };
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

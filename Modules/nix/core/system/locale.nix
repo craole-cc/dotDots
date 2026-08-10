@@ -4,6 +4,7 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   dom = "system";
@@ -20,6 +21,21 @@
     nullOr
     str
     ;
+  payload = {
+    time = {
+      inherit (cfg) timeZone;
+      hardwareClockInLocalTime = cfg.dualBootWindows;
+    };
+
+    location = mkIf (cfg.latitude != null && cfg.longitude != null) {
+      inherit (cfg) latitude;
+      inherit (cfg) longitude;
+      provider = cfg.locator;
+    };
+
+    i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable =
@@ -65,36 +81,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    time = {
-      inherit (cfg) timeZone;
-      hardwareClockInLocalTime = cfg.dualBootWindows;
-    };
-
-    location = mkIf (cfg.latitude != null && cfg.longitude != null) {
-      inherit (cfg) latitude;
-      inherit (cfg) longitude;
-      provider = cfg.locator;
-    };
-
-    i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    time = {
-      inherit (cfg) timeZone;
-      hardwareClockInLocalTime = cfg.dualBootWindows;
-    };
-
-    location = mkIf (cfg.latitude != null && cfg.longitude != null) {
-      inherit (cfg) latitude;
-      inherit (cfg) longitude;
-      provider = cfg.locator;
-    };
-
-    i18n.defaultLocale = mkIf (cfg.defaultLocale != null) cfg.defaultLocale;
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

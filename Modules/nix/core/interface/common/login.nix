@@ -12,7 +12,6 @@
   inherit (lib.options) literalExpression mkOption;
   inherit (lib.types) bool nullOr str;
   inherit (lix.modules.core.services) mkServices;
-  inherit (lix.modules.core._) mkStaged;
 
   user = host.users.data.primary or {};
   sessionArgs = {
@@ -30,6 +29,7 @@
       ;
   };
   payload = mkServices sessionArgs;
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom} = {
     autoLogin = mkOption {

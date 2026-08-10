@@ -132,7 +132,7 @@
     common = editor ++ browser ++ terminal ++ launcher ++ bar;
     system = wayland ++ linux ++ darwin;
     all = default ++ common ++ system;
-  in {
+in {
     inherit
       editor
       browser
@@ -147,6 +147,10 @@
       all
       ;
   };
+  payload = {
+    environment.systemPackages = unique (cfg.default ++ cfg.extra);
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
@@ -162,14 +166,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    environment.systemPackages = unique (cfg.default ++ cfg.extra);
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    environment.systemPackages = unique (cfg.default ++ cfg.extra);
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

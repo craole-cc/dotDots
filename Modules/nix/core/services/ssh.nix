@@ -7,7 +7,6 @@
   ...
 }: let
   cfg = config.${top}.inputs.services.remote.ssh;
-  inherit (lix.modules.core._) mkStaged;
 
   payload = {
     services.openssh = {
@@ -16,6 +15,7 @@
       settings.KbdInteractiveAuthentication = !cfg.keyOnly;
     };
   };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.services.remote.ssh = {
     enable = lib.mkOption {

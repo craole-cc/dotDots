@@ -16,6 +16,7 @@
   inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.debug.tracing) traceIf;
   inherit (lix.modules.construction) mkIf;
+  inherit (lix.modules.core._) mkStaged;
   inherit (lix.lists.enums.gui) bootLoaders;
   inherit (lix.lists.predicates) any;
   inherit (lix.options.construction) mkTrue mkOption;
@@ -45,6 +46,100 @@
   in {
     inherit packages;
   };
+
+  payload = {
+    assertions = let
+      isSystemd = hasInfix "system" cfg.loader;
+      isRefind = hasInfix "refind" cfg.loader;
+      isGrub = hasInfix "grub" cfg.loader;
+    in [
+      {
+        assertion = any (p: hasInfix p cfg.loader) validPatterns;
+        message = ''
+          Invalid bootLoader '${cfg.loader}'.
+          Must contain one of: ${concatStringsSep ", " validPatterns}
+        '';
+      }
+      {
+        assertion = hw.hasEfi;
+        message = ''Boot loader requires EFI. Add "efi" to host.functionalities.'';
+      }
+      {
+        assertion = cfg.timeout >= 0;
+        message = "bootLoaderTimeout must be non-negative, got: ${toString cfg.timeout}";
+      }
+      {
+        assertion = isString cfg.efiMount && hasPrefix "/" cfg.efiMount;
+        message = "efiSysMountPoint must be an absolute path, got: ${toString cfg.efiMount}";
+      }
+      {
+        assertion = !(isSystemd && isRefind);
+        message = "Cannot enable both systemd-boot and refind simultaneously.";
+      }
+      {
+        assertion = !(isSystemd && isGrub);
+        message = "Cannot enable both systemd-boot and grub simultaneously.";
+      }
+      {
+        assertion = !(isRefind && isGrub);
+        message = "Cannot enable both refind and grub simultaneously.";
+      }
+    ];
+
+    boot = let
+      isSystemd = hasInfix "system" cfg.loader;
+      isRefind = hasInfix "refind" cfg.loader;
+      isGrub = hasInfix "grub" cfg.loader;
+    in {
+      kernelPackages = kernel.packages;
+
+      loader = {
+        systemd-boot = mkIf isSystemd {
+          enable = true;
+          configurationLimit = 20;
+          editor = false;
+          memtest86.enable = true;
+          netbootxyz.enable = true;
+          rebootForBitlocker = true;
+        };
+
+        refind = mkIf isRefind {
+          enable = true;
+          extraConfig = ''
+            timeout ${toString cfg.timeout}
+            use_graphics_for linux
+            scanfor manual,external,optical,netboot
+            resolution 1600 900
+            use_nvram false
+            ${optionalString hw.hasDualBoot ''
+              menuentry "Windows" {
+                loader \EFI\Microsoft\Boot\bootmgfw.efi
+                icon \EFI\refind\icons\os_win.png
+              }
+            ''}
+          '';
+        };
+
+        grub = mkIf isGrub {
+          enable = true;
+          device = "nodev";
+          efiSupport = hw.hasEfi;
+          useOSProber = hw.hasDualBoot;
+        };
+
+        efi = {
+          canTouchEfiVariables = hw.hasEfi;
+          efiSysMountPoint = cfg.efiMount;
+        };
+
+        inherit (cfg) timeout;
+      };
+
+      initrd.availableKernelModules = host.modules or [];
+    };
+
+    environment.systemPackages = with pkgs; [efibootmgr];
+  };
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkTrue mod;
@@ -65,194 +160,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    assertions = let
-      isSystemd = hasInfix "system" cfg.loader;
-      isRefind = hasInfix "refind" cfg.loader;
-      isGrub = hasInfix "grub" cfg.loader;
-    in [
-      {
-        assertion = any (p: hasInfix p cfg.loader) validPatterns;
-        message = ''
-          Invalid bootLoader '${cfg.loader}'.
-          Must contain one of: ${concatStringsSep ", " validPatterns}
-        '';
-      }
-      {
-        assertion = hw.hasEfi;
-        message = ''Boot loader requires EFI. Add "efi" to host.functionalities.'';
-      }
-      {
-        assertion = cfg.timeout >= 0;
-        message = "bootLoaderTimeout must be non-negative, got: ${toString cfg.timeout}";
-      }
-      {
-        assertion = isString cfg.efiMount && hasPrefix "/" cfg.efiMount;
-        message = "efiSysMountPoint must be an absolute path, got: ${toString cfg.efiMount}";
-      }
-      {
-        assertion = !(isSystemd && isRefind);
-        message = "Cannot enable both systemd-boot and refind simultaneously.";
-      }
-      {
-        assertion = !(isSystemd && isGrub);
-        message = "Cannot enable both systemd-boot and grub simultaneously.";
-      }
-      {
-        assertion = !(isRefind && isGrub);
-        message = "Cannot enable both refind and grub simultaneously.";
-      }
-    ];
-
-    boot = let
-      isSystemd = hasInfix "system" cfg.loader;
-      isRefind = hasInfix "refind" cfg.loader;
-      isGrub = hasInfix "grub" cfg.loader;
-    in {
-      kernelPackages = kernel.packages;
-
-      loader = {
-        systemd-boot = mkIf isSystemd {
-          enable = true;
-          configurationLimit = 20;
-          editor = false;
-          memtest86.enable = true;
-          netbootxyz.enable = true;
-          rebootForBitlocker = true;
-        };
-
-        refind = mkIf isRefind {
-          enable = true;
-          extraConfig = ''
-            timeout ${toString cfg.timeout}
-            use_graphics_for linux
-            scanfor manual,external,optical,netboot
-            resolution 1600 900
-            use_nvram false
-            ${optionalString hw.hasDualBoot ''
-              menuentry "Windows" {
-                loader \EFI\Microsoft\Boot\bootmgfw.efi
-                icon \EFI\refind\icons\os_win.png
-              }
-            ''}
-          '';
-        };
-
-        grub = mkIf isGrub {
-          enable = true;
-          device = "nodev";
-          efiSupport = hw.hasEfi;
-          useOSProber = hw.hasDualBoot;
-        };
-
-        efi = {
-          canTouchEfiVariables = hw.hasEfi;
-          efiSysMountPoint = cfg.efiMount;
-        };
-
-        inherit (cfg) timeout;
-      };
-
-      initrd.availableKernelModules = host.modules or [];
-    };
-
-    environment.systemPackages = with pkgs; [efibootmgr];
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    assertions = let
-      isSystemd = hasInfix "system" cfg.loader;
-      isRefind = hasInfix "refind" cfg.loader;
-      isGrub = hasInfix "grub" cfg.loader;
-    in [
-      {
-        assertion = any (p: hasInfix p cfg.loader) validPatterns;
-        message = ''
-          Invalid bootLoader '${cfg.loader}'.
-          Must contain one of: ${concatStringsSep ", " validPatterns}
-        '';
-      }
-      {
-        assertion = hw.hasEfi;
-        message = ''Boot loader requires EFI. Add "efi" to host.functionalities.'';
-      }
-      {
-        assertion = cfg.timeout >= 0;
-        message = "bootLoaderTimeout must be non-negative, got: ${toString cfg.timeout}";
-      }
-      {
-        assertion = isString cfg.efiMount && hasPrefix "/" cfg.efiMount;
-        message = "efiSysMountPoint must be an absolute path, got: ${toString cfg.efiMount}";
-      }
-      {
-        assertion = !(isSystemd && isRefind);
-        message = "Cannot enable both systemd-boot and refind simultaneously.";
-      }
-      {
-        assertion = !(isSystemd && isGrub);
-        message = "Cannot enable both systemd-boot and grub simultaneously.";
-      }
-      {
-        assertion = !(isRefind && isGrub);
-        message = "Cannot enable both refind and grub simultaneously.";
-      }
-    ];
-
-    boot = let
-      isSystemd = hasInfix "system" cfg.loader;
-      isRefind = hasInfix "refind" cfg.loader;
-      isGrub = hasInfix "grub" cfg.loader;
-    in {
-      kernelPackages = kernel.packages;
-
-      loader = {
-        systemd-boot = mkIf isSystemd {
-          enable = true;
-          configurationLimit = 20;
-          editor = false;
-          memtest86.enable = true;
-          netbootxyz.enable = true;
-          rebootForBitlocker = true;
-        };
-
-        refind = mkIf isRefind {
-          enable = true;
-          extraConfig = ''
-            timeout ${toString cfg.timeout}
-            use_graphics_for linux
-            scanfor manual,external,optical,netboot
-            resolution 1600 900
-            use_nvram false
-            ${optionalString hw.hasDualBoot ''
-              menuentry "Windows" {
-                loader \EFI\Microsoft\Boot\bootmgfw.efi
-                icon \EFI\refind\icons\os_win.png
-              }
-            ''}
-          '';
-        };
-
-        grub = mkIf isGrub {
-          enable = true;
-          device = "nodev";
-          efiSupport = hw.hasEfi;
-          useOSProber = hw.hasDualBoot;
-        };
-
-        efi = {
-          canTouchEfiVariables = hw.hasEfi;
-          efiSysMountPoint = cfg.efiMount;
-        };
-
-        inherit (cfg) timeout;
-      };
-
-      initrd.availableKernelModules = host.modules or [];
-    };
-
-    environment.systemPackages = with pkgs; [efibootmgr];
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

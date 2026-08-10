@@ -3,9 +3,14 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   cfg = config.${top}.inputs.services.remote.tailscale;
+  payload = {
+    services.tailscale.enable = cfg.enable;
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.services.remote.tailscale = {
     enable = lib.mkOption {
@@ -15,10 +20,8 @@ in {
     };
   };
 
-  config = {
-    services.tailscale.enable = cfg.enable;
-    ${top}.output = lib.mkIf cfg.enable {
-      services.tailscale.enable = cfg.enable;
-    };
-  };
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

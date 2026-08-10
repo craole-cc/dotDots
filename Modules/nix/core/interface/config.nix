@@ -8,15 +8,13 @@
   inherit (lix.modules.construction) mkIf;
   inherit (config.${top}.inputs.interface) panel;
   isDmsShell = panel == "dms-shell";
-in {
-  config = lib.mkMerge [
-    (mkIf isDmsShell {
-    programs.dms-shell.enable = true;
-  })
-    {
-      ${top}.output = mkIf isDmsShell {
+  payload = {
     programs.dms-shell.enable = true;
   };
-    }
-  ];
+  inherit (lix.modules.core._) mkStaged;
+in {
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = isDmsShell;
+  });
 }

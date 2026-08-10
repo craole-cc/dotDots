@@ -16,6 +16,8 @@
 
   inherit (lix.options.construction) mkEnable;
   inherit (lix.modules.construction) mkIf;
+  payload = {programs.${mod} = {inherit (cfg) enable;};  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
@@ -24,10 +26,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable;};})
-    {
-      ${top}.output = mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable;};};
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

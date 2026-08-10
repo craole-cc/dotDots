@@ -15,23 +15,17 @@
 
   inherit (lix.modules.construction) mkIf;
   inherit (lix.modules.core.programs) mkPrograms;
-in {
-  config = lib.mkMerge [
-    (mkIf iface.enable (
-    mkPrograms {
-      windowManager = iface.windowManager;
-      # enableHyprlandUWSM defaults to true in mkPrograms; override here
-      # if a top-level option is ever added to ${top}.programs.hyprland.
-    }
-  ))
-    {
-      ${top}.output = mkIf iface.enable (
+  payload = (
     mkPrograms {
       windowManager = iface.windowManager;
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
     }
   );
-    }
-  ];
+  inherit (lix.modules.core._) mkStaged;
+in {
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = iface.enable;
+  });
 }

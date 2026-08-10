@@ -3,6 +3,7 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   dom = "environment";
@@ -39,6 +40,10 @@
         nxu = "push-dots; switch-dots; topgrade";
       };
   };
+  payload = {
+    environment.shellAliases = cfg.default // cfg.extra;
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
@@ -54,14 +59,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    environment.shellAliases = cfg.default // cfg.extra;
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    environment.shellAliases = cfg.default // cfg.extra;
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

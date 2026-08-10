@@ -19,7 +19,6 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf bool enum int listOf nullOr str;
-  inherit (lix.modules.core._) mkStaged;
 
   payload = {
     networking = {
@@ -50,6 +49,7 @@
       tldr
     ];
   };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasNetwork;};

@@ -3,6 +3,7 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   dom = "hardware";
@@ -14,6 +15,17 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
+  payload = {
+    hardware.bluetooth = {
+      enable = true;
+      inherit (cfg) powerOnBoot;
+    };
+
+    services.blueman.enable = true;
+
+    # environment.systemPackages = [pkgs.bluez];
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable =
@@ -28,28 +40,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    hardware.bluetooth = {
-      enable = true;
-      inherit (cfg) powerOnBoot;
-    };
-
-    services.blueman.enable = true;
-
-    # environment.systemPackages = [pkgs.bluez];
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    hardware.bluetooth = {
-      enable = true;
-      inherit (cfg) powerOnBoot;
-    };
-
-    services.blueman.enable = true;
-
-    # environment.systemPackages = [pkgs.bluez];
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

@@ -3,6 +3,7 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   dom = "system";
@@ -13,6 +14,17 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) nullOr str;
+  payload = {
+    programs.nh = {
+      enable = true;
+      clean = {
+        enable = true;
+        extraArgs = "--keep-since ${cfg.keepSince} --keep ${cfg.keepCount}";
+      };
+      inherit (cfg) flake;
+    };
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable =
@@ -40,28 +52,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf (cfg.enable && !(nixCfg.enable or false)) {
-    programs.nh = {
-      enable = true;
-      clean = {
-        enable = true;
-        extraArgs = "--keep-since ${cfg.keepSince} --keep ${cfg.keepCount}";
-      };
-      inherit (cfg) flake;
-    };
-  })
-    {
-      ${top}.output = mkIf (cfg.enable && !(nixCfg.enable or false)) {
-    programs.nh = {
-      enable = true;
-      clean = {
-        enable = true;
-        extraArgs = "--keep-since ${cfg.keepSince} --keep ${cfg.keepCount}";
-      };
-      inherit (cfg) flake;
-    };
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = (cfg.enable && !(nixCfg.enable or false));
+  });
 }

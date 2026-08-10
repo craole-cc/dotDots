@@ -16,6 +16,20 @@
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf bool either int nullOr str submodule;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
+  payload = (
+    mkMerge [
+      (mkNix {
+        inherit host pkgs;
+        inherit (cfg) kernel caches max-jobs stateVersion;
+        store = tree.store.default;
+      })
+      (mkMaintenance {
+        inherit (cfg) dots;
+        inherit pkgs;
+      })
+    ]
+  );
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
@@ -113,34 +127,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable (
-    mkMerge [
-      (mkNix {
-        inherit host pkgs;
-        inherit (cfg) kernel caches max-jobs stateVersion;
-        store = tree.store.default;
-      })
-      (mkMaintenance {
-        inherit (cfg) dots;
-        inherit pkgs;
-      })
-    ]
-  ))
-    {
-      ${top}.output = mkIf cfg.enable (
-    mkMerge [
-      (mkNix {
-        inherit host pkgs;
-        inherit (cfg) kernel caches max-jobs stateVersion;
-        store = tree.store.default;
-      })
-      (mkMaintenance {
-        inherit (cfg) dots;
-        inherit pkgs;
-      })
-    ]
-  );
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

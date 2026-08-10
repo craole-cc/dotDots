@@ -23,6 +23,7 @@
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf str;
+  inherit (lix.modules.core._) mkStaged;
   inherit
     (lix.applications.resolution)
     editors
@@ -88,14 +89,14 @@
 
         #~@ JAVA
         _JAVA_AWT_WM_NONREPARENTING = "1";
-        # _JAVA_OPTIONS = "-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dsun.java2d.xrender=true";
-        #   -Dawt.useSystemAAFontSettings=on: enable antialiasing
-        #   -Dswing.aatext=true: enable anti-aliased text
-        #   -Dsun.java2d.xrender=true: enable XRender extension for Java2D
       };
   in {
     inherit editor browser terminal launcher bar default;
     all = default // editor // browser // terminal // launcher // bar;
+  };
+
+  payload = {
+    environment.sessionVariables = cfg.default // cfg.extra;
   };
 in {
   options.${top}.inputs.${dom}.${mod} = {
@@ -112,14 +113,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    environment.sessionVariables = cfg.default // cfg.extra;
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    environment.sessionVariables = cfg.default // cfg.extra;
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

@@ -18,6 +18,8 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
+  payload = {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
@@ -47,10 +49,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};})
-    {
-      ${top}.output = mkIf cfg.enable {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};};
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

@@ -4,9 +4,15 @@
   lib,
   pkgs,
   top,
+  lix,
   ...
 }: let
   cfg = config.${top}.inputs.programs.nix-ld;
+  payload = {
+    programs.nix-ld.enable = cfg.enable;
+    environment.systemPackages = [pkgs.nix-ld];
+    };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.programs.nix-ld.enable = lib.mkOption {
     description = "Enable nix-ld for prebuilt dynamically linked development tools";
@@ -14,16 +20,8 @@ in {
     type = lib.types.bool;
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-    programs.nix-ld.enable = cfg.enable;
-    environment.systemPackages = [pkgs.nix-ld];
-  })
-    {
-      ${top}.output = lib.mkIf cfg.enable {
-    programs.nix-ld.enable = cfg.enable;
-    environment.systemPackages = [pkgs.nix-ld];
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

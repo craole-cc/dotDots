@@ -3,9 +3,14 @@
   host,
   lib,
   top,
+  lix,
   ...
 }: let
   cfg = config.${top}.inputs.services.remote.caddy;
+  payload = {
+    services.caddy.enable = cfg.enable;
+  };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.services.remote.caddy.enable = lib.mkOption {
     description = "Enable Caddy reverse-proxy remote access";
@@ -13,10 +18,8 @@ in {
     type = lib.types.bool;
   };
 
-  config = {
-    services.caddy.enable = cfg.enable;
-    ${top}.output = lib.mkIf cfg.enable {
-      services.caddy.enable = cfg.enable;
-    };
-  };
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

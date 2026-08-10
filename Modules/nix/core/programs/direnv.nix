@@ -10,6 +10,17 @@
   cfg = config.${top}.inputs.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
   inherit (lix.modules.construction) mkIf;
+  payload = {
+    programs.${mod} = {
+      inherit (cfg) enable silent;
+      settings.global = {
+        log_format = cfg.format;
+        log_filter = cfg.filter;
+        load_dotenv = cfg.dotenv;
+      };
+    };
+    };
+  inherit (lix.modules.core._) mkStaged;
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkTrue mod;
@@ -27,28 +38,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable silent;
-      settings.global = {
-        log_format = cfg.format;
-        log_filter = cfg.filter;
-        load_dotenv = cfg.dotenv;
-      };
-    };
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    programs.${mod} = {
-      inherit (cfg) enable silent;
-      settings.global = {
-        log_format = cfg.format;
-        log_filter = cfg.filter;
-        load_dotenv = cfg.dotenv;
-      };
-    };
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }
