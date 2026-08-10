@@ -9,6 +9,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   name = "noctalia-shell";
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge;
@@ -36,61 +37,36 @@
   homeDir = config.home.homeDirectory;
   terminal = user.applications.terminal.primary;
   wallpapers = homeDir + "/Pictures/Wallpapers";
+payload = (mkMerge [
+    {
+      programs = mkMerge [
+        (optionalAttrs enable {
+          ${name} = mkMerge [
+            {
+              enable = true;
+              settings = mkMerge [
+                (import ./bar.nix {inherit monitors;})
+                (import ./color.nix {})
+                (import ./control.nix {inherit terminal;})
+                (import ./desktop.nix {inherit monitors wallpapers;})
+                (import ./general.nix {inherit lib config nixosConfig;})
+                (import ./info.nix {inherit host monitors;})
+                (import ./output.nix {inherit homeDir;})
+              ];
+            }
+          ];
+        })
+      ];
+
+      home = {
+        sessionVariables.BAR = desired;
+        shellAliases = mkIf primary {bar = "${name} &";};
+      };
+    }
+  ]);
 in {
-config = lib.mkMerge [
-    (mkIf enable (mkMerge [
-    {
-      programs = mkMerge [
-        (optionalAttrs enable {
-          ${name} = mkMerge [
-            {
-              enable = true;
-              settings = mkMerge [
-                (import ./bar.nix {inherit monitors;})
-                (import ./color.nix {})
-                (import ./control.nix {inherit terminal;})
-                (import ./desktop.nix {inherit monitors wallpapers;})
-                (import ./general.nix {inherit lib config nixosConfig;})
-                (import ./info.nix {inherit host monitors;})
-                (import ./output.nix {inherit homeDir;})
-              ];
-            }
-          ];
-        })
-      ];
-
-      home = {
-        sessionVariables.BAR = desired;
-        shellAliases = mkIf primary {bar = "${name} &";};
-      };
-    }
-  ]))
-    {${top}.output = mkIf enable (mkMerge [
-    {
-      programs = mkMerge [
-        (optionalAttrs enable {
-          ${name} = mkMerge [
-            {
-              enable = true;
-              settings = mkMerge [
-                (import ./bar.nix {inherit monitors;})
-                (import ./color.nix {})
-                (import ./control.nix {inherit terminal;})
-                (import ./desktop.nix {inherit monitors wallpapers;})
-                (import ./general.nix {inherit lib config nixosConfig;})
-                (import ./info.nix {inherit host monitors;})
-                (import ./output.nix {inherit homeDir;})
-              ];
-            }
-          ];
-        })
-      ];
-
-      home = {
-        sessionVariables.BAR = desired;
-        shellAliases = mkIf primary {bar = "${name} &";};
-      };
-    }
-  ]);}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = enable;
+  });
 }

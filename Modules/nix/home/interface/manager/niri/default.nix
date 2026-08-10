@@ -7,6 +7,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   name = "niri";
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
@@ -19,6 +20,19 @@
       interface = user.interface or {};
     }
     && (user.interface.windowManager or null) == name;
+payload = {
+    xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
+
+    programs = {
+      # ${app} = #TODO: Niri flake is outdated
+      #   {enable = true;}
+      #   // import ./bindings.nix
+      #   // import ./layout.nix
+      #   // import ./settings.nix;
+
+      # niriswitcher = import ./switcher {inherit user;};
+    };
+  };
 in {
   # options.programs.niriswitcher = mkOption {
   #   default = {};
@@ -28,32 +42,8 @@ in {
   #   };
   # };
 
-config = lib.mkMerge [
-    (mkIf isAllowed {
-    xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
-
-    programs = {
-      # ${app} = #TODO: Niri flake is outdated
-      #   {enable = true;}
-      #   // import ./bindings.nix
-      #   // import ./layout.nix
-      #   // import ./settings.nix;
-
-      # niriswitcher = import ./switcher {inherit user;};
-    };
-  })
-    {${top}.output = mkIf isAllowed {
-    xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
-
-    programs = {
-      # ${app} = #TODO: Niri flake is outdated
-      #   {enable = true;}
-      #   // import ./bindings.nix
-      #   // import ./layout.nix
-      #   // import ./settings.nix;
-
-      # niriswitcher = import ./switcher {inherit user;};
-    };
-  };}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = isAllowed;
+  });
 }

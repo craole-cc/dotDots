@@ -9,6 +9,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   app = "plasma";
   alt = "kde";
   opt = [
@@ -23,55 +24,33 @@
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 
   packages = import ./packages.nix {inherit pkgs;};
+payload = {
+    programs = optionalAttrs (config.programs ? ${app}) {
+      ${app} = mkMerge [
+        {enable = true;}
+        (import ./bindings)
+        # // import ./files
+        (import ./modules {
+          inherit
+            src
+            pkgs
+            config
+            nixosConfig
+            ;
+        })
+      ];
+    };
+
+    home = {
+      shellAliases = {
+        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/.cache/plasma-config-dump.nix";
+      };
+      inherit packages;
+    };
+  };
 in {
-config = lib.mkMerge [
-    (mkIf isAllowed {
-    programs = optionalAttrs (config.programs ? ${app}) {
-      ${app} = mkMerge [
-        {enable = true;}
-        (import ./bindings)
-        # // import ./files
-        (import ./modules {
-          inherit
-            src
-            pkgs
-            config
-            nixosConfig
-            ;
-        })
-      ];
-    };
-
-    home = {
-      shellAliases = {
-        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/.cache/plasma-config-dump.nix";
-      };
-      inherit packages;
-    };
-  })
-    {${top}.output = mkIf isAllowed {
-    programs = optionalAttrs (config.programs ? ${app}) {
-      ${app} = mkMerge [
-        {enable = true;}
-        (import ./bindings)
-        # // import ./files
-        (import ./modules {
-          inherit
-            src
-            pkgs
-            config
-            nixosConfig
-            ;
-        })
-      ];
-    };
-
-    home = {
-      shellAliases = {
-        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/.cache/plasma-config-dump.nix";
-      };
-      inherit packages;
-    };
-  };}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = isAllowed;
+  });
 }

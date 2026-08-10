@@ -1,4 +1,5 @@
 {
+  lix,
   lib,
   config,
   pkgs,
@@ -10,6 +11,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;
@@ -20,77 +22,44 @@
     config ? programs.${name}
     && (inputsForHome ? ${name})
     && inputsForHome.${name}.isAllowed;
+payload = (mkMerge [
+    (import ./hyprland.nix {inherit mod;})
+    {
+      programs = mkMerge [
+        (optionalAttrs enable {
+          ${name} = mkMerge [
+            {enable = true;}
+            (import ./cli {})
+            (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
+          ];
+        })
+      ];
+      home = {
+        packages = with pkgs; [
+          aubio
+          brightnessctl
+          ddcutil
+          glibc
+          libgcc
+          cava
+          lm_sensors
+        ];
+      };
+      services = {
+        mako.enable = mkForce false;
+      };
+
+      systemd.user.services.caelestia = {
+        Unit.ConditionEnvironment = [
+          "|XDG_CURRENT_DESKTOP=Hyprland"
+          "|XDG_CURRENT_DESKTOP=niri"
+        ];
+      };
+    }
+  ]);
 in {
-config = lib.mkMerge [
-    (mkIf enable (mkMerge [
-    (import ./hyprland.nix {inherit mod;})
-    {
-      programs = mkMerge [
-        (optionalAttrs enable {
-          ${name} = mkMerge [
-            {enable = true;}
-            (import ./cli {})
-            (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
-          ];
-        })
-      ];
-      home = {
-        packages = with pkgs; [
-          aubio
-          brightnessctl
-          ddcutil
-          glibc
-          libgcc
-          cava
-          lm_sensors
-        ];
-      };
-      services = {
-        mako.enable = mkForce false;
-      };
-
-      systemd.user.services.caelestia = {
-        Unit.ConditionEnvironment = [
-          "|XDG_CURRENT_DESKTOP=Hyprland"
-          "|XDG_CURRENT_DESKTOP=niri"
-        ];
-      };
-    }
-  ]))
-    {${top}.output = mkIf enable (mkMerge [
-    (import ./hyprland.nix {inherit mod;})
-    {
-      programs = mkMerge [
-        (optionalAttrs enable {
-          ${name} = mkMerge [
-            {enable = true;}
-            (import ./cli {})
-            (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
-          ];
-        })
-      ];
-      home = {
-        packages = with pkgs; [
-          aubio
-          brightnessctl
-          ddcutil
-          glibc
-          libgcc
-          cava
-          lm_sensors
-        ];
-      };
-      services = {
-        mako.enable = mkForce false;
-      };
-
-      systemd.user.services.caelestia = {
-        Unit.ConditionEnvironment = [
-          "|XDG_CURRENT_DESKTOP=Hyprland"
-          "|XDG_CURRENT_DESKTOP=niri"
-        ];
-      };
-    }
-  ]);}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = enable;
+  });
 }

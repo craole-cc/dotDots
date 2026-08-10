@@ -7,6 +7,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
@@ -19,17 +20,13 @@
     extraProgramConfig = mkMerge [(import ./settings.nix)];
     debug = false;
   };
+payload = (mkMerge [
+    {inherit (cfg) programs home;}
+    (import ./hyprland.nix {inherit lib config;})
+  ]);
 in {
-config = lib.mkMerge [
-    (mkIf cfg.enable (mkMerge [
-    {inherit (cfg) programs home;}
-    (import ./hyprland.nix {inherit lib config;})
-  ]))
-    {${top}.output = mkIf cfg.enable (mkMerge [
-    {inherit (cfg) programs home;}
-    (import ./hyprland.nix {inherit lib config;})
-  ]);}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }
-#TODO: Update the userApplicationConfig to take the launcher command
-

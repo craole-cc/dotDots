@@ -1,4 +1,5 @@
 {
+  lix,
   config,
   lib,
   pkgs,
@@ -6,6 +7,7 @@
   user,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   cfg = config.${top}.inputs.interface.theme.dispatcher;
   statePath = cfg.statePath;
   socketPath = cfg.socketPath;
@@ -116,6 +118,23 @@
     command="''${1:-toggle}"
     printf '%s' "$command" | ${pkgs.socat}/bin/socat - "UNIX-CONNECT:$socket"
   '';
+payload = {
+    home.packages = [toggle];
+    systemd.user.services.dotdots-theme-dispatcher = {
+      Unit = {
+        Description = "dotDots live theme polarity dispatcher";
+        After = ["graphical-session.target"];
+        PartOf = ["graphical-session.target"];
+      };
+      Service = {
+        ExecStart = dispatcherService;
+        Restart = "on-failure";
+        Environment = ["DOTDOTS_THEME_SOCKET=%t/dotdots-theme.sock"];
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
+    warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
+  };
 in {
   options.${top}.inputs.interface.theme = {
     enable = lib.mkOption {
@@ -164,40 +183,8 @@ in {
     };
   };
 
-config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-    home.packages = [toggle];
-    systemd.user.services.dotdots-theme-dispatcher = {
-      Unit = {
-        Description = "dotDots live theme polarity dispatcher";
-        After = ["graphical-session.target"];
-        PartOf = ["graphical-session.target"];
-      };
-      Service = {
-        ExecStart = dispatcherService;
-        Restart = "on-failure";
-        Environment = ["DOTDOTS_THEME_SOCKET=%t/dotdots-theme.sock"];
-      };
-      Install.WantedBy = ["graphical-session.target"];
-    };
-    warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
-  })
-    {${top}.output = lib.mkIf cfg.enable {
-    home.packages = [toggle];
-    systemd.user.services.dotdots-theme-dispatcher = {
-      Unit = {
-        Description = "dotDots live theme polarity dispatcher";
-        After = ["graphical-session.target"];
-        PartOf = ["graphical-session.target"];
-      };
-      Service = {
-        ExecStart = dispatcherService;
-        Restart = "on-failure";
-        Environment = ["DOTDOTS_THEME_SOCKET=%t/dotdots-theme.sock"];
-      };
-      Install.WantedBy = ["graphical-session.target"];
-    };
-    warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
-  };}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

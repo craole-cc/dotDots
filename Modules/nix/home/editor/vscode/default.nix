@@ -8,6 +8,7 @@
   user,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   dom = "editors";
   mod = "vscode";
   cfg = config.${top}.inputs.${dom}.${mod};
@@ -39,7 +40,10 @@
       "code-insiders"
     ];
     requiresWayland = true;
-    extraPackages = [pkgs.vscode-fhs];
+    extraPackages = [
+      pkgs.vscode-fhs
+      inputs.vscode-insiders.packages.${pkgs.system}.vscode-insiders
+    ];
     extraProgramConfig = {
       profiles.default = mkMerge (
         [base] ++ map (name: features.features.${name} cfg.withExtensions.${name}) (attrNames features.options)
@@ -47,6 +51,7 @@
     };
     debug = false;
   };
+payload = {inherit (appCfg) home programs;};
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnable {
@@ -56,13 +61,8 @@ in {
     withExtensions = features.options;
   };
 
-config = lib.mkMerge [
-    (mkIf cfg.enable {
-      home = appCfg.home // {
-        packages = (appCfg.home.packages or []) ++ [inputs.vscode-insiders.packages.${pkgs.system}.vscode-insiders];
-      };
-      inherit (appCfg) programs;
-    })
-    {${top}.output = mkIf cfg.enable {inherit (appCfg) home programs;};}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = cfg.enable;
+  });
 }

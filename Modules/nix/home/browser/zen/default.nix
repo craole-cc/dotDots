@@ -11,6 +11,7 @@
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.applications.registry) resolve;
   inherit (lix.applications.runtime) resolvePackage;
@@ -39,73 +40,42 @@
   };
 
   enable = isPrimary || isSecondary || isAllowed;
+payload = {
+    programs.zen-browser = {
+      inherit enable name;
+      darwinAppName = darwinName;
+      wrappedPackageName = variant;
+      package = package;
+      setAsDefaultBrowser = isPrimary;
+      enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
+      profiles.${user.name} = mkMerge [
+        (import ./bookmarks.nix)
+        (import ./containers.nix)
+        (import ./search.nix {inherit host;})
+        (import ./settings.nix)
+      ];
+      policies = mkMerge [
+        (import ./policies.nix {inherit paths;})
+        (import ./extensions.nix {inherit lix;})
+        (import ./preferences.nix {inherit lix;})
+      ];
+    };
+
+    home = {
+      sessionVariables =
+        if isPrimary
+        then {
+          BROWSER = lib.mkForce "zen";
+          BROWSER_PRI = lib.mkForce "zen";
+        }
+        else if isSecondary
+        then {BROWSER_SEC = lib.mkForce "zen";}
+        else {};
+    };
+  };
 in {
-config = lib.mkMerge [
-    (mkIf enable {
-    programs.zen-browser = {
-      inherit enable name;
-      darwinAppName = darwinName;
-      wrappedPackageName = variant;
-      package = package;
-      setAsDefaultBrowser = isPrimary;
-      enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
-      profiles.${user.name} = mkMerge [
-        (import ./bookmarks.nix)
-        (import ./containers.nix)
-        (import ./search.nix {inherit host;})
-        (import ./settings.nix)
-      ];
-      policies = mkMerge [
-        (import ./policies.nix {inherit paths;})
-        (import ./extensions.nix {inherit lix;})
-        (import ./preferences.nix {inherit lix;})
-      ];
-    };
-
-    home = {
-      sessionVariables =
-        if isPrimary
-        then {
-          BROWSER = lib.mkForce "zen";
-          BROWSER_PRI = lib.mkForce "zen";
-        }
-        else if isSecondary
-        then {BROWSER_SEC = lib.mkForce "zen";}
-        else {};
-    };
-  })
-    {${top}.output = mkIf enable {
-    programs.zen-browser = {
-      inherit enable name;
-      darwinAppName = darwinName;
-      wrappedPackageName = variant;
-      package = package;
-      setAsDefaultBrowser = isPrimary;
-      enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
-      profiles.${user.name} = mkMerge [
-        (import ./bookmarks.nix)
-        (import ./containers.nix)
-        (import ./search.nix {inherit host;})
-        (import ./settings.nix)
-      ];
-      policies = mkMerge [
-        (import ./policies.nix {inherit paths;})
-        (import ./extensions.nix {inherit lix;})
-        (import ./preferences.nix {inherit lix;})
-      ];
-    };
-
-    home = {
-      sessionVariables =
-        if isPrimary
-        then {
-          BROWSER = lib.mkForce "zen";
-          BROWSER_PRI = lib.mkForce "zen";
-        }
-        else if isSecondary
-        then {BROWSER_SEC = lib.mkForce "zen";}
-        else {};
-    };
-  };}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = enable;
+  });
 }

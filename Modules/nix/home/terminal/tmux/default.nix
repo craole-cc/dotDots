@@ -1,9 +1,21 @@
-{config, top, ...}: {
-  programs.tmux =
-    {
-      enable = config.${top}.inputs.applications.utilities.tmux.enable;
-    }
-    # // import ./settings.nix
-    // import ./plugins.nix;
-  ${top}.output.programs.tmux = config.programs.tmux;
+{
+  config,
+  lib,
+  lix,
+  top,
+  ...
+}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
+    programs.tmux =
+      {
+        enable = config.${top}.inputs.applications.utilities.tmux.enable;
+      }
+      # // import ./settings.nix
+      // import ./plugins.nix;
+  };
+in {
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+  });
 }

@@ -2,21 +2,22 @@
   pkgs,
   lib,
   config,
+  lix,
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   inherit (lib.lists) optionals;
-in {
-  programs.yazi = {
-    enable = config.${top}.inputs.applications.utilities.yazi.enable;
-    shellWrapperName = "y";
-  };
+  payload = {
+    programs.yazi = {
+      enable = config.${top}.inputs.applications.utilities.yazi.enable;
+      shellWrapperName = "y";
+    };
 
-  home = {
-    packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
-  };
-  ${top}.output = {
-    programs.yazi = config.programs.yazi;
     home.packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
   };
+in {
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+  });
 }

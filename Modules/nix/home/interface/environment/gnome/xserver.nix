@@ -1,40 +1,31 @@
 {
+  lix,
   config,
   lib,
   top,
   ...
 }: let
+  inherit (lix.modules.core._) mkStaged;
   inherit (lib.modules) mkIf;
   inherit (config.dots.interface) display desktop;
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "xserver";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable;
+payload = {
+    services.xserver = {
+      enable = true;
+      videoDrivers =
+        if nvidiaEnabled
+        then ["nvidia"]
+        else [];
+      xkb = {
+        layout = "us";
+        variant = "";
+      };
+    };
+  };
 in {
-config = lib.mkMerge [
-    (mkIf cfgEnabled {
-    services.xserver = {
-      enable = true;
-      videoDrivers =
-        if nvidiaEnabled
-        then ["nvidia"]
-        else [];
-      xkb = {
-        layout = "us";
-        variant = "";
-      };
-    };
-  })
-    {${top}.output = mkIf cfgEnabled {
-    services.xserver = {
-      enable = true;
-      videoDrivers =
-        if nvidiaEnabled
-        then ["nvidia"]
-        else [];
-      xkb = {
-        layout = "us";
-        variant = "";
-      };
-    };
-  };}
-  ];
+config = lib.mkMerge (mkStaged{
+    inherit top payload;
+    condition = cfgEnabled;
+  });
 }
