@@ -58,7 +58,7 @@
           keyboard = mkKeyboard {inherit host user;};
           locale = mkLocale {inherit host user;};
           paths = derivedPaths;
-          inherit inputsForHome;
+          inherit inputs inputsForHome;
         };
 
         home = {inherit (nixosConfig.system) stateVersion;};

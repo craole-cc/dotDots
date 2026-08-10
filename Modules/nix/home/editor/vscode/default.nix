@@ -57,7 +57,12 @@ in {
   };
 
 config = lib.mkMerge [
-    (mkIf cfg.enable {inherit (appCfg) home programs;})
+    (mkIf cfg.enable {
+      home = appCfg.home // {
+        packages = (appCfg.home.packages or []) ++ [inputs.vscode-insiders.packages.${pkgs.system}.vscode-insiders];
+      };
+      inherit (appCfg) programs;
+    })
     {${top}.output = mkIf cfg.enable {inherit (appCfg) home programs;};}
   ];
 }
