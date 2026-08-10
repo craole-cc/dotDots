@@ -204,7 +204,7 @@ in {
     {
       name = "craole";
       enable = true;
-      autoLogin = true;
+      autoLogin = false;
       role = "administrator";
     }
     {
