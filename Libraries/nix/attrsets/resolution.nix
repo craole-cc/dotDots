@@ -500,6 +500,7 @@
     pkgs ? null,
     targets ? null,
     default ? null,
+    filterNulls ? false,
   }: let
     # 1. Resolve the active `pkgs` set (use explicit `pkgs` if passed, else derive from flake/system context)
     targetSystem = getSystemOrDefault {
@@ -507,7 +508,7 @@
     };
 
     resolved = {
-      inherit default targets;
+      inherit default;
       pkgs =
         if pkgs != null
         then pkgs
@@ -523,19 +524,24 @@
             targetSystem
           }
         else nixpkgs.legacyPackages.${targetSystem};
-    };
-  in
-    # 2. Branch based on whether target packages were requested
-    if targets == null
-    then resolved.pkgs
-    else
-      map (
+
+      targets = map (
         target:
           package {
-            inherit (resolved) pkgs default;
-            inherit target;
+            pkgs = resolved.pkgs;
+            inherit target default;
           }
-      ) (toList resolved.targets);
+      ) (toList targets);
+    };
+  in
+    if targets != null
+    then
+      (
+        if filterNulls
+        then filter (pkg: pkg != null) resolved.targets
+        else resolved.targets
+      )
+    else resolved.pkgs;
 
   # /**
   # Resolve a package from `pkgs` by trying one or more names in order.
