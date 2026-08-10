@@ -45,7 +45,7 @@ config = lib.mkMerge [
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
-        configType = "conf";
+        configType = "hyprlang";
         plugins = [];
       }
       (import ./settings {
@@ -71,7 +71,7 @@ config = lib.mkMerge [
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
-        configType = "conf";
+        configType = "hyprlang";
         plugins = [];
       }
       (import ./settings {
