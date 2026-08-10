@@ -1,3 +1,4 @@
+# TODO Collab: We never see services or environment in the stage
 {
   config,
   pkgs,
@@ -10,29 +11,18 @@
   dom = "hardware";
   mod = "bluetooth";
   cfg = config.${top}.inputs.${dom}.${mod};
+  hw = host.hardware;
 
   inherit (lib.modules) mkMerge;
-  inherit (lix.lists.construction) optionals;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lix.types.primitives) bool package str;
-  inherit (lix.types.combinators) either listOf;
   inherit (lix.attrsets.resolution) packages;
-
-  payload = {
-    hardware.bluetooth = {
-      enable = true;
-      inherit (cfg) powerOnBoot;
-    };
-    services = {inherit (cfg) blueman;};
-    environment.systemPackages = packages {
-      inherit pkgs;
-      targets = cfg.packages;
-    };
-  };
+  inherit (lix.lists.construction) optionals;
   inherit (lix.modules.core._) mkStaged;
+  inherit (lix.types.combinators) either listOf;
+  inherit (lix.types.primitives) bool package str;
 in {
   options.${top}.inputs.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = host.hardware.hasBluetooth;};
+    enable = mkEnableOption mod // {default = hw.hasBluetooth;};
     powerOnBoot = mkOption {
       description = "Power bluetooth on boot";
       default = cfg.enable;
@@ -51,9 +41,19 @@ in {
       };
     };
   };
-
   config = mkMerge (mkStaged {
-    inherit top payload;
+    inherit top;
     condition = cfg.enable;
+    payload = {
+      hardware.bluetooth = {
+        enable = true;
+        inherit (cfg) powerOnBoot;
+      };
+      services = {inherit (cfg) blueman;};
+      environment.systemPackages = packages {
+        inherit pkgs;
+        targets = cfg.packages;
+      };
+    };
   });
 }

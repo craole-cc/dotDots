@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   lix,
   top,
   ...
@@ -11,13 +10,13 @@
 
   iface = config.${top}.inputs.interface;
   isWayland = iface.displayProtocol == "wayland";
-  nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
+  inherit (lix.lists.construction) optionals;
   inherit (lix.modules.construction) mkDefault mkIf mkMerge;
-  inherit (lix.strings.predicates) versionAtLeast;
   inherit (lix.modules.core._) mkStaged;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool str;
+  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.strings.predicates) versionAtLeast;
+  inherit (lix.types.primitives) bool str;
 
   nvidiaVersionAtLeast = version:
     versionAtLeast config.hardware.nvidia.package.version version;
@@ -25,21 +24,17 @@
   payload = {
     services.xserver = mkIf (!isWayland) {
       enable = true;
-      videoDrivers =
-        if cfg.nvidia.enable
-        then ["nvidia"]
-        else [];
+      videoDrivers = optionals cfg.nvidia.enable ["nvidia"];
       xkb = {
         layout = cfg.xkbLayout;
         variant = cfg.xkbVariant;
       };
     };
     programs.xwayland.enable = isWayland;
-    hardware.nvidia = {
-      open = mkDefault cfg.nvidia.open;
-      gsp.enable = mkDefault cfg.nvidia.gsp.enable;
-      powerManagement.kernelSuspendNotifier =
-        mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
+    hardware.nvidia = with cfg.nvidia; {
+      open = mkDefault open;
+      gsp.enable = mkDefault gsp.enable;
+      powerManagement.kernelSuspendNotifier = mkDefault powerManagement.kernelSuspendNotifier;
     };
     xdg.portal.xdgOpenUsePortal = true;
   };
@@ -59,7 +54,7 @@ in {
     nvidia = {
       enable = mkOption {
         description = "Enable nvidia video driver";
-        default = nvidiaEnabled;
+        default = config.hardware.nvidia.modesetting.enable or false;
         type = bool;
       };
       open = mkOption {

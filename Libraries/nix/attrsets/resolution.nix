@@ -5,74 +5,125 @@
   __moduleRef,
   ...
 }: let
-  __doc = ''
-    Attribute set resolution and lookup utilities.
+  # TODO: We need to improve meta management
+  __meta = {
+    doc = ''
+      Attribute set resolution and lookup utilities.
 
-    Provides tools for navigating nested structures, handling missing attributes
-    gracefully, and resolving values from multiple potential sources.
-  '';
+      Provides tools for navigating nested structures, handling missing attributes
+      gracefully, and resolving values from multiple potential sources.
+    '';
 
-  __exports = {
-    inherit
-      byPaths
-      flakeAttrs # TODO: Move to sources.inputs or sources.modules
-      getAttr
-      hostAttrs # TODO: Move to sources.inputs or sources.modules
-      inputPackages # TODO: Move to sources.packages
-      inputSource # TODO: Move to sources.inputs
-      nestedByPaths
-      withPath
-      nixpkgs # TODO: Move to sources.inputs or sources.packages
-      optional
-      orDefault
-      orNull
-      package # TODO: Move to sources.packages or applications.registry
-      packages # TODO: Move to sources.packages
-      shellPackage # TODO: Move to sources.packages or applications.registry
-      parseVscodeExt # TODO: Move to applications.vscode or applications.registry
-      vscodePackage # TODO: Move to applications.vscode or applications.registry
-      vscodePackages # TODO: Move to applications.vscode or applications.registry
-      normalizePath
-      ;
-    getAttrWithPath = withPath;
-    normalizeAttrPath = normalizePath;
-    getAttrByPaths = byPaths;
-    getAttrOrDefault = orDefault;
-    getAttrOrNull = orNull;
-    getFlake = flakeAttrs;
-    getHost = hostAttrs;
-    getNestedAttrByPaths = nestedByPaths;
-    getPackage = package;
-    getPackages = packages;
-    getPkgs = packages;
-    mkPkgs = packages;
-    getShellPackage = shellPackage;
-    mkInputPackages = inputPackages;
-    mkInputSource = inputSource;
-    optionalAttr = optional;
+    exports = let
+      internal = let
+        functions = {
+          inherit
+            byPaths
+            flakeAttrs # TODO: Move to sources.inputs or sources.modules
+            getAttr
+            hostAttrs # TODO: Move to sources.inputs or sources.modules
+            inputPackages # TODO: Move to sources.packages
+            inputSource # TODO: Move to sources.inputs
+            nestedByPaths
+            withPath
+            nixpkgs # TODO: Move to sources.inputs or sources.packages
+            optional
+            orDefault
+            orNull
+            package # TODO: Move to sources.packages or applications.registry
+            packages # TODO: Move to sources.packages
+            shellPackage # TODO: Move to sources.packages or applications.registry
+            parseVscodeExt # TODO: Move to applications.vscode or applications.registry
+            vscodePackage # TODO: Move to applications.vscode or applications.registry
+            vscodePackages # TODO: Move to applications.vscode or applications.registry
+            normalizePath
+            ;
+        };
+        aliases = {
+          getAttrWithPath = withPath;
+          normalizeAttrPath = normalizePath;
+          getAttrByPaths = byPaths;
+          getAttrOrDefault = orDefault;
+          getAttrOrNull = orNull;
+          getFlake = flakeAttrs;
+          getHost = hostAttrs;
+          getNestedAttrByPaths = nestedByPaths;
+          getPackage = package;
+          getPackages = packages;
+          getPkgs = packages;
+          mkPkgs = packages;
+          getShellPackage = shellPackage;
+          mkInputPackages = inputPackages;
+          mkInputSource = inputSource;
+          optionalAttr = optional;
+        };
+      in
+        {inherit functions aliases;} // functions // aliases;
+      external = internal.aliases;
+    in {inherit internal external;};
   };
 
-  __rootAliases = {
-    inherit
-      (__exports)
-      flakeAttrs
-      getAttrByPaths
-      getAttrOrDefault
-      getAttrOrNull
-      getFlake
-      getHost
-      getNestedAttrByPaths
-      getPackage
-      getPackages
-      getPkgs
-      getShellPackage
-      optionalAttr
-      ;
-    mkPkgs = packages;
-    mkInputPackages = inputPackages;
-    mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
-    mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
-  };
+  # __exports = {
+  #   inherit
+  #     byPaths
+  #     flakeAttrs # TODO: Move to sources.inputs or sources.modules
+  #     getAttr
+  #     hostAttrs # TODO: Move to sources.inputs or sources.modules
+  #     inputPackages # TODO: Move to sources.packages
+  #     inputSource # TODO: Move to sources.inputs
+  #     nestedByPaths
+  #     withPath
+  #     nixpkgs # TODO: Move to sources.inputs or sources.packages
+  #     optional
+  #     orDefault
+  #     orNull
+  #     package # TODO: Move to sources.packages or applications.registry
+  #     packages # TODO: Move to sources.packages
+  #     shellPackage # TODO: Move to sources.packages or applications.registry
+  #     parseVscodeExt # TODO: Move to applications.vscode or applications.registry
+  #     vscodePackage # TODO: Move to applications.vscode or applications.registry
+  #     vscodePackages # TODO: Move to applications.vscode or applications.registry
+  #     normalizePath
+  #     ;
+  #   getAttrWithPath = withPath;
+  #   normalizeAttrPath = normalizePath;
+  #   getAttrByPaths = byPaths;
+  #   getAttrOrDefault = orDefault;
+  #   getAttrOrNull = orNull;
+  #   getFlake = flakeAttrs;
+  #   getHost = hostAttrs;
+  #   getNestedAttrByPaths = nestedByPaths;
+  #   getPackage = package;
+  #   getPackages = packages;
+  #   getPkgs = packages;
+  #   mkPkgs = packages;
+  #   getShellPackage = shellPackage;
+  #   mkInputPackages = inputPackages;
+  #   mkInputSource = inputSource;
+  #   optionalAttr = optional;
+  # };
+
+  # __rootAliases = {
+  #   inherit
+  #     (__exports)
+  #     flakeAttrs
+  #     getAttrByPaths
+  #     getAttrOrDefault
+  #     getAttrOrNull
+  #     getFlake
+  #     getHost
+  #     getNestedAttrByPaths
+  #     getPackage
+  #     getPackages
+  #     getPkgs
+  #     getShellPackage
+  #     optionalAttr
+  #     ;
+  #   mkPkgs = packages;
+  #   mkInputPackages = inputPackages;
+  #   mkVSCodePackages = vscodePackages; # TODO: Move to applications.vscode or applications.registry
+  #   mkVSCodePackage = vscodePackage; # TODO: Move to applications.vscode or applications.registry
+  # };
 
   inherit (_.attrsets.access) attrByPath attrValues;
   inherit (_.attrsets.predicates) hasAttrByPath;
@@ -854,195 +905,199 @@
         else {flake.source = outPath;}
       )
     );
-
-  __tests = runTests {
-    getAttr = {
-      returnsValueWhenPresent = mkTest {
-        desired = "hello";
-        outcome = getAttr {
-          attrs = {
-            a = "hello";
-          };
-          name = "a";
-        };
-        command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
-      };
-      preservesEmptyString = mkTest {
-        desired = "";
-        outcome = getAttr {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-        };
-        command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
-      };
-      throwsWhenMissing = mkTest {
-        desired = {
-          success = false;
-          value = false;
-        };
-        outcome = tryEval (getAttr {
-          attrs = {};
-          name = "a";
-        });
-        command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
-      };
-    };
-
-    orDefault = {
-      returnsValueWhenPresent = mkTest {
-        desired = "hello";
-        outcome = orDefault {
-          attrs = {
-            a = "hello";
-          };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
-      };
-      fallsBackOnEmptyString = mkTest {
-        desired = "fallback";
-        outcome = orDefault {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-      };
-      fallsBackOnMissing = mkTest {
-        desired = "fallback";
-        outcome = orDefault {
-          attrs = {};
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
-      };
-      preservesZero = mkTest' 0 (orDefault {
-        attrs = {
-          a = 0;
-        };
-        name = "a";
-        default = 42;
-      });
-      preservesFalse = mkTest' false (orDefault {
-        attrs = {
-          a = false;
-        };
-        name = "a";
-        default = true;
-      });
-      fallsBackOnEmpty = mkTest' [1 2] (orDefault {
-        attrs = {
-          a = [];
-        };
-        name = "a";
-        default = [
-          1
-          2
-        ];
-      });
-    };
-
-    orNull = {
-      preservesEmptyString = mkTest {
-        desired = "";
-        outcome = orNull {
-          attrs = {
-            a = "";
-          };
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
-      };
-      preservesEmptyList = mkTest {
-        desired = [];
-        outcome = orNull {
-          attrs = {
-            a = [];
-          };
-          name = "a";
-          default = [1];
-        };
-        command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
-      };
-      fallsBackOnMissing = mkTest {
-        desired = "fallback";
-        outcome = orNull {
-          attrs = {};
-          name = "a";
-          default = "fallback";
-        };
-        command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
-      };
-      preservesNull = mkTest' null (orNull {
-        attrs = {
-          a = null;
-        };
-        name = "a";
-        default = "fallback";
-      });
-    };
-
-    optional = {
-      includesWhenPresent = mkTest {
-        desired = {
-          baz = "yes";
-        };
-        outcome = optional {
-          attrs = {
-            baz = "yes";
-          };
-          name = "baz";
-        };
-        command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
-      };
-      excludesWhenMissing = mkTest' {} (optional {
-        attrs = {};
-        name = "baz";
-      });
-      excludesWhenEmpty = mkTest' {} (optional {
-        attrs = {
-          baz = "";
-        };
-        name = "baz";
-      });
-    };
-
-    byPaths = {
-      returnsFirstMatch = mkTest {
-        desired = 1;
-        outcome = byPaths {
-          attrset = {
-            foo.bar = 1;
-            baz.qux = 2;
-          };
-          paths = [
-            ["missing"]
-            [
-              "foo"
-              "bar"
-            ]
-            [
-              "baz"
-              "qux"
-            ]
-          ];
-          default = null;
-        };
-        command = "byPaths: first match is foo.bar";
-      };
-      fallsBackToDefault = mkTest' null (byPaths {
-        attrset = {};
-        paths = [["missing"]];
-        default = null;
-      });
-    };
-  };
 in
-  __exports // {inherit __doc __tests __rootAliases;}
+  with __meta;
+    exports.internal
+    // {
+      __doc = doc;
+      __rootAliases = exports.external;
+      __tests = runTests {
+        getAttr = {
+          returnsValueWhenPresent = mkTest {
+            desired = "hello";
+            outcome = getAttr {
+              attrs = {
+                a = "hello";
+              };
+              name = "a";
+            };
+            command = ''getAttr { attrs = { a = "hello"; }; name = "a"; }'';
+          };
+          preservesEmptyString = mkTest {
+            desired = "";
+            outcome = getAttr {
+              attrs = {
+                a = "";
+              };
+              name = "a";
+            };
+            command = ''getAttr { attrs = { a = ""; }; name = "a"; }'';
+          };
+          throwsWhenMissing = mkTest {
+            desired = {
+              success = false;
+              value = false;
+            };
+            outcome = tryEval (getAttr {
+              attrs = {};
+              name = "a";
+            });
+            command = ''builtins.tryEval (getAttr { attrs = {}; name = "a"; })'';
+          };
+        };
+
+        orDefault = {
+          returnsValueWhenPresent = mkTest {
+            desired = "hello";
+            outcome = orDefault {
+              attrs = {
+                a = "hello";
+              };
+              name = "a";
+              default = "fallback";
+            };
+            command = ''orDefault { attrs = { a = "hello"; }; name = "a"; default = "fallback"; }'';
+          };
+          fallsBackOnEmptyString = mkTest {
+            desired = "fallback";
+            outcome = orDefault {
+              attrs = {
+                a = "";
+              };
+              name = "a";
+              default = "fallback";
+            };
+            command = ''orDefault { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+          };
+          fallsBackOnMissing = mkTest {
+            desired = "fallback";
+            outcome = orDefault {
+              attrs = {};
+              name = "a";
+              default = "fallback";
+            };
+            command = ''orDefault { attrs = {}; name = "a"; default = "fallback"; }'';
+          };
+          preservesZero = mkTest' 0 (orDefault {
+            attrs = {
+              a = 0;
+            };
+            name = "a";
+            default = 42;
+          });
+          preservesFalse = mkTest' false (orDefault {
+            attrs = {
+              a = false;
+            };
+            name = "a";
+            default = true;
+          });
+          fallsBackOnEmpty = mkTest' [1 2] (orDefault {
+            attrs = {
+              a = [];
+            };
+            name = "a";
+            default = [
+              1
+              2
+            ];
+          });
+        };
+
+        orNull = {
+          preservesEmptyString = mkTest {
+            desired = "";
+            outcome = orNull {
+              attrs = {
+                a = "";
+              };
+              name = "a";
+              default = "fallback";
+            };
+            command = ''orNull { attrs = { a = ""; }; name = "a"; default = "fallback"; }'';
+          };
+          preservesEmptyList = mkTest {
+            desired = [];
+            outcome = orNull {
+              attrs = {
+                a = [];
+              };
+              name = "a";
+              default = [1];
+            };
+            command = ''orNull { attrs = { a = []; }; name = "a"; default = [1]; }'';
+          };
+          fallsBackOnMissing = mkTest {
+            desired = "fallback";
+            outcome = orNull {
+              attrs = {};
+              name = "a";
+              default = "fallback";
+            };
+            command = ''orNull { attrs = {}; name = "a"; default = "fallback"; }'';
+          };
+          preservesNull = mkTest' null (orNull {
+            attrs = {
+              a = null;
+            };
+            name = "a";
+            default = "fallback";
+          });
+        };
+
+        optional = {
+          includesWhenPresent = mkTest {
+            desired = {
+              baz = "yes";
+            };
+            outcome = optional {
+              attrs = {
+                baz = "yes";
+              };
+              name = "baz";
+            };
+            command = ''optional { attrs = { baz = "yes"; }; name = "baz"; }'';
+          };
+          excludesWhenMissing = mkTest' {} (optional {
+            attrs = {};
+            name = "baz";
+          });
+          excludesWhenEmpty = mkTest' {} (optional {
+            attrs = {
+              baz = "";
+            };
+            name = "baz";
+          });
+        };
+
+        byPaths = {
+          returnsFirstMatch = mkTest {
+            desired = 1;
+            outcome = byPaths {
+              attrset = {
+                foo.bar = 1;
+                baz.qux = 2;
+              };
+              paths = [
+                ["missing"]
+                [
+                  "foo"
+                  "bar"
+                ]
+                [
+                  "baz"
+                  "qux"
+                ]
+              ];
+              default = null;
+            };
+            command = "byPaths: first match is foo.bar";
+          };
+          fallsBackToDefault = mkTest' null (byPaths {
+            attrset = {};
+            paths = [["missing"]];
+            default = null;
+          });
+        };
+      };
+    }
