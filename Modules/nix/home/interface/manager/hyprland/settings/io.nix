@@ -52,10 +52,4 @@ in {
     "${mod} SHIFT, mouse:272, resizewindow"
   ];
 
-  binde = [
-    "${mod}, EQUAL, splitratio, 0.25"
-    "${mod} SHIFT, EQUAL, splitratio, 0.015"
-    "${mod}, MINUS, splitratio, -0.25"
-    "${mod} SHIFT, MINUS, splitratio, -0.015"
-  ];
 }
