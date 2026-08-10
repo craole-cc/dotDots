@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  cfg = config.${top}.inputs.interface;
+  cfg = config.${top}.resolved.interface;
   payload = {
     services.desktopManager.gnome.enable = true;
     environment.gnome.excludePackages = with pkgs; [

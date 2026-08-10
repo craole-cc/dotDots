@@ -6,13 +6,13 @@
   lix,
   ...
 }: let
-  cfg = config.${top}.inputs.services.remote.tailscale;
+  cfg = config.${top}.resolved.services.remote.tailscale;
   payload = {
     services.tailscale.enable = cfg.enable;
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.services.remote.tailscale = {
+  options.${top}.resolved.services.remote.tailscale = {
     enable = lib.mkOption {
       description = "Enable Tailscale remote access";
       default = host.access.remote.tailscale.enable or host.access.tailscale.enable or (lib.elem "vpn" (host.functionalities or []));

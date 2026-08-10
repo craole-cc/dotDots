@@ -9,7 +9,7 @@
 }: let
   dom = "hardware";
   mod = "network";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   hw = host.hardware;
   access = host.access or {};
@@ -51,7 +51,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasNetwork;};
     hostName = mkOption {
       description = "System hostname";

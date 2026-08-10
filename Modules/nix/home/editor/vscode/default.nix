@@ -11,7 +11,7 @@
   inherit (lix.modules.core.staging) mkStaged;
   dom = "editors";
   mod = "vscode";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   inherit (lix.modules.construction) mkIf mkMerge mkDefault;
   inherit (lix.attrsets.access) attrNames;
@@ -53,7 +53,7 @@
   };
 payload = {inherit (appCfg) home programs;};
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnable {
       description = mod;
       condition = appCfg.enable;

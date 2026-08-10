@@ -3,7 +3,7 @@
   payload = {
 
       programs.direnv = {
-        enable = config.${top}.inputs.applications.utilities.direnv.enable;
+        enable = config.${top}.resolved.applications.utilities.direnv.enable;
         silent = true;
         mise.enable = true;
       };

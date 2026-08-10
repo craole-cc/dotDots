@@ -11,7 +11,7 @@
   #
   # This module only wires the interface-derived programs that have no
   # leaf owner: hyprland, niri, and xwayland.
-  iface = config.${top}.inputs.interface;
+  iface = config.${top}.resolved.interface;
 
   inherit (lix.modules.construction) mkIf;
   inherit (lix.modules.core.programs) mkPrograms;

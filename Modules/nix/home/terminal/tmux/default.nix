@@ -9,7 +9,7 @@
   payload = {
     programs.tmux =
       {
-        enable = config.${top}.inputs.applications.utilities.tmux.enable;
+        enable = config.${top}.resolved.applications.utilities.tmux.enable;
       }
       # // import ./settings.nix
       // import ./plugins.nix;

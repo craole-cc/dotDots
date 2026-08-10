@@ -10,7 +10,7 @@
 }: let
   dom = "hardware";
   mod = "bluetooth";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   hw = host.hardware;
 
   inherit (lib.modules) mkMerge;
@@ -21,7 +21,7 @@
   inherit (lix.types.combinators) either listOf;
   inherit (lix.types.primitives) bool package str;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasBluetooth;};
     powerOnBoot = mkOption {
       description = "Power bluetooth on boot";

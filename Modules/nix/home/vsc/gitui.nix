@@ -3,7 +3,7 @@
   payload = {
 
       programs.gitui = {
-        enable = config.${top}.inputs.applications.utilities.gitui.enable;
+        enable = config.${top}.resolved.applications.utilities.gitui.enable;
       };
   };
 in {

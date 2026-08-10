@@ -8,7 +8,7 @@
 }: let
   dom = "hardware";
   mod = "boot";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   hw = host.hardware;
 
   inherit (lix.attrsets.access) getAttr;
@@ -140,7 +140,7 @@
     environment.systemPackages = with pkgs; [efibootmgr];
   };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkTrue mod;
     loader = mkOption {
       description = "Boot loader";

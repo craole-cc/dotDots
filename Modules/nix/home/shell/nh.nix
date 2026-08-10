@@ -3,7 +3,7 @@
   payload = {
 
       programs.nh = {
-        enable = config.${top}.inputs.applications.utilities.nh.enable;
+        enable = config.${top}.resolved.applications.utilities.nh.enable;
         clean = {
           enable = true;
           dates = "daily";

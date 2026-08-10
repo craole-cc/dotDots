@@ -11,14 +11,14 @@
 }: let
   dom = "environment";
   mod = "variables";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   inherit (host.paths) dots;
   user = host.users.data.primary or {};
   apps = user.applications or {};
   inherit (pkgs.stdenv.hostPlatform) system;
   wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
 
-  inherit (config.${top}.inputs.interface) displayProtocol;
+  inherit (config.${top}.resolved.interface) displayProtocol;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
@@ -59,7 +59,7 @@
       {
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
-        BAR = config.${top}.inputs.interface.panel or bar.primary;
+        BAR = config.${top}.resolved.interface.panel or bar.primary;
         BROWSER = browser.primary;
         DOTS = dots;
         EDITOR = editor.editor;
@@ -99,7 +99,7 @@
     environment.sessionVariables = cfg.default // cfg.extra;
   };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     default = mkOption {
       description = "Base session variables";

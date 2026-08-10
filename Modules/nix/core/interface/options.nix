@@ -7,5 +7,5 @@
   dom = "interface";
   inherit (lix.schema.ui) mkOptions;
 in {
-  options.${top}.inputs.${dom} = mkOptions {inherit host;};
+  options.${top}.resolved.${dom} = mkOptions {inherit host;};
 }

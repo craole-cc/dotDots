@@ -8,7 +8,7 @@
 }: let
   dom = "hardware";
   mod = "audio";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   hw = host.hardware;
 
@@ -29,7 +29,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

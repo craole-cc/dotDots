@@ -3,7 +3,7 @@
   payload = {
 
       programs.delta = {
-        enable = config.${top}.inputs.applications.utilities.delta.enable;
+        enable = config.${top}.resolved.applications.utilities.delta.enable;
         enableGitIntegration = true;
         enableJujutsuIntegration = true;
       };

@@ -8,7 +8,7 @@
 }: let
   dom = "environment";
   mod = "aliases";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   dots = host.paths.dots or null;
 
   inherit (lib.attrsets) optionalAttrs;
@@ -45,7 +45,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     default = mkOption {
       description = "Default shell aliases";

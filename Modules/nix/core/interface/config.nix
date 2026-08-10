@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (lix.modules.construction) mkIf;
-  inherit (config.${top}.inputs.interface) panel;
+  inherit (config.${top}.resolved.interface) panel;
   isDmsShell = panel == "dms-shell";
   payload = {
     programs.dms-shell.enable = true;

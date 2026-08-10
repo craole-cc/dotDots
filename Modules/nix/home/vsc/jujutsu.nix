@@ -3,7 +3,7 @@
   payload = {
 
       programs.jujutsu = {
-        enable = config.${top}.inputs.applications.utilities.jujutsu.enable;
+        enable = config.${top}.resolved.applications.utilities.jujutsu.enable;
         settings = {
           user = {
             name = user.git.name or null;

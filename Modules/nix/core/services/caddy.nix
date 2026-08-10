@@ -6,13 +6,13 @@
   lix,
   ...
 }: let
-  cfg = config.${top}.inputs.services.remote.caddy;
+  cfg = config.${top}.resolved.services.remote.caddy;
   payload = {
     services.caddy.enable = cfg.enable;
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.services.remote.caddy.enable = lib.mkOption {
+  options.${top}.resolved.services.remote.caddy.enable = lib.mkOption {
     description = "Enable Caddy reverse-proxy remote access";
     default = host.access.remote.caddy.enable or false;
     type = lib.types.bool;

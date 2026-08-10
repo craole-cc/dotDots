@@ -4,10 +4,10 @@
 
       programs = {
         gh = {
-          enable = config.${top}.inputs.applications.utilities.github.enable;
+          enable = config.${top}.resolved.applications.utilities.github.enable;
         };
         gh-dash = {
-          enable = config.${top}.inputs.applications.utilities.github.enable;
+          enable = config.${top}.resolved.applications.utilities.github.enable;
         };
       };
   };

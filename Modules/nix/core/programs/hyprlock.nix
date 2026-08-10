@@ -7,9 +7,9 @@
 }: let
   dom = "programs";
   mod = "hyprlock";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
-  wm = config.${top}.inputs.interface.windowManager or null;
+  wm = config.${top}.resolved.interface.windowManager or null;
 
   inherit (lix.options.construction) mkEnable;
   inherit (lix.modules.construction) mkIf;
@@ -18,7 +18,7 @@
     };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnable {
       description = "Hyprlock screen locker for Hyprland";
       condition = wm == "hyprland";

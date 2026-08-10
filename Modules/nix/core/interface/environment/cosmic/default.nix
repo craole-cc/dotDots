@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  cfg = config.${top}.inputs.interface;
+  cfg = config.${top}.resolved.interface;
   payload = {
     services.desktopManager.cosmic = {
       enable = true;

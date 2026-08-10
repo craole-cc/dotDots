@@ -7,9 +7,9 @@
 }: let
   dom = "hardware";
   mod = "display";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
-  iface = config.${top}.inputs.interface;
+  iface = config.${top}.resolved.interface;
   isWayland = iface.displayProtocol == "wayland";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
@@ -35,24 +35,10 @@
       };
     };
     programs.xwayland.enable = isWayland;
-    hardware.nvidia = {
-      open = mkDefault cfg.nvidia.open;
-      gsp.enable = mkDefault cfg.nvidia.gsp.enable;
-      powerManagement.kernelSuspendNotifier =
-        mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
-    };
     xdg.portal.xdgOpenUsePortal = true;
   };
-  outputPayload = payload // {
-    hardware.nvidia = {
-      open = cfg.nvidia.open;
-      gsp.enable = cfg.nvidia.gsp.enable;
-      powerManagement.kernelSuspendNotifier =
-        cfg.nvidia.powerManagement.kernelSuspendNotifier;
-    };
-  };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     xkbLayout = mkOption {
       description = "XKB keyboard layout";
@@ -88,8 +74,27 @@ in {
     };
   };
 
-  config = mkMerge (mkStaged {
-    inherit top payload outputPayload;
-    condition = cfg.enable;
-  });
+  config = mkMerge [
+    (mkMerge (mkStaged {
+      inherit top payload;
+      condition = cfg.enable;
+    }))
+    {
+      hardware.nvidia = mkIf cfg.enable {
+        open = mkDefault cfg.nvidia.open;
+        gsp.enable = mkDefault cfg.nvidia.gsp.enable;
+        powerManagement.kernelSuspendNotifier =
+          mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
+      };
+      ${top}.outputs.hardware.nvidia =
+        if cfg.enable
+        then {
+          open = config.hardware.nvidia.open;
+          gsp.enable = config.hardware.nvidia.gsp.enable;
+          powerManagement.kernelSuspendNotifier =
+            config.hardware.nvidia.powerManagement.kernelSuspendNotifier;
+        }
+        else {};
+    }
+  ];
 }

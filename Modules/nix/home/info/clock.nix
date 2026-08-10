@@ -3,7 +3,7 @@
   payload = {
 
       programs.clock-rs = {
-        enable = config.${top}.inputs.applications.utilities.clock.enable;
+        enable = config.${top}.resolved.applications.utilities.clock.enable;
         settings = {
           general = {
             color = "magenta";

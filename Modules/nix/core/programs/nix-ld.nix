@@ -7,14 +7,14 @@
   lix,
   ...
 }: let
-  cfg = config.${top}.inputs.programs.nix-ld;
+  cfg = config.${top}.resolved.programs.nix-ld;
   payload = {
     programs.nix-ld.enable = cfg.enable;
     environment.systemPackages = [pkgs.nix-ld];
     };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.programs.nix-ld.enable = lib.mkOption {
+  options.${top}.resolved.programs.nix-ld.enable = lib.mkOption {
     description = "Enable nix-ld for prebuilt dynamically linked development tools";
     default = host.capabilities.development;
     type = lib.types.bool;

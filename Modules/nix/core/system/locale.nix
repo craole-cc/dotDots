@@ -9,7 +9,7 @@
 }: let
   dom = "system";
   mod = "locale";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   loc = host.localization;
 
   inherit (lib.modules) mkIf;
@@ -37,7 +37,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

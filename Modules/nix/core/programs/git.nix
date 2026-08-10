@@ -7,7 +7,7 @@
 }: let
   dom = "programs";
   mod = "git";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   inherit (lix.options.construction) mkTrue;
   inherit (lix.modules.construction) mkIf;
   payload = {
@@ -19,7 +19,7 @@
     };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";
     enableLFS = mkTrue "Large File Storage for Git";
     enablePrompt = mkTrue "Utility functions via `git-prompt.sh`";

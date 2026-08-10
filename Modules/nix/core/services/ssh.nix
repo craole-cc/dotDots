@@ -6,7 +6,7 @@
   top,
   ...
 }: let
-  cfg = config.${top}.inputs.services.remote.ssh;
+  cfg = config.${top}.resolved.services.remote.ssh;
 
   payload = {
     services.openssh = {
@@ -17,7 +17,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.services.remote.ssh = {
+  options.${top}.resolved.services.remote.ssh = {
     enable = lib.mkOption {
       description = "Enable SSH remote access";
       default = host.access.remote.ssh.enable or (host.access.ssh or null) != null;

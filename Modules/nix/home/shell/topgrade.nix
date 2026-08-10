@@ -3,7 +3,7 @@
   payload = {
 
       programs.topgrade = {
-        enable = config.${top}.inputs.applications.utilities.topgrade.enable;
+        enable = config.${top}.resolved.applications.utilities.topgrade.enable;
         settings = {
           misc = {
             assume_yes = true;

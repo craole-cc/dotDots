@@ -3,7 +3,7 @@
 
   payload = {
     programs.git = {
-      enable = config.${top}.inputs.applications.utilities.git.enable;
+      enable = config.${top}.resolved.applications.utilities.git.enable;
       lfs.enable = true;
       settings = {
         user = {

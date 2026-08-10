@@ -9,7 +9,7 @@
 }: let
   dom = "hardware";
   mod = "filesystems";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   hw = host.hardware;
   storage = host.storage;
@@ -48,7 +48,7 @@
   };
   inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasFilesystems;};
     filesystemsRequired = mkOption {
       description = "Require host.devices.file to declare at least one filesystem";

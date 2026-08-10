@@ -8,8 +8,8 @@
 }: let
   inherit (lib.modules) mkIf;
 
-  cfg = config.${top}.inputs.interface;
-  autoSwitch = config.${top}.inputs.interface.style.autoSwitch or true;
+  cfg = config.${top}.resolved.interface;
+  autoSwitch = config.${top}.resolved.interface.style.autoSwitch or true;
 
   hyprlandPortals = [
     pkgs.xdg-desktop-portal-hyprland
