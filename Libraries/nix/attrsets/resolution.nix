@@ -76,8 +76,7 @@
 
   inherit (_.attrsets.access) attrByPath attrValues;
   inherit (_.attrsets.predicates) hasAttrByPath;
-  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.transformation) filterAttrs;
+  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr isAttrs;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.content.fallback) firstNonEmpty;
@@ -89,7 +88,7 @@
   inherit (_.hardware.system) getSystems getSystemOrDefault;
   inherit (_.lists.predicates) all elem isList;
   inherit (_.lists.access) head findFirst;
-  inherit (_.lists.construction) toList;
+  inherit (_.lists.construction) optionals toList;
   inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.predicates) isString;
@@ -452,8 +451,11 @@
   `targets`
   : Optional list of package names, fallback lists, or derivations to resolve.
 
-  `flake` / `inputs` / `nixpkgs` / `legacyPackages` / `system` / `priority`
+  `flake` / `inputs` / `nixpkgs` / `legacyPackages` / `system`
   : Flake resolution context arguments (used to compute `pkgs` if `pkgs` is not explicitly passed).
+
+  `priority`
+  : Optional string or list of strings naming input keys (e.g., `["nixPackagesUnstable" "nixPackages"]`) to prioritize when searching for a package set.
 
   `default`
   : Fallback value if a target package is not found. Defaults to `null`.
@@ -465,39 +467,17 @@
   > packages :: AttrSet -> (AttrSet | [ (Derivation | a) ])
 
   # Examples
-  - Resolving a system pkgs set:
-    packages { inherit flake system; }
-
-  - Resolving target package derivations:
-  > packages { inherit pkgs; targets = [ "bluez" ["firefox-non-existent" "firefox-beta" "firefox-esr" "firefox"] pkgs.git ]; }
-
-    ```nix
-    [
-      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
-      «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
-      «derivation /nix/store/f54312vhnici0xd0b5j6i1kijlalwcjg-git-2.54.0.drv»
-    ]
-    ```
-
-  - Filtering unresolved packages:
-  > packages { inherit pkgs; targets = [ "bluez" pkgs.git "non-existent-package" ]; filterNulls = true; }
-
-    ```nix
-    [
-      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
-      «derivation /nix/store/f54312vhnici0xd0b5j6i1kijlalwcjg-git-2.54.0.drv»
-    ]
-    ```
+  - Resolving a system `pkgs` set from flake context with input priority:
+  > packages { inherit flake system; priority = [ "nixPackagesUnstable" "nixPackages" ]; }
 
   - Resolving target package derivations directly from flake inputs:
-  > packages { inherit flake system; targets = [ "bluez" "git" ]; }
+  > packages { inherit flake; system = "x86_64-linux"; targets = [ "bluez" "git" ]; }
 
-    ```nix
-    [
-      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
-      «derivation /nix/store/k85579sh6msm09n1673prc988qbb75ik-git-2.48.1.drv»
-    ]
-    ```
+  - Resolving target package derivations from an explicit `pkgs` set:
+  > packages { inherit pkgs; targets = [ "bluez" ["firefox-non-existent" "firefox-beta" "firefox-esr" "firefox"] pkgs.git ]; }
+
+  - Filtering unresolved packages (`filterNulls`):
+  > packages { inherit pkgs; targets = [ "bluez" pkgs.git "non-existent-package" ]; filterNulls = true; }
   */
   packages = {
     #? System package set context options
@@ -513,26 +493,52 @@
     default ? null,
     filterNulls ? false,
   }: let
+    __ctx = "attrsets.resolution.packages";
+
     resolved = {
       system = getSystemOrDefault {
         inherit flake inputs nixpkgs legacyPackages system;
       };
 
+      sources = {
+        priority = optionals (priority != null) (map (
+          name:
+            inputs.${name}
+            or (flake.inputs.${name} or (nixpkgs.${name} or null))
+        ) (toList priority));
+
+        candidate = filter (src: src != {} && src != null) (
+          resolved.sources.priority
+          ++ [
+            pkgs
+            nixpkgs
+            (inputs.nixPackages or null)
+            (inputs.nixPackagesUnstable or null)
+            (inputs.nixpkgs or null)
+            (flake.inputs.nixPackages or null)
+            (flake.inputs.nixPackagesUnstable or null)
+            (flake.inputs.nixpkgs or null)
+            flake
+          ]
+        );
+      };
+
+      findPkgsSet = src:
+        if src ? legacyPackages.${resolved.system}
+        then src.legacyPackages.${resolved.system}
+        else if src ? packages.${resolved.system}
+        then src.packages.${resolved.system}
+        else if src ? system && src.system == resolved.system
+        then src
+        else null;
+
       pkgs =
-        if pkgs != null
+        if pkgs != null && pkgs ? system
         then pkgs
-        else if priority != null
-        then let
-          sources = filterAttrs (_key: value: value != null) (genAttrs priority (name: nixpkgs.${name} or null));
-        in
-          (findFirst
-            (nixpkgsSource: nixpkgsSource.legacyPackages.${resolved.system} or null != null)
-            nixpkgs.legacyPackages (
-              attrValues sources
-            )).${
-            resolved.system
-          }
-        else nixpkgs.legacyPackages.${resolved.system};
+        else
+          findFirst (pkg: pkg != null) (
+            throw "${__ctx}: Unable to resolve a valid pkgs set for system '${resolved.system}'"
+          ) (map resolved.findPkgsSet resolved.sources.candidate);
 
       targets = map (
         target:
@@ -545,11 +551,9 @@
   in
     if targets != null
     then
-      (
-        if filterNulls
-        then filter (pkg: pkg != null) resolved.targets
-        else resolved.targets
-      )
+      if filterNulls
+      then filter (pkg: pkg != null) resolved.targets
+      else resolved.targets
     else resolved.pkgs;
 
   /**
