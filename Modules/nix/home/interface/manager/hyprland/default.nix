@@ -45,7 +45,7 @@ config = lib.mkMerge [
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
-        configType = "lua";
+        configType = "conf";
         plugins = [];
       }
       (import ./settings {
@@ -71,7 +71,7 @@ config = lib.mkMerge [
     wayland.windowManager.hyprland = mkMerge [
       {
         enable = true;
-        configType = "lua";
+        configType = "conf";
         plugins = [];
       }
       (import ./settings {
