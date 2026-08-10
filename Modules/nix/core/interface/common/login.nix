@@ -9,15 +9,27 @@
   dom = "interface";
   cfg = config.${top}.inputs.${dom};
 
-  inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkOption;
   inherit (lib.types) bool nullOr str;
   inherit (lix.modules.core.services) mkServices;
+  inherit (lix.modules.core._) mkStaged;
 
-  # Pure data seed - only used in option defaults, never in config block.
-  # All other interface options (windowManager, displayManager, shell.*, etc.)
-  # are already declared by options.nix via mkOptions { inherit host; }.
   user = host.users.data.primary or {};
+  sessionArgs = {
+    inherit config;
+    inherit (cfg)
+      windowManager
+      desktopEnvironment
+      displayProtocol
+      displayManager
+      defaultSession
+      panel
+      compositor
+      autoLogin
+      autoLoginUser
+      ;
+  };
+  payload = mkServices sessionArgs;
 in {
   options.${top}.inputs.${dom} = {
     autoLogin = mkOption {
@@ -26,7 +38,6 @@ in {
       defaultText = literalExpression "host.users.data.primary.autoLogin or false";
       type = bool;
     };
-
     autoLoginUser = mkOption {
       description = "Username for automatic login. Defaults to the primary user's name.";
       default = user.name or null;
@@ -36,42 +47,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable (
-    mkServices {
-      inherit config;
-      inherit
-        (cfg)
-        windowManager
-        desktopEnvironment
-        displayProtocol
-        displayManager
-        defaultSession
-        panel
-        compositor
-        autoLogin
-        autoLoginUser
-        ;
-    }
-  ))
-    {
-      ${top}.output = mkIf cfg.enable (
-    mkServices {
-      inherit config;
-      inherit
-        (cfg)
-        windowManager
-        desktopEnvironment
-        displayProtocol
-        displayManager
-        defaultSession
-        panel
-        compositor
-        autoLogin
-        autoLoginUser
-        ;
-    }
-  );
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    condition = cfg.enable;
+    inherit top payload;
+  });
 }

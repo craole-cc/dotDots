@@ -2,10 +2,20 @@
   config,
   host,
   lib,
+  lix,
   top,
   ...
 }: let
   cfg = config.${top}.inputs.services.remote.ssh;
+  inherit (lix.modules.core._) mkStaged;
+
+  payload = {
+    services.openssh = {
+      enable = cfg.enable;
+      settings.PasswordAuthentication = !cfg.keyOnly;
+      settings.KbdInteractiveAuthentication = !cfg.keyOnly;
+    };
+  };
 in {
   options.${top}.inputs.services.remote.ssh = {
     enable = lib.mkOption {
@@ -20,22 +30,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-    services.openssh = {
-      enable = cfg.enable;
-      settings.PasswordAuthentication = !cfg.keyOnly;
-      settings.KbdInteractiveAuthentication = !cfg.keyOnly;
-    };
-  })
-    {
-      ${top}.output = lib.mkIf cfg.enable {
-    services.openssh = {
-      enable = cfg.enable;
-      settings.PasswordAuthentication = !cfg.keyOnly;
-      settings.KbdInteractiveAuthentication = !cfg.keyOnly;
-    };
-  };
-    }
-  ];
+  config = lib.mkMerge (mkStaged {
+    condition = cfg.enable;
+    inherit top payload;
+  });
 }
