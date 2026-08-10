@@ -43,6 +43,7 @@
     getHost = hostAttrs;
     getNestedAttrByPaths = nestedByPaths;
     getPackage = package;
+    getPackages = packages;
     getPkgs = packages;
     mkPkgs = packages;
     getShellPackage = shellPackage;
@@ -62,6 +63,7 @@
       getHost
       getNestedAttrByPaths
       getPackage
+      getPackages
       getPkgs
       getShellPackage
       optionalAttr
@@ -464,17 +466,26 @@
     packages { inherit flake system; }
 
   - Resolving target package derivations:
-    packages { inherit pkgs; targets = [ "bluez" ["firefox-beta" "firefox"] pkgs.git ]; }
+  > packages { inherit pkgs; targets = [ "bluez" ["firefox-non-existent" "firefox-beta" "firefox-esr" "firefox"] pkgs.git ]; }
+
+    ```nix
+    [
+      null
+      «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
+      «derivation /nix/store/83iq3ssrjjn625in6bkw373f4frzmx47-firefox-140.11.0esr.drv»
+      «derivation /nix/store/khck9yp1kh927q442rpslapg122ni1v0-firefox-151.0.1.drv»
+    ]
+    ```
 
   - Resolving target package derivations directly from flake inputs:
   > packages { inherit flake system; targets = [ "bluez" "git" ]; }
 
-  ```nix
-  [
-    «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
-    «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
-    «derivation /nix/store/k85579sh6msm09n1673prc988qbb75ik-git-2.48.1.drv»
-  ]
+    ```nix
+    [
+      «derivation /nix/store/f4468gjcb7dsp0i9vha9gyrfx5lj2cxx-bluez-5.86.drv»
+      «derivation /nix/store/zqgjbxc3f3yaxhvpvhgkf8ik7k5cbig9-firefox-beta-151.0b9.drv»
+      «derivation /nix/store/k85579sh6msm09n1673prc988qbb75ik-git-2.48.1.drv»
+    ]
   ```
   */
   packages = {
