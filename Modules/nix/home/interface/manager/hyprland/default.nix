@@ -63,6 +63,16 @@
         rm -f "$legacy"
       fi
     '';
+
+    home.activation.normalizeDmsHyprlandOutputs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      outputs="$HOME/.config/hypr/dms/outputs.conf"
+      mkdir -p "$(dirname "$outputs")"
+      cat > "$outputs" <<'EOF_DMS_OUTPUTS'
+# Managed by Home Manager; keep monitor syntax compatible with Hyprland.
+monitor = eDP-1, 1920x1080@144, 0x0, 1
+monitor = HDMI-A-1, 1920x1080@100, 0x1080, 1
+EOF_DMS_OUTPUTS
+    '';
   };
 in {
   options.${top}.inputs.${dom}.${mod} = {
