@@ -3,6 +3,7 @@
   config,
   host,
   lib,
+  lix,
   top,
   ...
 }: let
@@ -14,9 +15,38 @@
   storage = host.storage;
 
   inherit (lib.attrsets) mapAttrs;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
+  inherit (lix.modules.core._) mkStaged;
+
+  payload = {
+    assertions = [
+      {
+        assertion = !cfg.filesystemsRequired || hw.hasFilesystems;
+        message = "No filesystem declarations found. Add host.devices.file for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
+      }
+    ];
+
+    fileSystems = mkIf cfg.enable (mapAttrs (
+      _: fs:
+        {
+          inherit (fs) device fsType;
+        }
+        // (
+          if fs.options or [] == []
+          then {}
+          else {inherit (fs) options;}
+        )
+    ) (host.devices.file or {}));
+
+    swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
+
+    services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
+      enable = true;
+      mountOnMedia = true;
+    };
+  };
 in {
   options.${top}.inputs.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasFilesystems;};
@@ -32,62 +62,5 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    ({
-    assertions = [
-      {
-        assertion = !cfg.filesystemsRequired || hw.hasFilesystems;
-        message = "No filesystem declarations found. Add host.devices.file for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
-      }
-    ];
-    fileSystems = mkIf cfg.enable (mapAttrs (
-      _: fs:
-        {
-          inherit (fs) device;
-          inherit (fs) fsType;
-        }
-        // (
-          if fs.options or [] == []
-          then {}
-          else {inherit (fs) options;}
-        )
-    ) (host.devices.file or {}));
-
-    swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
-
-    services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
-      enable = true;
-      mountOnMedia = true;
-    };
-  })
-    {
-      ${top}.output = {
-    assertions = [
-      {
-        assertion = !cfg.filesystemsRequired || hw.hasFilesystems;
-        message = "No filesystem declarations found. Add host.devices.file for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
-      }
-    ];
-    fileSystems = mkIf cfg.enable (mapAttrs (
-      _: fs:
-        {
-          inherit (fs) device;
-          inherit (fs) fsType;
-        }
-        // (
-          if fs.options or [] == []
-          then {}
-          else {inherit (fs) options;}
-        )
-    ) (host.devices.file or {}));
-
-    swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
-
-    services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
-      enable = true;
-      mountOnMedia = true;
-    };
-  };
-    }
-  ];
+  config = mkMerge (mkStaged {inherit top payload;});
 }

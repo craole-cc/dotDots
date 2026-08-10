@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  lix,
   pkgs,
   top,
   ...
@@ -10,31 +11,48 @@
   mod = "network";
   cfg = config.${top}.inputs.${dom}.${mod};
 
-
   hw = host.hardware;
   access = host.access or {};
   fw = access.firewall or {};
 
   inherit (lib.attrsets) genAttrs;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit
-    (lib.types)
-    bool
-    listOf
-    nullOr
-    str
-    enum
-    attrsOf
-    int
-    ;
+  inherit (lib.types) attrsOf bool enum int listOf nullOr str;
+  inherit (lix.modules.core._) mkStaged;
+
+  payload = {
+    networking = {
+      inherit (cfg) hostName hostId nameservers;
+      networkmanager.enable = cfg.backend == "networkmanager";
+      interfaces = genAttrs cfg.devices (_: {useDHCP = true;});
+      firewall = {
+        inherit (cfg.firewall) enable;
+        allowedTCPPorts = cfg.firewall.tcpPorts;
+        allowedTCPPortRanges = cfg.firewall.tcpRanges;
+        allowedUDPPorts = cfg.firewall.udpPorts;
+        allowedUDPPortRanges = cfg.firewall.udpRanges;
+      };
+    };
+
+    programs.gnupg.agent = mkIf cfg.gnupg {
+      enable = true;
+      enableSSHSupport = true;
+    };
+
+    environment.systemPackages = with pkgs; [
+      dig
+      speedtest-cli
+      speedtest-go
+      mtr
+      curl
+      wget
+      tldr
+    ];
+  };
 in {
   options.${top}.inputs.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = hw.hasNetwork;
-      };
+    enable = mkEnableOption mod // {default = hw.hasNetwork;};
     hostName = mkOption {
       description = "System hostname";
       default = host.name or "nixos";
@@ -60,7 +78,6 @@ in {
       default = host.network.backend or "networkmanager";
       type = enum ["networkmanager" "networkd"];
     };
-
     gnupg = mkOption {
       description = "Enable GnuPG agent with SSH support";
       default = true;
@@ -95,74 +112,8 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg.enable {
-    networking = {
-      inherit (cfg) hostName;
-      inherit (cfg) hostId;
-      networkmanager.enable = cfg.backend == "networkmanager";
-      inherit (cfg) nameservers;
-      interfaces = genAttrs cfg.devices (_: {
-        useDHCP = true;
-      });
-      firewall = {
-        inherit (cfg.firewall) enable;
-        allowedTCPPorts = cfg.firewall.tcpPorts;
-        allowedTCPPortRanges = cfg.firewall.tcpRanges;
-        allowedUDPPorts = cfg.firewall.udpPorts;
-        allowedUDPPortRanges = cfg.firewall.udpRanges;
-      };
-    };
-
-    programs.gnupg.agent = mkIf cfg.gnupg {
-      enable = true;
-      enableSSHSupport = true;
-    };
-
-    environment.systemPackages = with pkgs; [
-      dig
-      speedtest-cli
-      speedtest-go
-      mtr
-      curl
-      wget
-      tldr
-    ];
-  })
-    {
-      ${top}.output = mkIf cfg.enable {
-    networking = {
-      inherit (cfg) hostName;
-      inherit (cfg) hostId;
-      networkmanager.enable = cfg.backend == "networkmanager";
-      inherit (cfg) nameservers;
-      interfaces = genAttrs cfg.devices (_: {
-        useDHCP = true;
-      });
-      firewall = {
-        inherit (cfg.firewall) enable;
-        allowedTCPPorts = cfg.firewall.tcpPorts;
-        allowedTCPPortRanges = cfg.firewall.tcpRanges;
-        allowedUDPPorts = cfg.firewall.udpPorts;
-        allowedUDPPortRanges = cfg.firewall.udpRanges;
-      };
-    };
-
-    programs.gnupg.agent = mkIf cfg.gnupg {
-      enable = true;
-      enableSSHSupport = true;
-    };
-
-    environment.systemPackages = with pkgs; [
-      dig
-      speedtest-cli
-      speedtest-go
-      mtr
-      curl
-      wget
-      tldr
-    ];
-  };
-    }
-  ];
+  config = mkMerge (mkStaged {
+    condition = cfg.enable;
+    inherit top payload;
+  });
 }

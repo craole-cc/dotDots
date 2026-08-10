@@ -1,4 +1,13 @@
-{_, ...}: let
+{_, lib, ...}: let
+  mkStaged = {
+    top,
+    condition ? true,
+    payload,
+  }: [
+    (lib.mkIf condition payload)
+    {${top}.output = lib.mkIf condition payload;}
+  ];
+
   meta = {
     doc = ''
       Build the host-specific core module list used during system evaluation.
@@ -20,7 +29,7 @@
 
     exports = {
       internal = let
-        functions = {inherit mkModules;};
+        functions = {inherit mkModules mkStaged;};
         aliases = {mkCore = mkModules;};
       in
         {inherit functions aliases;}
