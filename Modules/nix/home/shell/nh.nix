@@ -1,10 +1,15 @@
-{config, top, ...}: {
-  programs.nh = {
-    enable = config.${top}.inputs.applications.utilities.nh.enable;
-    clean = {
-      enable = true;
-      dates = "daily";
-    };
+{config, lib, lix, top, ...}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
+
+      programs.nh = {
+        enable = config.${top}.inputs.applications.utilities.nh.enable;
+        clean = {
+          enable = true;
+          dates = "daily";
+        };
+      };
   };
-  ${top}.output.programs.nh = config.programs.nh;
+in {
+  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

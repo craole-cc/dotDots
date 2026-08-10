@@ -1,6 +1,11 @@
-{config, top, ...}: {
-  programs.btop = {
-    enable = config.${top}.inputs.applications.utilities.btop.enable;
+{config, lib, lix, top, ...}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
+
+      programs.btop = {
+        enable = config.${top}.inputs.applications.utilities.btop.enable;
+      };
   };
-  ${top}.output.programs.btop = config.programs.btop;
+in {
+  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

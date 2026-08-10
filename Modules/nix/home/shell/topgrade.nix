@@ -1,17 +1,22 @@
-{config, top, ...}: {
-  programs.topgrade = {
-    enable = config.${top}.inputs.applications.utilities.topgrade.enable;
-    settings = {
-      misc = {
-        assume_yes = true;
-        # disable = ["nix"];
-        set_title = false;
-        cleanup = true;
+{config, lib, lix, top, ...}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
+
+      programs.topgrade = {
+        enable = config.${top}.inputs.applications.utilities.topgrade.enable;
+        settings = {
+          misc = {
+            assume_yes = true;
+            # disable = ["nix"];
+            set_title = false;
+            cleanup = true;
+          };
+          commands = {
+            "Run garbage collection on Nix store" = "nix-collect-garbage";
+          };
+        };
       };
-      commands = {
-        "Run garbage collection on Nix store" = "nix-collect-garbage";
-      };
-    };
   };
-  ${top}.output.programs.topgrade = config.programs.topgrade;
+in {
+  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

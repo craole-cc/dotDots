@@ -1,30 +1,31 @@
-{config, top, ...}: {
-  programs = {
-    ripgrep = {
-      enable = config.${top}.inputs.applications.utilities.grep.enable;
-      arguments = [
-        "--max-columns-preview"
-        "--colors=line:style:bold"
-      ];
-    };
+{config, lib, lix, top, ...}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
 
-    ripgrep-all.enable = config.${top}.inputs.applications.utilities.grep.enable;
+      programs = {
+        ripgrep = {
+          enable = config.${top}.inputs.applications.utilities.grep.enable;
+          arguments = [
+            "--max-columns-preview"
+            "--colors=line:style:bold"
+          ];
+        };
 
-    fd = {
-      enable = config.${top}.inputs.applications.utilities.grep.enable;
-      extraOptions = ["--absolute-path"];
-      ignores = [
-        ".git/"
-        "archives"
-        "tmp"
-        "temp"
-        "*.bak"
-      ];
-    };
+        ripgrep-all.enable = config.${top}.inputs.applications.utilities.grep.enable;
+
+        fd = {
+          enable = config.${top}.inputs.applications.utilities.grep.enable;
+          extraOptions = ["--absolute-path"];
+          ignores = [
+            ".git/"
+            "archives"
+            "tmp"
+            "temp"
+            "*.bak"
+          ];
+        };
+      };
   };
-  ${top}.output.programs = {
-    ripgrep = config.programs.ripgrep;
-    ripgrep-all = config.programs.ripgrep-all;
-    fd = config.programs.fd;
-  };
+in {
+  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

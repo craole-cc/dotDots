@@ -1,26 +1,31 @@
-{config, top, ...}: {
-  programs.clock-rs = {
-    enable = config.${top}.inputs.applications.utilities.clock.enable;
-    settings = {
-      general = {
-        color = "magenta";
-        interval = 250;
-        blink = true;
-        bold = true;
-      };
+{config, lib, lix, top, ...}: let
+  inherit (lix.modules.core._) mkStaged;
+  payload = {
 
-      position = {
-        horizontal = "start";
-        vertical = "end";
-      };
+      programs.clock-rs = {
+        enable = config.${top}.inputs.applications.utilities.clock.enable;
+        settings = {
+          general = {
+            color = "magenta";
+            interval = 250;
+            blink = true;
+            bold = true;
+          };
 
-      date = {
-        fmt = "%A, %B %d, %Y";
-        use_12h = true;
-        utc = false;
-        hide_seconds = false;
+          position = {
+            horizontal = "start";
+            vertical = "end";
+          };
+
+          date = {
+            fmt = "%A, %B %d, %Y";
+            use_12h = true;
+            utc = false;
+            hide_seconds = false;
+          };
+        };
       };
-    };
   };
-  ${top}.output.programs.clock-rs = config.programs.clock-rs;
+in {
+  config = lib.mkMerge (mkStaged {inherit top payload;});
 }
