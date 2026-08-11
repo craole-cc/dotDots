@@ -21,6 +21,10 @@
   inherit (lix.types.combinators) either listOf;
   inherit (lix.types.primitives) bool package str;
 
+  defaultPackages = packages {
+    inherit pkgs;
+    targets = optionals cfg.enable ["bluez"];
+  };
   resolvedPackages = packages {
     inherit pkgs;
     targets = cfg.packages;
@@ -35,7 +39,7 @@ in {
     };
     packages = mkOption {
       description = "Extra bluetooth packages";
-      default = optionals cfg.enable ["bluez"];
+      default = defaultPackages;
       type = listOf (either str package);
     };
     blueman = {
