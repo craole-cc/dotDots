@@ -20,6 +20,11 @@
   inherit (lix.modules.core.staging) mkStaged;
   inherit (lix.types.combinators) either listOf;
   inherit (lix.types.primitives) bool package str;
+
+  resolvedPackages = packages {
+    inherit pkgs;
+    targets = cfg.packages;
+  };
 in {
   options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = hw.hasBluetooth;};
@@ -41,19 +46,20 @@ in {
       };
     };
   };
-  config = mkMerge (mkStaged {
-    inherit top;
-    condition = cfg.enable;
-    payload = {
-      hardware.bluetooth = {
-        enable = true;
-        inherit (cfg) powerOnBoot;
+  config = mkMerge ((mkStaged {
+      inherit top;
+      condition = cfg.enable;
+      payload = {
+        hardware.bluetooth = {
+          enable = true;
+          inherit (cfg) powerOnBoot;
+        };
+        services = {inherit (cfg) blueman;};
+        environment.systemPackages = resolvedPackages;
       };
-      services = {inherit (cfg) blueman;};
-      environment.systemPackages = packages {
-        inherit pkgs;
-        targets = cfg.packages;
-      };
-    };
-  });
+    }) ++ [
+    {
+      ${top}.outputs = lib.mkIf cfg.enable {hardware.bluetooth.packages = resolvedPackages;};
+    }
+  ]);
 }
