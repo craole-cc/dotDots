@@ -5,7 +5,7 @@
 }: let
   inherit (_.filesystem.importers) importAttrs;
   inherit (_.schema.core) mkCore;
-  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.attrsets) mapAttrs recursiveUpdate removeAttrs;
 
   __exports = {
     internal = {
@@ -32,8 +32,8 @@
   - hosts: Enriched host configurations
   - users: Raw user configurations
   */
-  # Host API records are intentionally flat declarations.  `mkCore` enriches
-  # each record after import; no namespace translation is applied here.
+  # Host API records are intentionally flat declarations. `default.nix` is
+  # the complete host baseline; each named host supplies sparse updates.
   mkSchema = {tree}: let
     paths = {inherit (tree.store.api) global users hosts;};
     global =
@@ -44,10 +44,18 @@
       if paths.users != null
       then importAttrs paths.users
       else {};
-    hosts =
+    defaultHost =
       if paths.hosts != null
-      then mapAttrs (name: host: mkCore {inherit name host users;}) (importAttrs paths.hosts)
+      then import (paths.hosts + "/default.nix")
       else {};
+    rawHosts =
+      if paths.hosts != null
+      then removeAttrs (importAttrs paths.hosts) ["default"]
+      else {};
+    hosts =
+      mapAttrs
+        (name: host: mkCore {inherit name users; host = recursiveUpdate defaultHost host;})
+        rawHosts;
   in {
     inherit global users hosts;
   };
