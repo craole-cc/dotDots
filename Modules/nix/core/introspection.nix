@@ -4,7 +4,7 @@
   options,
   ...
 }: let
-  inherit (lib.attrsets) foldlAttrs mapAttrs;
+  inherit (lib.attrsets) foldlAttrs mapAttrs removeAttrs;
   inherit (lib.lists) concatLists foldl' last;
   inherit (lib.options) isOption;
   inherit (lib.types) anything;
@@ -85,6 +85,6 @@ in {
   config._.defaults = defaults;
   config._.updates = diff defaults config._.resolved;
   config._.outputs = {
-    home-manager.users = mapAttrs (_: user: user._.outputs) config.home-manager.users;
+    home-manager.users = mapAttrs (_: user: removeAttrs user ["_"]) config.home-manager.users;
   };
 }
