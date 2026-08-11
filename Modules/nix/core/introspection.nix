@@ -84,4 +84,7 @@ in {
 
   config._.defaults = defaults;
   config._.updates = diff defaults config._.resolved;
+  config._.outputs = {
+    home-manager.users = mapAttrs (_: user: user._.outputs) config.home-manager.users;
+  };
 }
