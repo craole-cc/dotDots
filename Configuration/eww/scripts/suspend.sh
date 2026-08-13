@@ -1,3 +1,4 @@
+#shellcheck enable=all
 # Confirmation
 dir="~/.config/rofi/powermenu"
 confirm_exit() {

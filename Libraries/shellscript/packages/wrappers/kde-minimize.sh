@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 QUAKE_ID="foot-quake"
 SHORTCUT_MIN="Window Minimize"

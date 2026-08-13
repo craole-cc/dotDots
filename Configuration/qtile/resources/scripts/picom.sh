@@ -1,4 +1,5 @@
 #!/bin/bash
+#shellcheck enable=all
 if pgrep -x "picom" >/dev/null; then
 	pkill picom
 else

@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 # run-or-raise: Universal app launcher that focuses if running, launches if not
 # Usage: run-or-raise APP_NAME [LAUNCH_COMMAND]
 

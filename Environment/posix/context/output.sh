@@ -1,4 +1,5 @@
 #! /bin/sh
+#shellcheck enable=all
 
 #|->  Output Control
 manage_env --set --var DELIMITER --val "${DELIMITER:-"$(printf "\037")"}"

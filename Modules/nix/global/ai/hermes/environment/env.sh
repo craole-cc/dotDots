@@ -1,3 +1,4 @@
+#shellcheck enable=all
 env_file="$HERMES_HOME/.env"
 mkdir -p "$HERMES_HOME"
 touch "$env_file"

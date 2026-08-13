@@ -1,4 +1,5 @@
 #! /bin/sh
+#shellcheck enable=all
 
 #|->  System Information
 

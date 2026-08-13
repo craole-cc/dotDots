@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 # A dwm_bar function to read the battery level and status
 # Joe Standring <git@joestandring.com>

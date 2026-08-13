@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 # Sync script for dotDots configuration repository
 # Handles submodule updates with proper error checking and multi-user support
 set -eu

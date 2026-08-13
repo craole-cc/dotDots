@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 # Time-based + manual theme toggle
 
 toggle_manual() {

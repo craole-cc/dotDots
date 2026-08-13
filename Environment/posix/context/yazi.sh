@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 create_tmp_file() {
 	app="${1:-fs}"

@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 # shellcheck disable=SC2034,SC2154
 
 #==================================================

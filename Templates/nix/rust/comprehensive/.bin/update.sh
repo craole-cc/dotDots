@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 
 find_cmd() { command -v "$1" 2>/dev/null || true; }
 if [ -z "${CMD_CARGO:-}" ]; then CMD_CARGO="$(find_cmd cargo)"; fi

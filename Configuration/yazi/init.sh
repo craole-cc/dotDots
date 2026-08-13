@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 # Symlinks yazi config from dots into ~/.config/yazi
 # Safe to re-run; all operations are idempotent
 

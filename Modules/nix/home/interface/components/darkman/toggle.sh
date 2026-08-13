@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 set -eu
 
 #~@ Injected by Nix via replaceVarsWith

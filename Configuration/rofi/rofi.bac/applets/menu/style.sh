@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck enable=all
 
 # Available Styles
 # >> Created and tested on : rofi 1.6.0-1

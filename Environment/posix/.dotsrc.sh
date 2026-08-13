@@ -1,4 +1,5 @@
 #! /bin/sh
+#shellcheck enable=all
 # shellcheck disable=SC2154,SC1090
 
 main() {
