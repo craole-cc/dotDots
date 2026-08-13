@@ -1,18 +1,22 @@
 {
   inputs,
-  lib,
   lix,
   paths,
   pkgs,
   system,
   ...
 }: let
-  inherit (lib.lists) optionals;
-  inherit (pkgs.stdenv) isLinux isDarwin;
+  inherit (lix.attrsets.construction) nameValuePair;
+  inherit (lix.attrsets.transformation) filterAttrs mapAttrs mapAttrs';
+  inherit (lix.filesystem.access) readFile readDir;
+  inherit (lix.lists.construction) optionals;
+  inherit (lix.lists.predicates) all elem;
+  inherit (lix.sources.packages) fromInputs;
+  inherit (lix.strings.predicates) hasSuffix hasPrefix;
+  inherit (lix.strings.transformation) removeSuffix;
+  inherit (pkgs) mkShell stdenv;
+  inherit (stdenv) isLinux isDarwin;
   path = ./.;
-
-  #> Toolchain policy from .config/toolchain.toml
-  toolchain = builtins.fromTOML (builtins.readFile ../../../.config/mise/config.toml);
 
   #> Metadata & Dependency Injection
   dots = rec {
@@ -21,28 +25,15 @@
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
-    toolchainSchema = toolchain._.toolchain_schema or 1;
-    toolchainPolicy = toolchain;
 
     #~@ Imports
-    inherit
-      inputs
-      lib
-      lix
-      optionals
-      system
-      ;
+    inherit inputs lix optionals system;
     inherit (paths) src;
 
     #~@ Packages
-    inherit
-      pkgs
-      formatters
-      isLinux
-      isDarwin
-      ;
+    inherit formatters isDarwin isLinux pkgs;
     inherit (import ./minimal.nix {inherit dots;}) packages;
-    inputPkgs = input: lix.sources.packages.fromInputs {inherit input inputs system;};
+    inputPkgs = input: fromInputs {inherit input inputs system;};
     pythonPkgs = pkgs.python312;
 
     #~@ Options
@@ -50,51 +41,33 @@
   };
 
   #~@ Global formatting tools
-  inherit (import ./fmt.nix {inherit dots;}) formatters formatter checks;
+  fmt = import ./fmt.nix {inherit dots;};
+  inherit (fmt) formatters formatter checks;
 
   #~@ Shell Logic Consolidation
   devShells = let
-    inherit
-      (lib.attrsets)
-      filterAttrs
-      mapAttrs
-      mapAttrs'
-      nameValuePair
-      ;
-    inherit (lib.filesystem) readDir;
-    inherit (lib.lists) elem;
-    inherit (lib.strings) hasSuffix hasPrefix removeSuffix;
-    inherit (pkgs) mkShell;
-
     #> Filter out internal logic, archives, and formatting files
-    filesFor = dir: let
-      all = readDir dir;
-    in
+    filesFor = dir:
       filterAttrs (
         name: type:
           (type == "regular")
           && hasSuffix ".nix" name
-          && !(elem name [
-            "default.nix"
-            "fmt.nix"
-          ])
+          && !(elem name ["default.nix" "fmt.nix"])
           && !(hasPrefix "archive" name)
           && !(hasPrefix "review" name)
       )
-      all;
+      (readDir dir);
 
     #> Import the attrs from the validated files
-    file-configs = mapAttrs' (
-      file: _:
-        nameValuePair
-        (removeSuffix ".nix" file)
-        (import (path + "/${file}") {inherit dots;})
-    ) (filesFor path);
-
     configs =
-      file-configs
+      (mapAttrs' (
+        file: _:
+          nameValuePair
+          (removeSuffix ".nix" file)
+          (import (path + "/${file}") {inherit dots;})
+      ) (filesFor path))
       // {
-        hermes = import ./ai/hermes {inherit dots;};
+        ai = import ./ai {inherit dots;};
       };
 
     #> Build the final derivations
@@ -109,28 +82,31 @@
           }
       )
       configs;
-    toolchainMatches = with pkgs; [
-      (bat.version == toolchain.tools.bat)
-      (cargo.version == toolchain._.nix_tools.cargo)
-      (direnv.version == toolchain.tools.direnv)
-      (eza.version == toolchain.tools.eza)
-      (fd.version == toolchain.tools.fd)
-      (gcc.version == toolchain._.nix_tools.gcc)
-      (jq.version == toolchain.tools.jq)
-      (lsd.version == toolchain.tools.lsd)
-      (mise.version == toolchain._.nix_tools.mise)
-      (nushell.version == toolchain._.nix_tools.nushell)
-      (pandoc.version == toolchain.tools.pandoc)
-      (ripgrep.version == toolchain.tools.ripgrep)
-      (rustc.version == toolchain._.nix_tools.rustc)
-      (sd.version == toolchain.tools.sd)
-      (starship.version == toolchain.tools.starship)
-      (tldr.version == toolchain._.nix_tools.tldr)
-      (typst.version == toolchain.tools.typst)
-      (yazi.version == toolchain.tools.yazi)
-      (zoxide.version == toolchain.tools.zoxide)
+
+    versions = let
+      toolchain = fromTOML (readFile (paths.src + "/toolchain.toml"));
+    in [
+      (pkgs.bat.version == toolchain.general.bat)
+      (pkgs.cargo.version == toolchain.nix.cargo)
+      (pkgs.direnv.version == toolchain.general.direnv)
+      (pkgs.eza.version == toolchain.general.eza)
+      (pkgs.fd.version == toolchain.general.fd)
+      (pkgs.gcc.version == toolchain.nix.gcc)
+      (pkgs.jq.version == toolchain.general.jq)
+      (pkgs.lsd.version == toolchain.general.lsd)
+      (pkgs.mise.version == toolchain.nix.mise)
+      (pkgs.nushell.version == toolchain.nix.nushell)
+      (pkgs.pandoc.version == toolchain.general.pandoc)
+      (pkgs.ripgrep.version == toolchain.general.ripgrep)
+      (pkgs.rustc.version == toolchain.nix.rustc)
+      (pkgs.sd.version == toolchain.general.sd)
+      (pkgs.starship.version == toolchain.general.starship)
+      (pkgs.tldr.version == toolchain.nix.tldr)
+      (pkgs.typst.version == toolchain.general.typst)
+      (pkgs.yazi.version == toolchain.general.yazi)
+      (pkgs.zoxide.version == toolchain.general.zoxide)
     ];
   in
-    assert builtins.all (match: match) toolchainMatches;
-    shells // {default = shells.minimal;};
+    assert all (version: version) versions;
+      shells // {default = shells.minimal;};
 in {inherit checks devShells formatter;}

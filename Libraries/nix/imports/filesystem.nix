@@ -22,6 +22,7 @@
     inherit (builtins) readFile;
     inherit
       (filesystem)
+      readDir
       baseNameOf
       dirOf
       hashFile

@@ -55,6 +55,7 @@
       filterAttrs
       filterAttrsRecursive
       mapAttrs
+      mapAttrs'
       mapAttrsRecursive
       mapAttrsToList
       removeAttrs
