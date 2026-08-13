@@ -1,6 +1,7 @@
 {
   _,
   lib,
+  top,
   lix,
   ...
 }: let
@@ -34,7 +35,7 @@
     merge = _: definitions: mergeOutput (map (definition: definition.value) definitions);
   };
 in {
-  options._ = {
+  options.${top} = {
     defaults = lib.mkOption {
       description = "Schema-derived default dotDots input values";
       default = {};

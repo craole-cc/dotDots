@@ -2,6 +2,7 @@
   config,
   lib,
   options,
+  top,
   ...
 }: let
   inherit (lib.attrsets) foldlAttrs mapAttrs removeAttrs;
@@ -36,7 +37,7 @@
     merge = _: definitions: mergeOutput (map (definition: definition.value) definitions);
   };
 
-  resolvedOptions = options._.resolved or {};
+  resolvedOptions = options.${top}.resolved or {};
 
   optionDefaults = node:
     if isOption node
@@ -64,7 +65,7 @@
 
   defaults = optionDefaults resolvedOptions;
 in {
-  options._ = {
+  options.${top} = {
     defaults = lib.mkOption {
       description = "Schema-derived default dotDots input values";
       default = {};
@@ -82,9 +83,9 @@ in {
     };
   };
 
-  config._.defaults = defaults;
-  config._.updates = diff defaults config._.resolved;
-  config._.outputs = {
-    home-manager.users = mapAttrs (_: user: removeAttrs user ["_"]) config.home-manager.users;
+  config.${top}.defaults = defaults;
+  config.${top}.updates = diff defaults config.${top}.resolved;
+  config.${top}.outputs = {
+    home-manager.users = mapAttrs (_: user: removeAttrs user [top]) config.home-manager.users;
   };
 }
