@@ -8,8 +8,8 @@
 }: let
   dom = "system";
   mod = "clean";
-  cfg = config.${top}.inputs.${dom}.${mod};
-  nixCfg = config.${top}.inputs.${dom}.nix;
+  cfg = config.${top}.resolved.${dom}.${mod};
+  nixCfg = config.${top}.resolved.${dom}.nix;
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
@@ -24,9 +24,9 @@
       inherit (cfg) flake;
     };
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

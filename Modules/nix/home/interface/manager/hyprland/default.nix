@@ -13,13 +13,13 @@
 }: let
   dom = "interface";
   mod = "hyprland";
-  cfg = config.${top}.inputs.${dom}.${mod};
-  cfgTop = nixosConfig.${top}.inputs;
+  cfg = config.${top}.resolved.${dom}.${mod};
+  cfgTop = nixosConfig.${top}.resolved;
   #> Use user.interface directly - already normalized per-user in mkUsers
   inherit (user.interface) windowManager;
 
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
@@ -75,7 +75,7 @@ EOF_DMS_OUTPUTS
     '';
   };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = windowManager == "hyprland";};
     withAddons = mkOption {
       description = "Enable hyprland addons";

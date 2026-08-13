@@ -10,7 +10,7 @@
 }: let
   dom = "system";
   mod = "nix";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
@@ -29,9 +29,9 @@
       })
     ]
   );
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
 
     stateVersion = mkOption {

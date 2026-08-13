@@ -7,7 +7,7 @@
 }: let
   dom = "programs";
   mod = "direnv";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
   inherit (lix.modules.construction) mkIf;
   payload = {
@@ -20,9 +20,9 @@
       };
     };
     };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkTrue mod;
     silent = mkTrue "silent mode";
     dotenv = mkTrue "load .env files";

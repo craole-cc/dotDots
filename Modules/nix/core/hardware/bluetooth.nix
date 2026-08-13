@@ -1,5 +1,7 @@
+# TODO Collab: We never see services or environment in the stage
 {
   config,
+  pkgs,
   host,
   lib,
   top,
@@ -8,40 +10,60 @@
 }: let
   dom = "hardware";
   mod = "bluetooth";
-  cfg = config.${top}.inputs.${dom}.${mod};
-
+  cfg = config.${top}.resolved.${dom}.${mod};
   hw = host.hardware;
 
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool;
-  payload = {
-    hardware.bluetooth = {
-      enable = true;
-      inherit (cfg) powerOnBoot;
-    };
+  inherit (lix.attrsets.resolution) packages;
+  inherit (lix.lists.construction) optionals;
+  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.types.combinators) either listOf;
+  inherit (lix.types.primitives) bool package str;
 
-    services.blueman.enable = true;
-
-    # environment.systemPackages = [pkgs.bluez];
+  defaultPackages = packages {
+    inherit pkgs;
+    targets = optionals cfg.enable ["bluez"];
   };
-  inherit (lix.modules.core._) mkStaged;
+  resolvedPackages = packages {
+    inherit pkgs;
+    targets = cfg.packages;
+  };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = hw.hasBluetooth;
-      };
+  options.${top}.resolved.${dom}.${mod} = {
+    enable = mkEnableOption mod // {default = hw.hasBluetooth;};
     powerOnBoot = mkOption {
       description = "Power bluetooth on boot";
-      default = true;
+      default = cfg.enable;
       type = bool;
     };
+    packages = mkOption {
+      description = "Extra bluetooth packages";
+      default = defaultPackages;
+      type = listOf (either str package);
+    };
+    blueman = {
+      enable = mkOption {
+        description = "Enable blueman service";
+        default = cfg.enable;
+        type = bool;
+      };
+    };
   };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
+  config = mkMerge ((mkStaged {
+      inherit top;
+      condition = cfg.enable;
+      payload = {
+        hardware.bluetooth = {
+          enable = true;
+          inherit (cfg) powerOnBoot;
+        };
+        services = {inherit (cfg) blueman;};
+        environment.systemPackages = resolvedPackages;
+      };
+    }) ++ [
+    {
+      ${top}.outputs = lib.mkIf cfg.enable {hardware.bluetooth.packages = resolvedPackages;};
+    }
+  ]);
 }

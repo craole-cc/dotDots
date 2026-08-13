@@ -9,19 +9,19 @@
 }: let
   dom = "programs";
   mod = "obs-studio";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   hw = host.hardware;
 
-  inherit (config.${top}.inputs.interface) displayProtocol;
+  inherit (config.${top}.resolved.interface) displayProtocol;
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
   payload = {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};  };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnable {
       description = "OBS Studio";
       condition = hw.hasVideoCam;

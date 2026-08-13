@@ -10,7 +10,7 @@
   dom = "interface";
   mod = "style";
   sub = "wallpapers";
-  cfg = config.${top}.inputs.${dom}.${mod}.${sub};
+  cfg = config.${top}.resolved.${dom}.${mod}.${sub};
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
@@ -40,7 +40,7 @@
       inherit (w) dots pics light dark;
     };
 in {
-  options.${top}.inputs.${dom}.${mod}.${sub} = {
+  options.${top}.resolved.${dom}.${mod}.${sub} = {
     enable = mkEnableOption mod // {default = true;};
 
     dots = mkOption {

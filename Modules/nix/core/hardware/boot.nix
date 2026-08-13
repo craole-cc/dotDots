@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   lix,
   pkgs,
   top,
@@ -9,14 +8,14 @@
 }: let
   dom = "hardware";
   mod = "boot";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   hw = host.hardware;
 
   inherit (lix.attrsets.access) getAttr;
   inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.debug.tracing) traceIf;
-  inherit (lix.modules.construction) mkIf;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.construction) mkIf mkMerge;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lix.lists.enums.gui) bootLoaders;
   inherit (lix.lists.predicates) any;
   inherit (lix.options.construction) mkTrue mkOption;
@@ -141,7 +140,7 @@
     environment.systemPackages = with pkgs; [efibootmgr];
   };
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkTrue mod;
     loader = mkOption {
       description = "Boot loader";
@@ -160,7 +159,7 @@ in {
     };
   };
 
-  config = lib.mkMerge (mkStaged {
+  config = mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

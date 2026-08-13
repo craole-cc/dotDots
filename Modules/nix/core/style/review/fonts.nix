@@ -10,7 +10,7 @@
   dom = "interface";
   mod = "style";
   sub = "fonts";
-  cfg = config.${top}.inputs.${dom}.${mod}.${sub};
+  cfg = config.${top}.resolved.${dom}.${mod}.${sub};
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.lists) unique;
@@ -70,7 +70,7 @@
   in
     fonts // {inherit packages;};
 in {
-  options.${top}.inputs.${dom}.${mod}.${sub} = {
+  options.${top}.resolved.${dom}.${mod}.${sub} = {
     enable = mkEnableOption mod // {default = true;};
 
     clock = mkOption {

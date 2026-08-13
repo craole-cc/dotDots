@@ -10,7 +10,7 @@
 }: let
   dom = "interface";
   mod = "style";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   user = host.users.data.primary or {};
   style = user.interface.style or {};
@@ -90,7 +90,7 @@
 
   hasStylix = options ? stylix;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {
@@ -165,7 +165,7 @@ in {
         };
 
         fonts = let
-          fontCfg = config.${top}.inputs.${dom}.fonts;
+          fontCfg = config.${top}.resolved.${dom}.fonts;
         in {
           monospace = {
             package = pkgs.maple-mono.NF-unhinted;

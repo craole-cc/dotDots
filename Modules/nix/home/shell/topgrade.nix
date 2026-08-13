@@ -1,9 +1,9 @@
 {config, lib, lix, top, ...}: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   payload = {
 
       programs.topgrade = {
-        enable = config.${top}.inputs.applications.utilities.topgrade.enable;
+        enable = config.${top}.resolved.applications.utilities.topgrade.enable;
         settings = {
           misc = {
             assume_yes = true;

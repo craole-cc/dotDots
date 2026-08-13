@@ -1,9 +1,9 @@
 {config, lib, lix, top, user, ...}: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 
   payload = {
     programs.git = {
-      enable = config.${top}.inputs.applications.utilities.git.enable;
+      enable = config.${top}.resolved.applications.utilities.git.enable;
       lfs.enable = true;
       settings = {
         user = {

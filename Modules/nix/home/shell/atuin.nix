@@ -5,11 +5,11 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   isEnabled = pkg: config.programs.${pkg}.enable;
   payload = {
     programs.atuin = {
-      enable = config.${top}.inputs.applications.utilities.atuin.enable;
+      enable = config.${top}.resolved.applications.utilities.atuin.enable;
       daemon.enable = true;
       enableBashIntegration = isEnabled "bash";
       enableNushellIntegration = isEnabled "nushell";

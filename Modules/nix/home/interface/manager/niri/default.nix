@@ -7,7 +7,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   name = "niri";
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;

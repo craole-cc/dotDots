@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  cfg = config.${top}.inputs.interface;
+  cfg = config.${top}.resolved.interface;
   payload = {
     services.desktopManager.plasma6 = {
       enable = true;
@@ -19,7 +19,7 @@
       kdialog
     ];
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;

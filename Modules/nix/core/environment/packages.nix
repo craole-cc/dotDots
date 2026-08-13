@@ -10,13 +10,13 @@
 }: let
   dom = "environment";
   mod = "packages";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   user = host.users.data.primary or {};
   apps = user.applications or {};
   inherit (pkgs.stdenv.hostPlatform) system;
 
-  inherit (config.${top}.inputs.interface) displayProtocol;
+  inherit (config.${top}.resolved.interface) displayProtocol;
   inherit (lib.modules) mkIf;
   inherit (lib.lists) optionals unique;
   inherit (lib.options) mkEnableOption mkOption;
@@ -150,9 +150,9 @@ in {
   payload = {
     environment.systemPackages = unique (cfg.default ++ cfg.extra);
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
     default = mkOption {
       description = "Base system packages";

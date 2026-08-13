@@ -8,11 +8,11 @@
   ...
 }: let
   dom = "users";
-  cfg = config.${top}.inputs.${dom};
+  cfg = config.${top}.resolved.${dom};
 
   inherit (lix.attrsets.resolution) package;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.attrsets) mapAttrs removeAttrs;
   inherit (lib.lists) head optionals;
   inherit (lib.options) mkOption;
@@ -68,7 +68,7 @@
     };
   };
 in {
-  options.${top}.inputs.${dom} = {
+  options.${top}.resolved.${dom} = {
     execWheelOnly = mkOption {
       description = "Restrict sudo to wheel group members";
       default = true;
@@ -82,7 +82,7 @@ in {
   };
 
   config = lib.mkMerge [
-    {${top}.inputs.users.profiles = publicProfiles;}
+    {${top}.resolved.users.profiles = publicProfiles;}
     (lib.mkMerge (mkStaged {
       inherit top payload;
     }))

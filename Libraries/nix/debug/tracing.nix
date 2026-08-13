@@ -1,5 +1,6 @@
 # Trace helpers - print debug info to stderr during evaluation, return a value.
 # All functions are lazy: they only fire if the result is actually demanded.
+# TODO: Update the function docs to match the style and detail of `traceIfNot`
 {
   _,
   lib,
@@ -7,15 +8,18 @@
 }: let
   exports = {
     inherit
-      trace
+      trace'
       traceRaw
       traceValue
+      traceValueIfNot
       traceFn
+      traceIfNot
       ;
   };
 
   inherit (_.debug.format) renderDebugValue;
   inherit (lib.strings) typeOf;
+  inherit (lib.debug) trace traceIf;
 
   renderType = value:
     if typeOf value == "lambda"
@@ -40,7 +44,7 @@
   # => config.enable
   ```
   */
-  trace = {
+  trace' = {
     label ? null,
     value,
     result,
@@ -60,7 +64,7 @@
       then displayValue
       else renderDebugValue value;
   in
-    lib.debug.trace "${prefix}type = ${shownType}, value = ${shownValue}" result;
+    trace "${prefix}type = ${shownType}, value = ${shownValue}" result;
 
   /**
   Trace a raw string, then return `result`.
@@ -74,7 +78,7 @@
     value,
     result,
   }:
-    lib.debug.trace value result;
+    trace value result;
 
   /**
   Trace the type and rendered value of a labeled input, then return that same value.
@@ -96,19 +100,72 @@
     label ? null,
     value,
   }:
-    trace {
+    trace' {
       inherit label value;
       result = value;
     };
+
+  /**
+  Trace the type and rendered value of a labeled input if the given condition is false, then return the value.
+
+  Useful as a conditional inline probe to catch unexpected values without spamming normal runs.
+
+  # Inputs
+  `cond`
+  : boolean predicate
+
+  `label`
+  : optional string label to prefix the trace message
+
+  `value`
+  : value to trace and return
+
+  # Type
+  > traceValueIfNot :: { cond :: bool, value :: any, label :: string? } -> any
+
+  # Examples
+  - traceValueIfNot { cond = isDerivation pkg; label = "invalid-pkg"; value = pkg; };
+
+  ```nix
+  trace: invalid-pkg type = set, value = {...}
+  ```
+  */
+  traceValueIfNot = {
+    cond,
+    label ? null,
+    value,
+  }:
+    if cond
+    then value
+    else traceValue {inherit label value;};
 
   /**
   Trace a function value by name, then return `result`.
 
   Used internally by `debug/module.nix` to annotate function-related traces.
 
+  # Inputs
+  `name`
+  : string name of the function
+
+  `fn`
+  : function value to trace
+
+  `result`
+  : value to return
+
+  `label`
+  : optional string label to prefix the trace message
+
   # Type
+  > traceFn :: { name :: string, fn :: function, result :: any, label :: string? } -> any
+
+  # Examples
+  > traceFn { name = "normalize"; fn = normalize; result = normalize input; label = "normalizing"; }
+
   ```nix
-  traceFn :: { name :: string, fn :: function, result :: any, label :: string? } -> any
+  trace: normalizing type = function, value = normalize
+  trace: normalizing type = set, value = {...}
   ```
   */
   traceFn = {
@@ -117,11 +174,43 @@
     result,
     label ? null,
   }:
-    trace {
+    trace' {
       inherit label result;
       value = fn;
       displayType = "function";
       displayValue = name;
     };
+
+  /**
+  Conditionally trace the supplied message if the predicate is false.
+
+  # Inputs
+  `pred`
+  : boolean predicate
+
+  `msg`
+  : string message to trace if predicate is false
+
+  `value`
+  : value to return
+
+  # Type
+  > traceIfNot :: bool -> string -> a -> a
+
+  # Examples
+  - traceIfNot false "hello" 3
+
+  ```nix
+  trace: hello
+  3
+  ```
+
+  - traceIfNot true "hello" 3
+
+  ```nix
+  3
+  ```
+  */
+  traceIfNot = pred: msg: value: traceIf (!pred) msg value;
 in
   exports // {__rootAliases = exports;}

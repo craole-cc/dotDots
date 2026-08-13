@@ -7,7 +7,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 

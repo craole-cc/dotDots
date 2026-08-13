@@ -5,7 +5,7 @@
     payload,
   }: [
     (lib.mkIf condition payload)
-    {${top}.output = lib.mkIf condition payload;}
+    {${top}.outputs = lib.mkIf condition payload;}
   ];
 
   meta = {

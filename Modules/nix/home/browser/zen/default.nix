@@ -11,7 +11,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lix.modules.construction) mkIf mkMerge;
   inherit (lix.applications.registry) resolve;
   inherit (lix.applications.runtime) resolvePackage;

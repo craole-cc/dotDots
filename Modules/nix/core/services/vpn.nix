@@ -9,7 +9,7 @@
 }: let
   dom = "services";
   mod = "vpn";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
   vpnCfg = host.access.vpn or {};
 
   inherit (lib.attrsets) listToAttrs;
@@ -118,9 +118,9 @@
 
     environment.systemPackages = [openvpn];
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

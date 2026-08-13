@@ -6,7 +6,7 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   app = "quickshell";
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf mkMerge;

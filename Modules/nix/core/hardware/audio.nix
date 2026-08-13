@@ -8,7 +8,7 @@
 }: let
   dom = "hardware";
   mod = "audio";
-  cfg = config.${top}.inputs.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod};
 
   hw = host.hardware;
 
@@ -27,9 +27,9 @@
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
   };
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom}.${mod} = {
+  options.${top}.resolved.${dom}.${mod} = {
     enable =
       mkEnableOption mod
       // {

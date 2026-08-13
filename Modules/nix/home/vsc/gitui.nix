@@ -1,9 +1,9 @@
 {config, lib, lix, top, ...}: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   payload = {
 
       programs.gitui = {
-        enable = config.${top}.inputs.applications.utilities.gitui.enable;
+        enable = config.${top}.resolved.applications.utilities.gitui.enable;
       };
   };
 in {

@@ -44,7 +44,7 @@
       inherit example type;
     };
 in {
-  options.${top}.inputs.${dom}.${mod}.${sub} = {
+  options.${top}.resolved.${dom}.${mod}.${sub} = {
     enable = mkEnableOption sub // {default = true;};
     light = mkPolarityOption "light";
     dark = mkPolarityOption "dark";

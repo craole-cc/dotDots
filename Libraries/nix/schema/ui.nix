@@ -802,9 +802,19 @@
       windowManager = windowManager.name;
       displayManager = greeter;
       displayProtocol = protocol;
+      compositor = {
+        desktop = (interface.compositor or {}).desktop or desktopEnvironment.name;
+        window = (interface.compositor or {}).window or windowManager.name;
+      };
       enable = enabled != [];
     }
-    // (genAttrs keys.resolution (key: resolve {inherit key interface configs;}));
+    // (genAttrs keys.resolution (key: resolve {inherit key interface configs;}))
+    // {
+      compositor = {
+        desktop = (interface.compositor or {}).desktop or desktopEnvironment.name;
+        window = (interface.compositor or {}).window or windowManager.name;
+      };
+    };
 
   mkUI = {
     user ? {},

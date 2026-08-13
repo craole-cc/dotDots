@@ -6,11 +6,11 @@
   top,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.lists) optionals;
   payload = {
     programs.yazi = {
-      enable = config.${top}.inputs.applications.utilities.yazi.enable;
+      enable = config.${top}.resolved.applications.utilities.yazi.enable;
       shellWrapperName = "y";
     };
 

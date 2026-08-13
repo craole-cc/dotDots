@@ -7,8 +7,8 @@
   user,
   ...
 }: let
-  inherit (lix.modules.core._) mkStaged;
-  cfg = config.${top}.inputs.interface.theme.dispatcher;
+  inherit (lix.modules.core.staging) mkStaged;
+  cfg = config.${top}.resolved.interface.theme.dispatcher;
   statePath = cfg.statePath;
   socketPath = cfg.socketPath;
   darkTheme = user.style.theme.dark or "Catppuccin Frappé";
@@ -136,7 +136,7 @@ payload = {
     warnings = lib.optional cfg.qt.restartRequired "dotDots Qt theme reaction is marked restartRequired because the installed Qt/Kvantum path has no verified universal live reload interface.";
   };
 in {
-  options.${top}.inputs.interface.theme = {
+  options.${top}.resolved.interface.theme = {
     enable = lib.mkOption {
       description = "Enable live system-wide theme polarity management";
       default = user.style.autoSwitch or true;

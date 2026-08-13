@@ -10,6 +10,7 @@
         aggregation
         construction
         predicates
+        selection
         transformation
         ;
     };
@@ -18,6 +19,7 @@
       // aggregation
       // construction
       // predicates
+      // selection
       // transformation;
   };
 
@@ -30,7 +32,7 @@
       attrValues
       getAttr
       attrByPath
-      getAttrByPath
+      getAttrFromPath
       collect
       foldlAttrs
       ;
@@ -56,10 +58,18 @@
       mapAttrsRecursive
       mapAttrsToList
       removeAttrs
-      removeAttrByPath
       setAttrByPath
       ;
     inherit (trivial) functionArgs;
+  };
+
+  selection = {
+    inherit
+      (attrsets)
+      filterAttrs
+      filterAttrsRecursive
+      removeAttrs
+      ;
   };
 
   aggregation = {

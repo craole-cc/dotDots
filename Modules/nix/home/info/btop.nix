@@ -1,9 +1,9 @@
 {config, lib, lix, top, ...}: let
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
   payload = {
 
       programs.btop = {
-        enable = config.${top}.inputs.applications.utilities.btop.enable;
+        enable = config.${top}.resolved.applications.utilities.btop.enable;
       };
   };
 in {

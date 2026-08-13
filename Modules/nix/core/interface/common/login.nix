@@ -7,7 +7,7 @@
   ...
 }: let
   dom = "interface";
-  cfg = config.${top}.inputs.${dom};
+  cfg = config.${top}.resolved.${dom};
 
   inherit (lib.options) literalExpression mkOption;
   inherit (lib.types) bool nullOr str;
@@ -29,9 +29,9 @@
       ;
   };
   payload = mkServices sessionArgs;
-  inherit (lix.modules.core._) mkStaged;
+  inherit (lix.modules.core.staging) mkStaged;
 in {
-  options.${top}.inputs.${dom} = {
+  options.${top}.resolved.${dom} = {
     autoLogin = mkOption {
       description = "Whether to enable automatic login for the primary user.";
       default = user.autoLogin or false;
