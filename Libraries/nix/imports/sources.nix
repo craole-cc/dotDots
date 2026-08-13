@@ -8,7 +8,7 @@
     flattened = {} // access // predicates // transformation // {};
   };
 
-  inherit (lib) sources;
+  inherit (lib) attrsets meta sources strings;
 
   access = {
     inherit
@@ -20,6 +20,9 @@
       trace
       urlToName
       ;
+    inherit (meta) getExe getExe';
+    inherit (attrsets) getBin;
+    inherit (builtins) getEnv;
   };
 
   predicates = {
@@ -36,6 +39,7 @@
       sourceByRegex
       sourceFilesBySuffices
       ;
+    inherit (strings) makeBinPath;
   };
 in
   if flatten

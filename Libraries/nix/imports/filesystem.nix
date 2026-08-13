@@ -39,7 +39,10 @@
     inherit (path) subpath;
   };
 
-  transformation = {inherit (path) append removePrefix;};
+  transformation = {
+    inherit (path) append removePrefix;
+    inherit (strings) makeBinPath;
+  };
 
   predicates = {
     inherit (filesystem) isPath pathIsDirectory pathIsRegularFile;

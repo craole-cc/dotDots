@@ -163,7 +163,7 @@
 
     #> Display shell information with the defined fetcher
     if is_cmd dots-fetch; then
-      dots-fetch
+      finf
     elif is_cmd ${fetcher}; then
       ${fetcher}
     else :; fi

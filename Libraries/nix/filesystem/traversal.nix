@@ -1,0 +1,404 @@
+{_, ...}: let
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.construction) listToAttrs;
+  inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs;
+  inherit (_.debug.assertions) withContext;
+  inherit (_.lists.construction) toList;
+  inherit (_.filesystem.meta) listNixModules;
+  inherit (_.filesystem.resolution) mkPath;
+  inherit (_.filesystem.traversal) readDir;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.predicates) elem;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) flatten unique;
+  inherit (_.strings.access) substring stringLength;
+  inherit (_.strings.construction) concat;
+  inherit (_.strings.predicates) hasSuffix hasPrefix;
+  inherit (_.types.predicates) isAttrs isPath isString;
+
+  exports = {
+    inherit
+      importAll
+      importAllMerged
+      importAllNamed
+      importAllPaths
+      importAttrs
+      importRegistry
+      importNames
+      importNixModules
+      importValues
+      importWithArgs
+      ;
+  };
+
+  foldersToExclude = [
+    "archives"
+    "review"
+    "temp"
+    "tmp"
+  ];
+
+  # -- helpers
+
+  /**
+    Return the names of all regular `.nix` files (excluding `default.nix`)
+    in `entries` (the result of `readDir dir`).
+
+    # Type
+  ```nix
+    nixFilesIn :: AttrSet -> [string]
+  ```
+  */
+  nixFilesIn = entries:
+    filter
+    (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix")
+    (attrNames entries);
+
+  /**
+    Return the names of all subdirectories in `entries` that are not in
+    `foldersToExclude`.
+
+    # Type
+  ```nix
+    subDirsIn :: AttrSet -> [string]
+  ```
+  */
+  subDirsIn = entries:
+    filter
+    (name: entries.${name} == "directory" && !(elem name foldersToExclude))
+    (attrNames entries);
+
+  # -- importNixModules
+
+  /**
+    Import all `.nix` modules found by `meta.listNixModules`.
+
+    Delegates listing entirely to `meta` - no duplicate exclusion logic here.
+
+    # Type
+  ```nix
+    importNixModules :: path -> [any]
+  ```
+  */
+  importNixModules = path: map import (listNixModules path);
+
+  # -- importAttrs / importNames / importValues
+
+  /**
+    Import each immediate subdirectory of `dir` as a module, keyed by name.
+
+    If `dir/default.nix` exists, its declared attrset is recursively merged
+    underneath every imported entry.  The entry remains the override, so a
+    named record wins for keys it declares while inheriting unspecified keys
+    from the directory declaration.  An absent or empty directory declaration
+    leaves the historical import behavior unchanged.
+
+    Accepts either a bare path (`importAttrs ./shells`, the original call
+    shape - `exclude` defaults to `[]`) or an attrset (`importAttrs {path =
+    ./shells; exclude = ["core"];}`) when subdirectory names need to be
+    skipped, e.g. one already imported separately for bootstrapping.
+
+    # Type
+  ```nix
+    importAttrs :: path -> AttrSet
+    importAttrs :: { path :: path, exclude :: [string]? } -> AttrSet
+  ```
+  */
+  importAttrs = args: let
+    isAttrsArg = isAttrs args;
+
+    dir = assert withContext {
+      name = "importAttrs";
+      context = "resolving `path`";
+      assertion =
+        if isAttrsArg
+        then args ? path && isPath args.path
+        else isPath args;
+      message = "expected a path, or an attrset with a `path` value";
+    };
+      if isAttrsArg then args.path else args;
+
+    exclude =
+      if isAttrsArg
+      then args.exclude or []
+      else [];
+
+    entries = readDir dir;
+    dirNames = filter (name: entries.${name} == "directory" && !(elem name exclude)) (attrNames entries);
+    domainDefault =
+      if entries ? "default.nix"
+      then import (dir + "/default.nix")
+      else {};
+  in
+    listToAttrs (
+      map (name: {
+        inherit name;
+        value = recursiveUpdate domainDefault (import (dir + "/${name}"));
+      })
+      dirNames
+    );
+
+  /**
+    List the names of all immediate subdirectories of `dir`.
+
+    # Type
+  ```nix
+    importNames :: path -> [string]
+  ```
+  */
+  importNames = dir: attrNames (importAttrs dir);
+
+  /**
+    Import the values of all immediate subdirectories of `dir`.
+
+    # Type
+  ```nix
+    importValues :: path -> [any]
+  ```
+  */
+  importValues = dir: attrValues (importAttrs dir);
+
+  # -- importAll / importAllPaths
+
+  /**
+    Recursively traverse `dir`, collecting either imported values or paths for
+    all `.nix` files (except `default.nix`) and subdirectories.
+
+    Subdirectories with a `default.nix` are treated as a unit; others are
+    recursed into. Excluded folder names are pruned entirely.
+
+    `collect` determines what is produced per item:
+      - `import path` for `importAll`
+      - `path`        for `importAllPaths`
+
+    # Type
+  ```nix
+    traverseDir :: (path -> any) -> (path -> [any]) -> path -> [any]
+  ```
+  */
+  traverseDir = collect: recurse: dir: let
+    entries = readDir dir;
+
+    fileResults = map (name: collect (dir + "/${name}")) (nixFilesIn entries);
+
+    dirResults =
+      map (
+        name: let
+          subPath = dir + "/${name}";
+          subEntries = readDir subPath;
+          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+        in
+          if hasDefault
+          then collect (subPath + "/default.nix")
+          else recurse subPath
+      )
+      (subDirsIn entries);
+  in
+    fileResults ++ flatten dirResults;
+
+  /**
+    Recursively import all `.nix` files (except `default.nix`) and
+    subdirectories under `dir`.
+
+    Subdirectories that contain a `default.nix` are imported as a unit;
+    others are recursed into. Excluded folder names are pruned entirely.
+
+    # Type
+  ```nix
+    importAll :: path -> [any]
+  ```
+  */
+  importAll = traverseDir import importAll;
+
+  /**
+    Return paths of all `.nix` files (except `default.nix`) and
+    subdirectories with `default.nix` under `dir`, without importing them.
+
+    Prefer this over `importAll` when used in NixOS `imports` - paths give
+    better error traces and enable `disabledModules` to work correctly.
+
+    # Type
+  ```nix
+    importAllPaths :: path -> [path]
+  ```
+  */
+  importAllPaths = traverseDir (p: p) importAllPaths;
+
+  # -- importAllMerged
+
+  /**
+    Import all `.nix` files (except `default.nix`) in `dir` (non-recursive),
+    call each with `args`, and deep-merge the results into a single attrset.
+
+    # Type
+  ```nix
+    importAllMerged :: path -> AttrSet -> AttrSet
+  ```
+  */
+  importAllMerged = dir: args: let
+    entries = readDir dir;
+  in
+    foldl' (acc: mod: acc // mod) {} (map (name: import (dir + "/${name}") args) (nixFilesIn entries));
+
+  # -- importAllNamed
+
+  /**
+    Recursively import `dir`, keyed by name, with configurable exclusions.
+
+    At each level:
+      - sibling `.nix` files are imported and called with `args`, keyed by
+        filename with the `.nix` suffix stripped;
+      - a subdirectory containing `default.nix` is treated as a unit: only
+        its `default.nix` is imported (called with `args`), keyed by the
+        subdirectory's name - the subdirectory is not otherwise descended
+        into;
+      - a subdirectory without `default.nix` is recursed into, and its
+        results are merged in directly (not nested under the subdir name).
+
+    `default.nix` is always excluded as a sibling file (it is only ever
+    picked up via the subdirectory rule above). `exclude` is an additional
+    list of exact filenames to skip at every level - e.g. `["fmt.nix"]`, or
+    the current file's own name so a module doesn't re-import itself. Any
+    file or directory whose name starts with `"archive"` or `"review"` is
+    always skipped, in addition to `foldersToExclude` for directories.
+
+    # Type
+  ```nix
+    importAllNamed :: path -> AttrSet -> [string] -> AttrSet
+  ```
+  */
+  importAllNamed = dir: args: exclude: let
+    isExcluded = name:
+      (elem name exclude)
+      || (hasPrefix "archive" name)
+      || (hasPrefix "review" name);
+
+    go = dir: let
+      entries = readDir dir;
+
+      fileNames =
+        filter
+        (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix" && !(isExcluded name))
+        (attrNames entries);
+
+      fileResults = listToAttrs (
+        map (name: {
+          name = substring 0 (stringLength name - 4) name;
+          value = import (dir + "/${name}") args;
+        })
+        fileNames
+      );
+
+      dirNames =
+        filter
+        (name: entries.${name} == "directory" && !(elem name foldersToExclude) && !(isExcluded name))
+        (attrNames entries);
+
+      dirResults =
+        map (
+          name: let
+            subPath = dir + "/${name}";
+            subEntries = readDir subPath;
+            hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+          in
+            if hasDefault
+            then {${name} = import (subPath + "/default.nix") args;}
+            else go subPath
+        )
+        dirNames;
+    in
+      foldl' (acc: sub: acc // sub) fileResults dirResults;
+  in
+    go dir;
+
+  importRegistry = value: let
+    args =
+      if isPath value || isString value
+      then {root = value;}
+      else if isAttrs value
+      then value
+      else
+        assert withContext {
+          name = "importRegistry";
+          context = "validating importRegistry value";
+          assertion = false;
+          message = "expected `value` to be a path, string, or attrset";
+        }; null;
+
+    root = assert withContext {
+      name = "importRegistry";
+      context = concat " " ["resolving" "registry" "root"];
+      assertion = args ? root && (isPath args.root || isString args.root);
+      message = "expected `root` to be a path or string";
+    };
+      args.root;
+
+    stems = args.stems or ["data"];
+    recursive = args.recursive or true;
+    extraArgs = args.extraArgs or (args.args or {});
+
+    path = mkPath {inherit root stems;};
+    entries = readDir path;
+
+    stemOf = name: substring 0 (stringLength name - 4) name;
+
+    direct = listToAttrs (
+      map (name: let
+        stem = stemOf name;
+      in {
+        name = stem;
+        value = let
+          raw = importWithArgs {
+            path = path + "/${name}";
+            args = extraArgs;
+          };
+        in
+          mapAttrs (_: entry:
+            entry
+            // {
+              categories = unique ((toList (entry.categories or [])) ++ [stem]);
+            })
+          raw;
+      })
+      (nixFilesIn entries)
+    );
+  in
+    if recursive
+    then
+      direct
+      // foldl'
+      (acc: name:
+        acc
+        // importRegistry {
+          inherit root recursive extraArgs;
+          stems = stems ++ [name];
+        })
+      {}
+      (subDirsIn entries)
+    else direct;
+
+  # -- importWithArgs
+
+  /**
+    Import the file at `path` and call it with only the subset of `args`
+    that the module actually declares as parameters.
+
+    Avoids "unexpected argument" errors when passing a broad args attrset
+    to a module that only needs a few keys.
+
+    # Type
+  ```nix
+    importWithArgs :: { path :: path, args :: AttrSet? } -> any
+  ```
+  */
+  importWithArgs = {
+    path,
+    args ? {},
+  }: let
+    required = attrNames (functionArgs (import path));
+    filtered = filterAttrs (name: _: elem name required) args;
+  in
+    import path filtered;
+in
+  exports // {__rootAliases = exports;}

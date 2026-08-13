@@ -35,6 +35,7 @@
       getAttrFromPath
       collect
       foldlAttrs
+      getBin
       ;
   };
 
