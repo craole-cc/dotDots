@@ -60,7 +60,7 @@
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
         BAR = config.${top}.resolved.interface.panel or bar.primary;
-        BROWSER = browser.primary;
+        BROWSER = lib.mkDefault browser.primary;
         DOTS = dots;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;
