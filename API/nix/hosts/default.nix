@@ -1,22 +1,28 @@
 {
   imports = [];
-  description = null;
-  stateVersion = null;
+  description = "Default nixos host configuration";
+  stateVersion = "26.05";
   system = "x86_64-linux";
   class = "nixos";
   id = null;
 
   paths = {
-    dots = null;
+    dots = "/etc/nixos";
   };
 
   packages = {
-    unstable = false;
-    allowUnfree = false;
-    kernel = null;
+    unstable = true;
+    allowUnfree = true;
+    kernel = "linuxPackages_cachyos-lto";
   };
 
-  caches = {};
+  caches = {
+    nyx = {
+      sub = "https://geo-mirror.chaotic.cx/";
+      key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
+    };
+  };
+
   specs = {
     machine = null;
     cpu = {};
@@ -36,9 +42,7 @@
   localization = {};
   functionalities = [];
   access = {};
-  network = {
-    backend = "networkmanager";
-  };
+  network.backend = "networkmanager";
   principals = [];
   interface = {};
   capabilities = {};
