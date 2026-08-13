@@ -112,8 +112,8 @@
     };
 
     compositors = {
-      desktop = appEnums.interface.compositors.all;
-      window = appEnums.interface.compositors.all;
+      desktop = appEnums.interface.environments.queries.forDesktop;
+      window = appEnums.interface.environments.queries.forCompositor;
     };
   };
 
