@@ -1,1 +1,1 @@
-
+#shellcheck enable=all

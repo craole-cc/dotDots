@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 set -eu
 
 has_cmd() {

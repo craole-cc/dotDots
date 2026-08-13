@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 echo here
 # manage_env --init --var DOTS_CFG_BASH --val "${DOTS_CFG:?}/bash"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck enable=all
 
 for monitor in $(bspc query -M --names); do
 	monitors+=("$monitor")

@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 #{ Determine shell and set history file }
 SHELL_TYPE="$(

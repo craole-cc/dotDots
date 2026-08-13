@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 
 # Terminate already running bar instances
 pkill -q polybar

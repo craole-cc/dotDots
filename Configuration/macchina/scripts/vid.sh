@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck enable=all
 
 # Will only work on macchina v0.7.3 or higher
 # This script will download and run a video from youtube / any site supported by youtube-dl

@@ -1,6 +1,8 @@
 #!/bin/sh
 #shellcheck enable=all
 
+#> Action comments start with #>.
+#? Query/conditional comments start with #?.
 main() {
 	set_defaults
 	pout pop --code 2 --debug felony

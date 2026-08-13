@@ -3,7 +3,7 @@
 #DOC Formatters: leptosfmt → rustfmt (if leptosfmt available), rustfmt alone otherwise
 #DOC Intended for use as a treefmt formatter; treefmt passes individual files.
 #DOC When run standalone with no arguments, discovers files from the project root.
-# shellcheck enable=all
+#shellcheck enable=all
 
 set -eu
 

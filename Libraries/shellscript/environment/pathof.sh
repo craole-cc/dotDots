@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 #TODO: Review output options and ensure file creation is POSIX-compliant
 # shellcheck disable=2030,2031
 

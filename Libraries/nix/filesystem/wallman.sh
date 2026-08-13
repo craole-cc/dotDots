@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 # Wallpaper Manager - Unified script for wallpaper classification and management
 # Usage: wallman.sh <command> [options]
 

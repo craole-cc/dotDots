@@ -28,6 +28,7 @@
     bars
     ;
   inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.modules.construction) mkDefault;
 
   mkEnvironment = {
     host,
@@ -174,7 +175,7 @@
 
           EDITOR = editor.commands.editor;
           VISUAL = editor.commands.visual;
-          BROWSER = browser.commands.primary;
+          BROWSER = mkDefault browser.commands.primary;
           TERMINAL = terminal.commands.primary;
           LAUNCHER = launcher.commands.primary;
           BAR = bar.commands.primary;

@@ -1,4 +1,5 @@
 #!/bin/bash
+#shellcheck enable=all
 
 LOC="$1"
 # HTML encode string as %20

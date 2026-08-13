@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck enable=all
 
 mod=mod1 # Use alt as the main modifier
 #mod=mod4   # Use the super key as the main modifier

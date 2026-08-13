@@ -1,4 +1,5 @@
 #! /bin/sh
+#shellcheck enable=all
 
 #|->  User Directories
 case "${SYS_TYPE:-}" in

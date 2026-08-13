@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 scr_PATH="$(pathof "$0")"
 scr_NAME="$(basename "$scr_PATH")"
 scr_DIR="$(dirname "$scr_PATH")"

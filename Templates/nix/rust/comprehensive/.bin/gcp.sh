@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 
 require_cmd() {
 	cmd="$(command -v "$1" 2>/dev/null || true)"

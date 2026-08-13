@@ -1,4 +1,5 @@
 #!/bin/bash
+#shellcheck enable=all
 #simple Shellscript for waybar/i3blocks/polybar on Pinebook pro
 #05012020 geri123@gmx.net Gerhard S.
 

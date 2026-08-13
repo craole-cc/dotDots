@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 #~@ Universal Zen Browser Launcher
 #? Opens zen-twilight if available, zen-beta if not, falls back to $BROWSER
 

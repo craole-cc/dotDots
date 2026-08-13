@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 # force=1
 #╔═══════════════════════════════════════════════════════════╗
 #║ Color Output                                              ║

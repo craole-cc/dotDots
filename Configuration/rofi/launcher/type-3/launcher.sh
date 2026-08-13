@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck enable=all
 
 ## Author : Aditya Shakya (adi1090x)
 ## Github : @adi1090x

@@ -4,7 +4,7 @@
 #
 # By default, skips initialization if the database already exists.
 # Pass -f / --force / --reset to nuke and recreate it.
-# shellcheck enable=all
+#shellcheck enable=all
 
 set -e
 

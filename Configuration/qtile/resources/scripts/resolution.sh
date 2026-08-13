@@ -1,4 +1,5 @@
 #!/bin/bash
+#shellcheck enable=all
 
 #use xrandr and arandr to know the
 #possible resolutions, frequency

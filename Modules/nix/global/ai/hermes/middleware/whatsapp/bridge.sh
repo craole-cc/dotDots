@@ -1,3 +1,4 @@
+#shellcheck enable=all
 bridge_src="$HERMES_WHATSAPP_BRIDGE_SRC"
 bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge}"
 bridge_script="$bridge_dir/bridge.js"

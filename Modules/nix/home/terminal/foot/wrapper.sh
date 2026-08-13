@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
+#shellcheck enable=all
 #~@ Feet - Smart Foot Terminal Wrapper
 #? POSIX-compliant theme detection and terminal launcher
 #? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh

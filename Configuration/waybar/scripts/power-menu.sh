@@ -1,4 +1,5 @@
 #!/bin/bash
+#shellcheck enable=all
 
 entries="Logout Suspend Reboot Shutdown"
 

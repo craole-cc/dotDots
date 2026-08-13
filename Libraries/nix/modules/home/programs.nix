@@ -116,7 +116,7 @@
         secondary = "ghostty";
       };
       browser = {
-        primary = "zen-twilight";
+        primary = "zen";
         secondary = "chromium";
       };
       editor = {
