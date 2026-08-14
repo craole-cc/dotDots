@@ -163,22 +163,16 @@
     else global.names.top or (names.top or "_");
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
-in
-  (
-    if flake != null
-    then {inherit flake;}
-    else {}
-  )
-  // {
-    inherit
-      top
-      global
-      cfg
-      lix
-      paths
-      tree
-      schema
-      hosts
-      users
-      ;
-  }
+in {
+  inherit
+    top
+    global
+    cfg
+    lix
+    paths
+    tree
+    schema
+    hosts
+    users
+    ;
+}

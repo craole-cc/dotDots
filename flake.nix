@@ -3,12 +3,10 @@
 
   outputs = inputs @ {self, ...}: let
     flake = self;
-    args = let
-      default = import ./. {inherit flake lib;};
-      src = mkAll {inherit flake;};
-    in
-      default // src;
-    inherit (args) lix tree;
+    src = import ./. {inherit flake lib;};
+    args = src // (mkAll {inherit flake;});
+
+    inherit (src) lix tree;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (lix.modules.construction) mkFlake mkSystems;
     inherit (lix.sources.packages) mkAll;
