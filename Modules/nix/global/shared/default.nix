@@ -2,19 +2,12 @@
   pkgs,
   lix,
   inputs,
+  cfg,
   ...
 }: let
-  cfg = {
-    name = "dotDots";
-    version = "2.0.0";
-    cache = ".cache";
-    prefix = ".";
-    allowAI = true;
-  };
-
   packages = import ./packages.nix {inherit lix pkgs inputs;};
   formatting = import ./fmt.nix {inherit lix pkgs;} // packages;
 in
-  cfg
+  {inherit pkgs lix inputs cfg;}
   // packages
   // formatting

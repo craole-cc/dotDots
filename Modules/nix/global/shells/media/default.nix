@@ -1,5 +1,4 @@
-{dots}: let
-  inherit (dots) pkgs;
+{pkgs, ...}: let
   description = "🎬 Media Development Shell";
   packages = with pkgs; [
     mpv # ? Media player
@@ -23,6 +22,4 @@
 
       EOF
   '';
-in {
-  inherit description packages shellHook;
-}
+in {inherit description packages shellHook;}
