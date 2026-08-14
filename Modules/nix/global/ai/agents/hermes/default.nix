@@ -1,8 +1,10 @@
 args: {
   packages =
-    (args.pkgsFor {
+    removeAttrs
+    ((args.pkgsFor {
       sources = {
         hermes-agent = "llm-agents";
       };
-    }).packages;
+    }).packages)
+    ["hermes-desktop"];
 }

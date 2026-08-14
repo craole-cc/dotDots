@@ -3,10 +3,11 @@ args: let
   inherit
     (args)
     cfg
+    formatters
     lix
     system
     pkgs
-    formatters
+    pkgsFor
     ;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
@@ -239,18 +240,19 @@ args: let
     ])
     # ++ (optionals cfg.allowAI (
     #   [ollama-cpu]
-    #   ++ (
-    #     pkgsFor {
-    #       sources = {
-    #         codex = "llm-agents";
-    #         #gemini-cli = "llm-agents";
-    #         hermes-agent = "llm-agents";
-    #         openclaw = "llm-agents";
-    #         opencode = "llm-agents";
-    #         #claude-code = "llm-agents";
-    #       };
-    #     }
-    #   ).packages
+    ++ (removeAttrs
+      (
+        pkgsFor {
+          sources = {
+            # codex = "llm-agents";
+            #gemini-cli = "llm-agents";
+            hermes-agent = "llm-agents";
+            # openclaw = "llm-agents";
+            opencode = "llm-agents";
+            #claude-code = "llm-agents";
+          };
+        }
+      ).packages ["hermes-desktop"])
     # ))
     ++ formatters
     ++ (attrValues applications);
