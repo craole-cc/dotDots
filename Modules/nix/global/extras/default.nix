@@ -8,13 +8,16 @@ args: let
     system
     pkgs
     pkgsFor
+    inputs
     ;
   inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.selection) filterAttrs;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.selection) filter;
   inherit (lix.lists.construction) genList;
   inherit (lix.strings.access) stringLength;
+  inherit (lix.strings.predicates) hasPrefix;
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
 
@@ -238,14 +241,12 @@ args: let
       yazi # ? Terminal file manager
       zoxide # ? Smart cd replacement
     ])
-    # ++ (optionals cfg.allowAI (
-    #   [ollama-cpu]
     ++ (pkgsFor {
       sources = {
         hermes-agent = "llm-agents";
         opencode = "llm-agents";
       };
-      exclude = ["hermes-desktop"];
+      # exclude = ["hermes-desktop"];
     }).packages
     ++ formatters
     ++ (attrValues applications);

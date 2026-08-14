@@ -46,6 +46,7 @@
         config.allowUnfree = true;
       };
       lib = pkgs.lib;
+      inherit (pkgs.stdenv.hostPlatform) isLinux;
       inherit (lib.attrsets) hasAttr;
       inherit (lib.lists) optionals;
       inherit (lib.strings) concatStringsSep;
@@ -187,7 +188,7 @@
             tree
             watchexec
           ]
-          ++ optionals stdenv.isLinux [wl-clipboard];
+          ++ optionals isLinux [wl-clipboard];
 
         secrets = with pkgs; [
           age

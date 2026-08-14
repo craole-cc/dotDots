@@ -14,7 +14,7 @@
 
   user = host.users.data.primary or {};
   apps = user.applications or {};
-  inherit (pkgs.stdenv.hostPlatform) system;
+  inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
 
   inherit (config.${top}.resolved.interface) displayProtocol;
   inherit (lib.modules) mkIf;
@@ -57,8 +57,8 @@
     };
 
     wayland = optionals (displayProtocol == "wayland") (with pkgs; []);
-    linux = optionals (pkgs.stdenv.isLinux) (with pkgs; [wl-clipboard xsel]);
-    darwin = optionals (pkgs.stdenv.isDarwin) (with pkgs; []);
+    linux = optionals isLinux (with pkgs; [wl-clipboard xsel]);
+    darwin = optionals isDarwin (with pkgs; []);
 
     default = with pkgs; [
       #~@ Nix
@@ -132,7 +132,7 @@
     common = editor ++ browser ++ terminal ++ launcher ++ bar;
     system = wayland ++ linux ++ darwin;
     all = default ++ common ++ system;
-in {
+  in {
     inherit
       editor
       browser

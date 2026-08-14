@@ -43,7 +43,7 @@ in {
     }
     // optionalAttrs configuration.enable (
       let
-        inherit (pkgs.stdenv) isLinux isDarwin;
+        inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
         packages = let
           common = with pkgs;
             {

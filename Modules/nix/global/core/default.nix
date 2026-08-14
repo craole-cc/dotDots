@@ -2,7 +2,7 @@ args: let
   inherit (args) cfg lix pkgs;
   inherit (lix.lists.construction) optionals;
   inherit (pkgs) writeShellScriptBin writeShellApplication;
-  inherit (pkgs.stdenv.hostPlatform) system;
+  inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
 
   _name = cfg.name;
   description = "${_name} Dev Environment";
@@ -90,12 +90,12 @@ args: let
           sops # ? Secrets OPerationS, for managing secrets
           undollar # ? Remove leading dollar signs age
         ]
-        ++ optionals stdenv.isLinux [
+        ++ optionals isLinux [
           xclip #? Command line interface to the X11 clipboard
           wl-clipboard #? Command line interface to the Wayland clipboard
           xsel #? Command line interface to the X11 selection buffer
         ]
-        ++ optionals stdenv.isDarwin [
+        ++ optionals isDarwin [
           pbcopy #? Command line interface to the macOS clipboard
           pbpaste #? Command line interface to the macOS clipboard
         ]
