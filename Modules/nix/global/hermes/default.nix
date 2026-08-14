@@ -17,7 +17,7 @@ args: let
   agentPackages =
     (pkgsFor {
       sources = {
-        openclaw = "llm-agents";
+        hermes-agent = "llm-agents";
         opencode = "llm-agents";
       };
     }).packages;
