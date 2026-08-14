@@ -9,6 +9,13 @@
     top = "_";
     lib = "lix";
   },
+  cfg ? {
+    name = "dotDots";
+    version = "2.0.0";
+    cache = ".cache";
+    prefix = ".";
+    allowAI = true;
+  },
   topOverride ? null,
 }: let
   libraries = import paths.libraries {
@@ -156,14 +163,22 @@
     else global.names.top or (names.top or "_");
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
-in {
-  inherit top global;
-  inherit
-    lix
-    paths
-    tree
-    schema
-    hosts
-    users
-    ;
-}
+in
+  (
+    if flake != null
+    then {inherit flake;}
+    else {}
+  )
+  // {
+    inherit
+      top
+      global
+      cfg
+      lix
+      paths
+      tree
+      schema
+      hosts
+      users
+      ;
+  }

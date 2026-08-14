@@ -1,10 +1,5 @@
-{
-  lix,
-  paths,
-  pkgFor,
-  pkgs,
-  ...
-}: let
+args: let
+  inherit (args) lix paths pkgFor pkgs;
   inherit (paths) src;
   inherit (pkgs) writeShellScriptBin runCommand;
   inherit (lix.sources.access) getExe;
@@ -40,7 +35,7 @@
 in {
   inherit formatter;
   formatters = buildInputs ++ [formatter];
-  checks.formatting = runCommand "check-formatting" {inherit buildInputs;} ''
+  checks.formatting = runCommand "lint" {inherit buildInputs;} ''
     sh ${./fmt.sh} ${src} ${getExe formatter} "$out"
   '';
 }

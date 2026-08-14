@@ -1,45 +1,30 @@
-{
-  inputs,
-  lix,
-  paths,
-  pkgs,
-  ...
-}: let
+args: let
+  inherit (args) lix pkgs;
   inherit (lix.filesystem.traversal) importAllNamed;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (pkgs) mkShell;
+  shared = import ./shared args;
 
-  args = import ./shared {
-    inherit inputs lix paths pkgs;
-    cfg = {
-      name = "dotDots";
-      version = "2.0.0";
-      cache = ".cache";
-      prefix = ".";
-      allowAI = true;
-    };
-  };
+  #> Build the final derivations
+  shells =
+    mapAttrs (
+      name: cfg:
+        mkShell {
+          name = "${args.cfg.name}-${name}";
+          env = cfg.env or {};
+          shellHook = cfg.shellHook or "";
+          packages = cfg.packages or [];
+        }
+    )
+    #> Every folder directly under this directory with a default.nix,
+    #> except `shared` (formatters/packages, not a shell), keyed by
+    #> folder name, each called with only the args it declares
+    (importAllNamed {
+      args = args // shared;
+      dir = ./.;
+      exclude = ["shared"];
+    });
 in {
-  inherit (args) formatter checks;
-  devShells = let
-    #> Build the final derivations
-    shells =
-      mapAttrs (
-        name: cfg:
-          mkShell {
-            name = "${args.cfg.name}-${name}";
-            env = cfg.env or {};
-            shellHook = cfg.shellHook or "";
-            packages = cfg.packages or [];
-          }
-      )
-      #> Import every subdirectory under ./shells (core, ai, media, ...)
-      #> that has a default.nix, keyed by folder name, each called with only
-      #> the subset of `args` it declares as parameters
-      (importAllNamed {
-        inherit args;
-        dir = ./shells;
-      });
-  in
-    shells // {default = shells.core;};
+  inherit (shared) formatter checks;
+  devShells = shells // {default = shells.core;};
 }

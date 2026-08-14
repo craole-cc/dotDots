@@ -1,9 +1,5 @@
-{
-  lix,
-  pkgs,
-  inputs,
-  ...
-}: let
+args: let
+  inherit (args) cfg inputs lix pkgs;
   inherit (pkgs) writeShellScriptBin writeShellApplication;
   inherit (lix.lists.construction) optionals;
   inherit (lix.sources.packages) pkgOf pkgsFrom;
@@ -27,7 +23,7 @@
         command -v "$@" >/dev/null 2>&1
       '')
       (writeShellApplication {
-        name = "finf";
+        name = "${cfg.name}-fetch";
         runtimeInputs = with pkgs; [
           fastfetch
           nitch

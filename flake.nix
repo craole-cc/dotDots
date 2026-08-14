@@ -3,42 +3,30 @@
 
   outputs = inputs @ {self, ...}: let
     flake = self;
-    inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import ./. {inherit flake lib;}) lix tree schema top paths global;
-    inherit (lix.modules.construction) mkFlake mkSystems;
-    # inherit (lix.attrsets.resolution) mkPkgs;
-    inherit (lix.sources.packages) mkAll;
-
     args = let
+      default = import ./. {inherit flake lib;};
       src = mkAll {inherit flake;};
-    in {
-      inherit flake lix top global src;
-      inherit (src) inputs;
-    };
-
-    resolved = mkFlake {
+    in
+      default // src;
+    inherit (args) lix tree;
+    inherit (inputs.nixPackages) lib legacyPackages;
+    inherit (lix.modules.construction) mkFlake mkSystems;
+    inherit (lix.sources.packages) mkAll;
+  in
+    {
+      nixosConfigurations = mkSystems args;
+      templates = import tree.store.kit.nix;
+    }
+    // (mkFlake {
       inherit legacyPackages;
       fn = {
         system,
         pkgs,
       }:
-        import tree.store.mod.global {
-          inherit lix pkgs system paths;
-          inherit (lix) lib;
-          inherit (args) inputs;
-        };
-    };
-  in {
-    inherit args;
-    inherit (resolved) devShells formatter checks;
-    nixosConfigurations = mkSystems {
-      inherit schema tree;
-      inherit (args) inputs;
-      extraArgs = args;
-    };
-
-    templates = import tree.store.kit.nix;
-  };
+        import tree.store.mod.global (
+          args // {inherit pkgs system;}
+        );
+    });
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
