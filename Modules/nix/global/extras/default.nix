@@ -240,20 +240,13 @@ args: let
     ])
     # ++ (optionals cfg.allowAI (
     #   [ollama-cpu]
-    ++ (removeAttrs
-      (
-        pkgsFor {
-          sources = {
-            # codex = "llm-agents";
-            #gemini-cli = "llm-agents";
-            hermes-agent = "llm-agents";
-            # openclaw = "llm-agents";
-            opencode = "llm-agents";
-            #claude-code = "llm-agents";
-          };
-        }
-      ).packages ["hermes-desktop"])
-    # ))
+    ++ (pkgsFor {
+      sources = {
+        hermes-agent = "llm-agents";
+        opencode = "llm-agents";
+      };
+      exclude = ["hermes-desktop"];
+    }).packages
     ++ formatters
     ++ (attrValues applications);
 

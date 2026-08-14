@@ -54,6 +54,7 @@
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals;
   inherit (_.lists.selection) filter;
+  inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasSuffix;
@@ -404,6 +405,7 @@
     pkgs ? null,
     system ? null,
     required ? false,
+    exclude ? [],
   }: let
     raw =
       mapAttrs
@@ -415,14 +417,17 @@
         ))
       sources;
 
-    # Filter out missing packages if required = false
     filtered = filterAttrs (_: pkg: pkg != null) raw;
 
     names = attrNames filtered;
     values = attrValues filtered;
 
     # The list of actual Nix derivations (ready for buildInputs, etc.)
-    packages = map (pkg: pkg.value) values;
+    # packages = map (pkg: pkg.value) values;
+    packages =
+      filter
+      (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
+      (map (pkg: pkg.value) values);
   in
     filtered // {inherit names values packages;};
 
