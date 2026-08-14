@@ -14,6 +14,9 @@ args: let
     dir = ./.;
     exclude = ["shared"];
   };
+  base = {
+    packages = shells.core.packages or [];
+  };
 
   #> Build the final derivations. Every shell's packages extend core's -
   #> core itself is untouched (its own packages already ARE corePackages).
@@ -26,8 +29,13 @@ args: let
           env = cfg.env or {};
           shellHook = cfg.shellHook or "";
           packages =
-            shells.core.packages or []
-            ++ optionals (name != "core") (cfg.packages or []);
+            cfg.packages or []
+            ++ (
+              optionals
+              ((name == "extras") || (name == "hermes"))
+              base.packages
+            )
+            ++ [];
         }
     )
     shells;

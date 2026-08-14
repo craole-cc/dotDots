@@ -14,14 +14,6 @@ args: let
     ;
   nodejs = nodejs_22;
 
-  agentPackages =
-    (pkgsFor {
-      sources = {
-        hermes-agent = "llm-agents";
-        opencode = "llm-agents";
-      };
-    }).packages;
-
   /**
   Shared configuration
   */
@@ -166,12 +158,21 @@ args: let
       fi
     '';
   };
+  AIR_PORT = "20128";
+  AIR_BASE_URL = "http://localhost:${AIR_PORT}/v1";
 in {
-  packages = [gateway start daemon stop status tmux gum nodejs lsof procps curl] ++ agentPackages;
+  packages =
+    [gateway start daemon stop status tmux gum nodejs lsof procps curl]
+    ++ (pkgsFor {
+      sources = {
+        hermes-agent = "llm-agents";
+        opencode = "llm-agents";
+        # opencode-desktop = "llm-agents";
+      };
+    }).packages;
 
   env = {
-    AIR_PORT = "20128";
-    AIR_BASE_URL = "http://localhost:20128/v1";
+    inherit AIR_PORT AIR_BASE_URL;
   };
 
   shellHook = ''
