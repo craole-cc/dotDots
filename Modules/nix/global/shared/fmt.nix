@@ -5,7 +5,10 @@ args: let
   inherit (lix.sources.access) getExe;
   inherit (lix.sources.transformation) makeBinPath;
 
-  treefmt = {inherit (pkgFor {input = "treefmt-nix";}) pkg exe;};
+  treefmt = pkgFor {
+    input = "treefmt-nix";
+    target = "treefmt";
+  };
 
   buildInputs =
     [treefmt.pkg]

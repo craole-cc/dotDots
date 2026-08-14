@@ -51,9 +51,13 @@
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystemOrDefault;
-  inherit (_.lists.aggregation) concatMap;
+  inherit (_.lists.aggregation) concatMap foldl';
+  inherit (_.lists.construction) optionals;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
+  inherit (_.strings.construction) concat;
+  inherit (_.strings.predicates) hasSuffix;
+  inherit (_.strings.transformation) removeSuffix;
   inherit (_.sources.access) getBin getExe getExe';
   inherit (_.sources.inputs) normalize mkSource;
   inherit (_.sources.overlays) mkOverlays;
@@ -126,32 +130,95 @@
   # -- pkgOf
 
   /**
-  Resolve a single package by name, trying `input`'s package set first,
-  then falling back to `pkgs`.
+    Resolve a single package by name, trying `input`'s flake package set
+    first, then `pkgs`.
 
-  Either `pkgs` or `system` must resolve to a real value: if `pkgs` is
-  given, `system` defaults to `pkgs.stdenv.hostPlatform.system`; otherwise
-  `system` must be supplied explicitly. Throws if neither is available.
+    Either `pkgs` or `system` must resolve to a real value: if `pkgs` is
+    given, `system` defaults to `pkgs.stdenv.hostPlatform.system`; otherwise
+    `system` must be supplied explicitly. Throws if neither is available.
 
-  When `required` is true, throws if the package is found in neither
-  source. Otherwise returns `null` on a miss.
+    Candidate names are tried against both sources, in order:
+    1. the explicit `target`, if given;
+    2. `"default"` (the flake's own default package output);
+    3. best-effort suffix-stripped variants of `input` (e.g.
+      `"treefmt-nix"` -> `"treefmt"`, via the `-nix`/`.nix`/`-flake`
+      suffixes), since an input's name and its package's attribute name
+      frequently differ and can't be inferred with certainty - a hit here
+      is a guess, not a guarantee, so double-check the resolved package
+      if `target` was left unset and the result looks unexpected.
 
-  # Type
+    The returned `name` reflects whichever candidate actually resolved
+    (e.g. `"treefmt"`, not the `input` string `"treefmt-nix"`), not
+    necessarily `target` itself.
+
+    Pass `target` explicitly whenever the package's real attribute name is
+    known and doesn't match `input` or `"default"` - this both guarantees
+    the correct package and skips the guesswork.
+
+    When `required` is true, throws if no candidate resolves in either
+    source, listing every name that was tried. Otherwise returns `null` on
+    a full miss.
+
+    # Inputs
+    `inputs`
+    : the flake's own `inputs` attrset, used to resolve `input`'s flake
+      outputs
+
+    `input`
+    : name of the flake input to look up the package under, e.g.
+      `"treefmt-nix"`
+
+    `target`
+    : explicit attribute name to resolve, tried before `"default"` and the
+      suffix-stripped guesses; default `null` (skip straight to guessing)
+
+    `exe`
+    : optional binary name within the resolved package to expose as `.exe`
+      via `getExe'`; when omitted, `.exe` is `getExe value` (the package's
+      own main binary)
+
+    `pkgs`
+    : an already-instantiated `pkgs` to fall back to and to derive `system`
+      from; default `null` (falls back to importing `inputs.nixpkgs`
+      directly using `system`)
+
+    `system`
+    : target system string, default `pkgs.stdenv.hostPlatform.system` when
+      `pkgs` is given, otherwise must be supplied
+
+    `required`
+    : whether a full miss throws (`true`) or returns `null` (`false`),
+      default `false`
+
+    # Type
+    > pkgOf :: { inputs :: AttrSet, input :: string, target :: string?, exe :: string?, pkgs :: AttrSet?, system :: string?, required :: bool? } -> { name :: string, value :: derivation, pkg :: derivation, exe :: string, paths :: { bin :: path, store :: path } } | null
+
+    # Examples
+    - pkgOf { inherit inputs pkgs; input = "treefmt-nix"; target = "treefmt"; }
+
   ```nix
-  pkgOf :: {
-    inputs :: AttrSet,
-    input :: string,
-    name :: string,
-    pkgs :: AttrSet?,
-    system :: string?,
-    required :: bool?
-  } -> Derivation | null
+    { name = "treefmt"; value = «derivation treefmt-2.x.x»; pkg = «derivation treefmt-2.x.x»; exe = "/nix/store/.../bin/treefmt"; paths = {...}; }
+  ```
+
+    - pkgOf { inherit inputs pkgs; input = "treefmt-nix"; }
+
+  ```nix
+    { name = "treefmt"; value = «derivation treefmt-2.x.x»; ... }
+  ```
+    (no `target` given - neither `"default"` nor `"treefmt-nix"` itself
+    matched, but the `-nix` suffix-strip guess `"treefmt"` did, and `name`
+    correctly reports that real match rather than the `input` string)
+
+    - pkgOf { inherit inputs pkgs; input = "not-a-real-input"; required = true; }
+
+  ```nix
+    error: Unable to locate a package for input 'not-a-real-input' - tried: default, not-a-real-input. Pass `target` explicitly to pkgFor/pkgOf.
   ```
   */
   pkgOf = {
     inputs,
     input,
-    name,
+    target ? null,
     exe ? null,
     pkgs ? null,
     system ?
@@ -161,14 +228,12 @@
     required ? false,
   }: let
     _name = "pkgOf";
-    _ctx = "package '${name}' from input '${input}' or pkgs.";
-
     resolved = {
-      inherit inputs input name pkgs;
+      inherit inputs input pkgs;
 
       system = assert withContext {
         name = _name;
-        context = "resolving system for ${_ctx}";
+        context = "resolving system for package from input '${input}' or pkgs";
         assertion = system != null;
         message = "either `pkgs` or `system` must be provided.";
       }; system;
@@ -186,25 +251,60 @@
       };
 
       package = let
-        value =
-          resolved.source.flakes.${name} or
-          (resolved.source.legacy.${name} or null);
+        #> Names to try, in order:
+        #> 1. the explicitly given `target`, if provided
+        #> 2. "default" (the flake's own default package output)
+        #> 3. best-effort suffix-stripped variants of `input`
+        #>    (e.g. "treefmt-nix" -> "treefmt"), since an input's name
+        #>    and its package's attribute name frequently differ and
+        #>    can't be inferred reliably - these are guesses, not
+        #>    guarantees, so a hit here should be spot-checked if the
+        #>    resolved package looks unexpected
+        suffixStripped = let
+          suffixes = ["-nix" ".nix" "-flake"];
+          strip = suffix:
+            if hasSuffix suffix input
+            then removeSuffix suffix input
+            else null;
+          stripped = filter (n: n != null) (map strip suffixes);
+        in
+          unique stripped;
+
+        candidateNames = unique (
+          (optionals (target != null) [target])
+          ++ ["default"]
+          ++ suffixStripped
+        );
+
+        lookup = candidates:
+          foldl'
+          (found: n:
+            if found != null
+            then found
+            else {
+              name = n;
+              value = resolved.source.flakes.${n} or (resolved.source.legacy.${n} or null);
+            })
+          null
+          candidates;
+
+        hit = lookup candidateNames;
 
         result =
-          if value == null
+          if hit == null || hit.value == null
           then null
           else {
-            inherit name value;
-            pkg = value;
+            inherit (hit) name value;
+            pkg = hit.value;
 
             exe =
               if exe != null
-              then getExe' value exe
-              else getExe value;
+              then getExe' hit.value exe
+              else getExe hit.value;
 
             paths = {
-              bin = "${getBin value}/bin";
-              store = value.outPath or "${value}";
+              bin = "${getBin hit.value}/bin";
+              store = hit.value.outPath or "${hit.value}";
             };
           };
       in
@@ -212,9 +312,11 @@
         then
           assert withContext {
             name = _name;
-            context = "Resolving ${_ctx}";
+            context = "resolving package from input '${input}' or pkgs";
             assertion = result != null;
-            message = "Unable to locate ${_ctx}.";
+            message = "Unable to locate a package for input '${input}' - tried: ${
+              concat ", " candidateNames
+            }. Pass `target` explicitly to pkgFor/pkgOf.";
           }; result
         else result;
     };
@@ -224,33 +326,77 @@
   # -- pkgsFrom
 
   /**
-  Resolve multiple named packages via `pkgOf`, one input per name.
+    Resolve multiple named packages via `pkgOf`, one input per name.
 
-  `sources` maps package name -> input name, e.g.
-  `{codex = "llm-agents"; hermes-agent = "hermes-agent";}` - this lets
-  ambiguous names (present in more than one input) resolve to a specific
-  input per-package, rather than relying on a single global priority order.
+    `sources` maps package name -> input name, e.g.
+    `{codex = "llm-agents"; "hermes-agent" = "llm-agents";}` - this lets
+    ambiguous names (present in more than one input) resolve to a specific
+    input per-package, rather than relying on a single global priority
+    order. Each package's own name is passed to `pkgOf` as `target`, so it
+    resolves exactly that attribute rather than falling back to `"default"`
+    or a suffix-stripped guess.
 
-  Returns the resolved attrset (name -> derivation) merged with two
-  convenience keys:
-    - `names`  - `attrNames` of the resolved set
-    - `values` - `attrValues` of the resolved set, for splicing into a
-                  flat `packages = [...] ++ values` list
+    Returns the resolved attrset (name -> `pkgOf` result) merged with three
+    convenience keys:
+      - `names`    - `attrNames` of the resolved set
+      - `values`   - `attrValues` of the resolved set (the full `pkgOf`
+                      result records, `{name; value; pkg; exe; paths;}`)
+      - `packages` -  just the derivations (`value` from each record),
+                      ready to splice into a flat `packages = [...] ++ ...`
+                      list
 
-  `system` is passed straight through to `pkgOf` only when explicitly
-  given; when omitted, each `pkgOf` call derives it from `pkgs` itself,
-  so passing an explicit `null` here can't shadow that derivation.
+    `system` is passed straight through to `pkgOf` only when explicitly
+    given; when omitted, each `pkgOf` call derives it from `pkgs` itself,
+    so passing an explicit `null` here can't shadow that derivation.
 
-  # Type
+    # Inputs
+    `inputs`
+    : the flake's own `inputs` attrset, threaded through to every `pkgOf`
+      call
+
+    `sources`
+    : attrset of package name -> input name, e.g.
+      `{treefmt = "treefmt-nix";}`
+
+    `pkgs`
+    : an already-instantiated `pkgs`, threaded through to every `pkgOf`
+      call; default `null`
+
+    `system`
+    : target system string, threaded through to every `pkgOf` call only
+      when non-`null`; default `null`
+
+    `required`
+    : whether a miss on any individual package throws (`true`, via
+      `pkgOf`'s own `required`) or is silently dropped from the result
+      (`false`); default `false`
+
+    # Type
+    > pkgsFrom :: { inputs :: AttrSet, sources :: AttrSet, pkgs :: AttrSet?, system :: string?, required :: bool? } -> AttrSet
+
+    # Examples
+    - pkgsFrom { inherit inputs pkgs; sources = { treefmt = "treefmt-nix"; }; }
+
   ```nix
-  pkgsFrom :: {
-    inputs :: AttrSet,
-    sources :: AttrSet,
-    pkgs :: AttrSet?,
-    system :: string?,
-    required :: bool?
-  } -> AttrSet
+    { treefmt = {name = "treefmt"; value = «derivation»; ...}; names = ["treefmt"]; values = [{...}]; packages = [«derivation»]; }
   ```
+
+    - pkgsFrom {
+        inherit inputs pkgs;
+        sources = {
+          codex = "llm-agents";
+          hermes-agent = "llm-agents";
+          openclaw = "llm-agents";
+          opencode = "llm-agents";
+        };
+      }
+
+  ```nix
+    { codex = {...}; hermes-agent = {...}; openclaw = {...}; opencode = {...}; names = [...]; values = [...]; packages = [«codex» «hermes-agent» «openclaw» «opencode»]; }
+  ```
+    (four package names, all resolved from the same `llm-agents` input -
+    `sources` repeats the input string per name since there's no
+    same-input shortcut)
   */
   pkgsFrom = {
     inputs,
@@ -263,7 +409,8 @@
       mapAttrs
       (name: input:
         pkgOf (
-          {inherit inputs pkgs required input name;}
+          {inherit inputs pkgs required input;}
+          // {target = name;}
           // optionalAttrs (system != null) {inherit system;}
         ))
       sources;
@@ -277,7 +424,7 @@
     # The list of actual Nix derivations (ready for buildInputs, etc.)
     packages = map (pkg: pkg.value) values;
   in
-    filtered // {inherit raw filtered names values packages;};
+    filtered // {inherit names values packages;};
 
   bySystem = packages: let
     inputNames = attrNames packages;

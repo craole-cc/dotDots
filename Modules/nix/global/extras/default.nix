@@ -1,18 +1,15 @@
-{dots, ...}: let
+args: let
   description = "Exhaustive Shell";
   inherit
-    (dots)
-    allowAI
+    (args)
+    cfg
     lix
     system
     pkgs
-    isLinux
     formatters
-    inputPkgs
     ;
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.transformation) mapAttrsToList;
-  inherit (lix.lists.construction) optionals;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.selection) filter;
   inherit (lix.lists.construction) genList;
@@ -20,11 +17,10 @@
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
 
-  #|───────────────────────────────────────────────────────────────|
-  #| CLI Tools                                                     |
-  #|───────────────────────────────────────────────────────────────|
-
-  commands.${dots.name} = {
+  #|---------------------------------------------------------|
+  #| CLI Tools ----------------------------------------------|
+  #|---------------------------------------------------------|
+  commands.${cfg.name} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
@@ -114,14 +110,14 @@
     #> Convert commands to mkShellApp calls
     allApps =
       mapAttrsToList (
-        name: cfg:
+        name: spec:
           mkShellApp {
             inherit pkgs;
-            inherit (cfg) command description;
+            inherit (spec) command description;
             inherit name;
-            prefix = cfg.prefix or dots.prefix;
-            inputs = cfg.inputs or [];
-            aliases = cfg.aliases or [];
+            prefix = spec.prefix or cfg.prefix;
+            inputs = spec.inputs or [];
+            aliases = spec.aliases or [];
           }
       )
       commands;
@@ -130,7 +126,7 @@
 
   #> Generate command list for shellHook
   commandList = let
-    mainCmd = commands.${dots.name};
+    mainCmd = commands.${cfg.name};
 
     #> Group aliases by domain
     groups = [
@@ -189,7 +185,7 @@
           maxNameLength =
             foldl' (
               max: cmd: let
-                len = stringLength "${dots.prefix}${cmd.name}";
+                len = stringLength "${cfg.prefix}${cmd.name}";
               in
                 if len > max
                 then len
@@ -198,9 +194,9 @@
             0
             cmds;
           formatCmd = cmd: let
-            padding = maxNameLength - (stringLength "${dots.prefix}${cmd.name}");
+            padding = maxNameLength - (stringLength "${cfg.prefix}${cmd.name}");
             spaces = concatStrings (genList (_: " ") padding);
-          in "  ${dots.prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          in "  ${cfg.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
           if cmds != []
           then header + concatMapStringsSep "\n" formatCmd cmds
@@ -210,72 +206,58 @@
   in
     allCommands;
 
-  #|───────────────────────────────────────────────────────────────|
-  #| Packages                                                      |
-  #|───────────────────────────────────────────────────────────────|
-
-  packages = with pkgs;
-    [
-      bat # ? Cat clone with syntax highlighting
+  #|---------------------------------------------------------|
+  #| Packages -----------------------------------------------|
+  #|---------------------------------------------------------|
+  packages =
+    (with pkgs; [
       cargo # ? Rust package manager
-      direnv # ? Environment management per directory
       dos2unix # ? Line ending converter
       eza # ? Modern ls replacement
-      fd # ? Fast find alternative
       gcc # ? GNU C compiler
       gitui # ? Git terminal UI
-      gnused # ? GNU stream editor
       imagemagick # ? Image processing
-      jq # ? JSON query processor
-      lsd # ? LSDeluxe file lister
       mise # ? Polyglot version manager
       mtr # ? Network diagnostic tool
       nil # ? Nix language server
-      nitch # ? System fetch written in nim
       nix-output-monitor # ? Build output monitor
       nix-tree # ? Nix dependency visualizer
-      nixd # ? Nix language daemon
       nushell # ? Modern shell language
-      onefetch # ? Git repository summary
       pandoc # ? Universal document converter
       poppler-utils # ? PDF utilities (pdfunite, pdfseparate)
       qpdf # ? PDF transformation
-      ripgrep # ? Fast grep alternative
       rust-script # ? Rust scripting
       rustc # ? Rust compiler
-      sd # ? Intuitive find & replace CLI (sed alternative)
       starship # ? Cross-shell prompt
       statix # ? Lints and suggestions for nix
       tldr # ? Simplified man pages
       tokei # ? Code statistics tool
       typst # ? Modern LaTeX alternative
-      undollar # ? Remove leading dollar signs
       watchexec # ? File watcher and executor
       yazi # ? Terminal file manager
       zoxide # ? Smart cd replacement
-    ]
-    ++ formatters
-    ++ (attrValues applications)
-    ++ (optionals isLinux [
-      xclip
-      wl-clipboard
-      xsel
     ])
-    ++ (optionals allowAI (
-      [ollama-cpu]
-      ++ (with (inputPkgs "llm-agents"); [
-        codex
-        # gemini-cli
-        hermes-agent
-        openclaw
-        opencode
-        # claude-code
-      ])
-    )); # ? Linux clipboard tools
+    # ++ (optionals cfg.allowAI (
+    #   [ollama-cpu]
+    #   ++ (
+    #     pkgsFor {
+    #       sources = {
+    #         codex = "llm-agents";
+    #         #gemini-cli = "llm-agents";
+    #         hermes-agent = "llm-agents";
+    #         openclaw = "llm-agents";
+    #         opencode = "llm-agents";
+    #         #claude-code = "llm-agents";
+    #       };
+    #     }
+    #   ).packages
+    # ))
+    ++ formatters
+    ++ (attrValues applications);
 
-  #|───────────────────────────────────────────────────────────────|
-  #| Shell Configuration                                           |
-  #|───────────────────────────────────────────────────────────────|
+  #|---------------------------------------------------------|
+  #| Shell Configuration ------------------------------------|
+  #|---------------------------------------------------------|
   env = {
     # NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
@@ -293,7 +275,7 @@
     export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
-    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${dots.cache}"}"
+    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cfg.cache}"}"
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -344,13 +326,6 @@
     printf '║               dotDots Configuration Shell             ║\n'
     printf '╚═══════════════════════════════════════════════════════╝\n'
     printf "%s\n\n" "${commandList}"
-    printf "  Run %shelp for detailed help information\n\n" "${dots.prefix}"
+    printf "  Run %shelp for detailed help information\n\n" "${cfg.prefix}"
   '';
-in {
-  inherit
-    description
-    packages
-    env
-    shellHook
-    ;
-}
+in {inherit description packages env shellHook;}

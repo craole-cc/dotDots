@@ -10,10 +10,10 @@ args: let
 
   pkgFor = {
     input,
-    name ? "default",
+    target ? null,
     required ? true,
   }:
-    pkgOf {inherit input inputs name pkgs required;};
+    pkgOf {inherit input inputs pkgs required target;};
 in {
   inherit pkgFor pkgsFor;
 }

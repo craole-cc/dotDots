@@ -14,7 +14,6 @@
     version = "2.0.0";
     cache = ".cache";
     prefix = ".";
-    allowAI = true;
   },
   topOverride ? null,
 }: let

@@ -106,17 +106,20 @@
   # -- shared call primitive
 
   /**
-    Import the module at `path` and call it with only the subset of `args`
-    the module actually declares as parameters.
+    Import the module at `path` and call it with `args`.
 
-    Avoids "unexpected argument" errors when passing a broad `args` attrset
-    to a module with a closed (non-`...`) signature. Internal primitive used
-    by every function below that calls modules with `args` - not exported on
-    its own.
+    If the module's signature is an attrset pattern (e.g. `{cfg, pkgs, ...}:`),
+    `args` is filtered down to only the keys it declares - avoiding
+    "unexpected argument" errors for a closed (non-`...`) pattern. If the
+    module takes a single plain parameter (e.g. `args:`) or no parameters
+    mise can introspect, `functionArgs` returns `{}` and there is nothing
+    safe to filter by - `args` is passed through whole instead, since a
+    plain parameter can never throw "unexpected argument".
 
     # Inputs
     `args`
-    : full candidate args attrset; filtered down per-module before calling
+    : full candidate args attrset; filtered per-module only when the module
+      declares an attrset pattern
 
     `path`
     : path to the `.nix` file to import and call
@@ -125,19 +128,24 @@
     > importModuleFiltered :: AttrSet -> path -> any
 
     # Examples
-    - importModuleFiltered { pkgs = pkgs; lib = lib; extra = 1; } ./shells/media/default.nix
+    - importModuleFiltered { pkgs = pkgs; lix = lix; } ./shells/core/default.nix
 
   ```nix
-    { description = "media"; }
+    { description = "dotDots Dev Environment"; ... }
   ```
-    (`./shells/media/default.nix` declares `{pkgs, ...}:`, so only `pkgs` is
-    passed through; `lib` and `extra` are dropped before the call.)
+    (`core/default.nix` takes a single `args:` parameter, so `functionArgs`
+    sees no declared keys and the full args attrset is passed through
+    unfiltered.)
   */
   importModuleFiltered = args: path: let
-    required = attrNames (functionArgs (import path));
-    filtered = filterAttrs (name: _: elem name required) args;
+    required = functionArgs (import path);
   in
-    import path filtered;
+    if required == {}
+    then import path args
+    else
+      import path (
+        filterAttrs (name: _: elem name (attrNames required)) args
+      );
 
   # -- importNixModules
 

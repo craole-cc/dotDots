@@ -1,7 +1,8 @@
 args: let
-  inherit (args) cfg lix pkgs system;
-  inherit (pkgs) writeShellScriptBin writeShellApplication;
+  inherit (args) cfg lix pkgs;
   inherit (lix.lists.construction) optionals;
+  inherit (pkgs) writeShellScriptBin writeShellApplication;
+  inherit (pkgs.stdenv.hostPlatform) system;
 
   _name = cfg.name;
   description = "${_name} Dev Environment";

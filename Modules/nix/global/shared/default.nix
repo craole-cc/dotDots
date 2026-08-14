@@ -1,5 +1,5 @@
 args: let
-  packages = import ./packages.nix args;
-  formatting = import ./fmt.nix (args // packages);
+  lib = import ./lib.nix args;
+  formatting = import ./fmt.nix (args // lib);
 in
-  packages // formatting
+  lib // formatting
