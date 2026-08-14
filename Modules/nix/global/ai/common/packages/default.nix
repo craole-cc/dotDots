@@ -37,5 +37,14 @@
     {inherit apps description dots paths runtimes;};
 in {
   inherit apps paths runtimes;
-  packages = derived ++ runtimes.all;
+  packages =
+    derived
+    ++ runtimes.all
+    ++ ({pkgsFor, ...}:
+      (pkgsFor {
+        sources = {
+          opencode = "llm-agents";
+          opencode-desktop = "llm-agents";
+        };
+      }).packages);
 }
