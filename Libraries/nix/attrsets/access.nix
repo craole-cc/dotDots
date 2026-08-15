@@ -2,21 +2,16 @@
 {
   __moduleRef,
   _,
-  lib,
   ...
 }: let
-  inherit (_.debug.module) mkModuleDebug mkFn;
+  inherit (_.attrsets.predicates) hasAttr;
+  inherit (_.attrsets.transformation) filterAttrs listToAttrs mapAttrsToList;
   inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;
+  inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.predicates) elem;
   inherit (_.types.predicates) isAttrs isList;
-  inherit
-    (lib.attrsets)
-    hasAttr
-    filterAttrs
-    listToAttrs
-    mapAttrsToList
-    ;
-  inherit (lib.lists) elem foldl';
   debug = mkModuleDebug __moduleRef;
 
   /**

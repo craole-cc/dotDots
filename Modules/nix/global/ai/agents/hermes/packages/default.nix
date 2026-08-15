@@ -1,9 +1,7 @@
-args: let
-  environment = import ./environment;
-in {
+{pkgsFor, ...}: {
   packages =
     removeAttrs
-    ((args.pkgsFor {
+    ((pkgsFor {
       sources = {
         hermes-agent = "llm-agents";
       };

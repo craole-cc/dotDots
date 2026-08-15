@@ -3,10 +3,10 @@
   lib,
   ...
 }: let
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.debug.assertions) mkTest mkThrows;
   inherit (_.debug.runners) runTests;
-  inherit (_.types.predicates) isString typeOf;
-  inherit (lib.attrsets) isAttrs mapAttrs;
+  inherit (_.types.predicates) isAttrs isString typeOf;
 
   /**
   Lock attribute values with metadata.

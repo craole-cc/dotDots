@@ -26,6 +26,7 @@
       stringToCharacters
       substring
       ;
+    inherit (builtins) getEnv;
   };
 
   construction = {

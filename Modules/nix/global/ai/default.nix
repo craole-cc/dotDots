@@ -1,7 +1,15 @@
 args: let
-  inherit (import ./environment args) description env shellHook;
   inherit
-    (import ./package.nix (args // {inherit description env;}))
+    (import ./common/environment args)
+    description
+    env
+    shellHook
+    ;
+  inherit
+    (
+      import ./common/packages
+      (args // {inherit description env;})
+    )
     # apps
     packages
     # paths

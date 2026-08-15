@@ -13,7 +13,7 @@
       // {};
   };
 
-  inherit (lib) debug asserts;
+  inherit (lib) debug asserts trivial;
 
   tracing = {
     inherit
@@ -28,6 +28,7 @@
       traceValSeqN
       addErrorContext
       ;
+    inherit (trivial) id;
     inherit (builtins) tryEval;
   };
 

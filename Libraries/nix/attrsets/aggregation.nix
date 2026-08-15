@@ -1,14 +1,14 @@
 {
   __moduleRef,
   _,
-  lib,
   ...
 }: let
-  inherit (_.debug.module) mkModuleDebug mkFn;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isFunction;
-  inherit (lib.attrsets) mapAttrs recursiveUpdate;
   debug = mkModuleDebug __moduleRef;
 
   /**

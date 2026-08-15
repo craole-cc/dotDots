@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __exports = {
     internal = {
       inherit
@@ -29,8 +25,9 @@
     elem
     isList
     ;
-  inherit (lib.lists) toList;
+  inherit (_.lists.construction) toList;
   inherit (_.types.generators) validate;
+  inherit (_.types.predicates) isAttrs;
 
   /**
   Check whether a value is an attribute set.
@@ -47,7 +44,6 @@
   isAttrs []                # => false
   ```
   */
-  inherit (lib.attrsets) isAttrs;
 
   /**
   Check whether a value is a "special" typed attrset - one with a `_type` attribute.

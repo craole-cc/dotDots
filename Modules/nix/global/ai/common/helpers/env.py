@@ -1,6 +1,7 @@
 import pathlib
 import sys
 
+
 def main() -> int:
     env_path = pathlib.Path(sys.argv[1])
     key = sys.argv[2]

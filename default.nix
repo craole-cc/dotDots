@@ -6,6 +6,7 @@
     libraries = ./Libraries/nix;
   },
   names ? {
+    src = "dots";
     top = "_";
     lib = "lix";
   },
@@ -25,7 +26,9 @@
       lib
       ;
   };
+  inherit (builtins) getEnv;
   inherit (libraries) lix;
+  inherit (lix.strings.transformation) toUpper;
   inherit (lix.filesystem.tree) mkTree mkLangGroup;
   inherit (lix.schema._) mkSchema;
   tree = mkTree {
@@ -153,7 +156,25 @@
     if tree.store.api.global != null
     then import tree.store.api.global
     else {};
-  envTop = builtins.getEnv "DOTS_TOP";
+  env = let
+    src = global.names.src or (names.src or "dots");
+
+    # Helper function to generate { name, value; } pairs
+    mkEnv = label: defaultVal: let
+      name = lib.toUpper label;
+      current = builtins.getEnv name;
+    in {
+      inherit name;
+      value =
+        if current != ""
+        then current
+        else defaultVal;
+    };
+  in {
+    home = mkEnv "home" (getEnv "HOME");
+    top = mkEnv "${src}_top" (global.names.top or (names.top or "_"));
+  };
+
   top =
     if topOverride != null
     then topOverride
