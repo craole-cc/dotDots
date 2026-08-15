@@ -5,6 +5,7 @@
 }: let
   exports = {
     inherit
+      asString
       concat
       fromBool
       split
@@ -16,20 +17,42 @@
       ;
   };
 
-  _debug = mkModuleDebug __moduleRef;
+  __debug = mkModuleDebug __moduleRef;
 
   inherit (_.debug.format) mkExample;
-  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.access) head;
   inherit (_.lists.construction) concatLists asList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
-  inherit (_.types.predicates) isAttrs isBool isFunction isList isString;
+  inherit (_.types.predicates) isAttrs isBool isFunction isList isString isStringLike isInt isFloat;
   inherit (_.strings.access) substring stringLength;
   inherit (_.strings.construction) concatStringsSep splitStringBy;
   inherit (_.strings.transformation) indent;
+
+  /**
+  Coerce supported primitive types and string-like objects to a string.
+  */
+  asString = val:
+    if val == null
+    then ""
+    else if isStringLike val
+    then "${val}"
+    else if isInt val || isFloat val || isBool val
+    then toString val
+    else
+      throw (
+        __debug.withLoc {
+          function = mkFn {
+            name = "asString";
+            fn = asString;
+          };
+          message = "Value cannot be converted to a string";
+          input = val;
+        }
+      );
 
   /**
   Concatenate a list of strings, or groups of strings, with an optional
@@ -107,7 +130,7 @@
     concatenate = input:
       if !(isString delimiter || delimiter == null)
       then
-        throw (_debug.withLoc {
+        throw (__debug.withLoc {
           function = "concat";
           message = "delimiter must be a string or null";
           input = delimiter;
@@ -336,7 +359,7 @@
           res = ''[ [ "foo" "bar" ] [ "baz" "qux" ] ]'';
         };
       in
-        throw (_debug.withDoc {
+        throw (__debug.withDoc {
           inherit input function message signature example;
         })
       else if isList input
@@ -352,7 +375,7 @@
     in
       if (isFunction delimiters) && (isString includes || isList includes)
       then
-        throw (_debug.withDoc {
+        throw (__debug.withDoc {
           function = "split";
           message = "when `delimiters` is a function, `include` must be a bool or function, not a string or list";
           input = includes;
@@ -377,7 +400,7 @@
       include: input:
         if !(isBool include || isFunction include)
         then
-          throw (_debug.withLoc {
+          throw (__debug.withLoc {
             function = "split";
             message = "curried form: second argument (include) must be a bool or function";
             input = include;
@@ -393,7 +416,7 @@
         input
     # Bad first argument
     else
-      throw (_debug.withLoc {
+      throw (__debug.withLoc {
         function = "split";
         message = "first argument must be an attrset { delimiters, include, input }, a predicate function, or a delimiter string";
         input = arg;
@@ -412,7 +435,7 @@
     if !(isString patterns || isList patterns)
     then
       throw (
-        _debug.withDoc {
+        __debug.withDoc {
           inherit function;
           message = "patterns must be a string or list of strings";
           signature = "string | [string] -> string | [string] -> bool";
@@ -438,7 +461,7 @@
     if !(isString patterns || isList patterns)
     then
       throw (
-        _debug.withDoc {
+        __debug.withDoc {
           inherit function;
           message = "patterns must be a string or list of strings";
           signature = "string | [string] -> string | [string] -> bool";

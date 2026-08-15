@@ -9,6 +9,7 @@
     src = "dots";
     top = "_";
     lib = "lix";
+    alpha = "craole"; # TODO: This should be host driven. The primary user;
   },
   cfg ? {
     name = "dotDots";
@@ -26,9 +27,8 @@
       lib
       ;
   };
-  inherit (builtins) getEnv;
   inherit (libraries) lix;
-  inherit (lix.strings.transformation) toUpper;
+  inherit (lix.attrsets.construction) mkEnvVars;
   inherit (lix.filesystem.tree) mkTree mkLangGroup;
   inherit (lix.schema._) mkSchema;
   tree = mkTree {
@@ -156,43 +156,137 @@
     if tree.store.api.global != null
     then import tree.store.api.global
     else {};
-  env = let
-    src = global.names.src or (names.src or "dots");
-
-    # Helper function to generate { name, value; } pairs
-    mkEnv = label: defaultVal: let
-      name = lib.toUpper label;
-      current = builtins.getEnv name;
-    in {
-      inherit name;
-      value =
-        if current != ""
-        then current
-        else defaultVal;
-    };
-  in {
-    home = mkEnv "home" (getEnv "HOME");
-    top = mkEnv "${src}_top" (global.names.top or (names.top or "_"));
-  };
-
-  top =
+  src = global.names.src or (names.src or "dots");
+  user = global.names.alpha or (names.alpha or "craole");
+  home = "/home/${user}";
+  top = let
+    key = lix.strings.transformation.toUpper "${src}_TOP";
+    env = builtins.getEnv key;
+  in
     if topOverride != null
     then topOverride
-    else if envTop != ""
-    then envTop
+    else if env != "" && env != null
+    then env
     else global.names.top or (names.top or "_");
+
+  env = mkEnvVars {
+    type = "set";
+    uppercase = true;
+    vars = [
+      # -- System & User Basics --
+      {
+        name = "USER";
+        value = user;
+      }
+      {
+        name = "HOME";
+        value = home;
+      }
+      {
+        name = "SHELL";
+        value = "/bin/bash";
+      }
+
+      # -- XDG Base Directory Specification --
+      {
+        name = "XDG_CONFIG_HOME";
+        value = "${home}/.config";
+      }
+      {
+        name = "XDG_DATA_HOME";
+        value = "${home}/.local/share";
+      }
+      {
+        name = "XDG_CACHE_HOME";
+        value = "${home}/.cache";
+      }
+      {
+        name = "XDG_STATE_HOME";
+        value = "${home}/.local/state";
+      }
+      {
+        name = "XDG_BIN_HOME";
+        value = "${home}/.local/bin";
+      }
+      {
+        name = "XDG_RUNTIME_DIR";
+        value = "/run/user/1000";
+      }
+
+      # -- Networking / Host Defaults --
+      {
+        name = "HOSTNAME";
+        value = "localhost";
+      }
+      {
+        name = "HOST";
+        value = "127.0.0.1";
+      }
+      {
+        name = "PORT";
+        value = "8080";
+      }
+
+      # -- Dotfiles & Custom Top Targets --
+      {
+        name = "${src}_top";
+        value = top;
+      }
+      {
+        name = "${src}_config";
+        value = "${home}/.config/${src}";
+      }
+
+      # -- Standard Interactive Utilities --
+      {
+        name = "EDITOR";
+        value = "nvim";
+      }
+      {
+        name = "VISUAL";
+        value = "nvim";
+      }
+      {
+        name = "PAGER";
+        value = "less";
+      }
+      {
+        name = "BROWSER";
+        value = "firefox";
+      }
+      {
+        name = "TERMINAL";
+        value = "alacritty";
+      }
+
+      # -- Development & Build Context --
+      {
+        name = "TMPDIR";
+        value = "/tmp";
+      }
+      {
+        name = "LANG";
+        value = "en_US.UTF-8";
+      }
+      {
+        name = "TZ";
+        value = "UTC";
+      }
+    ];
+  };
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
 in {
   inherit
-    top
-    global
     cfg
+    env
+    global
+    hosts
     lix
     paths
-    tree
     schema
-    hosts
+    top
+    tree
     users
     ;
 }
