@@ -3,7 +3,7 @@
   _,
   ...
 }: let
-  inherit (_.attrsets.transformation) listToAttrs;
+  inherit (_.attrsets.construction) listToAttrs;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;

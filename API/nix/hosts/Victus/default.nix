@@ -10,7 +10,7 @@ in {
   id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
-    dots = "/home/craole/Downloads/public/dotDots";
+    src = "/home/craole/Downloads/public/dotDots";
     # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
   };
 
