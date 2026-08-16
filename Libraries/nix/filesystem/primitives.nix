@@ -59,7 +59,7 @@
   in "${normalize root}/${normalize stem}";
 
   /**
-  Convert any path-like value into a normalised `{ store, local }` pair.
+  Convert any path-like value into a normalized `{ store, local }` pair.
 
   `store` is a proper Nix path value (importable as a module, usable in
   `imports`). `local` is a string for interpolation and display. When the

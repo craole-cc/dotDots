@@ -1,13 +1,14 @@
 {
-  # cfg,
-  lix,
   pkgs,
   src,
+  system,
+  isLinux,
+  isDarwin,
+  writeShellScriptBin,
+  writeShellApplication,
+  optionals,
+  ...
 }: let
-  inherit (lix.lists.construction) optionals;
-  inherit (pkgs) writeShellScriptBin writeShellApplication;
-  inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
-
   description = "${src.name} Dev Environment";
 
   #|---------------------------------------------------------|

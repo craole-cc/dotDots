@@ -1,30 +1,27 @@
-args: let
+{
+  names,
+  formatters,
+  lix,
+  system,
+  pkgs,
+  pkgsFor,
+  ...
+}: let
   description = "Exhaustive Shell";
-  inherit
-    (args)
-    cfg
-    formatters
-    lix
-    system
-    pkgs
-    pkgsFor
-    inputs
-    ;
   inherit (lix.attrsets.access) attrValues;
-  inherit (lix.attrsets.selection) filterAttrs;
   inherit (lix.attrsets.transformation) mapAttrsToList;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.selection) filter;
+  inherit (lix.lists.predicates) elem;
   inherit (lix.lists.construction) genList;
   inherit (lix.strings.access) stringLength;
-  inherit (lix.strings.predicates) hasPrefix;
   inherit (lix.strings.construction) concatStrings concatMapStringsSep;
   inherit (lix.applications.construction) mkShellApp;
 
   #|---------------------------------------------------------|
   #| CLI Tools ----------------------------------------------|
   #|---------------------------------------------------------|
-  commands.${cfg.name} = {
+  commands.${names.src} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
@@ -119,7 +116,7 @@ args: let
             inherit pkgs;
             inherit (spec) command description;
             inherit name;
-            prefix = spec.prefix or cfg.prefix;
+            prefix = spec.prefix or names.prefix;
             inputs = spec.inputs or [];
             aliases = spec.aliases or [];
           }
@@ -130,16 +127,13 @@ args: let
 
   #> Generate command list for shellHook
   commandList = let
-    mainCmd = commands.${cfg.name};
+    mainCmd = commands.${names.name};
 
     #> Group aliases by domain
     groups = [
       {
         name = "System/Info";
-        aliases = [
-          "info"
-          "hosts"
-        ];
+        aliases = ["info" "hosts"];
       }
       {
         name = "Build/Rebuild";
@@ -153,11 +147,7 @@ args: let
       }
       {
         name = "Maintenance/Utilities";
-        aliases = [
-          "clean"
-          "list"
-          "help"
-        ];
+        aliases = ["clean" "list" "help"];
       }
       {
         name = "Interaction/REPL";
@@ -184,12 +174,12 @@ args: let
         group: let
           header = "\n${group.name}:\n";
           #> Filter aliases by group
-          cmds = filter (a: builtins.elem a.name group.aliases) (mainCmd.aliases or []);
+          cmds = filter (a: elem a.name group.aliases) (mainCmd.aliases or []);
           #> Format each command
           maxNameLength =
             foldl' (
               max: cmd: let
-                len = stringLength "${cfg.prefix}${cmd.name}";
+                len = stringLength "${names.prefix}${cmd.name}";
               in
                 if len > max
                 then len
@@ -198,9 +188,9 @@ args: let
             0
             cmds;
           formatCmd = cmd: let
-            padding = maxNameLength - (stringLength "${cfg.prefix}${cmd.name}");
+            padding = maxNameLength - (stringLength "${names.prefix}${cmd.name}");
             spaces = concatStrings (genList (_: " ") padding);
-          in "  ${cfg.prefix}${cmd.name}${spaces}  - ${cmd.description}";
+          in "  ${names.prefix}${cmd.name}${spaces}  - ${cmd.description}";
         in
           if cmds != []
           then header + concatMapStringsSep "\n" formatCmd cmds
@@ -255,15 +245,14 @@ args: let
   #| Shell Configuration ------------------------------------|
   #|---------------------------------------------------------|
   env = {
-    # NIX_CONFIG = "experimental-features = nix-command flakes";
-    SYSTEM = system;
+    NIX_CONFIG = "experimental-features = nix-command flakes";
+    HOSTTYPE = system;
   };
 
   shellHook = ''
     #> Determine host info dynamically
-    HOST_NAME="$(hostname)"
-    HOST_TYPE="${system}"
-    export HOST_NAME HOST_TYPE
+    HOSTNAME="$(hostname)"
+    export HOSTNAME
 
     #> Ensure DOTS is setand available for use
     DOTS="$(pwd -P)"
@@ -271,10 +260,10 @@ args: let
     export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
-    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cfg.cache}"}"
+    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/.cache}"}"
+    DOTS_TMP="$DOTS_CACHE/tmp"
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
-    DOTS_TMP="$DOTS_CACHE/tmp"
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
     export DOTS_CACHE DOTS_LOGS DOTS_TMP
 
@@ -322,6 +311,6 @@ args: let
     printf '║               dotDots Configuration Shell             ║\n'
     printf '╚═══════════════════════════════════════════════════════╝\n'
     printf "%s\n\n" "${commandList}"
-    printf "  Run %shelp for detailed help information\n\n" "${cfg.prefix}"
+    printf "  Run %shelp for detailed help information\n\n" "${names.prefix}"
   '';
 in {inherit description packages env shellHook;}

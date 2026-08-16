@@ -1,25 +1,32 @@
-{
-  inputs,
-  lix,
-  pkgs,
-  src,
-  ...
-}: let
-  inherit (lix.sources.packages) pkgOf pkgsFrom;
+args: let
+  inherit (args) cfg pkgs lix inputs;
+  inherit (args.lix.sources.packages) pkgOf pkgsFrom;
+in
+  args
+  // {
+    inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
+    inherit (lix.lists.construction) optionals;
+    inherit (pkgs) writeShellScriptBin writeShellApplication;
 
-  mkName = name: "${src.name}-${name}";
+    src = {
+      inherit args;
+      name = cfg.names.src;
+      path = cfg.paths.src.store;
+    };
 
-  pkgFor = {
-    input,
-    target ? null,
-    required ? true,
-  }:
-    pkgOf {inherit input inputs pkgs required target;};
+    mkName = name: "${cfg.names.src}-${name}";
 
-  pkgsFor = {
-    sources,
-    required ? true,
-    exclude ? [],
-  }:
-    pkgsFrom {inherit inputs pkgs required sources exclude;};
-in {inherit mkName pkgFor pkgsFor;}
+    pkgFor = {
+      input,
+      target ? null,
+      required ? true,
+    }:
+      pkgOf {inherit input inputs pkgs required target;};
+
+    pkgsFor = {
+      sources,
+      required ? true,
+      exclude ? [],
+    }:
+      pkgsFrom {inherit inputs pkgs required sources exclude;};
+  }

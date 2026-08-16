@@ -1,36 +1,24 @@
-{
-  cfg,
-  lix,
-  inputs,
-  pkgs,
-  names,
-  paths,
-  ...
-}: let
-  inherit (lix.filesystem.traversal) importAllNamed;
+global: let
+  inherit (global) lix pkgs;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.attrsets.access) attrValues;
+  inherit (lix.filesystem.traversal) importAllNamed;
   inherit (lix.lists.aggregation) concatMap foldl';
   inherit (lix.lists.construction) optionals;
   inherit (lix.lists.transformation) reverseList;
   inherit (pkgs) mkShell;
 
-  args = {
-    inherit cfg lix pkgs inputs;
-    src = {
-      name = names.src;
-      path = paths.src.store;
-    };
-  };
-
-  shared = import ./shared args;
-  inherit (shared) mkName;
+  local = import ./shared global;
+  args = recursiveUpdate global local;
 
   shells = importAllNamed {
-    args = args // shared;
+    inherit args;
     dir = ./.;
     exclude = ["shared" "ai"];
   };
+
+  inherit (args) mkName;
   inherit (shells) core;
 
   build =
@@ -51,7 +39,7 @@
     )
     shells;
 in {
-  inherit (shared) formatter checks;
+  inherit (args) formatter checks;
   devShells =
     build
     // {

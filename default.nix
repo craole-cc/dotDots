@@ -216,43 +216,46 @@
       };
     };
 
-  env = let
-    transformPathVar = domain: attrPath: localPath: let
-      leaf = elemAt attrPath (length attrPath - 1);
-      joinedAttr = concatStringsSep "_" attrPath;
-    in
-      if domain == "xdg"
-      then let
-        suffix =
-          if leaf == "runtime_dir" || leaf == "tmpdir"
-          then ""
-          else "_HOME";
-        varName = "XDG_${joinedAttr}${suffix}";
-      in {
-        name = varName;
-        default = localPath;
-      }
-      else if domain == "user"
-      then {
-        name = leaf;
-        default = localPath;
-      }
-      else {
-        name = "${names.src}_${domain}_${joinedAttr}";
-        default = localPath;
-      };
+transformPathVar = {domain, attrPath, localPath}: let
+  leaf = elemAt attrPath (length attrPath - 1);
+  joinedAttr =
+    if leaf == "default"
+    then ""
+    else "_${concatStringsSep "_" attrPath}";
+in
+  if domain == "xdg"
+  then let
+    suffix =
+      if leaf == "runtime_dir" || leaf == "tmpdir"
+      then ""
+      else "_HOME";
+    varName = "XDG_${concatStringsSep "_" attrPath}${suffix}";
+  in {
+    name = varName;
+    default = localPath;
+  }
+  else if domain == "user"
+  then {
+    name = leaf;
+    default = localPath;
+  }
+  else {
+    name = "${names.src}_${domain}${joinedAttr}";
+    default = localPath;
+  };
 
     # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
     flattenDomain = domain: attrPath: node:
       optionals (isAttrs node) (
         if node ? local
-        then [(transformPathVar domain attrPath node.local)]
+        then [(transformPathVar {inherit domain attrPath ;inherit (node)local;})]
         else
           concatLists (
             mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node
           )
       );
-    ignore = ["src" "store" "local"];
+  env = let
+    ignore = ["src" "store" "local" "mkLocal"];
   in
     asEnvVars {
       type = "set";
