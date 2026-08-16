@@ -10,7 +10,6 @@
     filter
     genList
     isAttrs
-    isPath
     isString
     mapAttrs
     pathExists
@@ -19,6 +18,14 @@
     stringLength
     substring
     ;
+
+  #> --------------------------------------------------------------------
+  #> Bootstrap: builtins-only helpers, used only until `_` (real lix) is
+  #> reachable. Nothing here should be relied on after `_` is loaded -
+  #> everything downstream should route through `_.filesystem.tree.mkTree`
+  #> / `_.filesystem.primitives.construct` instead, so there is exactly
+  #> one source of truth for path resolution post-bootstrap.
+  #> --------------------------------------------------------------------
   bootstrap = rec {
     /**
     Safely reads an environment variable, returning a fallback default if unset or empty.
@@ -76,9 +83,31 @@
       else set2;
 
     /**
+    Returns true if `str` starts with `prefix`. Builtins-only stand-in for
+    `lib.strings.hasPrefix`, needed here because `lib` may not be available
+    at bootstrap time.
+    */
+    hasPrefix = prefix: str:
+      substring 0 (stringLength prefix) str == prefix;
+
+    /**
+    Strips `prefix` from the start of `str` if present; otherwise returns
+    `str` unchanged. Builtins-only stand-in for `lib.strings.removePrefix`.
+    */
+    removePrefix = prefix: str:
+      if hasPrefix prefix str
+      then
+        substring (stringLength prefix)
+        (stringLength str - stringLength prefix)
+        str
+      else str;
+
+    /**
     Bootstrap-only stand-in for `_.filesystem.primitives.construct` - only
     needed until real lix is reachable. Recursively resolves stems (attrset,
-    list, or string) into `{ store, local }` records.
+    list, or string) into `{ store, local }` records. `store` is `null`
+    whenever the resolved path is not relative to `base` (mirrors the
+    "not under src -> null" rule enforced by the real `construct`).
 
     # Arguments
     `base` (attrset)
@@ -144,8 +173,41 @@
           else base.store + "/${relPath}";
         local = concatStringsSep "/" (filter (string: string != "") [base.local relPath]);
       };
+
+    #> --------------------------------------------------------------------
+    #> Phase 1 (bootstrap paths): resolve just enough to import `_` itself -
+    #> `src`, `home`, and `paths.lib.default.store`. Everything else is
+    #> re-resolved properly in Phase 2 once `_` is reachable.
+    #> --------------------------------------------------------------------
+    paths = {
+      src = {
+        store = ./.;
+        local =
+          if root != null
+          then root
+          else getEnv "PWD" cfg.paths.src;
+      };
+
+      user = let
+        path = getEnv "HOME" "/home/${cfg.names.alpha}";
+        srcLocal = toString paths.src.local;
+      in {
+        store =
+          if hasPrefix srcLocal path
+          then paths.src.store + removePrefix srcLocal path
+          else null;
+        local = path;
+      };
+
+      #> Only the repo-relative groups are needed to reach paths.lib.default -
+      #> user/xdg/tmpdir are irrelevant to loading `_` and are skipped here.
+      repo = asPath {
+        base = paths.src;
+        stem = removeAttrs cfg.paths ["user" "xdg" "src" "home" "tmpdir"];
+      };
+    };
   };
-  inherit (bootstrap) asPath getEnv importAttr mergeAttrs;
+  inherit (bootstrap) getEnv importAttr mergeAttrs;
 
   cfg = let
     global = import ./API/nix/global;
@@ -159,74 +221,50 @@
 
   inherit (cfg) names;
 
-  paths = let
-    src = {
-      store = ./.;
-      local =
-        if root != null
-        then root
-        else getEnv "PWD" cfg.paths.src;
-    };
-
-    home = let
-      path = getEnv "HOME" "/home/${cfg.names.alpha}";
-
-      hasPrefix = prefix: str:
-        substring 0 (stringLength prefix) str == prefix;
-
-      removePrefix = prefix: str:
-        if hasPrefix prefix str
-        then
-          substring (stringLength prefix)
-          (stringLength str - stringLength prefix)
-          str
-        else str;
-
-      localStr = toString src.local;
-    in {
-      store =
-        if hasPrefix localStr path
-        then src.store + removePrefix localStr path
-        else null;
-      local = path;
-    };
-
-    #> Resolve repo-relative paths (api, lib, mod, pkg, etc.)
-    repo = asPath {
-      base = src;
-      stem = removeAttrs cfg.paths ["user" "xdg" "src"];
-    };
-
-    #> Resolve user home paths (Documents, Pictures, Projects)
-    user = asPath {
-      base = home;
-      stem = cfg.paths.user or {};
-    };
-
-    #> Resolve XDG system paths (.config, .local/share, .cache)
-    xdg = asPath {
-      base = home;
-      stem = cfg.paths.xdg or {};
-    };
-  in
-    repo // {inherit src user xdg;};
-
-  libraries = import paths.lib.default.store {
-    inherit names flake lib;
-    paths = {
-      src = paths.src.store;
-      libraries = paths.lib.default.store;
+  libraries = import bootstrap.paths.repo.lib.default.store {
+    inherit names lib;
+    flake =
+      if flake != null
+      then flake
+      else {};
+    paths = with bootstrap.paths; {
+      src = src.store;
+      libraries = repo.lib.default.store;
     };
   };
   _ = libraries.${names.lib};
 
-  inherit (_.attrsets.transformation) asEnvVars mapAttrsToList mapAttrsRecursive;
+  inherit (_.attrsets.transformation) asEnvVars mapAttrsToList;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.lists.construction) concatLists;
   inherit (_.lists.access) elemAt length;
   inherit (_.schema._) mkSchema;
 
-  tree = mkTree {stems = removeAttrs cfg.paths ["src"];};
+  #> --------------------------------------------------------------------
+  #> Phase 2 (real paths): now that `_` is loaded, rebuild `paths` fully
+  #> through `mkTree`/`construct` - the single source of truth for path
+  #> resolution from this point on. `user`/`xdg` resolve against `home`;
+  #> everything else resolves against `src` (mkTree's default).
+  #> --------------------------------------------------------------------
+  tree = mkTree {
+    stems = removeAttrs cfg.paths ["src" "home" "tmpdir"];
+    roots = {
+      user = bootstrap.paths.user;
+      xdg = bootstrap.paths.user;
+    };
+  };
+
+  paths =
+    tree.store
+    // {
+      src = bootstrap.paths.src;
+      home = bootstrap.paths.user;
+      tmpdir = {
+        store = null;
+        local = getEnv "TMPDIR" (cfg.paths.tmpdir or "/tmp");
+      };
+    };
+
   env = let
     transformPathVar = domain: attrPath: localPath: let
       leaf = elemAt attrPath (length attrPath - 1);
@@ -255,21 +293,21 @@
 
     # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
     # A leaf is any attrset with a `local` key (matches paths.*.* shape).
-    flattenDomain = domain: tree: attrPath: node:
+    flattenDomain = domain: attrPath: node:
       if isAttrs node && node ? local
       then [(transformPathVar domain attrPath node.local)]
       else if isAttrs node
       then
         concatLists (
-          mapAttrsToList (key: child: flattenDomain domain tree (attrPath ++ [key]) child) node
+          mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node
         )
       else [];
 
     pathEnvVars = concatLists (
-      mapAttrsToList (domain: tree:
+      mapAttrsToList (domain: node:
         concatLists (
-          mapAttrsToList (key: node: flattenDomain domain tree [key] node)
-          (removeAttrs tree ["src"])
+          mapAttrsToList (key: child: flattenDomain domain [key] child)
+          (removeAttrs node ["src"])
         ))
       (removeAttrs paths ["src" "modules"])
     );
@@ -291,36 +329,6 @@
         ]
         ++ pathEnvVars;
     };
-  # env = asEnvVars {
-  #   type = "set";
-  #   uppercase = true;
-  #   vars =
-  #     (
-  #       mapAttrsToList
-  #       (name: default: {inherit name default;})
-  #       cfg.environment
-  #     )
-  #     ++ (let
-  #       inherit (names) src;
-  #     in
-  #       [
-  #         {
-  #           name = src;
-  #           default = paths.src.local;
-  #         }
-  #         {
-  #           name = "${src}_HOME";
-  #           default = paths.src.local;
-  #         }
-  #       ]
-  #       ++ concatLists (mapAttrsToList
-  #         (name: tree:
-  #           flattenTree {
-  #             inherit tree;
-  #             prefix = "${src}_${name}";
-  #           })
-  #         (removeAttrs paths ["src"])));
-  # };
 
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
@@ -328,6 +336,7 @@ in {
   inherit
     cfg
     env
+    bootstrap
     hosts
     paths
     schema

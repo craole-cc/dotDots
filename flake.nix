@@ -22,7 +22,11 @@
         pkgs,
       }:
         import tree.store.mod.global (
-          args // src // {inherit pkgs system;}
+          args
+          // {
+            inherit pkgs system;
+            src = ./.;
+          }
         );
     });
 

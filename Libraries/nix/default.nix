@@ -93,11 +93,6 @@ in
 
     names =
       defaults.names
-      # // (
-      #   if (name != null)
-      #   then {lib = name;}
-      #   else {}
-      # )
       // (optionalAttrs (name != null) {lib = name;})
       // names;
 
