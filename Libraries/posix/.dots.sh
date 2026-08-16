@@ -4,8 +4,7 @@
 # Handles submodule updates with proper error checking and multi-user support
 set -eu
 
-SCRIPT_NAME="sync.dots"
-readonly ROOT="${DOTS:-${HOME}/.dots}"
+readonly ROOT="${DOTS:-"${HOME}/.dots"}"
 
 # Submodule configuration
 readonly SUBMODULE_PATH="Configuration/hosts/Victus"
@@ -16,7 +15,7 @@ readonly SUBMODULE_NAME="Victus"
 readonly PARENT_USER="craole-cc"
 readonly PARENT_NAME="dotDots"
 
-# Separate declaration and assignment to avoid masking return values
+# Get script name safely without masking return values
 SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
 
@@ -50,25 +49,25 @@ skip() {
 switch_gh_user() {
   _user="$1"
 
-  if ! command -v gh >/dev/null 2>&1; then
+  if ! command -v gh > /dev/null 2>&1; then
     error_exit "GitHub CLI (gh) is not installed"
   fi
 
   info "Switching to GitHub user: ${_user}..."
-  if ! gh auth switch --user "${_user}" >/dev/null 2>&1; then
+  if ! gh auth switch --user "${_user}" > /dev/null 2>&1; then
     error_exit "Failed to switch GitHub user to ${_user}" 2
   fi
 }
 
 # Check if directory is a git repository
 is_git_repo() {
-  git rev-parse --git-dir >/dev/null 2>&1
+  git rev-parse --git-dir > /dev/null 2>&1
 }
 
 # Check if there are uncommitted changes
 has_changes() {
-  ! git diff-index --quiet HEAD -- 2>/dev/null ||
-    [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
+  ! git diff-index --quiet HEAD -- 2> /dev/null \
+    || [ -n "$(git ls-files --others --exclude-standard 2> /dev/null)" ]
 }
 
 # Safely change directory
@@ -101,7 +100,7 @@ sync_submodule() {
 
   safe_cd "${ROOT}/${SUBMODULE_PATH}" "${SUBMODULE_NAME} submodule"
 
-  if ! is_git_repo; then
+  if is_git_repo; then :; else
     error_exit "${SUBMODULE_NAME} directory is not a git repository"
   fi
 
@@ -124,7 +123,7 @@ sync_parent_repo() {
 
   safe_cd "${ROOT}" "${PARENT_NAME} root"
 
-  if ! is_git_repo; then
+  if is_git_repo; then :; else
     error_exit "${PARENT_NAME} directory is not a git repository"
   fi
 
@@ -134,7 +133,7 @@ sync_parent_repo() {
   git_exec "add submodule" add "${SUBMODULE_PATH}"
 
   # Check if the submodule pointer actually changed
-  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2>/dev/null; then
+  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2> /dev/null; then
     skip "No submodule pointer change in ${PARENT_NAME}"
     return 0
   fi
