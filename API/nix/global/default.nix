@@ -58,7 +58,7 @@
 
     # Libraries
     lib = rec {
-      base = ["Templates"];
+      base = ["Libraries"];
       nix = base ++ ["nix"];
       rs = base ++ ["rust"];
       nu = base ++ ["nushell"];
@@ -121,5 +121,33 @@
 
       default = base;
     };
+  };
+
+  environment = {
+    SHELL = "/bin/bash";
+
+    XDG_CONFIG_HOME = "\${HOME}/.config";
+    XDG_DATA_HOME = "\${HOME}/.local/share";
+    XDG_CACHE_HOME = "\${HOME}/.cache";
+    XDG_STATE_HOME = "\${HOME}/.local/state";
+    XDG_BIN_HOME = "\${HOME}/.local/bin";
+    XDG_RUNTIME_DIR = "/run/user/1000";
+
+    HOSTNAME = "localhost";
+    HOST = "127.0.0.1";
+    PORT = "8080";
+
+    BINIT_ACTION = "--run";
+    NIXPKGS_ALLOW_UNFREE = "1";
+
+    EDITOR = "hx";
+    VISUAL = "code";
+    PAGER = "less";
+    BROWSER = "firefox";
+    TERMINAL = "ghostty";
+
+    TMPDIR = "/tmp";
+    LANG = "en_US.UTF-8";
+    TZ = "UTC";
   };
 }

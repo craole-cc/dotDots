@@ -17,14 +17,15 @@
 
   /**
     Create a single name-value environment pair, checking getEnv for live overrides.
+    Private helper used by asEnvVars.
 
     # Type
-    ```nix
-    mkEnvVar :: { name :: string, default :: a, uppercase :: bool, fn :: (string -> string) } -> { name :: string, value :: a }
+  ```nix
+    asEnvVar :: { name :: string, default :: a, uppercase :: bool, fn :: (string -> string) } -> { name :: string, value :: a }
 
   ```
   */
-  mkEnvVar = {
+  asEnvVar = {
     name,
     value ? null,
     default ? "",
@@ -54,16 +55,16 @@
   };
 
   /**
-  Transform a list of option sets into a list or attribute set of environment variables.
+    Transform a list of option sets into a list or attribute set of environment variables.
 
-  # Type
+    # Type
 
   ```nix
-  mkEnvVars :: { vars :: [ AttrSet ], type :: "list" | "set" } -> [ { name :: string, value :: a } ] | AttrSet
+    asEnvVars :: { vars :: [ AttrSet ], type :: "list" | "set" } -> [ { name :: string, value :: a } ] | AttrSet
 
   ```
   */
-  mkEnvVars = {
+  asEnvVars = {
     vars,
     type ? "list",
     uppercase ? true,
@@ -74,50 +75,55 @@
       throw (
         __debug.withLoc {
           function = mkFn {
-            name = "mkEnvVars";
-            fn = mkEnvVars;
+            name = "asEnvVars";
+            fn = asEnvVars;
           };
           message = "vars must be a list";
           input = vars;
         }
       )
     else let
-      # Merge global defaults (uppercase, fn) with per-item options
-      pairs = map (env: mkEnvVar ({inherit uppercase fn;} // env)) vars;
+      pairs = map (env: asEnvVar ({inherit uppercase fn;} // env)) vars;
     in
       if type == "set"
       then listToAttrs pairs
       else pairs;
 in {
-  inherit mkEnvVar mkEnvVars;
+  inherit asEnvVars;
 
-  __rootAliases = {
-    inherit mkEnvVar mkEnvVars;
-  };
+  __rootAliases = {inherit asEnvVars;};
 
   __tests = runTests {
-    mkEnvVar = {
+    asEnvVars = {
       defaultFallback = mkTest {
-        desired = {
-          name = "NON_EXISTENT_VAR";
-          value = "/fallback/path";
-        };
-        command = ''mkEnvVar { name = "NON_EXISTENT_VAR"; default = "/fallback/path"; }'';
-        outcome = mkEnvVar {
-          name = "NON_EXISTENT_VAR";
-          default = "/fallback/path";
+        desired = [
+          {
+            name = "NON_EXISTENT_VAR";
+            value = "/fallback/path";
+          }
+        ];
+        command = ''
+          asEnvVars {
+            vars = [ { name = "NON_EXISTENT_VAR"; default = "/fallback/path"; } ];
+          }
+        '';
+        outcome = asEnvVars {
+          vars = [
+            {
+              name = "NON_EXISTENT_VAR";
+              default = "/fallback/path";
+            }
+          ];
         };
       };
-    };
 
-    mkEnvVars = {
       asSet = mkTest {
         desired = {
           HOME = "/fallback/home";
           DOTS_TOP = "_";
         };
         command = ''
-          mkEnvVars {
+          asEnvVars {
             type = "set";
             vars = [
               { name = "home"; default = "/fallback/home"; uppercase = true; }
@@ -125,7 +131,7 @@ in {
             ];
           }
         '';
-        outcome = mkEnvVars {
+        outcome = asEnvVars {
           type = "set";
           vars = [
             {

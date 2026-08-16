@@ -80,6 +80,7 @@
       intersectAttrs
       mergeAttrsList
       recursiveUpdate
+      recursiveUpdateUntil
       zipAttrs
       zipAttrsWith
       ;

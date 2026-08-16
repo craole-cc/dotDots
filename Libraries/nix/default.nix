@@ -71,6 +71,7 @@
     else if flake' ? inputs && flake'.inputs ? nixpkgs
     then flake'.inputs.nixpkgs.lib
     else import <nixpkgs/lib>;
+  inherit (lib') optionalAttrs;
 in
   import ./internal {
     collisionStrategy =
@@ -91,7 +92,14 @@ in
     lib = lib';
 
     names =
-      defaults.names // (lib'.attrsets.optionalAttrs (name != null) {lib = name;}) // names;
+      defaults.names
+      # // (
+      #   if (name != null)
+      #   then {lib = name;}
+      #   else {}
+      # )
+      // (optionalAttrs (name != null) {lib = name;})
+      // names;
 
     paths = paths';
 

@@ -20,16 +20,21 @@
     base = let
       raw = paths.libraries + "/imports";
       set = import raw;
-      init = f:
-        f {
+      init = fn:
+        fn {
           inherit lib;
           flatten = false;
         };
-      names = filter (name: name != "default") (
-        map (f: removeSuffix ".nix" f) (
-          attrNames (filterAttrs (n: t: t == "regular" && hasSuffix ".nix" n && n != "default.nix") (readDir raw))
-        )
-      );
+      names = filter (name: name != "default") (map
+        (f: removeSuffix ".nix" f)
+        (attrNames (
+          filterAttrs (
+            name: type:
+              (type == "regular")
+              && (hasSuffix ".nix" name)
+              && (name != "default.nix")
+          ) (readDir raw)
+        )));
     in
       genAttrs names (name: init set.${name});
   in
@@ -59,4 +64,4 @@
         msg = "Root aliases collide with modules";
       };
 in
-  withAliases // {extend = f: lix.extend f;}
+  withAliases // {extend = fn: lix.extend fn;}

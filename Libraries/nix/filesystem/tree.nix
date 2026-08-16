@@ -1,16 +1,19 @@
 {
   _,
-  lib,
   src,
   ...
 }: let
+  inherit (_.attrsets.aggregation) recursiveUpdateUntil;
+  inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
   inherit (_.filesystem.primitives) construct;
+  inherit (_.lists.construction) concatLists;
+  inherit (_.strings.transformation) toUpper;
   inherit (_.types.predicates) isAttrs;
-  inherit (lib.attrsets) mapAttrs recursiveUpdateUntil;
 
   exports = {
     internal = {
       inherit
+        flattenTree
         stems
         mkTree
         mkGroup
@@ -19,11 +22,10 @@
         ;
     };
     external = {
+      flattenProjectTree = flattenTree;
       mkProjectTree = mkTree;
     };
   };
-
-  # ── Group constructors ─────────────────────────────────────────────────────
 
   /**
   Build a multi-language group where sibling languages share a common parent
@@ -53,7 +55,6 @@
   */
   mkLangGroup = parent: langs: {default = parent ++ ["nix"];} // mapAttrs (_: lang: parent ++ [lang]) langs;
 
-  # ── Shared default bases ───────────────────────────────────────────────────
   #
   # Defined once here and shared between `stems` and `mkTree` so they can
   # never drift out of sync. `mkTree` overrides these via its `bases` arg.
@@ -62,8 +63,6 @@
     lib = ["Libraries"];
   };
 
-  # ── mkGroup ────────────────────────────────────────────────────────────────
-  #
   # Build all group stems from a resolved `bases` attrset. Extracted so both
   # `stems` and `mkTree` use exactly the same construction logic and can
   # never diverge.
@@ -79,8 +78,6 @@
       rs = "rust";
     };
   };
-
-  # ── stems ──────────────────────────────────────────────────────────────────
 
   /**
   Raw stem segment lists for every well-known location in the project tree.
@@ -129,8 +126,6 @@
   # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
   # reference it via _.filesystem.tree.wallman without a fragile relative path.
   wallman = ./wallman.sh;
-
-  # ── mkTree ────────────────────────────────────────────────────────────────
 
   /**
   Build a fully-resolved path tree for every well-known location in the
@@ -189,7 +184,6 @@
       stems;
 
     resolveStore = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).store) group;
-
     resolveLocal = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).local) group;
 
     mkLocal = arg: let
@@ -206,5 +200,82 @@
       }
       // mapAttrs (_: resolveStore src) stems';
   in {inherit mkLocal store;};
+
+  /**
+    Recursively flattens a nested attrset into a `[{ name, default }]` list, for feeding into asEnvVars.
+
+    # Arguments
+    `tree` (attrset)
+    : A nested attrset whose leaves are the values to expose.
+
+    `prefix` (string)
+    : Prepended (with "_") to every generated name; used as the base namespace.
+
+    `getValue` (function, default: leaf -> leaf.local)
+    : How to extract the default value from a leaf entry.
+
+    # Type
+
+  ```nix
+    flattenTree :: { tree :: AttrSet, prefix :: string, getValue :: (AttrSet -> a) } -> [ { name :: string, default :: a } ]
+
+  ```
+  */
+  flattenTree = {
+    tree,
+    prefix,
+    getValue ? (entry: entry.local),
+  }:
+    concatLists (
+      mapAttrsToList
+      (key: value:
+        if isAttrs value && !(value ? local)
+        then
+          flattenTree {
+            inherit getValue;
+            tree = value;
+            prefix = "${prefix}_${toUpper key}";
+          }
+        else [
+          {
+            name =
+              if key == "default"
+              then prefix
+              else "${prefix}_${toUpper key}";
+            default = getValue value;
+          }
+        ])
+      tree
+    );
 in
   exports.internal // {__rootAliases = exports.external;}
+# flattenTree = {
+#   flattenGroup = mkTest {
+#     desired = [
+#       {
+#         name = "DOTS_LIB_BASH";
+#         default = "Templates/bash";
+#       }
+#       {
+#         name = "DOTS_LIB";
+#         default = "Templates/nix";
+#       }
+#     ];
+#     command = ''
+#       flattenTree {
+#         prefix = "DOTS_LIB";
+#         tree = {
+#           default = { local = "Templates/nix"; };
+#           bash = { local = "Templates/bash"; };
+#         };
+#       }
+#     '';
+#     outcome = flattenTree {
+#       prefix = "DOTS_LIB";
+#       tree = {
+#         default = {local = "Templates/nix";};
+#         bash = {local = "Templates/bash";};
+#       };
+#     };
+#   };
+# };
