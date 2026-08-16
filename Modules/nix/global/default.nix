@@ -24,6 +24,8 @@
   };
 
   shared = import ./shared args;
+  inherit (shared) mkName;
+
   shells = importAllNamed {
     args = args // shared;
     dir = ./.;
@@ -35,17 +37,16 @@
     mapAttrs (
       name: cfg:
         mkShell {
-          name = shared.mkName name;
+          name = mkName name;
           env = core.env // cfg.env or {};
           shellHook = cfg.shellHook or "";
           packages =
-            cfg.packages or []
-            ++ (
+            (
               optionals
               ((name == "extras") || (name == "hermes"))
               core.packages
             )
-            ++ [];
+            ++ cfg.packages or [];
         }
     )
     shells;
@@ -56,7 +57,7 @@ in {
     // {
       default = build.core;
       full = mkShell {
-        name = "${args.cfg.name}-full";
+        name = mkName "full";
         env =
           foldl'
           (acc: name: acc // (shells.${name}.env or {}))

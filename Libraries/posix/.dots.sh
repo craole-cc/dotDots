@@ -100,12 +100,14 @@ sync_submodule() {
 
   safe_cd "${ROOT}/${SUBMODULE_PATH}" "${SUBMODULE_NAME} submodule"
 
+  # shellcheck disable=SC2310
   if is_git_repo; then :; else
     error_exit "${SUBMODULE_NAME} directory is not a git repository"
   fi
 
   switch_gh_user "${SUBMODULE_USER}"
 
+  # shellcheck disable=SC2310
   if has_changes; then
     info "Changes detected in ${SUBMODULE_NAME}"
     git_exec "add" add --all
@@ -123,6 +125,7 @@ sync_parent_repo() {
 
   safe_cd "${ROOT}" "${PARENT_NAME} root"
 
+  # shellcheck disable=SC2310
   if is_git_repo; then :; else
     error_exit "${PARENT_NAME} directory is not a git repository"
   fi

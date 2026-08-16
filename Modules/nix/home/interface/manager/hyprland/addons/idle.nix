@@ -4,7 +4,7 @@
     settings = {
       general = {
         hide_cursor = true;
-        ignore_empty_input = true;
+        ignore_empty_input = false;
       };
 
       listener = [
@@ -12,10 +12,11 @@
           timeout = 300;
           on-timeout = "hyprlock";
         }
-        {
-          timeout = 600;
-          on-timeout = "systemctl suspend";
-        }
+        #? Never sleep
+        # {
+        #   timeout = 600;
+        #   on-timeout = "systemctl suspend";
+        # }
       ];
     };
   };

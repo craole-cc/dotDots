@@ -14,12 +14,14 @@
       inherit
         flattenTree
         mkTree
+        mkLocal
         wallman
         ;
     };
     external = {
       flattenProjectTree = flattenTree;
       mkProjectTree = mkTree;
+      mkLocalTree = mkLocal;
     };
   };
 
@@ -106,8 +108,6 @@
   }: let
     rootFor = group: roots.${group} or src;
 
-    # A group value is either a nested attrset of further stems, or a bare
-    # stem (string/list) that resolves directly to one leaf.
     resolve = root: value:
       if isAttrs value
       then mapAttrs (_key: child: resolve root child) value
@@ -121,9 +121,6 @@
       {default = construct {root = src;};}
       // mapAttrs (groupName: group: resolve (rootFor groupName) group) stems;
 
-    # Derive a same-shaped projection of `full` down to a single field
-    # (`store` or `local`) at every leaf. A leaf is any node carrying that
-    # field directly; anything else is walked further.
     project = field: let
       walk = node:
         if isAttrs node && node ? ${field}
@@ -136,7 +133,32 @@
     // {
       store = project "store";
       local = project "local";
+      mkLocal = base: mkLocal {inherit base stems;};
     };
+
+  # Re-derive the local-string tree against a different root at call time
+  # (e.g. a host-specific runtime path), rather than the build-time `src`
+  # projections above, which are fixed once `mkTree` is called.
+  mkLocal = {
+    base,
+    stems,
+  }: let
+    root =
+      if isAttrs base
+      then base.root
+      else base;
+
+    resolveAt = value:
+      if isAttrs value
+      then mapAttrs (_key: child: resolveAt child) value
+      else
+        (construct {
+          inherit root;
+          stem = value;
+        }).local;
+  in
+    {default = (construct {inherit root;}).local;}
+    // mapAttrs (groupName: group: resolveAt group) stems;
 
   /**
     Recursively flattens a nested `{store;local;}`-leaved tree into a
