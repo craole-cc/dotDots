@@ -128,31 +128,9 @@ runtime_dir = "/run/user/1000"
 
 [environment]
 #~@ General
-HOME = "/home/${USER}"
+# HOME = "/home/${USER}"
 LANG = "en_US.UTF-8"
 TIME = "UTC"
-
-# #~@ Configuration Paths
-# XDG_CONFIG_HOME = "${HOME}/.config"
-# XDG_DATA_HOME = "${HOME}/.local/share"
-# XDG_CACHE_HOME = "${HOME}/.cache"
-# XDG_STATE_HOME = "${HOME}/.local/state"
-# XDG_BIN_HOME = "${HOME}/.local/bin"
-# XDG_RUNTIME_DIR = "/run/user/1000"
-# TMPDIR = "/tmp"
-
-# #~@ User Directories
-# DESKTOP = "${HOME}/Desktop"
-# DOCUMENTS = "${HOME}/Documents"
-# DOWNLOAD = "${HOME}/Downloads"
-# MUSIC = "${HOME}/Music"
-# PICTURES = "${HOME}/Pictures"
-# PROJECTS = "${HOME}/Projects"
-# PUBLIC = "${HOME}/Public"
-# SCREENSHOT = "${HOME}/Pictures/Screenshots"
-# TEMPLATES = "${HOME}/Templates"
-# VIDEOS = "${HOME}/Videos"
-# WALLPAPER = "${HOME}/Pictures/wallpapers"
 
 #~@ Applications
 SHELL = "/bin/bash"

@@ -10,6 +10,7 @@
     filter
     genList
     isAttrs
+    isPath
     isString
     mapAttrs
     pathExists
@@ -137,7 +138,10 @@
       else let
         relPath = concatStringsSep "/" stem;
       in {
-        store = base.store + "/${relPath}";
+        store =
+          if base.store == null
+          then null
+          else base.store + "/${relPath}";
         local = concatStringsSep "/" (filter (string: string != "") [base.local relPath]);
       };
   };
@@ -166,8 +170,24 @@
 
     home = let
       path = getEnv "HOME" "/home/${cfg.names.alpha}";
+
+      hasPrefix = prefix: str:
+        substring 0 (stringLength prefix) str == prefix;
+
+      removePrefix = prefix: str:
+        if hasPrefix prefix str
+        then
+          substring (stringLength prefix)
+          (stringLength str - stringLength prefix)
+          str
+        else str;
+
+      localStr = toString src.local;
     in {
-      store = /. + path;
+      store =
+        if hasPrefix localStr path
+        then src.store + removePrefix localStr path
+        else null;
       local = path;
     };
 
@@ -208,45 +228,49 @@
 
   tree = mkTree {stems = removeAttrs cfg.paths ["src"];};
   env = let
-    # Domain-specific transformation rules
     transformPathVar = domain: attrPath: localPath: let
       leaf = elemAt attrPath (length attrPath - 1);
       joinedAttr = concatStringsSep "_" attrPath;
     in
       if domain == "xdg"
-      then
-        # 1. Standard XDG_ <NAME> _HOME (or _DIR for runtime)
-        let
-          suffix =
-            if leaf == "runtime_dir" || leaf == "tmpdir"
-            then ""
-            else "_HOME";
-          varName = "XDG_${joinedAttr}${suffix}";
-        in {
-          name = varName;
-          default = localPath;
-        }
+      then let
+        suffix =
+          if leaf == "runtime_dir" || leaf == "tmpdir"
+          then ""
+          else "_HOME";
+        varName = "XDG_${joinedAttr}${suffix}";
+      in {
+        name = varName;
+        default = localPath;
+      }
       else if domain == "user"
-      then
-        # 2. Uppercase direct leaf name (DOCUMENTS, DOWNLOADS, PICTURES, etc.)
-        {
-          name = leaf;
-          default = localPath;
-        }
-      else
-        # 3. Standard repo prefix: DOTS_<DOMAIN>_<ATTR>
-        {
-          name = "${names.src}_${domain}_${joinedAttr}";
-          default = localPath;
-        };
+      then {
+        name = leaf;
+        default = localPath;
+      }
+      else {
+        name = "${names.src}_${domain}_${joinedAttr}";
+        default = localPath;
+      };
 
-    # Process all path branches dynamically
+    # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
+    # A leaf is any attrset with a `local` key (matches paths.*.* shape).
+    flattenDomain = domain: tree: attrPath: node:
+      if isAttrs node && node ? local
+      then [(transformPathVar domain attrPath node.local)]
+      else if isAttrs node
+      then
+        concatLists (
+          mapAttrsToList (key: child: flattenDomain domain tree (attrPath ++ [key]) child) node
+        )
+      else [];
+
     pathEnvVars = concatLists (
       mapAttrsToList (domain: tree:
-        mapAttrsRecursive (
-          attrPath: node:
-            transformPathVar domain attrPath node.local
-        ) (removeAttrs tree ["src"]))
+        concatLists (
+          mapAttrsToList (key: node: flattenDomain domain tree [key] node)
+          (removeAttrs tree ["src"])
+        ))
       (removeAttrs paths ["src" "modules"])
     );
   in

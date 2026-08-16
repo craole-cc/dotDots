@@ -103,14 +103,14 @@
   ```
   */
   mkPath = arg: let
-    #> Unpack into a normalised attrset
+    #> Unpack into a normalized attrset
     unpacked =
       if isAttrs arg
       then arg
       else {path = arg;};
     raw = unpacked.path or arg;
 
-    #> Normalise raw → absolute local string
+    #> Normalize raw → absolute local string
     localStr =
       if isList raw
       then "${toString src}/${concatStringsSep "/" raw}"
@@ -122,7 +122,12 @@
 
     #> Resolve store path, null-safe
     storePath =
-      if pathExists localStr
+      if
+        (
+          (localStr == toString src)
+          || hasPrefix "${toString src}/" localStr
+        )
+        && pathExists localStr
       then /. + localStr
       else null;
   in {
