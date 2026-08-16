@@ -20,6 +20,7 @@
     attrsets
     filesystem
     lists
+    options
     strings
     trivial
     types
@@ -71,6 +72,7 @@
     inherit (attrsets) isAttrs isDerivation;
     inherit (trivial) isBool isFunction;
     inherit (filesystem) isPath;
+    inherit (options) isOption;
     inherit (lists) isList;
     inherit
       (strings)

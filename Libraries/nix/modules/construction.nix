@@ -53,6 +53,8 @@
   */
   mkSystems = {
     inputs,
+    libraries,
+    names,
     tree,
     schema,
     extraArgs ? {},
@@ -60,18 +62,18 @@
   }:
     mapAttrs (
       _: host: let
-        inherit (host.paths) dots;
+        inherit (host.paths) src;
         class = host.class or "nixos";
-        tree' =
-          tree
-          // {
-            local = tree.mkLocal dots;
-          };
+        tree' = tree // {local = tree.mkLocal src;};
 
         specialArgs =
-          {inherit host class inputs;}
-          // extraArgs
-          // {tree = tree';};
+          {
+            inherit host class inputs;
+            inherit (names) top;
+            "${names.lib}" = libraries.${names.lib};
+            tree = tree';
+          }
+          // extraArgs;
 
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
@@ -138,10 +140,12 @@
     specialArgs,
     tree,
   }: [
-    {nixpkgs = {
-      flake.source = nixpkgs.outPath;
-      config.allowUnfree = host.packages.allowUnfree or true;
-    };}
+    {
+      nixpkgs = {
+        flake.source = nixpkgs.outPath;
+        config.allowUnfree = host.packages.allowUnfree or true;
+      };
+    }
     (mkHome {
       inherit host specialArgs tree inputs;
       modules = modules.home;

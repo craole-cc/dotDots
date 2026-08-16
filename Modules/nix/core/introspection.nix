@@ -1,17 +1,22 @@
 {
   config,
-  lib,
+  lix,
   options,
   top,
   ...
 }: let
-  inherit (lib.attrsets) foldlAttrs mapAttrs removeAttrs;
-  inherit (lib.lists) concatLists foldl' last;
-  inherit (lib.options) isOption;
-  inherit (lib.types) anything;
+  inherit (lix.attrsets.access) foldlAttrs;
+  inherit (lix.attrsets.transformation) mapAttrs removeAttrs;
+  inherit (lix.lists.construction) concatLists;
+  inherit (lix.lists.access) last;
+  inherit (lix.lists.aggregation) foldl';
+  inherit (lix.lists.predicates) all;
+  inherit (lix.options.construction) mkOption mkOptionType;
+  inherit (lix.types.primitives) anything;
+  inherit (lix.types.predicates) isAttrs isList isOption;
 
   mergeOutput = values:
-    if builtins.all builtins.isAttrs values
+    if all isAttrs values
     then
       foldl' (
         merged: value:
@@ -24,13 +29,16 @@
                   then mergeOutput [result.${name} item]
                   else item;
               }
-          ) merged value
-      ) {} values
-    else if builtins.all builtins.isList values
+          )
+          merged
+          value
+      ) {}
+      values
+    else if all isList values
     then concatLists values
     else last values;
 
-  outputType = lib.types.mkOptionType {
+  outputType = mkOptionType {
     name = "staged output";
     description = "recursively merged staged output";
     check = _: true;
@@ -45,20 +53,20 @@
     else mapAttrs (_: optionDefaults) node;
 
   diff = defaults: values:
-    if builtins.isAttrs values && builtins.isAttrs defaults
+    if isAttrs values && isAttrs defaults
     then
       foldlAttrs (
         result: name: value:
           if defaults ? ${name}
-          then
-            let
-              difference = diff defaults.${name} value;
-            in
-              if difference == {}
-              then result
-              else result // {${name} = difference;}
+          then let
+            difference = diff defaults.${name} value;
+          in
+            if difference == {}
+            then result
+            else result // {${name} = difference;}
           else result // {${name} = value;}
-      ) {} values
+      ) {}
+      values
     else if values == defaults
     then {}
     else values;
@@ -66,26 +74,28 @@
   defaults = optionDefaults resolvedOptions;
 in {
   options.${top} = {
-    defaults = lib.mkOption {
+    defaults = mkOption {
       description = "Schema-derived default dotDots input values";
       default = {};
       type = anything;
     };
-    updates = lib.mkOption {
+    updates = mkOption {
       description = "Sparse dotDots input values differing from defaults";
       default = {};
       type = anything;
     };
-    outputs = lib.mkOption {
+    outputs = mkOption {
       description = "Sparse effective NixOS configuration outputs";
       default = {};
       type = outputType;
     };
   };
 
-  config.${top}.defaults = defaults;
-  config.${top}.updates = diff defaults config.${top}.resolved;
-  config.${top}.outputs = {
-    home-manager.users = mapAttrs (_: user: removeAttrs user [top]) config.home-manager.users;
+  config.${top} = {
+    inherit defaults;
+    updates = diff defaults config.${top}.resolved;
+    outputs = {
+      home-manager.users = mapAttrs (_: user: removeAttrs user [top]) config.home-manager.users;
+    };
   };
 }

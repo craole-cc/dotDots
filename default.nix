@@ -232,13 +232,13 @@
       libraries = repo.lib.default.store;
     };
   };
-  _ = libraries.${names.lib};
+  namedLib = libraries.${names.lib};
 
-  inherit (_.attrsets.transformation) asEnvVars mapAttrsToList;
-  inherit (_.filesystem.tree) mkTree;
-  inherit (_.lists.construction) concatLists;
-  inherit (_.lists.access) elemAt length;
-  inherit (_.schema._) mkSchema;
+  inherit (namedLib.attrsets.transformation) asEnvVars mapAttrsToList;
+  inherit (namedLib.filesystem.tree) mkTree;
+  inherit (namedLib.lists.construction) concatLists;
+  inherit (namedLib.lists.access) elemAt length;
+  inherit (namedLib.schema._) mkSchema;
 
   #> --------------------------------------------------------------------
   #> Phase 2 (real paths): now that `_` is loaded, rebuild `paths` fully
@@ -341,8 +341,10 @@ in {
     paths
     schema
     tree
+    libraries
     users
+    names
     ;
   inherit (names) top;
-  "${names.lib}" = _;
+  "${names.lib}" = namedLib;
 }

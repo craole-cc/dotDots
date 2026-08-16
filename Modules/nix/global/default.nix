@@ -20,7 +20,7 @@ args: let
     mapAttrs (
       name: cfg:
         mkShell {
-          name = "${args.cfg.name}-${name}";
+          name = "${args.names.src}-${name}";
           env = core.env // cfg.env or {};
           shellHook = cfg.shellHook or "";
           packages =

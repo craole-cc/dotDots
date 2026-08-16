@@ -81,14 +81,7 @@
     stems,
     roots ? {},
   }: let
-    rootFor = group:
-      roots.${
-        group
-      }
-      or {
-        store = src;
-        local = toString src;
-      };
+    rootFor = group: roots.${group} or src;
 
     resolveStore = root: group:
       mapAttrs
@@ -107,7 +100,7 @@
         else arg;
     in
       {default = (construct {inherit root;}).local;}
-      // mapAttrs (groupName: group: resolveLocal (rootFor groupName).local group) stems;
+      // mapAttrs (groupName: group: resolveLocal (rootFor groupName) group) stems;
 
     store =
       {

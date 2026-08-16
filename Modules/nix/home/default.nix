@@ -1,15 +1,19 @@
 {
-  lib,
   top,
   lix,
-  top,
   ...
 }: let
-  inherit (lix.attrsets) foldlAttrs;
-  inherit (lib.lists) concatLists foldl' last;
+  inherit (lix.attrsets.access) foldlAttrs;
+  inherit (lix.lists.construction) concatLists;
+  inherit (lix.lists.access) last;
+  inherit (lix.lists.aggregation) foldl';
+  inherit (lix.lists.predicates) all;
+  inherit (lix.options.construction) mkOption mkOptionType;
+  inherit (lix.types.primitives) anything;
+  inherit (lix.types.predicates) isAttrs isList;
 
   mergeOutput = values:
-    if builtins.all builtins.isAttrs values
+    if all isAttrs values
     then
       foldl' (
         merged: value:
@@ -27,11 +31,11 @@
           value
       ) {}
       values
-    else if builtins.all builtins.isList values
+    else if all isList values
     then concatLists values
     else last values;
 
-  outputType = lib.types.mkOptionType {
+  outputType = mkOptionType {
     name = "staged output";
     description = "recursively merged staged output";
     check = _: true;
@@ -39,17 +43,17 @@
   };
 in {
   options.${top} = {
-    defaults = lib.mkOption {
+    defaults = mkOption {
       description = "Schema-derived default dotDots input values";
       default = {};
-      type = lib.types.anything;
+      type = anything;
     };
-    updates = lib.mkOption {
+    updates = mkOption {
       description = "Sparse dotDots input values differing from defaults";
       default = {};
-      type = lib.types.anything;
+      type = anything;
     };
-    outputs = lib.mkOption {
+    outputs = mkOption {
       description = "Sparse effective Home Manager configuration outputs";
       default = {};
       type = outputType;

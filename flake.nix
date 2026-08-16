@@ -24,8 +24,8 @@
         import tree.store.mod.global (
           args
           // {
-            inherit pkgs system;
-            src = ./.;
+            inherit pkgs system src;
+            # src = ./.;
           }
         );
     });
