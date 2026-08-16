@@ -10,7 +10,7 @@
   inherit (config.dots.interface) display desktop;
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "xserver";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable;
-payload = {
+  payload = {
     services.xserver = {
       enable = true;
       videoDrivers =
@@ -24,7 +24,7 @@ payload = {
     };
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfgEnabled;
   });

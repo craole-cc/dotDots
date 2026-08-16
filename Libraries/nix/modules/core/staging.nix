@@ -1,4 +1,8 @@
-{_, lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   mkStaged = {
     top,
     condition ? true,

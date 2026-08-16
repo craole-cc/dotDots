@@ -25,12 +25,11 @@
   ];
   apiUtilities = user.applications.utilities or {};
 in {
-  options.${top}.resolved.applications.utilities =
-    lib.genAttrs utilityNames (name: {
-      enable = lib.mkOption {
-        description = "Enable the ${name} user utility";
-        default = lib.attrByPath [name "enable"] false apiUtilities;
-        type = lib.types.bool;
-      };
-    });
+  options.${top}.resolved.applications.utilities = lib.genAttrs utilityNames (name: {
+    enable = lib.mkOption {
+      description = "Enable the ${name} user utility";
+      default = lib.attrByPath [name "enable"] false apiUtilities;
+      type = lib.types.bool;
+    };
+  });
 }

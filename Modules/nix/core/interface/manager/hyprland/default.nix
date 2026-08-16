@@ -17,6 +17,6 @@
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;
-    condition = (cfg.windowManager == "hyprland");
+    condition = cfg.windowManager == "hyprland";
   });
 }

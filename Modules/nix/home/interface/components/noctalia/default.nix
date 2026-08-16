@@ -37,7 +37,7 @@
   homeDir = config.home.homeDirectory;
   terminal = user.applications.terminal.primary;
   wallpapers = homeDir + "/Pictures/Wallpapers";
-payload = (mkMerge [
+  payload = mkMerge [
     {
       programs = mkMerge [
         (optionalAttrs enable {
@@ -63,9 +63,9 @@ payload = (mkMerge [
         shellAliases = mkIf primary {bar = "${name} &";};
       };
     }
-  ]);
+  ];
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = enable;
   });

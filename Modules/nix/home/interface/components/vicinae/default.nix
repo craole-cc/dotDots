@@ -20,12 +20,12 @@
     extraProgramConfig = mkMerge [(import ./settings.nix)];
     debug = false;
   };
-payload = (mkMerge [
+  payload = mkMerge [
     {inherit (cfg) programs home;}
     (import ./hyprland.nix {inherit lib config;})
-  ]);
+  ];
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

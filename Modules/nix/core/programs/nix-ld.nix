@@ -11,7 +11,7 @@
   payload = {
     programs.nix-ld.enable = cfg.enable;
     environment.systemPackages = [pkgs.nix-ld];
-    };
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.programs.nix-ld.enable = lib.mkOption {

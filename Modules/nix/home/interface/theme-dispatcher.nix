@@ -106,7 +106,7 @@
         mode = current() if command == "current" else ("light" if current() == "dark" else "dark") if command == "toggle" else command
         if mode in ("dark", "light"):
             emit(mode)
-'';
+  '';
   dispatcherService = pkgs.writeShellScript "dotdots-theme-dispatcher" ''
     export DOTDOTS_THEME_STATE=${lib.escapeShellArg statePath}
     export DOTDOTS_THEME_SOCKET="''${XDG_RUNTIME_DIR}/dotdots-theme.sock"
@@ -118,7 +118,7 @@
     command="''${1:-toggle}"
     printf '%s' "$command" | ${pkgs.socat}/bin/socat - "UNIX-CONNECT:$socket"
   '';
-payload = {
+  payload = {
     home.packages = [toggle];
     systemd.user.services.dotdots-theme-dispatcher = {
       Unit = {
@@ -169,21 +169,39 @@ in {
         type = lib.types.str;
       };
       foot = {
-        enable = lib.mkOption {default = true; type = lib.types.bool;};
-        restartRequired = lib.mkOption {default = false; type = lib.types.bool;};
+        enable = lib.mkOption {
+          default = true;
+          type = lib.types.bool;
+        };
+        restartRequired = lib.mkOption {
+          default = false;
+          type = lib.types.bool;
+        };
       };
       gtk = {
-        enable = lib.mkOption {default = true; type = lib.types.bool;};
-        restartRequired = lib.mkOption {default = false; type = lib.types.bool;};
+        enable = lib.mkOption {
+          default = true;
+          type = lib.types.bool;
+        };
+        restartRequired = lib.mkOption {
+          default = false;
+          type = lib.types.bool;
+        };
       };
       qt = {
-        enable = lib.mkOption {default = true; type = lib.types.bool;};
-        restartRequired = lib.mkOption {default = true; type = lib.types.bool;};
+        enable = lib.mkOption {
+          default = true;
+          type = lib.types.bool;
+        };
+        restartRequired = lib.mkOption {
+          default = true;
+          type = lib.types.bool;
+        };
       };
     };
   };
 
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

@@ -9,7 +9,7 @@
   inherit (lib.modules) mkIf;
   inherit (config.dots.interface) display desktop;
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "wayland";
-payload = {
+  payload = {
     environment.sessionVariables = {
       #{ Enable Wayland for Firefox
       MOZ_ENABLE_WAYLAND = "1";
@@ -35,7 +35,7 @@ payload = {
     };
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfgEnabled;
   });

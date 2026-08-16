@@ -63,19 +63,18 @@
     pkgs,
     inputs ? {},
     system ? "x86_64-linux",
-  }:
-    let
-      spec = app.package or {};
-      source = spec.source or null;
-      attribute = spec.attribute or app.names.package or null;
-      sourcePackages =
-        if source != null && isAttrs (inputs.${source} or null)
-        then attrByPath ["packages" system] {} inputs.${source}
-        else {};
-    in
-      if sourcePackages != {}
-      then sourcePackages.${attribute} or (pkgs.${attribute} or null)
-      else pkgs.${attribute} or null;
+  }: let
+    spec = app.package or {};
+    source = spec.source or null;
+    attribute = spec.attribute or app.names.package or null;
+    sourcePackages =
+      if source != null && isAttrs (inputs.${source} or null)
+      then attrByPath ["packages" system] {} inputs.${source}
+      else {};
+  in
+    if sourcePackages != {}
+    then sourcePackages.${attribute} or (pkgs.${attribute} or null)
+    else pkgs.${attribute} or null;
 
   mkApps = {
     pkgs,

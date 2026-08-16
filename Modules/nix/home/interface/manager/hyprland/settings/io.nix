@@ -51,5 +51,4 @@ in {
     "${mod}, mouse:273, resizewindow"
     "${mod} SHIFT, mouse:272, resizewindow"
   ];
-
 }

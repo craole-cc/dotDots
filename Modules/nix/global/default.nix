@@ -1,5 +1,12 @@
-args: let
-  inherit (args) lix pkgs;
+{
+  cfg,
+  lix,
+  inputs,
+  pkgs,
+  names,
+  paths,
+  ...
+}: let
   inherit (lix.filesystem.traversal) importAllNamed;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.attrsets.access) attrValues;
@@ -8,11 +15,19 @@ args: let
   inherit (lix.lists.transformation) reverseList;
   inherit (pkgs) mkShell;
 
+  args = {
+    inherit cfg lix pkgs inputs;
+    src = {
+      name = names.src;
+      path = paths.src.store;
+    };
+  };
+
   shared = import ./shared args;
   shells = importAllNamed {
     args = args // shared;
     dir = ./.;
-    exclude = ["shared"];
+    exclude = ["shared" "ai"];
   };
   inherit (shells) core;
 
@@ -20,7 +35,7 @@ args: let
     mapAttrs (
       name: cfg:
         mkShell {
-          name = "${args.names.src}-${name}";
+          name = shared.mkName name;
           env = core.env // cfg.env or {};
           shellHook = cfg.shellHook or "";
           packages =

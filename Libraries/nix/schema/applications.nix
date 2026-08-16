@@ -1,4 +1,8 @@
-{_, lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (_.applications.registry) resolve;
   inherit (lib.attrsets) attrByPath recursiveUpdate;
   inherit (lib.strings) hasInfix toLower;
@@ -167,29 +171,44 @@
 
   legacyCommand = category: name: let
     n = toLower name;
-  in attrByPath [category n] n commandMap;
+  in
+    attrByPath [category n] n commandMap;
 
   legacyClass = command: let
     n = toLower command;
   in
-    if hasInfix "fuzzel" n then "fuzzel"
-    else if hasInfix "vicinae" n then "vicinae"
-    else if hasInfix "yazi" n then "yazi"
-    else if hasInfix "ghostty" n then "com.mitchellh.ghostty"
-    else if hasInfix "zeditor" n then "dev.zed.Zed"
-    else if hasInfix "nautilus" n then "org.gnome.Nautilus"
+    if hasInfix "fuzzel" n
+    then "fuzzel"
+    else if hasInfix "vicinae" n
+    then "vicinae"
+    else if hasInfix "yazi" n
+    then "yazi"
+    else if hasInfix "ghostty" n
+    then "com.mitchellh.ghostty"
+    else if hasInfix "zeditor" n
+    then "dev.zed.Zed"
+    else if hasInfix "nautilus" n
+    then "org.gnome.Nautilus"
     else classMap.${n} or n;
 
   getCommand = category: name:
     if category == "browser"
-    then (resolve {value = name; inherit category;}).exec
+    then
+      (resolve {
+        value = name;
+        inherit category;
+      }).exec
     else legacyCommand category name;
 
   getClass = category: name: let
     command = getCommand category name;
   in
     if category == "browser"
-    then ((resolve {value = name; inherit category;}).names.class or command)
+    then
+      ((resolve {
+        value = name;
+        inherit category;
+      }).names.class or command)
     else legacyClass command;
 
   mkEntry = category: name: {
@@ -235,7 +254,11 @@
       secondary = mkEntry "explorer" raw.explorer.secondary;
     };
     bar = {
-      primary = mkEntry "bar" (if raw.bar == null then "waybar" else raw.bar);
+      primary = mkEntry "bar" (
+        if raw.bar == null
+        then "waybar"
+        else raw.bar
+      );
     };
     inherit raw;
     inherit (raw) prompt allowed;

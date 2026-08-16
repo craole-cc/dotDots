@@ -15,6 +15,6 @@
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;
-    condition = (cfg.windowManager == "niri");
+    condition = cfg.windowManager == "niri";
   });
 }

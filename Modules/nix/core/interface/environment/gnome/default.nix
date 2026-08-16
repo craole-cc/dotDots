@@ -43,6 +43,6 @@
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;
-    condition = (cfg.desktopEnvironment == "gnome");
+    condition = cfg.desktopEnvironment == "gnome";
   });
 }

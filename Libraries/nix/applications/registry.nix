@@ -22,10 +22,13 @@
         ;
     };
     exports = {
-      local = entries // functions // {
-        all = entries;
-        default = entries;
-      };
+      local =
+        entries
+        // functions
+        // {
+          all = entries;
+          default = entries;
+        };
       alias = {};
     };
   in {
@@ -83,10 +86,11 @@
           categories = normalizeList (app.categories or []);
           channel = normalizeOptional (app.channel or null);
           family = normalizeOptional (app.family or null);
-          package = app.package or {
-            source = null;
-            attribute = (app.names.package or null);
-          };
+          package =
+            app.package or {
+              source = null;
+              attribute = app.names.package or null;
+            };
         }
     )
     data;
@@ -168,16 +172,22 @@
   resolve = {
     value,
     category ? null,
-  }:
-    let
-      candidates = filterAttrs (_: app: elem value app.aliases) entries;
-      app = entries.${value} or (if candidates == {} then null else (entries.${head (attrNames candidates)}));
-    in
-      if app == null
-      then throw "Unknown app '${value}' in registry."
-      else if category != null && !(elem category app.categories)
-      then throw "'${value}' does not satisfy category '${category}'. Its categories: ${toString app.categories}"
-      else app;
+  }: let
+    candidates = filterAttrs (_: app: elem value app.aliases) entries;
+    app =
+      entries.${
+        value
+      } or (
+        if candidates == {}
+        then null
+        else (entries.${head (attrNames candidates)})
+      );
+  in
+    if app == null
+    then throw "Unknown app '${value}' in registry."
+    else if category != null && !(elem category app.categories)
+    then throw "'${value}' does not satisfy category '${category}'. Its categories: ${toString app.categories}"
+    else app;
 
   identify = app:
     if app.names ? title
@@ -211,22 +221,38 @@ in
       runTests {
         canonicalRecord = mkTest {
           desired = "zen-twilight";
-          outcome = (resolve {value = "zen-twilight"; category = "browser";}).name;
+          outcome =
+            (resolve {
+              value = "zen-twilight";
+              category = "browser";
+            }).name;
           command = "(resolve {value = \"zen-twilight\"; category = \"browser\";}).name";
         };
         aliasRecord = mkTest {
           desired = "zen-twilight";
-          outcome = (resolve {value = "twilight"; category = "browser";}).name;
+          outcome =
+            (resolve {
+              value = "twilight";
+              category = "browser";
+            }).name;
           command = "(resolve {value = \"twilight\"; category = \"browser\";}).name";
         };
         betaAlias = mkTest {
           desired = "zen-beta";
-          outcome = (resolve {value = "beta"; category = "browser";}).name;
+          outcome =
+            (resolve {
+              value = "beta";
+              category = "browser";
+            }).name;
           command = "(resolve {value = \"beta\"; category = \"browser\";}).name";
         };
         zenAlias = mkTest {
           desired = "zen-twilight";
-          outcome = (resolve {value = "zen"; category = "browser";}).name;
+          outcome =
+            (resolve {
+              value = "zen";
+              category = "browser";
+            }).name;
           command = "(resolve {value = \"zen\"; category = \"browser\";}).name";
         };
         twilightPackage = mkTest {
@@ -236,22 +262,38 @@ in
         };
         dmsShellDank = mkTest {
           desired = "dms-shell";
-          outcome = (resolve {value = "dank"; category = "panel";}).name;
+          outcome =
+            (resolve {
+              value = "dank";
+              category = "panel";
+            }).name;
           command = "(resolve {value = \"dank\"; category = \"panel\";}).name";
         };
         dmsShellDms = mkTest {
           desired = "dms-shell";
-          outcome = (resolve {value = "dms"; category = "panel";}).name;
+          outcome =
+            (resolve {
+              value = "dms";
+              category = "panel";
+            }).name;
           command = "(resolve {value = \"dms\"; category = \"panel\";}).name";
         };
         dmsShellFull = mkTest {
           desired = "dms-shell";
-          outcome = (resolve {value = "dank-material-shell"; category = "panel";}).name;
+          outcome =
+            (resolve {
+              value = "dank-material-shell";
+              category = "panel";
+            }).name;
           command = "(resolve {value = \"dank-material-shell\"; category = \"panel\";}).name";
         };
         dmsGreeterDistinct = mkTest {
           desired = "dms-greeter";
-          outcome = (resolve {value = "dms-greeter"; category = "greeter";}).name;
+          outcome =
+            (resolve {
+              value = "dms-greeter";
+              category = "greeter";
+            }).name;
           command = "(resolve {value = \"dms-greeter\"; category = \"greeter\";}).name";
         };
       };

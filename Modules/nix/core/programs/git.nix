@@ -16,7 +16,7 @@
       lfs.enable = cfg.enableLFS;
       prompt.enable = cfg.enablePrompt;
     };
-    };
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

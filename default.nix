@@ -27,16 +27,6 @@
   #> one source of truth for path resolution post-bootstrap.
   #> --------------------------------------------------------------------
   bootstrap = rec {
-    /**
-    Safely reads an environment variable, returning a fallback default if unset or empty.
-
-    # Arguments
-    `env` (string)
-    : The name of the environment variable to query.
-
-    `default` (any)
-    : The fallback value to return if the environment variable is empty or unset.
-    */
     getEnv = env: default: let
       resolved = builtins.getEnv env;
     in
@@ -44,29 +34,11 @@
       then resolved
       else default;
 
-    /**
-    Safely imports a file at the given path if it exists on disk; otherwise returns an empty set.
-
-    # Arguments
-    `path` (path or string)
-    : The filesystem path to check and conditionally import.
-    */
     importAttr = path:
       if pathExists path
       then import path
       else {};
 
-    /**
-    Recursively merges two attribute sets (right-hand set2 overrides left-hand set1).
-    Nested attrsets are merged key-by-key; any other value type is replaced outright.
-
-    # Arguments
-    `set1` (attrset)
-    : The base attribute set.
-
-    `set2` (attrset)
-    : The overriding attribute set whose values take precedence.
-    */
     mergeAttrs = set1: set2:
       if isAttrs set1 && isAttrs set2
       then
@@ -82,18 +54,9 @@
         // removeAttrs set1 (attrNames set2)
       else set2;
 
-    /**
-    Returns true if `str` starts with `prefix`. Builtins-only stand-in for
-    `lib.strings.hasPrefix`, needed here because `lib` may not be available
-    at bootstrap time.
-    */
     hasPrefix = prefix: str:
       substring 0 (stringLength prefix) str == prefix;
 
-    /**
-    Strips `prefix` from the start of `str` if present; otherwise returns
-    `str` unchanged. Builtins-only stand-in for `lib.strings.removePrefix`.
-    */
     removePrefix = prefix: str:
       if hasPrefix prefix str
       then
@@ -102,20 +65,6 @@
         str
       else str;
 
-    /**
-    Bootstrap-only stand-in for `_.filesystem.primitives.construct` - only
-    needed until real lix is reachable. Recursively resolves stems (attrset,
-    list, or string) into `{ store, local }` records. `store` is `null`
-    whenever the resolved path is not relative to `base` (mirrors the
-    "not under src -> null" rule enforced by the real `construct`).
-
-    # Arguments
-    `base` (attrset)
-    : An attribute set containing `{ store, local }` root paths.
-
-    `stem` (attrset, list, or string)
-    : A path stem, or nested attribute set of stems, to resolve.
-    */
     asPath = {
       stem,
       base,
@@ -200,7 +149,7 @@
       };
 
       #> Only the repo-relative groups are needed to reach paths.lib.default -
-      #> user/xdg/tmpdir are irrelevant to loading `_` and are skipped here.
+      #> user/xdg/tmpdir/cache are irrelevant to loading `_` and are skipped.
       repo = asPath {
         base = paths.src;
         stem = removeAttrs cfg.paths ["user" "xdg" "src" "home" "tmpdir"];
@@ -236,7 +185,7 @@
 
   inherit (namedLib.attrsets.transformation) asEnvVars mapAttrsToList;
   inherit (namedLib.filesystem.tree) mkTree;
-  inherit (namedLib.lists.construction) concatLists;
+  inherit (namedLib.lists.construction) concatLists optionals;
   inherit (namedLib.lists.access) elemAt length;
   inherit (namedLib.schema._) mkSchema;
 
@@ -244,18 +193,20 @@
   #> Phase 2 (real paths): now that `_` is loaded, rebuild `paths` fully
   #> through `mkTree`/`construct` - the single source of truth for path
   #> resolution from this point on. `user`/`xdg` resolve against `home`;
-  #> everything else resolves against `src` (mkTree's default).
+  #> everything else resolves against `src` (mkTree's default). Every
+  #> leaf - repo-relative or not - is a uniform `{store;local;}` pair, so
+  #> no zipping/reconstruction is needed at this call site anymore.
   #> --------------------------------------------------------------------
   tree = mkTree {
     stems = removeAttrs cfg.paths ["src" "home" "tmpdir"];
     roots = {
-      user = bootstrap.paths.user;
-      xdg = bootstrap.paths.user;
+      user = bootstrap.paths.user.local;
+      xdg = bootstrap.paths.user.local;
     };
   };
 
   paths =
-    tree.store
+    tree
     // {
       src = bootstrap.paths.src;
       home = bootstrap.paths.user;
@@ -292,25 +243,16 @@
       };
 
     # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
-    # A leaf is any attrset with a `local` key (matches paths.*.* shape).
     flattenDomain = domain: attrPath: node:
-      if isAttrs node && node ? local
-      then [(transformPathVar domain attrPath node.local)]
-      else if isAttrs node
-      then
-        concatLists (
-          mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node
-        )
-      else [];
-
-    pathEnvVars = concatLists (
-      mapAttrsToList (domain: node:
-        concatLists (
-          mapAttrsToList (key: child: flattenDomain domain [key] child)
-          (removeAttrs node ["src"])
-        ))
-      (removeAttrs paths ["src" "modules"])
-    );
+      optionals (isAttrs node) (
+        if node ? local
+        then [(transformPathVar domain attrPath node.local)]
+        else
+          concatLists (
+            mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node
+          )
+      );
+    ignore = ["src" "store" "local"];
   in
     asEnvVars {
       type = "set";
@@ -327,7 +269,18 @@
             default = paths.src.local;
           }
         ]
-        ++ pathEnvVars;
+        ++ (
+          concatLists (
+            mapAttrsToList
+            (domain: node:
+              concatLists (
+                mapAttrsToList
+                (key: child: flattenDomain domain [key] child)
+                (removeAttrs node ignore)
+              ))
+            (removeAttrs paths ignore)
+          )
+        );
     };
 
   schema = mkSchema {inherit tree;};

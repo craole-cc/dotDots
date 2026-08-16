@@ -4,50 +4,48 @@
 external-sources=true #? Follow arbitrary file paths in source statements
 severity=style        #? Report even style recommendations
 
-#~@ Enable all checks by default
-# enable=all
-
-#~@ Disable specific warnings (ie: disable=SC#### #? Description of the warning)
-disable=SC1003        #? Bad single quote escaping
-disable=SC1016        # ShellCheck directive should be on its own line.
-disable=SC1090-SC1091 #? Don't follow source statements
-disable=SC2030        #? Modification of variable is local (to subshell caused by pipeline)
-disable=SC2031        #? Changes defined in a subshell are likely to be lost.
-disable=SC2034        #? Unused variable
-disable=SC2154        #? Unassigned variable
-disable=SC2250        #? Prefer putting braces around variable references even when not strictly required.
-disable=SC2276        #? Bad assignment or comparison
-disable=SC2312        #? Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
-disable=SC2317        #? Command appears to be unreachable. Check usage (or ignore if invoked indirectly)
-
 #~@ Define source paths
 source-path=SCRIPTDIR                 # Look for sourced files relative to script directory
 source-path=SCRIPTDIR/Bin/shellscript # Also look in a bin dirs
 
-#~@ Temporary Overrides
-disable=SC1001
-disable=SC1036
-disable=SC1065
-disable=SC1088
-disable=SC1091
-disable=SC2016
-disable=SC2086
-disable=SC2102
-disable=SC2116
-disable=SC2119
-disable=SC2120
-disable=SC2148
-disable=SC2162
-disable=SC2181
-disable=SC2211
-disable=SC2221
-disable=SC2222
-disable=SC2232
-disable=SC2244
-disable=SC2249
-disable=SC2272
-disable=SC2327
-disable=SC2328
-disable=SC2329
-disable=SC3045
-disable=SC3067
+#~@ Enable all checks by default
+enable=all
+
+#~@ Disable specific warnings
+disable=SC1001 #? Single quote escape warning (e.g. '\a' -> 'a')
+disable=SC1003 #? Bad single quote escaping
+disable=SC1016 #? ShellCheck directive should be on its own line
+disable=SC1036 #? Syntax error in expression or subshell structure
+disable=SC1065 #? Function declaration structure syntax issue
+disable=SC1088 #? Parsing error in brackets or parenthesis setup
+disable=SC1090 #? ShellCheck can't follow non-constant source statement
+disable=SC1091 #? Not following sourced file (file not found/external)
+disable=SC2016 #? Expressions don't expand in single quotes
+disable=SC2030 #? Modification of variable is local (to subshell caused by pipeline)
+disable=SC2031 #? Changes defined in a subshell are likely to be lost
+disable=SC2034 #? Variable appears unused; verify it or export it
+disable=SC2086 #? Double quote to prevent globbing and word splitting
+disable=SC2102 #? Unescaped character or glob pattern in list
+disable=SC2116 #? Useless echo inside subshell (e.g., $(echo "$foo"))
+disable=SC2119 #? Function called with arguments but doesn't handle them
+disable=SC2120 #? Function references arguments but none were passed
+disable=SC2148 #? Tips if no shebang is present
+disable=SC2154 #? Variable is referenced but not assigned
+disable=SC2162 #? read without -r will mangle backslashes
+disable=SC2181 #? Check exit status directly in if statement rather than $?
+disable=SC2211 #? Glob expansion inside math context or array index
+disable=SC2221 #? Pattern in case statement is redundant / unreachable
+disable=SC2222 #? Pattern in case statement is shadowed by prior pattern
+disable=SC2232 #? Can't use sudo with builtins or functions
+disable=SC2244 #? Prefer explicit condition checks instead of raw expressions
+disable=SC2249 #? Prefer default case patterns in case statements
+disable=SC2250 #? Prefer putting braces around variable references even when not strictly required
+disable=SC2272 #? Subshell assignment inside subshell context
+disable=SC2276 #? Bad assignment or comparison (space around = or similar)
+disable=SC2312 #? Consider invoking command separately to avoid masking return value
+disable=SC2317 #? Command appears to be unreachable
+disable=SC2327 #? Command substitution masks command failure or execution error
+disable=SC2328 #? Signal specification warning or trap usage
+disable=SC2329 #? Function overrides or hides an external command
+disable=SC3045 #? In POSIX sh, 'export' with flags is non-standard
+disable=SC3067 #? In POSIX sh, 'select' loops are non-standard

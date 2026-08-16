@@ -16,7 +16,7 @@
   inherit (lix.lists.predicates) isIn;
 
   isAllowed = isIn opt ((user.applications.allowed or []) ++ [(user.interface.shell.prompt or null)]);
-payload = {
+  payload = {
     # home.file.".config/starship.toml" = {
     #   source = src + "/Configuration/starship/config.toml";
     # };
@@ -180,7 +180,7 @@ payload = {
     };
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = isAllowed;
   });

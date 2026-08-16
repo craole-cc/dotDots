@@ -19,7 +19,7 @@
         load_dotenv = cfg.dotenv;
       };
     };
-    };
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

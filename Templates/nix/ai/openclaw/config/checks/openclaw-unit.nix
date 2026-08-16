@@ -1,22 +1,24 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  ...
+}:
 pkgs.testers.runNixOSTest {
   name = "openclaw-unit";
 
-  nodes.machine =
-    { ... }:
-    {
-      imports = [ inputs.self.nixosModules.openclaw ];
+  nodes.machine = {...}: {
+    imports = [inputs.self.nixosModules.openclaw];
 
-      services.openclaw = {
-        enable = true;
-        port = 8080;
-        host = "127.0.0.1";
-        logLevel = "debug";
-      };
-
-      #> Allow the VM to reach the loopback health endpoint.
-      networking.firewall.enable = false;
+    services.openclaw = {
+      enable = true;
+      port = 8080;
+      host = "127.0.0.1";
+      logLevel = "debug";
     };
+
+    #> Allow the VM to reach the loopback health endpoint.
+    networking.firewall.enable = false;
+  };
 
   testScript = ''
     machine.start()

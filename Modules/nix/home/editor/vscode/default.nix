@@ -51,7 +51,7 @@
     };
     debug = false;
   };
-payload = {inherit (appCfg) home programs;};
+  payload = {inherit (appCfg) home programs;};
 in {
   options.${top}.resolved.${dom}.${mod} = {
     enable = mkEnable {
@@ -61,7 +61,7 @@ in {
     withExtensions = features.options;
   };
 
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

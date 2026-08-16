@@ -24,7 +24,7 @@
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 
   packages = import ./packages.nix {inherit pkgs;};
-payload = {
+  payload = {
     programs = optionalAttrs (config.programs ? ${app}) {
       ${app} = mkMerge [
         {enable = true;}
@@ -49,7 +49,7 @@ payload = {
     };
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = isAllowed;
   });

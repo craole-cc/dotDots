@@ -9,7 +9,7 @@
   inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.modules) mkIf;
   cfgEnabled = config.dots.interface.desktop.environment == "gnome";
-payload = {
+  payload = {
     services.xserver = {
       #{ Enable GNOME desktop environment
       desktopManager.gnome.enable = true;
@@ -52,7 +52,7 @@ payload = {
     ];
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfgEnabled;
   });

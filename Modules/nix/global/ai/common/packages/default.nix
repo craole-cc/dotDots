@@ -1,10 +1,10 @@
 {
   description,
-  dots,
   # env,
+  pkgs,
+  lib,
   ...
 }: let
-  inherit (dots) pkgs lib inputPkgs pythonPkgs;
   inherit (lib.attrsets) attrValues;
 
   apps = {

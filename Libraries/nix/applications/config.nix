@@ -47,7 +47,6 @@
       sessionVariables
       ;
   };
-
 in
   meta.exports.local
   // {

@@ -15,7 +15,7 @@
   inherit (lix.modules.construction) mkIf;
   payload = {
     programs.${mod}.enable = cfg.enable;
-    };
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

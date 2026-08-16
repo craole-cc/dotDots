@@ -46,18 +46,24 @@
     raw
     // {
       remote = {
-        ssh = ssh // {
-          enable = ssh.enable or (raw.ssh or null) != null;
-          keyOnly = ssh.keyOnly or true;
-        };
-        tailscale = tailscale // {
-          enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
-        };
+        ssh =
+          ssh
+          // {
+            enable = ssh.enable or (raw.ssh or null) != null;
+            keyOnly = ssh.keyOnly or true;
+          };
+        tailscale =
+          tailscale
+          // {
+            enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
+          };
         caddy = caddy // {enable = caddy.enable or false;};
       };
-      tailscale = tailscale // {
-        enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
-      };
+      tailscale =
+        tailscale
+        // {
+          enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
+        };
     };
 
   mkNetwork = host: let
@@ -73,7 +79,10 @@
   # 4. host.functionalities containing "development" enables it.
   # 5. Any enabled interactive user's capabilities containing "development" enables it.
   # 6. Otherwise non-hardened hosts default to true.
-  mkDevelopmentCapability = {host, interactiveUsers}: let
+  mkDevelopmentCapability = {
+    host,
+    interactiveUsers,
+  }: let
     explicit = (host.capabilities or {}).development or null;
     hardened = host.hardened or false;
     hostDeclared = builtins.elem "development" (host.functionalities or []);

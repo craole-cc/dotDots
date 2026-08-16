@@ -16,7 +16,8 @@
   user = host.users.data.primary or {};
   sessionArgs = {
     inherit config;
-    inherit (cfg)
+    inherit
+      (cfg)
       windowManager
       desktopEnvironment
       displayProtocol

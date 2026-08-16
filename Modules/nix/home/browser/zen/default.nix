@@ -22,7 +22,11 @@
   allowed = normalize (apps.allowed or []);
   primary = normalize (apps.browser.primary or "");
   secondary = normalize (apps.browser.secondary or "");
-  browser = value: resolve {inherit value; category = "browser";};
+  browser = value:
+    resolve {
+      inherit value;
+      category = "browser";
+    };
   twilight = resolve {
     value = "zen-twilight";
     category = "browser";
@@ -40,7 +44,7 @@
   };
 
   enable = isPrimary || isSecondary || isAllowed;
-payload = {
+  payload = {
     programs.zen-browser = {
       inherit enable name;
       darwinAppName = darwinName;
@@ -74,7 +78,7 @@ payload = {
     };
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = enable;
   });

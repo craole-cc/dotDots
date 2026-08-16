@@ -1,8 +1,11 @@
-{ inputs, pkgs, ... }:
-let
+{
+  inputs,
+  pkgs,
+  ...
+}: let
   inherit (pkgs.stdenv.hostPlatform) system;
 
-  pre-commit-check = import ./checks/pre-commit.nix { inherit inputs pkgs; };
+  pre-commit-check = import ./checks/pre-commit.nix {inherit inputs pkgs;};
   packages = with pkgs; [
     # treefmt
     # nixfmt
@@ -125,4 +128,4 @@ let
     alias update='nix flake update'
   '';
 in
-pkgs.mkShell { inherit packages env shellHook; }
+  pkgs.mkShell {inherit packages env shellHook;}

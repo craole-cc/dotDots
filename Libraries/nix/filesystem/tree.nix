@@ -23,57 +23,80 @@
     };
   };
 
-  # wallman.sh lives alongside this file in Libraries/nix/filesystem/.
-  # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
-  # reference it via _.filesystem.tree.wallman without a fragile relative path.
   wallman = ./wallman.sh;
 
   /**
   Build a fully-resolved path tree from caller-supplied stems.
 
-  Unlike earlier versions, `mkTree` carries no built-in groups or default
-  stems - every group and key comes from the `stems` argument, which is the
-  single source of truth (typically `cfg.paths` from `API/nix/global/config.toml`).
-  This avoids duplicating the same stem data in two places that can drift
-  out of sync.
+  Every group and key comes from the `stems` argument - the single source
+  of truth (typically `cfg.paths` from `API/nix/global/config.toml`). No
+  built-in groups or defaults are merged in.
+
+  The returned tree has every leaf as a `{ store; local; }` pair - this is
+  the canonical, single source of truth (e.g. `tree.api.global.store`).
+  For ergonomic legacy-style access, two derived projections are also
+  exposed at the top level:
+
+  - `tree.store.<group>.<key>` - same shape as the tree, but every leaf is
+    just the bare `store` path (equivalent to `tree.<group>.<key>.store`)
+  - `tree.local.<group>.<key>` - same, but the `local` string
+
+  These projections are mechanically derived once from the canonical tree,
+  so they can never drift from it - use whichever access style reads best
+  at a given call site.
 
   Each group in `stems` resolves against `src` by default. Callers may
   override the root for individual groups via `roots.<group>` - e.g.
-  resolving `user`/`xdg` against `home` instead of the repo root.
+  resolving `user`/`xdg` against `home` instead of the repo root. Root
+  overrides are bare paths (string or path value) - the same shape as
+  `src` itself.
+
+  A stem entry may be:
+  - a group: `{ <key> = [segments]; … }` - each key resolves to its own
+    `{ store; local; }` leaf
+  - a bare stem: a string or list of segments - resolves directly to a
+    single `{ store; local; }` leaf, with no sub-keys (e.g. TOML's flat
+    `cache = ".cache"` or `home = []`)
 
   # Type
   ```
-  mkTree :: { stems :: { <group> :: { <key> :: [string] } }
-            , roots :: { <group> :: { store :: path | null, local :: string } }?
+  mkTree :: { stems :: { <group> :: { <key> :: [string] } | [string] | string }
+            , roots :: { <group> :: path | string }?
             }
-         -> { default :: path | null
-            , mkLocal :: path | string | { root :: path | string }
-                       -> { default :: string, <group> :: { <key> :: string } }
-            , <group>  :: { <key> :: path | null }
+         -> { default :: { store :: path | null, local :: string }
+            , store   :: { <group> :: { <key> :: path | null } | path | null, … }
+            , local   :: { <group> :: { <key> :: string } | string, … }
+            , <group>  :: { <key> :: { store :: path | null, local :: string } }
+                         | { store :: path | null, local :: string }
             , …
             }
   ```
 
   # Arguments
-  - `stems` - attrset of `<group> = { <key> = [segments]; }`, taken as-is
-              (no merging with built-in defaults - there are none)
-  - `roots` - optional per-group root override, `{ store; local; }` pairs.
-              Groups not listed here resolve against `src`.
+  - `stems` - attrset of `<group> = { <key> = [segments]; }` (or a bare
+              stem), taken as-is - no merging with built-in defaults
+  - `roots` - optional per-group root override, a bare path. Groups not
+              listed here resolve against `src`.
 
   # Examples
   ```nix
   mkTree {
     stems = {
       lib = { nix = ["Libraries" "nix"]; rs = ["Libraries" "rust"]; };
+      cache = [".cache"];
       user = { downloads = ["Downloads"]; };
     };
-    roots = { user = home; };
+    roots = { user = home.local; };
   }
   # => {
-  #      store.lib.nix = /nix/store/…-dotDots/Libraries/nix;
-  #      store.lib.rs  = /nix/store/…-dotDots/Libraries/rust;
-  #      store.user.downloads = null;  # outside src, unless home is also outside
-  #      mkLocal = <fn>;
+  #      default        = { store = /…/dotDots; local = "/…/dotDots"; };
+  #      lib.nix         = { store = /…/dotDots/Libraries/nix; local = "/…/dotDots/Libraries/nix"; };
+  #      lib.rs          = { store = /…/dotDots/Libraries/rust; local = "/…/dotDots/Libraries/rust"; };
+  #      cache           = { store = /…/dotDots/.cache; local = "/…/dotDots/.cache"; };
+  #      user.downloads  = { store = null; local = "/home/user/Downloads"; };
+  #
+  #      store.lib.nix   = /…/dotDots/Libraries/nix;      # same data, projected
+  #      local.lib.nix   = "/…/dotDots/Libraries/nix";
   #    }
   ```
   */
@@ -83,38 +106,45 @@
   }: let
     rootFor = group: roots.${group} or src;
 
-    resolveStore = root: group:
-      mapAttrs
-      (_key: stem: (construct {inherit root stem;}).store)
-      group;
+    # A group value is either a nested attrset of further stems, or a bare
+    # stem (string/list) that resolves directly to one leaf.
+    resolve = root: value:
+      if isAttrs value
+      then mapAttrs (_key: child: resolve root child) value
+      else
+        construct {
+          inherit root;
+          stem = value;
+        };
 
-    resolveLocal = root: group:
-      mapAttrs
-      (_key: stem: (construct {inherit root stem;}).local)
-      group;
+    full =
+      {default = construct {root = src;};}
+      // mapAttrs (groupName: group: resolve (rootFor groupName) group) stems;
 
-    mkLocal = arg: let
-      root =
-        if isAttrs arg
-        then arg.root
-        else arg;
+    # Derive a same-shaped projection of `full` down to a single field
+    # (`store` or `local`) at every leaf. A leaf is any node carrying that
+    # field directly; anything else is walked further.
+    project = field: let
+      walk = node:
+        if isAttrs node && node ? ${field}
+        then node.${field}
+        else mapAttrs (_key: walk) node;
     in
-      {default = (construct {inherit root;}).local;}
-      // mapAttrs (groupName: group: resolveLocal (rootFor groupName) group) stems;
-
-    store =
-      {
-        default = (construct {root = src;}).store;
-      }
-      // mapAttrs (groupName: group: resolveStore (rootFor groupName) group) stems;
-  in {inherit mkLocal store;};
+      walk full;
+  in
+    full
+    // {
+      store = project "store";
+      local = project "local";
+    };
 
   /**
-    Recursively flattens a nested attrset into a `[{ name, default }]` list, for feeding into asEnvVars.
+    Recursively flattens a nested `{store;local;}`-leaved tree into a
+    `[{ name, default }]` list, for feeding into asEnvVars.
 
     # Arguments
     `tree` (attrset)
-    : A nested attrset whose leaves are the values to expose.
+    : A nested attrset whose leaves are `{ store; local; }` pairs.
 
     `prefix` (string)
     : Prepended (with "_") to every generated name; used as the base namespace.

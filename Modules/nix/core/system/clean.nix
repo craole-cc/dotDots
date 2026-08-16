@@ -54,6 +54,6 @@ in {
 
   config = lib.mkMerge (mkStaged {
     inherit top payload;
-    condition = (cfg.enable && !(nixCfg.enable or false));
+    condition = cfg.enable && !(nixCfg.enable or false);
   });
 }

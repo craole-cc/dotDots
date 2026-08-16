@@ -15,7 +15,7 @@ let
       else {};
 
     description = spec.description or (defaultNix.description or "");
-  in {   inherit path description; };
+  in {inherit path description;};
 
   templates =
     {

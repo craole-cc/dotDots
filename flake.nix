@@ -13,7 +13,7 @@
   in
     {
       nixosConfigurations = mkSystems args;
-      templates = import tree.store.kit.nix;
+      templates = import tree.kit.nix.store;
     }
     // (mkFlake {
       inherit legacyPackages;
@@ -21,12 +21,8 @@
         system,
         pkgs,
       }:
-        import tree.store.mod.global (
-          args
-          // {
-            inherit pkgs system src;
-            # src = ./.;
-          }
+        import tree.mod.global.store (
+          args // {inherit pkgs system src;}
         );
     });
 

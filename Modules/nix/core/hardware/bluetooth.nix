@@ -61,9 +61,10 @@ in {
         services = {inherit (cfg) blueman;};
         environment.systemPackages = resolvedPackages;
       };
-    }) ++ [
-    {
-      ${top}.outputs = lib.mkIf cfg.enable {hardware.bluetooth.packages = resolvedPackages;};
-    }
-  ]);
+    })
+    ++ [
+      {
+        ${top}.outputs = lib.mkIf cfg.enable {hardware.bluetooth.packages = resolvedPackages;};
+      }
+    ]);
 }

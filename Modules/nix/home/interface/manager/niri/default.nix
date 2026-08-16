@@ -20,7 +20,7 @@
       interface = user.interface or {};
     }
     && (user.interface.windowManager or null) == name;
-payload = {
+  payload = {
     xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
 
     programs = {
@@ -42,7 +42,7 @@ in {
   #   };
   # };
 
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = isAllowed;
   });

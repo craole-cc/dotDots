@@ -169,7 +169,10 @@
         system ? "x86_64-linux",
         ...
       }: let
-        app = resolve {value = "zen-twilight"; category = "browser";};
+        app = resolve {
+          value = "zen-twilight";
+          category = "browser";
+        };
       in {
         cmd = app.exec or app.names.command or "zen";
         pkg = resolvePackage {inherit app pkgs inputs system;};
@@ -182,7 +185,10 @@
         system ? "x86_64-linux",
         ...
       }: let
-        app = resolve {value = "zen-beta"; category = "browser";};
+        app = resolve {
+          value = "zen-beta";
+          category = "browser";
+        };
       in {
         cmd = app.exec or app.names.command or "zen";
         pkg = resolvePackage {inherit app pkgs inputs system;};

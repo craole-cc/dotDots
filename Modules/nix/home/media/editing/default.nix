@@ -11,7 +11,7 @@
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn "video" (host.functionalities or []);
-payload = {
+  payload = {
     home.packages = with pkgs; [
       kdePackages.kdenlive
       shotcut
@@ -22,7 +22,7 @@ payload = {
     ];
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = isAllowed;
   });

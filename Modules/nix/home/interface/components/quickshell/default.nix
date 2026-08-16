@@ -11,14 +11,14 @@
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf mkMerge;
   isAllowed = elem app (user.applications.allowed or []);
-payload = {
+  payload = {
     programs.${app} = mkMerge [
       {enable = true;}
       (import ./settings.nix)
     ];
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = isAllowed;
   });

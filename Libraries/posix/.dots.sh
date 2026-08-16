@@ -4,10 +4,6 @@
 # Handles submodule updates with proper error checking and multi-user support
 set -eu
 
-#──────────────────────────────────────────────────────────────────────────────
-# Configuration
-#──────────────────────────────────────────────────────────────────────────────
-
 SCRIPT_NAME="sync.dots"
 readonly ROOT="${DOTS:-${HOME}/.dots}"
 
@@ -26,10 +22,6 @@ readonly SCRIPT_NAME
 
 # Get commit message from arguments or use default
 readonly MSG="${*:-sync ${SUBMODULE_NAME}}"
-
-#──────────────────────────────────────────────────────────────────────────────
-# Helper Functions
-#──────────────────────────────────────────────────────────────────────────────
 
 # Print error message and exit
 error_exit() {
@@ -58,25 +50,25 @@ skip() {
 switch_gh_user() {
   _user="$1"
 
-  if ! command -v gh > /dev/null 2>&1; then
+  if ! command -v gh >/dev/null 2>&1; then
     error_exit "GitHub CLI (gh) is not installed"
   fi
 
   info "Switching to GitHub user: ${_user}..."
-  if ! gh auth switch --user "${_user}" > /dev/null 2>&1; then
+  if ! gh auth switch --user "${_user}" >/dev/null 2>&1; then
     error_exit "Failed to switch GitHub user to ${_user}" 2
   fi
 }
 
 # Check if directory is a git repository
 is_git_repo() {
-  git rev-parse --git-dir > /dev/null 2>&1
+  git rev-parse --git-dir >/dev/null 2>&1
 }
 
 # Check if there are uncommitted changes
 has_changes() {
-  ! git diff-index --quiet HEAD -- 2> /dev/null \
-    || [ -n "$(git ls-files --others --exclude-standard 2> /dev/null)" ]
+  ! git diff-index --quiet HEAD -- 2>/dev/null ||
+    [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
 }
 
 # Safely change directory
@@ -102,10 +94,6 @@ git_exec() {
     error_exit "Git ${_action} failed" 3
   fi
 }
-
-#──────────────────────────────────────────────────────────────────────────────
-# Main Functions
-#──────────────────────────────────────────────────────────────────────────────
 
 # Sync submodule repository
 sync_submodule() {
@@ -146,7 +134,7 @@ sync_parent_repo() {
   git_exec "add submodule" add "${SUBMODULE_PATH}"
 
   # Check if the submodule pointer actually changed
-  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2> /dev/null; then
+  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2>/dev/null; then
     skip "No submodule pointer change in ${PARENT_NAME}"
     return 0
   fi
@@ -155,10 +143,6 @@ sync_parent_repo() {
   git_exec "push" push
   success "${PARENT_NAME} parent repository updated"
 }
-
-#──────────────────────────────────────────────────────────────────────────────
-# Main Script
-#──────────────────────────────────────────────────────────────────────────────
 
 main() {
   info "Starting ${PARENT_NAME} sync: ${MSG}"
@@ -176,4 +160,4 @@ main() {
 }
 
 # Execute main function
-main
+main "$@"

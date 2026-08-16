@@ -22,9 +22,9 @@
     ];
     debug = false;
   };
-payload = {inherit (cfg) programs home;};
+  payload = {inherit (cfg) programs home;};
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = cfg.enable;
   });

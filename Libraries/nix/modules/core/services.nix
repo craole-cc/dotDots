@@ -108,11 +108,13 @@
         };
 
         cosmic-greeter.enable = desktopEnvironment == "cosmic";
-        dms-greeter = {
-          enable = displayManager == "dms-greeter";
-        } // optionalAttrs (displayManager == "dms-greeter") {
-          compositor.name = compositor.window or compositor.desktop;
-        };
+        dms-greeter =
+          {
+            enable = displayManager == "dms-greeter";
+          }
+          // optionalAttrs (displayManager == "dms-greeter") {
+            compositor.name = compositor.window or compositor.desktop;
+          };
 
         gdm = {
           enable = displayManager == "gdm";

@@ -14,7 +14,7 @@
   isSec = app == (user.applications.editor.tty.secondary or null);
   isAllowed = isIn app (user.applications.allowed or []);
   enable = isPri || isSec || isAllowed;
-payload = {
+  payload = {
     programs.${app} = mkMerge [
       {inherit enable;}
       (import ./plugins.nix)
@@ -35,7 +35,7 @@ payload = {
       else {};
   };
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = enable;
   });

@@ -22,7 +22,7 @@
     config ? programs.${name}
     && (inputsForHome ? ${name})
     && inputsForHome.${name}.isAllowed;
-payload = (mkMerge [
+  payload = mkMerge [
     (import ./hyprland.nix {inherit mod;})
     {
       programs = mkMerge [
@@ -56,9 +56,9 @@ payload = (mkMerge [
         ];
       };
     }
-  ]);
+  ];
 in {
-config = lib.mkMerge (mkStaged{
+  config = lib.mkMerge (mkStaged {
     inherit top payload;
     condition = enable;
   });

@@ -1,6 +1,13 @@
-args: let
-  inherit (args) inputs lix pkgs;
+{
+  inputs,
+  lix,
+  pkgs,
+  src,
+  ...
+}: let
   inherit (lix.sources.packages) pkgOf pkgsFrom;
+
+  mkName = name: "${src.name}-${name}";
 
   pkgFor = {
     input,
@@ -15,4 +22,4 @@ args: let
     exclude ? [],
   }:
     pkgsFrom {inherit inputs pkgs required sources exclude;};
-in {inherit pkgFor pkgsFor;}
+in {inherit mkName pkgFor pkgsFor;}

@@ -34,4 +34,4 @@
       extraShellHook
     ];
   };
-in {  inherit mkDevShell; }
+in {inherit mkDevShell;}

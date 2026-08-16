@@ -1,16 +1,19 @@
-args: let
-  inherit (args) cfg lix pkgs;
+{
+  # cfg,
+  lix,
+  pkgs,
+  src,
+}: let
   inherit (lix.lists.construction) optionals;
   inherit (pkgs) writeShellScriptBin writeShellApplication;
   inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
 
-  _name = cfg.name;
-  description = "${_name} Dev Environment";
+  description = "${src.name} Dev Environment";
 
   #|---------------------------------------------------------|
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
-  fetcher = "${_name}-fetch";
+  fetcher = "${src.name}-fetch";
   packages =
     [
       (writeShellScriptBin "is_cmd" ''
@@ -126,7 +129,7 @@ args: let
     fi
 
     if [ -z "$DOTS_CACHE" ]; then
-      DOTS_CACHE="$DOTS/${cfg.cache}"
+      DOTS_CACHE="$DOTS/.cache"
       export DOTS_CACHE
     fi
 

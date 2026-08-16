@@ -23,7 +23,7 @@
       blesh.enable = cfg.blesh;
       undistractMe.enable = cfg.undistractMe;
     };
-    };
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

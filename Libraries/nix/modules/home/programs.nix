@@ -79,7 +79,6 @@
         "nvim"
         "neovim"
       ];
-
     };
 
     mappings = {
@@ -189,11 +188,22 @@
     selectedPanel =
       if bar == null
       then null
-      else resolve {value = bar; category = "panel";};
+      else
+        resolve {
+          value = bar;
+          category = "panel";
+        };
     browserInput = attrByPath ["browser" "primary"] null apps;
     legacyBrowser = attrByPath ["browser" "firefox"] "twilight" apps;
-    browser = normalizeName (if browserInput == null then legacyBrowser else browserInput);
-    selectedBrowser = resolve {value = browser; category = "browser";};
+    browser = normalizeName (
+      if browserInput == null
+      then legacyBrowser
+      else browserInput
+    );
+    selectedBrowser = resolve {
+      value = browser;
+      category = "browser";
+    };
 
     tty = let
       t = attrByPath ["editor" "tty"] {} apps;
@@ -216,11 +226,9 @@
         ;
     };
 
-    isDmsShellAllowed = {
-      selectedPanel,
-      ...
-    }:
-      selectedPanel != null
+    isDmsShellAllowed = {selectedPanel, ...}:
+      selectedPanel
+      != null
       && selectedPanel.name == "dms-shell";
 
     appSpecs = {
@@ -279,10 +287,7 @@
 
       "zen-browser" = {
         variant = selectedBrowser.channel or "default";
-        condition = {
-          selectedBrowser,
-          ...
-        }:
+        condition = {selectedBrowser, ...}:
           (selectedBrowser.family or "") == "zen";
       };
     };
@@ -310,7 +315,11 @@
       n = normalizeName name;
       cmd =
         if category == "browser"
-        then (resolve {value = n; inherit category;}).exec
+        then
+          (resolve {
+            value = n;
+            inherit category;
+          }).exec
         else if category == "editor" && hasInfix "code" n
         then attrByPath ["editor" "vscode"] "code" mappings.command
         else if category == "editor" && hasInfix "zed" n
@@ -348,10 +357,20 @@
       );
       app =
         if category == "browser"
-        then resolve {value = name; inherit category;}
+        then
+          resolve {
+            value = name;
+            inherit category;
+          }
         else null;
-      command = if app != null then app.exec else getCommand category name;
-      class = if app != null then app.names.class or command else getClass command;
+      command =
+        if app != null
+        then app.exec
+        else getCommand category name;
+      class =
+        if app != null
+        then app.names.class or command
+        else getClass command;
     in {inherit command class;};
 
     mkCategory = category: options:

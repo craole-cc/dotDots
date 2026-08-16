@@ -35,7 +35,13 @@
   # Host API records are intentionally flat declarations. `default.nix` is
   # the complete host baseline; each named host supplies sparse updates.
   mkSchema = {tree}: let
-    paths = {inherit (tree.store.api) global users hosts;};
+    paths = with tree; {
+      global = api.global.store;
+      users = api.users.store;
+      hosts = api.hosts.store;
+    };
+    # paths = {inherit (tree.store.api) global users hosts;};
+
     global =
       if paths.global != null
       then import paths.global
@@ -54,8 +60,12 @@
       else {};
     hosts =
       mapAttrs
-        (name: host: mkCore {inherit name users; host = recursiveUpdate defaultHost host;})
-        rawHosts;
+      (name: host:
+        mkCore {
+          inherit name users;
+          host = recursiveUpdate defaultHost host;
+        })
+      rawHosts;
   in {
     inherit global users hosts;
   };

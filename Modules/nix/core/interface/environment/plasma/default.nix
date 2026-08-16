@@ -23,6 +23,6 @@
 in {
   config = lib.mkMerge (mkStaged {
     inherit top payload;
-    condition = (cfg.desktopEnvironment == "plasma");
+    condition = cfg.desktopEnvironment == "plasma";
   });
 }

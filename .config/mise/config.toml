@@ -1,109 +1,109 @@
 [settings]
-experimental = true
-# lockfile = true
-# quiet = true
-windows_shim_mode = "symlink"
+  experimental = true
+  # lockfile = true
+  # quiet = true
+  windows_shim_mode = "symlink"
 
 [tools]
-"cargo:treefmt" = "latest"
-bat = "latest"
-cargo-binstall = "latest"
-cosign = "latest"
-deno = "latest"
-direnv = "2.37.1"
-dust = "latest"
-eza = "latest"
-fastfetch = "latest"
-fd = "latest"
-jq = "latest"
-jujutsu = "latest"
-lsd = "latest"
-pandoc = "latest"
-ripgrep = "latest"
-rust = "1.95.0"
-sd = "1.1.0"
-starship = "1.25.1"
-taplo = "latest"
-tokei = "latest"
-typos = "latest"
-typst = "latest"
-typstyle = "latest"
-usage = "latest"
-uv = "latest"
-watchexec = "latest"
-yamlfmt = "latest"
-yazi = "latest"
-zoxide = "latest"
+  "cargo:treefmt" = "latest"
+  bat = "latest"
+  cargo-binstall = "latest"
+  cosign = "latest"
+  deno = "latest"
+  direnv = "2.37.1"
+  dust = "latest"
+  eza = "latest"
+  fastfetch = "latest"
+  fd = "latest"
+  jq = "latest"
+  jujutsu = "latest"
+  lsd = "latest"
+  pandoc = "latest"
+  ripgrep = "latest"
+  rust = "1.95.0"
+  sd = "1.1.0"
+  starship = "1.25.1"
+  taplo = "latest"
+  tokei = "latest"
+  typos = "latest"
+  typst = "latest"
+  typstyle = "latest"
+  usage = "latest"
+  uv = "latest"
+  watchexec = "latest"
+  yamlfmt = "latest"
+  yazi = "latest"
+  zoxide = "latest"
 
 [env]
-PRJ_ROOT = "{{config_root}}"
-PRJ_ENV = "{{config_root}}\\environment"
-MISE_PROJECT_ROOT = "{{env.PRJ_ROOT}}"
-PRJ_NAME = "{{ cwd | basename }}"
-DATETIME = "{{ now() | date(format='%Y-%m-%d_%H:%M:%S') }}"
-EDITOR = "helix"
-PAGER = "bat --color=always --style=plain"
+  PRJ_ROOT = "{{config_root}}"
+  PRJ_ENV = "{{config_root}}\\environment"
+  MISE_PROJECT_ROOT = "{{env.PRJ_ROOT}}"
+  PRJ_NAME = "{{ cwd | basename }}"
+  DATETIME = "{{ now() | date(format='%Y-%m-%d_%H:%M:%S') }}"
+  EDITOR = "helix"
+  PAGER = "bat --color=always --style=plain"
 
 [hooks]
-enter = "{{mise_bin}} install --quiet" #TODO: This doesn't seem to do anything
-leave = "echo Goodbye!"
-postinstall = "mise clean"
+  enter = "{{mise_bin}} install --quiet"  # TODO: This doesn't seem to do anything
+  leave = "echo Goodbye!"
+  postinstall = "mise clean"
 
 [tasks.update]
-description = "Update all global tools"
-alias = "upd"
-run = ["mise self-update", "mise install", "mise upgrade"]
+  description = "Update all global tools"
+  alias = "upd"
+  run = ["mise self-update", "mise install", "mise upgrade"]
 
 [tasks.clean]
-description = "Clean up caches"
-alias = "cln"
-run = "mise cache prune"
+  description = "Clean up caches"
+  alias = "cln"
+  run = "mise cache prune"
 
 [tasks.info]
-description = "Show the information about the project"
-alias = "inf"
-run = [
-  "eza --version",
-  "cargo --version",
-  "jj --version",
-  "rustc --version",
-  "tokei --version",
-  "treefmt --version",
-  "tokei",
-  # "{{mise_bin}} files",
-]
+  description = "Show the information about the project"
+  alias = "inf"
+  run = [
+    "eza --version",
+    "cargo --version",
+    "jj --version",
+    "rustc --version",
+    "tokei --version",
+    "treefmt --version",
+    "tokei",
+    # "{{mise_bin}} files",
+  ]
 
 [tasks.tools]
-alias = "reg"
-description = "List available tools from the registry filtered by a search term"
-usage = '''
+  alias = "reg"
+  description = "List available tools from the registry filtered by a search term"
+  usage = '''
 arg "pattern" "search pattern to filter tools" default=""
 '''
-run = "mise registry | rg -- %USAGE_PATTERN%"
+  run = "mise registry | rg -- %USAGE_PATTERN%"
 
 [tasks.files]
-description = "List the files in the current directory"
-alias = "fl"
-run = "eza --almost-all --icons=always --long --group-directories-first  --git --git-ignore"
+  description = "List the files in the current directory"
+  alias = "fl"
+  run = "eza --almost-all --icons=always --long --group-directories-first  --git --git-ignore"
 
 [tasks.tree]
-description = "List the files recursively from the current directory"
-alias = "ft"
-run = "eza --icons --long --group-directories-first --git --tree"
+  description = "List the files recursively from the current directory"
+  alias = "ft"
+  run = "eza --icons --long --group-directories-first --git --tree"
 
 [tasks.lint]
-description = "Format the project tree"
-alias = "f"
-run = [
-  "{{mise_bin}} fmt",
-  "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
-]
+  description = "Format the project tree"
+  alias = "f"
+  run = [
+    "{{mise_bin}} fmt",
+    "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
+  ]
 
 [tasks.backup]
-description = "Backup the current repo folder to its parent with a timestamp"
-alias = "bac"
-shell = "powershell"
-run = '''
+  description = "Backup the current repo folder to its parent with a timestamp"
+  alias = "bac"
+  shell = "powershell"
+  run = '''
   $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
   $source = Get-Location
   $parent = Split-Path $source -Parent
@@ -114,35 +114,35 @@ run = '''
 '''
 
 [tasks.pujj]
-description = "Pull the local jj state with that of the remote origin"
-alias = "jj-down"
-run = ["jj git fetch --remote origin", "jj rebase --destination main@origin"]
+  description = "Pull the local jj state with that of the remote origin"
+  alias = "jj-down"
+  run = ["jj git fetch --remote origin", "jj rebase --destination main@origin"]
 
 [tasks.pullit]
-description = "Fetch and update from remote using Git"
-alias = "git-down"
-run = ["git checkout main", "git pull origin main"]
+  description = "Fetch and update from remote using Git"
+  alias = "git-down"
+  run = ["git checkout main", "git pull origin main"]
 
 [tasks.pull]
-description = "Pull the changes to the main branch"
-alias = "down"
-run = [
-  #~@ Fetch and update from remote using Git
-  "mise pullit",
+  description = "Pull the changes to the main branch"
+  alias = "down"
+  run = [
+    # ~@ Fetch and update from remote using Git
+    "mise pullit",
 
-  #~@ Sync JJ state with imported Git changes
-  "mise pujj",
-]
+    # ~@ Sync JJ state with imported Git changes
+    "mise pujj",
+  ]
 
 [tasks.push]
-description = "Push the changes to the main branch"
-alias = "up"
-shell = "powershell"
-usage = '''
+  description = "Push the changes to the main branch"
+  alias = "up"
+  shell = "powershell"
+  usage = '''
 flag "-b --allow-backwards" help="Allow backwards bookmark movement"
 flag "-f --force" help="Force push even if remote changed"
 '''
-run = '''
+  run = '''
   Write-Output "Removing JJ lock if present..."
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
@@ -163,14 +163,15 @@ run = '''
 
   Write-Output "Push complete!"
 '''
+
 [tasks.jj_reup]
-description = "Pull, backup, and push with allow-backwards"
-alias = "reup"
-shell = "powershell"
-usage = '''
+  description = "Pull, backup, and push with allow-backwards"
+  alias = "reup"
+  shell = "powershell"
+  usage = '''
 flag "-f --force" help="Force push even if remote changed"
 '''
-run = '''
+  run = '''
 mise pull
 mise backup
 if ($env:usage_force -eq "true") {
@@ -181,14 +182,14 @@ if ($env:usage_force -eq "true") {
 '''
 
 [tasks.jj]
-description = "Initialize the repository to use jusutsu"
-alias = "jjinit"
-run = ["jj git init --colocate", "jj bookmark track main@origin"]
+  description = "Initialize the repository to use jusutsu"
+  alias = "jjinit"
+  run = ["jj git init --colocate", "jj bookmark track main@origin"]
 
 [tasks.cr]
-description = "Run a customizable cargo command, defaults to 'cargo run --quiet'"
-shell = "powershell"
-run = '''
+  description = "Run a customizable cargo command, defaults to 'cargo run --quiet'"
+  shell = "powershell"
+  run = '''
 $command = $env:MISE_TASK_ARGS
 if (-not $command) {
     $command = "run --quiet"
@@ -197,9 +198,9 @@ cargo $command
 '''
 
 [tasks.cw]
-description = "Run 'cargo watch' with a customizable command, defaults to 'run --quiet'"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo watch' with a customizable command, defaults to 'run --quiet'"
+  shell = "powershell"
+  run = '''
 $command = $env:MISE_TASK_ARGS
 if (-not $command) {
     $command = "run --quiet"
@@ -208,9 +209,9 @@ cargo watch --quiet --clear --exec $command
 '''
 
 [tasks.cwc]
-description = "Run 'cargo watch' with a customizable command, defaults to 'clippy'"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo watch' with a customizable command, defaults to 'clippy'"
+  shell = "powershell"
+  run = '''
 $command = $env:MISE_TASK_ARGS
 if (-not $command) {
     $command = "clippy"
@@ -219,9 +220,9 @@ cargo watch --quiet --clear --exec $command
 '''
 
 [tasks.clippy]
-description = "Run 'cargo clippy' once and route output to error.txt if there are warnings or errors"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo clippy' once and route output to error.txt if there are warnings or errors"
+  shell = "powershell"
+  run = '''
 $clippyOutput = cargo clippy 2>&1 | Out-String
 if ($clippyOutput -match "warning|error") {
     $clippyOutput | Out-File -FilePath error.txt
@@ -232,9 +233,9 @@ if ($clippyOutput -match "warning|error") {
 '''
 
 [tasks.ct]
-description = "Run 'cargo test' with additional arguments, defaults to '--features quickcheck'"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo test' with additional arguments, defaults to '--features quickcheck'"
+  shell = "powershell"
+  run = '''
 $features = $env:MISE_TASK_ARGS
 if (-not $features) {
     $features = "quickcheck"
@@ -243,9 +244,9 @@ cargo test --features $features
 '''
 
 [tasks.cwt]
-description = "Run 'cargo watch' with a customizable command, defaults to 'test'"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo watch' with a customizable command, defaults to 'test'"
+  shell = "powershell"
+  run = '''
 $command = $env:MISE_TASK_ARGS
 if (-not $command) {
     $command = "test"
@@ -254,9 +255,9 @@ cargo watch --quiet --clear --exec test $command
 '''
 
 [tasks.cwtq]
-description = "Run 'cargo watch' with a customizable command, defaults to 'test with quickcheck'"
-shell = "powershell"
-run = '''
+  description = "Run 'cargo watch' with a customizable command, defaults to 'test with quickcheck'"
+  shell = "powershell"
+  run = '''
 $command = $env:MISE_TASK_ARGS
 if (-not $command) {
     $command = "test  --features quickcheck"
@@ -265,36 +266,36 @@ cargo watch --quiet --clear --exec $command
 '''
 
 [tasks.pulltest]
-description = "Test Pull"
-alias = "pulltest"
-shell = "powershell"
-usage = '''
+  description = "Test Pull"
+  alias = "pulltest"
+  shell = "powershell"
+  usage = '''
 flag "-b --allow-backwards" help="Allow backwards bookmark movement"
 flag "-f --force" help="Force push even if remote changed"
 '''
-run = '''
+  run = '''
 Write-Output "pulling"
 '''
 
 [tasks.bactest]
-description = "Test Backup"
-shell = "powershell"
-usage = '''
+  description = "Test Backup"
+  shell = "powershell"
+  usage = '''
 flag "-f --force" help="Force push even if remote changed"
 '''
-run = '''
+  run = '''
 Write-Output "backingup"
 '''
 
 [tasks.pushtest]
-description = "Test Push flags (dry run)"
-alias = "uptest"
-shell = "powershell"
-usage = '''
+  description = "Test Push flags (dry run)"
+  alias = "uptest"
+  shell = "powershell"
+  usage = '''
 flag "-b --allow-backwards" help="Allow backwards bookmark movement"
 flag "-f --force" help="Force push even if remote changed"
 '''
-run = '''
+  run = '''
 Write-Output "Would remove JJ lock"
 Write-Output "Would run: jj describe"
 $backwards = if ($env:usage_allow_backwards -eq "true") { "--allow-backwards" } else { "" }
