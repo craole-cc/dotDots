@@ -1,0 +1,167 @@
+version = "2.0.0"
+
+[names]
+src = "dots"
+repo = "https://github.com/craole-cc/dotDots.git"
+prefix = "."
+top = "_"
+lib = "lix"
+alpha = "craole"
+cache = ".cache"
+
+[paths]
+src = "/home/craole/.dots"
+home = "/home/craole"
+tmpdir = "/tmp"
+
+# API
+[paths.api]
+base = ["API"]
+default = ["API", "nix"]
+nix = ["API", "nix"]
+rs = ["API", "rust"]
+py = ["API", "python"]
+sh = ["API", "bash"]
+global = ["API", "nix", "global"]
+hosts = ["API", "nix", "hosts"]
+users = ["API", "nix", "users"]
+
+# Configuration & Environment
+[paths.cfg]
+base = ["Configuration"]
+default = ["Configuration"]
+
+[paths.env]
+base = ["Environment"]
+default = ["Environment"]
+nu = ["Environment", "nushell"]
+sh = ["Environment", "posix"]
+pwsh = ["Environment", "powershell"]
+
+# Kits / Templates
+[paths.kit]
+base = ["Templates"]
+default = ["Templates", "nix"]
+nix = ["Templates", "nix"]
+rs = ["Templates", "rust"]
+sh = ["Templates", "posix"]
+common = ["Templates", "nix", "common"]
+dev = ["Templates", "nix", "dev"]
+media = ["Templates", "nix", "media"]
+full = ["Templates", "nix", "full"]
+
+# Libraries
+[paths.lib]
+base = ["Libraries"]
+default = ["Libraries", "nix"]
+nix = ["Libraries", "nix"]
+rs = ["Libraries", "rust"]
+nu = ["Libraries", "nushell"]
+sh = ["Libraries", "posix"]
+pwsh = ["Libraries", "powershell"]
+bash = ["Libraries", "bash"]
+py = ["Libraries", "python"]
+
+# Modules
+[paths.mod]
+base = ["Modules"]
+nix = ["Modules", "nix"]
+rs = ["Modules", "rust"]
+default = ["Modules", "nix"]
+global = ["Modules", "nix", "global"]
+core = ["Modules", "nix", "core"]
+home = ["Modules", "nix", "home"]
+
+# Packages
+[paths.pkg]
+base = ["Packages"]
+global = ["Packages", "nix", "global"]
+nix = ["Packages", "nix"]
+rs = ["Packages", "rust"]
+default = ["Packages", "nix"]
+core = ["Packages", "nix", "core"]
+home = ["Packages", "nix", "home"]
+overlays = ["Packages", "nix", "overlays"]
+plugins = ["Packages", "nix", "plugins"]
+
+# Private / Secrets
+[paths.sec]
+base = ["Private"]
+default = ["Private", "nix"]
+nix = ["Private", "nix"]
+rs = ["Private", "rust"]
+age = ["Private", "nix", "secrets.nix"]
+vpn = ["Private", "vpn.age"]
+
+# Resources & Assets
+[paths.res]
+base = ["Assets"]
+default = ["Assets"]
+images = ["Assets", "Images"]
+fonts = ["Assets", "Fonts"]
+icons = ["Assets", "Icons"]
+ascii = ["Assets", "Ascii"]
+logos = ["Assets", "Logos"]
+wallpapers = ["Assets", "Images", "wallpapers"]
+
+[paths.user]
+home = []
+documents = ["Documents"]
+downloads = ["Downloads"]
+music = ["Music"]
+pictures = ["Pictures"]
+videos = ["Videos"]
+projects = ["Projects"]
+wallpapers = ["Pictures", "Wallpapers"]
+screenshots = ["Pictures", "Screenshots"]
+desktop = ["Desktop"]
+public = ["Public"]
+templates = ["Templates"]
+
+[paths.xdg]
+config = [".config"]
+data = [".local", "share"]
+cache = [".cache"]
+state = [".local", "state"]
+bin = [".local", "bin"]
+runtime_dir = "/run/user/1000"
+
+[environment]
+#~@ General
+HOME = "/home/${USER}"
+LANG = "en_US.UTF-8"
+TIME = "UTC"
+
+# #~@ Configuration Paths
+# XDG_CONFIG_HOME = "${HOME}/.config"
+# XDG_DATA_HOME = "${HOME}/.local/share"
+# XDG_CACHE_HOME = "${HOME}/.cache"
+# XDG_STATE_HOME = "${HOME}/.local/state"
+# XDG_BIN_HOME = "${HOME}/.local/bin"
+# XDG_RUNTIME_DIR = "/run/user/1000"
+# TMPDIR = "/tmp"
+
+# #~@ User Directories
+# DESKTOP = "${HOME}/Desktop"
+# DOCUMENTS = "${HOME}/Documents"
+# DOWNLOAD = "${HOME}/Downloads"
+# MUSIC = "${HOME}/Music"
+# PICTURES = "${HOME}/Pictures"
+# PROJECTS = "${HOME}/Projects"
+# PUBLIC = "${HOME}/Public"
+# SCREENSHOT = "${HOME}/Pictures/Screenshots"
+# TEMPLATES = "${HOME}/Templates"
+# VIDEOS = "${HOME}/Videos"
+# WALLPAPER = "${HOME}/Pictures/wallpapers"
+
+#~@ Applications
+SHELL = "/bin/bash"
+EDITOR = "hx"
+VISUAL = "code"
+PAGER = "less"
+BROWSER = "firefox"
+TERMINAL = "ghostty"
+
+#~@ Common
+LOCALHOST = "127.0.0.1"
+NIXPKGS_ALLOW_UNFREE = "1"

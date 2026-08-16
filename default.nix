@@ -123,7 +123,10 @@
       then
         if substring 0 1 stem == "/"
         then {
-          store = base.store;
+          store =
+            if substring 0 11 stem == "/nix/store/"
+            then /. + stem
+            else null;
           local = stem;
         }
         else
@@ -160,12 +163,33 @@
         then root
         else getEnv "PWD" cfg.paths.src;
     };
-  in
-    asPath {
+
+    home = let
+      path = getEnv "HOME" "/home/${cfg.names.alpha}";
+    in {
+      store = /. + path;
+      local = path;
+    };
+
+    #> Resolve repo-relative paths (api, lib, mod, pkg, etc.)
+    repo = asPath {
       base = src;
-      stem = cfg.paths;
-    }
-    // {inherit src;};
+      stem = removeAttrs cfg.paths ["user" "xdg" "src"];
+    };
+
+    #> Resolve user home paths (Documents, Pictures, Projects)
+    user = asPath {
+      base = home;
+      stem = cfg.paths.user or {};
+    };
+
+    #> Resolve XDG system paths (.config, .local/share, .cache)
+    xdg = asPath {
+      base = home;
+      stem = cfg.paths.xdg or {};
+    };
+  in
+    repo // {inherit src user xdg;};
 
   libraries = import paths.lib.default.store {
     inherit names flake lib;
@@ -176,40 +200,103 @@
   };
   _ = libraries.${names.lib};
 
-  inherit (_.attrsets.transformation) asEnvVars mapAttrsToList;
-  inherit (_.filesystem.tree) mkTree flattenTree;
+  inherit (_.attrsets.transformation) asEnvVars mapAttrsToList mapAttrsRecursive;
+  inherit (_.filesystem.tree) mkTree;
   inherit (_.lists.construction) concatLists;
+  inherit (_.lists.access) elemAt length;
   inherit (_.schema._) mkSchema;
-  inherit (_.strings.transformation) toUpper;
 
-  tree = mkTree {stems = cfg.paths;};
+  tree = mkTree {stems = removeAttrs cfg.paths ["src"];};
+  env = let
+    # Domain-specific transformation rules
+    transformPathVar = domain: attrPath: localPath: let
+      leaf = elemAt attrPath (length attrPath - 1);
+      joinedAttr = concatStringsSep "_" attrPath;
+    in
+      if domain == "xdg"
+      then
+        # 1. Standard XDG_ <NAME> _HOME (or _DIR for runtime)
+        let
+          suffix =
+            if leaf == "runtime_dir" || leaf == "tmpdir"
+            then ""
+            else "_HOME";
+          varName = "XDG_${joinedAttr}${suffix}";
+        in {
+          name = varName;
+          default = localPath;
+        }
+      else if domain == "user"
+      then
+        # 2. Uppercase direct leaf name (DOCUMENTS, DOWNLOADS, PICTURES, etc.)
+        {
+          name = leaf;
+          default = localPath;
+        }
+      else
+        # 3. Standard repo prefix: DOTS_<DOMAIN>_<ATTR>
+        {
+          name = "${names.src}_${domain}_${joinedAttr}";
+          default = localPath;
+        };
 
-  env = asEnvVars {
-    type = "set";
-    uppercase = true;
-    vars =
-      (
-        mapAttrsToList
-        (name: default: {inherit name default;})
-        cfg.environment
-      )
-      ++ (let
-        inherit (names) src;
-      in
-        [
+    # Process all path branches dynamically
+    pathEnvVars = concatLists (
+      mapAttrsToList (domain: tree:
+        mapAttrsRecursive (
+          attrPath: node:
+            transformPathVar domain attrPath node.local
+        ) (removeAttrs tree ["src"]))
+      (removeAttrs paths ["src" "modules"])
+    );
+  in
+    asEnvVars {
+      type = "set";
+      uppercase = true;
+      vars =
+        (mapAttrsToList (name: default: {inherit name default;}) cfg.environment)
+        ++ [
           {
-            name = toUpper "${src}_HOME";
+            name = names.src;
+            default = paths.src.local;
+          }
+          {
+            name = "${names.src}_HOME";
             default = paths.src.local;
           }
         ]
-        ++ concatLists (mapAttrsToList
-          (name: tree:
-            flattenTree {
-              inherit tree;
-              prefix = "${src}_${name}";
-            })
-          (removeAttrs paths ["src"])));
-  };
+        ++ pathEnvVars;
+    };
+  # env = asEnvVars {
+  #   type = "set";
+  #   uppercase = true;
+  #   vars =
+  #     (
+  #       mapAttrsToList
+  #       (name: default: {inherit name default;})
+  #       cfg.environment
+  #     )
+  #     ++ (let
+  #       inherit (names) src;
+  #     in
+  #       [
+  #         {
+  #           name = src;
+  #           default = paths.src.local;
+  #         }
+  #         {
+  #           name = "${src}_HOME";
+  #           default = paths.src.local;
+  #         }
+  #       ]
+  #       ++ concatLists (mapAttrsToList
+  #         (name: tree:
+  #           flattenTree {
+  #             inherit tree;
+  #             prefix = "${src}_${name}";
+  #           })
+  #         (removeAttrs paths ["src"])));
+  # };
 
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;

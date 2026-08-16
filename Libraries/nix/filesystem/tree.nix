@@ -183,8 +183,15 @@
       commonStems
       stems;
 
-    resolveStore = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).store) group;
-    resolveLocal = root: group: mapAttrs (_: stem: (construct {inherit root stem;}).local) group;
+    resolveStore = root: group:
+      mapAttrs
+      (_: stem: (construct {inherit root stem;}).store)
+      group;
+
+    resolveLocal = root: group:
+      mapAttrs
+      (_: stem: (construct {inherit root stem;}).local)
+      group;
 
     mkLocal = arg: let
       root =
