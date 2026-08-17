@@ -1,127 +1,127 @@
 [aws]
-symbol = "  "
+  symbol = "  "
 
 [buf]
-symbol = " "
+  symbol = " "
 
 [c]
-symbol = " "
+  symbol = " "
 
 [conda]
-symbol = " "
+  symbol = " "
 
 [dart]
-symbol = " "
+  symbol = " "
 
 [directory]
-read_only = " "
+  read_only = " "
 
 [docker_context]
-symbol = " "
+  symbol = " "
 
 [elixir]
-symbol = " "
+  symbol = " "
 
 [elm]
-symbol = " "
+  symbol = " "
 
 [git_branch]
-symbol = " "
+  symbol = " "
 
 [golang]
-symbol = " "
+  symbol = " "
 
-# [guix_shell]
-# symbol = " "
+  # [guix_shell]
+  # symbol = " "
 
 [haskell]
-symbol = " "
+  symbol = " "
 
-# [haxe]
-# symbol = "⌘ "
+  # [haxe]
+  # symbol = "⌘ "
 
 [hg_branch]
-symbol = " "
+  symbol = " "
 
 [java]
-symbol = " "
+  symbol = " "
 
 [julia]
-symbol = " "
+  symbol = " "
 
 [lua]
-symbol = " "
+  symbol = " "
 
 [memory_usage]
-symbol = " "
+  symbol = " "
 
 [meson]
-symbol = "喝 "
+  symbol = "喝 "
 
 [nim]
-symbol = " "
+  symbol = " "
 
 [nix_shell]
-symbol = " "
+  symbol = " "
 
 [nodejs]
-symbol = " "
+  symbol = " "
 
-# [os.symbols]
-# Alpine = " "
-# Amazon = " "
-# Android = " "
-# Arch = " "
-# CentOS = " "
-# Debian = " "
-# DragonFly = " "
-# Emscripten = " "
-# EndeavourOS = " "
-# Fedora = " "
-# FreeBSD = " "
-# Garuda = "﯑ "
-# Gentoo = " "
-# HardenedBSD = "ﲊ "
-# Illumos = " "
-# Linux = " "
-# Macos = " "
-# Manjaro = " "
-# Mariner = " "
-# MidnightBSD = " "
-# Mint = " "
-# NetBSD = " "
-# NixOS = " "
-# OpenBSD = " "
-# openSUSE = " "
-# OracleLinux = " "
-# Pop = " "
-# Raspbian = " "
-# Redhat = " "
-# RedHatEnterprise = " "
-# Redox = " "
-# Solus = "ﴱ "
-# SUSE = " "
-# Ubuntu = " "
-# Unknown = " "
-# Windows = " "
+  # [os.symbols]
+  # Alpine = " "
+  # Amazon = " "
+  # Android = " "
+  # Arch = " "
+  # CentOS = " "
+  # Debian = " "
+  # DragonFly = " "
+  # Emscripten = " "
+  # EndeavourOS = " "
+  # Fedora = " "
+  # FreeBSD = " "
+  # Garuda = "﯑ "
+  # Gentoo = " "
+  # HardenedBSD = "ﲊ "
+  # Illumos = " "
+  # Linux = " "
+  # Macos = " "
+  # Manjaro = " "
+  # Mariner = " "
+  # MidnightBSD = " "
+  # Mint = " "
+  # NetBSD = " "
+  # NixOS = " "
+  # OpenBSD = " "
+  # openSUSE = " "
+  # OracleLinux = " "
+  # Pop = " "
+  # Raspbian = " "
+  # Redhat = " "
+  # RedHatEnterprise = " "
+  # Redox = " "
+  # Solus = "ﴱ "
+  # SUSE = " "
+  # Ubuntu = " "
+  # Unknown = " "
+  # Windows = " "
 
 [package]
-symbol = " "
+  symbol = " "
 
 [python]
-symbol = " "
+  symbol = " "
 
 [rlang]
-symbol = "ﳒ "
+  symbol = "ﳒ "
 
 [ruby]
-symbol = " "
+  symbol = " "
 
 [rust]
-symbol = " "
+  symbol = " "
 
 [scala]
-symbol = " "
+  symbol = " "
 
 [spack]
-symbol = "🅢 "
+  symbol = "🅢 "

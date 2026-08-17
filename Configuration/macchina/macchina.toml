@@ -29,7 +29,6 @@ physical_cores = true
 # theme = "Beryllium"
 # theme = "Hydrogen"
 
-
 show = [
   "Host",
   "Machine",

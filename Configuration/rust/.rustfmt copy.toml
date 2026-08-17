@@ -1,5 +1,5 @@
 # https://rust-lang.github.io/rustfmt
-#> rustfmt --print-config default > rustfmt.default.toml
+# > rustfmt --print-config default > rustfmt.default.toml
 
 # | Formatting Constraints
 max_width = 100
@@ -21,15 +21,15 @@ single_line_let_else_max_width = 50
 
 # | Comments and Documentation Formatting
 wrap_comments = false
-format_code_in_doc_comments = false # false
+format_code_in_doc_comments = false  # false
 doc_comment_code_block_width = 100
 comment_width = 80
-normalize_comments = false          # false
-normalize_doc_attributes = true     # false
+normalize_comments = false           # false
+normalize_doc_attributes = true      # false
 
 # | String and Macro Formatting
 format_strings = false
-format_macro_matchers = true # false
+format_macro_matchers = true  # false
 format_macro_bodies = true
 skip_macro_invocations = []
 
@@ -42,12 +42,12 @@ where_single_line = false
 
 # | Imports Formatting
 imports_indent = "Block"
-imports_layout = "HorizontalVertical" # "Mixed"
-imports_granularity = "One"           # "Crate"         # "Preserve"
-group_imports = "StdExternalCrate"    # "Preserve"
+imports_layout = "HorizontalVertical"  # "Mixed"
+imports_granularity = "One"            # "Crate"         # "Preserve"
+group_imports = "StdExternalCrate"     # "Preserve"
 reorder_imports = true
 reorder_modules = true
-reorder_impl_items = true             # false
+reorder_impl_items = true              # false
 
 # | Spacing and Punctuation
 type_punctuation_density = "Wide"
@@ -104,11 +104,11 @@ use_field_init_shorthand = false
 
 # | ABI and Wildcards
 force_explicit_abi = true
-condense_wildcard_suffixes = true # false
+condense_wildcard_suffixes = true  # false
 
 # | Output and Error Handling
 color = "Auto"
-unstable_features = true       # false
+unstable_features = true        # false
 disable_all_formatting = false
 skip_children = false
 show_parse_errors = true

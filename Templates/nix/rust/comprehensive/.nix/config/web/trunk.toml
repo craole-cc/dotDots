@@ -1,14 +1,14 @@
 [build]
-public_url = "/"
-filehash = false
+  public_url = "/"
+  filehash = false
 
 [watch]
-watch = ["src", "public"]
-ignore = ["dist"]
+  watch = ["src", "public"]
+  ignore = ["dist"]
 
-# [serve]
-# port = 8080
-# open = true
+  # [serve]
+  # port = 8080
+  # open = true
 
 [tools]
-tailwindcss = "4.1.18"
+  tailwindcss = "4.1.18"

@@ -1,7 +1,7 @@
 # ~/.config/starship.toml
 
 # Use custom format
-format = '$all'
+format = "$all"
 
 # Wait 10 milliseconds for starship to check files under the current directory.
 scan_timeout = 800
@@ -10,11 +10,11 @@ scan_timeout = 800
 add_newline = false
 
 # Set 'foo' as custom color palette
-palette = 'foo'
+palette = "foo"
 
 # Define custom colors
 [palettes.foo]
-# Overwrite existing color
-blue = '21'
-# Define new color
-mustard = '#af8700'
+  # Overwrite existing color
+  blue = "21"
+  # Define new color
+  mustard = "#af8700"

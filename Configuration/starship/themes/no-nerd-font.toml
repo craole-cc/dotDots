@@ -1,15 +1,15 @@
 [battery]
-charging_symbol = "⇡ "
-discharging_symbol = "⇣ "
-empty_symbol = "❗ "
-full_symbol = "• "
-unknown_symbol = "❓ "
+  charging_symbol = "⇡ "
+  discharging_symbol = "⇣ "
+  empty_symbol = "❗ "
+  full_symbol = "• "
+  unknown_symbol = "❓ "
 
 [erlang]
-symbol = "ⓔ "
+  symbol = "ⓔ "
 
 [nodejs]
-symbol = "[⬢](bold green) "
+  symbol = "[⬢](bold green) "
 
 [pulumi]
-symbol = "🧊 "
+  symbol = "🧊 "

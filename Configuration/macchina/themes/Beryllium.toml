@@ -6,21 +6,21 @@ separator = ""
 spacing = 3
 
 [box]
-border = "plain"
-visible = true
+  border = "plain"
+  visible = true
+
+  [box.inner_margin]
+    x = 2
+    y = 1
 
 [palette]
-glyph = "○  "
-visible = true
+  glyph = "○  "
+  visible = true
 
 [bar]
-glyph = "○"
-hide_delimiters = true
-visible = true
-
-[box.inner_margin]
-x = 2
-y = 1
+  glyph = "○"
+  hide_delimiters = true
+  visible = true
 
 [custom_ascii]
-color = "#FF7001"
+  color = "#FF7001"

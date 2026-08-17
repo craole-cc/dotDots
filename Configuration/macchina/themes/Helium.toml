@@ -8,44 +8,44 @@ separator_color = "Yellow"
 spacing = 2
 
 [bar]
-glyph = "o"
-hide_delimiters = false
-symbol_close = ")"
-symbol_open = "("
-visible = false
+  glyph = "o"
+  hide_delimiters = false
+  symbol_close = ")"
+  symbol_open = "("
+  visible = false
 
 [box]
-border = "rounded"
-title = " Helium "
-visible = false
+  border = "rounded"
+  title = " Helium "
+  visible = false
 
-[box.inner_margin]
-x = 2
-y = 1
+  [box.inner_margin]
+    x = 2
+    y = 1
 
 [custom_ascii]
-color = "Yellow"
+  color = "Yellow"
 
 [randomize]
-key_color = false
-separator_color = false
+  key_color = false
+  separator_color = false
 
 [keys]
-backlight = "Brightness"
-battery = "Battery"
-cpu = "CPU"
-cpu_load = "CPU Load"
-de = "DE"
-distro = "Distro"
-host = "Host"
-kernel = "Kernel"
-local_ip = "IP"
-machine = "Machine"
-memory = "Memory"
-os = "OS"
-packages = "Packages"
-resolution = "Resolution"
-shell = "Shell"
-terminal = "Terminal"
-uptime = "Uptime"
-wm = "WM"
+  backlight = "Brightness"
+  battery = "Battery"
+  cpu = "CPU"
+  cpu_load = "CPU Load"
+  de = "DE"
+  distro = "Distro"
+  host = "Host"
+  kernel = "Kernel"
+  local_ip = "IP"
+  machine = "Machine"
+  memory = "Memory"
+  os = "OS"
+  packages = "Packages"
+  resolution = "Resolution"
+  shell = "Shell"
+  terminal = "Terminal"
+  uptime = "Uptime"
+  wm = "WM"

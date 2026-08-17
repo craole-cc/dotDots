@@ -19,192 +19,192 @@ scan_timeout = 1000
 
 # Transient prompt similar to Oh My Posh's transient_prompt
 [aws]
-symbol = "  "
-format = '[$symbol($profile )(\($region\) )]($style)'
-style = "bold #faa029"
+  symbol = "  "
+  format = '[$symbol($profile )(\($region\) )]($style)'
+  style = "bold #faa029"
 
 [azure]
-format = '[$symbol($subscription)]($style)'
-symbol = "ﴃ "
-style = "bold #337bb6"
+  format = "[$symbol($subscription)]($style)"
+  symbol = "ﴃ "
+  style = "bold #337bb6"
 
 [character]
-success_symbol = "❯"
-error_symbol = "❯"
-vimcmd_symbol = "❮"
+  success_symbol = "❯"
+  error_symbol = "❯"
+  vimcmd_symbol = "❮"
 
 [fill]
-symbol = " "
-style = "bold"
+  symbol = " "
+  style = "bold"
 
 [cmd_duration]
-min_time = 0
-show_milliseconds = true
-format = "[ ${duration}ms]($style)"
-style = "bold white"
+  min_time = 0
+  show_milliseconds = true
+  format = "[ ${duration}ms]($style)"
+  style = "bold white"
 
 [username]
-style_user = "fg:white bg:#ef5350"
-style_root = "fg:white bg:#ef5350"
-format = '[$user ]($style)'
-show_always = true
+  style_user = "fg:white bg:#ef5350"
+  style_root = "fg:white bg:#ef5350"
+  format = "[$user ]($style)"
+  show_always = true
 
 [directory]
-style = "fg:black bg:#b1d631"
-read_only = " "
-read_only_style = "fg:black"
-format = '[ $path ]($style)'
-truncation_length = 0
-truncation_symbol = "…/"
+  style = "fg:black bg:#b1d631"
+  read_only = " "
+  read_only_style = "fg:black"
+  format = "[ $path ]($style)"
+  truncation_length = 0
+  truncation_symbol = "…/"
 
-# Directory substitutions (from your original starship config)
-[directory.substitutions]
-"Documents" = "🗒️ "
-"Downloads" = "📥 "
-"Music" = "🎷 "
-"Pictures" = "📸 "
-"global" = "🌐"
-"nixos" = "❄️ "
-"~/.dots" = "💠"
-"~/.config" = "⚙️ "
-"~/.local" = "📦 "
+  # Directory substitutions (from your original starship config)
+  [directory.substitutions]
+    "Documents" = "🗒️ "
+    "Downloads" = "📥 "
+    "Music" = "🎷 "
+    "Pictures" = "📸 "
+    "global" = "🌐"
+    "nixos" = "❄️ "
+    "~/.dots" = "💠"
+    "~/.config" = "⚙️ "
+    "~/.local" = "📦 "
 
 [git_branch]
-symbol = ""
-style = "fg:black bg:#addb67"
-format = '[ $branch $symbol ]($style)'
+  symbol = ""
+  style = "fg:black bg:#addb67"
+  format = "[ $branch $symbol ]($style)"
 
-# [git_status]
-# style = "fg:black bg:#e4cf6a"
-# format = '[$all_status$ahead_behind ]($style)'
-# conflicted = "?"
-# ahead = "↑${count}"
-# behind = "↓${count}"
-# diverged = "↕↑${ahead_count}↓${behind_count}"
-# untracked = "?${count}"
-# stashed = "*${count}"
-# modified = "!${count}"
-# staged = "+${count}"
-# renamed = "»${count}"
-# deleted = "✘${count}"
-# ahead_behind_separator = ""
+  # [git_status]
+  # style = "fg:black bg:#e4cf6a"
+  # format = '[$all_status$ahead_behind ]($style)'
+  # conflicted = "?"
+  # ahead = "↑${count}"
+  # behind = "↓${count}"
+  # diverged = "↕↑${ahead_count}↓${behind_count}"
+  # untracked = "?${count}"
+  # stashed = "*${count}"
+  # modified = "!${count}"
+  # staged = "+${count}"
+  # renamed = "»${count}"
+  # deleted = "✘${count}"
+  # ahead_behind_separator = ""
 
 [git_status]
-style = "bold #011627 bg:#e4cf6a"
-format = '[$all_status$ahead_behind ]($style)'
-conflicted = "❓"
-ahead = "⇡${count} "
-behind = "⇣${count} "
-diverged = "⇕⇡${ahead_count}⇣${behind_count} "
-untracked = "? ${count} "
-stashed = "$ ${count} "
-modified = "! ${count} "
-staged = "+ ${count} "
-renamed = "» ${count} "
-deleted = "✘ ${count} "
+  style = "bold #011627 bg:#e4cf6a"
+  format = "[$all_status$ahead_behind ]($style)"
+  conflicted = "❓"
+  ahead = "⇡${count} "
+  behind = "⇣${count} "
+  diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+  untracked = "? ${count} "
+  stashed = "$ ${count} "
+  modified = "! ${count} "
+  staged = "+ ${count} "
+  renamed = "» ${count} "
+  deleted = "✘ ${count} "
 
 [golang]
-symbol = " "
-style = "bold #06aad5"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #06aad5"
+  format = "[ $symbol ($version) ]($style)"
 
 [haskell]
-symbol = " "
-style = "bold #906cff"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #906cff"
+  format = "[ $symbol ($version) ]($style)"
 
 [java]
-symbol = " "
-style = "bold #ec2729"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #ec2729"
+  format = "[ $symbol ($version) ]($style)"
 
 [kotlin]
-symbol = "K "
-style = "bold #ffffff bg:#906cff"
-format = '[ $symbol ($version) ]($style)'
+  symbol = "K "
+  style = "bold #ffffff bg:#906cff"
+  format = "[ $symbol ($version) ]($style)"
 
 [kubernetes]
-symbol = "☸ "
-style = "bold #ffffff bg:#316ce4"
-format = '[ $symbol $context \($namespace\) ]($style)'
-disabled = false
+  symbol = "☸ "
+  style = "bold #ffffff bg:#316ce4"
+  format = '[ $symbol $context \($namespace\) ]($style)'
+  disabled = false
 
 [line_break]
-disabled = false
+  disabled = false
 
 [lua]
-symbol = " "
-style = "bold #000081"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #000081"
+  format = "[ $symbol ($version) ]($style)"
 
 [nodejs]
-symbol = " "
-style = "bold #3C873A bg:#303030"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #3C873A bg:#303030"
+  format = "[ $symbol ($version) ]($style)"
 
 [os]
-disabled = true
+  disabled = true
 
 [docker_context]
-disabled = true
+  disabled = true
 
 [package]
-disabled = true
+  disabled = true
 
-# [python]
-# format = '[ ${pyenv_prefix}(${version}) (\($virtualenv\)) ]($style)'
-# style = "fg:#FFE873 bg:#306998"
+  # [python]
+  # format = '[ ${pyenv_prefix}(${version}) (\($virtualenv\)) ]($style)'
+  # style = "fg:#FFE873 bg:#306998"
 
-# [nodejs]
-# disabled = false
-# format = '[ ${version} ]($style)'
-# style = "fg:#3C873A bg:#303030"
+  # [nodejs]
+  # disabled = false
+  # format = '[ ${version} ]($style)'
+  # style = "fg:#3C873A bg:#303030"
 
 [php]
-symbol = " "
-style = "bold #000000 bg:#787CB5"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #000000 bg:#787CB5"
+  format = "[ $symbol ($version) ]($style)"
 
 [python]
-disabled = false
-symbol = " "
-style = "bold #FFE873 bg:#306998"
-format = '[ $symbol ${pyenv_prefix}(${version}) (\($virtualenv\)) ]($style)'
+  disabled = false
+  symbol = " "
+  style = "bold #FFE873 bg:#306998"
+  format = '[ $symbol ${pyenv_prefix}(${version}) (\($virtualenv\)) ]($style)'
 
 [ruby]
-symbol = " "
-style = "bold #9c1006"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #9c1006"
+  format = "[ $symbol ($version) ]($style)"
 
 [rust]
-symbol = " "
-style = "bold #000000"
-format = '[ $symbol ($version) ]($style)'
+  symbol = " "
+  style = "bold #000000"
+  format = "[ $symbol ($version) ]($style)"
 
 [shell]
-bash_indicator = "bash"
-zsh_indicator = "zsh"
-powershell_indicator = "pwsh"
-unknown_indicator = "shell"
-style = "bold #ffffff"
-format = '[ $indicator ]($style)'
-disabled = false
+  bash_indicator = "bash"
+  zsh_indicator = "zsh"
+  powershell_indicator = "pwsh"
+  unknown_indicator = "shell"
+  style = "bold #ffffff"
+  format = "[ $indicator ]($style)"
+  disabled = false
 
 [status]
-style = "bg:red fg:white"
-symbol = "🔴"
-format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
-map_symbol = true
-disabled = false
+  style = "bg:red fg:white"
+  symbol = "🔴"
+  format = "[$symbol $common_meaning$signal_name$maybe_int]($style) "
+  map_symbol = true
+  disabled = false
 
 [sudo]
-style = "bold green"
-symbol = "👩‍💻 "
-disabled = false
-format = '[$symbol]($style)'
+  style = "bold green"
+  symbol = "👩‍💻 "
+  disabled = false
+  format = "[$symbol]($style)"
 
 [time]
-time_format = "%H:%M:%S"
-format = '[ $time ]($style)'
-style = "bold white"
-disabled = false
+  time_format = "%H:%M:%S"
+  format = "[ $time ]($style)"
+  style = "bold white"
+  disabled = false

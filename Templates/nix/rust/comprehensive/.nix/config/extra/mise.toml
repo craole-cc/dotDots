@@ -1,35 +1,35 @@
 [tasks.dev]
-description = "Run in watch mode"
-run = "bacon"
+  description = "Run in watch mode"
+  run = "bacon"
 
 [tasks.test]
-description = "Run tests"
-run = "cargo nextest run"
+  description = "Run tests"
+  run = "cargo nextest run"
 
 [tasks.coverage]
-description = "Generate coverage report"
-run = "cargo tarpaulin --out Html --output-dir coverage"
+  description = "Generate coverage report"
+  run = "cargo tarpaulin --out Html --output-dir coverage"
 
 [tasks.bench]
-description = "Run benchmarks"
-run = "cargo bench"
+  description = "Run benchmarks"
+  run = "cargo bench"
 
 [tasks.fmt]
-description = "Format all files"
-run = "treefmt"
+  description = "Format all files"
+  run = "treefmt"
 
 [tasks.check]
-description = "Format and clippy"
-run = "treefmt && cargo clippy"
+  description = "Format and clippy"
+  run = "treefmt && cargo clippy"
 
 [tasks.audit]
-description = "Security audit"
-run = "cargo audit"
+  description = "Security audit"
+  run = "cargo audit"
 
 [tasks.info]
-description = "Show project info"
-run = "onefetch"
+  description = "Show project info"
+  run = "onefetch"
 
 [tasks.git]
-description = "Open gitui"
-run = "gitui"
+  description = "Open gitui"
+  run = "gitui"

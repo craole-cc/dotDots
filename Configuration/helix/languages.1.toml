@@ -17,35 +17,35 @@ use-grammars = { only = [
 ] }
 
 [[languages]]
-name = "rust"
+  name = "rust"
 
 [language-server.rust-analyzer.config]
-cargo = { buildScripts = { enable = true }, features = "all" }
-check = { features = "all" }
-procMacro = { enable = true }
+  cargo = { buildScripts = { enable = true }, features = "all" }
+  check = { features = "all" }
+  procMacro = { enable = true }
 
-[language-server.rust-analyzer.config.inlayHints]
-chainingHints = { enable = false }
-lifetimeElisionHints = { enable = false, useParameterNames = false }
-parameterHints = { enable = false }
-renderColons = false
-typeHints = { hideNamedConstructor = true, hideClosureInitialization = true }
+  [language-server.rust-analyzer.config.inlayHints]
+    chainingHints = { enable = false }
+    lifetimeElisionHints = { enable = false, useParameterNames = false }
+    parameterHints = { enable = false }
+    renderColons = false
+    typeHints = { hideNamedConstructor = true, hideClosureInitialization = true }
 
 [language-server.tailwind-ls]
-args = ["--stdio"]
-command = "tailwindcss-language-server"
+  args = ["--stdio"]
+  command = "tailwindcss-language-server"
 
-[language-server.tailwind-ls.config]
-tailwindCSS = { experimental = { classRegex = ["class=\"(.*)\""] } }
-
-[[language]]
-language-servers = ["rust-analyzer", "tailwind-ls"]
-name = "rust"
+  [language-server.tailwind-ls.config]
+    tailwindCSS = { experimental = { classRegex = ["class=\"(.*)\""] } }
 
 [[language]]
-language-servers = ["vscode-css-language-server", "tailwind-ls"]
-name = "css"
+  language-servers = ["rust-analyzer", "tailwind-ls"]
+  name = "rust"
 
 [[language]]
-language-servers = ["vscode-html-language-server", "tailwind-ls"]
-name = "html"
+  language-servers = ["vscode-css-language-server", "tailwind-ls"]
+  name = "css"
+
+[[language]]
+  language-servers = ["vscode-html-language-server", "tailwind-ls"]
+  name = "html"
