@@ -1,18 +1,20 @@
 {
   config,
   lix,
-  top,
   ...
 }: let
-  dom = "programs";
-  mod = "git";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-
+  context = mkContext {
+    inherit config;
+    dom = "version-control";
+    sub = "core";
+    mod = "git";
+  };
+  inherit (context) cfg mod;
   inherit (lix.options.construction) mkTrue;
-  inherit (lix.modules.construction) mkConfig;
+  inherit (lix.modules.construction) mkConfig mkContext;
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     options = {
       enable = mkTrue "Git distributed version control software system";
       enableLFS = mkTrue "Large File Storage for Git";

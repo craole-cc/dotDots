@@ -4,18 +4,21 @@
   lix,
   ...
 }: let
-  dom = "hardware";
-  mod = "audio";
-
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption;
+  context = mkContext {
+    inherit config;
+    dom = "hardware";
+    mod = "audio";
+  };
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
 in
   mkConfig {
-    inherit config dom mod;
+    inherit context;
     options = {
-      enable =
-        mkEnableOption mod
-        // {default = host.hardware.hasAudio;};
+      enable = mkEnable {
+        inherit context;
+        condition = host.hardware.hasAudio;
+      };
     };
     outputs = {
       services.pipewire = {

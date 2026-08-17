@@ -4,25 +4,27 @@
   top,
   ...
 }: let
-  # Bridge module: no new ${top}.programs.* options are declared here.
-  # Existing leaf modules (bash.nix, direnv.nix, git.nix, obs.nix,
-  # starship.nix) remain the authoritative public option surface.
-  #
-  # This module only wires the interface-derived programs that have no
-  # leaf owner: hyprland, niri, and xwayland.
-  dom = "programs";
-  mod = "bridge";
-  iface = config.${top}.resolved.interface;
+  context = mkContext {
+    inherit config;
+    dom = "programs";
+    mod = "bridge";
+  };
+  inherit (context) cfg mod;
 
-  inherit (lix.modules.construction) mkConfig;
+  inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.modules.core.programs) mkPrograms;
+  inherit (lix.options.construction) mkEnableOption;
+
+  interface = config.${top}.resolved.interface or {};
 in
   mkConfig {
-    inherit config top dom mod;
-    predicate = iface.enable;
-    options = {};
+    inherit context;
+    options = {
+      enable = mkEnableOption mod // {default = interface.enable;};
+      enableUSWM = mkEnableOption mod // {default = cfg.enable;};
+    };
     outputs = mkPrograms {
-      inherit (iface) windowManager;
+      windowManager = interface.windowManager or null; #TODO: This is ugly
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
     };

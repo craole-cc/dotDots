@@ -48,15 +48,9 @@
 
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.options.construction) mkOption mergeUniqueOption mkOptionType;
+  inherit (_.options.construction) concat;
   inherit (_.types.combinators) enum listOf nullOr;
-  inherit
-    (_.types.primitives)
-    str
-    bool
-    int
-    float
-    path
-    ;
+  inherit (_.types.primitives) str bool int float path;
   inherit (_.types.predicates) isAttrs isString;
   customTypes = _.types.checks;
   mkEnumData = _.lists.construction.mkEnum;
@@ -153,12 +147,18 @@
   mkEnable = {
     description ? null,
     condition ? true,
-  }:
+    context ? null,
+  }: let
+    desc =
+      if context == null
+      then description
+      else concat "." (with context; [dom sub mod]);
+  in
     mkOption {
       default = condition;
       type = bool;
     }
-    // optionalDesc description;
+    // optionalDesc desc;
 
   /**
   Creates a boolean enable option that defaults to `true`.
@@ -218,7 +218,7 @@
 
   # Type
   `mkEnum :: { input :: ([String] | EnumType), description :: String?,
-               default :: Any?, nullable :: Bool, many :: Bool } -> Option`
+              default :: Any?, nullable :: Bool, many :: Bool } -> Option`
 
   # Arguments
   - `input`: A list of valid string values, or a pre-built `mkEnum` attrset

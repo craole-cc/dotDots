@@ -7,11 +7,15 @@
   pkgs,
   ...
 }: let
-  dom = "terminal";
-  mod = "foot";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  context = mkContext {
+    inherit config;
+    dom = "terminal";
+    sub = "core";
+    mod = "foot";
+  };
+  inherit (context) cfg;
 
-  inherit (lix.modules.construction) mkConfig mkMerge;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
@@ -63,7 +67,7 @@
 
   #~@ Resolved application assembly, driven by the explicit options below
   resolved = userApplicationConfig {
-    inherit user pkgs config dom mod;
+    inherit user pkgs context;
     inherit (cfg) customCommand resolutionHints requiresWayland;
     extraPackages = wrappers ++ [desktop quake] ++ cfg.extraPackages;
     extraProgramConfig = {

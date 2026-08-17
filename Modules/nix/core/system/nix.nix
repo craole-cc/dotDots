@@ -3,24 +3,29 @@
   host,
   lix,
   pkgs,
-  top,
   tree,
   ...
 }: let
-  dom = "system";
-  mod = "nix";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  context = mkContext {
+    inherit config;
+    dom = "system";
+    mod = "nix";
+  };
+  inherit (context) cfg;
 
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) literalExpression mkEnableOption mkOption;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) literalExpression mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf either nullOr submodule;
   inherit (lix.types.primitives) bool int str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
+      enable = mkEnable {
+        inherit context;
+        condition = host.hardware.hasBluetooth;
+      };
 
       stateVersion = mkOption {
         description = ''

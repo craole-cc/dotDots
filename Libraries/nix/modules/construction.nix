@@ -33,9 +33,9 @@
     };
   in {inherit doc exports functions;};
 
-  inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.construction) genAttrs;
-  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.access) attrNames getAttrFromPath;
+  inherit (_.attrsets.construction) genAttrs optionalAttr;
+  inherit (_.attrsets.transformation) mapAttrs setAttrByPath;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.construction) optionals;
@@ -70,6 +70,7 @@
   */
   mkSystems = {
     inputs,
+    paths,
     libraries,
     names,
     tree,
@@ -79,13 +80,17 @@
   }:
     mapAttrs (
       _: host: let
-        inherit (host.paths) src;
+        src = {
+          path = host.paths.src or (paths.src.local or null);
+          name = names.src;
+        };
+
         class = host.class or "nixos";
-        tree' = tree // {local = tree.mkLocal src;};
+        tree' = tree // {local = tree.mkLocal src.path;};
 
         specialArgs =
           {
-            inherit host class inputs;
+            inherit host class inputs src;
             inherit (names) top;
             "${names.lib}" = libraries.${names.lib};
             tree = tree';
@@ -260,32 +265,9 @@
     predicate ? null,
     outputs,
     options ? {},
-    context ? null,
-    config ? context.config,
-    top ? context.top or names.top,
-    dom ? context.dom,
-    sub ? context.sub,
-    mod ? context.mod,
+    context,
   }: let
-    inherit (_.attrsets.transformation) setAttrByPath;
-
-    path =
-      if context != null
-      then context.path
-      else
-        [top "resolved" dom]
-        ++ (
-          if sub != null
-          then [sub]
-          else []
-        )
-        ++ [mod];
-
-    cfg =
-      if context != null
-      then context.cfg
-      else (_.attrsets.access.getAttrFromPath path config).explicit;
-
+    inherit (context) path cfg top;
     condition =
       if predicate != null
       then predicate
@@ -312,16 +294,29 @@
     dom,
     sub ? null,
     mod,
+    kind ?
+      if sub == "core"
+      then dom
+      else null,
+    name ? mod,
+    user ? null,
+    pkgs ? null,
   }: let
-    inherit (_.attrsets.access) getAttrFromPath;
-    path =
-      [top "resolved" dom]
-      ++ (optionals (sub != null) [sub])
-      ++ [mod];
-  in {
-    inherit config top dom sub mod path;
-    cfg = (getAttrFromPath path config).explicit;
-  };
+    path = mkPath {inherit top dom sub mod;};
+  in
+    {inherit config top dom sub mod path kind name;}
+    // optionalAttr "user" user
+    // optionalAttr "pkgs" pkgs
+    // {cfg = (getAttrFromPath path config).explicit;};
+  mkPath = {
+    top,
+    dom,
+    sub,
+    mod,
+  }:
+    [top "resolved" dom]
+    ++ (optionals (sub != null) [sub])
+    ++ [mod];
 in
   meta.exports.local
   // {

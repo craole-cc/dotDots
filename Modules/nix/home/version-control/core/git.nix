@@ -15,14 +15,12 @@
     sub = "core";
     mod = "git";
   };
-  inherit (context) cfg;
+  inherit (context) cfg mod;
 in
   mkConfig {
     inherit context;
     options = {
-      enable =
-        mkEnableOption context.mod
-        // {default = true;};
+      enable = mkEnableOption mod // {default = true;};
 
       lfs.enable =
         mkEnableOption "Git Large File Storage (LFS)"

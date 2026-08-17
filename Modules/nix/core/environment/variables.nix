@@ -5,32 +5,31 @@
   inputs,
   pkgs,
   top,
+  src,
   tree,
   ...
 }: let
-  dom = "environment";
-  mod = "variables";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-  inherit (host.paths) dots;
-  user = host.users.data.primary or {};
-  apps = user.applications or {};
+  context = mkContext {
+    inherit config;
+    dom = "environment";
+    mod = "variables";
+  };
+  inherit (context) cfg;
   inherit (pkgs.stdenv.hostPlatform) system;
-  wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
-
-  inherit (config.${top}.resolved.interface) displayProtocol;
+  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
   inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.modules.construction) mkConfig mkDefault;
-  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.modules.construction) mkConfig mkContext mkDefault;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.strings.transformation) toUpper;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) str;
-  inherit
-    (lix.applications.resolution)
-    editors
-    browsers
-    terminals
-    launchers
-    bars
-    ;
+
+  ice = config.${top}.resolved.interface;
+  isWayland = ice.displayProtocol == "wayland";
+
+  user = host.users.data.primary or {};
+  apps = user.applications or {};
+  wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
 
   registry = let
     editor = editors.commands {
@@ -58,16 +57,16 @@
       {
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
-        BAR = config.${top}.resolved.interface.panel or bar.primary;
+        BAR = ice.panel or bar.primary;
         BROWSER = mkDefault browser.primary;
-        DOTS = dots;
+        "${toUpper src.name}" = src.path;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;
         TERMINAL = terminal.primary;
         VISUAL = editor.visual;
         WALLPAPERS = wallpapers;
       }
-      // optionalAttrs (displayProtocol == "wayland") {
+      // optionalAttrs isWayland {
         NIXOS_OZONE_WL = "1";
         WLR_RENDERER_ALLOW_SOFTWARE = "1";
         WLR_NO_HARDWARE_CURSORS = "1";
@@ -95,9 +94,9 @@
   };
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
+      enable = mkEnable {inherit context;};
       default = mkOption {
         description = "Base session variables";
         inherit (registry) default;

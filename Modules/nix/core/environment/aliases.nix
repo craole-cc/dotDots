@@ -1,20 +1,21 @@
 {
   config,
-  host,
-  top,
   lix,
+  src,
   ...
 }: let
-  dom = "environment";
-  mod = "aliases";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-  dots = host.paths.dots or null;
-
   inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) str;
+
+  context = mkContext {
+    inherit config;
+    dom = "environment";
+    mod = "aliases";
+  };
+  inherit (context) cfg;
 
   registry = {
     default =
@@ -24,27 +25,27 @@
         lt = "lsd --tree";
         lr = "lsd --long --git --recursive";
       }
-      // optionalAttrs (dots != null) {
+      // optionalAttrs (src != null) {
         #~@ Dotfiles management
-        edit-dots = "$EDITOR ${dots}";
-        ide-dots = "$VISUAL ${dots}";
-        push-dots = "gitui --directory ${dots}";
+        "edit-${src.name}" = "$EDITOR ${src.path}";
+        "ide-${src.name}" = "$VISUAL ${src.path}";
+        "push-${src.name}" = "gitui --directory ${src.path}";
 
         #~@ Nix REPL
-        repl-host = "nix repl ${dots}#nixosConfigurations.$(hostname)";
-        repl-dots = "nix repl ${dots}#repl";
+        repl-host = "nix repl ${src.path}#nixosConfigurations.$(hostname)";
+        "repl-${src.name}" = "nix repl ${src.path}#repl";
 
         #~@ Rebuild shortcuts
-        switch-dots = "sudo nixos-rebuild switch --flake ${dots}";
-        nxs = "push-dots; switch-dots";
-        nxu = "push-dots; switch-dots; topgrade";
+        "switch-${src.name}" = "sudo nixos-rebuild switch --flake ${src.path}";
+        nxs = "push-${src.name}; switch-${src.name}";
+        nxu = "push-${src.name}; switch-${src.name}; topgrade";
       };
   };
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
+      enable = mkEnable {inherit context;};
       default = mkOption {
         description = "Default shell aliases";
         inherit (registry) default;

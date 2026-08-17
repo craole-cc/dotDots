@@ -1,33 +1,30 @@
 {
   config,
+  lix,
   host,
   inputs,
-  lix,
   pkgs,
   top,
   ...
 }: let
-  dom = "environment";
-  mod = "packages";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  context = mkContext {
+    inherit config;
+    dom = "environment";
+    mod = "packages";
+  };
+  inherit (context) cfg mod;
+
   user = host.users.data.primary or {};
   apps = user.applications or {};
 
+  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
   inherit (config.${top}.resolved.interface) displayProtocol;
   inherit (lix.lists.construction) optionals;
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
-  inherit
-    (lix.applications.resolution)
-    bars
-    browsers
-    editors
-    launchers
-    terminals
-    ;
+  inherit (lix.applications.resolution) bars browsers editors launchers terminals;
 
   registry = let
     editor = editors.packages {
@@ -148,9 +145,9 @@
   };
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
+      enable = mkEnable {inherit context;};
       default = mkOption {
         description = "Base system packages";
         default = registry.all;
