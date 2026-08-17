@@ -12,33 +12,27 @@
 
   hw = host.hardware;
 
-  inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption;
-  payload = {
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
-      wireplumber.enable = true;
+  inherit (lix.modules.construction) mkConfig;
+  inherit (lib.options.construction) mkEnableOption;
+in
+  {
+    options.${top}.resolved.${dom}.${mod} = {
+      enable = mkEnableOption mod // {default = hw.hasAudio;};
     };
-
-    services.pulseaudio.enable = false;
-    security.rtkit.enable = true;
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = hw.hasAudio;
+  }
+  // mkConfig {
+    payload = {
+      services.pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+        jack.enable = true;
+        wireplumber.enable = true;
       };
-  };
 
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
+      services.pulseaudio.enable = false;
+      security.rtkit.enable = true;
+    };
     condition = cfg.enable;
-  });
-}
+  }
