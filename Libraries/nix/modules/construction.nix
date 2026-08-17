@@ -299,15 +299,12 @@
       then dom
       else null,
     name ? mod,
-    user ? null,
-    pkgs ? null,
   }: let
     path = mkPath {inherit top dom sub mod;};
   in
     {inherit config top dom sub mod path kind name;}
-    // optionalAttr "user" user
-    // optionalAttr "pkgs" pkgs
     // {cfg = (getAttrFromPath path config).explicit;};
+
   mkPath = {
     top,
     dom,

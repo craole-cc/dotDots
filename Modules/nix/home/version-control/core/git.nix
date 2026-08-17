@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
-  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.options.construction) mkEnable mkEnableOption mkOption;
   inherit (lix.types.combinators) attrsOf listOf nullOr submodule;
   inherit (lix.types.primitives) anything str;
 
@@ -15,12 +15,12 @@
     sub = "core";
     mod = "git";
   };
-  inherit (context) cfg mod;
+  inherit (context) cfg;
 in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
+      enable = mkEnable {inherit context;};
 
       lfs.enable =
         mkEnableOption "Git Large File Storage (LFS)"

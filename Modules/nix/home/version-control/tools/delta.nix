@@ -1,28 +1,30 @@
 {
   config,
   lix,
-  top,
   ...
 }: let
-  dom = "version-control";
-  sub = "tools";
-  mod = "delta";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.options.construction) mkEnable;
 
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption;
+  context = mkContext {
+    inherit config;
+    dom = "version-control";
+    sub = "tools";
+    mod = "delta";
+  };
+  inherit (context) cfg;
 in
   mkConfig {
-    inherit config top dom sub mod;
+    inherit context;
     options = {
       enable =
-        mkEnableOption mod
+        mkEnable {inherit context;}
         // {default = config.programs.git.enable;};
       git.enable =
-        mkEnableOption mod
+        mkEnable {description = "Enable Delta's Git integration";}
         // {default = config.programs.git.enable;};
       jujutsu.enable =
-        mkEnableOption mod
+        mkEnable {description = "Enable Delta's Jujutsu integration";}
         // {default = config.programs.jujutsu.enable;};
     };
     outputs = {

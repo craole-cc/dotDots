@@ -2,7 +2,6 @@
 {
   config,
   lix,
-  top,
   user,
   pkgs,
   ...
@@ -16,7 +15,7 @@
   inherit (context) cfg;
 
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
-  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
   inherit (lix.types.combinators) listOf nullOr;
@@ -67,7 +66,7 @@
 
   #~@ Resolved application assembly, driven by the explicit options below
   resolved = userApplicationConfig {
-    inherit user pkgs context;
+    inherit context user pkgs;
     inherit (cfg) customCommand resolutionHints requiresWayland;
     extraPackages = wrappers ++ [desktop quake] ++ cfg.extraPackages;
     extraProgramConfig = {
@@ -82,7 +81,7 @@
   };
 in
   mkConfig {
-    inherit config top dom mod;
+    inherit context;
     predicate = resolved.enable;
     options = {
       #~@ Inputs the caller can actually change
@@ -113,7 +112,10 @@ in
       };
 
       #~@ Decisions made during resolution, surfaced for inspection
-      enable = mkEnableOption mod // {default = resolved.enable;};
+      enable = mkEnable {
+        inherit context;
+        condition = resolved.enable;
+      };
       isPrimary = mkOption {
         description = "Whether `foot` is the user's primary terminal choice.";
         default = resolved.isPrimary;

@@ -6,15 +6,19 @@
   pkgs,
   ...
 }: let
-  dom = "terminal";
-  mod = "ghostty";
+  context = mkContext {
+    inherit config;
+    dom = "terminal";
+    sub = "core";
+    mod = "ghostty";
+  };
 
-  inherit (lix.modules.construction) mkConfig mkMerge;
-  inherit (lix.options.construction) mkEnableOption;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
+  inherit (lix.options.construction) mkEnable;
   inherit (lix.applications.generators) userApplicationConfig;
 
   resolved = userApplicationConfig {
-    inherit user pkgs config dom mod;
+    inherit context user pkgs;
     extraProgramConfig = mkMerge [
       (import ./general.nix)
       (import ./input.nix)
@@ -24,10 +28,12 @@
   };
 in
   mkConfig {
-    inherit config dom mod;
-    predicate = resolved.enable;
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = resolved.enable;};
+      enable = mkEnable {
+        inherit context;
+        condition = resolved.enable;
+      };
     };
     outputs = {inherit (resolved) programs home;};
   }

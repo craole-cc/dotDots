@@ -1,31 +1,30 @@
 {
   config,
   lix,
-  top,
   ...
 }: let
-  dom = "version-control";
-  sub = "clients";
-  mod = "github";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) bool;
+
+  context = mkContext {
+    inherit config;
+    dom = "version-control";
+    sub = "clients";
+    mod = "github";
+  };
+  inherit (context) cfg;
 in
   mkConfig {
-    inherit config top dom sub mod;
-
+    inherit context;
     options = {
-      enable = mkEnableOption mod // {default = true;};
-
+      enable = mkEnable {inherit context;};
       dash.enable = mkOption {
         type = bool;
         default = cfg.enable;
         description = "Enable gh-dash GitHub CLI dashboard";
       };
     };
-
     outputs = {
       programs = {
         gh.enable = cfg.enable;

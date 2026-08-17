@@ -127,7 +127,12 @@
       if isSingleArg
       then ""
       else delimiterOrInput;
-    concatenate = input:
+    concatenate = input: let
+      input' =
+        if isList input
+        then filter (x: x != null) input
+        else input;
+    in
       if !(isString delimiter || delimiter == null)
       then
         throw (__debug.withLoc {
@@ -135,19 +140,19 @@
           message = "delimiter must be a string or null";
           input = delimiter;
         })
-      else if (input == null) || (input == [])
+      else if (input' == null) || (input' == [])
       then
         if delimiter == null
         then []
         else ""
       else if delimiter == null
       then
-        if isList (head input)
-        then concatLists input
-        else concatStringsSep "" input
-      else if isList (head input)
-      then map (group: concatStringsSep delimiter group) input
-      else concatStringsSep delimiter input;
+        if isList (head input')
+        then concatLists (map (filter (x: x != null)) input')
+        else concatStringsSep "" input'
+      else if isList (head input')
+      then map (group: concatStringsSep delimiter (filter (x: x != null) group)) input'
+      else concatStringsSep delimiter input';
   in
     if isSingleArg
     then concatenate delimiterOrInput

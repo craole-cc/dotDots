@@ -1,27 +1,21 @@
 {
   config,
   lix,
-  top,
   ...
 }: let
-  dom = "version-control";
-  sub = "clients";
-  mod = "gitui";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.options.construction) mkEnable;
 
-  inherit (lix.modules.construction) mkConfig;
-  inherit (lix.options.construction) mkEnableOption;
+  context = mkContext {
+    inherit config;
+    dom = "version-control";
+    sub = "clients";
+    mod = "gitui";
+  };
+  inherit (context) cfg;
 in
   mkConfig {
-    inherit config top dom sub mod;
-
-    options = {
-      enable = mkEnableOption mod // {default = true;};
-    };
-
-    outputs = {
-      programs.gitui = {
-        enable = cfg.enable;
-      };
-    };
+    inherit context;
+    options.enable = mkEnable {inherit context;};
+    outputs.programs.gitui.enable = cfg.enable;
   }

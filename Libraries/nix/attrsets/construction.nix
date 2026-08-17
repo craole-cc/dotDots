@@ -14,9 +14,12 @@
   in {inherit doc exports functions;};
 
   inherit (_.attrsets.construction) optionalAttrs;
-
   optionalAttr = name: value:
     optionalAttrs (value != null) {${name} = value;};
+  # optionalAttr = name: value:
+  #   if value == null
+  #   then {}
+  #   else {${name} = value;};
 in
   meta.exports.local
   // {
