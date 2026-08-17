@@ -73,12 +73,19 @@
         genList
         (char: substring char 1 str)
         (stringLength str);
-      escape = list: replaceStrings list (map (char: "\\${char}") list);
-      escapeRegex = escape (stringToCharacters "\\[{()^$?*+|.");
-      addContextFrom = src: target: substring 0 0 src + target;
+
+      escape = list:
+        replaceStrings list (map (char: "\\${char}") list);
+
+      escapeRegex =
+        escape (stringToCharacters "\\[{()^$?*+|.");
+
+      addContextFrom = src: target:
+        substring 0 0 src + target;
+
       splitString = sep: str: let
-        string = toString string;
-        separator = toString separator;
+        string = toString str;
+        separator = toString sep;
       in
         if separator == ""
         then [(addContextFrom str string)]
@@ -86,8 +93,10 @@
           map
           (addContextFrom str)
           (filter isString (split (escapeRegex separator) string));
+
       splitStem = value:
-        filter (val: isString val && val != "")
+        filter
+        (val: isString val && val != "")
         (splitString "/" value);
     in
       if isAttrs stem
@@ -120,8 +129,28 @@
           if base.store == null
           then null
           else base.store + "/${relPath}";
-        local = concatStringsSep "/" (filter (string: string != "") [base.local relPath]);
+
+        local =
+          concatStringsSep "/"
+          (filter (string: string != "") [base.local relPath]);
       };
+
+    #> --------------------------------------------------------------------
+    #> Raw API data: imported and host-merged using bootstrap-only helpers.
+    #> This is the unresolved configuration used only to bootstrap the real
+    #> library and construct the final resolved `cfg`.
+    #> --------------------------------------------------------------------
+    raw = let
+      global = import ./API/nix/global;
+
+      host = let
+        name = getEnv "HOSTNAME" "Victus";
+        path =
+          ./. + "/${concatStringsSep "/" global.paths.api.hosts}/${name}";
+      in
+        importAttr path;
+    in
+      mergeAttrs global host;
 
     #> --------------------------------------------------------------------
     #> Phase 1 (bootstrap paths): resolve just enough to import `_` itself -
@@ -134,56 +163,61 @@
         local =
           if root != null
           then root
-          else getEnv "PWD" cfg.paths.src;
+          else getEnv "PWD" raw.paths.src;
       };
 
       user = let
-        path = getEnv "HOME" "/home/${cfg.names.alpha}";
+        path = getEnv "HOME" "/home/${raw.names.alpha}";
         srcLocal = toString paths.src.local;
       in {
         store =
           if hasPrefix srcLocal path
           then paths.src.store + removePrefix srcLocal path
           else null;
+
         local = path;
       };
 
       #> Only the repo-relative groups are needed to reach paths.lib.default -
-      #> user/xdg/tmpdir/cache are irrelevant to loading `_` and are skipped.
+      #> user/xdg/tmpdir are irrelevant to loading `_` and are skipped.
       repo = asPath {
         base = paths.src;
-        stem = removeAttrs cfg.paths ["user" "xdg" "src" "home" "tmpdir"];
+        stem = removeAttrs raw.paths [
+          "user"
+          "xdg"
+          "src"
+          "home"
+          "tmpdir"
+        ];
       };
     };
   };
-  inherit (bootstrap) getEnv importAttr mergeAttrs;
 
-  cfg = let
-    global = import ./API/nix/global;
-    host = let
-      name = getEnv "HOSTNAME" "Victus";
-      path = ./. + "/${concatStringsSep "/" global.paths.api.hosts}/${name}";
-    in
-      importAttr path;
-  in
-    mergeAttrs global host;
-
-  inherit (cfg) names;
+  inherit (bootstrap) getEnv raw;
+  inherit (raw) names;
 
   libraries = import bootstrap.paths.repo.lib.default.store {
     inherit names lib;
+
     flake =
       if flake != null
       then flake
       else {};
+
     paths = with bootstrap.paths; {
       src = src.store;
       libraries = repo.lib.default.store;
     };
   };
+
   namedLib = libraries.${names.lib};
 
-  inherit (namedLib.attrsets.transformation) asEnvVars mapAttrsToList;
+  inherit
+    (namedLib.attrsets.transformation)
+    asEnvVars
+    mapAttrsToList
+    ;
+
   inherit (namedLib.filesystem.tree) mkTree;
   inherit (namedLib.lists.construction) concatLists optionals;
   inherit (namedLib.lists.access) elemAt length;
@@ -194,11 +228,15 @@
   #> through `mkTree`/`construct` - the single source of truth for path
   #> resolution from this point on. `user`/`xdg` resolve against `home`;
   #> everything else resolves against `src` (mkTree's default). Every
-  #> leaf - repo-relative or not - is a uniform `{store;local;}` pair, so
-  #> no zipping/reconstruction is needed at this call site anymore.
+  #> leaf - repo-relative or not - is a uniform `{store;local;}` pair.
   #> --------------------------------------------------------------------
   tree = mkTree {
-    stems = removeAttrs cfg.paths ["src" "home" "tmpdir"];
+    stems = removeAttrs raw.paths [
+      "src"
+      "home"
+      "tmpdir"
+    ];
+
     roots = {
       user = bootstrap.paths.user.local;
       xdg = bootstrap.paths.user.local;
@@ -210,67 +248,81 @@
     // {
       src = bootstrap.paths.src;
       home = bootstrap.paths.user;
+
       tmpdir = {
         store = null;
-        local = getEnv "TMPDIR" (cfg.paths.tmpdir or "/tmp");
+        local = getEnv "TMPDIR" (raw.paths.tmpdir or "/tmp");
       };
     };
 
-  transformPathVar = {
-    domain,
-    attrPath,
-    localPath,
-  }: let
-    leaf = elemAt attrPath (length attrPath - 1);
-    joinedAttr =
-      if leaf == "default"
-      then ""
-      else "_${concatStringsSep "_" attrPath}";
-  in
-    if domain == "xdg"
-    then let
-      suffix =
-        if leaf == "runtime_dir" || leaf == "tmpdir"
-        then ""
-        else "_HOME";
-      varName = "XDG_${concatStringsSep "_" attrPath}${suffix}";
-    in {
-      name = varName;
-      default = localPath;
-    }
-    else if domain == "user"
-    then {
-      name = leaf;
-      default = localPath;
-    }
-    else {
-      name = "${names.src}_${domain}${joinedAttr}";
-      default = localPath;
-    };
+  #> --------------------------------------------------------------------
+  #> Final configuration: preserve the raw API data, but replace its raw
+  #> path stems with the fully-resolved canonical path model.
+  #> --------------------------------------------------------------------
+  cfg = raw // {inherit paths;};
 
-  # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
-  flattenDomain = domain: attrPath: node:
-    optionals (isAttrs node) (
-      if node ? local
-      then [
-        (transformPathVar {
-          inherit domain attrPath;
-          inherit (node) local;
-        })
-      ]
-      else
-        concatLists (
-          mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node
-        )
-    );
   env = let
-    ignore = ["src" "store" "local" "mkLocal"];
+    transformPathVar = domain: attrPath: localPath: let
+      leaf = elemAt attrPath (length attrPath - 1);
+
+      joinedAttr =
+        if leaf == "default"
+        then ""
+        else "_${concatStringsSep "_" attrPath}";
+    in
+      if domain == "xdg"
+      then let
+        suffix =
+          if leaf == "runtime_dir" || leaf == "tmpdir"
+          then ""
+          else "_HOME";
+
+        varName = "XDG_${concatStringsSep "_" attrPath}${suffix}";
+      in {
+        name = varName;
+        default = localPath;
+      }
+      else if domain == "user"
+      then {
+        name = leaf;
+        default = localPath;
+      }
+      else {
+        name = "${names.src}_${domain}${joinedAttr}";
+        default = localPath;
+      };
+
+    # Flatten a domain's tree into [{name; default;}], skipping non-leaf nodes.
+    flattenDomain = domain: attrPath: node:
+      optionals (isAttrs node) (
+        if node ? local
+        then [
+          (transformPathVar domain attrPath node.local)
+        ]
+        else
+          concatLists (
+            mapAttrsToList
+            (key: child:
+              flattenDomain domain (attrPath ++ [key]) child)
+            node
+          )
+      );
+
+    ignore = [
+      "src"
+      "store"
+      "local"
+      "mkLocal"
+    ];
   in
     asEnvVars {
       type = "set";
       uppercase = true;
+
       vars =
-        (mapAttrsToList (name: default: {inherit name default;}) cfg.environment)
+        (mapAttrsToList
+          (name: default: {inherit name default;})
+          cfg.environment)
         ++ [
           {
             name = names.src;
@@ -287,7 +339,8 @@
             (domain: node:
               concatLists (
                 mapAttrsToList
-                (key: child: flattenDomain domain [key] child)
+                (key: child:
+                  flattenDomain domain [key] child)
                 (removeAttrs node ignore)
               ))
             (removeAttrs paths ignore)
@@ -299,17 +352,19 @@
   inherit (schema) hosts users;
 in {
   inherit
+    bootstrap
     cfg
     env
-    bootstrap
     hosts
+    libraries
+    names
     paths
     schema
     tree
-    libraries
     users
-    names
     ;
+
   inherit (names) top;
+
   "${names.lib}" = namedLib;
 }

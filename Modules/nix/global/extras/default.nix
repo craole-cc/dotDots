@@ -127,7 +127,7 @@
 
   #> Generate command list for shellHook
   commandList = let
-    mainCmd = commands.${names.name};
+    mainCmd = commands.${names.src};
 
     #> Group aliases by domain
     groups = [
