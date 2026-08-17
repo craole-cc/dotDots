@@ -24,6 +24,7 @@
         mkHome
         mkTree
         mkConfig
+        mkContext
         ;
     };
     exports = {
@@ -37,6 +38,7 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
+  inherit (_.lists.construction) optionals;
   inherit (_.modules.evaluation) evalModules extend;
   inherit (_.modules.construction) mkIf mkMerge;
   inherit (_.modules.home.users) mkUsers;
@@ -254,56 +256,36 @@
   in
     genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
 
-  # mkConfig = {
-  #   predicate ? null,
-  #   outputs,
-  #   options ? {},
-  #   top ? names.top,
-  #   dom,
-  #   mod,
-  #   config,
-  # }: let
-  #   cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-  #   condition =
-  #     if predicate != null
-  #     then predicate
-  #     else cfg.enable;
-  #   resolved = mkIf condition outputs;
-  # in {
-  #   options.${top}.resolved.${dom}.${mod} = {
-  #     explicit = options;
-  #     implicit = mkOption {
-  #       type = submodule {freeformType = attrsOf anything;};
-  #       default = {};
-  #     };
-  #   };
-  #   config = mkMerge [
-  #     resolved
-  #     {${top}.outputs = resolved;}
-  #     {${top}.resolved.${dom}.${mod}.implicit = resolved;}
-  #   ];
-  # };
   mkConfig = {
     predicate ? null,
     outputs,
     options ? {},
-    top ? names.top,
-    dom,
-    sub ? null,
-    mod,
-    config,
+    context ? null,
+    config ? context.config,
+    top ? context.top or names.top,
+    dom ? context.dom,
+    sub ? context.sub,
+    mod ? context.mod,
   }: let
-    inherit (_.attrsets.access) getAttrFromPath;
     inherit (_.attrsets.transformation) setAttrByPath;
 
-    path = let
-      base = [top "resolved" dom];
-    in
-      if sub != null
-      then base ++ [sub mod]
-      else base ++ [mod];
+    path =
+      if context != null
+      then context.path
+      else
+        [top "resolved" dom]
+        ++ (
+          if sub != null
+          then [sub]
+          else []
+        )
+        ++ [mod];
 
-    cfg = (getAttrFromPath path config).explicit;
+    cfg =
+      if context != null
+      then context.cfg
+      else (_.attrsets.access.getAttrFromPath path config).explicit;
+
     condition =
       if predicate != null
       then predicate
@@ -322,6 +304,23 @@
       {${top}.outputs = resolved;}
       (setAttrByPath (path ++ ["implicit"]) resolved)
     ];
+  };
+
+  mkContext = {
+    config,
+    top ? names.top,
+    dom,
+    sub ? null,
+    mod,
+  }: let
+    inherit (_.attrsets.access) getAttrFromPath;
+    path =
+      [top "resolved" dom]
+      ++ (optionals (sub != null) [sub])
+      ++ [mod];
+  in {
+    inherit config top dom sub mod path;
+    cfg = (getAttrFromPath path config).explicit;
   };
 in
   meta.exports.local

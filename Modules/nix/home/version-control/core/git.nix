@@ -1,26 +1,27 @@
 {
   config,
   lix,
-  top,
   user,
   ...
 }: let
-  dom = "version-control";
-  sub = "core";
-  mod = "git";
-  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
-
-  inherit (lix.modules.construction) mkConfig;
+  inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.types.combinators) attrsOf listOf nullOr submodule;
   inherit (lix.types.primitives) anything str;
+
+  context = mkContext {
+    inherit config;
+    dom = "version-control";
+    sub = "core";
+    mod = "git";
+  };
+  inherit (context) cfg;
 in
   mkConfig {
-    inherit config top dom sub mod;
-
+    inherit context;
     options = {
       enable =
-        mkEnableOption mod
+        mkEnableOption context.mod
         // {default = true;};
 
       lfs.enable =
@@ -53,18 +54,14 @@ in
         };
         url = mkOption {
           type = attrsOf (submodule {
-            options = {
-              insteadOf = mkOption {
-                type = listOf str;
-                default = [];
-                description = "URL prefixes to rewrite";
-              };
+            options.insteadOf = mkOption {
+              type = listOf str;
+              default = [];
+              description = "URL prefixes to rewrite";
             };
           });
           default = {
-            "https://github./" = {
-              insteadOf = ["gh:" "github:"];
-            };
+            "https://github./" = {insteadOf = ["gh:" "github:"];};
           };
           description = "Git URL rewrite mappings";
         };
