@@ -9,28 +9,17 @@
 }: let
   dom = "system";
   mod = "nix";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
 
-  inherit (lix.modules.construction) mkMerge mkConfig;
+  inherit (lix.modules.construction) mkConfig;
   inherit (lix.options.construction) literalExpression mkEnableOption mkOption;
   inherit (lix.types.combinators) attrsOf either nullOr submodule;
   inherit (lix.types.primitives) bool int str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
-  payload = mkMerge [
-    (mkNix {
-      inherit host pkgs;
-      inherit (cfg) kernel caches max-jobs stateVersion;
-      store = tree.store.default;
-    })
-    (mkMaintenance {
-      inherit (host.paths) src;
-      inherit pkgs;
-    })
-  ];
 in
-  {
-    #TODO: This is an ugly repetitive pattern
-    options.${top}.resolved.${dom}.${mod} = {
+  mkConfig {
+    inherit config top dom mod;
+    options = {
       enable = mkEnableOption mod // {default = true;};
 
       stateVersion = mkOption {
@@ -125,8 +114,15 @@ in
         });
       };
     };
-  }
-  // mkConfig {
-    inherit payload;
-    condition = cfg.enable;
+    outputs = lix.modules.construction.mkMerge [
+      (mkNix {
+        inherit host pkgs;
+        inherit (cfg) kernel caches max-jobs stateVersion;
+        store = tree.store.default;
+      })
+      (mkMaintenance {
+        inherit (host.paths) src;
+        inherit pkgs;
+      })
+    ];
   }

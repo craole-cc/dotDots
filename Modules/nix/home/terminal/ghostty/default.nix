@@ -1,3 +1,4 @@
+#TODO: The modules need to be options, not hardcoded
 {
   config,
   lix,
@@ -5,13 +6,15 @@
   pkgs,
   ...
 }: let
+  dom = "terminal";
+  mod = "ghostty";
+
   inherit (lix.modules.construction) mkConfig mkMerge;
+  inherit (lix.options.construction) mkEnableOption;
   inherit (lix.applications.generators) userApplicationConfig;
 
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
-    name = "ghostty";
-    kind = "terminal";
+  resolved = userApplicationConfig {
+    inherit user pkgs config dom mod;
     extraProgramConfig = mkMerge [
       (import ./general.nix)
       (import ./input.nix)
@@ -21,6 +24,10 @@
   };
 in
   mkConfig {
-    payload = {inherit (cfg) programs home;};
-    condition = cfg.enable;
+    inherit config dom mod;
+    predicate = resolved.enable;
+    options = {
+      enable = mkEnableOption mod // {default = resolved.enable;};
+    };
+    outputs = {inherit (resolved) programs home;};
   }

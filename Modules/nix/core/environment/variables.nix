@@ -10,7 +10,7 @@
 }: let
   dom = "environment";
   mod = "variables";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
   inherit (host.paths) dots;
   user = host.users.data.primary or {};
   apps = user.applications or {};
@@ -94,8 +94,9 @@
     all = default // editor // browser // terminal // launcher // bar;
   };
 in
-  {
-    options.${top}.resolved.${dom}.${mod} = {
+  mkConfig {
+    inherit config top dom mod;
+    options = {
       enable = mkEnableOption mod // {default = true;};
       default = mkOption {
         description = "Base session variables";
@@ -108,10 +109,7 @@ in
         type = attrsOf str;
       };
     };
-  }
-  // mkConfig {
-    payload = {
+    outputs = {
       environment.sessionVariables = cfg.default // cfg.extra;
     };
-    condition = cfg.enable;
   }

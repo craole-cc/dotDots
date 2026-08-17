@@ -17,7 +17,14 @@
       2. Generating per-system flake-style output matrices from a function.
     '';
     functions = {
-      inherit mkSystems mkFlake mkCore mkHome mkTree mkConfig;
+      inherit
+        mkSystems
+        mkFlake
+        mkCore
+        mkHome
+        mkTree
+        mkConfig
+        ;
     };
     exports = {
       local = functions;
@@ -33,8 +40,11 @@
   inherit (_.modules.evaluation) evalModules extend;
   inherit (_.modules.construction) mkIf mkMerge;
   inherit (_.modules.home.users) mkUsers;
+  inherit (_.options.construction) mkOption;
   inherit (_.sources.modules) mkModules;
   inherit (_.sources.packages) mkPackages;
+  inherit (_.types.combinators) attrsOf submodule;
+  inherit (_.types.primitives) anything;
 
   /**
   Evaluate all hosts from the discovered schema into concrete system outputs.
@@ -244,13 +254,73 @@
   in
     genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
 
+  # mkConfig = {
+  #   predicate ? null,
+  #   outputs,
+  #   options ? {},
+  #   top ? names.top,
+  #   dom,
+  #   mod,
+  #   config,
+  # }: let
+  #   cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+  #   condition =
+  #     if predicate != null
+  #     then predicate
+  #     else cfg.enable;
+  #   resolved = mkIf condition outputs;
+  # in {
+  #   options.${top}.resolved.${dom}.${mod} = {
+  #     explicit = options;
+  #     implicit = mkOption {
+  #       type = submodule {freeformType = attrsOf anything;};
+  #       default = {};
+  #     };
+  #   };
+  #   config = mkMerge [
+  #     resolved
+  #     {${top}.outputs = resolved;}
+  #     {${top}.resolved.${dom}.${mod}.implicit = resolved;}
+  #   ];
+  # };
   mkConfig = {
-    condition ? true,
-    payload,
-  }: {
+    predicate ? null,
+    outputs,
+    options ? {},
+    top ? names.top,
+    dom,
+    sub ? null,
+    mod,
+    config,
+  }: let
+    inherit (_.attrsets.access) getAttrFromPath;
+    inherit (_.attrsets.transformation) setAttrByPath;
+
+    path = let
+      base = [top "resolved" dom];
+    in
+      if sub != null
+      then base ++ [sub mod]
+      else base ++ [mod];
+
+    cfg = (getAttrFromPath path config).explicit;
+    condition =
+      if predicate != null
+      then predicate
+      else cfg.enable;
+    resolved = mkIf condition outputs;
+  in {
+    options = setAttrByPath path {
+      explicit = options;
+      implicit = mkOption {
+        type = submodule {freeformType = attrsOf anything;};
+        default = {};
+      };
+    };
     config = mkMerge [
-      (mkIf condition payload)
-      {${names.top}.outputs = mkIf condition payload;}
+      resolved
+      {${top}.outputs = resolved;}
+      (setAttrByPath (path ++ ["implicit"]) resolved)
     ];
   };
 in

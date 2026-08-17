@@ -9,7 +9,7 @@
 }: let
   dom = "environment";
   mod = "packages";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
   user = host.users.data.primary or {};
   apps = user.applications or {};
 
@@ -19,7 +19,7 @@
   inherit (lix.modules.construction) mkConfig;
   inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.types.combinators) listOf;
-  inherit (lix.types.primitive) package;
+  inherit (lix.types.primitives) package;
   inherit
     (lix.applications.resolution)
     bars
@@ -147,8 +147,9 @@
       ;
   };
 in
-  {
-    options.${top}.resolved.${dom}.${mod} = {
+  mkConfig {
+    inherit config top dom mod;
+    options = {
       enable = mkEnableOption mod // {default = true;};
       default = mkOption {
         description = "Base system packages";
@@ -161,8 +162,7 @@ in
         type = listOf package;
       };
     };
-  }
-  // mkConfig {
-    payload.environment.systemPackages = with cfg; default ++ extra;
-    condition = cfg.enable;
+    outputs = {
+      environment.systemPackages = with cfg; default ++ extra;
+    };
   }

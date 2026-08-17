@@ -7,7 +7,7 @@
 }: let
   dom = "environment";
   mod = "aliases";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
   dots = host.paths.dots or null;
 
   inherit (lix.attrsets.construction) optionalAttrs;
@@ -41,8 +41,9 @@
       };
   };
 in
-  {
-    options.${top}.resolved.${dom}.${mod} = {
+  mkConfig {
+    inherit config top dom mod;
+    options = {
       enable = mkEnableOption mod // {default = true;};
       default = mkOption {
         description = "Default shell aliases";
@@ -55,10 +56,7 @@ in
         type = attrsOf str;
       };
     };
-  }
-  // mkConfig {
-    payload = {
+    outputs = {
       environment.shellAliases = cfg.default // cfg.extra;
     };
-    condition = cfg.enable;
   }

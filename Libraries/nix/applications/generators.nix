@@ -660,12 +660,14 @@
     exports;
 
   userApplicationConfig = {
-    app ? {},
+    app ? null,
+    dom ? null,
+    mod ? null,
     config ? app.config or {},
     user ? app.user or {},
     pkgs ? app.pkgs or {},
-    name ? app.name or null,
-    kind ? app.kind or null,
+    name ? app.name or mod,
+    kind ? app.kind or dom,
     category ? app.category or null,
     requiresWayland ? app.requiresWayland or false,
     requiresX11 ? app.requiresX11 or false,
@@ -679,8 +681,8 @@
     extraAliases ? {},
     ...
   }: let
-    res =
-      if app != {}
+    resolved =
+      if app != null && app != {}
       then app
       else
         userApplication {
@@ -700,12 +702,12 @@
             ;
         };
 
-    moduleName = res.name;
-    hasHome = res.config ? home;
-    hasProg = res.config ? programs.${moduleName};
-    hasProgPkg = res.config.programs.${moduleName} ? package;
+    moduleName = resolved.name;
+    hasHome = resolved.config ? home;
+    hasProg = resolved.config ? programs.${moduleName};
+    hasProgPkg = resolved.config.programs.${moduleName} ? package;
 
-    testVariables = optionalAttrs res.debug {
+    testVariables = optionalAttrs resolved.debug {
       "__${moduleName}" =
         (
           if hasHome
@@ -724,39 +726,29 @@
         );
     };
 
-    enable = res.isAllowed;
-    inherit (res) package;
-    packages = res.packages ++ extraPackages;
-    sessionVariables = res.sessionVariables // extraVariables // testVariables;
-    shellAliases = res.shellAliases // extraAliases;
+    inherit (resolved) package;
+    packages = resolved.packages ++ extraPackages;
+    sessionVariables = resolved.sessionVariables // extraVariables // testVariables;
+    shellAliases = resolved.shellAliases // extraAliases;
 
-    home = optionalAttrs hasHome {inherit sessionVariables shellAliases packages;};
-
-    environment = optionalAttrs (!hasHome) {
-      systemPackages = packages;
-      inherit sessionVariables shellAliases;
-    };
-
-    programs = optionalAttrs hasProg {
-      ${moduleName} = mkMerge [
-        {inherit enable;}
-        (optionalAttrs hasProgPkg {inherit package;})
-        extraProgramConfig
-      ];
-    };
-
-    exports =
-      {
-        inherit
-          environment
-          home
-          programs
-          enable
-          ;
-      }
-      // res;
+    enable = resolved.isAllowed;
   in
-    exports;
+    {
+      inherit enable;
+      home = optionalAttrs hasHome {inherit sessionVariables shellAliases packages;};
+      environment = optionalAttrs (!hasHome) {
+        systemPackages = packages;
+        inherit sessionVariables shellAliases;
+      };
+      programs = optionalAttrs hasProg {
+        ${moduleName} = mkMerge [
+          {inherit enable;}
+          (optionalAttrs hasProgPkg {inherit package;})
+          extraProgramConfig
+        ];
+      };
+    }
+    // resolved;
 in
   meta.exports.local
   // {

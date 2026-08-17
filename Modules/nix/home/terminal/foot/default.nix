@@ -1,20 +1,28 @@
+#TODO: The modules need to be options, not hardcoded
 {
   config,
   lix,
+  top,
   user,
   pkgs,
   ...
 }: let
+  dom = "terminal";
+  mod = "foot";
+  cfg = config.${top}.resolved.${dom}.${mod}.explicit;
+
   inherit (lix.modules.construction) mkConfig mkMerge;
+  inherit (lix.options.construction) mkEnableOption mkOption;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
+  inherit (lix.types.combinators) listOf nullOr;
+  inherit (lix.types.primitives) bool package str;
   inherit (pkgs) makeDesktopItem;
 
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
     inherit pkgs;
     scripts = let
-      # script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
       script = ./wrapper.sh;
     in {
       feet = script;
@@ -53,15 +61,11 @@
     noDisplay = true;
   };
 
-  #~@ Final Configuration Assembly
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
-    name = "foot";
-    kind = "terminal";
-    customCommand = "feet";
-    resolutionHints = ["foot" "feet"];
-    requiresWayland = true;
-    extraPackages = wrappers ++ [desktop quake];
+  #~@ Resolved application assembly, driven by the explicit options below
+  resolved = userApplicationConfig {
+    inherit user pkgs config dom mod;
+    inherit (cfg) customCommand resolutionHints requiresWayland;
+    extraPackages = wrappers ++ [desktop quake] ++ cfg.extraPackages;
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
@@ -70,10 +74,60 @@
         (import ./themes.nix)
       ];
     };
-    debug = false;
+    debug = cfg.debug;
   };
 in
   mkConfig {
-    payload = {inherit (cfg) programs home;};
-    condition = cfg.enable;
+    inherit config top dom mod;
+    predicate = resolved.enable;
+    options = {
+      #~@ Inputs the caller can actually change
+      customCommand = mkOption {
+        description = "Command name to run, overriding the resolved package binary.";
+        default = "feet";
+        type = str;
+      };
+      resolutionHints = mkOption {
+        description = "Candidate package names to try when resolving the `foot` package.";
+        default = ["foot" "feet"];
+        type = listOf str;
+      };
+      requiresWayland = mkOption {
+        description = "Whether this application requires Wayland to be enabled.";
+        default = true;
+        type = bool;
+      };
+      extraPackages = mkOption {
+        description = "Additional packages to install alongside the resolved application.";
+        default = [];
+        type = listOf package;
+      };
+      debug = mkOption {
+        description = "Trace the application resolution process during evaluation.";
+        default = false;
+        type = bool;
+      };
+
+      #~@ Decisions made during resolution, surfaced for inspection
+      enable = mkEnableOption mod // {default = resolved.enable;};
+      isPrimary = mkOption {
+        description = "Whether `foot` is the user's primary terminal choice.";
+        default = resolved.isPrimary;
+        type = bool;
+        readOnly = true;
+      };
+      isPlatformCompatible = mkOption {
+        description = "Whether platform requirements (Wayland) are satisfied.";
+        default = resolved.isPlatformCompatible;
+        type = bool;
+        readOnly = true;
+      };
+      package = mkOption {
+        description = "The resolved `foot` package derivation.";
+        default = resolved.package;
+        type = nullOr package;
+        readOnly = true;
+      };
+    };
+    outputs = {inherit (resolved) programs home;};
   }

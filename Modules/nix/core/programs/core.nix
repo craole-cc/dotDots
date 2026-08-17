@@ -10,16 +10,20 @@
   #
   # This module only wires the interface-derived programs that have no
   # leaf owner: hyprland, niri, and xwayland.
+  dom = "programs";
+  mod = "bridge";
   iface = config.${top}.resolved.interface;
 
   inherit (lix.modules.construction) mkConfig;
   inherit (lix.modules.core.programs) mkPrograms;
 in
   mkConfig {
-    payload = mkPrograms {
+    inherit config top dom mod;
+    predicate = iface.enable;
+    options = {};
+    outputs = mkPrograms {
       inherit (iface) windowManager;
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
     };
-    condition = iface.enable;
   }
