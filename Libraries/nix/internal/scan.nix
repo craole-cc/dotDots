@@ -21,6 +21,7 @@
     isAttrs
     listToAttrs
     mapAttrs
+    optionalAttrs
     ;
   inherit
     (lib.lists)
@@ -178,12 +179,12 @@
     rootAliases = {};
   };
 
-  # -- Exclusion predicates ────────────────────────────────────────────────
+  # -- Exclusion predicates
   isExcludedDir = dir: elem dir exclusions.dirs || hasPrefix "." dir;
 
   isExcludedFile = file: elem file exclusions.files || (foldl' (acc: pat: acc || hasSuffix pat file) false exclusions.patterns);
 
-  # -- Documentation discovery ─────────────────────────────────────────────
+  # -- Documentation discovery
   findDocs = {
     dir,
     name,
@@ -224,7 +225,7 @@
       locations = [];
     };
 
-  # -- .nix file processor ─────────────────────────────────────────────────
+  # -- .nix file processor
   processNixFile = dir: pathPrefix: entryName: let
     meta = {
       name = removeSuffix ".nix" entryName;
@@ -363,25 +364,13 @@
           total = length results;
           passed = length (filter (t: t.passed or false) results);
           failed = total - passed;
-        in {
-          inherit
-            available
-            total
-            passed
-            failed
-            ;
-        }
+        in {inherit available total passed failed;}
         else {inherit available;};
     in
       cleaned
       // {
         __meta = {
-          inherit
-            aliases
-            module
-            docs
-            tests
-            ;
+          inherit aliases module docs tests;
           exports = attrNames exports;
           functions = attrNames (filterAttrs (_: isFunction) exports);
           values = attrNames (filterAttrs (_: value: !isFunction value) exports);
@@ -391,7 +380,7 @@
     rootAliases = aliases;
   };
 
-  # -- Recursive directory scanner ─────────────────────────────────────────
+  # -- Recursive directory scanner
   scanDir = dir: pathPrefix: let
     processEntry = entryName: entryType:
       if entryType == "directory" && isExcludedDir entryName
@@ -402,20 +391,23 @@
         res = scanDir sub (pathPrefix ++ [entryName]);
       in {
         modules =
-          if res.modules != {}
-          then {${entryName} = res.modules;}
-          else {};
+          optionalAttrs
+          (res.modules != {})
+          {${entryName} = res.modules;};
         inherit (res) rootAliases;
       }
-      else if entryType == "regular" && hasSuffix ".nix" entryName && !isExcludedFile entryName
+      else if
+        (entryType == "regular")
+        && (hasSuffix ".nix" entryName)
+        && (!isExcludedFile entryName)
       then processNixFile dir pathPrefix entryName
       else empty;
 
     processed = mapAttrs processEntry (readDir dir);
   in
-    foldlAttrs (acc: _: v: {
-      modules = acc.modules // v.modules;
-      rootAliases = acc.rootAliases // v.rootAliases;
+    foldlAttrs (acc: _: value: {
+      modules = acc.modules // value.modules;
+      rootAliases = acc.rootAliases // value.rootAliases;
     })
     empty
     processed;

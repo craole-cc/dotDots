@@ -1,17 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  mkStaged = {
-    top,
-    condition ? true,
-    payload,
-  }: [
-    (lib.mkIf condition payload)
-    {${top}.outputs = lib.mkIf condition payload;}
-  ];
-
+{_, ...}: let
   meta = {
     doc = ''
       Build the host-specific core module list used during system evaluation.
@@ -42,7 +29,16 @@
     };
   };
 
-  inherit (_.modules.construction) mkHome;
+  inherit (_.modules.construction) mkHome mkIf;
+
+  mkStaged = {
+    top,
+    condition ? true,
+    payload,
+  }: [
+    (mkIf condition payload)
+    {${top}.outputs = mkIf condition payload;}
+  ];
 
   /**
   Build the host-specific core module list used during system evaluation.

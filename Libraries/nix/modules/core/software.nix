@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  names,
+  ...
+}: let
   meta = let
     doc = ''
       # Core Software [Layer 3]
@@ -105,6 +109,7 @@
     };
 
     caches' = let
+      # TODO: Move this to API/global
       common =
         optionalAttrs requiresNumtide {
           numtide = {
@@ -175,7 +180,7 @@
   ```
   */
   mkMaintenance = {
-    dots,
+    src,
     pkgs,
     ...
   }: let
@@ -257,32 +262,35 @@
         extraArgs = keepArgs;
       };
       enable = true;
-      flake = dots;
+      flake = src;
     };
 
     environment = {
       systemPackages = [fetch];
       shellAliases = {
-        dots-switch = "nh os switch ${dots}";
-        dots-update = "nix flake update --flake ${dots}";
-        dots-upgrade = "nix flake update --flake ${dots} && nh os switch ${dots}";
-        dots-boot = "nh os boot ${dots}";
-        dots-test = "nh os test ${dots}";
-        dots-build = "nh os build ${dots}";
-        dots-clean = "nh clean all ${keepArgs}";
-        dots-clean-all = "nh clean all --keep 1";
-        dots-gc = "nix store gc";
-        dots-gens = "nh os info";
-        dots-optimise = "nix store optimise";
-        dots-repair = "nix store verify --repair";
-        dots-dev = "nix develop ${dots}";
-        dots-dev-full = "nix develop ${dots}#full";
-        dots-dev-minimal = "nix develop ${dots}#minimal";
-        dots-dev-media = "nix develop ${dots}#media";
-        dots-repl = "nix repl ${dots}#repl";
-        dots-cd = "cd ${dots}";
-        dots-fetch = "fetch ${dots}";
-        dots-fetch-full = "fetch --full ${dots}";
+        "${names.src}-switch" = "nh os switch ${src}";
+        "${names.src}-update" = "nix flake update --flake ${src}";
+        "${names.src}-upgrade" = "nix flake update --flake ${src} && nh os switch ${src}";
+        "${names.src}-boot" = "nh os boot ${src}";
+        "${names.src}-test" = "nh os test ${src}";
+        "${names.src}-build" = "nh os build ${src}";
+        "${names.src}-clean" = "nh clean all ${keepArgs}";
+        "${names.src}-clean-all" = "nh clean all --keep 1";
+        "${names.src}-gc" = "nix store gc";
+        "${names.src}-gens" = "nh os info";
+        "${names.src}-optimise" = "nix store optimise";
+        "${names.src}-repair" = "nix store verify --repair";
+        "${names.src}-dev" = "nix develop ${src}";
+        "${names.src}-dev-ai" = "nix develop ${src}#ai";
+        "${names.src}-dev-core" = "nix develop ${src}#core";
+        "${names.src}-dev-extras" = "nix develop ${src}#extras";
+        "${names.src}-dev-full" = "nix develop ${src}#full";
+        "${names.src}-dev-media" = "nix develop ${src}#media";
+        "${names.src}-dev-minimal" = "nix develop ${src}#minimal";
+        "${names.src}-repl" = "nix repl ${src}#repl";
+        "${names.src}-cd" = "cd ${src}";
+        "${names.src}-fetch" = "fetch ${src}";
+        "${names.src}-fetch-full" = "fetch --full ${src}";
       };
     };
   };

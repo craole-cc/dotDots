@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  names,
+  ...
+}: let
   meta = let
     doc = ''
       Module Evaluation and System Generation
@@ -13,7 +17,7 @@
       2. Generating per-system flake-style output matrices from a function.
     '';
     functions = {
-      inherit mkSystems mkFlake mkCore mkHome mkTree;
+      inherit mkSystems mkFlake mkCore mkHome mkTree mkConfig;
     };
     exports = {
       local = functions;
@@ -27,6 +31,7 @@
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
   inherit (_.modules.evaluation) evalModules extend;
+  inherit (_.modules.construction) mkIf mkMerge;
   inherit (_.modules.home.users) mkUsers;
   inherit (_.sources.modules) mkModules;
   inherit (_.sources.packages) mkPackages;
@@ -238,6 +243,16 @@
     });
   in
     genAttrs names (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
+
+  mkConfig = {
+    condition ? true,
+    payload,
+  }: {
+    config = mkMerge [
+      (mkIf condition payload)
+      {${names.top}.outputs = mkIf condition payload;}
+    ];
+  };
 in
   meta.exports.local
   // {

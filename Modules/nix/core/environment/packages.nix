@@ -1,32 +1,32 @@
 {
-  lix,
   config,
   host,
-  lib,
-  pkgs,
   inputs,
+  lix,
+  pkgs,
   top,
   ...
 }: let
   dom = "environment";
   mod = "packages";
   cfg = config.${top}.resolved.${dom}.${mod};
-
   user = host.users.data.primary or {};
   apps = user.applications or {};
-  inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
 
+  inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
   inherit (config.${top}.resolved.interface) displayProtocol;
-  inherit (lib.lists) optionals unique;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) listOf package;
+  inherit (lix.lists.construction) optionals;
+  inherit (lix.modules.construction) mkConfig;
+  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.types.combinators) listOf;
+  inherit (lix.types.primitive) package;
   inherit
     (lix.applications.resolution)
-    editors
-    browsers
-    terminals
-    launchers
     bars
+    browsers
+    editors
+    launchers
+    terminals
     ;
 
   registry = let
@@ -146,27 +146,23 @@
       all
       ;
   };
-  payload = {
-    environment.systemPackages = unique (cfg.default ++ cfg.extra);
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
-    default = mkOption {
-      description = "Base system packages";
-      default = registry.all;
-      type = listOf package;
+in
+  {
+    options.${top}.resolved.${dom}.${mod} = {
+      enable = mkEnableOption mod // {default = true;};
+      default = mkOption {
+        description = "Base system packages";
+        default = registry.all;
+        type = listOf package;
+      };
+      extra = mkOption {
+        description = "Additional packages to install";
+        default = [];
+        type = listOf package;
+      };
     };
-    extra = mkOption {
-      description = "Additional packages to install";
-      default = [];
-      type = listOf package;
-    };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
+  }
+  // mkConfig {
+    payload.environment.systemPackages = with cfg; default ++ extra;
     condition = cfg.enable;
-  });
-}
+  }

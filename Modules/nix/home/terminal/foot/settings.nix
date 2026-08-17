@@ -1,5 +1,5 @@
-{lib, ...}: let
-  inherit (lib.modules) mkDefault mkForce;
+{lix, ...}: let
+  inherit (lix.modules.construction) mkDefault mkForce;
 in {
   main = {
     app-id = "foot";

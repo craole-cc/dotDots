@@ -28,32 +28,29 @@
       names = filter (name: name != "default") (map
         (f: removeSuffix ".nix" f)
         (attrNames (
-          filterAttrs (
-            name: type:
-              (type == "regular")
-              && (hasSuffix ".nix" name)
-              && (name != "default.nix")
-          ) (readDir raw)
+          filterAttrs (name: type:
+            (type == "regular")
+            && (hasSuffix ".nix" name)
+            && (name != "default.nix"))
+          (readDir raw)
         )));
     in
       genAttrs names (name: init set.${name});
   in
     library.extend (_: prev: recursiveUpdate base prev);
 
-  lix = lib'.extend (
-    _: prev:
-      recursiveUpdate prev {
-        inherit (paths) src;
-        inherit lib;
-      }
-  );
-  base = removeAttrs lix [
+  custom = lib'.extend (_: prev:
+    recursiveUpdate prev {
+      inherit (paths) src;
+      inherit lib;
+    });
+  base = removeAttrs custom [
     "__rootAliases"
     "__unfix__"
     "unfix"
     "extend"
   ];
-  aliases = lix.__rootAliases or {};
+  aliases = custom.__rootAliases or {};
   withAliases =
     if !rootAliases
     then base
@@ -64,4 +61,4 @@
         msg = "Root aliases collide with modules";
       };
 in
-  withAliases // {extend = fn: lix.extend fn;}
+  withAliases // {extend = fn: custom.extend fn;}

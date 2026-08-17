@@ -1,11 +1,10 @@
 {
   config,
-  lib,
   lix,
   top,
   ...
-}: let
-  inherit (lix.modules.core.staging) mkStaged;
+}:
+lix.modules.construction.mkConfig {
   payload = {
     programs.tmux =
       {
@@ -14,8 +13,4 @@
       # // import ./settings.nix
       // import ./plugins.nix;
   };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
 }

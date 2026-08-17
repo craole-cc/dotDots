@@ -1,14 +1,11 @@
 {
   config,
-  lib,
   lix,
   user,
   pkgs,
-  top,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.modules.construction) mkConfig mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
   cfg = userApplicationConfig {
@@ -22,10 +19,8 @@
     ];
     debug = false;
   };
-  payload = {inherit (cfg) programs home;};
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
+in
+  mkConfig {
+    payload = {inherit (cfg) programs home;};
     condition = cfg.enable;
-  });
-}
+  }

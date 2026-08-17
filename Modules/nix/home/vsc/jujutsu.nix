@@ -1,12 +1,11 @@
 {
   config,
-  lib,
   lix,
   top,
   user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.modules.construction) mkConfig;
   payload = {
     programs.jujutsu = {
       enable = config.${top}.resolved.applications.utilities.jujutsu.enable;
@@ -18,6 +17,5 @@
       };
     };
   };
-in {
-  config = lib.mkMerge (mkStaged {inherit top payload;});
-}
+in
+  mkConfig {inherit payload;}

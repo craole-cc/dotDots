@@ -1,11 +1,10 @@
 {
   config,
-  lib,
   lix,
   top,
   ...
-}: let
-  inherit (lix.modules.core.staging) mkStaged;
+}:
+lix.modules.construction.mkConfig {
   payload = {
     programs = {
       gh = {
@@ -16,6 +15,4 @@
       };
     };
   };
-in {
-  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

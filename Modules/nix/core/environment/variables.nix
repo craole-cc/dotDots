@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   lix,
   inputs,
   pkgs,
@@ -19,11 +18,11 @@
   wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
 
   inherit (config.${top}.resolved.interface) displayProtocol;
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) attrsOf str;
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.modules.construction) mkConfig mkDefault;
+  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.types.combinators) attrsOf;
+  inherit (lix.types.primitives) str;
   inherit
     (lix.applications.resolution)
     editors
@@ -60,7 +59,7 @@
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
         BAR = config.${top}.resolved.interface.panel or bar.primary;
-        BROWSER = lib.mkDefault browser.primary;
+        BROWSER = mkDefault browser.primary;
         DOTS = dots;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;
@@ -94,27 +93,25 @@
     inherit editor browser terminal launcher bar default;
     all = default // editor // browser // terminal // launcher // bar;
   };
-
-  payload = {
-    environment.sessionVariables = cfg.default // cfg.extra;
-  };
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
-    default = mkOption {
-      description = "Base session variables";
-      inherit (registry) default;
-      type = attrsOf str;
+in
+  {
+    options.${top}.resolved.${dom}.${mod} = {
+      enable = mkEnableOption mod // {default = true;};
+      default = mkOption {
+        description = "Base session variables";
+        inherit (registry) default;
+        type = attrsOf str;
+      };
+      extra = mkOption {
+        description = "Additional session variables";
+        default = {};
+        type = attrsOf str;
+      };
     };
-    extra = mkOption {
-      description = "Additional session variables";
-      default = {};
-      type = attrsOf str;
+  }
+  // mkConfig {
+    payload = {
+      environment.sessionVariables = cfg.default // cfg.extra;
     };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
     condition = cfg.enable;
-  });
-}
+  }

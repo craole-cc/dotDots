@@ -20,6 +20,7 @@
       mkOption
       mkPackageOption
       mkSinkUndeclaredOptions
+      literalExpression #TODO: Move to a better category
       ;
     inherit (types) mkOptionType;
   };

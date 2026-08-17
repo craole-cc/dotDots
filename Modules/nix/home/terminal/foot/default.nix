@@ -1,15 +1,11 @@
 {
   config,
-  lib,
   lix,
   user,
   pkgs,
-  # tree,
-  top,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  inherit (lix.modules.construction) mkIf mkMerge;
+  inherit (lix.modules.construction) mkConfig mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
   inherit (pkgs) makeDesktopItem;
@@ -42,10 +38,7 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = [
-      "System"
-      "TerminalEmulator"
-    ];
+    categories = ["System" "TerminalEmulator"];
   };
 
   quake = makeDesktopItem {
@@ -56,10 +49,7 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = [
-      "System"
-      "TerminalEmulator"
-    ];
+    categories = ["System" "TerminalEmulator"];
     noDisplay = true;
   };
 
@@ -69,31 +59,21 @@
     name = "foot";
     kind = "terminal";
     customCommand = "feet";
-    resolutionHints = [
-      "foot"
-      "feet"
-    ];
+    resolutionHints = ["foot" "feet"];
     requiresWayland = true;
-    extraPackages =
-      wrappers
-      ++ [
-        desktop
-        quake
-      ];
+    extraPackages = wrappers ++ [desktop quake];
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
-        (import ./settings.nix {inherit lib;})
+        (import ./settings.nix {inherit lix;})
         (import ./input.nix)
         (import ./themes.nix)
       ];
     };
     debug = false;
   };
-  payload = {inherit (cfg) programs home;};
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
+in
+  mkConfig {
+    payload = {inherit (cfg) programs home;};
     condition = cfg.enable;
-  });
-}
+  }

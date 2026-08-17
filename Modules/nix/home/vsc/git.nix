@@ -1,16 +1,14 @@
 {
   config,
-  lib,
   lix,
   top,
   user,
   ...
-}: let
-  inherit (lix.modules.core.staging) mkStaged;
-
+}:
+lix.modules.construction.mkConfig {
   payload = {
     programs.git = {
-      enable = config.${top}.resolved.applications.utilities.git.enable;
+      enable = config.${top}.resolved.applications.utilities.git.enable or true;
       lfs.enable = true;
       settings = {
         user = {
@@ -24,6 +22,4 @@
       includes = [];
     };
   };
-in {
-  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

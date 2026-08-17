@@ -1,11 +1,10 @@
 {
   config,
-  lib,
   lix,
   top,
   ...
-}: let
-  inherit (lix.modules.core.staging) mkStaged;
+}:
+lix.modules.construction.mkConfig {
   payload = {
     programs.delta = {
       enable = config.${top}.resolved.applications.utilities.delta.enable;
@@ -13,6 +12,4 @@
       enableJujutsuIntegration = true;
     };
   };
-in {
-  config = lib.mkMerge (mkStaged {inherit top payload;});
 }

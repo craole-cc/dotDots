@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   top,
   lix,
   ...
@@ -11,10 +10,11 @@
   cfg = config.${top}.resolved.${dom}.${mod};
   dots = host.paths.dots or null;
 
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) attrsOf str;
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.modules.construction) mkConfig;
+  inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.types.combinators) attrsOf;
+  inherit (lix.types.primitives) str;
 
   registry = {
     default =
@@ -40,27 +40,25 @@
         nxu = "push-dots; switch-dots; topgrade";
       };
   };
-  payload = {
-    environment.shellAliases = cfg.default // cfg.extra;
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
-    default = mkOption {
-      description = "Default shell aliases";
-      inherit (registry) default;
-      type = attrsOf str;
+in
+  {
+    options.${top}.resolved.${dom}.${mod} = {
+      enable = mkEnableOption mod // {default = true;};
+      default = mkOption {
+        description = "Default shell aliases";
+        inherit (registry) default;
+        type = attrsOf str;
+      };
+      extra = mkOption {
+        description = "Additional shell aliases";
+        default = {};
+        type = attrsOf str;
+      };
     };
-    extra = mkOption {
-      description = "Additional shell aliases";
-      default = {};
-      type = attrsOf str;
+  }
+  // mkConfig {
+    payload = {
+      environment.shellAliases = cfg.default // cfg.extra;
     };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
     condition = cfg.enable;
-  });
-}
+  }
