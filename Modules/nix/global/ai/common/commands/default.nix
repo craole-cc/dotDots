@@ -57,8 +57,8 @@ in
       hermes-whatsapp
     ])
   ++ [
-    ((import ./help.nix {
+    (import ./help.nix {
       inherit helpers lib description names commands;
       inherit (aggregate) all;
-    }).show-help)
+    }).show-help
   ]

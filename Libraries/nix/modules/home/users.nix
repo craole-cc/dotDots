@@ -64,8 +64,7 @@
         home = {inherit (nixosConfig.system) stateVersion;};
 
         imports =
-          []
-          ++ optionals
+          optionals
           (hmi?caelestia.module)
           [hmi.caelestia.module]
           ++ optionals

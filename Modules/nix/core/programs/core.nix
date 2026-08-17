@@ -15,13 +15,11 @@
 
   inherit (lix.modules.construction) mkIf;
   inherit (lix.modules.core.programs) mkPrograms;
-  payload = (
-    mkPrograms {
-      windowManager = iface.windowManager;
+  payload = mkPrograms {
+      inherit (iface) windowManager;
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
-    }
-  );
+    };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   config = lib.mkMerge (mkStaged {

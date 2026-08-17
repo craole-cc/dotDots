@@ -82,12 +82,12 @@
     };
   in {
     inherit analysis seed source;
-    registry = registry;
+    inherit registry;
     resolved = registry;
     inherit (source) name path raw;
-    normalize = registry.normalize;
-    groups = analysis.groups;
-    queries = analysis.queries;
+    inherit (registry) normalize;
+    inherit (analysis) groups;
+    inherit (analysis) queries;
   };
 
   mkSource = {
@@ -150,7 +150,7 @@
   in
     source;
 
-  normalize = value: mkSource value;
+  normalize = mkSource;
 
   mkRegistry = {
     owner ? "mkRegistry",
@@ -212,12 +212,12 @@
 
   normalizeList = values:
     if isList values
-    then filter (value: isNotEmpty value) values
+    then filter isNotEmpty values
     else [values];
 
   flatten = sourceFlatten;
 
-  isRegistry = tree: sourceIsRegistry tree;
+  isRegistry = sourceIsRegistry;
   isRegistryAttrset = isRegistry;
 
   # groupByFieldFlat = {

@@ -36,7 +36,7 @@
   }:
     if isEmpty stems
     then root
-    else root + "/${concat "/" ((normalizePath stems).path)}";
+    else root + "/${concat "/" (normalizePath stems).path}";
 
   # pathHasPrefix = path.hasPrefix;
   # isStorePath = path.hasStorePathPrefix;

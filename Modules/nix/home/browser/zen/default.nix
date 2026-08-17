@@ -40,7 +40,7 @@
   package = resolvePackage {
     app = twilight;
     inherit inputs pkgs;
-    system = pkgs.system;
+    inherit (pkgs) system;
   };
 
   enable = isPrimary || isSecondary || isAllowed;
@@ -49,7 +49,7 @@
       inherit enable name;
       darwinAppName = darwinName;
       wrappedPackageName = variant;
-      package = package;
+      inherit package;
       setAsDefaultBrowser = isPrimary;
       enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
       profiles.${user.name} = mkMerge [

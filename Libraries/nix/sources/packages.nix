@@ -515,7 +515,7 @@
           names = homeNames;
         };
     in
-      filterAttrs (_name: value: isNotEmpty value) raw;
+      filterAttrs (_name: isNotEmpty) raw;
 
     overlays = mkOverlays {
       inherit packages;

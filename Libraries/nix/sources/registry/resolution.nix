@@ -230,7 +230,7 @@
   /**
   Alias for `mkSource` so the public API reads more naturally.
   */
-  normalize = value: mkSource value;
+  normalize = mkSource;
 in
   with meta.exports;
     internal

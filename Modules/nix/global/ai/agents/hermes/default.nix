@@ -3,10 +3,10 @@ args: let
 in {
   packages =
     removeAttrs
-    ((args.pkgsFor {
+    (args.pkgsFor {
       sources = {
         hermes-agent = "llm-agents";
       };
-    }).packages)
+    }).packages
     ["hermes-desktop"];
 }

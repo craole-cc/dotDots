@@ -56,7 +56,7 @@
   typeOf null         # => "null"
   ```
   */
-  typeOf = builtins.typeOf;
+  inherit (builtins) typeOf;
 
   /**
   Check whether a value is a boolean.
@@ -73,7 +73,7 @@
   isBool 1      # => false
   ```
   */
-  isBool = builtins.isBool;
+  inherit (builtins) isBool;
 
   /**
   Check whether a value is a floating point number.
@@ -105,7 +105,7 @@
   isFunction "hello"  # => false
   ```
   */
-  isFunction = builtins.isFunction;
+  inherit (builtins) isFunction;
 
   /**
   Check whether a value is an integer.

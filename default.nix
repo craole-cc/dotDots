@@ -363,8 +363,5 @@ in {
     tree
     users
     ;
-
-  inherit (names) top;
-
   "${names.lib}" = namedLib;
 }

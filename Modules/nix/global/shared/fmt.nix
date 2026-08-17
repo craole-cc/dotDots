@@ -1,43 +1,207 @@
-args: let
-  inherit (args) lix pkgFor pkgs src;
-  inherit (pkgs) writeShellScriptBin runCommand;
-  inherit (lix.sources.access) getExe;
-  inherit (lix.sources.transformation) makeBinPath;
-
+{
+  inputs,
+  pkgFor,
+  pkgs,
+  src,
+  ...
+}: let
   treefmt = pkgFor {
     input = "treefmt-nix";
     target = "treefmt";
   };
 
-  buildInputs =
-    [treefmt.pkg]
-    ++ (with pkgs; [
-      actionlint
-      alejandra
-      deno
-      dos2unix
-      leptosfmt
-      markdownlint-cli2
-      nixfmt
-      prettierd
-      rustfmt
-      shellcheck
-      shfmt
-      statix
-      stylua
-      tombi
-      typstyle
-      yamlfmt
-    ]);
+  config = inputs.treefmt.lib.evalModule pkgs {
+    projectRootFile = "flake.nix";
 
-  formatter = writeShellScriptBin "treefmt" ''
-    export PATH=${makeBinPath buildInputs}:$PATH
-    exec ${treefmt.exe} "$@"
-  '';
+    programs = {
+      alejandra.enable = true;
+      statix.enable = true;
+      rustfmt.enable = true;
+      shellcheck.enable = true;
+      shfmt = {
+        enable = true;
+        indent_size = 2;
+        simplify = true;
+      };
+      stylua.enable = true;
+      typstyle.enable = true;
+      yamlfmt.enable = true;
+    };
+
+    settings = {
+      global.excludes = [
+        ".dotsrc"
+        "LICENSE"
+        "**/node_modules/**"
+        "**/target/**"
+        "**/.git/**"
+        "**/dist/**"
+        "**/build/**"
+        "**/review/**"
+        "**/archive/**"
+        "*.lock"
+        "Assets/**"
+        "*.diff"
+        "*.patch"
+        "AGENTS.md"
+        "**/dump.nix"
+        "**/.bin/**"
+        "**/.config/**"
+        "**README.md"
+        ".zed/**"
+        "Configuration/**"
+        "Documentation/**"
+        "Environment/**"
+        "Modules/global/**"
+        "Modules/nixos/configurations/hosts/QBX/**"
+        "Modules/nixos/scripts/**"
+        "Review/**"
+        "Scripts/**"
+        "Tasks/**"
+        "Templates/**"
+      ];
+
+      formatter = {
+        alejandra.priority = 1;
+        statix.priority = 2;
+
+        rustfmt = {
+          priority = 1;
+          # options = ["--edition" "2024"];
+        };
+
+        shellcheck = {
+          priority = 1;
+          options = [
+            "--rcfile"
+            ".shellcheckrc"
+          ];
+        };
+
+        shfmt = {
+          priority = 2;
+          options = [
+            "--apply-ignore"
+            "--binary-next-line"
+            "--space-redirects"
+            "--case-indent"
+          ];
+        };
+
+        toml = {
+          command = "${pkgs.tombi}/bin/tombi";
+          includes = ["*.toml"];
+          options = ["format" "--offline"];
+        };
+
+        markdown = {
+          command = "${pkgs.markdownlint-cli2}/bin/markdownlint-cli2";
+          includes = ["*.md" "README"];
+          options = [
+            "--fix"
+            "--config"
+            ".markdownlint.yaml"
+          ];
+          priority = 1;
+        };
+
+        deno = {
+          command = "${pkgs.deno}/bin/deno";
+          includes = [
+            "*.css"
+            "*.html"
+            "*.js"
+            "*.json"
+            "*.jsonc"
+            "*.jsx"
+            "*.less"
+            "*.markdown"
+            "*.md"
+            "*.sass"
+            "*.scss"
+            "*.ts"
+            "*.tsx"
+            "*.yaml"
+            "*.yml"
+          ];
+          options = ["fmt"];
+          priority = 2;
+        };
+
+        actionlint = {
+          command = "${pkgs.actionlint}/bin/actionlint";
+          includes = [
+            ".github/workflows/*.yml"
+            ".github/workflows/*.yaml"
+          ];
+          priority = 2;
+        };
+      };
+    };
+  };
+
+  formatter = config.config.build.wrapper;
+
+  formatters = with pkgs; [
+    actionlint
+    alejandra
+    deno
+    leptosfmt
+    markdownlint-cli2
+    nixfmt
+    prettierd
+    rustfmt
+    shellcheck
+    shfmt
+    statix
+    stylua
+    tombi
+    typstyle
+    yamlfmt
+    formatter
+  ];
 in {
-  inherit formatter;
-  formatters = buildInputs ++ [formatter];
-  checks.formatting = runCommand "lint" {inherit buildInputs;} ''
-    sh ${./fmt.sh} ${src.path} ${getExe formatter} "$out"
-  '';
+  inherit formatter formatters;
+  checks.formatting = config.config.build.check src.path;
 }
+# args: let
+#   inherit (args) lix pkgFor pkgs src;
+#   inherit (pkgs) writeShellScriptBin runCommand;
+#   inherit (lix.sources.access) getExe;
+#   inherit (lix.sources.transformation) makeBinPath;
+#   treefmt = pkgFor {
+#     input = "treefmt-nix";
+#     target = "treefmt";
+#   };
+#   buildInputs =
+#     [treefmt.pkg]
+#     ++ (with pkgs; [
+#       actionlint
+#       alejandra
+#       deno
+#       dos2unix
+#       leptosfmt
+#       markdownlint-cli2
+#       nixfmt
+#       prettierd
+#       rustfmt
+#       shellcheck
+#       shfmt
+#       statix
+#       stylua
+#       tombi
+#       typstyle
+#       yamlfmt
+#     ]);
+#   formatter = writeShellScriptBin "treefmt" ''
+#     export PATH=${makeBinPath buildInputs}:$PATH
+#     exec ${treefmt.exe} "$@"
+#   '';
+# in {
+#   inherit formatter;
+#   formatters = buildInputs ++ [formatter];
+#   checks.formatting = runCommand "lint" {inherit buildInputs;} ''
+#     sh ${./fmt.sh} ${src.path} ${getExe formatter} "$out"
+#   '';
+# }
+

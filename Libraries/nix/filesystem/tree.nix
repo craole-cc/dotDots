@@ -150,7 +150,7 @@
 
     resolveAt = value:
       if isAttrs value
-      then mapAttrs (_key: child: resolveAt child) value
+      then mapAttrs (_key: resolveAt) value
       else
         (construct {
           inherit root;
@@ -158,7 +158,7 @@
         }).local;
   in
     {default = (construct {inherit root;}).local;}
-    // mapAttrs (groupName: group: resolveAt group) stems;
+    // mapAttrs (groupName: resolveAt) stems;
 
   /**
     Recursively flattens a nested `{store;local;}`-leaved tree into a

@@ -1,10 +1,10 @@
 {pkgsFor, ...}: {
   packages =
     removeAttrs
-    ((pkgsFor {
+    (pkgsFor {
       sources = {
         hermes-agent = "llm-agents";
       };
-    }).packages)
+    }).packages
     ["hermes-desktop"];
 }

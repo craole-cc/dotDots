@@ -10,7 +10,7 @@
 
   payload = {
     services.openssh = {
-      enable = cfg.enable;
+      inherit (cfg) enable;
       settings.PasswordAuthentication = !cfg.keyOnly;
       settings.KbdInteractiveAuthentication = !cfg.keyOnly;
     };

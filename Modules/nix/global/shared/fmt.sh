@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck shell=sh
 
 set -eu
 
@@ -6,10 +7,11 @@ src="$1"
 formatter="$2"
 out="$3"
 
+#> Copy source tree.
 cp -r "$src"/* .
-chmod -R +w .
 
-# Canonical treefmt config
+#> Dotfiles are excluded by the glob above, so known config files
+#> are allowlisted back in explicitly.
 cp "$src/.treefmt.toml" .treefmt.toml
 
 configs="
@@ -26,6 +28,9 @@ for config in $configs; do
     cp "$src/$config" "$config"
   fi
 done
+
+#> Nix store sources are read-only; formatters need a writable work tree.
+chmod -R u+w .
 
 "$formatter" \
   --config-file .treefmt.toml \

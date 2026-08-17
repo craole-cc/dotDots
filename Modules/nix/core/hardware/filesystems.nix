@@ -12,7 +12,7 @@
   cfg = config.${top}.resolved.${dom}.${mod};
 
   hw = host.hardware;
-  storage = host.storage;
+  inherit (host) storage;
 
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) mkIf mkMerge;

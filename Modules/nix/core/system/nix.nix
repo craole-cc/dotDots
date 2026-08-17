@@ -16,8 +16,7 @@
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.types) attrsOf bool either int nullOr str submodule;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
-  payload = (
-    mkMerge [
+  payload = mkMerge [
       (mkNix {
         inherit host pkgs;
         inherit (cfg) kernel caches max-jobs stateVersion;
@@ -27,8 +26,7 @@
         inherit (cfg) dots;
         inherit pkgs;
       })
-    ]
-  );
+    ];
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

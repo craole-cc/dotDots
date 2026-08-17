@@ -21,9 +21,7 @@
     assertion,
     message,
     context,
-  }: let
-  in
-    addErrorContext
+  }: addErrorContext
     "while ${context}"
     (assert assertMsgFunc {
       inherit name assertion message;

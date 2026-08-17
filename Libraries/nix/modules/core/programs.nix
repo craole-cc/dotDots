@@ -1,4 +1,4 @@
-{...}: let
+_: let
   exports = {
     internal = {inherit mkPrograms;};
     external = {mkCorePrograms = mkPrograms;};

@@ -166,8 +166,7 @@
         };
           splitStringBy (_: sep: elem sep ["." "/"]) false path;
 
-    validated = (
-      assert withContext {
+    validated = assert withContext {
         inherit (fn) name context;
         assertion = isList stems;
         message = "normalized path must be a list of path segments";
@@ -181,8 +180,7 @@
         inherit (fn) name context;
         assertion = all (stem: stem != "") stems;
         message = "path segments must not be empty";
-      }; stems
-    );
+      }; stems;
   in {
     path = validated;
     reference =
@@ -201,8 +199,7 @@
     };
 
     validated = {
-      base = (
-        assert withContext {
+      base = assert withContext {
           inherit (fn) name context;
           assertion = isAttrs base;
           message = "`base` must be an attrset like { name, value; }";
@@ -231,18 +228,16 @@
           inherit (fn) name context;
           assertion = isAttrs base.value;
           message = "`base.value` must be an attrset";
-        }; base
-      );
+        }; base;
 
-      path =
-        (
+      inherit ((
           assert withContext {
             inherit (fn) name context;
             assertion = isString path || isList path;
             message = "`path` must be a string or list";
           };
             normalizePath path
-        ).path;
+        )) path;
     };
 
     inherit (validated.base) name value;
@@ -575,13 +570,9 @@
       };
 
       findPkgsSet = src:
-        if src ? legacyPackages.${resolved.system}
-        then src.legacyPackages.${resolved.system}
-        else if src ? packages.${resolved.system}
-        then src.packages.${resolved.system}
-        else if src ? system && src.system == resolved.system
+        src.legacyPackages.${resolved.system} or (src.packages.${resolved.system} or (if src ? system && src.system == resolved.system
         then src
-        else null;
+        else null));
 
       pkgs =
         if pkgs != null && pkgs ? system
@@ -594,7 +585,7 @@
       targets = map (
         target:
           package {
-            pkgs = resolved.pkgs;
+            inherit (resolved) pkgs;
             inherit target default;
           }
       ) (toList targets);

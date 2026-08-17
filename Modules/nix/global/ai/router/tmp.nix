@@ -363,7 +363,7 @@
           extras = mk extras;
         };
 
-        devShells = mapAttrs (_: shell: mkShell shell) shells;
+        devShells = mapAttrs (_: mkShell) shells;
       }
     );
   in

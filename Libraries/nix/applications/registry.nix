@@ -180,7 +180,7 @@
       } or (
         if candidates == {}
         then null
-        else (entries.${head (attrNames candidates)})
+        else entries.${head (attrNames candidates)}
       );
   in
     if app == null

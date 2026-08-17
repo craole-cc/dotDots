@@ -4,14 +4,16 @@
   outputs = inputs @ {self, ...}: let
     flake = self;
     src = import ./. {inherit flake lib;};
-    args = src // (mkAll {inherit flake;});
 
     inherit (src) lix tree;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (lix.modules.construction) mkFlake mkSystems;
     inherit (lix.sources.packages) mkAll;
+
+    args = src // (mkAll {inherit flake;});
   in
     {
+      inherit args;
       nixosConfigurations = mkSystems args;
       templates = import tree.kit.nix.store;
     }

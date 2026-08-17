@@ -168,13 +168,13 @@
         name = value;
         path = null;
         raw = value;
-        value = value;
+        inherit value;
       }
       else {
         name = null;
         path = null;
         raw = value;
-        value = value;
+        inherit value;
       };
   in {
     inherit
@@ -190,8 +190,8 @@
     value = entries;
     lookup = lookupEntry;
     normalize = normalizeEntry;
-    groups = analysis.groups;
-    queries = analysis.queries;
+    inherit (analysis) groups;
+    inherit (analysis) queries;
   };
 in
   with meta.exports;

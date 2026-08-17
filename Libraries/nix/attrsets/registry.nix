@@ -211,7 +211,7 @@
   normalizeList = values:
     optionals
     (isList values)
-    (filter (value: isNotEmpty value) values);
+    (filter isNotEmpty values);
 
   flatten = registry:
     foldl' (
@@ -247,7 +247,7 @@
     genAttrs keys (
       key:
         filterAttrs
-        (_: domain: isNotEmpty domain)
+        (_: isNotEmpty)
         (
           mapAttrs
           (

@@ -235,7 +235,7 @@
   # default = catppuccin.cursors;
   # in
   # recursiveUpdate default {inherit light dark;};
-    recursiveUpdate ((resolveCatppuccin (
+    recursiveUpdate (resolveCatppuccin (
       {
         inherit pkgs;
         cursors =
@@ -244,7 +244,7 @@
       }
       // optionalAttrs (accent != null) {inherit accent;}
       // optionalAttrs (variant != null) {inherit variant;}
-    )).cursors) {inherit light dark;};
+    )).cursors {inherit light dark;};
 
   resolveThemes = {
     pkgs,
@@ -253,14 +253,14 @@
     accent ? null,
     variant ? null,
   }:
-    recursiveUpdate ((resolveCatppuccin (
+    recursiveUpdate (resolveCatppuccin (
       {
         inherit pkgs;
         themes = {inherit light dark;};
       }
       // optionalAttrs (accent != null) {inherit accent;}
       // optionalAttrs (variant != null) {inherit variant;}
-    )).themes) {inherit light dark;};
+    )).themes {inherit light dark;};
 
   resolveIcons = {
     pkgs,
@@ -372,8 +372,7 @@
     };
   in
     {
-      environment.sessionVariables = (
-        {THEME_POLARITY = polarity;}
+      environment.sessionVariables = {THEME_POLARITY = polarity;}
         // (
           optionalAttrs
           ((polarized.theme.name or null) != null)
@@ -400,8 +399,7 @@
             FONT_SERIF = serif.name;
             FONT_EMOJI = emoji.name;
           }
-        )
-      );
+        );
 
       fonts = {
         inherit (fonts) packages;
