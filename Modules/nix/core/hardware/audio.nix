@@ -1,7 +1,6 @@
 {
   config,
   host,
-  lib,
   top,
   lix,
   ...
@@ -13,7 +12,7 @@
   hw = host.hardware;
 
   inherit (lix.modules.construction) mkConfig;
-  inherit (lib.options.construction) mkEnableOption;
+  inherit (lix.options.construction) mkEnableOption;
 in
   {
     options.${top}.resolved.${dom}.${mod} = {
