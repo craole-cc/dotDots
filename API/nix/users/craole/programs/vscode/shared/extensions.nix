@@ -69,7 +69,7 @@
       iliazeus.vscode-ansi
       jgclark.vscode-todo-highlight
       kamikillerto.vscode-colorize
-      # naumovs.colour-highlight
+      # naumovs.color-highlight
       mechatroner.rainbow-csv
       oderwat.indent-rainbow
       ibm.output-colorizer

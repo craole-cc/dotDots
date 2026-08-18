@@ -131,7 +131,7 @@ toggle_wt_theme() {
 
 apply_plasma_theme() {
   scheme="$1"
-  current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current color scheme)" | sed "s/^ \* //; s/ (current color scheme)//")
+  current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current colour scheme)" | sed "s/^ \* //; s/ (current colour scheme)//")
 
   if [ "$scheme" = "$current_scheme" ]; then
     printf "The scheme '%s' is already active\n" "$scheme"
@@ -143,7 +143,7 @@ apply_plasma_theme() {
 }
 
 toggle_plasma_theme() {
-  current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current color scheme)" | sed "s/^ \* //; s/ (current color scheme)//")
+  current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current colour scheme)" | sed "s/^ \* //; s/ (current colour scheme)//")
 
   case "$current_scheme" in
   "$DARK_SCHEME" | "$DARK_SCHEME_FALLBACK")
@@ -153,7 +153,7 @@ toggle_plasma_theme() {
     new_scheme="$DARK_SCHEME"
     ;;
   *)
-    printf "Unable to determine the current color scheme. Defaulting to the dark scheme.\n"
+    printf "Unable to determine the current colour scheme. Defaulting to the dark scheme.\n"
     new_scheme="$DARK_SCHEME"
     ;;
   esac
@@ -269,7 +269,7 @@ for_windows_terminal() {
 execute() {
   if [ "$get_current" ]; then
     if cmd_exists "plasma-apply-colorscheme"; then
-      current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current color scheme)" | sed "s/^ \* //; s/ (current color scheme)//")
+      current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current colour scheme)" | sed "s/^ \* //; s/ (current colour scheme)//")
       printf "Current KDE Plasma scheme: %s\n" "$current_scheme"
     fi
     if cmd_exists "wt.exe" || cmd_exists "wtpreview.exe"; then
@@ -327,7 +327,7 @@ show_help() {
   cat <<'EOF'
 Usage: theme-switcher [OPTIONS] [COMMAND]
 
-Toggle or set KDE Plasma color schemes and Windows Terminal themes
+Toggle or set KDE Plasma colour schemes and Windows Terminal themes
 
 Options:
   -h, --help        Show this help message
@@ -335,7 +335,7 @@ Options:
   -d, --verbose     Enable verbose output
   -q, --quiet       Suppress output
   -g, --get         Get the current theme
-  -s, --scheme SCHEME   Use specific color scheme
+  -s, --scheme SCHEME   Use specific colour scheme
 
 Commands:
   light             Switch to light theme

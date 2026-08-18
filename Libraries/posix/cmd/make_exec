@@ -170,10 +170,10 @@ set_defaults() {
         --almost-all \
         --long \
         --icons \
-        --color-scale --color=always
+        --colour-scale --colour=always
     }
   else
-    cmd_ls() { ls -lAFh --color=always; }
+    cmd_ls() { ls -lAFh --colour=always; }
   fi
   pout --name set_defaults --trace --msg "  Command:" "ls" "|>" "${cmd_ls:-"unavailable"}"
 
@@ -799,10 +799,10 @@ pout() {
 
   pout__tests() {
     # Test formatting capabilities
-    for color in black red green yellow blue magenta cyan white normal bold italic underline blink; do
-      printf "Testing color: %s\n" "$color"
-      pout__set_format "$color"
-      printf "This is a test message for %s\n" "$color"
+    for colour in black red green yellow blue magenta cyan white normal bold italic underline blink; do
+      printf "Testing colour: %s\n" "$colour"
+      pout__set_format "$colour"
+      printf "This is a test message for %s\n" "$colour"
       pout__set_format normal # Reset to normal after each test
     done
 

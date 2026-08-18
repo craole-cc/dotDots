@@ -30,10 +30,10 @@
   colorize = mkVSCodeSubFeature {
     enabled = false;
     extensions = [
-      #? Colorize CSS colour strings
+      #? Colorize CSS color strings
       "kamikillerto.vscode-colorize"
-      #? Highlight colour values inline
-      "naumovs.colour-highlight"
+      #? Highlight color values inline
+      "naumovs.color-highlight"
     ];
   };
 
@@ -56,15 +56,15 @@
     userSettings = {
       "LWI.breakpoints" = [
         {
-          "colour" = "rgb(0, 255, 0, 0.6)";
+          "color" = "rgb(0, 255, 0, 0.6)";
           "column" = 54;
         }
         {
-          "colour" = "rgb(244, 180, 0, 0.6)";
+          "color" = "rgb(244, 180, 0, 0.6)";
           "column" = 68;
         }
         {
-          "colour" = "rgb(255, 0, 0, 0.6)";
+          "color" = "rgb(255, 0, 0, 0.6)";
           "column" = 79;
         }
       ];
@@ -85,117 +85,117 @@
           "tag" = "@";
           "italic" = true;
           "backgroundColor" = "#89a25722";
-          "colour" = "#89a257";
+          "color" = "#89a257";
         }
         {
           "tag" = "~@";
           "italic" = true;
           "backgroundColor" = "#89a25722";
-          "colour" = "#89a257";
+          "color" = "#89a257";
         }
         {
           "tag" = "{";
           "italic" = true;
           "backgroundColor" = "#2aaaa222";
-          "colour" = "#2aaaa2";
+          "color" = "#2aaaa2";
         }
         {
           "tag" = "!";
           "backgroundColor" = "transparent";
-          "colour" = "#ff0000";
+          "color" = "#ff0000";
         }
         {
           "tag" = "/";
           "italic" = true;
           "backgroundColor" = "#bd8af41a";
-          "colour" = "#bd8af4";
+          "color" = "#bd8af4";
         }
         {
           "tag" = "|";
           "italic" = true;
-          "colour" = "hsl(148, 70%, 50%)";
+          "color" = "hsl(148, 70%, 50%)";
         }
         {
           "tag" = "region";
           "italic" = true;
           "backgroundColor" = "#bd8af41a";
-          "colour" = "#bd8af4";
+          "color" = "#bd8af4";
         }
         {
           "tag" = "endregion";
           "italic" = true;
           "backgroundColor" = "#bd8af41a";
-          "colour" = "#bd8af4";
+          "color" = "#bd8af4";
         }
         {
           "tag" = "HELP";
           "italic" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#fed200";
+          "color" = "#fed200";
         }
         {
           "tag" = "shellcheck";
           "italic" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#fd7b30";
+          "color" = "#fd7b30";
         }
         {
           "tag" = "DOC ";
           "italic" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#08c3d4";
+          "color" = "#08c3d4";
         }
         {
           "tag" = "USAGE ";
           "italic" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#08c3d4";
+          "color" = "#08c3d4";
         }
         {
           "tag" = " http";
           "italic" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#3498DB";
+          "color" = "#3498DB";
         }
         {
           "tag" = " -- ";
           "bold" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#3498DB";
+          "color" = "#3498DB";
         }
         {
           "tag" = ".";
           "bold" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#3498DB";
+          "color" = "#3498DB";
         }
         {
           "tag" = "result:";
           "bold" = true;
           "backgroundColor" = "transparent";
-          "colour" = "#3498DB";
+          "color" = "#3498DB";
         }
         {
           "tag" = "todo";
           "italic" = true;
           "underline" = true;
           "backgroundColor" = "transparent";
-          "colour" = "hsla(27, 90%, 55%, 0.75)";
+          "color" = "hsla(27, 90%, 55%, 0.75)";
         }
         {
           "tag" = "def";
           "backgroundColor" = "transparent";
-          "colour" = "hsla(43, 50%, 50%, 0.95)";
+          "color" = "hsla(43, 50%, 50%, 0.95)";
         }
         {
           "tag" = "=";
           "backgroundColor" = "transparent";
-          "colour" = "hsla(335, 80%, 38%, 0.75)";
+          "color" = "hsla(335, 80%, 38%, 0.75)";
         }
         {
           "tag" = "+";
           "backgroundColor" = "transparent";
-          "colour" = "hsla(335, 80%, 38%, 0.75)";
+          "color" = "hsla(335, 80%, 38%, 0.75)";
         }
         {
           "tag" = ">";
@@ -203,7 +203,7 @@
           "italic" = true;
           "underline" = true;
           "backgroundColor" = "transparent";
-          "colour" = "hsla(162, 70%, 30%, 0.95)";
+          "color" = "hsla(162, 70%, 30%, 0.95)";
         }
         {
           "tag" = "?";
@@ -211,31 +211,31 @@
           "italic" = true;
           "underline" = true;
           "backgroundColor" = "transparent";
-          "colour" = "hsla(162, 70%, 30%, 0.5)";
+          "color" = "hsla(162, 70%, 30%, 0.5)";
         }
         {
           "tag" = "╔";
           "italic" = true;
           "backgroundColor" = "hsla(300,86%,47%, 0.15)";
-          "colour" = "hsl(300,86%,47%)";
+          "color" = "hsl(300,86%,47%)";
         }
         {
           "tag" = "║";
           "italic" = true;
           "backgroundColor" = "hsla(300,86%,47%, 0.15)";
-          "colour" = "hsl(300,86%,47%)";
+          "color" = "hsl(300,86%,47%)";
         }
         {
           "tag" = "╠";
           "italic" = true;
           "backgroundColor" = "hsla(300,86%,47%, 0.15)";
-          "colour" = "hsl(300,86%,47%)";
+          "color" = "hsl(300,86%,47%)";
         }
         {
           "tag" = "╚";
           "italic" = true;
           "backgroundColor" = "hsla(300,86%,47%, 0.15)";
-          "colour" = "hsl(300,86%,47%)";
+          "color" = "hsl(300,86%,47%)";
         }
       ];
     };

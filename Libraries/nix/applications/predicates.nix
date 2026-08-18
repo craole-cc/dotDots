@@ -40,15 +40,15 @@
     # Examples
   ```nix
     hasField {
-      field = "colour";
-      set   = { a = { colour = "red"; }; b = { colour = null; }; };
+      field = "color";
+      set   = { a = { color = "red"; }; b = { color = null; }; };
     }
     # => true
 
     # All entries have a null or absent field
     hasField {
-      field = "colour";
-      set   = { a = {}; b = { colour = null; }; };
+      field = "color";
+      set   = { a = {}; b = { color = null; }; };
     }
     # => false
   ```

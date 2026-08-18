@@ -74,7 +74,7 @@ detect_theme() {
       --dest=org.freedesktop.portal.Desktop \
       /org/freedesktop/portal/desktop \
       org.freedesktop.portal.Settings.Read \
-      string:'org.freedesktop.appearance' string:'colour-scheme' 2> /dev/null \
+      string:'org.freedesktop.appearance' string:'color-scheme' 2> /dev/null \
       | grep -oE 'uint32 [0-9]+' | awk '{print $2}')
 
     case "$THEME" in
@@ -91,7 +91,7 @@ detect_theme() {
 
   #| 3. Check GNOME settings
   if has_cmd gsettings; then
-    SCHEME=$(gsettings get org.gnome.desktop.interface colour-scheme 2> /dev/null || printf "")
+    SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || printf "")
     case "$SCHEME" in
       *dark* | *prefer-dark*)
         printf "dark"
@@ -154,7 +154,7 @@ start_server() {
     return 1
   }
 
-  "${foot_bin}" --server -o main.initial-colour-theme="${foot_theme}" > /dev/null 2>&1 &
+  "${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" > /dev/null 2>&1 &
   return 0
 }
 

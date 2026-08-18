@@ -270,7 +270,7 @@
       };
       emoji = {
         name = "Noto Color Emoji";
-        package = pkgs.noto-fonts-colour-emoji;
+        package = pkgs.noto-fonts-color-emoji;
       };
       material = {
         name = "Material Symbols Sharp";
@@ -297,7 +297,7 @@
         corefonts
         noto-fonts
         noto-fonts-cjk-sans
-        noto-fonts-colour-emoji
+        noto-fonts-color-emoji
       ])
       ++ (with sets; [
         clock.package

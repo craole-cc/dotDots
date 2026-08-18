@@ -207,10 +207,10 @@
   # Examples
   ```nix
   withDefaults {
-    attrs    = { colour = "red"; };
-    defaults = { colour = "blue"; size = "medium"; };
+    attrs    = { color = "red"; };
+    defaults = { color = "blue"; size = "medium"; };
   }
-  # => { colour = "red"; size = "medium"; }
+  # => { color = "red"; size = "medium"; }
   ```
   */
   withDefaults = {
@@ -369,30 +369,30 @@ in {
     withDefaults = {
       existingKeyUnchanged = mkTest {
         desired = {
-          colour = "red";
+          color = "red";
           size = "medium";
         };
-        command = ''withDefaults { attrs = { colour = "red"; }; defaults = { colour = "blue"; size = "medium"; }; }'';
+        command = ''withDefaults { attrs = { color = "red"; }; defaults = { color = "blue"; size = "medium"; }; }'';
         outcome = withDefaults {
           attrs = {
-            colour = "red";
+            color = "red";
           };
           defaults = {
-            colour = "blue";
+            color = "blue";
             size = "medium";
           };
         };
       };
       missingKeyFilled = mkTest {
         desired = {
-          colour = "blue";
+          color = "blue";
           size = "medium";
         };
-        command = ''withDefaults { attrs = {}; defaults = { colour = "blue"; size = "medium"; }; }'';
+        command = ''withDefaults { attrs = {}; defaults = { color = "blue"; size = "medium"; }; }'';
         outcome = withDefaults {
           attrs = {};
           defaults = {
-            colour = "blue";
+            color = "blue";
             size = "medium";
           };
         };

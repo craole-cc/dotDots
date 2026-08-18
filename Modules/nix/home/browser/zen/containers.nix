@@ -26,7 +26,7 @@ let
   containersForce = true;
   containers = {
     Shopping = {
-      colour = "yellow";
+      color = "yellow";
       icon = "dollar";
       id = 2;
     };

@@ -62,9 +62,9 @@ parse_arguments() {
     -o | --octal) octal=true ;;
     -d | --dirs-first) dirs_first=true ;;
     -D | --dirs-only) dirs_only=true ;;
-    -c | --color) color=true ;;
+    -c | --colour) colour=true ;;
     -i | --icons) icons=true ;;
-    -p | --pretty) color=true icons=true ;;
+    -p | --pretty) colour=true icons=true ;;
     -H | --hyperlink) hyperlink=true ;;
     # TODO: add more options including sort, columns to hide or show, etc.
     *) args="$args $1" ;;
@@ -92,7 +92,7 @@ set_environment() {
     [ -n "${octal}" ] && opts="$opts --octal-permissions"
     [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
     [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
-    [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+    [ -n "${colour}" ] && opts="$opts --colour=always --colour-scale"
     [ -n "${icons}" ] && opts="$opts --icons=always"
     [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
     ;;
@@ -103,7 +103,7 @@ set_environment() {
     [ -n "${octal}" ] && opts="$opts --octal-permissions"
     [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
     [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
-    [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+    [ -n "${colour}" ] && opts="$opts --colour=always --colour-scale"
     [ -n "${icons}" ] && opts="$opts --icons"
     [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
     ;;
@@ -114,7 +114,7 @@ set_environment() {
     [ -n "${octal}" ] && opts="$opts --octal-permissions"
     [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
     [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
-    [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+    [ -n "${colour}" ] && opts="$opts --colour=always --colour-scale"
     [ -n "${icons}" ] && opts="$opts --icons=always"
     [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
     ;;
@@ -164,7 +164,7 @@ initialize_options() {
     [ "$octal" ] && opts="$opts --octal-permissions"
     [ "$dirs_first" ] && opts="$opts --group-directories-first"
     [ "$dirs_only" ] && opts="$opts --list-dirs"
-    [ "$color" ] && opts="$opts --color=always --color-scale"
+    [ "$colour" ] && opts="$opts --colour=always --colour-scale"
     [ "$icons" ] && opts="$opts --icons"
     [ "$hyperlink" ] && opts="$opts --hyperlink=auto"
     ;;
@@ -175,7 +175,7 @@ initialize_options() {
     [ "$octal" ] && opts="$opts --octal-permissions"
     [ "$dirs_first" ] && opts="$opts --group-directories-first"
     [ "$dirs_only" ] && opts="$opts --list-dirs"
-    [ "$color" ] && opts="$opts --color=always --color-scale"
+    [ "$colour" ] && opts="$opts --colour=always --colour-scale"
     [ "$icons" ] && opts="$opts --icons=always"
     [ "$hyperlink" ] && opts="$opts --hyperlink=auto"
     ;;
@@ -185,8 +185,8 @@ initialize_options() {
     --all \
     --group-directories-first \
     --octal-permissions \
-    --color=always \
-    --color-scale \
+    --colour=always \
+    --colour-scale \
     --icons \
     "$@"
 }
@@ -194,7 +194,7 @@ initialize_options() {
 cmd_ls() {
   ls \
     --almost-all \
-    --color=auto \
+    --colour=auto \
     --human-readable \
     --classify \
     --group-directories-first \
@@ -256,7 +256,7 @@ process_core() {
 	OPTIONS:
 		--blocks <blocks>...            Specify the blocks that will be displayed and in what order [possible values: permission, user, group, context, size,
 																		date, name, inode, links]
-		--color <color>...              When to use terminal colors [default: auto]  [possible values: always, auto, never]
+		--colour <colour>...              When to use terminal colors [default: auto]  [possible values: always, auto, never]
 		--config-file <config-file>     Provide a custom lsd configuration file
 		--date <date>...                How to display date [possible values: date, relative, +date-time-format] [default: date]
 		--depth <num>...                Stop recursing into directories after reaching specified depth
@@ -429,7 +429,7 @@ PLS
 															otherwise: sort by ctime, newest first
 
 		-C                         list entries by columns
-				--color[=WHEN]         color the output WHEN; more info below
+				--colour[=WHEN]         colour the output WHEN; more info below
 		-d, --directory            list directories themselves, not their contents
 		-D, --dired                generate output designed for Emacs' dired mode
 		-f                         list all entries in directory order
@@ -534,8 +534,8 @@ PLS
 
 	The WHEN argument defaults to 'always' and can also be 'auto' or 'never'.
 
-	Using color to distinguish file types is disabled both by default and
-	with --color=never.  With --color=auto, ls emits color codes only when
+	Using colour to distinguish file types is disabled both by default and
+	with --colour=never.  With --colour=auto, ls emits colour codes only when
 	standard output is connected to a terminal.  The LS_COLORS environment
 	variable can change the settings.  Use the dircolors(1) command to set it.
 

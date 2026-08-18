@@ -80,7 +80,7 @@ in {
     };
 
     accent = mkOption {
-      description = "Catppuccin accent colour for cursor themes that support it";
+      description = "Catppuccin accent color for cursor themes that support it";
       default = seed.accent;
       defaultText = literalExpression ''${seed.path}.accent or null'';
       type = nullOr str;

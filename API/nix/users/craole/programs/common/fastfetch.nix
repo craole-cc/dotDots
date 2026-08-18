@@ -12,7 +12,7 @@
       #   size = {
       #     binaryPrefix = "si";
       #   };
-      #   colour = "blue";
+      #   color = "blue";
       #   separator = "  ";
       # };
       # modules = [

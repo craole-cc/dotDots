@@ -52,7 +52,7 @@ let
     "zen.urlbar.behavior" = "float"; # ? Floating URL bar (float, static, hidden)
 
     #? Zen theme & appearance
-    "zen.theme.accent-colour" = "#6366f1"; # ? Main accent colour (hex)
+    "zen.theme.accent-color" = "#6366f1"; # ? Main accent color (hex)
     "zen.theme.gradient" = true; # ? Enable sidebar gradient
     "zen.theme.gradient.show-custom-colors" = false; # ? Show custom sidebar colors
     "zen.view.gray-out-inactive-windows" = true; # ? Gray out inactive windows

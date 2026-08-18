@@ -532,7 +532,7 @@ struct Options {
     auto_confirm: bool,
 
     #[serde(default)]
-    colour: bool,
+    color: bool,
 
     #[serde(default)]
     progress: bool,
@@ -754,7 +754,7 @@ impl DotDots {
                 error_action_preference: "Continue".to_string(),
                 auto_copy: true,
                 auto_confirm: false,
-                colour: true,
+                color: true,
                 progress: true,
             },
             experimental_features: ExperimentalFeatures {
@@ -1074,7 +1074,7 @@ impl DotDots {
                         println!();
                         println!("{}", "Repository Statistics:".bold().cyan());
                         let _ = Command::new("onefetch")
-                            .arg("--no-colour-palette")
+                            .arg("--no-color-palette")
                             .arg("--no-art")
                             .status();
 

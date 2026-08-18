@@ -2,7 +2,7 @@ let
   alpha = 0.95;
 in {
   #~@ Primary Color Theme (Dark - Catppuccin Frappe)
-  #? Theme 1, accessed via initial-colour-theme=1
+  #? Theme 1, accessed via initial-color-theme=1
   colors-dark = {
     inherit alpha;
     background = "303446";
@@ -30,7 +30,7 @@ in {
   };
 
   #~@ Alternative Color Theme (Light - Catppuccin Latte)
-  #? Theme 2, accessed via initial-colour-theme=2
+  #? Theme 2, accessed via initial-color-theme=2
   colors-light = {
     inherit alpha;
     background = "eff1f5";

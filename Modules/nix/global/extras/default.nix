@@ -295,7 +295,7 @@
       onefetch \
       --no-art \
       --no-title \
-      --no-colour-palette \
+      --no-color-palette \
       --nerd-fonts \
       --number-separator comma \
       --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'contributors' 'url' 'churn' 'license'

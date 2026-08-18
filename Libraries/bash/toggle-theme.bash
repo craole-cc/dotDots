@@ -25,10 +25,10 @@ printf "_POLARITY=%s" "$MODE" | sudo tee /etc/environment.d/polarity.conf > /dev
 # 2. Update GSettings (if it works on your system)
 if command -v gsettings &> /dev/null; then
   if [[ $MODE == "dark" ]]; then
-    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-dark'
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     gsettings set org.gnome.desktop.interface gtk-theme 'Catppuccin Frappé'
   else
-    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-light'
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
     gsettings set org.gnome.desktop.interface gtk-theme 'Catppuccin Latte'
   fi
 fi

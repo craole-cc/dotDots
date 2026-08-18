@@ -9,7 +9,7 @@ in {
     bold-text-in-bright = "yes";
 
     #~@ Initial Theme
-    initial-colour-theme = "dark";
+    initial-color-theme = "dark";
 
     #~@ Selection Behavior
     #? Automatically copy the selection to the clipboard

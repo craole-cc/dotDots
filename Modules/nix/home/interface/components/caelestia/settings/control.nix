@@ -70,7 +70,7 @@
           "scheme"
         ];
         name = "Scheme";
-        description = "Change the current colour scheme";
+        description = "Change the current color scheme";
         icon = "palette";
         enabled = true;
         dangerous = false;

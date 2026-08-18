@@ -31,8 +31,8 @@
     # Material Icon Theme
     "material-icon-theme.activeIconPack" = "react";
     "material-icon-theme.hidesExplorerArrows" = true;
-    "material-icon-theme.files.colour" = "#e8ddd8";
-    "material-icon-theme.folders.colour" = "#81c8be";
+    "material-icon-theme.files.color" = "#e8ddd8";
+    "material-icon-theme.folders.color" = "#81c8be";
 
     "material-icon-theme.files.associations" = {
       ".envrc" = "ember";
@@ -61,15 +61,15 @@
     # Line Width Indicator
     "LWI.breakpoints" = [
       {
-        "colour" = "rgb(0, 255, 0, 0.6)";
+        "color" = "rgb(0, 255, 0, 0.6)";
         "column" = 54;
       }
       {
-        "colour" = "rgb(255, 255, 0, 0.6)";
+        "color" = "rgb(255, 255, 0, 0.6)";
         "column" = 69;
       }
       {
-        "colour" = "rgb(255, 0, 0, 0.6)";
+        "color" = "rgb(255, 0, 0, 0.6)";
         "column" = 79;
       }
     ];

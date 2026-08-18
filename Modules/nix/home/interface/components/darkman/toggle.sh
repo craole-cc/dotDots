@@ -33,7 +33,7 @@ printf 'Updating user API...\n'
 #> Set freedesktop portal via dconf (Hyprland-compatible)
 #?  xdg-desktop-portal-hyprland does not support Settings.Write via dbus
 #?  dconf directly writes to the same key without requiring GNOME schemas
-printf 'Setting portal colour-scheme...\n'
+printf 'Setting portal color-scheme...\n'
 "${CMD_DCONF}" write /org/gnome/desktop/interface/color-scheme \
   "'prefer-${CFG_POLARITY}'" 2> /dev/null || {
   printf 'Warning: dconf write failed\n'
@@ -47,7 +47,7 @@ case "${CFG_POLARITY}" in
   light) gtk_theme="adw-gtk3" ;;
 esac
 if command -v gsettings > /dev/null 2>&1; then
-  gsettings set org.gnome.desktop.interface colour-scheme \
+  gsettings set org.gnome.desktop.interface color-scheme \
     "prefer-${CFG_POLARITY}" 2> /dev/null || true
   gsettings set org.gnome.desktop.interface gtk-theme \
     "${gtk_theme}" 2> /dev/null || true

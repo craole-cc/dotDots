@@ -53,7 +53,7 @@ changes
 chrono
 cli
 clippy
-colour
+color
 colors
 css
 curriculars

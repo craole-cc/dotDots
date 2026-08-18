@@ -810,7 +810,7 @@ execute_action() {
     #{ Skip if not verbose
     [ "$VERBOSITY" -lt 1 ] && return 0
 
-    #{ Print the diff with color, if the output is a terminal
+    #{ Print the diff with colour, if the output is a terminal
     if [ -t 1 ]; then
       diff_sans_header \
         --file-a "$src" \

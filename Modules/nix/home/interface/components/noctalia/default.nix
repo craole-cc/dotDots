@@ -46,7 +46,7 @@
               enable = true;
               settings = mkMerge [
                 (import ./bar.nix {inherit monitors;})
-                (import ./colour.nix {})
+                (import ./color.nix {})
                 (import ./control.nix {inherit terminal;})
                 (import ./desktop.nix {inherit monitors wallpapers;})
                 (import ./general.nix {inherit lib config nixosConfig;})

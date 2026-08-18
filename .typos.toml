@@ -20,10 +20,9 @@
   # Ignore short hex fragments (colours, UUID pieces, etc.)
   extend-ignore-re = ["[0-9a-fA-F]{2,}"]
 
-  # Custom dictionary entries
   [default.extend-identifiers]
-    "color" = "colour"
-    "favorites" = "favourites"
+    "color" = "color"
+    "favorites" = "favorites"
 
   [default.extend-words]
     ags = "ags"

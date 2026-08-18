@@ -3,7 +3,7 @@
 ls \
   -l \
   --almost-all \
-  --color=always \
+  --colour=always \
   --classify \
   --human-readable \
   "$@"

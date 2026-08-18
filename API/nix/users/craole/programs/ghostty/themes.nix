@@ -7,7 +7,7 @@ in {
     themes = {
       catppuccin-mocha = {
         background = "1e1e2e";
-        cursor-colour = "f5e0dc";
+        cursor-color = "f5e0dc";
         foreground = "cdd6f4";
         palette = [
           "0=#45475a"
