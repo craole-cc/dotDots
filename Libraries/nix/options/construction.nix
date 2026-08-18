@@ -48,7 +48,7 @@
 
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.options.construction) mkOption mergeUniqueOption mkOptionType;
-  inherit (_.options.construction) concat;
+  inherit (_.strings.construction) concat;
   inherit (_.types.combinators) enum listOf nullOr;
   inherit (_.types.primitives) str bool int float path;
   inherit (_.types.predicates) isAttrs isString;

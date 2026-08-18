@@ -16,6 +16,7 @@
   };
 
   inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.lists.construction) optionals;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
@@ -270,7 +271,6 @@
     name,
     kind,
     category ? null,
-    # modules ? {},
     extraPackages ? [],
     resolutionHints ? [name],
     customPackage ? null,
@@ -290,19 +290,16 @@
           target = resolutionHints;
         };
 
-    #> Check if package was found
     packageFound = package != null && isDerivation package;
 
-    #~@ Runtime Identity
     command =
       if customCommand != null
       then customCommand
       else if packageFound
       then let
-        #> Try to get the binary from resolutionHints first, then fallback to name
         binaryName = package.meta.mainProgram or (builtins.head resolutionHints);
       in "${package}/bin/${binaryName}"
-      else null; # > Return null if package not found
+      else null;
 
     basename =
       if command != null
@@ -317,20 +314,22 @@
           basename
         ]
         ++ resolutionHints
-        ++ ["${name}-${kind}"]
+        ++ optionals (kind != null) ["${name}-${kind}"]
       )
     );
 
-    #~@ Role Classification
+    #~@ Role Classification — inert when kind is null
     default =
-      if category != null
+      if kind == null
+      then null
+      else if category != null
       then user.applications.${kind}.${category} or null
       else user.applications.${kind} or null;
-    isPrimary = isIn (default.primary or null) identifiers;
-    isSecondary = isIn (default.secondary or null) identifiers;
+    isPrimary = kind != null && isIn (default.primary or null) identifiers;
+    isSecondary = kind != null && isIn (default.secondary or null) identifiers;
     isRequested = isIn identifiers (user.applications.allowed or []);
 
-    #~@ Platform Compatibility
+    #~@ Platform Compatibility — unchanged, doesn't touch kind
     checkPlatform = requiresWayland || requiresX11;
     isWaylandAvailable =
       if requiresWayland
@@ -340,27 +339,30 @@
           interface = user.interface or {};
         }
       else true;
-
     isX11Available =
       if requiresX11
-      then config.services.xserver.enable or false # TODO: This check could fail if we're querying the home-mamager config
+      then config.services.xserver.enable or false
       else true;
-
     isPlatformCompatible = isWaylandAvailable && isX11Available;
 
-    #~@ Final Allow Check
-    #? Cannot allow if package wasn't found
     isAllowed = packageFound && (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
 
-    #~@ Environment
-    var = toUpper kind;
+    #~@ Environment — var/varWithCategory only meaningful when kind != null
+    var =
+      if kind != null
+      then toUpper kind
+      else null;
     varWithCategory =
-      if category != null
+      if kind == null
+      then null
+      else if category != null
       then "${var}_${toUpper category}"
       else var;
-    shellAliases = {}; # TODO: Add something here
+
+    shellAliases = {};
+
     sessionVariables =
-      optionalAttrs (kind != "editor") (
+      optionalAttrs (kind != null && kind != "editor") (
         if isPrimary
         then {
           "${varWithCategory}_PRI" = command;
@@ -481,6 +483,7 @@
     };
     #~@ Debug Output
   in
+    #TODO: use traceIf
     if debug
     then builtins.trace output.debug export
     else export;
