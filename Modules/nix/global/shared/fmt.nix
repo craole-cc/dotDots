@@ -5,7 +5,9 @@
   ...
 }: let
   inherit (flake) path inputs;
+  inherit (lix.filesystem.access) readFile;
   inherit (lix.sources.packages) pkgsFrom;
+  inherit (lix.strings.construction) fromJSON;
 
   sources = {
     actionlint = null;
@@ -29,25 +31,50 @@
     required = true;
   };
 
-  #~@ Single source of truth: repo-root dprint.json, consumed by the CLI directly
-  #~@ and derived here for the sandboxed/Nix-driven run.
-  dprintConfig = builtins.fromJSON (builtins.readFile "${path}/dprint.json");
+  dprint = let
+    config = fromJSON (readFile "${path}/dprint.json");
+    settings =
+      (removeAttrs config [
+        "$schema"
+        "includes"
+        "excludes"
+        "plugins"
+      ])
+      // {
+        markdown = removeAttrs config.markdown [
+          "headingKind"
+          "listIndentKind"
+        ];
+      };
+  in {
+    enable = true;
+    includes = [
+      "*.json"
+      "*.jsonc"
+      "*.md"
+      "*.yaml"
+      "*.yml"
+      "*.css"
+      "*.scss"
+      "*.sass"
+      "*.less"
+    ];
+    plugins = pkgs.dprint-plugins.getPluginList (plugins:
+      with plugins; [
+        dprint-plugin-json
+        dprint-plugin-markdown
+        g-plane-pretty_yaml
+        g-plane-malva
+      ]);
+    inherit config settings;
+  };
 
-  #~@ Keys that route dprint's own file discovery — not formatting rules —
-  #~@ and are superseded by treefmt's own includes/excludes/plugins below.
-  dprintSettings =
-    (builtins.removeAttrs dprintConfig ["$schema" "includes" "excludes" "plugins"])
-    // {
-      #~@ headingKind / listIndentKind removed: unsupported by dprint-plugin-markdown
-      #~@ 0.20.0, the version currently packaged in nixpkgs. dprint.json (the CLI
-      #~@ source of truth) keeps them for the newer plugin used outside the sandbox.
-      markdown = builtins.removeAttrs dprintConfig.markdown ["headingKind" "listIndentKind"];
-    };
-
-  eval = inputs.treefmt.lib.evalModule pkgs {
+  treefmt = inputs.treefmt.lib.evalModule pkgs {
     projectRootFile = "flake.nix";
 
     programs = {
+      inherit dprint;
+
       #~@ Nix
       alejandra.enable = true;
       statix.enable = true;
@@ -69,32 +96,6 @@
       stylua.enable = true;
       typos.enable = true;
       typstyle.enable = true;
-
-      dprint = {
-        enable = true;
-        includes = [
-          "*.json"
-          "*.jsonc"
-          "*.md"
-          "*.yaml"
-          "*.yml"
-          "*.css"
-          "*.scss"
-          "*.sass"
-          "*.less"
-        ];
-        settings =
-          dprintSettings
-          // {
-            plugins = pkgs.dprint-plugins.getPluginList (plugins:
-              with plugins; [
-                dprint-plugin-json
-                dprint-plugin-markdown
-                g-plane-pretty_yaml
-                g-plane-malva
-              ]);
-          };
-      };
     };
 
     settings = {
@@ -166,7 +167,7 @@
     };
   };
 
-  inherit (eval.config.build) wrapper check;
+  inherit (treefmt.config.build) wrapper check;
 in {
   formatters = resolved.packages ++ [wrapper];
   formatter = wrapper;
