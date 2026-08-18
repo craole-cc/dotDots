@@ -2,7 +2,7 @@
   version = "2.0.0";
 
   names = {
-    src = "dots";
+    flake = "dots";
     repo = "https://github.com/craole-cc/dotDots.git";
     prefix = ".";
     top = "_";
@@ -11,7 +11,7 @@
   };
 
   paths = {
-    src = "/home/craole/.dots";
+    flake = "/home/craole/.dots";
     home = "/home/craole";
     tmpdir = "/tmp";
 

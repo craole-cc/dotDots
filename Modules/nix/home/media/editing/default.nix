@@ -14,7 +14,7 @@
   payload = {
     home.packages = with pkgs; [
       kdePackages.kdenlive
-      shotcut
+      shortcut
       darktable
       ansel
       doublecmd

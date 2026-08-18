@@ -52,7 +52,7 @@
 
     Returns `true` when at least one pattern matches at least one input value.
     Both `patterns` and `input` may be a single string or a list of strings;
-    this function normalises them before matching.
+    this function normalizes them before matching.
 
     Throws a structured error when `patterns` is neither a string nor a list.
 
@@ -92,7 +92,7 @@
 
     Returns `true` when every input value is matched by at least one pattern.
     Both `patterns` and `input` may be a single string or a list of strings;
-    this function normalises them before matching.
+    this function normalizes them before matching.
 
     Throws a structured error when `patterns` is neither a string nor a list.
 
@@ -128,7 +128,7 @@
     else all (v: any (p: checker p v) ps) vs;
 
   /**
-    Build an infix-search predicate with optional case normalisation.
+    Build an infix-search predicate with optional case normalization.
 
     When `caseSensitive` is `false` both the pattern and the candidate string
     are lowercased before the `hasInfix` test, making the match

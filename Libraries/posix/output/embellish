@@ -28,8 +28,8 @@ set_attribute() {
     -lt | --line-t*) line_trail="$2" ;;
     -sl | --space-l*) space_lead="$2" ;;
     -st | --space-t*) space_trail="$2" ;;
-    -F | -*sep*l) seperator_lead="$2" ;;
-    -St | --sep*t) seperator_trail="$2" ;;
+    -F | -*sep*l) separator_lead="$2" ;;
+    -St | --sep*t) separator_trail="$2" ;;
     esac
     shift 2
   done

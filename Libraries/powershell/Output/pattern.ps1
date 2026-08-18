@@ -163,6 +163,6 @@ function Global:Write-Pattern {
 
 #endregion
 
-#region Aliaes
+#region Aliases
 Set-Alias -Name pout -Value Write-Pattern -Scope Global
 #endregion

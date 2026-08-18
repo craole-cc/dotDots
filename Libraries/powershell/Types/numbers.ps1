@@ -37,7 +37,7 @@ function Global:Get-OrdinalString {
 
   switch ($lastOne) {
     1 { return "${Number}st" }
-    2 { return "${Number}nd" }
+    2 { return "${Number}and" }
     3 { return "${Number}rd" }
     default { return "${Number}th" }
   }

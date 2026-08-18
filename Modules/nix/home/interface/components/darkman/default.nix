@@ -20,8 +20,8 @@
   style = user.interface.style or host.interface.style or {};
   enable = style.autoSwitch or true;
 
-  #~@ Theme → caelestia flavour mapping
-  themeToFlavour = {
+  #~@ Theme → caelestia flavor mapping
+  themeToFlavor = {
     "Catppuccin Frappé" = "frappe";
     "Catppuccin Latte" = "latte";
     "Catppuccin Macchiato" = "macchiato";
@@ -32,7 +32,7 @@
   lightTheme = style.theme.light or "Catppuccin Latte";
 
   caelestiaFlavour = polarity:
-    themeToFlavour.${
+    themeToFlavor.${
       if polarity == "dark"
       then darkTheme
       else lightTheme

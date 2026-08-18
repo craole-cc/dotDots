@@ -6,7 +6,7 @@ case "$day" in
 *)
   case "${day##*[!0-9]}" in
   1) suffix="st" ;;
-  2) suffix="nd" ;;
+  2) suffix="and" ;;
   3) suffix="rd" ;;
   *) suffix="th" ;;
   esac

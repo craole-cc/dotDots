@@ -240,4 +240,4 @@ main "$@"
 # 5 Clamp to a minimum of 0 and a maximum of 5
 # 6 Handle the possible existence of other variables that suggest verbosiuty (quiet, silent, error, err, warn, info, normal, debug, verbose, trace, high) For instance SILENT=1, QUIET=true, INFO=on etc.
 # 7. include a trithy utility to simplify parsing
-# 8. Maintain styling, shellcheck enable all. this meand use braces, explicity -n, case insted of if for string comparison, printf instead of echo etc. Also recognize my comment style. Action comments are #@, check comments ar #?, list comments asre #| function documention comments are #DOC
+# 8. Maintain styling, shellcheck enable all. this meand use braces, explicitly -n, case insted of if for string comparison, printf instead of echo etc. Also recognize my comment style. Action comments are #@, check comments ar #?, list comments asre #| function documentation comments are #DOC

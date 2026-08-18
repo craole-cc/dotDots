@@ -2,7 +2,6 @@
 #shellcheck enable=all
 #~@ Feet - Smart Foot Terminal Wrapper
 #? POSIX-compliant theme detection and terminal launcher
-#? Location: $DOTS/Libraries/shellscript/packages/wrappers/feet.sh
 
 initialize_environment() {
   #> Early exit if not on Wayland
@@ -11,8 +10,8 @@ initialize_environment() {
     exit 1
   else
     USER_ID=$(id -u)
-    THEME_FILE="/tmp/foot-theme-$USER_ID"
-    SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
+    THEME_FILE="/tmp/foot-theme-${USER_ID}"
+    SOCKET="/run/user/${USER_ID}/foot-${WAYLAND_DISPLAY}.sock"
   fi
 }
 

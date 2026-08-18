@@ -80,8 +80,8 @@
       escapeRegex =
         escape (stringToCharacters "\\[{()^$?*+|.");
 
-      addContextFrom = src: target:
-        substring 0 0 src + target;
+      addContextFrom = flake: target:
+        substring 0 0 flake + target;
 
       splitString = sep: str: let
         string = toString str;
@@ -154,25 +154,25 @@
 
     #> --------------------------------------------------------------------
     #> Phase 1 (bootstrap paths): resolve just enough to import `_` itself -
-    #> `src`, `home`, and `paths.lib.default.store`. Everything else is
+    #> `flake`, `home`, and `paths.lib.default.store`. Everything else is
     #> re-resolved properly in Phase 2 once `_` is reachable.
     #> --------------------------------------------------------------------
     paths = {
-      src = {
+      flake = {
         store = ./.;
         local =
           if root != null
           then root
-          else getEnv "PWD" raw.paths.src;
+          else getEnv "PWD" raw.paths.flake;
       };
 
       user = let
         path = getEnv "HOME" "/home/${raw.names.alpha}";
-        srcLocal = toString paths.src.local;
+        flakeLocal = toString paths.flake.local;
       in {
         store =
-          if hasPrefix srcLocal path
-          then paths.src.store + removePrefix srcLocal path
+          if hasPrefix flakeLocal path
+          then paths.flake.store + removePrefix flakeLocal path
           else null;
 
         local = path;
@@ -181,11 +181,11 @@
       #> Only the repo-relative groups are needed to reach paths.lib.default -
       #> user/xdg/tmpdir are irrelevant to loading `_` and are skipped.
       repo = asPath {
-        base = paths.src;
+        base = paths.flake;
         stem = removeAttrs raw.paths [
           "user"
           "xdg"
-          "src"
+          "flake"
           "home"
           "tmpdir"
         ];
@@ -205,7 +205,7 @@
       else {};
 
     paths = with bootstrap.paths; {
-      src = src.store;
+      flake = flake.store;
       libraries = repo.lib.default.store;
     };
   };
@@ -227,12 +227,12 @@
   #> Phase 2 (real paths): now that `_` is loaded, rebuild `paths` fully
   #> through `mkTree`/`construct` - the single source of truth for path
   #> resolution from this point on. `user`/`xdg` resolve against `home`;
-  #> everything else resolves against `src` (mkTree's default). Every
+  #> everything else resolves against `flake` (mkTree's default). Every
   #> leaf - repo-relative or not - is a uniform `{store;local;}` pair.
   #> --------------------------------------------------------------------
   tree = mkTree {
     stems = removeAttrs raw.paths [
-      "src"
+      "flake"
       "home"
       "tmpdir"
     ];
@@ -246,7 +246,7 @@
   paths =
     tree
     // {
-      src = bootstrap.paths.src;
+      flake = bootstrap.paths.flake;
       home = bootstrap.paths.user;
 
       tmpdir = {
@@ -288,7 +288,7 @@
         default = localPath;
       }
       else {
-        name = "${names.src}_${domain}${joinedAttr}";
+        name = "${names.flake}_${domain}${joinedAttr}";
         default = localPath;
       };
 
@@ -309,7 +309,7 @@
       );
 
     ignore = [
-      "src"
+      "flake"
       "store"
       "local"
       "mkLocal"
@@ -325,12 +325,12 @@
           cfg.environment)
         ++ [
           {
-            name = names.src;
-            default = paths.src.local;
+            name = names.flake;
+            default = paths.flake.local;
           }
           {
-            name = "${names.src}_HOME";
-            default = paths.src.local;
+            name = "${names.flake}_HOME";
+            default = paths.flake.local;
           }
         ]
         ++ (

@@ -217,8 +217,8 @@
   ```
   */
   pkgOf = {
-    inputs,
-    input,
+    inputs ? {},
+    input ? null,
     target ? null,
     exe ? null,
     pkgs ? null,
@@ -247,8 +247,9 @@
             import resolved.inputs.nixpkgs
             {inherit (resolved) system;};
         flakes =
-          fromInputs
-          {inherit (resolved) inputs input system;};
+          optionalAttrs
+          (input != null)
+          (fromInputs {inherit (resolved) inputs input system;});
       };
 
       package = let
@@ -261,20 +262,24 @@
         #>    can't be inferred reliably - these are guesses, not
         #>    guarantees, so a hit here should be spot-checked if the
         #>    resolved package looks unexpected
-        suffixStripped = let
-          suffixes = ["-nix" ".nix" "-flake"];
-          strip = suffix:
-            if hasSuffix suffix input
-            then removeSuffix suffix input
-            else null;
-          stripped = filter (n: n != null) (map strip suffixes);
-        in
-          unique stripped;
+        suffixStripped =
+          if input == null
+          then []
+          else let
+            suffixes = ["-nix" ".nix" "-flake"];
+            strip = suffix:
+              if hasSuffix suffix input
+              then removeSuffix suffix input
+              else null;
+            stripped = filter (n: n != null) (map strip suffixes);
+          in
+            unique stripped;
 
         candidateNames = unique (
           (optionals (target != null) [target])
-          ++ ["default"]
+          ++ (optionals (input != null) ["default"])
           ++ suffixStripped
+          ++ (optionals (input != null) [input])
         );
 
         lookup = candidates:
@@ -289,33 +294,34 @@
           null
           candidates;
 
-        hit = lookup candidateNames;
+        check = lookup candidateNames;
 
         result =
-          if hit == null || hit.value == null
+          if check == null || check.value == null
           then null
-          else {
-            inherit (hit) name value;
-            pkg = hit.value;
-
-            exe =
-              if exe != null
-              then getExe' hit.value exe
-              else getExe hit.value;
-
+          else let
             paths = {
-              bin = "${getBin hit.value}/bin";
-              store = hit.value.outPath or "${hit.value}";
+              exe =
+                if exe != null
+                then getExe' check.value exe
+                else getExe check.value;
+              bin = "${getBin check.value}/bin";
+              store = check.value.outPath or "${check.value}";
             };
+          in {
+            inherit paths;
+            inherit (check) name value;
+            inherit (paths) exe;
+            pkg = check.value;
           };
       in
         if required
         then
           assert withContext {
             name = _name;
-            context = "resolving package from input '${input}' or pkgs";
+            context = "resolving package from input '${toString input}' or pkgs";
             assertion = result != null;
-            message = "Unable to locate a package for input '${input}' - tried: ${
+            message = "Unable to locate a package for input '${toString input}' - tried: ${
               concat ", " candidateNames
             }. Pass `target` explicitly to pkgFor/pkgOf.";
           }; result
@@ -411,8 +417,14 @@
       mapAttrs
       (name: input:
         pkgOf (
-          {inherit inputs pkgs required input;}
-          // {target = name;}
+          {
+            inherit inputs pkgs required;
+            target = name;
+            input =
+              if input == null
+              then null
+              else input;
+          }
           // optionalAttrs (system != null) {inherit system;}
         ))
       sources;

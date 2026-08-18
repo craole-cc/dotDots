@@ -65,7 +65,7 @@
       };
       menu = {
         dashboard = {
-          durectories = {
+          directories = {
             left = {
               directory1.label = "󱧶    Documents";
               directory2.label = "󰉍    Downloads";

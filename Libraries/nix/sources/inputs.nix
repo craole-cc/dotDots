@@ -72,58 +72,56 @@
     && ((left.rev or null) != (right.rev or null));
 
   /**
-   Resolve a one-level flake input by trying the provided aliases in order.
-
-   The lookup is case-insensitive. It lowercases the actual keys in `inputs`,
-   lowercases each candidate name, then delegates ordered resolution to `byPaths`.
-
-   This catches case-only variations such as:
-   ```nix
-   ai
-   AI
-   llm
-   LLM
-   editorVscode
-   editorVSCode
-   EDITORVSCODE
+  Resolve a one-level flake input by trying the provided aliases in order.
+  The lookup is case-insensitive. It lowercases the actual keys in `inputs`,
+  lowercases each candidate name, then delegates ordered resolution to `byPaths`.
+  This catches case-only variations such as:
+  ```nix
+  ai
+  AI
+  llm
+  LLM
+  editorVscode
+  editorVSCode
+  EDITORVSCODE
   ```
 
-   Semantic aliases must still be listed explicitly. For example,
-   nixPackagesStable, nixpkgsStable, and nixpkgs-stable are different
-   names, not merely case variants.
+  Semantic aliases must still be listed explicitly. For example,
+  nixPackagesStable, nixpkgsStable, and nixpkgs-stable are different
+  names, not merely case variants.
 
-   # Dependencies
-   - attrsets.resolution.byPaths
-   - strings.transformation.toLowerCase
+  # Dependencies
+  - attrsets.resolution.byPaths
+  - strings.transformation.toLowerCase
 
-   # Type
-   byNames :: {
-     inputs :: AttrSet,
-     names :: [string],
-     default? :: a
-   } -> a
+  # Type
+  byNames :: {
+    inputs :: AttrSet,
+    names :: [string],
+    default? :: a
+  } -> a
 
-   # Examples
-   byNames {
-     inputs.AI = "llm-agents";
-     names = ["ai" "llm" "llm-agents"];
-     default = null;
-   }
-   # => "llm-agents"
+  # Examples
+  byNames {
+    inputs.AI = "llm-agents";
+    names = ["ai" "llm" "llm-agents"];
+    default = null;
+  }
+  # => "llm-agents"
 
-   byNames {
-     inputs.editorVSCode = "vscode-insiders";
-     names = ["editorVscode" "vscode" "code"];
-     default = null;
-   }
-   # => "vscode-insiders"
+  byNames {
+    inputs.editorVSCode = "vscode-insiders";
+    names = ["editorVscode" "vscode" "code"];
+    default = null;
+  }
+  # => "vscode-insiders"
 
-   byNames {
-     inputs.nixpkgs-stable = "stable";
-     names = ["nixPackagesStable" "nixpkgsStable" "nixpkgs-stable"];
-     default = null;
-   }
-   # => "stable"
+  byNames {
+    inputs.nixpkgs-stable = "stable";
+    names = ["nixPackagesStable" "nixpkgsStable" "nixpkgs-stable"];
+    default = null;
+  }
+  # => "stable"
   */
   byNames = {
     inputs,

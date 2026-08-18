@@ -53,7 +53,7 @@ __version__() {
   exit 0
 }
 
-#| Allow formating
+#| Allow formatting
 __format__() {
   if __cmd_exists__ tput; then
     reset="$(tput sgr0 || tput me)"  # Turn off all attributes
@@ -122,11 +122,11 @@ __opts__() {
     esac
 
     if [ "$ACTION" = "start" ] || [ "$ACTION" = "reload" ]; then
-      inTERM=
+      in_term=
       case $1 in
-      -t | --term)
+      -t | --term | --in-term)
         shift
-        inTERM=true
+        in_term=true
         ;;
       -a | --app) shift ;;
       *) ;;
@@ -174,7 +174,7 @@ __cmd_exists__() {
   command -v "$@" >/dev/null 2>&1
 }
 
-__interm__() {
+__in_term__() {
   if __cmd_exists__ kitty; then
     kitty --class "$CLASS" --detach "$COMMAND"
   elif __cmd_exists__ alacritty; then
@@ -252,7 +252,7 @@ __msg__() {
     __msg__ --input
     printf "COMMAND => %s\n" "$COMMAND"
     ;;
-  --interm)
+  --in-term)
     printf "WMCLASS => %s\n" "$CLASS"
     ;;
   *) ;;
@@ -265,7 +265,7 @@ __msg__() {
 # ===================================================================
 
 __action__() {
-  #| Verifiy command availability
+  #| Verify command availability
   if ! __cmd_exists__ "$CMD"; then
     [ "$VERBOSE" ] && __msg__ --missing
     return 1
@@ -303,8 +303,8 @@ __action__() {
       [ "$VERBOSE" ] && __msg__ --active
       return 1
     else
-      if [ "$inTERM" ]; then
-        __interm__
+      if [ "$in_term" ]; then
+        __in_term__
       else
         __cmd_run__ eval "$COMMAND"
       fi
@@ -365,7 +365,7 @@ __test__() {
   #| Display input details
   __msg__ --testing
 
-  [ "$inTERM" ] && __msg__ --interm
+  [ "$in_term" ] && __msg__ --term
 
   #| Process
   [ "$ACTION" = "installed" ] && __action__ --availability

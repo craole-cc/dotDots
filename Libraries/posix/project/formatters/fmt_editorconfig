@@ -635,7 +635,7 @@ execute_action() {
     #{ Format the temporary file using sed
     execute_action__prep || return "$?"
 
-    #{ Compare files and procees only if different
+    #{ Compare files and process only if different
     cmp -s "$src" "$tmp" && return "$CODE_SUCCESS"
 
     #{ Execute the action

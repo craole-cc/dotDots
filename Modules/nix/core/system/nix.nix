@@ -19,7 +19,7 @@
   inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
-  inherit (lix.types.primitives) bool int ints path str;
+  inherit (lix.types.primitives) anything bool int ints path str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
@@ -52,39 +52,40 @@ in
         type = str;
       };
 
-      src = mkOption {
+      flake = mkOption {
         description = ''
           Absolute path to the dotfiles flake. Used by `nh` as the flake
           reference for rebuilds and store maintenance.
         '';
         type = submodule {
           options = {
-            home = mkOption {
-              description = "Absolute path to the dotfiles flake.";
-              type = submodule {
-                options = {
-                  local = mkOption {
-                    description = "Local absolute path to the flake.";
-                    default = host.paths.src or paths.src.local;
-                    defaultText = literalExpression "host.paths.src";
-                    example = literalExpression ''/home/craole/.dots'';
-                    type = str;
-                  };
-                  store = mkOption {
-                    description = "Nix store path to the flake.";
-                    default = paths.src.store or ../../../../.;
-                    defaultText = literalExpression "paths.src.store or ../../../../.";
-                    example = literalExpression ''/nix/store/...-source'';
-                    type = nullOr (either str path);
-                  };
-                };
-              };
-            };
             name = mkOption {
               description = "Name identifier for the dotfiles flake.";
-              default = names.src;
-              example = literalExpression ''"dotfiles"'';
+              default = names.flake;
+              example = literalExpression ''"dots"'';
               type = str;
+            };
+
+            home = mkOption {
+              description = "Local absolute path to the flake.";
+              default = host.paths.flake or paths.flake.local;
+              defaultText = literalExpression "host.paths.flake";
+              example = literalExpression ''/home/craole/.dots'';
+              type = str;
+            };
+
+            path = mkOption {
+              description = "Nix store path to the flake.";
+              default = paths.flake.store or ../../../../.;
+              defaultText = literalExpression "paths.flake.store or ../../../../.";
+              example = literalExpression ''/nix/store/...-source'';
+              type = nullOr (either str path);
+            };
+
+            args = mkOption {
+              description = "CLI arguments passed to flake operations.";
+              default = {inherit names;} // cfg;
+              type = attrsOf anything;
             };
           };
         };
@@ -216,12 +217,12 @@ in
     outputs = mkMerge [
       (mkNix {
         inherit host pkgs;
-        inherit (cfg) src kernel caches max-jobs stateVersion;
+        inherit (cfg) flake kernel caches max-jobs stateVersion;
         store = tree.store.default;
       })
       (mkMaintenance {
         inherit pkgs paths;
-        inherit (cfg) src keep;
+        inherit (cfg) flake keep;
       })
     ];
   }

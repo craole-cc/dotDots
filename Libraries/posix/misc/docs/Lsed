@@ -9,7 +9,7 @@ $DOTS_DOWN/fast.com/fast_com.py
 SOURCES() {
   EXCLUDED="$(echo "review|archive|temp|templates")"
   find "$@" \
-    | grep -E -viw "$EXCLUDED"
+    | grep -E -view "$EXCLUDED"
 }
 
 tomcat="

@@ -10,7 +10,7 @@ CMD_WALLMAN="@cmdWallman@"
 CMD_THEME_TOGGLE="@cmdThemeToggle@"
 CFG_POLARITY="@cfgPolarity@"
 CFG_API="@cfgApi@"
-CFG_CAELESTIA_FLAVOUR="@cfgCaelestiaFlavour@"
+CFG_CAELESTIA_FLAVOR="@cfgCaelestiaFlavour@"
 CFG_VSCODE_THEME="@cfgVscodeTheme@"
 
 #~@ State
@@ -77,7 +77,7 @@ printf 'Syncing caelestia scheme...\n'
 if command -v caelestia > /dev/null 2>&1; then
   caelestia scheme set \
     -n catppuccin \
-    -f "${CFG_CAELESTIA_FLAVOUR}" \
+    -f "${CFG_CAELESTIA_FLAVOR}" \
     -m "${CFG_POLARITY}" 2> /dev/null || {
     printf 'Warning: caelestia scheme change failed\n'
   }

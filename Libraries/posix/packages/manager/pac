@@ -28,7 +28,7 @@ __info__() {
       -f --flaga      |>     Flag A [default]
       -b --flagb      |>     Flag B
       -c --flagc      |>     Flag C
-      -n --count      |>     Interator
+      -n --count      |>     Iterator
 #>----------------------------------------------------<#
 
 USAGE_GUIDE

@@ -1512,7 +1512,7 @@ impl DotDots {
             }
         }
 
-        self.log_info("Syncronization initialized", Some(self.icons.sync(None)));
+        self.log_info("Synchronization initialized", Some(self.icons.sync(None)));
 
         //> Stage all changes
         self.execute("git add --all", "git", Some(&self.root))?;
@@ -1529,7 +1529,7 @@ impl DotDots {
             self.execute("git push", "git", Some(&self.root))?;
         }
 
-        self.log_success("Syncronization complete!", Some(self.icons.sync(None)));
+        self.log_success("Synchronization complete!", Some(self.icons.sync(None)));
         Ok(())
     }
 

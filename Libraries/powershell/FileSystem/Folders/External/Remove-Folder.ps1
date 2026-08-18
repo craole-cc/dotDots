@@ -49,7 +49,7 @@ function Remove-Folder {
     else {
       try { Set-Location $parent }
       catch {
-        Write-Pretty -NoNewLine -Tag 'Error' "Failed to chage directory: $($_.Exception.Message)"
+        Write-Pretty -NoNewLine -Tag 'Error' "Failed to change directory: $($_.Exception.Message)"
         return $null
       }
     }
@@ -61,7 +61,7 @@ function Remove-Folder {
   else {
     try { Remove-Item -Path $target -Recurse -Force }
     catch {
-      Write-Pretty -NoNewLine -Tag 'Error' "Failed to remove dirctory: $($_.Exception.Message)"
+      Write-Pretty -NoNewLine -Tag 'Error' "Failed to remove directory: $($_.Exception.Message)"
       return $null
     }
   }

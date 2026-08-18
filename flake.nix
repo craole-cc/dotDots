@@ -10,10 +10,20 @@
     inherit (lix.modules.construction) mkFlake mkSystems;
     inherit (lix.sources.packages) mkAll;
 
-    args = src // (mkAll {inherit flake;});
+    flake' = let
+      args = src // (mkAll {inherit flake;});
+    in
+      args
+      // {
+        inherit args;
+        name = args.names.flake;
+        path = args.paths.flake.store;
+        home = args.paths.flake.local;
+      };
+    args = flake'.args // {flake = flake';};
   in
     {
-      inherit args;
+      lib = args;
       nixosConfigurations = mkSystems args;
       templates = import tree.kit.nix.store;
     }

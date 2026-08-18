@@ -143,20 +143,20 @@ punctuate_exit() { #{ Trigger exit actions
     case "$1" in
     *exit)
       shift
-      publish_informtion "Error: $*"
-      publish_informtion "$scr_USAGE"
+      publish_information "Error: $*"
+      publish_information "$scr_USAGE"
       point_of_exit
       ;;
     esac
     ;;
   *)
-    publish_informtion "$*"
+    publish_information "$*"
     point_of_exit
     ;;
   esac
 }
 
-point_of_exit() { #{ Terminate the sctipt
+point_of_exit() { #{ Terminate the script
   if [ "$flag_FAILURE" ]; then
     purge_environment
     exit 1
@@ -172,22 +172,22 @@ point_of_exit() { #{ Terminate the sctipt
 
 process_test() { #{ Test variables and actions
   # Test the User Guide
-  # publish_informtion "$scr_USAGE"
+  # publish_information "$scr_USAGE"
 
   # Test the selectted action
-  publish_informtion " ACTION: $param_ACTION"
+  publish_information " ACTION: $param_ACTION"
 
   # Test the command array
   echo "$array_CMD_COUNT Commands"
-  publish_informtion --oneline "COMMAND:"
+  publish_information --oneline "COMMAND:"
   for param_CMD in $array_CMD; do
     tag_CMD="$((tag_CMD + 1))"
 
     if cmd_is_available "$param_CMD"; then
-      publish_informtion --oneline " $tag_CMD) ✅ $param_CMD"
+      publish_information --oneline " $tag_CMD) ✅ $param_CMD"
 
     else
-      publish_informtion --oneline " $tag_CMD) 🟥 $param_CMD"
+      publish_information --oneline " $tag_CMD) 🟥 $param_CMD"
     fi
   done
 
@@ -206,7 +206,7 @@ process_core() { #{ Provide command info based on user requirements
 
     #{ Skip if command not available
     cmd_is_available "$param_CMD" || {
-      publish_informtion "🟥 $param_CMD is not installed"
+      publish_information "🟥 $param_CMD is not installed"
       punctuate_exit --error
       continue
     }
@@ -215,9 +215,9 @@ process_core() { #{ Provide command info based on user requirements
     #{ Display information about the param_CMD
     [ "$msg" ] &&
       if [ "$icon" ]; then
-        publish_informtion "$icon $msg"
+        publish_information "$icon $msg"
       else
-        publish_informtion "$msg"
+        publish_information "$msg"
       fi
   done
 }
@@ -244,32 +244,32 @@ prepare_messaging() { #{ Display verbose information
   case $1 in
   --input)
     if [ "$tag_CMD" -eq 1 ]; then
-      publish_informtion --oneline " | $tag_CMD"
+      publish_information --oneline " | $tag_CMD"
     else
-      publish_informtion " | $tag_CMD"
+      publish_information " | $tag_CMD"
     fi
 
     if
       [ "$param_ACTION" = "installed" ] ||
         [ "$param_ACTION" = "active" ]
     then
-      publish_informtion "Verify if $fmt_CMD is $fmt_ACTION"
+      publish_information "Verify if $fmt_CMD is $fmt_ACTION"
     else
-      publish_informtion "Please $fmt_ACTION $fmt_CMD"
+      publish_information "Please $fmt_ACTION $fmt_CMD"
     fi
     ;;
-  --found) publish_informtion "✅ %s is installed $fmt_CMD" ;;
-  --missing) publish_informtion "🟥 %s is not installed. $fmt_CMD" ;;
-  --active) publish_informtion "👟 %s is running $fmt_CMD" ;;
-  --inactive) publish_informtion "💤 %s is inactive. $fmt_CMD" ;;
-  --terminated) publish_informtion "💀 %s $fmt_CMD" ;;
-  --launched) publish_informtion "🚀 %s $fmt_CMD" ;;
-  --relaunched) publish_informtion "🔃 %s $fmt_CMD" ;;
+  --found) publish_information "✅ %s is installed $fmt_CMD" ;;
+  --missing) publish_information "🟥 %s is not installed. $fmt_CMD" ;;
+  --active) publish_information "👟 %s is running $fmt_CMD" ;;
+  --inactive) publish_information "💤 %s is inactive. $fmt_CMD" ;;
+  --terminated) publish_information "💀 %s $fmt_CMD" ;;
+  --launched) publish_information "🚀 %s $fmt_CMD" ;;
+  --relaunched) publish_information "🔃 %s $fmt_CMD" ;;
   *) ;;
   esac
 }
 
-publish_informtion() { #{ Display information via necessary framework[s]
+publish_information() { #{ Display information via necessary framework[s]
   #{ Enable printing only there is something to print
   [ "$*" ] || return
 

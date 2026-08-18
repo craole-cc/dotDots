@@ -1,32 +1,66 @@
 {
-  inputs,
-  pkgFor,
+  lix,
   pkgs,
-  paths,
+  flake,
   ...
 }: let
-  path = paths.src.store;
-  treefmt = pkgFor {
-    input = "treefmt-nix";
-    target = "treefmt";
+  inherit (flake) path inputs;
+  inherit (lix.attrsets.transformation) mapAttrs;
+  inherit (lix.sources.packages) pkgsFrom;
+
+  sources = {
+    actionlint = null;
+    alejandra = null;
+    deno = null;
+    leptosfmt = null;
+    markdownlint-cli2 = null;
+    rustfmt = null;
+    shellcheck = null;
+    shfmt = null;
+    statix = null;
+    stylua = null;
+    tombi = null;
+    treefmt = "treefmt-nix";
+    typstyle = null;
+    yamlfmt = null;
   };
 
-  config = inputs.treefmt.lib.evalModule pkgs {
+  resolved = pkgsFrom {
+    inherit inputs pkgs;
+    inherit sources;
+    required = true;
+  };
+  bins = mapAttrs (_: pkg: pkg.paths.exe) resolved;
+
+  eval = inputs.treefmt.lib.evalModule pkgs {
     projectRootFile = "flake.nix";
 
     programs = {
+      #~@ Nix
       alejandra.enable = true;
       statix.enable = true;
+
+      #~@ Rust
       rustfmt.enable = true;
+      leptosfmt.enable = true;
+
+      #~@ Shellscript
       shellcheck.enable = true;
       shfmt = {
         enable = true;
         indent_size = 2;
         simplify = true;
       };
-      stylua.enable = true;
+
+      #~@ Mark[down/up]
+      deno.enable = true;
       typstyle.enable = true;
+      typos.enable = true;
+
+      #~@ Config
+      actionlint.enable = true;
       yamlfmt.enable = true;
+      stylua.enable = true;
     };
 
     settings = {
@@ -63,14 +97,15 @@
       ];
 
       formatter = {
+        #~@ Nix
         alejandra.priority = 1;
         statix.priority = 2;
 
-        rustfmt = {
-          priority = 1;
-          # options = ["--edition" "2024"];
-        };
+        #~@ Rust
+        rustfmt.priority = 1;
+        leptosfmt.priority = 2;
 
+        #~@ Shellscript
         shellcheck = {
           priority = 1;
           options = [
@@ -89,79 +124,34 @@
           ];
         };
 
-        toml = {
-          command = "${pkgs.tombi}/bin/tombi";
-          includes = ["*.toml"];
-          options = ["format" "--offline"];
-        };
-
+        #~@ Mark[down/up]
+        deno.priority = 1;
         markdown = {
-          command = "${pkgs.markdownlint-cli2}/bin/markdownlint-cli2";
+          command = bins.markdownlint-cli2;
           includes = ["*.md" "README"];
           options = [
             "--fix"
             "--config"
             ".markdownlint.yaml"
           ];
-          priority = 1;
-        };
-
-        deno = {
-          command = "${pkgs.deno}/bin/deno";
-          includes = [
-            "*.css"
-            "*.html"
-            "*.js"
-            "*.json"
-            "*.jsonc"
-            "*.jsx"
-            "*.less"
-            "*.markdown"
-            "*.md"
-            "*.sass"
-            "*.scss"
-            "*.ts"
-            "*.tsx"
-            "*.yaml"
-            "*.yml"
-          ];
-          options = ["fmt"];
           priority = 2;
         };
 
-        actionlint = {
-          command = "${pkgs.actionlint}/bin/actionlint";
-          includes = [
-            ".github/workflows/*.yml"
-            ".github/workflows/*.yaml"
-          ];
-          priority = 2;
+        #~@ Config
+        yamlfmt.priority = 1;
+        actionlint.priority = 2;
+
+        toml = {
+          command = bins.tombi;
+          includes = ["*.toml"];
+          options = ["format" "--offline"];
         };
       };
     };
   };
-
-  formatter = config.config.build.wrapper;
-
-  formatters = with pkgs; [
-    actionlint
-    alejandra
-    deno
-    leptosfmt
-    markdownlint-cli2
-    nixfmt
-    prettierd
-    rustfmt
-    shellcheck
-    shfmt
-    statix
-    stylua
-    tombi
-    typstyle
-    yamlfmt
-    formatter
-  ];
+  inherit (eval.config.build) wrapper check;
 in {
-  inherit formatter formatters;
-  checks.formatting = config.config.build.check path;
+  formatters = resolved.packages ++ [wrapper];
+  formatter = wrapper;
+  checks.formatting = check path;
 }

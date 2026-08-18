@@ -110,7 +110,7 @@ __main__() {
   #{ Accept user options
   eval "$(getoptions __opts__) exit 1"
 
-  #{ Initialialize defaults
+  #{ Initialize defaults
   __init__
   echo "NAME: $_NAME"
   echo "APP: $_CMD"

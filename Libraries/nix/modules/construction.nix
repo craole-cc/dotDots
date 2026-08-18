@@ -69,6 +69,7 @@
     result for that host.
   */
   mkSystems = {
+    flake,
     inputs,
     paths,
     libraries,
@@ -80,17 +81,16 @@
   }:
     mapAttrs (
       _: host: let
-        src = {
-          path = host.paths.src or (paths.src.local or null);
-          name = names.src;
-        };
-
+        # src = {
+        #   path = host.paths.src or (paths.src.local or null);
+        #   name = names.src;
+        # };
         class = host.class or "nixos";
-        tree' = tree // {local = tree.mkLocal src.path;};
+        tree' = tree // {local = tree.mkLocal flake.path;};
 
         specialArgs =
           {
-            inherit host class inputs src names paths;
+            inherit host class inputs flake names paths;
             inherit (names) top;
             "${names.lib}" = libraries.${names.lib};
             tree = tree';

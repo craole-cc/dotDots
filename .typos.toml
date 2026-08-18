@@ -4,13 +4,15 @@
   ignore-hidden = true
   ignore-files = true
 
-# Default engine behavior
+# Default engine behaviour
 [default]
   binary = false
   check-filename = true
   check-file = true
   unicode = true
   locale = "en-us"
+  # Ignore short hex fragments (colours, UUID pieces, etc.)
+  extend-ignore-re = ["[0-9a-fA-F]{2,}"]
 
   # Custom dictionary entries
   [default.extend-identifiers]
@@ -21,19 +23,6 @@
     "favourites" = "favourites"
 
   [default.extend-words]
-    # "nitch" = "nitch"
-    "optimise" = "optimise"
-    "dots-fetch" = "dots-fetch"
-
-    # Custom ignore patterns
-    # [default.extend-ignore-re]
-    # - "(?s)```.*?```"
-    # - "`[^`]+`"
-    # Ignore code blocks in markdown
-    # Ignore inline code in markdown
-
-    # # Type-specific configurations
-    # [type.js]
-    # # JavaScript-specific settings
-    # [type.js.extend-identifiers]
-    # getElementsByClassName = "getElementsByClassName"
+    ags = "ags"
+    optimise = "optimise"
+    dots-fetch = "dots-fetch"

@@ -29,7 +29,7 @@ main() {
 
 #/> Initialization                                  <\
 
-init_metadata() { #{ Initalize script metadata
+init_metadata() { #{ Initialize script metadata
   scr_PATH="$(pathof "$0")"
   scr_NAME="$(basename "$scr_PATH")"
   scr_HOME="$(dirname -- "$scr_PATH")"
@@ -78,7 +78,7 @@ init_arguments() { #{ Parse command-line arguments
   done
 }
 
-init_defaults() { #{ Initalize default variables
+init_defaults() { #{ Initialize default variables
   unique="${unique:-true}"
   wallpaper_action="${wallpaper_action:-next}"
   wallpaper_log_path="${wallpaper_log_path:-$DOTS_LOG/wallpapers}"
@@ -328,7 +328,7 @@ set_wallpaper() {
   }
 
   update_wallpaper() {
-    #{ Set wallpaper based on display protocal
+    #{ Set wallpaper based on display protocol
     if [ "$WAYLAND_DISPLAY" ]; then
       weHave swaybg &&
         swaybg --image "$wallpaper_src_path" --mode fill &
@@ -443,7 +443,7 @@ end_process() { #{ Exit application gracefully
   fi
 }
 
-sanitize_environment() { #{ Remove varibles
+sanitize_environment() { #{ Remove variables
   unset \
     verbosity \
     wallpaper_src_path \
@@ -494,7 +494,7 @@ Options:
   -h, --help          Show detailed help information and exit.
   -v, --version       Show the script version number and exit.
   -d, --verbose       Display additional information during execution: quiet, info, debug.
-  -q, --quiet         Supress all output. Error flag will still work.
+  -q, --quiet         Suppress all output. Error flag will still work.
   -u, --unique        Only use each wallpaper once.
   -D, --allow-dups    Allow wallpapers to be repeated.
   -p, --previous      Set the previous wallpaper.

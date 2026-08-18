@@ -59,7 +59,7 @@
     tree,
   }: {
     home-manager = {
-      backupFileExtension = "BaC";
+      backupFileExtension = "hm-backup";
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;

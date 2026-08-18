@@ -890,7 +890,7 @@ pout() {
         ;;
       -*lead*)
         if [ "$2" ]; then
-          #TODO: Create a validater wrapper that can do this check and others
+          #TODO: Create a validator wrapper that can do this check and others
           if expr "$2" : '^[0-9][0-9]*$' >/dev/null 2>&1; then
             leading_lines="$2"
             shift

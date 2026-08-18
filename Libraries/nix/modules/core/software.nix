@@ -92,7 +92,7 @@
   mkNix = {
     host,
     pkgs,
-    src,
+    flake,
     kernel ? (host.packages.kernel or null),
     caches ? (host.caches or {}),
     max-jobs ? (host.specs.cpu.cores or "auto"),
@@ -101,7 +101,7 @@
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
-      path = src.home.store;
+      path = flake.home.store;
       field = "owner";
       value = "numtide";
     };
@@ -160,13 +160,13 @@
 
   Enables `nh clean` on a systemd timer with a retention policy of 3 days or
   3 generations, whichever is greater. Also exposes shell aliases for manual
-  store operations, keyed off `host.paths.src`.
+  store operations, keyed off `host.paths.flake`.
 
   # Type
-  > mkMaintenance :: { src :: String, pkgs :: AttrSet } -> AttrSet
+  > mkMaintenance :: { flake :: String, pkgs :: AttrSet } -> AttrSet
 
   # Examples
-  - mkMaintenance { src = "/home/craole/.dots"; inherit pkgs; }
+  - mkMaintenance { flake = "/home/craole/.dots"; inherit pkgs; }
   ```nix
   {
       programs.nh = {
@@ -182,16 +182,14 @@
   ```
   */
   mkMaintenance = {
-    src,
+    flake,
     pkgs,
     keep,
     paths,
     ...
   }: let
-    inherit (src) name;
+    inherit (flake) name home;
     keepArgs = concat " " keep.args;
-    flake = src.home.local;
-
     fetch = mkFetch {inherit name pkgs paths;};
   in {
     programs = {
@@ -201,36 +199,36 @@
           extraArgs = keepArgs;
         };
         enable = true;
-        inherit flake;
+        flake = home;
       };
     };
 
     environment = {
       systemPackages = [fetch];
       shellAliases = {
-        "${name}-switch" = "nh os switch ${flake}";
-        "${name}-update" = "nix flake update --flake ${flake}";
-        "${name}-upgrade" = "nix flake update --flake ${flake} && nh os switch ${flake}";
-        "${name}-boot" = "nh os boot ${flake}";
-        "${name}-test" = "nh os test ${flake}";
-        "${name}-build" = "nh os build ${flake}";
+        "${name}-switch" = "nh os switch ${home}";
+        "${name}-update" = "nix flake update --flake ${home}";
+        "${name}-upgrade" = "nix flake update --flake ${home} && nh os switch ${home}";
+        "${name}-boot" = "nh os boot ${home}";
+        "${name}-test" = "nh os test ${home}";
+        "${name}-build" = "nh os build ${home}";
         "${name}-clean" = "nh clean all ${keepArgs}";
         "${name}-clean-all" = "nh clean all --keep 1";
         "${name}-gc" = "nix store gc";
         "${name}-gens" = "nh os info";
         "${name}-optimise" = "nix store optimise";
         "${name}-repair" = "nix store verify --repair";
-        "${name}-dev" = "nix develop ${flake}";
-        "${name}-dev-ai" = "nix develop ${flake}#ai";
-        "${name}-dev-core" = "nix develop ${flake}#core";
-        "${name}-dev-extras" = "nix develop ${flake}#extras";
-        "${name}-dev-full" = "nix develop ${flake}#full";
-        "${name}-dev-media" = "nix develop ${flake}#media";
-        "${name}-dev-minimal" = "nix develop ${flake}#minimal";
-        "${name}-repl" = "nix repl ${flake}#repl";
-        "${name}-cd" = "cd ${flake}";
-        "${name}-fetch" = "fetch ${flake}";
-        "${name}-fetch-full" = "fetch --full ${flake}";
+        "${name}-dev" = "nix develop ${home}";
+        "${name}-dev-ai" = "nix develop ${home}#ai";
+        "${name}-dev-core" = "nix develop ${home}#core";
+        "${name}-dev-extras" = "nix develop ${home}#extras";
+        "${name}-dev-full" = "nix develop ${home}#full";
+        "${name}-dev-media" = "nix develop ${home}#media";
+        "${name}-dev-minimal" = "nix develop ${home}#minimal";
+        "${name}-repl" = "nix repl ${home}#repl";
+        "${name}-cd" = "cd ${home}";
+        "${name}-fetch" = "fetch ${home}";
+        "${name}-fetch-full" = "fetch --full ${home}";
       };
     };
   };

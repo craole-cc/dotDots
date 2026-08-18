@@ -25,7 +25,7 @@ __info__() {
     -h --help       |>    Usage guide
     -v --version    |>    Version
     -d --verbose    |>    Details
-    -q --quiet      |>    Supress information
+    -q --quiet      |>    Suppress information
     -t --dry-run    |>    Test
     -S --set        |>    Set to <level>
     -T --toggle     |>    Toggle ON|OFF
@@ -33,7 +33,7 @@ __info__() {
     -D --decrease   |>    Decrease by <amount>
     -M --mute       |>    Enable sound
     -U --unmute     |>    Disable sound
-    -s --status     |>    Diplay status
+    -s --status     |>    Display status
 #>----------------------------------------------<#
 
 USAGE_GUIDE

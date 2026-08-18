@@ -20,7 +20,7 @@
 #   tput setaf [1-7]  #> Set a foreground color using ANSI escape
 #   tput setf [1-7]   #> Set a foreground color
 
-#     Num  Colour      Define          R G B
+#     Num  Color      Define          R G B
 #   |>--------------------------------------<|
 #     0    black     COLOR_BLACK     0,0,0
 #     1    red       COLOR_RED       1,0,0

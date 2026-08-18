@@ -468,7 +468,7 @@ pout() {
 }
 
 sanitize_environment() {
-  #{ Remove varibles
+  #{ Remove variables
   unset verbosity
   unset target_path
   unset normalized_path
@@ -522,7 +522,7 @@ OPTIONS:
   -h, --help       Show detailed help information and exit.
   -v, --version    Show the script version number and exit.
   -d, --verbose    Display additional information during execution: [current: "${verbosity}"].
-  -q, --quiet      Supress all output. Error flag will still work.
+  -q, --quiet      Suppress all output. Error flag will still work.
 
 ARGUMENTS:
   target_path      The path to normalize.

@@ -14,7 +14,7 @@ main() { #{ Run the application
 }
 
 #/> Initialization                                  <\
-init_metadata() { #{ Initalize bin_name metadata
+init_metadata() { #{ Initialize bin_name metadata
   required_arg="shellscript binary file"
   SCRIPT_NAME="$(basename "$0")"
   SCRIPT_VERSION="1.0.0"

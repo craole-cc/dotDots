@@ -20,7 +20,7 @@
       mediaWidth = 200;
       mediaProgressSweep = 180;
       mediaProgressThickness = 8;
-      resourceProgessThickness = 10;
+      resourceProgressThickness = 10;
       weatherWidth = 250;
       mediaCoverArtSize = 150;
       mediaVisualiserSize = 80;
@@ -70,7 +70,7 @@
           "scheme"
         ];
         name = "Scheme";
-        description = "Change the current colour scheme";
+        description = "Change the current color scheme";
         icon = "palette";
         enabled = true;
         dangerous = false;

@@ -10,7 +10,7 @@ scr_USAGE="Usage:
 scr_OPTIONS="Options:
     -h, --help             Show detailed help information
     -v, --version          Show the script version number
-    -q, --quiet            Supress all output including errors
+    -q, --quiet            Suppress all output including errors
     -d, --verbose <LEVEL>  Control level of information shared
 "
 scr_ARGUMENTS="Arguments:
@@ -139,7 +139,7 @@ run_process() { #{ Display information about each variable
     #{ Generate message based on verbosity eg. "$msg2"
     unset msg
     msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2>/dev/null)"
-    #{ Send informtion to display where applicable
+    #{ Send information to display where applicable
     [ "$msg" ] &&
       if [ "$var" != "$last_var" ]; then
         display_info -n "$msg"

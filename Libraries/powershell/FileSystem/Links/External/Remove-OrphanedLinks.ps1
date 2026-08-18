@@ -71,7 +71,7 @@ function Remove-OrphanedLinks {
   }
 
   $actionText = if ($WhatIf) { 'Would remove' } else { 'Removed' }
-  # TODO: This is not using Write-Preety in the right way
+  # TODO: This is not using Write-Pretty in the right way
   Write-Pretty -NoNewLine -Tag 'Info' "`nCleanup summary:" -ForegroundColor Yellow
   Write-Pretty -NoNewLine -Tag 'Info' "  $actionText $removedCount orphaned links" -ForegroundColor $(if ($WhatIf) { 'Yellow' } else { 'Red' })
 }

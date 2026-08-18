@@ -26,7 +26,12 @@
   };
 
   predicates = {
-    inherit (sources) canCleanSource pathHasContext pathIsGitRepo;
+    inherit
+      (sources)
+      canCleanSource
+      pathHasContext
+      pathIsGitRepo
+      ;
   };
 
   transformation = {

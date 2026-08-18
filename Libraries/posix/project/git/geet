@@ -188,7 +188,7 @@ establish_environment() {
       ;;
     --ci) ci=1 ;;
     -*) ;;
-      # TODO: Add support for initalization
+      # TODO: Add support for initialization
       # --key)
       # 	[ "$2" ] || display_info --error "SSH Key required"
       # 	key="$2"
