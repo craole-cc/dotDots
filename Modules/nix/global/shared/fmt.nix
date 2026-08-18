@@ -169,8 +169,22 @@
     };
   };
 
-  inherit (treefmt.config.build) wrapper check;
+  inherit (treefmt.config.build) wrapper check configFile;
+
+  syncTreefmtToml = pkgs.writeShellScriptBin "sync-treefmt-toml" ''
+    set -euo pipefail
+    cp --force ${configFile} "${path}/.treefmt.toml"
+    chmod u+w "${path}/.treefmt.toml"
+    echo "Synced .treefmt.toml from fmt.nix"
+  '';
+  apps = {
+    sync-treefmt-toml = {
+      type = "app";
+      program = "${syncTreefmtToml}/bin/sync-treefmt-toml";
+    };
+  };
 in {
+  inherit apps;
   formatters = resolved.packages ++ [wrapper];
   formatter = wrapper;
   checks.formatting = check path;
