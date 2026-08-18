@@ -2,9 +2,10 @@
   inputs,
   pkgFor,
   pkgs,
-  src,
+  paths,
   ...
 }: let
+  path = paths.src.store;
   treefmt = pkgFor {
     input = "treefmt-nix";
     target = "treefmt";
@@ -162,46 +163,5 @@
   ];
 in {
   inherit formatter formatters;
-  checks.formatting = config.config.build.check src.path;
+  checks.formatting = config.config.build.check path;
 }
-# args: let
-#   inherit (args) lix pkgFor pkgs src;
-#   inherit (pkgs) writeShellScriptBin runCommand;
-#   inherit (lix.sources.access) getExe;
-#   inherit (lix.sources.transformation) makeBinPath;
-#   treefmt = pkgFor {
-#     input = "treefmt-nix";
-#     target = "treefmt";
-#   };
-#   buildInputs =
-#     [treefmt.pkg]
-#     ++ (with pkgs; [
-#       actionlint
-#       alejandra
-#       deno
-#       dos2unix
-#       leptosfmt
-#       markdownlint-cli2
-#       nixfmt
-#       prettierd
-#       rustfmt
-#       shellcheck
-#       shfmt
-#       statix
-#       stylua
-#       tombi
-#       typstyle
-#       yamlfmt
-#     ]);
-#   formatter = writeShellScriptBin "treefmt" ''
-#     export PATH=${makeBinPath buildInputs}:$PATH
-#     exec ${treefmt.exe} "$@"
-#   '';
-# in {
-#   inherit formatter;
-#   formatters = buildInputs ++ [formatter];
-#   checks.formatting = runCommand "lint" {inherit buildInputs;} ''
-#     sh ${./fmt.sh} ${src.path} ${getExe formatter} "$out"
-#   '';
-# }
-

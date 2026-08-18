@@ -18,7 +18,7 @@ global: let
     exclude = ["shared" "ai"];
   };
 
-  inherit (args) mkName;
+  inherit (args) fetch mkName;
   inherit (shells) core;
 
   build =
@@ -53,7 +53,7 @@ in {
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
           (reverseList ["core" "hermes"]);
         shellHook = ''
-          ${core.shellHook}
+          ${fetch.name} --full
           printf '\n>> Full profile - every devShell package installed <<\n\n'
         '';
         packages = concatMap (cfg: cfg.packages or []) (attrValues shells);

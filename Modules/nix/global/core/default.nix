@@ -1,78 +1,22 @@
 {
   pkgs,
-  src,
-  lix,
   system,
+  fetch,
   isLinux,
   isDarwin,
-  writeShellScriptBin,
-  writeShellApplication,
+  cmdExists,
   optionals,
   ...
 }: let
-  description = "${src.name} Dev Environment";
-  inherit (lix.modules.core.software) mkFetch;
+  description = "Core Environment";
 
   #|---------------------------------------------------------|
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
-  fetcher = "${src.name}-fetch";
   packages =
     [
-      (writeShellScriptBin "is_cmd" ''
-        command -v "$@" >/dev/null 2>&1
-      '')
-      (mkFetch {inherit pkgs;})
-      # (writeShellApplication {
-      #   name = fetcher;
-      #   runtimeInputs = with pkgs; [
-      #     fastfetch
-      #     nitch
-      #     onefetch
-      #     tokei
-      #     git
-      #   ];
-      #   text = ''
-      #     onefetch_min() {
-      #       onefetch \
-      #         --no-art \
-      #         --no-title \
-      #         --no-color-palette \
-      #         --disabled-fields \
-      #           project \
-      #           description \
-      #           head \
-      #           version \
-      #           created \
-      #           languages \
-      #           dependencies \
-      #           authors \
-      #           commits \
-      #           lines-of-code \
-      #           churn \
-      #           size \
-      #           contributors \
-      #           url \
-      #           license
-      #     }
-
-      #     if [ "''${1:-}" = "--full" ]; then
-      #       nitch
-      #       printf '\n'
-      #       if [ -d .git ]; then
-      #         onefetch
-      #         printf '\n'
-      #       fi
-      #       tokei .
-      #     else
-      #       fastfetch
-      #       printf '\n'
-      #       if [ -d .git ]; then
-      #         onefetch_min
-      #       fi
-      #     fi
-      #   '';
-      # })
+      cmdExists
+      fetch
     ]
     ++ (
       with pkgs;
@@ -169,16 +113,14 @@
     fi
 
     #> Use starship for prompt
-    if is_cmd starship; then
+    if cmd-exists starship; then
       STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
 
     #> Display shell information with the defined fetcher
-    if is_cmd ${fetcher}; then
-      ${fetcher}
-    else :; fi
+    ${fetch.name}
   '';
 in {
   inherit

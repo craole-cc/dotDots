@@ -1,9 +1,4 @@
-{
-  _,
-  names,
-  paths,
-  ...
-}: let
+{_, ...}: let
   meta = let
     doc = ''
       # Core Software [Layer 3]
@@ -150,8 +145,9 @@
   };
 
   mkFetch = {
-    name ? names.src,
+    name,
     pkgs,
+    paths,
   }:
     pkgs.writeShellApplication {
       name = "${name}-fetch";
