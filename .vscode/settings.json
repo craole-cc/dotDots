@@ -1,4 +1,5 @@
 {
+  "harper.dialect": "British",
   // "git.enabled": false,
   "fileinator.ignoredFolders": [
     "**/$RECYCLE.BIN",

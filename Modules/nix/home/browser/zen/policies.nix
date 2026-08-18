@@ -1,7 +1,7 @@
 {paths, ...}: {
   AutofillAddressEnabled = true;
   AutofillCreditCardEnabled = false;
-  DefaultDownloadDirectory = paths.downloads;
+  DefaultDownloadDirectory = paths.user.downloads.local; # TODO: This needs to be an option
   DisableAppUpdate = true;
   DisableFeedbackCommands = true;
   DisableFirefoxStudies = true;

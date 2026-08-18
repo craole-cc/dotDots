@@ -1,6 +1,7 @@
 {
   pkgs,
   src,
+  lix,
   system,
   isLinux,
   isDarwin,
@@ -10,6 +11,7 @@
   ...
 }: let
   description = "${src.name} Dev Environment";
+  inherit (lix.modules.core.software) mkFetch;
 
   #|---------------------------------------------------------|
   #| Packages -----------------------------------------------|
@@ -20,56 +22,57 @@
       (writeShellScriptBin "is_cmd" ''
         command -v "$@" >/dev/null 2>&1
       '')
-      (writeShellApplication {
-        name = fetcher;
-        runtimeInputs = with pkgs; [
-          fastfetch
-          nitch
-          onefetch
-          tokei
-          git
-        ];
-        text = ''
-          onefetch_min() {
-            onefetch \
-              --no-art \
-              --no-title \
-              --no-color-palette \
-              --disabled-fields \
-                project \
-                description \
-                head \
-                version \
-                created \
-                languages \
-                dependencies \
-                authors \
-                commits \
-                lines-of-code \
-                churn \
-                size \
-                contributors \
-                url \
-                license
-          }
+      (mkFetch {inherit pkgs;})
+      # (writeShellApplication {
+      #   name = fetcher;
+      #   runtimeInputs = with pkgs; [
+      #     fastfetch
+      #     nitch
+      #     onefetch
+      #     tokei
+      #     git
+      #   ];
+      #   text = ''
+      #     onefetch_min() {
+      #       onefetch \
+      #         --no-art \
+      #         --no-title \
+      #         --no-color-palette \
+      #         --disabled-fields \
+      #           project \
+      #           description \
+      #           head \
+      #           version \
+      #           created \
+      #           languages \
+      #           dependencies \
+      #           authors \
+      #           commits \
+      #           lines-of-code \
+      #           churn \
+      #           size \
+      #           contributors \
+      #           url \
+      #           license
+      #     }
 
-          if [ "''${1:-}" = "--full" ]; then
-            nitch
-            printf '\n'
-            if [ -d .git ]; then
-              onefetch
-              printf '\n'
-            fi
-            tokei .
-          else
-            fastfetch
-            printf '\n'
-            if [ -d .git ]; then
-              onefetch_min
-            fi
-          fi
-        '';
-      })
+      #     if [ "''${1:-}" = "--full" ]; then
+      #       nitch
+      #       printf '\n'
+      #       if [ -d .git ]; then
+      #         onefetch
+      #         printf '\n'
+      #       fi
+      #       tokei .
+      #     else
+      #       fastfetch
+      #       printf '\n'
+      #       if [ -d .git ]; then
+      #         onefetch_min
+      #       fi
+      #     fi
+      #   '';
+      # })
     ]
     ++ (
       with pkgs;

@@ -56,7 +56,7 @@
     replaceVarsWith {
       src = ./toggle.sh;
       replacements = {
-        cfgApi = "${paths.api.user}";
+        cfgApi = paths.api.users.local;
         cfgPolarity = polarity;
         cfgCaelestiaFlavour = caelestiaFlavour polarity;
         cfgVscodeTheme =
@@ -73,7 +73,7 @@
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
-        cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
+        # cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
         cmdThemeToggle = "theme-toggle";
       };
       name = "nixos-theme";

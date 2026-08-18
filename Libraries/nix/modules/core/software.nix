@@ -1,4 +1,9 @@
-{_, ...}: let
+{
+  _,
+  names,
+  paths,
+  ...
+}: let
   meta = let
     doc = ''
       # Core Software [Layer 3]
@@ -41,7 +46,7 @@
       - `_.attrsets.*`            - construction, merging, transformation
       - `_.modules.construction`  - mkForce
     '';
-    functions = {inherit mkNix mkMaintenance;};
+    functions = {inherit mkNix mkMaintenance mkFetch;};
     exports = {
       local = functions;
       alias = {
@@ -144,6 +149,16 @@
     systemd.services.nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
   };
 
+  mkFetch = {
+    name ? names.src,
+    pkgs,
+  }:
+    pkgs.writeShellApplication {
+      name = "${name}-fetch";
+      runtimeInputs = with pkgs; [fastfetch nitch onefetch tokei git];
+      text = readFile (paths.lib.sh.store + "/data/fetch");
+    };
+
   /**
   Build a NixOS configuration fragment for automated Nix store maintenance.
 
@@ -178,16 +193,10 @@
     ...
   }: let
     inherit (src) name;
-    inherit (pkgs) writeShellApplication;
     keepArgs = concat " " keep.args;
     flake = src.home.local;
 
-    fetch = writeShellApplication {
-      name = "${name}-fetch";
-      runtimeInputs = with pkgs; [fastfetch nitch onefetch tokei git];
-      text = readFile (paths.lib.sh.store + "/data/fetch");
-      # text = readFile ./fetch.sh;
-    };
+    fetch = mkFetch {inherit name pkgs paths;};
   in {
     programs = {
       nh = {
