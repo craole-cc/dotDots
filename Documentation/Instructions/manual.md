@@ -78,11 +78,11 @@ ssh craole@preci
 
 Tailscale hostnames (from `tailscale status`):
 
-| Hostname     | IP              | OS      |
-|--------------|-----------------|---------|
-| preci        | 100.68.57.127   | linux   |
-| victus       | 100.90.252.109  | linux   |
-| dbook        | 100.75.7.128    | linux   |
-| qbx-nixos    | 100.94.220.55   | linux   |
-| victus-win   | 100.102.11.27   | windows |
-| qbx-win11    | 100.97.229.52   | windows |
+| Hostname   | IP             | OS      |
+| ---------- | -------------- | ------- |
+| preci      | 100.68.57.127  | linux   |
+| victus     | 100.90.252.109 | linux   |
+| dbook      | 100.75.7.128   | linux   |
+| qbx-nixos  | 100.94.220.55  | linux   |
+| victus-win | 100.102.11.27  | windows |
+| qbx-win11  | 100.97.229.52  | windows |

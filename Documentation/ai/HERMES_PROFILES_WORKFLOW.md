@@ -5,11 +5,13 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
 ## Profiles
 
 ### default
+
 - Provider/model: OpenAI Codex / gpt-5.4
 - Role: fallback everyday profile
 - Use when: you want the current default behavior and do not care about role separation
 
 ### dev
+
 - Provider/model: OpenAI Codex / gpt-5.4
 - Role: implementation and debugging
 - Use when:
@@ -22,6 +24,7 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
   - "Refactor this config and run the relevant checks"
 
 ### research
+
 - Provider/model: Google Gemini CLI / gemini-3-flash-preview
 - Role: learning and architectural exploration
 - Use when:
@@ -35,6 +38,7 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
   - "Teach me the tradeoffs before I build this"
 
 ### writing
+
 - Provider/model: Google Gemini CLI / gemini-3-flash-preview
 - Role: Typst, education, and business writing
 - Use when:
@@ -47,6 +51,7 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
   - "Rewrite this service description for parents/schools"
 
 ### lab
+
 - Provider/model: OpenRouter / nvidia/nemotron-3-super-120b-a12b:free
 - Role: experiments and provider/model trials
 - Use when:
@@ -95,6 +100,7 @@ hermes --profile lab chat -q "test three low-cost prompt approaches"
 ## Promotion rule
 
 Only promote work upward:
+
 - lab -> research/dev/writing when an experiment proves useful
 - research -> dev when a plan is solid
 - writing -> dev only when you need automation or generation support

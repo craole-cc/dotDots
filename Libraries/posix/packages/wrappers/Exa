@@ -7,7 +7,7 @@ exa --help > /dev/null 2>&1 || {
 
 exa \
   --icons \
-  --colour-scale \
+  --color-scale \
   --sort=.name \
   --header \
   --time modified \

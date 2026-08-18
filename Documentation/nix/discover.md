@@ -1,6 +1,6 @@
 # Nix Discovery Notes
 
-This document records the *discovered* shape of the repo’s Nix code, with a focus on what the implementation currently does rather than the intended abstract model.
+This document records the _discovered_ shape of the repo’s Nix code, with a focus on what the implementation currently does rather than the intended abstract model.
 
 Stable conceptual architecture lives in `Documentation/nix/architecture.md`. This file is the practical map: what to open first, where logic lives, and how the Nix layers connect in this repo.
 
@@ -39,6 +39,7 @@ The important detail is that `Libraries/nix` is not just a helper folder. It is 
 This is the flake output driver.
 
 It:
+
 - defines external inputs
 - imports the repo root
 - receives `lix`, `tree`, `schema`, and `top`
@@ -50,6 +51,7 @@ It:
 This is the local assembly point.
 
 It:
+
 - imports `Libraries/nix`
 - exposes the `lix` namespace
 - builds `tree` via `lix.filesystem.tree.mkTree`
@@ -74,6 +76,7 @@ It is structured as a layered standard library with these major concerns:
 - `options/` — option construction helpers
 
 The library is self-assembling:
+
 - `Libraries/nix/default.nix` imports the library root
 - `Libraries/nix/internal/default.nix` scans and assembles the modules
 - modules export `__docs`, `__tests`, and `__rootAliases` in addition to their functions
@@ -99,6 +102,7 @@ Important shapes:
 - `tree.store.cfg.*` / `tree.store.env.*` → config/environment paths
 
 Key observation:
+
 - `tree` is not a convenience wrapper
 - it is the repo’s canonical location API
 
@@ -111,27 +115,33 @@ If a path already exists in `tree`, prefer using that over inventing a new relat
 The repo is intentionally split into three roles:
 
 ### `API/nix`
+
 Data only.
 
 Contains the source of truth for:
+
 - hosts
 - users
 - host-specific declarations
 - user-specific preferences
 
 ### `Modules/nix`
+
 Behavior.
 
 Contains the reusable module logic for:
+
 - NixOS system behavior
 - Home Manager behavior
 - global flake outputs
 - host/user module composition
 
 ### `Libraries/nix`
+
 Infrastructure.
 
 Contains the reusable machinery that makes the other layers work:
+
 - tree/path resolution
 - schema construction
 - module assembly
@@ -150,6 +160,7 @@ This split is one of the strongest patterns in the repo and should be preserved 
 This is the orchestration layer.
 
 It defines:
+
 - `mkSystems`
 - `mkFlake`
 - `mkCore`
@@ -157,6 +168,7 @@ It defines:
 - `mkTree` re-exported in the module construction namespace
 
 Important behavior:
+
 - `mkSystems` evaluates each host from `schema.hosts`
 - it resolves packages and modules from flake inputs
 - it builds host `specialArgs`
@@ -168,6 +180,7 @@ Important behavior:
 This builds the `home-manager.users` attrset.
 
 It:
+
 - turns schema users into HM user configs
 - derives per-user paths and environment context
 - injects user-facing module args like `style`, `apps`, `keyboard`, `locale`, `paths`
@@ -188,6 +201,7 @@ In this repo, “core” is the host/system layer that wires Home Manager, packa
 This normalizes flake inputs into a canonical internal shape.
 
 It handles:
+
 - alias resolution
 - case-insensitive lookup
 - stable/unstable nixpkgs selection
@@ -198,6 +212,7 @@ It handles:
 This resolves module sets from flake inputs.
 
 It distinguishes between:
+
 - core system modules
 - home-manager modules
 - per-input module families
@@ -207,6 +222,7 @@ It distinguishes between:
 This resolves packages and overlays from flake inputs.
 
 It builds:
+
 - `nixpkgs`
 - overlays
 - package sets
@@ -225,6 +241,7 @@ This turns `API/nix` data into evaluable structures.
 It imports host and user directories and then enriches host records through `mkCore`.
 
 The result is a structured schema with:
+
 - `hosts`
 - `users`
 
@@ -247,6 +264,7 @@ These conventions are visible across the Nix codebase:
 - long files use explicit docstrings and section headers to stay navigable
 
 The repo strongly prefers:
+
 - explicit contracts
 - named exports
 - structured attrsets
@@ -287,6 +305,6 @@ For common investigations:
 
 The repo’s Nix code is built around a single idea:
 
-> *Model the repository itself as structured data, then use the library layer to turn that structure into evaluated systems.*
+> _Model the repository itself as structured data, then use the library layer to turn that structure into evaluated systems._
 
 That is why `Libraries/nix` matters so much: it is the infrastructure that keeps the rest of the flake coherent.

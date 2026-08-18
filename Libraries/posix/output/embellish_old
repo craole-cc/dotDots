@@ -75,9 +75,9 @@ parse_arguments() {
       ansi_code="9"
       ;;
     -*black* | -*red* | -*green* | -*yellow* | -*blue* | -*magenta* | -*cyan* | -*white*)
-      attribute="colour"
+      attribute="color"
 
-      #{ Set the colour name and code
+      #{ Set the color name and code
       case "$1" in
       *black*) color_name="black" color_code=0 ;;
       *red*) color_name="red" color_code=1 ;;
@@ -89,7 +89,7 @@ parse_arguments() {
       *white*) color_name="white" color_code=7 ;;
       esac
 
-      #{ Set the colour class
+      #{ Set the color class
       case "$1" in
       *bg*)
         class="background"

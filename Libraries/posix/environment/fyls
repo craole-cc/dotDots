@@ -19,7 +19,7 @@ set_defaults() {
 
   #{ Initialize flags
   all=false
-  colour=true
+  color=true
   depth=0
   git=true
   git_ignore=false
@@ -69,8 +69,8 @@ parse_arguments() {
       shift
       ;;
     -a | --all) all=true ;;
-    -c | --colour) colour=true ;;
-    --no-colour) colour=false ;;
+    -c | --color) color=true ;;
+    --no-color) color=false ;;
     --*dir*first) priority="directories" ;;
     --*dir*last) priority="files" ;;
     --no-group) priority="none" ;;
@@ -97,7 +97,7 @@ parse_arguments() {
     -L | --link | --sym*) target="link" ;;
     -o | --octal) octal=true ;;
     --pag*) pagination=true ;;
-    -P | --pretty) colour=true icons=true ;;
+    -P | --pretty) color=true icons=true ;;
     -p | --permission)
       case "${2:-}" in "") ;;
       attributes | rwx | octal | none)
@@ -145,7 +145,7 @@ set_environment() {
   fi
 
   case "${all}" in true | 1 | on | yes) ;; *) all="" ;; esac
-  case "${colour}" in true | 1 | on | yes) ;; *) colour="" ;; esac
+  case "${color}" in true | 1 | on | yes) ;; *) color="" ;; esac
 
   case "${git}" in true | 1 | on | yes) ;; *) git="" ;; esac
   case "${git_ignore}" in true | 1 | on | yes) ;; *) git_ignore="" ;; esac
@@ -157,7 +157,7 @@ set_environment() {
     icons=""
     pager="$(check_command CMD_BAT bat)"
     if [ -n "${pager:-}" ]; then
-      pager="${pager} --colour=always --style=plain"
+      pager="${pager} --color=always --style=plain"
     else
       pager="less -R"
     fi
@@ -261,8 +261,8 @@ use_eza() {
     _cmd="${_cmd:+${_cmd}${delimiter}}--almost-all"
   fi
 
-  if [ -z "${colour:-}" ]; then :; else
-    _cmd="${_cmd:+${_cmd}${delimiter}}--colour always --colour-scale"
+  if [ -z "${color:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--color always --color-scale"
   fi
 
   case "${priority}" in
@@ -338,8 +338,8 @@ use_lsd() {
     _cmd="${_cmd:+${_cmd}${delimiter}}--almost-all"
   fi
 
-  if [ -z "${colour:-}" ]; then :; else
-    _cmd="${_cmd:+${_cmd}${delimiter}}--colour always"
+  if [ -z "${color:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--color always"
   fi
 
   case "${priority}" in
@@ -402,8 +402,8 @@ get_options_lsd_old() {
     opts="${opts:+${opts}${delimiter}}--almost-all"
   fi
 
-  if [ -z "${colour:-}" ]; then :; else
-    opts="${opts:+${opts}${delimiter}}--colour always"
+  if [ -z "${color:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--color always"
   fi
 
   case "${priority}" in
@@ -511,7 +511,7 @@ execute_process() {
 	OPTIONS:
 		--blocks <blocks>...            Specify the blocks that will be displayed and in what order [possible values: permission, user, group, context, size,
 																		date, name, inode, links]
-		--colour <colour>...              When to use terminal colors [default: auto]  [possible values: always, auto, never]
+		--color <color>...              When to use terminal colors [default: auto]  [possible values: always, auto, never]
 		--config-file <config-file>     Provide a custom lsd configuration file
 		--date <date>...                How to display date [possible values: date, relative, +date-time-format] [default: date]
 		--depth <num>...                Stop recursing into directories after reaching specified depth
@@ -684,7 +684,7 @@ PLS
 															otherwise: sort by ctime, newest first
 
 		-C                         list entries by columns
-				--colour[=WHEN]         colour the output WHEN; more info below
+				--color[=WHEN]         color the output WHEN; more info below
 		-d, --directory            list directories themselves, not their contents
 		-D, --dired                generate output designed for Emacs' dired mode
 		-f                         list all entries in directory order
@@ -789,8 +789,8 @@ PLS
 
 	The WHEN argument defaults to 'always' and can also be 'auto' or 'never'.
 
-	Using colour to distinguish file types is disabled both by default and
-	with --colour=never.  With --colour=auto, ls emits colour codes only when
+	Using color to distinguish file types is disabled both by default and
+	with --color=never.  With --color=auto, ls emits color codes only when
 	standard output is connected to a terminal.  The LS_COLORS environment
 	variable can change the settings.  Use the dircolors(1) command to set it.
 

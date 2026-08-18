@@ -1,15 +1,15 @@
 {
   "LWI.breakpoints": [
     {
-      "colour": "rgb(0, 255, 0, 0.6)",
+      "color": "rgb(0, 255, 0, 0.6)",
       "column": 54
     },
     {
-      "colour": "rgb(255, 255, 0, 0.6)",
+      "color": "rgb(255, 255, 0, 0.6)",
       "column": 69
     },
     {
-      "colour": "rgb(255, 0, 0, 0.6)",
+      "color": "rgb(255, 0, 0, 0.6)",
       "column": 79
     }
   ],
@@ -194,7 +194,7 @@
     "rust-toolchain": "rust",
     "rust-toolchain.toml": "rust"
   },
-  "material-icon-theme.files.colour": "#e8ddd8",
+  "material-icon-theme.files.color": "#e8ddd8",
   "material-icon-theme.folders.associations": {
     ".cargo": "config",
     "desktops": "interfaces",
@@ -209,7 +209,7 @@
     "types": "Enum",
     "users": "admin"
   },
-  "material-icon-theme.folders.colour": "#81c8be",
+  "material-icon-theme.folders.color": "#81c8be",
   "material-icon-theme.hidesExplorerArrows": true,
   "nix.enableLanguageServer": true,
   "nix.serverPath": "nixd",

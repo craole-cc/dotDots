@@ -368,16 +368,16 @@ belongs in `Modules/nix`. Infrastructure belongs in `Libraries/nix`.
 
 ## Reference Documents
 
-| Document               | Contents                                    |
-| ---------------------- | ------------------------------------------- |
-| `../nix/README.md`     | Canonical Nix doc index                     |
-| `../nix/architecture.md` | Evaluation flow and layer model           |
-| `../nix/conventions.md` | Repository rules and role boundaries       |
-| `../nix/discover.md`    | Practical Nix discovery notes              |
-| `../nix/style/`         | Split Nix style guidance with examples     |
-| `../nix/tasks.md`      | Investigation flows for common change types |
-| `AGENTS.md`            | Quick-reference navigation guide            |
-| Tool-specific adapters | `CODEX.md`, `CURSOR.md`, etc.               |
+| Document                 | Contents                                    |
+| ------------------------ | ------------------------------------------- |
+| `../nix/README.md`       | Canonical Nix doc index                     |
+| `../nix/architecture.md` | Evaluation flow and layer model             |
+| `../nix/conventions.md`  | Repository rules and role boundaries        |
+| `../nix/discover.md`     | Practical Nix discovery notes               |
+| `../nix/style/`          | Split Nix style guidance with examples      |
+| `../nix/tasks.md`        | Investigation flows for common change types |
+| `AGENTS.md`              | Quick-reference navigation guide            |
+| Tool-specific adapters   | `CODEX.md`, `CURSOR.md`, etc.               |
 
 ---
 

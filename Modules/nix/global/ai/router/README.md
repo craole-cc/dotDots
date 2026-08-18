@@ -23,9 +23,9 @@ No single free provider is rate-limit-proof. The actual strategy is: **connect s
 3. **Configure Providers & Your NIM Key:**
    - **Providers** → Connect 3-5+ free-tier providers (OpenRouter free models, Gemini free tier, GLM free tier, etc. — whatever's available at signup time).
    - **NIM API Key** → Since you are using NVIDIA NIM, add a Custom OpenAI-compatible provider:
-     - *Base URL:* `https://integrate.api.nvidia.com/v1`
-     - *API Key:* Paste your NIM API Key here.
-   - **Endpoints** → Create an API key. This is what your coding tools will use — *not* your individual provider keys.
+     - _Base URL:_ `https://integrate.api.nvidia.com/v1`
+     - _API Key:_ Paste your NIM API Key here.
+   - **Endpoints** → Create an API key. This is what your coding tools will use — _not_ your individual provider keys.
    - **Combos** → Define a fallback order across the providers you connected. This ordering is what actually prevents you from getting stuck when one provider throttles you.
 
 4. **Point OpenCode at the gateway:**
@@ -38,7 +38,7 @@ No single free provider is rate-limit-proof. The actual strategy is: **connect s
    #   API key:  <the Endpoint key from step 3>
    ```
 
-   *(Exact flag names may drift between OpenCode releases — check `opencode --help` if the above doesn't match what you see.)*
+   _(Exact flag names may drift between OpenCode releases — check `opencode --help` if the above doesn't match what you see.)_
 
 ## Day to day
 

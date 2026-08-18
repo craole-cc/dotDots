@@ -21,7 +21,7 @@ case "$SHELL" in
       exa \
         --all \
         --long \
-        --colour-scale \
+        --color-scale \
         --icons \
         --group-directories-first \
         "$@"

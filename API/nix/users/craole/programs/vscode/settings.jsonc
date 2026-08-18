@@ -1,9 +1,9 @@
 {
   "license.author": "Craig 'Craole' Cole",
   "license.default": "mit",
-  //> ====================================================
-  //> TYPOGRAPHY
-  //> ====================================================
+  // >====================================================
+  // > TYPOGRAPHY
+  // >====================================================
   "custom-ui-style.font.sansSerif": "'Maple Mono NF', 'Monaspace Radon', 'Dank Mono'",
   "custom-ui-style.font.monospace": "'Maple Mono NF', 'Operator-caska', 'Operator Mono Lig', 'VictorMono Nerd Font','Dank Mono','Hack Nerd Font', monospace",
   "editor.fontFamily": "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace",
@@ -20,9 +20,9 @@
   "terminal.integrated.fontWeight": 500,
   "terminal.integrated.letterSpacing": 0,
   "terminal.integrated.lineHeight": 1.2,
-  //> ====================================================
-  //> THEME & VISUAL CUSTOMIZATION
-  //> ====================================================
+  // >====================================================
+  // > THEME & VISUAL CUSTOMIZATION
+  // >====================================================
   "animations.CursorAnimation": true,
   "animations.Install-Method": "Custom UI Style",
   "animations.UseCursorColorForCursorAnimation": true,
@@ -116,25 +116,25 @@
           "text.html.basic entity.other.attribute-name.html",
           "text.html.basic entity.other.attribute-name",
           "variable.language",
-          "variable.other.object.property"
+          "variable.other.object.property",
         ],
         "settings": {
-          "fontStyle": "italic"
-        }
-      }
-    ]
+          "fontStyle": "italic",
+        },
+      },
+    ],
   },
   "window.autoDetectColorScheme": true,
   "window.titleBarStyle": "custom",
   "workbench.colorCustomizations": {
     "editorGroupHeader.tabsBackground": "#ffffff00",
     "statusBar.background": "#ffffff00",
-    "statusBar.border": "#3c69e750"
+    "statusBar.border": "#3c69e750",
   },
   "workbench.commandPalette.preserveInput": true,
   "workbench.editorAssociations": {
     "*.copilotmd": "vscode.markdown.preview.editor",
-    "*.pdf": "pdf.view"
+    "*.pdf": "pdf.view",
   },
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredLightColorTheme": "Bluloco Light Italic",
@@ -147,9 +147,9 @@
   "workbench.productIconTheme": "el-vsc-v1-icons",
   "window.menuBarVisibility": "compact",
   "window.autoDetectHighContrast": true,
-  //> ====================================================
-  //> GLOBAL FEATURES
-  //> ====================================================
+  // >====================================================
+  // > GLOBAL FEATURES
+  // >====================================================
   "extensions.ignoreRecommendations": true,
   "update.mode": "manual",
   "window.zoomPerWindow": true,
@@ -157,9 +157,9 @@
   "workbench.quickOpen.preserveInput": true,
   "workbench.settings.openDefaultKeybindings": true,
   "workbench.startupEditor": "none",
-  //> ====================================================
-  //> EDITOR FEATURES
-  //> ====================================================
+  // >====================================================
+  // > EDITOR FEATURES
+  // >====================================================
   "editor.accessibilitySupport": "off",
   "editor.cursorBlinking": "expand",
   "editor.cursorSmoothCaretAnimation": "on",
@@ -178,7 +178,7 @@
   "editor.mouseWheelZoom": false,
   "editor.occurrencesHighlight": "off",
   "editor.quickSuggestions": {
-    "strings": "on"
+    "strings": "on",
   },
   "editor.renderLineHighlight": "gutter",
   "editor.selectionHighlight": false,
@@ -186,28 +186,28 @@
   "editor.semanticTokenColorCustomizations": {
     "rules": {
       "interface": {
-        "italic": true
+        "italic": true,
       },
       "selfParameter": {
-        "italic": true
+        "italic": true,
       },
       "keyword": {
-        "italic": true
+        "italic": true,
       },
       "*.static": {
-        "italic": true
-      }
-    }
+        "italic": true,
+      },
+    },
   },
   "editor.stickyScroll.enabled": false,
   "editor.suggestSelection": "recentlyUsedByPrefix",
   "explorer.compactFolders": false,
-  //> ====================================================
-  //> TERMINAL FEATURES
-  //> ====================================================
+  // >====================================================
+  // > TERMINAL FEATURES
+  // >====================================================
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.commandsToSkipShell": [
-    "workbench.action.terminal.copySelection"
+    "workbench.action.terminal.copySelection",
   ],
   "terminal.integrated.confirmOnExit": "never",
   "terminal.integrated.copyOnSelection": true,
@@ -220,30 +220,33 @@
   "terminal.integrated.profiles.windows": {
     "NixOS (WSL)": {
       "path": "C:\\WINDOWS\\System32\\wsl.exe",
-      "args": ["-d", "NixOS"]
+      "args": [
+        "-d",
+        "NixOS",
+      ],
     },
     "Git Bash": {
-      "source": "Git Bash"
+      "source": "Git Bash",
     },
     "PowerShell": {
       "source": "PowerShell",
-      "icon": "terminal-powershell"
+      "icon": "terminal-powershell",
     },
     "Command Prompt": {
       "path": [
         "${env:windir}\\Sysnative\\cmd.exe",
-        "${env:windir}\\System32\\cmd.exe"
+        "${env:windir}\\System32\\cmd.exe",
       ],
       "args": [],
-      "icon": "terminal-cmd"
-    }
+      "icon": "terminal-cmd",
+    },
   },
   "terminal.integrated.mouseWheelZoom": false,
   "terminal.integrated.rightClickBehavior": "copyPaste",
   "terminal.integrated.smoothScrolling": true,
-  //> ====================================================
-  //> FILE HANDLING
-  //> ====================================================
+  // >====================================================
+  // > FILE HANDLING
+  // >====================================================
   "files.associations": {
     "**/*.conf": "ini",
     "**/conf*/{fuzzel,ghostty,mpv,hyprland}/*": "ini",
@@ -270,7 +273,7 @@
     "LICENSE": "txt",
     "LICENSE-MIT": "txt",
     "README": "markdown",
-    "editorconfig": "ini"
+    "editorconfig": "ini",
   },
   "files.autoSave": "afterDelay",
   "files.eol": "\n",
@@ -306,7 +309,7 @@
     "flake.nix": false,
     "review": false,
     "**/System Volume Information": false,
-    "**/target": false
+    "**/target": false,
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
@@ -319,11 +322,11 @@
     "**/.trunk/*logs/": true,
     "**/.trunk/*notifications/": true,
     "**/.trunk/*out/": true,
-    "**/.trunk/*plugins/": true
+    "**/.trunk/*plugins/": true,
   },
-  //> ====================================================
-  //> GIT CONFIGURATION
-  //> ====================================================
+  // >====================================================
+  // > GIT CONFIGURATION
+  // >====================================================
   "git.allowForcePush": true,
   "git.autofetch": true,
   "git.confirmForcePush": false,
@@ -332,16 +335,16 @@
   "git.ignoreRebaseWarning": true,
   "git.openRepositoryInParentFolders": "always",
   "git.rebaseWhenSync": true,
-  //> ====================================================
-  //> LANGUAGE-SPECIFIC SETTINGS
-  //> ====================================================
+  // >====================================================
+  // > LANGUAGE-SPECIFIC SETTINGS
+  // >====================================================
   "editor.defaultFormatter": "ibecker.treefmt-vscode",
   "[astro]": {
     // "editor.defaultFormatter": "astro-build.astro-vscode"
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
   },
   "[bats]": {
-    "editor.defaultFormatter": "mkhl.shfmt"
+    "editor.defaultFormatter": "mkhl.shfmt",
   },
   "[dockercompose]": {
     // "editor.defaultFormatter": "ms-azuretools.vscode-docker"
@@ -350,32 +353,32 @@
     // "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   "[dotenv]": {
-    "editor.defaultFormatter": "mkhl.shfmt"
+    "editor.defaultFormatter": "mkhl.shfmt",
   },
   "[gitignore]": {},
   "[html]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
   },
   "[ignore]": {
-    "editor.defaultFormatter": "lkrms.inifmt"
+    "editor.defaultFormatter": "lkrms.inifmt",
   },
   "[ini]": {
-    "editor.defaultFormatter": "lkrms.inifmt"
+    "editor.defaultFormatter": "lkrms.inifmt",
   },
   "[javascript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
   },
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+    "editor.defaultFormatter": "vscode.json-language-features",
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
   },
   "[markdown]": {
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
   },
   "[nix]": {
-    "editor.defaultFormatter": "jnoortheen.nix-ide"
+    "editor.defaultFormatter": "jnoortheen.nix-ide",
   },
   "nix.serverPath": "nixd",
   "nix.enableLanguageServer": true,
@@ -383,14 +386,14 @@
     "nixd": {
       "formatting": {
         "command": [
-          "alejandra"
+          "alejandra",
           // "nixfmt"
           // "nixpkgs-fmt"
-        ]
-      }
-    }
+        ],
+      },
+    },
   },
-  //~@ Powershell
+  // ~@ Powershell
   "powershell.codeFormatting.autoCorrectAliases": true,
   "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
   "powershell.codeFormatting.useConstantStrings": true,
@@ -407,10 +410,10 @@
     "editor.tabCompletion": "on",
     "files.autoGuessEncoding": true,
     "files.encoding": "utf8bom",
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
   },
   "[properties]": {
-    "editor.defaultFormatter": "yy0931.gitconfig-lsp"
+    "editor.defaultFormatter": "yy0931.gitconfig-lsp",
   },
   "[ruby]": {
     // "editor.defaultFormatter": "LoranKloeze.ruby-rubocop-revived",
@@ -418,30 +421,30 @@
   "rubyLsp.enableExperimentalFeatures": true,
   // "rubyLsp.rubyExecutablePath": "c:\\Tools\\ruby33\\bin\\ruby.exe",
   "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
   },
   "rust-analyzer.check.command": "clippy",
   "[shellscript]": {
-    "editor.defaultFormatter": "mkhl.shfmt"
+    "editor.defaultFormatter": "mkhl.shfmt",
   },
   "[svg]": {
     // "editor.defaultFormatter": "jock.svg"
   },
   "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml"
+    "editor.defaultFormatter": "tamasfe.even-better-toml",
   },
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
   },
   "typescript.inlayHints.parameterNames.enabled": "all",
   "tailwindCSS.includeLanguages": {
-    "plaintext": "html"
+    "plaintext": "html",
   },
   "[typst]": {
-    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
   },
   "[typst-code]": {
-    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
   },
   "[xml]": {
     // "editor.defaultFormatter": "DotJoshJohnson.xml"
@@ -450,28 +453,28 @@
     // "editor.defaultFormatter": "redhat.vscode-yaml"
     // "editor.defaultFormatter": "bluebrown.yamlfmt"
   },
-  //> ====================================================
-  //> MINIMAP AND LINE INDICATORS
-  //> ====================================================
+  // >====================================================
+  // > MINIMAP AND LINE INDICATORS
+  // >====================================================
   "LWI.breakpoints": [
     {
-      "colour": "rgb(0, 255, 0, 0.6)",
-      "column": 54
+      "color": "rgb(0, 255, 0, 0.6)",
+      "column": 54,
     },
     {
-      "colour": "rgb(255, 255, 0, 0.6)",
-      "column": 69
+      "color": "rgb(255, 255, 0, 0.6)",
+      "column": 69,
     },
     {
-      "colour": "rgb(255, 0, 0, 0.6)",
-      "column": 79
-    }
+      "color": "rgb(255, 0, 0, 0.6)",
+      "column": 79,
+    },
   ],
   "LWI.style.fontStyle": "italic",
   "LWI.style.fontWeight": "100",
-  //> ====================================================
-  //> MATERIAL ICON THEME
-  //> ====================================================
+  // >====================================================
+  // > MATERIAL ICON THEME
+  // >====================================================
   "material-icon-theme.activeIconPack": "react",
   "material-icon-theme.files.associations": {
     // ".dotsrc": "teal",
@@ -484,9 +487,9 @@
     ".shellcheckrc": "astyle",
     ".treefmt.toml": "taze",
     "rust-toolchain": "rust",
-    "rust-toolchain.toml": "rust"
+    "rust-toolchain.toml": "rust",
   },
-  "material-icon-theme.files.colour": "#e8ddd8",
+  "material-icon-theme.files.color": "#e8ddd8",
   "material-icon-theme.folders.associations": {
     "users": "admin",
     "overlays": "plugin",
@@ -509,110 +512,148 @@
     ".cargo": "config",
     "benches": "debug",
     "options": "tasks",
-    "desktops": "interfaces"
+    "desktops": "interfaces",
   },
-  "material-icon-theme.folders.colour": "#81c8be",
+  "material-icon-theme.folders.color": "#81c8be",
   "material-icon-theme.folders.customClones": [
     {
       "name": "dots",
       "base": "ionic",
-      "colour": "teal-300",
+      "color": "teal-300",
       "lightColor": "teal-600",
       "fileNames": [
         ".dotsrc",
         ".dotsrc.sh",
         ".dotsrc.ps1",
         ".dotsrc.nu",
-        ".dotsrc.fish"
-      ]
+        ".dotsrc.fish",
+      ],
     },
     {
       "name": "rust-entrypoint",
       "base": "rust",
-      "colour": "amber-300",
+      "color": "amber-300",
       "lightColor": "amber-600",
-      "fileNames": ["lib.rs", "main.rs", "mod.rs"]
+      "fileNames": [
+        "lib.rs",
+        "main.rs",
+        "mod.rs",
+      ],
     },
     {
       "name": "nix-entrypoint",
       "base": "nix",
-      "colour": "green-300",
+      "color": "green-300",
       "lightColor": "green-600",
       "fileNames": [
         "default.nix",
         "flake.nix",
         "shell.nix",
-        "configuration.nix"
-      ]
+        "configuration.nix",
+      ],
     },
     {
       "name": "users",
       "base": "admin",
-      "colour": "light-green-300",
+      "color": "light-green-300",
       "lightColor": "light-green-700",
-      "folderNames": ["users", "user", "people"]
+      "folderNames": [
+        "users",
+        "user",
+        "people",
+      ],
     },
     {
       "name": "desktops",
       "base": "desktop",
-      "colour": "purple-300",
+      "color": "purple-300",
       "lightColor": "orange-700",
-      "folderNames": ["desktops", "desktop", "control"]
+      "folderNames": [
+        "desktops",
+        "desktop",
+        "control",
+      ],
     },
     {
       "name": "hosts",
       "base": "client",
-      "colour": "orange-300",
+      "color": "orange-300",
       "lightColor": "orange-700",
-      "folderNames": ["hosts", "host", "machine", "machines"]
+      "folderNames": [
+        "hosts",
+        "host",
+        "machine",
+        "machines",
+      ],
     },
     {
       "name": "programs",
       "base": "app",
-      "colour": "cyan-300",
+      "color": "cyan-300",
       "lightColor": "green-700",
-      "folderNames": ["program", "programs"]
+      "folderNames": [
+        "program",
+        "programs",
+      ],
     },
     {
       "name": "shell",
       "base": "scripts",
-      "colour": "green-600",
+      "color": "green-600",
       "lightColor": "green-500",
-      "folderNames": ["shell", "shellscript", "bash", "sh", "posix"]
+      "folderNames": [
+        "shell",
+        "shellscript",
+        "bash",
+        "sh",
+        "posix",
+      ],
     },
     {
       "name": "nixos",
       "base": "quasar",
-      "colour": "cyan-800",
+      "color": "cyan-800",
       "lightColor": "cyan-700",
-      "folderNames": ["nixos", "flake", "flakes", "nix"]
+      "folderNames": [
+        "nixos",
+        "flake",
+        "flakes",
+        "nix",
+      ],
     },
     {
       "name": "roles-admin",
       "base": "admin",
-      "colour": "purple-400",
-      "folderNames": ["roles"]
-    }
+      "color": "purple-400",
+      "folderNames": [
+        "roles",
+      ],
+    },
   ],
   "material-icon-theme.hidesExplorerArrows": true,
-  //> ====================================================
-  //> CSS CONFIGURATION
-  //> ====================================================
+  // >====================================================
+  // > CSS CONFIGURATION
+  // >====================================================
   "cssvar.files": [
     "./node_modules/open-props/open-props.min.css",
     "assets/styles/variables.css",
-    "style.css"
+    "style.css",
   ],
   "cssvar.ignore": [],
-  "cssvar.extensions": ["css", "postcss", "jsx", "tsx"],
-  //> ====================================================
-  //> INTELLISENSE & CODE ASSISTANCE
-  //> ====================================================
+  "cssvar.extensions": [
+    "css",
+    "postcss",
+    "jsx",
+    "tsx",
+  ],
+  // >====================================================
+  // > INTELLISENSE & CODE ASSISTANCE
+  // >====================================================
   "codeium.enableConfig": {
     "*": true,
     "nix": true,
     "jsonc": true,
-    "just": true
+    "just": true,
   },
   "codeium.enableSearch": true,
   "codeium.disableSupercomplete": true,
@@ -625,16 +666,16 @@
     "scminput": false,
     "nix": true,
     "shellscript": false,
-    "rust": false
+    "rust": false,
   },
   "github.copilot.nextEditSuggestions.enabled": true,
   "lldb.suppressUpdateNotifications": true,
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
   "lldb.consoleMode": "commands",
-  //> ====================================================
-  //> MARKDOWN & DOCUMENTATION
-  //> ====================================================
+  // >====================================================
+  // > MARKDOWN & DOCUMENTATION
+  // >====================================================
   "markdown.marp.enableHtml": true,
   "markdown.marp.pdf.noteAnnotations": true,
   "markdown.marp.pdf.outlines": "both",
@@ -645,143 +686,145 @@
   "markdown-pdf.format": "Letter",
   "markdown.marp.exportType": "html",
   "markdown.marp.strictPathResolutionDuringExport": true,
-  //> ====================================================
-  //> COMMENTS
-  //> ====================================================
+  // >====================================================
+  // > COMMENTS
+  // >====================================================
   "colorful-comments-refreshed.tags": [
     {
       "tag": "@",
       "italic": true,
       "backgroundColor": "#89a25722",
-      "colour": "#89a257"
+      "color": "#89a257",
     },
     {
       "tag": "~@",
       "italic": true,
       "backgroundColor": "#89a25722",
-      "colour": "#89a257"
+      "color": "#89a257",
     },
     {
       "tag": "{",
       "italic": true,
       "backgroundColor": "#2aaaa222",
-      "colour": "#2aaaa2"
+      "color": "#2aaaa2",
     },
     {
       "tag": "!",
       "backgroundColor": "transparent",
-      "colour": "#ff0000"
+      "color": "#ff0000",
     },
     {
       "tag": "/",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "colour": "#bd8af4"
+      "color": "#bd8af4",
     },
     {
       "tag": "region",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "colour": "#bd8af4"
+      "color": "#bd8af4",
     },
     {
       "tag": "endregion",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "colour": "#bd8af4"
+      "color": "#bd8af4",
     },
     {
       "tag": "|",
       "italic": true,
-      "colour": "#22ee11"
+      "color": "#22ee11",
     },
     {
       "tag": "HELP",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#fed200"
+      "color": "#fed200",
     },
     {
       "tag": "shellcheck",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#fd7b30"
+      "color": "#fd7b30",
     },
     {
       "tag": "DOC ",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#08c3d4"
+      "color": "#08c3d4",
     },
     {
       "tag": "USAGE ",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#08c3d4"
+      "color": "#08c3d4",
     },
     {
       "tag": " http",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#3498DB"
+      "color": "#3498DB",
     },
     {
       "tag": " -- ",
       "bold": true,
       "backgroundColor": "transparent",
-      "colour": "#3498DB"
+      "color": "#3498DB",
     },
     {
       "tag": ".",
       "bold": true,
       "backgroundColor": "transparent",
-      "colour": "#3498DB"
+      "color": "#3498DB",
     },
     {
       "tag": "todo",
       "italic": true,
       "underline": true,
       "backgroundColor": "transparent",
-      "colour": "#ec6a45"
+      "color": "#ec6a45",
     },
     {
       "tag": "=",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#ec6a45"
+      "color": "#ec6a45",
     },
     {
       "tag": ">",
       "italic": true,
       "backgroundColor": "transparent",
-      "colour": "#ec6a45"
+      "color": "#ec6a45",
     },
     {
       "tag": "?",
       "backgroundColor": "transparent",
-      "colour": "#ff7d5280"
-    }
+      "color": "#ff7d5280",
+    },
   ],
-  //> ====================================================
-  //> REMOTE & WORKSPACE
-  //> ====================================================
+  // >====================================================
+  // > REMOTE & WORKSPACE
+  // >====================================================
   "remote.autoForwardPortsSource": "hybrid",
   "remote.SSH.remotePlatform": {
     "delle.deer-iguana.ts.net": "linux",
-    "dbook.deer-iguana.ts.net": "linux"
+    "dbook.deer-iguana.ts.net": "linux",
   },
   "rss.accounts": {
     "fb0e47b0-9982-11ef-a698-3778cde2492f": {
       "name": "Default",
       "type": "local",
-      "feeds": []
-    }
+      "feeds": [],
+    },
   },
   "bashIde.explainshellEndpoint": "http://localhost:5000",
-  "security.allowedUNCHosts": ["wsl.localhost"],
-  //> ====================================================
-  //> Undefined
-  //> ====================================================
+  "security.allowedUNCHosts": [
+    "wsl.localhost",
+  ],
+  // >====================================================
+  // > Undefined
+  // >====================================================
   "docwriter.hotkey.windows": "Alt + .",
   "direnv.restart.automatic": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -793,8 +836,8 @@
   "workbench.experimental.share.enabled": true,
   "yaml.schemas": {
     "c:\\Users\\Administrator\\.vscode\\extensions\\continue.continue-1.1.32-win32-x64\\config-yaml-schema.json": [
-      ".continue/**/*.yaml"
-    ]
+      ".continue/**/*.yaml",
+    ],
   },
   "geminicodeassist.inlineSuggestions.enableAuto": true,
   "diffEditor.codeLens": true,
@@ -803,6 +846,6 @@
     "jnoortheen.nix-ide",
     "mkhl.direnv",
     "ms-edgedevtools.vscode-edge-devtools",
-    "ms-vscode-remote.remote-wsl"
-  ]
+    "ms-vscode-remote.remote-wsl",
+  ],
 }

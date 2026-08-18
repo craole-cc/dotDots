@@ -302,10 +302,10 @@ templates() {
 
 tests() {
   # Test formatting capabilities
-  for colour in black red green yellow blue magenta cyan white normal bold italic underline blink; do
-    printf "Testing colour: %s\n" "$colour"
-    set_format "$colour"
-    printf "This is a test message for %s\n" "$colour"
+  for color in black red green yellow blue magenta cyan white normal bold italic underline blink; do
+    printf "Testing color: %s\n" "$color"
+    set_format "$color"
+    printf "This is a test message for %s\n" "$color"
     set_format normal # Reset to normal after each test
   done
 
@@ -466,7 +466,7 @@ print_out() {
   #{ Return early if verbosity is set to 0/quiet
   [ "$__level" -eq "$__level_quiet" ] && exit "$__code"
 
-  #{ Format the title with consistent spacing and colour handling
+  #{ Format the title with consistent spacing and color handling
   case "$__msg_type" in
   err*)
     [ "$__level" -ge "$__level_error" ] || exit "$__code"
@@ -499,7 +499,7 @@ print_out() {
   normal | simple | *) unset __title __tag __color ;;
   esac
 
-  #{ Format the tag with proper colour handling
+  #{ Format the tag with proper color handling
   [ "$__tag" ] && __tag="$(
     printf '%b%s%b' "$__highlight" " $__tag /> " "$__normal"
   )"

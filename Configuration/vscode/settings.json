@@ -1,7 +1,7 @@
 {
-  //> ====================================================
-  //> THEME
-  //> ====================================================
+  //>====================================================
+  // > THEME
+  //>====================================================
   "workbench.iconTheme": "material-icon-theme",
   "window.autoDetectHighContrast": true,
   "window.autoDetectColorScheme": false,
@@ -9,9 +9,9 @@
   "workbench.preferredDarkColorTheme": "Bluloco Dark Italic",
   "workbench.preferredLightColorTheme": "Bluloco Light Italic",
   "workbench.productIconTheme": "el-vsc-v1-icons",
-  //> ====================================================
-  //> TYPOGRAPHY
-  //> ====================================================
+  //>====================================================
+  // > TYPOGRAPHY
+  //>====================================================
   // "custom-ui-style.font.sansSerif": "'Maple Mono NF', 'Monaspace Radon', 'Dank Mono'",
   // "custom-ui-style.font.monospace": "'Maple Mono NF', 'Operator-caska', 'Operator Mono Lig', 'VictorMono Nerd Font','Dank Mono','Hack Nerd Font', monospace",
   // "editor.fontFamily": "'Maple Mono NF','Operator-caska', 'Operator Mono Lig', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace",
@@ -31,9 +31,9 @@
   "terminal.integrated.fontWeight": 500,
   "terminal.integrated.letterSpacing": 0,
   "terminal.integrated.lineHeight": 1.2,
-  //> ====================================================
-  //> GLOBAL FEATURES
-  //> ====================================================
+  //>====================================================
+  // > GLOBAL FEATURES
+  //>====================================================
   "license.author": "Craig 'Craole' Cole",
   "license.default": "mit",
   "extensions.ignoreRecommendations": true,
@@ -45,9 +45,9 @@
   "workbench.quickOpen.preserveInput": true,
   "workbench.settings.openDefaultKeybindings": true,
   "workbench.startupEditor": "none",
-  //> ====================================================
-  //> EDITOR FEATURES
-  //> ====================================================
+  //>====================================================
+  // > EDITOR FEATURES
+  //>====================================================
   "editor.accessibilitySupport": "off",
   "editor.cursorBlinking": "expand",
   "editor.cursorSmoothCaretAnimation": "on",
@@ -104,9 +104,9 @@
     "*.pdf": "pdf.view",
     "*.db": "default"
   },
-  //> ====================================================
-  //> TERMINAL FEATURES
-  //> ====================================================
+  //>====================================================
+  // > TERMINAL FEATURES
+  //>====================================================
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.commandsToSkipShell": [
     "workbench.action.terminal.copySelection"
@@ -164,9 +164,9 @@
   "terminal.integrated.mouseWheelZoom": false,
   "terminal.integrated.rightClickBehavior": "copyPaste",
   "terminal.integrated.smoothScrolling": true,
-  //> ====================================================
-  //> FILE HANDLING
-  //> ====================================================
+  //>====================================================
+  // > FILE HANDLING
+  //>====================================================
   "files.associations": {
     "flake.lock": "json",
     ".bash*": "shellscript",
@@ -289,9 +289,9 @@
     "**/.trunk/*out/": true,
     "**/.trunk/*plugins/": true
   },
-  //> ====================================================
-  //> GIT CONFIGURATION
-  //> ====================================================
+  //>====================================================
+  // > GIT CONFIGURATION
+  //>====================================================
   "explorer.excludeGitIgnore": false,
   "git.allowForcePush": true,
   "git.autofetch": true,
@@ -302,9 +302,9 @@
   "git.ignoreRebaseWarning": true,
   "git.openRepositoryInParentFolders": "always",
   "git.rebaseWhenSync": true,
-  //> ====================================================
-  //> LANGUAGE-SPECIFIC SETTINGS
-  //> ====================================================
+  //>====================================================
+  // > LANGUAGE-SPECIFIC SETTINGS
+  //>====================================================
   "settingsSync.ignoredExtensions": [
     "constneo.vscode-nushell-format",
     "jnoortheen.nix-ide",
@@ -348,7 +348,7 @@
   "[jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },
-  //|-> Just
+  // |-> Just
   // "vscode-just.useSingleTerminal": true,
   // "vscode-just.formatOnSave": true,
   // "vscode-just.justPath": "C:\\\\Users\\\\Administrator\\\\scoop\\\\shims\\\\just.exe"
@@ -374,7 +374,7 @@
       }
     }
   },
-  //|-> Powershell
+  // |-> Powershell
   "powershell.codeFormatting.autoCorrectAliases": true,
   "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
   "powershell.codeFormatting.useConstantStrings": true,
@@ -410,7 +410,7 @@
     "editor.defaultFormatter": "mkhl.shfmt"
   },
   "[sql]": {
-    "editor.defaultFormatter": "adpyke.vscode-sql-formatter",
+    "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
     // "editor.defaultFormatter": "ms-mssql.mssql"
   },
   "[svg]": {
@@ -442,9 +442,9 @@
     // "editor.defaultFormatter": "denoland.vscode-deno"
     // "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  //> ====================================================
-  //> MINIMAP AND LINE INDICATORS
-  //> ====================================================
+  //>====================================================
+  // > MINIMAP AND LINE INDICATORS
+  //>====================================================
   "LWI.breakpoints": [
     {
       "color": "rgb(0, 255, 0, 0.6)",
@@ -461,9 +461,9 @@
   ],
   "LWI.style.fontStyle": "italic",
   "LWI.style.fontWeight": "100",
-  //> ====================================================
-  //> MATERIAL ICON THEME
-  //> ====================================================
+  //>====================================================
+  // > MATERIAL ICON THEME
+  //>====================================================
   "material-icon-theme.activeIconPack": "react",
   "material-icon-theme.files.associations": {
     ".treefmt.toml": "taze",
@@ -472,7 +472,7 @@
     "mise.toml": "jenkins",
     ".mise.toml": "jenkins",
     ".editorconfig": "editorconfig",
-    "editorconfig": "editorconfig",
+    "editorconfig": "editorconfig"
   },
   "material-icon-theme.files.customClones": [
     {
@@ -491,7 +491,7 @@
         "Cargo.toml",
         "lib.rs",
         "mod.rs",
-        "main.rs",
+        "main.rs"
       ]
     },
     {
@@ -527,7 +527,7 @@
         "sublime-settings",
         "Preferences.sublime-settings",
         ".sublime",
-        "sublime",
+        "sublime"
       ]
     },
     {
@@ -537,9 +537,9 @@
       "lightColor": "blue-500",
       "fileNames": [
         ".markdownlint-cli2.yaml",
-        "markdownlint-cli2.yaml",
+        "markdownlint-cli2.yaml"
       ]
-    },
+    }
   ],
   "material-icon-theme.files.color": "#e8ddd8",
   "material-icon-theme.folders.associations": {
@@ -565,7 +565,7 @@
     "ai": "robot",
     "_": "base",
     "types": "Enum",
-    "users": "admin",
+    "users": "admin"
   },
   "material-icon-theme.folders.color": "#81c8be",
   "material-icon-theme.folders.customClones": [
@@ -602,7 +602,7 @@
         "neovim",
         "helix",
         "zed",
-        "editor",
+        "editor"
       ]
     },
     {
@@ -893,9 +893,9 @@
     }
   ],
   "material-icon-theme.hidesExplorerArrows": true,
-  //> ====================================================
-  //> CSS CONFIGURATION
-  //> ====================================================
+  //>====================================================
+  // > CSS CONFIGURATION
+  //>====================================================
   "cssvar.files": [
     "./node_modules/open-props/open-props.min.css",
     "assets/styles/variables.css",
@@ -908,9 +908,9 @@
     "jsx",
     "tsx"
   ],
-  //> ====================================================
-  //> INTELLISENSE & CODE ASSISTANCE
-  //> ====================================================
+  //>====================================================
+  // > INTELLISENSE & CODE ASSISTANCE
+  //>====================================================
   "codeium.disableSupercomplete": true,
   "codeium.enableConfig": {
     "*": true,
@@ -948,9 +948,9 @@
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
   "lldb.consoleMode": "commands",
-  //> ====================================================
-  //> MARKDOWN & DOCUMENTATION
-  //> ====================================================
+  //>====================================================
+  // > MARKDOWN & DOCUMENTATION
+  //>====================================================
   "markdown.marp.enableHtml": true,
   "markdown.marp.pdf.noteAnnotations": true,
   "markdown.marp.pdf.outlines": "both",
@@ -962,9 +962,9 @@
   "markdown.marp.exportType": "html",
   "markdown.marp.strictPathResolutionDuringExport": true,
   "markdown.preview.typographer": true,
-  //> ====================================================
-  //> COMMENTS
-  //> ====================================================
+  //>====================================================
+  // > COMMENTS
+  //>====================================================
   "colorful-comments-refreshed.tags": [
     {
       "tag": "@",
@@ -1125,9 +1125,9 @@
       "color": "hsl(300,86%,47%)"
     }
   ],
-  //> ====================================================
-  //> REMOTE & WORKSPACE
-  //> ====================================================
+  //>====================================================
+  // > REMOTE & WORKSPACE
+  //>====================================================
   "direnv.restart.automatic": true,
   "dotenv.enableAutocloaking": false,
   "redhat.telemetry.enabled": false,
@@ -1148,9 +1148,9 @@
     "wsl.localhost"
   ],
   "security.workspace.trust.untrustedFiles": "open",
-  //> ====================================================
-  //> Animation & Color Tokenization
-  //> ====================================================
+  //>====================================================
+  // > Animation & Color Tokenization
+  //>====================================================
   "animations.Install-Method": "Custom UI Style",
   "animations.CursorAnimation": true,
   "animations.CursorAnimationOptions": {
@@ -1296,12 +1296,12 @@
       }
     ]
   },
-  //> ====================================================
-  //> Keybindings
-  //> ====================================================
-  //> ====================================================
-  //> Undefined
-  //> ====================================================
+  //>====================================================
+  // > Keybindings
+  //>====================================================
+  //>====================================================
+  // > Undefined
+  //>====================================================
   "atlascode.jira.enabled": false,
   "geminicodeassist.project": "semiotic-strategy-4z78w",
   "vscode-default-keybindings.windowsKeybindings": true,

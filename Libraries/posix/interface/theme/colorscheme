@@ -37,8 +37,8 @@ get_current_theme() {
 	#> KDE Plasma
 	if has_cmd plasma-apply-colorscheme; then
 		scheme=$(plasma-apply-colorscheme --list-schemes |
-			grep "(current colour scheme)" |
-			sed "s/^ \* //; s/ (current colour scheme)//")
+			grep "(current color scheme)" |
+			sed "s/^ \* //; s/ (current color scheme)//")
 		case "$scheme" in
 		*[Ll]ight*)
 			printf "light"
@@ -53,7 +53,7 @@ get_current_theme() {
 
 	#> Freedesktop portal (Hyprland, GNOME)
 	if has_cmd gsettings; then
-		scheme=$(gsettings get org.gnome.desktop.interface colour-scheme 2>/dev/null || printf "")
+		scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || printf "")
 		case "$scheme" in
 		*prefer-light*)
 			printf "light"
@@ -96,7 +96,7 @@ apply_plasma() {
 	has_cmd plasma-apply-colorscheme || return 1
 	target="$1"
 
-	current_tag=" (current colour scheme)"
+	current_tag=" (current color scheme)"
 	current=$(plasma-apply-colorscheme --list-schemes |
 		grep "$current_tag" | sed "s/^ \* //; s/$current_tag//")
 
@@ -124,7 +124,7 @@ apply_portal() {
 	#> dconf works without GNOME schemas
 	if has_cmd dconf; then
 		dconf write /org/gnome/desktop/interface/color-scheme "\"prefer-${target}\""
-		log "dconf: colour-scheme → prefer-${target}"
+		log "dconf: color-scheme → prefer-${target}"
 		return 0
 	fi
 
@@ -134,7 +134,7 @@ apply_portal() {
 			-maxdepth 1 -mindepth 1 -type d | head -1)
 		GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR}/glib-2.0/schemas"
 		export GSETTINGS_SCHEMA_DIR
-		gsettings set org.gnome.desktop.interface colour-scheme "prefer-${target}" 2>/dev/null
+		gsettings set org.gnome.desktop.interface color-scheme "prefer-${target}" 2>/dev/null
 	fi
 }
 

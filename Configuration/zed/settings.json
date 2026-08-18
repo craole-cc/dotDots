@@ -1,7 +1,7 @@
 {
-  //> ===================================
-  //> THEMES
-  //> ===================================
+  // > ===================================
+  // > THEMES
+  // > ===================================
   "theme": {
     "mode": "system",
     "light": "Catppuccin Latte",
@@ -13,9 +13,9 @@
     "dark": "Catppuccin Frappé"
   },
 
-  //> ===================================
-  //> EDITOR APPEARANCE
-  //> ===================================
+  // > ===================================
+  // > EDITOR APPEARANCE
+  // > ===================================
   "buffer_font_family": "VictorMono Nerd Font",
   // "buffer_font_family": "Operator Mono Lig",
   "buffer_font_features": {
@@ -49,9 +49,9 @@
   "show_wrap_guides": true,
   "wrap_guides": [80, 100, 120],
 
-  //> ===================================
-  //> UI APPEARANCE
-  //> ===================================
+  // > ===================================
+  // > UI APPEARANCE
+  // > ===================================
   "ui_font_family": ".SystemUIFont",
   "ui_font_fallbacks": [],
   "ui_font_features": {
@@ -81,9 +81,9 @@
     "enable_preview_from_code_navigation": true
   },
 
-  //> ===================================
-  //> EDITOR BEHAVIOR
-  //> ===================================
+  // > ===================================
+  // > EDITOR BEHAVIOR
+  // > ===================================
   "base_keymap": "VSCode",
   "pane_split_direction_horizontal": "up",
   "pane_split_direction_vertical": "left",
@@ -116,9 +116,9 @@
   "seed_search_query_from_cursor": "always",
   "use_smartcase_search": false,
 
-  //> ===================================
-  //> CODE EDITING
-  //> ===================================
+  // > ===================================
+  // > CODE EDITING
+  // > ===================================
   "use_autoclose": true,
   "use_auto_surround": true,
   "always_treat_brackets_as_autoclosed": false,
@@ -134,9 +134,9 @@
   "features": { "edit_prediction_provider": "zed" },
   "edit_predictions": { "disabled_globs": [".env"] },
 
-  //> ===================================
-  //> GUTTER & VISUALIZATIONS
-  //> ===================================
+  // > ===================================
+  // > GUTTER & VISUALIZATIONS
+  // > ===================================
   "gutter": {
     "line_numbers": true,
     "code_actions": true,
@@ -169,9 +169,9 @@
   },
   "line_indicator_format": "long",
 
-  //> ===================================
-  //> PANELS & SIDEBARS
-  //> ===================================
+  // > ===================================
+  // > PANELS & SIDEBARS
+  // > ===================================
   "project_panel": {
     "button": true,
     "default_width": 240,
@@ -215,9 +215,9 @@
     "modal_max_width": "small"
   },
 
-  //> ===================================
-  //> TERMINAL SETTINGS
-  //> ===================================
+  // > ===================================
+  // > TERMINAL SETTINGS
+  // > ===================================
   "terminal": {
     "shell": "system",
     // "shell": "NixOS",
@@ -239,9 +239,9 @@
     "toolbar": { "title": true, "buttons": false }
   },
 
-  //> ===================================
-  //> AI & ASSISTANT FEATURES
-  //> ===================================
+  // > ===================================
+  // > AI & ASSISTANT FEATURES
+  // > ===================================
   "agent": {
     "version": "2",
     "enabled": true,
@@ -284,9 +284,9 @@
     "auto_replace_emoji_shortcode": true
   },
 
-  //> ===================================
-  //> FILE HANDLING & FORMATTING
-  //> ===================================
+  // > ===================================
+  // > FILE HANDLING & FORMATTING
+  // > ===================================
   "remove_trailing_whitespace_on_save": true,
   "ensure_final_newline_on_save": true,
   "format_on_save": "on",
@@ -343,9 +343,9 @@
     ]
   },
 
-  //> ===================================
-  //> LANGUAGE INTEGRATIONS
-  //> ===================================
+  // > ===================================
+  // > LANGUAGE INTEGRATIONS
+  // > ===================================
   "enable_language_server": true,
   // "language_servers": ["..."],
   "languages": {
@@ -383,9 +383,9 @@
   },
   "code_actions_on_format": {},
 
-  //> ===================================
-  //> GIT INTEGRATION
-  //> ===================================
+  // > ===================================
+  // > GIT INTEGRATION
+  // > ===================================
   "git": {
     "git_gutter": "tracked_files",
     "inline_blame": {
@@ -394,17 +394,17 @@
     }
   },
 
-  //> ===================================
-  //> COLLABORATION & COMMUNICATION
-  //> ===================================
+  // > ===================================
+  // > COLLABORATION & COMMUNICATION
+  // > ===================================
   "calls": {
     "mute_on_join": false,
     "share_on_join": false
   },
 
-  //> ===================================
-  //> EXTENSIONS & PLUGINS
-  //> ===================================
+  // > ===================================
+  // > EXTENSIONS & PLUGINS
+  // > ===================================
   "auto_install_extensions": {
     "basher": true,
     // "biome": true,
@@ -422,9 +422,9 @@
     "toml": true
   },
 
-  //> ===================================
-  //> VIM CONFIGURATION
-  //> ===================================
+  // > ===================================
+  // > VIM CONFIGURATION
+  // > ===================================
   "vim_mode": false,
   "vim": {
     "toggle_relative_line_numbers": false,
@@ -434,9 +434,9 @@
     "custom_digraphs": {}
   },
 
-  //> ===================================
-  //> MISC SETTINGS
-  //> ===================================
+  // > ===================================
+  // > MISC SETTINGS
+  // > ===================================
   "diagnostics": {
     "include_warnings": true
   },

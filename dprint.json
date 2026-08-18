@@ -54,7 +54,18 @@
     "**/.direnv",
     "**/target",
     "**/dist",
-    "**/.git"
+    "**/.git",
+    "Configuration/**",
+    "Documentation/**",
+    "Environment/**",
+    "Assets/**",
+    "Review/**",
+    "Scripts/**",
+    "Tasks/**",
+    "Templates/**",
+    "Modules/global/**",
+    "Modules/nixos/configurations/hosts/QBX/**",
+    "Modules/nixos/scripts/**"
   ],
   "plugins": [
     "https://plugins.dprint.dev/json-0.23.0.wasm",

@@ -9,7 +9,7 @@ onefetch_min() {
   onefetch \
     --no-art \
     --no-title \
-    --no-colour-palette \
+    --no-color-palette \
     --disabled-fields \
     project \
     description \

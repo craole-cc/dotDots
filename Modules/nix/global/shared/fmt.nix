@@ -5,7 +5,6 @@
   ...
 }: let
   inherit (flake) path inputs;
-  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.sources.packages) pkgsFrom;
 
   sources = {
@@ -14,24 +13,21 @@
     dprint = null;
     harper = null;
     leptosfmt = null;
-    # markdownlint-cli2 = null;
     rustfmt = null;
     shellcheck = null;
     shfmt = null;
     statix = null;
     stylua = null;
     tombi = null;
-    treefmt = "treefmt-nix";
+    treefmt = "treefmt";
     typos = null;
     typstyle = null;
   };
 
   resolved = pkgsFrom {
-    inherit inputs pkgs;
-    inherit sources;
+    inherit inputs pkgs sources;
     required = true;
   };
-  # bins = mapAttrs (_: pkg: pkg.paths.exe) resolved;
 
   eval = inputs.treefmt.lib.evalModule pkgs {
     projectRootFile = "flake.nix";
@@ -53,12 +49,37 @@
         simplify = true;
       };
 
-      #~@ Mark[down/up], Config & Data
+      #~@ Markup / config / data
       actionlint.enable = true;
-      dprint.enable = true;
       stylua.enable = true;
       typos.enable = true;
       typstyle.enable = true;
+
+      dprint = {
+        enable = true;
+        # Sandbox-safe plugins from nixpkgs (no network)
+        includes = [
+          "*.json"
+          "*.jsonc"
+          "*.md"
+          "*.yaml"
+          "*.yml"
+          "*.css"
+          "*.scss"
+          "*.sass"
+          "*.less"
+        ];
+        # Adjust names to whatever exists in your nixpkgs revision
+        settings.plugins = pkgs.dprint-plugins.getPluginList (
+          plugins:
+            with plugins; [
+              dprint-plugin-json
+              dprint-plugin-markdown
+              g-plane-pretty_yaml
+              g-plane-malva
+            ]
+        );
+      };
     };
 
     settings = {
@@ -122,14 +143,14 @@
           ];
         };
 
-        # toml = {
-        #   command = bins.tombi;
-        #   includes = ["*.toml"];
-        #   options = ["format" "--offline"];
-        # };
+        dprint = {
+          priority = 1;
+          options = ["--allow-no-files"];
+        };
       };
     };
   };
+
   inherit (eval.config.build) wrapper check;
 in {
   formatters = resolved.packages ++ [wrapper];

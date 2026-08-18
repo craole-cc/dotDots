@@ -78,7 +78,7 @@ cache_commands() {
 
     #{ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
-    cmd_env="$(env | grep --colour "${cmd_key}")"
+    cmd_env="$(env | grep --color "${cmd_key}")"
     pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
   done
 }
@@ -338,7 +338,7 @@ show_bins() {
     printf "%s\n" "${PATH}" | tr ':' '\n' |
       eval "$(
         if [ -x "${CMD_BAT:-}" ]; then
-          printf "%s" "${CMD_BAT} --colour=always --style=grid --plain --number"
+          printf "%s" "${CMD_BAT} --color=always --style=grid --plain --number"
         else
           printf "nl -s '  ' | less"
         fi

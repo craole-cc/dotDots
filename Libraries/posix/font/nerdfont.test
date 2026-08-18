@@ -350,7 +350,7 @@ test_filesystem() {
     eza --icons --group-directories-first
   else
     printf "Neither lsd nor eza found. Falling back to ls (no icons):\n"
-    ls -lA --colour=always --group-directories-first
+    ls -lA --color=always --group-directories-first
   fi
 }
 
