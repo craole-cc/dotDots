@@ -167,20 +167,20 @@
           splitStringBy (_: sep: elem sep ["." "/"]) false path;
 
     validated = assert withContext {
-        inherit (fn) name context;
-        assertion = isList stems;
-        message = "normalized path must be a list of path segments";
-      };
-      assert withContext {
-        inherit (fn) name context;
-        assertion = all isString stems;
-        message = "each path segment must be a string";
-      };
-      assert withContext {
-        inherit (fn) name context;
-        assertion = all (stem: stem != "") stems;
-        message = "path segments must not be empty";
-      }; stems;
+      inherit (fn) name context;
+      assertion = isList stems;
+      message = "normalized path must be a list of path segments";
+    };
+    assert withContext {
+      inherit (fn) name context;
+      assertion = all isString stems;
+      message = "each path segment must be a string";
+    };
+    assert withContext {
+      inherit (fn) name context;
+      assertion = all (stem: stem != "") stems;
+      message = "path segments must not be empty";
+    }; stems;
   in {
     path = validated;
     reference =
@@ -200,44 +200,47 @@
 
     validated = {
       base = assert withContext {
-          inherit (fn) name context;
-          assertion = isAttrs base;
-          message = "`base` must be an attrset like { name, value; }";
-        };
-        assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr "name" base;
-          message = "`base` is missing required attribute `name`";
-        };
-        assert withContext {
-          inherit (fn) name context;
-          assertion = hasAttr "value" base;
-          message = "`base` is missing required attribute `value`";
-        };
-        assert withContext {
-          inherit (fn) name context;
-          assertion = isString base.name;
-          message = "`base.name` must be a string";
-        };
-        assert withContext {
-          inherit (fn) name context;
-          assertion = base.name != "";
-          message = "`base.name` must not be empty";
-        };
-        assert withContext {
-          inherit (fn) name context;
-          assertion = isAttrs base.value;
-          message = "`base.value` must be an attrset";
-        }; base;
+        inherit (fn) name context;
+        assertion = isAttrs base;
+        message = "`base` must be an attrset like { name, value; }";
+      };
+      assert withContext {
+        inherit (fn) name context;
+        assertion = hasAttr "name" base;
+        message = "`base` is missing required attribute `name`";
+      };
+      assert withContext {
+        inherit (fn) name context;
+        assertion = hasAttr "value" base;
+        message = "`base` is missing required attribute `value`";
+      };
+      assert withContext {
+        inherit (fn) name context;
+        assertion = isString base.name;
+        message = "`base.name` must be a string";
+      };
+      assert withContext {
+        inherit (fn) name context;
+        assertion = base.name != "";
+        message = "`base.name` must not be empty";
+      };
+      assert withContext {
+        inherit (fn) name context;
+        assertion = isAttrs base.value;
+        message = "`base.value` must be an attrset";
+      }; base;
 
-      inherit ((
+      inherit
+        ((
           assert withContext {
             inherit (fn) name context;
             assertion = isString path || isList path;
             message = "`path` must be a string or list";
           };
             normalizePath path
-        )) path;
+        ))
+        path
+        ;
     };
 
     inherit (validated.base) name value;
@@ -570,9 +573,15 @@
       };
 
       findPkgsSet = src:
-        src.legacyPackages.${resolved.system} or (src.packages.${resolved.system} or (if src ? system && src.system == resolved.system
-        then src
-        else null));
+        src.legacyPackages.${
+          resolved.system
+        } or (src.packages.${
+            resolved.system
+          } or (
+            if src ? system && src.system == resolved.system
+            then src
+            else null
+          ));
 
       pkgs =
         if pkgs != null && pkgs ? system

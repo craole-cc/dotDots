@@ -1,39 +1,16 @@
-# #TODO: The modules need to be options, not hardcoded
-# {
-#   config,
-#   lix,
-#   user,
-#   pkgs,
-#   ...
-# }: let
-#   dom = "terminal";
-#   mod = "tmux";
-#   inherit (lix.modules.construction) mkConfig mkMerge;
-#   inherit (lix.options.construction) mkEnableOption;
-#   inherit (lix.applications.generators) userApplicationConfig;
-#   resolved = userApplicationConfig {
-#     inherit user pkgs config dom mod;
-#     extraProgramConfig = mkMerge [
-#       (import ./plugins.nix)
-#     ];
-#     debug = false;
-#   };
-# in
-#   mkConfig {
-#     inherit config dom mod;
-#     options = {
-#       enable = mkEnableOption mod // {default = resolved.enable;};
-#     };
-#     outputs = {inherit (resolved) programs home;};
-#   }
 #TODO: The modules need to be options, not hardcoded
 {
+  osConfig,
   config,
   lix,
   user,
   pkgs,
   ...
 }: let
+  inherit (lix.modules.construction) mkContext mkConfig mkMerge;
+  inherit (lix.options.construction) mkEnable;
+  inherit (lix.applications.generators) userApplicationConfig;
+
   context = mkContext {
     inherit config;
     dom = "terminal";
@@ -41,12 +18,8 @@
     mod = "tmux";
   };
 
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
-  inherit (lix.options.construction) mkEnable;
-  inherit (lix.applications.generators) userApplicationConfig;
-
   resolved = userApplicationConfig {
-    inherit context pkgs user;
+    inherit context user pkgs;
     extraProgramConfig = mkMerge [
       (import ./plugins.nix)
     ];
@@ -55,11 +28,15 @@
 in
   mkConfig {
     inherit context;
-    options = {
-      enable = mkEnable {
-        inherit context;
-        condition = resolved.enable;
-      };
+    options.enable = mkEnable {
+      inherit context;
+      condition =
+        resolved.enable
+        || (
+          with osConfig.services;
+            (openssh.enable or false)
+            || (tailscale.enable or false)
+        );
     };
     outputs = {inherit (resolved) programs home;};
   }

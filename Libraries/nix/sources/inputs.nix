@@ -232,7 +232,8 @@
         else if isNotEmpty stable
         then stable
         else throw "We should never have gotten to this point. nixpkgs is required";
-    in {inherit nixpkgs;}
+    in
+      {inherit nixpkgs;}
       // optionalAttrs (differentRev unstable nixpkgs) {nixpkgs-unstable = unstable;}
       // optionalAttrs (differentRev stable nixpkgs) {nixpkgs-stable = stable;};
 

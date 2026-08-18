@@ -207,35 +207,8 @@
     accent ? null,
     variant ? null,
   }:
-  # }: let
-  # _material = let
-  #   get = polarity: {
-  #     size =
-  #       if size != null
-  #       then size
-  #       else 32;
-  #     name = "material_${polarity}_cursors";
-  #     package = pkgs.material-cursors;
-  #   };
-  # in {
-  #   light = get "light";
-  #   dark = get "dark";
-  # };
-  # catppuccin = resolveCatppuccin (
-  #   {
-  #     inherit pkgs;
-  #     cursor.size =
-  #       if size != null
-  #       then size
-  #       else 24;
-  #   }
-  #   // optionalAttrs (accent != null) {inherit accent;}
-  #   // optionalAttrs (variant != null) {inherit variant;}
-  # );
-  # default = catppuccin.cursors;
-  # in
-  # recursiveUpdate default {inherit light dark;};
-    recursiveUpdate (resolveCatppuccin (
+    recursiveUpdate
+    (resolveCatppuccin (
       {
         inherit pkgs;
         cursors =
@@ -253,7 +226,8 @@
     accent ? null,
     variant ? null,
   }:
-    recursiveUpdate (resolveCatppuccin (
+    recursiveUpdate
+    (resolveCatppuccin (
       {
         inherit pkgs;
         themes = {inherit light dark;};
@@ -372,7 +346,8 @@
     };
   in
     {
-      environment.sessionVariables = {THEME_POLARITY = polarity;}
+      environment.sessionVariables =
+        {THEME_POLARITY = polarity;}
         // (
           optionalAttrs
           ((polarized.theme.name or null) != null)

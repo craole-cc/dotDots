@@ -173,6 +173,7 @@
       "obs-studio"
       "yazi"
       "vim"
+      # "tmux"
     ];
     utilities = {
       atuin.enable = false;

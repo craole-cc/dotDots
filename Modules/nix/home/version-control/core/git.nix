@@ -74,8 +74,8 @@ in
 
     outputs = {
       programs.git = {
-        enable = cfg.enable;
-        lfs.enable = cfg.lfs.enable;
+        inherit (cfg) enable;
+        lfs = {inherit (cfg.lfs) enable;};
         settings = {
           user = {
             name = cfg.user.name;
@@ -85,7 +85,7 @@ in
           init.defaultBranch = cfg.settings.init.defaultBranch;
           url = cfg.settings.url;
         };
-        includes = cfg.includes;
+        inherit (cfg) includes;
       };
     };
   }

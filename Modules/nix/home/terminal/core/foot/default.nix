@@ -6,6 +6,14 @@
   pkgs,
   ...
 }: let
+  inherit (lix.modules.construction) mkContext mkConfig mkMerge;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.applications.generators) userApplicationConfig;
+  inherit (lix.applications.construction) mkScriptWrappers;
+  inherit (lix.types.combinators) listOf nullOr;
+  inherit (lix.types.primitives) bool package str;
+  inherit (pkgs) makeDesktopItem;
+
   context = mkContext {
     inherit config;
     dom = "terminal";
@@ -14,15 +22,6 @@
   };
   inherit (context) cfg;
 
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
-  inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.applications.construction) mkScriptWrappers;
-  inherit (lix.types.combinators) listOf nullOr;
-  inherit (lix.types.primitives) bool package str;
-  inherit (pkgs) makeDesktopItem;
-
-  #~@ Script Wrappers
   wrappers = mkScriptWrappers {
     inherit pkgs;
     scripts = let
@@ -40,7 +39,6 @@
     };
   };
 
-  #~@ Desktop entries
   desktop = makeDesktopItem {
     name = "feet";
     desktopName = "Feet";
@@ -64,7 +62,6 @@
     noDisplay = true;
   };
 
-  #~@ Resolved application assembly, driven by the explicit options below
   resolved = userApplicationConfig {
     inherit context user pkgs;
     inherit (cfg) customCommand resolutionHints requiresWayland;
@@ -82,9 +79,7 @@
 in
   mkConfig {
     inherit context;
-    predicate = resolved.enable;
     options = {
-      #~@ Inputs the caller can actually change
       customCommand = mkOption {
         description = "Command name to run, overriding the resolved package binary.";
         default = "feet";
@@ -111,7 +106,6 @@ in
         type = bool;
       };
 
-      #~@ Decisions made during resolution, surfaced for inspection
       enable = mkEnable {
         inherit context;
         condition = resolved.enable;

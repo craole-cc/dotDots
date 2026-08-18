@@ -29,7 +29,7 @@ in
     };
     outputs = {
       programs.delta = {
-        enable = cfg.enable;
+        inherit (cfg) enable;
         enableGitIntegration = cfg.git.enable;
         enableJujutsuIntegration = cfg.jujutsu.enable;
       };

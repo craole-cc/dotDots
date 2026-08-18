@@ -40,7 +40,7 @@ in
 
     outputs = {
       programs.jujutsu = {
-        enable = cfg.enable;
+        # inherit (cfg) enable;
         settings.user = {
           name = cfg.user.name;
           email = cfg.user.email;
