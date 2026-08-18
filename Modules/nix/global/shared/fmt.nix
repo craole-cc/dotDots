@@ -69,7 +69,6 @@
           "*.less"
         ];
         settings = {
-          extends = "${./dprint.json}";
           plugins = pkgs.dprint-plugins.getPluginList (plugins:
             with plugins; [
               dprint-plugin-json
@@ -77,6 +76,46 @@
               g-plane-pretty_yaml
               g-plane-malva
             ]);
+          lineWidth = 120;
+          indentWidth = 2;
+          useTabs = false;
+          newLineKind = "lf";
+          json = {
+            indentWidth = 2;
+            lineWidth = 120;
+            trailingCommas = "never";
+          };
+          markdown = {
+            lineWidth = 120;
+            newLineKind = "lf";
+            textWrap = "maintain";
+            emphasisKind = "underscores";
+            strongKind = "asterisks";
+            unorderedListKind = "dashes";
+            # headingKind = "atx";        # removed — unsupported by dprint-plugin-markdown 0.20.0 in nixpkgs
+            # listIndentKind = "commonMark"; # removed — unsupported by dprint-plugin-markdown 0.20.0 in nixpkgs
+          };
+          yaml = {
+            printWidth = 120;
+            indentWidth = 2;
+            quotes = "preferDouble";
+            trailingComma = true;
+            formatComments = false;
+            indentBlockSequenceInMap = true;
+            braceSpacing = true;
+            bracketSpacing = false;
+            dashSpacing = "oneSpace";
+            preferSingleLine = false;
+            trimTrailingWhitespaces = true;
+            trimTrailingZero = false;
+            proseWrap = "preserve";
+          };
+          malva = {
+            printWidth = 120;
+            useTabs = false;
+            quotes = "preferDouble";
+            singleLineTopLevelDeclarations = false;
+          };
         };
       };
     };

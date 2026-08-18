@@ -116,25 +116,25 @@
           "text.html.basic entity.other.attribute-name.html",
           "text.html.basic entity.other.attribute-name",
           "variable.language",
-          "variable.other.object.property",
+          "variable.other.object.property"
         ],
         "settings": {
-          "fontStyle": "italic",
-        },
-      },
-    ],
+          "fontStyle": "italic"
+        }
+      }
+    ]
   },
   "window.autoDetectColorScheme": true,
   "window.titleBarStyle": "custom",
   "workbench.colorCustomizations": {
     "editorGroupHeader.tabsBackground": "#ffffff00",
     "statusBar.background": "#ffffff00",
-    "statusBar.border": "#3c69e750",
+    "statusBar.border": "#3c69e750"
   },
   "workbench.commandPalette.preserveInput": true,
   "workbench.editorAssociations": {
     "*.copilotmd": "vscode.markdown.preview.editor",
-    "*.pdf": "pdf.view",
+    "*.pdf": "pdf.view"
   },
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredLightColorTheme": "Bluloco Light Italic",
@@ -178,7 +178,7 @@
   "editor.mouseWheelZoom": false,
   "editor.occurrencesHighlight": "off",
   "editor.quickSuggestions": {
-    "strings": "on",
+    "strings": "on"
   },
   "editor.renderLineHighlight": "gutter",
   "editor.selectionHighlight": false,
@@ -186,18 +186,18 @@
   "editor.semanticTokenColorCustomizations": {
     "rules": {
       "interface": {
-        "italic": true,
+        "italic": true
       },
       "selfParameter": {
-        "italic": true,
+        "italic": true
       },
       "keyword": {
-        "italic": true,
+        "italic": true
       },
       "*.static": {
-        "italic": true,
-      },
-    },
+        "italic": true
+      }
+    }
   },
   "editor.stickyScroll.enabled": false,
   "editor.suggestSelection": "recentlyUsedByPrefix",
@@ -207,7 +207,7 @@
   // >====================================================
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.commandsToSkipShell": [
-    "workbench.action.terminal.copySelection",
+    "workbench.action.terminal.copySelection"
   ],
   "terminal.integrated.confirmOnExit": "never",
   "terminal.integrated.copyOnSelection": true,
@@ -222,24 +222,24 @@
       "path": "C:\\WINDOWS\\System32\\wsl.exe",
       "args": [
         "-d",
-        "NixOS",
-      ],
+        "NixOS"
+      ]
     },
     "Git Bash": {
-      "source": "Git Bash",
+      "source": "Git Bash"
     },
     "PowerShell": {
       "source": "PowerShell",
-      "icon": "terminal-powershell",
+      "icon": "terminal-powershell"
     },
     "Command Prompt": {
       "path": [
         "${env:windir}\\Sysnative\\cmd.exe",
-        "${env:windir}\\System32\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
       ],
       "args": [],
-      "icon": "terminal-cmd",
-    },
+      "icon": "terminal-cmd"
+    }
   },
   "terminal.integrated.mouseWheelZoom": false,
   "terminal.integrated.rightClickBehavior": "copyPaste",
@@ -273,7 +273,7 @@
     "LICENSE": "txt",
     "LICENSE-MIT": "txt",
     "README": "markdown",
-    "editorconfig": "ini",
+    "editorconfig": "ini"
   },
   "files.autoSave": "afterDelay",
   "files.eol": "\n",
@@ -309,7 +309,7 @@
     "flake.nix": false,
     "review": false,
     "**/System Volume Information": false,
-    "**/target": false,
+    "**/target": false
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
@@ -322,7 +322,7 @@
     "**/.trunk/*logs/": true,
     "**/.trunk/*notifications/": true,
     "**/.trunk/*out/": true,
-    "**/.trunk/*plugins/": true,
+    "**/.trunk/*plugins/": true
   },
   // >====================================================
   // > GIT CONFIGURATION
@@ -341,10 +341,10 @@
   "editor.defaultFormatter": "ibecker.treefmt-vscode",
   "[astro]": {
     // "editor.defaultFormatter": "astro-build.astro-vscode"
-    "editor.defaultFormatter": "denoland.vscode-deno",
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[bats]": {
-    "editor.defaultFormatter": "mkhl.shfmt",
+    "editor.defaultFormatter": "mkhl.shfmt"
   },
   "[dockercompose]": {
     // "editor.defaultFormatter": "ms-azuretools.vscode-docker"
@@ -353,32 +353,32 @@
     // "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   "[dotenv]": {
-    "editor.defaultFormatter": "mkhl.shfmt",
+    "editor.defaultFormatter": "mkhl.shfmt"
   },
   "[gitignore]": {},
   "[html]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[ignore]": {
-    "editor.defaultFormatter": "lkrms.inifmt",
+    "editor.defaultFormatter": "lkrms.inifmt"
   },
   "[ini]": {
-    "editor.defaultFormatter": "lkrms.inifmt",
+    "editor.defaultFormatter": "lkrms.inifmt"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
   },
   "[nix]": {
-    "editor.defaultFormatter": "jnoortheen.nix-ide",
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
   },
   "nix.serverPath": "nixd",
   "nix.enableLanguageServer": true,
@@ -386,12 +386,12 @@
     "nixd": {
       "formatting": {
         "command": [
-          "alejandra",
+          "alejandra"
           // "nixfmt"
           // "nixpkgs-fmt"
-        ],
-      },
-    },
+        ]
+      }
+    }
   },
   // ~@ Powershell
   "powershell.codeFormatting.autoCorrectAliases": true,
@@ -410,10 +410,10 @@
     "editor.tabCompletion": "on",
     "files.autoGuessEncoding": true,
     "files.encoding": "utf8bom",
-    "files.trimTrailingWhitespace": true,
+    "files.trimTrailingWhitespace": true
   },
   "[properties]": {
-    "editor.defaultFormatter": "yy0931.gitconfig-lsp",
+    "editor.defaultFormatter": "yy0931.gitconfig-lsp"
   },
   "[ruby]": {
     // "editor.defaultFormatter": "LoranKloeze.ruby-rubocop-revived",
@@ -421,30 +421,30 @@
   "rubyLsp.enableExperimentalFeatures": true,
   // "rubyLsp.rubyExecutablePath": "c:\\Tools\\ruby33\\bin\\ruby.exe",
   "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
   "rust-analyzer.check.command": "clippy",
   "[shellscript]": {
-    "editor.defaultFormatter": "mkhl.shfmt",
+    "editor.defaultFormatter": "mkhl.shfmt"
   },
   "[svg]": {
     // "editor.defaultFormatter": "jock.svg"
   },
   "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml",
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "typescript.inlayHints.parameterNames.enabled": "all",
   "tailwindCSS.includeLanguages": {
-    "plaintext": "html",
+    "plaintext": "html"
   },
   "[typst]": {
-    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
   },
   "[typst-code]": {
-    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
   },
   "[xml]": {
     // "editor.defaultFormatter": "DotJoshJohnson.xml"
@@ -459,16 +459,16 @@
   "LWI.breakpoints": [
     {
       "color": "rgb(0, 255, 0, 0.6)",
-      "column": 54,
+      "column": 54
     },
     {
       "color": "rgb(255, 255, 0, 0.6)",
-      "column": 69,
+      "column": 69
     },
     {
       "color": "rgb(255, 0, 0, 0.6)",
-      "column": 79,
-    },
+      "column": 79
+    }
   ],
   "LWI.style.fontStyle": "italic",
   "LWI.style.fontWeight": "100",
@@ -487,7 +487,7 @@
     ".shellcheckrc": "astyle",
     ".treefmt.toml": "taze",
     "rust-toolchain": "rust",
-    "rust-toolchain.toml": "rust",
+    "rust-toolchain.toml": "rust"
   },
   "material-icon-theme.files.color": "#e8ddd8",
   "material-icon-theme.folders.associations": {
@@ -512,7 +512,7 @@
     ".cargo": "config",
     "benches": "debug",
     "options": "tasks",
-    "desktops": "interfaces",
+    "desktops": "interfaces"
   },
   "material-icon-theme.folders.color": "#81c8be",
   "material-icon-theme.folders.customClones": [
@@ -526,8 +526,8 @@
         ".dotsrc.sh",
         ".dotsrc.ps1",
         ".dotsrc.nu",
-        ".dotsrc.fish",
-      ],
+        ".dotsrc.fish"
+      ]
     },
     {
       "name": "rust-entrypoint",
@@ -537,8 +537,8 @@
       "fileNames": [
         "lib.rs",
         "main.rs",
-        "mod.rs",
-      ],
+        "mod.rs"
+      ]
     },
     {
       "name": "nix-entrypoint",
@@ -549,8 +549,8 @@
         "default.nix",
         "flake.nix",
         "shell.nix",
-        "configuration.nix",
-      ],
+        "configuration.nix"
+      ]
     },
     {
       "name": "users",
@@ -560,8 +560,8 @@
       "folderNames": [
         "users",
         "user",
-        "people",
-      ],
+        "people"
+      ]
     },
     {
       "name": "desktops",
@@ -571,8 +571,8 @@
       "folderNames": [
         "desktops",
         "desktop",
-        "control",
-      ],
+        "control"
+      ]
     },
     {
       "name": "hosts",
@@ -583,8 +583,8 @@
         "hosts",
         "host",
         "machine",
-        "machines",
-      ],
+        "machines"
+      ]
     },
     {
       "name": "programs",
@@ -593,8 +593,8 @@
       "lightColor": "green-700",
       "folderNames": [
         "program",
-        "programs",
-      ],
+        "programs"
+      ]
     },
     {
       "name": "shell",
@@ -606,8 +606,8 @@
         "shellscript",
         "bash",
         "sh",
-        "posix",
-      ],
+        "posix"
+      ]
     },
     {
       "name": "nixos",
@@ -618,17 +618,17 @@
         "nixos",
         "flake",
         "flakes",
-        "nix",
-      ],
+        "nix"
+      ]
     },
     {
       "name": "roles-admin",
       "base": "admin",
       "color": "purple-400",
       "folderNames": [
-        "roles",
-      ],
-    },
+        "roles"
+      ]
+    }
   ],
   "material-icon-theme.hidesExplorerArrows": true,
   // >====================================================
@@ -637,14 +637,14 @@
   "cssvar.files": [
     "./node_modules/open-props/open-props.min.css",
     "assets/styles/variables.css",
-    "style.css",
+    "style.css"
   ],
   "cssvar.ignore": [],
   "cssvar.extensions": [
     "css",
     "postcss",
     "jsx",
-    "tsx",
+    "tsx"
   ],
   // >====================================================
   // > INTELLISENSE & CODE ASSISTANCE
@@ -653,7 +653,7 @@
     "*": true,
     "nix": true,
     "jsonc": true,
-    "just": true,
+    "just": true
   },
   "codeium.enableSearch": true,
   "codeium.disableSupercomplete": true,
@@ -666,7 +666,7 @@
     "scminput": false,
     "nix": true,
     "shellscript": false,
-    "rust": false,
+    "rust": false
   },
   "github.copilot.nextEditSuggestions.enabled": true,
   "lldb.suppressUpdateNotifications": true,
@@ -694,114 +694,114 @@
       "tag": "@",
       "italic": true,
       "backgroundColor": "#89a25722",
-      "color": "#89a257",
+      "color": "#89a257"
     },
     {
       "tag": "~@",
       "italic": true,
       "backgroundColor": "#89a25722",
-      "color": "#89a257",
+      "color": "#89a257"
     },
     {
       "tag": "{",
       "italic": true,
       "backgroundColor": "#2aaaa222",
-      "color": "#2aaaa2",
+      "color": "#2aaaa2"
     },
     {
       "tag": "!",
       "backgroundColor": "transparent",
-      "color": "#ff0000",
+      "color": "#ff0000"
     },
     {
       "tag": "/",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "color": "#bd8af4",
+      "color": "#bd8af4"
     },
     {
       "tag": "region",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "color": "#bd8af4",
+      "color": "#bd8af4"
     },
     {
       "tag": "endregion",
       "italic": true,
       "backgroundColor": "#bd8af41a",
-      "color": "#bd8af4",
+      "color": "#bd8af4"
     },
     {
       "tag": "|",
       "italic": true,
-      "color": "#22ee11",
+      "color": "#22ee11"
     },
     {
       "tag": "HELP",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#fed200",
+      "color": "#fed200"
     },
     {
       "tag": "shellcheck",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#fd7b30",
+      "color": "#fd7b30"
     },
     {
       "tag": "DOC ",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#08c3d4",
+      "color": "#08c3d4"
     },
     {
       "tag": "USAGE ",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#08c3d4",
+      "color": "#08c3d4"
     },
     {
       "tag": " http",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#3498DB",
+      "color": "#3498DB"
     },
     {
       "tag": " -- ",
       "bold": true,
       "backgroundColor": "transparent",
-      "color": "#3498DB",
+      "color": "#3498DB"
     },
     {
       "tag": ".",
       "bold": true,
       "backgroundColor": "transparent",
-      "color": "#3498DB",
+      "color": "#3498DB"
     },
     {
       "tag": "todo",
       "italic": true,
       "underline": true,
       "backgroundColor": "transparent",
-      "color": "#ec6a45",
+      "color": "#ec6a45"
     },
     {
       "tag": "=",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#ec6a45",
+      "color": "#ec6a45"
     },
     {
       "tag": ">",
       "italic": true,
       "backgroundColor": "transparent",
-      "color": "#ec6a45",
+      "color": "#ec6a45"
     },
     {
       "tag": "?",
       "backgroundColor": "transparent",
-      "color": "#ff7d5280",
-    },
+      "color": "#ff7d5280"
+    }
   ],
   // >====================================================
   // > REMOTE & WORKSPACE
@@ -809,18 +809,18 @@
   "remote.autoForwardPortsSource": "hybrid",
   "remote.SSH.remotePlatform": {
     "delle.deer-iguana.ts.net": "linux",
-    "dbook.deer-iguana.ts.net": "linux",
+    "dbook.deer-iguana.ts.net": "linux"
   },
   "rss.accounts": {
     "fb0e47b0-9982-11ef-a698-3778cde2492f": {
       "name": "Default",
       "type": "local",
-      "feeds": [],
-    },
+      "feeds": []
+    }
   },
   "bashIde.explainshellEndpoint": "http://localhost:5000",
   "security.allowedUNCHosts": [
-    "wsl.localhost",
+    "wsl.localhost"
   ],
   // >====================================================
   // > Undefined
@@ -836,8 +836,8 @@
   "workbench.experimental.share.enabled": true,
   "yaml.schemas": {
     "c:\\Users\\Administrator\\.vscode\\extensions\\continue.continue-1.1.32-win32-x64\\config-yaml-schema.json": [
-      ".continue/**/*.yaml",
-    ],
+      ".continue/**/*.yaml"
+    ]
   },
   "geminicodeassist.inlineSuggestions.enableAuto": true,
   "diffEditor.codeLens": true,
@@ -846,6 +846,6 @@
     "jnoortheen.nix-ide",
     "mkhl.direnv",
     "ms-edgedevtools.vscode-edge-devtools",
-    "ms-vscode-remote.remote-wsl",
-  ],
+    "ms-vscode-remote.remote-wsl"
+  ]
 }
