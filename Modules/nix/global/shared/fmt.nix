@@ -45,6 +45,15 @@
           "headingKind"
           "listIndentKind"
         ];
+      }
+      // {
+        plugins = pkgs.dprint-plugins.getPluginList (plugins:
+          with plugins; [
+            dprint-plugin-json
+            dprint-plugin-markdown
+            g-plane-pretty_yaml
+            g-plane-malva
+          ]);
       };
   in {
     enable = true;
@@ -59,14 +68,7 @@
       "*.sass"
       "*.less"
     ];
-    plugins = pkgs.dprint-plugins.getPluginList (plugins:
-      with plugins; [
-        dprint-plugin-json
-        dprint-plugin-markdown
-        g-plane-pretty_yaml
-        g-plane-malva
-      ]);
-    inherit config settings;
+    inherit settings;
   };
 
   treefmt = inputs.treefmt.lib.evalModule pkgs {
