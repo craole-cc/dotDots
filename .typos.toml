@@ -1,6 +1,12 @@
-# File selection options
 [files]
-  extend-exclude = ["vendor/**", "**/*.min.js", "**/*.lock", ".typos.toml"]
+  extend-exclude = [
+    "vendor/**",
+    "**/*.min.js",
+    "**/*.lock",
+    ".typos.toml",
+    "Libraries/posix/output/use_TPUT1",
+    "Libraries/posix/template/**",
+  ]
   ignore-hidden = true
   ignore-files = true
 
