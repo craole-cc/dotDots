@@ -1,0 +1,43 @@
+{
+  "$schema": "https://dprint.dev/schemas/v0.json",
+  "lineWidth": 120,
+  "indentWidth": 2,
+  "useTabs": false,
+  "newLineKind": "lf",
+  "json": {
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "trailingCommas": "never"
+  },
+  "markdown": {
+    "lineWidth": 120,
+    "newLineKind": "lf",
+    "textWrap": "maintain",
+    "emphasisKind": "underscores",
+    "strongKind": "asterisks",
+    "unorderedListKind": "dashes",
+    "headingKind": "atx",
+    "listIndentKind": "commonMark"
+  },
+  "yaml": {
+    "printWidth": 120,
+    "indentWidth": 2,
+    "quotes": "preferDouble",
+    "trailingComma": true,
+    "formatComments": false,
+    "indentBlockSequenceInMap": true,
+    "braceSpacing": true,
+    "bracketSpacing": false,
+    "dashSpacing": "oneSpace",
+    "preferSingleLine": false,
+    "trimTrailingWhitespaces": true,
+    "trimTrailingZero": false,
+    "proseWrap": "preserve"
+  },
+  "malva": {
+    "printWidth": 120,
+    "useTabs": false,
+    "quotes": "preferDouble",
+    "singleLineTopLevelDeclarations": false
+  }
+}

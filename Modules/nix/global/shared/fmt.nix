@@ -57,7 +57,6 @@
 
       dprint = {
         enable = true;
-        # Sandbox-safe plugins from nixpkgs (no network)
         includes = [
           "*.json"
           "*.jsonc"
@@ -69,16 +68,16 @@
           "*.sass"
           "*.less"
         ];
-        # Adjust names to whatever exists in your nixpkgs revision
-        settings.plugins = pkgs.dprint-plugins.getPluginList (
-          plugins:
+        settings = {
+          extends = "${./dprint.json}";
+          plugins = pkgs.dprint-plugins.getPluginList (plugins:
             with plugins; [
               dprint-plugin-json
               dprint-plugin-markdown
               g-plane-pretty_yaml
               g-plane-malva
-            ]
-        );
+            ]);
+        };
       };
     };
 
