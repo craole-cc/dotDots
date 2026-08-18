@@ -150,32 +150,25 @@
   Build a NixOS configuration fragment for automated Nix store maintenance.
 
   Enables `nh clean` on a systemd timer with a retention policy of 3 days or
-  5 generations, whichever is greater. Also exposes shell aliases for manual
-  store operations when `host.paths.dots` is set.
+  3 generations, whichever is greater. Also exposes shell aliases for manual
+  store operations, keyed off `host.paths.src`.
 
   # Type
-  ```nix
-  mkMaintenance :: { host :: AttrSet } -> AttrSet
-  ```
+  > mkMaintenance :: { src :: String, pkgs :: AttrSet } -> AttrSet
 
   # Examples
+  - mkMaintenance { src = "/home/craole/.dots"; inherit pkgs; }
   ```nix
-  mkMaintenance { host = { paths.dots = "/home/craole/.dots"; }; }
-  => {
+  {
       programs.nh = {
-        enable = true;
         clean = {
           enable = true;
-          extraArgs = "--keep-since 3d --keep 5";
+          extraArgs = "--keep-since 3d --keep 3";
         };
+        enable = true;
         flake = "/home/craole/.dots";
       };
-      environment.shellAliases = {
-        nix-clean    = "nh clean all --keep-since 3d --keep 5";
-        nix-gc       = "nix store gc";
-        nix-optimise = "nix store optimise";
-        nix-repair   = "nix store verify --repair";
-      };
+      environment = { ... };
     }
   ```
   */
