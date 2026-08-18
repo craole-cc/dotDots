@@ -106,8 +106,8 @@
 
   # Examples
   ```nix
-    toName { field = "color"; }                          # => "Color"
-    toName { kind = "group"; field = "color"; }         # => "byColor"
+    toName { field = "colour"; }                          # => "Color"
+    toName { kind = "group"; field = "colour"; }         # => "byColor"
     toName { prefix = "is"; field = "enabled"; }        # => "isEnabled"
     toName { kind = "group"; field = "config.lang"; }   # => "byConfigLang"
     toName { prefix = "by"; field = ["a" "b"]; suffix = "Index"; }

@@ -3,12 +3,12 @@
 # Time-based + manual theme toggle
 
 toggle_manual() {
-  CURRENT=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || echo "''")
+  CURRENT=$(gsettings get org.gnome.desktop.interface colour-scheme 2> /dev/null || echo "''")
   if [ "$CURRENT" = "'prefer-dark'" ]; then
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-light'
     notify-send -u low "🌞 Light mode"
   else
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-dark'
     notify-send -u low "🌙 Dark mode"
   fi
 }
@@ -16,9 +16,9 @@ toggle_manual() {
 auto_time() {
   HOUR=$(date +%H)
   if [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 18 ]; then
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-light'
   else
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    gsettings set org.gnome.desktop.interface colour-scheme 'prefer-dark'
   fi
 }
 

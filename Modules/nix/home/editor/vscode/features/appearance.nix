@@ -12,15 +12,15 @@
   themes = mkVSCodeSubFeature {
     enabled = false;
     extensions = [
-      #? Catppuccin color theme
+      #? Catppuccin colour theme
       "catppuccin.catppuccin-vsc"
       #? Bluloco dark theme
       # "uloco.theme-bluloco-dark"
       #? Bluloco light theme
       # "uloco.theme-bluloco-light"
-      #? Dracula color theme
+      #? Dracula colour theme
       # "dracula-theme.theme-dracula"
-      #? Rosé Pine color theme
+      #? Rosé Pine colour theme
       # "mvllow.rose-pine"
     ];
     userSettings = {
@@ -45,8 +45,8 @@
       "workbench.productIconTheme" = "material-product-icons";
       "material-icon-theme.activeIconPack" = "react";
       "material-icon-theme.hidesExplorerArrows" = true;
-      "material-icon-theme.files.color" = "#e8ddd8";
-      "material-icon-theme.folders.color" = "#81c8be";
+      "material-icon-theme.files.colour" = "#e8ddd8";
+      "material-icon-theme.folders.colour" = "#81c8be";
       "material-icon-theme.files.associations" = {
         ".envrc" = "ember";
         ".ignore" = "mocha";
@@ -80,7 +80,7 @@
         {
           "name" = "rust-entrypoint";
           "base" = "rust";
-          "color" = "amber-300";
+          "colour" = "amber-300";
           "lightColor" = "amber-600";
           "fileNames" = [
             "lib.rs"
@@ -92,7 +92,7 @@
         {
           "name" = "nix-entrypoint";
           "base" = "nix";
-          "color" = "green-300";
+          "colour" = "green-300";
           "lightColor" = "green-600";
           "fileNames" = [
             "default.nix"
@@ -104,7 +104,7 @@
         {
           "name" = "users";
           "base" = "admin";
-          "color" = "light-green-300";
+          "colour" = "light-green-300";
           "lightColor" = "light-green-700";
           "folderNames" = [
             "users"
@@ -116,7 +116,7 @@
         {
           "name" = "desktops";
           "base" = "desktop";
-          "color" = "purple-300";
+          "colour" = "purple-300";
           "lightColor" = "orange-700";
           "folderNames" = [
             "desktops"
@@ -127,7 +127,7 @@
         {
           "name" = "hosts";
           "base" = "client";
-          "color" = "blue-gray-400";
+          "colour" = "blue-gray-400";
           "lightColor" = "orange-700";
           "folderNames" = [
             "hosts"
@@ -139,7 +139,7 @@
         {
           "name" = "programs";
           "base" = "app";
-          "color" = "cyan-300";
+          "colour" = "cyan-300";
           "lightColor" = "green-700";
           "folderNames" = [
             "program"
@@ -149,7 +149,7 @@
         {
           "name" = "macros";
           "base" = "middleware";
-          "color" = "blue-400";
+          "colour" = "blue-400";
           "lightColor" = "blue-500";
           "folderNames" = [
             "constructors"
@@ -159,7 +159,7 @@
         {
           "name" = "shell";
           "base" = "scripts";
-          "color" = "blue-gray-600";
+          "colour" = "blue-gray-600";
           "lightColor" = "blue-gray-500";
           "folderNames" = [
             "shell"
@@ -172,7 +172,7 @@
         {
           "name" = "nixos";
           "base" = "nix";
-          "color" = "cyan-800";
+          "colour" = "cyan-800";
           "lightColor" = "cyan-700";
           "folderNames" = [
             "nixos"
@@ -184,7 +184,7 @@
         {
           "name" = "dots";
           "base" = "ionic";
-          "color" = "teal-300";
+          "colour" = "teal-300";
           "lightColor" = "teal-600";
           "fileNames" = [
             ".dots.json"
@@ -199,7 +199,7 @@
         {
           "name" = "ahk-clone";
           "base" = "autohotkey";
-          "color" = "blue-400";
+          "colour" = "blue-400";
           "lightColor" = "grey-600";
           "ids" = ["ahk2"];
         }

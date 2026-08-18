@@ -312,7 +312,7 @@
           "zen.urlbar.behavior" = "float";
 
           #? Zen theme & appearance
-          "zen.theme.accent-color" = "#6366f1";
+          "zen.theme.accent-colour" = "#6366f1";
           "zen.theme.gradient" = true;
           "zen.theme.gradient.show-custom-colors" = false;
           "zen.view.gray-out-inactive-windows" = true;

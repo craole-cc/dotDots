@@ -76,7 +76,7 @@
         except OSError:
             pass
         try:
-            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark" if mode == "dark" else "prefer-light"], check=False)
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "colour-scheme", "prefer-dark" if mode == "dark" else "prefer-light"], check=False)
         except OSError:
             pass
         subprocess.run(["pkill", "-USR1", "-x", "foot"], check=False)

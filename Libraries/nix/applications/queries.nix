@@ -168,18 +168,18 @@
   # Examples
   ```nix
   mkEq {
-    field = "color";
-    set   = { a = { color = "red"; }; b = { color = "blue"; }; c = { color = "red"; }; };
+    field = "colour";
+    set   = { a = { colour = "red"; }; b = { colour = "blue"; }; c = { colour = "red"; }; };
   }
-  # => { red  = { a = { color = "red"; }; c = { color = "red"; }; };
-  #      blue = { b = { color = "blue"; }; }; }
+  # => { red  = { a = { colour = "red"; }; c = { colour = "red"; }; };
+  #      blue = { b = { colour = "blue"; }; }; }
 
   # Entries with a null field value are dropped entirely
   mkEq {
-    field = "color";
-    set   = { a = { color = "red"; }; b = { color = null; }; };
+    field = "colour";
+    set   = { a = { colour = "red"; }; b = { colour = null; }; };
   }
-  # => { red = { a = { color = "red"; }; }; }
+  # => { red = { a = { colour = "red"; }; }; }
   ```
   */
   mkEq = {
@@ -226,7 +226,7 @@
   }: let
     knownPrefixes = {
       channel = "on";
-      color = "in";
+      colour = "in";
       compositor = "using";
       family = "from";
       greeters = "via";
@@ -432,14 +432,14 @@
   ```nix
   mkNamed {
     prefix = "by";
-    set    = { color = { ... }; size = { ... }; };
+    set    = { colour = { ... }; size = { ... }; };
   }
   # => { byColor = { ... }; bySize = { ... }; }
 
   mkNamed {
     prefix = "by";
     suffix = "Index";
-    set    = { color = { ... }; size = { ... }; };
+    set    = { colour = { ... }; size = { ... }; };
   }
   # => { byColorIndex = { ... }; bySizeIndex = { ... }; }
   ```

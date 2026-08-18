@@ -51,7 +51,7 @@
 
     # Update GNOME/GTK for system-wide theme
     if command -v gsettings >/dev/null 2>&1; then
-      gsettings set org.gnome.desktop.interface color-scheme "prefer-$VARIANT"
+      gsettings set org.gnome.desktop.interface colour-scheme "prefer-$VARIANT"
     fi
 
     # Notify user

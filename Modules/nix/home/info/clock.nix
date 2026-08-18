@@ -11,7 +11,7 @@
       enable = config.${top}.resolved.applications.utilities.clock.enable;
       settings = {
         general = {
-          color = "magenta";
+          colour = "magenta";
           interval = 250;
           blink = true;
           bold = true;

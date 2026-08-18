@@ -20,6 +20,6 @@
 
     #~@ Theme Switching
     #? Manual theme toggle between dark and light
-    color-theme-toggle = "F12";
+    colour-theme-toggle = "F12";
   };
 }

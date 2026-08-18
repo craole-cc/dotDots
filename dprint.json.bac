@@ -7,12 +7,13 @@
   "json": {
     "indentWidth": 2,
     "lineWidth": 120,
-    "trailingCommas": "never"
+    "trailingCommas": "never",
+    "commentLineWidth": 120
   },
   "markdown": {
     "lineWidth": 120,
     "newLineKind": "lf",
-    "textWrap": "maintain",
+    "textWrap": "preserve",
     "emphasisKind": "underscores",
     "strongKind": "asterisks",
     "unorderedListKind": "dashes",
@@ -20,7 +21,7 @@
     "listIndentKind": "commonMark"
   },
   "yaml": {
-    "printWidth": 120,
+    "lineWidth": 120,
     "indentWidth": 2,
     "quotes": "preferDouble",
     "trailingComma": true,
@@ -34,17 +35,25 @@
     "trimTrailingZero": false,
     "proseWrap": "preserve"
   },
+  "dockerfile": {},
   "malva": {
     "printWidth": 120,
     "useTabs": false,
     "quotes": "preferDouble",
     "singleLineTopLevelDeclarations": false
   },
+  "markup_fmt": {
+    "printWidth": 120,
+    "useTabs": false,
+    "quotes": "double"
+  },
   "includes": [
     "**/*.{json,jsonc}",
     "**/*.md",
     "**/*.{yml,yaml}",
-    "**/*.{css,scss,sass,less}"
+    "Dockerfile",
+    "**/*.{css,scss,sass,less}",
+    "**/*.{html,vue,svelte,astro}"
   ],
   "excludes": [
     "**/node_modules",
@@ -57,9 +66,11 @@
     "**/.git"
   ],
   "plugins": [
-    "https://plugins.dprint.dev/json-0.23.0.wasm",
-    "https://plugins.dprint.dev/markdown-0.22.1.wasm",
-    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm",
-    "https://plugins.dprint.dev/g-plane/malva-v0.16.0.wasm"
+    "https://plugins.dprint.dev/json-VERSION.wasm",
+    "https://plugins.dprint.dev/markdown-VERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-vVERSION.wasm",
+    "https://plugins.dprint.dev/dockerfile-VERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-vVERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-vVERSION.wasm"
   ]
 }

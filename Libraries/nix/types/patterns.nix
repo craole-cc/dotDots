@@ -23,7 +23,7 @@
   ipv4 = strMatching "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";
 
   # Color hex code
-  color = strMatching "#[0-9a-fA-F]{6}";
+  colour = strMatching "#[0-9a-fA-F]{6}";
 
   # UUID
   uuid = strMatching "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -36,7 +36,7 @@ in {
     username
     hostname
     ipv4
-    color
+    colour
     uuid
     ;
   __rootAliases = {
@@ -47,7 +47,7 @@ in {
     usernamePattern = username;
     hostnamePattern = hostname;
     ipv4Pattern = ipv4;
-    colorPattern = color;
+    colorPattern = colour;
     uuidPattern = uuid;
   };
 }
