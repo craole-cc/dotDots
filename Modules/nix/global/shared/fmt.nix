@@ -11,10 +11,10 @@
   sources = {
     actionlint = null;
     alejandra = null;
-    deno = null;
+    dprint = null;
     harper = null;
     leptosfmt = null;
-    markdownlint-cli2 = null;
+    # markdownlint-cli2 = null;
     rustfmt = null;
     shellcheck = null;
     shfmt = null;
@@ -24,7 +24,6 @@
     treefmt = "treefmt-nix";
     typos = null;
     typstyle = null;
-    yamlfmt = null;
   };
 
   resolved = pkgsFrom {
@@ -32,7 +31,7 @@
     inherit sources;
     required = true;
   };
-  bins = mapAttrs (_: pkg: pkg.paths.exe) resolved;
+  # bins = mapAttrs (_: pkg: pkg.paths.exe) resolved;
 
   eval = inputs.treefmt.lib.evalModule pkgs {
     projectRootFile = "flake.nix";
@@ -54,15 +53,12 @@
         simplify = true;
       };
 
-      #~@ Mark[down/up]
-      deno.enable = true;
-      typstyle.enable = true;
-      typos.enable = true;
-
-      #~@ Config
+      #~@ Mark[down/up], Config & Data
       actionlint.enable = true;
-      yamlfmt.enable = true;
+      dprint.enable = true;
       stylua.enable = true;
+      typos.enable = true;
+      typstyle.enable = true;
     };
 
     settings = {
@@ -126,32 +122,15 @@
           ];
         };
 
-        #~@ Mark[down/up]
-        deno.priority = 1;
-        markdown = {
-          command = bins.markdownlint-cli2;
-          includes = ["*.md" "README"];
-          options = [
-            "--fix"
-            "--config"
-            ".markdownlint.yaml"
-          ];
-          priority = 2;
-        };
-
-        #~@ Config
-        yamlfmt.priority = 1;
-        actionlint.priority = 2;
-        toml = {
-          command = bins.tombi;
-          includes = ["*.toml"];
-          options = ["format" "--offline"];
-        };
+        # toml = {
+        #   command = bins.tombi;
+        #   includes = ["*.toml"];
+        #   options = ["format" "--offline"];
+        # };
       };
     };
   };
   inherit (eval.config.build) wrapper check;
-  # Incorrect spellinf
 in {
   formatters = resolved.packages ++ [wrapper];
   formatter = wrapper;

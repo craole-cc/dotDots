@@ -31,15 +31,7 @@
     "Templates/**",                               # TODO Temporary
   ]
 
-  # |─────────────────────────────────────────────────────────────────|
-  # | Nix                                                             |
-  # |─────────────────────────────────────────────────────────────────|
-
-  # [formatter.nixfmt]
-  # includes = ["*.nix"]
-  # priority = 1
-  # command = "nixfmt"
-
+# -- Nix
 [formatter.alejandra]
   includes = ["*.nix"]
   priority = 1
@@ -56,7 +48,7 @@
   includes = ["*.rs"]
   priority = 1
   command = "rustfmt"
-  options = ["--edition", "2024"]
+  # options = ["--edition", "2024"]
 
 [formatter.leptosfmt]
   includes = ["*.rs"]
@@ -84,10 +76,8 @@
     "*.dotsrc",
     "*.env*",
     "*.shellcheckrc",
-    # "*.bash*",
     "*.gitignore",
     "*.ignore",
-    # "Bin/shellscript/**",
   ]
   excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
   priority = 2
@@ -103,20 +93,12 @@
     "--write",
   ]
 
-  # [formatter.powershell]
-  # includes = ["*.ps1", "*.psm1, *.psd1"]
-  # command = "powershell"
-  # options = [
-  #   "-NoProfile",
-  #   "-Command",
-  #   "Invoke-Formatter -ScriptDefinition (Get-Content -Raw $inputFile) | Set-Content -Path $outputFile",
-  # ]
-
 # -- Configuration
 [formatter.toml]
   includes = ["*.toml"]
   command = "tombi"
   options = ["format", "--offline"]
+  priority = 2
 
 [formatter.ruff]
   includes = ["*.py"]
@@ -132,52 +114,43 @@
   command = "stylua"
 
 # -- Markup
-[formatter.markdown]
-  includes = ["*.md", "README"]
-  command = "markdownlint-cli2"
-  options = ["--fix", "--config", ".markdownlint.yaml"]
-  priority = 1
-
-  # [formatter.mdsh]
-  # command = "mdsh"
-  # excludes = []
-  # includes = ["README.md"]
-  # options = ["--inputs"]
-  # priority = 2
-
-[formatter.deno]
-  excludes = []
+[formatter.dprint]
   includes = [
+    "*.astro",
     "*.css",
     "*.html",
-    "*.js",
     "*.json",
     "*.jsonc",
-    "*.jsx",
     "*.less",
-    "*.markdown",
     "*.md",
     "*.sass",
     "*.scss",
-    "*.ts",
-    "*.tsx",
+    "*.svelte",
+    "*.vue",
     "*.yaml",
     "*.yml",
+    "Dockerfile",
   ]
-  priority = 2
-  command = "deno"
-  options = ["fmt"]
+  priority = 1
+  command = "dprint"
+  options = ["fmt", "--stdin", "{{filename}}"]
 
 [formatter.yamlfmt]
   includes = ["*.yaml", "*.yml"]
-  priority = 1
+  priority = 2
   command = "yamlfmt"
   options = ["-formatter", "retain_line_breaks=true"]
 
 [formatter.actionlint]
-  includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
-  excludes = []
-  priority = 2
+  includes = [
+    ".github/workflows/*.yml",
+    ".github/workflows/*.yaml",
+    ".gitea/workflows/*.yml",
+    ".gitea/workflows/*.yaml",
+    ".forgejo/workflows/*.yml",
+    ".forgejo/workflows/*.yaml",
+  ]
+  # excludes = []
   command = "actionlint"
   options = []
 

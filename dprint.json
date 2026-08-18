@@ -1,0 +1,76 @@
+{
+  "$schema": "https://dprint.dev/schemas/v0.json",
+  "lineWidth": 120,
+  "indentWidth": 2,
+  "useTabs": false,
+  "newLineKind": "lf",
+  "json": {
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "trailingCommas": "never",
+    "commentLineWidth": 120
+  },
+  "markdown": {
+    "lineWidth": 120,
+    "newLineKind": "lf",
+    "textWrap": "preserve",
+    "emphasisKind": "underscores",
+    "strongKind": "asterisks",
+    "unorderedListKind": "dashes",
+    "headingKind": "atx",
+    "listIndentKind": "commonMark"
+  },
+  "yaml": {
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "quotes": "preferDouble",
+    "trailingComma": true,
+    "formatComments": false,
+    "indentBlockSequenceInMap": true,
+    "braceSpacing": true,
+    "bracketSpacing": false,
+    "dashSpacing": "oneSpace",
+    "preferSingleLine": false,
+    "trimTrailingWhitespaces": true,
+    "trimTrailingZero": false,
+    "proseWrap": "preserve"
+  },
+  "dockerfile": {},
+  "malva": {
+    "printWidth": 120,
+    "useTabs": false,
+    "quotes": "preferDouble",
+    "singleLineTopLevelDeclarations": false
+  },
+  "markup_fmt": {
+    "printWidth": 120,
+    "useTabs": false,
+    "quotes": "double"
+  },
+  "includes": [
+    "**/*.{json,jsonc}",
+    "**/*.md",
+    "**/*.{yml,yaml}",
+    "Dockerfile",
+    "**/*.{css,scss,sass,less}",
+    "**/*.{html,vue,svelte,astro}"
+  ],
+  "excludes": [
+    "**/node_modules",
+    "**/*-lock.json",
+    "**/flake.lock",
+    "**/result",
+    "**/.direnv",
+    "**/target",
+    "**/dist",
+    "**/.git"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/json-VERSION.wasm",
+    "https://plugins.dprint.dev/markdown-VERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-vVERSION.wasm",
+    "https://plugins.dprint.dev/dockerfile-VERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-vVERSION.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-vVERSION.wasm"
+  ]
+}

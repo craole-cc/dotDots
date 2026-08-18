@@ -3,6 +3,7 @@ APK
 BlinkMacSystemFont
 CBT
 Craole
+craole
 DB
 DemoRole
 Dioxus

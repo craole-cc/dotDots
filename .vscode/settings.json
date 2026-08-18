@@ -1,3 +1,4 @@
 {
-  "harper.dialect": "British"
+  "harper.dialect": "British",
+  "harper.linters.ToDoHyphen": false
 }
