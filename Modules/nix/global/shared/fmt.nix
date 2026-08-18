@@ -29,6 +29,21 @@
     required = true;
   };
 
+  #~@ Single source of truth: repo-root dprint.json, consumed by the CLI directly
+  #~@ and derived here for the sandboxed/Nix-driven run.
+  dprintConfig = builtins.fromJSON (builtins.readFile "${path}/dprint.json");
+
+  #~@ Keys that route dprint's own file discovery — not formatting rules —
+  #~@ and are superseded by treefmt's own includes/excludes/plugins below.
+  dprintSettings =
+    (builtins.removeAttrs dprintConfig ["$schema" "includes" "excludes" "plugins"])
+    // {
+      #~@ headingKind / listIndentKind removed: unsupported by dprint-plugin-markdown
+      #~@ 0.20.0, the version currently packaged in nixpkgs. dprint.json (the CLI
+      #~@ source of truth) keeps them for the newer plugin used outside the sandbox.
+      markdown = builtins.removeAttrs dprintConfig.markdown ["headingKind" "listIndentKind"];
+    };
+
   eval = inputs.treefmt.lib.evalModule pkgs {
     projectRootFile = "flake.nix";
 
@@ -68,55 +83,17 @@
           "*.sass"
           "*.less"
         ];
-        settings = {
-          plugins = pkgs.dprint-plugins.getPluginList (plugins:
-            with plugins; [
-              dprint-plugin-json
-              dprint-plugin-markdown
-              g-plane-pretty_yaml
-              g-plane-malva
-            ]);
-          lineWidth = 120;
-          indentWidth = 2;
-          useTabs = false;
-          newLineKind = "lf";
-          json = {
-            indentWidth = 2;
-            lineWidth = 120;
-            trailingCommas = "never";
+        settings =
+          dprintSettings
+          // {
+            plugins = pkgs.dprint-plugins.getPluginList (plugins:
+              with plugins; [
+                dprint-plugin-json
+                dprint-plugin-markdown
+                g-plane-pretty_yaml
+                g-plane-malva
+              ]);
           };
-          markdown = {
-            lineWidth = 120;
-            newLineKind = "lf";
-            textWrap = "maintain";
-            emphasisKind = "underscores";
-            strongKind = "asterisks";
-            unorderedListKind = "dashes";
-            # headingKind = "atx";        # removed — unsupported by dprint-plugin-markdown 0.20.0 in nixpkgs
-            # listIndentKind = "commonMark"; # removed — unsupported by dprint-plugin-markdown 0.20.0 in nixpkgs
-          };
-          yaml = {
-            printWidth = 120;
-            indentWidth = 2;
-            quotes = "preferDouble";
-            trailingComma = true;
-            formatComments = false;
-            indentBlockSequenceInMap = true;
-            braceSpacing = true;
-            bracketSpacing = false;
-            dashSpacing = "oneSpace";
-            preferSingleLine = false;
-            trimTrailingWhitespaces = true;
-            trimTrailingZero = false;
-            proseWrap = "preserve";
-          };
-          malva = {
-            printWidth = 120;
-            useTabs = false;
-            quotes = "preferDouble";
-            singleLineTopLevelDeclarations = false;
-          };
-        };
       };
     };
 
