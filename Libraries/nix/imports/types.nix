@@ -54,6 +54,7 @@
       envVar
       float
       int
+      ints
       lines
       number
       package

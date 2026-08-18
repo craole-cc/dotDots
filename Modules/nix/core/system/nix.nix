@@ -2,6 +2,8 @@
   config,
   host,
   lix,
+  names,
+  paths,
   pkgs,
   tree,
   ...
@@ -13,10 +15,11 @@
   };
   inherit (context) cfg;
 
-  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
+  inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
-  inherit (lix.types.combinators) attrsOf either nullOr submodule;
-  inherit (lix.types.primitives) bool int str;
+  inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
+  inherit (lix.types.primitives) bool int ints path str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
@@ -49,15 +52,42 @@ in
         type = str;
       };
 
-      dots = mkOption {
+      src = mkOption {
         description = ''
           Absolute path to the dotfiles flake. Used by `nh` as the flake
           reference for rebuilds and store maintenance.
         '';
-        default = host.paths.dots;
-        defaultText = literalExpression "host.paths.dots";
-        example = literalExpression ''/home/craole/.dots'';
-        type = str;
+        type = submodule {
+          options = {
+            home = mkOption {
+              description = "Absolute path to the dotfiles flake.";
+              type = submodule {
+                options = {
+                  local = mkOption {
+                    description = "Local absolute path to the flake.";
+                    default = host.paths.src or paths.src.local;
+                    defaultText = literalExpression "host.paths.src";
+                    example = literalExpression ''/home/craole/.dots'';
+                    type = str;
+                  };
+                  store = mkOption {
+                    description = "Nix store path to the flake.";
+                    default = paths.src.store or ../../../../.;
+                    defaultText = literalExpression "paths.src.store or ../../../../.";
+                    example = literalExpression ''/nix/store/...-source'';
+                    type = nullOr (either str path);
+                  };
+                };
+              };
+            };
+            name = mkOption {
+              description = "Name identifier for the dotfiles flake.";
+              default = names.src;
+              example = literalExpression ''"dotfiles"'';
+              type = str;
+            };
+          };
+        };
       };
 
       kernel = mkOption {
@@ -118,16 +148,80 @@ in
           };
         });
       };
+
+      keep = {
+        days = mkOption {
+          description = ''
+            Number of days to keep store paths during garbage collection (`--keep-since`).
+            Set to `null` to disable time-based retention.
+          '';
+          default = 3;
+          example = 7;
+          type = nullOr ints.positive;
+        };
+
+        generations = mkOption {
+          description = ''
+            Number of recent generations to keep during garbage collection (`--keep`).
+            Set to `null` to disable generation-based retention.
+          '';
+          default = 3;
+          example = 5;
+          type = nullOr ints.positive;
+        };
+
+        maxFreed = mkOption {
+          description = ''
+            Maximum amount of disk space (in bytes or human-readable units like `10G`)
+            to free during garbage collection (`--max-freed`).
+            Set to `null` to disable maximum freed size limits.
+          '';
+          default = null;
+          example = "10G";
+          type = nullOr str;
+        };
+
+        args = mkOption {
+          description = ''
+            CLI arguments passed to `nix store gc`. Defaults to flags built from
+            `keep.days`, `keep.generations`, and `keep.maxFreed`.
+          '';
+          default =
+            (
+              optionals
+              (cfg.keep.days != null)
+              ["--keep-since" "${toString cfg.keep.days}d"]
+            )
+            ++ (
+              optionals
+              (cfg.keep.generations != null)
+              ["--keep" "${toString cfg.keep.generations}"]
+            )
+            ++ (
+              optionals
+              (cfg.keep.maxFreed != null)
+              ["--max-freed" cfg.keep.maxFreed]
+            );
+          defaultText = literalExpression ''
+            (optionals (cfg.keep.days != null) ["--keep-since" "''${toString cfg.keep.days}d"])
+            ++ (optionals (cfg.keep.generations != null) ["--keep" "''${toString cfg.keep.generations}"])
+            ++ (optionals (cfg.keep.maxFreed != null) ["--max-freed" cfg.keep.maxFreed])
+          '';
+          example = ["--keep-since" "7d" "--keep" "5" "--max-freed" "10G"];
+          type = listOf str;
+        };
+      };
     };
-    outputs = lix.modules.construction.mkMerge [
+
+    outputs = mkMerge [
       (mkNix {
         inherit host pkgs;
-        inherit (cfg) kernel caches max-jobs stateVersion;
+        inherit (cfg) src kernel caches max-jobs stateVersion;
         store = tree.store.default;
       })
       (mkMaintenance {
-        inherit (host.paths) src;
-        inherit pkgs;
+        inherit pkgs paths;
+        inherit (cfg) src keep;
       })
     ];
   }

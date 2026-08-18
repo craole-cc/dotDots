@@ -74,7 +74,7 @@
         (import ./themes.nix)
       ];
     };
-    debug = cfg.debug;
+    inherit (cfg) debug;
   };
 in
   mkConfig {

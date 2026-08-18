@@ -34,7 +34,7 @@
   in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
-  inherit (_.attrsets.construction) genAttrs optionalAttr;
+  inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.transformation) mapAttrs setAttrByPath;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
@@ -90,7 +90,7 @@
 
         specialArgs =
           {
-            inherit host class inputs src;
+            inherit host class inputs src names paths;
             inherit (names) top;
             "${names.lib}" = libraries.${names.lib};
             tree = tree';
@@ -271,7 +271,7 @@
     condition =
       if predicate != null
       then predicate
-      else cfg.enable;
+      else cfg.enable or true;
     resolved = mkIf condition outputs;
   in {
     options = setAttrByPath path {

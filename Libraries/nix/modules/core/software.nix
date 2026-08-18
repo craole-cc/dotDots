@@ -1,8 +1,4 @@
-{
-  _,
-  names,
-  ...
-}: let
+{_, ...}: let
   meta = let
     doc = ''
       # Core Software [Layer 3]
@@ -60,8 +56,10 @@
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.attrsets.predicates) hasAttr;
+  inherit (_.filesystem.access) readFile;
   inherit (_.modules.construction) mkForce;
   inherit (_.sources.predicates) lockFileHas;
+  inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasInfix;
 
   /**
@@ -94,7 +92,7 @@
   mkNix = {
     host,
     pkgs,
-    store,
+    src,
     kernel ? (host.packages.kernel or null),
     caches ? (host.caches or {}),
     max-jobs ? (host.specs.cpu.cores or "auto"),
@@ -103,7 +101,7 @@
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
-      path = store;
+      path = src.home.store;
       field = "owner";
       value = "numtide";
     };
@@ -126,7 +124,7 @@
       custom = caches;
     in
       attrValues (filterAttrs
-        (_: c: c.enable or true)
+        (_: cache: cache.enable or true)
         (recursiveUpdate common custom));
   in {
     system = {inherit stateVersion;};
@@ -139,8 +137,8 @@
         "pipe-operators"
       ];
       trusted-users = ["@wheel"];
-      substituters = map (c: c.sub) caches';
-      trusted-public-keys = map (c: c.key) caches';
+      substituters = map (cache: cache.sub) caches';
+      trusted-public-keys = map (cache: cache.key) caches';
     };
 
     systemd.services.nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
@@ -175,115 +173,59 @@
   mkMaintenance = {
     src,
     pkgs,
+    keep,
+    paths,
     ...
   }: let
-    keepArgs = "--keep-since 3d --keep 3";
-    fetch = pkgs.writeShellApplication {
-      name = "fetch";
-      runtimeInputs = with pkgs; [
-        fastfetch
-        nitch
-        onefetch
-        tokei
-        git
-      ];
-      text = ''
-        mode="normal"
-        target="''${1:-.}"
+    inherit (src) name;
+    inherit (pkgs) writeShellApplication;
+    keepArgs = concat " " keep.args;
+    flake = src.home.local;
 
-        case "''${1:-}" in
-          --full)
-            mode="full"
-            target="''${2:-.}"
-            ;;
-        esac
-
-        if [ ! -d "$target" ]; then
-          printf 'fetch: directory not found: %s\n' "$target" >&2
-          exit 1
-        fi
-
-        cd "$target" || exit 1
-
-        onefetch_min() {
-          onefetch \
-            --no-art \
-            --no-title \
-            --no-color-palette \
-            --disabled-fields \
-              project \
-              description \
-              head \
-              version \
-              created \
-              languages \
-              dependencies \
-              authors \
-              commits \
-              lines-of-code \
-              churn \
-              size \
-              contributors \
-              url \
-              license
-        }
-
-        case "$mode" in
-          full)
-            nitch
-            printf '\n'
-            if [ -d .git ]; then
-              onefetch
-              printf '\n'
-            fi
-            tokei .
-            ;;
-          *)
-            fastfetch
-            printf '\n'
-            if [ -d .git ]; then
-              onefetch_min
-            fi
-            ;;
-        esac
-      '';
+    fetch = writeShellApplication {
+      name = "${name}-fetch";
+      runtimeInputs = with pkgs; [fastfetch nitch onefetch tokei git];
+      text = readFile (paths.lib.sh.store + "/data/fetch");
+      # text = readFile ./fetch.sh;
     };
   in {
-    programs.nh = {
-      clean = {
+    programs = {
+      nh = {
+        clean = {
+          enable = true;
+          extraArgs = keepArgs;
+        };
         enable = true;
-        extraArgs = keepArgs;
+        inherit flake;
       };
-      enable = true;
-      flake = src;
     };
 
     environment = {
       systemPackages = [fetch];
       shellAliases = {
-        "${names.src}-switch" = "nh os switch ${src}";
-        "${names.src}-update" = "nix flake update --flake ${src}";
-        "${names.src}-upgrade" = "nix flake update --flake ${src} && nh os switch ${src}";
-        "${names.src}-boot" = "nh os boot ${src}";
-        "${names.src}-test" = "nh os test ${src}";
-        "${names.src}-build" = "nh os build ${src}";
-        "${names.src}-clean" = "nh clean all ${keepArgs}";
-        "${names.src}-clean-all" = "nh clean all --keep 1";
-        "${names.src}-gc" = "nix store gc";
-        "${names.src}-gens" = "nh os info";
-        "${names.src}-optimise" = "nix store optimise";
-        "${names.src}-repair" = "nix store verify --repair";
-        "${names.src}-dev" = "nix develop ${src}";
-        "${names.src}-dev-ai" = "nix develop ${src}#ai";
-        "${names.src}-dev-core" = "nix develop ${src}#core";
-        "${names.src}-dev-extras" = "nix develop ${src}#extras";
-        "${names.src}-dev-full" = "nix develop ${src}#full";
-        "${names.src}-dev-media" = "nix develop ${src}#media";
-        "${names.src}-dev-minimal" = "nix develop ${src}#minimal";
-        "${names.src}-repl" = "nix repl ${src}#repl";
-        "${names.src}-cd" = "cd ${src}";
-        "${names.src}-fetch" = "fetch ${src}";
-        "${names.src}-fetch-full" = "fetch --full ${src}";
+        "${name}-switch" = "nh os switch ${flake}";
+        "${name}-update" = "nix flake update --flake ${flake}";
+        "${name}-upgrade" = "nix flake update --flake ${flake} && nh os switch ${flake}";
+        "${name}-boot" = "nh os boot ${flake}";
+        "${name}-test" = "nh os test ${flake}";
+        "${name}-build" = "nh os build ${flake}";
+        "${name}-clean" = "nh clean all ${keepArgs}";
+        "${name}-clean-all" = "nh clean all --keep 1";
+        "${name}-gc" = "nix store gc";
+        "${name}-gens" = "nh os info";
+        "${name}-optimise" = "nix store optimise";
+        "${name}-repair" = "nix store verify --repair";
+        "${name}-dev" = "nix develop ${flake}";
+        "${name}-dev-ai" = "nix develop ${flake}#ai";
+        "${name}-dev-core" = "nix develop ${flake}#core";
+        "${name}-dev-extras" = "nix develop ${flake}#extras";
+        "${name}-dev-full" = "nix develop ${flake}#full";
+        "${name}-dev-media" = "nix develop ${flake}#media";
+        "${name}-dev-minimal" = "nix develop ${flake}#minimal";
+        "${name}-repl" = "nix repl ${flake}#repl";
+        "${name}-cd" = "cd ${flake}";
+        "${name}-fetch" = "fetch ${flake}";
+        "${name}-fetch-full" = "fetch --full ${flake}";
       };
     };
   };

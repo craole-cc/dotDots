@@ -1,0 +1,92 @@
+#!/bin/sh
+
+is_git_repo() {
+  git rev-parse --git-dir >/dev/null 2>&1
+}
+
+onefetch_min() {
+  onefetch \
+    --no-art \
+    --no-title \
+    --no-color-palette \
+    --disabled-fields \
+    project \
+    description \
+    head \
+    version \
+    created \
+    languages \
+    dependencies \
+    authors \
+    commits \
+    lines-of-code \
+    churn \
+    size \
+    contributors \
+    url \
+    license
+}
+
+render_git_info() {
+  if is_git_repo; then
+    case "${1:-}" in
+    full) onefetch ;;
+    *) onefetch_min ;;
+    esac
+    printf '\n'
+  fi
+}
+
+run_fetch() {
+  case "${1:-}" in
+  full)
+    nitch
+    printf '\n'
+    render_git_info full
+    tokei .
+    ;;
+  *)
+    fastfetch
+    printf '\n'
+    render_git_info min
+    ;;
+  esac
+}
+
+parse_args() {
+  mode="normal"
+
+  case "${1:-}" in
+  --full)
+    mode="full"
+    shift
+    ;;
+  *) ;;
+  esac
+
+  if [ -n "${1:-}" ]; then
+    target="$1"
+  elif git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
+    target="${git_root}"
+  else
+    target="${PWD}"
+  fi
+}
+
+main() {
+  mode=""
+  target=""
+
+  parse_args "$@"
+
+  if [ ! -d "${target}" ]; then
+    printf 'fetch: directory not found: %s\n' "${target}" >&2
+    exit 1
+  fi
+
+  cd "${target}" || exit 1
+
+  run_fetch "${mode}"
+}
+
+main "$@"

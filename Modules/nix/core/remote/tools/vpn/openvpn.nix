@@ -7,6 +7,7 @@
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnableOption mkOption;
+  inherit (lix.lists.predicates) isIn;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) str;
   inherit (pkgs) iproute2 openvpn writeShellScript;
@@ -25,7 +26,7 @@ in
     options = {
       enable =
         mkEnableOption "OpenVPN namespace-isolated tunnel"
-        // {default = host.functionalities or [] |> builtins.elem "vpn";};
+        // {default = isIn "vpn" (host.functionalities or []);};
       configFile = mkOption {
         description = "Path to .ovpn config (outside Nix store)";
         default = vpnCfg.configFile or "/etc/openvpn/vpn.ovpn";
