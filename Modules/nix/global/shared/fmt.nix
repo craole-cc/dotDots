@@ -12,6 +12,7 @@
     actionlint = null;
     alejandra = null;
     deno = null;
+    harper = null;
     leptosfmt = null;
     markdownlint-cli2 = null;
     rustfmt = null;
@@ -21,6 +22,7 @@
     stylua = null;
     tombi = null;
     treefmt = "treefmt-nix";
+    typos = null;
     typstyle = null;
     yamlfmt = null;
   };
@@ -140,7 +142,6 @@
         #~@ Config
         yamlfmt.priority = 1;
         actionlint.priority = 2;
-
         toml = {
           command = bins.tombi;
           includes = ["*.toml"];
@@ -150,6 +151,7 @@
     };
   };
   inherit (eval.config.build) wrapper check;
+  # Incorrect spellinf
 in {
   formatters = resolved.packages ++ [wrapper];
   formatter = wrapper;

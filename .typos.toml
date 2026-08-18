@@ -22,13 +22,12 @@
 
   # Custom dictionary entries
   [default.extend-identifiers]
-    myidentifier = "myidentifier"  # Always valid
-    mispeled = "misspelled"        # Will be corrected
-    "colour" = "color"
-    "nitch" = "nitch"
-    "favourites" = "favourites"
+    "color" = "colour"
+    "favorites" = "favourites"
 
   [default.extend-words]
     ags = "ags"
     optimise = "optimise"
     dots-fetch = "dots-fetch"
+    shotcut = "shotcut"
+    nitch = "nitch"

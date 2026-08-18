@@ -63,7 +63,7 @@
   priority = 2
   command = "leptosfmt"
 
-# -- Shellscript
+# -- Shell Script
 [formatter.shellcheck]
   includes = [
     "*.sh",
