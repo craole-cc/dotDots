@@ -1,159 +1,122 @@
-[global]
-  excludes = [
-    ".dotsrc",
-    "LICENSE",
-    "**/node_modules/**",
-    "**/target/**",
-    "**/.git/**",
-    "**/dist/**",
-    "**/build/**",
-    "**/review/**",
-    "**/archive/**",
-    "*.lock",
-    "Assets/**",
-    "*.diff",
-    "*.patch",
-    "AGENTS.md",
-    "**/dump.nix",
-    "**/.bin/**",
-    "**/.config/**",
-    "**README.md",                                # TODO Temporary
-    ".zed/**",                                    # TODO Temporary
-    "Configuration/**",                           # TODO Temporary
-    "Documentation/**",                           # TODO Temporary
-    "Environment/**",                             # TODO Temporary
-    "Modules/global/**",                          # TODO Temporary
-    "Modules/nixos/configurations/hosts/QBX/**",  # TODO Temporary
-    "Modules/nixos/scripts/**",                   # TODO Temporary
-    "Review/**",                                  # TODO Temporary
-    "Scripts/**",                                 # TODO Temporary
-    "Tasks/**",                                   # TODO Temporary
-    "Templates/**",                               # TODO Temporary
-  ]
-
-# -- Nix
-[formatter.alejandra]
-  includes = ["*.nix"]
-  priority = 1
-  command = "alejandra"
-
-[formatter.statix]
-  includes = ["*.nix"]
-  priority = 2
-  command = "sh"
-  options = ["-c", "for f in \"$@\"; do statix check \"$f\"; done"]
-
-# -- Rust
-[formatter.rust]
-  includes = ["*.rs"]
-  priority = 1
-  command = "rustfmt"
-  # options = ["--edition", "2024"]
-
-[formatter.leptosfmt]
-  includes = ["*.rs"]
-  priority = 2
-  command = "leptosfmt"
-
-# -- Shell Script
-[formatter.shellcheck]
-  includes = [
-    "*.sh",
-    ".env*",
-    ".shellcheckrc",
-    "*.bash",
-    ".bash*",
-    "Bin/shellscript/**",
-  ]
-  excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
-  priority = 1
-  command = "shellcheck"
-  options = ["--rcfile", ".shellcheckrc"]
-
-[formatter.shfmt]
-  includes = [
-    "*.sh",
-    "*.dotsrc",
-    "*.env*",
-    "*.shellcheckrc",
-    "*.gitignore",
-    "*.ignore",
-  ]
-  excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
-  priority = 2
-  command = "shfmt"
-  options = [
-    "--apply-ignore",
-    "--binary-next-line",
-    "--space-redirects",
-    "--case-indent",
-    "--indent",
-    "2",
-    "--posix",
-    "--write",
-  ]
-
-# -- Configuration
-[formatter.toml]
-  includes = ["*.toml"]
-  command = "tombi"
-  options = ["format", "--offline"]
-  priority = 2
-
-[formatter.ruff]
-  includes = ["*.py"]
-  command = "sh"
-  options = [
-    "-euc",
-    "command -v ruff >/dev/null || exit 0",
-    "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
-  ]
-
-[formatter.stylua]
-  includes = ["*.lua"]
-  command = "stylua"
-
-# -- Markup
-[formatter.dprint]
-  includes = [
-    "*.astro",
-    "*.css",
-    "*.html",
-    "*.json",
-    "*.jsonc",
-    "*.less",
-    "*.md",
-    "*.sass",
-    "*.scss",
-    "*.svelte",
-    "*.vue",
-    "*.yaml",
-    "*.yml",
-    "Dockerfile",
-  ]
-  priority = 1
-  command = "dprint"
-  options = ["fmt", "--stdin", "{{filename}}"]
-
-[formatter.yamlfmt]
-  includes = ["*.yaml", "*.yml"]
-  priority = 2
-  command = "yamlfmt"
-  options = ["-formatter", "retain_line_breaks=true"]
+excludes = [
+  ".dotsrc",
+  "LICENSE",
+  "**/node_modules/**",
+  "**/target/**",
+  "**/.git/**",
+  "**/dist/**",
+  "**/build/**",
+  "**/review/**",
+  "**/archive/**",
+  "*.lock",
+  "Assets/**",
+  "*.diff",
+  "*.patch",
+  "AGENTS.md",
+  "**/dump.nix",
+  "**/.bin/**",
+  "**/.config/**",
+  "**README.md",
+  ".zed/**",
+  "Configuration/**",
+  "Documentation/**",
+  "Environment/**",
+  "Modules/global/**",
+  "Modules/nixos/configurations/hosts/QBX/**",
+  "Modules/nixos/scripts/**",
+  "Review/**",
+  "Scripts/**",
+  "Tasks/**",
+  "Templates/**",
+  "*.lock",
+  "*.patch",
+  "package-lock.json",
+  "go.mod",
+  "go.sum",
+  ".gitattributes",
+  ".gitignore",
+  ".gitmodules",
+  ".hgignore",
+  ".svnignore",
+  "LICENSE"
+]
 
 [formatter.actionlint]
+  command = "/nix/store/ypcd7ghn7nwgpzi9sm0fswk7rgwslyq6-actionlint-1.7.12/bin/actionlint"
+  excludes = []
   includes = [
     ".github/workflows/*.yml",
     ".github/workflows/*.yaml",
     ".gitea/workflows/*.yml",
     ".gitea/workflows/*.yaml",
     ".forgejo/workflows/*.yml",
-    ".forgejo/workflows/*.yaml",
+    ".forgejo/workflows/*.yaml"
   ]
-  # excludes = []
-  command = "actionlint"
   options = []
 
+[formatter.alejandra]
+  command = "/nix/store/kq61zzri6yliqysbrwnc3mhsqddwwlrh-alejandra-4.0.0/bin/alejandra"
+  excludes = []
+  includes = ["*.nix"]
+  options = []
+  priority = 1
+
+[formatter.dprint]
+  command = "/nix/store/ik6xkpy0wydjamvg0xg4h9dp7mk4j8n7-dprint-0.55.2/bin/dprint"
+  excludes = []
+  includes = ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml", "*.css", "*.scss", "*.sass", "*.less"]
+  options = ["fmt", "--allow-no-files", "--config", "/nix/store/7d9b6g55h4fhma2znamws5w5xrnp5r74-dprint.json"]
+  priority = 1
+
+[formatter.leptosfmt]
+  command = "/nix/store/vkvj6ragls3z4vlrvdd83bbskq5zy07d-leptosfmt-0.1.33/bin/leptosfmt"
+  excludes = []
+  includes = ["*.rs"]
+  options = []
+  priority = 2
+
+[formatter.rustfmt]
+  command = "/nix/store/k2hwcha2p1fy0v0py34vq3jyvwqk339p-rustfmt-1.97.1/bin/rustfmt"
+  excludes = []
+  includes = ["*.rs"]
+  options = ["--config", "skip_children=true", "--edition", "2024"]
+  priority = 1
+
+[formatter.shellcheck]
+  command = "/nix/store/arx11b315ynql817kgf0548307zm8w4r-shellcheck-0.11.0-bin/bin/shellcheck"
+  excludes = []
+  includes = ["*.sh", "*.bash", "*.envrc", "*.envrc.*"]
+  options = ["--rcfile", ".shellcheckrc"]
+  priority = 1
+
+[formatter.shfmt]
+  command = "/nix/store/83klmqyg64fr3zv5zbnzb0fc6kda29f2-shfmt-3.13.1/bin/shfmt"
+  excludes = []
+  includes = ["*.sh", "*.bash", "*.envrc", "*.envrc.*"]
+  options = ["-w", "--apply-ignore", "--binary-next-line", "--space-redirects", "--case-indent", "-i", "2", "-s"]
+  priority = 2
+
+[formatter.statix]
+  command = "/nix/store/smvgh1bwcn9gszd1k1l9ak56cl4nbwly-statix-fix/bin/statix-fix"
+  excludes = []
+  includes = ["*.nix"]
+  options = []
+  priority = 2
+
+[formatter.stylua]
+  command = "/nix/store/w6mr02wa797dg82av68f44wn8jxdb3ky-stylua-2.5.2/bin/stylua"
+  excludes = []
+  includes = ["*.lua"]
+  options = []
+
+[formatter.typos]
+  command = "/nix/store/j4ldqh2achvl4zhvap4kchn8nb9frz85-typos-1.49.0/bin/typos"
+  excludes = []
+  includes = ["*"]
+  options = ["--write-changes", "--force-exclude"]
+
 [formatter.typstyle]
+  command = "/nix/store/dy1mj9a70fmvrbfn5wg7vh6q8k1y70m3-typstyle-0.15.0/bin/typstyle"
+  excludes = []
   includes = ["*.typ", "*.typst"]
-  command = "typstyle"
+  options = ["-i"]

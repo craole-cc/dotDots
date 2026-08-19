@@ -39,7 +39,7 @@ global: let
     )
     shells;
 in {
-  inherit (args) formatter checks;
+  inherit (args) apps formatter checks;
   devShells =
     build
     // {

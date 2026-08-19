@@ -6,10 +6,13 @@
 }: let
   inherit (flake) path inputs;
   inherit (lix.filesystem.access) readFile;
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.sources.packages) pkgsFrom;
   inherit (lix.strings.construction) fromJSON;
+  inherit (pkgs) writeShellScriptBin;
 
   sources = {
+    git = null;
     actionlint = null;
     alejandra = null;
     dprint = null;
@@ -30,6 +33,7 @@
     inherit inputs pkgs sources;
     required = true;
   };
+  bins = mapAttrs (_: pkg: pkg.paths.exe) resolved;
 
   dprint = let
     config = fromJSON (readFile "${path}/dprint.json");
@@ -71,7 +75,10 @@
     inherit settings;
   };
 
-  treefmt = inputs.treefmt.lib.evalModule pkgs {
+  #~@ Shared module body — evaluated twice below: once as-is for `nix fmt`
+  #~@ (store-path commands), once with bare commands for the portable
+  #~@ (non-Nix, e.g. Windows) .treefmt.toml export.
+  module = {
     projectRootFile = "flake.nix";
 
     programs = {
@@ -169,18 +176,62 @@
     };
   };
 
-  inherit (treefmt.config.build) wrapper check configFile;
+  treefmt = inputs.treefmt.lib.evalModule pkgs module;
 
-  syncTreefmtToml = pkgs.writeShellScriptBin "sync-treefmt-toml" ''
-    set -euo pipefail
-    cp --force ${configFile} "${path}/.treefmt.toml"
-    chmod u+w "${path}/.treefmt.toml"
-    echo "Synced .treefmt.toml from fmt.nix"
-  '';
-  apps = {
-    sync-treefmt-toml = {
+  #~@ Portable eval: same module body, formatter commands overridden to
+  #~@ bare names (resolved via PATH on the target machine) and dprint's
+  #~@ --config path made relative, so the generated .treefmt.toml works
+  #~@ outside Nix (e.g. on Windows, where /nix/store paths don't exist).
+  portableFormatterNames = [
+    "actionlint"
+    "alejandra"
+    "dprint"
+    "leptosfmt"
+    "rustfmt"
+    "shellcheck"
+    "shfmt"
+    "statix"
+    "stylua"
+    "typos"
+    "typstyle"
+  ];
+
+  portableModuleBody =
+    module
+    // {
+      settings =
+        module.settings
+        // {
+          formatter =
+            lix.attrsets.aggregation.recursiveUpdate
+            module.settings.formatter
+            (
+              (mapAttrs (_: name: {command = name;}))
+              (lix.attrsets.construction.genAttrs portableFormatterNames (n: n))
+              // {
+                dprint.options = ["fmt" "--allow-no-files" "--config" "dprint.json"];
+              }
+            );
+        };
+    };
+
+  portableTreefmt = inputs.treefmt.lib.evalModule pkgs portableModuleBody;
+
+  inherit (treefmt.config.build) wrapper check;
+  inherit (portableTreefmt.config.build) configFile;
+
+  apps = let
+    sync = "sync-treefmt-toml";
+  in {
+    ${sync} = {
       type = "app";
-      program = "${syncTreefmtToml}/bin/sync-treefmt-toml";
+      program = "${writeShellScriptBin sync ''
+        set -euo pipefail
+        repo_root="$(${bins.git} rev-parse --show-toplevel)"
+        cp --force ${configFile} "$repo_root/.treefmt.toml"
+        chmod u+w "$repo_root/.treefmt.toml"
+        echo "Synced .treefmt.toml (portable) from fmt.nix"
+      ''}/bin/${sync}";
     };
   };
 in {
