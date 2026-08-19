@@ -15,7 +15,7 @@
   inherit (pkgs) writeShellScriptBin;
 
   module = {
-    _module.args = {inherit lix flake;};
+    _module.args = {inherit lix flake binaries;};
     imports = lix.filesystem.traversal.importAllPaths ./.;
     projectRootFile = "flake.nix";
 
@@ -148,4 +148,3 @@ in
     formatters = packages ++ [formatter];
   }
 */
-

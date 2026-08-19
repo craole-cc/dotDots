@@ -2,6 +2,7 @@
   lix,
   pkgs,
   flake,
+  binaries,
   ...
 }: let
   inherit (flake) path;
@@ -56,6 +57,12 @@ in {
     dprint = {
       priority = 1;
       options = ["--allow-no-files"];
+    };
+    tombi = {
+      command = binaries.tombi;
+      options = ["format" "--offline"];
+      includes = ["*.toml"];
+      priority = 1;
     };
   };
 }
