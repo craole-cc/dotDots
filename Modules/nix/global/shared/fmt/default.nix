@@ -67,6 +67,8 @@
       "alejandra"
       "dprint"
       "leptosfmt"
+      "ruff-check"
+      "ruff-format"
       "rustfmt"
       "shellcheck"
       "shfmt"
