@@ -4,11 +4,12 @@
   flake,
   binaries,
   packages,
+  commands,
   ...
 }: let
   inherit (flake) inputs;
   inherit (inputs.treefmt.lib) evalModule;
-  # inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
@@ -59,32 +60,25 @@
     eval = evalModule pkgs module;
   };
 
-  #~@ Portable eval: same module, bare commands resolved via PATH,
-  #~@ exported to .treefmt.toml for use outside Nix (e.g. Windows).
   exported = let
-    names = [
-      "actionlint"
-      "alejandra"
-      "dprint"
-      "leptosfmt"
-      "ruff-check"
-      "ruff-format"
-      "rustfmt"
-      "shellcheck"
-      "shfmt"
-      "statix"
-      "stylua"
-      "typos"
-      "typstyle"
-    ];
+    allFormatterNames = attrNames imported.eval.config.settings.formatter;
+    programNames = attrNames imported.eval.config.build.programs;
+    manualNames = builtins.filter (n: !(builtins.elem n programNames)) allFormatterNames;
 
-    commands =
+    fromPrograms =
       mapAttrs
       (_: name: {command = mkForce name;})
-      (genAttrs names (name: name));
+      (genAttrs programNames (name: name));
+
+    fromManual =
+      mapAttrs
+      (name: _: {command = mkForce commands.${name};})
+      (genAttrs manualNames (name: name));
+
+    commands' = recursiveUpdate fromPrograms fromManual;
 
     portable = {
-      settings.formatter = recursiveUpdate commands {
+      settings.formatter = recursiveUpdate commands' {
         dprint.options = mkForce [
           "fmt"
           "--allow-no-files"
@@ -96,7 +90,7 @@
 
     module' = {imports = [module portable];};
   in {
-    inherit names;
+    names = programNames ++ manualNames;
     module = module';
     eval = evalModule pkgs module';
   };

@@ -34,4 +34,5 @@ in {
   sources = resolved;
   inherit (resolved) packages;
   binaries = mapAttrs (_: pkg: pkg.paths.exe) resolved;
+  commands = mapAttrs (_: pkg: pkg.cmd) resolved;
 }

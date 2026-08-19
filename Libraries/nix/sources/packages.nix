@@ -331,7 +331,7 @@
               bin = "${getBin package}/bin";
               store = package.outPath or "${package}";
             };
-
+            cmd = baseNameOf paths.exe;
             version = package.version or null;
 
             revision =
@@ -342,7 +342,7 @@
                 name.shortRev or name.rev or null
               else null;
           in {
-            inherit paths version revision;
+            inherit paths version revision cmd;
             inherit (check) name source value;
             inherit (paths) exe;
 
