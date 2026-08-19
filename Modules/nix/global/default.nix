@@ -26,7 +26,7 @@ global: let
       name: cfg:
         mkShell {
           name = mkName name;
-          env = core.env // cfg.env or {};
+          env = core.env // (cfg.env or {});
           shellHook = cfg.shellHook or "";
           packages =
             (
@@ -46,29 +46,28 @@ in {
     // {
       default = build.core;
 
-      fmt = args.devShell.overrideAttrs (old: {
+      fmt = args.devShell.overrideAttrs (old: let
+        treefmt = args.sources.treefmt;
+
+        treefmtVersion = let
+          rev = treefmt.revision;
+        in
+          if rev != null
+          then "$(${treefmt.paths.exe} --version | ${pkgs.gawk}/bin/awk '{print $2}') (${rev})"
+          else "unknown";
+      in {
         shellHook =
           (old.shellHook or "")
           + ''
             ${print.title "Formatter Environment"}
             ${print.table {
               columns = ["Formatter" "Version"];
-              rows = (
-                [
-                  [
-                    "treefmt"
-                    (args.formatters.treefmt.pkg.version or "unknown")
-                    # ((args.pkgFor {
-                    #   input = "treefmt";
-                    #   target = "treefmt";
-                    # }).pkg.version or "unknown")
-                  ]
-                ]
+              rows =
+                [["treefmt" treefmtVersion]]
                 ++ map (name: [
                   name
-                  ((args.programs.${name}).version or "unknown")
-                ]) (attrNames args.programs)
-              );
+                  (args.programs.${name}.version or "unknown")
+                ]) (attrNames args.programs);
             }}
           '';
       });

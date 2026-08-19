@@ -1,5 +1,6 @@
 args: let
   lib = import ./lib args;
-  formatting = import ./fmt (args // lib);
+  pkgs = import ./packages.nix args;
+  formatting = import ./fmt (args // lib // pkgs);
 in
-  lib // formatting
+  lib // pkgs // formatting

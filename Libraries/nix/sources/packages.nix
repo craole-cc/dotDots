@@ -125,8 +125,15 @@
     inputs,
     system,
     input,
-  }:
-    inputs.${input}.packages.${system} or {};
+  }: let
+    packages = inputs.${input}.packages.${system} or {};
+    formatter = inputs.${input}.formatter.${system} or null;
+  in
+    if packages != {}
+    then packages
+    else if formatter != null
+    then {${input} = formatter;}
+    else {};
 
   # -- pkgOf
 
@@ -284,13 +291,26 @@
 
         lookup = candidates:
           foldl'
-          (found: n:
+          (found: name:
             if found != null
             then found
-            else {
-              name = n;
-              value = resolved.source.flakes.${n} or (resolved.source.legacy.${n} or null);
-            })
+            else let
+              flake = resolved.source.flakes.${name} or null;
+              legacy = resolved.source.legacy.${name} or null;
+            in
+              if flake != null
+              then {
+                inherit name;
+                source = "input";
+                value = flake;
+              }
+              else if legacy != null
+              then {
+                inherit name;
+                source = "nixpkgs";
+                value = legacy;
+              }
+              else null)
           null
           candidates;
 
@@ -300,19 +320,33 @@
           if check == null || check.value == null
           then null
           else let
+            package = check.value;
+
             paths = {
               exe =
                 if exe != null
-                then getExe' check.value exe
-                else getExe check.value;
-              bin = "${getBin check.value}/bin";
-              store = check.value.outPath or "${check.value}";
+                then getExe' package exe
+                else getExe package;
+
+              bin = "${getBin package}/bin";
+              store = package.outPath or "${package}";
             };
+
+            version = package.version or null;
+
+            revision =
+              if check.source == "input"
+              then let
+                name = resolved.inputs.${input};
+              in
+                name.shortRev or name.rev or null
+              else null;
           in {
-            inherit paths;
-            inherit (check) name value;
+            inherit paths version revision;
+            inherit (check) name source value;
             inherit (paths) exe;
-            pkg = check.value;
+
+            pkg = package;
           };
       in
         if required

@@ -123,6 +123,7 @@
 in
   treefmt
   // {
+    inherit formatter;
     apps = {${sync.name} = sync.value;};
     checks.formatting = treefmt.check flake.path;
     formatters = (attrValues treefmt.programs) ++ [formatter];
@@ -147,3 +148,4 @@ in
     formatters = packages ++ [formatter];
   }
 */
+

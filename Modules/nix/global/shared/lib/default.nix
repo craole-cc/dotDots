@@ -64,11 +64,12 @@ args: let
     }: let
       data = concat "\n" (map (row: concat "," row) rows);
     in ''
-      printf '%s\n' '${data}' | \
-        ${exe} table \
-          --print \
-          --columns "${concat "," columns}" \
-          --separator ","
+      ${exe} table \
+        --print \
+        --columns "${concat "," columns}" \
+        --separator "," <<EOF
+      ${data}
+      EOF
     '';
 
     info = text: ''

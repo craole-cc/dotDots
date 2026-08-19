@@ -31,6 +31,7 @@
     required = true;
   };
 in {
+  sources = resolved;
   inherit (resolved) packages;
   binaries = mapAttrs (_: pkg: pkg.paths.exe) resolved;
 }
