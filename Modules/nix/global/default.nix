@@ -54,13 +54,20 @@ in {
             ${print.table {
               columns = ["Formatter" "Version"];
               rows = (
-                [["treefmt" "wrapper"]]
-                ++ map
-                (name: [
+                [
+                  [
+                    "treefmt"
+                    (args.formatters.treefmt.pkg.version or "unknown")
+                    # ((args.pkgFor {
+                    #   input = "treefmt";
+                    #   target = "treefmt";
+                    # }).pkg.version or "unknown")
+                  ]
+                ]
+                ++ map (name: [
                   name
                   ((args.programs.${name}).version or "unknown")
-                ])
-                (attrNames args.programs)
+                ]) (attrNames args.programs)
               );
             }}
           '';

@@ -61,11 +61,14 @@ args: let
     table = {
       columns,
       rows,
-    }: ''
-      ${exe} table \
-        --columns "${concat "," columns}" \
-        --separator "," \
-        ${concat " " (map (row: ''"${concat "," row}"'') rows)}
+    }: let
+      data = concat "\n" (map (row: concat "," row) rows);
+    in ''
+      printf '%s\n' '${data}' | \
+        ${exe} table \
+          --print \
+          --columns "${concat "," columns}" \
+          --separator ","
     '';
 
     info = text: ''
