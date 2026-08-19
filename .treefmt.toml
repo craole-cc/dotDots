@@ -42,7 +42,7 @@ excludes = [
 ]
 
 [formatter.actionlint]
-  command = "/nix/store/ypcd7ghn7nwgpzi9sm0fswk7rgwslyq6-actionlint-1.7.12/bin/actionlint"
+  command = "actionlint"
   excludes = []
   includes = [
     ".github/workflows/*.yml",
@@ -55,7 +55,7 @@ excludes = [
   options = []
 
 [formatter.alejandra]
-  command = "/nix/store/kq61zzri6yliqysbrwnc3mhsqddwwlrh-alejandra-4.0.0/bin/alejandra"
+  command = "alejandra"
   excludes = []
   includes = ["*.nix"]
   options = []
@@ -65,58 +65,58 @@ excludes = [
   command = "/nix/store/ik6xkpy0wydjamvg0xg4h9dp7mk4j8n7-dprint-0.55.2/bin/dprint"
   excludes = []
   includes = ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml", "*.css", "*.scss", "*.sass", "*.less"]
-  options = ["fmt", "--allow-no-files", "--config", "/nix/store/7d9b6g55h4fhma2znamws5w5xrnp5r74-dprint.json"]
+  options = ["fmt", "--allow-no-files", "--config", "dprint.json"]
   priority = 1
 
 [formatter.leptosfmt]
-  command = "/nix/store/vkvj6ragls3z4vlrvdd83bbskq5zy07d-leptosfmt-0.1.33/bin/leptosfmt"
+  command = "leptosfmt"
   excludes = []
   includes = ["*.rs"]
   options = []
   priority = 2
 
 [formatter.rustfmt]
-  command = "/nix/store/k2hwcha2p1fy0v0py34vq3jyvwqk339p-rustfmt-1.97.1/bin/rustfmt"
+  command = "rustfmt"
   excludes = []
   includes = ["*.rs"]
   options = ["--config", "skip_children=true", "--edition", "2024"]
   priority = 1
 
 [formatter.shellcheck]
-  command = "/nix/store/arx11b315ynql817kgf0548307zm8w4r-shellcheck-0.11.0-bin/bin/shellcheck"
+  command = "shellcheck"
   excludes = []
   includes = ["*.sh", "*.bash", "*.envrc", "*.envrc.*"]
   options = ["--rcfile", ".shellcheckrc"]
   priority = 1
 
 [formatter.shfmt]
-  command = "/nix/store/83klmqyg64fr3zv5zbnzb0fc6kda29f2-shfmt-3.13.1/bin/shfmt"
+  command = "shfmt"
   excludes = []
   includes = ["*.sh", "*.bash", "*.envrc", "*.envrc.*"]
   options = ["-w", "--apply-ignore", "--binary-next-line", "--space-redirects", "--case-indent", "-i", "2", "-s"]
   priority = 2
 
 [formatter.statix]
-  command = "/nix/store/smvgh1bwcn9gszd1k1l9ak56cl4nbwly-statix-fix/bin/statix-fix"
+  command = "statix"
   excludes = []
   includes = ["*.nix"]
   options = []
   priority = 2
 
 [formatter.stylua]
-  command = "/nix/store/w6mr02wa797dg82av68f44wn8jxdb3ky-stylua-2.5.2/bin/stylua"
+  command = "stylua"
   excludes = []
   includes = ["*.lua"]
   options = []
 
 [formatter.typos]
-  command = "/nix/store/j4ldqh2achvl4zhvap4kchn8nb9frz85-typos-1.49.0/bin/typos"
+  command = "typos"
   excludes = []
   includes = ["*"]
   options = ["--write-changes", "--force-exclude"]
 
 [formatter.typstyle]
-  command = "/nix/store/dy1mj9a70fmvrbfn5wg7vh6q8k1y70m3-typstyle-0.15.0/bin/typstyle"
+  command = "typstyle"
   excludes = []
   includes = ["*.typ", "*.typst"]
   options = ["-i"]
