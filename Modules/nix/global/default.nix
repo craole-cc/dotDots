@@ -44,6 +44,8 @@ in {
     build
     // {
       default = build.core;
+
+      fmt = args.devShell;
       full = mkShell {
         name = mkName "full";
         env =

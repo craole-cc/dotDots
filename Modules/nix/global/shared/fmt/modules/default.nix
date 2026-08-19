@@ -14,20 +14,9 @@
   inherit (pkgs) writeShellScriptBin;
 
   module = {
-    _module.args = {
-      inherit lix flake;
-    }; # TODO: What's this for?
+    _module.args = {inherit lix flake;};
 
     imports = lix.filesystem.traversal.importAllPaths ./.;
-
-    # imports = [
-    #   ./nix.nix
-    #   ./rust.nix
-    #   ./shellscript.nix
-    #   ./markup.nix
-    #   ./data.nix
-    #   ./config.nix
-    # ];
 
     projectRootFile = "flake.nix";
 
@@ -110,7 +99,7 @@
     eval = evalModule pkgs module';
   };
 
-  inherit (imported.eval.config.build) wrapper check;
+  # inherit (imported.eval.config.build) check programs wrapper devShell;
   inherit (exported.eval.config.build) configFile;
 
   sync = let
@@ -130,7 +119,6 @@
     };
   in {inherit name value;};
 in {
+  inherit (imported.eval.config.build) check programs wrapper devShell;
   apps = {${sync.name} = sync.value;};
-  formatter = wrapper;
-  checks.formatting = check path;
 }
