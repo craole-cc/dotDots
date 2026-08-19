@@ -15,7 +15,7 @@ global: let
   shells = importAllNamed {
     inherit args;
     dir = ./.;
-    exclude = ["shared" "ai"];
+    exclude = ["shared" "fmt" "lib.nix" "ai"];
   };
 
   inherit (args) fetch mkName;

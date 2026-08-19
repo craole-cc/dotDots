@@ -41,50 +41,11 @@
   inherit (resolved) packages;
   binaries = mapAttrs (_: pkg: pkg.paths.exe) resolved;
 
-  dprint = let
-    config = fromJSON (readFile "${path}/dprint.json");
-  in {
-    enable = true;
-    includes = [
-      "*.json"
-      "*.jsonc"
-      "*.md"
-      "*.yaml"
-      "*.yml"
-      "*.css"
-      "*.scss"
-      "*.sass"
-      "*.less"
-    ];
-    settings =
-      (removeAttrs config [
-        "$schema"
-        "includes"
-        "excludes"
-        "plugins"
-      ])
-      // {
-        markdown = removeAttrs config.markdown [
-          "headingKind"
-          "listIndentKind"
-        ];
-        plugins = pkgs.dprint-plugins.getPluginList (plugins:
-          with plugins; [
-            dprint-plugin-json
-            dprint-plugin-markdown
-            g-plane-pretty_yaml
-            g-plane-malva
-          ]);
-      };
-  };
-
   treefmt = let
     module = {
       projectRootFile = "flake.nix";
 
       programs = {
-        inherit dprint;
-
         #~@ Nix
         alejandra.enable = true;
         statix.enable = true;
@@ -102,6 +63,43 @@
         };
 
         #~@ Markup / config / data
+
+        dprint = let
+          config = fromJSON (readFile "${path}/dprint.json");
+        in {
+          enable = true;
+          includes = [
+            "*.json"
+            "*.jsonc"
+            "*.md"
+            "*.yaml"
+            "*.yml"
+            "*.css"
+            "*.scss"
+            "*.sass"
+            "*.less"
+          ];
+          settings =
+            (removeAttrs config [
+              "$schema"
+              "includes"
+              "excludes"
+              "plugins"
+            ])
+            // {
+              markdown = removeAttrs config.markdown [
+                "headingKind"
+                "listIndentKind"
+              ];
+              plugins = pkgs.dprint-plugins.getPluginList (plugins:
+                with plugins; [
+                  dprint-plugin-json
+                  dprint-plugin-markdown
+                  g-plane-pretty_yaml
+                  g-plane-malva
+                ]);
+            };
+        };
         actionlint.enable = true;
         stylua.enable = true;
         typos.enable = true;
@@ -153,10 +151,7 @@
           #~@ Shellscript
           shellcheck = {
             priority = 1;
-            options = [
-              "--rcfile"
-              ".shellcheckrc"
-            ];
+            options = ["--rcfile" ".shellcheckrc"];
           };
 
           shfmt = {

@@ -1,12 +1,12 @@
 # shellcheck disable=all
 
+#~@ Define source paths
+source-path=SCRIPTDIR
+source-path=SCRIPTDIR/Bin/shellscript
+
 #~@ Define core settings
 external-sources=true #? Follow arbitrary file paths in source statements
 severity=style        #? Report even style recommendations
-
-#~@ Define source paths
-source-path=SCRIPTDIR                 # Look for sourced files relative to script directory
-source-path=SCRIPTDIR/Bin/shellscript # Also look in a bin dirs
 
 #~@ Enable all checks by default
 enable=all
@@ -25,7 +25,7 @@ disable=SC2030 #? Modification of variable is local (to subshell caused by pipel
 disable=SC2031 #? Changes defined in a subshell are likely to be lost
 disable=SC2034 #? Variable appears unused; verify it or export it
 disable=SC2086 #? Double quote to prevent globbing and word splitting
-disable=SC2102 #? Unescaped character or glob pattern in list
+disable=SC2102 #? Ensure characters or glob pattern in lists are escaped.
 disable=SC2116 #? Useless echo inside subshell (e.g., $(echo "$foo"))
 disable=SC2119 #? Function called with arguments but doesn't handle them
 disable=SC2120 #? Function references arguments but none were passed
@@ -38,6 +38,7 @@ disable=SC2221 #? Pattern in case statement is redundant / unreachable
 disable=SC2222 #? Pattern in case statement is shadowed by prior pattern
 disable=SC2232 #? Can't use sudo with builtins or functions
 disable=SC2244 #? Prefer explicit condition checks instead of raw expressions
+disable=SC2248 #? Prefer double quoting even when variables don't contain special characters.
 disable=SC2249 #? Prefer default case patterns in case statements
 disable=SC2250 #? Prefer putting braces around variable references even when not strictly required
 disable=SC2272 #? Subshell assignment inside subshell context
