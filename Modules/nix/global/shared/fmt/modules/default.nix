@@ -18,14 +18,16 @@
       inherit lix flake;
     }; # TODO: What's this for?
 
-    imports = [
-      ./nix.nix
-      ./rust.nix
-      ./shellscript.nix
-      ./markup.nix
-      ./data.nix
-      ./config.nix
-    ];
+    imports = lix.filesystem.traversal.importAllPaths ./.;
+
+    # imports = [
+    #   ./nix.nix
+    #   ./rust.nix
+    #   ./shellscript.nix
+    #   ./markup.nix
+    #   ./data.nix
+    #   ./config.nix
+    # ];
 
     projectRootFile = "flake.nix";
 
