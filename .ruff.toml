@@ -1,0 +1,6 @@
+[lint]
+  ignore = [
+    "UP031",   # Use format specifiers instead of percent format
+    "SIM201",  # Use `!=` instead of `not x == y`
+    "BLE001",  # Do not catch blind exception: `Exception`
+  ]

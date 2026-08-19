@@ -3,11 +3,12 @@
   pkgs,
   flake,
   binaries,
+  packages,
   ...
 }: let
   inherit (flake) inputs;
   inherit (inputs.treefmt.lib) evalModule;
-  inherit (lix.attrsets.access) attrValues;
+  # inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
@@ -126,25 +127,6 @@ in
     inherit formatter;
     apps = {${sync.name} = sync.value;};
     checks.formatting = treefmt.check flake.path;
-    formatters = (attrValues treefmt.programs) ++ [formatter];
-  }
-/**
-
-args: let
-  inherit (args.lix.attrsets.access) attrValues;
-  inherit (import ./packages.nix args) binaries;
-
-  treefmt =
-    import ./modules
-    (args // {inherit binaries;});
-
-  formatter = treefmt.wrapper;
-  packages = attrValues treefmt.programs;
-in
-  treefmt
-  // {
-    inherit formatter;
-    checks.formatting = treefmt.check args.flake.path;
+    # formatters = (attrValues treefmt.programs) ++ [formatter];
     formatters = packages ++ [formatter];
   }
-*/

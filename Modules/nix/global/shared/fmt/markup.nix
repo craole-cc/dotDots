@@ -58,6 +58,12 @@ in {
       priority = 1;
       options = ["--allow-no-files"];
     };
+    harper = {
+      command = binaries.harper;
+      options = ["check" "--format" "short"];
+      includes = ["Documentation/**/*.md" "Documentation/**/*.typ"];
+      priority = 1;
+    };
     tombi = {
       command = binaries.tombi;
       options = ["format" "--offline"];

@@ -62,7 +62,7 @@ excludes = [
   priority = 1
 
 [formatter.dprint]
-  command = "/nix/store/ik6xkpy0wydjamvg0xg4h9dp7mk4j8n7-dprint-0.55.2/bin/dprint"
+  command = "dprint"
   excludes = []
   includes = ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml", "*.css", "*.scss", "*.sass", "*.less"]
   options = ["fmt", "--allow-no-files", "--config", "dprint.json"]
@@ -74,6 +74,20 @@ excludes = [
   includes = ["*.rs"]
   options = []
   priority = 2
+
+[formatter.ruff-check]
+  command = "/nix/store/z2078an0s17i6phm99np502fzj5iybd8-ruff-0.16.2/bin/ruff"
+  excludes = []
+  includes = ["*.py", "*.pyi"]
+  options = ["check", "--fix"]
+  priority = 2
+
+[formatter.ruff-format]
+  command = "/nix/store/z2078an0s17i6phm99np502fzj5iybd8-ruff-0.16.2/bin/ruff"
+  excludes = []
+  includes = ["*.py", "*.pyi"]
+  options = ["format"]
+  priority = 1
 
 [formatter.rustfmt]
   command = "rustfmt"
@@ -109,10 +123,17 @@ excludes = [
   includes = ["*.lua"]
   options = []
 
+[formatter.tombi]
+  command = "/nix/store/6mzj1z8cy2fji4cr4lmmsn6r7d5sqkp3-tombi-1.2.7/bin/tombi"
+  excludes = []
+  includes = ["*.toml"]
+  options = ["format", "--offline"]
+  priority = 1
+
 [formatter.typos]
   command = "typos"
   excludes = []
-  includes = ["*", "Configuration/rofi/launcher/type-1"]
+  includes = ["*"]
   options = ["--write-changes", "--force-exclude"]
 
 [formatter.typstyle]
