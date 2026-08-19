@@ -7,6 +7,7 @@ global: let
   inherit (lix.lists.aggregation) concatMap foldl';
   inherit (lix.lists.construction) optionals;
   inherit (lix.lists.transformation) reverseList;
+  inherit (lix.strings.construction) concat;
   inherit (pkgs) mkShell;
 
   local = import ./shared global;
@@ -44,8 +45,15 @@ in {
     build
     // {
       default = build.core;
-
-      fmt = args.devShell;
+      fmt = args.devShell.overrideAttrs (old: {
+        shellHook =
+          (old.shellHook or "")
+          + ''
+            printf '\n>> Formatter Environment <<\n'
+            printf '  %s\n' ${concat " " args.formatters}
+            printf '\n'
+          '';
+      });
       full = mkShell {
         name = mkName "full";
         env =
