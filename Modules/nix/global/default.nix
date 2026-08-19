@@ -2,12 +2,11 @@ global: let
   inherit (global) lix pkgs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
-  inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.access) attrNames attrValues;
   inherit (lix.filesystem.traversal) importAllNamed;
   inherit (lix.lists.aggregation) concatMap foldl';
   inherit (lix.lists.construction) optionals;
   inherit (lix.lists.transformation) reverseList;
-  inherit (lix.strings.construction) concat;
   inherit (pkgs) mkShell;
 
   local = import ./shared global;
@@ -19,7 +18,7 @@ global: let
     exclude = ["shared" "fmt" "lib.nix" "ai"];
   };
 
-  inherit (args) fetch mkName;
+  inherit (args) fetch mkName print;
   inherit (shells) core;
 
   build =
@@ -41,31 +40,47 @@ global: let
     shells;
 in {
   inherit (args) apps formatter checks;
+
   devShells =
     build
     // {
       default = build.core;
+
       fmt = args.devShell.overrideAttrs (old: {
         shellHook =
           (old.shellHook or "")
           + ''
-            printf '\n>> Formatter Environment <<\n'
-            printf '  %s\n' ${concat " " args.formatters}
-            printf '\n'
+            ${print.title "Formatter Environment"}
+            ${print.table {
+              columns = ["Formatter" "Version"];
+              rows = (
+                [["treefmt" "wrapper"]]
+                ++ map
+                (name: [
+                  name
+                  ((args.programs.${name}).version or "unknown")
+                ])
+                (attrNames args.programs)
+              );
+            }}
           '';
       });
+
       full = mkShell {
         name = mkName "full";
+
         env =
           foldl'
           (acc: name: acc // (shells.${name}.env or {}))
           #> Baseline: every shell's env folded in normal (attrValues) order.
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
           (reverseList ["core" "hermes"]);
+
         shellHook = ''
           ${fetch.name} --full
-          printf '\n>> Full profile - every devShell package installed <<\n\n'
+          ${print.info "Full profile - every devShell package installed"}
         '';
+
         packages = concatMap (cfg: cfg.packages or []) (attrValues shells);
       };
     };
