@@ -96,3 +96,9 @@ in
       writeShellScriptBin
       ;
   }
+  // pkgsFor {
+    sources = {
+      gawk = null;
+      git = null;
+    };
+  }

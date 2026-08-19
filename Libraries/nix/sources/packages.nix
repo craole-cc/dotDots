@@ -236,7 +236,8 @@
     required ? false,
   }: let
     _name = "pkgOf";
-    resolved = {
+
+    init = {
       inherit inputs input pkgs;
 
       system = assert withContext {
@@ -251,118 +252,126 @@
           if pkgs != null
           then pkgs
           else
-            import resolved.inputs.nixpkgs
-            {inherit (resolved) system;};
+            import init.inputs.nixpkgs
+            {inherit (init) system;};
         flakes =
           optionalAttrs
           (input != null)
-          (fromInputs {inherit (resolved) inputs input system;});
+          (fromInputs {inherit (init) inputs input system;});
       };
-
-      package = let
-        #> Names to try, in order:
-        #> 1. the explicitly given `target`, if provided
-        #> 2. "default" (the flake's own default package output)
-        #> 3. best-effort suffix-stripped variants of `input`
-        #>    (e.g. "treefmt-nix" -> "treefmt"), since an input's name
-        #>    and its package's attribute name frequently differ and
-        #>    can't be inferred reliably - these are guesses, not
-        #>    guarantees, so a hit here should be spot-checked if the
-        #>    resolved package looks unexpected
-        suffixStripped =
-          if input == null
-          then []
-          else let
-            suffixes = ["-nix" ".nix" "-flake"];
-            strip = suffix:
-              if hasSuffix suffix input
-              then removeSuffix suffix input
-              else null;
-            stripped = filter (n: n != null) (map strip suffixes);
-          in
-            unique stripped;
-
-        candidateNames = unique (
-          (optionals (target != null) [target])
-          ++ (optionals (input != null) ["default"])
-          ++ suffixStripped
-          ++ (optionals (input != null) [input])
-        );
-
-        lookup = candidates:
-          foldl'
-          (found: name:
-            if found != null
-            then found
-            else let
-              flake = resolved.source.flakes.${name} or null;
-              legacy = resolved.source.legacy.${name} or null;
-            in
-              if flake != null
-              then {
-                inherit name;
-                source = "input";
-                value = flake;
-              }
-              else if legacy != null
-              then {
-                inherit name;
-                source = "nixpkgs";
-                value = legacy;
-              }
-              else null)
-          null
-          candidates;
-
-        check = lookup candidateNames;
-
-        result =
-          if check == null || check.value == null
-          then null
-          else let
-            package = check.value;
-
-            paths = {
-              exe =
-                if exe != null
-                then getExe' package exe
-                else getExe package;
-
-              bin = "${getBin package}/bin";
-              store = package.outPath or "${package}";
-            };
-            cmd = baseNameOf paths.exe;
-            version = package.version or null;
-
-            revision =
-              if check.source == "input"
-              then let
-                name = resolved.inputs.${input};
-              in
-                name.shortRev or name.rev or null
-              else null;
-          in {
-            inherit paths version revision cmd;
-            inherit (check) name source value;
-            inherit (paths) exe;
-
-            pkg = package;
-          };
-      in
-        if required
-        then
-          assert withContext {
-            name = _name;
-            context = "resolving package from input '${toString input}' or pkgs";
-            assertion = result != null;
-            message = "Unable to locate a package for input '${toString input}' - tried: ${
-              concat ", " candidateNames
-            }. Pass `target` explicitly to pkgFor/pkgOf.";
-          }; result
-        else result;
     };
+
+    #> Names to try, in order:
+    #> 1. the explicitly given `target`, if provided
+    #> 2. "default" (the flake's own default package output)
+    #> 3. best-effort suffix-stripped variants of `input`
+    #>    (e.g. "treefmt-nix" -> "treefmt"), since an input's name
+    #>    and its package's attribute name frequently differ and
+    #>    can't be inferred reliably - these are guesses, not
+    #>    guarantees, so a hit here should be spot-checked if the
+    #>    resolved package looks unexpected
+    suffixStripped =
+      if input == null
+      then []
+      else let
+        suffixes = ["-nix" ".nix" "-flake"];
+        strip = suffix:
+          if hasSuffix suffix input
+          then removeSuffix suffix input
+          else null;
+        stripped = filter (n: n != null) (map strip suffixes);
+      in
+        unique stripped;
+
+    candidateNames = unique (
+      (optionals (target != null) [target])
+      ++ (optionals (input != null) ["default"])
+      ++ suffixStripped
+      ++ (optionals (input != null) [input])
+    );
+
+    lookup = candidates:
+      foldl'
+      (found: name:
+        if found != null
+        then found
+        else let
+          flake = init.source.flakes.${name} or null;
+          legacy = init.source.legacy.${name} or null;
+        in
+          if flake != null
+          then {
+            inherit name;
+            source = "input";
+            value = flake;
+          }
+          else if legacy != null
+          then {
+            inherit name;
+            source = "nixpkgs";
+            value = legacy;
+          }
+          else null)
+      null
+      candidates;
+
+    check = lookup candidateNames;
+
+    package = check.value;
+
+    paths = {
+      executable =
+        if exe != null
+        then getExe' package exe
+        else getExe package;
+
+      binary = "${getBin package}/bin";
+      store = package.outPath or "${package}";
+    };
+
+    command = baseNameOf paths.executable;
+    version = package.version or null;
+    revision =
+      if check.source == "input"
+      then let
+        name = init.inputs.${input};
+      in
+        name.shortRev or name.rev or null
+      else null;
+    vr3n =
+      if version != null && revision != null
+      then "${version} (${revision})"
+      else if version != null
+      then version
+      else if revision != null
+      then revision
+      else null;
+
+    eval =
+      if check == null || check.value == null
+      then null
+      else {
+        inherit (check) name source value;
+        inherit package paths command revision vr3n version;
+
+        bin = paths.binary;
+        cmd = command;
+        exe = paths.executable;
+        pkg = package;
+        ver = vr3n;
+      };
   in
-    resolved.package;
+    if required
+    then
+      assert withContext {
+        name = _name;
+        context = "resolving package from input '${toString input}' or pkgs";
+        assertion = eval != null;
+        message = "Unable to locate a package for input '${toString input}' - tried: ${
+          concat ", " candidateNames
+        }. Pass `target` explicitly to pkgFor/pkgOf.";
+      }; eval
+    else eval;
 
   # -- pkgsFrom
 
@@ -447,35 +456,39 @@
     required ? false,
     exclude ? [],
   }: let
-    raw =
-      mapAttrs
-      (name: input:
-        pkgOf (
-          {
-            inherit inputs pkgs required;
-            target = name;
-            input =
-              if input == null
-              then null
-              else input;
-          }
-          // optionalAttrs (system != null) {inherit system;}
-        ))
-      sources;
+    source = target: input:
+      pkgOf {
+        inherit target inputs pkgs required;
+        input =
+          if input == null
+          then null
+          else input;
+      }
+      // (optionalAttrs (system != null) {inherit system;});
 
-    filtered = filterAttrs (_: pkg: pkg != null) raw;
+    init =
+      filterAttrs
+      (_: value: value != null)
+      (mapAttrs (name: value: source name value) sources);
 
-    names = attrNames filtered;
-    values = attrValues filtered;
+    eval = {
+      binaries = mapAttrs (_: value: value.paths.executable) init;
+      commands = mapAttrs (_: value: value.commands) init;
+      packages =
+        filter
+        (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
+        (map (pkg: pkg.value) (attrValues init));
+      versions = mapAttrs (_: pkg: pkg.vr3n) init;
+    };
 
-    # The list of actual Nix derivations (ready for buildInputs, etc.)
-    # packages = map (pkg: pkg.value) values;
-    packages =
-      filter
-      (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
-      (map (pkg: pkg.value) values);
+    aliases = with eval; {
+      pkgs = packages;
+      bins = binaries;
+      cmds = commands;
+      vr3n = versions;
+    };
   in
-    filtered // {inherit names values packages;};
+    eval // aliases // {inherit sources;};
 
   bySystem = packages: let
     inputNames = attrNames packages;
