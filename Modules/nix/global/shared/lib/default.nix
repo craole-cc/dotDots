@@ -29,8 +29,18 @@ args: let
     sources,
     required ? true,
     exclude ? [],
+    aliases ? {},
   }:
-    pkgsFrom {inherit inputs pkgs required sources exclude;};
+    pkgsFrom {
+      inherit
+        inputs
+        pkgs
+        required
+        sources
+        exclude
+        aliases
+        ;
+    };
 
   print = let
     package = pkgFor {target = "gum";};

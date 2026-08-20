@@ -51,14 +51,16 @@
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystemOrDefault;
+  inherit (_.lists.access) head;
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) unique;
+  inherit (_.strings.access) match;
   inherit (_.strings.construction) concat;
-  inherit (_.strings.predicates) hasSuffix;
-  inherit (_.strings.transformation) removeSuffix;
+  inherit (_.strings.predicates) hasPrefix hasSuffix;
+  inherit (_.strings.transformation) removePrefix removeSuffix;
   inherit (_.sources.access) getBin getExe getExe';
   inherit (_.sources.inputs) normalize mkSource;
   inherit (_.sources.overlays) mkOverlays;
@@ -330,7 +332,26 @@
     };
 
     command = baseNameOf paths.executable;
-    version = package.version or null;
+    version = let
+      raw = package.version or null;
+      # e.g. "treefmt-2.5.0" or "treefmt-2.5.0-env"
+      fromName = let
+        n = package.pname or package.name or "";
+        # strip pname prefix if present
+        pname = package.pname or null;
+        stripped =
+          if pname != null && hasPrefix "${pname}-" n
+          then removePrefix "${pname}-" n
+          else n;
+        m = match "([0-9]+([.][0-9]+)*).*" stripped;
+      in
+        if m != null
+        then head m
+        else null;
+    in
+      if raw != null && raw != ""
+      then raw
+      else fromName;
     revision =
       if check.source == "input"
       then let
@@ -455,6 +476,7 @@
     system ? null,
     required ? false,
     exclude ? [],
+    aliases ? {},
   }: let
     source = target: input:
       pkgOf (
@@ -469,28 +491,38 @@
       );
 
     init =
-      filterAttrs
-      (_: value: value != null)
-      (mapAttrs (name: value: source name value) sources);
+      filterAttrs (_: v: v != null)
+      (mapAttrs (name: input: source name input) sources);
+
+    aliased = filterAttrs (_: v: v != null) (
+      mapAttrs (_: target: init.${target} or null) aliases
+    );
+
+    byName = init // aliased;
 
     eval = {
-      binaries = mapAttrs (_: value: value.paths.executable) init;
-      commands = mapAttrs (_: value: value.command) init;
+      binaries = mapAttrs (_: v: v.exe) byName;
+      commands = mapAttrs (_: v: v.cmd) byName;
+      versions = mapAttrs (_: v: v.ver) byName;
       packages =
         filter
         (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
-        (map (pkg: pkg.value) (attrValues init));
-      versions = mapAttrs (_: pkg: pkg.vr3n) init;
+        (map (v: v.value) (attrValues init)); # unique derivations only
     };
 
-    aliases = with eval; {
-      # pkgs = packages;
+    aliases' = with eval; {
       bins = binaries;
       cmds = commands;
       vr3n = versions;
     };
   in
-    eval // aliases // {inherit sources;};
+    byName
+    // eval
+    // aliases'
+    // {
+      inherit sources;
+      records = byName;
+    };
 
   bySystem = packages: let
     inputNames = attrNames packages;

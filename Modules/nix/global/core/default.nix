@@ -2,7 +2,7 @@
   pkgs,
   system,
   fetch,
-  # formatters,
+  formatters,
   isLinux,
   isDarwin,
   cmdExists,
@@ -51,7 +51,7 @@
           pbcopy #? Command line interface to the macOS clipboard
           pbpaste #? Command line interface to the macOS clipboard
         ]
-      # ++ formatters #? Formatter packages plus the wrapper
+        ++ formatters #? Formatter packages plus the wrapper
     );
 
   #|---------------------------------------------------------|

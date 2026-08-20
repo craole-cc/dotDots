@@ -81,69 +81,40 @@
     config // config.build // {inherit module;};
 
   tool = let
-    pkg = {
-      names = {
-        ruff-check = "ruff";
-        ruff-format = "ruff";
-      };
-      target = name: pkg.names.${name} or name;
-    };
-
     formatters = attrNames (init.settings.formatter or {});
     programs = attrNames (
       filterAttrs (_: cfg: cfg.enable or false) (init.programs or {})
     );
     packages = filter (name: !(elem name programs)) formatters;
-    tools = uniqueStrings (formatters ++ programs);
-
-    sources =
-      extraSources
-      // genAttrs tools (_: null)
-      // genAttrs (map pkg.target tools) (_: null);
+    tools = uniqueStrings (formatters ++ programs ++ ["treefmt"]);
 
     resolved = pkgsFor {
-      inherit sources;
       required = false;
+      aliases = {
+        ruff-check = "ruff";
+        ruff-format = "ruff";
+      };
+      sources =
+        genAttrs tools (_: null)
+        // genAttrs ["ruff"] (_: null)
+        // extraSources;
     };
 
-    exe = name:
-      resolved.bins.${name}
-      or resolved.bins.${pkg.target name}
-      or null;
-
-    coalesce = a: b:
-      if a != null
-      then a
-      else b;
-
-    versionOf = name:
-      resolved.versions.${name}
-      or resolved.versions.${pkg.target name}
-      or "unknown";
+    of = name: resolved.${name} or null;
 
     wrappers =
       recursiveUpdate
       (genAttrs programs (name: {
-        command = mkForce (coalesce (exe name) name);
+        command = mkForce ((of name).exe or name);
       }))
-      (genAttrs packages (name: let
-        p = exe name;
-      in
-        optionalAttrs (p != null) {
-          command = mkForce p;
+      (genAttrs packages (name:
+        optionalAttrs ((of name) != null) {
+          command = mkForce (of name).exe;
         }));
   in
     resolved
     // {
-      inherit
-        tools
-        packages
-        programs
-        formatters
-        wrappers
-        pkg
-        versionOf
-        ;
+      inherit tools packages programs formatters wrappers of;
       names = tools;
     };
 
@@ -193,15 +164,18 @@
       + ''
         ${print.title "Formatter Environment"}
         ${print.table {
-          columns = ["Formatter" "Version"];
+          columns = ["Formatter" "Version" "Path"];
           rows = let
             names = sort (a: b: a < b) tool.names;
-            treefmtRow = ["treefmt" (tool.versionOf "treefmt")];
-            rest =
-              map (name: [name (tool.versionOf name)])
-              (filter (n: n != "treefmt") names);
+            row = name: let
+              app = tool.of name;
+            in [
+              name
+              (app.ver or "unknown")
+              (app.exe or "—")
+            ];
           in
-            [treefmtRow] ++ rest;
+            map row names;
         }}
       '';
   });
@@ -210,6 +184,5 @@ in {
   inherit apps;
   formatter = wrapper;
   checks.formatting = check flake.path;
-  # formatters = [wrapper];
   formatters = tool.packages ++ [wrapper];
 }
