@@ -160,7 +160,7 @@
       name = "deploy-treefmt-config";
       source = configFile;
       target = {
-        path = "${flake.path}/${target.name}";
+        path = "${flake.home}/${target.name}";
         name = ".treefmt.toml";
       };
       app = writeShellApplication {
@@ -179,6 +179,7 @@
       };
     };
   in {${deploy.name} = deploy.value;};
+
   devShell = eval.devShell.overrideAttrs (old: {
     shellHook =
       (old.shellHook or "")
@@ -194,7 +195,7 @@
             in [
               name
               (app.ver or "unknown")
-              (app.exe or "—")
+              (app.exe or "-")
             ];
           in
             map row names;
