@@ -558,8 +558,8 @@
       pkgs = host.packages or {};
     in
       {
-        allowUnfree = pkgs.allowUnfree or defaults.allowUnfree;
-        allowBroken = pkgs.allowBroken or defaults.allowBroken;
+        allowUnfree = pkgs.allowUnfree or (defaults.allowUnfree or false);
+        allowBroken = pkgs.allowBroken or (defaults.allowBroken or false);
       }
       // config;
 

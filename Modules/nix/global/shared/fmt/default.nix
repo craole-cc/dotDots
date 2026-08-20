@@ -75,13 +75,16 @@
         "Templates/**"
       ];
     };
+    config = mkConfig module;
   in
-    mkConfig module;
+    config // config.build // {inherit module;};
 
   tool = let
-    formatters = attrNames (init.module.settings.formatter or {});
+    formatters = attrNames (init.settings.formatter or {});
     programs = attrNames (
-      filterAttrs (_: cfg: cfg.enable or false) (init.module.programs or {})
+      filterAttrs
+      (_: cfg: cfg.enable or false)
+      (init.module.programs or {})
     );
     packages = filter (name: !(elem name programs)) formatters;
     tools = uniqueStrings (formatters ++ programs);
@@ -111,10 +114,10 @@
         ];
       };
     };
+    config = mkConfig {module.imports = [init.module module];};
   in
-    mkConfig {module.imports = [init.module module];};
-  inherit (eval) build;
-  inherit (build) wrapper check configFile;
+    config // config.build // {inherit module;};
+  inherit (eval) wrapper check configFile;
 
   apps = let
     deploy = let
@@ -138,7 +141,7 @@
       };
     in {inherit name value;};
   in {${deploy.name} = deploy.value;};
-  devShell = build.devShell; #TODO: Update shellHook to should formatter info
+  devShell = eval.devShell; #TODO: Update shellHook to should formatter info
   # devShell = eval.devShell.overrideAttrs (old: let
   #   inherit (sources) treefmt;
   #   version = let
@@ -292,7 +295,7 @@
   #     '';
   # });
 in {
-  treefmt = build // {inherit devShell;};
+  treefmt = eval.build // {inherit devShell;};
   inherit apps;
   formatter = wrapper;
   checks.formatting = check flake.path;

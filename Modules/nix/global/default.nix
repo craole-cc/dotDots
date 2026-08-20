@@ -22,6 +22,7 @@ global: let
       "fmt"
       "ai"
       "media"
+      # "extras"
       "hermes"
     ];
   };
