@@ -457,14 +457,16 @@
     exclude ? [],
   }: let
     source = target: input:
-      pkgOf {
-        inherit target inputs pkgs required;
-        input =
-          if input == null
-          then null
-          else input;
-      }
-      // (optionalAttrs (system != null) {inherit system;});
+      pkgOf (
+        {
+          inherit target inputs pkgs required;
+          input =
+            if input == null
+            then null
+            else input;
+        }
+        // optionalAttrs (system != null) {inherit system;}
+      );
 
     init =
       filterAttrs
@@ -473,7 +475,7 @@
 
     eval = {
       binaries = mapAttrs (_: value: value.paths.executable) init;
-      commands = mapAttrs (_: value: value.commands) init;
+      commands = mapAttrs (_: value: value.command) init;
       packages =
         filter
         (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
@@ -485,7 +487,7 @@
       # pkgs = packages;
       bins = binaries;
       cmds = commands;
-      # vr3n = versions;
+      vr3n = versions;
     };
   in
     eval // aliases // {inherit sources;};

@@ -14,11 +14,11 @@
 
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.enums.gui) desktopEnvironments windowManagers;
-  inherit (_.lists.enums.hardware) hostFunctionalities;
+  inherit (_.lists.enums.hardware) functionalities;
 
   dualBootValues = [
-    (hostFunctionalities.resolve "dualboot-windows")
-    (hostFunctionalities.resolve "dualboot-macos")
+    (functionalities.resolve "dualboot-windows")
+    (functionalities.resolve "dualboot-macos")
   ];
 
   defaults = {

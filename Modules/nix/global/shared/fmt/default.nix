@@ -4,6 +4,7 @@
   flake,
   pkgsFor,
   sources,
+  print,
   ...
 }: let
   inherit (flake) inputs;
@@ -11,7 +12,7 @@
   inherit (inputs.treefmt.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
-  inherit (lix.attrsets.construction) genAttrs;
+  inherit (lix.attrsets.construction) genAttrs optionalAttrs;
   inherit (lix.attrsets.transformation) mapAttrs filterAttrs;
   inherit (lix.lists.transformation) filter reverseList sort uniqueStrings;
   inherit (lix.strings.transformation) toLower;
@@ -80,32 +81,75 @@
     config // config.build // {inherit module;};
 
   tool = let
+    pkg = {
+      names = {
+        ruff-check = "ruff";
+        ruff-format = "ruff";
+      };
+      target = name: pkg.names.${name} or name;
+    };
+
     formatters = attrNames (init.settings.formatter or {});
     programs = attrNames (
-      filterAttrs
-      (_: cfg: cfg.enable or false)
-      (init.module.programs or {})
+      filterAttrs (_: cfg: cfg.enable or false) (init.programs or {})
     );
     packages = filter (name: !(elem name programs)) formatters;
     tools = uniqueStrings (formatters ++ programs);
 
+    sources =
+      extraSources
+      // genAttrs tools (_: null)
+      // genAttrs (map pkg.target tools) (_: null);
+
     resolved = pkgsFor {
-      sources = extraSources // (genAttrs tools (name: null));
+      inherit sources;
+      required = false;
     };
+
+    exe = name:
+      resolved.bins.${name}
+      or resolved.bins.${pkg.target name}
+      or null;
+
+    coalesce = a: b:
+      if a != null
+      then a
+      else b;
+
+    versionOf = name:
+      resolved.versions.${name}
+      or resolved.versions.${pkg.target name}
+      or "unknown";
+
+    wrappers =
+      recursiveUpdate
+      (genAttrs programs (name: {
+        command = mkForce (coalesce (exe name) name);
+      }))
+      (genAttrs packages (name: let
+        p = exe name;
+      in
+        optionalAttrs (p != null) {
+          command = mkForce p;
+        }));
   in
     resolved
     // {
-      inherit tools;
+      inherit
+        tools
+        packages
+        programs
+        formatters
+        wrappers
+        pkg
+        versionOf
+        ;
       names = tools;
-      wrappers =
-        recursiveUpdate
-        (genAttrs programs (name: {command = mkForce name;}))
-        (genAttrs packages (name: {command = mkForce resolved.cmds.${name};}));
     };
 
   eval = let
     module = {
-      settings.formatter = recursiveUpdate tool.commands {
+      settings.formatter = recursiveUpdate tool.wrappers {
         dprint.options = mkForce [
           "fmt"
           "--allow-no-files"
@@ -114,7 +158,8 @@
         ];
       };
     };
-    config = mkConfig {module.imports = [init.module module];};
+
+    config = mkConfig {imports = [init.module module];};
   in
     config // config.build // {inherit module;};
   inherit (eval) wrapper check configFile;
@@ -141,164 +186,30 @@
       };
     in {inherit name value;};
   in {${deploy.name} = deploy.value;};
-  devShell = eval.devShell; #TODO: Update shellHook to should formatter info
-  # devShell = eval.devShell.overrideAttrs (old: let
-  #   inherit (sources) treefmt;
-  #   version = let
-  #     rev = treefmt.revision;
-  #   in
-  #     if rev != null
-  #     then "$(${treefmt.paths.exe} --version | ${pkgs.gawk}/bin/awk '{print $2}') (${rev})"
-  #     else "unknown";
-  #   programNames = attrNames args.programs;
-  #   fromPrograms =
-  #     map (name: [name (args.programs.${name}.version or "unknown")])
-  #     programNames;
-  #   fromPackages =
-  #     map (pkg: [(pkg.pname or pkg.name or "unknown") (pkg.version or "unknown")])
-  #     (filter (
-  #         pkg: let
-  #           n = toLower (pkg.pname or pkg.name or "");
-  #         in
-  #           n
-  #           != ""
-  #           && n != "treefmt"
-  #           && n != "git"
-  #           && !(elem n (map toLower programNames))
-  #       )
-  #       args.packages);
-  #   formatters = let
-  #     rest = fromPrograms ++ fromPackages;
-  #     sorted =
-  #       sort
-  #       (a: b: (elemAt a 0) < (elemAt b 0))
-  #       rest;
-  #   in
-  #     [["treefmt" version]]
-  #     ++ (
-  #       sort
-  #       (a: b: (elemAt a 0) < (elemAt b 0))
-  #       (map (name: [name (args.programs.${name}.version or "unknown")])
-  #         programNames)
-  #     );
-  # in {
-  #   shellHook =
-  #     (old.shellHook or "")
-  #     + ''
-  #       ${print.title "Formatter Environment"}
-  #       ${print.table {
-  #         columns = ["Formatter" "Version"];
-  #         rows = formatters;
-  #       }}
-  #     '';
-  # });
-  # shell = devShell.overrideAttrs (old: let
-  #   inherit (args.sources) treefmt;
-  #   version = let
-  #     rev = treefmt.revision;
-  #   in
-  #     if rev != null
-  #     then "$(${treefmt.paths.exe} --version | ${pkgs.gawk}/bin/awk '{print $2}') (${rev})"
-  #     else "unknown";
-  #   programNames = attrNames args.programs;
-  #   fromPrograms =
-  #     map (name: [name (args.programs.${name}.version or "unknown")])
-  #     programNames;
-  #   fromPackages =
-  #     map (pkg: [(pkg.pname or pkg.name or "unknown") (pkg.version or "unknown")])
-  #     (filter (
-  #         pkg: let
-  #           n = toLower (pkg.pname or pkg.name or "");
-  #         in
-  #           n
-  #           != ""
-  #           && n != "treefmt"
-  #           && n != "git"
-  #           && !(elem n (map toLower programNames))
-  #       )
-  #       args.packages);
-  #   formatters = let
-  #     rest = fromPrograms ++ fromPackages;
-  #     sorted =
-  #       sort
-  #       (a: b: (elemAt a 0) < (elemAt b 0))
-  #       rest;
-  #   in
-  #     [["treefmt" version]] ++ sorted;
-  # in {
-  #   shellHook =
-  #     (old.shellHook or "")
-  #     + ''
-  #       ${print.title "Formatter Environment"}
-  #       ${print.table {
-  #         columns = ["Formatter" "Version"];
-  #         rows = formatters;
-  #       }}
-  #     '';
-  # });
-  # sources' = removeAttrs sources ["git" ""];
-  # packages' =
-  #   filter (
-  #     pkg: let
-  #       name = toLower (pkg.pname or pkg.name or "");
-  #     in
-  #       (name != "")
-  #       && name != "treefmt"
-  #       && name != "git"
-  #       && !(elem name (map toLower (attrNames packages)))
-  #   )
-  #   packages;
-  # binaries' = mapAttrs (_: pkg: pkg.paths.exe) resolved;
-  # commands = mapAttrs (_: pkg: pkg.cmd) resolved;
-  # fmt = args.devShell.overrideAttrs (old: let
-  #   inherit (args.sources) treefmt;
-  #   version = let
-  #     rev = treefmt.revision;
-  #   in
-  #     if rev != null
-  #     then "$(${treefmt.paths.exe} --version | ${pkgs.gawk}/bin/awk '{print $2}') (${rev})"
-  #     else "unknown";
-  #   programNames = attrNames args.programs;
-  #   fromPrograms =
-  #     map (name: [name (args.programs.${name}.version or "unknown")])
-  #     programNames;
-  #   fromPackages =
-  #     map (pkg: [(pkg.pname or pkg.name or "unknown") (pkg.version or "unknown")])
-  #     (filter (
-  #         pkg: let
-  #           n = toLower (pkg.pname or pkg.name or "");
-  #         in
-  #           n
-  #           != ""
-  #           && n != "treefmt"
-  #           && n != "git"
-  #           && !(elem n (map toLower programNames))
-  #       )
-  #       args.packages);
-  #   formatters = let
-  #     rest = fromPrograms ++ fromPackages;
-  #     sorted =
-  #       sort
-  #       (a: b: (elemAt a 0) < (elemAt b 0))
-  #       rest;
-  #   in
-  #     [["treefmt" version]] ++ sorted;
-  # in {
-  #   shellHook =
-  #     (old.shellHook or "")
-  #     + ''
-  #       ${print.title "Formatter Environment"}
-  #       ${print.table {
-  #         columns = ["Formatter" "Version"];
-  #         rows = formatters;
-  #       }}
-  #     '';
-  # });
+
+  devShell = eval.devShell.overrideAttrs (old: {
+    shellHook =
+      (old.shellHook or "")
+      + ''
+        ${print.title "Formatter Environment"}
+        ${print.table {
+          columns = ["Formatter" "Version"];
+          rows = let
+            names = sort (a: b: a < b) tool.names;
+            treefmtRow = ["treefmt" (tool.versionOf "treefmt")];
+            rest =
+              map (name: [name (tool.versionOf name)])
+              (filter (n: n != "treefmt") names);
+          in
+            [treefmtRow] ++ rest;
+        }}
+      '';
+  });
 in {
   treefmt = eval.build // {inherit devShell;};
   inherit apps;
   formatter = wrapper;
   checks.formatting = check flake.path;
-  formatters = [wrapper];
-  # formatters = tool.names ++ [wrapper];
+  # formatters = [wrapper];
+  formatters = tool.packages ++ [wrapper];
 }
