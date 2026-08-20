@@ -482,10 +482,10 @@
     };
 
     aliases = with eval; {
-      pkgs = packages;
+      # pkgs = packages;
       bins = binaries;
       cmds = commands;
-      vr3n = versions;
+      # vr3n = versions;
     };
   in
     eval // aliases // {inherit sources;};

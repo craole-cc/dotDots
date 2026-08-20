@@ -17,7 +17,13 @@ global: let
   shells = importAllNamed {
     inherit args;
     dir = ./.;
-    exclude = ["shared" "fmt" "lib.nix" "ai"];
+    exclude = [
+      "shared"
+      "fmt"
+      "ai"
+      "media"
+      "hermes"
+    ];
   };
 
   inherit (args) fetch mkName print;
@@ -40,8 +46,6 @@ global: let
         }
     )
     shells;
-in {
-  inherit (args) apps formatter checks;
 
   devShells =
     build
@@ -97,22 +101,25 @@ in {
       #     '';
       # });
 
-      full = mkShell {
-        name = mkName "full";
+      # full = mkShell {
+      #   name = mkName "full";
 
-        env =
-          foldl'
-          (acc: name: acc // (shells.${name}.env or {}))
-          #> Baseline: every shell's env folded in normal (attrValues) order.
-          (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
-          (reverseList ["core" "hermes"]);
+      #   env =
+      #     foldl'
+      #     (acc: name: acc // (shells.${name}.env or {}))
+      #     #> Baseline: every shell's env folded in normal (attrValues) order.
+      #     (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
+      #     (reverseList ["core" "hermes"]);
 
-        shellHook = ''
-          ${fetch.name} --full
-          ${print.info "Full profile - every devShell package installed"}
-        '';
+      #   shellHook = ''
+      #     ${fetch.name} --full
+      #     ${print.info "Full profile - every devShell package installed"}
+      #   '';
 
-        packages = concatMap (cfg: cfg.packages or []) (attrValues shells);
-      };
+      #   packages = concatMap (cfg: cfg.packages or []) (attrValues shells);
+      # };
     };
+in {
+  inherit (args) apps formatter checks;
+  inherit devShells;
 }
