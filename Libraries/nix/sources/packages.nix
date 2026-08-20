@@ -332,26 +332,7 @@
     };
 
     command = baseNameOf paths.executable;
-    version = let
-      raw = package.version or null;
-      # e.g. "treefmt-2.5.0" or "treefmt-2.5.0-env"
-      fromName = let
-        n = package.pname or package.name or "";
-        # strip pname prefix if present
-        pname = package.pname or null;
-        stripped =
-          if pname != null && hasPrefix "${pname}-" n
-          then removePrefix "${pname}-" n
-          else n;
-        m = match "([0-9]+([.][0-9]+)*).*" stripped;
-      in
-        if m != null
-        then head m
-        else null;
-    in
-      if raw != null && raw != ""
-      then raw
-      else fromName;
+
     revision =
       if check.source == "input"
       then let
@@ -359,11 +340,37 @@
       in
         name.shortRev or name.rev or null
       else null;
-    vr3n =
-      if version != null && revision != null
-      then "${version} (${revision})"
-      else if version != null
-      then version
+
+    version = let
+      derived = let
+        raw = package.version or null;
+        fromName = let
+          name = package.pname or package.name or "";
+          pname = package.pname or null;
+          stripped =
+            if pname != null && hasPrefix "${pname}-" name
+            then removePrefix "${pname}-" name
+            else name;
+          matches = match "([0-9]+([.][0-9]+)*).*" stripped;
+        in
+          if matches != null
+          then head matches
+          else null;
+      in
+        if raw != null && raw != ""
+        then raw
+        else fromName;
+      command =
+        if version == null
+        then "${paths.executable} --version | awk '{print $NF}'"
+        else null;
+    in
+      if derived != null && revision != null
+      then "${derived} (${revision})"
+      else if derived != null
+      then derived
+      else if revision != null && command != null
+      then "$(${command}) (${revision})"
       else if revision != null
       then revision
       else null;
@@ -373,13 +380,14 @@
       then null
       else {
         inherit (check) name source value;
-        inherit package paths command revision vr3n version;
+        inherit package paths command revision version;
 
         bin = paths.binary;
         cmd = command;
         exe = paths.executable;
         pkg = package;
-        ver = vr3n;
+        vr3n = version;
+        ver = version;
       };
   in
     if required

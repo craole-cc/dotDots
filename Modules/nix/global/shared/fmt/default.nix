@@ -166,7 +166,8 @@
         ${print.table {
           columns = ["Formatter" "Version" "Path"];
           rows = let
-            names = sort (a: b: a < b) tool.names;
+            rest = sort (a: b: a < b) (filter (n: n != "treefmt") tool.names);
+            names = ["treefmt"] ++ rest;
             row = name: let
               app = tool.of name;
             in [
