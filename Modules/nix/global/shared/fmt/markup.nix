@@ -2,7 +2,7 @@
   lix,
   pkgs,
   flake,
-  binaries,
+  commands,
   ...
 }: let
   inherit (flake) path;
@@ -59,16 +59,28 @@ in {
       options = ["--allow-no-files"];
     };
     harper = {
-      command = binaries.harper;
+      command = commands.harper;
       options = ["check" "--format" "short"];
       includes = ["Documentation/**/*.md" "Documentation/**/*.typ"];
       priority = 1;
     };
     tombi = {
-      command = binaries.tombi;
+      command = commands.tombi;
       options = ["format" "--offline"];
       includes = ["*.toml"];
       priority = 1;
     };
+    # harper = {
+    #   command = binaries.harper;
+    #   options = ["check" "--format" "short"];
+    #   includes = ["Documentation/**/*.md" "Documentation/**/*.typ"];
+    #   priority = 1;
+    # };
+    # tombi = {
+    #   command = binaries.tombi;
+    #   options = ["format" "--offline"];
+    #   includes = ["*.toml"];
+    #   priority = 1;
+    # };
   };
 }

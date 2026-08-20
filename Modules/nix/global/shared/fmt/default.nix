@@ -38,7 +38,8 @@
     module = {
       _module.args = {
         inherit lix flake;
-        inherit (utility) binaries;
+        # inherit (utility) binaries;
+        inherit (utility) commands;
       };
       imports = importAllPaths ./.;
       projectRootFile = "flake.nix";
@@ -101,12 +102,36 @@
 
     of = name: resolved.${name} or null;
 
-    wrappers = genAttrs packages (
+    wrappers = genAttrs (filter (name: name != "treefmt") tools) (
       name:
-        optionalAttrs
-        ((of name) != null)
-        {command = mkForce (of name).exe;}
+        if name == "statix"
+        then {
+          command = mkForce "sh";
+          options = mkForce [
+            "-c"
+            ''for f in "$@"; do statix fix "$f"; done''
+            "_"
+          ];
+        }
+        else {
+          command = mkForce ((of name).cmd or name);
+        }
     );
+    # wrappers = genAttrs (filter (name: name != "treefmt") tools) (
+    #   name:
+    #     if name == "statix"
+    #     then {
+    #       command = mkForce "sh";
+    #       options = mkForce [
+    #         "-c"
+    #         ''for f in "$@"; do statix fix "$f"; done''
+    #         "_"
+    #       ];
+    #     }
+    #     else {
+    #       command = mkForce ((of name).exe or name);
+    #     }
+    # );
     # wrappers =
     #   recursiveUpdate
     #   (genAttrs programs (name: {
@@ -132,14 +157,6 @@
           "--config"
           "dprint.json"
         ];
-        statix = {
-          command = mkForce "${writeShellScript "statix-wrapper" ''
-            for file in "$@"; do
-              ${tool.statix.exe} fix "$file"
-            done
-          ''}";
-          options = mkForce [];
-        };
       };
     };
 
