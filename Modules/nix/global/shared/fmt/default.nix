@@ -17,7 +17,7 @@
   inherit (lix.lists.predicates) elem;
   inherit (lix.lists.transformation) filter sort uniqueStrings;
   inherit (lix.modules.construction) mkForce;
-  inherit (pkgs) writeShellApplication;
+  inherit (pkgs) writeShellApplication writeShellScript;
 
   mkConfig = module: (evalModule pkgs module).config;
   extraSources = {
@@ -25,6 +25,7 @@
       input = "treefmt";
       versionArgs = "--version";
     };
+    statix = null;
     harper = null;
     tombi = null;
   };
@@ -100,15 +101,21 @@
 
     of = name: resolved.${name} or null;
 
-    wrappers =
-      recursiveUpdate
-      (genAttrs programs (name: {
-        command = mkForce ((of name).exe or name);
-      }))
-      (genAttrs packages (name:
-        optionalAttrs ((of name) != null) {
-          command = mkForce (of name).exe;
-        }));
+    wrappers = genAttrs packages (
+      name:
+        optionalAttrs
+        ((of name) != null)
+        {command = mkForce (of name).exe;}
+    );
+    # wrappers =
+    #   recursiveUpdate
+    #   (genAttrs programs (name: {
+    #     command = mkForce ((of name).exe or name);
+    #   }))
+    #   (genAttrs packages (name:
+    #     optionalAttrs ((of name) != null) {
+    #       command = mkForce (of name).exe;
+    #     }));
   in
     resolved
     // {
@@ -125,6 +132,14 @@
           "--config"
           "dprint.json"
         ];
+        statix = {
+          command = mkForce "${writeShellScript "statix-wrapper" ''
+            for file in "$@"; do
+              ${tool.statix.exe} fix "$file"
+            done
+          ''}";
+          options = mkForce [];
+        };
       };
     };
 

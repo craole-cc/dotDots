@@ -6,7 +6,7 @@
   };
 
   settings.formatter = {
-    alejandra.priority = 1;
-    statix.priority = 2;
+    # alejandra.priority = 1;
+    # statix.priority = 2;
   };
 }

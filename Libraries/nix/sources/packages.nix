@@ -608,8 +608,8 @@
       pkgOf (
         {
           inherit target inputs pkgs required;
-          input = entry.input;
-          versionArgs = entry.versionArgs;
+          inherit (entry) input;
+          inherit (entry) versionArgs;
         }
         // optionalAttrs (system != null) {inherit system;}
       );

@@ -11,7 +11,6 @@ command = "/nix/store/kq61zzri6yliqysbrwnc3mhsqddwwlrh-alejandra-4.0.0/bin/aleja
 excludes = []
 includes = ["*.nix"]
 options = []
-priority = 1
 
 [formatter.dprint]
 command = "/nix/store/ik6xkpy0wydjamvg0xg4h9dp7mk4j8n7-dprint-0.55.2/bin/dprint"
@@ -70,11 +69,10 @@ options = ["-w", "--apply-ignore", "--binary-next-line", "--space-redirects", "-
 priority = 2
 
 [formatter.statix]
-command = "/nix/store/xak3vlg9n70d4x09m9b07rqzs185gh9s-statix-0.5.8-unstable-2026-07-17/bin/statix"
+command = "/nix/store/ib982jfac2qyf18w7b64rd9srxjpdlbz-statix-wrapper"
 excludes = []
 includes = ["*.nix"]
 options = []
-priority = 2
 
 [formatter.stylua]
 command = "/nix/store/w6mr02wa797dg82av68f44wn8jxdb3ky-stylua-2.5.2/bin/stylua"
