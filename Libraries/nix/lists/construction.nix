@@ -71,7 +71,7 @@
   asList null                # => []
   ```
   */
-  asList = value: filter (v: v != null) (toList value);
+  asList = value: filter (val: val != null) (toList value);
 
   /**
   Generate a membership-checking predicate for a normalized list.

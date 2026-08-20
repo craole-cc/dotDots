@@ -51,15 +51,15 @@
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystemOrDefault;
-  inherit (_.lists.access) head;
+  inherit (_.lists.access) findFirst head;
   inherit (_.lists.aggregation) concatMap foldl';
-  inherit (_.lists.construction) optionals;
+  inherit (_.lists.construction) asList optionals;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.access) match;
   inherit (_.strings.construction) concat;
-  inherit (_.strings.predicates) hasPrefix hasSuffix;
+  inherit (_.strings.predicates) hasPrefix hasSuffix isString;
   inherit (_.strings.transformation) removePrefix removeSuffix;
   inherit (_.sources.access) getBin getExe getExe';
   inherit (_.sources.inputs) normalize mkSource;
@@ -136,6 +136,109 @@
     else if formatter != null
     then {${input} = formatter;}
     else {};
+
+  /**
+      Build the final version string for a resolved package: derives a
+      static version from `package.version`/`pname` parsing, falls back to
+      a shell probe against `exe` if that's unavailable, and combines
+      whichever succeeds with `revision`.
+
+      Derivation, tried in order:
+        1.`package.version`, if set and non-empty
+        2.the leading dotted-number sequence in `pname` (with the `pname-`
+          prefix stripped from `name` first, if both are set) or bare `name`
+          otherwise, tolerating an optional leading `v`/`V`
+
+      If neither yields a value, and `args` is non-empty, falls back to a
+      shell probe: runs `exe` with `args` (string or list, normalized via
+      `asList`) plus `extra` trailing text, discards stderr, and greps the
+      first dotted-number sequence out of stdout. The probe is only ever
+      embedded as a `$(...)` shell substitution in the returned string,
+      never executed at eval time.
+
+      Final combination, in priority order:
+        1. derived + `revision`  -> "`derived` (`revision`)"
+        2. derived alone         -> "`derived`"
+        3. probe + `revision`    -> "$(probe) (`revision`)"
+        4. `revision` alone      -> "`revision`"
+        5. probe alone           -> "$(probe)"
+        6. nothing resolved      -> `null`
+
+      # Inputs
+      `package`
+      : the resolved derivation to inspect
+
+      `revision`
+      : git short-rev/rev string, or `null` if unavailable
+
+      `exe`
+      : path to the executable to probe, used only if derivation fails and
+        `args` is non-empty
+
+      `args`
+      : version flag(s) to pass, e.g. `"--version"` or `["-V"]`; normalized
+        via `asList`; empty/`null` disables the probe entirely
+
+      `extra`
+      : additional trailing shell text appended after `args`; default `""`
+
+      # Type
+      > getVersion :: { package :: derivation, revision :: string?, exe :: string, args :: string | [string] | null, extra :: string? } -> string | null
+
+      # Examples
+      - getVersion { package = pkgs.ripgrep; revision = null; exe = "..."; args = null; }
+      > "14.1.0"
+
+      - getVersion { package = someFlakeOutputWithNoVersion; revision = "ae79109"; exe = "/nix/store/.../bin/treefmt"; args = "--version"; }
+      > "$(/nix/store/.../bin/treefmt --version  2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1) (ae79109)"
+
+      - getVersion { package = someFlakeOutputWithNoVersion; revision = null; exe = "..."; args = null; }
+  null
+  */
+  getVersion = {
+    package,
+    revision ? null,
+    exe,
+    args ? null,
+    extra ? "",
+  }: let
+    derived = let
+      raw = package.version or null;
+      fromName = let
+        name = package.pname or package.name or "";
+        pname = package.pname or null;
+        stripped =
+          if pname != null && hasPrefix "${pname}-" name
+          then removePrefix "${pname}-" name
+          else name;
+        matches = match "[vV]?([0-9]+([.][0-9]+)*).*" stripped;
+      in
+        if matches != null
+        then head matches
+        else null;
+    in
+      if raw != null && raw != ""
+      then raw
+      else fromName;
+
+    probe =
+      if derived == null && (asList args) != []
+      then "${exe} ${
+        concat " " (asList args)
+      } ${extra} 2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1"
+      else null;
+  in
+    if derived != null && revision != null
+    then "${derived} (${revision})"
+    else if derived != null
+    then derived
+    else if revision != null && probe != null
+    then "$(${probe}) (${revision})"
+    else if revision != null
+    then revision
+    else if probe != null
+    then "$(${probe})"
+    else null;
 
   # -- pkgOf
 
@@ -236,6 +339,7 @@
       then pkgs.stdenv.hostPlatform.system
       else null,
     required ? false,
+    versionArgs ? null,
   }: let
     _name = "pkgOf";
 
@@ -281,7 +385,7 @@
           if hasSuffix suffix input
           then removeSuffix suffix input
           else null;
-        stripped = filter (n: n != null) (map strip suffixes);
+        stripped = filter (name: name != null) (map strip suffixes);
       in
         unique stripped;
 
@@ -292,30 +396,56 @@
       ++ (optionals (input != null) [input])
     );
 
-    lookup = candidates:
-      foldl'
-      (found: name:
-        if found != null
-        then found
-        else let
-          flake = init.source.flakes.${name} or null;
-          legacy = init.source.legacy.${name} or null;
-        in
-          if flake != null
-          then {
-            inherit name;
-            source = "input";
-            value = flake;
-          }
-          else if legacy != null
-          then {
-            inherit name;
-            source = "nixpkgs";
-            value = legacy;
-          }
-          else null)
+    lookup = candidates: let
+      src = init.source;
+
+      findMatch = name: let
+        flake = src.flakes.${name} or null;
+        legacy = src.legacy.${name} or null;
+      in
+        if flake != null
+        then {
+          inherit name;
+          value = flake;
+          source = "input";
+        }
+        else if legacy != null
+        then {
+          inherit name;
+          value = legacy;
+          source = "nixpkgs";
+        }
+        else null;
+    in
+      findFirst
+      (candidate: candidate != null)
       null
-      candidates;
+      (map findMatch candidates);
+    # lookup = candidates:
+    #   foldl'
+    #   (found: name:
+    #     if found != null
+    #     then found
+    #     else let
+    #       src = init.source;
+    #       flake = src.flakes.${name} or null;
+    #       legacy = src.legacy.${name} or null;
+    #     in
+    #       if flake != null
+    #       then {
+    #         inherit name;
+    #         source = "input";
+    #         value = flake;
+    #       }
+    #       else if legacy != null
+    #       then {
+    #         inherit name;
+    #         source = "nixpkgs";
+    #         value = legacy;
+    #       }
+    #       else null)
+    #   null
+    #   candidates;
 
     check = lookup candidateNames;
 
@@ -341,39 +471,11 @@
         name.shortRev or name.rev or null
       else null;
 
-    version = let
-      derived = let
-        raw = package.version or null;
-        fromName = let
-          name = package.pname or package.name or "";
-          pname = package.pname or null;
-          stripped =
-            if pname != null && hasPrefix "${pname}-" name
-            then removePrefix "${pname}-" name
-            else name;
-          matches = match "([0-9]+([.][0-9]+)*).*" stripped;
-        in
-          if matches != null
-          then head matches
-          else null;
-      in
-        if raw != null && raw != ""
-        then raw
-        else fromName;
-      command =
-        if version == null
-        then "${paths.executable} --version | awk '{print $NF}'"
-        else null;
-    in
-      if derived != null && revision != null
-      then "${derived} (${revision})"
-      else if derived != null
-      then derived
-      else if revision != null && command != null
-      then "$(${command}) (${revision})"
-      else if revision != null
-      then revision
-      else null;
+    version = getVersion {
+      inherit package revision;
+      exe = paths.executable;
+      args = versionArgs;
+    };
 
     eval =
       if check == null || check.value == null
@@ -486,21 +588,39 @@
     exclude ? [],
     aliases ? {},
   }: let
-    source = target: input:
+    normalize = value:
+      if value == null
+      then {
+        input = null;
+        versionArgs = null;
+      }
+      else if isString value
+      then {
+        input = value;
+        versionArgs = null;
+      }
+      else {
+        input = value.input or null;
+        versionArgs = value.versionArgs or null;
+      };
+
+    source = target: entry:
       pkgOf (
         {
           inherit target inputs pkgs required;
-          input =
-            if input == null
-            then null
-            else input;
+          input = entry.input;
+          versionArgs = entry.versionArgs;
         }
         // optionalAttrs (system != null) {inherit system;}
       );
 
     init =
       filterAttrs (_: v: v != null)
-      (mapAttrs (name: input: source name input) sources);
+      (
+        mapAttrs
+        (name: entry: source name entry)
+        (mapAttrs (_: normalize) sources)
+      );
 
     aliased = filterAttrs (_: v: v != null) (
       mapAttrs (_: target: init.${target} or null) aliases
@@ -531,7 +651,6 @@
       inherit sources;
       records = byName;
     };
-
   bySystem = packages: let
     inputNames = attrNames packages;
 

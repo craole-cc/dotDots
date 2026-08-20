@@ -22,8 +22,9 @@ args: let
     input ? null,
     target ? null,
     required ? true,
+    versionArgs ? null,
   }:
-    pkgOf {inherit input inputs pkgs required target;};
+    pkgOf {inherit input inputs pkgs required target versionArgs;};
 
   pkgsFor = {
     sources,
