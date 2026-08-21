@@ -130,7 +130,11 @@
     #~@ Types Lists
     defined =
       host.system or (
-        flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts)
+        flatten (
+          mapAttrsToList
+          (_: host: host.platform or host.system or [])
+          hosts
+        )
       );
     default = [
       "aarch64-darwin"
@@ -205,7 +209,7 @@ in
         };
         allContainsDefaults = mkTest {
           desired = true;
-          outcome = all (s: elem s (getSystems {}).all) [
+          outcome = all (system: elem system (getSystems {}).all) [
             "x86_64-linux"
             "aarch64-linux"
             "aarch64-darwin"
@@ -214,21 +218,26 @@ in
         };
         usesHostPlatform = mkTest {
           desired = "aarch64-linux";
-          # Pass system = null so the test relies entirely on the 'hosts' attribute
           outcome =
             (getSystems {
               system = null;
               hosts.myHost.platform = "aarch64-linux";
             }).system;
-          command = ''(getSystems { system = null; hosts.myHost.platform = "aarch64-linux"; }).system'';
+          command = ''
+            (getSystems { system = null; hosts.myHost.platform = "aarch64-linux"; }).system
+          '';
         };
         definedIncludesHostPlatform = mkTest {
           desired = true;
-          outcome = elem "aarch64-linux" (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
+          outcome =
+            elem "aarch64-linux"
+            (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
           command = ''elem "aarch64-linux" (getSystems {...}).defined'';
         };
         emptyHostsGivesEmptyDefined = mkTest' [] (getSystems {}).defined;
-        pkgsForReturnsEmptyWhenNoPkgs = mkTest' {} ((getSystems {}).pkgsFor "x86_64-linux");
+        pkgsForReturnsEmptyWhenNoPkgs =
+          mkTest' {}
+          ((getSystems {}).pkgsFor "x86_64-linux");
         allIsUnique = mkTest {
           desired = true;
           outcome = let
