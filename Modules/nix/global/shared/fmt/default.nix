@@ -11,20 +11,21 @@
   inherit (inputs.treefmt.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
-  inherit (lix.attrsets.construction) genAttrs optionalAttrs;
+  inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.filesystem.traversal) importAllPaths;
   inherit (lix.lists.predicates) elem;
   inherit (lix.lists.transformation) filter sort uniqueStrings;
   inherit (lix.modules.construction) mkForce;
-  inherit (pkgs) writeShellApplication writeShellScript;
+  inherit (pkgs) writeShellApplication;
 
   mkConfig = module: (evalModule pkgs module).config;
   extraSources = {
-    treefmt = {
-      input = "treefmt";
-      versionArgs = "--version";
-    };
+    treefmt = "treefmt";
+    # treefmt = {
+    #   input = "treefmt";
+    #   versionArgs = "--version";
+    # };
     statix = null;
     harper = null;
     tombi = null;
@@ -102,55 +103,37 @@
 
     of = name: resolved.${name} or null;
 
-    wrappers = genAttrs (filter (name: name != "treefmt") tools) (
-      name:
-        if name == "statix"
-        then {
-          command = mkForce "sh";
-          options = mkForce [
-            "-c"
-            ''for f in "$@"; do statix fix "$f"; done''
-            "_"
-          ];
-        }
-        else {
-          command = mkForce ((of name).cmd or name);
-        }
-    );
-    # wrappers = genAttrs (filter (name: name != "treefmt") tools) (
-    #   name:
-    #     if name == "statix"
-    #     then {
-    #       command = mkForce "sh";
-    #       options = mkForce [
-    #         "-c"
-    #         ''for f in "$@"; do statix fix "$f"; done''
-    #         "_"
-    #       ];
-    #     }
-    #     else {
-    #       command = mkForce ((of name).exe or name);
-    #     }
-    # );
-    # wrappers =
-    #   recursiveUpdate
-    #   (genAttrs programs (name: {
-    #     command = mkForce ((of name).exe or name);
-    #   }))
-    #   (genAttrs packages (name:
-    #     optionalAttrs ((of name) != null) {
-    #       command = mkForce (of name).exe;
-    #     }));
+    wrappers = let
+      for = field:
+        genAttrs (filter (name: name != "treefmt") tools) (
+          name:
+            if name == "statix"
+            then {
+              command = mkForce "sh";
+              options = mkForce [
+                "-c"
+                ''for f in "$@"; do statix fix "$f"; done''
+                "_"
+              ];
+            }
+            else {
+              command = mkForce ((of name).${field} or name);
+            }
+        );
+    in {
+      exe = for "exe";
+      cmd = for "cmd";
+    };
   in
     resolved
     // {
-      inherit tools packages programs formatters wrappers of;
+      inherit tools packages programs formatters of wrappers;
       names = tools;
     };
 
-  eval = let
+  mkEval = wrappers: let
     module = {
-      settings.formatter = recursiveUpdate tool.wrappers {
+      settings.formatter = recursiveUpdate wrappers {
         dprint.options = mkForce [
           "fmt"
           "--allow-no-files"
@@ -163,81 +146,63 @@
     config = mkConfig {imports = [init.module module];};
   in
     config // config.build // {inherit module;};
-  inherit (eval) wrapper check configFile;
 
-  # apps = let
-  #   deploy = let
-  #     name = "deploy-treefmt-config";
-  #     value = let
-  #       source = configFile;
-  #       target = let
-  #         name = ".treefmt.toml";
-  #         path = "${flake.path}/${name}";
-  #       in {inherit name path;};
-
-  #       script = writeShellScriptBin name ''
-  #         set -euo pipefail
-  #         cp --force ${source} "${target.path}"
-  #         chmod u+w "${target.path}"
-  #         printf "Updated ${target.name} from Modules/global/shared/fmt\n"
-  #       '';
-  #     in {
-  #       type = "app";
-  #       program = "${script}/bin/${name}";
-  #     };
-  #   in {inherit name value;};
-  # in {${deploy.name} = deploy.value;};
-  apps = let
-    deploy = let
-      name = "deploy-treefmt-config";
-      source = configFile;
-      target = {
-        path = "${flake.home}/${target.name}";
-        name = ".treefmt.toml";
-      };
-      app = writeShellApplication {
-        inherit name;
-        text = ''
-          cp --force ${source} "${target.path}"
-          chmod u+w "${target.path}"
-          printf "Updated ${target.name} from Modules/global/shared/fmt\n"
-        '';
-      };
-    in {
-      inherit name;
-      value = {
-        type = "app";
-        program = "${app}/bin/${name}";
-      };
+  treefmt = let
+    eval = mkEval tool.wrappers.exe;
+    inherit (eval) wrapper check;
+  in
+    eval
+    // eval.build
+    // {
+      formatter = wrapper;
+      checks.formatting = check flake.path;
+      formatters = tool.packages ++ [wrapper];
+      devShell = eval.devShell.overrideAttrs (old: {
+        shellHook =
+          (old.shellHook or "")
+          + ''
+            ${print.title "Formatter Environment"}
+            ${print.table {
+              columns = ["Formatter" "Version" "Path"];
+              rows = let
+                names =
+                  ["treefmt"]
+                  ++ sort
+                  (a: b: a < b)
+                  (filter (name: name != "treefmt") tool.names);
+                by = name: let
+                  app = tool.of name;
+                in [
+                  name
+                  (app.ver or "unknown")
+                  (app.exe or "-")
+                ];
+              in
+                map by names;
+            }}
+          '';
+      });
     };
-  in {${deploy.name} = deploy.value;};
 
-  devShell = eval.devShell.overrideAttrs (old: {
-    shellHook =
-      (old.shellHook or "")
-      + ''
-        ${print.title "Formatter Environment"}
-        ${print.table {
-          columns = ["Formatter" "Version" "Path"];
-          rows = let
-            rest = sort (a: b: a < b) (filter (name: name != "treefmt") tool.names);
-            names = ["treefmt"] ++ rest;
-            row = name: let
-              app = tool.of name;
-            in [
-              name
-              (app.ver or "unknown")
-              (app.exe or "-")
-            ];
-          in
-            map row names;
-        }}
+  apps = let
+    name = "deploy-treefmt-config";
+    source = (mkEval tool.wrappers.cmd).configFile;
+    target = "${flake.home}/.treefmt.toml";
+    app = writeShellApplication {
+      inherit name;
+      text = ''
+        cp --force ${source} "${target}"
+        chmod u+w "${target}"
+        printf "Updated .treefmt.toml from Modules/global/shared/fmt\n"
       '';
-  });
+    };
+  in {
+    ${name} = {
+      type = "app";
+      program = "${app}/bin/${name}";
+    };
+  };
 in {
-  treefmt = eval.build // {inherit devShell;};
-  inherit apps;
-  formatter = wrapper;
-  checks.formatting = check flake.path;
-  formatters = tool.packages ++ [wrapper];
+  inherit treefmt apps;
+  inherit (treefmt) formatter checks formatters;
 }

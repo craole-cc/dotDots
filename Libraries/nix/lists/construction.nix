@@ -47,31 +47,118 @@
   /**
   Convert a single string, or list of strings, into a cleaned list.
 
-  Removes null values but preserves empty strings.
+  Supports two calling conventions:
 
-  # Inputs
-  `value`
-  : A string, a list of strings or nulls, or null itself.
+  1. Simple (value only):
+    asList "foo"
+    asList ["foo" null "bar"]
 
-  # Return
-  A flat list of strings with all null entries removed. Returns `[]` when
-  `value` is null or an empty list. A plain string is wrapped in a
-  single-element list. Empty strings in a list are kept.
+  2. With options (attrset):
+    asList { value = ["foo" null false "bar"]; }
+    asList { value = ...; filterNulls = false; }
+    asList { value = ...; filterFalse = true; }
+
+  # Defaults
+  ```nix
+  filterNulls = true
+  filterFalse = truee
+  ```
+
+  - When `args` is not an attrset it is treated as the value.
+  - `null` is always turned into `[]` via `toList`.
+  - Empty strings are preserved.
+  - `false` is only removed when `filterFalse = true`.
 
   # Type
+
   ```nix
-  asList :: string | [string | null] | null -> [string]
+  asList :: string | [string | null | false] | null | {
+    value : string | [string | null | false] | null;
+    filterNulls ? true;
+    filterFalse ? true
+  } -> [string]
   ```
 
-  # Examples
-  ```nix
-  asList "foo"               # => ["foo"]
-  asList ["foo" null "bar"]  # => ["foo" "bar"]
-  asList ""                  # => [""]
-  asList null                # => []
-  ```
+  # Example
+  - Classic `toList` style
+
+    ```nix
+    asList "foo"
+    ```
+    > ["foo"]
+
+    ---
+
+    ```nix
+    asList ["foo" null "bar" false]
+    ```
+    > ["foo" "bar"]
+
+    ---
+    ```nix
+    asList null
+    ```
+    > []
+
+    ---
+    ```nix
+    asList ""
+    ```
+    > [""]
+
+  - Attrset style
+
+    ```nix
+    asList {
+        value = ["foo" null false "bar"];
+        filterNull = true;
+        filterFalse = true;
+    }
+    ```
+    > ["foo" "bar"]
+
+    ---
+    ```nix
+    asList {
+        value = ["foo" null false "bar"];
+        filterNull = false;
+        filterFalse = true;
+    }
+    ```
+    > ["foo" null "bar"]
+
+    ---
+    ```nix
+    asList { value = ["foo" null false "bar"]; filterNull = false; filterFalse = false;  }
+    ```
+    > ["foo" null false "bar"]
   */
-  asList = value: filter (val: val != null) (toList value);
+  asList = args: let
+    isOpts = isAttrs args && !(isList args);
+    value =
+      if isOpts
+      then args.value or null
+      else args;
+
+    doFilterNulls =
+      if isOpts
+      then args.filterNulls or true
+      else true;
+    doFilterFalse =
+      if isOpts
+      then args.filterFalse or true
+      else true;
+    base = toList value;
+    afterNulls =
+      if doFilterNulls
+      then filter (val: val != null) base
+      else base;
+    result =
+      if doFilterFalse
+      then filter (val: val != false) afterNulls
+      else afterNulls;
+  in
+    result;
 
   /**
   Generate a membership-checking predicate for a normalized list.

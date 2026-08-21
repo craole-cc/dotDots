@@ -12,11 +12,12 @@
       internal = let
         functions = {
           inherit
+            fromInputs
+            getVersion
+            mkAll
             mkCore
             mkHome
-            mkAll
             mkOne
-            fromInputs
             pkgOf
             pkgsFrom
             ;
@@ -52,7 +53,7 @@
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystemOrDefault;
   inherit (_.lists.access) findFirst head;
-  inherit (_.lists.aggregation) concatMap foldl';
+  inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) asList optionals;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) elem;
@@ -138,61 +139,67 @@
     else {};
 
   /**
-      Build the final version string for a resolved package: derives a
-      static version from `package.version`/`pname` parsing, falls back to
-      a shell probe against `exe` if that's unavailable, and combines
-      whichever succeeds with `revision`.
+    Build the final version string for a resolved package: derives a
+    static version from `package.version`/`pname` parsing, falls back to
+    a shell probe against `exe` if that's unavailable, and combines
+    whichever succeeds with `revision`.
 
-      Derivation, tried in order:
-        1.`package.version`, if set and non-empty
-        2.the leading dotted-number sequence in `pname` (with the `pname-`
-          prefix stripped from `name` first, if both are set) or bare `name`
-          otherwise, tolerating an optional leading `v`/`V`
+    Derivation, tried in order:
+      1.`package.version`, if set and non-empty
+      2.the leading dotted-number sequence in `pname` (with the `pname-`
+        prefix stripped from `name` first, if both are set) or bare `name`
+        otherwise, tolerating an optional leading `v`/`V`
 
-      If neither yields a value, and `args` is non-empty, falls back to a
-      shell probe: runs `exe` with `args` (string or list, normalized via
-      `asList`) plus `extra` trailing text, discards stderr, and greps the
-      first dotted-number sequence out of stdout. The probe is only ever
-      embedded as a `$(...)` shell substitution in the returned string,
-      never executed at eval time.
+    If neither yields a value, and `args` is non-empty, falls back to a
+    shell probe: runs `exe` with `args` (string or list, normalized via
+    `asList`) plus `extra` trailing text, discards stderr, and greps the
+    first dotted-number sequence out of stdout. The probe is only ever
+    embedded as a `$(...)` shell substitution in the returned string,
+    never executed at eval time.
 
-      Final combination, in priority order:
-        1. derived + `revision`  -> "`derived` (`revision`)"
-        2. derived alone         -> "`derived`"
-        3. probe + `revision`    -> "$(probe) (`revision`)"
-        4. `revision` alone      -> "`revision`"
-        5. probe alone           -> "$(probe)"
-        6. nothing resolved      -> `null`
+    Final combination, in priority order:
+      1. derived + `revision`  -> "`derived` (`revision`)"
+      2. derived alone         -> "`derived`"
+      3. probe + `revision`    -> "$(probe) (`revision`)"
+      4. `revision` alone      -> "`revision`"
+      5. probe alone           -> "$(probe)"
+      6. nothing resolved      -> `null`
 
-      # Inputs
-      `package`
-      : the resolved derivation to inspect
+    # Inputs
+    `package`
+    : the resolved derivation to inspect
 
-      `revision`
-      : git short-rev/rev string, or `null` if unavailable
+    `revision`
+    : git short-rev/rev string, or `null` if unavailable
 
-      `exe`
-      : path to the executable to probe, used only if derivation fails and
-        `args` is non-empty
+    `exe`
+    : path to the executable to probe, used only if derivation fails and
+      `args` is non-empty
 
-      `args`
-      : version flag(s) to pass, e.g. `"--version"` or `["-V"]`; normalized
-        via `asList`; empty/`null` disables the probe entirely
+    `args`
+    : version flag(s) to pass, e.g. `"--version"` or `["-V"]`; normalized
+      via `asList`; empty/`null` disables the probe entirely
 
-      `extra`
-      : additional trailing shell text appended after `args`; default `""`
+    `extra`
+    : additional trailing shell text appended after `args`; default `""`
 
-      # Type
-      > getVersion :: { package :: derivation, revision :: string?, exe :: string, args :: string | [string] | null, extra :: string? } -> string | null
+    # Type
+    ```nix
+    getVersion :: { package :: derivation, revision :: string?, exe :: string, args :: string | [string] | null, extra :: string? } -> string | null
+    ```
 
-      # Examples
-      - getVersion { package = pkgs.ripgrep; revision = null; exe = "..."; args = null; }
-      > "14.1.0"
+    # Examples
+    ```nix
+    getVersion { package = pkgs.ripgrep; revision = null; exe = "..."; args = null; }
+    ```
+    ```sh
+    "14.1.0"
+    ```
 
-      - getVersion { package = someFlakeOutputWithNoVersion; revision = "ae79109"; exe = "/nix/store/.../bin/treefmt"; args = "--version"; }
-      > "$(/nix/store/.../bin/treefmt --version  2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1) (ae79109)"
+    - getVersion { package = someFlakeOutputWithNoVersion; revision = "ae79109"; exe = "/nix/store/.../bin/treefmt"; args = "--version"; }
+    > "$(/nix/store/.../bin/treefmt --version  2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1) (ae79109)"
 
-      - getVersion { package = someFlakeOutputWithNoVersion; revision = null; exe = "..."; args = null; }
+    - getVersion { package = someFlakeOutputWithNoVersion; revision = null; exe = "..."; args = null; }
   null
   */
   getVersion = {
@@ -221,112 +228,147 @@
       then raw
       else fromName;
 
+    #> One flag-set per attempt. Explicit `args` -> exactly one attempt.
+    #> `null` -> try each of the default flags in turn. `false`/`[]` -> no probe.
+    flagCandidates =
+      if args == false || args == []
+      then []
+      else if args != null
+      then [(asList args)]
+      else map (flag: [flag]) ["--version" "-V" "version"];
+
     probe =
-      if derived == null && (asList args) != []
-      then "${exe} ${
-        concat " " (asList args)
-      } ${extra} 2>/dev/null | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1"
+      if derived == null && flagCandidates != []
+      then let
+        attempts =
+          map
+          (flags: "${exe} ${concat " " flags} ${extra} 2>/dev/null")
+          flagCandidates;
+        joined = concat " || " attempts;
+      in "{ ${joined}; } | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1"
       else null;
   in
-    if derived != null && revision != null
-    then "${derived} (${revision})"
-    else if derived != null
-    then derived
-    else if revision != null && probe != null
-    then "$(${probe}) (${revision})"
-    else if revision != null
-    then revision
-    else if probe != null
-    then "$(${probe})"
-    else null;
+    findFirst (candidate: candidate != null) null [
+      (
+        if derived != null && revision != null
+        then "${derived} (${revision})"
+        else null
+      )
+      (
+        if derived != null
+        then derived
+        else null
+      )
+      (
+        if revision != null && probe != null
+        then "$(${probe}) (${revision})"
+        else null
+      )
+      (
+        if revision != null
+        then revision
+        else null
+      )
+      (
+        if probe != null
+        then "$(${probe})"
+        else null
+      )
+    ];
 
   # -- pkgOf
 
   /**
-    Resolve a single package by name, trying `input`'s flake package set
-    first, then `pkgs`.
+  Resolve a single package by name, trying `input`'s flake package set
+  first, then `pkgs`.
 
-    Either `pkgs` or `system` must resolve to a real value: if `pkgs` is
-    given, `system` defaults to `pkgs.stdenv.hostPlatform.system`; otherwise
-    `system` must be supplied explicitly. Throws if neither is available.
+  Either `pkgs` or `system` must resolve to a real value: if `pkgs` is
+  given, `system` defaults to `pkgs.stdenv.hostPlatform.system`; otherwise
+  `system` must be supplied explicitly. Throws if neither is available.
 
-    Candidate names are tried against both sources, in order:
-    1. the explicit `target`, if given;
-    2. `"default"` (the flake's own default package output);
-    3. best-effort suffix-stripped variants of `input` (e.g.
-      `"treefmt-nix"` -> `"treefmt"`, via the `-nix`/`.nix`/`-flake`
-      suffixes), since an input's name and its package's attribute name
-      frequently differ and can't be inferred with certainty - a hit here
-      is a guess, not a guarantee, so double-check the resolved package
-      if `target` was left unset and the result looks unexpected.
+  Candidate names are tried against both sources, in order:
+  1. the explicit `target`, if given;
+  2. `"default"` (the flake's own default package output);
+  3. best-effort suffix-stripped variants of `input` (e.g.
+    `"treefmt-nix"` -> `"treefmt"`, via the `-nix`/`.nix`/`-flake`
+    suffixes), since an input's name and its package's attribute name
+    frequently differ and can't be inferred with certainty - a hit here
+    is a guess, not a guarantee, so double-check the resolved package
+    if `target` was left unset and the result looks unexpected.
 
-    The returned `name` reflects whichever candidate actually resolved
-    (e.g. `"treefmt"`, not the `input` string `"treefmt-nix"`), not
-    necessarily `target` itself.
+  The returned `name` reflects whichever candidate actually resolved
+  (e.g. `"treefmt"`, not the `input` string `"treefmt-nix"`), not
+  necessarily `target` itself.
 
-    Pass `target` explicitly whenever the package's real attribute name is
-    known and doesn't match `input` or `"default"` - this both guarantees
-    the correct package and skips the guesswork.
+  Pass `target` explicitly whenever the package's real attribute name is
+  known and doesn't match `input` or `"default"` - this both guarantees
+  the correct package and skips the guesswork.
 
-    When `required` is true, throws if no candidate resolves in either
-    source, listing every name that was tried. Otherwise returns `null` on
-    a full miss.
+  When `required` is true, throws if no candidate resolves in either
+  source, listing every name that was tried. Otherwise returns `null` on
+  a full miss.
 
-    # Inputs
-    `inputs`
-    : the flake's own `inputs` attrset, used to resolve `input`'s flake
-      outputs
+  # Inputs
+  `inputs`
+  : the flake's own `inputs` attrset, used to resolve `input`'s flake
+    outputs
 
-    `input`
-    : name of the flake input to look up the package under, e.g.
-      `"treefmt-nix"`
+  `input`
+  : name of the flake input to look up the package under, e.g.
+    `"treefmt-nix"`
 
-    `target`
-    : explicit attribute name to resolve, tried before `"default"` and the
-      suffix-stripped guesses; default `null` (skip straight to guessing)
+  `target`
+  : explicit attribute name to resolve, tried before `"default"` and the
+    suffix-stripped guesses; default `null` (skip straight to guessing)
 
-    `exe`
-    : optional binary name within the resolved package to expose as `.exe`
-      via `getExe'`; when omitted, `.exe` is `getExe value` (the package's
-      own main binary)
+  `exe`
+  : optional binary name within the resolved package to expose as `.exe`
+    via `getExe'`; when omitted, `.exe` is `getExe value` (the package's
+    own main binary)
 
-    `pkgs`
-    : an already-instantiated `pkgs` to fall back to and to derive `system`
-      from; default `null` (falls back to importing `inputs.nixpkgs`
-      directly using `system`)
+  `pkgs`
+  : an already-instantiated `pkgs` to fall back to and to derive `system`
+    from; default `null` (falls back to importing `inputs.nixpkgs`
+    directly using `system`)
 
-    `system`
-    : target system string, default `pkgs.stdenv.hostPlatform.system` when
-      `pkgs` is given, otherwise must be supplied
+  `system`
+  : target system string, default `pkgs.stdenv.hostPlatform.system` when
+    `pkgs` is given, otherwise must be supplied
 
-    `required`
-    : whether a full miss throws (`true`) or returns `null` (`false`),
-      default `false`
+  `required`
+  : whether a full miss throws (`true`) or returns `null` (`false`),
+    default `false`
 
-    # Type
-    > pkgOf :: { inputs :: AttrSet, input :: string, target :: string?, exe :: string?, pkgs :: AttrSet?, system :: string?, required :: bool? } -> { name :: string, value :: derivation, pkg :: derivation, exe :: string, paths :: { bin :: path, store :: path } } | null
+  # Type
+  > pkgOf :: { inputs :: AttrSet, input :: string, target :: string?, exe :: string?, pkgs :: AttrSet?, system :: string?, required :: bool? } -> { name :: string, value :: derivation, pkg :: derivation, exe :: string, paths :: { bin :: path, store :: path } } | null
 
-    # Examples
-    - pkgOf { inherit inputs pkgs; input = "treefmt-nix"; target = "treefmt"; }
+  # Examples
+  > pkgOf { inherit `inputs` `pkgs`; `input` = _"treefmt-nix"_; `target` = _"treefmt"_; }
 
   ```nix
-    { name = "treefmt"; value = «derivation treefmt-2.x.x»; pkg = «derivation treefmt-2.x.x»; exe = "/nix/store/.../bin/treefmt"; paths = {...}; }
+  {
+    name = "treefmt";
+    value = «derivation treefmt-2.x.x»;
+    pkg = «derivation treefmt-2.x.x»;
+    exe = "/nix/store/.../bin/treefmt";
+    paths = {...};
+  }
   ```
 
-    - pkgOf { inherit inputs pkgs; input = "treefmt-nix"; }
+  > pkgOf { inherit `inputs` `pkgs`; `input` = _"treefmt-nix"_; }
 
-  ```nix
+    ```nix
     { name = "treefmt"; value = «derivation treefmt-2.x.x»; ... }
-  ```
-    (no `target` given - neither `"default"` nor `"treefmt-nix"` itself
+    ```
+    - (no `target` given - neither `"default"` nor `"treefmt-nix"` itself
     matched, but the `-nix` suffix-strip guess `"treefmt"` did, and `name`
     correctly reports that real match rather than the `input` string)
 
-    - pkgOf { inherit inputs pkgs; input = "not-a-real-input"; required = true; }
+  > pkgOf { inherit inputs pkgs; input = "not-a-real-input"; required = true; }
 
-  ```nix
+    ```nix
     error: Unable to locate a package for input 'not-a-real-input' - tried: default, not-a-real-input. Pass `target` explicitly to pkgFor/pkgOf.
-  ```
+    ```
   */
   pkgOf = {
     inputs ? {},
@@ -389,13 +431,21 @@
       in
         unique stripped;
 
-    candidateNames = unique (
-      (optionals (target != null) [target])
-      ++ (optionals (input != null) ["default"])
-      ++ suffixStripped
-      ++ (optionals (input != null) [input])
-    );
-
+    # candidateNames = unique (
+    #   (optionals (target != null) [target])
+    #   ++ (optionals (input != null) ["default"])
+    #   ++ suffixStripped
+    #   ++ (optionals (input != null) [input])
+    # );
+    candidateNames =
+      if target != null
+      then [target]
+      else
+        unique (
+          (optionals (input != null) ["default"])
+          ++ suffixStripped
+          ++ (optionals (input != null) [input])
+        );
     lookup = candidates: let
       src = init.source;
 
@@ -421,31 +471,6 @@
       (candidate: candidate != null)
       null
       (map findMatch candidates);
-    # lookup = candidates:
-    #   foldl'
-    #   (found: name:
-    #     if found != null
-    #     then found
-    #     else let
-    #       src = init.source;
-    #       flake = src.flakes.${name} or null;
-    #       legacy = src.legacy.${name} or null;
-    #     in
-    #       if flake != null
-    #       then {
-    #         inherit name;
-    #         source = "input";
-    #         value = flake;
-    #       }
-    #       else if legacy != null
-    #       then {
-    #         inherit name;
-    #         source = "nixpkgs";
-    #         value = legacy;
-    #       }
-    #       else null)
-    #   null
-    #   candidates;
 
     check = lookup candidateNames;
 
@@ -615,7 +640,7 @@
       );
 
     init =
-      filterAttrs (_: v: v != null)
+      filterAttrs (_: src: src != null)
       (
         mapAttrs
         (name: entry: source name entry)
@@ -629,13 +654,13 @@
     byName = init // aliased;
 
     eval = {
-      binaries = mapAttrs (_: v: v.exe) byName;
-      commands = mapAttrs (_: v: v.cmd) byName;
-      versions = mapAttrs (_: v: v.ver) byName;
+      binaries = mapAttrs (_: pkg: pkg.exe) byName;
+      commands = mapAttrs (_: pkg: pkg.cmd) byName;
+      versions = mapAttrs (_: pkg: pkg.ver) byName;
       packages =
         filter
         (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
-        (map (v: v.value) (attrValues init)); # unique derivations only
+        (map (res: res.value) (attrValues init)); # unique derivations only
     };
 
     aliases' = with eval; {

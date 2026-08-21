@@ -381,6 +381,7 @@
 
       typix = tryNames [
         "docTypix"
+        "editorTypix"
         "typst"
         "typ"
         "typix"
