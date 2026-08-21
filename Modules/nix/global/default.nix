@@ -58,22 +58,22 @@ global: let
         packages = core.packages ++ aiShell.packages;
       };
 
-      router = mkShell {
-        name = mkName "router";
+      "ai-router" = mkShell {
+        name = mkName "ai-router";
         env = core.env // routerShell.env;
         shellHook = routerShell.shellHook;
         packages = core.packages ++ routerShell.packages;
       };
 
-      memory = mkShell {
-        name = mkName "memory";
+      "ai-memory" = mkShell {
+        name = mkName "ai-memory";
         env = core.env // memoryShell.env;
         shellHook = memoryShell.shellHook;
         packages = core.packages ++ memoryShell.packages;
       };
 
-      hermes = mkShell {
-        name = mkName "hermes";
+      "ai-hermes" = mkShell {
+        name = mkName "ai-hermes";
         env = core.env // hermesShell.env;
         shellHook = hermesShell.shellHook;
         packages = core.packages ++ hermesShell.packages;
