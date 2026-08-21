@@ -14,12 +14,12 @@
       args = src // (mkAll {inherit flake;});
     in
       args
-      // {
+      // (with args; {
         inherit args;
-        name = args.names.flake;
-        path = args.paths.flake.store;
-        home = args.paths.flake.local;
-      };
+        name = names.flake;
+        path = paths.flake.store;
+        home = paths.flake.local;
+      });
     args = flake'.args // {flake = flake';};
   in
     {
@@ -37,6 +37,13 @@
           args // {inherit pkgs system;}
         );
     });
+
+  nixConfig = {
+    extra-substituters = ["https://cache.numtide.com"];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
@@ -216,12 +223,5 @@
       owner = "NousResearch";
       type = "github";
     };
-  };
-
-  nixConfig = {
-    extra-substituters = ["https://cache.numtide.com"];
-    extra-trusted-public-keys = [
-      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-    ];
   };
 }

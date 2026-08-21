@@ -42,15 +42,13 @@
     mergeAttrs = set1: set2:
       if isAttrs set1 && isAttrs set2
       then
-        (
-          mapAttrs (
+        (mapAttrs (
             key: value:
               if set1 ? ${key}
               then mergeAttrs set1.${key} value
               else value
           )
-          set2
-        )
+          set2)
         // removeAttrs set1 (attrNames set2)
       else set2;
 
