@@ -209,7 +209,6 @@ in
           outcome = all (s: elem s (getSystems {}).all) [
             "x86_64-linux"
             "aarch64-linux"
-            "x86_64-darwin"
             "aarch64-darwin"
           ];
           command = "all default systems present in getSystems {}.all";

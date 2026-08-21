@@ -18,7 +18,6 @@
     forAllSystems = nixpkgs.lib.genAttrs [
       "x86_64-linux"
       "aarch64-linux"
-      # "x86_64-darwin"
       "aarch64-darwin"
     ];
   in {
@@ -29,11 +28,7 @@
           overlays = [(import rust-overlay)];
         };
         inherit (pkgs.lib.lists) optionals;
-        inherit (pkgs.stdenv) isDarwin;
-
-        #|───────────────────────────────────────────────────────────────────────|
-        #| Rust Toolchain                                                        |
-        #|───────────────────────────────────────────────────────────────────────|
+        inherit (pkgs.stdenv.hostPlatform) isDarwin;
 
         toolchains = with pkgs.rust-bin; {
           nightly = selectLatestNightlyWith (
@@ -50,10 +45,6 @@
           beta = beta.latest.default;
           stable = stable.latest.default;
         };
-
-        #|───────────────────────────────────────────────────────────────────────|
-        #| Packages                                                              |
-        #|───────────────────────────────────────────────────────────────────────|
 
         packages =
           [
@@ -99,10 +90,6 @@
             mise
           ])
           ++ optionals isDarwin [pkgs.libiconv];
-
-        #|───────────────────────────────────────────────────────────────────────|
-        #| Setup Configuration Files                                             |
-        #|───────────────────────────────────────────────────────────────────────|
 
         setupConfig = ''
           #> Create workspace Cargo.toml if it doesn't exist
@@ -293,10 +280,6 @@
             printf "  ✓ Created README.md\n"
           fi
         '';
-
-        #|───────────────────────────────────────────────────────────────────────|
-        #| Shell Hook                                                            |
-        #|───────────────────────────────────────────────────────────────────────|
 
         shellHook = ''
           cat <<-EOF
