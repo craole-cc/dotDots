@@ -1,7 +1,4 @@
-{
-  lix,
-  HOME,
-}: let
+{lix, HOME ? "/home/craole", ...}: let
   inherit (lix.strings.access) getEnv;
   inherit (lix.strings.transformation) escapeShellArg;
 
@@ -13,13 +10,7 @@
 in {
   description = "Hermes Agent";
   env = {
-    inherit
-      AUTO_START
-      HERMES_ENV_PY
-      HERMES_ENV_SH
-      HERMES_HOME
-      STARTUP_TIMEOUT
-      ;
+    inherit AUTO_START HERMES_ENV_PY HERMES_ENV_SH HERMES_HOME STARTUP_TIMEOUT;
   };
 
   shellHook = ''

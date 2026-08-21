@@ -18,7 +18,6 @@ global: let
     exclude = [
       "shared"
       "fmt"
-      "ai"
       "media"
       # "extras"
       "hermes"
@@ -36,20 +35,50 @@ global: let
           env = core.env // (cfg.env or {});
           shellHook = cfg.shellHook or "";
           packages =
-            (
-              optionals
-              ((name == "extras") || (name == "hermes"))
-              core.packages
-            )
-            ++ cfg.packages or [];
+            (optionals ((name == "extras") || (name == "hermes")) core.packages)
+            ++ (cfg.packages or []);
         }
     )
     shells;
+
+  aiShell = shells.ai;
+  routerShell = aiShell.router;
+  memoryShell = aiShell.memory;
+  hermesShell = aiShell.agents.hermes;
 
   devShells =
     build
     // {
       default = build.core;
+
+      ai = mkShell {
+        name = mkName "ai";
+        env = core.env // aiShell.env;
+        shellHook = aiShell.shellHook;
+        packages = core.packages ++ aiShell.packages;
+      };
+
+      router = mkShell {
+        name = mkName "router";
+        env = core.env // routerShell.env;
+        shellHook = routerShell.shellHook;
+        packages = core.packages ++ routerShell.packages;
+      };
+
+      memory = mkShell {
+        name = mkName "memory";
+        env = core.env // memoryShell.env;
+        shellHook = memoryShell.shellHook;
+        packages = core.packages ++ memoryShell.packages;
+      };
+
+      hermes = mkShell {
+        name = mkName "hermes";
+        env = core.env // hermesShell.env;
+        shellHook = hermesShell.shellHook;
+        packages = core.packages ++ hermesShell.packages;
+      };
+
       fmt = args.treefmt.devShell;
 
       full = mkShell {
@@ -58,7 +87,6 @@ global: let
         env =
           foldl'
           (acc: name: acc // (shells.${name}.env or {}))
-          #> Baseline: every shell's env folded in normal (attrValues) order.
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
           (reverseList ["core" "hermes"]);
 
