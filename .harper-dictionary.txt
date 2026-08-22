@@ -25,7 +25,7 @@ chrono
 cli
 clippy
 colors
-colour
+color
 craole
 css
 curriculars
