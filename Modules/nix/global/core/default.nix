@@ -94,25 +94,8 @@
       local log status
       log=$(mktemp)
 
-      nix flake check --show-trace >"$log" 2>&1
-      status=$?
-
-      awk '
-        /^error:/ {
-          printing = 1
-          print
-          next
-        }
-
-        printing && /^[[:space:]]/ {
-          print
-          next
-        }
-
-        {
-          printing = 0
-        }
-      ' "$log" >&2
+      nix flake check --show-trace --verbose 2>&1 | tee "$log"
+      status="''${PIPESTATUS[0]}"
 
       rm -f "$log"
       return "$status"

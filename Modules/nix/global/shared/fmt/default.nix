@@ -30,7 +30,7 @@
       "${dprint-plugin-markdown}/plugin.wasm"
       "${g-plane-pretty_yaml}/plugin.wasm"
       "${g-plane-malva}/plugin.wasm"
-    ]) (builtins.readFile "${flake.path}/dprint.json"));
+    ]) (builtins.readFile ../../../../../dprint.json));
   extraSources = {
     treefmt = "treefmt";
     statix = "statix";
