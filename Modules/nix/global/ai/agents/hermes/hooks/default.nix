@@ -1,7 +1,7 @@
 {
   names,
   print,
-  commands,
+  sources,
   versions,
   env,
   ...
@@ -15,14 +15,13 @@
         map (name: [
           name
           (versions.${name} or "?")
-          (toString (commands.${name} or "?"))
+          (toString (sources.${name} or "?"))
         ])
         names;
     }}
 
-    # existing behaviour
     if [ -t 1 ]; then
-      case "${env.AUTO_START}" in
+      case "${toString env.AUTO_START}" in
         1) start --no-confirm || true ;;
         *) start || true ;;
       esac
