@@ -18,9 +18,6 @@ global: let
     exclude = [
       "shared"
       "fmt"
-      "media"
-      # "extras"
-      # "hermes"
     ];
   };
 
@@ -45,6 +42,7 @@ global: let
     )
     shells;
 
+  # TODO: This needs to be defined in ai/default.nix
   aiShell = shells.ai;
   routerShell = aiShell.router;
   memoryShell = aiShell.memory;
@@ -55,6 +53,7 @@ global: let
     // {
       default = build.core;
 
+      # TODO: This needs to be defined in ai/default.nix
       ai = mkShell {
         name = mkName "ai";
         env = core.env // aiShell.env;
@@ -62,6 +61,7 @@ global: let
         packages = core.packages ++ aiShell.packages;
       };
 
+      # TODO: This needs to be defined in ai/default.nix
       "ai-router" = mkShell {
         name = mkName "ai-router";
         env = core.env // routerShell.env;
@@ -69,6 +69,7 @@ global: let
         packages = core.packages ++ routerShell.packages;
       };
 
+      # TODO: This needs to be defined in ai/default.nix
       "ai-memory" = mkShell {
         name = mkName "ai-memory";
         env = core.env // memoryShell.env;
@@ -76,6 +77,7 @@ global: let
         packages = core.packages ++ memoryShell.packages;
       };
 
+      # TODO: This needs to be defined in ai/default.nix
       "ai-hermes" = mkShell {
         name = mkName "ai-hermes";
         env = core.env // hermesShell.env;

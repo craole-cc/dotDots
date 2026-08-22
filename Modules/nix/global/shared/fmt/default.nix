@@ -211,4 +211,5 @@
 in {
   inherit treefmt apps;
   inherit (treefmt) formatter checks formatters;
+  __debug = init.module; # temporary, for inspection
 }
