@@ -1,4 +1,8 @@
-{lix, HOME ? "/home/craole", ...}: let
+{
+  lix,
+  HOME ? "/home/craole",
+  ...
+}: let
   inherit (lix.strings.access) getEnv;
   inherit (lix.strings.transformation) escapeShellArg;
 

@@ -22,10 +22,6 @@
   mkConfig = module: (evalModule pkgs module).config;
   extraSources = {
     treefmt = "treefmt";
-    # treefmt = {
-    #   input = "treefmt";
-    #   versionArgs = "--version";
-    # };
     statix = null;
     harper = null;
     tombi = null;
@@ -39,7 +35,6 @@
     module = {
       _module.args = {
         inherit lix flake;
-        # inherit (utility) binaries;
         inherit (utility) commands;
       };
       imports = importAllPaths ./.;
@@ -86,7 +81,8 @@
     programs = attrNames (
       filterAttrs (_: cfg: cfg.enable or false) (init.programs or {})
     );
-    packages = filter (name: !(elem name programs)) formatters;
+    # packages = filter (name: !(elem name programs)) formatters;
+    packages = map (name: (of name).pkg) (filter (name: !(elem name programs)) formatters);
     tools = uniqueStrings (formatters ++ programs ++ ["treefmt"]);
 
     resolved = pkgsFor {
@@ -149,14 +145,15 @@
 
   treefmt = let
     eval = mkEval tool.wrappers.exe;
-    inherit (eval) wrapper check;
+    inherit (eval) build check wrapper;
   in
     eval
-    // eval.build
+    // build
     // {
       formatter = wrapper;
       checks.formatting = check flake.path;
-      formatters = tool.packages ++ [wrapper];
+      # formatters = tool.packages ++ [wrapper];
+      formatters = filter (p: p != null) (map (name: (tool.of name).pkg or null) tool.tools);
       devShell = eval.devShell.overrideAttrs (old: {
         shellHook =
           (old.shellHook or "")
@@ -167,9 +164,10 @@
               rows = let
                 names =
                   ["treefmt"]
-                  ++ sort
-                  (a: b: a < b)
-                  (filter (name: name != "treefmt") tool.names);
+                  ++ (
+                    sort (a: b: a < b)
+                    (filter (name: name != "treefmt") tool.names)
+                  );
                 by = name: let
                   app = tool.of name;
                 in [
@@ -186,14 +184,15 @@
 
   apps = let
     name = "deploy-treefmt-config";
+    file = ".treefmt.toml";
     source = (mkEval tool.wrappers.cmd).configFile;
-    target = "${flake.home}/.treefmt.toml";
+    target = "${flake.home}/${file}";
     app = writeShellApplication {
       inherit name;
       text = ''
         cp --force ${source} "${target}"
         chmod u+w "${target}"
-        printf "Updated .treefmt.toml from Modules/global/shared/fmt\n"
+        printf "Updated ${target} from Modules/global/shared/fmt\n"
       '';
     };
   in {

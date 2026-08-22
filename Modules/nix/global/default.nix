@@ -54,28 +54,28 @@ global: let
       ai = mkShell {
         name = mkName "ai";
         env = core.env // aiShell.env;
-        shellHook = aiShell.shellHook;
+        inherit (aiShell) shellHook;
         packages = core.packages ++ aiShell.packages;
       };
 
       "ai-router" = mkShell {
         name = mkName "ai-router";
         env = core.env // routerShell.env;
-        shellHook = routerShell.shellHook;
+        inherit (routerShell) shellHook;
         packages = core.packages ++ routerShell.packages;
       };
 
       "ai-memory" = mkShell {
         name = mkName "ai-memory";
         env = core.env // memoryShell.env;
-        shellHook = memoryShell.shellHook;
+        inherit (memoryShell) shellHook;
         packages = core.packages ++ memoryShell.packages;
       };
 
       "ai-hermes" = mkShell {
         name = mkName "ai-hermes";
         env = core.env // hermesShell.env;
-        shellHook = hermesShell.shellHook;
+        inherit (hermesShell) shellHook;
         packages = core.packages ++ hermesShell.packages;
       };
 

@@ -1,12 +1,14 @@
 args: let
   environment = import ./environment args;
-  packages =
-    (args.pkgsFor {
+  inherit
+    ((args.pkgsFor {
       exclude = ["hermes-desktop"];
       sources = {
         hermes-agent = "llm-agents";
       };
-    }).packages;
+    }))
+    packages
+    ;
 in {
   inherit (environment) description env shellHook;
   inherit packages;
