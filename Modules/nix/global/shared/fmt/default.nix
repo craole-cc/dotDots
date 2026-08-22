@@ -7,36 +7,30 @@
   print,
   ...
 }: let
-  inherit (flake) inputs;
+  inherit (flake) inputs path;
   inherit (inputs.treefmt.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.filesystem.access) readFile;
   inherit (lix.filesystem.traversal) importAllPaths;
   inherit (lix.lists.predicates) elem;
   inherit (lix.lists.transformation) filter sort uniqueStrings;
   inherit (lix.modules.construction) mkForce;
   inherit (lix.strings.transformation) replaceStrings;
+  inherit (pkgs) dprint-plugins writeText;
 
-  mkConfig = module: (evalModule pkgs (module // {projectRootFile = mkForce "flake.nix";})).config;
-  dprintConfig = pkgs.writeText "dprint.json" (replaceStrings [
-      "https://plugins.dprint.dev/json-0.23.0.wasm"
-      "https://plugins.dprint.dev/markdown-0.22.1.wasm"
-      "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm"
-      "https://plugins.dprint.dev/g-plane/malva-v0.16.0.wasm"
-    ] (with pkgs.dprint-plugins; [
-      "${dprint-plugin-json}/plugin.wasm"
-      "${dprint-plugin-markdown}/plugin.wasm"
-      "${g-plane-pretty_yaml}/plugin.wasm"
-      "${g-plane-malva}/plugin.wasm"
-    ]) (builtins.readFile ../../../../../dprint.json));
+  mkConfig = module:
+    (evalModule pkgs module).config;
+
   extraSources = {
     treefmt = "treefmt";
     statix = "statix";
     harper = null;
     tombi = null;
   };
+
   utility = pkgsFor {
     sources = sources // extraSources;
   };
@@ -89,9 +83,16 @@
 
   tool = let
     formatters = attrNames (init.settings.formatter or {});
-    programs = attrNames (filterAttrs (_: cfg: cfg.enable or false) (init.programs or {}));
-    # packages = filter (name: !(elem name programs)) formatters;
-    packages = map (name: (of name).pkg) (filter (name: !(elem name programs)) formatters);
+    programs = attrNames (
+      filterAttrs
+      (_: cfg: cfg.enable or false)
+      (init.programs or {})
+    );
+    packages = map (name: (of name).pkg) (
+      filter
+      (name: !(elem name programs))
+      formatters
+    );
     tools = uniqueStrings (formatters ++ programs ++ ["treefmt"]);
 
     resolved = pkgsFor {
@@ -147,17 +148,22 @@
           "fmt"
           "--allow-no-files"
           "--config"
-          "${dprintConfig}"
+          "${(writeText "dprint.json" (replaceStrings [
+              "https://plugins.dprint.dev/json-0.23.0.wasm"
+              "https://plugins.dprint.dev/markdown-0.22.1.wasm"
+              "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm"
+              "https://plugins.dprint.dev/g-plane/malva-v0.16.0.wasm"
+            ] (with dprint-plugins; [
+              "${dprint-plugin-json}/plugin.wasm"
+              "${dprint-plugin-markdown}/plugin.wasm"
+              "${g-plane-pretty_yaml}/plugin.wasm"
+              "${g-plane-malva}/plugin.wasm"
+            ]) (readFile (path + "/dprint.json"))))}"
         ];
       };
     };
 
-    config = mkConfig {
-      imports = [
-        init.module
-        module
-      ];
-    };
+    config = mkConfig {imports = [init.module module];};
   in
     config // config.build // {inherit module;};
 
@@ -174,8 +180,7 @@
     // build
     // {
       formatter = withTools wrapper;
-      checks.formatting = withTools (check flake.path);
-      # formatters = tool.packages ++ [wrapper];
+      checks.formatting = withTools (check path);
       formatters = allTools;
       devShell = eval.devShell.overrideAttrs (old: {
         shellHook =
@@ -207,5 +212,4 @@ in {
   inherit treefmt;
   apps = {};
   inherit (treefmt) formatter checks formatters;
-  __debug = init.module; # temporary, for inspection
 }
