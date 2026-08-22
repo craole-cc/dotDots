@@ -42,48 +42,14 @@ global: let
     )
     shells;
 
-  # TODO: This needs to be defined in ai/default.nix
-  aiShell = shells.ai;
-  routerShell = aiShell.router;
-  memoryShell = aiShell.memory;
-  hermesShell = aiShell.agents.hermes;
+  ai = import ./ai {inherit args; inherit core;};
 
   devShells =
     build
     // {
       default = build.core;
 
-      # TODO: This needs to be defined in ai/default.nix
-      ai = mkShell {
-        name = mkName "ai";
-        env = core.env // aiShell.env;
-        inherit (aiShell) shellHook;
-        packages = core.packages ++ aiShell.packages;
-      };
-
-      # TODO: This needs to be defined in ai/default.nix
-      "ai-router" = mkShell {
-        name = mkName "ai-router";
-        env = core.env // routerShell.env;
-        inherit (routerShell) shellHook;
-        packages = core.packages ++ routerShell.packages;
-      };
-
-      # TODO: This needs to be defined in ai/default.nix
-      "ai-memory" = mkShell {
-        name = mkName "ai-memory";
-        env = core.env // memoryShell.env;
-        inherit (memoryShell) shellHook;
-        packages = core.packages ++ memoryShell.packages;
-      };
-
-      # TODO: This needs to be defined in ai/default.nix
-      "ai-hermes" = mkShell {
-        name = mkName "ai-hermes";
-        env = core.env // hermesShell.env;
-        inherit (hermesShell) shellHook;
-        packages = core.packages ++ hermesShell.packages;
-      };
+      inherit (ai.devShells) ai "ai-router" "ai-memory" "ai-hermes";
 
       fmt = args.treefmt.devShell;
 
