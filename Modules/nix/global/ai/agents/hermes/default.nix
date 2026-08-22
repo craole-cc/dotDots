@@ -3,9 +3,7 @@ args: let
   inherit
     ((args.pkgsFor {
       exclude = ["hermes-desktop"];
-      sources = {
-        hermes-agent = "llm-agents";
-      };
+      sources = {hermes-agent = "llm-agents";};
     }))
     packages
     ;

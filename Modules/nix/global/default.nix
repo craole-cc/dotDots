@@ -20,7 +20,7 @@ global: let
       "fmt"
       "media"
       # "extras"
-      "hermes"
+      # "hermes"
     ];
   };
 
@@ -35,8 +35,12 @@ global: let
           env = core.env // (cfg.env or {});
           shellHook = cfg.shellHook or "";
           packages =
-            (optionals ((name == "extras") || (name == "hermes")) core.packages)
-            ++ (cfg.packages or []);
+            (cfg.packages or [])
+            ++ (
+              optionals
+              ((name != "minimal") && (name != "media"))
+              core.packages
+            );
         }
     )
     shells;

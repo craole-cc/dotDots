@@ -146,14 +146,21 @@
   treefmt = let
     eval = mkEval tool.wrappers.exe;
     inherit (eval) build check wrapper;
+    allTools = filter (p: p != null) (map (name: (tool.of name).pkg or null) tool.tools);
+    withTools = drv:
+      drv.overrideAttrs (old: {
+        nativeBuildInputs =
+          (old.nativeBuildInputs or [])
+          ++ allTools;
+      });
   in
     eval
     // build
     // {
-      formatter = wrapper;
-      checks.formatting = check flake.path;
+      formatter = withTools wrapper;
+      checks.formatting = withTools (check flake.path);
       # formatters = tool.packages ++ [wrapper];
-      formatters = filter (p: p != null) (map (name: (tool.of name).pkg or null) tool.tools);
+      formatters = allTools;
       devShell = eval.devShell.overrideAttrs (old: {
         shellHook =
           (old.shellHook or "")
