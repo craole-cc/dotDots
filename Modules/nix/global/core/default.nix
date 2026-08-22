@@ -90,6 +90,34 @@
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
     export DOTS_CACHE DOTS_LOGS DOTS_TMP
 
+    nix-check() {
+      local log status
+      log=$(mktemp)
+
+      nix flake check --show-trace >"$log" 2>&1
+      status=$?
+
+      awk '
+        /^error:/ {
+          printing = 1
+          print
+          next
+        }
+
+        printing && /^[[:space:]]/ {
+          print
+          next
+        }
+
+        {
+          printing = 0
+        }
+      ' "$log" >&2
+
+      rm -f "$log"
+      return "$status"
+    }
+
     #> Add bin directory to PATH
     case ":$PATH:" in
       *":$ENV_BIN:"*) ;;

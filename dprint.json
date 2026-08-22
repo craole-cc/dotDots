@@ -15,9 +15,7 @@
     "textWrap": "maintain",
     "emphasisKind": "underscores",
     "strongKind": "asterisks",
-    "unorderedListKind": "dashes",
-    "headingKind": "atx",
-    "listIndentKind": "commonMark"
+    "unorderedListKind": "dashes"
   },
   "yaml": {
     "printWidth": 120,

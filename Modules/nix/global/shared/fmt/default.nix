@@ -19,9 +19,20 @@
   inherit (lix.modules.construction) mkForce;
 
   mkConfig = module: (evalModule pkgs (module // {projectRootFile = mkForce "flake.nix";})).config;
+  dprintConfig = pkgs.writeText "dprint.json" (builtins.replaceStrings [
+      "https://plugins.dprint.dev/json-0.23.0.wasm"
+      "https://plugins.dprint.dev/markdown-0.22.1.wasm"
+      "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm"
+      "https://plugins.dprint.dev/g-plane/malva-v0.16.0.wasm"
+    ] [
+      "${pkgs.dprint-plugins.dprint-plugin-json}/plugin.wasm"
+      "${pkgs.dprint-plugins.dprint-plugin-markdown}/plugin.wasm"
+      "${pkgs.dprint-plugins.g-plane-pretty_yaml}/plugin.wasm"
+      "${pkgs.dprint-plugins.g-plane-malva}/plugin.wasm"
+    ] (builtins.readFile "${flake.path}/dprint.json"));
   extraSources = {
     treefmt = "treefmt";
-    statix = null;
+    statix = "statix";
     harper = null;
     tombi = null;
   };
@@ -135,7 +146,7 @@
           "fmt"
           "--allow-no-files"
           "--config"
-          "${flake.path}/dprint.json"
+          "${dprintConfig}"
         ];
       };
     };
@@ -152,7 +163,7 @@
   treefmt = let
     eval = mkEval tool.wrappers.exe;
     inherit (eval) build check wrapper;
-    allTools = filter (p: p != null) (map (name: (tool.of name).pkg or null) tool.tools);
+    allTools = filter (p: p != null) (map (name: (tool.of name).pkg or null) (filter (name: name != "treefmt") tool.tools));
     withTools = drv:
       drv.overrideAttrs (old: {
         nativeBuildInputs = (old.nativeBuildInputs or []) ++ allTools;
