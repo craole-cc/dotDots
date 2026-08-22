@@ -18,7 +18,7 @@
   inherit (lix.lists.transformation) filter sort uniqueStrings;
   inherit (lix.modules.construction) mkForce;
 
-  mkConfig = module: (evalModule pkgs (module // {projectRootFile = "flake.nix";})).config;
+  mkConfig = module: (evalModule pkgs (module // {projectRootFile = mkForce "flake.nix";})).config;
   extraSources = {
     treefmt = "treefmt";
     statix = null;
