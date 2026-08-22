@@ -71,7 +71,7 @@ global: let
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shellsWithAi))
           (reverseList [
             "core"
-            "hermes"
+            "ai"
           ]);
 
         shellHook = ''

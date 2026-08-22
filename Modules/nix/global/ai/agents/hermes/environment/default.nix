@@ -21,14 +21,4 @@ in {
       STARTUP_TIMEOUT
       ;
   };
-
-  shellHook = ''
-    if [ -t 1 ]; then
-      case "''${AUTO_START:-1}" in
-        1) start --no-confirm || true ;;
-        *) start || true ;;
-      esac
-      show-help
-    fi
-  '';
 }

@@ -3,7 +3,6 @@
   pkgs,
   flake,
   pkgsFor,
-  sources,
   print,
   ...
 }: let
@@ -24,15 +23,12 @@
   mkConfig = module:
     (evalModule pkgs module).config;
 
-  extraSources = {
+  sources = {
     treefmt = "treefmt";
     statix = null;
     harper = null;
     tombi = null;
-  };
-
-  utility = pkgsFor {
-    sources = sources // extraSources;
+    ruff = null;
   };
 
   #~@ Nix-side eval: store-path commands, used by `nix fmt`.
@@ -40,7 +36,7 @@
     module = {
       _module.args = {
         inherit lix flake;
-        inherit (utility) commands;
+        inherit (pkgsFor {inherit sources;}) commands;
       };
       imports = importAllPaths ./.;
       projectRootFile = "flake.nix";
@@ -101,7 +97,7 @@
         ruff-check = "ruff";
         ruff-format = "ruff";
       };
-      sources = genAttrs tools (_: null) // genAttrs ["ruff"] (_: null) // extraSources;
+      sources = genAttrs tools (_: null) // genAttrs ["ruff"] (_: null) // sources;
     };
 
     of = name: resolved.${name} or null;

@@ -43,7 +43,8 @@ args: let
     };
 
   pkgsFor = {
-    sources,
+    sources ? {},
+    extraSources ? {},
     required ? true,
     exclude ? [],
     aliases ? {},
@@ -53,10 +54,15 @@ args: let
         inputs
         pkgs
         required
-        sources
         exclude
         aliases
         ;
+      sources =
+        {
+          gawk = null;
+          git = null;
+        }
+        // sources // extraSources;
     };
 
   print = let
@@ -122,10 +128,4 @@ in
       writeShellApplication
       writeShellScriptBin
       ;
-  }
-  // pkgsFor {
-    sources = {
-      gawk = null;
-      git = null;
-    };
   }
