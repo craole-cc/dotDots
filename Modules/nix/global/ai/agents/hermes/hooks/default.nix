@@ -5,18 +5,20 @@
   versions,
   origins,
   env,
+  descriptions,
   ...
 }: {
   shellHook = ''
     ${print.title "Hermes"}
     ${print.subtitle "Surfaces"}
     ${print.table {
-      columns = ["name" "version" "source"];
+      columns = ["Name" "Version" "Source" "Description"];
       rows =
         map (name: [
           (commands.${name} or name)
           (versions.${name} or "?")
           (origins.${name} or "?")
+          (descriptions.${name} or "?")
         ])
         names;
     }}

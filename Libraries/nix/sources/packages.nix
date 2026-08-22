@@ -502,22 +502,20 @@
           exe = paths.executable;
           args = versionArgs;
         };
-
-        description =
-          if description != null && description != ""
-          then description
-          else package.meta.description or null;
       in {
         inherit (check) name source value;
         inherit
           command
-          description
           package
           paths
           revision
           version
           ;
 
+        description =
+          if description != null && description != ""
+          then description
+          else package.meta.description or null;
         bin = paths.binary;
         cmd = command;
         exe = paths.executable;

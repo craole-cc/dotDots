@@ -4,10 +4,9 @@
   lix,
   ...
 }: let
-  inherit (pkgs) writeScriptBin;
-  inherit (lix.filesystem.access) readFile;
+  inherit (lix.attrsets.access) attrValues;
 
-  resolved = pkgsFor {
+  core = pkgsFor {
     sources = {
       desktop = {
         input = "hermes-agent";
@@ -32,13 +31,19 @@
     };
   };
 
-  scripts = {
-    start = writeScriptBin "start" (readFile ./start.sh);
-    show-help = writeScriptBin "show-help" (readFile ./help.sh);
-  };
+  # profiles =
+  #   optionalAttrs
+  #   (helpers != null && runtimes != null)
+  #   (import ./profiles.nix args);
+  profiles = {};
+
+  scripts = import ./scripts/default.nix {inherit lix pkgs;};
 in
-  resolved
+  core
   // scripts
   // {
-    packages = resolved.packages ++ (with scripts; [start show-help]);
+    packages =
+      core.packages
+      ++ scripts.packages
+      ++ (attrValues profiles);
   }
