@@ -26,7 +26,7 @@
 
   extraSources = {
     treefmt = "treefmt";
-    statix = "statix";
+    statix = null;
     harper = null;
     tombi = null;
   };
