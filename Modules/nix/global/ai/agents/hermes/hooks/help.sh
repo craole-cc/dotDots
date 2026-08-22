@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+cat <<EOF
+Hermes shell
+
+  hermes              Agent CLI
+  hermes-desktop      Official desktop
+  hermes-one          Community desktop
+  hermes-hud          Status TUI
+  hermes-tui          Official TUI
+
+  start [--no-confirm]
+  show-help
+
+  HERMES_HOME=${HERMES_HOME:-unset}
+EOF

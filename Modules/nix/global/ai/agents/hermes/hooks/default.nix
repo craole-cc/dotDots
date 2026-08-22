@@ -5,9 +5,18 @@
   versions,
   origins,
   env,
+  lix,
+  pkgs,
   ...
-} @ args: {
-  packages = import ./scripts.nix args;
+}: let
+  inherit (pkgs) writeScriptBin;
+  inherit (lix.filesystem.access) readFile;
+
+  start = writeScriptBin "start" (readFile ./start.sh);
+  help = writeScriptBin "help" (readFile ./help.sh);
+in {
+  inherit start help;
+  packages = [start help];
   shellHook = ''
     ${print.title "Hermes"}
     ${print.subtitle "Surfaces"}
