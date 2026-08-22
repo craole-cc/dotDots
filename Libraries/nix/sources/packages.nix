@@ -378,6 +378,7 @@
     target ? null,
     exe ? null,
     pkgs ? null,
+    description ? null,
     system ?
       if pkgs != null
       then pkgs.stdenv.hostPlatform.system
@@ -434,40 +435,18 @@
       in
         unique stripped;
 
-    # candidateNames = unique (
-    #   (optionals (target != null) [target])
-    #   ++ (optionals (input != null) ["default"])
-    #   ++ suffixStripped
-    #   ++ (optionals (input != null) [input])
-    # );
     candidateNames =
       if target != null
       then [target]
       else
         unique (
-          (optionals (input != null) ["default"]) ++ suffixStripped ++ (optionals (input != null) [input])
+          (optionals (input != null) ["default"])
+          ++ suffixStripped ++ (optionals (input != null) [input])
         );
-    lookup = candidates: let
-      src = init.source;
 
-      # findMatch = name: let
-      #   flake = src.flakes.${name} or null;
-      #   legacy = src.legacy.${name} or null;
-      # in
-      #   if flake != null
-      #   then {
-      #     inherit name;
-      #     value = flake;
-      #     source = "input";
-      #   }
-      #   else if legacy != null
-      #   then {
-      #     inherit name;
-      #     value = legacy;
-      #     source = "nixpkgs";
-      #   }
-      #   else null;
+    lookup = candidates: let
       findMatch = name: let
+        src = init.source;
         flake = src.flakes.${name} or null;
         legacy = src.legacy.${name} or null;
       in
@@ -489,46 +468,52 @@
         else null;
     in
       findFirst (candidate: candidate != null) null (map findMatch candidates);
-
     check = lookup candidateNames;
-
-    package = check.value;
-
-    paths = {
-      executable =
-        if exe != null
-        then getExe' package exe
-        else getExe package;
-
-      binary = "${getBin package}/bin";
-      store = package.outPath or "${package}";
-    };
-
-    command = baseNameOf paths.executable;
-
-    revision =
-      if check.source == "input"
-      then let
-        name = init.inputs.${input};
-      in
-        name.shortRev or name.rev or null
-      else null;
-
-    version = getVersion {
-      inherit package revision;
-      exe = paths.executable;
-      args = versionArgs;
-    };
 
     eval =
       if check == null || check.value == null
       then null
-      else {
+      else let
+        package = check.value;
+
+        paths = {
+          executable =
+            if exe != null
+            then getExe' package exe
+            else getExe package;
+          binary = "${getBin package}/bin";
+          store = package.outPath or "${package}";
+        };
+
+        command = baseNameOf paths.executable;
+
+        fromInput = check.source != "nixpkgs";
+
+        revision =
+          if fromInput && input != null
+          then let
+            flake = init.inputs.${input};
+          in
+            flake.shortRev or (flake.rev or null)
+          else null;
+
+        version = getVersion {
+          inherit package revision;
+          exe = paths.executable;
+          args = versionArgs;
+        };
+
+        description =
+          if description != null && description != ""
+          then description
+          else package.meta.description or null;
+      in {
         inherit (check) name source value;
         inherit
+          command
+          description
           package
           paths
-          command
           revision
           version
           ;
@@ -635,40 +620,40 @@
     exclude ? [],
     aliases ? {},
   }: let
-    normalize = value:
-      if value == null
-      then {
-        input = null;
-        versionArgs = null;
-      }
-      else if isString value
-      then {
-        input = value;
-        versionArgs = null;
-      }
-      else {
-        input = value.input or null;
-        versionArgs = value.versionArgs or null;
-      };
-
-    source = target: entry:
-      pkgOf (
-        {
-          inherit
-            target
-            inputs
-            pkgs
-            required
-            ;
-          inherit (entry) input;
-          inherit (entry) versionArgs;
+    init = let
+      normalize = value:
+        if value == null
+        then {
+          input = null;
+          versionArgs = null;
+          description = null;
         }
-        // optionalAttrs (system != null) {inherit system;}
-      );
+        else if isString value
+        then {
+          input = value;
+          versionArgs = null;
+          description = null;
+        }
+        else {
+          input = value.input or null;
+          versionArgs = value.versionArgs or null;
+          description = value.description or null;
+        };
 
-    init = filterAttrs (_: src: src != null) (
-      mapAttrs (name: entry: source name entry) (mapAttrs (_: normalize) sources)
-    );
+      source = target: entry:
+        pkgOf (
+          {
+            inherit target inputs pkgs required;
+            inherit (entry) input versionArgs description;
+          }
+          // optionalAttrs (system != null) {inherit system;}
+        );
+    in
+      filterAttrs (_: src: src != null) (
+        mapAttrs
+        (name: entry: source name entry)
+        (mapAttrs (_: normalize) sources)
+      );
 
     byName =
       init
@@ -681,6 +666,7 @@
       commands = mapAttrs (_: pkg: pkg.cmd) byName;
       versions = mapAttrs (_: pkg: pkg.ver) byName;
       origins = mapAttrs (_: pkg: pkg.source) byName;
+      descriptions = mapAttrs (_: pkg: pkg.description or null) byName;
       packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
         map (res: res.value) (attrValues init)
       );
