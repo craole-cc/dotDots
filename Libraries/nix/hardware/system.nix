@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __doc = ''
     Hardware System Derivation
 
@@ -13,18 +9,13 @@
     to evaluated Nixpkgs instances.
   '';
 
-  inherit (_.lists.predicates) mostFrequent;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.transformation) mapAttrsToList;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
-  inherit (lib.attrsets) mapAttrsToList;
-  inherit
-    (lib.lists)
-    all
-    elem
-    flatten
-    last
-    unique
-    ;
+  inherit (_.lists.access) findFirst head;
+  inherit (_.lists.predicates) all elem mostFrequent;
+  inherit (_.lists.transformation) flatten unique;
   currentSystem = builtins.currentSystem or null;
 
   __exports = {
@@ -74,11 +65,6 @@
     legacyPackages ? {},
     system ? null,
   }: let
-    system' =
-      if system != null
-      then system
-      else currentSystem;
-
     pkgsBase =
       if legacyPackages != {}
       then legacyPackages
@@ -89,15 +75,25 @@
           )
         );
 
+    system' = let
+      available = attrNames pkgsBase;
+    in
+      findFirst (sys: sys != null) currentSystem [
+        system
+        (
+          if available != []
+          then head available
+          else null
+        )
+      ];
+
     pkgsFor = sys:
       if sys == null
       then import <nixpkgs> {}
       else pkgsBase.${sys} or (import <nixpkgs> {system = sys;});
 
     pkgs = pkgsFor system';
-  in {
-    inherit pkgsBase pkgsFor pkgs;
-  };
+  in {inherit pkgsBase pkgsFor pkgs;};
 
   /**
   Calculates the required system architectures based on defined hosts.
@@ -145,15 +141,11 @@
 
     #~@ Selection
     common = mostFrequent defined null;
-    derived =
-      if system != null
-      then system
-      else
-        builtins.currentSystem or (
-          if common != null
-          then common
-          else last default
-        );
+    derived = findFirst (x: x != null) (head default) [
+      system
+      currentSystem
+      common
+    ];
 
     #~@ System Packages
     inherit
