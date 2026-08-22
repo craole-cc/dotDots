@@ -660,7 +660,8 @@
       versions = mapAttrs (_: pkg: pkg.ver) byName;
       packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
         map (res: res.value) (attrValues init)
-      ); # unique derivations only
+      );
+      names = attrNames eval.commands;
     };
 
     aliases' = with eval; {
@@ -676,11 +677,10 @@
       inherit sources;
       records = byName;
     };
+
   bySystem = packages: let
     inputNames = attrNames packages;
-
     systems = unique (concatMap (name: attrNames (packages.${name} or {})) inputNames);
-
     inputsFor = system: filter (name: hasAttr system (packages.${name} or {})) inputNames;
   in
     listToAttrs (

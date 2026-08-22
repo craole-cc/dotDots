@@ -1,9 +1,9 @@
 {
-  lix,
+  names,
   print,
   commands,
   versions,
-  AUTO_START,
+  env,
   ...
 }: {
   shellHook = ''
@@ -17,12 +17,12 @@
           (versions.${name} or "?")
           (toString (commands.${name} or "?"))
         ])
-        commands;
+        names;
     }}
 
     # existing behaviour
     if [ -t 1 ]; then
-      case "${AUTO_START}" in
+      case "${env.AUTO_START}" in
         1) start --no-confirm || true ;;
         *) start || true ;;
       esac
