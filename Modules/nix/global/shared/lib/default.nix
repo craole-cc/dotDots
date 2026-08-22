@@ -57,12 +57,7 @@ args: let
         exclude
         aliases
         ;
-      sources =
-        {
-          gawk = null;
-          git = null;
-        }
-        // sources // extraSources;
+      sources = sources // extraSources;
     };
 
   print = let

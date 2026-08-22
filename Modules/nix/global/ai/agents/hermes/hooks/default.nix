@@ -1,11 +1,13 @@
 {
   names,
   print,
-  sources,
+  commands,
   versions,
+  origins,
   env,
   ...
-}: {
+} @ args: {
+  packages = import ./scripts.nix args;
   shellHook = ''
     ${print.title "Hermes"}
     ${print.subtitle "Surfaces"}
@@ -13,9 +15,9 @@
       columns = ["name" "version" "source"];
       rows =
         map (name: [
-          name
+          (commands.${name} or name)
           (versions.${name} or "?")
-          (toString (sources.${name} or "?"))
+          (origins.${name} or "?")
         ])
         names;
     }}

@@ -30,14 +30,18 @@
     tombi = null;
     ruff = null;
   };
+  utils = pkgsFor {
+    inherit sources;
+    extraSources = {
+      gawk = null;
+      git = null;
+    };
+  };
 
   #~@ Nix-side eval: store-path commands, used by `nix fmt`.
   init = let
     module = {
-      _module.args = {
-        inherit lix flake;
-        inherit (pkgsFor {inherit sources;}) commands;
-      };
+      _module.args = {inherit lix flake;} // utils;
       imports = importAllPaths ./.;
       projectRootFile = "flake.nix";
 

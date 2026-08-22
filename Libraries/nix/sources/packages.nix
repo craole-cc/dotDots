@@ -450,6 +450,23 @@
     lookup = candidates: let
       src = init.source;
 
+      # findMatch = name: let
+      #   flake = src.flakes.${name} or null;
+      #   legacy = src.legacy.${name} or null;
+      # in
+      #   if flake != null
+      #   then {
+      #     inherit name;
+      #     value = flake;
+      #     source = "input";
+      #   }
+      #   else if legacy != null
+      #   then {
+      #     inherit name;
+      #     value = legacy;
+      #     source = "nixpkgs";
+      #   }
+      #   else null;
       findMatch = name: let
         flake = src.flakes.${name} or null;
         legacy = src.legacy.${name} or null;
@@ -458,7 +475,10 @@
         then {
           inherit name;
           value = flake;
-          source = "input";
+          source =
+            if input != null
+            then input
+            else "input";
         }
         else if legacy != null
         then {
@@ -650,18 +670,21 @@
       mapAttrs (name: entry: source name entry) (mapAttrs (_: normalize) sources)
     );
 
-    aliased = filterAttrs (_: v: v != null) (mapAttrs (_: target: init.${target} or null) aliases);
-
-    byName = init // aliased;
+    byName =
+      init
+      // filterAttrs
+      (_: v: v != null)
+      (mapAttrs (_: target: init.${target} or null) aliases);
 
     eval = {
       binaries = mapAttrs (_: pkg: pkg.exe) byName;
       commands = mapAttrs (_: pkg: pkg.cmd) byName;
       versions = mapAttrs (_: pkg: pkg.ver) byName;
+      origins = mapAttrs (_: pkg: pkg.source) byName;
       packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
         map (res: res.value) (attrValues init)
       );
-      names = attrNames eval.commands;
+      names = attrNames byName;
     };
 
     aliases' = with eval; {
