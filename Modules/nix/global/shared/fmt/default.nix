@@ -134,7 +134,7 @@
           "fmt"
           "--allow-no-files"
           "--config"
-          "dprint.json"
+          "${flake.path}/dprint.json"
         ];
       };
     };
@@ -189,27 +189,9 @@
       });
     };
 
-  apps = let
-    name = "deploy-treefmt-config";
-    file = ".treefmt.toml";
-    source = (mkEval tool.wrappers.cmd).configFile;
-    target = "${flake.home}/${file}";
-    app = writeShellApplication {
-      inherit name;
-      text = ''
-        cp --force ${source} "${target}"
-        chmod u+w "${target}"
-        printf "Updated ${target} from Modules/global/shared/fmt\n"
-      '';
-    };
   in {
-    ${name} = {
-      type = "app";
-      program = "${app}/bin/${name}";
-    };
-  };
-in {
-  inherit treefmt apps;
+  inherit treefmt;
+  apps = {};
   inherit (treefmt) formatter checks formatters;
   __debug = init.module; # temporary, for inspection
 }

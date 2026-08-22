@@ -24,6 +24,10 @@ global: let
   inherit (args) fetch mkName print;
   inherit (shells) core;
 
+  ai = import ./ai {inherit args; inherit core;};
+
+  shellsWithAi = shells // {ai = ai;};
+
   build =
     mapAttrs (
       name: cfg:
@@ -42,8 +46,6 @@ global: let
     )
     shells;
 
-  ai = import ./ai {inherit args; inherit core;};
-
   devShells =
     build
     // {
@@ -58,8 +60,8 @@ global: let
 
         env =
           foldl'
-          (acc: name: acc // (shells.${name}.env or {}))
-          (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shells))
+          (acc: name: acc // (shellsWithAi.${name}.env or {}))
+          (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shellsWithAi))
           (reverseList ["core" "hermes"]);
 
         shellHook = ''
@@ -67,7 +69,7 @@ global: let
           ${print.info "Full profile - every devShell package installed"}
         '';
 
-        packages = concatMap (cfg: cfg.packages or []) (attrValues shells);
+        packages = concatMap (cfg: cfg.packages or []) (attrValues shellsWithAi);
       };
     };
 in {
