@@ -3,8 +3,8 @@
 
 #{ Determine shell and set history file }
 SHELL_TYPE="$(
-	basename "${SHELL_TYPE:-"${SHELL:-}"}" |
-		tr '[:upper:]' '[:lower:]'
+  basename "${SHELL_TYPE:-"${SHELL:-}"}" |
+    tr '[:upper:]' '[:lower:]'
 )"
 case "${SHELL_TYPE:-}" in
 bash) shell_ext=".bash" ;;
@@ -26,6 +26,6 @@ export HISTFILE HISTSIZE SAVEHIST
 
 #{ Define a function to synchronize history }
 histup() {
-	fc -W #? Write current history to file
-	fc -R #? Read history from file
+  fc -W #? Write current history to file
+  fc -R #? Read history from file
 }

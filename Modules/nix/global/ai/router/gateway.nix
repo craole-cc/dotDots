@@ -35,27 +35,24 @@
   /**
   Command menu, printed by the router shellHook (see mkMenuBox below).
   */
-  menu =
-    concatMapStringsSep "\n"
-    (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}")
-    [
-      {
-        cmd = "air-daemon";
-        desc = "start air gateway detached in tmux (idempotent)";
-      }
-      {
-        cmd = "air-status";
-        desc = "check if air gateway is running";
-      }
-      {
-        cmd = "air-stop";
-        desc = "kill the air tmux session";
-      }
-      {
-        cmd = "air-start";
-        desc = "run air gateway in the foreground";
-      }
-    ];
+  menu = concatMapStringsSep "\n" (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}") [
+    {
+      cmd = "air-daemon";
+      desc = "start air gateway detached in tmux (idempotent)";
+    }
+    {
+      cmd = "air-status";
+      desc = "check if air gateway is running";
+    }
+    {
+      cmd = "air-stop";
+      desc = "kill the air tmux session";
+    }
+    {
+      cmd = "air-start";
+      desc = "run air gateway in the foreground";
+    }
+  ];
 
   mkMenuBox = title: subtitle: ''
     ${gums}
@@ -73,7 +70,10 @@
 
   gateway = writeShellApplication {
     name = "air";
-    runtimeInputs = [nodejs cacert];
+    runtimeInputs = [
+      nodejs
+      cacert
+    ];
     text = ''
       NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
       NPM_CONFIG_UPDATE_NOTIFIER=false
@@ -85,7 +85,10 @@
 
   start = writeShellApplication {
     name = "air-start";
-    runtimeInputs = [gateway gum];
+    runtimeInputs = [
+      gateway
+      gum
+    ];
     text = ''
       ${gums}
       export DATA_DIR="${dataDir}"
@@ -99,7 +102,11 @@
 
   daemon = writeShellApplication {
     name = "air-daemon";
-    runtimeInputs = [tmux start gum];
+    runtimeInputs = [
+      tmux
+      start
+      gum
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -117,7 +124,10 @@
 
   stop = writeShellApplication {
     name = "air-stop";
-    runtimeInputs = [tmux gum];
+    runtimeInputs = [
+      tmux
+      gum
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -132,7 +142,13 @@
 
   status = writeShellApplication {
     name = "air-status";
-    runtimeInputs = [tmux curl gum lsof procps];
+    runtimeInputs = [
+      tmux
+      curl
+      gum
+      lsof
+      procps
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -158,13 +174,31 @@
     '';
   };
 in {
-  inherit gateway start stop status daemon;
+  inherit
+    gateway
+    start
+    stop
+    status
+    daemon
+    ;
   run = start;
 
   # Alias for backwards compatibility
   omniroute = gateway;
 
-  packages = [gateway start daemon stop status tmux gum nodejs lsof procps curl];
+  packages = [
+    gateway
+    start
+    daemon
+    stop
+    status
+    tmux
+    gum
+    nodejs
+    lsof
+    procps
+    curl
+  ];
 
   env = {
     AIR_PORT = "20128";

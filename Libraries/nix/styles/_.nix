@@ -14,16 +14,30 @@
     '';
 
     exports = let
-      aliases = {"${alias}" = registry;};
-      internal = registry // {inherit title;};
+      aliases = {
+        "${alias}" = registry;
+      };
+      internal =
+        registry
+        // {
+          inherit title;
+        };
       external = aliases;
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.strings.transformation) toCamel toTitle;
 
   registry = _.sources.registry.io.import ./.;
-  label = ["registry" "of" __moduleDirectory];
+  label = [
+    "registry"
+    "of"
+    __moduleDirectory
+  ];
   alias = toCamel label;
   title = toTitle label;
 in

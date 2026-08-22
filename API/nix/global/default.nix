@@ -23,7 +23,10 @@
     };
 
     temp = let
-      default = [".cache" "tmp"];
+      default = [
+        ".cache"
+        "tmp"
+      ];
     in {
       inherit default;
     };
@@ -145,8 +148,14 @@
       pictures = ["Pictures"];
       videos = ["Videos"];
       projects = ["Projects"];
-      wallpapers = ["Pictures" "Wallpapers"];
-      screenshots = ["Pictures" "Screenshots"];
+      wallpapers = [
+        "Pictures"
+        "Wallpapers"
+      ];
+      screenshots = [
+        "Pictures"
+        "Screenshots"
+      ];
       desktop = ["Desktop"];
       public = ["Public"];
       templates = ["Templates"];
@@ -154,10 +163,19 @@
 
     xdg = {
       config = [".config"];
-      data = [".local" "share"];
+      data = [
+        ".local"
+        "share"
+      ];
       cache = [".cache"];
-      state = [".local" "state"];
-      bin = [".local" "bin"];
+      state = [
+        ".local"
+        "state"
+      ];
+      bin = [
+        ".local"
+        "bin"
+      ];
       runtime_dir = "/run/user/1000";
     };
   };

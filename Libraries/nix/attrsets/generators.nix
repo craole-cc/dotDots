@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.debug.assertions) mkTest mkThrows;
   inherit (_.debug.runners) runTests;

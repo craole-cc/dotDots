@@ -8,7 +8,13 @@
     flattened = {} // access // predicates // transformation // {};
   };
 
-  inherit (lib) attrsets meta sources strings;
+  inherit
+    (lib)
+    attrsets
+    meta
+    sources
+    strings
+    ;
 
   access = {
     inherit

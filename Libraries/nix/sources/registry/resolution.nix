@@ -38,22 +38,28 @@
           normalize
           ;
       };
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
-  inherit (_.attrsets.access) attrByPath getAttr;
+  inherit (_.attrsets.access) getAttr;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.filesystem.importers) importRegistry;
-  inherit (_.lists.aggregation) foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.lists.access) head tail;
-  inherit (_.strings.construction) concat;
-  inherit (_.strings.transformation) wrap;
   inherit (_.strings.transformation) toLowerCase;
-  inherit (_.types.predicates) isAttrs isPath isList isString;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isPath
+    isList
+    isString
+    ;
 
   /**
   Normalize a registry source specification into a canonical source record.
@@ -95,8 +101,7 @@
     root = args.root or (args.path or null);
     path = args.path or root;
     name =
-      args.name or
-      (
+      args.name or (
         if path != null
         then baseNameOf (toString path)
         else "registry"
@@ -105,8 +110,7 @@
     recursive = args.recursive or true;
     extraArgs = args.extraArgs or (args.args or {});
     raw =
-      args.raw or
-      (
+      args.raw or (
         if root != null
         then
           importRegistry {
@@ -153,7 +157,7 @@
   } -> any
   ```
   */
-  lookup = args @ {
+  lookup = {
     registry,
     default ? null,
     name ? null,
@@ -199,7 +203,10 @@
       lookupPath registry (
         if isList path
         then map normalizeSegment path
-        else [normalizeSegment path]
+        else [
+          normalizeSegment
+          path
+        ]
       )
     else resolveNames candidateNames;
 

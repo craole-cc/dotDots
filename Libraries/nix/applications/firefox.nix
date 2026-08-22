@@ -170,10 +170,12 @@
   - Batch extension installation
   - Simplified Home Manager configuration
   */
-  extensionSettings = mapAttrs (_: entry:
-    if isAttrs entry
-    then entry
-    else extensionEntry {id = entry;});
+  extensionSettings = mapAttrs (
+    _: entry:
+      if isAttrs entry
+      then entry
+      else extensionEntry {id = entry;}
+  );
 
   /**
   Detect Firefox variant from input string.
@@ -258,7 +260,11 @@
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
-    else if (hasInfix "zen" input && (hasInfix "beta" input || hasInfix "nightly" input || hasInfix "unstable" input))
+    else if
+      (
+        hasInfix "zen" input
+        && (hasInfix "beta" input || hasInfix "nightly" input || hasInfix "unstable" input)
+      )
     then "zen-beta"
     else if (hasInfix "zen" input) || (hasInfix "twilight" input)
     then "zen-twilight"

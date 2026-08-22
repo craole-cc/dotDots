@@ -23,8 +23,12 @@
       external = {
         isRegistryAttrs = isRegistry;
       };
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.content.emptiness) isNotEmpty;
@@ -43,10 +47,7 @@
   isRegistry :: AttrSet -> bool
   ```
   */
-  isRegistry = tree:
-    isAttrs tree
-    && isNotEmpty tree
-    && isAttrs (head (attrValues tree));
+  isRegistry = tree: isAttrs tree && isNotEmpty tree && isAttrs (head (attrValues tree));
 in
   with meta.exports;
     internal

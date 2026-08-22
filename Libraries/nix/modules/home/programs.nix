@@ -158,9 +158,25 @@
     flavors = normalizeNames (cfg.flavors or []);
     variants = mapAttrs (_: normalizeNames) (cfg.variants or {});
     isAllowed = condition (
-      {inherit cfg name names flavors variants;} // context
+      {
+        inherit
+          cfg
+          name
+          names
+          flavors
+          variants
+          ;
+      }
+      // context
     );
-    module = mkModule {inherit inputs modules name variant;};
+    module = mkModule {
+      inherit
+        inputs
+        modules
+        name
+        variant
+        ;
+    };
   in {
     inherit isAllowed module;
   };
@@ -227,9 +243,7 @@
     };
 
     isDmsShellAllowed = {selectedPanel, ...}:
-      selectedPanel
-      != null
-      && selectedPanel.name == "dms-shell";
+      selectedPanel != null && selectedPanel.name == "dms-shell";
 
     appSpecs = {
       plasma.condition = {
@@ -292,10 +306,20 @@
       };
     };
   in
-    mapAttrs (name: spec:
-      mkApp (
-        {inherit context name inputs modules;} // spec
-      ))
+    mapAttrs (
+      name: spec:
+        mkApp (
+          {
+            inherit
+              context
+              name
+              inputs
+              modules
+              ;
+          }
+          // spec
+        )
+    )
     appSpecs;
 
   mkPrograms = {
@@ -307,7 +331,13 @@
     userApps = user.applications or {};
     programDefaults = removeAttrs programs ["tui"];
     rawTerm = normalizeName (
-      attrByPath ["terminal" "primary"] (attrByPath ["terminal" "primary"] programs.terminal.primary hostApps) userApps
+      attrByPath ["terminal" "primary"] (attrByPath [
+          "terminal"
+          "primary"
+        ]
+        programs.terminal.primary
+        hostApps)
+      userApps
     );
     primaryTerminalCmd = attrByPath ["terminal" rawTerm] rawTerm mappings.command;
 
@@ -350,10 +380,7 @@
       hostCategory = attrByPath ["applications" category] {} host;
       optionPath = splitString "." option;
       name = normalizeName (
-        attrByPath optionPath (
-          attrByPath optionPath default hostCategory
-        )
-        userCategory
+        attrByPath optionPath (attrByPath optionPath default hostCategory) userCategory
       );
       app =
         if category == "browser"
@@ -371,7 +398,9 @@
         if app != null
         then app.names.class or command
         else getClass command;
-    in {inherit command class;};
+    in {
+      inherit command class;
+    };
 
     mkCategory = category: options:
       mapAttrs (

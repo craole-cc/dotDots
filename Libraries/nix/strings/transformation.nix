@@ -92,11 +92,7 @@
     else fn input;
 
   #? Internal: split a string into lowercase words on spaces, underscores, hyphens.
-  _splitWords = text:
-    splitString "-" (
-      replaceStrings [" " "_"] ["-" "-"]
-      (_normalizeSymbols (toLower text))
-    );
+  _splitWords = text: splitString "-" (replaceStrings [" " "_"] ["-" "-"] (_normalizeSymbols (toLower text)));
 
   _symbolAliases = {
     "c++" = "cpp";
@@ -105,8 +101,7 @@
     "objc" = "objectivec";
   };
 
-  _normalizeSymbols = text:
-    _symbolAliases.${text} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] text);
+  _normalizeSymbols = text: _symbolAliases.${text} or (replaceStrings ["++" "#" "."] ["p" "sharp" "-"] text);
 
   /**
   Convert a string or list of strings to lower case.
@@ -724,8 +719,16 @@
           then value // {input = value.text;}
           else
             assert withContext {
-              name = concat "." ["strings" "construction" "wrap"];
-              context = concat " " ["validating" "wrap" "input"];
+              name = concat "." [
+                "strings"
+                "construction"
+                "wrap"
+              ];
+              context = concat " " [
+                "validating"
+                "wrap"
+                "input"
+              ];
               assertion = false;
               message = "expected attrset to have an `input` or `text` key";
             }; null
@@ -734,15 +737,31 @@
       then {input = value;}
       else
         assert withContext {
-          name = concat "." ["strings" "construction" "wrap"];
-          context = concat " " ["validating" "wrap" "value"];
+          name = concat "." [
+            "strings"
+            "construction"
+            "wrap"
+          ];
+          context = concat " " [
+            "validating"
+            "wrap"
+            "value"
+          ];
           assertion = false;
           message = "expected `value` to be a string, list, or attrset";
         }; null;
 
     input = assert withContext {
-      name = concat "." ["strings" "construction" "wrap"];
-      context = concat " " ["validating" "wrap" "input"];
+      name = concat "." [
+        "strings"
+        "construction"
+        "wrap"
+      ];
+      context = concat " " [
+        "validating"
+        "wrap"
+        "input"
+      ];
       assertion = isNotEmpty args.input;
       message = "expected `input` to be a non-null value or a non-empty list";
     };
@@ -752,29 +771,46 @@
       token' = args.token or "`";
     in
       assert withContext {
-        name = concat "." ["strings" "construction" "wrap"];
-        context = concat " " ["validating" "wrap" "token"];
+        name = concat "." [
+          "strings"
+          "construction"
+          "wrap"
+        ];
+        context = concat " " [
+          "validating"
+          "wrap"
+          "token"
+        ];
         assertion = isString token' && token' != "";
         message = "expected `token` to be a non-empty string";
       }; token';
 
     delimiter = let
-      sep =
-        args.delimiter or (
-          args.sep or (optionalString (isList args.input) " or ")
-        );
+      sep = args.delimiter or (args.sep or (optionalString (isList args.input) " or "));
     in
       assert withContext {
-        name = concat "." ["strings" "construction" "wrap"];
-        context = concat " " ["validating" "wrap" "delimiter"];
+        name = concat "." [
+          "strings"
+          "construction"
+          "wrap"
+        ];
+        context = concat " " [
+          "validating"
+          "wrap"
+          "delimiter"
+        ];
         assertion = isString sep;
         message = "expected `delimiter` to be a string";
       }; sep;
 
-    rendered =
-      map
-      (item: concat "" [token (toString item) token])
-      (toList input);
+    rendered = map (
+      item:
+        concat "" [
+          token
+          (toString item)
+          token
+        ]
+    ) (toList input);
   in
     if isList input
     then concat delimiter rendered
@@ -933,7 +969,11 @@ in
         wordList = mkTest {
           desired = "registryOfEntry";
           command = ''toCamel ["registry" "of" "entry"]'';
-          outcome = toCamel ["registry" "of" "entry"];
+          outcome = toCamel [
+            "registry"
+            "of"
+            "entry"
+          ];
         };
       };
       toPascal = {
@@ -945,7 +985,11 @@ in
         wordList = mkTest {
           desired = "RegistryOfEntry";
           command = ''toPascal ["registry" "of" "entry"]'';
-          outcome = toPascal ["registry" "of" "entry"];
+          outcome = toPascal [
+            "registry"
+            "of"
+            "entry"
+          ];
         };
       };
       toSnake = {
@@ -957,7 +1001,11 @@ in
         wordList = mkTest {
           desired = "registry_of_entry";
           command = ''toSnake ["registry" "of" "entry"]'';
-          outcome = toSnake ["registry" "of" "entry"];
+          outcome = toSnake [
+            "registry"
+            "of"
+            "entry"
+          ];
         };
       };
       toScreamingSnake = {
@@ -969,7 +1017,11 @@ in
         wordList = mkTest {
           desired = "REGISTRY_OF_ENTRY";
           command = ''toScreamingSnake ["registry" "of" "entry"]'';
-          outcome = toScreamingSnake ["registry" "of" "entry"];
+          outcome = toScreamingSnake [
+            "registry"
+            "of"
+            "entry"
+          ];
         };
       };
       toTitle = {
@@ -981,7 +1033,11 @@ in
         wordList = mkTest {
           desired = "Registry Of Entry";
           command = ''toTitle ["registry" "of" "entry"]'';
-          outcome = toTitle ["registry" "of" "entry"];
+          outcome = toTitle [
+            "registry"
+            "of"
+            "entry"
+          ];
         };
       };
     };

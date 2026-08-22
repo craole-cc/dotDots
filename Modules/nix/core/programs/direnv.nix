@@ -9,7 +9,6 @@
   mod = "direnv";
   cfg = config.${top}.resolved.${dom}.${mod};
   inherit (lix.options.construction) mkOption mkTrue mkType;
-  inherit (lix.modules.construction) mkIf;
   payload = {
     programs.${mod} = {
       inherit (cfg) enable silent;

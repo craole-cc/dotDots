@@ -44,27 +44,24 @@ args: let
   /**
   Command menu, printed by the router shellHook.
   */
-  menu =
-    concatMapStringsSep "\n"
-    (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}")
-    [
-      {
-        cmd = "air-daemon";
-        desc = "start air gateway detached in tmux (idempotent)";
-      }
-      {
-        cmd = "air-status";
-        desc = "check if air gateway is running";
-      }
-      {
-        cmd = "air-stop";
-        desc = "kill the air tmux session";
-      }
-      {
-        cmd = "air-start";
-        desc = "run air gateway in the foreground";
-      }
-    ];
+  menu = concatMapStringsSep "\n" (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}") [
+    {
+      cmd = "air-daemon";
+      desc = "start air gateway detached in tmux (idempotent)";
+    }
+    {
+      cmd = "air-status";
+      desc = "check if air gateway is running";
+    }
+    {
+      cmd = "air-stop";
+      desc = "kill the air tmux session";
+    }
+    {
+      cmd = "air-start";
+      desc = "run air gateway in the foreground";
+    }
+  ];
 
   mkMenuBox = title: subtitle: ''
     ${gums}
@@ -82,7 +79,10 @@ args: let
 
   gateway = writeShellApplication {
     name = "air";
-    runtimeInputs = [nodejs cacert];
+    runtimeInputs = [
+      nodejs
+      cacert
+    ];
     text = ''
       NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
       NPM_CONFIG_UPDATE_NOTIFIER=false
@@ -94,7 +94,10 @@ args: let
 
   start = writeShellApplication {
     name = "air-start";
-    runtimeInputs = [gateway gum];
+    runtimeInputs = [
+      gateway
+      gum
+    ];
     text = ''
       ${gums}
       export DATA_DIR="${dataDir}"
@@ -108,7 +111,11 @@ args: let
 
   daemon = writeShellApplication {
     name = "air-daemon";
-    runtimeInputs = [tmux start gum];
+    runtimeInputs = [
+      tmux
+      start
+      gum
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -126,7 +133,10 @@ args: let
 
   stop = writeShellApplication {
     name = "air-stop";
-    runtimeInputs = [tmux gum];
+    runtimeInputs = [
+      tmux
+      gum
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -141,7 +151,13 @@ args: let
 
   status = writeShellApplication {
     name = "air-status";
-    runtimeInputs = [tmux curl gum lsof procps];
+    runtimeInputs = [
+      tmux
+      curl
+      gum
+      lsof
+      procps
+    ];
     text = ''
       ${gums}
       SESSION="air"
@@ -167,7 +183,21 @@ args: let
     '';
   };
 in {
-  packages = [gateway start daemon stop status tmux gum nodejs lsof procps curl] ++ agentPackages;
+  packages =
+    [
+      gateway
+      start
+      daemon
+      stop
+      status
+      tmux
+      gum
+      nodejs
+      lsof
+      procps
+      curl
+    ]
+    ++ agentPackages;
 
   env = {
     AIR_PORT = "20128";

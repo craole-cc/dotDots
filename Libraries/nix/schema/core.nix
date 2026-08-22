@@ -57,7 +57,11 @@
           // {
             enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
           };
-        caddy = caddy // {enable = caddy.enable or false;};
+        caddy =
+          caddy
+          // {
+            enable = caddy.enable or false;
+          };
       };
       tailscale =
         tailscale
@@ -86,7 +90,9 @@
     explicit = (host.capabilities or {}).development or null;
     hardened = host.hardened or false;
     hostDeclared = builtins.elem "development" (host.functionalities or []);
-    userDeclared = builtins.any (u: builtins.elem "development" (u.capabilities or [])) (attrValues interactiveUsers);
+    userDeclared = builtins.any (u: builtins.elem "development" (u.capabilities or [])) (
+      attrValues interactiveUsers
+    );
   in
     if explicit != null
     then explicit

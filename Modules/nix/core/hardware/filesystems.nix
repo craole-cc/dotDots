@@ -27,17 +27,19 @@
       }
     ];
 
-    fileSystems = mkIf cfg.enable (mapAttrs (
-      _: fs:
-        {
-          inherit (fs) device fsType;
-        }
-        // (
-          if fs.options or [] == []
-          then {}
-          else {inherit (fs) options;}
-        )
-    ) (host.devices.file or {}));
+    fileSystems = mkIf cfg.enable (
+      mapAttrs (
+        _: fs:
+          {
+            inherit (fs) device fsType;
+          }
+          // (
+            if fs.options or [] == []
+            then {}
+            else {inherit (fs) options;}
+          )
+      ) (host.devices.file or {})
+    );
 
     swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
 
@@ -49,7 +51,11 @@
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = hw.hasFilesystems;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = hw.hasFilesystems;
+      };
     filesystemsRequired = mkOption {
       description = "Require host.devices.file to declare at least one filesystem";
       default = storage.filesystemsRequired;
@@ -62,5 +68,7 @@ in {
     };
   };
 
-  config = mkMerge (mkStaged {inherit top payload;});
+  config = mkMerge (mkStaged {
+    inherit top payload;
+  });
 }

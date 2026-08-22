@@ -294,7 +294,10 @@
       outcome = interface;
     };
   in
-    waylandWindowManager cfg || waylandDesktopManager cfg || waylandDisplayManager cfg || waylandDefinedInterface ifc;
+    waylandWindowManager cfg
+    || waylandDesktopManager cfg
+    || waylandDisplayManager cfg
+    || waylandDefinedInterface ifc;
 in
   __exports.internal
   // {

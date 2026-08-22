@@ -5,7 +5,6 @@
   lix,
   ...
 }: let
-  inherit (lib.modules) mkIf;
   cfg = config.${top}.resolved.interface;
   payload = {
     programs.niri.enable = true;

@@ -10,12 +10,23 @@
 
   inherit (lix.schema.ui) mkUI;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) attrsOf nullOr str submodule int;
+  inherit
+    (lib.types)
+    attrsOf
+    nullOr
+    str
+    submodule
+    int
+    ;
 
   ui = mkUI {inherit host user;};
 in {
   options.${top}.resolved.${dom} = {
-    enable = mkEnableOption dom // {default = ui.enable;};
+    enable =
+      mkEnableOption dom
+      // {
+        default = ui.enable;
+      };
 
     desktopEnvironment = mkOption {
       description = "Desktop Environment";

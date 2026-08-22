@@ -18,8 +18,23 @@
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
-  inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
-  inherit (lix.types.primitives) anything bool int ints path str;
+  inherit
+    (lix.types.combinators)
+    attrsOf
+    either
+    listOf
+    nullOr
+    submodule
+    ;
+  inherit
+    (lix.types.primitives)
+    anything
+    bool
+    int
+    ints
+    path
+    str
+    ;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
@@ -70,7 +85,7 @@ in
               description = "Local absolute path to the flake.";
               default = host.paths.flake or paths.flake.local;
               defaultText = literalExpression "host.paths.flake";
-              example = literalExpression ''/home/craole/.dots'';
+              example = literalExpression "/home/craole/.dots";
               type = str;
             };
 
@@ -78,13 +93,17 @@ in
               description = "Nix store path to the flake.";
               default = paths.flake.store or ../../../../.;
               defaultText = literalExpression "paths.flake.store or ../../../../.";
-              example = literalExpression ''/nix/store/...-source'';
+              example = literalExpression "/nix/store/...-source";
               type = nullOr (either str path);
             };
 
             args = mkOption {
               description = "CLI arguments passed to flake operations.";
-              default = {inherit names;} // cfg;
+              default =
+                {
+                  inherit names;
+                }
+                // cfg;
               type = attrsOf anything;
             };
           };
@@ -98,7 +117,7 @@ in
         '';
         default = host.packages.kernel or null;
         defaultText = literalExpression "host.packages.kernel or null";
-        example = literalExpression ''linuxPackages_cachyos-lto'';
+        example = literalExpression "linuxPackages_cachyos-lto";
         type = nullOr str;
       };
 
@@ -188,27 +207,31 @@ in
             `keep.days`, `keep.generations`, and `keep.maxFreed`.
           '';
           default =
-            (
-              optionals
-              (cfg.keep.days != null)
-              ["--keep-since" "${toString cfg.keep.days}d"]
-            )
-            ++ (
-              optionals
-              (cfg.keep.generations != null)
-              ["--keep" "${toString cfg.keep.generations}"]
-            )
-            ++ (
-              optionals
-              (cfg.keep.maxFreed != null)
-              ["--max-freed" cfg.keep.maxFreed]
-            );
+            (optionals (cfg.keep.days != null) [
+              "--keep-since"
+              "${toString cfg.keep.days}d"
+            ])
+            ++ (optionals (cfg.keep.generations != null) [
+              "--keep"
+              "${toString cfg.keep.generations}"
+            ])
+            ++ (optionals (cfg.keep.maxFreed != null) [
+              "--max-freed"
+              cfg.keep.maxFreed
+            ]);
           defaultText = literalExpression ''
             (optionals (cfg.keep.days != null) ["--keep-since" "''${toString cfg.keep.days}d"])
             ++ (optionals (cfg.keep.generations != null) ["--keep" "''${toString cfg.keep.generations}"])
             ++ (optionals (cfg.keep.maxFreed != null) ["--max-freed" cfg.keep.maxFreed])
           '';
-          example = ["--keep-since" "7d" "--keep" "5" "--max-freed" "10G"];
+          example = [
+            "--keep-since"
+            "7d"
+            "--keep"
+            "5"
+            "--max-freed"
+            "10G"
+          ];
           type = listOf str;
         };
       };
@@ -217,7 +240,14 @@ in
     outputs = mkMerge [
       (mkNix {
         inherit host pkgs;
-        inherit (cfg) flake kernel caches max-jobs stateVersion;
+        inherit
+          (cfg)
+          flake
+          kernel
+          caches
+          max-jobs
+          stateVersion
+          ;
         store = tree.store.default;
       })
       (mkMaintenance {

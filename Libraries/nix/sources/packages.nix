@@ -235,15 +235,17 @@
       then []
       else if args != null
       then [(asList args)]
-      else map (flag: [flag]) ["--version" "-V" "version"];
+      else
+        map (flag: [flag]) [
+          "--version"
+          "-V"
+          "version"
+        ];
 
     probe =
       if derived == null && flagCandidates != []
       then let
-        attempts =
-          map
-          (flags: "${exe} ${concat " " flags} ${extra} 2>/dev/null")
-          flagCandidates;
+        attempts = map (flags: "${exe} ${concat " " flags} ${extra} 2>/dev/null") flagCandidates;
         joined = concat " || " attempts;
       in "{ ${joined}; } | grep -oE '[0-9]+(\\.[0-9]+)+' | head -n1"
       else null;
@@ -399,13 +401,10 @@
         legacy =
           if pkgs != null
           then pkgs
-          else
-            import init.inputs.nixpkgs
-            {inherit (init) system;};
-        flakes =
-          optionalAttrs
-          (input != null)
-          (fromInputs {inherit (init) inputs input system;});
+          else import init.inputs.nixpkgs {inherit (init) system;};
+        flakes = optionalAttrs (input != null) (fromInputs {
+          inherit (init) inputs input system;
+        });
       };
     };
 
@@ -422,7 +421,11 @@
       if input == null
       then []
       else let
-        suffixes = ["-nix" ".nix" "-flake"];
+        suffixes = [
+          "-nix"
+          ".nix"
+          "-flake"
+        ];
         strip = suffix:
           if hasSuffix suffix input
           then removeSuffix suffix input
@@ -442,9 +445,7 @@
       then [target]
       else
         unique (
-          (optionals (input != null) ["default"])
-          ++ suffixStripped
-          ++ (optionals (input != null) [input])
+          (optionals (input != null) ["default"]) ++ suffixStripped ++ (optionals (input != null) [input])
         );
     lookup = candidates: let
       src = init.source;
@@ -467,10 +468,7 @@
         }
         else null;
     in
-      findFirst
-      (candidate: candidate != null)
-      null
-      (map findMatch candidates);
+      findFirst (candidate: candidate != null) null (map findMatch candidates);
 
     check = lookup candidateNames;
 
@@ -507,7 +505,13 @@
       then null
       else {
         inherit (check) name source value;
-        inherit package paths command revision version;
+        inherit
+          package
+          paths
+          command
+          revision
+          version
+          ;
 
         bin = paths.binary;
         cmd = command;
@@ -523,9 +527,7 @@
         name = _name;
         context = "resolving package from input '${toString input}' or pkgs";
         assertion = eval != null;
-        message = "Unable to locate a package for input '${toString input}' - tried: ${
-          concat ", " candidateNames
-        }. Pass `target` explicitly to pkgFor/pkgOf.";
+        message = "Unable to locate a package for input '${toString input}' - tried: ${concat ", " candidateNames}. Pass `target` explicitly to pkgFor/pkgOf.";
       }; eval
     else eval;
 
@@ -632,24 +634,23 @@
     source = target: entry:
       pkgOf (
         {
-          inherit target inputs pkgs required;
+          inherit
+            target
+            inputs
+            pkgs
+            required
+            ;
           inherit (entry) input;
           inherit (entry) versionArgs;
         }
         // optionalAttrs (system != null) {inherit system;}
       );
 
-    init =
-      filterAttrs (_: src: src != null)
-      (
-        mapAttrs
-        (name: entry: source name entry)
-        (mapAttrs (_: normalize) sources)
-      );
-
-    aliased = filterAttrs (_: v: v != null) (
-      mapAttrs (_: target: init.${target} or null) aliases
+    init = filterAttrs (_: src: src != null) (
+      mapAttrs (name: entry: source name entry) (mapAttrs (_: normalize) sources)
     );
+
+    aliased = filterAttrs (_: v: v != null) (mapAttrs (_: target: init.${target} or null) aliases);
 
     byName = init // aliased;
 
@@ -657,10 +658,9 @@
       binaries = mapAttrs (_: pkg: pkg.exe) byName;
       commands = mapAttrs (_: pkg: pkg.cmd) byName;
       versions = mapAttrs (_: pkg: pkg.ver) byName;
-      packages =
-        filter
-        (pkg: !(elem (pkg.pname or pkg.name or "") exclude))
-        (map (res: res.value) (attrValues init)); # unique derivations only
+      packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
+        map (res: res.value) (attrValues init)
+      ); # unique derivations only
     };
 
     aliases' = with eval; {
@@ -679,16 +679,9 @@
   bySystem = packages: let
     inputNames = attrNames packages;
 
-    systems = unique (
-      concatMap
-      (name: attrNames (packages.${name} or {}))
-      inputNames
-    );
+    systems = unique (concatMap (name: attrNames (packages.${name} or {})) inputNames);
 
-    inputsFor = system:
-      filter
-      (name: hasAttr system (packages.${name} or {}))
-      inputNames;
+    inputsFor = system: filter (name: hasAttr system (packages.${name} or {})) inputNames;
   in
     listToAttrs (
       map (system: {
@@ -697,8 +690,7 @@
           map (name: {
             inherit name;
             value = packages.${name}.${system};
-          })
-          (inputsFor system)
+          }) (inputsFor system)
         );
       })
       systems
@@ -780,10 +772,9 @@
       source
       // {
         inputs = inputs';
-        legacyPackages =
-          mapAttrs
-          (sys: base: base // ((bySystem packages).${sys} or {}))
-          (inputs'.nixpkgs.legacyPackages or {});
+        legacyPackages = mapAttrs (sys: base: base // ((bySystem packages).${sys} or {})) (
+          inputs'.nixpkgs.legacyPackages or {}
+        );
       };
   in {
     inherit packages overlays;

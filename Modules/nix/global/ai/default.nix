@@ -1,4 +1,8 @@
-{args, core, ...}: let
+{
+  args,
+  core,
+  ...
+}: let
   inherit (args) pkgs;
   inherit (pkgs) mkShell;
 
@@ -10,15 +14,8 @@
     description = "AI Development";
     agents = {inherit hermes;};
     inherit memory router;
-    env =
-      (args.env or {})
-      // router.env
-      // memory.env
-      // hermes.env;
-    packages =
-      router.packages
-      ++ memory.packages
-      ++ hermes.packages;
+    env = (args.env or {}) // router.env // memory.env // hermes.env;
+    packages = router.packages ++ memory.packages ++ hermes.packages;
     shellHook = ''
       if [ -t 1 ]; then
         printf "%s\n" "AI shell: OmniRoute + Mem0 + Hermes"
@@ -29,19 +26,19 @@
 
   aiRouter = {
     env = core.env // router.env;
-    shellHook = router.shellHook;
+    inherit (router) shellHook;
     packages = core.packages ++ router.packages;
   };
 
   aiMemory = {
     env = core.env // memory.env;
-    shellHook = memory.shellHook;
+    inherit (memory) shellHook;
     packages = core.packages ++ memory.packages;
   };
 
   aiHermes = {
     env = core.env // hermes.env;
-    shellHook = hermes.shellHook;
+    inherit (hermes) shellHook;
     packages = core.packages ++ hermes.packages;
   };
 
@@ -68,8 +65,8 @@
   };
 in {
   inherit devShells;
-  description = aiShell.description;
-  env = aiShell.env;
-  packages = aiShell.packages;
-  shellHook = aiShell.shellHook;
+  inherit (aiShell) description;
+  inherit (aiShell) env;
+  inherit (aiShell) packages;
+  inherit (aiShell) shellHook;
 }

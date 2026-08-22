@@ -14,13 +14,7 @@
         transformation
         ;
     };
-    flattened =
-      access
-      // aggregation
-      // construction
-      // predicates
-      // selection
-      // transformation;
+    flattened = access // aggregation // construction // predicates // selection // transformation;
   };
 
   inherit (lib) lists;

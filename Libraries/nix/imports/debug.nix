@@ -5,12 +5,7 @@
 }: let
   __exports = {
     namespaced = {inherit assertions testing tracing;};
-    flattened =
-      {}
-      // assertions
-      // testing
-      // tracing
-      // {};
+    flattened = {} // assertions // testing // tracing // {};
   };
 
   inherit (lib) debug asserts trivial;

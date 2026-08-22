@@ -23,9 +23,21 @@
           overrides = self;
         };
         scan = import ./scan.nix {
-          inherit exclusions paths lib runTests;
+          inherit
+            exclusions
+            paths
+            lib
+            runTests
+            ;
           env = import ./env.nix {
-            inherit flake lib names paths safe self;
+            inherit
+              flake
+              lib
+              names
+              paths
+              safe
+              self
+              ;
           };
         };
         results = scan paths.libraries [];
@@ -33,4 +45,6 @@
         results.modules // {__rootAliases = results.rootAliases;}
     );
   };
-in {${names.lib} = result;}
+in {
+  ${names.lib} = result;
+}

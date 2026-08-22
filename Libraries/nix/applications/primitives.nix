@@ -201,7 +201,9 @@
   */
   keysFromOptional = field: set:
     unique (
-      filter (value: value != null) (map (item: normalizeOptional (toValue {inherit field;} item)) (attrValues set))
+      filter (value: value != null) (
+        map (item: normalizeOptional (toValue {inherit field;} item)) (attrValues set)
+      )
     );
 
   /**

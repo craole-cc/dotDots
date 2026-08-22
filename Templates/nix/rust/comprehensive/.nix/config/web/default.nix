@@ -1,9 +1,11 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkWeb = set:
+  mkWeb =
+    set:
     optionalAttrs set.enable (
-      {}
+      { }
       // optionalAttrs set.includeDeno {
         deno = {
           source = ./deno.jsonc;
@@ -33,6 +35,7 @@
         };
       }
     );
-in {
+in
+{
   inherit mkWeb;
 }

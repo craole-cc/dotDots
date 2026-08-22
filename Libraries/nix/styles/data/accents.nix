@@ -1,6 +1,9 @@
 _: {
   rosewater = {
-    aliases = ["rose" "rosé"];
+    aliases = [
+      "rose"
+      "rosé"
+    ];
     family = "catppuccin";
   };
 
@@ -10,12 +13,18 @@ _: {
   };
 
   pink = {
-    aliases = ["hotpink" "hot-pink"];
+    aliases = [
+      "hotpink"
+      "hot-pink"
+    ];
     family = "catppuccin";
   };
 
   mauve = {
-    aliases = ["purple" "violet"];
+    aliases = [
+      "purple"
+      "violet"
+    ];
     family = "catppuccin";
   };
 
@@ -25,12 +34,18 @@ _: {
   };
 
   maroon = {
-    aliases = ["burgundy" "wine"];
+    aliases = [
+      "burgundy"
+      "wine"
+    ];
     family = "catppuccin";
   };
 
   peach = {
-    aliases = ["orange" "apricot"];
+    aliases = [
+      "orange"
+      "apricot"
+    ];
     family = "catppuccin";
   };
 
@@ -45,27 +60,43 @@ _: {
   };
 
   teal = {
-    aliases = ["cyan" "aqua" "turquoise"];
+    aliases = [
+      "cyan"
+      "aqua"
+      "turquoise"
+    ];
     family = "catppuccin";
   };
 
   sky = {
-    aliases = ["lightblue" "light-blue"];
+    aliases = [
+      "lightblue"
+      "light-blue"
+    ];
     family = "catppuccin";
   };
 
   sapphire = {
-    aliases = ["azure" "cerulean"];
+    aliases = [
+      "azure"
+      "cerulean"
+    ];
     family = "catppuccin";
   };
 
   blue = {
-    aliases = ["navy" "cobalt"];
+    aliases = [
+      "navy"
+      "cobalt"
+    ];
     family = "catppuccin";
   };
 
   lavender = {
-    aliases = ["lilac" "magenta"];
+    aliases = [
+      "lilac"
+      "magenta"
+    ];
     family = "catppuccin";
   };
 }

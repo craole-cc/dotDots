@@ -3,9 +3,14 @@
   cmds,
   ...
 }: let
-  inherit (cmds) helpers runtimes service-builder;
-  inherit (helpers) confirm log mkBin pkgs;
-  inherit (service-builder) mkRequire;
+  inherit (cmds) helpers;
+  inherit
+    (helpers)
+    confirm
+    log
+    mkBin
+    pkgs
+    ;
   inherit (pkgs.lib.strings) escapeShellArg;
   inherit (pkgs.lib.trivial) readFile;
 

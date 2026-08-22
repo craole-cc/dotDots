@@ -6,5 +6,10 @@
   };
 
   shortcuts =
-    {} // import ./applications.nix // import ./hardware.nix // import ./panel.nix // import ./window.nix // {};
+    {}
+    // import ./applications.nix
+    // import ./hardware.nix
+    // import ./panel.nix
+    // import ./window.nix
+    // {};
 }

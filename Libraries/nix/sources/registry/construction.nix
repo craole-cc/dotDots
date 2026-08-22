@@ -34,25 +34,24 @@
           mkRegistry
           ;
       };
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
-  inherit (_.attrsets.access) attrNames attrValues getAttr;
+  inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.construction) listToAttrs;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
-  inherit (_.content.emptiness) isNotEmpty;
-  inherit (_.debug.assertions) withContext;
+  inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.aggregation) foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
-  inherit (_.strings.construction) concat;
-  inherit (_.strings.transformation) wrap;
   inherit (_.types.predicates) isAttrs isList isString;
   inherit
     (_.sources.registry.resolution)
     lookup
-    mkSource
     normalize
     ;
 
@@ -69,8 +68,7 @@
 
   This is useful for registry structures grouped by namespace.
   */
-  flatten = registry:
-    foldl' (acc: namespace: acc // registry.${namespace}) {} (attrNames registry);
+  flatten = registry: foldl' (acc: namespace: acc // registry.${namespace}) {} (attrNames registry);
 
   /**
   Produce light-weight analysis groups for a flat registry attrset.
@@ -79,7 +77,6 @@
   this returns an attrset keyed by distinct field values.
   */
   mkAnalysis = {
-    owner ? "mkAnalysis",
     entries,
     groupBy ? [],
     queryBy ? [],
@@ -91,29 +88,22 @@
 
     entryValues = attrValues entries';
 
-    fieldValues = field:
-      unique (filter isString (map (entry: entry.${field} or null) entryValues));
+    fieldValues = field: unique (filter isString (map (entry: entry.${field} or null) entryValues));
 
     groupByField = field:
       listToAttrs (
-        map (
-          value: {
-            name = value;
-            value = filterAttrs (_: entry: (entry.${field} or null) == value) entries';
-          }
-        )
-        (fieldValues field)
+        map (value: {
+          name = value;
+          value = filterAttrs (_: entry: (entry.${field} or null) == value) entries';
+        }) (fieldValues field)
       );
 
     mkGroupSet = fields:
       listToAttrs (
-        map (
-          field: {
-            name = field;
-            value = groupByField field;
-          }
-        )
-        (unique (filter isString fields))
+        map (field: {
+          name = field;
+          value = groupByField field;
+        }) (unique (filter isString fields))
       );
   in {
     groups = mkGroupSet groupBy;

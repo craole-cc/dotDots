@@ -16,7 +16,14 @@
   };
   inherit (context) cfg;
   inherit (pkgs.stdenv.hostPlatform) system;
-  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
+  inherit
+    (lix.applications.resolution)
+    editors
+    browsers
+    terminals
+    launchers
+    bars
+    ;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.modules.construction) mkConfig mkContext mkDefault;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -89,7 +96,14 @@
         _JAVA_AWT_WM_NONREPARENTING = "1";
       };
   in {
-    inherit editor browser terminal launcher bar default;
+    inherit
+      editor
+      browser
+      terminal
+      launcher
+      bar
+      default
+      ;
     all = default // editor // browser // terminal // launcher // bar;
   };
 in

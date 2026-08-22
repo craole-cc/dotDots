@@ -7,7 +7,6 @@
   inherit (_.schema._) mkUI mkLocale mkApplications;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) optionals;
-  inherit (_.lists.transformation) flatten;
 
   __exports = {
     internal = {inherit mkUsers;};
@@ -41,10 +40,22 @@
         pkgs,
         ...
       }: let
-        user = cfg // {inherit name;};
+        user =
+          cfg
+          // {
+            inherit name;
+          };
         enrichedInterface = mkUI {inherit host user;};
         inputsForHome = mkApps {inherit user inputs modules;};
-        derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
+        derivedPaths = mkSessionPaths {
+          inherit
+            config
+            host
+            user
+            pkgs
+            tree
+            ;
+        };
         hmi = inputsForHome;
       in {
         # disabledModules = optionals (enrichedInterface.windowManager != "niri") [
@@ -53,7 +64,11 @@
 
         _module.args = {
           style = mkStyle {inherit host user;};
-          user = user // {interface = enrichedInterface;};
+          user =
+            user
+            // {
+              interface = enrichedInterface;
+            };
           apps = mkApplications {inherit host user;};
           keyboard = mkKeyboard {inherit host user;};
           locale = mkLocale {inherit host user;};
@@ -64,30 +79,14 @@
         home = {inherit (nixosConfig.system) stateVersion;};
 
         imports =
-          optionals
-          (hmi?caelestia.module)
-          [hmi.caelestia.module]
-          ++ optionals
-          (hmi?catppuccin.module)
-          [hmi.catppuccin.module]
-          ++ optionals
-          (hmi?dms-shell.module)
-          [hmi.dms-shell.module]
-          ++ optionals
-          (hmi?dms-plugin-registry.module)
-          [hmi.dms-plugin-registry.module]
-          ++ optionals
-          (hmi?noctalia-shell.module)
-          [hmi.noctalia-shell.module]
-          ++ optionals
-          (hmi?nvf.module)
-          [hmi.nvf.module]
-          ++ optionals
-          (hmi?plasma.module)
-          [hmi.plasma.module]
-          ++ optionals
-          (hmi?zen-browser.module)
-          [hmi.zen-browser.module]
+          optionals (hmi ? caelestia.module) [hmi.caelestia.module]
+          ++ optionals (hmi ? catppuccin.module) [hmi.catppuccin.module]
+          ++ optionals (hmi ? dms-shell.module) [hmi.dms-shell.module]
+          ++ optionals (hmi ? dms-plugin-registry.module) [hmi.dms-plugin-registry.module]
+          ++ optionals (hmi ? noctalia-shell.module) [hmi.noctalia-shell.module]
+          ++ optionals (hmi ? nvf.module) [hmi.nvf.module]
+          ++ optionals (hmi ? plasma.module) [hmi.plasma.module]
+          ++ optionals (hmi ? zen-browser.module) [hmi.zen-browser.module]
           ++ [tree.store.mod.home]
           ++ (user.imports or []);
       }

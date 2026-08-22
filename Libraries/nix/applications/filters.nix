@@ -32,7 +32,9 @@
     exports = {
       internal = let
         functions = {inherit mkFilters mkSection;};
-        aliases = {mkFilterSection = mkSection;};
+        aliases = {
+          mkFilterSection = mkSection;
+        };
       in
         {inherit functions aliases default;} // default // functions // aliases;
       external = {
@@ -40,7 +42,9 @@
         toApplicationFilterSection = mkSection;
       };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.applications.groups) mkGroups;
   inherit (_.applications.primitives) keysFromMembers keysFromOptional;
@@ -137,7 +141,9 @@
         all = byCategory.shell;
       in {
         inherit all;
-        shells = mkSection {set = resolveConfig (filterAttrs (_: a: (a.categories or []) == ["shell"]) all);};
+        shells = mkSection {
+          set = resolveConfig (filterAttrs (_: a: (a.categories or []) == ["shell"]) all);
+        };
         prompts = mkSection {set = byCategory.prompt;};
         enhancements = mkSection {set = byCategory.enhancement;};
         lineEditors = mkSection {set = byCategory."line-editor";};
@@ -164,13 +170,17 @@
       as queries rather than sub-sections - use `terminal.queries.forWayland`,
       `terminal.queries.forXorg`, and `terminal.queries.isWrappable` directly.
       */
-      terminal = mkSection {set = mapAttrs (_: a: a // {wrappable = (a.wrap or null) != null;}) byCategory.terminal;};
+      terminal = mkSection {
+        set = mapAttrs (_: a: a // {wrappable = (a.wrap or null) != null;}) byCategory.terminal;
+      };
 
       /**
       Application launchers and runners. `builtin` entries are provided
       by a desktop environment and have no standalone exec.
       */
-      launcher = mkSection {set = mapAttrs (_: a: a // {builtin = a.builtin or false;}) byCategory.launcher;};
+      launcher = mkSection {
+        set = mapAttrs (_: a: a // {builtin = a.builtin or false;}) byCategory.launcher;
+      };
 
       /**
       Text editors and IDEs. Category membership distinguishes pure editors,

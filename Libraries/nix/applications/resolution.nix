@@ -26,7 +26,7 @@
     info = {
       pkgs,
       inputs ? {},
-      system ? "x86_64-linux", #TODO: use getSystemOrDefault {}
+      system ? "x86_64-linux", # TODO: use getSystemOrDefault {}
       name,
     }: let
       app = appMap.${name} or null;
@@ -175,7 +175,14 @@
         };
       in {
         cmd = app.exec or app.names.command or "zen";
-        pkg = resolvePackage {inherit app pkgs inputs system;};
+        pkg = resolvePackage {
+          inherit
+            app
+            pkgs
+            inputs
+            system
+            ;
+        };
         inputPath = null;
       };
 
@@ -191,7 +198,14 @@
         };
       in {
         cmd = app.exec or app.names.command or "zen";
-        pkg = resolvePackage {inherit app pkgs inputs system;};
+        pkg = resolvePackage {
+          inherit
+            app
+            pkgs
+            inputs
+            system
+            ;
+        };
         inputPath = null;
       };
 

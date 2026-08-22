@@ -334,7 +334,9 @@
           printf "Usage: %s <command> [options]\n" "$0" >&2
           exit 1
         fi
-        ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (mapAttrsToList (_: cfg: cfg.manager) monitors)}
+        ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (
+          mapAttrsToList (_: cfg: cfg.manager) monitors
+        )}
       '';
     in {
       inherit

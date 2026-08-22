@@ -66,7 +66,9 @@
 
   hyprland = app: let
     candidates = identify app;
-    check = concatStringsSep " || " (map (m: "hyprctl clients | grep -q \"${m.type}: ${m.value}\"") candidates);
+    check = concatStringsSep " || " (
+      map (m: "hyprctl clients | grep -q \"${m.type}: ${m.value}\"") candidates
+    );
     m = preferredMatch "hyprland" candidates;
   in "sh -c 'if ${check}; then hyprctl dispatch focuswindow \"${m.type}:${m.value}\"; else ${app.exec}; fi'";
 

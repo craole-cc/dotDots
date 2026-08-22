@@ -182,7 +182,9 @@
   # -- Exclusion predicates
   isExcludedDir = dir: elem dir exclusions.dirs || hasPrefix "." dir;
 
-  isExcludedFile = file: elem file exclusions.files || (foldl' (acc: pat: acc || hasSuffix pat file) false exclusions.patterns);
+  isExcludedFile = file:
+    elem file exclusions.files
+    || (foldl' (acc: pat: acc || hasSuffix pat file) false exclusions.patterns);
 
   # -- Documentation discovery
   findDocs = {
@@ -364,13 +366,25 @@
           total = length results;
           passed = length (filter (t: t.passed or false) results);
           failed = total - passed;
-        in {inherit available total passed failed;}
+        in {
+          inherit
+            available
+            total
+            passed
+            failed
+            ;
+        }
         else {inherit available;};
     in
       cleaned
       // {
         __meta = {
-          inherit aliases module docs tests;
+          inherit
+            aliases
+            module
+            docs
+            tests
+            ;
           exports = attrNames exports;
           functions = attrNames (filterAttrs (_: isFunction) exports);
           values = attrNames (filterAttrs (_: value: !isFunction value) exports);
@@ -390,16 +404,10 @@
         sub = dir + "/${entryName}";
         res = scanDir sub (pathPrefix ++ [entryName]);
       in {
-        modules =
-          optionalAttrs
-          (res.modules != {})
-          {${entryName} = res.modules;};
+        modules = optionalAttrs (res.modules != {}) {${entryName} = res.modules;};
         inherit (res) rootAliases;
       }
-      else if
-        (entryType == "regular")
-        && (hasSuffix ".nix" entryName)
-        && (!isExcludedFile entryName)
+      else if (entryType == "regular") && (hasSuffix ".nix" entryName) && (!isExcludedFile entryName)
       then processNixFile dir pathPrefix entryName
       else empty;
 

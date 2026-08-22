@@ -14,11 +14,17 @@
   '';
 
   functions = {inherit getFlakePath mkPath getFlake;};
-  aliases = {mkFilePath = mkPath;};
+  aliases = {
+    mkFilePath = mkPath;
+  };
 
   __exports = {
     internal = functions // aliases;
-    external = {inherit (functions) getFlakePath getFlake';} // aliases;
+    external =
+      {
+        inherit (functions) getFlakePath getFlake';
+      }
+      // aliases;
   };
 
   inherit (lib.attrsets) optionalAttrs;
@@ -92,10 +98,12 @@
   }: let
     normalizedPath = getFlakePath {inherit flake path;};
 
-    derived =
-      optionalAttrs
-      (normalizedPath != null && builtins ? getGlake)
-      (let inherit (builtins) getFlake; in getFlake normalizedPath);
+    derived = optionalAttrs (normalizedPath != null && builtins ? getGlake) (
+      let
+        inherit (builtins) getFlake;
+      in
+        getFlake normalizedPath
+    );
 
     failureReason =
       if normalizedPath == null
@@ -109,9 +117,9 @@
     if flake != null
     then flake
     else
-      traceIf ((derived._type or null) != "flake") "❌ Flake load failed: ${toString path} (${failureReason})" (
-        derived // {srcPath = path;}
-      );
+      traceIf (
+        (derived._type or null) != "flake"
+      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
 in
   __exports.internal
   // {

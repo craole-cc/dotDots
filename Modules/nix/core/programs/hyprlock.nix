@@ -12,7 +12,6 @@
   wm = config.${top}.resolved.interface.windowManager or null;
 
   inherit (lix.options.construction) mkEnable;
-  inherit (lix.modules.construction) mkIf;
   payload = {
     programs.${mod}.enable = cfg.enable;
   };

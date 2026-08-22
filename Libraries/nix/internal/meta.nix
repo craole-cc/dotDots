@@ -108,4 +108,6 @@
     (tests != {} || tests != null)
     {__tests = tests;}
     {__rootAliases = mkExternal functions;};
-in {inherit mkModuleExports toSingular;}
+in {
+  inherit mkModuleExports toSingular;
+}

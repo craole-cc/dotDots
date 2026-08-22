@@ -16,7 +16,12 @@
   log = "gum log --level";
   confirm = "gum confirm";
 in {
-  inherit pkgs log confirm mkBin;
+  inherit
+    pkgs
+    log
+    confirm
+    mkBin
+    ;
 
   prepare-hermes-messaging = ''
     export HERMES_HOME="''${HERMES_HOME:-$HOME/.hermes}"
@@ -45,11 +50,12 @@ in {
       then arg.faint or false
       else false;
   in
-    concatMapStringsSep "\n"
-    (line:
-      if faint
-      then ''gum style --faint "  ${line}"''
-      else ''gum style "  ${line}"'')
+    concatMapStringsSep "\n" (
+      line:
+        if faint
+        then ''gum style --faint "  ${line}"''
+        else ''gum style "  ${line}"''
+    )
     content;
 
   set-terminal = ''

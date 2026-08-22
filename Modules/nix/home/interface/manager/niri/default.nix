@@ -10,9 +10,7 @@
   inherit (lix.modules.core.staging) mkStaged;
   name = "niri";
   inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
   inherit (lix.attrsets.predicates) waylandEnabled;
-  inherit (lib.types) attrsOf anything submodule;
 
   isAllowed =
     waylandEnabled {
@@ -21,7 +19,9 @@
     }
     && (user.interface.windowManager or null) == name;
   payload = {
-    xdg.configFile."niri/config.kdl" = mkIf (src != null) {source = src + "/Configuration/niri/default.kdl";};
+    xdg.configFile."niri/config.kdl" = mkIf (src != null) {
+      source = src + "/Configuration/niri/default.kdl";
+    };
 
     programs = {
       # ${app} = #TODO: Niri flake is outdated

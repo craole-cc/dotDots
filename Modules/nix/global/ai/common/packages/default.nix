@@ -8,7 +8,16 @@
   inherit (lib.attrsets) attrValues;
 
   apps = {
-    common = {inherit (pkgs) coreutils gum procps curl jq;};
+    common = {
+      inherit
+        (pkgs)
+        coreutils
+        gum
+        procps
+        curl
+        jq
+        ;
+    };
     api = {inherit (pkgs) curl jq;};
     hermes = {
       agent = (inputPkgs "hermes-agent").default;
@@ -30,21 +39,38 @@
     hermes = attrValues apps.hermes;
     default = common;
     all = default ++ ollama ++ hermes;
-  in {inherit common api ollama hermes default all;};
+  in {
+    inherit
+      common
+      api
+      ollama
+      hermes
+      default
+      all
+      ;
+  };
 
-  derived =
-    import ../commands
-    {inherit apps description dots paths runtimes;};
+  derived = import ../commands {
+    inherit
+      apps
+      description
+      dots
+      paths
+      runtimes
+      ;
+  };
 in {
   inherit apps paths runtimes;
   packages =
     derived
     ++ runtimes.all
-    ++ ({pkgsFor, ...}:
-      (pkgsFor {
-        sources = {
-          opencode = "llm-agents";
-          opencode-desktop = "llm-agents";
-        };
-      }).packages);
+    ++ (
+      {pkgsFor, ...}:
+        (pkgsFor {
+          sources = {
+            opencode = "llm-agents";
+            opencode-desktop = "llm-agents";
+          };
+        }).packages
+    );
 }

@@ -205,10 +205,12 @@
   in
     if category == "browser"
     then
-      ((resolve {
-        value = name;
-        inherit category;
-      }).names.class or command)
+      (
+        (resolve {
+          value = name;
+          inherit category;
+        }).names.class or command
+      )
     else legacyClass command;
 
   mkEntry = category: name: {
@@ -223,7 +225,9 @@
     host,
     user ? {},
   }: let
-    raw = recursiveUpdate (recursiveUpdate defaults (host.applications or {})) (user.applications or {});
+    raw = recursiveUpdate (recursiveUpdate defaults (host.applications or {})) (
+      user.applications or {}
+    );
   in {
     browser = {
       primary = mkEntry "browser" raw.browser.primary;

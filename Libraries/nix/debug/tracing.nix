@@ -211,6 +211,7 @@
   3
   ```
   */
-  traceIfNot = pred: msg: value: traceIf (!pred) msg value;
+  traceIfNot = pred: msg: value:
+    traceIf (!pred) msg value;
 in
   exports // {__rootAliases = exports;}

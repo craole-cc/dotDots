@@ -1,5 +1,4 @@
 {
-  config,
   host,
   inputs,
   lix,
@@ -12,7 +11,7 @@
   ...
 }: let
   inherit (lix.modules.core.staging) mkStaged;
-  inherit (lix.modules.construction) mkIf mkMerge;
+  inherit (lix.modules.construction) mkMerge;
   inherit (lix.applications.registry) resolve;
   inherit (lix.applications.runtime) resolvePackage;
   inherit (lix.strings.transformation) normalize;

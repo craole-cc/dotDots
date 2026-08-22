@@ -22,8 +22,12 @@
         {inherit functions aliases;} // functions // aliases;
 
       external = {inherit importRegistry;};
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.filesystem.importers) importRegistry;
 in

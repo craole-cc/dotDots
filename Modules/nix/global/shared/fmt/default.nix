@@ -17,7 +17,6 @@
   inherit (lix.lists.predicates) elem;
   inherit (lix.lists.transformation) filter sort uniqueStrings;
   inherit (lix.modules.construction) mkForce;
-  inherit (pkgs) writeShellApplication;
 
   mkConfig = module: (evalModule pkgs module).config;
   extraSources = {
@@ -78,9 +77,7 @@
 
   tool = let
     formatters = attrNames (init.settings.formatter or {});
-    programs = attrNames (
-      filterAttrs (_: cfg: cfg.enable or false) (init.programs or {})
-    );
+    programs = attrNames (filterAttrs (_: cfg: cfg.enable or false) (init.programs or {}));
     # packages = filter (name: !(elem name programs)) formatters;
     packages = map (name: (of name).pkg) (filter (name: !(elem name programs)) formatters);
     tools = uniqueStrings (formatters ++ programs ++ ["treefmt"]);
@@ -91,10 +88,7 @@
         ruff-check = "ruff";
         ruff-format = "ruff";
       };
-      sources =
-        genAttrs tools (_: null)
-        // genAttrs ["ruff"] (_: null)
-        // extraSources;
+      sources = genAttrs tools (_: null) // genAttrs ["ruff"] (_: null) // extraSources;
     };
 
     of = name: resolved.${name} or null;
@@ -123,7 +117,14 @@
   in
     resolved
     // {
-      inherit tools packages programs formatters of wrappers;
+      inherit
+        tools
+        packages
+        programs
+        formatters
+        of
+        wrappers
+        ;
       names = tools;
     };
 
@@ -139,7 +140,12 @@
       };
     };
 
-    config = mkConfig {imports = [init.module module];};
+    config = mkConfig {
+      imports = [
+        init.module
+        module
+      ];
+    };
   in
     config // config.build // {inherit module;};
 
@@ -149,9 +155,7 @@
     allTools = filter (p: p != null) (map (name: (tool.of name).pkg or null) tool.tools);
     withTools = drv:
       drv.overrideAttrs (old: {
-        nativeBuildInputs =
-          (old.nativeBuildInputs or [])
-          ++ allTools;
+        nativeBuildInputs = (old.nativeBuildInputs or []) ++ allTools;
       });
   in
     eval
@@ -167,14 +171,13 @@
           + ''
             ${print.title "Formatter Environment"}
             ${print.table {
-              columns = ["Formatter" "Version" "Path"];
+              columns = [
+                "Formatter"
+                "Version"
+                "Path"
+              ];
               rows = let
-                names =
-                  ["treefmt"]
-                  ++ (
-                    sort (a: b: a < b)
-                    (filter (name: name != "treefmt") tool.names)
-                  );
+                names = ["treefmt"] ++ (sort (a: b: a < b) (filter (name: name != "treefmt") tool.names));
                 by = name: let
                   app = tool.of name;
                 in [
@@ -188,8 +191,7 @@
           '';
       });
     };
-
-  in {
+in {
   inherit treefmt;
   apps = {};
   inherit (treefmt) formatter checks formatters;

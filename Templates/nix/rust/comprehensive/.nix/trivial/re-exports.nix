@@ -1,6 +1,5 @@
-{lib}: {
-  inherit
-    (lib)
+{ lib }: {
+  inherit (lib)
     fromTOML
     pathExista
     readDir

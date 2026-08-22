@@ -2,7 +2,8 @@
 
 This guide covers data-shape conventions for `API/nix`.
 
-`API/nix` is the source of truth for repo data, so the main goal is stability and clarity rather than behavior.
+`API/nix` is the source of truth for repo data, so the main goal is stability
+and clarity rather than behavior.
 
 ## Typical characteristics
 
@@ -26,7 +27,8 @@ API data should be:
 
 The repo treats things like host and user declarations as data, not behavior.
 
-That means `API/nix` should hold the definitions, while `Libraries/nix` handles normalization and `Modules/nix` handles behavior built from those definitions.
+That means `API/nix` should hold the definitions, while `Libraries/nix` handles
+normalization and `Modules/nix` handles behavior built from those definitions.
 
 ## Good API habits
 

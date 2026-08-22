@@ -22,11 +22,11 @@
     message,
     context,
   }:
-    addErrorContext
-    "while ${context}"
-    (assert assertMsgFunc {
-      inherit name assertion message;
-    }; true);
+    addErrorContext "while ${context}" (
+      assert assertMsgFunc {
+        inherit name assertion message;
+      }; true
+    );
 
   _build = desired: outcome: command: let
     value = deepSeq outcome outcome;
@@ -106,10 +106,21 @@
 
   exports = {
     local = {
-      inherit mkTest mkTest' mkThrows assertMsgFunc withContext;
+      inherit
+        mkTest
+        mkTest'
+        mkThrows
+        assertMsgFunc
+        withContext
+        ;
     };
     alias = {
-      inherit mkTest mkTest' mkThrows assertMsgFunc;
+      inherit
+        mkTest
+        mkTest'
+        mkThrows
+        assertMsgFunc
+        ;
       assertWithContext = withContext;
     };
   };

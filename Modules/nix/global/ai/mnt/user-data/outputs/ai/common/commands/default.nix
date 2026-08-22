@@ -8,7 +8,14 @@
 }: let
   inherit (dots) lix lib;
   inherit (lix.filesystem.traversal) importAllNamed;
-  inherit (lib.attrsets) attrNames attrValues mapAttrs filterAttrs recursiveUpdate;
+  inherit
+    (lib.attrsets)
+    attrNames
+    attrValues
+    mapAttrs
+    filterAttrs
+    recursiveUpdate
+    ;
   inherit (lib.lists) concatLists concatMap foldl';
 
   helpers = import ./helpers.nix {inherit dots paths;};
@@ -34,7 +41,12 @@
   commands = mapAttrs (name: a: service-builder.mkService name a.commands.service) serviced;
 
   aggregate = import ./aggregate.nix {
-    inherit helpers lib names commands;
+    inherit
+      helpers
+      lib
+      names
+      commands
+      ;
   };
 
   #> Every agent's standalone (non-serviced) bins, flattened
@@ -50,9 +62,15 @@ in {
   packages =
     concatLists [
       (concatLists (
-        map
-        (svc: with svc; [start stop status help])
-        (attrValues commands)
+        map (
+          svc:
+            with svc; [
+              start
+              stop
+              status
+              help
+            ]
+        ) (attrValues commands)
       ))
       (attrValues aggregate.all)
       extraCommands
@@ -60,7 +78,13 @@ in {
     ]
     ++ [
       (import ./help.nix {
-        inherit helpers lib description names commands;
+        inherit
+          helpers
+          lib
+          description
+          names
+          commands
+          ;
         inherit (aggregate) all;
       }).show-help
     ];

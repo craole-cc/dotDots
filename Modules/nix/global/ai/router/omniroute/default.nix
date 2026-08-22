@@ -26,27 +26,24 @@
     fmt_faint()   { printf "%s\n" "$(gum style --faint "$@")"; }
   '';
 
-  menu =
-    concatMapStringsSep "\n"
-    (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}")
-    [
-      {
-        cmd = "omniroute-daemon";
-        desc = "start OmniRoute detached in tmux (idempotent)";
-      }
-      {
-        cmd = "omniroute-status";
-        desc = "check OmniRoute and its OpenAI-compatible endpoint";
-      }
-      {
-        cmd = "omniroute-stop";
-        desc = "stop the OmniRoute tmux session";
-      }
-      {
-        cmd = "omniroute-start";
-        desc = "run OmniRoute in the foreground";
-      }
-    ];
+  menu = concatMapStringsSep "\n" (item: "  $(fmt_accent '${item.cmd}')   ${item.desc}") [
+    {
+      cmd = "omniroute-daemon";
+      desc = "start OmniRoute detached in tmux (idempotent)";
+    }
+    {
+      cmd = "omniroute-status";
+      desc = "check OmniRoute and its OpenAI-compatible endpoint";
+    }
+    {
+      cmd = "omniroute-stop";
+      desc = "stop the OmniRoute tmux session";
+    }
+    {
+      cmd = "omniroute-start";
+      desc = "run OmniRoute in the foreground";
+    }
+  ];
 
   mkMenuBox = title: subtitle: ''
     ${gums}
@@ -64,7 +61,10 @@
 
   omniroute = writeShellApplication {
     name = "omniroute";
-    runtimeInputs = [nodejs cacert];
+    runtimeInputs = [
+      nodejs
+      cacert
+    ];
     text = ''
       mkdir -p "${npxCacheDir}/npm-cache"
       NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
@@ -77,7 +77,10 @@
 
   start = writeShellApplication {
     name = "omniroute-start";
-    runtimeInputs = [omniroute gum];
+    runtimeInputs = [
+      omniroute
+      gum
+    ];
     text = ''
       ${gums}
       export DATA_DIR="${dataDir}"
@@ -92,7 +95,11 @@
 
   daemon = writeShellApplication {
     name = "omniroute-daemon";
-    runtimeInputs = [tmux start gum];
+    runtimeInputs = [
+      tmux
+      start
+      gum
+    ];
     text = ''
       ${gums}
       session="omniroute"
@@ -110,7 +117,10 @@
 
   stop = writeShellApplication {
     name = "omniroute-stop";
-    runtimeInputs = [tmux gum];
+    runtimeInputs = [
+      tmux
+      gum
+    ];
     text = ''
       ${gums}
       session="omniroute"
@@ -125,7 +135,13 @@
 
   status = writeShellApplication {
     name = "omniroute-status";
-    runtimeInputs = [tmux curl gum lsof procps];
+    runtimeInputs = [
+      tmux
+      curl
+      gum
+      lsof
+      procps
+    ];
     text = ''
       ${gums}
       session="omniroute"
@@ -143,9 +159,27 @@
     '';
   };
 in {
-  inherit omniroute start daemon stop status;
+  inherit
+    omniroute
+    start
+    daemon
+    stop
+    status
+    ;
 
-  packages = [omniroute start daemon stop status tmux gum nodejs lsof procps curl];
+  packages = [
+    omniroute
+    start
+    daemon
+    stop
+    status
+    tmux
+    gum
+    nodejs
+    lsof
+    procps
+    curl
+  ];
 
   env = {
     OMNIROUTE_PORT = "20128";

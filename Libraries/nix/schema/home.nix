@@ -135,7 +135,8 @@
   Arguments:
     users: Any attrset of user configs.
   */
-  getInteractive = users: filterAttrs (_: u: (u.role or "") != "service" && (u.role or "") != "guest") (getEnabled users);
+  getInteractive = users:
+    filterAttrs (_: u: (u.role or "") != "service" && (u.role or "") != "guest") (getEnabled users);
 
   /**
   Filter a user attrset to only users with `autoLogin = true`.

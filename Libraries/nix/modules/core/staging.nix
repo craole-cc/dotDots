@@ -21,11 +21,14 @@
     exports = {
       internal = let
         functions = {inherit mkModules mkStaged;};
-        aliases = {mkCore = mkModules;};
+        aliases = {
+          mkCore = mkModules;
+        };
       in
-        {inherit functions aliases;}
-        // functions // aliases;
-      external = {mkCoreModules = mkModules;};
+        {inherit functions aliases;} // functions // aliases;
+      external = {
+        mkCoreModules = mkModules;
+      };
     };
   };
 
@@ -67,7 +70,12 @@
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit host specialArgs tree inputs;
+      inherit
+        host
+        specialArgs
+        tree
+        inputs
+        ;
       modules = modules.home;
     })
   ];

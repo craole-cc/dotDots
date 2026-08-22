@@ -83,7 +83,14 @@
   }:
     mapAttrs (
       _: app: let
-        pkg = resolvePackage {inherit app pkgs inputs system;};
+        pkg = resolvePackage {
+          inherit
+            app
+            pkgs
+            inputs
+            system
+            ;
+        };
       in
         app
         // {inherit pkg;}

@@ -27,7 +27,14 @@
   inherit (_.lists.aggregation) concatLists;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
-  inherit (_.types.predicates) isAttrs isBool isFunction isList isString;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isBool
+    isFunction
+    isList
+    isString
+    ;
   inherit (_.strings.access) substring stringLength;
   inherit (_.strings.construction) concatStringsSep splitStringBy;
   inherit (_.strings.transformation) indent;
@@ -139,11 +146,13 @@
     concatenate = input:
       if !(isString delimiter || delimiter == null)
       then
-        throw (_debug.withLoc {
-          function = "concat";
-          message = "delimiter must be a string or null";
-          input = delimiter;
-        })
+        throw (
+          _debug.withLoc {
+            function = "concat";
+            message = "delimiter must be a string or null";
+            input = delimiter;
+          }
+        )
       else if (input == null) || (input == [])
       then
         if delimiter == null
@@ -330,9 +339,7 @@
         if isBool include
         then include
         else true;
-      raw =
-        filter (x: x != null && x != "")
-        (splitStringBy splitPred keepSplit str);
+      raw = filter (x: x != null && x != "") (splitStringBy splitPred keepSplit str);
 
       # For predicate includes: strip the leading delimiter from any chunk
       # where the delimiter doesn't satisfy the include predicate
@@ -368,9 +375,17 @@
           res = ''[ [ "foo" "bar" ] [ "baz" "qux" ] ]'';
         };
       in
-        throw (_debug.withDoc {
-          inherit input function message signature example;
-        })
+        throw (
+          _debug.withDoc {
+            inherit
+              input
+              function
+              message
+              signature
+              example
+              ;
+          }
+        )
       else if isList input
       then map (splitOne delimiters include) input
       else splitOne delimiters include input;
@@ -384,24 +399,24 @@
     in
       if (isFunction delimiters) && (isString includes || isList includes)
       then
-        throw (_debug.withDoc {
-          function = "split";
-          message = "when `delimiters` is a function, `include` must be a bool or function, not a string or list";
-          input = includes;
-          signature = "{ delimiters :: fn; include :: bool | fn; input :: string | [string]; } -> [string] | [[string]]";
-          example = mkExample {
-            cmd = ''split { delimiters = (prev: curr: curr == "."); include = false; input = "foo.bar"; }'';
-            res = ''[ "foo" "bar" ]'';
-          };
-        })
+        throw (
+          _debug.withDoc {
+            function = "split";
+            message = "when `delimiters` is a function, `include` must be a bool or function, not a string or list";
+            input = includes;
+            signature = "{ delimiters :: fn; include :: bool | fn; input :: string | [string]; } -> [string] | [[string]]";
+            example = mkExample {
+              cmd = ''split { delimiters = (prev: curr: curr == "."); include = false; input = "foo.bar"; }'';
+              res = ''[ "foo" "bar" ]'';
+            };
+          }
+        )
       else
-        process
-        (
+        process (
           if isFunction delimiters
           then delimiters
           else mkPredicate "delimiters" delimiters
-        )
-        (mkPredicate "includes" includes)
+        ) (mkPredicate "includes" includes)
         input
     # Curried form — raw predicate, drop-in for splitStringBy
     else if isFunction arg
@@ -409,27 +424,26 @@
       include: input:
         if !(isBool include || isFunction include)
         then
-          throw (_debug.withLoc {
-            function = "split";
-            message = "curried form: second argument (include) must be a bool or function";
-            input = include;
-          })
+          throw (
+            _debug.withLoc {
+              function = "split";
+              message = "curried form: second argument (include) must be a bool or function";
+              input = include;
+            }
+          )
         else process arg (mkPredicate "includes" include) input
     # Shorthand string form — split "delimiter" input (include = false)
     else if isString arg || isList arg
-    then
-      input:
-        process
-        (mkPredicate "delimiters" arg)
-        (mkPredicate "includes" false)
-        input
+    then input: process (mkPredicate "delimiters" arg) (mkPredicate "includes" false) input
     # Bad first argument
     else
-      throw (_debug.withLoc {
-        function = "split";
-        message = "first argument must be an attrset { delimiters, include, input }, a predicate function, or a delimiter string";
-        input = arg;
-      });
+      throw (
+        _debug.withLoc {
+          function = "split";
+          message = "first argument must be an attrset { delimiters, include, input }, a predicate function, or a delimiter string";
+          input = arg;
+        }
+      );
 
   # Internal: build a predicate that checks if any pattern matches any input value.
   mkAnyPredicate = {
@@ -534,7 +548,8 @@
       icons = "icon";
       accents = "accent";
       flavors = "flavor";
-    }.${
+    }
+    .${
       domain
     } or domain;
 in
@@ -806,7 +821,7 @@ in
           ];
           command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
           outcome = split {
-            delimiters = prev: curr:
+            delimiters = _prev: curr:
               isIn curr [
                 "."
                 "-"
@@ -825,12 +840,15 @@ in
             "baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
-          outcome = split (prev: curr:
-            isIn curr [
-              "."
-              "-"
-            ])
-          false "foo.bar-baz";
+          outcome =
+            split (
+              _prev: curr:
+                isIn curr [
+                  "."
+                  "-"
+                ]
+            )
+            false "foo.bar-baz";
         };
         curriedIncludeTrue = mkTest {
           desired = [
@@ -839,12 +857,15 @@ in
             "-baz"
           ];
           command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
-          outcome = split (prev: curr:
-            isIn curr [
-              "."
-              "-"
-            ])
-          true "foo.bar-baz";
+          outcome =
+            split (
+              _prev: curr:
+                isIn curr [
+                  "."
+                  "-"
+                ]
+            )
+            true "foo.bar-baz";
         };
         curriedListInput = mkTest {
           desired = [
@@ -858,7 +879,7 @@ in
             ]
           ];
           command = ''split (prev: curr: curr == ".") false ["foo.bar" "baz.qux"]'';
-          outcome = split (prev: curr: curr == ".") false [
+          outcome = split (_prev: curr: curr == ".") false [
             "foo.bar"
             "baz.qux"
           ];

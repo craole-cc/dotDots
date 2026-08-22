@@ -13,9 +13,13 @@
     '';
     exports = {
       local = {inherit opacity;};
-      alias = {opacityType = opacity;};
+      alias = {
+        opacityType = opacity;
+      };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
   inherit (_.options.construction) mkOption;
   inherit (_.types.combinators) submodule;
   inherit (_.types.primitives) float;

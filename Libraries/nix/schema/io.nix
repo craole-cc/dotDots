@@ -318,12 +318,16 @@
     host,
     user ? {},
   }:
-    normalizeKeyboard (recursiveUpdate (recursiveUpdate defaults.keyboard (host.keyboard or {})) (user.keyboard or {}));
+    normalizeKeyboard (
+      recursiveUpdate (recursiveUpdate defaults.keyboard (host.keyboard or {})) (user.keyboard or {})
+    );
 
   mkKeybindings = {
     hyprland = kb:
       map (b: "${b.mod}, ${b.key}, exec, ${b.action}") (
-        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (attrValues kb.bindings)
+        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (
+          attrValues kb.bindings
+        )
       );
   };
 in

@@ -13,15 +13,11 @@
 }: let
   inherit (lix.modules.core.staging) mkStaged;
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf mkMerge mkForce;
+  inherit (lib.modules) mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;
   inherit (style) fonts;
   name = "caelestia";
-  kind = "bar";
-  enable =
-    config ? programs.${name}
-    && (inputsForHome ? ${name})
-    && inputsForHome.${name}.isAllowed;
+  enable = config ? programs.${name} && (inputsForHome ? ${name}) && inputsForHome.${name}.isAllowed;
   payload = mkMerge [
     (import ./hyprland.nix {inherit mod;})
     {
@@ -30,7 +26,15 @@
           ${name} = mkMerge [
             {enable = true;}
             (import ./cli {})
-            (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
+            (import ./settings {
+              inherit
+                locale
+                fonts
+                mkMerge
+                paths
+                vimKeybinds
+                ;
+            })
           ];
         })
       ];

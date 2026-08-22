@@ -23,13 +23,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 
-  mkAddons = target:
-    mkIf cfg.withAddons
-    (
-      import ./addons {inherit lib mkMerge paths;}
-    ).${
-      target
-    };
+  mkAddons = target: mkIf cfg.withAddons (import ./addons {inherit lib mkMerge paths;}).${target};
 
   payload = {
     wayland.windowManager.hyprland = mkMerge [
@@ -76,13 +70,21 @@
   };
 in {
   options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = windowManager == "hyprland";};
+    enable =
+      mkEnableOption mod
+      // {
+        default = windowManager == "hyprland";
+      };
     withAddons = mkOption {
       description = "Enable hyprland addons";
       default = true;
       type = bool;
     };
-    withRules = mkEnableOption "Window rules" // {default = true;};
+    withRules =
+      mkEnableOption "Window rules"
+      // {
+        default = true;
+      };
   };
 
   config = lib.mkMerge (mkStaged {

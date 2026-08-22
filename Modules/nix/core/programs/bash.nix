@@ -16,7 +16,6 @@
 
   inherit (lix.lists.predicates) isIn;
   inherit (lix.options.construction) mkEnable mkTrue;
-  inherit (lix.modules.construction) mkIf;
   payload = {
     programs.${mod} = {
       inherit (cfg) enable;

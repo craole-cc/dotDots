@@ -88,7 +88,9 @@
       {
         system = {
           checks.verifyNixPath = false;
-          darwinVersionSuffix = ".${inputs.nix-darwin.shortRev or inputs.nix-darwin.dirtyShortRev or "dirty"}";
+          darwinVersionSuffix = ".${
+            inputs.nix-darwin.shortRev or inputs.nix-darwin.dirtyShortRev or "dirty"
+          }";
           darwinRevision = inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
         };
       }
@@ -158,7 +160,16 @@
       modulesPath = path;
     };
   in
-    all // {inherit all base core home path;};
+    all
+    // {
+      inherit
+        all
+        base
+        core
+        home
+        path
+        ;
+    };
 in
   __exports.internal
   // {

@@ -6,10 +6,17 @@
 }: let
   inherit (dots) pkgs lib;
   inherit (lib.strings) escapeShellArg;
-  inherit (helpers) confirm log mkBin renderHelp set-terminal;
+  inherit
+    (helpers)
+    confirm
+    log
+    mkBin
+    renderHelp
+    set-terminal
+    ;
 
   mkProcess = pattern: let
-    cmd = action: ''${action} -f -- ${escapeShellArg pattern} >/dev/null 2>&1'';
+    cmd = action: "${action} -f -- ${escapeShellArg pattern} >/dev/null 2>&1";
   in {
     check = cmd "pgrep";
     kill = cmd "pkill";
@@ -60,12 +67,14 @@
   '';
 
   mkRequire = args:
-    mkCheck ({
+    mkCheck (
+      {
         level = "error";
         action = "exit 1";
         invert = false;
       }
-      // args);
+      // args
+    );
 
   parseStartArgs = ''
     while [ "$#" -gt 0 ]; do

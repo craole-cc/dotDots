@@ -6,7 +6,8 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "style";
   sub = "wallpapers";
@@ -14,34 +15,45 @@
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.modules) mkIf;
-  inherit (lib.types) attrsOf anything nullOr path str;
+  inherit (lib.types) attrsOf anything str;
   inherit (lix.modules.core.style) resolveWallpapers;
 
-  user =
-    recursiveUpdate {
-      interface.style.wallpapers = {
-        dots = host.dots or "$DOTS";
-        pics = "$HOME/Pictures";
-        light = {};
-        dark = {};
-      };
-    }
-    (host.users.data.primary or {});
+  user = recursiveUpdate {
+    interface.style.wallpapers = {
+      dots = host.dots or "$DOTS";
+      pics = "$HOME/Pictures";
+      light = { };
+      dark = { };
+    };
+  } (host.users.data.primary or { });
 
-  seed = let
-    w = user.interface.style.wallpapers;
-  in
+  seed =
+    let
+      w = user.interface.style.wallpapers;
+    in
     resolveWallpapers {
       inherit (lix) tree;
-      inherit (w) dots pics light dark;
+      inherit (w)
+        dots
+        pics
+        light
+        dark
+        ;
     }
     // {
-      inherit (w) dots pics light dark;
+      inherit (w)
+        dots
+        pics
+        light
+        dark
+        ;
     };
-in {
+in
+{
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable = mkEnableOption mod // {
+      default = true;
+    };
 
     dots = mkOption {
       description = "Path prefix for dotfiles wallpaper assets (used to build file/dirs)";
@@ -60,14 +72,14 @@ in {
     light = mkOption {
       description = "Overrides for the light-polarity wallpaper set (image, file, dirs)";
       default = seed.light;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.wallpapers.light or {}'';
+      defaultText = literalExpression "host.users.data.primary.interface.style.wallpapers.light or {}";
       type = attrsOf anything;
     };
 
     dark = mkOption {
       description = "Overrides for the dark-polarity wallpaper set (image, file, dirs)";
       default = seed.dark;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.wallpapers.dark or {}'';
+      defaultText = literalExpression "host.users.data.primary.interface.style.wallpapers.dark or {}";
       type = attrsOf anything;
     };
 

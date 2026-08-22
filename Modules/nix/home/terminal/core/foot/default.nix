@@ -47,7 +47,10 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = ["System" "TerminalEmulator"];
+    categories = [
+      "System"
+      "TerminalEmulator"
+    ];
   };
 
   quake = makeDesktopItem {
@@ -58,14 +61,23 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = ["System" "TerminalEmulator"];
+    categories = [
+      "System"
+      "TerminalEmulator"
+    ];
     noDisplay = true;
   };
 
   resolved = userApplicationConfig {
     inherit context user pkgs;
     inherit (cfg) customCommand resolutionHints requiresWayland;
-    extraPackages = wrappers ++ [desktop quake] ++ cfg.extraPackages;
+    extraPackages =
+      wrappers
+      ++ [
+        desktop
+        quake
+      ]
+      ++ cfg.extraPackages;
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
@@ -87,7 +99,10 @@ in
       };
       resolutionHints = mkOption {
         description = "Candidate package names to try when resolving the `foot` package.";
-        default = ["foot" "feet"];
+        default = [
+          "foot"
+          "feet"
+        ];
         type = listOf str;
       };
       requiresWayland = mkOption {

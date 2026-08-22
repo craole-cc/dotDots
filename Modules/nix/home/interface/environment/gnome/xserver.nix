@@ -6,7 +6,6 @@
   ...
 }: let
   inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.modules) mkIf;
   inherit (config.dots.interface) display desktop;
   cfgEnabled = desktop.environment == "gnome" && display.protocol == "xserver";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable;

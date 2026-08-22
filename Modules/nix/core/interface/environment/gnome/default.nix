@@ -6,7 +6,6 @@
   lix,
   ...
 }: let
-  inherit (lib.modules) mkIf;
   cfg = config.${top}.resolved.interface;
   payload = {
     services.desktopManager.gnome.enable = true;

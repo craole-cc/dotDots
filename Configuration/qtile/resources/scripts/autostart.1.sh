@@ -2,9 +2,9 @@
 #shellcheck enable=all
 
 function run() {
-	if ! pgrep -x "$(basename "$1" | head -c 15)" 1>/dev/null; then
-		"$@" &
-	fi
+  if ! pgrep -x "$(basename "$1" | head -c 15)" 1>/dev/null; then
+    "$@" &
+  fi
 }
 
 Qtile="$HOME/.config/qtile"
@@ -29,7 +29,7 @@ Qconf="$Qtile/resourses/config"
 keybLayout=$(setxkbmap -v | awk -F "+" '/symbols/ {print $2}')
 
 if [ "$keybLayout" = "be" ]; then
-	cp "$Qtile/config-azerty.py" "$Qtile/config.py"
+  cp "$Qtile/config-azerty.py" "$Qtile/config.py"
 fi
 
 #autostart ArcoLinux Welcome App

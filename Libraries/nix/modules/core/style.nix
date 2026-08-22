@@ -82,7 +82,9 @@
         resolveCoreWallpapers = resolveWallpapers;
       };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
   inherit (lib.attrsets) optionalAttrs recursiveUpdate;
   inherit (lib.modules) mkForce mkMerge;
   inherit (lib.strings) hasInfix toUpper substring;
@@ -112,7 +114,13 @@
         dots = dots + bases.dots;
         user = pics + bases.user;
       }
-      // {common = with repos; [dots user path];};
+      // {
+        common = with repos; [
+          dots
+          user
+          path
+        ];
+      };
 
     get = polarity: let
       stem = "/" + polarity;
@@ -151,7 +159,9 @@
     };
 
     getTheme = polarity:
-      {package = pkgs.catppuccin;}
+      {
+        package = pkgs.catppuccin;
+      }
       // (
         if polarity == "light"
         then {
@@ -177,10 +187,7 @@
           scheme = "catppuccin-frappe";
           variant = variant.dark;
         }
-        else
-          throw "resolveCatppuccin: unsupported dark variant `${
-            variant.dark
-          }`; expected: frappe, macchiato, mocha"
+        else throw "resolveCatppuccin: unsupported dark variant `${variant.dark}`; expected: frappe, macchiato, mocha"
       );
   in {
     themes =
@@ -212,12 +219,15 @@
       {
         inherit pkgs;
         cursors =
-          {inherit light dark;}
+          {
+            inherit light dark;
+          }
           // optionalAttrs (size != null) {inherit size;};
       }
       // optionalAttrs (accent != null) {inherit accent;}
       // optionalAttrs (variant != null) {inherit variant;}
-    )).cursors {inherit light dark;};
+    )).cursors
+    {inherit light dark;};
 
   resolveThemes = {
     pkgs,
@@ -234,7 +244,8 @@
       }
       // optionalAttrs (accent != null) {inherit accent;}
       // optionalAttrs (variant != null) {inherit variant;}
-    )).themes {inherit light dark;};
+    )).themes
+    {inherit light dark;};
 
   resolveIcons = {
     pkgs,
@@ -263,32 +274,44 @@
     packages ? [],
     ...
   }: let
-    sets = recursiveUpdate {
-      clock = {
-        name = "Rubik";
-        package = pkgs.rubik;
+    sets =
+      recursiveUpdate
+      {
+        clock = {
+          name = "Rubik";
+          package = pkgs.rubik;
+        };
+        emoji = {
+          name = "Noto Color Emoji";
+          package = pkgs.noto-fonts-color-emoji;
+        };
+        material = {
+          name = "Material Symbols Sharp";
+          package = pkgs.material-symbols;
+        };
+        monospace = {
+          name = "Maple Mono NF";
+          package = pkgs.maple-mono.NF-unhinted;
+        };
+        sansSerif = {
+          name = "Monaspace Radon Frozen";
+          package = pkgs.monaspace;
+        };
+        serif = {
+          name = "Noto Serif";
+          package = pkgs.noto-fonts;
+        };
+      }
+      {
+        inherit
+          clock
+          emoji
+          material
+          monospace
+          sansSerif
+          serif
+          ;
       };
-      emoji = {
-        name = "Noto Color Emoji";
-        package = pkgs.noto-fonts-color-emoji;
-      };
-      material = {
-        name = "Material Symbols Sharp";
-        package = pkgs.material-symbols;
-      };
-      monospace = {
-        name = "Maple Mono NF";
-        package = pkgs.maple-mono.NF-unhinted;
-      };
-      sansSerif = {
-        name = "Monaspace Radon Frozen";
-        package = pkgs.monaspace;
-      };
-      serif = {
-        name = "Noto Serif";
-        package = pkgs.noto-fonts;
-      };
-    } {inherit clock emoji material monospace sansSerif serif;};
   in {
     inherit sets;
     packages =
@@ -347,34 +370,26 @@
   in
     {
       environment.sessionVariables =
-        {THEME_POLARITY = polarity;}
-        // (
-          optionalAttrs
-          ((polarized.theme.name or null) != null)
-          {THEME_NAME = polarized.theme.name;}
-        )
-        // (
-          optionalAttrs
-          ((polarized.theme.variant or null) != null)
-          {THEME_VARIANT = polarized.theme.variant;}
-        )
-        // (
-          optionalAttrs
-          ((polarized.theme.accent or null) != null)
-          {THEME_ACCENT = polarized.theme.accent;}
-        )
+        {
+          THEME_POLARITY = polarity;
+        }
+        // (optionalAttrs ((polarized.theme.name or null) != null) {THEME_NAME = polarized.theme.name;})
+        // (optionalAttrs ((polarized.theme.variant or null) != null) {
+          THEME_VARIANT = polarized.theme.variant;
+        })
+        // (optionalAttrs ((polarized.theme.accent or null) != null) {
+          THEME_ACCENT = polarized.theme.accent;
+        })
         // (with polarized.wallpapers; {
           WALLPAPER = toString image;
           WALLPAPERS = toString dirs;
         })
-        // (
-          with fonts.sets; {
-            FONT_MONOSPACE = monospace.name;
-            FONT_SANS = sansSerif.name;
-            FONT_SERIF = serif.name;
-            FONT_EMOJI = emoji.name;
-          }
-        );
+        // (with fonts.sets; {
+          FONT_MONOSPACE = monospace.name;
+          FONT_SANS = sansSerif.name;
+          FONT_SERIF = serif.name;
+          FONT_EMOJI = emoji.name;
+        });
 
       fonts = {
         inherit (fonts) packages;
@@ -396,32 +411,34 @@
         };
       };
     }
-    // (
-      optionalAttrs
-      (enableStylix && (polarized.theme.name or null) != null)
-      (mkMerge [
-        {
-          stylix = {
-            inherit polarity;
-            inherit (polarized) opacity;
-            inherit (polarized.wallpapers) image;
-            enable = true;
-            base16Scheme = with polarized.theme; "${package}/share/themes/${scheme}.yaml";
+    // (optionalAttrs (enableStylix && (polarized.theme.name or null) != null) (mkMerge [
+      {
+        stylix = {
+          inherit polarity;
+          inherit (polarized) opacity;
+          inherit (polarized.wallpapers) image;
+          enable = true;
+          base16Scheme = with polarized.theme; "${package}/share/themes/${scheme}.yaml";
 
-            cursor = {
-              inherit (polarized.cursors) name package size;
-            };
-            fonts = {
-              inherit (fonts.sets) emoji monospace sansSerif serif;
-            };
-            # icons = {
-            #   inherit (polarized.icons) package light dark;
-            # };
-            targets.qt.enable = mkForce false;
+          cursor = {
+            inherit (polarized.cursors) name package size;
           };
-        }
-      ])
-    );
+          fonts = {
+            inherit
+              (fonts.sets)
+              emoji
+              monospace
+              sansSerif
+              serif
+              ;
+          };
+          # icons = {
+          #   inherit (polarized.icons) package light dark;
+          # };
+          targets.qt.enable = mkForce false;
+        };
+      }
+    ]));
 in
   meta.exports.local
   // {

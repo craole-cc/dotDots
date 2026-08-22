@@ -13,9 +13,15 @@
     exports = let
       internal = registry;
       # TODO: Derive registryOf<basename> using debug or meta
-      external = {registryOfApplications = registry;};
-    in {inherit internal external;};
-  in {inherit doc exports;};
+      external = {
+        registryOfApplications = registry;
+      };
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
   registry = _.sources.registry.io.import ./.;
 in

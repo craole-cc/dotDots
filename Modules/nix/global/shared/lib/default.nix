@@ -1,5 +1,12 @@
 args: let
-  inherit (args) flake pkgs lix inputs paths;
+  inherit
+    (args)
+    flake
+    pkgs
+    lix
+    inputs
+    paths
+    ;
   inherit (args.lix.sources.packages) pkgOf pkgsFrom;
   inherit (lix.lists.construction) optionals;
   inherit (lix.modules.core.software) mkFetch;
@@ -24,7 +31,16 @@ args: let
     required ? true,
     versionArgs ? null,
   }:
-    pkgOf {inherit input inputs pkgs required target versionArgs;};
+    pkgOf {
+      inherit
+        input
+        inputs
+        pkgs
+        required
+        target
+        versionArgs
+        ;
+    };
 
   pkgsFor = {
     sources,

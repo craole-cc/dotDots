@@ -26,7 +26,9 @@ in
     options = {
       enable =
         mkEnableOption "OpenVPN namespace-isolated tunnel"
-        // {default = isIn "vpn" (host.functionalities or []);};
+        // {
+          default = isIn "vpn" (host.functionalities or []);
+        };
       configFile = mkOption {
         description = "Path to .ovpn config (outside Nix store)";
         default = vpnCfg.configFile or "/etc/openvpn/vpn.ovpn";
@@ -42,7 +44,10 @@ in
       systemd.services.vpn-tunnel = {
         description = "OpenVPN inside VPN network namespace";
         wantedBy = ["multi-user.target"];
-        after = ["vpn-veth.service" "agenix.service"];
+        after = [
+          "vpn-veth.service"
+          "agenix.service"
+        ];
         requires = ["vpn-veth.service"];
         serviceConfig = {
           Type = "simple";

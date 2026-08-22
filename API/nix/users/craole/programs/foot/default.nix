@@ -42,7 +42,8 @@ in {
         '')
       ];
       sessionVariables =
-        optionalAttrs isPrimary {TERMINAL = "feet";} // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
+        optionalAttrs isPrimary {TERMINAL = "feet";}
+        // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
     };
   };
 }

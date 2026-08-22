@@ -73,9 +73,9 @@
   ```
   */
   nixFilesIn = entries:
-    filter
-    (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix")
-    (attrNames entries);
+    filter (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix") (
+      attrNames entries
+    );
 
   /**
     Names of subdirectories in `entries` (a `readDir` result) not listed in
@@ -99,9 +99,7 @@
   ```
   */
   subDirsIn = entries:
-    filter
-    (name: entries.${name} == "directory" && !(elem name foldersToExclude))
-    (attrNames entries);
+    filter (name: entries.${name} == "directory" && !(elem name foldersToExclude)) (attrNames entries);
 
   # -- shared call primitive
 
@@ -142,10 +140,7 @@
   in
     if required == {}
     then import path args
-    else
-      import path (
-        filterAttrs (name: _: elem name (attrNames required)) args
-      );
+    else import path (filterAttrs (name: _: elem name (attrNames required)) args);
 
   # -- importNixModules
 
@@ -234,7 +229,9 @@
       else [];
 
     entries = readDir dir;
-    dirNames = filter (name: entries.${name} == "directory" && !(elem name exclude)) (attrNames entries);
+    dirNames = filter (name: entries.${name} == "directory" && !(elem name exclude)) (
+      attrNames entries
+    );
     domainDefault =
       if entries ? "default.nix"
       then import (dir + "/default.nix")
@@ -323,18 +320,16 @@
 
     fileResults = map (name: collect (dir + "/${name}")) (nixFilesIn entries);
 
-    dirResults =
-      map (
-        name: let
-          subPath = dir + "/${name}";
-          subEntries = readDir subPath;
-          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
-        in
-          if hasDefault
-          then collect (subPath + "/default.nix")
-          else recurse subPath
-      )
-      (subDirsIn entries);
+    dirResults = map (
+      name: let
+        subPath = dir + "/${name}";
+        subEntries = readDir subPath;
+        hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+      in
+        if hasDefault
+        then collect (subPath + "/default.nix")
+        else recurse subPath
+    ) (subDirsIn entries);
   in
     fileResults ++ flatten dirResults;
 
@@ -467,14 +462,13 @@
     go = dir: let
       entries = readDir dir;
 
-      fileNames =
-        filter
-        (name:
+      fileNames = filter (
+        name:
           (entries.${name} == "regular")
           && (hasSuffix ".nix" name)
           && (name != "default.nix")
-          && !(isExcluded name))
-        (attrNames entries);
+          && !(isExcluded name)
+      ) (attrNames entries);
 
       fileResults = listToAttrs (
         map (name: {
@@ -484,10 +478,7 @@
         fileNames
       );
 
-      dirNames =
-        filter
-        (name: entries.${name} == "directory" && !(isExcluded name))
-        (attrNames entries);
+      dirNames = filter (name: entries.${name} == "directory" && !(isExcluded name)) (attrNames entries);
 
       dirResults =
         map (
@@ -623,7 +614,11 @@
 
     root = assert withContext {
       name = "importRegistry";
-      context = concat " " ["resolving" "registry" "root"];
+      context = concat " " [
+        "resolving"
+        "registry"
+        "root"
+      ];
       assertion = args ? root && (isPath args.root || isString args.root);
       message = "expected `root` to be a path or string";
     };
@@ -639,35 +634,37 @@
     stemOf = name: substring 0 (stringLength name - 4) name;
 
     direct = listToAttrs (
-      map (name: let
-        stem = stemOf name;
-      in {
-        name = stem;
-        value = let
-          raw = importModuleFiltered extraArgs (path + "/${name}");
-        in
-          mapAttrs (_: entry:
-            entry
-            // {
-              categories = unique ((toList (entry.categories or [])) ++ [stem]);
-            })
-          raw;
-      })
-      (nixFilesIn entries)
+      map (
+        name: let
+          stem = stemOf name;
+        in {
+          name = stem;
+          value = let
+            raw = importModuleFiltered extraArgs (path + "/${name}");
+          in
+            mapAttrs (
+              _: entry:
+                entry
+                // {
+                  categories = unique ((toList (entry.categories or [])) ++ [stem]);
+                }
+            )
+            raw;
+        }
+      ) (nixFilesIn entries)
     );
   in
     if recursive
     then
       direct
-      // foldl'
-      (acc: name:
-        acc
-        // importRegistry {
-          inherit root recursive extraArgs;
-          stems = stems ++ [name];
-        })
-      {}
-      (subDirsIn entries)
+      // foldl' (
+        acc: name:
+          acc
+          // importRegistry {
+            inherit root recursive extraArgs;
+            stems = stems ++ [name];
+          }
+      ) {} (subDirsIn entries)
     else direct;
 in
   exports // {__rootAliases = exports;}

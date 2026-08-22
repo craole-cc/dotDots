@@ -1,8 +1,7 @@
 {_, ...}: let
   meta = {
     # TODO: Add the correct doc
-    doc = ''
-    '';
+    doc = "";
 
     exports = {
       internal = let
@@ -18,8 +17,7 @@
         };
         aliases = {};
       in
-        {inherit functions aliases;}
-        // functions // aliases;
+        {inherit functions aliases;} // functions // aliases;
       external = {
         inherit
           mkAudio
@@ -147,10 +145,11 @@
     hasValidBootLoader = any (pattern: hasInfix pattern bootLoader) validBootLoaderPatterns;
 
     functionalities = host.functionalities or [];
-    hasDualBoot = any (f:
-      hasInfix "dualboot" (toLowerCase f)
-      || hasInfix "dual-boot" (toLowerCase f))
-    functionalities;
+    hasDualBoot =
+      any (
+        f: hasInfix "dualboot" (toLowerCase f) || hasInfix "dual-boot" (toLowerCase f)
+      )
+      functionalities;
     hasEfi = elem "efi" functionalities;
 
     kernel = rec {
@@ -168,7 +167,8 @@
 
       #> Determine which kernel to use with proper tracing
       selected =
-        traceIf (requested != null && exists) "✓ Using kernel: ${requested} (${packages.kernel.version or "unknown"})"
+        traceIf (requested != null && exists)
+        "✓ Using kernel: ${requested} (${packages.kernel.version or "unknown"})"
         (
           traceIf (requested != null && !exists)
           "⚠️  Kernel '${requested}' not found in pkgs, using default (${default.kernel.version})"

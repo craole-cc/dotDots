@@ -118,7 +118,9 @@
         };
 
     full =
-      {default = construct {root = src;};}
+      {
+        default = construct {root = src;};
+      }
       // mapAttrs (groupName: group: resolve (rootFor groupName) group) stems;
 
     project = field: let
@@ -157,8 +159,7 @@
           stem = value;
         }).local;
   in
-    {default = (construct {inherit root;}).local;}
-    // mapAttrs (groupName: resolveAt) stems;
+    {default = (construct {inherit root;}).local;} // mapAttrs (_groupName: resolveAt) stems;
 
   /**
     Recursively flattens a nested `{store;local;}`-leaved tree into a
@@ -187,24 +188,25 @@
     getValue ? (entry: entry.local),
   }:
     concatLists (
-      mapAttrsToList
-      (key: value:
-        if isAttrs value && !(value ? local)
-        then
-          flattenTree {
-            inherit getValue;
-            tree = value;
-            prefix = "${prefix}_${toUpper key}";
-          }
-        else [
-          {
-            name =
-              if key == "default"
-              then prefix
-              else "${prefix}_${toUpper key}";
-            default = getValue value;
-          }
-        ])
+      mapAttrsToList (
+        key: value:
+          if isAttrs value && !(value ? local)
+          then
+            flattenTree {
+              inherit getValue;
+              tree = value;
+              prefix = "${prefix}_${toUpper key}";
+            }
+          else [
+            {
+              name =
+                if key == "default"
+                then prefix
+                else "${prefix}_${toUpper key}";
+              default = getValue value;
+            }
+          ]
+      )
       tree
     );
 in

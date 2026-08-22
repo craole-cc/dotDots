@@ -91,10 +91,7 @@ in
     flake = flake';
     lib = lib';
 
-    names =
-      defaults.names
-      // (optionalAttrs (name != null) {lib = name;})
-      // names;
+    names = defaults.names // (optionalAttrs (name != null) {lib = name;}) // names;
 
     paths = paths';
 

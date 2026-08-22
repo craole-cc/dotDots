@@ -2,7 +2,8 @@
 
 This guide covers the style used in `Modules/nix`.
 
-Modules should describe behavior clearly and keep their public surface easy to discover.
+Modules should describe behavior clearly and keep their public surface easy to
+discover.
 
 ## Typical shape
 
@@ -45,6 +46,8 @@ When you are choosing where a change belongs, keep that split intact.
 
 ## What to avoid
 
-- putting orchestration inside a leaf module when a central constructor already owns it
+- putting orchestration inside a leaf module when a central constructor already
+  owns it
 - hiding behavior in `default.nix` when the file is only an aggregator
-- creating a module surface that cannot be understood without reading private helpers first
+- creating a module surface that cannot be understood without reading private
+  helpers first

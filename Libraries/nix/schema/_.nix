@@ -59,12 +59,13 @@
       then removeAttrs (importAttrs paths.hosts) ["default"]
       else {};
     hosts =
-      mapAttrs
-      (name: host:
-        mkCore {
-          inherit name users;
-          host = recursiveUpdate defaultHost host;
-        })
+      mapAttrs (
+        name: host:
+          mkCore {
+            inherit name users;
+            host = recursiveUpdate defaultHost host;
+          }
+      )
       rawHosts;
   in {
     inherit global users hosts;

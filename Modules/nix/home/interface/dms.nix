@@ -5,5 +5,8 @@
   ...
 }: {
   config.programs.dank-material-shell.enable =
-    lib.mkIf (config.${top}.resolved.interface.panel == "dms-shell") true;
+    lib.mkIf (
+      config.${top}.resolved.interface.panel == "dms-shell"
+    )
+    true;
 }

@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkMerge;
   inherit (lix.lists.predicates) isIn;
 
   app = "vim";

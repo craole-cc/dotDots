@@ -19,13 +19,19 @@ in
     options = {
       enable =
         mkEnable {inherit context;}
-        // {default = config.programs.git.enable;};
+        // {
+          default = config.programs.git.enable;
+        };
       git.enable =
         mkEnable {description = "Enable Delta's Git integration";}
-        // {default = config.programs.git.enable;};
+        // {
+          default = config.programs.git.enable;
+        };
       jujutsu.enable =
         mkEnable {description = "Enable Delta's Jujutsu integration";}
-        // {default = config.programs.jujutsu.enable;};
+        // {
+          default = config.programs.jujutsu.enable;
+        };
     };
     outputs = {
       programs.delta = {

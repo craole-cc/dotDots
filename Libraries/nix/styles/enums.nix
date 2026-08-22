@@ -23,7 +23,13 @@
 
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.construction) mkEnum;
-  inherit (_.styles.filters.queries) icons cursors flavors accents;
+  inherit
+    (_.styles.filters.queries)
+    icons
+    cursors
+    flavors
+    accents
+    ;
   inherit (_.styles.registry) isRegistryAttrset;
 
   toEnums = input:

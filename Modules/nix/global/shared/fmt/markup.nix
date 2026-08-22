@@ -1,9 +1,6 @@
 {
-  lix,
-  pkgs,
   flake,
   commands,
-  path,
   ...
 }: let
   inherit (flake) path;
@@ -104,17 +101,31 @@ in {
   settings.formatter = {
     dprint = {
       priority = 1;
-      options = ["--allow-no-files" "--config" "${path}/dprint.json"];
+      options = [
+        "--allow-no-files"
+        "--config"
+        "${path}/dprint.json"
+      ];
     };
     harper = {
       command = commands.harper;
-      options = ["check" "--format" "short"];
-      includes = ["Documentation/**/*.md" "Documentation/**/*.typ"];
+      options = [
+        "check"
+        "--format"
+        "short"
+      ];
+      includes = [
+        "Documentation/**/*.md"
+        "Documentation/**/*.typ"
+      ];
       priority = 1;
     };
     tombi = {
       command = commands.tombi;
-      options = ["format" "--offline"];
+      options = [
+        "format"
+        "--offline"
+      ];
       includes = ["*.toml"];
       priority = 1;
     };

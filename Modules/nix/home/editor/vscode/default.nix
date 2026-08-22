@@ -13,7 +13,7 @@
   mod = "vscode";
   cfg = config.${top}.resolved.${dom}.${mod};
 
-  inherit (lix.modules.construction) mkIf mkMerge mkDefault;
+  inherit (lix.modules.construction) mkMerge mkDefault;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.options.construction) mkEnable;
@@ -46,7 +46,8 @@
     ];
     extraProgramConfig = {
       profiles.default = mkMerge (
-        [base] ++ map (name: features.features.${name} cfg.withExtensions.${name}) (attrNames features.options)
+        [base]
+        ++ map (name: features.features.${name} cfg.withExtensions.${name}) (attrNames features.options)
       );
     };
     debug = false;

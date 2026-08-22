@@ -18,11 +18,7 @@
     internal = functions;
     external = functions;
   };
-
-  inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.attrsets.resolution) byPaths;
   inherit (_.filesystem.access) readFile;
-  inherit (_.filesystem.resolution) getFlake;
   inherit (_.lists.predicates) any;
   inherit (_.attrsets.access) attrValues;
   inherit (_.strings.predicates) hasInfix;

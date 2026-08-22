@@ -12,11 +12,13 @@
       local = {inherit opacity types;};
       alias = {};
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets) recursiveUpdate;
   inherit (_.options.construction) mkOption;
-  inherit (_.types.combinators) nullOr submodule;
+  inherit (_.types.combinators) submodule;
   inherit (_.types.primitives) float;
 
   types = let
@@ -47,12 +49,10 @@
     light ? {},
     dark ? {},
   }:
-    recursiveUpdate
-    {
+    recursiveUpdate {
       light = {inherit terminal popups;};
       dark = {inherit terminal popups;};
-    }
-    {inherit light dark;};
+    } {inherit light dark;};
 in
   meta.exports.local
   // {

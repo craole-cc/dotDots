@@ -57,7 +57,8 @@ Visit the auth URL printed in the terminal, then check status:
 tailscale status
 ```
 
-> **Note:** Re-run the `tailscaled` line after each reboot until Tailscale is properly wired into your NixOS config.
+> **Note:** Re-run the `tailscaled` line after each reboot until Tailscale is
+> properly wired into your NixOS config.
 
 ---
 

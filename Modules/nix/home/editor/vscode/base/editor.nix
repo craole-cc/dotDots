@@ -2,7 +2,8 @@
   userSettings = {
     #~@ Basics
     "editor.fontSize" = mkDefault 18.0;
-    "editor.fontFamily" = mkDefault "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace";
+    "editor.fontFamily" =
+      mkDefault "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace";
     "editor.fontLigatures" = true;
     "editor.fontWeight" = 500;
     "editor.letterSpacing" = 0;

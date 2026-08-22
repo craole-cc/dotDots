@@ -7,7 +7,6 @@
   ...
 }: let
   inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.modules) mkIf;
   cfgEnabled = config.dots.interface.desktop.environment == "gnome";
   payload = {
     services.xserver = {

@@ -22,8 +22,7 @@ in
     options.enable = mkOption {
       description = "Enable Tailscale remote access";
       default =
-        host.access.remote.tailscale.enable
-        or host.access.tailscale.enable
+        host.access.remote.tailscale.enable or host.access.tailscale.enable
         or (isIn "vpn" (host.functionalities or []));
       type = bool;
     };

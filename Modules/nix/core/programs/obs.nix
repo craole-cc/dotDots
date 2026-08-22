@@ -16,9 +16,10 @@
   inherit (lib.types) listOf package;
   inherit (lib.lists) optionals;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.modules.construction) mkIf;
   pins = pkgs.obs-studio-plugins;
-  payload = {programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};};
+  payload = {
+    programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};
+  };
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {

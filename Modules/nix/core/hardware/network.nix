@@ -18,13 +18,24 @@
   inherit (lib.attrsets) genAttrs;
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) attrsOf bool enum int listOf nullOr str;
+  inherit
+    (lib.types)
+    attrsOf
+    bool
+    enum
+    int
+    listOf
+    nullOr
+    str
+    ;
 
   payload = {
     networking = {
       inherit (cfg) hostName hostId nameservers;
       networkmanager.enable = cfg.backend == "networkmanager";
-      interfaces = genAttrs cfg.devices (_: {useDHCP = true;});
+      interfaces = genAttrs cfg.devices (_: {
+        useDHCP = true;
+      });
       firewall = {
         inherit (cfg.firewall) enable;
         allowedTCPPorts = cfg.firewall.tcpPorts;
@@ -52,7 +63,11 @@
   inherit (lix.modules.core.staging) mkStaged;
 in {
   options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = hw.hasNetwork;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = hw.hasNetwork;
+      };
     hostName = mkOption {
       description = "System hostname";
       default = host.name or "nixos";
@@ -76,7 +91,10 @@ in {
     backend = mkOption {
       description = "Network configuration backend";
       default = host.network.backend or "networkmanager";
-      type = enum ["networkmanager" "networkd"];
+      type = enum [
+        "networkmanager"
+        "networkd"
+      ];
     };
     gnupg = mkOption {
       description = "Enable GnuPG agent with SSH support";

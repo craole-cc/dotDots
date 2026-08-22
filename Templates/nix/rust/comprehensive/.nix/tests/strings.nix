@@ -1,9 +1,9 @@
 {
   lib,
   assertMsg,
-}: let
-  inherit
-    (lib.strings)
+}:
+let
+  inherit (lib.strings)
     optionalString
     ensurePrefix
     ensureSuffix
@@ -12,12 +12,15 @@
     lines
     words
     ;
-in {
+in
+{
   optionalStringTrue = assertMsg (
     optionalString true " enabled" == " enabled"
   ) "optionalString keeps the original string when enabled";
 
-  optionalStringFalse = assertMsg (optionalString false " enabled" == "") "optionalString drops the string when disabled";
+  optionalStringFalse = assertMsg (
+    optionalString false " enabled" == ""
+  ) "optionalString drops the string when disabled";
 
   ensurePrefix = assertMsg (
     ensurePrefix "/" "tmp/cache" == "/tmp/cache" && ensurePrefix "/" "/tmp/cache" == "/tmp/cache"
@@ -37,8 +40,7 @@ in {
       ""
       null
       "log"
-    ]
-    == "var/log"
+    ] == "var/log"
   ) "concatNonEmpty joins only non-empty segments";
 
   lines = assertMsg (
@@ -47,8 +49,7 @@ in {
       ""
       null
       "beta"
-    ]
-    == "alpha\nbeta"
+    ] == "alpha\nbeta"
   ) "lines joins non-empty segments with newlines";
 
   words = assertMsg (
@@ -57,7 +58,6 @@ in {
       ""
       null
       "test"
-    ]
-    == "cargo test"
+    ] == "cargo test"
   ) "words joins non-empty segments with spaces";
 }

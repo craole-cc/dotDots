@@ -6,7 +6,13 @@
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnable mkEnableOption mkOption;
-  inherit (lix.types.combinators) attrsOf listOf nullOr submodule;
+  inherit
+    (lix.types.combinators)
+    attrsOf
+    listOf
+    nullOr
+    submodule
+    ;
   inherit (lix.types.primitives) anything str;
 
   context = mkContext {
@@ -24,7 +30,9 @@ in
 
       lfs.enable =
         mkEnableOption "Git Large File Storage (LFS)"
-        // {default = true;};
+        // {
+          default = true;
+        };
 
       user = {
         name = mkOption {
@@ -59,7 +67,12 @@ in
             };
           });
           default = {
-            "https://github./" = {insteadOf = ["gh:" "github:"];};
+            "https://github./" = {
+              insteadOf = [
+                "gh:"
+                "github:"
+              ];
+            };
           };
           description = "Git URL rewrite mappings";
         };

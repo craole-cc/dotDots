@@ -1,7 +1,6 @@
 {_, ...}: let
   meta = let
-    doc = ''
-    '';
+    doc = "";
     functions = {
       inherit
         optionalAttr
@@ -11,11 +10,12 @@
       local = functions;
       store = functions;
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.construction) optionalAttrs;
-  optionalAttr = name: value:
-    optionalAttrs (value != null) {${name} = value;};
+  optionalAttr = name: value: optionalAttrs (value != null) {${name} = value;};
   # optionalAttr = name: value:
   #   if value == null
   #   then {}

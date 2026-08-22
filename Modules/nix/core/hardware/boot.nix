@@ -38,9 +38,9 @@
       then getAttr selection pkgs
       else linuxPackages;
     packages = traceIf exists "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})" (
-      traceIf (!exists) "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})" (
-        traceIf (selection == null) "ℹ Using default kernel (${linuxPackages.kernel.version})" pkgs'
-      )
+      traceIf (!exists)
+      "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})"
+      (traceIf (selection == null) "ℹ Using default kernel (${linuxPackages.kernel.version})" pkgs')
     );
   in {
     inherit packages;

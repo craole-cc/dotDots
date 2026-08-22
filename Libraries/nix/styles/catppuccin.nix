@@ -10,7 +10,15 @@
       Depends on: styles.filters, attrsets.resolution, strings.transformation.
     '';
     exports = {
-      local = {inherit data normalize themes cursors mkFamily;};
+      local = {
+        inherit
+          data
+          normalize
+          themes
+          cursors
+          mkFamily
+          ;
+      };
       alias = {
         mkCatppuccinTheme = themes.mkOne;
         mkCatppuccinThemes = themes.mkPair;
@@ -19,7 +27,9 @@
         mkCatppuccin = mkFamily;
       };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets.access) attrNames getAttr;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
@@ -34,7 +44,13 @@
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) toLowerCase toTitleCase;
   inherit (_.types.access) typeOf;
-  inherit (_.types.predicates) isAttrs isFunction isList isString;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isFunction
+    isList
+    isString
+    ;
   inherit (_.styles.registry.groups.byFamily) catppuccin;
 
   mkRegistry = {
@@ -43,22 +59,16 @@
   }: let
     names = attrNames registry;
     aliases =
-      foldl'
-      (
+      foldl' (
         acc: value:
           acc
-          // {${toLowerCase value} = value;}
+          // {
+            ${toLowerCase value} = value;
+          }
           // listToAttrs (
-            map
-            (name: {inherit name value;})
-            (
-              map
-              toLowerCase
-              (registry.${value}.aliases or [])
-            )
+            map (name: {inherit name value;}) (map toLowerCase (registry.${value}.aliases or []))
           )
-      )
-      {}
+      ) {}
       names;
 
     has = input: let
@@ -80,7 +90,13 @@
         message = "invalid ${group} `${input}` - valid: ${toString names}";
       }; resolved;
   in {
-    inherit registry names aliases has lookup;
+    inherit
+      registry
+      names
+      aliases
+      has
+      lookup
+      ;
   };
 
   data = let
@@ -110,10 +126,7 @@
           registry = raw.flavors;
         };
 
-        byPolarity = polarity:
-          filter
-          (name: raw.flavors.${name}.polarity == polarity)
-          base.names;
+        byPolarity = polarity: filter (name: raw.flavors.${name}.polarity == polarity) base.names;
 
         polarized = {
           dark = byPolarity "dark";
@@ -122,7 +135,9 @@
       in
         base // polarized;
     };
-  in {inherit raw seed registry;};
+  in {
+    inherit raw seed registry;
+  };
   inherit (data) raw seed registry;
 
   mkPolarity = {
@@ -150,10 +165,7 @@
       allowed = (spec.args or []) ++ ["polarity"];
 
       validate = args: let
-        invalid =
-          filter
-          (name: !(isIn name allowed))
-          (attrNames args);
+        invalid = filter (name: !(isIn name allowed)) (attrNames args);
       in
         assert withContext {
           name = "mkPolarity.pair";
@@ -233,7 +245,10 @@
   in
     assert withContext {
       inherit (fn) name context;
-      assertion = isIn group ["accent" "flavor"];
+      assertion = isIn group [
+        "accent"
+        "flavor"
+      ];
       message = "unsupported group `${group}`";
     };
     with registry;
@@ -290,7 +305,10 @@
         group = "flavor";
         value = flavor;
       };
-      target = concat "" [flavor' (toTitleCase accent')];
+      target = concat "" [
+        flavor'
+        (toTitleCase accent')
+      ];
     in {
       name = "catppuccin-${flavor'}-${accent'}-cursors";
       package = getPackage {
@@ -308,7 +326,15 @@
       flavor ? seed.flavor.${polarity},
       size ? seed.size,
     }: let
-      base = {inherit pkgs polarity size accent flavor;};
+      base = {
+        inherit
+          pkgs
+          polarity
+          size
+          accent
+          flavor
+          ;
+      };
       override = mkOverride {
         input = cursor;
         group = "accent";
@@ -321,9 +347,17 @@
 
     mkPair = mkPolarity.pair {
       fn = mkOne;
-      args = ["pkgs" "cursor" "accent" "flavor" "size"];
+      args = [
+        "pkgs"
+        "cursor"
+        "accent"
+        "flavor"
+        "size"
+      ];
     };
-  in {inherit mkOne mkPair;};
+  in {
+    inherit mkOne mkPair;
+  };
 
   themes = let
     resolve = {
@@ -370,7 +404,14 @@
       accent ? seed.accent.${polarity},
       flavor ? seed.flavor.${polarity},
     }: let
-      base = {inherit pkgs polarity accent flavor;};
+      base = {
+        inherit
+          pkgs
+          polarity
+          accent
+          flavor
+          ;
+      };
       override = mkOverride {
         input = theme;
         group = "flavor";
@@ -383,9 +424,16 @@
 
     mkPair = mkPolarity.pair {
       fn = mkOne;
-      args = ["pkgs" "theme" "accent" "flavor"];
+      args = [
+        "pkgs"
+        "theme"
+        "accent"
+        "flavor"
+      ];
     };
-  in {inherit mkOne mkPair;};
+  in {
+    inherit mkOne mkPair;
+  };
 
   mkFamily = {
     accent ? seed.accent,
@@ -396,7 +444,12 @@
     size' = optionalAttrs (isNotEmpty size) {inherit size;};
     flavor' = optionalAttrs (isNotEmpty flavor) {inherit flavor;};
     accent' = optionalAttrs (isNotEmpty accent) {inherit accent;};
-    common = {inherit pkgs;} // accent' // flavor';
+    common =
+      {
+        inherit pkgs;
+      }
+      // accent'
+      // flavor';
   in {
     cursors = cursors.mkPair (common // size');
     themes = themes.mkPair common;

@@ -20,11 +20,19 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnableOption mod // {default = interface.enable;};
-      enableUSWM = mkEnableOption mod // {default = cfg.enable;};
+      enable =
+        mkEnableOption mod
+        // {
+          default = interface.enable;
+        };
+      enableUSWM =
+        mkEnableOption mod
+        // {
+          default = cfg.enable;
+        };
     };
     outputs = mkPrograms {
-      windowManager = interface.windowManager or null; #TODO: This is ugly
+      windowManager = interface.windowManager or null; # TODO: This is ugly
       # enableHyprlandUWSM defaults to true in mkPrograms; override here
       # if a top-level option is ever added to ${top}.programs.hyprland.
     };

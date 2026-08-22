@@ -1,8 +1,5 @@
 {
   # config,
-  host,
-  lix,
-  top,
   ...
 }: {
   # imports = lix.filesystem.importers.importAllPaths ./.;

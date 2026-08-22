@@ -3,7 +3,9 @@
 
   exports = {
     internal = {inherit mkServices;};
-    external = {mkCoreServices = mkServices;};
+    external = {
+      mkCoreServices = mkServices;
+    };
   };
 
   /**
@@ -62,7 +64,6 @@
     displayProtocol ? "wayland",
     displayManager ? null,
     defaultSession ? null,
-    panel ? null,
     compositor ? {},
     autoLogin ? false,
     autoLoginUser ? null,

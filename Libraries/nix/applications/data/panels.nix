@@ -67,7 +67,11 @@ _: {
   };
 
   dms-shell = {
-    aliases = ["dank" "dms" "dank-material-shell"];
+    aliases = [
+      "dank"
+      "dms"
+      "dank-material-shell"
+    ];
     categories = [
       "panel"
       "interface"

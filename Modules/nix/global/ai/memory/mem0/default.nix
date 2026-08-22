@@ -3,7 +3,10 @@
 
   mem0 = writeShellApplication {
     name = "mem0";
-    runtimeInputs = [curl jq];
+    runtimeInputs = [
+      curl
+      jq
+    ];
     text = ''
       printf '%s\n' 'Mem0 is exposed as an HTTP service; use mem0-status or mem0-verify.'
       printf '%s\n' 'Set MEM0_BASE_URL and use the REST API at that endpoint.'
@@ -12,7 +15,10 @@
 
   status = writeShellApplication {
     name = "mem0-status";
-    runtimeInputs = [curl jq];
+    runtimeInputs = [
+      curl
+      jq
+    ];
     text = ''
       endpoint="''${MEM0_BASE_URL:-http://127.0.0.1:8888}"
       if curl -fsS "$endpoint/openapi.json" -o /dev/null; then
@@ -26,7 +32,10 @@
 
   verify = writeShellApplication {
     name = "mem0-verify";
-    runtimeInputs = [curl jq];
+    runtimeInputs = [
+      curl
+      jq
+    ];
     text = ''
       endpoint="''${MEM0_BASE_URL:-http://127.0.0.1:8888}"
       curl -fsS "$endpoint/openapi.json" | jq -e '.paths | type == "object"' >/dev/null
@@ -36,7 +45,11 @@
 in {
   inherit mem0 status verify;
 
-  packages = [mem0 status verify];
+  packages = [
+    mem0
+    status
+    verify
+  ];
 
   env = {
     MEM0_BASE_URL = "http://127.0.0.1:8888";

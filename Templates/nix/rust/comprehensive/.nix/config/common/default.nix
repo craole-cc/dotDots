@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkCommon = set:
+  mkCommon =
+    set:
     optionalAttrs set.enable {
       envrc = {
         source = ./envrc;
@@ -12,6 +14,7 @@
         target = ".gitignore";
       };
     };
-in {
+in
+{
   inherit mkCommon;
 }

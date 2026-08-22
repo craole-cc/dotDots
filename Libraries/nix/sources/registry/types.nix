@@ -21,11 +21,25 @@
         analysis_type = analysis;
       };
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.options.construction) mkOption;
-  inherit (_.types.combinators) attrsOf listOf nullOr submodule;
-  inherit (_.types.primitives) anything bool path str;
+  inherit
+    (_.types.combinators)
+    attrsOf
+    listOf
+    nullOr
+    submodule
+    ;
+  inherit
+    (_.types.primitives)
+    anything
+    bool
+    path
+    str
+    ;
 
   source = let
     common = submodule {

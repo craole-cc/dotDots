@@ -16,4 +16,5 @@ This directory splits the style guidance by concern.
 3. `modules.md`
 4. `api.md`
 
-If you only need the top-level index, keep using `Documentation/nix/styleguide.md` as the compatibility entrypoint.
+If you only need the top-level index, keep using
+`Documentation/nix/styleguide.md` as the compatibility entrypoint.

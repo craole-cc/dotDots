@@ -133,7 +133,10 @@
     groups = [
       {
         name = "System/Info";
-        aliases = ["info" "hosts"];
+        aliases = [
+          "info"
+          "hosts"
+        ];
       }
       {
         name = "Build/Rebuild";
@@ -147,7 +150,11 @@
       }
       {
         name = "Maintenance/Utilities";
-        aliases = ["clean" "list" "help"];
+        aliases = [
+          "clean"
+          "list"
+          "help"
+        ];
       }
       {
         name = "Interaction/REPL";
@@ -313,4 +320,11 @@
     printf "%s\n\n" "${commandList}"
     printf "  Run %shelp for detailed help information\n\n" "${names.prefix}"
   '';
-in {inherit description packages env shellHook;}
+in {
+  inherit
+    description
+    packages
+    env
+    shellHook
+    ;
+}

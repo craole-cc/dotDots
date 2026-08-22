@@ -2,7 +2,9 @@
 
 This guide covers the style that shows up in `Libraries/nix`.
 
-`Libraries/nix` is the repo’s reusable Nix foundation, so library code should look like a small, structured standard library rather than a loose bundle of helpers.
+`Libraries/nix` is the repo’s reusable Nix foundation, so library code should
+look like a small, structured standard library rather than a loose bundle of
+helpers.
 
 ## Typical characteristics
 
@@ -49,7 +51,8 @@ Library modules commonly expose multiple surfaces together:
 - `__rootAliases` for public aliases
 - the function or namespace itself for direct use
 
-This keeps the library discoverable and makes the public API visible in one place.
+This keeps the library discoverable and makes the public API visible in one
+place.
 
 ## Library behavior to prefer
 
@@ -63,5 +66,6 @@ This keeps the library discoverable and makes the public API visible in one plac
 
 - sprawling utility files with unrelated helpers
 - silent fallbacks that hide invalid inputs
-- exporting only one deep implementation detail when a small public API would be clearer
+- exporting only one deep implementation detail when a small public API would be
+  clearer
 - duplicating data that belongs in `API/nix`

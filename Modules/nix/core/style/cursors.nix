@@ -9,7 +9,15 @@
   mod = "cursors";
 
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.types) attrsOf either int nullOr package str;
+  inherit
+    (lib.types)
+    attrsOf
+    either
+    int
+    nullOr
+    package
+    str
+    ;
   inherit (lix.styles.cursors.types.polarity) core;
   inherit (lix.attrsets.resolution) withPath;
 
@@ -68,28 +76,32 @@ in {
     #   defaultText = literalExpression ''${seed.path}.size or 24'';
     # };
 
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     light = mkPolarityOption "light";
     dark = mkPolarityOption "dark";
 
     size = mkOption {
       description = "Global cursor size in pixels, used when not overridden per polarity";
       default = seed.size;
-      defaultText = literalExpression ''${seed.path}.size or 24'';
+      defaultText = literalExpression "${seed.path}.size or 24";
       type = int;
     };
 
     accent = mkOption {
       description = "Catppuccin accent color for cursor themes that support it";
       default = seed.accent;
-      defaultText = literalExpression ''${seed.path}.accent or null'';
+      defaultText = literalExpression "${seed.path}.accent or null";
       type = nullOr str;
     };
 
     variants = mkOption {
       description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it";
       default = seed.variants;
-      defaultText = literalExpression ''${seed.path}.variants or null'';
+      defaultText = literalExpression "${seed.path}.variants or null";
       type = nullOr (attrsOf str);
     };
   };

@@ -122,12 +122,7 @@
 
     #> Resolve store path, null-safe
     storePath =
-      if
-        (
-          (localStr == toString src)
-          || hasPrefix "${toString src}/" localStr
-        )
-        && pathExists localStr
+      if ((localStr == toString src) || hasPrefix "${toString src}/" localStr) && pathExists localStr
       then /. + localStr
       else null;
   in {

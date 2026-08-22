@@ -22,4 +22,6 @@
 
       EOF
   '';
-in {inherit description packages shellHook;}
+in {
+  inherit description packages shellHook;
+}

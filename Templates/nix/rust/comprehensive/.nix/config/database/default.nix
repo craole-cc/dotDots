@@ -1,9 +1,11 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkDatabase = set:
+  mkDatabase =
+    set:
     optionalAttrs set.enable (
-      {}
+      { }
       // optionalAttrs set.includePostgres {
         postgres = {
           source = ./postgres.conf;
@@ -29,6 +31,7 @@
         };
       }
     );
-in {
+in
+{
   inherit mkDatabase;
 }

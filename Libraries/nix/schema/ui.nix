@@ -745,12 +745,12 @@
       ++ (optional (windowManager.name != null) windowManager.name);
 
     greeter =
-      interface.session.greeter or interface.display.greeter or environment.config.displayManager.preferred
-          or defaults.greeter;
+      interface.session.greeter or interface.display.greeter
+          or environment.config.displayManager.preferred or defaults.greeter;
 
     protocol =
-      interface.display.protocol or interface.session.protocol or environment.config.displayProtocol.preferred
-          or defaults.protocol;
+      interface.display.protocol or interface.session.protocol
+          or environment.config.displayProtocol.preferred or defaults.protocol;
 
     # session =
     #   interface.defaultSession or interface.session or configs.wm.defaultSession or configs.de.defaultSession
@@ -840,12 +840,14 @@
         then opt // {default = val;}
         else opt
       else
-        genAttrs (attrNames opt) (subkey:
-          go opt.${subkey} (
-            if isAttrs val
-            then val.${subkey} or null
-            else null
-          ));
+        genAttrs (attrNames opt) (
+          subkey:
+            go opt.${subkey} (
+              if isAttrs val
+              then val.${subkey} or null
+              else null
+            )
+        );
   in
     key: go resolvedUI.options.${key} (resolvedUI.${key} or null);
 

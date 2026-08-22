@@ -102,10 +102,12 @@
 
   # Make specific fields required (remove nullOr wrapper)
   makeRequired = fields: schema:
-    mapAttrs (name: spec:
-      if elem name fields && spec.type == "nullOr"
-      then spec.subtype
-      else spec)
+    mapAttrs (
+      name: spec:
+        if elem name fields && spec.type == "nullOr"
+        then spec.subtype
+        else spec
+    )
     schema;
 
   mkFunction = {

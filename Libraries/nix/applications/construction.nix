@@ -10,7 +10,9 @@
       internal = functions // aliases;
       alias = functions // {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrsToList;

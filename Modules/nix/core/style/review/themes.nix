@@ -6,7 +6,8 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "style";
   sub = "theme";
@@ -14,37 +15,48 @@
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.modules) mkIf;
-  inherit (lib.types) attrsOf anything nullOr package str;
+  inherit (lib.types) attrsOf anything str;
   inherit (lix.modules.core.style) resolveThemes;
 
-  user =
-    recursiveUpdate {
-      interface.style.theme = {
-        accent = "teal";
-        variant = {
-          light = "latte";
-          dark = "frappe";
-        };
-        light = {};
-        dark = {};
+  user = recursiveUpdate {
+    interface.style.theme = {
+      accent = "teal";
+      variant = {
+        light = "latte";
+        dark = "frappe";
       };
-    }
-    (host.users.data.primary or {});
+      light = { };
+      dark = { };
+    };
+  } (host.users.data.primary or { });
 
-  seed = let
-    t = user.interface.style.theme;
-  in
+  seed =
+    let
+      t = user.interface.style.theme;
+    in
     resolveThemes {
       inherit pkgs;
-      inherit (t) accent variant light dark;
+      inherit (t)
+        accent
+        variant
+        light
+        dark
+        ;
     }
     // {
-      inherit (t) accent variant light dark;
+      inherit (t)
+        accent
+        variant
+        light
+        dark
+        ;
     };
-in {
+in
+{
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable = mkEnableOption mod // {
+      default = true;
+    };
 
     accent = mkOption {
       description = "Catppuccin accent colour (e.g. \"teal\", \"blue\", \"mauve\")";
@@ -66,14 +78,14 @@ in {
     light = mkOption {
       description = "Overrides merged into the light theme attrset (name, scheme, package, …)";
       default = seed.light;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.theme.light or {}'';
+      defaultText = literalExpression "host.users.data.primary.interface.style.theme.light or {}";
       type = attrsOf anything;
     };
 
     dark = mkOption {
       description = "Overrides merged into the dark theme attrset (name, scheme, package, …)";
       default = seed.dark;
-      defaultText = literalExpression ''host.users.data.primary.interface.style.theme.dark or {}'';
+      defaultText = literalExpression "host.users.data.primary.interface.style.theme.dark or {}";
       type = attrsOf anything;
     };
 

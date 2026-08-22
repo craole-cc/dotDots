@@ -10,13 +10,20 @@ _: {
     family = "material";
     package = "material-cursors";
     polarity = {
-      light = {name = "material_light_cursors";};
-      dark = {name = "material_dark_cursors";};
+      light = {
+        name = "material_light_cursors";
+      };
+      dark = {
+        name = "material_dark_cursors";
+      };
     };
   };
 
   bibata-modern-classic = {
-    aliases = ["bibata" "bibata-classic"];
+    aliases = [
+      "bibata"
+      "bibata-classic"
+    ];
     family = "bibata";
     package = "bibata-cursors";
     name = "Bibata-Modern-Classic";
@@ -53,7 +60,10 @@ _: {
   };
 
   adwaita = {
-    aliases = ["adwaita-cursors" "gnome"];
+    aliases = [
+      "adwaita-cursors"
+      "gnome"
+    ];
     family = "adwaita";
     package = "adwaita-icon-theme";
     name = "Adwaita";

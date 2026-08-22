@@ -8,7 +8,7 @@
   ...
 }: let
   inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
   cfg = userApplicationConfig {

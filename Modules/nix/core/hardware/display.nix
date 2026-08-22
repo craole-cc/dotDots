@@ -19,8 +19,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool str;
 
-  nvidiaVersionAtLeast = version:
-    versionAtLeast config.hardware.nvidia.package.version version;
+  nvidiaVersionAtLeast = version: versionAtLeast config.hardware.nvidia.package.version version;
 
   payload = {
     services.xserver = mkIf (!isWayland) {
@@ -39,7 +38,11 @@
   };
 in {
   options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     xkbLayout = mkOption {
       description = "XKB keyboard layout";
       default = "us";
@@ -83,8 +86,7 @@ in {
       hardware.nvidia = mkIf cfg.enable {
         open = mkDefault cfg.nvidia.open;
         gsp.enable = mkDefault cfg.nvidia.gsp.enable;
-        powerManagement.kernelSuspendNotifier =
-          mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
+        powerManagement.kernelSuspendNotifier = mkDefault cfg.nvidia.powerManagement.kernelSuspendNotifier;
       };
       ${top}.outputs.hardware.nvidia =
         if cfg.enable

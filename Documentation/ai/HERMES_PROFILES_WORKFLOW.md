@@ -1,6 +1,7 @@
 # Hermes Profiles Workflow
 
-This repository uses Hermes profiles as role-based work modes instead of one profile doing everything.
+This repository uses Hermes profiles as role-based work modes instead of one
+profile doing everything.
 
 ## Profiles
 
@@ -8,7 +9,8 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
 
 - Provider/model: OpenAI Codex / gpt-5.4
 - Role: fallback everyday profile
-- Use when: you want the current default behavior and do not care about role separation
+- Use when: you want the current default behavior and do not care about role
+  separation
 
 ### dev
 
@@ -57,7 +59,8 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
 - Use when:
   - testing prompts or new workflows
   - trying OpenRouter or future Ollama Cloud setups
-  - checking whether an idea is good enough before moving into dev/research/writing
+  - checking whether an idea is good enough before moving into
+    dev/research/writing
 - Good prompts:
   - "Try three prompt variants for this task"
   - "Compare outputs for this same spec"
@@ -68,7 +71,8 @@ This repository uses Hermes profiles as role-based work modes instead of one pro
 1. Start in `research` when the task is unclear.
 2. Move to `dev` when you are ready to implement.
 3. Use `writing` for Typst, lesson plans, and outward-facing business content.
-4. Use `lab` for experiments you do not want contaminating the serious workflows.
+4. Use `lab` for experiments you do not want contaminating the serious
+   workflows.
 
 ## Nix-flake-friendly usage
 
@@ -92,8 +96,10 @@ hermes --profile lab chat -q "test three low-cost prompt approaches"
 
 ## Suggested task routing
 
-- `Configuration/`, `Libraries/`, `Modules/`, `Packages/`, `API/`: start in `dev`
-- Architecture questions, framework comparisons, learning tasks: start in `research`
+- `Configuration/`, `Libraries/`, `Modules/`, `Packages/`, `API/`: start in
+  `dev`
+- Architecture questions, framework comparisons, learning tasks: start in
+  `research`
 - `Templates/` docs, Typst drafts, education/business copy: start in `writing`
 - Prompt/model/provider tests and throwaway prototypes: start in `lab`
 
@@ -105,4 +111,5 @@ Only promote work upward:
 - research -> dev when a plan is solid
 - writing -> dev only when you need automation or generation support
 
-This keeps the expensive/high-focus workflows clean and makes the low-cost profiles do the exploratory work first.
+This keeps the expensive/high-focus workflows clean and makes the low-cost
+profiles do the exploratory work first.

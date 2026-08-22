@@ -10,9 +10,6 @@
   inherit (lix.modules.core.staging) mkStaged;
   cfg = config.${top}.resolved.interface.theme.dispatcher;
   inherit (cfg) statePath;
-  inherit (cfg) socketPath;
-  darkTheme = user.style.theme.dark or "Catppuccin Frappé";
-  lightTheme = user.style.theme.light or "Catppuccin Latte";
   dispatcher = pkgs.writeText "dotdots-theme-dispatcher.py" ''
     import os
     import signal

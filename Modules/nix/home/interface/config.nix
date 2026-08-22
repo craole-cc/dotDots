@@ -1,7 +1,6 @@
 {
   pkgs,
   lib,
-  user,
   config,
   lix,
   top,

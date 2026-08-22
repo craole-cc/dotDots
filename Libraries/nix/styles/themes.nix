@@ -17,7 +17,16 @@
       resolveTheme = mkOne;
     };
     exports = {
-      local = {inherit data mkOne mkPair types;} // alias;
+      local =
+        {
+          inherit
+            data
+            mkOne
+            mkPair
+            types
+            ;
+        }
+        // alias;
       inherit alias;
     };
   in {
@@ -110,27 +119,34 @@
     if entry == null
     then
       mkCatppuccin {
-        inherit pkgs polarity accent flavor;
+        inherit
+          pkgs
+          polarity
+          accent
+          flavor
+          ;
       }
     else if isAttrs entry && (entry.family or null) == "catppuccin"
     then
       mkCatppuccin {
-        inherit pkgs polarity accent flavor;
+        inherit
+          pkgs
+          polarity
+          accent
+          flavor
+          ;
       }
     else if isAttrs entry && hasAttr "family" entry
     then let
       candidates = groups.byFamily.${entry.family} or {};
 
       candidate = let
-        samePolarity =
-          filter
-          (
-            name: let
-              item = candidates.${name};
-            in
-              (item.polarity or null) == polarity || (item.polarity or null) == null
-          )
-          (attrNames candidates);
+        samePolarity = filter (
+          name: let
+            item = candidates.${name};
+          in
+            (item.polarity or null) == polarity || (item.polarity or null) == null
+        ) (attrNames candidates);
       in
         if isNotEmpty samePolarity
         then lookup (elemAt samePolarity 0)
@@ -144,12 +160,22 @@
       if resolved == null
       then
         mkCatppuccin {
-          inherit pkgs polarity accent flavor;
+          inherit
+            pkgs
+            polarity
+            accent
+            flavor
+            ;
         }
       else if (resolved.family or null) == "catppuccin"
       then
         mkCatppuccin {
-          inherit pkgs polarity accent flavor;
+          inherit
+            pkgs
+            polarity
+            accent
+            flavor
+            ;
         }
       else {
         inherit (resolved) name;
@@ -191,7 +217,12 @@
 
   mkPair = mkPolarity.pair {
     fn = mkOne;
-    args = ["pkgs" "theme" "accent" "flavor"];
+    args = [
+      "pkgs"
+      "theme"
+      "accent"
+      "flavor"
+    ];
   };
 in
   meta.exports.local

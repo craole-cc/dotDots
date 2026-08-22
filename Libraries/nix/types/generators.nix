@@ -183,66 +183,81 @@ in {
         });
 
       # Demonstrate alias normalization: desired = "set"
-      stringExpectedSetAlias = mkTest "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")." (mkError {
-        fnName = "fn";
-        argName = "cfg";
-        desired = "set";
-        outcome = "x";
-      });
+      stringExpectedSetAlias =
+        mkTest "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")."
+        (mkError {
+          fnName = "fn";
+          argName = "cfg";
+          desired = "set";
+          outcome = "x";
+        });
 
       # Demonstrate desired = "str" alias
-      stringExpectedStrAlias = mkTest "fn: `name` must be a string, but an integer was given (value: 5)." (mkError {
-        fnName = "fn";
-        argName = "name";
-        desired = "str";
-        outcome = 5;
-      });
+      stringExpectedStrAlias =
+        mkTest "fn: `name` must be a string, but an integer was given (value: 5)."
+        (mkError {
+          fnName = "fn";
+          argName = "name";
+          desired = "str";
+          outcome = 5;
+        });
 
       # Demonstrate desired = "num" alias
-      stringExpectedNumAlias = mkTest "fn: `n` must be an integer, but a string was given (value: \"7\")." (mkError {
-        fnName = "fn";
-        argName = "n";
-        desired = "num";
-        outcome = "7";
-      });
+      stringExpectedNumAlias =
+        mkTest "fn: `n` must be an integer, but a string was given (value: \"7\")."
+        (mkError {
+          fnName = "fn";
+          argName = "n";
+          desired = "num";
+          outcome = "7";
+        });
 
       # Demonstrate desired = "binary"
-      stringExpectedBinary = mkTest "fn: `blob` must be a binary value, but a string was given (value: \"abc\")." (mkError {
-        fnName = "fn";
-        argName = "blob";
-        desired = "binary";
-        outcome = "abc";
-      });
+      stringExpectedBinary =
+        mkTest "fn: `blob` must be a binary value, but a string was given (value: \"abc\")."
+        (mkError {
+          fnName = "fn";
+          argName = "blob";
+          desired = "binary";
+          outcome = "abc";
+        });
 
       # Demonstrate float outcome
-      stringExpectedIntGotFloat = mkTest "fn: `x` must be an integer, but a float was given (value: <float>)." (mkError {
-        fnName = "fn";
-        argName = "x";
-        desired = "int";
-        outcome = 1.5;
-      });
+      stringExpectedIntGotFloat =
+        mkTest "fn: `x` must be an integer, but a float was given (value: <float>)."
+        (mkError {
+          fnName = "fn";
+          argName = "x";
+          desired = "int";
+          outcome = 1.5;
+        });
 
       # Demonstrate path outcome
-      stringExpectedPathGotSet = mkTest "fn: `p` must be a path, but an attribute set was given (value: { a })." (mkError {
-        fnName = "fn";
-        argName = "p";
-        desired = "path";
-        outcome = {
-          a = 1;
-        };
-      });
+      stringExpectedPathGotSet =
+        mkTest "fn: `p` must be a path, but an attribute set was given (value: { a })."
+        (mkError {
+          fnName = "fn";
+          argName = "p";
+          desired = "path";
+          outcome = {
+            a = 1;
+          };
+        });
 
       # Demonstrate null outcome
-      stringExpectedSetGotNull = mkTest "fn: `cfg` must be an attribute set, but null was given (value: <null>)." (mkError {
-        fnName = "fn";
-        argName = "cfg";
-        desired = "attrset";
-        outcome = null;
-      });
+      stringExpectedSetGotNull =
+        mkTest "fn: `cfg` must be an attribute set, but null was given (value: <null>)."
+        (mkError {
+          fnName = "fn";
+          argName = "cfg";
+          desired = "attrset";
+          outcome = null;
+        });
 
       # List-of-sets preview
       stringExpectedListOfSetsPreview =
-        mkTest "fn: `xs` must be a list, but a list was given (value: [{ a }, { b }, { c }, { d }, { e }, …])."
+        mkTest
+        "fn: `xs` must be a list, but a list was given (value: [{ a }, { b }, { c }, { d }, { e }, …])."
         (mkError {
           fnName = "fn";
           argName = "xs";

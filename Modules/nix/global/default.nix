@@ -24,9 +24,16 @@ global: let
   inherit (args) fetch mkName print;
   inherit (shells) core;
 
-  ai = import ./ai {inherit args; inherit core;};
+  ai = import ./ai {
+    inherit args;
+    inherit core;
+  };
 
-  shellsWithAi = shells // {ai = ai;};
+  shellsWithAi =
+    shells
+    // {
+      inherit ai;
+    };
 
   build =
     mapAttrs (
@@ -36,12 +43,7 @@ global: let
           env = core.env // (cfg.env or {});
           shellHook = cfg.shellHook or "";
           packages =
-            (cfg.packages or [])
-            ++ (
-              optionals
-              ((name != "minimal") && (name != "media"))
-              core.packages
-            );
+            (cfg.packages or []) ++ (optionals ((name != "minimal") && (name != "media")) core.packages);
         }
     )
     shells;
@@ -51,7 +53,13 @@ global: let
     // {
       default = build.core;
 
-      inherit (ai.devShells) ai "ai-router" "ai-memory" "ai-hermes";
+      inherit
+        (ai.devShells)
+        ai
+        "ai-router"
+        "ai-memory"
+        "ai-hermes"
+        ;
 
       fmt = args.treefmt.devShell;
 
@@ -59,10 +67,12 @@ global: let
         name = mkName "full";
 
         env =
-          foldl'
-          (acc: name: acc // (shellsWithAi.${name}.env or {}))
+          foldl' (acc: name: acc // (shellsWithAi.${name}.env or {}))
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shellsWithAi))
-          (reverseList ["core" "hermes"]);
+          (reverseList [
+            "core"
+            "hermes"
+          ]);
 
         shellHook = ''
           ${fetch.name} --full

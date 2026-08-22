@@ -11,13 +11,20 @@ _: {
     family = "papirus";
     package = "papirus-icon-theme";
     polarity = {
-      light = {name = "Papirus";};
-      dark = {name = "Papirus-Dark";};
+      light = {
+        name = "Papirus";
+      };
+      dark = {
+        name = "Papirus-Dark";
+      };
     };
   };
 
   adwaita = {
-    aliases = ["adwaita-icon-theme" "gnome"];
+    aliases = [
+      "adwaita-icon-theme"
+      "gnome"
+    ];
     family = "adwaita";
     package = "adwaita-icon-theme";
     name = "Adwaita";

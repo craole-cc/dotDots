@@ -42,44 +42,32 @@
     mergeAttrs = set1: set2:
       if isAttrs set1 && isAttrs set2
       then
-        (mapAttrs (
-            key: value:
-              if set1 ? ${key}
-              then mergeAttrs set1.${key} value
-              else value
-          )
-          set2)
+        (mapAttrs (key: value:
+          if set1 ? ${key}
+          then mergeAttrs set1.${key} value
+          else value)
+        set2)
         // removeAttrs set1 (attrNames set2)
       else set2;
 
-    hasPrefix = prefix: str:
-      substring 0 (stringLength prefix) str == prefix;
+    hasPrefix = prefix: str: substring 0 (stringLength prefix) str == prefix;
 
     removePrefix = prefix: str:
       if hasPrefix prefix str
-      then
-        substring (stringLength prefix)
-        (stringLength str - stringLength prefix)
-        str
+      then substring (stringLength prefix) (stringLength str - stringLength prefix) str
       else str;
 
     asPath = {
       stem,
       base,
     }: let
-      stringToCharacters = str:
-        genList
-        (char: substring char 1 str)
-        (stringLength str);
+      stringToCharacters = str: genList (char: substring char 1 str) (stringLength str);
 
-      escape = list:
-        replaceStrings list (map (char: "\\${char}") list);
+      escape = list: replaceStrings list (map (char: "\\${char}") list);
 
-      escapeRegex =
-        escape (stringToCharacters "\\[{()^$?*+|.");
+      escapeRegex = escape (stringToCharacters "\\[{()^$?*+|.");
 
-      addContextFrom = flake: target:
-        substring 0 0 flake + target;
+      addContextFrom = flake: target: substring 0 0 flake + target;
 
       splitString = sep: str: let
         string = toString str;
@@ -87,23 +75,19 @@
       in
         if separator == ""
         then [(addContextFrom str string)]
-        else
-          map
-          (addContextFrom str)
-          (filter isString (split (escapeRegex separator) string));
+        else map (addContextFrom str) (filter isString (split (escapeRegex separator) string));
 
-      splitStem = value:
-        filter
-        (val: isString val && val != "")
-        (splitString "/" value);
+      splitStem = value: filter (val: isString val && val != "") (splitString "/" value);
     in
       if isAttrs stem
       then
-        mapAttrs (_: part:
-          asPath {
-            inherit base;
-            stem = part;
-          })
+        mapAttrs (
+          _: part:
+            asPath {
+              inherit base;
+              stem = part;
+            }
+        )
         stem
       else if isString stem
       then
@@ -128,9 +112,12 @@
           then null
           else base.store + "/${relPath}";
 
-        local =
-          concatStringsSep "/"
-          (filter (string: string != "") [base.local relPath]);
+        local = concatStringsSep "/" (
+          filter (string: string != "") [
+            base.local
+            relPath
+          ]
+        );
       };
 
     #> --------------------------------------------------------------------
@@ -143,8 +130,7 @@
 
       host = let
         name = getEnv "HOSTNAME" "Victus";
-        path =
-          ./. + "/${concatStringsSep "/" global.paths.api.hosts}/${name}";
+        path = ./. + "/${concatStringsSep "/" global.paths.api.hosts}/${name}";
       in
         importAttr path;
     in
@@ -257,7 +243,11 @@
   #> Final configuration: preserve the raw API data, but replace its raw
   #> path stems with the fully-resolved canonical path model.
   #> --------------------------------------------------------------------
-  cfg = raw // {inherit paths;};
+  cfg =
+    raw
+    // {
+      inherit paths;
+    };
 
   env = let
     transformPathVar = domain: attrPath: localPath: let
@@ -297,13 +287,7 @@
         then [
           (transformPathVar domain attrPath node.local)
         ]
-        else
-          concatLists (
-            mapAttrsToList
-            (key: child:
-              flattenDomain domain (attrPath ++ [key]) child)
-            node
-          )
+        else concatLists (mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node)
       );
 
     ignore = [
@@ -318,9 +302,7 @@
       uppercase = true;
 
       vars =
-        (mapAttrsToList
-          (name: default: {inherit name default;})
-          cfg.environment)
+        (mapAttrsToList (name: default: {inherit name default;}) cfg.environment)
         ++ [
           {
             name = names.flake;
@@ -331,19 +313,14 @@
             default = paths.flake.local;
           }
         ]
-        ++ (
-          concatLists (
-            mapAttrsToList
-            (domain: node:
+        ++ (concatLists (
+          mapAttrsToList (
+            domain: node:
               concatLists (
-                mapAttrsToList
-                (key: child:
-                  flattenDomain domain [key] child)
-                (removeAttrs node ignore)
-              ))
-            (removeAttrs paths ignore)
-          )
-        );
+                mapAttrsToList (key: child: flattenDomain domain [key] child) (removeAttrs node ignore)
+              )
+          ) (removeAttrs paths ignore)
+        ));
     };
 
   schema = mkSchema {inherit tree;};

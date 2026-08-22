@@ -26,7 +26,11 @@
               // {
                 ${name} =
                   if result ? ${name}
-                  then mergeOutput [result.${name} item]
+                  then
+                    mergeOutput [
+                      result.${name}
+                      item
+                    ]
                   else item;
               }
           )

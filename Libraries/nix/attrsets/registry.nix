@@ -26,10 +26,16 @@
         ;
     };
     exports = {
-      local = functions // {inherit data;};
+      local =
+        functions
+        // {
+          inherit data;
+        };
       alias = {};
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.access) attrNames attrValues getAttr;
   inherit (_.attrsets.predicates) hasAttr;
@@ -48,7 +54,13 @@
   inherit (_.strings.transformation) toTitleCase wrap;
   inherit (_.strings.predicates) isValidPosixName;
   inherit (_.types.access) typeOf;
-  inherit (_.types.predicates) isAttrs isFunction isPath isString;
+  inherit
+    (_.types.predicates)
+    isAttrs
+    isFunction
+    isPath
+    isString
+    ;
 
   data = mkData {};
 
@@ -68,17 +80,40 @@
     queryBy ? [],
   }: let
     source = mkSource {
-      inherit owner root path name recursive;
+      inherit
+        owner
+        root
+        path
+        name
+        recursive
+        ;
     };
 
     registry = mkRegistry {
-      inherit owner seed source domain;
+      inherit
+        owner
+        seed
+        source
+        domain
+        ;
     };
 
     analysis = mkAnalysis {
-      inherit owner registry groupBy queryBy;
+      inherit
+        owner
+        registry
+        groupBy
+        queryBy
+        ;
     };
-  in {inherit analysis registry seed source;};
+  in {
+    inherit
+      analysis
+      registry
+      seed
+      source
+      ;
+  };
 
   mkSource = value: let
     args =
@@ -103,11 +138,18 @@
     in
       assert withContext {
         name = owner;
-        context = concat " " ["resolving" "source" "path"];
+        context = concat " " [
+          "resolving"
+          "source"
+          "path"
+        ];
         assertion = path' != null;
         message = concat " " [
           "expected either"
-          (wrap ["root" "path"])
+          (wrap [
+            "root"
+            "path"
+          ])
           "to be provided"
         ];
       }; path';
@@ -117,7 +159,11 @@
     in
       assert withContext {
         name = owner;
-        context = concat " " ["resolving" "source" "name"];
+        context = concat " " [
+          "resolving"
+          "source"
+          "name"
+        ];
         assertion = isString name' && isValidPosixName name';
         message = concat " " [
           "expected source name to be a valid POSIX name,"
@@ -131,7 +177,11 @@
     in
       assert withContext {
         name = owner;
-        context = concat " " ["importing" "registry" "source"];
+        context = concat " " [
+          "importing"
+          "registry"
+          "source"
+        ];
         assertion = isNotEmpty raw';
         message = concat " " [
           "expected"
@@ -140,7 +190,9 @@
           (wrap name)
         ];
       }; raw';
-  in {inherit path name raw;};
+  in {
+    inherit path name raw;
+  };
 
   mkRegistry = {
     owner ? "mkRegistry",
@@ -156,7 +208,12 @@
 
     entries = assert withContext {
       name = owner;
-      context = concat " " ["constructing" "registry" "for" name];
+      context = concat " " [
+        "constructing"
+        "registry"
+        "for"
+        name
+      ];
       assertion = isAttrs raw && hasAttr name raw;
       message = concat " " [
         "expected an attrset containing the domain:"
@@ -171,7 +228,13 @@
 
     lookup = key: getAttr key entries;
   in {
-    inherit name seed source entries lookup;
+    inherit
+      name
+      seed
+      source
+      entries
+      lookup
+      ;
     inherit (derived) groups queries;
 
     normalize = args @ {
@@ -208,55 +271,28 @@
       else selected;
   };
 
-  normalizeList = values:
-    optionals
-    (isList values)
-    (filter isNotEmpty values);
+  normalizeList = values: optionals (isList values) (filter isNotEmpty values);
 
-  flatten = registry:
-    foldl' (
-      acc: namespace: acc // registry.${namespace}
-    ) {} (attrNames registry);
+  flatten = registry: foldl' (acc: namespace: acc // registry.${namespace}) {} (attrNames registry);
 
   groupByFieldFlat = {
     entries,
     field,
   }: let
     entries' = flatten entries;
-    keys = unique (filter isString (
-      map (entry: entry.${field} or null) (attrValues entries')
-    ));
+    keys = unique (filter isString (map (entry: entry.${field} or null) (attrValues entries')));
   in
-    genAttrs keys (
-      key:
-        filterAttrs
-        (_: entry: (entry.${field} or null) == key)
-        entries'
-    );
+    genAttrs keys (key: filterAttrs (_: entry: (entry.${field} or null) == key) entries');
 
   groupByField = field: registry: let
-    entries =
-      concatMap
-      (domain: attrValues registry.${domain})
-      (attrNames registry);
+    entries = concatMap (domain: attrValues registry.${domain}) (attrNames registry);
 
-    keys =
-      unique
-      (filter isString (map (entry: entry.${field} or null) entries));
+    keys = unique (filter isString (map (entry: entry.${field} or null) entries));
   in
     genAttrs keys (
       key:
-        filterAttrs
-        (_: isNotEmpty)
-        (
-          mapAttrs
-          (
-            _: entries':
-              filterAttrs
-              (_: entry: (entry.${field} or null) == key)
-              entries'
-          )
-          registry
+        filterAttrs (_: isNotEmpty) (
+          mapAttrs (_: entries': filterAttrs (_: entry: (entry.${field} or null) == key) entries') registry
         )
     );
 
@@ -280,39 +316,31 @@
 
     mkGroup = args: mkMember (group // args);
     mkGroups = available:
-      mkMembers (group
+      mkMembers (
+        group
         // {
           inherit available;
           names = groupBy;
-        });
+        }
+      );
 
     mkQuery = args: mkMember (query // args);
     mkQueries = available:
-      mkMembers (query
+      mkMembers (
+        query
         // {
           inherit available;
           names = queryBy;
-        });
+        }
+      );
   in {
     groups = mkGroups [
       (mkGroup {
         prefix = "by";
         name = "Category";
-        value =
-          genAttrs
-          (
-            unique
-            (
-              concatMap (entry: entry.categories or [])
-              (attrValues data)
-            )
-          )
-          (
-            category:
-              filterAttrs
-              (_: entry: isIn category (entry.categories or []))
-              data
-          );
+        value = genAttrs (unique (concatMap (entry: entry.categories or []) (attrValues data))) (
+          category: filterAttrs (_: entry: isIn category (entry.categories or [])) data
+        );
       })
       (mkGroup {
         prefix = "by";
@@ -332,42 +360,27 @@
       (mkQuery {
         prefix = "has";
         name = "Aliases";
-        value =
-          filterAttrs
-          (_: entry: isNotEmpty (entry.aliases or []))
-          data;
+        value = filterAttrs (_: entry: isNotEmpty (entry.aliases or [])) data;
       })
       (mkQuery {
         prefix = "no";
         name = "Aliases";
-        value =
-          filterAttrs
-          (_: entry: isEmpty (entry.aliases or []))
-          data;
+        value = filterAttrs (_: entry: isEmpty (entry.aliases or [])) data;
       })
       (mkQuery {
         prefix = "has";
         name = "Package";
-        value =
-          filterAttrs
-          (_: entry: (entry.package or null) != null)
-          data;
+        value = filterAttrs (_: entry: (entry.package or null) != null) data;
       })
       (mkQuery {
         prefix = "has";
         name = "Variant";
-        value =
-          filterAttrs
-          (_: entry: entry ? variant)
-          data;
+        value = filterAttrs (_: entry: entry ? variant) data;
       })
       (mkQuery {
         prefix = "has";
         name = "Names";
-        value =
-          filterAttrs
-          (_: entry: entry ? names)
-          data;
+        value = filterAttrs (_: entry: entry ? names) data;
       })
       (mkQuery {
         prefix = "by";
@@ -383,117 +396,6 @@
       })
     ];
   };
-
-  mkAnalysisOLD = {
-    owner ? "mkAnalysis",
-    registry,
-    groupBy ? [],
-    queryBy ? [],
-  }: let
-    data = registry.entries;
-
-    group = {
-      inherit owner;
-      kind = "group";
-    };
-
-    query = {
-      inherit owner;
-      kind = "query";
-    };
-
-    mkGroup = args: mkMember (group // args);
-    mkQuery = args: mkMember (query // args);
-
-    selectMembers = args: let
-      inherit (args) names available;
-      available' =
-        if isList available
-        then listToAttrs available
-        else available;
-    in
-      if names == []
-      then available'
-      else mkMembers args;
-  in {
-    groups = selectMembers (group
-      // {
-        names = groupBy;
-        available = [
-          (mkGroup {
-            prefix = "by";
-            name = "Category";
-            value =
-              genAttrs
-              (unique (concatMap (entry: entry.categories or []) (attrValues data)))
-              (category:
-                filterAttrs (_: entry: isIn category (entry.categories or [])) data);
-          })
-          (mkGroup {
-            prefix = "by";
-            field = "family";
-            source = data;
-            flatten = true;
-          })
-          (mkGroup {
-            prefix = "by";
-            field = "polarity";
-            source = data;
-            flatten = true;
-          })
-        ];
-      });
-
-    queries = selectMembers (query
-      // {
-        names = queryBy;
-        available = [
-          (mkQuery {
-            prefix = "has";
-            name = "Aliases";
-            value = filterAttrs (_: entry: isNotEmpty (entry.aliases or [])) data;
-          })
-          (mkQuery {
-            prefix = "no";
-            name = "Aliases";
-            value = filterAttrs (_: entry: isEmpty (entry.aliases or [])) data;
-          })
-          (mkQuery {
-            prefix = "has";
-            name = "Package";
-            value = filterAttrs (_: entry: (entry.package or null) != null) data;
-          })
-          (mkQuery {
-            prefix = "has";
-            name = "Variant";
-            value = filterAttrs (_: entry: entry ? variant) data;
-          })
-          (mkQuery {
-            prefix = "has";
-            name = "Names";
-            value = filterAttrs (_: entry: entry ? names) data;
-          })
-          (mkQuery {
-            prefix = "by";
-            field = "family";
-            source = data;
-            flatten = true;
-          })
-          (mkQuery {
-            prefix = "by";
-            field = "polarity";
-            source = data;
-            flatten = true;
-          })
-        ];
-      });
-  };
-
-  mkSection = {
-    set,
-    queries ? {},
-  }:
-    {all = set;} // queries;
 
   isRegistry = tree:
     (tree != {})
@@ -516,7 +418,12 @@
 
       fn = assert withContext {
         name = "mkPolarity.pair";
-        context = concat " " ["building" "polarity" "pair" "wrapper"];
+        context = concat " " [
+          "building"
+          "polarity"
+          "pair"
+          "wrapper"
+        ];
         assertion =
           isAttrs spec
           && spec ? fn
@@ -542,14 +449,16 @@
       allowed = (spec.args or []) ++ ["polarity"];
 
       validate = args: let
-        invalid =
-          filter
-          (argName: !(isIn argName allowed))
-          (attrNames args);
+        invalid = filter (argName: !(isIn argName allowed)) (attrNames args);
       in
         assert withContext {
           name = "mkPolarity.pair";
-          context = concat " " ["validating" "polarity" "pair" "arguments"];
+          context = concat " " [
+            "validating"
+            "polarity"
+            "pair"
+            "arguments"
+          ];
           assertion = invalid == [];
           message = concat " " [
             "unexpected arguments"
@@ -580,15 +489,21 @@
       domain ? "value",
     }: let
       fn = {
-        name = concat "." [domain "selectByPolarity"];
-        context = concat " " ["selecting" polarity domain "input"];
+        name = concat "." [
+          domain
+          "selectByPolarity"
+        ];
+        context = concat " " [
+          "selecting"
+          polarity
+          domain
+          "input"
+        ];
       };
 
-      isConcrete =
-        isAttrs value && ((value ? package) || (value ? name));
+      isConcrete = isAttrs value && ((value ? package) || (value ? name));
 
-      isPolarized =
-        isAttrs value && !isConcrete;
+      isPolarized = isAttrs value && !isConcrete;
     in
       if value == null
       then null
@@ -726,32 +641,38 @@
         }; {};
   in
     listToAttrs (
-      map
-      (
-        memberName: {
-          name = memberName;
-          value = assert withContext {
-            name = concat "." [owner kind];
-            context = concat " " ["selecting" kind memberName "for" owner];
-            assertion = hasAttr memberName available';
-            message = concat " " [
-              "unknown"
-              kind
-              (wrap {
-                token = "`";
-                input = memberName;
-              })
-              "- valid:"
-              (wrap {
-                token = "`";
-                input = attrNames available';
-                sep = ", ";
-              })
-            ];
-          };
-            available'.${memberName};
-        }
-      )
+      map (memberName: {
+        name = memberName;
+        value = assert withContext {
+          name = concat "." [
+            owner
+            kind
+          ];
+          context = concat " " [
+            "selecting"
+            kind
+            memberName
+            "for"
+            owner
+          ];
+          assertion = hasAttr memberName available';
+          message = concat " " [
+            "unknown"
+            kind
+            (wrap {
+              token = "`";
+              input = memberName;
+            })
+            "- valid:"
+            (wrap {
+              token = "`";
+              input = attrNames available';
+              sep = ", ";
+            })
+          ];
+        };
+          available'.${memberName};
+      })
       names
     );
 
@@ -764,8 +685,16 @@
     flatten ? false,
   }: let
     fn = {
-      name = concat "." [owner kind];
-      context = concat " " ["building" kind "aggregate" "member"];
+      name = concat "." [
+        owner
+        kind
+      ];
+      context = concat " " [
+        "building"
+        kind
+        "aggregate"
+        "member"
+      ];
     };
 
     dataset = let
@@ -774,35 +703,34 @@
         if isRegistry raw
         then flatten raw
         else raw;
-    in {inherit raw flat;};
+    in {
+      inherit raw flat;
+    };
 
-    target =
-      unique
-      (filter isString ((toList field) ++ fields));
+    target = unique (filter isString ((toList field) ++ fields));
 
-    keyOf = entry:
-      concat "::" (
-        map
-        (fieldName: toString (entry.${fieldName} or ""))
-        target
-      );
+    keyOf = entry: concat "::" (map (fieldName: toString (entry.${fieldName} or "")) target);
 
-    keys =
-      unique
-      (filter isNotEmpty (map keyOf (attrValues dataset.flat)));
+    keys = unique (filter isNotEmpty (map keyOf (attrValues dataset.flat)));
   in
     assert withContext {
       inherit (fn) name context;
       assertion =
         isAttrs source
-        && isIn kind ["group" "query"]
+        && isIn kind [
+          "group"
+          "query"
+        ]
         && isNotEmpty target;
       message = concat " " [
         "expected"
         "a non-empty"
         (wrap {
           token = "`";
-          input = ["field" "fields"];
+          input = [
+            "field"
+            "fields"
+          ];
           sep = " or ";
         })
         "input, a valid"
@@ -818,27 +746,12 @@
       ];
     };
       if flatten
-      then
-        genAttrs keys (
-          key:
-            filterAttrs
-            (_: entry: keyOf entry == key)
-            dataset.flat
-        )
+      then genAttrs keys (key: filterAttrs (_: entry: keyOf entry == key) dataset.flat)
       else
         genAttrs keys (
           key:
-            filterAttrs
-            (_: namespace: namespace != {})
-            (
-              mapAttrs
-              (
-                _: entries':
-                  filterAttrs
-                  (_: entry: keyOf entry == key)
-                  entries'
-              )
-              dataset.raw
+            filterAttrs (_: namespace: namespace != {}) (
+              mapAttrs (_: entries': filterAttrs (_: entry: keyOf entry == key) entries') dataset.raw
             )
         );
 
@@ -867,19 +780,47 @@
         else toTitleCase stem;
       suffix' = optionalString (isNotEmpty suffix) (toTitleCase suffix);
     in
-      concat "" [prefix' stem' suffix'];
+      concat "" [
+        prefix'
+        stem'
+        suffix'
+      ];
 
     value' =
       if args ? value
       then value
-      else mkAggregate {inherit kind owner field source flatten;};
+      else
+        mkAggregate {
+          inherit
+            kind
+            owner
+            field
+            source
+            flatten
+            ;
+        };
   in
     assert withContext {
-      name = concat "." [owner kind];
+      name = concat "." [
+        owner
+        kind
+      ];
       context =
         if args ? value
-        then concat " " ["building" "explicit" kind "member"]
-        else concat " " ["building" "derived" kind "member"];
+        then
+          concat " " [
+            "building"
+            "explicit"
+            kind
+            "member"
+          ]
+        else
+          concat " " [
+            "building"
+            "derived"
+            kind
+            "member"
+          ];
       assertion = isNotEmpty name';
       message = concat " " [
         "member input requires a non-empty resolved name"

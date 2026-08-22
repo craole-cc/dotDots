@@ -1,16 +1,14 @@
 {_, ...}: let
   meta = {
     # TODO: Add the correct doc
-    doc = ''
-    '';
+    doc = "";
 
     exports = {
       internal = let
         functions = {inherit mkEnvironment mkLocale;};
         aliases = {};
       in
-        {inherit functions aliases;}
-        // functions // aliases;
+        {inherit functions aliases;} // functions // aliases;
       external = {
         mkCoreEnvironment = mkEnvironment;
         mkCoreLocale = mkLocale;

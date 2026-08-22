@@ -9,7 +9,7 @@
   inherit (lix.modules.core.staging) mkStaged;
   app = "quickshell";
   inherit (lib.lists) elem;
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkMerge;
   isAllowed = elem app (user.applications.allowed or []);
   payload = {
     programs.${app} = mkMerge [

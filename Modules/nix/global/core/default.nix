@@ -22,7 +22,7 @@
     ++ (
       with pkgs;
         [
-          age #? Encrypting and decrypting files and messages
+          age # ? Encrypting and decrypting files and messages
           alejandra # ? Nix code formatter
           bat # ? Cat clone with syntax highlighting
           direnv # ? Environment variable manager
@@ -43,15 +43,15 @@
           undollar # ? Remove leading dollar signs age
         ]
         ++ optionals isLinux [
-          xclip #? Command line interface to the X11 clipboard
-          wl-clipboard #? Command line interface to the Wayland clipboard
-          xsel #? Command line interface to the X11 selection buffer
+          xclip # ? Command line interface to the X11 clipboard
+          wl-clipboard # ? Command line interface to the Wayland clipboard
+          xsel # ? Command line interface to the X11 selection buffer
         ]
         ++ optionals isDarwin [
-          pbcopy #? Command line interface to the macOS clipboard
-          pbpaste #? Command line interface to the macOS clipboard
+          pbcopy # ? Command line interface to the macOS clipboard
+          pbpaste # ? Command line interface to the macOS clipboard
         ]
-        ++ formatters #? Formatter packages plus the wrapper
+        ++ formatters # ? Formatter packages plus the wrapper
     );
 
   #|---------------------------------------------------------|

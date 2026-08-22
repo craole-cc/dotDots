@@ -54,7 +54,9 @@ in {
     enable = true;
     package = mkIf (isNotEmpty package) package;
     profiles.default =
-      import ./bookmarks.nix // import ./search.nix {inherit icons host;} // import ./settings.nix {inherit program;};
+      import ./bookmarks.nix
+      // import ./search.nix {inherit icons host;}
+      // import ./settings.nix {inherit program;};
 
     policies =
       import ./policies.nix {inherit paths;}

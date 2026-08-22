@@ -15,10 +15,21 @@
       mkIcons = mkPair;
     };
     exports = {
-      local = {inherit data mkOne mkPair types;} // alias;
+      local =
+        {
+          inherit
+            data
+            mkOne
+            mkPair
+            types
+            ;
+        }
+        // alias;
       inherit alias;
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.predicates) hasAttr;
@@ -33,11 +44,11 @@
   inherit (_.types.primitives) package str;
   inherit (_.types.predicates) isAttrs;
 
-  mkCatppuccin = _.styles.catppuccin.cursors.mkOne;
-
   data = mkData {
     domain = "icons";
-    seed = {icon = "candy-icons";};
+    seed = {
+      icon = "candy-icons";
+    };
     groupBy = ["byFamily"];
   };
   inherit (data) seed normalize groups;
@@ -84,17 +95,14 @@
     then let
       candidates = groups.byFamily.${entry.family} or {};
       candidate = let
-        samePolarity =
-          filter
-          (
-            name: let
-              item = candidates.${name};
-            in
-              if isAttrs (item.polarity or null)
-              then hasAttr polarity item.polarity
-              else true
-          )
-          (attrNames candidates);
+        samePolarity = filter (
+          name: let
+            item = candidates.${name};
+          in
+            if isAttrs (item.polarity or null)
+            then hasAttr polarity item.polarity
+            else true
+        ) (attrNames candidates);
       in
         if isNotEmpty samePolarity
         then lookup (elemAt samePolarity 0)
@@ -147,7 +155,10 @@
 
   mkPair = mkPolarity.pair {
     fn = mkOne;
-    args = ["pkgs" "icon"];
+    args = [
+      "pkgs"
+      "icon"
+    ];
   };
 in
   meta.exports.local

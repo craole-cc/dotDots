@@ -1,13 +1,11 @@
 # Live Victus Configuration Inventory
 
-**Date:** 2026-08-08
-**Host:** Victus
-**Architecture:** x86_64
+**Date:** 2026-08-08 **Host:** Victus **Architecture:** x86_64
 
-This is a non-secret audit of the live Victus system used to compare the
-working machine against the declarative candidate. Credentials, tokens,
-private keys, browser profiles, databases, caches, and generated runtime state
-are intentionally excluded.
+This is a non-secret audit of the live Victus system used to compare the working
+machine against the declarative candidate. Credentials, tokens, private keys,
+browser profiles, databases, caches, and generated runtime state are
+intentionally excluded.
 
 ## Access and Current System
 
@@ -16,8 +14,7 @@ are intentionally excluded.
 - `sshd.service` is active.
 - Current active generation:
   `/nix/store/mch7iag050xji34zqnpmf4j480zjn8xs-nixos-system-Victus-26.05.20260324.46db2e0`.
-- Repository checkout:
-  `/home/craole/Downloads/public/dotDots`.
+- Repository checkout: `/home/craole/Downloads/public/dotDots`.
 - No `/mnt/Storage` mount is declared on Victus. The QBX storage work must not
   be copied to Victus.
 
@@ -31,12 +28,12 @@ The live `~/.config` contains configuration families for:
 - Antigravity, Windsurf, Zed, JetBrains, and other editor/tool clients.
 - Nix, Helix, Neovim, Nushell, Yazi, Git, Jujutsu, Direnv, and development
   tooling.
-- Browsers and application state including Chromium, Brave, Zen, Epiphany,
-  and related browser profiles.
+- Browsers and application state including Chromium, Brave, Zen, Epiphany, and
+  related browser profiles.
 - Media, graphics, communication, and desktop applications.
 
-Caches, crash reports, application databases, browser profiles, credentials,
-and other mutable runtime state are not declarative configuration inputs.
+Caches, crash reports, application databases, browser profiles, credentials, and
+other mutable runtime state are not declarative configuration inputs.
 
 ## Active User Services
 
@@ -54,10 +51,11 @@ The live user service inventory includes:
 - PipeWire, portals, Bluetooth/OBEX, GPG agent, and session units.
 
 The live `hermes-gateway.service` is a generated user service whose effective
-command is `hermes gateway run --replace`, with `HERMES_HOME=/home/craole/.hermes`.
-It is not currently represented by an equivalent repository-owned declarative
-user service. The repository has Hermes command/service helper definitions,
-but those do not by themselves prove gateway startup persistence.
+command is `hermes gateway run --replace`, with
+`HERMES_HOME=/home/craole/.hermes`. It is not currently represented by an
+equivalent repository-owned declarative user service. The repository has Hermes
+command/service helper definitions, but those do not by themselves prove gateway
+startup persistence.
 
 ## VS Code Findings
 
@@ -82,8 +80,8 @@ but those do not by themselves prove gateway startup persistence.
 
 - Executable: `/etc/profiles/per-user/craole/bin/code-insiders`.
 - Version: `1.114.0-insider`.
-- A separate installed extension set exists, including Nix, Tailwind, Deno,
-  Rust Analyzer, LLDB, Direnv, ShellCheck, YAML, TOML, and Git tooling.
+- A separate installed extension set exists, including Nix, Tailwind, Deno, Rust
+  Analyzer, LLDB, Direnv, ShellCheck, YAML, TOML, and Git tooling.
 
 ### Candidate mismatch
 
@@ -107,8 +105,8 @@ review rather than assumption from `programs.vscode.enable`.
 ## Development and Remote Access
 
 Live Victus has working executables or package access for VS Code, VS Code
-Insiders, Antigravity, Zed, Nix tooling, `nix-ld`, Tailscale, Rust tooling,
-Nix language servers, and common compiler/build tools. The candidate dry-build
+Insiders, Antigravity, Zed, Nix tooling, `nix-ld`, Tailscale, Rust tooling, Nix
+language servers, and common compiler/build tools. The candidate dry-build
 contains a broad development closure, but dry-build success does not establish
 that the same editor channels, extensions, settings, or remote workflow are
 preserved.
@@ -116,15 +114,15 @@ preserved.
 ## Storage Boundary
 
 Victus does not declare QBX's `/mnt/Storage` mount. No storage operation was
-performed during this audit. Existing Victus storage remains outside the
-repair scope unless separately requested and reviewed.
+performed during this audit. Existing Victus storage remains outside the repair
+scope unless separately requested and reviewed.
 
 ## Required Repairs Before Victus Switch
 
-1. Decide and explicitly model the intended editor channels: Stable VS Code,
-   VS Code Insiders, or both.
-2. Remove the ineffective VSCodium/custom-package ambiguity or make the
-   intended package selection explicit.
+1. Decide and explicitly model the intended editor channels: Stable VS Code, VS
+   Code Insiders, or both.
+2. Remove the ineffective VSCodium/custom-package ambiguity or make the intended
+   package selection explicit.
 3. Compare and preserve the working Remote SSH, remote server, Dev Containers,
    Nix, Rust, Tailwind, and language-server extension/configuration surface.
 4. Determine ownership of the live `hermes-gateway.service` and represent its

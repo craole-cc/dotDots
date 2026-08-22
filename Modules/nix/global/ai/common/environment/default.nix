@@ -1,4 +1,4 @@
-args: let
+_args: let
   LOCALHOST = "http://127.0.0.1";
   AUTO_START = 0;
   STARTUP_TIMEOUT = 15;

@@ -18,7 +18,7 @@
     "plasma6"
   ];
 
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkMerge;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;

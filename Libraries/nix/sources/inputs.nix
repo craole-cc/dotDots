@@ -25,8 +25,12 @@
         resolveInputs = normalize;
         mkInputSource = mkSource;
       };
-    in {inherit internal external;};
-  in {inherit doc exports;};
+    in {
+      inherit internal external;
+    };
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
@@ -59,17 +63,13 @@
     input ? null,
     ...
   }:
-    optionalAttrs (isNotEmpty input)
-    (
+    optionalAttrs (isNotEmpty input) (
       if (host.class or "nixos") == "darwin"
       then {source = input;}
       else {flake.source = input;}
     );
 
-  differentRev = left: right:
-    isNotEmpty left
-    && isNotEmpty right
-    && ((left.rev or null) != (right.rev or null));
+  differentRev = left: right: isNotEmpty left && isNotEmpty right && ((left.rev or null) != (right.rev or null));
 
   /**
   Resolve a one-level flake input by trying the provided aliases in order.
@@ -130,12 +130,10 @@
   }:
     byPaths {
       attrset = listToAttrs (
-        map
-        (name: {
+        map (name: {
           name = toLowerCase name;
           value = inputs.${name};
-        })
-        (attrNames inputs)
+        }) (attrNames inputs)
       );
       paths = map (name: [(toLowerCase name)]) names;
       inherit default;
@@ -231,7 +229,9 @@
         then stable
         else throw "We should never have gotten to this point. nixpkgs is required";
     in
-      {inherit nixpkgs;}
+      {
+        inherit nixpkgs;
+      }
       // optionalAttrs (differentRev unstable nixpkgs) {nixpkgs-unstable = unstable;}
       // optionalAttrs (differentRev stable nixpkgs) {nixpkgs-stable = stable;};
 

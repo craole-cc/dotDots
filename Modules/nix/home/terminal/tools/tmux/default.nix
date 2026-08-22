@@ -32,11 +32,7 @@ in
       inherit context;
       condition =
         resolved.enable
-        || (
-          with osConfig.services;
-            (openssh.enable or false)
-            || (tailscale.enable or false)
-        );
+        || (with osConfig.services; (openssh.enable or false) || (tailscale.enable or false));
     };
     outputs = {inherit (resolved) programs home;};
   }

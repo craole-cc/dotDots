@@ -4,7 +4,8 @@
   lix,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "style";
   sub = "icons";
@@ -13,13 +14,15 @@
   inherit (lib.types) either package str;
   inherit (lix.styles.types) icons;
 
-  user = host.users.data.primary.interface.style.icons or {};
-  seed = let
-    common = "candy-icons";
-  in {
-    light = common;
-    dark = common;
-  };
+  user = host.users.data.primary.interface.style.icons or { };
+  seed =
+    let
+      common = "candy-icons";
+    in
+    {
+      light = common;
+      dark = common;
+    };
 
   type = either (either str package) icons.core;
   userPath = "host.users.data.primary.interface.style.icons";
@@ -35,17 +38,22 @@
   '';
 
   mkDefaultText = polarity: literalExpression ''${userPath}.${polarity} or "${seed.${polarity}}"'';
-  mkDescription = polarity: "Icon theme for the ${polarity} polarity (string, package, or { name, package })";
-  mkPolarityOption = polarity:
+  mkDescription =
+    polarity: "Icon theme for the ${polarity} polarity (string, package, or { name, package })";
+  mkPolarityOption =
+    polarity:
     mkOption {
       description = mkDescription polarity;
       default = user.${polarity} or seed.${polarity};
       defaultText = mkDefaultText polarity;
       inherit example type;
     };
-in {
+in
+{
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption sub // {default = true;};
+    enable = mkEnableOption sub // {
+      default = true;
+    };
     light = mkPolarityOption "light";
     dark = mkPolarityOption "dark";
   };

@@ -12,7 +12,7 @@
     dom = "environment";
     mod = "packages";
   };
-  inherit (context) cfg mod;
+  inherit (context) cfg;
 
   user = host.users.data.primary or {};
   apps = user.applications or {};
@@ -24,7 +24,14 @@
   inherit (lix.lists.construction) optionals;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
-  inherit (lix.applications.resolution) bars browsers editors launchers terminals;
+  inherit
+    (lix.applications.resolution)
+    bars
+    browsers
+    editors
+    launchers
+    terminals
+    ;
 
   registry = let
     editor = editors.packages {

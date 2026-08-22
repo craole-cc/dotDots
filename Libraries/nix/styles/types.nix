@@ -20,7 +20,9 @@
       };
       alias = {};
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 in
   meta.exports.local
   // {

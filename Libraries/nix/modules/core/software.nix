@@ -49,7 +49,9 @@
         mkNixMaintenance = mkMaintenance;
       };
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.construction) optionalAttrs;
@@ -123,9 +125,7 @@
         };
       custom = caches;
     in
-      attrValues (filterAttrs
-        (_: cache: cache.enable or true)
-        (recursiveUpdate common custom));
+      attrValues (filterAttrs (_: cache: cache.enable or true) (recursiveUpdate common custom));
   in {
     system = {inherit stateVersion;};
 
@@ -151,7 +151,13 @@
   }:
     pkgs.writeShellApplication {
       name = "${name}-fetch";
-      runtimeInputs = with pkgs; [fastfetch nitch onefetch tokei git];
+      runtimeInputs = with pkgs; [
+        fastfetch
+        nitch
+        onefetch
+        tokei
+        git
+      ];
       text = readFile (paths.lib.sh.store + "/data/fetch");
     };
 

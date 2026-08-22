@@ -48,4 +48,6 @@
         "  stop                    Stop running services"
     '';
   };
-in {inherit all mkAll;}
+in {
+  inherit all mkAll;
+}

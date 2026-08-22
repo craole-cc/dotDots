@@ -32,5 +32,7 @@
     };
   };
 in {
-  config = lib.mkMerge (mkStaged {inherit top payload;});
+  config = lib.mkMerge (mkStaged {
+    inherit top payload;
+  });
 }

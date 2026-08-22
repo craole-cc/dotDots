@@ -31,7 +31,9 @@
       local = functions;
       store = functions;
     };
-  in {inherit doc exports functions;};
+  in {
+    inherit doc exports functions;
+  };
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
   inherit (_.attrsets.construction) genAttrs;
@@ -86,11 +88,22 @@
         #   name = names.src;
         # };
         class = host.class or "nixos";
-        tree' = tree // {local = tree.mkLocal flake.path;};
+        tree' =
+          tree
+          // {
+            local = tree.mkLocal flake.path;
+          };
 
         specialArgs =
           {
-            inherit host class inputs flake names paths;
+            inherit
+              host
+              class
+              inputs
+              flake
+              names
+              paths
+              ;
             inherit (names) top;
             "${names.lib}" = libraries.${names.lib};
             tree = tree';
@@ -100,7 +113,9 @@
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
           modules = mkModules {inherit class inputs;};
-        in {inherit inputs packages modules;};
+        in {
+          inherit inputs packages modules;
+        };
 
         moduleArgs = let
           fromInputs = flakeArgs.modules;
@@ -115,7 +130,11 @@
               specialArgs
               // {
                 inherit (fromInputs.all) modulesPath baseModules;
-                modules = fromInputs // {host = fromHost;};
+                modules =
+                  fromInputs
+                  // {
+                    host = fromHost;
+                  };
               };
             modules =
               fromInputs.base
@@ -130,9 +149,7 @@
         };
       in
         if class == "darwin"
-        then
-          moduleArgs.fromEval
-          // {system = moduleArgs.fromEval.config.system.build.toplevel;}
+        then moduleArgs.fromEval // {system = moduleArgs.fromEval.config.system.build.toplevel;}
         else moduleArgs.fromEval
     )
     schema.hosts;
@@ -169,7 +186,12 @@
       };
     }
     (mkHome {
-      inherit host specialArgs tree inputs;
+      inherit
+        host
+        specialArgs
+        tree
+        inputs
+        ;
       modules = modules.home;
     })
   ];
@@ -206,11 +228,20 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lib = extend (_self: _super: {
-            hm = inputs.home-manager.lib.hm or {};
-          });
+          lib = extend (
+            _self: _super: {
+              hm = inputs.home-manager.lib.hm or {};
+            }
+          );
         };
-      users = mkUsers {inherit inputs modules host tree;};
+      users = mkUsers {
+        inherit
+          inputs
+          modules
+          host
+          tree
+          ;
+      };
     };
   };
 
@@ -242,7 +273,13 @@
     fn,
   }: let
     systems = getSystems {
-      inherit flake nixpkgs legacyPackages system hosts;
+      inherit
+        flake
+        nixpkgs
+        legacyPackages
+        system
+        hosts
+        ;
     };
     inherit (systems) pkgsFor derived all;
 
@@ -300,10 +337,30 @@
       else null,
     name ? mod,
   }: let
-    path = mkPath {inherit top dom sub mod;};
+    path = mkPath {
+      inherit
+        top
+        dom
+        sub
+        mod
+        ;
+    };
   in
-    {inherit config top dom sub mod path kind name;}
-    // {cfg = (getAttrFromPath path config).explicit;};
+    {
+      inherit
+        config
+        top
+        dom
+        sub
+        mod
+        path
+        kind
+        name
+        ;
+    }
+    // {
+      cfg = (getAttrFromPath path config).explicit;
+    };
 
   mkPath = {
     top,
@@ -311,7 +368,11 @@
     sub,
     mod,
   }:
-    [top "resolved" dom]
+    [
+      top
+      "resolved"
+      dom
+    ]
     ++ (optionals (sub != null) [sub])
     ++ [mod];
 in

@@ -9,7 +9,12 @@
   base = {
     #~@ Primary references
     library = names.lib;
-    inherit lib names flake paths;
+    inherit
+      lib
+      names
+      flake
+      paths
+      ;
     inherit (paths) src;
     ${names.top} = self; # ? custom library (extensible self)
     lix = self; # ? custom library (extensible self)

@@ -1,5 +1,5 @@
-{pkgs, ...}:
-pkgs.runCommand "secrets-lint" {} ''
+{ pkgs, ... }:
+pkgs.runCommand "secrets-lint" { } ''
   echo "==> Scanning repository sources for leaked secret patterns..."
 
   source_root=${../..}

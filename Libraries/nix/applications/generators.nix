@@ -669,7 +669,7 @@
     user ? app.user or {},
     pkgs ? app.pkgs or {},
     name ? app.name or (context.mod or null),
-    kind ? app.kind or (context.kind or  null),
+    kind ? app.kind or (context.kind or null),
     category ? app.category or null,
     requiresWayland ? app.requiresWayland or false,
     requiresX11 ? app.requiresX11 or false,

@@ -2,28 +2,45 @@
 
 ## Scope
 
-This is a non-secret inventory of the live QBX user environment observed on 2026-08-08. It records configuration families, their likely declarative ownership, and gaps to resolve before a rebuild is considered preservation-safe.
+This is a non-secret inventory of the live QBX user environment observed on
+2026-08-08. It records configuration families, their likely declarative
+ownership, and gaps to resolve before a rebuild is considered preservation-safe.
 
-The live system is currently running generation `nixos-system-QBX-26.05.20260418.b12141`. No activation or configuration change was performed during this inventory.
+The live system is currently running generation
+`nixos-system-QBX-26.05.20260418.b12141`. No activation or configuration change
+was performed during this inventory.
 
 ## Interpretation Rules
 
-- A directory under `~/.config` is evidence that an application has been used or configured; it is not automatically a desired declarative module.
-- Browser profiles, IDE state, databases, cookies, credentials, caches, locks, generated theme files, and runtime snapshots must not be copied into Nix modules wholesale.
-- A setting becomes rebuild-owned only when its source is represented by a repository module, API/user policy, or an explicit source file under `Configuration/`.
-- Generated settings must be compared with their owning module's output rather than treated as independent source configuration.
+- A directory under `~/.config` is evidence that an application has been used or
+  configured; it is not automatically a desired declarative module.
+- Browser profiles, IDE state, databases, cookies, credentials, caches, locks,
+  generated theme files, and runtime snapshots must not be copied into Nix
+  modules wholesale.
+- A setting becomes rebuild-owned only when its source is represented by a
+  repository module, API/user policy, or an explicit source file under
+  `Configuration/`.
+- Generated settings must be compared with their owning module's output rather
+  than treated as independent source configuration.
 
 ## Scope Tiers
 
-The registry is intentionally broader than the current QBX rebuild target. A registry record means an application is available for selection; it does not mean it should be installed, configured, or preserved in this rebuild.
+The registry is intentionally broader than the current QBX rebuild target. A
+registry record means an application is available for selection; it does not
+mean it should be installed, configured, or preserved in this rebuild.
 
 ### Current QBX Preservation Target
 
-The immediate target is the application and setting surface actually selected by the live QBX configuration: Hyprland, DMS, Foot, Fuzzel, Vicinae, Waybar/session integration, Zen Twilight, the active shells/editors/file manager/media tools, system services, environment variables, themes, and the user modules that currently generate them.
+The immediate target is the application and setting surface actually selected by
+the live QBX configuration: Hyprland, DMS, Foot, Fuzzel, Vicinae, Waybar/session
+integration, Zen Twilight, the active shells/editors/file manager/media tools,
+system services, environment variables, themes, and the user modules that
+currently generate them.
 
 ### Registry-Defined But Deferred
 
-These records remain useful and must not be deleted, but they are explicitly outside the current rebuild scope:
+These records remain useful and must not be deleted, but they are explicitly
+outside the current rebuild scope:
 
 | Registry record | Registry location                                                 | Current decision                                               |
 | --------------- | ----------------------------------------------------------------- | -------------------------------------------------------------- |
@@ -34,7 +51,11 @@ These records remain useful and must not be deleted, but they are explicitly out
 | `albert`        | `applications/data/launchers.nix`                                 | Defined launcher; not a current QBX target                     |
 | `vscodium`      | `applications/data/editors.nix`                                   | Defined editor; not a current QBX target                       |
 
-The live presence of residual directories such as `.config/epiphany`, `.config/JetBrains`, `.config/caelestia`, `.config/wezterm`, `.config/albert`, and `.config/VSCodium` is therefore not evidence that they should be reproduced in the immediate candidate generation. They should remain untouched as user state unless a separate cleanup or migration is requested.
+The live presence of residual directories such as `.config/epiphany`,
+`.config/JetBrains`, `.config/caelestia`, `.config/wezterm`, `.config/albert`,
+and `.config/VSCodium` is therefore not evidence that they should be reproduced
+in the immediate candidate generation. They should remain untouched as user
+state unless a separate cleanup or migration is requested.
 
 ## Live Desktop And Session Surface
 
@@ -81,29 +102,56 @@ The live user session has enabled or generated units for:
 - `nh-clean.timer`
 - PipeWire, WirePlumber, portals, speech dispatcher, Bluetooth/OBEX, GPG agent
 - Wayland session and Hyprland session targets
-- `waybar.service` exists in the live system profile and requires explicit classification
+- `waybar.service` exists in the live system profile and requires explicit
+  classification
 
-The live system also reports the known failed services `nscd.service` and `systemd-suspend.service`; these are unrelated and must remain untouched.
+The live system also reports the known failed services `nscd.service` and
+`systemd-suspend.service`; these are unrelated and must remain untouched.
 
 ## Concrete Settings That Need Module Representation
 
-The following are not just package-presence questions and need explicit module ownership or a deliberate preservation decision:
+The following are not just package-presence questions and need explicit module
+ownership or a deliberate preservation decision:
 
-1. DMS settings JSON: theme mode, Matugen scheme/monitor, radius, clock, widgets, system indicators, and feature visibility.
-2. Hyprland DMS generated settings: gaps, border, rounding, monitor layout, binds, and DMS include order.
-3. Hyprland user settings outside DMS: startup, rules, workspace assignments, portals, idle/paper/sunset/polkit services.
-4. Foot: server behavior, app-id, color source, and the repository's `feet` wrapper.
+1. DMS settings JSON: theme mode, Matugen scheme/monitor, radius, clock,
+   widgets, system indicators, and feature visibility.
+2. Hyprland DMS generated settings: gaps, border, rounding, monitor layout,
+   binds, and DMS include order.
+3. Hyprland user settings outside DMS: startup, rules, workspace assignments,
+   portals, idle/paper/sunset/polkit services.
+4. Foot: server behavior, app-id, color source, and the repository's `feet`
+   wrapper.
 5. Fuzzel: overlay layer, terminal variable, launcher wrapper and theme.
 6. Vicinae: server service, settings, opacity, and `vicinae toggle` binding.
-7. Environment names and values: especially `BROWSER`, `EDITOR`, `TERMINAL`, `LAUNCHER`, theme/wallpaper variables, and Qt/GTK/Wayland integration.
-8. Yazi: mtime linemode, column ratio, natural sorting, previewers, openers, and editor/media associations.
-9. MPV: the live file delegates to `$DOTS/Configuration/mpv/config`; that source must be compared directly.
-10. Development and remote-access tooling: the live user has VS Code with the Tailwind CSS and Tailscale extensions plus their language/settings integration. No global `tailwind`/`tailwindcss` executable was found. The live user profile provides `/home/craole/.nix-profile/bin/nix-ld`; no repository-owned `nix-ld` declaration currently exists. `tailscaled.service` is active and connected on QBX, with the `tailscale` client also available from `/home/craole/.nix-profile/bin`; no repository-owned Tailscale NixOS/service declaration currently exists. The live Tailscale state under `/var/lib/tailscale` must be preserved as host state and must never be copied into the repository. A VS Code Insiders server agent is running from the user's `.vscode-server-insiders` state; this is not currently represented as a NixOS/Home Manager service and must not be assumed to be recreated by a rebuild.
-11. Media/download applications: qBittorrent paths, tracker policy, port settings, OBS profile/plugin settings, and media-editor associations. Secrets and credentials must not be copied.
+7. Environment names and values: especially `BROWSER`, `EDITOR`, `TERMINAL`,
+   `LAUNCHER`, theme/wallpaper variables, and Qt/GTK/Wayland integration.
+8. Yazi: mtime linemode, column ratio, natural sorting, previewers, openers, and
+   editor/media associations.
+9. MPV: the live file delegates to `$DOTS/Configuration/mpv/config`; that source
+   must be compared directly.
+10. Development and remote-access tooling: the live user has VS Code with the
+    Tailwind CSS and Tailscale extensions plus their language/settings
+    integration. No global `tailwind`/`tailwindcss` executable was found. The
+    live user profile provides `/home/craole/.nix-profile/bin/nix-ld`; no
+    repository-owned `nix-ld` declaration currently exists. `tailscaled.service`
+    is active and connected on QBX, with the `tailscale` client also available
+    from `/home/craole/.nix-profile/bin`; no repository-owned Tailscale
+    NixOS/service declaration currently exists. The live Tailscale state under
+    `/var/lib/tailscale` must be preserved as host state and must never be
+    copied into the repository. A VS Code Insiders server agent is running from
+    the user's `.vscode-server-insiders` state; this is not currently
+    represented as a NixOS/Home Manager service and must not be assumed to be
+    recreated by a rebuild.
+11. Media/download applications: qBittorrent paths, tracker policy, port
+    settings, OBS profile/plugin settings, and media-editor associations.
+    Secrets and credentials must not be copied.
 
 ## Current Readiness Assessment
 
-The repository currently has broad module coverage, but the inventory exposes a parity gap. `nix flake check` and QBX dry-build prove evaluation, not preservation of this live surface. Before activation readiness, the candidate must be forced and compared for:
+The repository currently has broad module coverage, but the inventory exposes a
+parity gap. `nix flake check` and QBX dry-build prove evaluation, not
+preservation of this live surface. Before activation readiness, the candidate
+must be forced and compared for:
 
 - package/application presence;
 - enabled system and user units;
@@ -113,4 +161,5 @@ The repository currently has broad module coverage, but the inventory exposes a 
 - user application settings with secrets/state excluded;
 - package provenance and version changes.
 
-The next repair work should be driven by this inventory, not by DMS or Zen alone.
+The next repair work should be driven by this inventory, not by DMS or Zen
+alone.

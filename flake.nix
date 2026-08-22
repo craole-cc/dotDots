@@ -20,7 +20,11 @@
         path = paths.flake.store;
         home = paths.flake.local;
       });
-    args = flake'.args // {flake = flake';};
+    args =
+      flake'.args
+      // {
+        flake = flake';
+      };
   in
     {
       lib = args;
@@ -33,9 +37,7 @@
         system,
         pkgs,
       }:
-        import tree.mod.global.store (
-          args // {inherit pkgs system;}
-        );
+        import tree.mod.global.store (args // {inherit pkgs system;});
     });
 
   nixConfig = {

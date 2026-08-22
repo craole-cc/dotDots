@@ -25,10 +25,7 @@
   # enable = (primary || allowed) && programExists;
   # enable = primary || allowed;
 
-  enable =
-    config ? programs.${name}
-    && (inputsForHome ? ${name})
-    && inputsForHome.${name}.isAllowed;
+  enable = config ? programs.${name} && (inputsForHome ? ${name}) && inputsForHome.${name}.isAllowed;
 
   monitors = {
     all = getNames {inherit host;};

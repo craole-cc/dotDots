@@ -77,11 +77,7 @@
         // {
           inherit name;
           aliases = unique (
-            filter isString (
-              [name]
-              ++ (app.aliases or [])
-              ++ (builtins.attrValues (app.names or {}))
-            )
+            filter isString ([name] ++ (app.aliases or []) ++ (builtins.attrValues (app.names or {})))
           );
           categories = normalizeList (app.categories or []);
           channel = normalizeOptional (app.channel or null);
@@ -157,7 +153,10 @@
   in
     if elem category (app.categories or [])
     then app
-    else throw "'${name}' does not satisfy category '${category}'. Its categories: ${toString (app.categories or [])}";
+    else
+      throw "'${name}' does not satisfy category '${category}'. Its categories: ${
+        toString (app.categories or [])
+      }";
 
   /**
       Derive window-identification metadata from a registry entry.

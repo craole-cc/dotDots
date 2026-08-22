@@ -1,21 +1,22 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
   mkSource = group: name: ./. + "/${group}/${name}";
 
-  mkEntry = {
-    group,
-    name,
-    prefix ? ".",
-  }: {
-    source = mkSource group name;
-    target =
-      if prefix == ""
-      then name
-      else "${prefix}${group}/${name}";
-  };
+  mkEntry =
+    {
+      group,
+      name,
+      prefix ? ".",
+    }:
+    {
+      source = mkSource group name;
+      target = if prefix == "" then name else "${prefix}${group}/${name}";
+    };
 
-  mkEditor = editor:
+  mkEditor =
+    editor:
     optionalAttrs editor.enable (
       optionalAttrs editor.base {
         editorconfig = {
@@ -135,6 +136,7 @@
         };
       }
     );
-in {
+in
+{
   inherit mkEditor;
 }

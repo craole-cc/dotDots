@@ -18,5 +18,7 @@ in {
     ./themes.nix
   ];
   home.sessionVariables =
-    {} // optionalAttrs isPrimary {TERMINAL = app;} // optionalAttrs isSecondary {TERMINAL_ALT = app;};
+    {}
+    // optionalAttrs isPrimary {TERMINAL = app;}
+    // optionalAttrs isSecondary {TERMINAL_ALT = app;};
 }

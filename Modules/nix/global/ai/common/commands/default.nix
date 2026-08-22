@@ -27,24 +27,38 @@
   };
 
   aggregate = import ./aggregate.nix {
-    inherit helpers lib names commands;
+    inherit
+      helpers
+      lib
+      names
+      commands
+      ;
   };
 in
   concatLists [
     (concatLists (
-      map
-      (svc: with svc; [start stop status help])
-      (attrValues commands)
+      map (
+        svc:
+          with svc; [
+            start
+            stop
+            status
+            help
+          ]
+      ) (attrValues commands)
     ))
     (attrValues aggregate.all)
   ]
-  ++ (with (import ./ollama.nix {
+  ++ (
+    with (import ./ollama.nix {
       inherit helpers runtimes service-builder;
     }); [
       ollama-models
       ollama-chat
-    ])
-  ++ (with (import ./hermes.nix {
+    ]
+  )
+  ++ (
+    with (import ./hermes.nix {
       inherit helpers runtimes;
     }); [
       hermes-tui
@@ -55,10 +69,17 @@ in
       hermes-lab
       hermes-setup
       hermes-whatsapp
-    ])
+    ]
+  )
   ++ [
     (import ./help.nix {
-      inherit helpers lib description names commands;
+      inherit
+        helpers
+        lib
+        description
+        names
+        commands
+        ;
       inherit (aggregate) all;
     }).show-help
   ]

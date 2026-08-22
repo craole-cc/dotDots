@@ -1,14 +1,19 @@
 # Nix Discovery Notes
 
-This document records the _discovered_ shape of the repo’s Nix code, with a focus on what the implementation currently does rather than the intended abstract model.
+This document records the _discovered_ shape of the repo’s Nix code, with a
+focus on what the implementation currently does rather than the intended
+abstract model.
 
-Stable conceptual architecture lives in `Documentation/nix/architecture.md`. This file is the practical map: what to open first, where logic lives, and how the Nix layers connect in this repo.
+Stable conceptual architecture lives in `Documentation/nix/architecture.md`.
+This file is the practical map: what to open first, where logic lives, and how
+the Nix layers connect in this repo.
 
 ---
 
 ## What This Repo’s Nix Stack Is Doing
 
-At a high level, the repo is organized around a custom Nix library (`lix`) that drives the rest of the flake.
+At a high level, the repo is organized around a custom Nix library (`lix`) that
+drives the rest of the flake.
 
 The runtime flow is:
 
@@ -22,7 +27,8 @@ flake.nix
     -> Modules/nix
 ```
 
-The important detail is that `Libraries/nix` is not just a helper folder. It is the repo’s internal framework layer:
+The important detail is that `Libraries/nix` is not just a helper folder. It is
+the repo’s internal framework layer:
 
 - it builds the `lix` namespace
 - it centralizes filesystem path modeling via `tree`
@@ -58,7 +64,8 @@ It:
 - builds `schema` via `lix.schema._.mkSchema`
 - exports `lix`, `paths`, `tree`, `schema`, `hosts`, and `users`
 
-This file is the practical bridge between the flake and the repository’s internal Nix infrastructure.
+This file is the practical bridge between the flake and the repository’s
+internal Nix infrastructure.
 
 ---
 
@@ -69,19 +76,23 @@ This file is the practical bridge between the flake and the repository’s inter
 It is structured as a layered standard library with these major concerns:
 
 - `filesystem/` — path modeling, tree construction, import helpers, predicates
-- `sources/` — flake input normalization, package/module resolution, overlay wiring
+- `sources/` — flake input normalization, package/module resolution, overlay
+  wiring
 - `schema/` — host/user data normalization into structured evaluation inputs
 - `modules/` — evaluation orchestration and module composition
-- `attrsets/`, `lists/`, `strings/`, `types/`, `debug/` — general-purpose utilities and validation helpers
+- `attrsets/`, `lists/`, `strings/`, `types/`, `debug/` — general-purpose
+  utilities and validation helpers
 - `options/` — option construction helpers
 
 The library is self-assembling:
 
 - `Libraries/nix/default.nix` imports the library root
 - `Libraries/nix/internal/default.nix` scans and assembles the modules
-- modules export `__docs`, `__tests`, and `__rootAliases` in addition to their functions
+- modules export `__docs`, `__tests`, and `__rootAliases` in addition to their
+  functions
 
-This means the library is designed to behave like a typed, documented API rather than a pile of ad hoc helpers.
+This means the library is designed to behave like a typed, documented API rather
+than a pile of ad hoc helpers.
 
 ---
 
@@ -89,7 +100,8 @@ This means the library is designed to behave like a typed, documented API rather
 
 `Libraries/nix/filesystem/tree.nix` is the canonical repo-path registry.
 
-It defines the named stems that other code relies on, so the repo can reference locations as structured values instead of hardcoded relative paths.
+It defines the named stems that other code relies on, so the repo can reference
+locations as structured values instead of hardcoded relative paths.
 
 Important shapes:
 
@@ -106,7 +118,8 @@ Key observation:
 - `tree` is not a convenience wrapper
 - it is the repo’s canonical location API
 
-If a path already exists in `tree`, prefer using that over inventing a new relative import.
+If a path already exists in `tree`, prefer using that over inventing a new
+relative import.
 
 ---
 
@@ -149,7 +162,8 @@ Contains the reusable machinery that makes the other layers work:
 - package resolution
 - validation, docs, and tests
 
-This split is one of the strongest patterns in the repo and should be preserved when adding new code.
+This split is one of the strongest patterns in the repo and should be preserved
+when adding new code.
 
 ---
 
@@ -183,14 +197,16 @@ It:
 
 - turns schema users into HM user configs
 - derives per-user paths and environment context
-- injects user-facing module args like `style`, `apps`, `keyboard`, `locale`, `paths`
+- injects user-facing module args like `style`, `apps`, `keyboard`, `locale`,
+  `paths`
 - conditionally imports feature modules from resolved home modules
 
 ### `Libraries/nix/modules/core/*.nix`
 
 These define the system-side behavior stack.
 
-In this repo, “core” is the host/system layer that wires Home Manager, packages, services, and other system behavior into a host configuration.
+In this repo, “core” is the host/system layer that wires Home Manager, packages,
+services, and other system behavior into a host configuration.
 
 ---
 
@@ -228,7 +244,8 @@ It builds:
 - package sets
 - host-specific package config
 
-The pattern here is consistent: external flakes are normalized first, then converted into a shaped internal API.
+The pattern here is consistent: external flakes are normalized first, then
+converted into a shaped internal API.
 
 ---
 
@@ -238,7 +255,8 @@ The pattern here is consistent: external flakes are normalized first, then conve
 
 This turns `API/nix` data into evaluable structures.
 
-It imports host and user directories and then enriches host records through `mkCore`.
+It imports host and user directories and then enriches host records through
+`mkCore`.
 
 The result is a structured schema with:
 
@@ -282,7 +300,8 @@ If you are adding or changing Nix code in this repo:
 - use `Modules/nix` if the change is reusable behavior
 - use `Libraries/nix` if you need a new shared helper or abstraction
 - check whether a `default.nix` is only an aggregator before editing it
-- prefer extending existing library machinery rather than writing one-off logic in modules
+- prefer extending existing library machinery rather than writing one-off logic
+  in modules
 
 ---
 
@@ -291,7 +310,8 @@ If you are adding or changing Nix code in this repo:
 For common investigations:
 
 - flake outputs → `flake.nix`, `Modules/nix/global/default.nix`
-- host evaluation → `API/nix/hosts/*`, `Libraries/nix/schema/_.nix`, `Libraries/nix/modules/construction.nix`
+- host evaluation → `API/nix/hosts/*`, `Libraries/nix/schema/_.nix`,
+  `Libraries/nix/modules/construction.nix`
 - home evaluation → `API/nix/users/*`, `Libraries/nix/modules/home/users.nix`
 - tree/path resolution → `default.nix`, `Libraries/nix/filesystem/tree.nix`
 - input normalization → `Libraries/nix/sources/inputs.nix`
@@ -305,6 +325,8 @@ For common investigations:
 
 The repo’s Nix code is built around a single idea:
 
-> _Model the repository itself as structured data, then use the library layer to turn that structure into evaluated systems._
+> _Model the repository itself as structured data, then use the library layer to
+> turn that structure into evaluated systems._
 
-That is why `Libraries/nix` matters so much: it is the infrastructure that keeps the rest of the flake coherent.
+That is why `Libraries/nix` matters so much: it is the infrastructure that keeps
+the rest of the flake coherent.

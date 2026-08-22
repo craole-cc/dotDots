@@ -1,7 +1,9 @@
 _: let
   exports = {
     internal = {inherit mkPrograms;};
-    external = {mkCorePrograms = mkPrograms;};
+    external = {
+      mkCorePrograms = mkPrograms;
+    };
   };
 
   /**

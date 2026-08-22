@@ -19,7 +19,14 @@
   currentSystem = builtins.currentSystem or null;
 
   __exports = {
-    internal = {inherit systemOf getPackages getSystems getSystemOrDefault;};
+    internal = {
+      inherit
+        systemOf
+        getPackages
+        getSystems
+        getSystemOrDefault
+        ;
+    };
     external = {inherit systemOf getPackages getSystems;};
   };
 
@@ -68,12 +75,7 @@
     pkgsBase =
       if legacyPackages != {}
       then legacyPackages
-      else
-        flake.legacyPackages or (
-          nixpkgs.legacyPackages or (
-            inputs.nixpkgs.legacyPackages or {}
-          )
-        );
+      else flake.legacyPackages or (nixpkgs.legacyPackages or (inputs.nixpkgs.legacyPackages or {}));
 
     system' = let
       available = attrNames pkgsBase;
@@ -93,7 +95,9 @@
       else pkgsBase.${sys} or (import <nixpkgs> {system = sys;});
 
     pkgs = pkgsFor system';
-  in {inherit pkgsBase pkgsFor pkgs;};
+  in {
+    inherit pkgsBase pkgsFor pkgs;
+  };
 
   /**
   Calculates the required system architectures based on defined hosts.
@@ -125,13 +129,7 @@
   }: let
     #~@ Types Lists
     defined =
-      host.system or (
-        flatten (
-          mapAttrsToList
-          (_: host: host.platform or host.system or [])
-          hosts
-        )
-      );
+      host.system or (flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts));
     default = [
       "aarch64-darwin"
       "aarch64-linux"
@@ -150,7 +148,12 @@
     #~@ System Packages
     inherit
       (getPackages {
-        inherit flake inputs nixpkgs legacyPackages;
+        inherit
+          flake
+          inputs
+          nixpkgs
+          legacyPackages
+          ;
         system = derived;
       })
       pkgsBase
@@ -221,15 +224,11 @@ in
         };
         definedIncludesHostPlatform = mkTest {
           desired = true;
-          outcome =
-            elem "aarch64-linux"
-            (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
+          outcome = elem "aarch64-linux" (getSystems {hosts.myHost.platform = "aarch64-linux";}).defined;
           command = ''elem "aarch64-linux" (getSystems {...}).defined'';
         };
         emptyHostsGivesEmptyDefined = mkTest' [] (getSystems {}).defined;
-        pkgsForReturnsEmptyWhenNoPkgs =
-          mkTest' {}
-          ((getSystems {}).pkgsFor "x86_64-linux");
+        pkgsForReturnsEmptyWhenNoPkgs = mkTest' {} ((getSystems {}).pkgsFor "x86_64-linux");
         allIsUnique = mkTest {
           desired = true;
           outcome = let

@@ -1,77 +1,81 @@
 {
-  config,
   host,
   lib,
-  lix,
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "interface";
   mod = "style";
   sub = "fonts";
-  cfg = config.${top}.resolved.${dom}.${mod}.${sub};
 
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.lists) unique;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
-  inherit (lib.modules) mkIf;
   inherit (lib.types) listOf package str;
-  inherit (lix.modules.core.style) resolveFonts;
 
-  user =
-    recursiveUpdate {
-      interface.style.fonts = {
-        clock = "Rubik";
-        emoji = "Noto Color Emoji";
-        material = "Material Symbols Sharp";
-        monospace = "Maple Mono NF";
-        sansSerif = "Monaspace Radon Frozen";
-        serif = "Noto Serif";
-      };
-    }
-    (host.users.data.primary or {});
+  user = recursiveUpdate {
+    interface.style.fonts = {
+      clock = "Rubik";
+      emoji = "Noto Color Emoji";
+      material = "Material Symbols Sharp";
+      monospace = "Maple Mono NF";
+      sansSerif = "Monaspace Radon Frozen";
+      serif = "Noto Serif";
+    };
+  } (host.users.data.primary or { });
 
-  seed = let
-    fonts = user.interface.style.fonts;
+  seed =
+    let
+      fonts = user.interface.style.fonts;
 
-    packages = let
-      pkgsMap = with pkgs; {
-        "Rubik" = [rubik];
-        "Maple Mono NF" = [maple-mono.NF-unhinted];
-        "Monaspace Radon Frozen" = [monaspace];
-        "Victor Mono" = [victor-mono];
-        "Noto Serif" = [noto-fonts];
-        "Noto Color Emoji" = [noto-fonts-color-emoji];
-        "Material Symbols Sharp" = [material-symbols];
-        "Material Icons" = [material-icons];
-      };
+      packages =
+        let
+          pkgsMap = with pkgs; {
+            "Rubik" = [ rubik ];
+            "Maple Mono NF" = [ maple-mono.NF-unhinted ];
+            "Monaspace Radon Frozen" = [ monaspace ];
+            "Victor Mono" = [ victor-mono ];
+            "Noto Serif" = [ noto-fonts ];
+            "Noto Color Emoji" = [ noto-fonts-color-emoji ];
+            "Material Symbols Sharp" = [ material-symbols ];
+            "Material Icons" = [ material-icons ];
+          };
 
-      pkgsFor = name: pkgsMap.${name} or [];
+          pkgsFor = name: pkgsMap.${name} or [ ];
 
-      common = with pkgs; [
-        noto-fonts
-        noto-fonts-cjk-sans
-        material-icons
-      ];
+          common = with pkgs; [
+            noto-fonts
+            noto-fonts-cjk-sans
+            material-icons
+          ];
 
-      custom = with fonts; (
-        []
-        ++ pkgsFor clock
-        ++ pkgsFor emoji
-        ++ pkgsFor Material
-        ++ pkgsFor monospace
-        ++ pkgsFor sansSerif
-        ++ pkgsFor serif
-      );
+          custom =
+            with fonts;
+            (
+              [ ]
+              ++ pkgsFor clock
+              ++ pkgsFor emoji
+              ++ pkgsFor Material
+              ++ pkgsFor monospace
+              ++ pkgsFor sansSerif
+              ++ pkgsFor serif
+            );
 
-      all = unique (common ++ custom);
-    in {inherit all common custom;};
-  in
-    fonts // {inherit packages;};
-in {
+          all = unique (common ++ custom);
+        in
+        {
+          inherit all common custom;
+        };
+    in
+    fonts // { inherit packages; };
+in
+{
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {default = true;};
+    enable = mkEnableOption mod // {
+      default = true;
+    };
 
     clock = mkOption {
       description = "Clock/UI font";

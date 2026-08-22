@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.attrsets) optionalAttrs;
 
-  mkBase = set:
+  mkBase =
+    set:
     optionalAttrs set.enable (
       {
         envrc = {
@@ -23,6 +25,7 @@
         };
       }
     );
-in {
+in
+{
   inherit mkBase;
 }

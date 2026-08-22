@@ -16,10 +16,21 @@
       mkCursors = mkPair;
     };
     exports = {
-      local = {inherit data mkOne mkPair types;} // alias;
+      local =
+        {
+          inherit
+            data
+            mkOne
+            mkPair
+            types
+            ;
+        }
+        // alias;
       inherit alias;
     };
-  in {inherit doc exports;};
+  in {
+    inherit doc exports;
+  };
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.predicates) hasAttr;
@@ -39,7 +50,9 @@
   data = mkData {
     path = ./.;
     domain = "cursors";
-    seed = {size = 24;};
+    seed = {
+      size = 24;
+    };
     # groupBy = ["byFamily"];
   };
   inherit (data) seed normalize groups;
@@ -93,29 +106,38 @@
     if entry == null
     then
       mkCatppuccin {
-        inherit pkgs polarity accent flavor size;
+        inherit
+          pkgs
+          polarity
+          accent
+          flavor
+          size
+          ;
       }
     else if isAttrs entry && ((entry.generated or false) || (entry.family or null) == "catppuccin")
     then
       mkCatppuccin {
-        inherit pkgs polarity accent flavor size;
+        inherit
+          pkgs
+          polarity
+          accent
+          flavor
+          size
+          ;
       }
     else if isAttrs entry && hasAttr "family" entry
     then let
       candidates = groups.byFamily.${entry.family} or {};
 
       candidate = let
-        samePolarity =
-          filter
-          (
-            name: let
-              item = candidates.${name};
-            in
-              if isAttrs (item.polarity or null)
-              then hasAttr polarity item.polarity
-              else (item.polarity or null) == polarity || (item.polarity or null) == null
-          )
-          (attrNames candidates);
+        samePolarity = filter (
+          name: let
+            item = candidates.${name};
+          in
+            if isAttrs (item.polarity or null)
+            then hasAttr polarity item.polarity
+            else (item.polarity or null) == polarity || (item.polarity or null) == null
+        ) (attrNames candidates);
       in
         if isNotEmpty samePolarity
         then lookup (elemAt samePolarity 0)
@@ -129,12 +151,24 @@
       if resolved == null
       then
         mkCatppuccin {
-          inherit pkgs polarity accent flavor size;
+          inherit
+            pkgs
+            polarity
+            accent
+            flavor
+            size
+            ;
         }
       else if (resolved.family or null) == "catppuccin"
       then
         mkCatppuccin {
-          inherit pkgs polarity accent flavor size;
+          inherit
+            pkgs
+            polarity
+            accent
+            flavor
+            size
+            ;
         }
       else if isAttrs (resolved.polarity or null)
       then let
@@ -211,7 +245,13 @@
 
   mkPair = mkPolarity.pair {
     fn = mkOne;
-    args = ["pkgs" "cursor" "accent" "flavor" "size"];
+    args = [
+      "pkgs"
+      "cursor"
+      "accent"
+      "flavor"
+      "size"
+    ];
   };
 in
   meta.exports.local

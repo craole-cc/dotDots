@@ -6,13 +6,15 @@ This file collects common inspection paths for the repo’s Nix code.
 
 - Open `flake.nix`.
 - Open `Modules/nix/global/default.nix`.
-- If output shape is unclear, open `Libraries/nix/modules/construction.nix` and inspect `mkFlake`.
+- If output shape is unclear, open `Libraries/nix/modules/construction.nix` and
+  inspect `mkFlake`.
 
 ## Investigate host evaluation
 
 - Open `API/nix/hosts/<host>/default.nix`.
 - Open `Libraries/nix/schema/_.nix`.
-- Open `Libraries/nix/modules/construction.nix` and inspect `mkSystems` / `mkCore`.
+- Open `Libraries/nix/modules/construction.nix` and inspect `mkSystems` /
+  `mkCore`.
 
 ## Investigate Home Manager behavior
 
@@ -24,7 +26,8 @@ This file collects common inspection paths for the repo’s Nix code.
 
 - Open `API/nix/users/<user>/default.nix`.
 - Then inspect `programs/`, `services/`, or nested app config under that user.
-- If behavior is synthesized, trace into `Libraries/nix/schema/*` and `Libraries/nix/modules/home/*`.
+- If behavior is synthesized, trace into `Libraries/nix/schema/*` and
+  `Libraries/nix/modules/home/*`.
 
 ## Investigate path or import resolution
 

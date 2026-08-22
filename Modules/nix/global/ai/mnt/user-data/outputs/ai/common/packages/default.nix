@@ -8,7 +8,16 @@
   inherit (lib.attrsets) attrValues recursiveUpdate;
 
   apps = {
-    common = {inherit (pkgs) coreutils gum procps curl jq;};
+    common = {
+      inherit
+        (pkgs)
+        coreutils
+        gum
+        procps
+        curl
+        jq
+        ;
+    };
     api = {inherit (pkgs) curl jq;};
     ollama = {inherit (pkgs) ollama;};
     # hermes's own runtime packages (agent CLI, telegram bindings) are
@@ -24,12 +33,28 @@
     hermes = attrValues apps.hermes;
     default = common;
     all = default ++ ollama ++ hermes;
-  in {inherit common api ollama hermes default all;};
+  in {
+    inherit
+      common
+      api
+      ollama
+      hermes
+      default
+      all
+      ;
+  };
 
   paths = {};
 
   derived = import ../commands {
-    inherit apps description dots env paths runtimes;
+    inherit
+      apps
+      description
+      dots
+      env
+      paths
+      runtimes
+      ;
   };
 in {
   inherit apps paths runtimes;

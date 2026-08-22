@@ -129,7 +129,10 @@ _: {
   };
 
   zen-twilight = {
-    aliases = ["twilight" "zen"];
+    aliases = [
+      "twilight"
+      "zen"
+    ];
     package = {
       source = "zen-browser";
       attribute = "twilight";

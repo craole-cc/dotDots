@@ -25,25 +25,27 @@
           inherit lib;
           flatten = false;
         };
-      names = filter (name: name != "default") (map
-        (f: removeSuffix ".nix" f)
-        (attrNames (
-          filterAttrs (name: type:
-            (type == "regular")
-            && (hasSuffix ".nix" name)
-            && (name != "default.nix"))
-          (readDir raw)
-        )));
+      names = filter (name: name != "default") (
+        map (f: removeSuffix ".nix" f) (
+          attrNames (
+            filterAttrs (
+              name: type: (type == "regular") && (hasSuffix ".nix" name) && (name != "default.nix")
+            ) (readDir raw)
+          )
+        )
+      );
     in
       genAttrs names (name: init set.${name});
   in
     library.extend (_: prev: recursiveUpdate base prev);
 
-  custom = lib'.extend (_: prev:
-    recursiveUpdate prev {
-      inherit (paths) src;
-      inherit lib;
-    });
+  custom = lib'.extend (
+    _: prev:
+      recursiveUpdate prev {
+        inherit (paths) src;
+        inherit lib;
+      }
+  );
   base = removeAttrs custom [
     "__rootAliases"
     "__unfix__"

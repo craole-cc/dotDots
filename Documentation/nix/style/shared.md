@@ -10,7 +10,8 @@ These are the style rules that apply across the repo’s Nix code.
 - Keep names stable and semantically meaningful.
 - Prefer explicit exports over implicit behavior.
 - Model repo structure through `tree.store.*` instead of raw relative paths.
-- Keep data in `API/nix`, behavior in `Modules/nix`, and reusable infrastructure in `Libraries/nix`.
+- Keep data in `API/nix`, behavior in `Modules/nix`, and reusable infrastructure
+  in `Libraries/nix`.
 
 ## Naming style
 

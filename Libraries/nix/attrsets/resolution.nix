@@ -60,7 +60,9 @@
       in
         {inherit functions aliases;} // functions // aliases;
       external = internal.aliases;
-    in {inherit internal external;};
+    in {
+      inherit internal external;
+    };
   };
 
   # __exports = {
@@ -164,7 +166,15 @@
           assertion = isString path;
           message = "`path` must be a string or list of strings";
         };
-          splitStringBy (_: sep: elem sep ["." "/"]) false path;
+          splitStringBy (
+            _: sep:
+              elem sep [
+                "."
+                "/"
+              ]
+          )
+          false
+          path;
 
     validated = assert withContext {
       inherit (fn) name context;
@@ -183,10 +193,7 @@
     }; stems;
   in {
     path = validated;
-    reference =
-      optionalString
-      (isNotEmpty validated)
-      (concatStringsSep "." validated);
+    reference = optionalString (isNotEmpty validated) (concatStringsSep "." validated);
   };
 
   withPath = {
@@ -231,14 +238,16 @@
       }; base;
 
       inherit
-        ((
-          assert withContext {
-            inherit (fn) name context;
-            assertion = isString path || isList path;
-            message = "`path` must be a string or list";
-          };
-            normalizePath path
-        ))
+        (
+          (
+            assert withContext {
+              inherit (fn) name context;
+              assertion = isString path || isList path;
+              message = "`path` must be a string or list";
+            };
+              normalizePath path
+          )
+        )
         path
         ;
     };
@@ -246,9 +255,7 @@
     inherit (validated.base) name value;
     stems = validated.path;
   in
-    addErrorContext
-    "while resolving `${name}`"
-    {
+    addErrorContext "while resolving `${name}`" {
       inherit name;
       path = (normalizePath ([name] ++ stems)).reference;
       value = attrByPath stems {} value;
@@ -546,15 +553,19 @@
 
     resolved = {
       system = getSystemOrDefault {
-        inherit flake inputs nixpkgs legacyPackages system;
+        inherit
+          flake
+          inputs
+          nixpkgs
+          legacyPackages
+          system
+          ;
       };
 
       sources = {
-        priority = optionals (priority != null) (map (
-          name:
-            inputs.${name}
-            or (flake.inputs.${name} or (nixpkgs.${name} or null))
-        ) (toList priority));
+        priority = optionals (priority != null) (
+          map (name: inputs.${name} or (flake.inputs.${name} or (nixpkgs.${name} or null))) (toList priority)
+        );
 
         candidate = filter (src: src != {} && src != null) (
           resolved.sources.priority
@@ -575,21 +586,24 @@
       findPkgsSet = src:
         src.legacyPackages.${
           resolved.system
-        } or (src.packages.${
+        } or (
+          src.packages.${
             resolved.system
-          } or (
+          }
+            or (
             if src ? system && src.system == resolved.system
             then src
             else null
-          ));
+          )
+        );
 
       pkgs =
         if pkgs != null && pkgs ? system
         then pkgs
         else
-          findFirst (pkg: pkg != null) (
-            throw "${__ctx}: Unable to resolve a valid pkgs set for system '${resolved.system}'"
-          ) (map resolved.findPkgsSet resolved.sources.candidate);
+          findFirst (pkg: pkg != null)
+          (throw "${__ctx}: Unable to resolve a valid pkgs set for system '${resolved.system}'")
+          (map resolved.findPkgsSet resolved.sources.candidate);
 
       targets = map (
         target:
@@ -709,11 +723,13 @@
         {
           nixpkgs = pkgs.vscode-extensions;
         }
-        // optionalAttrs (
+        // optionalAttrs
+        (
           inputs ? nix-vscode-extensions
           && inputs.nix-vscode-extensions ? extensions
           && hasAttrByPath [system "vscode-marketplace"] inputs.nix-vscode-extensions.extensions
-        ) {
+        )
+        {
           market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
         };
       paths = [
@@ -816,9 +832,9 @@
     if self != {}
     then self
     else
-      traceIf ((derived._type or null) != "flake") "❌ Flake load failed: ${toString path} (${failureReason})" (
-        derived // {srcPath = path;}
-      );
+      traceIf (
+        (derived._type or null) != "flake"
+      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
 
   hostAttrs = {
     self ? {},
