@@ -25,6 +25,7 @@
       tui = {
         input = "hermes-agent";
         description = "Official Terminal Interface";
+        exe = "hermes-tui";
       };
       hermes-hud = {
         input = "llm-agents";
