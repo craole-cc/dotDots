@@ -57,83 +57,82 @@
       python3
     ];
     shellHook = ''
-      export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
-      export HINDSIGHT_API_URL="http://100.90.252.109:8888"
+            export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
+            export HINDSIGHT_API_URL="http://100.90.252.109:8888"
 
-      _hindsight_compose() {
-        cat <<'EOF'
-services:
-  hindsight:
-    image: ghcr.io/vectorize-io/hindsight:latest
-    container_name: hindsight
-    restart: unless-stopped
-    ports:
-      - "8888:8888"
-      - "9999:9999"
-      - "8889:8889"
-    environment:
-      - HINDSIGHT_API_LLM_API_KEY=''${HINDSIGHT_API_LLM_API_KEY:-}
-      - HINDSIGHT_API_LLM_PROVIDER=openai
-      - HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
-      - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
-      - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
-    volumes:
-      - ''${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-EOF
-      }
+            _hindsight_compose() {
+              cat <<'EOF'
+      services:
+        hindsight:
+          image: ghcr.io/vectorize-io/hindsight:latest
+          container_name: hindsight
+          restart: unless-stopped
+          ports:
+            - "8888:8888"
+            - "9999:9999"
+            - "8889:8889"
+          environment:
+            - HINDSIGHT_API_LLM_API_KEY=''${HINDSIGHT_API_LLM_API_KEY:-}
+            - HINDSIGHT_API_LLM_PROVIDER=openai
+            - HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
+            - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
+            - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
+          volumes:
+            - ''${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
+          healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+      EOF
+            }
 
-      hindsight-up() {
-        mkdir -p "''${HINDSIGHT_DATA_DIR}"
-        _hindsight_compose | docker compose -f /dev/stdin up -d
-        echo "Hindsight starting..."
-        sleep 5
-        docker compose -f <(_hindsight_compose) ps
-      }
+            hindsight-up() {
+              mkdir -p "''${HINDSIGHT_DATA_DIR}"
+              _hindsight_compose | docker compose -f /dev/stdin up -d
+              echo "Hindsight starting..."
+              sleep 5
+              docker compose -f <(_hindsight_compose) ps
+            }
 
-      hindsight-down() {
-        _hindsight_compose | docker compose -f /dev/stdin down
-      }
+            hindsight-down() {
+              _hindsight_compose | docker compose -f /dev/stdin down
+            }
 
-      hindsight-logs() {
-        docker logs -f hindsight
-      }
+            hindsight-logs() {
+              docker logs -f hindsight
+            }
 
-      hindsight-status() {
-        curl -sf "''${HINDSIGHT_API_URL}/health" && echo "up" || echo "down"
-      }
+            hindsight-status() {
+              curl -sf "''${HINDSIGHT_API_URL}/health" && echo "up" || echo "down"
+            }
 
-      hindsight-bank-create() {
-        local bank_id="$1"
-        local config_file="$2"
-        if [[ ! -f "$config_file" ]]; then
-          echo "Usage: hindsight-bank-create <bank_id> <config.json>"
-          return 1
-        fi
-        cat "$config_file" | docker exec -i hindsight hindsight-api bank create --config /dev/stdin
-      }
+            hindsight-bank-create() {
+              local bank_id="$1"
+              local config_file="$2"
+              if [[ ! -f "$config_file" ]]; then
+                echo "Usage: hindsight-bank-create <bank_id> <config.json>"
+                return 1
+              fi
+              cat "$config_file" | docker exec -i hindsight hindsight-api bank create --config /dev/stdin
+            }
 
-      hindsight-bank-list() {
-        docker exec hindsight hindsight-api bank list
-      }
+            hindsight-bank-list() {
+              docker exec hindsight hindsight-api bank list
+            }
 
-      if [ -t 1 ]; then
-        printf "%s\n" "Hindsight management shell: ai-hindsight"
-        printf "%s\n" "  hindsight-up         Start Hindsight server"
-        printf "%s\n" "  hindsight-down       Stop Hindsight server"
-        printf "%s\n" "  hindsight-status     Check health"
-        printf "%s\n" "  hindsight-logs       Follow logs"
-        printf "%s\n" "  hindsight-bank-create <bank_id> <config.json>"
-        printf "%s\n" "  hindsight-bank-list  List banks"
-        printf "%s\n" "API URL: $HINDSIGHT_API_URL"
-      fi
+            if [ -t 1 ]; then
+              printf "%s\n" "Hindsight management shell: ai-hindsight"
+              printf "%s\n" "  hindsight-up         Start Hindsight server"
+              printf "%s\n" "  hindsight-down       Stop Hindsight server"
+              printf "%s\n" "  hindsight-status     Check health"
+              printf "%s\n" "  hindsight-logs       Follow logs"
+              printf "%s\n" "  hindsight-bank-create <bank_id> <config.json>"
+              printf "%s\n" "  hindsight-bank-list  List banks"
+              printf "%s\n" "API URL: $HINDSIGHT_API_URL"
+            fi
     '';
   };
-
 in {
   inherit hindsight status verify devShell;
 
@@ -145,7 +144,6 @@ in {
   ];
 
   env = {
-    # Point to Victus over Tailscale for Phase 2 deployment
     HINDSIGHT_API_URL = "http://100.90.252.109:8888";
     HINDSIGHT_API_KEY = "";
     HINDSIGHT_BANK_ID = "Hermes";

@@ -188,9 +188,9 @@
       then flake
       else {};
 
-    paths = with bootstrap.paths; {
-      flake = flake.store;
-      libraries = repo.lib.default.store;
+    paths = {
+      flake = bootstrap.paths.flake.store;
+      libraries = bootstrap.paths.repo.lib.default.store;
     };
   };
 

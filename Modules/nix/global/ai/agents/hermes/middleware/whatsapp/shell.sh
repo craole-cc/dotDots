@@ -20,23 +20,23 @@ if [ -z "$mode" ]; then
   gum log --level info "Choose how Hermes should use WhatsApp"
   choice="$(printf 'bot\nself-chat\n' | gum choose --header 'WhatsApp mode')"
   case "$choice" in
-  bot | self-chat) mode="$choice" ;;
-  *)
-    gum log --level error "WhatsApp setup cancelled"
-    exit 1
-    ;;
+    bot | self-chat) mode="$choice" ;;
+    *)
+      gum log --level error "WhatsApp setup cancelled"
+      exit 1
+      ;;
   esac
   env_set WHATSAPP_MODE "$mode"
 fi
 
 if [ -z "$allowed_users" ]; then
   case "$mode" in
-  bot)
-    prompt='Allowed phone numbers (comma-separated, country code, no +; use * for anyone)'
-    ;;
-  *)
-    prompt='Your phone number (country code, no +)'
-    ;;
+    bot)
+      prompt='Allowed phone numbers (comma-separated, country code, no +; use * for anyone)'
+      ;;
+    *)
+      prompt='Your phone number (country code, no +)'
+      ;;
   esac
 
   allowed_users="$(gum input --prompt "$prompt: ")"

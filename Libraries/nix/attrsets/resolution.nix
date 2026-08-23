@@ -1,7 +1,7 @@
 {
   _,
   lib,
-  src,
+  paths,
   __moduleRef,
   ...
 }: let
@@ -168,10 +168,7 @@
         };
           splitStringBy (
             _: sep:
-              elem sep [
-                "."
-                "/"
-              ]
+              elem sep ["." "/"]
           )
           false
           path;
@@ -720,9 +717,7 @@
   in
     byPaths {
       attrset =
-        {
-          nixpkgs = pkgs.vscode-extensions;
-        }
+        {nixpkgs = pkgs.vscode-extensions;}
         // optionalAttrs
         (
           inputs ? nix-vscode-extensions
@@ -730,19 +725,12 @@
           && hasAttrByPath [system "vscode-marketplace"] inputs.nix-vscode-extensions.extensions
         )
         {
-          market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
+          market =
+            inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
         };
       paths = [
-        [
-          "nixpkgs"
-          e.publisher
-          e.name
-        ]
-        [
-          "market"
-          e.publisher
-          e.name
-        ]
+        ["nixpkgs" e.publisher e.name]
+        ["market" e.publisher e.name]
       ];
       inherit default;
     };
@@ -810,7 +798,7 @@
   flakeAttrs = {
     flake ? {},
     self ? {},
-    path ? src,
+    path ? paths.flake.local, #TODO: Is this supposed to be local or store?
   }: let
     normalizedPath = getFlakePath {
       inherit path;
@@ -838,7 +826,7 @@
 
   hostAttrs = {
     self ? {},
-    path ? src,
+    path ? null,
     hosts ? {},
     flake ? {},
     nixosConfigurations ? {},
@@ -860,7 +848,8 @@
         attrValues (
           if nixosConfigurations != {}
           then nixosConfigurations
-          else (flake.nixosConfigurations or (flakeAttrs {inherit self path;}).nixosConfigurations or {})
+          else (flake.nixosConfigurations or
+            (flakeAttrs {inherit self path;}).nixosConfigurations or {})
         )
       );
   in
@@ -1096,14 +1085,8 @@ in
               };
               paths = [
                 ["missing"]
-                [
-                  "foo"
-                  "bar"
-                ]
-                [
-                  "baz"
-                  "qux"
-                ]
+                ["foo" "bar"]
+                ["baz" "qux"]
               ];
               default = null;
             };

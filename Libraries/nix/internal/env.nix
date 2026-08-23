@@ -15,7 +15,7 @@
       flake
       paths
       ;
-    inherit (paths) src;
+    src = paths.flake;
     ${names.top} = self; # ? custom library (extensible self)
     lix = self; # ? custom library (extensible self)
 
