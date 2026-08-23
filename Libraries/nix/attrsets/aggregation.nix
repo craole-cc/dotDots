@@ -8,7 +8,9 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;
+  inherit (_.lists.aggregation) foldl';
   inherit (_.types.predicates) isAttrs isFunction;
+
   debug = mkModuleDebug __moduleRef;
 
   /**
@@ -242,12 +244,68 @@
         }
       )
     else defaults // attrs;
+
+  /**
+  Deep-merge a list of attrsets, left-to-right, combining nested attrsets
+  recursively instead of the shallow last-wins semantics of `//`/`foldl' (//)`.
+
+  Equivalent to folding `recursiveUpdate` across `sets`, provided purely as
+  the list-oriented counterpart to the pairwise `recursiveUpdate` - useful
+  wherever more than two module/config fragments need combining without a
+  later one silently clobbering an earlier one's nested keys (e.g. combining
+  several modules that each contribute their own `env` attrset).
+
+  # Inputs
+  `sets`
+  : list of attrsets to merge, in priority order (later wins on scalar
+    key conflicts, recursively)
+
+  # Type
+  > recursiveMergeAll :: [AttrSet] -> AttrSet
+
+  # Examples
+  - recursiveMergeAll [ {env = {A = 1;};} {env = {B = 2;};} ]
+
+  \```nix
+    { env = { A = 1; B = 2; }; }
+  \```
+  */
+  recursiveMergeAll = sets: foldl' recursiveUpdate {} sets;
+
+  /**
+  Deep-merge a list of devShell-fragment attrsets (each optionally
+  carrying `env`, `packages`, `shellHook`, plus arbitrary other keys -
+  the shape `mkShell` consumes) into one shell-ready attrset.
+
+  Unlike a plain `//`-fold, three keys are combined instead of replaced,
+  so a later fragment never silently erases an earlier one's contribution:
+  - `env` is deep-merged (`recursiveUpdate`)
+  - `packages` is concatenated
+  - `shellHook` is concatenated with a newline separator
+
+  Every other key keeps ordinary last-wins `//` semantics.
+
+  # Type
+  > mergeShellFragments :: [AttrSet] -> AttrSet
+  */
+  mergeShellFragments = fragments: let
+    merge = a: b:
+      (a // b)
+      // {
+        env = recursiveUpdate (a.env or {}) (b.env or {});
+        packages = (a.packages or []) ++ (b.packages or []);
+        shellHook = (a.shellHook or "") + "\n" + (b.shellHook or "");
+      };
+  in
+    foldl' merge {} fragments;
 in {
   inherit
     merge
     mergeWith
     mergeDeep
     withDefaults
+    recursiveMergeAll
+    mergeShellFragments
     ;
 
   __rootAliases = {
