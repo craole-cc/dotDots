@@ -57,7 +57,7 @@
       python3
     ];
     shellHook = ''
-      export HINDSIGHT_DATA_DIR="${HOME}/hindsight-data"
+      export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
       export HINDSIGHT_API_URL="http://100.90.252.109:8888"
 
       _hindsight_compose() {
@@ -78,7 +78,7 @@ services:
       - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
       - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
     volumes:
-      - ${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
+      - ''${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
       interval: 30s
@@ -88,7 +88,7 @@ EOF
       }
 
       hindsight-up() {
-        mkdir -p "${HINDSIGHT_DATA_DIR}"
+        mkdir -p "''${HINDSIGHT_DATA_DIR}"
         _hindsight_compose | docker compose -f /dev/stdin up -d
         echo "Hindsight starting..."
         sleep 5
@@ -104,7 +104,7 @@ EOF
       }
 
       hindsight-status() {
-        curl -sf "${HINDSIGHT_API_URL}/health" && echo "up" || echo "down"
+        curl -sf "''${HINDSIGHT_API_URL}/health" && echo "up" || echo "down"
       }
 
       hindsight-bank-create() {
