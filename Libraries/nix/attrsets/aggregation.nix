@@ -295,6 +295,7 @@
         env = recursiveUpdate (a.env or {}) (b.env or {});
         packages = (a.packages or []) ++ (b.packages or []);
         shellHook = (a.shellHook or "") + "\n" + (b.shellHook or "");
+        helpEntries = (a.helpEntries or []) ++ (b.helpEntries or []);
       };
   in
     foldl' merge {} fragments;

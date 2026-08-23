@@ -2,50 +2,47 @@
   pkgsFor,
   pkgs,
   lix,
+  inputs,
   print,
-  inputs, # <- add this; same normalized inputs set already flowing into pkgsFor
+  middleware,
   ...
 }: let
-  inherit (lix.attrsets.access) attrValues;
-
   sources = {
     inherit (inputs) hermes-agent llm-agents;
   };
 
-  utils = pkgsFor {
-    sources = {
-      desktop = {
-        input = "hermes-agent";
-        description = "Official Desktop Interface";
+  tools =
+    pkgsFor {
+      sources = {
+        desktop = {
+          input = "hermes-agent";
+          description = "Official Desktop Interface";
+        };
+        minimal = {
+          input = "hermes-agent";
+          description = "Official Command Line Interface";
+        };
+        tui = {
+          input = "hermes-agent";
+          description = "Official Terminal Interface";
+          exe = "hermes-tui";
+        };
+        hermes-hud = {
+          input = "llm-agents";
+          description = "Community-maintained Terminal Interface";
+        };
+        hermes-one = {
+          input = "llm-agents";
+          description = "Community-maintained Desktop Interface";
+        };
       };
-      minimal = {
-        input = "hermes-agent";
-        description = "Official Command Line Interface";
-      };
-      tui = {
-        input = "hermes-agent";
-        description = "Official Terminal Interface";
-        exe = "hermes-tui";
-      };
-      hermes-hud = {
-        input = "llm-agents";
-        description = "Community-maintained Terminal Interface";
-      };
-      hermes-one = {
-        input = "llm-agents";
-        description = "Community-maintained Desktop Interface";
-      };
-    };
-  };
+    }
+    // {default = tools.minimal;};
 
-  scripts = import ./scripts {inherit lix pkgs print utils;};
-  tools = utils // scripts // {default = utils.minimal;};
-  # profiles =
-  #   import ./profiles (middleware // {inherit (pkgs) writeScriptBin;});
+  scripts = import ./scripts {
+    inherit lix pkgs print tools;
+    helpEntries = middleware.helpEntries or [];
+  };
 in {
-  inherit tools sources;
-  packages =
-    utils.packages
-    # ++ (attrValues profiles)
-    ++ scripts.packages;
+  inherit tools sources scripts;
 }

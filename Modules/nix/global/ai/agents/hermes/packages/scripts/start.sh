@@ -1,4 +1,5 @@
 #!/bin/sh
+#shellcheck enable=all
 set -eu
 
 no_confirm=0
@@ -16,13 +17,15 @@ fi
 mkdir -p "${HERMES_HOME:?HERMES_HOME not set}"
 
 if ! command -v hermes >/dev/null 2>&1; then
-  echo "hermes not on PATH" >&2
+  gum log --level error "hermes not on PATH"
   exit 1
 fi
 
 if [ "$no_confirm" -eq 1 ]; then
-  echo "Starting hermes gateway..."
-  hermes gateway start 2>/dev/null || hermes serve 2>/dev/null || true
+  gum log --level info "Starting hermes gateway..."
+  hermes gateway start 2>/dev/null ||
+    hermes serve 2>/dev/null || true
 else
-  echo "Hermes CLI available. Try: hermes --help | hermes gateway start"
+  gum style --foreground 212 \
+    "Hermes CLI available. Try: hermes --help | hermes gateway start"
 fi

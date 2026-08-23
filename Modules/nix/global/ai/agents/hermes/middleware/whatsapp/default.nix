@@ -7,25 +7,32 @@
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.filesystem.access) readFile;
+  inherit (lix.strings.transformation) replaceStrings toUpper;
   inherit (pkgs) writeScriptBin;
   description = "WhatsApp Gateway";
-  name = "hermes-whatsapp";
+  src = sources.hermes-agent;
+  dom = "hermes";
+  mod = "whatsapp";
+  name = "${dom}-${mod}";
+  envPrefix = toUpper (replaceStrings ["-"] ["_"] name);
 
   env' = {
-    HERMES_WHATSAPP_BRIDGE_DIR = env.XDG_STATE_HOME + "/hermes/whatsapp-bridge";
-    HERMES_WHATSAPP_BRIDGE_SETUP = escapeShellArg ./bridge.sh;
-    HERMES_WHATSAPP_BRIDGE_SRC = escapeShellArg (sources.hermes-agent + "/scripts/whatsapp-bridge");
-    HERMES_WHATSAPP_GATEWAY_PY = escapeShellArg ./gateway.py;
+    "${envPrefix}_BRIDGE_DIR" = env.XDG_STATE_HOME + "/hermes/whatsapp-bridge";
+    "${envPrefix}_BRIDGE_SETUP" = escapeShellArg ./bridge.sh;
+    "${envPrefix}_BRIDGE_SRC" = escapeShellArg (src + "/scripts/whatsapp-bridge");
+    "${envPrefix}_GATEWAY_PY" = escapeShellArg ./gateway.py;
   };
-
-  # "${name}" = writeScriptBin name (readFile ./shell.sh);
 
   packages = with pkgs;
     [nodejs python3]
     ++ [(writeScriptBin name (readFile ./shell.sh))];
 
-  shellHook = ''sh ${env'.HERMES_WHATSAPP_BRIDGE_SETUP}'';
+  helpEntries = [
+    ["${name}" "Pair/configure the WhatsApp bridge"]
+  ];
+
+  shellHook = ''sh ${env'."${envPrefix}_BRIDGE_SETUP"}'';
 in {
-  inherit description packages shellHook;
+  inherit description helpEntries packages shellHook;
   env = env';
 }
