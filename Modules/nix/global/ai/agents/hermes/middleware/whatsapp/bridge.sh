@@ -1,9 +1,11 @@
 #!/bin/sh
+#shellcheck enable=all
+set -eu
 
 bridge_src="${HERMES_WHATSAPP_BRIDGE_SRC}"
-bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR:-${XDG_STATE_HOME:-${HOME}/.local/state}/hermes/whatsapp-bridge}"
+bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR}"
 bridge_script="${bridge_dir}/bridge.js"
-gateway_json="${HERMES_HOME}/gateway.json"
+gateway_json="${HERMES_GATEWAY_CFG}"
 
 mkdir -p "${bridge_dir}" "${HERMES_HOME}"
 
