@@ -73,7 +73,7 @@
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
-        cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
+        cmdWallman = "wallman";
         cmdThemeToggle = "theme-toggle";
       };
       name = "nixos-theme";
