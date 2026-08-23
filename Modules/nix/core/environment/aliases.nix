@@ -1,7 +1,7 @@
 {
   config,
+  flake,
   lix,
-  src,
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
@@ -25,20 +25,20 @@
         lt = "lsd --tree";
         lr = "lsd --long --git --recursive";
       }
-      // optionalAttrs (src != null) {
+      // optionalAttrs (flake != null) {
         #~@ Dotfiles management
-        "edit-${src.name}" = "$EDITOR ${src.path}";
-        "ide-${src.name}" = "$VISUAL ${src.path}";
-        "push-${src.name}" = "gitui --directory ${src.path}";
+        "edit-${flake.name}" = "$EDITOR ${flake.home}";
+        "ide-${flake.name}" = "$VISUAL ${flake.home}";
+        "push-${flake.name}" = "gitui --directory ${flake.home}";
 
         #~@ Nix REPL
-        repl-host = "nix repl ${src.path}#nixosConfigurations.$(hostname)";
-        "repl-${src.name}" = "nix repl ${src.path}#repl";
+        repl-host = "nix repl ${flake.home}#nixosConfigurations.$(hostname)";
+        "repl-${flake.name}" = "nix repl ${flake.home}#repl";
 
         #~@ Rebuild shortcuts
-        "switch-${src.name}" = "sudo nixos-rebuild switch --flake ${src.path}";
-        nxs = "push-${src.name}; switch-${src.name}";
-        nxu = "push-${src.name}; switch-${src.name}; topgrade";
+        "switch-${flake.name}" = "sudo nixos-rebuild switch --flake ${flake.home}";
+        nxs = "push-${flake.name}; switch-${flake.name}";
+        nxu = "push-${flake.name}; switch-${flake.name}; topgrade";
       };
   };
 in
