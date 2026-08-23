@@ -9,6 +9,7 @@ Hermes shell
   hermes-one          Community desktop
   hermes-hud          Status TUI
   hermes-tui          Official TUI
+  hermes-whatsapp     Pair/configure WhatsApp bridge
 
   start [--no-confirm]
   show-help

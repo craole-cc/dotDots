@@ -2,9 +2,14 @@
   pkgsFor,
   pkgs,
   lix,
+  inputs, # <- add this; same normalized inputs set already flowing into pkgsFor
   ...
 }: let
   inherit (lix.attrsets.access) attrValues;
+
+  sources = {
+    inherit (inputs) hermes-agent llm-agents;
+  };
 
   utils = pkgsFor {
     sources = {
@@ -31,17 +36,14 @@
     };
   };
 
-  # profiles =
-  #   import ./profiles (middleware // {inherit (pkgs) writeScriptBin;});
-
   scripts = import ./scripts {inherit lix pkgs;};
   tools = utils // scripts // {default = utils.minimal;};
-in
-  tools
-  // {
-    inherit tools;
-    packages =
-      utils.packages
-      # ++ (attrValues profiles)
-      ++ scripts.packages;
-  }
+  # profiles =
+  #   import ./profiles (middleware // {inherit (pkgs) writeScriptBin;});
+in {
+  inherit tools sources;
+  packages =
+    utils.packages
+    # ++ (attrValues profiles)
+    ++ scripts.packages;
+}

@@ -1,16 +1,13 @@
 {
-  names,
+  tools,
   print,
-  commands,
-  versions,
-  origins,
   env,
-  descriptions,
   ...
-}: {
+}: let
+  inherit (tools) names commands versions origins descriptions;
+in {
   shellHook = ''
-    ${print.title "Hermes"}
-    ${print.subtitle "Surfaces"}
+    ${print.title "Hermes Agent"}
     ${print.table {
       columns = ["Name" "Version" "Source" "Description"];
       rows =
