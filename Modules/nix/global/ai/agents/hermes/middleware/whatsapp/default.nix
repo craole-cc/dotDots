@@ -1,12 +1,24 @@
-args: let
-  inherit (args) lix;
-  inherit (lix.filesystem.access) readFile;
-  # "''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"; # TODO: This is WRONG. shared env needs to define XDG_STATE_HOME
-in {
-  prepare-whatsapp-bridge = ''
-    export HERMES_WHATSAPP_BRIDGE_SRC=${bridge}
-    export HERMES_WHATSAPP_BRIDGE_DIR="''${XDG_STATE_HOME:-$HOME/.local/state}/hermes/whatsapp-bridge"
-    export HERMES_WHATSAPP_GATEWAY_PY=${gateway}
-    ${readFile ./bridge.sh}
-  '';
-}
+{
+  pkgs,
+  lix,
+  tools,
+  XDG_STATE_HOME,
+  ...
+}: let
+  inherit (lix.strings.transformation) escapeShellArg;
+  description = "Hermes Agent";
+
+  env = {
+    HERMES_WHATSAPP_BRIDGE_DIR = XDG_STATE_HOME + "/hermes/whatsapp-bridge";
+    HERMES_WHATSAPP_BRIDGE_SETUP = escapeShellArg ./bridge.sh;
+    HERMES_WHATSAPP_BRIDGE_SRC = escapeShellArg (tools.default.paths.store + "/scripts/whatsapp-bridge");
+    HERMES_WHATSAPP_GATEWAY_PY = escapeShellArg ./gateway.py;
+  };
+
+  packages = with pkgs; [
+    nodejs
+    # python3
+  ];
+
+  shellHook = "";
+in {inherit description env packages shellHook;}

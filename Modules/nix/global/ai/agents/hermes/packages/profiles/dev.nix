@@ -1,16 +1,15 @@
 {
-  helpers,
-  runtimes,
+  pkgs,
+  prepare-hermes-messaging,
+  prepare-whatsapp-bridge,
   ...
 }: let
-  inherit
-    (helpers)
-    mkBin
-    prepare-hermes-messaging
-    prepare-whatsapp-bridge
-    ;
+  inherit (pkgs) writeScriptBin;
+  pre = "hermes";
 in {
-  hermes-dev = mkBin "hermes-dev" runtimes.hermes ''
+  "${pre}-dev" = writeScriptBin "${pre}-dev" ''
+    #!/bin/sh
+    set -eu
     ${prepare-hermes-messaging}
     ${prepare-whatsapp-bridge}
     exec hermes --profile dev "$@"

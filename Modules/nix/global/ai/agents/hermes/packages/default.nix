@@ -6,7 +6,7 @@
 }: let
   inherit (lix.attrsets.access) attrValues;
 
-  core = pkgsFor {
+  utils = pkgsFor {
     sources = {
       desktop = {
         input = "hermes-agent";
@@ -14,7 +14,7 @@
       };
       minimal = {
         input = "hermes-agent";
-        description = "Official Agent CLI";
+        description = "Official Command Line Interface";
       };
       tui = {
         input = "hermes-agent";
@@ -22,28 +22,26 @@
       };
       hermes-hud = {
         input = "llm-agents";
-        description = "Community status / memory monitor TUI";
+        description = "Community-maintained Terminal Interface";
       };
       hermes-one = {
         input = "llm-agents";
-        description = "Community desktop (Hermes One)";
+        description = "Community-maintained Desktop Interface";
       };
     };
   };
 
   # profiles =
-  #   optionalAttrs
-  #   (helpers != null && runtimes != null)
-  #   (import ./profiles.nix args);
-  profiles = {};
+  #   import ./profiles (middleware // {inherit (pkgs) writeScriptBin;});
 
-  scripts = import ./scripts/default.nix {inherit lix pkgs;};
+  scripts = import ./scripts {inherit lix pkgs;};
+  tools = utils // scripts // {default = utils.minimal;};
 in
-  core
-  // scripts
+  tools
   // {
+    inherit tools;
     packages =
-      core.packages
-      ++ scripts.packages
-      ++ (attrValues profiles);
+      utils.packages
+      # ++ (attrValues profiles)
+      ++ scripts.packages;
   }

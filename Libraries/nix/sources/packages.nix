@@ -57,7 +57,7 @@
   inherit (_.lists.construction) asList optionals;
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) elem;
-  inherit (_.lists.transformation) unique;
+  inherit (_.lists.transformation) sort unique;
   inherit (_.strings.access) match;
   inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasPrefix hasSuffix isString;
@@ -504,13 +504,7 @@
         };
       in {
         inherit (check) name source value;
-        inherit
-          command
-          package
-          paths
-          revision
-          version
-          ;
+        inherit command package paths revision version;
 
         description =
           if description != null && description != ""
@@ -653,22 +647,28 @@
         (mapAttrs (_: normalize) sources)
       );
 
-    byName =
+    records =
       init
       // filterAttrs
       (_: v: v != null)
       (mapAttrs (_: target: init.${target} or null) aliases);
 
     eval = {
-      binaries = mapAttrs (_: pkg: pkg.exe) byName;
-      commands = mapAttrs (_: pkg: pkg.cmd) byName;
-      versions = mapAttrs (_: pkg: pkg.ver) byName;
-      origins = mapAttrs (_: pkg: pkg.source) byName;
-      descriptions = mapAttrs (_: pkg: pkg.description or null) byName;
+      binaries = mapAttrs (_: pkg: pkg.exe) records;
+      commands = mapAttrs (_: pkg: pkg.cmd) records;
+      versions = mapAttrs (_: pkg: pkg.ver) records;
+      origins = mapAttrs (_: pkg: pkg.source) records;
+      descriptions = mapAttrs (_: pkg: pkg.description or null) records;
       packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
         map (res: res.value) (attrValues init)
       );
-      names = attrNames byName;
+      names = let
+        sortByCmd = sort (
+          a: b:
+            (records.${a}.cmd or a) < (records.${b}.cmd or b)
+        );
+      in
+        sortByCmd (attrNames records);
     };
 
     aliases' = with eval; {
@@ -677,13 +677,10 @@
       vr3n = versions;
     };
   in
-    byName
+    records
     // eval
     // aliases'
-    // {
-      inherit sources;
-      records = byName;
-    };
+    // {inherit sources records;};
 
   bySystem = packages: let
     inputNames = attrNames packages;
