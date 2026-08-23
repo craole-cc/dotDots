@@ -639,7 +639,7 @@
         pkgOf (
           {
             inherit target inputs pkgs required;
-            inherit (entry) input versionArgs description;
+            inherit (entry) input versionArgs description exe;
           }
           // optionalAttrs (system != null) {inherit system;}
         );
