@@ -19,7 +19,7 @@
     shellHook = ''
       if [ -t 1 ]; then
         printf "%s\n" "AI shell: OmniRoute + Mem0 + Hermes"
-        printf "%s\n" "Focused shells: nix develop .#ai-router | .#ai-memory | .#ai-hermes"
+        printf "%s\n" "Focused shells: nix develop .#ai-router | .#ai-memory | .#ai-hermes | .#ai-hindsight"
       fi
     '';
   };
@@ -42,6 +42,12 @@
     packages = core.packages ++ hermes.packages;
   };
 
+  aiHindsight = {
+    env = core.env // memory.devShell.env;
+    inherit (memory.devShell) shellHook;
+    packages = core.packages ++ memory.devShell.packages;
+  };
+
   devShells = {
     ai = mkShell {
       name = "dots-ai";
@@ -61,6 +67,11 @@
     "ai-hermes" = mkShell {
       name = "dots-ai-hermes";
       inherit (aiHermes) env shellHook packages;
+    };
+
+    "ai-hindsight" = mkShell {
+      name = "dots-ai-hindsight";
+      inherit (aiHindsight) env shellHook packages;
     };
   };
 in {
