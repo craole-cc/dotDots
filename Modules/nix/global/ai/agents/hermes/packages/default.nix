@@ -2,6 +2,7 @@
   pkgsFor,
   pkgs,
   lix,
+  print,
   inputs, # <- add this; same normalized inputs set already flowing into pkgsFor
   ...
 }: let
@@ -36,7 +37,7 @@
     };
   };
 
-  scripts = import ./scripts {inherit lix pkgs;};
+  scripts = import ./scripts {inherit lix pkgs print utils;};
   tools = utils // scripts // {default = utils.minimal;};
   # profiles =
   #   import ./profiles (middleware // {inherit (pkgs) writeScriptBin;});

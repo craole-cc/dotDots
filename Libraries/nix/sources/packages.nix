@@ -619,17 +619,20 @@
           input = null;
           versionArgs = null;
           description = null;
+          exe = null;
         }
         else if isString value
         then {
           input = value;
           versionArgs = null;
           description = null;
+          exe = null;
         }
         else {
           input = value.input or null;
           versionArgs = value.versionArgs or null;
           description = value.description or null;
+          exe = value.exe or null;
         };
 
       source = target: entry:
