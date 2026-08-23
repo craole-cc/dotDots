@@ -1,13 +1,15 @@
 {
   lix,
+  env,
   HOME,
   ...
 }: let
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.strings.transformation) escapeShellArg;
 in {
   description = "Hermes Agent";
 
-  env = {
+  env = recursiveUpdate env {
     AUTO_START = 0;
     STARTUP_TIMEOUT = 15;
     HERMES_HOME = HOME + "/.hermes";
