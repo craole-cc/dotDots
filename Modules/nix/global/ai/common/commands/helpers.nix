@@ -35,6 +35,14 @@ in {
     ${readFile ../middleware/whatsapp/bridge.sh}
   '';
 
+  prepare-telegram-gateway = ''
+    ${readFile ../middleware/telegram}
+  '';
+
+  prepare-discord-gateway = ''
+    ${readFile ../middleware/discord}
+  '';
+
   env-file-functions = ''
     export HERMES_ENV_PY=${escapeShellArg "${../environment/env.py}"}
     ${readFile ../environment/env.sh}

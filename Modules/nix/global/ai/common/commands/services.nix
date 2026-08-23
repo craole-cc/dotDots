@@ -1,6 +1,8 @@
 {
   prepare-hermes-messaging,
   prepare-whatsapp-bridge,
+  prepare-telegram-gateway,
+  prepare-discord-gateway,
   runtimes,
   ...
 }: {
@@ -38,6 +40,8 @@
     command = ''
       ${prepare-hermes-messaging}
       ${prepare-whatsapp-bridge}
+      ${prepare-telegram-gateway}
+      ${prepare-discord-gateway}
       exec hermes gateway run
     '';
     runtime = runtimes.hermes;
@@ -48,6 +52,8 @@
       common = [
         "hermes-status           Check Hermes Gateway status"
         "hermes-whatsapp         Pair/configure WhatsApp bridge"
+        "hermes-telegram         Check Telegram gateway status"
+        "hermes-discord          Check Discord gateway status"
         "hermes-tui              Open Hermes TUI with default profile"
         "hermes-dev              Open Hermes TUI with the dev profile"
         "hermes-research         Open Hermes TUI with the research profile"
