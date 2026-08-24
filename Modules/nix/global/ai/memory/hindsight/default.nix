@@ -59,8 +59,14 @@
     env = {};
     shellHook = ''
             export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
-            export HINDSIGHT_API_URL="''${HINDSIGHT_API_URL:-http://127.0.0.1:8888}"
-            export HINDSIGHT_BIND_ADDRESS="''${HINDSIGHT_BIND_ADDRESS:-127.0.0.1}"
+            export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-$HOME/secrets/hindsight.env}"
+            if [ -r "$HINDSIGHT_SECRETS_FILE" ]; then
+              set -a
+              . "$HINDSIGHT_SECRETS_FILE"
+              set +a
+            fi
+            export HINDSIGHT_API_URL="''${HINDSIGHT_API_URL:-http://100.90.252.109:8888}"
+            export HINDSIGHT_BIND_ADDRESS="''${HINDSIGHT_BIND_ADDRESS:-100.90.252.109}"
             export HINDSIGHT_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL:-http://100.76.128.70:20128/v1}"
             export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-auto/best-fast}"
             export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-auto/best-chat}"
