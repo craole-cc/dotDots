@@ -103,7 +103,7 @@
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
-      path = flake.path;
+      path = flake.home.store;
       field = "owner";
       value = "numtide";
     };

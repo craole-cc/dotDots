@@ -4,8 +4,8 @@
   lix,
   inputs,
   pkgs,
-  flake,
   top,
+  src,
   tree,
   ...
 }: let
@@ -66,7 +66,7 @@
         # remains only as a fallback for hosts without an interface panel value.
         BAR = ice.panel or bar.primary;
         BROWSER = mkDefault browser.primary;
-        "${toUpper flake.name}" = flake.home;
+        "${toUpper src.name}" = src.path;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;
         TERMINAL = terminal.primary;
