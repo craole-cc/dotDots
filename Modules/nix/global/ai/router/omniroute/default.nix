@@ -8,6 +8,7 @@
     lsof
     nodejs_22
     procps
+    sqlite
     tmux
     writeShellApplication
     ;
@@ -38,6 +39,10 @@
     {
       cmd = "omniroute-stop";
       desc = "stop the OmniRoute tmux session";
+    }
+    {
+      cmd = "omniroute-policy";
+      desc = "reconcile dynamic-route compatibility exclusions";
     }
     {
       cmd = "omniroute-start";
@@ -75,16 +80,25 @@
     '';
   };
 
+  policy = writeShellApplication {
+    name = "omniroute-policy";
+    runtimeInputs = [sqlite];
+    text = ''exec ${pkgs.runtimeShell} ${./policy.sh}'';
+  };
+
   start = writeShellApplication {
     name = "omniroute-start";
     runtimeInputs = [
       omniroute
+      policy
       gum
     ];
     text = ''
       ${gums}
       export DATA_DIR="${dataDir}"
+      export OMNIROUTE_DATA_DIR="$DATA_DIR"
       mkdir -p "$DATA_DIR"
+      omniroute-policy
       port="''${OMNIROUTE_PORT:-20128}"
       export PORT="$port"
       fmt_accent --bold "OmniRoute starting -> http://127.0.0.1:$port"
@@ -161,6 +175,7 @@
 in {
   inherit
     omniroute
+    policy
     start
     daemon
     stop
@@ -169,6 +184,7 @@ in {
 
   packages = [
     omniroute
+    policy
     start
     daemon
     stop
@@ -182,6 +198,7 @@ in {
   ];
 
   env = {
+    OMNIROUTE_DATA_DIR = dataDir;
     OMNIROUTE_PORT = "20128";
     OMNIROUTE_BASE_URL = "http://127.0.0.1:20128/v1";
   };
