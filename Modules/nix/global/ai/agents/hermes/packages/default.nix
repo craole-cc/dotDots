@@ -43,6 +43,4 @@
     inherit lix pkgs print tools;
     helpEntries = middleware.helpEntries or [];
   };
-in {
-  inherit tools sources scripts;
-}
+in {inherit tools sources scripts;}

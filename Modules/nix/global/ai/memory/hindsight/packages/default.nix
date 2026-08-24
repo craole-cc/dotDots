@@ -1,12 +1,12 @@
+# packages/default.nix
 {
   pkgs,
   lix,
   lib,
   ...
 }: let
-  inherit (pkgs) curl docker gum jq writeScriptBin writeShellApplication;
+  inherit (pkgs) curl docker gum jq writeShellApplication;
   inherit (lix.filesystem.access) readFile;
-  inherit (lix.strings.transformation) concat;
   inherit (lib) target tag set;
 
   env' = set "COMPOSE_FILE" (toString ./compose.yaml);
@@ -70,23 +70,8 @@
       inherit (entry) description;
     })
     entries;
-
-  showHelp = writeScriptBin (tag "help") ''
-    #!/bin/sh
-    set -eu
-    printf 'See: %s\n' "${
-      concat ", " (map (entry: tag entry.name) entries)
-    }"
-  '';
 in {
   env = env';
-  packages = scripts ++ [showHelp];
-  helpEntries =
-    helpEntries
-    ++ [
-      {
-        command = tag "help";
-        description = "Show this help";
-      }
-    ];
+  packages = scripts;
+  inherit helpEntries;
 }

@@ -274,31 +274,46 @@
 
   /**
   Deep-merge a list of devShell-fragment attrsets (each optionally
-  carrying `env`, `packages`, `shellHook`, plus arbitrary other keys -
-  the shape `mkShell` consumes) into one shell-ready attrset.
+  carrying `env`, `packages`, `shellHook`, `lib`, plus arbitrary other
+  keys - the shape `mkShell` consumes, plus a local-helpers escape hatch)
+  into one shell-ready attrset.
 
-  Unlike a plain `//`-fold, three keys are combined instead of replaced,
+  Unlike a plain `//`-fold, four keys are combined instead of replaced,
   so a later fragment never silently erases an earlier one's contribution:
   - `env` is deep-merged (`recursiveUpdate`)
+  - `lib` is deep-merged (`recursiveUpdate`) - lets each fragment define
+    its own local helpers (e.g. `get`/`set`/`tag`) that compose across
+    fragments during construction, without those helpers ending up in
+    `env` itself (where `mkShell`/`mkDerivation` would reject them, since
+    `env` may only contain strings, bools, ints, or derivations)
   - `packages` is concatenated
   - `shellHook` is concatenated with a newline separator
 
   Every other key keeps ordinary last-wins `//` semantics.
 
+  `lib` is merged for the benefit of fragments still being constructed
+  (e.g. a later fragment reading an earlier one's `lib.tag`), but is
+  never meant to reach `mkShell` - it is stripped from the final result,
+  so the returned attrset never carries a `lib` key regardless of
+  whether any input fragment defined one.
+
   # Type
-  > mergeShellFragments :: [AttrSet] -> AttrSet
+  ```nix
+    mergeShellFragments :: [AttrSet] -> AttrSet
+  ```
   */
   mergeShellFragments = fragments: let
     merge = a: b:
       (a // b)
       // {
         env = recursiveUpdate (a.env or {}) (b.env or {});
+        lib = recursiveUpdate (a.lib or {}) (b.lib or {});
         packages = (a.packages or []) ++ (b.packages or []);
         shellHook = (a.shellHook or "") + "\n" + (b.shellHook or "");
         helpEntries = (a.helpEntries or []) ++ (b.helpEntries or []);
       };
   in
-    foldl' merge {} fragments;
+    removeAttrs (foldl' merge {} fragments) ["lib"];
 in {
   inherit
     merge
@@ -455,6 +470,99 @@ in {
             size = "medium";
           };
         };
+      };
+    };
+
+    mergeShellFragments = {
+      envDeepMerges = mkTest {
+        desired = {
+          env = {
+            A = "1";
+            B = "2";
+          };
+          packages = [];
+          shellHook = "\n";
+          helpEntries = [];
+        };
+        command = ''mergeShellFragments [ {env = {A = "1";};} {env = {B = "2";};} ]'';
+        outcome = mergeShellFragments [
+          {env = {A = "1";};}
+          {env = {B = "2";};}
+        ];
+      };
+
+      packagesConcatenate = mkTest {
+        desired = {
+          env = {};
+          packages = ["a" "b"];
+          shellHook = "\n";
+          helpEntries = [];
+        };
+        command = ''mergeShellFragments [ {packages = ["a"];} {packages = ["b"];} ]'';
+        outcome = mergeShellFragments [
+          {packages = ["a"];}
+          {packages = ["b"];}
+        ];
+      };
+
+      shellHookConcatenatesWithNewline = mkTest {
+        desired = {
+          env = {};
+          packages = [];
+          shellHook = "echo one\n\necho two\n";
+          helpEntries = [];
+        };
+        command = ''mergeShellFragments [ {shellHook = "echo one";} {shellHook = "echo two";} ]'';
+        outcome = mergeShellFragments [
+          {shellHook = "echo one";}
+          {shellHook = "echo two";}
+        ];
+      };
+
+      helpEntriesConcatenate = mkTest {
+        desired = {
+          env = {};
+          packages = [];
+          shellHook = "\n";
+          helpEntries = [
+            {command = "a";}
+            {command = "b";}
+          ];
+        };
+        command = ''mergeShellFragments [ {helpEntries = [{command = "a";}];} {helpEntries = [{command = "b";}];} ]'';
+        outcome = mergeShellFragments [
+          {helpEntries = [{command = "a";}];}
+          {helpEntries = [{command = "b";}];}
+        ];
+      };
+
+      libMergesButNeverSurfaces = mkTest {
+        desired = {
+          env = {};
+          packages = [];
+          shellHook = "\n";
+          helpEntries = [];
+        };
+        command = ''mergeShellFragments [ {lib = {get = x: x;};} {lib = {tag = x: x;};} ]'';
+        outcome = mergeShellFragments [
+          {lib = {get = x: x;};}
+          {lib = {tag = x: x;};}
+        ];
+      };
+
+      otherKeysLastWins = mkTest {
+        desired = {
+          env = {};
+          packages = [];
+          shellHook = "\n";
+          helpEntries = [];
+          description = "second";
+        };
+        command = ''mergeShellFragments [ {description = "first";} {description = "second";} ]'';
+        outcome = mergeShellFragments [
+          {description = "first";}
+          {description = "second";}
+        ];
       };
     };
   };

@@ -29,7 +29,7 @@
     // set "COMPOSE_PROJECT" target
     // set "CONTAINER_NAME" target;
 in {
-  description = "Hindsight Memory Service";
+  title = "Hindsight Memory Service";
   env = recursiveUpdate env vars;
   lib = {inherit target prefix get set tag;};
 }

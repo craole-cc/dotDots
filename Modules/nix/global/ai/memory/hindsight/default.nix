@@ -9,7 +9,7 @@
   );
 in
   mergeShellFragments [
-    (removeAttrs environment ["lib"])
+    environment
     packages
     hooks
   ]
