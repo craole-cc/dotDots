@@ -6,6 +6,7 @@ set -eu
 cache_root="${OMNIROUTE_NPX_CACHE:?OMNIROUTE_NPX_CACHE is required}/npm-cache/_npx"
 translator_patch="${OMNIROUTE_CODEX_RESPONSES_PATCH:?OMNIROUTE_CODEX_RESPONSES_PATCH is required}"
 executor_patch="${OMNIROUTE_CODEX_EXECUTOR_PATCH:?OMNIROUTE_CODEX_EXECUTOR_PATCH is required}"
+target_patch="${OMNIROUTE_CODEX_TARGET_PATCH:?OMNIROUTE_CODEX_TARGET_PATCH is required}"
 
 apply_patch() {
   package_dir="$1"
@@ -33,6 +34,11 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
     "open-sse/executors/codex.ts" \
     'const genericReasoningEnabled = reasoningRecord?.enabled;' \
     "$executor_patch"
+  apply_patch \
+    "$package_dir" \
+    "open-sse/services/targetRequestSanitizer.ts" \
+    'function normalizeCodexGenericReasoningToggle' \
+    "$target_patch"
   found=1
 done
 

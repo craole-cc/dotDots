@@ -1,0 +1,28 @@
+--- a/open-sse/services/targetRequestSanitizer.ts
++++ b/open-sse/services/targetRequestSanitizer.ts
+@@ -51,2 +51,17 @@ function stripVerbosityForTarget(body: JsonRecord, model: string): string[] {
++function normalizeCodexGenericReasoningToggle(body: JsonRecord, provider: string | null | undefined): string[] {
++  if (provider?.toLowerCase() !== "codex" || !isRecord(body.reasoning)) return [];
++
++  const reasoning = { ...body.reasoning };
++  if (typeof reasoning.enabled !== "boolean") return [];
++
++  const enabled = reasoning.enabled;
++  delete reasoning.enabled;
++  if (reasoning.effort === undefined) {
++    reasoning.effort = enabled ? "medium" : "none";
++  }
++  body.reasoning = reasoning;
++  return ["reasoning.enabled"];
++}
++
+ /**
+  * Sanitize a translated request using the concrete provider/model selected by
+@@ -62,3 +77,6 @@ export function sanitizeRequestForResolvedTarget<T extends JsonRecord>(
+ ): T {
+   let next = { ...body } as T;
+-  const stripped = stripVerbosityForTarget(next, options.model);
++  const stripped = [
++    ...stripVerbosityForTarget(next, options.model),
++    ...normalizeCodexGenericReasoningToggle(next, options.provider),
++  ];
