@@ -1,3 +1,4 @@
+# environment/default.nix
 {
   lix,
   env,
@@ -9,22 +10,25 @@
   HOME = env.HOME or "/home/craole";
   PRIVATE = env.PRIVATE or "${HOME}/Private";
 
-  name = "hindsight";
-  prefix = toUpper name;
+  target = env.name or "hindsight";
+  prefix = toUpper target;
 
-  env' = {
-    inherit name prefix;
-    "${prefix}_DATA_DIR" = "${HOME}/data/${name}"; #TODO: Should we use XDG_DATA_HOME instead of ${HOME}/data?
-    "${prefix}_SECRETS_FILE" = "${PRIVATE}/${name}.env";
-    "${prefix}_API_URL" = "http://100.90.252.109:8888";
-    "${prefix}_BIND_ADDRESS" = "100.90.252.109";
-    "${prefix}_LLM_BASE_URL" = "http://100.76.128.70:20128/v1";
-    "${prefix}_LLM_MODEL" = "auto/best-fast";
-    "${prefix}_REFLECT_LLM_MODEL" = "auto/best-chat";
-    "${prefix}_API_WORKER_ID" = "Hindsight-Victus";
-    "${prefix}_COMPOSE_PROJECT" = name;
-    "${prefix}_CONTAINER_NAME" = name;
-  };
+  get = name: env'."${prefix}_${name}";
+  set = name: value: {"${prefix}_${name}" = value;};
+  tag = name: "${target}-${name}";
+
+  env' =
+    {inherit target prefix get set tag;}
+    // set "DATA_DIR" "${HOME}/data/${target}"
+    // set "SECRETS_FILE" "${PRIVATE}/${target}.env"
+    // set "API_URL" "http://100.90.252.109:8888"
+    // set "BIND_ADDRESS" "100.90.252.109"
+    // set "LLM_BASE_URL" "http://100.76.128.70:20128/v1"
+    // set "LLM_MODEL" "auto/best-fast"
+    // set "REFLECT_LLM_MODEL" "auto/best-chat"
+    // set "API_WORKER_ID" "Hindsight-Victus"
+    // set "COMPOSE_PROJECT" target
+    // set "CONTAINER_NAME" target;
 in {
   description = "Hindsight Memory Service";
   env = recursiveUpdate env env';

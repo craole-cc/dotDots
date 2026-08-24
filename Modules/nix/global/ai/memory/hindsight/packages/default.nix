@@ -1,33 +1,92 @@
 {
   pkgs,
   lix,
-  print,
   env,
   ...
-} @ args: let
-  inherit (lix.attrsets.access) attrNames;
-  inherit (env) name;
+}: let
+  inherit (pkgs) curl docker gum jq writeScriptBin writeShellApplication;
+  inherit (lix.filesystem.access) readFile;
+  inherit (lix.strings.transformation) concat;
+  inherit (env) target tag set;
 
-  descriptions = {
-    "${name}-up" = "Start the ${name} service";
-    "${name}-down" = "Stop the ${name} service";
-    "${name}-logs" = "Follow ${name} container logs";
-    "${name}-status" = "Check ${name} API health";
-    "${name}-verify" = "Validate the ${name} OpenAPI document";
-    "${name}-bank-create" = "Create a ${name} memory bank";
-    "${name}-bank-list" = "List ${name} memory banks";
-    "${name}-help" = "Show this help";
-  };
+  env' = set "COMPOSE_FILE" (toString ./compose.yaml);
 
-  commandNames = attrNames descriptions;
+  entries = [
+    {
+      name = "up";
+      description = "Start the ${target} service";
+      runtimeInputs = [docker gum];
+      script = ./up.sh;
+    }
+    {
+      name = "down";
+      description = "Stop the ${target} service";
+      runtimeInputs = [docker];
+      script = ./down.sh;
+    }
+    {
+      name = "logs";
+      description = "Follow ${target} container logs";
+      runtimeInputs = [docker];
+      script = ./logs.sh;
+    }
+    {
+      name = "status";
+      description = "Check ${target} API health";
+      runtimeInputs = [curl gum];
+      script = ./status.sh;
+    }
+    {
+      name = "verify";
+      description = "Validate the ${target} OpenAPI document";
+      runtimeInputs = [curl jq];
+      script = ./verify.sh;
+    }
+    {
+      name = "bank-create";
+      description = "Create a ${target} memory bank";
+      runtimeInputs = [docker];
+      script = ./bank-create.sh;
+    }
+    {
+      name = "bank-list";
+      description = "List ${target} memory banks";
+      runtimeInputs = [docker];
+      script = ./bank-list.sh;
+    }
+  ];
 
-  helpTable = ''
-    ${print.title "Hindsight"}
-    ${print.table {
-      columns = ["Command" "Description"];
-      rows = map (cmd: [cmd (descriptions.${cmd} or "?")]) commandNames;
-    }}
+  scripts = map (entry:
+    writeShellApplication {
+      name = tag entry.name;
+      inherit (entry) runtimeInputs;
+      text = readFile entry.script;
+    })
+  entries;
+
+  helpEntries =
+    map (entry: {
+      command = tag entry.name;
+      inherit (entry) description;
+    })
+    entries;
+
+  showHelp = writeScriptBin (tag "help") ''
+    #!/bin/sh
+    set -eu
+    printf 'See: %s\n' "${
+      concat ", " (map (entry: tag entry.name) entries)
+    }"
   '';
-
-  scripts = import ./scripts (args // {inherit descriptions helpTable;});
-in {inherit descriptions helpTable scripts;}
+in {
+  env = env';
+  packages = scripts ++ [showHelp];
+  helpEntries =
+    helpEntries
+    ++ [
+      {
+        command = tag "help";
+        description = "Show this help";
+      }
+    ];
+}

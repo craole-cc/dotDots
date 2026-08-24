@@ -3,7 +3,6 @@
 
   environment = import ./environment args;
   packages = import ./packages (recursiveUpdate args environment);
-  inherit (packages) scripts;
 
   hooks = import ./hooks (
     recursiveUpdate args (
@@ -13,6 +12,6 @@
 in
   mergeShellFragments [
     environment
-    scripts
+    packages
     hooks
   ]
