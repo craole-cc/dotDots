@@ -1,0 +1,27 @@
+services:
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: hindsight
+    restart: unless-stopped
+    ports:
+      - "${HINDSIGHT_BIND_ADDRESS}:8888:8888"
+      - "${HINDSIGHT_BIND_ADDRESS}:9999:9999"
+      - "${HINDSIGHT_BIND_ADDRESS}:8889:8889"
+    environment:
+      - HINDSIGHT_API_LLM_API_KEY=${HINDSIGHT_API_LLM_API_KEY}
+      - HINDSIGHT_API_LLM_PROVIDER=openai
+      - HINDSIGHT_API_LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}
+      - HINDSIGHT_API_LLM_MODEL=${HINDSIGHT_LLM_MODEL}
+      - HINDSIGHT_API_RETAIN_LLM_MODEL=${HINDSIGHT_LLM_MODEL}
+      - HINDSIGHT_API_CONSOLIDATION_LLM_MODEL=${HINDSIGHT_LLM_MODEL}
+      - HINDSIGHT_API_REFLECT_LLM_MODEL=${HINDSIGHT_REFLECT_LLM_MODEL}
+      - HINDSIGHT_API_WORKER_ID=${HINDSIGHT_API_WORKER_ID}
+      - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
+      - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
+    volumes:
+      - ${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

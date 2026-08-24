@@ -1,15 +1,18 @@
-args @ {HOME ? "/home/craole", ...}: let
-  environment = import ./environment.nix args;
-  packages = import ./packages.nix args;
-in {
-  inherit environment;
-  env = environment;
-  inherit (packages) packages;
+{lix, ...} @ args: let
+  inherit (lix.attrsets.aggregation) recursiveUpdate mergeShellFragments;
 
-  shellHook = ''
-    if [ -t 1 ]; then
-      printf '%s\n' 'Hindsight shell: hindsight-up, hindsight-down, hindsight-status, hindsight-verify'
-      printf '%s\n' "API URL: $HINDSIGHT_API_URL"
-    fi
-  '';
-}
+  environment = import ./environment args;
+  packages = import ./packages (recursiveUpdate args environment);
+  inherit (packages) scripts;
+
+  hooks = import ./hooks (
+    recursiveUpdate args (
+      recursiveUpdate environment {inherit packages;}
+    )
+  );
+in
+  mergeShellFragments [
+    environment
+    scripts
+    hooks
+  ]

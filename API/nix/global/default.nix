@@ -141,24 +141,19 @@
     };
 
     user = {
-      home = [];
+      desktop = ["Desktop"];
       documents = ["Documents"];
       downloads = ["Downloads"];
+      home = [];
       music = ["Music"];
       pictures = ["Pictures"];
-      videos = ["Videos"];
+      private = ["Private"];
       projects = ["Projects"];
-      wallpapers = [
-        "Pictures"
-        "Wallpapers"
-      ];
-      screenshots = [
-        "Pictures"
-        "Screenshots"
-      ];
-      desktop = ["Desktop"];
       public = ["Public"];
+      screenshots = ["Pictures" "Screenshots"];
       templates = ["Templates"];
+      videos = ["Videos"];
+      wallpapers = ["Pictures" "Wallpapers"];
     };
 
     xdg = {
