@@ -70,6 +70,7 @@
 in {
   env = env';
   packages = [
+    docker
     up
     down
     logs
