@@ -273,36 +273,72 @@
   recursiveMergeAll = sets: foldl' recursiveUpdate {} sets;
 
   /**
-  Deep-merge a list of devShell-fragment attrsets (each optionally
-  carrying `env`, `packages`, `shellHook`, `lib`, plus arbitrary other
-  keys - the shape `mkShell` consumes, plus a local-helpers escape hatch)
-  into one shell-ready attrset.
-
-  Unlike a plain `//`-fold, four keys are combined instead of replaced,
-  so a later fragment never silently erases an earlier one's contribution:
-  - `env` is deep-merged (`recursiveUpdate`)
-  - `lib` is deep-merged (`recursiveUpdate`) - lets each fragment define
-    its own local helpers (e.g. `get`/`set`/`tag`) that compose across
-    fragments during construction, without those helpers ending up in
-    `env` itself (where `mkShell`/`mkDerivation` would reject them, since
-    `env` may only contain strings, bools, ints, or derivations)
-  - `packages` is concatenated
-  - `shellHook` is concatenated with a newline separator
-
-  Every other key keeps ordinary last-wins `//` semantics.
-
-  `lib` is merged for the benefit of fragments still being constructed
-  (e.g. a later fragment reading an earlier one's `lib.tag`), but is
-  never meant to reach `mkShell` - it is stripped from the final result,
-  so the returned attrset never carries a `lib` key regardless of
-  whether any input fragment defined one.
+  Deep-merge two devShell-fragment attrsets, combining `env`, `lib`,
+  `packages`, `shellHook`, and `helpEntries` instead of replacing them.
+  Unlike `mergeShellFragments`, this does NOT strip `lib` - it is the
+  step function for folding fragments where each subsequent fragment
+  still needs to read the accumulated `lib` (e.g. `get`/`set`/`tag`
+  helpers) via its own args. Use `mergeShellFragments` (which calls
+  this internally and strips `lib` at the end) once folding is done
+  and the result is headed to `mkShell`.
 
   # Type
   ```nix
-    mergeShellFragments :: [AttrSet] -> AttrSet
+  mergeAccumulate :: AttrSet -> AttrSet -> AttrSet
   ```
   */
-  mergeShellFragments = fragments: let
+  mergeAccumulate = a: b:
+    (a // b)
+    // {
+      env = recursiveUpdate (a.env or {}) (b.env or {});
+      lib = recursiveUpdate (a.lib or {}) (b.lib or {});
+      packages = (a.packages or []) ++ (b.packages or []);
+      shellHook = (a.shellHook or "") + "\n" + (b.shellHook or "");
+      helpEntries = (a.helpEntries or []) ++ (b.helpEntries or []);
+    };
+
+  # TODO: Update hermes to use mkShellFragments instead of mergeShellFragments, so that each fragment can see the accumulated lib and env from previous fragments. Then we can remove mergeShellFragments and mergeAccumulate and just use mkShellFragments with a single call.
+  mergeShellFragments = fragments:
+    removeAttrs (foldl' mergeAccumulate {} fragments) ["lib"];
+
+  /**
+  Build a devShell by folding a list of fragment directories, each
+  imported with the accumulated result of every fragment before it
+  merged into its args - so fragment N can read env/lib/packages/etc.
+  contributed by fragments 0..N-1 without the caller manually wiring
+  each fragment's dependencies by hand.
+
+  Four keys are combined instead of replaced across the fold, so a
+  later fragment never silently erases an earlier one's contribution:
+  - `env` is deep-merged (`recursiveUpdate`)
+  - `lib` is deep-merged (`recursiveUpdate`) - each fragment's local
+    helpers (e.g. get/set/tag), readable by every fragment after it,
+    but stripped from the final result since `env` must contain only
+    strings/bools/ints/derivations for `mkShell`/`mkDerivation`
+  - `packages` is concatenated
+  - `shellHook` is concatenated with a newline separator
+  - `helpEntries` is concatenated
+
+  Every other key keeps ordinary last-wins `//` semantics.
+
+  # Inputs
+  `dirs`
+  : list of paths, each importable as `path (args // accumulatedSoFar)`,
+    in dependency order - a fragment can only see fragments listed
+    before it, never after
+
+  `args`
+  : base args passed to every fragment (pkgs, lix, env, etc.)
+
+  # Type
+  ```nix
+  mkShellFragments :: { dirs :: [Path], args :: AttrSet } -> AttrSet
+  ```
+  */
+  mkShellFragments = {
+    dirs,
+    args,
+  }: let
     merge = a: b:
       (a // b)
       // {
@@ -312,8 +348,16 @@
         shellHook = (a.shellHook or "") + "\n" + (b.shellHook or "");
         helpEntries = (a.helpEntries or []) ++ (b.helpEntries or []);
       };
+
+    built =
+      foldl' (acc: dir: let
+        fragment = import dir (recursiveUpdate args acc);
+      in
+        merge acc fragment)
+      {}
+      dirs;
   in
-    removeAttrs (foldl' merge {} fragments) ["lib"];
+    removeAttrs built ["lib"];
 in {
   inherit
     merge
@@ -322,6 +366,7 @@ in {
     withDefaults
     recursiveMergeAll
     mergeShellFragments
+    mkShellFragments
     ;
 
   __rootAliases = {

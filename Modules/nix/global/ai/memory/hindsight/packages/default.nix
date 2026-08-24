@@ -1,4 +1,3 @@
-# packages/default.nix
 {
   pkgs,
   lix,

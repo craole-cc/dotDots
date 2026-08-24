@@ -1,6 +1,6 @@
+# TODO: This is not the right way: using builtins.getEnv is not a good idea, because it will not work in all contexts. We should use a more robust way to pass the environment variables to the script.
 args: let
   inherit (args) lix;
-  inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.transformation) escapeShellArg;
 in {
   prepare-telegram-gateway = ''

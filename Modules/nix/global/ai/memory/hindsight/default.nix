@@ -1,15 +1,9 @@
-{lix, ...} @ args: let
-  inherit (lix.attrsets.aggregation) recursiveUpdate mergeShellFragments;
-  environment = import ./environment args;
-  packages = import ./packages (recursiveUpdate args environment);
-  hooks = import ./hooks (
-    recursiveUpdate args (
-      recursiveUpdate environment {inherit packages;}
-    )
-  );
-in
-  mergeShellFragments [
-    environment
-    packages
-    hooks
-  ]
+{lix, ...} @ args:
+lix.attrsets.aggregation.mkShellFragments {
+  dirs = [
+    ./environment
+    ./packages
+    ./hooks
+  ];
+  inherit args;
+}

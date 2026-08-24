@@ -1,8 +1,8 @@
 {
   env,
+  helpEntries,
   lib,
   lix,
-  packages,
   pkgs,
   print,
   title,
@@ -15,32 +15,30 @@
   inherit (lib) tag get prefix;
 
   headline = print.title title;
-  entries = {
-    help =
-      packages.helpEntries
-      ++ [
-        {
-          command = tag "help";
-          description = "Show this help";
-        }
-      ];
+
+  entries = let
+    internal = [
+      {
+        command = tag "help";
+        description = "Show this help";
+      }
+    ];
+    external = helpEntries;
+  in {
+    merged = internal ++ external;
+    inherit internal external;
   };
 
   tables = {
     help = print.table {
       columns = ["Command" "Description"];
-      rows =
-        map
-        (entry: with entry; [command description])
-        entries.help;
+      rows = map (entry: with entry; [command description]) entries.merged;
     };
 
     vars = print.table {
       columns = ["Variable" "Value"];
       rows = map (name: [name "\${${name}:-unset}"]) (
-        filter
-        (suffix: hasPrefix "${prefix}" suffix)
-        (attrNames env)
+        filter (hasPrefix "${prefix}_") (attrNames env)
       );
     };
   };
@@ -65,5 +63,5 @@ in {
     fi
   '';
   packages = [(writeScriptBin (tag "help") helpContent)];
-  helpEntries = entries.help;
+  helpEntries = entries.internal;
 }
