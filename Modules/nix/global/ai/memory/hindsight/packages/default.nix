@@ -1,9 +1,4 @@
-{
-  pkgs,
-  lix,
-  print,
-  ...
-} @ args: let
+{lix, ...} @ args: let
   inherit (lix.attrsets.access) attrNames;
 
   descriptions = {
