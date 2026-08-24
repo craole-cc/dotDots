@@ -15,6 +15,9 @@ in {
 
     if [ -t 1 ]; then
       printf '%s\n' "API URL: ${env.HINDSIGHT_API_URL}"
+      if ! hindsight-status > /dev/null 2>&1; then
+        hindsight-up
+      fi
     fi
   '';
 }

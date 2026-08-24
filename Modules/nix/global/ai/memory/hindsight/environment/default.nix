@@ -17,6 +17,8 @@
     HINDSIGHT_LLM_MODEL = "auto/best-fast";
     HINDSIGHT_REFLECT_LLM_MODEL = "auto/best-chat";
     HINDSIGHT_API_WORKER_ID = "hindsight-victus";
+    HINDSIGHT_COMPOSE_PROJECT = "hindsight";
+    HINDSIGHT_CONTAINER_NAME = "hindsight";
   };
 in {
   description = "Hindsight Memory Service";

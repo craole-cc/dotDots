@@ -1,7 +1,7 @@
 services:
   hindsight:
     image: ghcr.io/vectorize-io/hindsight:latest
-    container_name: hindsight
+    container_name: ${HINDSIGHT_CONTAINER_NAME}
     restart: unless-stopped
     ports:
       - "${HINDSIGHT_BIND_ADDRESS}:8888:8888"

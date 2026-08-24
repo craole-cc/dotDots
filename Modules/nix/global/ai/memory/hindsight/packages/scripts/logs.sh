@@ -2,4 +2,6 @@
 #shellcheck enable=all
 set -eu
 
-exec docker logs -f hindsight
+: "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
+
+exec docker logs -f "${HINDSIGHT_CONTAINER_NAME}"

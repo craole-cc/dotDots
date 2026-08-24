@@ -2,4 +2,6 @@
 #shellcheck enable=all
 set -eu
 
-exec docker exec hindsight hindsight-api bank list
+: "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
+
+exec docker exec "${HINDSIGHT_CONTAINER_NAME}" hindsight-api bank list
