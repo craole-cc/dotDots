@@ -7,6 +7,7 @@ cache_root="${OMNIROUTE_NPX_CACHE:?OMNIROUTE_NPX_CACHE is required}/npm-cache/_n
 translator_patch="${OMNIROUTE_CODEX_RESPONSES_PATCH:?OMNIROUTE_CODEX_RESPONSES_PATCH is required}"
 executor_patch="${OMNIROUTE_CODEX_EXECUTOR_PATCH:?OMNIROUTE_CODEX_EXECUTOR_PATCH is required}"
 target_patch="${OMNIROUTE_CODEX_TARGET_PATCH:?OMNIROUTE_CODEX_TARGET_PATCH is required}"
+serialization_patch="${OMNIROUTE_CODEX_SERIALIZATION_PATCH:?OMNIROUTE_CODEX_SERIALIZATION_PATCH is required}"
 
 apply_patch() {
   package_dir="$1"
@@ -39,6 +40,11 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
     "open-sse/services/targetRequestSanitizer.ts" \
     'function normalizeGenericReasoningToggle' \
     "$target_patch"
+  apply_patch \
+    "$package_dir" \
+    "open-sse/executors/base.ts" \
+    'Generic OpenAI clients may send `reasoning.enabled`' \
+    "$serialization_patch"
   found=1
 done
 

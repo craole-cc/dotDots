@@ -1,0 +1,14 @@
+--- a/open-sse/executors/base.ts
++++ b/open-sse/executors/base.ts
+@@ -1295,2 +1295,11 @@ export abstract class BaseExecutor {
+           );
+         }
++        // Generic OpenAI clients may send `reasoning.enabled`, but Codex Responses
++        // accepts only `reasoning.effort`. This is the final HTTP serialization
++        // boundary, so remove the unsupported toggle regardless of earlier routes.
++        if (this.provider === "codex" && transformedBody && typeof transformedBody === "object") {
++          const reasoning = (transformedBody as Record<string, unknown>).reasoning;
++          if (reasoning && typeof reasoning === "object" && !Array.isArray(reasoning)) {
++            delete (reasoning as Record<string, unknown>).enabled;
++          }
++        }

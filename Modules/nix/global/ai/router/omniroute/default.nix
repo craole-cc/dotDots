@@ -81,8 +81,9 @@
       OMNIROUTE_CODEX_RESPONSES_PATCH="${./codex-responses-reasoning.patch}"
       OMNIROUTE_CODEX_EXECUTOR_PATCH="${./codex-executor-reasoning.patch}"
       OMNIROUTE_CODEX_TARGET_PATCH="${./codex-target-sanitizer.patch}"
+      OMNIROUTE_CODEX_SERIALIZATION_PATCH="${./codex-base-serialization.patch}"
       export NPM_CONFIG_CACHE NPM_CONFIG_UPDATE_NOTIFIER NODE_EXTRA_CA_CERTS
-      export OMNIROUTE_NPX_CACHE OMNIROUTE_CODEX_RESPONSES_PATCH OMNIROUTE_CODEX_EXECUTOR_PATCH OMNIROUTE_CODEX_TARGET_PATCH
+      export OMNIROUTE_NPX_CACHE OMNIROUTE_CODEX_RESPONSES_PATCH OMNIROUTE_CODEX_EXECUTOR_PATCH OMNIROUTE_CODEX_TARGET_PATCH OMNIROUTE_CODEX_SERIALIZATION_PATCH
       ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" --version >/dev/null
       ${pkgs.runtimeShell} ${./apply-codex-responses-patch.sh}
       exec ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" "$@"
