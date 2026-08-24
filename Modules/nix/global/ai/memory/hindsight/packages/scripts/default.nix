@@ -1,76 +1,73 @@
 {
   pkgs,
   lix,
-  print,
+  env,
   descriptions,
-  names,
+  helpTable,
   ...
 }: let
   inherit (pkgs) curl docker gum jq writeScriptBin writeShellApplication;
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.transformation) escapeShellArg;
+  inherit (env) name prefix;
 
   env' = {
-    HINDSIGHT_COMPOSE_FILE = escapeShellArg ./compose.yaml;
+    "${prefix}_COMPOSE_FILE" = escapeShellArg ./compose.yaml;
   };
 
   helpContent = ''
     #!/bin/sh
     set -eu
-    ${print.title "Hindsight"}
-    ${print.table {
-      columns = ["Command" "Description"];
-      rows = map (name: [name (descriptions.${name} or "?")]) names;
-    }}
+    ${helpTable}
   '';
 
   up = writeShellApplication {
-    name = "hindsight-up";
+    name = "${name}-up";
     runtimeInputs = [docker gum];
     text = readFile ./up.sh;
   };
 
   down = writeShellApplication {
-    name = "hindsight-down";
+    name = "${name}-down";
     runtimeInputs = [docker];
     text = readFile ./down.sh;
   };
 
   logs = writeShellApplication {
-    name = "hindsight-logs";
+    name = "${name}-logs";
     runtimeInputs = [docker];
     text = readFile ./logs.sh;
   };
 
   status = writeShellApplication {
-    name = "hindsight-status";
-    runtimeInputs = [curl];
+    name = "${name}-status";
+    runtimeInputs = [curl gum];
     text = readFile ./status.sh;
   };
 
   verify = writeShellApplication {
-    name = "hindsight-verify";
+    name = "${name}-verify";
     runtimeInputs = [curl jq];
     text = readFile ./verify.sh;
   };
 
   bankCreate = writeShellApplication {
-    name = "hindsight-bank-create";
+    name = "${name}-bank-create";
     runtimeInputs = [docker];
     text = readFile ./bank-create.sh;
   };
 
   bankList = writeShellApplication {
-    name = "hindsight-bank-list";
+    name = "${name}-bank-list";
     runtimeInputs = [docker];
     text = readFile ./bank-list.sh;
   };
 
-  showHelp = writeScriptBin "hindsight-help" helpContent;
+  showHelp = writeScriptBin "${name}-help" helpContent;
 in {
   env = env';
   packages = [
-    docker
+    # docker
     up
     down
     logs

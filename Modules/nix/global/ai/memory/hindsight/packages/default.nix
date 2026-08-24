@@ -1,18 +1,33 @@
-{lix, ...} @ args: let
+{
+  pkgs,
+  lix,
+  print,
+  env,
+  ...
+} @ args: let
   inherit (lix.attrsets.access) attrNames;
+  inherit (env) name;
 
   descriptions = {
-    hindsight-up = "Start the Hindsight service";
-    hindsight-down = "Stop the Hindsight service";
-    hindsight-logs = "Follow Hindsight container logs";
-    hindsight-status = "Check Hindsight API health";
-    hindsight-verify = "Validate the Hindsight OpenAPI document";
-    hindsight-bank-create = "Create a Hindsight memory bank";
-    hindsight-bank-list = "List Hindsight memory banks";
-    hindsight-help = "Show this help";
+    "${name}-up" = "Start the ${name} service";
+    "${name}-down" = "Stop the ${name} service";
+    "${name}-logs" = "Follow ${name} container logs";
+    "${name}-status" = "Check ${name} API health";
+    "${name}-verify" = "Validate the ${name} OpenAPI document";
+    "${name}-bank-create" = "Create a ${name} memory bank";
+    "${name}-bank-list" = "List ${name} memory banks";
+    "${name}-help" = "Show this help";
   };
 
-  names = attrNames descriptions;
+  commandNames = attrNames descriptions;
 
-  scripts = import ./scripts (args // {inherit descriptions names;});
-in {inherit descriptions names scripts;}
+  helpTable = ''
+    ${print.title "Hindsight"}
+    ${print.table {
+      columns = ["Command" "Description"];
+      rows = map (cmd: [cmd (descriptions.${cmd} or "?")]) commandNames;
+    }}
+  '';
+
+  scripts = import ./scripts (args // {inherit descriptions helpTable;});
+in {inherit descriptions helpTable scripts;}

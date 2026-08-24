@@ -1,22 +1,18 @@
 {
   packages,
-  print,
   env,
   ...
 }: let
-  inherit (packages) descriptions names;
+  inherit (packages) helpTable;
+  apiUrl = env."${env.prefix}_API_URL";
 in {
   shellHook = ''
-    ${print.title "Hindsight"}
-    ${print.table {
-      columns = ["Command" "Description"];
-      rows = map (name: [name (descriptions.${name} or "?")]) names;
-    }}
+    ${helpTable}
 
     if [ -t 1 ]; then
-      printf '%s\n' "API URL: ${env.HINDSIGHT_API_URL}"
-      if ! hindsight-status > /dev/null 2>&1; then
-        hindsight-up
+      printf '%s\n' "API URL: ${apiUrl}"
+      if ! ${env.name}-status > /dev/null 2>&1; then
+        ${env.name}-up
       fi
     fi
   '';
