@@ -37,7 +37,7 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
   apply_patch \
     "$package_dir" \
     "open-sse/services/targetRequestSanitizer.ts" \
-    'function normalizeCodexGenericReasoningToggle' \
+    'function normalizeGenericReasoningToggle' \
     "$target_patch"
   found=1
 done

@@ -1,8 +1,8 @@
 --- a/open-sse/services/targetRequestSanitizer.ts
 +++ b/open-sse/services/targetRequestSanitizer.ts
 @@ -51,2 +51,17 @@ function stripVerbosityForTarget(body: JsonRecord, model: string): string[] {
-+function normalizeCodexGenericReasoningToggle(body: JsonRecord, provider: string | null | undefined): string[] {
-+  if (provider?.toLowerCase() !== "codex" || !isRecord(body.reasoning)) return [];
++function normalizeGenericReasoningToggle(body: JsonRecord): string[] {
++  if (!isRecord(body.reasoning)) return [];
 +
 +  const reasoning = { ...body.reasoning };
 +  if (typeof reasoning.enabled !== "boolean") return [];
@@ -24,5 +24,5 @@
 -  const stripped = stripVerbosityForTarget(next, options.model);
 +  const stripped = [
 +    ...stripVerbosityForTarget(next, options.model),
-+    ...normalizeCodexGenericReasoningToggle(next, options.provider),
++    ...normalizeGenericReasoningToggle(next),
 +  ];
