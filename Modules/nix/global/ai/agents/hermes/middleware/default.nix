@@ -1,7 +1,8 @@
-args: let
-  inherit (args.lix.attrsets.aggregation) mergeShellFragments;
-in
-  mergeShellFragments [
-    (import ./telegram args)
-    (import ./whatsapp args)
-  ]
+{lix, ...} @ args:
+lix.attrsets.aggregation.mkShellFragments {
+  dirs = [
+    ./telegram
+    ./whatsapp
+  ];
+  inherit args;
+}

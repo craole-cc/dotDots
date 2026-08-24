@@ -1,10 +1,6 @@
 {
   pkgsFor,
-  pkgs,
-  lix,
   inputs,
-  print,
-  middleware,
   ...
 }: let
   sources = {
@@ -38,9 +34,6 @@
       };
     }
     // {default = tools.minimal;};
-
-  scripts = import ./scripts {
-    inherit lix pkgs print tools;
-    helpEntries = middleware.helpEntries or [];
-  };
-in {inherit tools sources scripts;}
+in {
+  inherit sources tools;
+}
