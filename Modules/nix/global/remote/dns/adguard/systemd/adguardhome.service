@@ -1,0 +1,17 @@
+[Unit]
+Description=AdGuard Home Tailnet DNS
+Wants=network-online.target
+After=network-online.target tailscaled.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+StateDirectory=adguardhome
+ExecStart=/usr/local/bin/adguardhome-nix --config /var/lib/adguardhome/AdGuardHome.yaml --work-dir /var/lib/adguardhome --web-addr 100.76.128.70:3000 --no-check-update
+Restart=on-failure
+RestartSec=5s
+WorkingDirectory=/var/lib/adguardhome
+
+[Install]
+WantedBy=multi-user.target

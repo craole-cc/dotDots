@@ -29,6 +29,8 @@ global: let
     inherit core;
   };
 
+  adguard = import ./remote/dns/adguard args;
+
   shellsWithAi =
     shells
     // {
@@ -61,6 +63,13 @@ global: let
         "ai-hermes"
         "ai-hindsight"
         ;
+
+      adguard = mkShell {
+        name = "dots-adguard";
+        env = core.env // adguard.env;
+        inherit (adguard) shellHook;
+        packages = core.packages ++ adguard.packages;
+      };
 
       fmt = args.treefmt.devShell;
 

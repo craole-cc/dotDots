@@ -1,0 +1,24 @@
+version: "0.5"
+
+processes:
+  adguardhome:
+    command: >-
+      AdGuardHome
+      --config "${ADGUARD_CONFIG_FILE}"
+      --work-dir "${ADGUARD_DATA_DIR}"
+      --web-addr "${ADGUARD_BIND_ADDRESS}:${ADGUARD_WEB_PORT}"
+      --no-check-update
+    availability:
+      restart: on_failure
+    readiness_probe:
+      exec:
+        command: >-
+          dig +time=2 +tries=1 +short
+          @${ADGUARD_BIND_ADDRESS}
+          -p ${ADGUARD_DNS_PORT}
+          google.com
+      initial_delay_seconds: 2
+      period_seconds: 5
+      timeout_seconds: 3
+      success_threshold: 1
+      failure_threshold: 5
