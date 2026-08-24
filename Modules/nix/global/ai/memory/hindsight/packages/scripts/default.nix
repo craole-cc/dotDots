@@ -8,6 +8,11 @@
 }: let
   inherit (pkgs) curl docker gum jq writeScriptBin writeShellApplication;
   inherit (lix.filesystem.access) readFile;
+  inherit (lix.strings.transformation) escapeShellArg;
+
+  env' = {
+    HINDSIGHT_COMPOSE_FILE = escapeShellArg ./compose.yaml;
+  };
 
   helpContent = ''
     #!/bin/sh
@@ -63,9 +68,7 @@
 
   showHelp = writeScriptBin "hindsight-help" helpContent;
 in {
-  env = {
-    HINDSIGHT_COMPOSE_FILE = toString ./compose.yaml;
-  };
+  env = env';
   packages = [
     up
     down
