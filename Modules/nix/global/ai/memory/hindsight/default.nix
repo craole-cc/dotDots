@@ -70,6 +70,7 @@
             export HINDSIGHT_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL:-http://100.76.128.70:20128/v1}"
             export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-auto/best-fast}"
             export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-auto/best-chat}"
+            export HINDSIGHT_API_WORKER_ID="''${HINDSIGHT_API_WORKER_ID:-hindsight-victus}"
 
             _hindsight_compose() {
               cat <<'EOF'
@@ -90,6 +91,7 @@
             - HINDSIGHT_API_RETAIN_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
             - HINDSIGHT_API_CONSOLIDATION_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
             - HINDSIGHT_API_REFLECT_LLM_MODEL=''${HINDSIGHT_REFLECT_LLM_MODEL}
+            - HINDSIGHT_API_WORKER_ID=''${HINDSIGHT_API_WORKER_ID}
             - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
             - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
           volumes:
