@@ -1,13 +1,13 @@
 {
   pkgs,
   lix,
-  env,
+  lib,
   ...
 }: let
   inherit (pkgs) curl docker gum jq writeScriptBin writeShellApplication;
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.transformation) concat;
-  inherit (env) target tag set;
+  inherit (lib) target tag set;
 
   env' = set "COMPOSE_FILE" (toString ./compose.yaml);
 

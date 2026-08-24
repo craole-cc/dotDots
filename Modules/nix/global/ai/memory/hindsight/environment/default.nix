@@ -13,13 +13,12 @@
   target = env.name or "hindsight";
   prefix = toUpper target;
 
-  get = name: env'."${prefix}_${name}";
-  set = name: value: {"${prefix}_${name}" = value;};
   tag = name: "${target}-${name}";
+  set = name: value: {"${prefix}_${name}" = value;};
+  get = name: vars."${prefix}_${name}";
 
-  env' =
-    {inherit target prefix get set tag;}
-    // set "DATA_DIR" "${HOME}/data/${target}"
+  vars =
+    set "DATA_DIR" "${HOME}/data/${target}"
     // set "SECRETS_FILE" "${PRIVATE}/${target}.env"
     // set "API_URL" "http://100.90.252.109:8888"
     // set "BIND_ADDRESS" "100.90.252.109"
@@ -31,5 +30,6 @@
     // set "CONTAINER_NAME" target;
 in {
   description = "Hindsight Memory Service";
-  env = recursiveUpdate env env';
+  env = recursiveUpdate env vars;
+  lib = {inherit target prefix get set tag;};
 }
