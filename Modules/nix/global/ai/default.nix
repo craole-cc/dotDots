@@ -43,9 +43,9 @@
   };
 
   aiHindsight = {
-    env = core.env // memory.devShell.env;
-    inherit (memory.devShell) shellHook;
-    packages = core.packages ++ memory.devShell.packages;
+    env = core.env // memory.hindsight.env;
+    inherit (memory.hindsight) shellHook;
+    packages = core.packages ++ memory.hindsight.packages;
   };
 
   devShells = {

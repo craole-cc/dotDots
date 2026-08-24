@@ -1,81 +1,13 @@
-{pkgs, ...}: let
-  inherit (pkgs) curl jq writeShellApplication python3 docker docker-compose;
+{pkgs, ...} @ args: let
+  inherit (pkgs) coreutils curl docker jq writeShellApplication;
+  home = args.HOME or "/home/craole";
+  secretsFile = "${home}/Private/hindsight.env";
 
-  hindsight = writeShellApplication {
-    name = "hindsight";
-    runtimeInputs = [
-      curl
-      jq
-      python3
-    ];
+  compose = writeShellApplication {
+    name = "hindsight-compose";
+    runtimeInputs = [coreutils];
     text = ''
-      printf '%s\n' 'Hindsight is exposed as an HTTP service; use hindsight-status or hindsight-verify.'
-      printf '%s\n' 'Set HINDSIGHT_API_URL and HINDSIGHT_API_KEY to use the REST API.'
-      printf '%s\n' 'CLI tools: hindsight, hindsight-retain, hindsight-recall, hindsight-reflect'
-      printf '%s\n' 'Install with: pip install hindsight-client'
-    '';
-  };
-
-  status = writeShellApplication {
-    name = "hindsight-status";
-    runtimeInputs = [
-      curl
-      jq
-    ];
-    text = ''
-      endpoint="''${HINDSIGHT_API_URL:-https://api.hindsight.vectorize.io}"
-      if curl -fsS "$endpoint/health" -o /dev/null; then
-        printf "Hindsight API: up (%s)\n" "$endpoint"
-      else
-        printf "Hindsight API: not responding (%s)\n" "$endpoint" >&2
-        exit 1
-      fi
-    '';
-  };
-
-  verify = writeShellApplication {
-    name = "hindsight-verify";
-    runtimeInputs = [
-      curl
-      jq
-    ];
-    text = ''
-      endpoint="''${HINDSIGHT_API_URL:-https://api.hindsight.vectorize.io}"
-      curl -fsS "$endpoint/openapi.json" | jq -e '.paths | type == "object"' >/dev/null
-      printf "Hindsight API OpenAPI document is valid at %s\n" "$endpoint"
-    '';
-  };
-
-  # Transitional secret loading: migrate this to SOPS + age-backed host provisioning.
-  # Keep plaintext outside Git; the eventual NixOS/Home Manager service should
-  # consume a sops-nix-provisioned runtime secret instead.
-  devShell = {
-    name = "dots-ai-hindsight";
-    packages = [
-      docker
-      docker-compose
-      curl
-      jq
-      python3
-    ];
-    env = {};
-    shellHook = ''
-            export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
-            export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-$HOME/Private/hindsight.env}"
-            if [ -r "$HINDSIGHT_SECRETS_FILE" ]; then
-              set -a
-              . "$HINDSIGHT_SECRETS_FILE"
-              set +a
-            fi
-            export HINDSIGHT_API_URL="''${HINDSIGHT_API_URL:-http://100.90.252.109:8888}"
-            export HINDSIGHT_BIND_ADDRESS="''${HINDSIGHT_BIND_ADDRESS:-100.90.252.109}"
-            export HINDSIGHT_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL:-http://100.76.128.70:20128/v1}"
-            export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-auto/best-fast}"
-            export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-auto/best-chat}"
-            export HINDSIGHT_API_WORKER_ID="''${HINDSIGHT_API_WORKER_ID:-hindsight-victus}"
-
-            _hindsight_compose() {
-              cat <<'EOF'
+      cat <<'EOF'
       services:
         hindsight:
           image: ghcr.io/vectorize-io/hindsight:latest
@@ -86,7 +18,7 @@
             - "''${HINDSIGHT_BIND_ADDRESS}:9999:9999"
             - "''${HINDSIGHT_BIND_ADDRESS}:8889:8889"
           environment:
-            - HINDSIGHT_API_LLM_API_KEY=''${HINDSIGHT_API_LLM_API_KEY:-}
+            - HINDSIGHT_API_LLM_API_KEY=''${HINDSIGHT_API_LLM_API_KEY}
             - HINDSIGHT_API_LLM_PROVIDER=openai
             - HINDSIGHT_API_LLM_BASE_URL=''${HINDSIGHT_LLM_BASE_URL}
             - HINDSIGHT_API_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
@@ -104,81 +36,112 @@
             timeout: 10s
             retries: 3
       EOF
-            }
+    '';
+  };
 
-            hindsight-up() {
-              mkdir -p "''${HINDSIGHT_DATA_DIR}"
-              _hindsight_compose | docker compose -f /dev/stdin up -d
-              echo "Hindsight starting..."
-              sleep 5
-              docker compose -f <(_hindsight_compose) ps
-            }
+  up = writeShellApplication {
+    name = "hindsight-up";
+    runtimeInputs = [coreutils docker];
+    text = ''
+      secrets_file="''${HINDSIGHT_SECRETS_FILE:-${secretsFile}}"
+      if [ ! -r "$secrets_file" ]; then
+        printf 'Hindsight secrets file is not readable: %s\n' "$secrets_file" >&2
+        exit 1
+      fi
+      set -a
+      # shellcheck disable=SC1090
+      . "$secrets_file"
+      set +a
+      : "''${HINDSIGHT_API_LLM_API_KEY:?HINDSIGHT_API_LLM_API_KEY is required}"
+      mkdir -p "''${HINDSIGHT_DATA_DIR}"
+      hindsight-compose | docker compose -f /dev/stdin up -d
+      printf '%s\n' 'Hindsight starting...'
+      sleep 5
+      hindsight-compose | docker compose -f /dev/stdin ps
+    '';
+  };
 
-            hindsight-down() {
-              _hindsight_compose | docker compose -f /dev/stdin down
-            }
+  down = writeShellApplication {
+    name = "hindsight-down";
+    runtimeInputs = [docker];
+    text = ''
+      hindsight-compose | docker compose -f /dev/stdin down
+    '';
+  };
 
-            hindsight-logs() {
-              docker logs -f hindsight
-            }
+  logs = writeShellApplication {
+    name = "hindsight-logs";
+    runtimeInputs = [docker];
+    text = ''
+      exec docker logs -f hindsight
+    '';
+  };
 
-            hindsight-status() {
-              curl -sf "''${HINDSIGHT_API_URL}/health" && echo "up" || echo "down"
-            }
+  status = writeShellApplication {
+    name = "hindsight-status";
+    runtimeInputs = [curl];
+    text = ''
+      endpoint="''${HINDSIGHT_API_URL}"
+      curl -fsS "$endpoint/health"
+      printf '\n'
+    '';
+  };
 
-            hindsight-bank-create() {
-              local bank_id="$1"
-              local config_file="$2"
-              if [[ ! -f "$config_file" ]]; then
-                echo "Usage: hindsight-bank-create <bank_id> <config.json>"
-                return 1
-              fi
-              cat "$config_file" | docker exec -i hindsight hindsight-api bank create --config /dev/stdin
-            }
+  verify = writeShellApplication {
+    name = "hindsight-verify";
+    runtimeInputs = [curl jq];
+    text = ''
+      endpoint="''${HINDSIGHT_API_URL}"
+      curl -fsS "$endpoint/openapi.json" | jq -e '.paths | type == "object"' >/dev/null
+      printf 'Hindsight API OpenAPI document is valid at %s\n' "$endpoint"
+    '';
+  };
 
-            hindsight-bank-list() {
-              docker exec hindsight hindsight-api bank list
-            }
+  bankCreate = writeShellApplication {
+    name = "hindsight-bank-create";
+    runtimeInputs = [docker];
+    text = ''
+      bank_id="''${1:?Usage: hindsight-bank-create <bank_id> <config.json>}"
+      config_file="''${2:?Usage: hindsight-bank-create <bank_id> <config.json>}"
+      test -f "$config_file"
+      docker exec -i hindsight hindsight-api bank create --bank-id "$bank_id" --config /dev/stdin < "$config_file"
+    '';
+  };
 
-            if [ -t 1 ]; then
-              printf "%s\n" "Hindsight management shell: ai-hindsight"
-              printf "%s\n" "  hindsight-up         Start Hindsight server"
-              printf "%s\n" "  hindsight-down       Stop Hindsight server"
-              printf "%s\n" "  hindsight-status     Check health"
-              printf "%s\n" "  hindsight-logs       Follow logs"
-              printf "%s\n" "  hindsight-bank-create <bank_id> <config.json>"
-              printf "%s\n" "  hindsight-bank-list  List banks"
-              printf "%s\n" "API URL: $HINDSIGHT_API_URL"
-            fi
+  bankList = writeShellApplication {
+    name = "hindsight-bank-list";
+    runtimeInputs = [docker];
+    text = ''
+      exec docker exec hindsight hindsight-api bank list
     '';
   };
 in {
-  inherit hindsight status verify devShell;
-
   packages = [
-    hindsight
+    compose
+    up
+    down
+    logs
     status
     verify
-    python3
+    bankCreate
+    bankList
   ];
 
   env = {
+    HINDSIGHT_DATA_DIR = "${home}/data/hindsight";
+    HINDSIGHT_SECRETS_FILE = secretsFile;
     HINDSIGHT_API_URL = "http://100.90.252.109:8888";
-    HINDSIGHT_API_KEY = "";
-    HINDSIGHT_BANK_ID = "Hermes";
-    HINDSIGHT_BUDGET = "mid";
-    HINDSIGHT_MODE = "cloud";
-    HINDSIGHT_TIMEOUT = "120";
-    HINDSIGHT_IDLE_TIMEOUT = "300";
+    HINDSIGHT_BIND_ADDRESS = "100.90.252.109";
+    HINDSIGHT_LLM_BASE_URL = "http://100.76.128.70:20128/v1";
+    HINDSIGHT_LLM_MODEL = "auto/best-fast";
+    HINDSIGHT_REFLECT_LLM_MODEL = "auto/best-chat";
+    HINDSIGHT_API_WORKER_ID = "hindsight-victus";
   };
 
   shellHook = ''
     if [ -t 1 ]; then
-      printf "%s\n" "Hindsight shell: hindsight, hindsight-status, hindsight-verify"
-      printf "%s\n" "API URL: $HINDSIGHT_API_URL (Victus Tailscale)"
-      printf "%s\n" "Set HINDSIGHT_API_KEY in ~/.hermes/.env or environment"
-      printf "%s\n" "Install CLI: pip install hindsight-client"
-      printf "%s\n" "Management shell: nix develop .#ai-hindsight"
+      printf '%s\n' 'Hindsight shell: hindsight-up, hindsight-down, hindsight-status, hindsight-verify'
+      printf '%s\n' "API URL: $HINDSIGHT_API_URL"
     fi
   '';
 }
