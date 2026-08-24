@@ -1,27 +1,42 @@
 #!/bin/sh
-# Apply our pinned OmniRoute compatibility patch after npx has realized the
-# requested package. Package caches are disposable, so this is deliberately
-# idempotent and runs before every OmniRoute launch.
+# Apply pinned OmniRoute compatibility patches after npx realizes the package.
+# Package caches are disposable, so each patch is idempotent and reapplied as needed.
 set -eu
 
 cache_root="${OMNIROUTE_NPX_CACHE:?OMNIROUTE_NPX_CACHE is required}/npm-cache/_npx"
-patch_file="${OMNIROUTE_CODEX_RESPONSES_PATCH:?OMNIROUTE_CODEX_RESPONSES_PATCH is required}"
+translator_patch="${OMNIROUTE_CODEX_RESPONSES_PATCH:?OMNIROUTE_CODEX_RESPONSES_PATCH is required}"
+executor_patch="${OMNIROUTE_CODEX_EXECUTOR_PATCH:?OMNIROUTE_CODEX_EXECUTOR_PATCH is required}"
 
-applied=0
+apply_patch() {
+  package_dir="$1"
+  target="$2"
+  marker="$3"
+  patch_file="$4"
+
+  if ! grep -Fq "$marker" "$package_dir/$target"; then
+    patch --batch --forward -p1 -d "$package_dir" < "$patch_file"
+  fi
+}
+
+found=0
 for package_dir in "$cache_root"/*/node_modules/omniroute; do
   [ -f "$package_dir/open-sse/translator/request/openai-responses/toResponses.ts" ] || continue
+  [ -f "$package_dir/open-sse/executors/codex.ts" ] || continue
 
-  target="$package_dir/open-sse/translator/request/openai-responses/toResponses.ts"
-  if grep -Fq 'Hermes can use the generic `{ enabled: boolean }`' "$target"; then
-    applied=1
-    continue
-  fi
-
-  patch --batch --forward -p1 -d "$package_dir" < "$patch_file"
-  applied=1
+  apply_patch \
+    "$package_dir" \
+    "open-sse/translator/request/openai-responses/toResponses.ts" \
+    'Hermes can use the generic `{ enabled: boolean }`' \
+    "$translator_patch"
+  apply_patch \
+    "$package_dir" \
+    "open-sse/executors/codex.ts" \
+    'const genericReasoningEnabled = reasoningRecord?.enabled;' \
+    "$executor_patch"
+  found=1
 done
 
-[ "$applied" -eq 1 ] || {
+[ "$found" -eq 1 ] || {
   printf '%s\n' 'OmniRoute package was not found in the npx cache after realization.' >&2
   exit 1
 }

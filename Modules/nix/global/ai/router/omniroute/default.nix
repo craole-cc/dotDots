@@ -79,8 +79,9 @@
       NODE_EXTRA_CA_CERTS="${cacert}/etc/ssl/certs/ca-bundle.crt"
       OMNIROUTE_NPX_CACHE="${npxCacheDir}"
       OMNIROUTE_CODEX_RESPONSES_PATCH="${./codex-responses-reasoning.patch}"
+      OMNIROUTE_CODEX_EXECUTOR_PATCH="${./codex-executor-reasoning.patch}"
       export NPM_CONFIG_CACHE NPM_CONFIG_UPDATE_NOTIFIER NODE_EXTRA_CA_CERTS
-      export OMNIROUTE_NPX_CACHE OMNIROUTE_CODEX_RESPONSES_PATCH
+      export OMNIROUTE_NPX_CACHE OMNIROUTE_CODEX_RESPONSES_PATCH OMNIROUTE_CODEX_EXECUTOR_PATCH
       ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" --version >/dev/null
       ${pkgs.runtimeShell} ${./apply-codex-responses-patch.sh}
       exec ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" "$@"
