@@ -46,7 +46,9 @@
     '';
   };
 
-  # DevShell for managing Hindsight server (Docker)
+  # Transitional secret loading: migrate this to SOPS + age-backed host provisioning.
+  # Keep plaintext outside Git; the eventual NixOS/Home Manager service should
+  # consume a sops-nix-provisioned runtime secret instead.
   devShell = {
     name = "dots-ai-hindsight";
     packages = [
@@ -59,7 +61,7 @@
     env = {};
     shellHook = ''
             export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
-            export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-$HOME/secrets/hindsight.env}"
+            export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-$HOME/Private/hindsight.env}"
             if [ -r "$HINDSIGHT_SECRETS_FILE" ]; then
               set -a
               . "$HINDSIGHT_SECRETS_FILE"
