@@ -7,6 +7,7 @@
     gum
     lsof
     nodejs_22
+    patch
     procps
     sqlite
     tmux
@@ -69,13 +70,19 @@
     runtimeInputs = [
       nodejs
       cacert
+      patch
     ];
     text = ''
       mkdir -p "${npxCacheDir}/npm-cache"
       NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
       NPM_CONFIG_UPDATE_NOTIFIER=false
       NODE_EXTRA_CA_CERTS="${cacert}/etc/ssl/certs/ca-bundle.crt"
+      OMNIROUTE_NPX_CACHE="${npxCacheDir}"
+      OMNIROUTE_CODEX_RESPONSES_PATCH="${./codex-responses-reasoning.patch}"
       export NPM_CONFIG_CACHE NPM_CONFIG_UPDATE_NOTIFIER NODE_EXTRA_CA_CERTS
+      export OMNIROUTE_NPX_CACHE OMNIROUTE_CODEX_RESPONSES_PATCH
+      ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" --version >/dev/null
+      ${pkgs.runtimeShell} ${./apply-codex-responses-patch.sh}
       exec ${nodejs}/bin/npx --yes "omniroute@${omnirouteVersion}" "$@"
     '';
   };
