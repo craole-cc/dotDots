@@ -45,6 +45,32 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
     "open-sse/executors/base.ts" \
     'Generic OpenAI clients may send `reasoning.enabled`' \
     "$serialization_patch"
+  compiled_anchor='let C=i.reasoning&&"object"==typeof i.reasoning&&!Array.isArray(i.reasoning)?i.reasoning:null,A=I(C?.effort)'
+  compiled_marker='C&&delete C.enabled;'
+  compiled_dir="$package_dir/dist/.build/next/server/chunks"
+  compiled_chunk="$(grep -rl -F "$compiled_anchor" "$compiled_dir" --include='*.js' | head -n 1 || true)"
+
+  [ -n "$compiled_chunk" ] || {
+    printf '%s\n' 'OmniRoute Codex compiled executor anchor was not found; refusing to patch an unknown runtime bundle.' >&2
+    exit 1
+  }
+
+  if ! grep -Fq "$compiled_marker" "$compiled_chunk"; then
+    anchor_count="$(grep -o -F "$compiled_anchor" "$compiled_chunk" | wc -l | tr -d ' ')"
+    [ "$anchor_count" -eq 1 ] || {
+      printf '%s\n' 'OmniRoute Codex compiled executor anchor was not unique; refusing to patch an unknown runtime bundle.' >&2
+      exit 1
+    }
+    node - "$compiled_chunk" "$compiled_anchor" <<'NODE'
+const fs = require("fs");
+const [target, anchor] = process.argv.slice(2);
+const source = fs.readFileSync(target, "utf8");
+const replacement = 'let C=i.reasoning&&"object"==typeof i.reasoning&&!Array.isArray(i.reasoning)?i.reasoning:null;C&&delete C.enabled;let A=I(C?.effort)';
+if (source.split(anchor).length !== 2) process.exit(1);
+fs.writeFileSync(target, source.replace(anchor, replacement));
+NODE
+  fi
+
   found=1
 done
 
