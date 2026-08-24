@@ -9,9 +9,11 @@
   inherit (lix.filesystem.access) readFile;
   inherit (lib) target tag set;
 
+  serviceFile = pkgs.writeText "adguardhome.service" (readFile ../systemd/adguardhome.service);
+
   env' =
     set "PROCESS_FILE" (toString ./process-compose.yaml)
-    // set "SYSTEMD_UNIT" (toString ../systemd/adguardhome.service);
+    // set "SYSTEMD_UNIT" (toString serviceFile);
 
   entries = [
     {
