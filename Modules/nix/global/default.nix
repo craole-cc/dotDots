@@ -59,6 +59,7 @@ global: let
         "ai-router"
         "ai-memory"
         "ai-hermes"
+        "ai-hindsight"
         ;
 
       fmt = args.treefmt.devShell;

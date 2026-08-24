@@ -47,18 +47,23 @@
   };
 
   # DevShell for managing Hindsight server (Docker)
-  devShell = pkgs.mkShell {
+  devShell = {
     name = "dots-ai-hindsight";
-    buildInputs = [
+    packages = [
       docker
       docker-compose
       curl
       jq
       python3
     ];
+    env = {};
     shellHook = ''
             export HINDSIGHT_DATA_DIR="''${HOME}/data/hindsight"
-            export HINDSIGHT_API_URL="http://100.90.252.109:8888"
+            export HINDSIGHT_API_URL="''${HINDSIGHT_API_URL:-http://127.0.0.1:8888}"
+            export HINDSIGHT_BIND_ADDRESS="''${HINDSIGHT_BIND_ADDRESS:-127.0.0.1}"
+            export HINDSIGHT_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL:-http://100.76.128.70:20128/v1}"
+            export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-auto/best-fast}"
+            export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-auto/best-chat}"
 
             _hindsight_compose() {
               cat <<'EOF'
@@ -68,13 +73,17 @@
           container_name: hindsight
           restart: unless-stopped
           ports:
-            - "8888:8888"
-            - "9999:9999"
-            - "8889:8889"
+            - "''${HINDSIGHT_BIND_ADDRESS}:8888:8888"
+            - "''${HINDSIGHT_BIND_ADDRESS}:9999:9999"
+            - "''${HINDSIGHT_BIND_ADDRESS}:8889:8889"
           environment:
             - HINDSIGHT_API_LLM_API_KEY=''${HINDSIGHT_API_LLM_API_KEY:-}
             - HINDSIGHT_API_LLM_PROVIDER=openai
-            - HINDSIGHT_API_LLM_MODEL=gpt-4o-mini
+            - HINDSIGHT_API_LLM_BASE_URL=''${HINDSIGHT_LLM_BASE_URL}
+            - HINDSIGHT_API_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
+            - HINDSIGHT_API_RETAIN_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
+            - HINDSIGHT_API_CONSOLIDATION_LLM_MODEL=''${HINDSIGHT_LLM_MODEL}
+            - HINDSIGHT_API_REFLECT_LLM_MODEL=''${HINDSIGHT_REFLECT_LLM_MODEL}
             - HINDSIGHT_API_EMBEDDINGS_PROVIDER=openai
             - HINDSIGHT_API_EMBEDDINGS_MODEL=text-embedding-3-small
           volumes:
