@@ -36,4 +36,5 @@
     // {default = tools.minimal;};
 in {
   inherit sources tools;
+  inherit (tools) packages;
 }
