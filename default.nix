@@ -284,9 +284,14 @@
     flattenDomain = domain: attrPath: node:
       optionals (isAttrs node) (
         if node ? local
-        then [
-          (transformPathVar domain attrPath node.local)
-        ]
+        then
+          # XDG_RUNTIME_DIR is session-owned (by PAM/systemd) and must not be
+          # synthesized from the repository path model or overwritten in shells.
+          optionals
+          (domain != "xdg" || elemAt attrPath (length attrPath - 1) != "runtime_dir")
+          [
+            (transformPathVar domain attrPath node.local)
+          ]
         else concatLists (mapAttrsToList (key: child: flattenDomain domain (attrPath ++ [key]) child) node)
       );
 
