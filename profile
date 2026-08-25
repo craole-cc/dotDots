@@ -647,7 +647,9 @@ setup_tailscale() {
       return 1
     fi
 
-    sudo systemctl enable --runtime tailscaled.service >/dev/null 2>&1 || true
+    # Rollback: restore runtime-only enablement if persistent boot activation must be reverted.
+    # sudo systemctl enable --runtime tailscaled.service >/dev/null 2>&1 || true
+    sudo systemctl enable tailscaled.service >/dev/null 2>&1 || true
     sleep 1
     daemon_ready
   }
