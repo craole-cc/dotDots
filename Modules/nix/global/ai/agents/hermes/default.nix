@@ -2,9 +2,9 @@
 lix.attrsets.aggregation.mkShellFragments {
   dirs = [
     ./environment
-    ./tools
+    ./packages/tools
     ./middleware
-    ./scripts
+    ./packages/scripts
     ./hooks
   ];
   inherit args;
