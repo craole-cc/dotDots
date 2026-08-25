@@ -8,6 +8,16 @@ if [ -z "${WAYLAND_DISPLAY:-}" ]; then
     exit 1
   fi
 
+  current_uid=$(id -u)
+  if ! runtime_owner=$(stat -c '%u' -- "$XDG_RUNTIME_DIR"); then
+    printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and XDG_RUNTIME_DIR ownership could not be determined." >&2
+    exit 1
+  fi
+  if [ "$runtime_owner" != "$current_uid" ]; then
+    printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and XDG_RUNTIME_DIR is not owned by uid $current_uid." >&2
+    exit 1
+  fi
+
   wayland_socket=""
   socket_count=0
   for candidate in "$XDG_RUNTIME_DIR"/wayland-*; do

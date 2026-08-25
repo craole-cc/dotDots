@@ -32,10 +32,12 @@ assert_file_contains "$tools_file" 'launch-wayland.sh'
 
 runtime_dir=$(mktemp -d)
 socket_pids=""
+foreign_socket_path=""
 cleanup() {
   for pid in $socket_pids; do
     kill "$pid" 2>/dev/null || true
   done
+  [ -z "$foreign_socket_path" ] || rm -f "$foreign_socket_path"
   rm -rf "$runtime_dir"
 }
 trap cleanup EXIT HUP INT TERM
@@ -97,5 +99,19 @@ if ambiguous_output=$(env -i PATH="$PATH" XDG_RUNTIME_DIR="$ambiguous_runtime" "
 fi
 rm -rf "$ambiguous_runtime"
 assert_contains "$ambiguous_output" "multiple Wayland sockets"
+
+# Fallback discovery must not scan a runtime directory owned by another user.
+runtime_owner=$(stat -c '%u' /tmp)
+current_uid=$(id -u)
+if [ "$runtime_owner" != "$current_uid" ] && [ -w /tmp ]; then
+  foreign_socket_path=$(mktemp -u /tmp/wayland-launch-test.XXXXXXXX)
+  start_socket "$foreign_socket_path"
+  if foreign_output=$(env -i PATH="$PATH" XDG_RUNTIME_DIR=/tmp "$launcher" /usr/bin/env 2>&1); then
+    fail "foreign-owned runtime directory invocation unexpectedly succeeded"
+  fi
+  assert_contains "$foreign_output" "not owned by uid $current_uid"
+else
+  printf '%s\n' "SKIP: unable to test a writable foreign-owned runtime directory"
+fi
 
 printf 'PASS: launch-wayland environment handling\n'
