@@ -45,11 +45,15 @@
 
   scripts = {
     configure-hindsight = writeScriptBin "configure-hindsight" (readFile ./configure-hindsight.sh);
-    start = writeScriptBin "start" (readFile ./start.sh);
     show-help = writeScriptBin "show-help" helpContent;
+    start = writeScriptBin "start" (readFile ./start.sh);
   };
 in
   scripts
   // {
-    packages = with scripts; [configure-hindsight start show-help];
+    packages = with scripts; [
+      configure-hindsight
+      show-help
+      start
+    ];
   }
