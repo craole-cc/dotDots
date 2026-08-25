@@ -1,10 +1,10 @@
 {
-  lix,
   pkgsFor,
   inputs,
+  pkgs,
   ...
 }: let
-  inherit (lix.attrsets.access) attrValues;
+  inherit (pkgs) writeShellScriptBin;
 
   sources = {
     inherit (inputs) hermes-agent llm-agents;
@@ -37,7 +37,21 @@
       };
     }
     // {default = tools.minimal;};
+
+  graphicalLaunchers = [
+    (writeShellScriptBin "hermes-desktop" ''
+      exec ${../scripts/launch-wayland.sh} ${tools.desktop.exe} "$@"
+    '')
+    (writeShellScriptBin "hermes-one" ''
+      exec ${../scripts/launch-wayland.sh} ${tools.hermes-one.exe} "$@"
+    '')
+  ];
+
+  packages =
+    (builtins.filter
+      (package: package != tools.desktop.package && package != tools.hermes-one.package)
+      tools.packages)
+    ++ graphicalLaunchers;
 in {
-  inherit sources tools;
-  packages = tools.packages;
+  inherit packages sources tools;
 }
