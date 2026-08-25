@@ -1,11 +1,12 @@
 {
+  lix,
   pkgsFor,
   inputs,
   ...
 }: let
-  sources = {
-    inherit (inputs) hermes-agent llm-agents;
-  };
+  inherit (lix.attrsets.access) attrValues;
+
+  sources = {inherit (inputs) hermes-agent llm-agents;};
 
   tools =
     pkgsFor {
@@ -36,4 +37,5 @@
     // {default = tools.minimal;};
 in {
   inherit sources tools;
+  packages = attrValues (removeAttrs tools ["default"]);
 }
