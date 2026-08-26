@@ -23,9 +23,8 @@ fi
 
 if [ "$no_confirm" -eq 1 ]; then
   gum log --level info "Starting hermes gateway..."
-  hermes gateway start 2> /dev/null \
-    || hermes serve 2> /dev/null || true
+  exec hermes-gateway
 else
   gum style --foreground 212 \
-    "Hermes CLI available. Try: hermes --help | hermes gateway start"
+    "Hermes CLI available. Try: hermes --help | hermes-gateway"
 fi
