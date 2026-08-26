@@ -4,7 +4,7 @@
   stateVersion = "26.05";
   system = "x86_64-linux";
   class = "nixos";
-  id = null;
+  id = null; # > head -c8 /etc/machine-id'
 
   paths = {
     dots = "/etc/nixos";
