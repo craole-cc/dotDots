@@ -17,6 +17,8 @@
       };
     in
       explicit // implicit;
+    flattenLibraries = bootstrap.flattenLibraries or false;
+    testLibraries = bootstrap.testLibraries or false;
     collisionStrategy = bootstrap.collisionStrategy or "warn";
     exclusions = {
       dirs = [
@@ -46,17 +48,17 @@
       ];
     };
   },
-  # collisionStrategy ? null,
-  # excludedDirs ? [],
-  # excludedFiles ? [],
-  # excludedPatterns ? [],
+  collisionStrategy ? config.collisionStrategy,
+  excludedDirs ? config.exclusions.directories,
+  excludedFiles ? config.exclusions.files,
+  excludedPatterns ? config.exclusions.patterns,
   flake ? null,
   lib ? null,
   name ? config.names.lib or null,
   names ? config.names or null,
   paths ? config.paths or null,
-  rootAliases ? false,
-  runTests ? true,
+  rootAliases ? config.flattenLibraries,
+  runTests ? config.testLibraries,
 }: let
   defaults = {
     names = {
