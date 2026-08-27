@@ -44,13 +44,14 @@
     '';
     functions = {
       inherit
-        mkFlake
-        mkCore
-        mkHome
-        mkConfigurations
         mkConfig
+        mkConfigurations
+        mkUtilities
         mkContext
+        mkFlake
         ;
+      inherit (_.modules.core.construction) mkCore;
+      inherit (_.modules.home.construction) mkHome;
     };
     exports = {
       local = functions;
@@ -59,7 +60,7 @@
   in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
-  inherit (_.attrsets.construction) genAttrs;
+  inherit (_.attrsets.construction) genAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.debug.assertions) withContext;
   inherit (_.filesystem.tree) mkTree;
@@ -77,148 +78,37 @@
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
-  /**
-  The single entry point `flake.nix` calls. Takes the raw `flake` (`self`)
-  and the already-bootstrapped `src` (the result of `import ./. {inherit
-  flake lib;}`), and owns everything downstream: assembling `args`, the
-  `lib`/`templates` outputs, every host-derived output (via `mkHosts`), and
-  the per-system output matrix (`packages.<system>.*`, `devShells.<system>.*`,
-  etc.) driven by `fn`.
-
-  This intentionally makes `mkFlake` couple to `dotDots`'s specific `args`/
-  `flake'` shape rather than staying a generic per-system-fanout utility -
-  that coupling is the whole point: it's what lets `flake.nix` shrink to
-  wiring `{flake, src}` in and nothing else. A repo wanting a portable,
-  repo-agnostic per-system fanout should reach for the transpose logic
-  inlined below directly, not this function.
-
-  ## `args` assembly
-
-  Replicates the two-pass fixed-point `flake.nix` used to build inline:
-  `mkAll {inherit flake;}` is merged over `src` to get a first-pass `args`
-  (enough to read `names`/`paths` off it), then `flake` is re-derived with
-  `name`/`path`/`home` attached from that first pass, and `args` is rebuilt
-  a second time with the enriched `flake` folded back in. Downstream
-  consumers (host builders, `mkHosts`, module `specialArgs`) read
-  `flake.name`/`flake.path`/`flake.home`, so this fixed-point has to survive
-  the move into `mkFlake` unchanged.
-
-  TODO: once this is confirmed working end-to-end, revisit whether the
-  two-pass fixed-point is still load-bearing or was circumstantial plumbing
-  that can simplify now that it's no longer sitting directly in `flake.nix`.
-
-  ## `lib` output
-
-  `nix flake check` warns on unrecognized top-level output names; `args`
-  itself isn't a recognized name, so the full `args` attrset is exposed
-  under the accepted alias `lib` instead. This is not a curated "just the
-  library" export - it is `args`, unchanged, under a name the checker
-  accepts.
-
-  ## `tree`
-
-  `src.tree` is the plain, unextended tree - `templates` and `fn` both only
-  need static store locations (`tree.kit.nix.store`, `tree.mod.global.store`),
-  not the per-host `local` extension `mkSystems`/`mkHomes` each compute via
-  `tree // {local = tree.mkLocal flake.path;}` for their own host-scoped
-  needs. `mkFlake` never builds that extension itself; it flows through to
-  `mkHosts` via `args` and is expected to remain host-scoped there.
-
-  # Args:
-    flake: The evaluated flake (`self`), before `dotDots`-specific enrichment.
-    src: The bootstrapped source tree (`import ./. {inherit flake lib;}`),
-      providing `lix`, `tree`, and everything `mkAll`/`mkHosts` need.
-    nixpkgs: Optional nixpkgs input, forwarded to `getSystems`.
-    legacyPackages: Optional pre-evaluated legacy package attrset.
-    system: Preferred system to use for deriving per-system output names.
-
-  # Returns:
-    The complete flake outputs attrset: `lib`, `templates`,
-    `nixosConfigurations`, `homeConfigurations`, and every per-system output
-    group `fn` produces (`packages.<system>.*`, `devShells.<system>.*`, ...).
-  */
   mkFlake = {
     flake,
     src,
+    names ? src.names,
+    paths ? src.paths,
     ...
   } @ extra: let
-    #> `flake` enriched with the name/path/home fields host builders and
-    #> module specialArgs expect at `flake.name`/`flake.path`/`flake.home`.
-    flake' = let
-      #> First pass: enough of `args` to read `names`/`paths` for enrichment.
-      default = src // extra // (mkAll {inherit flake;});
-      extended = {
-        args = default;
-        name = args.names.flake;
-        path = args.paths.flake.store;
-        home = args.paths.flake.local;
+    args = let
+      args = src // extra // (mkAll {inherit flake src;});
+      meta = {
+        name = names.flake;
+        path = paths.flake.store;
+        home = paths.flake.local;
       };
     in
-      default // extended;
-
-    #> Second pass: `args` rebuilt with the enriched `flake` folded back in.
-    #> `tree` is read off this final `args`, not off `src` directly - `src`
-    #> is only the pre-enrichment bootstrap value, and using it here would
-    #> mean `fn`/`templates` below silently work off stale data whenever
-    #> `args`' tree diverges from `src`'s (e.g. once host-derived path
-    #> extensions land, which is exactly the case this file exists to add).
-    args = flake'.args // {flake = flake';};
-    inherit (args) tree;
+      args // {flake = flake // meta;} // meta;
   in
     {
       lib = args;
-      templates = import tree.kit.nix.store;
+      templates = import args.paths.kit.nix.store;
     }
     // (mkConfigurations args)
     // (mkUtilities args);
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {
-    schema ? mkSchema {inherit tree;},
-    tree ? mkTree {},
-    hosts ? schema.hosts or {}, # TODO: We just need mkSchema and mkTree to get hosts
-    class ? null,
+    hosts,
+    class,
   }:
     filterAttrs (_: host: (host.class or "nixos") == class) hosts;
 
-  /**
-  Evaluate every host in `schema.hosts` into its class-appropriate
-  top-level flake output.
-
-  Every host declares a `class` (default `"nixos"`), which decides both
-  which builder below evaluates it and which output key it lands under:
-
-    class            | output key           | builder
-    -----------------|----------------------|-------------
-    "nixos" (default)| nixosConfigurations  | mkSystem
-    "darwin"         | nixosConfigurations *| mkSystem
-    "home-manager"   | homeConfigurations   | mkHomeHost
-
-  * Darwin hosts still land under `nixosConfigurations` today - see the
-    `class == "darwin"` branch in `mkSystem` for the `system.build.toplevel`
-    exposure. A dedicated `darwinConfigurations` output, routed through
-    nix-darwin's own top-level builder instead of piggybacking on the
-    NixOS eval here, is the natural follow-up - at that point it's a third
-    local builder and a third `filterAttrs`/`mapAttrs` pair below, nothing
-    else in this file needs to change.
-
-  `mkSystem` and `mkHomeHost` are deliberately not exposed outside this
-  function - callers only ever need the merged result, never a single
-  class's builder in isolation.
-
-  # Args:
-    flake: The evaluated flake (name/path/home derived from it).
-    inputs: Canonically resolved flake inputs.
-    paths: The resolved path tree.
-    libraries: The assembled internal library set.
-    names: Canonical name registry (flake/lib/top/...).
-    stems: Per-host tree stems, extended per host by `mkTree'`.
-    schema: Discovered host/user schema; `schema.hosts` is consumed here.
-    extraArgs: Extra arguments merged into each host's special args.
-
-  # Returns:
-    `{ nixosConfigurations = {...}; homeConfigurations = {...}; }`
-  */
   mkConfigurations = {
     flake,
     inputs,
@@ -226,11 +116,12 @@
     libraries,
     names,
     stems,
-    schema,
     extraArgs ? {},
     ...
   } @ args: let
-    inherit (inputs.home-manager.lib) homeManagerConfiguration;
+    lib = extend (_self: _super: {
+      inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
+    });
 
     #> Per-host repository tree - identical construction for every class.
     treeOf = host:
@@ -242,6 +133,18 @@
           host = flake.path;
         };
       };
+
+    types = let
+      of = class:
+        hostsByClass {
+          inherit (mkSchema paths) hosts;
+          inherit class;
+        };
+    in {
+      nixos = of "nixos";
+      darwin = of "darwin";
+      home = of "home-manager";
+    };
 
     #> Per-host resolved package set - identical call for every class;
     #> each builder below pulls whichever field it needs (`.nixpkgs` for
@@ -256,8 +159,15 @@
     #> The special-args shape every class forwards into its module
     #> system, modulo the class-specific extras (`mkSystem` additionally
     #> needs `class`/`flake`; `mkHomeHost` needs neither).
-    mkSpecialArgs = {extra ? {}}:
-      removeAttrs args ["lib"]
+    mkSpecialArgs = {host, ...} @ extra: let
+      tree = treeOf host;
+    in
+      {
+        inherit (args.names or _defaults.names) top;
+        inherit host inputs flake names tree;
+        paths = tree;
+        "${names.lib}" = libraries.${names.lib};
+      }
       // extra
       // extraArgs;
 
@@ -290,94 +200,142 @@
     */
     mkSystem = host: let
       class = host.class or "nixos";
-      tree = treeOf host;
-      specialArgs = mkSpecialArgs {
-        inherit host tree;
-        extra = {inherit class flake;};
+      specialArgs = mkSpecialArgs {inherit host;};
+      inherit (specialArgs) tree;
+
+      classified = modulesOf class;
+      core = mkCore {
+        inherit host paths;
+        modules = classified;
       };
-      modules = let
-        classified = modulesOf class;
-        core = mkCore {
-          inherit modules host specialArgs tree inputs;
-          inherit (packagesOf host) nixpkgs;
-        };
-      in
-        evalModules {
-          specialArgs =
-            specialArgs
-            // {
-              inherit (modules.all) modulesPath baseModules;
-              modules = classified // {host = core;};
-            };
-          modules =
-            classified.base
-            ++ classified.core
-            ++ core
-            ++ (host.imports or [])
-            ++ [tree.store.mod.core]
-            ++ [{config._module.args = specialArgs;}];
-        };
+      # core = [
+      #   {
+      #     nixpkgs = {
+      #       flake.source = (packagesOf host).nixpkgs.outPath;
+      #       config.allowUnfree = host.packages.allowUnfree or true;
+      #     };
+      #   }
+      #   {
+      #     home-manager = {
+      #       backupFileExtension = "backup";
+      #       overwriteBackup = true;
+      #       useGlobalPkgs = true;
+      #       useUserPackages = true;
+      #       extraSpecialArgs = specialArgs // {inherit lib;};
+      #       users = mkUsers {
+      #         inherit host inputs tree;
+      #         modules = classified.home;
+      #       };
+      #     };
+      #   }
+      # ];
+
+      evaluated = evalModules {
+        specialArgs =
+          specialArgs
+          // {
+            inherit (classified.all) modulesPath baseModules;
+            modules = classified // {host = core;};
+          };
+        modules =
+          classified.base
+          ++ classified.core
+          ++ core
+          ++ (host.imports or [])
+          ++ [tree.store.mod.core]
+          ++ [{config._module.args = specialArgs;}];
+      };
     in
       if class == "darwin"
-      then modules // {system = modules.config.system.build.toplevel;}
-      else modules;
+      then evaluated // {system = evaluated.config.system.build.toplevel;}
+      else evaluated;
 
     /**
     Evaluate a single `home-manager`-class host through
     `home-manager.lib.homeManagerConfiguration`.
     */
     mkManager = name: host: let
-      tree = treeOf host;
+      specialArgs = mkSpecialArgs {inherit host;};
       users = let
         specs = mkUsers {
-          inherit host inputs tree;
+          inherit host inputs;
+          inherit (specialArgs) tree;
           modules = (modulesOf "home-manager").home;
           standalone = true;
         };
 
         primary = let
           names = attrNames specs;
+          primaryName = host.users.primary.name or null;
         in
           assert withContext {
             name = "mkHosts";
             context = "resolving the interactive user for host '${name}' (class = \"home-manager\")";
-            assertion = host ? primaryUser && elem host.primaryUser names;
-            message = "host.primaryUser must be set to one of: ${concat ", " names}";
-          };
-            host.primaryUser;
+            assertion = primaryName != null && elem primaryName names;
+            message = "host.users.primary.name must be set to one of: ${concat ", " names}";
+          }; primaryName;
 
         modules = [specs.${primary}];
       in {inherit specs modules;};
     in
-      homeManagerConfiguration {
+      lib.homeManagerConfiguration {
         inherit (packagesOf host) pkgs;
-        extraSpecialArgs = mkSpecialArgs {inherit host tree;};
         inherit (users) modules;
+        extraSpecialArgs = specialArgs;
       };
+  in
+    optionalAttrs (types.nixos != {}) {
+      nixosConfigurations = mapAttrs (_: mkSystem) types.nixos;
+    }
+    // optionalAttrs (types.darwin != {}) {
+      darwinConfigurations = mapAttrs (_: mkSystem) types.darwin;
+    }
+    // optionalAttrs (types.home != {}) {
+      homeConfigurations = mapAttrs mkManager types.home;
+    };
 
-    hostOf = class:
-      hostsByClass {
-        inherit (schema) hosts;
-        inherit class;
-      };
-  in {
-    nixosConfigurations = mapAttrs (_: mkSystem) (hostOf "nixos");
-    darwinConfigurations = mapAttrs (_: mkSystem) (hostOf "darwin");
-    homeConfigurations = mapAttrs mkManager (hostOf "home-manager");
-  };
+  /**
+  Generate every non-host-specific flake output: the per-system output
+  matrix (`packages.<system>.*`, `devShells.<system>.*`, `checks.<system>.*`,
+  `formatter.<system>`, ...) plus `templates`. Neither is host-derived, so
+  neither belongs in `mkConfigurations`.
 
+  ## Per-system fanout
+
+  `tree.mod.global.store` is imported once per system via `fn`, expected to
+  return an attrset keyed by output category (`devShells`, `packages`,
+  `checks`, `formatter`, ...). `perSystem` evaluates `fn` once per system in
+  `all`; the closing `genAttrs`/`mapAttrs` pair transposes that from "one
+  attrset per system" to "one attrset per category, each keyed by system" -
+  the shape flakes expect at the top level.
+
+  `perSystemNames` reads category names off a single representative system
+  (`derived`) rather than unioning across all of them - every system is
+  expected to expose the same categories; if that stops being true,
+  categories present only on non-`derived` systems are silently dropped.
+
+  # Args:
+    flake: The evaluated flake (name/path/home derived from it).
+    inputs: Canonically resolved flake inputs.
+    tree: Repository tree metadata - `tree.kit.nix.store` for `templates`,
+      `tree.mod.global.store` for the per-system module `fn` imports.
+    schema: Discovered host/user schema; `schema.hosts` decides which
+      systems `getSystems` derives.
+
+  # Returns:
+    `{ templates = {...}; packages = {...}; devShells = {...}; ... }`
+  */
   mkUtilities = {
     flake,
     inputs,
+    hosts,
     paths,
     ...
   } @ args: let
     systems = getSystems {
-      inherit flake;
+      inherit flake hosts;
       inherit (inputs) nixpkgs;
       inherit (inputs.nixpkgs) legacyPackages;
-      # system
-      inherit (mkSchema paths) hosts;
     };
     inherit (systems) pkgsFor derived all;
 
@@ -386,113 +344,27 @@
       pkgs,
     }:
       import paths.mod.global.store (args // {inherit pkgs system;});
-
-    perSystem = (genAttrs all) (
-      sys: let
-      in
-        fn {
-          system = sys;
-          pkgs = pkgsFor sys;
-        }
-    );
-
-    perSystemNames = attrNames (fn {
-      system = derived;
-      pkgs = pkgsFor derived;
-    });
   in
-    genAttrs
-    perSystemNames
-    (name: mapAttrs (_: outputs: outputs.${name}) perSystem);
-
-  /**
-  Build the host-specific core module list used during system evaluation.
-
-  Produces the base module stack for a host by combining low-level hardware,
-  networking, environment, services, programs, users, and home-manager glue.
-  The result is returned as a module list suitable for `evalModules`.
-
-  # Args:
-  `host`
-  :The enriched host definition.
-
-  `nixpkgs`
-  :The resolved nixpkgs source/configuration attrset.
-
-  `inputs`
-  :Canonically resolved flake inputs.
-
-  `modules`
-  :Resolved input-provided module sets.
-
-  `specialArgs`
-  :Extra arguments forwarded into module evaluation.
-
-
-  # Returns:
-    A list of modules for the target host, including any host-local imports.
-  */
-  mkCore = {
-    host,
-    nixpkgs,
-    inputs,
-    modules,
-    specialArgs,
-    tree,
-  }: [
-    {
-      nixpkgs = {
-        flake.source = nixpkgs.outPath;
-        config.allowUnfree = host.packages.allowUnfree or true;
-      };
-    }
-    (mkHome {
-      inherit host specialArgs tree inputs;
-      modules = modules.home;
-    })
-  ];
-
-  /**
-  Produce the complete Home Manager option block for the current host, to be
-  nested under `home-manager.users.<name>` inside a NixOS/Darwin eval.
-
-  Configures Home Manager to reuse the system package set, forward shared
-  special arguments, and generate per-user configurations through the
-  home user builder. This is the NixOS-embedded counterpart to `mkHomes`
-  above - `mkHomes` builds standalone `homeConfigurations` entries with no
-  parent NixOS eval at all, while this builds the `home-manager = {...}`
-  fragment consumed by `mkCore`/`mkSystems`.
-
-  # Args:
-    host: The current host definition.
-    specialArgs: Arguments forwarded into Home Manager modules.
-    inputs: Canonically resolved flake inputs.
-    modules: Resolved Home Manager module set.
-    tree: Repository tree metadata used by downstream user builders.
-
-  # Returns:
-    A module fragment defining the `home-manager` configuration block.
-  */
-  mkHome = {
-    host,
-    specialArgs,
-    inputs,
-    modules,
-    paths,
-  }: let
-    lib =
-      extend
-      (_self: _super: {inherit (inputs.home-manager.lib) hm;});
-  in {
-    home-manager = {
-      backupFileExtension = "backup";
-      overwriteBackup = true;
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      extraSpecialArgs = specialArgs // {inherit lib;};
-      users = mkUsers {inherit host inputs modules paths;};
-    };
-  };
+    {templates = import paths.kit.nix.store;}
+    // genAttrs
+    (
+      attrNames (fn {
+        system = derived;
+        pkgs = pkgsFor derived;
+      })
+    )
+    (
+      name:
+        mapAttrs
+        (_: outputs: outputs.${name})
+        (
+          genAttrs all (system:
+            fn {
+              inherit system;
+              pkgs = pkgsFor system;
+            })
+        )
+    );
 
   mkConfig = {
     predicate ? null,
@@ -523,7 +395,7 @@
 
   mkContext = {
     config,
-    top ? _defaults.top,
+    top ? _defaults.names.top,
     dom,
     sub ? null,
     mod,

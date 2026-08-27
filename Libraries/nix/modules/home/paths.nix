@@ -1,23 +1,14 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   inherit (_.types.predicates) isList;
   inherit (_.content.fallback) orDefault;
   inherit (_.attrsets.access) nestedOr;
   inherit (_.filesystem.tree) wallman;
-  inherit (builtins) getEnv;
-  inherit (lib.attrsets) mapAttrs mapAttrsToList;
-  inherit (lib.lists) elemAt head toList;
-  inherit
-    (lib.strings)
-    concatMapStringsSep
-    hasPrefix
-    removePrefix
-    removeSuffix
-    splitString
-    ;
+  inherit (_.strings.access) getEnv;
+  inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
+  inherit (_.lists.access) elemAt head toList;
+  inherit (_.strings.construction) concat;
+  inherit (_.strings.transformation) removePrefix removeSuffix splitString;
+  inherit (_.strings.predicates) hasPrefix;
 
   exports = rec {
     internal = {
@@ -155,6 +146,7 @@
     user,
     pkgs,
     tree ? {},
+    env,
     ...
   }: let
     inherit
@@ -167,7 +159,7 @@
       writeShellScriptBin
       ;
     inherit (host.paths) dots;
-    home = config.home.homeDirectory or (getEnv "HOME");
+    home = config.home.homeDirectory or (env.HOME or (getEnv "HOME"));
     wallpapers = let
       raw = nestedOr {
         attrs = user.paths or {};
@@ -192,10 +184,7 @@
         else [
           (resolve {
             inherit home dots user;
-            path = [
-              "wallpapers"
-              "all"
-            ];
+            path = ["wallpapers" "all"];
             default = "home:Pictures/Wallpapers";
           })
         ];
@@ -334,38 +323,24 @@
           printf "Usage: %s <command> [options]\n" "$0" >&2
           exit 1
         fi
-        ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (
-          mapAttrsToList (_: cfg: cfg.manager) monitors
-        )}
+        ${
+          concat "\n" (mgr: ''${mgr} "$@" || true'')
+          (mapAttrsToList (_: cfg: cfg.manager) monitors)
+        }
       '';
-    in {
-      inherit
-        all
-        primary
-        dark
-        light
-        monitors
-        manager
-        ;
-    };
+    in {inherit all dark light manager monitors primary;};
 
-    avatars = {
-      session = resolve {
-        inherit home dots user;
-        path = [
-          "avatars"
-          "session"
-        ];
-        default = "root:/assets/kurukuru.gif";
-      };
-      media = resolve {
-        inherit home dots user;
-        path = [
-          "avatars"
-          "media"
-        ];
-        default = "root:/assets/kurukuru.gif";
-      };
+    avatars = let
+      base = ["avatars"];
+      common = "root:/assets/kurukuru.gif";
+      mk = name: default:
+        resolve {
+          inherit home dots user default;
+          path = base ++ [name];
+        };
+    in {
+      session = mk "session" common;
+      media = mk "media" common;
     };
 
     downloads = resolve {
@@ -385,16 +360,6 @@
       };
     };
   in
-    tree
-    // {
-      inherit
-        api
-        avatars
-        downloads
-        dots
-        home
-        wallpapers
-        ;
-    };
+    tree // {inherit api avatars downloads dots home wallpapers;};
 in
   exports.internal // {__rootAliases = exports.external;}

@@ -2,6 +2,7 @@
   inherit (_.filesystem.importers) importAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.aggregation) recursiveUpdate;
 
   __exports = {
@@ -37,35 +38,32 @@
       users = api.users.store;
       hosts = api.hosts.store;
     };
-    # paths = {inherit (tree.store.api) global users hosts;};
 
     global =
-      if paths'.global != null
-      then import paths'.global
-      else {};
+      optionalAttrs
+      (paths'.global != null)
+      (import paths'.global);
+
     users =
-      if paths'.users != null
-      then importAttrs paths'.users
-      else {};
-    defaultHost =
-      if paths'.hosts != null
-      then import (paths'.hosts + "/default.nix")
-      else {};
-    rawHosts =
-      if paths'.hosts != null
-      then removeAttrs (importAttrs paths'.hosts) ["default"]
-      else {};
+      optionalAttrs
+      (paths'.users != null)
+      (importAttrs paths'.users);
+
     hosts =
-      mapAttrs (
-        name: host:
-          mkCore {
-            inherit name users;
-            host = recursiveUpdate defaultHost host;
-          }
-      )
-      rawHosts;
-  in {
-    inherit global users hosts;
-  };
+      optionalAttrs
+      (paths'.hosts != null)
+      (
+        let
+          defaults = import (paths'.hosts + "/default.nix");
+          specs = removeAttrs (importAttrs paths'.hosts) ["default"];
+        in
+          mapAttrs (name: host:
+            mkCore {
+              inherit name users;
+              host = recursiveUpdate defaults host;
+            })
+          specs
+      );
+  in {inherit global users hosts;};
 in
   __exports.internal // {__rootAliases = __exports.external;}

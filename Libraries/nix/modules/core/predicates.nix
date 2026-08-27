@@ -5,7 +5,6 @@
   isSystemDefaultUser = name:
     (hasPrefix "nixbld" name)
     || (hasPrefix "systemd-" name)
-    || (hasPrefix "systemd-" name)
     || (elem name [
       "dhcpcd"
       "fwupd-refresh"

@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  _defaults,
+  ...
+}: let
   meta = {
     doc = ''
       Input Packages Resolution
@@ -718,6 +722,7 @@
 
   mkAll = {
     flake ? {},
+    src ? {},
     host ? {},
     inputs ? {},
     # nixpkgs ? {},
@@ -725,7 +730,7 @@
     config ? {},
     coreNames ? [],
     homeNames ? [],
-  }: let
+  } @ args: let
     inputs' = normalize (
       if isNotEmpty inputs
       then inputs
@@ -783,19 +788,32 @@
           inputs'.nixpkgs.legacyPackages or {}
         );
       };
-  in {
-    inherit packages overlays;
 
-    inputs = inputs';
-    config = config';
-    nixpkgs = nixpkgs';
+    resolved = {
+      inherit packages overlays;
 
-    pkgs = import inputs'.nixpkgs {
-      inherit overlays;
-      system = system';
+      inputs = inputs';
       config = config';
+      nixpkgs = nixpkgs';
+
+      pkgs = import inputs'.nixpkgs {
+        inherit overlays;
+        system = system';
+        config = config';
+      };
     };
-  };
+
+    meta = {
+      name = src.names.flake or _defaults.names.flake;
+      path = src.paths.flake.store or _defaults.paths.flake.store;
+      home = host.paths.flake or (src.paths.flake.local or _defaults.paths.flake.local);
+    };
+  in
+    src
+    // args
+    // meta
+    // resolved
+    // {flake = flake // meta;};
 in
   with meta.exports;
     internal

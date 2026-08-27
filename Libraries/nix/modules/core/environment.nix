@@ -17,14 +17,7 @@
   };
 
   inherit (_.lists.predicates) isIn;
-  inherit
-    (_.applications.resolution)
-    editors
-    browsers
-    terminals
-    launchers
-    bars
-    ;
+  inherit    (_.applications.resolution)    editors    browsers    terminals    launchers    bars    ;
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.modules.construction) mkDefault;
 

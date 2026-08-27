@@ -4,11 +4,11 @@
   paths,
   pkgs,
   user,
-  nixosConfig,
+  osConfig,
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (nixosConfig.location) latitude longitude provider;
+  inherit (osConfig.location) latitude longitude provider;
   inherit (pkgs) replaceVarsWith;
 
   #~@ Location

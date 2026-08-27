@@ -1,13 +1,13 @@
 {_, ...}: let
-  inherit (_.schema.locale) defaults;
+  inherit (_.schema) locale;
 
   mkLocale = {
     host,
     user ? {},
-  }: let
-    loc = defaults // (host.localization or {}) // (user.localization or {});
-  in
-    loc;
+  }:
+    locale.defaults
+    // (host.localization or {})
+    // (user.localization or {});
 
   __exports = {
     internal = {inherit mkLocale;};

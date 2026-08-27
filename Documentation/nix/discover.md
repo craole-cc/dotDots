@@ -60,7 +60,7 @@ It:
 
 - imports `Libraries/nix`
 - exposes the `lix` namespace
-- builds `tree` via `lix.filesystem.tree.mkTree`
+- builds `tree` via `lix.filesystem.mkTree`
 - builds `schema` via `lix.schema._.mkSchema`
 - exports `lix`, `paths`, `tree`, `schema`, `hosts`, and `users`
 
@@ -98,20 +98,20 @@ than a pile of ad hoc helpers.
 
 ## The `tree` Model
 
-`Libraries/nix/filesystem/tree.nix` is the canonical repo-path registry.
+`Libraries/nix/filesystem/nix` is the canonical repo-path registry.
 
 It defines the named stems that other code relies on, so the repo can reference
 locations as structured values instead of hardcoded relative paths.
 
 Important shapes:
 
-- `tree.store.lib.nix` → `Libraries/nix`
-- `tree.store.mod.core` → `Modules/nix/core`
-- `tree.store.mod.home` → `Modules/nix/home`
-- `tree.store.api.hosts` / `tree.store.api.users` → source-of-truth data
-- `tree.store.kit.*` → reusable templates
-- `tree.store.pkg.*` → package-related tree locations
-- `tree.store.cfg.*` / `tree.store.env.*` → config/environment paths
+- `store.lib.nix` → `Libraries/nix`
+- `store.mod.core` → `Modules/nix/core`
+- `store.mod.home` → `Modules/nix/home`
+- `store.api.hosts` / `store.api.users` → source-of-truth data
+- `store.kit.*` → reusable templates
+- `store.pkg.*` → package-related tree locations
+- `store.cfg.*` / `store.env.*` → config/environment paths
 
 Key observation:
 
@@ -313,7 +313,7 @@ For common investigations:
 - host evaluation → `API/nix/hosts/*`, `Libraries/nix/schema/_.nix`,
   `Libraries/nix/modules/construction.nix`
 - home evaluation → `API/nix/users/*`, `Libraries/nix/modules/home/users.nix`
-- tree/path resolution → `default.nix`, `Libraries/nix/filesystem/tree.nix`
+- tree/path resolution → `default.nix`, `Libraries/nix/filesystem/nix`
 - input normalization → `Libraries/nix/sources/inputs.nix`
 - package resolution → `Libraries/nix/sources/packages.nix`
 - module resolution → `Libraries/nix/sources/modules.nix`

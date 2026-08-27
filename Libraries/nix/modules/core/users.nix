@@ -42,10 +42,7 @@
       commands = [
         {
           command = "ALL";
-          options = [
-            "SETENV"
-            "NOPASSWD"
-          ];
+          options = ["SETENV" "NOPASSWD"];
         }
       ];
     })
@@ -58,7 +55,7 @@
 
   Returns: An attribute set of enabled users with their configurations
   */
-  hostUsers = host: host.users.data.enabled or {};
+  hostUsers = host: host.users.enabled or {};
 
   /**
   Get users eligible for home-manager configuration.
@@ -69,7 +66,7 @@
 
   Returns: An attrset of enabled, interactive users.
   */
-  homeUsers = host: host.users.data.interactive or {};
+  homeUsers = host: host.users.interactive or {};
 
   /**
   Get list of admin user names.
@@ -79,7 +76,7 @@
   Returns: List of usernames with elevated privileges
   */
   adminNames = host: host.users.names.elevated or [];
-  adminUsers = host: host.users.data.elevated or {};
+  adminUsers = host: host.users.elevated or {};
 
   /**
   Main user configuration builder.
@@ -101,7 +98,7 @@
 
   Example:
     mkUsers {
-      host = { users.data.enabled = { alice = { role = "admin"; }; }; };
+      host = { users.enabled = { alice = { role = "admin"; }; }; };
       pkgs = pkgs;
       homeModules = {};
       specialArgs = {};
@@ -130,12 +127,21 @@
         password = user.password or null;
         group = name;
         extraGroups =
-          optionals (user.role or null != "service") ["users"]
-          ++ optionals (isIn (user.role or null) [
-            "admin"
-            "administrator"
-          ]) ["wheel"]
-          ++ optionals (host.devices.network != []) ["networkmanager"];
+          (
+            optionals
+            (user.role or null != "service")
+            ["users"]
+          )
+          ++ (
+            optionals
+            (isIn (user.role or null) ["admin" "administrator"])
+            ["wheel"]
+          )
+          ++ (
+            optionals
+            (host.devices.network != [])
+            ["networkmanager"]
+          );
         shell = package {
           inherit pkgs;
           target = head (user.shells or ["bash"]);

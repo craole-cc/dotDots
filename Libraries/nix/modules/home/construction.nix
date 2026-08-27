@@ -25,6 +25,11 @@
     internal = {
       inherit mkModules;
       mkHome = mkModules;
+      inherit (_.modules.home.control) mkKeyboard;
+      inherit (_.modules.home.environment) mkLocale;
+      inherit (_.modules.home.paths) mkUserPath mkSessionPaths;
+      inherit (_.modules.home.users) mkUsers;
+      inherit (_.modules.home.style) mkStyle;
     };
     external = {
       mkHomeModules = mkModules;
@@ -66,16 +71,11 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lib = extend (_self: _super: {hm = inputs.home-manager.lib.hm or {};});
+          lib = extend (_self: _super: {
+            hm = inputs.home-manager.lib.hm or {};
+          });
         };
-      users = mkUsers {
-        inherit
-          inputs
-          modules
-          host
-          tree
-          ;
-      };
+      users = mkUsers {inherit inputs modules host tree;};
     };
   };
 in

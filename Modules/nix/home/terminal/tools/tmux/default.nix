@@ -1,6 +1,6 @@
 #TODO: The modules need to be options, not hardcoded
 {
-  osConfig,
+  osConfig ? null,
   config,
   lix,
   user,
@@ -32,7 +32,13 @@ in
       inherit context;
       condition =
         resolved.enable
-        || (with osConfig.services; (openssh.enable or false) || (tailscale.enable or false));
+        || (
+          if osConfig != null
+          then
+            (osConfig.services.openssh.enable or false)
+            || (osConfig.services.tailscale.enable or false)
+          else false
+        );
     };
     outputs = {inherit (resolved) programs home;};
   }

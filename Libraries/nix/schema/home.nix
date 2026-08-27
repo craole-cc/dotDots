@@ -229,25 +229,12 @@
       elevated = attrNames elevated;
       autoLogin = attrNames autoLogin;
     };
+
     count = {
       total = length names.all;
       enabled = length names.enabled;
       interactive = length names.interactive;
       elevated = length names.elevated;
     };
-    data = {
-      inherit
-        all
-        enabled
-        interactive
-        elevated
-        autoLogin
-        primary
-        ;
-    };
-  in {
-    inherit names count data;
-  };
-in {
-  inherit mkHome getPrincipals getAll;
-}
+  in {inherit all autoLogin count elevated enabled interactive names primary;};
+in {inherit mkHome getPrincipals getAll;}

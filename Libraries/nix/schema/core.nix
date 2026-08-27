@@ -4,7 +4,7 @@
   ...
 }: let
   inherit
-    (_.schema._)
+    (_.schema.construction)
     mkUI
     mkHome
     mkLocale
@@ -117,11 +117,11 @@
     enrichedUser = mkHome {inherit host users;};
     enrichedUI = mkUI {
       inherit host;
-      user = enrichedUser.data.primary;
+      user = enrichedUser.primary;
     };
     enrichedLocale = mkLocale {
       inherit host;
-      user = enrichedUser.data.primary;
+      user = enrichedUser.primary;
     };
     enrichedHardware = mkHardware {inherit host;};
     enrichedAccess = mkAccess host;
@@ -129,7 +129,7 @@
     enrichedCapabilities = {
       development = mkDevelopmentCapability {
         inherit host;
-        interactiveUsers = enrichedUser.data.interactive;
+        interactiveUsers = enrichedUser.interactive;
       };
     };
     enrichedStorage = mkStorage host;

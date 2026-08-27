@@ -20,47 +20,47 @@
     ;
 
   # TODO: Move to API/global
-  defaults = {
-    names = {
-      top = "dots";
-      lib = "lix";
-    };
-    config = {
-      allowUnfree = true;
-      allowBroken = false;
-    };
-    core = {
-      attrs = "legacyPackages";
-      names = [
-        "nixpkgs"
-        "nixpkgs-stable"
-        "nixpkgs-unstable"
-      ];
-    };
-    home = {
-      attrs = "packages";
-      names = [
-        "age"
-        "caelestia"
-        "catppuccin"
-        "dank-material-shell"
-        "dms-plugin-registry"
-        "fresh-editor"
-        "helix"
-        "hermes-agent"
-        "home-manager"
-        "llm-agents"
-        "noctalia-shell"
-        "nvf"
-        "plasma"
-        "quickshell"
-        "treefmt"
-        "typix"
-        "vscode-insiders"
-        "zen-browser"
-      ];
-    };
-  };
+  # defaults = {
+  #   names = {
+  #     top = "dots";
+  #     lib = "lix";
+  #   };
+  #   config = {
+  #     allowUnfree = true;
+  #     allowBroken = false;
+  #   };
+  #   core = {
+  #     attrs = "legacyPackages";
+  #     names = [
+  #       "nixpkgs"
+  #       "nixpkgs-stable"
+  #       "nixpkgs-unstable"
+  #     ];
+  #   };
+  #   home = {
+  #     attrs = "packages";
+  #     names = [
+  #       "age"
+  #       "caelestia"
+  #       "catppuccin"
+  #       "dank-material-shell"
+  #       "dms-plugin-registry"
+  #       "fresh-editor"
+  #       "helix"
+  #       "hermes-agent"
+  #       "home-manager"
+  #       "llm-agents"
+  #       "noctalia-shell"
+  #       "nvf"
+  #       "plasma"
+  #       "quickshell"
+  #       "treefmt"
+  #       "typix"
+  #       "vscode-insiders"
+  #       "zen-browser"
+  #     ];
+  #   };
+  # };
 
   bootstrap = let
     getEnv = env: default: let
@@ -212,12 +212,8 @@
   inherit (bootstrap) names;
 
   libraries = import bootstrap.paths.repo.lib.default.store {
-    inherit defaults flake lib names;
-
-    paths = {
-      flake = bootstrap.paths.flake.store;
-      libraries = bootstrap.paths.repo.lib.default.store;
-    };
+    inherit flake lib names;
+    inherit (bootstrap) paths;
   };
 
   library = libraries.default;
@@ -327,7 +323,7 @@
         ));
     };
 
-  schema = mkSchema {inherit paths;};
+  schema = mkSchema paths;
   inherit (schema) hosts users;
 in
   (removeAttrs libraries ["default"])

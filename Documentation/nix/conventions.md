@@ -14,7 +14,7 @@
   files are import aggregators.
 - Expect aggregators to use `lix.filesystem.importers.importAll` or
   `importAllPaths`.
-- Follow `tree.store.*` references when locating canonical module, API, or
+- Follow `store.*` references when locating canonical module, API, or
   template paths.
 
 ## Change Heuristics

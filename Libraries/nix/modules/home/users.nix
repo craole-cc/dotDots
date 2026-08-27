@@ -1,14 +1,14 @@
 {_, ...}: let
+  inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists.aggregation) concatMap;
+  inherit (_.lists.construction) optionals;
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.paths) mkSessionPaths;
   inherit (_.modules.home.programs) mkApps;
   inherit (_.modules.home.style) mkStyle;
-  inherit (_.schema._) mkUI mkLocale mkApplications;
-  inherit (_.attrsets.construction) optionalAttrs;
-  inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.lists.aggregation) concatMap;
-  inherit (_.lists.construction) optionals;
+  inherit (_.schema.construction) mkUI mkLocale mkApplications;
 
   __exports = {
     internal = {inherit mkUsers;};
@@ -57,7 +57,7 @@
     host,
     inputs,
     modules,
-    tree,
+    paths,
     standalone ? false,
   }:
     mapAttrs (
@@ -74,25 +74,16 @@
           optionalAttrs
           (inputs' ? ${name}.module)
           inputs'.${name};
-        mkInputModules = {names}:
+        mkInputModules = names:
           concatMap (name: let
             input = mkInput name;
           in
             optionals
             (input != {})
-            [inputs.${name}.module])
+            [inputs'.${name}.module])
           names;
 
         enrichedInterface = mkUI {inherit host user;};
-        derivedPaths = mkSessionPaths {
-          inherit
-            config
-            host
-            user
-            pkgs
-            tree
-            ;
-        };
       in {
         _module.args = {
           style = mkStyle {inherit host user;};
@@ -100,7 +91,7 @@
           apps = mkApplications {inherit host user;};
           keyboard = mkKeyboard {inherit host user;};
           locale = mkLocale {inherit host user;};
-          paths = derivedPaths;
+          paths = mkSessionPaths {inherit config host user pkgs paths;};
           inputs = inputs';
           inherit mkInput mkInputModules;
           # inherit inputs inputs';
@@ -120,20 +111,17 @@
           };
 
         imports =
-          mkInputModules {
-            inherit inputs;
-            names = [
-              "caelestia"
-              "catppuccin"
-              "dms-shell"
-              "dms-plugin-registry"
-              "noctalia-shell"
-              "nvf"
-              "plasma"
-              "zen-browser"
-            ];
-          }
-          ++ [tree.store.mod.home]
+          mkInputModules [
+            "caelestia"
+            "catppuccin"
+            "dms-shell"
+            "dms-plugin-registry"
+            "noctalia-shell"
+            "nvf"
+            "plasma"
+            "zen-browser"
+          ]
+          ++ [paths.store.mod.home]
           ++ (user.imports or []);
       }
     ) (homeUsers host);
