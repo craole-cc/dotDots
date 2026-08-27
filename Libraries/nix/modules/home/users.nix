@@ -5,7 +5,9 @@
   inherit (_.modules.home.programs) mkApps;
   inherit (_.modules.home.style) mkStyle;
   inherit (_.schema._) mkUI mkLocale mkApplications;
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) optionals;
 
   __exports = {
@@ -16,15 +18,39 @@
   };
 
   /**
-  Build the attrset passed directly to `home-manager.users`.
+  Build the attrset passed directly to `home-manager.users` (NixOS-embedded
+  mode), or, when `standalone = true`, the per-user module list handed
+  straight to `home-manager.lib.homeManagerConfiguration` (see `mkHomes` in
+  `Libraries/nix/modules/construction.nix`).
 
-  Each key is a username; each value is the per-user home-manager module
-  function. Static store paths come in via `paths` (from `mkPaths`);
-  runtime filesystem paths are derived per-user via `mkSessionPaths`.
+  Every concern here - style, keyboard, locale, session paths, and the
+  `imports` list of home-manager modules pulled in from flake inputs - is
+  identical between the two modes and is not branched on `standalone`.
+  Only two facts genuinely differ between a NixOS-embedded user and a
+  standalone one, and those are the only places `standalone` is consulted:
+
+  1. `home.stateVersion` - inside a NixOS eval this is borrowed from the
+      parent system's `nixosConfig.system.stateVersion` (the special-arg
+      `home-manager.nixosModules.home-manager` injects into each user
+      submodule). Standalone home-manager has no parent NixOS config to
+      borrow from, so it falls back to `host.stateVersion`.
+
+  2. `home.username` / `home.homeDirectory` - inside a NixOS eval these are
+      inferred from the matching `users.users.<name>` entry created by
+      `Libraries/nix/modules/core/users.nix`'s `mkUsers` (unrelated function,
+      same name, different module - core-level system users vs. this
+      home-level per-user module builder). Standalone home-manager has no
+      such entry to infer from, so both must be set explicitly.
 
   # Type
   ```
-  mkUsers :: { host :: AttrSet, paths :: AttrSet } -> AttrSet
+  mkUsers :: {
+    host :: AttrSet,
+    inputs :: AttrSet,
+    modules :: AttrSet,
+    tree :: AttrSet,
+    standalone :: bool ? false,
+  } -> AttrSet
   ```
   */
   mkUsers = {
@@ -32,21 +58,32 @@
     inputs,
     modules,
     tree,
+    standalone ? false,
   }:
     mapAttrs (
-      name: cfg: {
-        nixosConfig,
+      name: spec: {
         config,
         pkgs,
         ...
-      }: let
-        user =
-          cfg
-          // {
-            inherit name;
-          };
+      } @ args: let
+        nixosConfig = args.nixosConfig or null;
+        user = spec // {inherit name;};
+
+        inputs' = mkApps {inherit user inputs modules;};
+        mkInput = name:
+          optionalAttrs
+          (inputs' ? ${name}.module)
+          inputs'.${name};
+        mkInputModules = {names}:
+          concatMap (name: let
+            input = mkInput name;
+          in
+            optionals
+            (input != {})
+            [inputs.${name}.module])
+          names;
+
         enrichedInterface = mkUI {inherit host user;};
-        inputsForHome = mkApps {inherit user inputs modules;};
         derivedPaths = mkSessionPaths {
           inherit
             config
@@ -56,37 +93,46 @@
             tree
             ;
         };
-        hmi = inputsForHome;
       in {
-        # disabledModules = optionals (enrichedInterface.windowManager != "niri") [
-        #   ../../../../Modules/nix/home/interface/manager/niri
-        # ];
-
         _module.args = {
           style = mkStyle {inherit host user;};
-          user =
-            user
-            // {
-              interface = enrichedInterface;
-            };
+          user = user // {interface = enrichedInterface;};
           apps = mkApplications {inherit host user;};
           keyboard = mkKeyboard {inherit host user;};
           locale = mkLocale {inherit host user;};
           paths = derivedPaths;
-          inherit inputs inputsForHome;
+          inputs = inputs';
+          inherit mkInput mkInputModules;
+          # inherit inputs inputs';
+          inputsForHome = inputs'; #TODO: Direct callers to use inputs or mkInput instead
         };
 
-        home = {inherit (nixosConfig.system) stateVersion;};
+        home =
+          {
+            stateVersion =
+              if standalone
+              then (host.stateVersion or "26.05")
+              else nixosConfig.system.stateVersion;
+          }
+          // optionalAttrs standalone {
+            username = name;
+            homeDirectory = "/home/${name}";
+          };
 
         imports =
-          optionals (hmi ? caelestia.module) [hmi.caelestia.module]
-          ++ optionals (hmi ? catppuccin.module) [hmi.catppuccin.module]
-          ++ optionals (hmi ? dms-shell.module) [hmi.dms-shell.module]
-          ++ optionals (hmi ? dms-plugin-registry.module) [hmi.dms-plugin-registry.module]
-          ++ optionals (hmi ? noctalia-shell.module) [hmi.noctalia-shell.module]
-          ++ optionals (hmi ? nvf.module) [hmi.nvf.module]
-          ++ optionals (hmi ? plasma.module) [hmi.plasma.module]
-          ++ optionals (hmi ? zen-browser.module) [hmi.zen-browser.module]
+          mkInputModules {
+            inherit inputs;
+            names = [
+              "caelestia"
+              "catppuccin"
+              "dms-shell"
+              "dms-plugin-registry"
+              "noctalia-shell"
+              "nvf"
+              "plasma"
+              "zen-browser"
+            ];
+          }
           ++ [tree.store.mod.home]
           ++ (user.imports or []);
       }

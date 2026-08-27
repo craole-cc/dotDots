@@ -9,15 +9,15 @@
   base = {
     #~@ Primary references
     library = names.lib;
-    inherit
-      lib
-      names
-      flake
-      paths
-      ;
+    inherit lib names flake paths;
     src = paths.flake;
     ${names.top} = self; # ? custom library (extensible self)
     lix = self; # ? custom library (extensible self)
+
+    _defaults = {
+      src = paths.flake;
+      inherit lib names flake paths;
+    };
 
     #~@ Short aliases
     l = lib;

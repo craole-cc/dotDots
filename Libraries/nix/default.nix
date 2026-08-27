@@ -1,55 +1,45 @@
 {
-  collisionStrategy ? null,
-  excludedDirs ? [],
-  excludedFiles ? [],
-  excludedPatterns ? [],
+  collisionStrategy ? defaults.collisionStrategy or "warn",
+  excludedDirs ?
+    defaults.exclusion.directories or [
+      "review"
+      "archive"
+      "internal"
+      "imports"
+      "data"
+      "test"
+      "tmp"
+      "temp"
+      "wip"
+      "deprecated"
+      "experimental"
+      "backup"
+    ],
+  excludedFiles ?
+    defaults.exclusion.files or [
+      "default.nix"
+      "flake.nix"
+    ],
+  excludedPatterns ?
+    defaults.exclusion.patterns or [
+      " copy.nix"
+      ".test.nix"
+      ".spec.nix"
+      ".bak.nix"
+      ".old.nix"
+    ],
   flake ? null,
   lib ? null,
   name ? null,
   names ? {},
-  paths ? {},
+  defaults ? {},
+  paths ? {
+    src = ../../.;
+    libraries = ./.;
+  },
   rootAliases ? false,
   runTests ? true,
 }: let
-  defaults = {
-    names = {
-      top = "dots";
-      lib = "lix";
-    };
-    collisionStrategy = "warn";
-    paths = {
-      src = ../../.;
-      libraries = ./.;
-    };
-    exclusions = {
-      dirs = [
-        "review"
-        "archive"
-        "internal"
-        "imports"
-        "data"
-        "test"
-        "tmp"
-        "temp"
-        "wip"
-        "deprecated"
-        "experimental"
-        "backup"
-      ];
-      files = [
-        "default.nix"
-        "flake.nix"
-      ];
-      patterns = [
-        " copy.nix"
-        ".test.nix"
-        ".spec.nix"
-        ".bak.nix"
-        ".old.nix"
-      ];
-    };
-  };
-
   paths' = defaults.paths // paths;
 
   flake' =
@@ -71,7 +61,7 @@
     else if flake' ? inputs && flake'.inputs ? nixpkgs
     then flake'.inputs.nixpkgs.lib
     else import <nixpkgs/lib>;
-  inherit (lib') optionalAttrs;
+  inherit (lib') optionalAttrs uniqueStrings;
 in
   import ./internal {
     collisionStrategy =
@@ -80,7 +70,6 @@ in
       else defaults.collisionStrategy;
 
     exclusions = let
-      inherit (lib'.lists) uniqueStrings;
       mk = domain: explicit: uniqueStrings (defaults.exclusions.${domain} ++ explicit);
     in {
       dirs = mk "dirs" excludedDirs;
@@ -91,7 +80,10 @@ in
     flake = flake';
     lib = lib';
 
-    names = defaults.names // (optionalAttrs (name != null) {lib = name;}) // names;
+    names =
+      defaults.names
+      // names
+      // (optionalAttrs (name != null) {lib = name;});
 
     paths = paths';
 

@@ -1,52 +1,6 @@
 {
   description = "dotDots Flake Configuration";
 
-  outputs = inputs @ {self, ...}: let
-    flake = self;
-    src = import ./. {inherit flake lib;};
-
-    inherit (src) lix tree;
-    inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (lix.modules.construction) mkFlake mkSystems;
-    inherit (lix.sources.packages) mkAll;
-
-    flake' = let
-      args = src // (mkAll {inherit flake;});
-    in
-      args
-      // (with args; {
-        inherit args;
-        name = names.flake;
-        path = paths.flake.store;
-        home = paths.flake.local;
-      });
-    args =
-      flake'.args
-      // {
-        flake = flake';
-      };
-  in
-    {
-      lib = args;
-      nixosConfigurations = mkSystems args;
-      templates = import tree.kit.nix.store;
-    }
-    // (mkFlake {
-      inherit legacyPackages;
-      fn = {
-        system,
-        pkgs,
-      }:
-        import tree.mod.global.store (args // {inherit pkgs system;});
-    });
-
-  nixConfig = {
-    extra-substituters = ["https://cache.numtide.com"];
-    extra-trusted-public-keys = [
-      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-    ];
-  };
-
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
@@ -84,12 +38,12 @@
       };
     };
 
-    editorAffinity = {
-      repo = "affinity-nix";
-      owner = "mrshmllow";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorAffinity = {
+    #   repo = "affinity-nix";
+    #   owner = "mrshmllow";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     editorHelix = {
       repo = "helix";
@@ -217,7 +171,6 @@
       repo = "llm-agents.nix";
       owner = "numtide";
       type = "github";
-      # inputs.nixpkgs.follows = "nixPackages";
     };
 
     hermes = {
@@ -226,4 +179,19 @@
       type = "github";
     };
   };
+
+  nixConfig = {
+    extra-substituters = ["https://cache.numtide.com"];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
+
+  outputs = inputs @ {self, ...}: let
+    flake = self;
+    inherit (inputs.nixPackages) lib legacyPackages;
+    src = import ./. {inherit flake lib;};
+    inherit (src.lix.modules.construction) mkFlake;
+  in
+    mkFlake {inherit flake src legacyPackages;};
 }

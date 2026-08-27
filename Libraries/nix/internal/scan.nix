@@ -228,12 +228,15 @@
     };
 
   # -- .nix file processor
-  processNixFile = dir: pathPrefix: entryName: let
+  processNixFile = dir: prefix: name: let
     meta = {
-      name = removeSuffix ".nix" entryName;
-      path = [env.library] ++ pathPrefix ++ [meta.name];
-      file = dir + "/${entryName}";
-      directory = removePrefix ((toString libraries) + "/") (toString dir);
+      name = removeSuffix ".nix" name;
+      path = [env.library] ++ prefix ++ [meta.name];
+      file = dir + "/${name}";
+      directory =
+        removePrefix
+        ((toString libraries) + "/")
+        (toString dir);
       ref = concatStringsSep "." meta.path;
       raw = import meta.file;
     };
@@ -273,7 +276,7 @@
       then
         assertType {
           type = "set";
-          name = "Module ${entryName}";
+          name = "Module ${name}";
           value = meta.raw (
             env
             // {
@@ -289,7 +292,7 @@
       else
         assertType {
           type = "set";
-          name = "Module ${entryName} (raw)";
+          name = "Module ${name} (raw)";
           value = meta.raw;
         };
 
@@ -323,10 +326,10 @@
         name = meta.ref;
         path = meta.file;
         inherit (meta) directory;
-        filename = entryName;
+        filename = name;
       };
 
-      exports = filterAttrs (n: _: !(hasPrefix "__" n)) cleaned;
+      exports = filterAttrs (name: _: !(hasPrefix "__" name)) cleaned;
 
       docs = let
         mdDocs = findDocs {
@@ -379,12 +382,7 @@
       cleaned
       // {
         __meta = {
-          inherit
-            aliases
-            module
-            docs
-            tests
-            ;
+          inherit aliases docs module tests;
           exports = attrNames exports;
           functions = attrNames (filterAttrs (_: isFunction) exports);
           values = attrNames (filterAttrs (_: value: !isFunction value) exports);
@@ -395,20 +393,28 @@
   };
 
   # -- Recursive directory scanner
-  scanDir = dir: pathPrefix: let
-    processEntry = entryName: entryType:
-      if entryType == "directory" && isExcludedDir entryName
+  scanDir = dir: prefix: let
+    processEntry = name: kind:
+      if kind == "directory" && isExcludedDir name
       then empty
-      else if entryType == "directory"
+      else if kind == "directory"
       then let
-        sub = dir + "/${entryName}";
-        res = scanDir sub (pathPrefix ++ [entryName]);
+        res =
+          scanDir
+          (dir + "/${name}")
+          (prefix ++ [name]);
       in {
-        modules = optionalAttrs (res.modules != {}) {${entryName} = res.modules;};
+        modules =
+          optionalAttrs
+          (res.modules != {})
+          {${name} = res.modules;};
         inherit (res) rootAliases;
       }
-      else if (entryType == "regular") && (hasSuffix ".nix" entryName) && (!isExcludedFile entryName)
-      then processNixFile dir pathPrefix entryName
+      else if
+        (kind == "regular")
+        && (hasSuffix ".nix" name)
+        && (!isExcludedFile name)
+      then processNixFile dir prefix name
       else empty;
 
     processed = mapAttrs processEntry (readDir dir);
