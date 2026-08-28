@@ -3,27 +3,27 @@
   paths,
   names,
   self,
-  flake,
+  flake',
   safe,
 }: let
-  base = {
-    #~@ Primary references
-    library = names.lib;
-    inherit lib names flake paths;
-    src = paths.flake;
-    ${names.top} = self; # ? custom library (extensible self)
-    lix = self; # ? custom library (extensible self)
+  base =
+    flake'
+    // {
+      #~@ Primary references
+      library = names.lib;
+      inherit lib names paths;
+      ${names.top} = self; # custom library (extensible self)
+      # lix = self; # custom library (extensible self)
 
-    _defaults = {
-      src = paths.flake;
-      inherit lib names flake paths;
+      _defaults =
+        flake'
+        // {inherit lib names paths;};
+
+      #~@ Short aliases
+      l = lib;
+      x = self;
+      s = safe;
     };
-
-    #~@ Short aliases
-    l = lib;
-    x = self;
-    s = safe;
-  };
 in
   base
   // (

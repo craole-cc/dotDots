@@ -1,8 +1,8 @@
 {
   lib,
   handleCollisions,
-  # library,
-  paths,
+  library,
+  paths',
   allowAliases,
 }: let
   inherit (lib.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
@@ -12,7 +12,7 @@
 
   lib' = let
     base = let
-      raw = paths.libraries + "/imports";
+      raw = paths'.lib + "/imports";
       set = import raw;
       init = fn:
         fn {
@@ -36,7 +36,7 @@
   custom = lib'.extend (
     _: prev:
       recursiveUpdate prev {
-        inherit (paths) src;
+        inherit (paths') src;
         inherit lib;
       }
   );

@@ -33,7 +33,7 @@
   allowTests ? false,
   ...
 } @ args: let
-  inherit (builtins) attrNames isAttrs mapAttrs;
+  inherit (builtins) attrNames foldl' isAttrs mapAttrs;
 
   mergeAttrs = set1: set2:
     if isAttrs set1 && isAttrs set2
@@ -46,68 +46,140 @@
       // removeAttrs set1 (attrNames set2)
     else set2;
 
-  resolved = let
-    defaults =
-      mergeAttrs {
-        inherit allowAliases allowTests collisionStrategy;
-
-        names = {
-          top = names.top or "dots";
-          lib = names.lib or "lix";
-          src = names.src or (flake.name or "dots");
-        };
-
-        exclusions = {
-          dirs = excludedDirs;
-          files = excludedFiles;
-          patterns = excludedPatterns;
-        };
-      }
-      args;
-  in
-    defaults
-    // {
-      paths =
-        mergeAttrs defaults.paths
-        {
-          src = (paths.src or {}) // {store = ../../.;};
-          lib = (paths.lib or {}) // {store = ./.;};
-        };
-    }
-    // (
-      let
-        flake' =
-          if flake != null && isAttrs flake
-          then flake
-          else if (builtins ? getFlake)
-          then let
-            inherit (builtins) getFlake pathExists;
-            inherit (resolved.paths) src;
-          in
-            if pathExists (toString src + "/flake.nix")
-            then getFlake (toString src)
-            else {}
-          else {};
-      in
-        if flake' != {}
-        then {
-          flake = mergeAttrs flake' {
-            name = flake'.name or resolved.names.src;
-            path = flake'.path or resolved.src.store;
-            home = flake'.home or resolved.src.local;
-          };
-        }
-        else {}
+  findFirst = pred: default: list:
+    foldl'
+    (
+      acc: x:
+        if acc != default
+        then acc #? already found
+        else if pred x
+        then x #? this one matches
+        else default
     )
-    // {
-      lib =
-        if lib != null
-        then lib
-        else if resolved.flake.inputs ? nixpkgs
-        then resolved.flake.inputs.nixpkgs.lib
-        else if resolved.flake.inputs ? nixPackages
-        then resolved.flake.inputs.nixPackages.lib
-        else import <nixpkgs/lib>;
+    default
+    list;
+
+  attrsIf = name: value:
+    if ((value != null) && (isAttrs value) && (value != {}))
+    then {"${name}" = value;}
+    else {};
+
+  isFlakeLike = value:
+    isAttrs value
+    && value ? inputs
+    && isAttrs value.inputs
+    && (
+      (value ? _type && value._type == "flake")
+      || value ? sourceInfo
+      || value ? outputs
+    );
+
+  isNixpkgsLike = value:
+    isAttrs value
+    && value ? lib
+    && (value ? legacyPackages || value ? packages);
+
+  implicit = {
+    inherit allowAliases allowTests collisionStrategy;
+
+    names = {
+      top = names.top or "dots";
+      lib = names.lib or "lix";
+      src = names.src or (flake.name or "dots");
     };
+
+    paths = {
+      src = (paths.src or {}) // {store = ../../.;};
+      lib = (paths.lib or {}) // {store = ./.;};
+    };
+
+    exclusions = {
+      dirs = excludedDirs;
+      files = excludedFiles;
+      patterns = excludedPatterns;
+    };
+  };
+
+  explicit = mergeAttrs implicit args;
+
+  resolved = let
+    paths' = let
+      raw = let
+        base = explicit.paths;
+      in {
+        lib = base.lib or (base.libraries or {});
+        src = base.src or (base.flake or {});
+      };
+      normalized = {
+        lib = raw.lib // {store = raw.lib.store or ./.;};
+        src = raw.src // {store = raw.src.store or ../../.;};
+      };
+    in {
+      lib = normalized.lib;
+      libraries = normalized.lib;
+      src = normalized.src;
+      flake = normalized.src;
+    };
+
+    flake' = let
+      raw =
+        if flake != null && isAttrs flake
+        then
+          mergeAttrs flake {
+            name = flake.name or explicit.names.src;
+            path = flake.path or paths'.src.store;
+            home = flake.home or (paths'.src.local or null);
+          }
+        else {};
+
+      core =
+        if isFlakeLike raw
+        then
+          findFirst
+          (name: isNixpkgsLike (raw.inputs.${name} or null))
+          null
+          [
+            "nixpkgs"
+            "nixPackages"
+            "nixPackagesUnstable"
+            "nixPackagesStable"
+            "nixpkgs-unstable"
+            "nixpkgs-stable"
+            "unstable"
+            "stable"
+            "nixos"
+            "pkgs"
+          ]
+        else null;
+    in
+      if raw == {}
+      then {}
+      else
+        raw
+        // {
+          inputs =
+            if core != null && core != "nixpkgs"
+            then raw.inputs // {nixpkgs = raw.inputs.${core};}
+            else raw.inputs or {};
+        };
+
+    lib' =
+      if lib != null && isAttrs lib
+      then lib
+      else if flake' ? inputs && flake'.inputs ? nixpkgs
+      then flake'.inputs.nixpkgs.lib
+      else import <nixpkgs/lib>;
+  in
+    explicit
+    // {
+      inherit flake';
+      paths' = {
+        lib = paths'.lib.store;
+        src = paths'.src.store;
+      };
+    }
+    // attrsIf "paths" paths'
+    // attrsIf "flake" flake'
+    // attrsIf "lib" lib';
 in
   import ./internal resolved

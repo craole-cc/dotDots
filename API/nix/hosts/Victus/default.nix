@@ -65,28 +65,30 @@ in {
   };
 
   devices = {
-    boot = {
-      "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
-        device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
+    storage = {
+      boot = {
+        "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
+          device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
+        };
       };
-    };
 
-    file = {
-      "/" = {
-        device = "/dev/disk/by-uuid/6494d9f3-9b6b-43ee-b0c9-6abeec96bf38";
-        fsType = "ext4";
+      mounts = {
+        "/" = {
+          device = "/dev/disk/by-uuid/6494d9f3-9b6b-43ee-b0c9-6abeec96bf38";
+          fsType = "ext4";
+        };
+        "/boot" = {
+          device = "/dev/disk/by-uuid/3C12-4AC5";
+          fsType = "vfat";
+          options = [
+            "fmask=0077"
+            "dmask=0077"
+          ];
+        };
       };
-      "/boot" = {
-        device = "/dev/disk/by-uuid/3C12-4AC5";
-        fsType = "vfat";
-        options = [
-          "fmask=0077"
-          "dmask=0077"
-        ];
-      };
-    };
 
-    swap = [{device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe";}];
+      swap = [{device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe";}];
+    };
 
     network = [
       "eno1"

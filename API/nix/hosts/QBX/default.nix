@@ -65,42 +65,41 @@ in {
   ];
 
   devices = {
-    boot = {};
+    storage = {
+      boot = {};
 
-    file = {
-      "/" = {
-        device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
-        fsType = "ext4";
+      file = {
+        "/" = {
+          device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
+          fsType = "ext4";
+        };
+        "/boot" = {
+          device = "/dev/disk/by-uuid/C6C0-2B64";
+          fsType = "vfat";
+          options = [
+            "fmask=0077"
+            "dmask=0077"
+          ];
+        };
+        "/mnt/Storage" = {
+          device = "/dev/disk/by-uuid/01DBCFFA6ABD5C10";
+          fsType = "ntfs3";
+          options = [
+            "uid=1000"
+            "gid=1000"
+            "umask=022"
+            "prealloc"
+            "nofail"
+            "x-systemd.automount"
+            "x-systemd.idle-timeout=60"
+          ];
+        };
       };
-      "/boot" = {
-        device = "/dev/disk/by-uuid/C6C0-2B64";
-        fsType = "vfat";
-        options = [
-          "fmask=0077"
-          "dmask=0077"
-        ];
-      };
-      "/mnt/Storage" = {
-        device = "/dev/disk/by-uuid/01DBCFFA6ABD5C10";
-        fsType = "ntfs3";
-        options = [
-          "uid=1000"
-          "gid=1000"
-          "umask=022"
-          "prealloc"
-          "nofail"
-          "x-systemd.automount"
-          "x-systemd.idle-timeout=60"
-        ];
-      };
+
+      swap = [];
     };
 
-    swap = [];
-
-    network = [
-      "enp9s0"
-      "wlp8s0"
-    ];
+    network = ["enp9s0" "wlp8s0"];
 
     display = {
       "HDMI-A-3" = {

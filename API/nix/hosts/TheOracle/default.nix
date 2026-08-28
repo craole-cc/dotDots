@@ -24,7 +24,7 @@ in {
   devices = {
     network = ["enp0s6"];
 
-    # No devices.boot/file/swap: Nix doesn't manage this host's
+    # No storage devices.boot/file/swap: Nix doesn't manage this host's
     # filesystem or bootloader, that's owned by Ubuntu/cloud-init.
   };
 

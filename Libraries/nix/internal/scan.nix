@@ -3,7 +3,7 @@
   env,
   exclusions,
   paths,
-  runTests,
+  allowTests,
 }: let
   inherit
     (builtins)
@@ -49,7 +49,10 @@
     toLower
     ;
   inherit (lib.trivial) isFunction;
-  inherit (paths) src libraries;
+  paths' = {
+    src = paths.src.store;
+    libraries = paths.libraries.store;
+  };
 
   typeAliases = {
     resolve = {
@@ -192,13 +195,13 @@
     name,
   }: let
     mkRelativeDir = {
-      root ? src,
+      root ? paths'.src,
       stem,
     }:
       removePrefix (toString root + "/") (toString stem);
 
     mkDocDir = {nest ? "Documentation"}:
-      src + "/${nest}/" + mkRelativeDir {stem = dir;};
+      paths'.src + "/${nest}/" + mkRelativeDir {stem = dir;};
 
     candidates = [
       (dir + "/${name}.md")
@@ -235,7 +238,7 @@
       file = dir + "/${name}";
       directory =
         removePrefix
-        ((toString libraries) + "/")
+        ((toString paths'.libraries) + "/")
         (toString dir);
       ref = concatStringsSep "." meta.path;
       raw = import meta.file;
@@ -313,7 +316,7 @@
       attrsToRemove = uniqueStrings (
         concatMap (group: group.aliases) (attrValues keys)
         ++ filter (hasPrefix "_") (attrNames normalized)
-        ++ optionals (!runTests) ["__tests"]
+        ++ optionals (!allowTests) ["__tests"]
       );
     in
       removeAttrs normalized attrsToRemove;
