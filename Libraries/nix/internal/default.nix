@@ -5,12 +5,13 @@
   lib,
   names,
   paths,
-  rootAliases,
-  runTests,
+  allowAliases,
+  allowTests,
+  ...
 }: let
   handleCollisions = import ./collisions.nix {inherit lib collisionStrategy;};
   default = import ./assemble.nix {
-    inherit handleCollisions lib paths rootAliases;
+    inherit handleCollisions lib paths allowAliases;
     library = lib.fixedPoints.makeExtensible (
       self: let
         safe = handleCollisions {
@@ -21,7 +22,7 @@
           inherit flake lib names paths safe self;
         };
         scan = import ./scan.nix {
-          inherit env exclusions paths lib runTests;
+          inherit env exclusions paths lib allowTests;
         };
         result = scan paths.libraries [];
       in

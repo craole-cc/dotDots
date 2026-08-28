@@ -1,17 +1,11 @@
 {
   lib,
   handleCollisions,
-  library,
+  # library,
   paths,
-  rootAliases,
+  allowAliases,
 }: let
-  inherit
-    (lib.attrsets)
-    attrNames
-    filterAttrs
-    genAttrs
-    recursiveUpdate
-    ;
+  inherit (lib.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
   inherit (lib.lists) filter;
   inherit (lib.filesystem) readDir;
   inherit (lib.strings) hasSuffix removeSuffix;
@@ -46,21 +40,22 @@
         inherit lib;
       }
   );
+
   base = removeAttrs custom [
     "__rootAliases"
     "__unfix__"
     "unfix"
     "extend"
   ];
-  aliases = custom.__rootAliases or {};
-  withAliases =
-    if !rootAliases
-    then base
-    else
+in
+  (
+    if allowAliases
+    then
       handleCollisions {
         inherit base;
-        overrides = aliases;
+        overrides = custom.__rootAliases or {};
         msg = "Root aliases collide with modules";
-      };
-in
-  withAliases // {extend = fn: custom.extend fn;}
+      }
+    else base
+  )
+  // {extend = fn: custom.extend fn;}
