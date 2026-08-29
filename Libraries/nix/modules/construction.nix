@@ -80,10 +80,12 @@
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
-  mkFlake = lib:
+  mkFlake = lib: let
+    args = lib // {${lib.names.lib} = lib.libraries.${lib.names.lib};};
+  in
     {inherit lib;}
-    // (mkConfigurations lib)
-    // (mkUtilities lib);
+    // (mkConfigurations args)
+    // (mkUtilities args);
 
   mkLib = {
     src ? ../../..,

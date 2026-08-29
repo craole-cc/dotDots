@@ -52,7 +52,7 @@
     bootstrap.modules.construction.mkLib (args // {src = paths.core.src.store;});
 
   extraArgs = let
-    inherit (bootstrap.attrnames.access) attrNamesHead;
+    inherit (bootstrap.attrsets.access) attrNamesHead;
     inherit (bootstrap.schema.construction) mkSchema;
     inherit (bootstrap.strings.access) getEnvOr;
 
@@ -95,10 +95,20 @@
 
   inherit (default.sources.packages) mkAll;
   default = mkLibrary extraArgs;
-  libraries = {
-    inherit default;
+  named = {
     ${args.names.lib} = default;
   };
-in
-  mkAll (extraArgs // {inherit libraries mkLib;})
+  libraries =
+    {
+      inherit default;
+    }
+    // named;
+ in
+  mkAll (
+    extraArgs
+    // {
+      inherit libraries mkLib;
+    }
+    // named
+  )
   // {inherit host target mkLib;}
