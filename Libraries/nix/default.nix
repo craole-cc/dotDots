@@ -77,9 +77,13 @@
     acc list [];
 
   namesSrc =
-    if names == null || names.src == null
-    then if flake == null then "dots" else flake.name or "dots"
-    else names.src;
+    if names != null && names ? src && names.src != null
+    then names.src
+    else if names != null && names ? flake && names.flake != null
+    then names.flake
+    else if flake == null
+    then "dots"
+    else flake.name or "dots";
 
   toUpper =
     if lib == null
