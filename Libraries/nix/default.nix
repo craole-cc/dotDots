@@ -182,22 +182,53 @@
       then concatStringsSep "/" (map normalizeSegment part)
       else normalizeSegment part;
 
-    root' = normalize root;
+    storeRoot =
+      if isAttrs root && root ? store
+      then root.store
+      else null;
+    localRoot =
+      if isAttrs root && root ? local
+      then root.local
+      else if storeRoot == null
+      then root
+      else null;
+
+    root' = if localRoot == null then null else normalize localRoot;
     stem' = normalize stem;
 
     absolute =
       (stem' != "")
       && substring 0 1 stem' == "/";
-  in
-    if absolute
-    then stem'
-    else if root' == ""
-    then stem'
-    else if stem' == ""
-    then root'
-    else if root' == "/"
-    then "/${stem'}"
-    else "${root'}/${stem'}";
+    join = root:
+      if root == null
+      then null
+      else if absolute
+      then stem'
+      else if root == ""
+      then stem'
+      else if stem' == ""
+      then root
+      else if root == "/"
+      then "/${stem'}"
+      else "${root}/${stem'}";
+
+    store = join (if storeRoot == null then null else normalize storeRoot);
+    local = join (if localRoot == null then null else root');
+    envRoot =
+      if isVar localRoot
+      then localRoot
+      else null;
+  in {
+    inherit store local;
+    env =
+      if envRoot == null
+      then null
+      else {
+        name = envRoot.var;
+        value = local;
+        eval = true;
+      };
+  };
 
   mkTree = {
     vars ? [],
@@ -237,54 +268,45 @@
         )
         stem
       else
-        mergeAttrs {
-          store =
-            if domain ? store
-            then
-              mkPath {
-                root = domain.store;
-                inherit stem vars;
-              }
-            else null;
+        mergeAttrs
+        (mkPath {
+          root = domain;
+          inherit stem vars;
+        })
+        (asAttrs overrides);
 
-          local =
-            if domain ? local
-            then
-              mkPath {
-                root = domain.local;
-                inherit stem vars;
-              }
-            else null;
-        } (asAttrs overrides);
+    inputPaths = paths;
+    inputRoots = roots;
 
-    resolved = {
-      inherit stems;
+    resolvedRoots =
+      mapAttrs
+      (
+        key: _:
+          if inputRoots ? ${key}
+          then normalizeRoot inputRoots.${key}
+          else throw "mkTree: missing root for domain '${key}'"
+      )
+      stems;
 
-      roots =
-        mapAttrs
-        (
-          key: _:
-            if roots ? ${key}
-            then normalizeRoot roots.${key}
-            else throw "mkTree: missing root for domain '${key}'"
-        )
-        stems;
+    built =
+      mapAttrs
+      (
+        key: stem:
+          mk {
+            inherit stem;
+            domain = resolvedRoots.${key};
+            overrides = inputPaths.${key} or {};
+          }
+      )
+      stems;
 
-      paths =
-        mapAttrs
-        (
-          key: stem:
-            mk {
-              inherit stem;
-              domain = resolved.roots.${key};
-              overrides = paths.${key} or {};
-            }
-        )
-        resolved.stems;
-    };
+    resolvedPaths = built // (built.core or {});
   in
-    {inherit (resolved) roots stems;}
-    // resolved.paths;
+    {
+      roots = resolvedRoots;
+      inherit stems;
+    }
+    // resolvedPaths;
 
   derived = {
     config = {
@@ -438,7 +460,7 @@
         else path;
     in {inherit name path home;};
   in
-    base // meta // {flake = base.flake // meta; inherit target host;};
+    base // meta // {flake = base.flake // meta; inherit target host mkPath mkTree;};
 
   assemble = import ./internal resolved;
 in
