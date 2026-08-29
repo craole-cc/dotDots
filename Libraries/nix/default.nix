@@ -59,6 +59,11 @@
     toJSON
     ;
 
+  getEnvOr = key: fallback: let
+    value = builtins.getEnv key;
+  in
+    if value == "" then fallback else value;
+
   /**
   Deduplicates items in a list without external lib dependencies
   */
@@ -82,6 +87,11 @@
     else if flake == null
     then "dots"
     else flake.name or "dots";
+
+  localHome =
+    if flake != null && flake ? home && flake.home != null
+    then flake.home
+    else getEnvOr "PWD" (toString src);
 
   toUpper =
     if lib == null
@@ -248,11 +258,8 @@
           (filter (segment: segment != "default") envSegments)
       );
   in {
-    inherit store local;
-    env = {
-      name = envName;
-      value = local;
-    };
+    inherit stem store local;
+    env = envName;
   };
 
   mkTree = {
@@ -339,10 +346,17 @@
       if isAttrs node && node ? store
       then node.store
       else mapAttrs (_: flattenStore) node;
+    collectVariables = node:
+      if isAttrs node && node ? env && node ? local
+      then {${node.env} = node.local;}
+      else if isAttrs node
+      then foldl' (acc: key: acc // collectVariables node.${key}) {} (attrNames node)
+      else {};
     resolvedPaths = built // (flattenStore built.core);
   in
     {
       roots = resolvedRoots;
+      variables = collectVariables built;
       inherit stems;
     }
     // resolvedPaths;
@@ -367,7 +381,7 @@
     paths = mkTree {
       roots.core = {
         store = src;
-        local = flake.home or src;
+        local = localHome;
       };
 
       stems.core = {
@@ -477,7 +491,7 @@
         base = defined.api.global.paths.roots;
         core = {
           store = src;
-          local = base.core.local;
+          local = localHome;
         };
       in
         base // {inherit core;};
