@@ -192,7 +192,5 @@
     inherit (inputs.nixPackages) lib;
     src = import ./. {inherit flake lib;};
   in
-    src.libraries.default.modules.construction.mkFlake {
-      inherit flake src;
-    };
+    src.libraries.default.modules.construction.mkFlake src;
 }

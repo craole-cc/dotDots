@@ -1,6 +1,6 @@
 {
   _,
-  src,
+  _defaults,
   ...
 }: let
   inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
@@ -9,14 +9,11 @@
   inherit (_.strings.transformation) toUpper;
   inherit (_.types.predicates) isAttrs;
 
+  inherit (_defaults.paths.src) store;
+
   exports = {
     internal = {
-      inherit
-        flattenTree
-        mkTree
-        mkLocal
-        wallman
-        ;
+      inherit flattenTree mkTree mkLocal wallman;
     };
     external = {
       flattenProjectTree = flattenTree;
@@ -106,7 +103,7 @@
     stems,
     roots ? {},
   }: let
-    rootFor = group: roots.${group} or src;
+    rootFor = group: roots.${group} or store;
 
     resolve = root: value:
       if isAttrs value
@@ -118,9 +115,7 @@
         };
 
     full =
-      {
-        default = construct {root = src;};
-      }
+      {default = construct {root = store;};}
       // mapAttrs (groupName: group: resolve (rootFor groupName) group) stems;
 
     project = field: let

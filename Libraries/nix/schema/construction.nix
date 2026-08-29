@@ -1,8 +1,6 @@
 {_, ...}: let
-  inherit (_.filesystem.importers) importAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.aggregation) recursiveUpdate;
 
   __exports = {
@@ -19,51 +17,33 @@
   };
 
   /**
-  Get host and user attributes from specified directories.
+  Enrich each declared host against the hosts baseline, using already-
+  imported api data (no filesystem access - api.hosts/api.users are
+  resolved attrsets, not directories).
 
   # Arguments
-  - hostsPath (path): Directory containing host configurations
-  - usersPath (path): Directory containing user configurations
+  - api (attrset): The imported API module, with .global, .hosts, .users
 
   # Returns
   An attribute set with:
-  - hosts: Enriched host configurations
-  - users: Raw user configurations
+  - global: api.global, passed through unchanged
+  - users: api.users, passed through unchanged (raw)
+  - hosts: each host enriched via mkCore against the hosts baseline
   */
-  # Host API records are intentionally flat declarations. `default.nix` is
-  # the complete host baseline; each named host supplies sparse updates.
-  mkSchema = paths: let
-    paths' = with paths; {
-      global = api.global.store;
-      users = api.users.store;
-      hosts = api.hosts.store;
-    };
+  mkSchema = api: let
+    global = api.global or {};
+    users = api.users or {};
 
-    global =
-      optionalAttrs
-      (paths'.global != null)
-      (import paths'.global);
-
-    users =
-      optionalAttrs
-      (paths'.users != null)
-      (importAttrs paths'.users);
-
-    hosts =
-      optionalAttrs
-      (paths'.hosts != null)
-      (
-        let
-          defaults = import (paths'.hosts + "/default.nix");
-          specs = removeAttrs (importAttrs paths'.hosts) ["default"];
-        in
-          mapAttrs (name: host:
-            mkCore {
-              inherit name users;
-              host = recursiveUpdate defaults host;
-            })
-          specs
-      );
+    hosts = let
+      defaults = api.hosts.default or {};
+      specs = removeAttrs (api.hosts or {}) ["default"];
+    in
+      mapAttrs (name: host:
+        mkCore {
+          inherit name users;
+          host = recursiveUpdate defaults host;
+        })
+      specs;
   in {inherit global users hosts;};
 in
   __exports.internal // {__rootAliases = __exports.external;}

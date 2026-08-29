@@ -2,7 +2,7 @@
   lib,
   handleCollisions,
   library,
-  paths',
+  paths,
   allowAliases,
 }: let
   inherit (lib.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
@@ -12,7 +12,7 @@
 
   lib' = let
     base = let
-      raw = paths'.lib + "/imports";
+      raw = paths.core.lib.default.store + "/imports";
       set = import raw;
       init = fn:
         fn {
@@ -22,9 +22,14 @@
       names = filter (name: name != "default") (
         map (f: removeSuffix ".nix" f) (
           attrNames (
-            filterAttrs (
-              name: type: (type == "regular") && (hasSuffix ".nix" name) && (name != "default.nix")
-            ) (readDir raw)
+            filterAttrs
+            (
+              name: type:
+                (type == "regular")
+                && (hasSuffix ".nix" name)
+                && (name != "default.nix")
+            )
+            (readDir raw)
           )
         )
       );
@@ -36,7 +41,7 @@
   custom = lib'.extend (
     _: prev:
       recursiveUpdate prev {
-        inherit (paths') src;
+        # src = paths.core.src.store;
         inherit lib;
       }
   );

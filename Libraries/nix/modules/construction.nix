@@ -68,6 +68,7 @@
   inherit (_.lists.construction) optionals;
   inherit (_.lists.predicates) elem;
   inherit (_.schema.construction) mkSchema;
+  inherit (_.modules.core.construction) mkCore;
   inherit (_.modules.construction) mkIf mkMerge;
   inherit (_.modules.evaluation) evalModules extend;
   inherit (_.modules.home.users) mkUsers;
@@ -79,28 +80,28 @@
   inherit (_.types.primitives) anything;
 
   mkFlake = {
-    flake,
-    src,
-    names ? src.names,
-    paths ? src.paths,
+    flake ? _defaults.flake,
+    # src,
+    names ? _defaults.names,
+    paths ? _defaults.paths,
     ...
-  } @ extra: let
-    args = let
-      args = src // extra // (mkAll {inherit flake src;});
-      meta = {
-        name = names.flake;
-        path = paths.flake.store;
-        home = paths.flake.local;
-      };
-    in
-      args // {flake = flake // meta;} // meta;
+  } @ src: let
+    # args = let
+    lib = src // (mkAll {inherit flake src;});
+    #   # meta = {
+    #   #   name = names.flake;
+    #   #   path = paths.flake.store;
+    #   #   home = paths.flake.local;
+    #   # };
+    # in
+    #   args // {flake = flake // meta;} // meta;
   in
     {
-      lib = args;
-      templates = import args.paths.kit.nix.store;
+      inherit lib;
+      templates = import paths.kit.default.store;
     }
-    // (mkConfigurations args)
-    // (mkUtilities args);
+    // (mkConfigurations lib);
+  # // (mkUtilities args);
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {
@@ -115,7 +116,7 @@
     paths,
     libraries,
     names,
-    stems,
+    # stems,
     extraArgs ? {},
     ...
   } @ args: let
@@ -126,7 +127,7 @@
     #> Per-host repository tree - identical construction for every class.
     treeOf = host:
       mkTree {
-        stems = stems // {host = host.paths or {};};
+        stems = paths.stems // {host = host.paths or {};};
         roots = {
           user = paths.home.local;
           xdg = paths.home.local;

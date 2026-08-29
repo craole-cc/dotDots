@@ -7,6 +7,9 @@ rec {
     concatStringsSep
     elem
     filter
+    foldl'
+    genList
+    genlist
     hashString
     head
     isAttrs
@@ -19,6 +22,7 @@ rec {
     pathExists
     readDir
     sort
+    stringLength
     substring
     tail
     ;
@@ -194,68 +198,133 @@ rec {
   }:
     if !isPath target
     then throw "importAttrs: home must be a path"
-    else
-      mapAttrs
-      (
-        filename: type: let
-          imported = let
-            name = let
-              matched = match "(.*)\\.nix" filename;
-            in
-              if type == "regular" && matched != null
-              then head matched
-              else filename;
+    else let
+      domain = baseNameOf target;
 
-            id = substring 0 8 (hashString "sha256" name);
-          in
-            mergeAttrs
-            {inherit name id;}
-            (import (target + "/${filename}"));
-
-          merged = mergeAttrs defaults imported;
-
-          keys = rec {
-            inherit required;
-            missing =
-              filter
-              (path: getByPath path merged == null)
-              required;
-            defined = extractPaths imported;
-            derived =
-              filter
-              (default:
-                !(
-                  any
-                  (derived: isPathOverlapping default derived)
-                  defined
-                ))
-              (extractPaths defaults);
-            overall = unique (defined ++ derived);
-            catalog = concatStringsSep "\n" (
-              sort
-              (a: b: a < b)
-              (map formatPath overall)
-            );
-          };
-        in
-          if keys.missing != []
-          then
-            throw "'${merged.name}' is missing required attributes: ${
-              concatStringsSep ", " (
-                map
-                (path: "${merged.name}.${formatPath path}")
-                keys.missing
-              )
-            }"
-          else
-            merged
-            // {keys = removeAttrs keys ["required" "missing"];}
-      )
-      (
+      candidates = (
         filterAttrs (
           name: type:
             !isHiddenPath name
             && (isNixFile name type || isNixDirectory target name type)
         ) (readDir target)
       );
+
+      candidate = filename: type: let
+        imported = let
+          name = let
+            matched = match "(.*)\\.nix" filename;
+          in
+            if type == "regular" && matched != null
+            then head matched
+            else filename;
+          salt = "${domain}/${name}";
+        in
+          mergeAttrs
+          {
+            inherit name;
+            id = substring 0 8 (hashString "sha256" salt);
+          }
+          (import (target + "/${filename}"));
+
+        merged = mergeAttrs defaults imported;
+
+        #? Derive a sentence-form description when none was explicitly set
+        describe = entry:
+          if entry ? role
+          then let
+            role =
+              if entry.role != null
+              then entry.role
+              else "normal";
+          in "A ${role} user dubbed ${entry.name}"
+          else if entry ? class || (entry ? specs && entry.specs ? machine)
+          then let
+            machine =
+              if entry ? specs && entry.specs ? machine && entry.specs.machine != null
+              then entry.specs.machine
+              else "host";
+            class =
+              if entry ? class && entry.class != null
+              then entry.class
+              else "system";
+          in "A ${class} ${machine} dubbed ${entry.name}"
+          else entry.name;
+
+        described =
+          if merged ? description && merged.description != null
+          then merged
+          else merged // {description = describe merged;};
+
+        keys = rec {
+          inherit required;
+          missing =
+            filter
+            (path: getByPath path described == null)
+            required;
+          defined = extractPaths imported;
+          derived =
+            filter
+            (default:
+              !(
+                any
+                (derived: isPathOverlapping default derived)
+                defined
+              ))
+            (extractPaths defaults);
+          overall = unique (defined ++ derived);
+          catalog = concatStringsSep "\n" (
+            sort
+            (a: b: a < b)
+            (map formatPath overall)
+          );
+        };
+      in
+        if keys.missing != []
+        then
+          throw "'${described.name}' is missing required attributes: ${
+            concatStringsSep ", " (
+              map
+              (path: "${described.name}.${formatPath path}")
+              keys.missing
+            )
+          }"
+        else
+          described
+          // {keys = removeAttrs keys ["required" "missing"];};
+    in
+      mapAttrs candidate candidates;
+
+  #? Deterministic integer derived from a string seed, folded into [min, max]
+  hashToInt = {
+    seed,
+    min ? 0,
+    max ? 60000,
+  }: let
+    hexDigits = {
+      "0" = 0;
+      "1" = 1;
+      "2" = 2;
+      "3" = 3;
+      "4" = 4;
+      "5" = 5;
+      "6" = 6;
+      "7" = 7;
+      "8" = 8;
+      "9" = 9;
+      "a" = 10;
+      "b" = 11;
+      "c" = 12;
+      "d" = 13;
+      "e" = 14;
+      "f" = 15;
+    };
+    charsOf = str:
+      genList (i: substring i 1 str) (stringLength str);
+    hexToInt = hex:
+      foldl' (acc: c: acc * 16 + hexDigits.${c}) 0 (charsOf hex);
+    mod = a: b: a - (a / b) * b;
+    range = max - min + 1;
+    digest = substring 0 8 (hashString "sha256" seed);
+  in
+    min + mod (hexToInt digest) range;
 }

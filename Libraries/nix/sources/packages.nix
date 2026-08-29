@@ -724,7 +724,7 @@
     flake ? {},
     src ? {},
     host ? {},
-    inputs ? {},
+    inputs ? flake.inputs or {},
     # nixpkgs ? {},
     system ? null,
     config ? {},
@@ -734,7 +734,7 @@
     inputs' = normalize (
       if isNotEmpty inputs
       then inputs
-      else if isNotEmpty flake
+      else if isNotEmpty flake.inputs
       then flake
       else getFlake {}
     );
@@ -803,17 +803,17 @@
       };
     };
 
-    meta = {
-      name = src.names.flake or _defaults.names.flake;
-      path = src.paths.flake.store or _defaults.paths.flake.store;
-      home = host.paths.flake or (src.paths.flake.local or _defaults.paths.flake.local);
-    };
+    # meta = {
+    #   name = src.names.flake or _defaults.names.flake;
+    #   path = src.paths.core.src.store or _defaults.paths.core.src.store;
+    #   home = host.paths.flake or (src.paths.flake.local or _defaults.paths.flake.local);
+    # };
   in
     src
     // args
-    // meta
+    # // meta
     // resolved
-    // {flake = flake // meta;};
+    # // {flake = flake // meta;};
 in
   with meta.exports;
     internal
