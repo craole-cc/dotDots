@@ -438,7 +438,7 @@
         else path;
     in {inherit name path home;};
   in
-    base // meta // {flake = base.flake // meta;};
+    base // meta // {flake = base.flake // meta; inherit target host;};
 
   assemble = import ./internal resolved;
 in

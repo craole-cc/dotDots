@@ -48,6 +48,8 @@
 
   bootstrap = mkLibrary {};
 
+  mkLib = (import ../sources/construction.nix {src = paths.core.src.store;}).mkLib;
+
   extraArgs = let
     inherit (bootstrap.attrnames.access) attrNamesHead;
     inherit (bootstrap.schema.construction) mkSchema;
@@ -87,6 +89,7 @@
       inherit schema;
       host = resolvedHost;
       target = host;
+      inherit mkLib;
     };
 
   inherit (default.sources.packages) mkAll;
@@ -96,4 +99,5 @@
     ${args.names.lib} = default;
   };
 in
-  mkAll (extraArgs // {inherit libraries;})
+  mkAll (extraArgs // {inherit libraries mkLib;})
+  // {inherit host target mkLib;}
