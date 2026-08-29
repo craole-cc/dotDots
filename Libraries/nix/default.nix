@@ -352,9 +352,7 @@
       else if isAttrs node
       then foldl' (acc: key: acc // collectVariables node.${key}) {} (attrNames node)
       else {};
-    resolvedPaths =
-      built
-      // (flattenStore built.core // {src = built.core.src;});
+    resolvedPaths = built // (flattenStore built.core);
   in
     {
       roots = resolvedRoots;
