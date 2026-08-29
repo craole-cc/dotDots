@@ -44,6 +44,7 @@
     '';
     functions = {
       inherit
+        mkLib
         mkConfig
         mkConfigurations
         mkUtilities
@@ -83,6 +84,18 @@
     {inherit lib;}
     // (mkConfigurations lib)
     // (mkUtilities lib);
+
+  mkLib = {
+    src ? ../../..,
+    lib ? null,
+    flake ? {},
+    target ? null,
+  }:
+    import (src + "/Libraries/nix") {
+      inherit lib flake target;
+      host = target;
+      inherit src;
+    };
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {
