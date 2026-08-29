@@ -5,7 +5,7 @@
   ];
 
   names = {
-    flake = "dots";
+    src = "dots";
     repo = "https://github.com/craole-cc/dotDots.git";
     prefix = ".";
     top = "_";

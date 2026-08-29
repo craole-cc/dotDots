@@ -79,8 +79,6 @@
   namesSrc =
     if names != null && names ? src && names.src != null
     then names.src
-    else if names != null && names ? flake && names.flake != null
-    then names.flake
     else if flake == null
     then "dots"
     else flake.name or "dots";
@@ -254,7 +252,6 @@
     env = {
       name = envName;
       value = local;
-      eval = local;
     };
   };
 
