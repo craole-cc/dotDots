@@ -9,7 +9,7 @@
   router = import ./router args;
   memory = import ./memory args;
   hermes = import ./agents/hermes (args // {
-    HOME = args.paths.home.local;
+    HOME = args.paths.core.src.local;
     env = args.env or {};
   });
 
