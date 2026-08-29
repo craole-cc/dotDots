@@ -21,7 +21,7 @@
   #|---------------------------------------------------------|
   #| CLI Tools ----------------------------------------------|
   #|---------------------------------------------------------|
-  commands.${names.flake} = {
+  commands.${names.src} = {
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
@@ -127,7 +127,7 @@
 
   #> Generate command list for shellHook
   commandList = let
-    mainCmd = commands.${names.flake};
+    mainCmd = commands.${names.src};
 
     #> Group aliases by domain
     groups = [

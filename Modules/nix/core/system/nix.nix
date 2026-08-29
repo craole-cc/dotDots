@@ -76,7 +76,7 @@ in
           options = {
             name = mkOption {
               description = "Name identifier for the dotfiles flake.";
-              default = names.flake;
+              default = names.src;
               example = literalExpression ''"dots"'';
               type = str;
             };

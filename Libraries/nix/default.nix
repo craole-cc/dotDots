@@ -321,6 +321,7 @@
     names = {
       top = names.top or "dots";
       lib = names.lib or "lix";
+      prefix = names.prefix or ".";
       src = names.src or (flake.name or "dots");
     };
 
