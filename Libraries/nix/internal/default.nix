@@ -48,7 +48,7 @@
 
   bootstrap = mkLibrary {};
 
-  mkLib = (import ../sources/construction.nix {src = paths.core.src.store;}).mkLib;
+  mkLib = (import ../modules/library.nix {src = paths.core.src.store;}).mkLib;
 
   extraArgs = let
     inherit (bootstrap.attrnames.access) attrNamesHead;
