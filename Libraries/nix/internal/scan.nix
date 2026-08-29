@@ -1,8 +1,8 @@
 {
   lib,
   env,
-  exclusions,
   paths,
+  exclusions,
   allowTests,
 }: let
   inherit
@@ -50,8 +50,8 @@
     ;
   inherit (lib.trivial) isFunction;
   paths' = {
-    src = paths.src.store;
-    libraries = paths.libraries.store;
+    src = paths.core.src.store;
+    libraries = paths.core.libraries.default.store;
   };
 
   typeAliases = {

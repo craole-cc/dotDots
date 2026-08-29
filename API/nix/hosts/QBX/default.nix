@@ -10,7 +10,7 @@ in {
   id = "cfd69003";
 
   paths = {
-    flake = "/home/craole/.dots";
+    src = "/home/craole/.dots";
     # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
   };
 

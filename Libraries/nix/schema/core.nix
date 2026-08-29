@@ -135,7 +135,7 @@
     enrichedStorage = mkStorage host;
     enrichment = {
       inherit name;
-      inherit (host.paths) dots;
+      home = host.paths.src or (host.paths.dots or host.paths.flake);
       system = host.specs.platform or "x86_64-linux";
       users = enrichedUser;
       interface = enrichedUI;

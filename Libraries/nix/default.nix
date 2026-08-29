@@ -285,7 +285,14 @@
     // resolved.paths;
 
   derived = {
-    inherit allowAliases allowTests collisionStrategy;
+    config = {
+      inherit allowAliases allowTests collisionStrategy;
+      exclusions = {
+        dirs = excludedDirs;
+        files = excludedFiles;
+        patterns = excludedPatterns;
+      };
+    };
 
     names = {
       top = names.top or "dots";
@@ -323,12 +330,6 @@
 
         api = ["API" "nix"];
       };
-    };
-
-    exclusions = {
-      dirs = excludedDirs;
-      files = excludedFiles;
-      patterns = excludedPatterns;
     };
 
     flake = let
@@ -418,5 +419,25 @@
         base // {inherit core;};
     };
   };
+
+  resolved = let
+    base = derived // defined;
+    meta = let
+      name = base.flake.name or base.names.src;
+      path = base.flake.path or base.paths.core.src.store;
+      home = let
+        path' =
+          base.flake.home or (
+            base.paths.core.src.local or null
+          );
+      in
+        if path' != null && path' != ""
+        then path'
+        else path;
+    in {inherit name path home;};
+  in
+    base // meta // {flake = base.flake // meta;};
+
+  assemble = import ./internal resolved;
 in
-  import ./internal (derived // defined)
+  assemble

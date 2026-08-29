@@ -1,7 +1,6 @@
 {
   _,
-  src,
-  lib,
+  _defaults,
   ...
 }: let
   __doc = ''
@@ -27,14 +26,14 @@
       // aliases;
   };
 
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.debug) traceIf;
-  inherit (lib.strings) hasSuffix;
-  inherit (lib.trivial) pathExists;
-
+  inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.resolution) normalizePath;
   inherit (_.content.emptiness) isEmpty;
+  inherit (_.debug.tracing) traceIf;
+  inherit (_.filesystem.predicates) pathExists;
   inherit (_.strings.construction) concat;
+  inherit (_.strings.predicates) hasSuffix;
+  inherit (_.types.predicates) isPath;
 
   mkPath = {
     root,
@@ -63,9 +62,14 @@
   */
   getFlakePath = {
     flake ? null,
-    path ? src,
+    # host ? _defaults.schema.hosts.default or {},
+    # path ? host.home,
+    path,
   }: let
-    pathStr = toString path;
+    pathStr =
+      if isPath path
+      then toString path
+      else path;
     fileStr = "/flake.nix";
     result =
       if hasSuffix fileStr pathStr && pathExists pathStr
@@ -94,7 +98,8 @@
   */
   getFlake = {
     flake ? null,
-    path ? src,
+    host ? _defaults.schema.hosts.default or {},
+    path ? host.home,
   }: let
     normalizedPath = getFlakePath {inherit flake path;};
 
@@ -119,7 +124,9 @@
     else
       traceIf (
         (derived._type or null) != "flake"
-      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
+      ) "❌ Flake load failed: ${
+        toString path
+      } (${failureReason})" (derived // {srcPath = path;});
 in
   __exports.internal
   // {

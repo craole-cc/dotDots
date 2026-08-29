@@ -8,7 +8,7 @@ in {
   id = "9ab9ae6f";
 
   paths = {
-    flake = "/home/craole-cc/Projects/craole-cc/dotDots";
+    src = "/home/craole-cc/Projects/craole-cc/dotDots";
   };
 
   specs = {

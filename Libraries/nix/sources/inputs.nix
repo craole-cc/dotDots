@@ -72,72 +72,99 @@
   differentRev = left: right: isNotEmpty left && isNotEmpty right && ((left.rev or null) != (right.rev or null));
 
   /**
-  Resolve a one-level flake input by trying the provided aliases in order.
-  The lookup is case-insensitive. It lowercases the actual keys in `inputs`,
-  lowercases each candidate name, then delegates ordered resolution to `byPaths`.
-  This catches case-only variations such as:
+    Resolve a one-level flake input by trying the provided aliases in order.
+    The lookup is case-insensitive. It lowercases the actual keys in `inputs`,
+    lowercases each candidate name, then delegates ordered resolution to `byPaths`.
+    This catches case-only variations such as:
   ```nix
-  ai
-  AI
-  llm
-  LLM
-  editorVscode
-  editorVSCode
-  EDITORVSCODE
+    ai
+    AI
+    llm
+    LLM
+    editorVscode
+    editorVSCode
+    EDITORVSCODE
   ```
 
-  Semantic aliases must still be listed explicitly. For example,
-  nixPackagesStable, nixpkgsStable, and nixpkgs-stable are different
-  names, not merely case variants.
+    Semantic aliases must still be listed explicitly. For example,
+    nixPackagesStable, nixpkgsStable, and nixpkgs-stable are different
+    names, not merely case variants.
 
-  # Dependencies
-  - attrsets.resolution.byPaths
-  - strings.transformation.toLowerCase
+    When the resolved value is an attribute set (e.g. a flake), the actual
+    matched key from `inputs` — original casing preserved — is appended as
+    `name`. Values resolved to `default` (i.e. none of `names` matched) are
+    never tagged, since no lookup actually succeeded.
 
-  # Type
-  byNames :: {
-    inputs :: AttrSet,
-    names :: [string],
-    default? :: a
-  } -> a
+    # Dependencies
+    - attrsets.resolution.byPaths
+    - strings.transformation.toLowerCase
 
-  # Examples
-  byNames {
-    inputs.AI = "llm-agents";
-    names = ["ai" "llm" "llm-agents"];
-    default = null;
-  }
-  # => "llm-agents"
+    # Type
+    byNames :: {
+      inputs :: AttrSet,
+      names :: [string],
+      default? :: a
+    } -> a
 
-  byNames {
-    inputs.editorVSCode = "vscode-insiders";
-    names = ["editorVscode" "vscode" "code"];
-    default = null;
-  }
-  # => "vscode-insiders"
+    # Examples
+    byNames {
+      inputs.AI = "llm-agents";
+      names = ["ai" "llm" "llm-agents"];
+      default = null;
+    }
+    # => "llm-agents"
 
-  byNames {
-    inputs.nixpkgs-stable = "stable";
-    names = ["nixPackagesStable" "nixpkgsStable" "nixpkgs-stable"];
-    default = null;
-  }
-  # => "stable"
+    byNames {
+      inputs.secretsManager = someFlake;
+      names = ["secretManager" "age" "secretsManager" "agenix"];
+      default = null;
+    }
+    # => someFlake // { name = "secretsManager"; }
+
+    byNames {
+      inputs.nixpkgs-stable = "stable";
+      names = ["nixPackagesStable" "nixpkgsStable" "nixpkgs-stable"];
+      default = null;
+    }
+    # => "stable"
   */
   byNames = {
     inputs,
     names,
     default ? {},
-  }:
-    byPaths {
-      attrset = listToAttrs (
-        map (name: {
-          name = toLowerCase name;
-          value = inputs.${name};
-        }) (attrNames inputs)
-      );
-      paths = map (name: [(toLowerCase name)]) names;
-      inherit default;
+  }: let
+    keys = attrNames inputs;
+    paths = map (name: [(toLowerCase name)]) names;
+
+    lowered = listToAttrs (
+      map (name: {
+        name = toLowerCase name;
+        value = inputs.${name};
+      })
+      keys
+    );
+
+    originals = listToAttrs (
+      map (name: {
+        name = toLowerCase name;
+        value = name;
+      })
+      keys
+    );
+
+    value = byPaths {
+      attrset = lowered;
+      inherit paths default;
     };
+    found = byPaths {
+      attrset = originals;
+      inherit paths;
+      default = null;
+    };
+  in
+    if isNotEmpty value && found != null && isAttrs value
+    then value // {name = found;}
+    else value;
 
   # TODO: Add dependencies and Examples to the doc
   /**
@@ -176,7 +203,7 @@
         }; null;
 
     flake = args.flake or null;
-    path = args.path or (args.src or null);
+    path = args.home or (args.path or (args.src or null));
     inputs = args.inputs or (getFlake {inherit flake path;}).inputs or {};
 
     tryNames = names: byNames {inherit inputs names;};
@@ -229,9 +256,7 @@
         then stable
         else throw "We should never have gotten to this point. nixpkgs is required";
     in
-      {
-        inherit nixpkgs;
-      }
+      {inherit nixpkgs;}
       // optionalAttrs (differentRev unstable nixpkgs) {nixpkgs-unstable = unstable;}
       // optionalAttrs (differentRev stable nixpkgs) {nixpkgs-stable = stable;};
 

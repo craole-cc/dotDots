@@ -7,7 +7,7 @@
     id = null; #? AUTO-GENERATED: Unique host hash ID if omitted
 
     paths = {
-      flake = "/etc/nixos"; #? System flake location path
+      src = "/etc/nixos"; #? System flake location path
       wallpapers = null; #? Path to wallpaper directory or image file
     };
 

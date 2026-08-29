@@ -74,34 +74,15 @@
   inherit (_.modules.home.users) mkUsers;
   inherit (_.options.construction) mkOption;
   inherit (_.sources.modules) mkModules;
-  inherit (_.sources.packages) mkAll mkPackages;
+  inherit (_.sources.packages) mkPackages;
   inherit (_.strings.construction) concat;
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
-  mkFlake = {
-    flake ? _defaults.flake,
-    # src,
-    names ? _defaults.names,
-    paths ? _defaults.paths,
-    ...
-  } @ src: let
-    # args = let
-    lib = src // (mkAll {inherit flake src;});
-    #   # meta = {
-    #   #   name = names.flake;
-    #   #   path = paths.flake.store;
-    #   #   home = paths.flake.local;
-    #   # };
-    # in
-    #   args // {flake = flake // meta;} // meta;
-  in
-    {
-      inherit lib;
-      templates = import paths.kit.default.store;
-    }
-    // (mkConfigurations lib);
-  # // (mkUtilities args);
+  mkFlake = lib:
+    {inherit lib;}
+    // (mkConfigurations lib)
+    // (mkUtilities lib);
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {
@@ -329,7 +310,7 @@
   mkUtilities = {
     flake,
     inputs,
-    hosts,
+    hosts ? _defaults.schema.hosts or {},
     paths,
     ...
   } @ args: let
@@ -344,9 +325,9 @@
       system,
       pkgs,
     }:
-      import paths.mod.global.store (args // {inherit pkgs system;});
+      import paths.core.mod.global.store (args // {inherit pkgs system;});
   in
-    {templates = import paths.kit.nix.store;}
+    {templates = import paths.core.kit.default.store;}
     // genAttrs
     (
       attrNames (fn {

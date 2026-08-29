@@ -1,7 +1,6 @@
 {
   _,
-  lib,
-  paths,
+  _defaults,
   __moduleRef,
   ...
 }: let
@@ -60,9 +59,7 @@
       in
         {inherit functions aliases;} // functions // aliases;
       external = internal.aliases;
-    in {
-      inherit internal external;
-    };
+    in {inherit internal external;};
   };
 
   # __exports = {
@@ -136,18 +133,17 @@
   inherit (_.debug.assertions) withContext mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
-  inherit (_.debug.tracing) addErrorContext traceIf;
+  inherit (_.debug.tracing) addErrorContext traceIf tryEval;
   inherit (_.filesystem.resolution) getFlakePath;
   inherit (_.hardware.system) getSystems getSystemOrDefault;
   inherit (_.lists.predicates) all elem isList;
-  inherit (_.lists.access) head findFirst;
+  inherit (_.lists.access) elemAt head findFirst;
   inherit (_.lists.construction) optionals toList;
   inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concatStringsSep optionalString;
   inherit (_.strings.predicates) isString;
-  inherit (_.strings.transformation) splitStringBy;
+  inherit (_.strings.transformation) splitString splitStringBy;
   inherit (_.types.predicates) isDerivation;
-  inherit (builtins) getFlake tryEval;
 
   debug = mkModuleDebug __moduleRef;
 
@@ -683,12 +679,12 @@
   ```
   */
   parseVscodeExt = entry:
-    if lib.strings.isString entry
+    if isString entry
     then let
-      parts = lib.strings.splitString "." entry;
+      parts = splitString "." entry;
     in {
-      publisher = lib.lists.elemAt parts 0;
-      name = lib.lists.elemAt parts 1;
+      publisher = elemAt parts 0;
+      name = elemAt parts 1;
     }
     else entry;
 
@@ -754,7 +750,7 @@
     system ? pkgs.stdenv.hostPlatform.system,
     entries,
   }:
-    lib.lists.filter (x: x != null) (
+    filter (x: x != null) (
       map (
         entry:
           vscodePackage {
@@ -798,7 +794,9 @@
   flakeAttrs = {
     flake ? {},
     self ? {},
-    path ? paths.flake.local, #TODO: Is this supposed to be local or store?
+    # host ? _defaults.schema.hosts.default,
+    # path ? host.home,
+    path,
   }: let
     normalizedPath = getFlakePath {
       inherit path;
@@ -807,7 +805,14 @@
         then flake
         else self;
     };
-    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    derived = optionalAttrs (normalizedPath != null) (
+      if builtins ? getFlake
+      then let
+        inherit (builtins) getFlake;
+      in
+        getFlake normalizedPath
+      else null
+    );
     failureReason =
       if normalizedPath == null
       then "path normalization failed"

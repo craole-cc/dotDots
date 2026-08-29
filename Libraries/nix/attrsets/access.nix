@@ -4,6 +4,8 @@
   _,
   ...
 }: let
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.lists.access) head;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.transformation) filterAttrs listToAttrs mapAttrsToList;
   inherit (_.debug.assertions) mkTest;
@@ -13,6 +15,17 @@
   inherit (_.lists.predicates) elem;
   inherit (_.types.predicates) isAttrs isList;
   debug = mkModuleDebug __moduleRef;
+
+  attrNamesHead = set: let
+    attrs = attrNames set;
+  in
+    if set == null
+    then throw "firstAttrName: set is null"
+    else if !isAttrs set
+    then throw "firstAttrName: argument is not an attribute set"
+    else if attrs == []
+    then throw "firstAttrName: set is empty"
+    else head attrs;
 
   /**
   Get an attribute value with a fallback default.
@@ -324,6 +337,7 @@ in {
     omit
     pick
     renameKey
+    attrNamesHead
     ;
 
   __rootAliases = {

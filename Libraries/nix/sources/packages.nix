@@ -1,6 +1,6 @@
 {
   _,
-  _defaults,
+  # _defaults,
   ...
 }: let
   meta = {
@@ -67,7 +67,7 @@
   inherit (_.strings.predicates) hasPrefix hasSuffix isString;
   inherit (_.strings.transformation) removePrefix removeSuffix;
   inherit (_.sources.access) getBin getExe getExe';
-  inherit (_.sources.inputs) normalize mkSource;
+  inherit (_.sources.inputs) normalizeInputs mkSource;
   inherit (_.sources.overlays) mkOverlays;
 
   defaults = {
@@ -724,14 +724,14 @@
     flake ? {},
     src ? {},
     host ? {},
-    inputs ? flake.inputs or {},
-    # nixpkgs ? {},
+    inputs ? {},
     system ? null,
     config ? {},
     coreNames ? [],
     homeNames ? [],
+    ...
   } @ args: let
-    inputs' = normalize (
+    inputs' = normalizeInputs (
       if isNotEmpty inputs
       then inputs
       else if isNotEmpty flake.inputs
@@ -802,18 +802,8 @@
         config = config';
       };
     };
-
-    # meta = {
-    #   name = src.names.flake or _defaults.names.flake;
-    #   path = src.paths.core.src.store or _defaults.paths.core.src.store;
-    #   home = host.paths.flake or (src.paths.flake.local or _defaults.paths.flake.local);
-    # };
   in
-    src
-    // args
-    # // meta
-    // resolved
-    # // {flake = flake // meta;};
+    src // args // resolved;
 in
   with meta.exports;
     internal

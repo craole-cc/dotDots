@@ -8,28 +8,28 @@
     flattened = {} // access // predicates // transformation // {};
   };
 
-  inherit
-    (lib)
-    attrsets
-    meta
-    sources
-    strings
-    ;
+  inherit (lib) attrsets meta sources strings;
 
-  access = {
-    inherit
-      (sources)
-      commitIdFromGitRepo
-      repoRevToName
-      revOrTag
-      shortRev
-      trace
-      urlToName
-      ;
-    inherit (meta) getExe getExe';
-    inherit (attrsets) getBin;
-    inherit (builtins) getEnv;
-  };
+  access =
+    {
+      inherit
+        (sources)
+        commitIdFromGitRepo
+        repoRevToName
+        revOrTag
+        shortRev
+        trace
+        urlToName
+        ;
+      inherit (meta) getExe getExe';
+      inherit (attrsets) getBin;
+      inherit (builtins) getEnv;
+    }
+    // (
+      if builtins ? getFlake
+      then {inherit (builtins) getFlake;}
+      else {}
+    );
 
   predicates = {
     inherit
