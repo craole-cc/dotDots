@@ -200,7 +200,7 @@
         else if isVar segment
         then
           if elem segment.var vars
-          then "\${${segment.var}}"
+          then getEnvOr segment.var "\${${segment.var}}"
           else
             throw ''
               mkPath: unknown variable "${segment.var}".
@@ -251,9 +251,9 @@
     envName =
       concatStringsSep "_"
       (
-        [
-          (toUpper (replaceStrings ["-"] ["_"] (if envPrefix == null then "PATH" else envPrefix)))
-        ]
+        (if envPrefix == null then [] else [
+          (toUpper (replaceStrings ["-"] ["_"] envPrefix))
+        ])
         ++ map (segment: toUpper (replaceStrings ["-"] ["_"] segment))
           (filter (segment: segment != "default") envSegments)
       );
@@ -308,7 +308,7 @@
           inherit stem vars;
           envPrefix =
             if domainName == "base"
-            then domainName
+            then null
             else namesSrc;
           inherit envSegments;
         };
