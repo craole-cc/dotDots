@@ -51,6 +51,7 @@
     isString
     listToAttrs
     mapAttrs
+    replaceStrings
     split
     stringLength
     substring
@@ -74,6 +75,21 @@
         else acc xs (seen ++ [x]);
   in
     acc list [];
+
+  namesSrc =
+    if names == null || names.src == null
+    then if flake == null then "dots" else flake.name or "dots"
+    else names.src;
+
+  toUpper =
+    if lib == null
+    then
+      value:
+        replaceStrings
+        [ "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" ]
+        [ "A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" ]
+        value
+    else lib.strings.toUpper;
 
   /**
   Recursive deep merge without allocating temporary sets for key scanning
@@ -157,6 +173,8 @@
     root,
     stem,
     vars ? [],
+    envPrefix ? null,
+    envSegments ? [],
   }: let
     isVar = value:
       isAttrs value
@@ -218,16 +236,22 @@
       if isVar localRoot
       then localRoot
       else null;
+    envName =
+      concatStringsSep "_"
+      (
+        [
+          (toUpper (replaceStrings ["-"] ["_"] (if envPrefix == null then "PATH" else envPrefix)))
+        ]
+        ++ map (segment: toUpper (replaceStrings ["-"] ["_"] segment))
+          (filter (segment: segment != "default") envSegments)
+      );
   in {
     inherit store local;
-    env =
-      if envRoot == null
-      then null
-      else {
-        name = envRoot.var;
-        value = local;
-        eval = true;
-      };
+    env = {
+      name = envName;
+      value = local;
+      eval = local;
+    };
   };
 
   mkTree = {
@@ -253,8 +277,10 @@
 
     mk = {
       domain,
+      domainName,
       stem,
       overrides,
+      envSegments ? [],
     }:
       if isAttrs stem && !isVar stem
       then
@@ -262,18 +288,25 @@
         (
           key: stem:
             mk {
-              inherit domain stem;
+              inherit domain domainName stem;
               overrides = overrides.${key} or {};
+              envSegments = envSegments ++ [key];
             }
         )
         stem
-      else
-        mergeAttrs
-        (mkPath {
+      else let
+        generated = mkPath {
           root = domain;
           inherit stem vars;
-        })
-        (asAttrs overrides);
+          envPrefix =
+            if domainName == "base"
+            then domainName
+            else namesSrc;
+          inherit envSegments;
+        };
+        merged = mergeAttrs generated (asAttrs overrides);
+      in
+        merged // {env = generated.env;};
 
     inputPaths = paths;
     inputRoots = roots;
@@ -295,6 +328,7 @@
           mk {
             inherit stem;
             domain = resolvedRoots.${key};
+            domainName = key;
             overrides = inputPaths.${key} or {};
           }
       )
@@ -332,7 +366,7 @@
     paths = mkTree {
       roots.core = {
         store = src;
-        local = "";
+        local = flake.home or src;
       };
 
       stems.core = {
