@@ -45,31 +45,103 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
     "open-sse/executors/base.ts" \
     'Generic OpenAI clients may send `reasoning.enabled`' \
     "$serialization_patch"
-  compiled_anchor='let C=i.reasoning&&"object"==typeof i.reasoning&&!Array.isArray(i.reasoning)?i.reasoning:null,A=I(C?.effort)'
-  compiled_marker='C&&delete C.enabled;'
-  compiled_dir="$package_dir/dist/.build/next/server/chunks"
-  compiled_chunk="$(grep -rl -F "$compiled_anchor" "$compiled_dir" --include='*.js' | head -n 1 || true)"
+  node - "$package_dir/dist/.build/next/server/chunks" <<'NODE'
+const fs = require("fs");
+const path = require("path");
 
-  [ -n "$compiled_chunk" ] || {
-    printf '%s\n' 'OmniRoute Codex compiled executor anchor was not found; refusing to patch an unknown runtime bundle.' >&2
-    exit 1
+const chunksDir = process.argv[2];
+const marker = "/* omniroute-codex-reasoning-toggle */";
+const serializer = /let ([A-Za-z_$][\w$]*)=JSON\.stringify\(\{type:"response\.create",\.\.\.([A-Za-z_$][\w$]*)\}\)/g;
+const expectedCopies = 7;
+let serializerCopies = 0;
+let patchedCopies = 0;
+
+for (const name of fs.readdirSync(chunksDir)) {
+  if (!name.endsWith(".js")) continue;
+  const target = path.join(chunksDir, name);
+  let source = fs.readFileSync(target, "utf8");
+  const existingMarkers = source.split(marker).length - 1;
+  if (existingMarkers > 0) {
+    patchedCopies += existingMarkers;
+    continue;
   }
 
-  if ! grep -Fq "$compiled_marker" "$compiled_chunk"; then
-    anchor_count="$(grep -o -F "$compiled_anchor" "$compiled_chunk" | wc -l | tr -d ' ')"
-    [ "$anchor_count" -eq 1 ] || {
-      printf '%s\n' 'OmniRoute Codex compiled executor anchor was not unique; refusing to patch an unknown runtime bundle.' >&2
-      exit 1
-    }
-    node - "$compiled_chunk" "$compiled_anchor" <<'NODE'
-const fs = require("fs");
-const [target, anchor] = process.argv.slice(2);
-const source = fs.readFileSync(target, "utf8");
-const replacement = 'let C=i.reasoning&&"object"==typeof i.reasoning&&!Array.isArray(i.reasoning)?i.reasoning:null;C&&delete C.enabled;let A=I(C?.effort)';
-if (source.split(anchor).length !== 2) process.exit(1);
-fs.writeFileSync(target, source.replace(anchor, replacement));
+  const matches = [...source.matchAll(serializer)];
+  serializerCopies += matches.length;
+  if (matches.length === 0) continue;
+
+  source = source.replace(serializer, (_match, wireBody, requestBody) =>
+    `${marker}"boolean"==typeof ${requestBody}.reasoning?.enabled&&` +
+    `(${requestBody}.reasoning.effort??=${requestBody}.reasoning.enabled?"medium":"none",` +
+    `delete ${requestBody}.reasoning.enabled);` +
+    `let ${wireBody}=JSON.stringify({type:"response.create",...${requestBody}})`
+  );
+  fs.writeFileSync(target, source);
+  patchedCopies += matches.length;
+}
+
+if (patchedCopies !== expectedCopies) {
+  console.error(
+    `Expected ${expectedCopies} Codex response serializers for OmniRoute 3.8.49, found/patched ${patchedCopies} ` +
+    `(new unpatched matches: ${serializerCopies}). Refusing an unknown runtime bundle.`
+  );
+  process.exit(1);
+}
 NODE
-  fi
+
+  node - "$package_dir/dist/server.js" <<'NODE'
+const fs = require("fs");
+
+const target = process.argv[2];
+const marker = "// omniroute-codex-reasoning-fetch";
+const anchor = "process.env.NODE_ENV = 'production'\n";
+let source = fs.readFileSync(target, "utf8");
+
+if (!source.includes(marker)) {
+  if (source.split(anchor).length !== 2) {
+    console.error("OmniRoute server bootstrap anchor was not unique; refusing to patch an unknown runtime bundle.");
+    process.exit(1);
+  }
+
+  const guard = `
+${marker}
+const omnirouteOriginalFetch = globalThis.fetch;
+globalThis.fetch = async function omnirouteCodexReasoningFetch(input, init) {
+  const outboundUrl =
+    typeof input === "string" ? input : input instanceof URL ? input.href : input?.url;
+  let nextInit = init;
+
+  if (
+    typeof outboundUrl === "string" &&
+    outboundUrl.includes("chatgpt.com/backend-api/codex/responses") &&
+    typeof init?.body === "string"
+  ) {
+    try {
+      const payload = JSON.parse(init.body);
+      const reasoning =
+        payload?.reasoning && typeof payload.reasoning === "object" && !Array.isArray(payload.reasoning)
+          ? payload.reasoning
+          : null;
+      if (typeof reasoning?.enabled === "boolean") {
+        const { enabled, ...normalizedReasoning } = reasoning;
+        if (normalizedReasoning.effort == null) {
+          normalizedReasoning.effort = enabled ? "medium" : "none";
+        }
+        payload.reasoning = normalizedReasoning;
+        nextInit = { ...init, body: JSON.stringify(payload) };
+      }
+    } catch {
+      // Preserve the original request when the body is not JSON.
+    }
+  }
+
+  return omnirouteOriginalFetch(input, nextInit);
+};
+`;
+  source = source.replace(anchor, `${anchor}${guard}`);
+  fs.writeFileSync(target, source);
+}
+NODE
 
   found=1
 done

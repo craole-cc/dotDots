@@ -8,7 +8,7 @@
 
   router = import ./router args;
   memory = import ./memory args;
-  hermes = import ./agents/hermes (args // {HOME = args.HOME or "/home/craole";});
+  hermes = import ./agents/hermes (args // {HOME = args.paths.home.local;});
 
   aiShell = {
     description = "AI Development";
