@@ -356,7 +356,11 @@
   in
     {
       roots = resolvedRoots;
-      variables = collectVariables built;
+      variables =
+      collectVariables built
+      // (if built ? core && built.core ? src && built.core.src ? local
+          then {${toUpper namesSrc} = built.core.src.local;}
+          else {});
       inherit stems;
     }
     // resolvedPaths;
