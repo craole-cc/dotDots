@@ -300,7 +300,11 @@
       )
       stems;
 
-    resolvedPaths = built // (built.core or {});
+    flattenStore = node:
+      if isAttrs node && node ? store
+      then node.store
+      else mapAttrs (_: flattenStore) node;
+    resolvedPaths = built // (flattenStore built.core);
   in
     {
       roots = resolvedRoots;
