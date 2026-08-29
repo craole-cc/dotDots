@@ -2,12 +2,16 @@
   api,
   config,
   flake ? null,
+  host ? target,
   lib,
   names,
+  target ? null,
   paths,
   ...
 } @ args: let
+  inherit (builtins) isAttrs isString;
   inherit (lib.fixedPoints) makeExtensible;
+  inherit (lib.attrsets) recursiveUpdate;
   inherit (config) allowAliases allowTests exclusions;
 
   handleCollisions = import ./collisions.nix {
@@ -44,31 +48,45 @@
 
   bootstrap = mkLibrary {};
 
-  extraArgs =
+  extraArgs = let
+    inherit (bootstrap.attrnames.access) attrNamesHead;
+    inherit (bootstrap.schema.construction) mkSchema;
+    inherit (bootstrap.strings.access) getEnvOr;
+
+    base = mkSchema args.api;
+    targetName =
+      if isString host
+      then host
+      else if isAttrs host
+      then host.name or null
+      else null;
+    schemaHost =
+      if targetName != null
+      then base.hosts.${targetName} or {}
+      else let
+        name = getEnvOr "HOSTNAME" (attrNamesHead base.hosts);
+      in
+        base.hosts.${name} or {};
+    resolvedHost =
+      if isAttrs host
+      then recursiveUpdate schemaHost host
+      else schemaHost;
+    user = let
+      name = getEnvOr "USER" (resolvedHost.users.primary.name or "");
+    in
+      resolvedHost.users.all.${name} or null;
+    schema =
+      base
+      // {
+        hosts = base.hosts // {default = resolvedHost;};
+        users = base.users // {default = user;};
+      };
+  in
     args
     // {
-      schema = let
-        inherit (bootstrap.attrnames.access) attrNamesHead;
-        inherit (bootstrap.schema.construction) mkSchema;
-        inherit (bootstrap.strings.access) getEnvOr;
-
-        base = mkSchema args.api;
-
-        host = let
-          name = getEnvOr "HOSTNAME" (attrNamesHead base.hosts);
-        in
-          base.hosts.${name} or null;
-
-        user = let
-          name = getEnvOr "USER" base.hosts.${host.name}.users.primary.name;
-        in
-          base.hosts.${host.name}.users.all.${name} or null;
-      in
-        base
-        // {
-          hosts = base.hosts // {default = host;};
-          users = base.users // {default = user;};
-        };
+      inherit schema;
+      host = resolvedHost;
+      target = host;
     };
 
   inherit (default.sources.packages) mkAll;

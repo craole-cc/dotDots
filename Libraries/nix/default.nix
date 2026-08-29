@@ -30,6 +30,7 @@
   names ? null,
   stems ? {},
   target ? null,
+  host ? target,
   allowAliases ? false,
   allowTests ? false,
   src ? ../../.,
