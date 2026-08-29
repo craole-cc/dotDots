@@ -29,6 +29,7 @@
   lib ? null,
   names ? null,
   stems ? {},
+  target ? null,
   allowAliases ? false,
   allowTests ? false,
   src ? ../../.,

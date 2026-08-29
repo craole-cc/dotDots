@@ -97,6 +97,7 @@
     paths,
     libraries,
     names,
+    mkLib ? null,
     # stems,
     extraArgs ? {},
     ...
@@ -104,6 +105,14 @@
     lib = extend (_self: _super: {
       inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
     });
+
+    libForHost = host:
+      if mkLib != null
+      then let
+        resolved = mkLib {inherit flake lib; target = host;};
+      in
+        resolved.libraries.${names.lib} or resolved
+      else lib;
 
     #> Per-host repository tree - identical construction for every class.
     treeOf = host:
@@ -141,14 +150,14 @@
     #> The special-args shape every class forwards into its module
     #> system, modulo the class-specific extras (`mkSystem` additionally
     #> needs `class`/`flake`; `mkHomeHost` needs neither).
-    mkSpecialArgs = {host, ...} @ extra: let
+    mkSpecialArgs = {host, lib ? libForHost host, ...} @ extra: let
       tree = treeOf host;
     in
       {
         inherit (args.names or _defaults.names) top;
         inherit host inputs flake names tree;
         paths = tree;
-        "${names.lib}" = libraries.${names.lib};
+        "${names.lib}" = lib;
       }
       // extra
       // extraArgs;
@@ -182,7 +191,8 @@
     */
     mkSystem = host: let
       class = host.class or "nixos";
-      specialArgs = mkSpecialArgs {inherit host;};
+      hostLib = libForHost host;
+      specialArgs = mkSpecialArgs {inherit host; lib = hostLib;};
       inherit (specialArgs) tree;
 
       classified = modulesOf class;
@@ -237,7 +247,8 @@
     `home-manager.lib.homeManagerConfiguration`.
     */
     mkManager = name: host: let
-      specialArgs = mkSpecialArgs {inherit host;};
+      hostLib = libForHost host;
+      specialArgs = mkSpecialArgs {inherit host; lib = hostLib;};
       users = let
         specs = mkUsers {
           inherit host inputs;
