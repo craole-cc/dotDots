@@ -33,17 +33,24 @@
   mkSchema = api: let
     global = api.global or {};
     users = api.users or {};
-
     hosts = let
       defaults = api.hosts.default or {};
       specs = removeAttrs (api.hosts or {}) ["default"];
-    in
-      mapAttrs (name: host:
+      enriched = mapAttrs (name: host:
         mkCore {
           inherit name users;
           host = recursiveUpdate defaults host;
         })
       specs;
+    in
+      enriched
+      // {
+        default = mkCore {
+          name = "default";
+          inherit users;
+          host = defaults;
+        };
+      };
   in {inherit global users hosts;};
 in
   __exports.internal // {__rootAliases = __exports.external;}

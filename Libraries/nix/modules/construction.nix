@@ -44,7 +44,6 @@
     '';
     functions = {
       inherit
-        mkLib
         mkConfig
         mkConfigurations
         mkUtilities
@@ -61,6 +60,7 @@
   in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.debug.assertions) withContext;
@@ -80,21 +80,10 @@
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
-  mkFlake = lib: let
-    args = lib // {${lib.names.lib} = lib.libraries.${lib.names.lib};};
-  in
+  mkFlake = lib:
     {inherit lib;}
-    // (mkConfigurations args)
-    // (mkUtilities args);
-
-  mkLib = {
-    src ? _defaults.paths.src.store or ../../..,
-    lib ? null,
-    flake ? {},
-    target ? null,
-    host ? target,
-  }:
-    import src {inherit lib flake host src;};
+    // (mkConfigurations lib)
+    // (mkUtilities lib);
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {
@@ -107,38 +96,13 @@
     flake,
     inputs,
     paths,
+    mkArgs,
     libraries,
     names,
-    mkLib ? null,
     # stems,
-    extraArgs ? {},
     ...
   } @ args: let
-    lib = extend (_self: _super: {
-      inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
-    });
-
-    libForHost = host:
-      if mkLib != null
-      then let
-        resolved = mkLib {
-          inherit flake lib;
-          target = host;
-        };
-      in
-        resolved.libraries.${names.lib} or resolved
-      else lib;
-
-    #> Per-host repository tree - identical construction for every class.
-    treeOf = host:
-      mkTree {
-        stems = paths.stems // {host = host.paths or {};};
-        roots = {
-          user = paths.home.local;
-          xdg = paths.home.local;
-          host = flake.path;
-        };
-      };
+    argsOf = host: mkArgs args // {inherit host;};
 
     types = let
       of = class:
@@ -152,34 +116,15 @@
       home = of "home-manager";
     };
 
-    #> Per-host resolved package set - identical call for every class;
-    #> each builder below pulls whichever field it needs (`.nixpkgs` for
-    #> evalModules-based classes, `.pkgs` for home-manager's standalone
-    #> builder).
-    packagesOf = host: mkPackages {inherit host inputs;};
+    # #> Per-host resolved package set - identical call for every class;
+    # #> each builder below pulls whichever field it needs (`.nixpkgs` for
+    # #> evalModules-based classes, `.pkgs` for home-manager's standalone
+    # #> builder).
+    # packagesOf = host: mkPackages {inherit host inputs;};
 
     #> Per-class module set. `class` is `"nixos"`/`"darwin"` for
     #> `mkSystem`, `"home-manager"` for `mkHomeHost`.
     modulesOf = class: mkModules {inherit class inputs;};
-
-    #> The special-args shape every class forwards into its module
-    #> system, modulo the class-specific extras (`mkSystem` additionally
-    #> needs `class`/`flake`; `mkHomeHost` needs neither).
-    mkSpecialArgs = {
-      host,
-      lib ? libForHost host,
-      ...
-    } @ extra: let
-      tree = treeOf host;
-    in
-      {
-        inherit (args.names or _defaults.names) top;
-        inherit host inputs flake names tree;
-        paths = tree;
-        "${names.lib}" = lib;
-      }
-      // extra
-      // extraArgs;
 
     /**
     Evaluate a single `nixos`/`darwin` host through `evalModules`. Darwin
@@ -209,40 +154,19 @@
       `host.class == "darwin"`.
     */
     mkSystem = host: let
+      hostArgs = mkArgs args // {inherit host;};
       class = host.class or "nixos";
-      hostLib = libForHost host;
-      specialArgs = mkSpecialArgs {
-        inherit host;
-        lib = hostLib;
-      };
+      # hostLib = libForHost host;
+      # lib = hostLib;
+      specialArgs =
+        removeAttrs
+        (hostArgs // {args = hostArgs;})
+        ["lib"]; # TODO: Do this in libraries/internal/default
+
       inherit (specialArgs) tree;
 
       classified = modulesOf class;
-      core = mkCore {
-        inherit host paths;
-        modules = classified;
-      };
-      # core = [
-      #   {
-      #     nixpkgs = {
-      #       flake.source = (packagesOf host).nixpkgs.outPath;
-      #       config.allowUnfree = host.packages.allowUnfree or true;
-      #     };
-      #   }
-      #   {
-      #     home-manager = {
-      #       backupFileExtension = "backup";
-      #       overwriteBackup = true;
-      #       useGlobalPkgs = true;
-      #       useUserPackages = true;
-      #       extraSpecialArgs = specialArgs // {inherit lib;};
-      #       users = mkUsers {
-      #         inherit host inputs tree;
-      #         modules = classified.home;
-      #       };
-      #     };
-      #   }
-      # ];
+      core = mkCore (recursiveUpdate hostArgs {modules = classified;});
 
       evaluated = evalModules {
         specialArgs =
@@ -269,11 +193,9 @@
     `home-manager.lib.homeManagerConfiguration`.
     */
     mkManager = name: host: let
-      hostLib = libForHost host;
-      specialArgs = mkSpecialArgs {
-        inherit host;
-        lib = hostLib;
-      };
+      inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
+      hostArgs = argsOf host;
+      specialArgs = hostArgs // {lib = extend (_self: _super: {inherit hm;});};
       users = let
         specs = mkUsers {
           inherit host inputs;
@@ -296,8 +218,8 @@
         modules = [specs.${primary}];
       in {inherit specs modules;};
     in
-      lib.homeManagerConfiguration {
-        inherit (packagesOf host) pkgs;
+      homeManagerConfiguration {
+        inherit (hostArgs) pkgs;
         inherit (users) modules;
         extraSpecialArgs = specialArgs;
       };

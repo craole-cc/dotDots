@@ -3,7 +3,6 @@
   config,
   host ? target,
   lib,
-  mkLib,
   names,
   target ? null,
   paths,

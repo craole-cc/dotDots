@@ -188,11 +188,13 @@
   };
 
   outputs = inputs @ {self, ...}: let
-    flake = self;
-    src = import ./. {
-      inherit flake;
+    lib = import ./. {
+      flake = self;
       inherit (inputs.nixPackages) lib;
     };
+    inherit (lib.libraries.default.modules.construction) mkConfigurations mkUtilities;
   in
-    src.libraries.default.modules.construction.mkFlake src;
+    {inherit lib;}
+    // (mkConfigurations lib)
+    // (mkUtilities lib);
 }

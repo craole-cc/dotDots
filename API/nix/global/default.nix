@@ -1,9 +1,4 @@
 {
-  vars = [
-    "HOME"
-    "UID"
-  ];
-
   names = {
     src = "dots";
     repo = "https://github.com/craole-cc/dotDots.git";
@@ -13,11 +8,49 @@
     alpha = "craole";
   };
 
+  config = {
+    lib = {
+      collisionStrategy = "warn";
+      allowAliases = false;
+      allowTests = false;
+    };
+  };
+
   paths = {
+    exclusions = {
+      directories = [
+        "review"
+        "archive"
+        "internal"
+        "imports"
+        "data"
+        "test"
+        "tmp"
+        "temp"
+        "wip"
+        "deprecated"
+        "experimental"
+        "backup"
+      ];
+
+      files = [
+        "default.nix"
+        "flake.nix"
+      ];
+
+      patterns = [
+        " copy.nix"
+        ".test.nix"
+        ".spec.nix"
+        ".bak.nix"
+        ".old.nix"
+      ];
+    };
+
     roots = {
       core = "";
       home = {var = "HOME";};
-      base = "/";
+      root = "/";
       xdg = {var = "HOME";};
     };
 
@@ -162,7 +195,7 @@
         wallpapers = ["Pictures" "Wallpapers"];
       };
 
-      base = {
+      root = {
         bin = let default = ["bin"]; in {inherit default;};
         boot = let default = ["boot"]; in {inherit default;};
         dev = let default = ["dev"]; in {inherit default;};

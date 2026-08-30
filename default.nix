@@ -47,4 +47,4 @@ in
     name = "lib";
     stem = ["Libraries" "nix"];
   })
-  (args // {mkLib = import ./.;})
+  (args // {mkArgs = import ./.;})

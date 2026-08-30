@@ -11,6 +11,25 @@
       wallpapers = null; #? Path to wallpaper directory or image file
     };
 
+    packages = {
+      allowUnstable = true;
+      allowUnfree = true;
+      allowBroken = false;
+      kernel = null;
+    };
+
+    caches = {
+      nyx = {
+        subs = ["https://geo-mirror.chaotic.cx/"];
+        keys = ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
+      };
+
+      numtide = {
+        subs = ["https://cache.numtide.com"];
+        keys = ["niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="];
+      };
+    };
+
     modules = []; #? List of custom NixOS/home-manager module names to enable
 
     specs = {

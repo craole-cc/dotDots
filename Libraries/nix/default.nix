@@ -1,30 +1,8 @@
 {
   collisionStrategy ? "warn",
-  excludedDirs ? [
-    "review"
-    "archive"
-    "internal"
-    "imports"
-    "data"
-    "test"
-    "tmp"
-    "temp"
-    "wip"
-    "deprecated"
-    "experimental"
-    "backup"
-  ],
-  excludedFiles ? [
-    "default.nix"
-    "flake.nix"
-  ],
-  excludedPatterns ? [
-    " copy.nix"
-    ".test.nix"
-    ".spec.nix"
-    ".bak.nix"
-    ".old.nix"
-  ],
+  excludedDirs ? [],
+  excludedFiles ? [],
+  excludedPatterns ? [],
   flake ? {},
   lib ? null,
   names ? {
@@ -370,11 +348,7 @@
       self = args.paths.lib or (paths.lib or ../../.);
     in
       mkTree {
-        roots.core =
-          if flake != null && flake ? home && flake.home != null
-          then flake.home
-          else getEnvOr "PWD" (toString src);
-
+        roots.core = getEnvOr "PWD" (toString src);
         stems.core = {
           src = [];
 
@@ -568,4 +542,4 @@
 
   assemble = import ./internal resolved;
 in
-  assemble
+  derived

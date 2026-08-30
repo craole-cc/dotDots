@@ -158,7 +158,7 @@
         tokei
         git
       ];
-      text = readFile (paths.lib.sh + "/data/fetch");
+      text = readFile (paths.core.lib.sh.store + "/data/fetch");
     };
 
   /**

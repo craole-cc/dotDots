@@ -67,15 +67,11 @@
     modules,
     specialArgs,
     tree,
+    ...
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit
-        host
-        specialArgs
-        tree
-        inputs
-        ;
+      inherit host specialArgs tree inputs;
       modules = modules.home;
     })
   ];
