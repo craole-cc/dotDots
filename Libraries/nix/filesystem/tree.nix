@@ -6,10 +6,27 @@
   inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
   inherit (_.filesystem.primitives) construct;
   inherit (_.lists.construction) concatLists;
+  inherit (builtins) concatStringsSep foldl';
   inherit (_.strings.transformation) toUpper;
   inherit (_.types.predicates) isAttrs;
 
-  inherit (_defaults.paths.src) store;
+  src =
+    if isAttrs _defaults.paths.src
+    then _defaults.paths.src.store
+    else _defaults.paths.src;
+  store = src;
+  vars = _defaults.vars or ["HOME" "UID"];
+  namesSrc =
+    if _defaults ? names && _defaults.names ? src
+    then _defaults.names.src
+    else if _defaults ? flake && _defaults.flake ? name
+    then _defaults.flake.name
+    else "dots";
+  getEnvOr = key: fallback: let
+    value = builtins.getEnv key;
+  in
+    if value == "" then fallback else value;
+  upper = value: toUpper (builtins.replaceStrings ["-"] ["_"] value);
 
   exports = {
     internal = {
@@ -103,31 +120,71 @@
     stems,
     roots ? {},
   }: let
-    rootFor = group: roots.${group} or store;
+    isVar = value:
+      isAttrs value
+      && value ? var
+      && builtins.isString value.var;
 
-    resolve = root: value:
-      if isAttrs value
-      then mapAttrs (_key: child: resolve root child) value
-      else
-        construct {
-          inherit root;
-          stem = value;
-        };
+    normalize = value:
+      if builtins.isList value
+      then map (segment: if isVar segment then getEnvOr segment.var "\${${segment.var}}" else segment) value
+      else if isVar value
+      then getEnvOr value.var "\${${value.var}}"
+      else value;
 
-    full =
-      {default = construct {root = store;};}
-      // mapAttrs (groupName: group: resolve (rootFor groupName) group) stems;
+      rootPair = group:
+      let root = roots.${group} or src;
+      in if isVar root
+         then {store = null; local = normalize root;}
+         else if isAttrs root && (root ? store || root ? local)
+         then {
+           store = root.store or null;
+           local = normalize (root.local or root.store or null);
+         }
+         else {store = root; local = normalize root;};
 
-    project = field: let
-      walk = node:
+    envName = group: segments:
+      concatStringsSep "_"
+      ((if group == "base" then [] else [ (upper namesSrc) ])
+       ++ map upper (builtins.filter (segment: segment != "default") segments));
+
+    resolve = group: segments: value:
+      if isAttrs value && !(isVar value)
+      then mapAttrs (key: child: resolve group (segments ++ [key]) child) value
+      else let
+        root = rootPair group;
+        normalized = normalize value;
+        storePath =
+          if root.store == null
+          then {store = null;}
+          else construct {root = root.store; stem = normalized;};
+        localPath = construct {root = root.local; stem = normalized;};
+      in {
+        env = envName group segments;
+        local = localPath.local;
+        store = storePath.store;
+        stem = value;
+      };
+
+    full = mapAttrs (group: groupStems: resolve group [] groupStems) stems;
+    project = field:
+      let walk = node:
         if isAttrs node && node ? ${field}
         then node.${field}
-        else mapAttrs (_key: walk) node;
-    in
-      walk full;
+        else mapAttrs (_: walk) node;
+      in walk full;
+    variables =
+      let walk = node:
+        if isAttrs node && node ? env && node ? local
+        then {${node.env} = node.local;}
+        else if isAttrs node
+        then foldl' (acc: key: acc // walk node.${key}) {} (builtins.attrNames node)
+        else {};
+      in walk full;
   in
     full
     // {
+      inherit variables;
       store = project "store";
       local = project "local";
       mkLocal = base: mkLocal {inherit base stems;};
