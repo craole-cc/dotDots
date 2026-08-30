@@ -2,11 +2,13 @@
   lix,
   pkgs,
   flake,
+  paths,
   pkgsFor,
   print,
   ...
 }: let
-  inherit (flake) inputs path;
+  inherit (flake) inputs;
+  path = paths.core.src.store;
   treefmtInput = inputs.treeFormatter or inputs.treefmtNix or inputs.treefmt;
   inherit (treefmtInput.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;
