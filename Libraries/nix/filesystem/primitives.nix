@@ -199,12 +199,19 @@
 
     root = normalized.root or src;
     stem = normalized.stem or [];
+    stemString =
+      if isList stem
+      then concatStringsSep "/" stem
+      else toString stem;
+    absolute = hasPrefix "/" stemString;
 
     base = ground {inherit root;};
 
     joinStr = basePath:
       if basePath == null
       then null
+      else if absolute
+      then stemString
       else if stem == [] || stem == ""
       then toString basePath
       else
@@ -216,6 +223,8 @@
     joinPath = basePath:
       if basePath == null
       then null
+      else if absolute
+      then (mkPath stemString).store
       else if stem == [] || stem == ""
       then basePath
       else

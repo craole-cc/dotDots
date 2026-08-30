@@ -4,7 +4,6 @@
   ...
 }: let
   inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
-  inherit (_.filesystem.primitives) construct;
   inherit (_.lists.construction) concatLists;
   inherit (builtins) concatStringsSep foldl';
   inherit (_.strings.transformation) toUpper;
@@ -15,6 +14,16 @@
     then _defaults.paths.src.store
     else _defaults.paths.src;
   store = src;
+  primitiveContext = {
+    filesystem.predicates = _.filesystem.predicates;
+    types.predicates = _.types.predicates;
+  };
+  primitives = import ./primitives.nix {
+    _ = primitiveContext;
+    inherit src;
+    lib = _defaults.lib or null;
+  };
+  inherit (primitives) construct;
   vars = _defaults.vars or ["HOME" "UID"];
   namesSrc =
     if _defaults ? names && _defaults.names ? src
