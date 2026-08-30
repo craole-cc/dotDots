@@ -14,7 +14,7 @@ printf '%s\n' \
   'TELEGRAM_ALLOWED_USERS=123456' \
   'TELEGRAM_HOME_CHANNEL=-100987654' \
   'TELEGRAM_HOME_CHANNEL_NAME=Home' \
-  >"$fixture/home/.env"
+  > "$fixture/home/.env"
 chmod 600 "$fixture/home/.env"
 
 HERMES_HOME="$fixture/home"

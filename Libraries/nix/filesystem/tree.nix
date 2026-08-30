@@ -34,7 +34,9 @@
   getEnvOr = key: fallback: let
     value = builtins.getEnv key;
   in
-    if value == "" then fallback else value;
+    if value == ""
+    then fallback
+    else value;
   upper = value: toUpper (builtins.replaceStrings ["-"] ["_"] value);
 
   exports = {
@@ -136,26 +138,42 @@
 
     normalize = value:
       if builtins.isList value
-      then map (segment: if isVar segment then getEnvOr segment.var "\${${segment.var}}" else segment) value
+      then
+        map (segment:
+          if isVar segment
+          then getEnvOr segment.var "\${${segment.var}}"
+          else segment)
+        value
       else if isVar value
       then getEnvOr value.var "\${${value.var}}"
       else value;
 
-      rootPair = group:
-      let root = roots.${group} or src;
-      in if isVar root
-         then {store = null; local = normalize root;}
-         else if isAttrs root && (root ? store || root ? local)
-         then {
-           store = root.store or null;
-           local = normalize (root.local or root.store or null);
-         }
-         else {store = root; local = normalize root;};
+    rootPair = group: let
+      root = roots.${group} or src;
+    in
+      if isVar root
+      then {
+        store = null;
+        local = normalize root;
+      }
+      else if isAttrs root && (root ? store || root ? local)
+      then {
+        store = root.store or null;
+        local = normalize (root.local or root.store or null);
+      }
+      else {
+        store = root;
+        local = normalize root;
+      };
 
     envName = group: segments:
       concatStringsSep "_"
-      ((if group == "base" then [] else [ (upper namesSrc) ])
-       ++ map upper (builtins.filter (segment: segment != "default") segments));
+      ((
+          if group == "base"
+          then []
+          else [(upper namesSrc)]
+        )
+        ++ map upper (builtins.filter (segment: segment != "default") segments));
 
     resolve = group: segments: value:
       if isAttrs value && !(isVar value)
@@ -166,30 +184,39 @@
         storePath =
           if root.store == null
           then {store = null;}
-          else construct {root = root.store; stem = normalized;};
-        localPath = construct {root = root.local; stem = normalized;};
+          else
+            construct {
+              root = root.store;
+              stem = normalized;
+            };
+        localPath = construct {
+          root = root.local;
+          stem = normalized;
+        };
       in {
         env = envName group segments;
-        local = localPath.local;
-        store = storePath.store;
+        inherit (localPath) local;
+        inherit (storePath) store;
         stem = value;
       };
 
     full = mapAttrs (group: groupStems: resolve group [] groupStems) stems;
-    project = field:
-      let walk = node:
+    project = field: let
+      walk = node:
         if isAttrs node && node ? ${field}
         then node.${field}
         else mapAttrs (_: walk) node;
-      in walk full;
-    variables =
-      let walk = node:
+    in
+      walk full;
+    variables = let
+      walk = node:
         if isAttrs node && node ? env && node ? local
         then {${node.env} = node.local;}
         else if isAttrs node
         then foldl' (acc: key: acc // walk node.${key}) {} (builtins.attrNames node)
         else {};
-      in walk full;
+    in
+      walk full;
   in
     full
     // {

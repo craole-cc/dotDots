@@ -2,7 +2,7 @@
 #shellcheck enable=all
 set -eu
 
-cat <<'UNIT'
+cat << 'UNIT'
 [Unit]
 Description=Hermes Agent Gateway - Messaging Platform Integration
 After=network-online.target

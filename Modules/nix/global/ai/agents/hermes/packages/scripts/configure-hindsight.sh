@@ -8,7 +8,7 @@ set -eu
 : "${HINDSIGHT_RECALL_BUDGET:?HINDSIGHT_RECALL_BUDGET not set}"
 
 case "${1:-}" in
-  ""|--force) ;;
+  "" | --force) ;;
   *)
     printf '%s\n' "Usage: configure-hindsight [--force]" >&2
     exit 64
@@ -28,7 +28,7 @@ mkdir -p "${config_dir}"
 tmp_file="${config_file}.tmp.$$"
 trap 'rm -f "${tmp_file}"' EXIT HUP INT TERM
 
-cat > "${tmp_file}" <<EOF
+cat > "${tmp_file}" << EOF
 {
   "mode": "${HINDSIGHT_MODE}",
   "api_url": "${HINDSIGHT_API_URL}",

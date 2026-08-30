@@ -124,7 +124,10 @@
     libForHost = host:
       if mkLib != null
       then let
-        resolved = mkLib {inherit flake lib; target = host;};
+        resolved = mkLib {
+          inherit flake lib;
+          target = host;
+        };
       in
         resolved.libraries.${names.lib} or resolved
       else lib;
@@ -165,7 +168,11 @@
     #> The special-args shape every class forwards into its module
     #> system, modulo the class-specific extras (`mkSystem` additionally
     #> needs `class`/`flake`; `mkHomeHost` needs neither).
-    mkSpecialArgs = {host, lib ? libForHost host, ...} @ extra: let
+    mkSpecialArgs = {
+      host,
+      lib ? libForHost host,
+      ...
+    } @ extra: let
       tree = treeOf host;
     in
       {
@@ -207,7 +214,10 @@
     mkSystem = host: let
       class = host.class or "nixos";
       hostLib = libForHost host;
-      specialArgs = mkSpecialArgs {inherit host; lib = hostLib;};
+      specialArgs = mkSpecialArgs {
+        inherit host;
+        lib = hostLib;
+      };
       inherit (specialArgs) tree;
 
       classified = modulesOf class;
@@ -263,7 +273,10 @@
     */
     mkManager = name: host: let
       hostLib = libForHost host;
-      specialArgs = mkSpecialArgs {inherit host; lib = hostLib;};
+      specialArgs = mkSpecialArgs {
+        inherit host;
+        lib = hostLib;
+      };
       users = let
         specs = mkUsers {
           inherit host inputs;

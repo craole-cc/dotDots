@@ -20,7 +20,7 @@ elif [ -e "$env_file" ]; then
 else
   umask 077
   mkdir -p "$HERMES_HOME"
-  : >"$env_file"
+  : > "$env_file"
   chmod 600 "$env_file"
 fi
 

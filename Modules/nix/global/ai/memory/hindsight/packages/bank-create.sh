@@ -11,4 +11,4 @@ test -f "${config_file}"
 docker exec \
   -i "${HINDSIGHT_CONTAINER_NAME}" hindsight-api bank create \
   --bank-id "${bank_id}" \
-  --config /dev/stdin <"${config_file}"
+  --config /dev/stdin < "${config_file}"

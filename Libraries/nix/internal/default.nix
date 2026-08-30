@@ -103,7 +103,7 @@
       inherit default;
     }
     // named;
- in
+in
   mkAll (
     extraArgs
     // {

@@ -62,7 +62,9 @@
   getEnvOr = key: fallback: let
     value = builtins.getEnv key;
   in
-    if value == "" then fallback else value;
+    if value == ""
+    then fallback
+    else value;
 
   /**
   Deduplicates items in a list without external lib dependencies
@@ -98,8 +100,8 @@
     then
       value:
         replaceStrings
-        [ "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" ]
-        [ "A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" ]
+        ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"]
+        ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
         value
     else lib.strings.toUpper;
 
@@ -117,9 +119,7 @@
           value =
             if set1 ? ${key} && set2 ? ${key}
             then mergeAttrs set1.${key} set2.${key}
-            else if set2 ? ${key}
-            then set2.${key}
-            else set1.${key};
+            else set2.${key} or set1.${key};
         })
         keys
       )
@@ -223,7 +223,10 @@
       then root
       else null;
 
-    root' = if localRoot == null then null else normalize localRoot;
+    root' =
+      if localRoot == null
+      then null
+      else normalize localRoot;
     stem' = normalize stem;
 
     absolute =
@@ -242,8 +245,16 @@
       then "/${stem'}"
       else "${root}/${stem'}";
 
-    store = join (if storeRoot == null then null else normalize storeRoot);
-    local = join (if localRoot == null then null else root');
+    store = join (
+      if storeRoot == null
+      then null
+      else normalize storeRoot
+    );
+    local = join (
+      if localRoot == null
+      then null
+      else root'
+    );
     envRoot =
       if isVar localRoot
       then localRoot
@@ -251,11 +262,15 @@
     envName =
       concatStringsSep "_"
       (
-        (if envPrefix == null then [] else [
-          (toUpper (replaceStrings ["-"] ["_"] envPrefix))
-        ])
+        (
+          if envPrefix == null
+          then []
+          else [
+            (toUpper (replaceStrings ["-"] ["_"] envPrefix))
+          ]
+        )
         ++ map (segment: toUpper (replaceStrings ["-"] ["_"] segment))
-          (filter (segment: segment != "default") envSegments)
+        (filter (segment: segment != "default") envSegments)
       );
   in {
     inherit stem store local;
@@ -314,7 +329,7 @@
         };
         merged = mergeAttrs generated (asAttrs overrides);
       in
-        merged // {env = generated.env;};
+        merged // {inherit (generated) env;};
 
     inputPaths = paths;
     inputRoots = roots;
@@ -357,10 +372,12 @@
     {
       roots = resolvedRoots;
       variables =
-      collectVariables built
-      // (if built ? core && built.core ? src && built.core.src ? local
+        collectVariables built
+        // (
+          if built ? core && built.core ? src && built.core.src ? local
           then {${toUpper namesSrc} = built.core.src.local;}
-          else {});
+          else {}
+        );
       inherit stems;
     }
     // resolvedPaths;
@@ -518,7 +535,12 @@
         else path;
     in {inherit name path home;};
   in
-    base // meta // {flake = base.flake // meta; inherit target host mkPath mkTree;};
+    base
+    // meta
+    // {
+      flake = base.flake // meta;
+      inherit target host mkPath mkTree;
+    };
 
   assemble = import ./internal resolved;
 in

@@ -155,9 +155,7 @@ rec {
           value =
             if set1 ? ${key} && set2 ? ${key}
             then mergeAttrs set1.${key} set2.${key}
-            else if set2 ? ${key}
-            then set2.${key}
-            else set1.${key};
+            else set2.${key} or set1.${key};
         })
         keys
       )
@@ -173,7 +171,7 @@ rec {
           if pred name set.${name}
           then [
             {
-              name = name;
+              inherit name;
               value = set.${name};
             }
           ]
@@ -201,13 +199,11 @@ rec {
     else let
       domain = baseNameOf target;
 
-      candidates = (
-        filterAttrs (
-          name: type:
-            !isHiddenPath name
-            && (isNixFile name type || isNixDirectory target name type)
-        ) (readDir target)
-      );
+      candidates = filterAttrs (
+        name: type:
+          !isHiddenPath name
+          && (isNixFile name type || isNixDirectory target name type)
+      ) (readDir target);
 
       candidate = filename: type: let
         imported = let

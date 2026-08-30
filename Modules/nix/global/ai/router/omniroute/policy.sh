@@ -11,7 +11,7 @@ database="$data_dir/storage.sqlite"
 # until its schema exists.
 [ -f "$database" ] || exit 0
 
-sqlite3 "$database" <<'SQL'
+sqlite3 "$database" << 'SQL'
 INSERT INTO auto_candidate_overrides (
   id,
   api_key_id,

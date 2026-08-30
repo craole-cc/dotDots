@@ -16,16 +16,16 @@ in {
     if [ -t 1 ]; then
       ${print.title "Hermes Agent"}
       ${print.table {
-        columns = ["Name" "Version" "Source" "Description"];
-        rows =
-          map (name: [
-            (commands.${name} or name)
-            (versions.${name} or "?")
-            (origins.${name} or "?")
-            (descriptions.${name} or "?")
-          ])
-          names;
-      }}
+      columns = ["Name" "Version" "Source" "Description"];
+      rows =
+        map (name: [
+          (commands.${name} or name)
+          (versions.${name} or "?")
+          (origins.${name} or "?")
+          (descriptions.${name} or "?")
+        ])
+        names;
+    }}
 
       case "${toString env.AUTO_START}" in
         1) start --no-confirm || true ;;

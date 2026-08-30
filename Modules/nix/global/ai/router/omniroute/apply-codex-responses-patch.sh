@@ -45,7 +45,7 @@ for package_dir in "$cache_root"/*/node_modules/omniroute; do
     "open-sse/executors/base.ts" \
     'Generic OpenAI clients may send `reasoning.enabled`' \
     "$serialization_patch"
-  node - "$package_dir/dist/.build/next/server/chunks" <<'NODE'
+  node - "$package_dir/dist/.build/next/server/chunks" << 'NODE'
 const fs = require("fs");
 const path = require("path");
 
@@ -89,7 +89,7 @@ if (patchedCopies !== expectedCopies) {
 }
 NODE
 
-  node - "$package_dir/dist/server.js" <<'NODE'
+  node - "$package_dir/dist/server.js" << 'NODE'
 const fs = require("fs");
 
 const target = process.argv[2];

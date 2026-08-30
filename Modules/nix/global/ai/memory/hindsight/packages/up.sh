@@ -35,8 +35,8 @@ while [ "$i" -lt "$attempts" ]; do
   status=$(
     docker inspect \
       -f '{{.State.Health.Status}}' \
-      "${HINDSIGHT_CONTAINER_NAME}" 2>/dev/null ||
-      echo "unknown"
+      "${HINDSIGHT_CONTAINER_NAME}" 2> /dev/null \
+      || echo "unknown"
   )
   [ "${status}" = "healthy" ] && break
   i=$((i + 1))
