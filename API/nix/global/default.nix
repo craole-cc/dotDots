@@ -57,9 +57,11 @@
     stems = {
       core = {
         cache = let
-          default = [".cache"];
+          base = [".cache"];
+          default = base ++ ["nix"];
         in {
-          inherit default;
+          inherit base default;
+          nix = default;
           tmp = default ++ ["tmp"];
         };
 

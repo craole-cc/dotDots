@@ -4,7 +4,7 @@
   paths ? {},
   ...
 } @ args: let
-  resolveStem = {
+  resolvePathStem = {
     name,
     stem,
   }: let
@@ -28,7 +28,7 @@
     stem,
   }: let
     inherit (builtins) concatStringsSep isPath isString substring typeOf;
-    resolvedStem = resolveStem {inherit name stem;};
+    resolvedStem = resolvePathStem {inherit name stem;};
     defined = paths.${name} or null;
   in
     if isPath defined
@@ -41,10 +41,60 @@
     else if defined != null
     then throw "paths.${name} must be a path or non-empty string, got ${typeOf defined}"
     else src + "/${concatStringsSep "/" resolvedStem}";
+
+  importModules = input: let
+    inherit (builtins) attrNames filter readDir pathExists listToAttrs isFunction isPath isString;
+
+    isDirectPath = isPath input || isString input;
+    path =
+      if isDirectPath
+      then input
+      else input.path;
+    args =
+      if isDirectPath
+      then {}
+      else (input.args or {});
+
+    callImport = target: let
+      exec = import target;
+    in
+      if isFunction exec
+      then exec args
+      else exec;
+  in
+    if !pathExists (path + "/.")
+    then callImport path
+    else let
+      data = readDir path;
+
+      isLoadable = name:
+        name
+        != "nix"
+        && data.${name} == "directory"
+        && pathExists (path + "/${name}/default.nix");
+
+      base =
+        if pathExists (path + "/nix/default.nix")
+        then callImport (path + "/nix")
+        else {};
+
+      others = listToAttrs (map (name: {
+        inherit name;
+        value = callImport (path + "/${name}");
+      }) (filter isLoadable (attrNames data)));
+    in
+      base // others;
+
+  modules = importModules {
+    inherit args;
+    path = src;
+  };
+
+  sourceLib = import ./.;
 in
   import
   (resolvePath {
     name = "lib";
     stem = ["Libraries" "nix"];
   })
-  (args // {mkArgs = import ./.;})
+  (args // {inherit importModules sourceLib modules;})
