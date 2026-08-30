@@ -109,6 +109,7 @@
     };
   };
   required = [
+    ["paths" "src"]
     ["stateVersion"]
     ["system"]
     ["class"]

@@ -5,12 +5,7 @@
 }: let
   __exports = {
     namespaced = {
-      inherit
-        access
-        combinators
-        predicates
-        primitives
-        ;
+      inherit access combinators predicates primitives;
     };
     flattened = {} // access // combinators // predicates // primitives // {};
   };

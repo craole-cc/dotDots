@@ -88,16 +88,13 @@
     // (mkUtilities args);
 
   mkLib = {
-    src ? ../../..,
+    src ? _defaults.paths.src.store or ../../..,
     lib ? null,
     flake ? {},
     target ? null,
+    host ? target,
   }:
-    import (src + "/Libraries/nix") {
-      inherit lib flake target;
-      host = target;
-      inherit src;
-    };
+    import src {inherit lib flake host src;};
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
   hostsByClass = {

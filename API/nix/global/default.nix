@@ -15,10 +15,10 @@
 
   paths = {
     roots = {
-      core.local = "";
-      home.local = {var = "HOME";};
-      base.local = "/";
-      xdg.local = {var = "HOME";};
+      core = "";
+      home = {var = "HOME";};
+      base = "/";
+      xdg = {var = "HOME";};
     };
 
     stems = {

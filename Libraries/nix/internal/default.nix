@@ -1,9 +1,9 @@
 {
   api,
   config,
-  flake ? null,
   host ? target,
   lib,
+  mkLib,
   names,
   target ? null,
   paths,
@@ -48,67 +48,35 @@
 
   bootstrap = mkLibrary {};
 
-  mkLib = args:
-    bootstrap.modules.construction.mkLib (args // {src = paths.core.src.store;});
-
   extraArgs = let
-    inherit (bootstrap.attrsets.access) attrNamesHead;
     inherit (bootstrap.schema.construction) mkSchema;
-    inherit (bootstrap.strings.access) getEnvOr;
 
-    base = mkSchema args.api;
-    targetName =
+    base = mkSchema api;
+
+    host' =
       if isString host
-      then host
+      then base.hosts.${host} or base.hosts.default
       else if isAttrs host
-      then host.name or null
-      else null;
-    schemaHost =
-      if targetName != null
-      then base.hosts.${targetName} or {}
-      else let
-        name = getEnvOr "HOSTNAME" (attrNamesHead base.hosts);
-      in
-        base.hosts.${name} or {};
-    resolvedHost =
-      if isAttrs host
-      then recursiveUpdate schemaHost host
-      else schemaHost;
-    user = let
-      name = getEnvOr "USER" (resolvedHost.users.primary.name or "");
-    in
-      resolvedHost.users.all.${name} or null;
+      then recursiveUpdate (base.hosts.${host.name or "default"} or base.hosts.default) host
+      else base.hosts.default;
+
+    user' = base.users.${host'.users.primary.name or ""} or base.users.default;
     schema =
       base
       // {
-        hosts = base.hosts // {default = resolvedHost;};
-        users = base.users // {default = user;};
+        hosts = base.hosts // {default = host';};
+        users = base.users // {default = user';};
       };
   in
     args
     // {
       inherit schema;
-      host = resolvedHost;
-      target = host;
-      inherit mkLib;
+      host = schema.hosts.default;
     };
 
-  inherit (default.sources.packages) mkAll;
   default = mkLibrary extraArgs;
-  named = {
-    ${args.names.lib} = default;
-  };
-  libraries =
-    {
-      inherit default;
-    }
-    // named;
+  named = {${names.lib} = default;};
+  libraries = {inherit default;} // named;
+  inherit (default.sources.packages) mkAll;
 in
-  mkAll (
-    extraArgs
-    // {
-      inherit libraries mkLib;
-    }
-    // named
-  )
-  // {inherit host target mkLib;}
+  mkAll (extraArgs // {inherit libraries;} // named)

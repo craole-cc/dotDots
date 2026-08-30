@@ -27,16 +27,22 @@
   ],
   flake ? {},
   lib ? null,
-  names ? null,
-  stems ? {},
+  names ? {
+    src = "dots";
+    top = "_";
+    lib = "lix";
+  },
+  paths ? {
+    src = ../../.;
+    lib = ./.;
+  },
   target ? null,
   host ? target,
   allowAliases ? false,
   allowTests ? false,
-  src ? ../../.,
-  self ? ./.,
+  stems ? {},
   ...
-}: let
+} @ args: let
   inherit
     (builtins)
     attrNames
@@ -57,6 +63,7 @@
     substring
     tail
     toJSON
+    typeOf
     ;
 
   getEnvOr = key: fallback: let
@@ -65,6 +72,22 @@
     if value == ""
     then fallback
     else value;
+
+  attrNamesHead = set: let
+    err = {
+      isNull = "attrNamesHead: set is null";
+      notAttrs = "attrNamesHead: argument is not an attribute set (got ${typeOf set})";
+      isEmpty = "attrNamesHead: set is empty";
+    };
+    attrs = attrNames set;
+  in
+    if set == null
+    then throw err.isNull
+    else if !isAttrs set
+    then throw err.notAttrs
+    else if attrs == []
+    then throw err.isEmpty
+    else head attrs;
 
   /**
   Deduplicates items in a list without external lib dependencies
@@ -83,27 +106,15 @@
   in
     acc list [];
 
-  namesSrc =
-    if names != null && names ? src && names.src != null
-    then names.src
-    else if flake == null
-    then "dots"
-    else flake.name or "dots";
-
-  localHome =
-    if flake != null && flake ? home && flake.home != null
-    then flake.home
-    else getEnvOr "PWD" (toString src);
-
   toUpper =
-    if lib == null
-    then
+    if lib ? strings.toUpper
+    then lib.strings.toUpper
+    else
       value:
         replaceStrings
         ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"]
         ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
-        value
-    else lib.strings.toUpper;
+        value;
 
   /**
   Recursive deep merge without allocating temporary sets for key scanning
@@ -139,27 +150,25 @@
     list;
 
   asAttrs = arg: let
-    #? Heuristic to determine if the argument is our kwargs structure
-    #? If the attrset contains any of our reserved keys, treat it as kwargs
-    isKwargs = isAttrs arg && (arg ? condition || arg ? name || arg ? value);
-
-    #> Extract properties with fallbacks
+    isKwargs =
+      isAttrs arg
+      && (arg ? condition || arg ? name || arg ? value);
     condition =
-      if isKwargs && arg ? condition
-      then arg.condition
-      else true; # Default to true if omitted
+      if isKwargs
+      then arg.condition or true
+      else true;
     name =
-      if isKwargs && arg ? name
-      then arg.name
+      if isKwargs
+      then arg.name or null
       else null;
     value =
-      if isKwargs && arg ? value
-      then arg.value
+      if isKwargs
+      then arg.value or arg
       else arg;
   in
     if
       condition
-      && (value != null && isAttrs value && value != {})
+      && (isAttrs value && value != {})
     then
       if name != null
       then {"${name}" = value;}
@@ -182,100 +191,72 @@
     && (value ? legacyPackages || value ? packages);
 
   mkPath = {
-    root,
+    root, # single local value
     stem,
     vars ? [],
     envPrefix ? null,
     envSegments ? [],
   }: let
     isVar = value:
-      isAttrs value
-      && value ? var
-      && isString value.var;
+      isAttrs value && value ? var && isString value.var;
 
-    normalize = part: let
-      normalizeSegment = segment:
-        if isString segment || isPath segment
-        then toString segment
-        else if isVar segment
-        then
-          if elem segment.var vars
-          then getEnvOr segment.var "\${${segment.var}}"
-          else
-            throw ''
-              mkPath: unknown variable "${segment.var}".
-              Allowed variables: ${toJSON vars}
-            ''
-        else throw "mkPath: unsupported path segment: ${toJSON segment}";
+    normalizeSegment = segment: let
+      err = {
+        unknownVar = ''
+          mkPath: unknown variable "${segment.var}".
+          Allowed variables: ${toJSON vars}
+        '';
+        unsupported = "mkPath: unsupported path segment: ${toJSON segment}";
+      };
     in
+      if isString segment || isPath segment
+      then toString segment
+      else if isVar segment
+      then
+        if elem segment.var vars
+        then getEnvOr segment.var "\${${segment.var}}"
+        else throw err.unknownVar
+      else throw err.unsupported;
+
+    normalize = part:
       if isList part
       then concatStringsSep "/" (map normalizeSegment part)
       else normalizeSegment part;
 
-    storeRoot =
-      if isAttrs root && root ? store
-      then root.store
-      else null;
-    localRoot =
-      if isAttrs root && root ? local
-      then root.local
-      else if storeRoot == null
-      then root
-      else null;
-
-    root' =
-      if localRoot == null
-      then null
-      else normalize localRoot;
+    root' = normalize root;
     stem' = normalize stem;
 
-    absolute =
-      (stem' != "")
-      && substring 0 1 stem' == "/";
-    join = root:
-      if root == null
-      then null
-      else if absolute
+    absolute = stem' != "" && substring 0 1 stem' == "/";
+
+    join = base:
+      if absolute
       then stem'
-      else if root == ""
+      else if base == ""
       then stem'
       else if stem' == ""
-      then root
-      else if root == "/"
+      then base
+      else if base == "/"
       then "/${stem'}"
-      else "${root}/${stem'}";
+      else "${base}/${stem'}";
 
-    store = join (
-      if storeRoot == null
-      then null
-      else normalize storeRoot
-    );
-    local = join (
-      if localRoot == null
-      then null
-      else root'
-    );
-    envRoot =
-      if isVar localRoot
-      then localRoot
-      else null;
-    envName =
-      concatStringsSep "_"
+    paths = {
+      local = join root';
+      store = join root';
+    };
+
+    env = concatStringsSep "_" (
       (
-        (
-          if envPrefix == null
-          then []
-          else [
-            (toUpper (replaceStrings ["-"] ["_"] envPrefix))
-          ]
-        )
-        ++ map (segment: toUpper (replaceStrings ["-"] ["_"] segment))
-        (filter (segment: segment != "default") envSegments)
-      );
-  in {
-    inherit stem store local;
-    env = envName;
-  };
+        if envPrefix == null
+        then []
+        else [
+          (toUpper (replaceStrings ["-"] ["_"] envPrefix))
+        ]
+      )
+      ++ map (s: toUpper (replaceStrings ["-"] ["_"] s))
+      (filter (s: s != "default") envSegments)
+    );
+  in
+    {inherit stem env;} // paths;
 
   mkTree = {
     vars ? [],
@@ -283,20 +264,12 @@
     roots,
     paths ? {},
   }: let
-    isVar = value:
-      isAttrs value
-      && value ? var
-      && isString value.var;
+    err = {
+      missingRoot = key: "mkTree: missing root for domain '${key}'";
+    };
 
-    normalizeRoot = root:
-      if
-        isAttrs root
-        && !isVar root
-        && (root ? store || root ? local)
-      then root
-      else {
-        local = root;
-      };
+    isVar = value:
+      isAttrs value && value ? var && isString value.var;
 
     mk = {
       domain,
@@ -307,8 +280,7 @@
     }:
       if isAttrs stem && !isVar stem
       then
-        mapAttrs
-        (
+        mapAttrs (
           key: stem:
             mk {
               inherit domain domainName stem;
@@ -324,65 +296,59 @@
           envPrefix =
             if domainName == "base"
             then null
-            else namesSrc;
+            else defined.names.src or derived.names.src;
           inherit envSegments;
         };
         merged = mergeAttrs generated (asAttrs overrides);
       in
         merged // {inherit (generated) env;};
 
-    inputPaths = paths;
-    inputRoots = roots;
+    tree = {
+      inherit stems;
 
-    resolvedRoots =
-      mapAttrs
-      (
-        key: _:
-          if inputRoots ? ${key}
-          then normalizeRoot inputRoots.${key}
-          else throw "mkTree: missing root for domain '${key}'"
-      )
-      stems;
+      roots =
+        mapAttrs (
+          key: _:
+            if roots ? ${key}
+            then roots.${key}
+            else throw (err.missingRoot key)
+        )
+        stems;
 
-    built =
-      mapAttrs
-      (
-        key: stem:
-          mk {
-            inherit stem;
-            domain = resolvedRoots.${key};
-            domainName = key;
-            overrides = inputPaths.${key} or {};
-          }
-      )
-      stems;
+      build =
+        mapAttrs (
+          key: stem:
+            mk {
+              inherit stem;
+              domain = tree.roots.${key};
+              domainName = key;
+              overrides = paths.${key} or {};
+            }
+        )
+        stems;
 
-    flattenStore = node:
-      if isAttrs node && node ? store
-      then node.store
-      else mapAttrs (_: flattenStore) node;
-    collectVariables = node:
-      if isAttrs node && node ? env && node ? local
-      then {${node.env} = node.local;}
-      else if isAttrs node
-      then foldl' (acc: key: acc // collectVariables node.${key}) {} (attrNames node)
-      else {};
-    resolvedPaths = built // (flattenStore built.core);
-  in
-    {
-      roots = resolvedRoots;
-      variables =
-        collectVariables built
+      paths = tree.build;
+
+      variables = let
+        collect = node:
+          if isAttrs node && node ? env && node ? local
+          then {${node.env} = node.local;}
+          else if isAttrs node
+          then foldl' (acc: key: acc // collect node.${key}) {} (attrNames node)
+          else {};
+        src = defined.names.src or derived.names.src;
+      in
+        collect tree.build
         // (
-          if built ? core && built.core ? src && built.core.src ? local
-          then {${toUpper namesSrc} = built.core.src.local;}
+          if tree.build ? core.src.local
+          then {${toUpper src} = tree.build.core.src.local;}
           else {}
         );
-      inherit stems;
-    }
-    // resolvedPaths;
+    };
+  in
+    {inherit (tree) roots stems variables;} // tree.paths;
 
-  derived = {
+  derived = mergeAttrs args {
     config = {
       inherit allowAliases allowTests collisionStrategy;
       exclusions = {
@@ -399,37 +365,41 @@
       src = names.src or (flake.name or "dots");
     };
 
-    paths = mkTree {
-      roots.core = {
-        store = src;
-        local = localHome;
+    paths = let
+      src = args.paths.src or (paths.src or ../../.);
+      self = args.paths.lib or (paths.lib or ../../.);
+    in
+      mkTree {
+        roots.core =
+          if flake != null && flake ? home && flake.home != null
+          then flake.home
+          else getEnvOr "PWD" (toString src);
+
+        stems.core = {
+          src = [];
+
+          lib = let
+            str = {
+              src = toString src;
+              lib = toString self;
+            };
+
+            relative =
+              if str.src == str.lib
+              then ""
+              else
+                substring
+                (stringLength str.src + 1)
+                (stringLength str.lib - stringLength str.src - 1)
+                str.lib;
+          in
+            if relative == ""
+            then []
+            else filter isString (split "/" relative);
+
+          api = ["API" "nix"];
+        };
       };
-
-      stems.core = {
-        src = [];
-
-        lib = let
-          str = {
-            src = toString src;
-            lib = toString self;
-          };
-
-          relative =
-            if str.src == str.lib
-            then ""
-            else
-              substring
-              (stringLength str.src + 1)
-              (stringLength str.lib - stringLength str.src - 1)
-              str.lib;
-        in
-          if relative == ""
-          then []
-          else filter isString (split "/" relative);
-
-        api = ["API" "nix"];
-      };
-    };
 
     flake = let
       core =
@@ -469,16 +439,62 @@
         && derived.flake.inputs ? nixpkgs
       then derived.flake.inputs.nixpkgs.lib
       else import <nixpkgs/lib>;
+
+    api = let
+      base = import derived.paths.core.api.store;
+      inherit (base) hosts users;
+
+      host' = let
+        default = getEnvOr "HOSTNAME" (attrNamesHead hosts);
+
+        err = {
+          unknown = name: "Unknown host targeted: ${name}";
+          missingKeys = "Target host attribute set missing required keys (`paths.src`, `stateVersion`)";
+          invalidType = "The target host must be an attribute set, host name, or null (got ${typeOf host})";
+        };
+
+        lookup = name: hosts.${name} or (throw (err.unknown name));
+      in
+        if host == null
+        then lookup default
+        else if isString host
+        then lookup host
+        else if isAttrs host
+        then
+          if host ? paths.src && host ? stateVersion
+          then host
+          else throw err.missingKeys
+        else throw err.invalidType;
+
+      user' = let
+        err = {
+          unknown = name: "Unknown user targeted: ${name}";
+          undefined = "Unable to determine host user from configuration";
+        };
+
+        name = getEnvOr "USER" (
+          host'.users.primary.name or (
+            if (host'.principals or []) != []
+            then (head host'.principals).name
+            else throw err.undefined
+          )
+        );
+      in
+        users.${name} or (throw (err.unknown name));
+    in
+      base
+      // {
+        hosts = hosts // {default = host';};
+        users = users // {default = user';};
+      };
   };
 
-  defined = {
-    api = import derived.paths.core.api.store;
+  defined = let
+    inherit (derived.api) global hosts;
+  in {
     paths = mkTree {
-      vars = defined.api.global.vars;
-
+      inherit (global) vars;
       stems = let
-        base = defined.api.global.paths.stems;
-
         assertMatch = name: value: let
           bootstrap = derived.paths.stems.core.${name};
         in
@@ -498,22 +514,30 @@
               against api.global.paths.stems.core.${name}.
             '';
 
-        core =
-          base.core
-          // {
+        base = global.paths.stems;
+        core = let
+          extra = {
             src = derived.paths.stems.core.src;
-            api = base.core.api // {default = assertMatch "api" base.core.api.default;};
-            lib = base.core.lib // {default = assertMatch "lib" base.core.lib.default;};
+            api =
+              base.core.api
+              // {default = assertMatch "api" base.core.api.default;};
+            lib =
+              base.core.lib
+              // {default = assertMatch "lib" base.core.lib.default;};
           };
+        in
+          base.core // extra;
       in
         mergeAttrs (base // {inherit core;}) stems;
 
       roots = let
-        base = defined.api.global.paths.roots;
-        core = {
-          store = src;
-          local = localHome;
-        };
+        base = global.paths.roots;
+        core =
+          if host != null && isString host && hosts ? ${host} && hosts.${host} ? paths.src
+          then hosts.${host}.paths.src
+          else if host != null && isAttrs host && host ? paths.src
+          then host.paths.src
+          else derived.paths.roots.core;
       in
         base // {inherit core;};
     };
