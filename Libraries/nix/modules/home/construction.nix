@@ -61,7 +61,8 @@
     specialArgs,
     inputs,
     modules,
-    tree,
+    tree ? {},
+    ...
   }: {
     home-manager = {
       backupFileExtension = "hm-backup";

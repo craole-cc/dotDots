@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  _defaults,
+  ...
+}: let
   __exports = {
     internal = {
       inherit mkSchema;
@@ -12,12 +16,11 @@
     external = {inherit mkSchema;};
   };
 
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.filesystem.traversal) importAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
-  inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.attrsets.aggregation) recursiveUpdate;
-
-  # Import access utilities required for host resolution
   inherit (_.strings.access) getEnvOr;
   inherit (_.types.access) headOf;
 
@@ -33,7 +36,8 @@
   A fully hydrated schema attrset with active `default` pointers and `raw` fallbacks.
   */
   mkSchema = {
-    api,
+    api ? (importAttrs paths.core.api.default.store).value,
+    paths ? _defaults.paths,
     args ? {},
   }: let
     raw = {

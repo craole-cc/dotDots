@@ -80,6 +80,13 @@
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
+  sourceArgs = {
+    paths ? _defaults.paths,
+    host,
+    ...
+  } @ args:
+    import paths.core.src.store (args // {inherit host;});
+
   mkFlake = lib:
     {inherit lib;}
     // (mkConfigurations lib)
@@ -96,18 +103,15 @@
     flake,
     inputs,
     paths,
-    mkArgs,
     libraries,
     names,
     # stems,
     ...
   } @ args: let
-    argsOf = host: mkArgs args // {inherit host;};
-
     types = let
       of = class:
         hostsByClass {
-          inherit (mkSchema paths) hosts;
+          inherit (mkSchema {}) hosts;
           inherit class;
         };
     in {
@@ -154,7 +158,7 @@
       `host.class == "darwin"`.
     */
     mkSystem = host: let
-      hostArgs = mkArgs args // {inherit host;};
+      hostArgs = sourceArgs (args // {inherit host;});
       class = host.class or "nixos";
       # hostLib = libForHost host;
       # lib = hostLib;
@@ -163,10 +167,13 @@
         (hostArgs // {args = hostArgs;})
         ["lib"]; # TODO: Do this in libraries/internal/default
 
-      inherit (specialArgs) tree;
+      # inherit (specialArgs) tree;
 
       classified = modulesOf class;
-      core = mkCore (recursiveUpdate hostArgs {modules = classified;});
+      core = mkCore (recursiveUpdate hostArgs {
+        inherit specialArgs;
+        modules = classified;
+      });
 
       evaluated = evalModules {
         specialArgs =
@@ -180,7 +187,8 @@
           ++ classified.core
           ++ core
           ++ (host.imports or [])
-          ++ [tree.store.mod.core]
+          ++ [paths.core.mod.default.store]
+          # ++ [paths.store.mod.core]
           ++ [{config._module.args = specialArgs;}];
       };
     in
@@ -194,7 +202,7 @@
     */
     mkManager = name: host: let
       inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
-      hostArgs = argsOf host;
+      hostArgs = sourceArgs (args // {inherit host;});
       specialArgs = hostArgs // {lib = extend (_self: _super: {inherit hm;});};
       users = let
         specs = mkUsers {
@@ -267,9 +275,10 @@
   */
   mkUtilities = {
     flake,
-    inputs,
-    hosts ? _defaults.schema.hosts or {},
-    paths,
+    inputs ? {},
+    hosts ? schema.hosts or {},
+    paths ? _defaults.paths or {},
+    schema ? _defaults.schema or {},
     ...
   } @ args: let
     systems = getSystems {

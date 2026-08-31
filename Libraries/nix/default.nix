@@ -10,7 +10,7 @@
   allowTests ? false,
   src ? ../../.,
   self ? ./.,
-  host ? schema.hosts.default or {},
+  host ? {},
   schema ? {},
   ...
 } @ args: let
@@ -18,6 +18,7 @@
     inherit
       (builtins)
       attrNames
+      concatStringsSep
       elem
       foldl'
       head
@@ -27,6 +28,31 @@
       substring
       tail
       ;
+
+    mkCorePaths = name:
+      listToAttrs (map (key: {
+          name = key;
+          value = let
+            stems = derived.schema.global.paths.stems.core.${name} or {};
+            stem = stems.${key};
+            store =
+              args.paths.core.${name}.${key}.store
+            or (src + ("/" + concatStringsSep "/" stem));
+          in {
+            inherit store;
+            local = toPathStem {
+              root = src;
+              base = derived.host.paths.src or (toString src);
+              self = store;
+            };
+          };
+        }) (
+          attrNames (
+            removeAttrs
+            (derived.schema.global.paths.stems.core.${name} or {})
+            ["base"]
+          )
+        ));
 
     toPathStem = {
       root ? null,
@@ -160,18 +186,15 @@
           else null
         else null;
 
-      eval = {
+      update = {
         inputs = flake.inputs // {nixpkgs = flake.inputs.${core};};
-        # if core != null && core != "nixpkgs"
-        # then flake.inputs // {nixpkgs = flake.inputs.${core};}
-        # else flake.inputs or {};
         name = flake.name or name;
         path = flake.path or path;
-        home = flake.path or home;
+        home = flake.home or home;
       };
     in
       if core != null
-      then flake // eval
+      then flake // update
       else null;
 
     normalizeLib = {
@@ -197,7 +220,7 @@
         else {}
       );
   };
-  inherit (utils) normalizeFlake normalizeLib mergeAttrsRecursive toPathStem;
+  inherit (utils) normalizeFlake normalizeLib mergeAttrsRecursive toPathStem mkCorePaths;
 
   derived = {
     flake = normalizeFlake {inherit flake;};
@@ -219,22 +242,45 @@
       };
     };
 
-    paths.core = let
-      root = host.paths.src or (toString src);
-    in {
-      src = {
-        store = src;
-        local = root;
-      };
-      lib.default = {
-        store = self;
-        local = toPathStem {
-          root = src;
-          base = root;
-          self = self;
+    paths = mergeAttrsRecursive (args.paths or {}) {
+      core = let
+        root = host.paths.src or (toString src);
+      in {
+        src = {
+          store = src;
+          local = root;
         };
+        lib =
+          (mkCorePaths "lib")
+          // {
+            default = {
+              store = self;
+              local = toPathStem {
+                root = src;
+                base = root;
+                self = self;
+              };
+            };
+          };
+        api = mkCorePaths "api";
+        mod = mkCorePaths "mod";
       };
     };
+
+    host =
+      if host != {}
+      then host
+      else derived.schema.hosts.default or {};
+
+    schema =
+      if schema != null
+      then schema
+      else
+        internal.schema.construction.mkSchema {
+          inherit args;
+          api = (internal.filesystem.traversal.importAttrs args.paths.core.api.default.store).value;
+          paths = args.paths or {};
+        };
   };
 
   context = let
@@ -243,5 +289,7 @@
       // {seed = extra: import ./internal (mergeAttrsRecursive self extra);};
   in
     self;
+
+  internal = import ./internal context;
 in
-  (import ./internal context) // {inherit context;}
+  internal // {inherit context;}

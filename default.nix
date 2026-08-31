@@ -1,18 +1,20 @@
 {...} @ args: let
-  paths = {
-    api = ./API/nix;
-    lib = ./Libraries/nix;
+  paths.core = {
+    src.store = args.paths.src.store or ./.;
+    api.default.store = args.paths.api.default.store or ./API/nix;
+    lib.default.store = args.paths.lib.default.store or ./Libraries/nix;
   };
 
-  _ =
-    (import paths.lib (
-      removeAttrs args ["schema" "host"]
-    )).libraries.default;
+  init =
+    import paths.core.lib.default.store
+    (args // {inherit paths;});
 
-  inherit (_.filesystem.traversal) importAttrs;
-  inherit (_.schema.construction) mkSchema;
+  schema =
+    init.libraries.default.schema.construction.mkSchema
+    {inherit args;};
 
-  api = (importAttrs paths.api).value;
-  schema = mkSchema {inherit api args;};
+  eval =
+    import paths.core.lib.default.store
+    (args // {inherit paths schema;});
 in
-  import paths.lib (args // {inherit schema;})
+  eval
