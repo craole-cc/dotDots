@@ -29,12 +29,23 @@
       ;
 
     toPathStem = {
-      root,
+      root ? null,
+      src ? null,
       self,
+      base ? null,
     }: let
+      root' =
+        if root != null
+        then root
+        else src;
+      base' =
+        if base != null
+        then base
+        else root';
+
       str = {
         root = let
-          str = toString root;
+          str = toString root';
         in
           if substring (stringLength str - 1) 1 str == "/"
           then str
@@ -42,10 +53,22 @@
 
         path = toString self;
       };
+
+      stem = let
+        stem =
+          if substring 0 (stringLength str.root) str.path == str.root
+          then substring (stringLength str.root) (-1) str.path
+          else str.path;
+
+        first = substring 0 1 stem;
+      in
+        if first == "/"
+        then substring 1 (stringLength stem - 1) stem
+        else stem;
     in
-      if substring 0 (stringLength str.root) str.path == str.root
-      then substring (stringLength str.root) (-1) str.path
-      else str.path;
+      if stem == ""
+      then toString base'
+      else toString base' + "/" + stem;
 
     unique = list: let
       acc = list: seen:
@@ -195,7 +218,7 @@
         patterns = excludedPatterns;
       };
     };
-    host = host;
+
     paths.core = let
       root = host.paths.src or (toString src);
     in {
@@ -205,12 +228,11 @@
       };
       lib.default = {
         store = self;
-        local = let
-          stem = toPathStem {inherit root self;};
-        in
-          if stem != "" && stem != toString self
-          then root + "/" + stem
-          else toString self;
+        local = toPathStem {
+          root = src;
+          base = root;
+          self = self;
+        };
       };
     };
   };

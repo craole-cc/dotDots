@@ -1,37 +1,18 @@
 {...} @ args: let
-  cleanArgs = removeAttrs args ["schema" "host"];
+  paths = {
+    api = ./API/nix;
+    lib = ./Libraries/nix;
+  };
 
-  # 1. Force bootstrap args to use the local workspace root instead of store paths
-  bootArgs =
-    cleanArgs
-    // {
-      src = ./.;
-      self = ./.;
-    };
+  _ =
+    (import paths.lib (
+      removeAttrs args ["schema" "host"]
+    )).libraries.default;
 
-  boot = (import ./Libraries/nix bootArgs).libraries.default;
-  inherit (boot.filesystem.traversal) importAttrs;
-  inherit (boot.schema.construction) mkSchema;
+  inherit (_.filesystem.traversal) importAttrs;
+  inherit (_.schema.construction) mkSchema;
 
-  api = (importAttrs ./API/nix).value;
+  api = (importAttrs paths.api).value;
   schema = mkSchema {inherit api args;};
-  host = schema.hosts.default;
-
-  # Ensure resolvedFlake defaults to an empty set if null
-  resolvedFlake = cleanArgs.flake or (cleanArgs.self or {});
-  safeFlake =
-    if resolvedFlake == null
-    then {}
-    else resolvedFlake;
 in
-  import ./Libraries/nix (bootArgs
-    // {
-      inherit schema host;
-      src = host.paths.src;
-      self = host.paths.src;
-      flake =
-        safeFlake
-        // {
-          home = host.paths.src;
-        };
-    })
+  import paths.lib (args // {inherit schema;})
