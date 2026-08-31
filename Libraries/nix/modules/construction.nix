@@ -164,7 +164,11 @@
       # lib = hostLib;
       specialArgs =
         removeAttrs
-        (hostArgs // {args = hostArgs;})
+        (hostArgs
+          // {
+            args = hostArgs;
+            inherit (hostArgs.names) top; # TODO: I know we shouldn't need to do this
+          })
         ["lib"]; # TODO: Do this in libraries/internal/default
 
       # inherit (specialArgs) tree;
@@ -188,7 +192,6 @@
           ++ core
           ++ (host.imports or [])
           ++ [paths.core.mod.default.store]
-          # ++ [paths.store.mod.core]
           ++ [{config._module.args = specialArgs;}];
       };
     in

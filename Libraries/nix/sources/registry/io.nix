@@ -8,7 +8,7 @@
       importer with a predictable name and keeps the rest of the registry logic
       in the construction/resolution helpers.
 
-      Depends on: filesystem.importers.importRegistry.
+      Depends on: filesystem.traversal.importRegistry.
     '';
 
     exports = let
@@ -29,7 +29,7 @@
     inherit doc exports;
   };
 
-  inherit (_.filesystem.importers) importRegistry;
+  inherit (_.filesystem.traversal) importRegistry;
 in
   with meta.exports;
     internal

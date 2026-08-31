@@ -64,5 +64,5 @@ in {
     };
   };
 
-  imports = lix.filesystem.importers.importAll ./.;
+  imports = (lix.filesystem.traversal ./.).value;
 }

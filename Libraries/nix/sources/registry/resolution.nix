@@ -8,7 +8,7 @@
       are intentionally generic so application-style and style-style registries
       can share the same source seeding and selection layer.
 
-      Depends on: filesystem.importers.importRegistry, attrsets.access,
+      Depends on: filesystem.traversal.importRegistry, attrsets.access,
       lists.aggregation, lists.selection, lists.transformation,
       debug.assertions, types.predicates.
     '';
@@ -48,7 +48,7 @@
   inherit (_.attrsets.access) getAttr;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.debug.assertions) withContext;
-  inherit (_.filesystem.importers) importRegistry;
+  inherit (_.filesystem.traversal) importRegistry;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.lists.access) head tail;

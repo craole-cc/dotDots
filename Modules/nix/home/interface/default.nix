@@ -1,4 +1,4 @@
-{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
+{lix, ...}: {imports = (lix.filesystem.traversal ./.).value;}
 # {
 #   lib,
 #   lix,
@@ -6,7 +6,7 @@
 #   ...
 # }: let
 #   inherit (builtins) filter;
-#   imports = lix.filesystem.importers.importAllPaths ./.;
+#   imports = lix.filesystem.traversal.importAllPaths ./.;
 #   hasCaelestia = inputs.caelestia ? homeManagerModules;
 #   hasNoctalia = inputs.noctalia-shell ? homeModules;
 #   hasQuickshell = inputs.quickshell ? packages;
@@ -20,4 +20,3 @@
 #     )
 #     imports;
 # }
-

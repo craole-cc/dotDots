@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (lix.attrsets.resolution) package;
-  inherit (lix.filesystem.importers) importAll;
+  inherit (lix.filesystem.traversal) importAll;
 in {
   home = {
     inherit (host) stateVersion;
@@ -20,5 +20,5 @@ in {
     ) (user.shells or []);
   };
 
-  imports = importAll ./.;
+  imports = (importAll ./.).value;
 }

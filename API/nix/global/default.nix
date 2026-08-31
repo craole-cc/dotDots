@@ -8,7 +8,7 @@
     alpha = "craole";
   };
 
-  config = {
+  settings = {
     lib = {
       collisionStrategy = "warn";
       allowAliases = false;

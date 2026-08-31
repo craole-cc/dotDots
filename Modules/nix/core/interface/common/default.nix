@@ -1,7 +1,7 @@
 {lix, ...}: let
-  inherit (lix.filesystem.importers) importAllPaths;
+  inherit (lix.filesystem.traversal) importAllPaths;
 in {
-  imports = importAllPaths ./.;
+  imports = (importAllPaths ./.).value;
 
   # config={};
 }

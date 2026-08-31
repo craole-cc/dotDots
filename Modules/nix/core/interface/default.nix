@@ -2,7 +2,7 @@
   # config,
   ...
 }: {
-  # imports = lix.filesystem.importers.importAllPaths ./.;
+  # imports = lix.filesystem.traversal.importAllPaths ./.;
   imports = [
     ./common
     ./config.nix

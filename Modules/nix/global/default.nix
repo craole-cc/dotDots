@@ -12,14 +12,15 @@ global: let
   local = import ./shared global;
   args = recursiveUpdate global local;
 
-  shells = importAllNamed {
-    inherit args;
-    dir = ./.;
-    exclude = [
-      "shared"
-      "fmt"
-    ];
-  };
+  shells =
+    (importAllNamed {
+      inherit args;
+      dir = ./.;
+      exclude = [
+        "shared"
+        "fmt"
+      ];
+    }).value;
 
   inherit (args) fetch mkName print;
   inherit (shells) core;

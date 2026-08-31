@@ -45,7 +45,7 @@
   init = let
     module = {
       _module.args = {inherit lix flake;} // utils;
-      imports = importAllPaths ./.;
+      imports = (importAllPaths ./.).value;
       projectRootFile = "flake.nix";
 
       settings.global.excludes = [

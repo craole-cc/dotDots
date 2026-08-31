@@ -233,7 +233,7 @@
       src = names.src or (flake.name or "dots");
     };
 
-    config = {
+    settings = {
       inherit allowAliases allowTests collisionStrategy;
       exclusions = {
         dirs = excludedDirs;

@@ -6,7 +6,7 @@
       Exposes the low-level registry importer used to read source trees into
       attribute sets for higher source-registry layers.
 
-      Depends on: filesystem.importers.importRegistry.
+      Depends on: filesystem.traversal.importRegistry.
 
     '';
 

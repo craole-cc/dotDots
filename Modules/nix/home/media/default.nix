@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  imports = lix.filesystem.importers.importAll ./.;
+  imports = (lix.filesystem.traversal ./.).value;
   home.packages = with pkgs; [
     # karere
     gImageReader

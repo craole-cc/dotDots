@@ -1,5 +1,5 @@
 {
-  config,
+  settings,
   lib,
   names,
   paths,
@@ -7,11 +7,11 @@
   ...
 } @ args: let
   inherit (lib.fixedPoints) makeExtensible;
-  inherit (config) allowAliases allowTests exclusions;
+  inherit (settings) allowAliases allowTests exclusions;
 
   handleCollisions = import ./collisions.nix {
     inherit lib;
-    inherit (config) collisionStrategy;
+    inherit (settings) collisionStrategy;
   };
 
   assembleLibrary = library:

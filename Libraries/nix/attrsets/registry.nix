@@ -8,7 +8,7 @@
       processing, validated registry lookup, registry-derived identification
       metadata, and shared resolution helpers used by higher style layers.
 
-      Depends on: filesystem.importers.
+      Depends on: filesystem.traversal.
     '';
     functions = {
       inherit
@@ -43,7 +43,7 @@
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.content.emptiness) isEmpty isNotEmpty;
   inherit (_.debug.assertions) withContext;
-  inherit (_.filesystem.importers) importRegistry;
+  inherit (_.filesystem.traversal) importRegistry;
   inherit (_.lists.access) elemAt head length;
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.construction) optionals toList;
