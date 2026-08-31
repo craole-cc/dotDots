@@ -15,7 +15,7 @@
     flattened = {} // access // construction // predicates // transformation // {};
   };
 
-  inherit (lib) strings;
+  inherit (lib) strings trivial;
 
   access = {
     inherit
@@ -30,6 +30,7 @@
   };
 
   construction = {
+    inherit (builtins) hashString;
     inherit
       (strings)
       charToInt
@@ -65,6 +66,7 @@
       toUpper
       trim
       ;
+    inherit (trivial) toHexString;
   };
 
   predicates = {

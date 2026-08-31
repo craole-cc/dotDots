@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  projectPath,
+  ...
+}: let
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
@@ -13,7 +17,7 @@
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) flatten unique;
   inherit (_.strings.access) substring stringLength;
-  inherit (_.strings.construction) concat;
+  inherit (_.strings.construction) concat tokenize;
   inherit (_.strings.predicates) hasSuffix hasPrefix;
   inherit (_.types.predicates) isAttrs isPath isString;
 
@@ -50,6 +54,22 @@
   ];
 
   # -- helpers, shared by the non-importTree functions below
+
+  relativeStem = root: path: let
+    derived = {
+      root = toString root + "/";
+      path = toString path;
+    };
+  in
+    filter (str: str != "") (
+      tokenize "/" (
+        if
+          (substring 0 (stringLength derived.root) derived.path)
+          == derived.root
+        then substring (stringLength derived.root) (-1) derived.path
+        else derived.path
+      )
+    );
 
   /**
   Names of regular `.nix` files in `entries` (a `readDir` result),
@@ -153,7 +173,6 @@
   */
   importAttrs = args: let
     isAttrsArg = isAttrs args;
-
     dir = assert withContext {
       name = "importAttrs";
       context = "resolving `path`";
@@ -173,30 +192,75 @@
       else [];
 
     stemSoFar =
-      if isAttrsArg
-      then args.stemSoFar or []
-      else [];
+      if isAttrsArg && args ? stemSoFar
+      then args.stemSoFar
+      else relativeStem projectPath dir;
 
     entries = readDir dir;
+
     domainDefault =
       optionalAttrs
       (entries ? "default.nix")
       (import (dir + "/default.nix"));
 
-    walked = walkDirNamed {inherit dir exclude stemSoFar;};
+    # Child dirs, minus exclude (same idea as walkDirNamed)
+    childNames = filter (
+      name:
+        entries.${name}
+        == "directory"
+        && !(elem name exclude)
+        && !(elem name foldersToExclude)
+    ) (attrNames entries);
+
+    hasSubdirs = path: let
+      entries = readDir path;
+    in
+      any (entry: entries.${entry} == "directory") (attrNames entries);
+
+    loadChild = name: let
+      childPath = dir + "/${name}";
+    in
+      if hasSubdirs childPath
+      then
+        importAttrs {
+          path = childPath;
+          inherit exclude;
+          stemSoFar = stemSoFar ++ [name];
+        }
+      else {
+        value = recursiveUpdate domainDefault (import childPath);
+        stems = stemSoFar ++ [name];
+      };
+
+    walked =
+      map (name: {
+        inherit name;
+        raw = loadChild name;
+        stem = stemSoFar ++ [name];
+      })
+      childNames;
   in {
-    value = listToAttrs (
-      map (w: {
-        inherit (w) name;
-        value = recursiveUpdate domainDefault w.raw;
+    value =
+      if walked == []
+      then domainDefault
+      else
+        listToAttrs (
+          map
+          (walk: {
+            inherit (walk) name;
+            value = walk.raw.value;
+          })
+          walked
+        );
+
+    stems = listToAttrs (
+      map
+      (walk: {
+        inherit (walk) name;
+        value = walk.raw.stems;
       })
       walked
     );
-    stems = listToAttrs (map (w: {
-        inherit (w) name;
-        value = w.stem;
-      })
-      walked);
   };
 
   /**

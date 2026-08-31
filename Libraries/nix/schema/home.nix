@@ -1,22 +1,31 @@
-{lib, ...}: let
-  inherit
-    (lib.attrsets)
-    mapAttrs
-    listToAttrs
-    attrNames
-    attrValues
-    recursiveUpdate
-    filterAttrs
-    removeAttrs
-    ;
+{_, ...}: let
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.construction) listToAttrs;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.transformation) mapAttrs filterAttrs removeAttrs;
+  inherit (_.lists.access) head length;
+  inherit (_.lists.predicates) elem;
+  inherit (_.lists.transformation) sort;
+  inherit (_.strings.construction) hashToInt;
 
-  inherit
-    (lib.lists)
-    head
-    elem
-    sort
-    length
-    ;
+  mkUser = {
+    name,
+    user,
+  }:
+    user
+    // {
+      uid =
+        if (user.uid or null) != null
+        then user.uid
+        else
+          hashToInt {
+            seed = "users/${name}";
+            min = 1000;
+            max = 60000;
+          };
+    };
+
+  mkUsers = users: mapAttrs (name: user: mkUser {inherit name user;}) users;
 
   /**
   Role priority rankings used for primary user selection.
@@ -237,4 +246,4 @@
       elevated = length names.elevated;
     };
   in {inherit all autoLogin count elevated enabled interactive names primary;};
-in {inherit mkHome getPrincipals getAll;}
+in {inherit mkHome mkUser mkUsers getPrincipals getAll;}

@@ -1,24 +1,14 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit
-    (_.schema.construction)
-    mkUI
-    mkHome
-    mkLocale
-    mkHardware
-    ;
-  inherit (lib.attrsets) attrNames attrValues;
-  inherit (lib.lists) head;
-
+{_, ...}: let
   __exports = {
     internal = {inherit mkHost mkCore hostOrDefault;};
-    external = {
-      mkCoreSchema = mkCore;
-    };
+    external = {mkCoreSchema = mkCore;};
   };
+
+  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.lists.access) head;
+  inherit (_.lists.predicates) any elem;
+  inherit (_.schema.construction) mkUI mkHome mkLocale mkHardware;
+  inherit (_.strings.construction) generateHexId;
 
   mkHost = {
     hosts,
@@ -39,35 +29,32 @@
   mkAccess = host: let
     raw = host.access or {};
     remote = raw.remote or {};
-    ssh = remote.ssh or {};
-    tailscale = remote.tailscale or {};
-    caddy = remote.caddy or {};
+
+    ssh = let
+      ssh = remote.ssh or {};
+    in
+      ssh
+      // {
+        enable = ssh.enable or (raw.ssh or null) != null;
+        keyOnly = ssh.keyOnly or true;
+      };
+
+    tailscale = let
+      tailscale = remote.tailscale or {};
+      enable = tailscale.enable or (elem "vpn" (host.functionalities or []));
+    in
+      tailscale // {inherit enable;};
+
+    caddy = let
+      caddy = remote.caddy or {};
+      enable = caddy.enable or (elem "webDev" (host.functionalities or []));
+    in
+      caddy // {inherit enable;};
   in
     raw
     // {
-      remote = {
-        ssh =
-          ssh
-          // {
-            enable = ssh.enable or (raw.ssh or null) != null;
-            keyOnly = ssh.keyOnly or true;
-          };
-        tailscale =
-          tailscale
-          // {
-            enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
-          };
-        caddy =
-          caddy
-          // {
-            enable = caddy.enable or false;
-          };
-      };
-      tailscale =
-        tailscale
-        // {
-          enable = tailscale.enable or (builtins.elem "vpn" (host.functionalities or []));
-        };
+      remote = {inherit caddy ssh tailscale;};
+      inherit tailscale;
     };
 
   mkNetwork = host: let
@@ -89,8 +76,8 @@
   }: let
     explicit = (host.capabilities or {}).development or null;
     hardened = host.hardened or false;
-    hostDeclared = builtins.elem "development" (host.functionalities or []);
-    userDeclared = builtins.any (u: builtins.elem "development" (u.capabilities or [])) (
+    hostDeclared = elem "development" (host.functionalities or []);
+    userDeclared = any (user: elem "development" (user.capabilities or [])) (
       attrValues interactiveUsers
     );
   in
@@ -103,7 +90,10 @@
   mkStorage = host: let
     raw = host.storage or {};
   in {
-    filesystemsRequired = raw.filesystemsRequired or (host.class or "nixos" == "nixos");
+    filesystemsRequired =
+      raw.filesystemsRequired or (
+        host.class or "nixos" == "nixos"
+      );
   };
 
   /**
@@ -135,6 +125,12 @@
     enrichedStorage = mkStorage host;
     enrichment = {
       inherit name;
+
+      id =
+        if (host.id or null) != null
+        then host.id
+        else generateHexId {inherit name;};
+
       home = host.paths.src or (host.paths.dots or host.paths.flake);
       system = host.specs.platform or "x86_64-linux";
       users = enrichedUser;

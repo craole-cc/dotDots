@@ -33,6 +33,18 @@
       ;
   };
 
+  aggregation = {
+    inherit
+      (attrsets)
+      intersectAttrs
+      mergeAttrsList
+      recursiveUpdate
+      recursiveUpdateUntil
+      zipAttrs
+      zipAttrsWith
+      ;
+  };
+
   construction = {
     inherit
       (attrsets)
@@ -65,18 +77,6 @@
       filterAttrs
       filterAttrsRecursive
       removeAttrs
-      ;
-  };
-
-  aggregation = {
-    inherit
-      (attrsets)
-      intersectAttrs
-      mergeAttrsList
-      recursiveUpdate
-      recursiveUpdateUntil
-      zipAttrs
-      zipAttrsWith
       ;
   };
 

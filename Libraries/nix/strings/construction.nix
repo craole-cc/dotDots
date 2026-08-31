@@ -8,13 +8,17 @@
       asString
       concat
       fromBool
-      split
-      mkAnyPredicate
-      mkAllPredicate
-      indentedList
+      generateHexId
+      hashToInt
       indentedForError
+      indentedList
+      mkAllPredicate
+      mkAnyPredicate
+      mkHexString
+      tokenize
       toDomainName
       ;
+    splitBy = tokenize;
   };
 
   __debug = mkModuleDebug __moduleRef;
@@ -24,22 +28,13 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.access) head;
-  inherit (_.lists.construction) concatLists asList;
+  inherit (_.lists.construction) asList concatLists genList;
+  inherit (_.lists.aggregation) foldl';
   inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) all any isIn;
-  inherit
-    (_.types.predicates)
-    isAttrs
-    isBool
-    isFunction
-    isList
-    isString
-    isStringLike
-    isInt
-    isFloat
-    ;
+  inherit (_.types.predicates) isAttrs isBool isFunction isList isString isStringLike isInt isFloat;
   inherit (_.strings.access) substring stringLength;
-  inherit (_.strings.construction) concatStringsSep splitStringBy;
+  inherit (_.strings.construction) concatStringsSep hashString splitStringBy;
   inherit (_.strings.transformation) indent;
 
   /**
@@ -178,7 +173,7 @@
 
   # **Attrset (friendly):**
   ```nix
-  split {
+  tokenize {
     delimiters = "." | ["."] | (prev: curr: ...);
     include    = false | true | "." | ["."] | (prev: curr: ...);
     input      = "..." | ["..." "..."];
@@ -187,13 +182,13 @@
 
   # **Shorthand string (drop-in for old API):**
   ```nix
-  split "." "foo.bar.baz"
-  split "." ["foo.bar" "baz.qux"]
+  tokenize "." "foo.bar.baz"
+  tokenize "." ["foo.bar" "baz.qux"]
   ```
 
   # **Curried (raw, drop-in for `splitStringBy`):**
   ```nix
-  split predicate include input
+  tokenize predicate include input
   ```
 
   In attrset mode, `delimiters` may be a string, list of strings, or a raw
@@ -240,54 +235,54 @@
   # Type
   ```nix
   # Attrset form
-  split :: {
+  tokenize :: {
     delimiters :: string | [string] | (string -> string -> bool);
     include    :: bool | string | [string] | (string -> string -> bool);
     input      :: string | [string];
   } -> [string] | [[string]]
 
   # Shorthand string form (include = false)
-  split :: string -> string | [string] -> [string] | [[string]]
+  tokenize :: string -> string | [string] -> [string] | [[string]]
 
   # Curried form (splitStringBy drop-in)
-  split :: (string -> string -> bool) -> bool -> string | [string] -> [string] | [[string]]
+  tokenize :: (string -> string -> bool) -> bool -> string | [string] -> [string] | [[string]]
   ```
 
   # Examples
   ```nix
   # Shorthand string form
-  split "." "foo.bar.baz"
+  tokenize "." "foo.bar.baz"
   # => [ "foo" "bar" "baz" ]
 
-  split "." [ "foo.bar" "baz.qux" ]
+  tokenize "." [ "foo.bar" "baz.qux" ]
   # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
 
   # Single delimiter, discard it
-  split { delimiters = "."; include = false; input = "foo.bar.baz"; }
+  tokenize { delimiters = "."; include = false; input = "foo.bar.baz"; }
   # => [ "foo" "bar" "baz" ]
 
   # Multiple delimiters, discard all
-  split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }
+  tokenize { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }
   # => [ "foo" "bar" "baz" ]
 
   # Multiple delimiters, retain only "."
-  split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }
+  tokenize { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }
   # => [ "foo" ".bar" "baz" ]
 
   # Multiple delimiters, retain all
-  split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }
+  tokenize { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }
   # => [ "foo" ".bar" "-baz" ]
 
   # List of strings input
-  split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }
+  tokenize { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }
   # => [ [ "foo" "bar" ] [ "baz" "qux" ] ]
 
   # List input with retain
-  split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }
+  tokenize { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }
   # => [ [ "foo" ".bar" ] [ "baz" "qux" ] ]
 
   # Raw predicate delimiter with bool include (attrset)
-  split {
+  tokenize {
     delimiters = (prev: curr: isIn curr [ "." "-" ]);
     include    = false;
     input      = "foo.bar-baz";
@@ -295,7 +290,7 @@
   # => [ "foo" "bar" "baz" ]
 
   # camelCase split via raw predicate
-  split {
+  tokenize {
     delimiters = (prev: curr:
       match "[a-z]" prev != null &&
       match "[A-Z]" curr != null
@@ -306,15 +301,15 @@
   # => [ "foo" "Bar" "Baz" ]
 
   # Leading/trailing delimiters — empty strings are filtered
-  split { delimiters = "."; include = false; input = ".foo.bar."; }
+  tokenize { delimiters = "."; include = false; input = ".foo.bar."; }
   # => [ "foo" "bar" ]
 
   # Curried form — drop-in for splitStringBy
-  split (prev: curr: isIn curr [ "." "-" ]) false "foo.bar-baz"
+  tokenize (prev: curr: isIn curr [ "." "-" ]) false "foo.bar-baz"
   # => [ "foo" "bar" "baz" ]
   ```
   */
-  split = arg: let
+  tokenize = arg: let
     mkPredicate = type: input:
       if type == "delimiters"
       #> Build a split predicate from a string or list of strings
@@ -551,6 +546,58 @@
     .${
       domain
     } or domain;
+
+  mkHexString = {
+    salt, #? required - the string that gets hashed
+    length ? 8, #? how many hex chars to keep
+    algo ? "sha256", #? hash algorithm
+  }:
+    substring 0 length (hashString algo salt);
+
+  generateHexId = {
+    salt ? null,
+    kind ? "host",
+    name ? "",
+    length ? 8,
+    algo ? "sha256",
+  }:
+    mkHexString {
+      inherit length algo;
+      salt = (
+        if salt != null
+        then salt
+        else "${kind}/${name}"
+      );
+    };
+
+  hashToInt = {
+    seed,
+    min ? 0,
+    max ? 60000,
+  }: let
+    hexDigits = {
+      "0" = 0;
+      "1" = 1;
+      "2" = 2;
+      "3" = 3;
+      "4" = 4;
+      "5" = 5;
+      "6" = 6;
+      "7" = 7;
+      "8" = 8;
+      "9" = 9;
+      "a" = 10;
+      "b" = 11;
+      "c" = 12;
+      "d" = 13;
+      "e" = 14;
+      "f" = 15;
+    };
+    charsOf = str: genList (i: substring i 1 str) (stringLength str);
+    hexToInt = hex: foldl' (acc: c: acc * 16 + hexDigits.${c}) 0 (charsOf hex);
+    digest = substring 0 8 (hashString "sha256" seed);
+  in
+    min + (hexToInt digest - (hexToInt digest / (max - min + 1)) * (max - min + 1));
 in
   exports
   // {
@@ -626,53 +673,35 @@ in
           outcome = concat "," null;
         };
       };
-      split = {
+      tokenize = {
         # ── Shorthand string form ──────────────────────────────────────────
         shorthandSingleString = mkTest {
-          desired = [
-            "a"
-            "b"
-            "c"
-          ];
-          command = ''split "," "a,b,c"'';
-          outcome = split "," "a,b,c";
+          desired = ["a" "b" "c"];
+          command = ''tokenize "," "a,b,c"'';
+          outcome = tokenize "," "a,b,c";
         };
         shorthandListOfStrings = mkTest {
           desired = [
-            [
-              "a"
-              "b"
-            ]
-            [
-              "c"
-              "d"
-            ]
+            ["a" "b"]
+            ["c" "d"]
           ];
-          command = ''split "," ["a,b" "c,d"]'';
-          outcome = split "," [
+          command = ''tokenize "," ["a,b" "c,d"]'';
+          outcome = tokenize "," [
             "a,b"
             "c,d"
           ];
         };
         shorthandMultiCharDelimiter = mkTest {
-          desired = [
-            "foo"
-            "bar"
-            "baz"
-          ];
-          command = ''split "." "foo.bar.baz"'';
-          outcome = split "." "foo.bar.baz";
+          desired = ["foo" "bar" "baz"];
+          command = ''tokenize "." "foo.bar.baz"'';
+          outcome = tokenize "." "foo.bar.baz";
         };
 
         # ── Attrset form — include = false ────────────────────────────────
         attrsetSingleDelimiter = mkTest {
-          desired = [
-            "foo"
-            "bar"
-            "baz"
-          ];
-          command = ''split { delimiters = "."; include = false; input = "foo.bar.baz"; }'';
-          outcome = split {
+          desired = ["foo" "bar" "baz"];
+          command = ''tokenize { delimiters = "."; include = false; input = "foo.bar.baz"; }'';
+          outcome = tokenize {
             delimiters = ".";
             include = false;
             input = "foo.bar.baz";
@@ -684,8 +713,8 @@ in
             "bar"
             "baz"
           ];
-          command = ''split { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = ["." "-"]; include = false; input = "foo.bar-baz"; }'';
+          outcome = tokenize {
             delimiters = [
               "."
               "-"
@@ -704,8 +733,8 @@ in
             ".bar"
             "baz"
           ];
-          command = ''split { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = ["." "-"]; include = "."; input = "foo.bar-baz"; }'';
+          outcome = tokenize {
             delimiters = [
               "."
               "-"
@@ -722,8 +751,8 @@ in
             ".bar"
             "-baz"
           ];
-          command = ''split { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = ["." "-"]; include = true; input = "foo.bar-baz"; }'';
+          outcome = tokenize {
             delimiters = [
               "."
               "-"
@@ -745,8 +774,8 @@ in
               "qux"
             ]
           ];
-          command = ''split { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = "."; include = false; input = [ "foo.bar" "baz.qux" ]; }'';
+          outcome = tokenize {
             delimiters = ".";
             include = false;
             input = [
@@ -769,8 +798,8 @@ in
               "qux"
             ]
           ];
-          command = ''split { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = ["." "-"]; include = "."; input = [ "foo.bar" "baz-qux" ]; }'';
+          outcome = tokenize {
             delimiters = [
               "."
               "-"
@@ -789,8 +818,8 @@ in
             "foo"
             "bar"
           ];
-          command = ''split { delimiters = "."; include = false; input = ".foo.bar."; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = "."; include = false; input = ".foo.bar."; }'';
+          outcome = tokenize {
             delimiters = ".";
             include = false;
             input = ".foo.bar.";
@@ -802,8 +831,8 @@ in
             "foo"
             "baz"
           ];
-          command = ''split { delimiters = "."; include = false; input = "foo..baz"; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = "."; include = false; input = "foo..baz"; }'';
+          outcome = tokenize {
             delimiters = ".";
             include = false;
             input = "foo..baz";
@@ -818,8 +847,8 @@ in
             "bar"
             "baz"
           ];
-          command = ''split { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
-          outcome = split {
+          command = ''tokenize { delimiters = (prev: curr: isIn curr ["." "-"]); include = false; input = "foo.bar-baz"; }'';
+          outcome = tokenize {
             delimiters = _prev: curr:
               isIn curr [
                 "."
@@ -838,9 +867,9 @@ in
             "bar"
             "baz"
           ];
-          command = ''split (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
+          command = ''tokenize (prev: curr: isIn curr ["." "-"]) false "foo.bar-baz"'';
           outcome =
-            split (
+            tokenize (
               _prev: curr:
                 isIn curr [
                   "."
@@ -855,9 +884,9 @@ in
             ".bar"
             "-baz"
           ];
-          command = ''split (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
+          command = ''tokenize (prev: curr: isIn curr ["." "-"]) true "foo.bar-baz"'';
           outcome =
-            split (
+            tokenize (
               _prev: curr:
                 isIn curr [
                   "."
@@ -877,8 +906,8 @@ in
               "qux"
             ]
           ];
-          command = ''split (prev: curr: curr == ".") false ["foo.bar" "baz.qux"]'';
-          outcome = split (_prev: curr: curr == ".") false [
+          command = ''tokenize (prev: curr: curr == ".") false ["foo.bar" "baz.qux"]'';
+          outcome = tokenize (_prev: curr: curr == ".") false [
             "foo.bar"
             "baz.qux"
           ];
@@ -887,18 +916,18 @@ in
         # ── Edge cases ────────────────────────────────────────────────────
         emptyString = mkTest {
           desired = [];
-          command = ''split "." ""'';
-          outcome = split "." "";
+          command = ''tokenize "." ""'';
+          outcome = tokenize "." "";
         };
         noDelimiterPresent = mkTest {
           desired = ["foobar"];
-          command = ''split "." "foobar"'';
-          outcome = split "." "foobar";
+          command = ''tokenize "." "foobar"'';
+          outcome = tokenize "." "foobar";
         };
         singleCharInput = mkTest {
           desired = [];
-          command = ''split "." "."'';
-          outcome = split "." ".";
+          command = ''tokenize "." "."'';
+          outcome = tokenize "." ".";
         };
       };
     };
