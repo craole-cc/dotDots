@@ -11,322 +11,266 @@
     lib = "lix";
   },
   paths ? {
-    src = ../../.;
-    lib = ./.;
+    inherit src;
+    lib = self;
   },
+  modules ? {},
   target ? null,
   host ? target,
   allowAliases ? false,
   allowTests ? false,
   stems ? {},
+  src ? ../../.,
+  self ? ./.,
+  mergeAttrsRecursive ? lib.mergeAttrsRecursive,
   ...
 } @ args: let
-  inherit
-    (builtins)
-    attrNames
-    concatStringsSep
-    elem
-    filter
-    foldl'
-    head
-    isAttrs
-    isList
-    isPath
-    isString
-    listToAttrs
-    mapAttrs
-    replaceStrings
-    split
-    stringLength
-    substring
-    tail
-    toJSON
-    typeOf
-    ;
+  bootstrap = rec {
+    inherit (args.lib) mergeAttrsRecursive;
+    inherit (builtins) attrNames concatStringsSep elem filter foldl' head isAttrs isList isPath isString mapAttrs replaceStrings split stringLength substring toJSON typeOf;
 
-  getEnvOr = key: fallback: let
-    value = builtins.getEnv key;
-  in
-    if value == ""
-    then fallback
-    else value;
-
-  attrNamesHead = set: let
-    err = {
-      isNull = "attrNamesHead: set is null";
-      notAttrs = "attrNamesHead: argument is not an attribute set (got ${typeOf set})";
-      isEmpty = "attrNamesHead: set is empty";
-    };
-    attrs = attrNames set;
-  in
-    if set == null
-    then throw err.isNull
-    else if !isAttrs set
-    then throw err.notAttrs
-    else if attrs == []
-    then throw err.isEmpty
-    else head attrs;
-
-  /**
-  Deduplicates items in a list without external lib dependencies
-  */
-  unique = list: let
-    acc = list: seen:
-      if list == []
-      then seen
-      else let
-        x = head list;
-        xs = tail list;
-      in
-        if elem x seen
-        then acc xs seen
-        else acc xs (seen ++ [x]);
-  in
-    acc list [];
-
-  toUpper =
-    if lib ? strings.toUpper
-    then lib.strings.toUpper
-    else
-      value:
-        replaceStrings
-        ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"]
-        ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
-        value;
-
-  /**
-  Recursive deep merge without allocating temporary sets for key scanning
-  */
-  mergeAttrs = set1: set2:
-    if isAttrs set1 && isAttrs set2
-    then let
-      keys = unique (attrNames set1 ++ attrNames set2);
-    in
-      listToAttrs (
-        map (key: {
-          name = key;
-          value =
-            if set1 ? ${key} && set2 ? ${key}
-            then mergeAttrs set1.${key} set2.${key}
-            else set2.${key} or set1.${key};
-        })
-        keys
-      )
-    else set2;
-
-  findFirst = pred: default: list:
-    foldl'
-    (
-      acc: x:
-        if acc != default
-        then acc #? already found
-        else if pred x
-        then x #? this one matches
-        else default
-    )
-    default
-    list;
-
-  asAttrs = arg: let
-    isKwargs =
-      isAttrs arg
-      && (arg ? condition || arg ? name || arg ? value);
-    condition =
-      if isKwargs
-      then arg.condition or true
-      else true;
-    name =
-      if isKwargs
-      then arg.name or null
-      else null;
-    value =
-      if isKwargs
-      then arg.value or arg
-      else arg;
-  in
-    if
-      condition
-      && (isAttrs value && value != {})
-    then
-      if name != null
-      then {"${name}" = value;}
-      else value
-    else {};
-
-  isFlakeLike = value:
-    isAttrs value
-    && value ? inputs
-    && isAttrs value.inputs
-    && (
-      (value ? _type && value._type == "flake")
-      || value ? sourceInfo
-      || value ? outputs
-    );
-
-  isNixpkgsLike = value:
-    isAttrs value
-    && value ? lib
-    && (value ? legacyPackages || value ? packages);
-
-  mkPath = {
-    root, # single local value
-    stem,
-    vars ? [],
-    envPrefix ? null,
-    envSegments ? [],
-  }: let
-    isVar = value:
-      isAttrs value && value ? var && isString value.var;
-
-    normalizeSegment = segment: let
+    attrNamesHead = set: let
       err = {
-        unknownVar = ''
-          mkPath: unknown variable "${segment.var}".
-          Allowed variables: ${toJSON vars}
-        '';
-        unsupported = "mkPath: unsupported path segment: ${toJSON segment}";
+        isNull = "attrNamesHead: set is null";
+        notAttrs = "attrNamesHead: argument is not an attribute set (got ${typeOf set})";
+        isEmpty = "attrNamesHead: set is empty";
+      };
+      attrs = attrNames set;
+    in
+      if set == null
+      then throw err.isNull
+      else if !isAttrs set
+      then throw err.notAttrs
+      else if attrs == []
+      then throw err.isEmpty
+      else head attrs;
+
+    toUpper = value:
+      replaceStrings
+      ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"]
+      ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
+      value;
+
+    asAttrs = arg: let
+      isKwargs =
+        isAttrs arg
+        && (arg ? condition || arg ? name || arg ? value);
+      condition =
+        if isKwargs
+        then arg.condition or true
+        else true;
+      name =
+        if isKwargs
+        then arg.name or null
+        else null;
+      value =
+        if isKwargs
+        then arg.value or arg
+        else arg;
+    in
+      if
+        condition
+        && (isAttrs value && value != {})
+      then
+        if name != null
+        then {"${name}" = value;}
+        else value
+      else {};
+
+    resolvePath = {
+      root, # single local value
+      stem,
+      vars ? [],
+      envPrefix ? null,
+      envSegments ? [],
+    }: let
+      isVar = value:
+        isAttrs value && value ? var && isString value.var;
+
+      normalizeSegment = segment: let
+        err = {
+          unknownVar = ''
+            mkPath: unknown variable "${segment.var}".
+            Allowed variables: ${toJSON vars}
+          '';
+          unsupported = "mkPath: unsupported path segment: ${toJSON segment}";
+        };
+      in
+        if isString segment || isPath segment
+        then toString segment
+        else if isVar segment
+        then
+          if elem segment.var vars
+          then getEnvOr segment.var "\${${segment.var}}"
+          else throw err.unknownVar
+        else throw err.unsupported;
+
+      normalize = part:
+        if isList part
+        then concatStringsSep "/" (map normalizeSegment part)
+        else normalizeSegment part;
+
+      root' = normalize root;
+      stem' = normalize stem;
+
+      absolute = stem' != "" && substring 0 1 stem' == "/";
+
+      join = base:
+        if absolute
+        then stem'
+        else if base == ""
+        then stem'
+        else if stem' == ""
+        then base
+        else if base == "/"
+        then "/${stem'}"
+        else "${base}/${stem'}";
+
+      paths = {
+        local = join root';
+        store = join root';
+      };
+
+      env = concatStringsSep "_" (
+        (
+          if envPrefix == null
+          then []
+          else [
+            (toUpper (replaceStrings ["-"] ["_"] envPrefix))
+          ]
+        )
+        ++ map (s: toUpper (replaceStrings ["-"] ["_"] s))
+        (filter (s: s != "default") envSegments)
+      );
+    in
+      {inherit stem env;} // paths;
+
+    #> Converts an absolute path string into a relative path string based on a base prefix
+    toRelativePath = base: target: let
+      baseStr = toString base;
+      targetStr = toString target;
+    in
+      substring
+      (stringLength baseStr + 1)
+      (stringLength targetStr - stringLength baseStr - 1)
+      targetStr;
+
+    #> Smart stem generator: infers the project root but allows explicit overrides
+    toPathStem = input: let
+      # 1. Look for a user-supplied root override, fallback to the scope's 'src'
+      base =
+        if isAttrs input
+        then input.src or (input.base or src)
+        else src;
+
+      # 2. Extract the target path to evaluate
+      target =
+        if isAttrs input
+        then input.self or (input.target or (input.path or input))
+        else input;
+
+      # 3. Calculate relative path string if target is a path/string and doesn't match base
+      pathStr =
+        if (isPath target || isString target) && base != target
+        then toRelativePath base target
+        else toString target;
+    in
+      if pathStr == "" || pathStr == toString base
+      then []
+      else filter isString (split "/" pathStr);
+
+    resolvePathTree = {
+      vars ? [],
+      stems,
+      roots,
+      paths ? {},
+    }: let
+      err = {missingRoot = key: "resolvePathTree: missing root for domain '${key}'";};
+
+      isVar = value:
+        isAttrs value && value ? var && isString value.var;
+
+      mk = {
+        domain,
+        domainName,
+        stem,
+        overrides,
+        envSegments ? [],
+      }:
+        if isAttrs stem && !isVar stem
+        then
+          mapAttrs (
+            key: stem:
+              mk {
+                inherit domain domainName stem;
+                overrides = overrides.${key} or {};
+                envSegments = envSegments ++ [key];
+              }
+          )
+          stem
+        else let
+          generated = resolvePath {
+            root = domain;
+            inherit stem vars;
+            envPrefix =
+              if domainName == "base"
+              then null
+              else defined.names.src or derived.names.src;
+            inherit envSegments;
+          };
+          merged = mergeAttrsRecursive generated (asAttrs overrides);
+        in
+          merged // {inherit (generated) env;};
+
+      tree = {
+        inherit stems;
+
+        roots =
+          mapAttrs (
+            key: _:
+              if roots ? ${key}
+              then roots.${key}
+              else throw (err.missingRoot key)
+          )
+          stems;
+
+        build =
+          mapAttrs (
+            key: stem:
+              mk {
+                inherit stem;
+                domain = tree.roots.${key};
+                domainName = key;
+                overrides = paths.${key} or {};
+              }
+          )
+          stems;
+
+        paths = tree.build;
+
+        variables = let
+          collect = node:
+            if isAttrs node && node ? env && node ? local
+            then {${node.env} = node.local;}
+            else if isAttrs node
+            then foldl' (acc: key: acc // collect node.${key}) {} (attrNames node)
+            else {};
+          src = defined.names.src or derived.names.src;
+        in
+          collect tree.build
+          // (
+            if tree.build ? core.src.local
+            then {${toUpper src} = tree.build.core.src.local;}
+            else {}
+          );
       };
     in
-      if isString segment || isPath segment
-      then toString segment
-      else if isVar segment
-      then
-        if elem segment.var vars
-        then getEnvOr segment.var "\${${segment.var}}"
-        else throw err.unknownVar
-      else throw err.unsupported;
+      {inherit (tree) roots stems variables;} // tree.paths;
+  };
 
-    normalize = part:
-      if isList part
-      then concatStringsSep "/" (map normalizeSegment part)
-      else normalizeSegment part;
+  inherit (bootstrap) head typeOf getEnvOr isAttrs isFlakeLike findFirst attrNamesHead isNixpkgsLike isString resolvePathTree toJSON toPathStem;
 
-    root' = normalize root;
-    stem' = normalize stem;
-
-    absolute = stem' != "" && substring 0 1 stem' == "/";
-
-    join = base:
-      if absolute
-      then stem'
-      else if base == ""
-      then stem'
-      else if stem' == ""
-      then base
-      else if base == "/"
-      then "/${stem'}"
-      else "${base}/${stem'}";
-
-    paths = {
-      local = join root';
-      store = join root';
-    };
-
-    env = concatStringsSep "_" (
-      (
-        if envPrefix == null
-        then []
-        else [
-          (toUpper (replaceStrings ["-"] ["_"] envPrefix))
-        ]
-      )
-      ++ map (s: toUpper (replaceStrings ["-"] ["_"] s))
-      (filter (s: s != "default") envSegments)
-    );
-  in
-    {inherit stem env;} // paths;
-
-  mkTree = {
-    vars ? [],
-    stems,
-    roots,
-    paths ? {},
-  }: let
-    err = {
-      missingRoot = key: "mkTree: missing root for domain '${key}'";
-    };
-
-    isVar = value:
-      isAttrs value && value ? var && isString value.var;
-
-    mk = {
-      domain,
-      domainName,
-      stem,
-      overrides,
-      envSegments ? [],
-    }:
-      if isAttrs stem && !isVar stem
-      then
-        mapAttrs (
-          key: stem:
-            mk {
-              inherit domain domainName stem;
-              overrides = overrides.${key} or {};
-              envSegments = envSegments ++ [key];
-            }
-        )
-        stem
-      else let
-        generated = mkPath {
-          root = domain;
-          inherit stem vars;
-          envPrefix =
-            if domainName == "base"
-            then null
-            else defined.names.src or derived.names.src;
-          inherit envSegments;
-        };
-        merged = mergeAttrs generated (asAttrs overrides);
-      in
-        merged // {inherit (generated) env;};
-
-    tree = {
-      inherit stems;
-
-      roots =
-        mapAttrs (
-          key: _:
-            if roots ? ${key}
-            then roots.${key}
-            else throw (err.missingRoot key)
-        )
-        stems;
-
-      build =
-        mapAttrs (
-          key: stem:
-            mk {
-              inherit stem;
-              domain = tree.roots.${key};
-              domainName = key;
-              overrides = paths.${key} or {};
-            }
-        )
-        stems;
-
-      paths = tree.build;
-
-      variables = let
-        collect = node:
-          if isAttrs node && node ? env && node ? local
-          then {${node.env} = node.local;}
-          else if isAttrs node
-          then foldl' (acc: key: acc // collect node.${key}) {} (attrNames node)
-          else {};
-        src = defined.names.src or derived.names.src;
-      in
-        collect tree.build
-        // (
-          if tree.build ? core.src.local
-          then {${toUpper src} = tree.build.core.src.local;}
-          else {}
-        );
-    };
-  in
-    {inherit (tree) roots stems variables;} // tree.paths;
-
-  derived = mergeAttrs args {
+  derived = mergeAttrsRecursive args {
     config = {
       inherit allowAliases allowTests collisionStrategy;
       exclusions = {
@@ -344,33 +288,14 @@
     };
 
     paths = let
-      src = args.paths.src or (paths.src or ../../.);
-      self = args.paths.lib or (paths.lib or ../../.);
+      src = args.paths.src or (paths.src or src);
+      self = args.paths.lib or (paths.lib or self);
     in
-      mkTree {
+      resolvePathTree {
         roots.core = getEnvOr "PWD" (toString src);
         stems.core = {
           src = [];
-
-          lib = let
-            str = {
-              src = toString src;
-              lib = toString self;
-            };
-
-            relative =
-              if str.src == str.lib
-              then ""
-              else
-                substring
-                (stringLength str.src + 1)
-                (stringLength str.lib - stringLength str.src - 1)
-                str.lib;
-          in
-            if relative == ""
-            then []
-            else filter isString (split "/" relative);
-
+          lib = toPathStem self;
           api = ["API" "nix"];
         };
       };
@@ -405,7 +330,7 @@
       };
 
     lib =
-      if lib != null && isAttrs lib
+      if lib != null && isAttrs lib && lib ? trivial
       then lib
       else if
         derived ? flake
@@ -466,7 +391,7 @@
   defined = let
     inherit (derived.api) global hosts;
   in {
-    paths = mkTree {
+    paths = resolvePathTree {
       inherit (global) vars;
       stems = let
         assertMatch = name: value: let
@@ -502,7 +427,7 @@
         in
           base.core // extra;
       in
-        mergeAttrs (base // {inherit core;}) stems;
+        mergeAttrsRecursive (base // {inherit core;}) stems;
 
       roots = let
         base = global.paths.roots;
@@ -537,7 +462,7 @@
     // meta
     // {
       flake = base.flake // meta;
-      inherit target host mkPath mkTree;
+      inherit target host resolvePathTree;
     };
 
   assemble = import ./internal resolved;

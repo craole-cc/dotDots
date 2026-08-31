@@ -1,1 +1,1 @@
-{importModules ? (import ../. {}).importModules, ...}: importModules ./.
+{importModules ? (import ../. {}).lib.importModules, ...}: importModules ./.

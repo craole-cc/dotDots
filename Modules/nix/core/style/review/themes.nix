@@ -6,8 +6,7 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   dom = "interface";
   mod = "style";
   sub = "theme";
@@ -25,18 +24,18 @@ let
         light = "latte";
         dark = "frappe";
       };
-      light = { };
-      dark = { };
+      light = {};
+      dark = {};
     };
-  } (host.users.data.primary or { });
+  } (host.users.data.primary or {});
 
-  seed =
-    let
-      t = user.interface.style.theme;
-    in
+  seed = let
+    t = user.interface.style.theme;
+  in
     resolveThemes {
       inherit pkgs;
-      inherit (t)
+      inherit
+        (t)
         accent
         variant
         light
@@ -44,19 +43,21 @@ let
         ;
     }
     // {
-      inherit (t)
+      inherit
+        (t)
         accent
         variant
         light
         dark
         ;
     };
-in
-{
+in {
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
 
     accent = mkOption {
       description = "Catppuccin accent colour (e.g. \"teal\", \"blue\", \"mauve\")";

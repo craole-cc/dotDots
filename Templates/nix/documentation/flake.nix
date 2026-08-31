@@ -33,16 +33,14 @@
   #║ Outputs                                                   ║
   #╚═══════════════════════════════════════════════════════════╝
 
-  outputs =
-    {
-      nixpkgs,
-      flake-utils,
-      llm-agents,
-      treefmt-nix,
-    }:
+  outputs = {
+    nixpkgs,
+    flake-utils,
+    llm-agents,
+    treefmt-nix,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
+      system: let
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
@@ -59,8 +57,7 @@
 
         fontPaths = concatStringsSep ":" (
           map (pkg: "${pkg}/share/fonts") (
-            with pkgs;
-            [
+            with pkgs; [
               corefonts
               liberation_ttf
               noto-fonts
@@ -85,34 +82,32 @@
 
           settings.formatter = {
             bibtex-tidy = {
-              command =
-                let
-                  bibtexTidy = pkgs.writeShellApplication {
-                    name = "bibtex-tidy-treefmt";
+              command = let
+                bibtexTidy = pkgs.writeShellApplication {
+                  name = "bibtex-tidy-treefmt";
 
-                    runtimeInputs = with pkgs; [
-                      bibtex-tidy
-                    ];
+                  runtimeInputs = with pkgs; [
+                    bibtex-tidy
+                  ];
 
-                    text = ''
-                      if [ "$#" -eq 0 ]; then
-                        printf 'bibtex-tidy-treefmt: expected at least one .bib file path\n' >&2
-                        exit 1
-                      fi
+                  text = ''
+                    if [ "$#" -eq 0 ]; then
+                      printf 'bibtex-tidy-treefmt: expected at least one .bib file path\n' >&2
+                      exit 1
+                    fi
 
-                      bibtex-tidy "$@" \
-                        --curly \
-                        --numeric \
-                        --blank-lines \
-                        --sort-fields \
-                        --align=13 \
-                        --modify
-                    '';
-                  };
-                in
-                "${bibtexTidy}/bin/bibtex-tidy-treefmt";
+                    bibtex-tidy "$@" \
+                      --curly \
+                      --numeric \
+                      --blank-lines \
+                      --sort-fields \
+                      --align=13 \
+                      --modify
+                  '';
+                };
+              in "${bibtexTidy}/bin/bibtex-tidy-treefmt";
 
-              includes = [ "**/*.bib" ];
+              includes = ["**/*.bib"];
             };
           };
         };
@@ -133,10 +128,9 @@
         #║ Packages                                              ║
         #╚═══════════════════════════════════════════════════════╝
         llm = llm-agents.packages.${system};
-        llmPkg =
-          name:
-          if hasAttr name llm then
-            llm.${name}
+        llmPkg = name:
+          if hasAttr name llm
+          then llm.${name}
           else
             throw ''
               llm-agents.nix does not expose package `${name}` for system `${system}`.
@@ -184,8 +178,7 @@
             git-lfs
           ];
 
-          shell =
-            with pkgs;
+          shell = with pkgs;
             [
               bat
               fd
@@ -197,7 +190,7 @@
               tree
               watchexec
             ]
-            ++ optionals isLinux [ wl-clipboard ];
+            ++ optionals isLinux [wl-clipboard];
 
           secrets = with pkgs; [
             age
@@ -404,137 +397,133 @@
         #║ Development Shells                                    ║
         #╚═══════════════════════════════════════════════════════╝
 
-        devShells =
-          let
-            mkSecretShell =
-              {
-                name,
-                packages,
-                shellBanner,
-                env ? {
-                  TYPST_FONT_PATHS = fontPaths;
-                },
-                extraShellHook ? "",
-              }:
-              pkgs.mkShell {
-                inherit name env packages;
+        devShells = let
+          mkSecretShell = {
+            name,
+            packages,
+            shellBanner,
+            env ? {
+              TYPST_FONT_PATHS = fontPaths;
+            },
+            extraShellHook ? "",
+          }:
+            pkgs.mkShell {
+              inherit name env packages;
 
-                shellHook = ''
-                  ${scripts.loadSecrets "secrets/api-keys.yaml"}
-                  ${shellBanner}
-                  ${scripts.showAiKeyStatus}
-                  ${extraShellHook}
-                '';
-              };
-
-            mkPlainShell =
-              {
-                name,
-                packages,
-                shellHook ? "",
-                env ? {
-                  TYPST_FONT_PATHS = fontPaths;
-                },
-              }:
-              pkgs.mkShell {
-                inherit
-                  name
-                  packages
-                  shellHook
-                  env
-                  ;
-              };
-
-            inherit (toolchain)
-              ai-agents
-              ai-assistants
-              ai-ops
-              bibliography
-              markup
-              media
-              prose
-              secrets
-              shell
-              vcs
-              ;
-            #? Headless shell for CI/checks.
-            ci = mkPlainShell {
-              name = "ci";
-
-              packages = bibliography ++ markup ++ media ++ prose;
+              shellHook = ''
+                ${scripts.loadSecrets "secrets/api-keys.yaml"}
+                ${shellBanner}
+                ${scripts.showAiKeyStatus}
+                ${extraShellHook}
+              '';
             };
 
-            #? Prose-focused shell. No AI, no secrets.
-            writing = mkPlainShell {
-              name = "writing";
-
-              packages = bibliography ++ markup ++ media ++ prose ++ shell ++ vcs;
-
-              shellHook = scripts.banner.writing;
+          mkPlainShell = {
+            name,
+            packages,
+            shellHook ? "",
+            env ? {
+              TYPST_FONT_PATHS = fontPaths;
+            },
+          }:
+            pkgs.mkShell {
+              inherit
+                name
+                packages
+                shellHook
+                env
+                ;
             };
 
-            #? Agents only.
-            agents = mkSecretShell {
-              name = "agents";
+          inherit
+            (toolchain)
+            ai-agents
+            ai-assistants
+            ai-ops
+            bibliography
+            markup
+            media
+            prose
+            secrets
+            shell
+            vcs
+            ;
+          #? Headless shell for CI/checks.
+          ci = mkPlainShell {
+            name = "ci";
 
-              packages = ai-agents ++ ai-ops ++ secrets ++ shell;
-
-              shellBanner = scripts.banner.agents;
-            };
-
-            #? Assistants only.
-            assistants = mkSecretShell {
-              name = "assistants";
-
-              packages = ai-assistants ++ ai-agents ++ secrets ++ shell;
-
-              shellBanner = scripts.banner.assistants;
-              extraShellHook = scripts.assistantShellHelpers;
-            };
-
-            #? AI-assisted writing shell.
-            draft = mkSecretShell {
-              name = "draft";
-
-              packages = ai-agents ++ markup ++ prose ++ secrets ++ shell;
-
-              shellBanner = scripts.banner.draft;
-            };
-
-            #? Full research + writing + agents + assistants environment.
-            full = mkSecretShell {
-              name = "research-writing";
-
-              packages =
-                ai-agents
-                ++ ai-assistants
-                ++ ai-ops
-                ++ bibliography
-                ++ markup
-                ++ media
-                ++ prose
-                ++ secrets
-                ++ shell
-                ++ vcs;
-
-              shellBanner = scripts.banner.full;
-              extraShellHook = scripts.assistantShellHelpers;
-            };
-          in
-          {
-            default = draft;
-            minimal = ci;
-            inherit
-              ci
-              writing
-              agents
-              assistants
-              draft
-              full
-              ;
+            packages = bibliography ++ markup ++ media ++ prose;
           };
-      in
-      {
+
+          #? Prose-focused shell. No AI, no secrets.
+          writing = mkPlainShell {
+            name = "writing";
+
+            packages = bibliography ++ markup ++ media ++ prose ++ shell ++ vcs;
+
+            shellHook = scripts.banner.writing;
+          };
+
+          #? Agents only.
+          agents = mkSecretShell {
+            name = "agents";
+
+            packages = ai-agents ++ ai-ops ++ secrets ++ shell;
+
+            shellBanner = scripts.banner.agents;
+          };
+
+          #? Assistants only.
+          assistants = mkSecretShell {
+            name = "assistants";
+
+            packages = ai-assistants ++ ai-agents ++ secrets ++ shell;
+
+            shellBanner = scripts.banner.assistants;
+            extraShellHook = scripts.assistantShellHelpers;
+          };
+
+          #? AI-assisted writing shell.
+          draft = mkSecretShell {
+            name = "draft";
+
+            packages = ai-agents ++ markup ++ prose ++ secrets ++ shell;
+
+            shellBanner = scripts.banner.draft;
+          };
+
+          #? Full research + writing + agents + assistants environment.
+          full = mkSecretShell {
+            name = "research-writing";
+
+            packages =
+              ai-agents
+              ++ ai-assistants
+              ++ ai-ops
+              ++ bibliography
+              ++ markup
+              ++ media
+              ++ prose
+              ++ secrets
+              ++ shell
+              ++ vcs;
+
+            shellBanner = scripts.banner.full;
+            extraShellHook = scripts.assistantShellHelpers;
+          };
+        in {
+          default = draft;
+          minimal = ci;
+          inherit
+            ci
+            writing
+            agents
+            assistants
+            draft
+            full
+            ;
+        };
+      in {
         inherit checks devShells formatter;
       }
     );

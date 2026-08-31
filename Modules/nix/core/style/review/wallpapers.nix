@@ -6,8 +6,7 @@
   lix,
   top,
   ...
-}:
-let
+}: let
   dom = "interface";
   mod = "style";
   sub = "wallpapers";
@@ -22,18 +21,18 @@ let
     interface.style.wallpapers = {
       dots = host.dots or "$DOTS";
       pics = "$HOME/Pictures";
-      light = { };
-      dark = { };
+      light = {};
+      dark = {};
     };
-  } (host.users.data.primary or { });
+  } (host.users.data.primary or {});
 
-  seed =
-    let
-      w = user.interface.style.wallpapers;
-    in
+  seed = let
+    w = user.interface.style.wallpapers;
+  in
     resolveWallpapers {
       inherit (lix) tree;
-      inherit (w)
+      inherit
+        (w)
         dots
         pics
         light
@@ -41,19 +40,21 @@ let
         ;
     }
     // {
-      inherit (w)
+      inherit
+        (w)
         dots
         pics
         light
         dark
         ;
     };
-in
-{
+in {
   options.${top}.resolved.${dom}.${mod}.${sub} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
 
     dots = mkOption {
       description = "Path prefix for dotfiles wallpaper assets (used to build file/dirs)";

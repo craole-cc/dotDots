@@ -7,21 +7,21 @@
   pkgs,
   top,
   ...
-}:
-let
+}: let
   dom = "interface";
   mod = "style";
   cfg = config.${top}.resolved.${dom}.${mod};
 
-  user = host.users.data.primary or { };
-  style = user.interface.style or { };
+  user = host.users.data.primary or {};
+  style = user.interface.style or {};
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) literalExpression mkEnableOption mkOption;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.strings) hasPrefix;
   inherit (lib.modules) mkForce;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     enum
     int
     nullOr
@@ -66,15 +66,15 @@ let
 
   currentTheme = themeMap.${cfg.theme} or null;
   cursorResolved =
-    if cfg.cursor != null then
-      {
-        name = cfg.cursor;
-        package = getPackage {
-          inherit pkgs;
-          target = cfg.cursor;
-          default = pkgs.material-cursors;
-        };
-      }
+    if cfg.cursor != null
+    then {
+      name = cfg.cursor;
+      package = getPackage {
+        inherit pkgs;
+        target = cfg.cursor;
+        default = pkgs.material-cursors;
+      };
+    }
     else
       currentTheme.cursor or {
         name = "default";
@@ -82,23 +82,23 @@ let
       };
 
   wallpaperPath =
-    if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper then
-      /. + cfg.wallpaper
-    else if cfg.wallpapersRoot != null && hasPrefix "/nix/store" cfg.wallpapersRoot then
-      /. + (cfg.wallpapersRoot + "/${cfg.polarity}.jpg")
-    else
-      null;
+    if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper
+    then /. + cfg.wallpaper
+    else if cfg.wallpapersRoot != null && hasPrefix "/nix/store" cfg.wallpapersRoot
+    then /. + (cfg.wallpapersRoot + "/${cfg.polarity}.jpg")
+    else null;
 
   hasStylix = options ? stylix;
-in
-{
+in {
   options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnableOption mod // {
-      default = true;
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = true;
+      };
     theme = mkOption {
       description = "Current theme name";
-      default = (style.theme or { }).${style.current or "dark"} or "Catppuccin Frappé";
+      default = (style.theme or {}).${style.current or "dark"} or "Catppuccin Frappé";
       defaultText = literalExpression ''(host.users.data.primary.interface.style.theme or {})[host.users.data.primary.interface.style.current or "dark"] or "Catppuccin Frappé"'';
       type = str;
     };
@@ -113,7 +113,7 @@ in
     };
     wallpaper = mkOption {
       description = "Wallpaper path override";
-      default = (style.wallpaper or { }).${style.current or "dark"} or null;
+      default = (style.wallpaper or {}).${style.current or "dark"} or null;
       defaultText = literalExpression ''(host.users.data.primary.interface.style.wallpaper or {})[host.users.data.primary.interface.style.current or "dark"] or null'';
       type = nullOr str;
     };
@@ -125,19 +125,21 @@ in
     };
     cursor = mkOption {
       description = "Cursor theme override";
-      default = (style.cursor or { }).${style.current or "dark"} or null;
+      default = (style.cursor or {}).${style.current or "dark"} or null;
       defaultText = literalExpression ''(host.users.data.primary.interface.style.cursor or {})[host.users.data.primary.interface.style.current or "dark"] or null'';
       type = nullOr str;
     };
     cursorSize = mkOption {
       description = "Cursor size in pixels";
-      default = (style.cursor or { }).size or 24;
+      default = (style.cursor or {}).size or 24;
       defaultText = literalExpression "host.users.data.primary.interface.style.cursor.size or 24";
       type = int;
     };
-    autoSwitch = mkEnableOption "automatic dark/light switching" // {
-      default = style.autoSwitch or true;
-    };
+    autoSwitch =
+      mkEnableOption "automatic dark/light switching"
+      // {
+        default = style.autoSwitch or true;
+      };
   };
 
   config = mkIf (cfg.enable && currentTheme != null) (
@@ -153,39 +155,35 @@ in
           size = cfg.cursorSize;
         };
 
-        icons =
-          let
-            set = pkgs.candy-icons;
-          in
-          {
-            enable = true;
-            package = set;
-            light = set.name;
-            dark = set.name;
-          };
+        icons = let
+          set = pkgs.candy-icons;
+        in {
+          enable = true;
+          package = set;
+          light = set.name;
+          dark = set.name;
+        };
 
-        fonts =
-          let
-            fontCfg = config.${top}.resolved.${dom}.fonts;
-          in
-          {
-            monospace = {
-              package = pkgs.maple-mono.NF-unhinted;
-              name = fontCfg.monospace;
-            };
-            sansSerif = {
-              package = pkgs.noto-fonts;
-              name = fontCfg.sans;
-            };
-            serif = {
-              package = pkgs.noto-fonts;
-              name = fontCfg.serif;
-            };
-            emoji = {
-              package = pkgs.noto-fonts-color-emoji;
-              name = fontCfg.emoji;
-            };
+        fonts = let
+          fontCfg = config.${top}.resolved.${dom}.fonts;
+        in {
+          monospace = {
+            package = pkgs.maple-mono.NF-unhinted;
+            name = fontCfg.monospace;
           };
+          sansSerif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.sans;
+          };
+          serif = {
+            package = pkgs.noto-fonts;
+            name = fontCfg.serif;
+          };
+          emoji = {
+            package = pkgs.noto-fonts-color-emoji;
+            name = fontCfg.emoji;
+          };
+        };
 
         opacity = {
           terminal = 0.9;
@@ -199,7 +197,10 @@ in
       environment.sessionVariables = {
         THEME_CURRENT = cfg.polarity;
         THEME_NAME = cfg.theme;
-        WALLPAPER_CURRENT = if wallpaperPath != null then toString wallpaperPath else "";
+        WALLPAPER_CURRENT =
+          if wallpaperPath != null
+          then toString wallpaperPath
+          else "";
       };
     }
   );
