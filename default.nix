@@ -1,20 +1,60 @@
 {...} @ args: let
-  paths.core = {
-    src.store = args.paths.src.store or ./.;
-    api.default.store = args.paths.api.default.store or ./API/nix;
-    lib.default.store = args.paths.lib.default.store or ./Libraries/nix;
+  utils = rec {
+    inherit
+      (builtins)
+      attrNames
+      elem
+      foldl'
+      isAttrs
+      listToAttrs
+      stringLength
+      substring
+      ;
+
+    unique = foldl' (acc: x:
+      if elem x acc
+      then acc
+      else acc ++ [x]) [];
+
+    mergeAttrsRecursive = set1: set2:
+      if isAttrs set1 && isAttrs set2
+      then let
+        keys = unique (attrNames set1 ++ attrNames set2);
+      in
+        listToAttrs (
+          map (key: {
+            name = key;
+            value =
+              if set1 ? ${key} && set2 ? ${key}
+              then mergeAttrsRecursive set1.${key} set2.${key}
+              else set2.${key} or set1.${key};
+          })
+          keys
+        )
+      else set2;
   };
+  inherit (utils) mergeAttrsRecursive;
 
-  init =
-    import paths.core.lib.default.store
-    (args // {inherit paths;});
+  paths = mergeAttrsRecursive {
+    core = {
+      src.store = ./.;
+      api.default.store = ./API/nix;
+      lib.default.store = ./Libraries/nix;
+    };
+  } (args.paths or {});
+  inherit (paths.core.lib.default) store;
 
-  schema =
-    init.libraries.default.schema.construction.mkSchema
-    {inherit args;};
+  init = {
+    args = mergeAttrsRecursive args {inherit utils paths;};
+    lib = import store init.args;
+  };
+  _ = init.lib.libraries.default;
 
-  eval =
-    import paths.core.lib.default.store
-    (args // {inherit paths schema;});
+  eval = {
+    args = mergeAttrsRecursive init.args {
+      schema = _.schema.construction.mkSchema init.args;
+    };
+    lib = import store eval.args;
+  };
 in
-  eval
+  eval.lib

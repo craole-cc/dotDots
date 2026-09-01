@@ -14,7 +14,8 @@
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf either nullOr;
   inherit (lix.types.primitives) int package str;
-  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.types.predicates) isAttrs;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.styles.cursors.types.polarity) core;
   inherit (lix.attrsets.resolution) withPath;
 
@@ -49,11 +50,14 @@
   };
 
   # TODO: Move to styles.cursors.types.polarity.core
-  mkPolarityOption = polarity:
+  mkPolarityOption = value: let
+    path = "${registry.path}.${value}";
+    polarity = registry.${value};
+  in
     mkOption {
-      description = "Cursor theme for the ${polarity} polarity (string, package, or { name, package, size })";
-      default = registry.${polarity};
-      defaultText = literalExpression ''${registry.path}.${polarity} or "${registry.${polarity}}"'';
+      description = "Cursor theme for the ${value} polarity (string, package, or { name, package, size })";
+      default = polarity;
+      defaultText = literalExpression ''${path} or "${polarity}"'';
       example = literalExpression ''
         # as a string (resolved via registry)
         "material"
@@ -62,7 +66,11 @@
         pkgs.material-cursors
 
         # as a resolved attrset
-        { name = "material_dark_cursors"; package = pkgs.material-cursors; size = 32; }
+        {
+          name = "material_dark_cursors";
+          package = pkgs.material-cursors;
+          size = 32;
+        }
       '';
       type = either (either str package) core;
     };
@@ -78,29 +86,32 @@ in
       light = mkPolarityOption "light";
       dark = mkPolarityOption "dark";
 
-      size = mkOption {
-        description = "Global cursor size in pixels, used when not overridden per polarity.";
-        default = registry.size;
-        defaultText = literalExpression "${registry.path}.size or 24";
-        type = int;
-      };
+      size = with registry;
+        mkOption {
+          description = "Global cursor size in pixels, used when not overridden per polarity.";
+          default = size;
+          defaultText = literalExpression "${path}.size or 24";
+          type = int;
+        };
 
-      accent = mkOption {
-        description = "Catppuccin accent color for cursor themes that support it.";
-        default = registry.accent;
-        defaultText = literalExpression "${registry.path}.accent or null";
-        type = nullOr str;
-      };
+      accent = with registry;
+        mkOption {
+          description = "Catppuccin accent color for cursor themes that support it.";
+          default = accent;
+          defaultText = literalExpression "${path}.accent or null";
+          type = nullOr str;
+        };
 
-      variants = mkOption {
-        description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it.";
-        default = registry.variants;
-        defaultText = literalExpression "${registry.path}.variants or null";
-        type = nullOr (attrsOf str);
-      };
+      variants = with registry;
+        mkOption {
+          description = "Catppuccin variant per polarity ({ light, dark }) for cursor themes that support it.";
+          default = variants;
+          defaultText = literalExpression "${path}.variants or null";
+          type = nullOr (attrsOf str);
+        };
     };
 
-    outputs = {}; # pure options module for now
+    outputs = {};
   }
 # {
 #   host,

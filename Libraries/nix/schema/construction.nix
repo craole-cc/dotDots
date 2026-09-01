@@ -38,7 +38,8 @@
   mkSchema = {
     api ? (importAttrs paths.core.api.default.store).value,
     paths ? _defaults.paths,
-    args ? {},
+    host ? _defaults.host or {},
+    ...
   }: let
     raw = {
       global = api.global or {};
@@ -65,18 +66,18 @@
       users = mkUsers raw.users;
     };
 
-    active = let
+    active = {
       host = let
         name =
-          args.host.name or (
+          host.name or (
             getEnvOr "HOSTNAME" (
               headOf (removeAttrs base.hosts ["default"])
             )
           );
       in
         base.hosts.${name} or base.hosts.default;
-      user = host.users.primary;
-    in {inherit host user;};
+      user = active.host.users.primary;
+    };
   in {
     inherit (raw) global;
     hosts =

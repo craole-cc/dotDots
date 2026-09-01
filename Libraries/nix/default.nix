@@ -8,8 +8,11 @@
   names ? {},
   allowAliases ? false,
   allowTests ? false,
-  src ? ../../.,
-  self ? ./.,
+  paths' ? {
+    lib = ./.;
+    src = ../../.;
+    api = ../../API/nix;
+  },
   host ? {},
   schema ? {},
   ...

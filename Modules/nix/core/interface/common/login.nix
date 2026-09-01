@@ -15,7 +15,7 @@
   inherit (lix.types.combinators) nullOr;
   inherit (lix.types.primitives) int str;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
-  user = host.users.data.primary or {};
+  user = host.users.primary or {};
 in
   mkConfig {
     inherit context;
@@ -24,12 +24,12 @@ in
         enable = mkEnable {
           description = "Whether to enable automatic login for the primary user.";
           condition = user.autoLogin or false;
-          defaultText = literalExpression "host.users.data.primary.autoLogin or false";
+          defaultText = literalExpression "host.users.primary.autoLogin or false";
         };
         user = mkOption {
           description = "Username for automatic login. Defaults to the primary user's name.";
           default = user.name or null;
-          defaultText = literalExpression "host.users.data.primary.name or null";
+          defaultText = literalExpression "host.users.primary.name or null";
           example = literalExpression ''"craole"'';
           type = nullOr str;
         };
