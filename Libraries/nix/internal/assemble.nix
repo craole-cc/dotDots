@@ -20,7 +20,7 @@
           flatten = false;
         };
       names = filter (name: name != "default") (
-        map (f: removeSuffix ".nix" f) (
+        map (file: removeSuffix ".nix" file) (
           attrNames (
             filterAttrs
             (

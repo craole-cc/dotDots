@@ -24,14 +24,7 @@
   inherit (lix.lists.construction) optionals;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
-  inherit
-    (lix.applications.resolution)
-    bars
-    browsers
-    editors
-    launchers
-    terminals
-    ;
+  inherit (lix.applications.resolution) bars browsers editors launchers terminals;
 
   registry = let
     editor = editors.packages {

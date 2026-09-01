@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  _defaults,
+  ...
+}: let
   meta = {
     doc = ''
       Build the host-specific core module list used during system evaluation.
@@ -35,7 +39,7 @@
   inherit (_.modules.construction) mkHome mkIf;
 
   mkStaged = {
-    top,
+    top ? _defaults.names.top,
     condition ? true,
     payload,
   }: [

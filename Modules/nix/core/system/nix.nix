@@ -1,5 +1,6 @@
 {
   config,
+  flake,
   host,
   lix,
   names,
@@ -18,23 +19,8 @@
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
-  inherit
-    (lix.types.combinators)
-    attrsOf
-    either
-    listOf
-    nullOr
-    submodule
-    ;
-  inherit
-    (lix.types.primitives)
-    anything
-    bool
-    int
-    ints
-    path
-    str
-    ;
+  inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
+  inherit (lix.types.primitives) anything bool int ints path str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
@@ -83,7 +69,7 @@ in
 
             home = mkOption {
               description = "Local absolute path to the flake.";
-              default = host.paths.flake or paths.flake.local;
+              default = flake.home or (host.paths.src or paths.core.src.local);
               defaultText = literalExpression "host.paths.flake";
               example = literalExpression "/home/craole/.dots";
               type = str;
@@ -91,7 +77,7 @@ in
 
             path = mkOption {
               description = "Nix store path to the flake.";
-              default = paths.flake.store or ../../../../.;
+              default = flake.home or (paths.core.src or ../../../../.);
               defaultText = literalExpression "paths.flake.store or ../../../../.";
               example = literalExpression "/nix/store/...-source";
               type = nullOr (either str path);
@@ -132,6 +118,7 @@ in
         type = either int str;
       };
 
+      #TODO: ensure the schema know about caches
       caches = mkOption {
         description = ''
           Binary cache overrides merged over auto-detected defaults. Each entry
@@ -143,8 +130,8 @@ in
         example = literalExpression ''
           {
             nyx = {
-              sub = "https://geo-mirror.chaotic.cx/";
-              key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
+              subs = ["https://geo-mirror.chaotic.cx/"];
+              keys = ["nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc="];
             };
           }
         '';
@@ -207,18 +194,18 @@ in
             `keep.days`, `keep.generations`, and `keep.maxFreed`.
           '';
           default =
-            (optionals (cfg.keep.days != null) [
+            optionals (cfg.keep.days != null) [
               "--keep-since"
               "${toString cfg.keep.days}d"
-            ])
-            ++ (optionals (cfg.keep.generations != null) [
+            ]
+            ++ optionals (cfg.keep.generations != null) [
               "--keep"
               "${toString cfg.keep.generations}"
-            ])
-            ++ (optionals (cfg.keep.maxFreed != null) [
+            ]
+            ++ optionals (cfg.keep.maxFreed != null) [
               "--max-freed"
               cfg.keep.maxFreed
-            ]);
+            ];
           defaultText = literalExpression ''
             (optionals (cfg.keep.days != null) ["--keep-since" "''${toString cfg.keep.days}d"])
             ++ (optionals (cfg.keep.generations != null) ["--keep" "''${toString cfg.keep.generations}"])
@@ -240,14 +227,7 @@ in
     outputs = mkMerge [
       (mkNix {
         inherit host pkgs;
-        inherit
-          (cfg)
-          flake
-          kernel
-          caches
-          max-jobs
-          stateVersion
-          ;
+        inherit (cfg) flake kernel caches max-jobs stateVersion;
         store = tree.store.default;
       })
       (mkMaintenance {

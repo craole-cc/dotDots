@@ -1,6 +1,6 @@
 {
   _,
-  _defaults,
+  _default,
   ...
 }: let
   meta = let
@@ -81,7 +81,7 @@
   inherit (_.types.primitives) anything;
 
   sourceArgs = {
-    paths ? _defaults.paths,
+    paths ? _default.paths,
     host,
     ...
   } @ args:
@@ -103,9 +103,7 @@
     flake,
     inputs,
     paths,
-    libraries,
-    names,
-    # stems,
+    top ? _default.names.top ? "_",
     ...
   } @ args: let
     types = let
@@ -160,15 +158,9 @@
     mkSystem = host: let
       hostArgs = sourceArgs (args // {inherit host;});
       class = host.class or "nixos";
-      # hostLib = libForHost host;
-      # lib = hostLib;
       specialArgs =
         removeAttrs
-        (hostArgs
-          // {
-            args = hostArgs;
-            inherit (hostArgs.names) top; # TODO: I know we shouldn't need to do this
-          })
+        (hostArgs // {inherit top;})
         ["lib"]; # TODO: Do this in libraries/internal/default
 
       # inherit (specialArgs) tree;
@@ -280,8 +272,8 @@
     flake,
     inputs ? {},
     hosts ? schema.hosts or {},
-    paths ? _defaults.paths or {},
-    schema ? _defaults.schema or {},
+    paths ? _default.paths or {},
+    schema ? _default.schema or {},
     ...
   } @ args: let
     systems = getSystems {
@@ -347,7 +339,7 @@
 
   mkContext = {
     config,
-    top ? _defaults.names.top,
+    top ? _default.names.top,
     dom,
     sub ? null,
     mod,
@@ -363,7 +355,7 @@
     // {cfg = (getAttrFromPath path config).explicit;};
 
   mkPath = {
-    top,
+    top ? _default.names.top,
     dom,
     sub,
     mod,

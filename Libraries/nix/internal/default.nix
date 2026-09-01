@@ -34,6 +34,7 @@
             self = self;
             name = names.lib;
             _defaults = args;
+            _default = args;
             projectPath = args.paths.core.src.store;
             projectHome = args.paths.core.src.local;
           };

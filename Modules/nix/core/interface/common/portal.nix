@@ -1,68 +1,107 @@
 {
   config,
-  lib,
-  pkgs,
-  top,
   lix,
+  pkgs,
   ...
 }: let
-  inherit (lib.modules) mkIf;
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "common";
+    mod = "portal";
+  };
+  inherit (context) cfg;
+  inherit (lix.lists.transformation) unique;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.types.combinators) listOf nullOr;
+  inherit (lix.types.primitives) package;
 
-  cfg = config.${top}.resolved.interface;
-  autoSwitch = config.${top}.resolved.interface.style.autoSwitch or true;
+  registry = {
+    packages = with pkgs; {
+      default = [xdg-desktop-portal-gtk];
+      hyprland = [
+        xdg-desktop-portal-hyprland
+        xdg-desktop-portal-gtk
+      ];
+      niri = [
+        xdg-desktop-portal-gnome
+        xdg-desktop-portal-gtk
+      ];
+    };
 
-  hyprlandPortals = [
-    pkgs.xdg-desktop-portal-hyprland
-    pkgs.xdg-desktop-portal-gtk
-  ];
+    portals = let
+      default = with registry;
+        if checks.hyprland
+        then packages.hyprland
+        else if checks.niri
+        then packages.niri
+        else packages.default;
+      overrides = cfg.portals or default;
+      extra = cfg.extraPortals or [];
+    in {
+      inherit default overrides extra;
+      final = unique (overrides ++ extra);
+    };
 
-  niriPortals = [
-    pkgs.xdg-desktop-portal-gnome
-    pkgs.xdg-desktop-portal-gtk
-  ];
+    checks = with cfg; {
+      autoSwitch = config.${context.top}.resolved.interface.style.autoSwitch or true;
+      darkman = preferDarkman;
+      hyprland =
+        (windowManager == "hyprland")
+        || config.programs.hyprland.enable or false
+        || config.wayland.windowManager.hyprland.enable or false;
 
-  defaultPortals = [pkgs.xdg-desktop-portal-gtk];
+      niri =
+        (windowManager == "niri")
+        || config.programs.niri.enable or false;
 
-  portals =
-    if cfg.windowManager == "hyprland"
-    then hyprlandPortals
-    else if cfg.windowManager == "niri"
-    then niriPortals
-    else defaultPortals;
+      windowManager = config.${context.top}.resolved.interface.windowManager or null;
+    };
 
-  # Route Settings portal to darkman when autoSwitch is on,
-  # otherwise fall through to gtk
-  settingsImpl =
-    if autoSwitch
-    then ["darkman"]
-    else ["gtk"];
-  payload = {
-    xdg.portal = {
-      enable = true;
-      extraPortals = portals;
-      config = {
-        common.default = ["*"];
-        hyprland = mkIf (cfg.windowManager == "hyprland") {
-          default = [
-            "hyprland"
-            "gtk"
-          ];
-          "org.freedesktop.impl.portal.Settings" = settingsImpl;
-        };
-        niri = mkIf (cfg.windowManager == "niri") {
-          default = [
-            "gnome"
-            "gtk"
-          ];
-          "org.freedesktop.impl.portal.Settings" = settingsImpl;
+    settings = with registry.checks; {
+      "org.freedesktop.impl.portal.Settings" =
+        if darkman && autoSwitch
+        then ["darkman"]
+        else ["gtk"];
+    };
+  };
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {
+        description = "Whether to enable XDG desktop portal configuration.";
+        condition = true;
+      };
+      portals = mkOption {
+        description = "Override the list of extra portals";
+        inherit (registry.portals) default;
+        type = nullOr (listOf package);
+      };
+      extraPortals = mkOption {
+        description = "Additional portals to add on top of the defaults.";
+        default = [];
+        type = nullOr (listOf package);
+      };
+      preferDarkman = mkEnable {
+        description = "Prefer darkman for the Settings portal when auto theme switching is enabled.";
+        condition = true;
+      };
+    };
+    outputs = with registry; {
+      xdg.portal = mkIf cfg.enable {
+        enable = true;
+        extraPortals = portals.final;
+        config = with checks; {
+          common.default = ["*"];
+          hyprland = mkIf hyprland (
+            {default = ["hyprland" "gtk"];} // settings
+          );
+          niri = mkIf niri (
+            {default = ["gnome" "gtk"];} // settings
+          );
         };
       };
     };
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+  }

@@ -155,23 +155,20 @@
     description ? null,
     condition ? true,
     context ? null,
+    defaultText ? null,
+    example ? null,
   }: let
     desc =
       if context == null
       then description
-      else
-        concat "." (
-          with context; [
-            dom
-            sub
-            mod
-          ]
-        );
+      else concat "." (with context; [dom sub mod]);
   in
     mkOption {
       default = condition;
       type = bool;
     }
+    // optionalAttrs (defaultText != null) {inherit defaultText;}
+    // optionalAttrs (example != null) {inherit example;}
     // optionalDesc desc;
 
   /**
