@@ -158,9 +158,7 @@
       specialArgs =
         removeAttrs
         (hostArgs // {inherit top;})
-        ["lib"]; # TODO: Do this in libraries/internal/default
-
-      # inherit (specialArgs) tree;
+        ["config" "lib"];
 
       classified = modulesOf class;
       core = mkCore (recursiveUpdate hostArgs {
@@ -170,11 +168,9 @@
 
       evaluated = evalModules {
         specialArgs =
-          specialArgs
-          // {
-            inherit (classified.all) modulesPath baseModules;
-            modules = classified // {host = core;};
-          };
+          removeAttrs
+          (hostArgs // {inherit top;})
+          ["lib" "config"];
         modules =
           classified.base
           ++ classified.core
@@ -183,10 +179,47 @@
           ++ [paths.repo.mod.default.store]
           ++ [{config._module.args = specialArgs;}];
       };
-    in
+    in (
       if class == "darwin"
       then evaluated // {system = evaluated.config.system.build.toplevel;}
-      else evaluated;
+      else evaluated
+    );
+
+    # mkSystem = host: let
+    #   hostArgs = sourceArgs (args // {inherit host;});
+    #   class = host.class or "nixos";
+    #   specialArgs =
+    #     removeAttrs
+    #     (hostArgs // {inherit top;})
+    #     ["lib"]; # TODO: Do this in libraries/internal/default
+
+    #   # inherit (specialArgs) tree;
+
+    #   classified = modulesOf class;
+    #   core = mkCore (recursiveUpdate hostArgs {
+    #     inherit specialArgs;
+    #     modules = classified;
+    #   });
+
+    #   evaluated = evalModules {
+    #     specialArgs =
+    #       specialArgs
+    #       // {
+    #         inherit (classified.all) modulesPath baseModules;
+    #         modules = classified // {host = core;};
+    #       };
+    #     modules =
+    #       classified.base
+    #       ++ classified.core
+    #       ++ core
+    #       ++ (host.imports or [])
+    #       ++ [paths.repo.mod.default.store]
+    #       ++ [{config._module.args = specialArgs;}];
+    #   };
+    # in
+    #   if class == "darwin"
+    #   then evaluated // {system = evaluated.config.system.build.toplevel;}
+    #   else evaluated;
 
     /**
     Evaluate a single `home-manager`-class host through
