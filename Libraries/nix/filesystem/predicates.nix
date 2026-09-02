@@ -50,7 +50,7 @@
   isPath "/etc"      # => false
   ```
   */
-  isPath' = path: isPath path;
+  isPath' = isPath;
 
   /**
   Check whether a value is a Nix store path.
@@ -66,7 +66,7 @@
   isStorePath "/etc/hosts"             # => false
   ```
   */
-  isStorePath' = path: isStorePath path;
+  isStorePath' = isStorePath;
 
   /**
   Check whether a path refers to a `.nix` file.

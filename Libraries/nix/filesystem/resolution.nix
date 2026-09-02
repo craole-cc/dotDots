@@ -164,9 +164,7 @@
   pathAttrs = value:
     if isPathLike value
     then (importAttrs value).value
-    else if value ? value
-    then value.value
-    else value;
+    else value.value or value;
 in
   __exports.internal
   // {

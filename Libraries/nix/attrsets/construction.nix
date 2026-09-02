@@ -95,13 +95,13 @@
           else true
         else if isKwargs
         then
-          if arg ? __value
-          then arg.__value
-          else if resolved.args != {}
-          then resolved.args
-          else if resolved.name != null
-          then true
-          else resolved.args
+          arg.__value or (
+            if resolved.args != {}
+            then resolved.args
+            else if resolved.name != null
+            then true
+            else resolved.args
+          )
         else arg;
 
       hasValue =

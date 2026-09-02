@@ -20,16 +20,8 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable =
-        mkEnableOption mod
-        // {
-          default = interface.enable;
-        };
-      enableUSWM =
-        mkEnableOption mod
-        // {
-          default = cfg.enable;
-        };
+      enable = mkEnableOption mod // {default = interface.enable;};
+      enableUSWM = mkEnableOption mod // {default = cfg.enable;};
     };
     outputs = mkPrograms {
       windowManager = interface.windowManager or null; # TODO: This is ugly

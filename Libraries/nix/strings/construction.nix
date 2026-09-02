@@ -563,11 +563,10 @@
   }:
     mkHexString {
       inherit length algo;
-      salt = (
+      salt =
         if salt != null
         then salt
-        else "${kind}/${name}"
-      );
+        else "${kind}/${name}";
     };
 
   hashToInt = {

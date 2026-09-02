@@ -32,7 +32,7 @@
         extraArgs = {
           inherit safe;
           _ = self;
-          self = self;
+          inherit self;
           name = names.lib;
           _defaults = args;
           _default = args;

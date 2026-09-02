@@ -1,31 +1,29 @@
 {
   config,
   lix,
-  lib,
-  top,
   ...
 }: let
-  dom = "programs";
-  mod = "hyprlock";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  context = mkContext {
+    inherit config;
+    dom = "programs";
+    mod = "hyprlock";
+  };
+  inherit (context) cfg mod top;
+
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
 
   wm = config.${top}.resolved.interface.windowManager or null;
-
-  inherit (lix.options.construction) mkEnable;
-  payload = {
-    programs.${mod}.enable = cfg.enable;
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnable {
-      description = "Hyprlock screen locker for Hyprland";
-      condition = wm == "hyprland";
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {
+        description = "Hyprlock screen locker for Hyprland";
+        condition = wm == "hyprland";
+      };
     };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+    outputs = {
+      programs.${mod}.enable = cfg.enable;
+    };
+  }

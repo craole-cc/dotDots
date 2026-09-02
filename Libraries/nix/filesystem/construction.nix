@@ -116,7 +116,7 @@
   in
     if isVar root
     then {
-      store = src.store;
+      inherit (src) store;
       local = resolveVar vars root;
     }
     else if isAttrs root && (root ? store || root ? local)
@@ -125,7 +125,7 @@
       local = resolveVar vars (root.local or root.store or null);
     }
     else {
-      store = src.store;
+      inherit (src) store;
       local = resolveVar vars root;
     };
 
@@ -356,8 +356,8 @@
       store = project "store" full.repo;
       local = project "local";
       src = {
-        store = src.store;
-        local = src.local;
+        inherit (src) store;
+        inherit (src) local;
       };
       mkLocal = base: mkLocal {inherit base stems;};
     };

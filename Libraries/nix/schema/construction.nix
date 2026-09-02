@@ -62,7 +62,7 @@
           name: host:
             mkCore ({
                 inherit name;
-                users = base.users;
+                inherit (base) users;
                 host = recursiveUpdate (raw.hosts.default or {}) host;
               }
               // paths)
@@ -71,13 +71,13 @@
         // {
           default = mkCore ({
               name = "default";
-              users = base.users;
+              inherit (base) users;
               host = raw.hosts.default or {};
             }
             // paths);
         };
       # users = mkUsers raw.users;
-      users = mkUsers {users = raw.users;};
+      users = mkUsers {inherit (raw) users;};
     };
 
     active = {

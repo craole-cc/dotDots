@@ -1,44 +1,43 @@
 {
   config,
   lix,
-  lib,
-  top,
   ...
 }: let
-  dom = "programs";
-  mod = "direnv";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  context = mkContext {
+    inherit config;
+    dom = "programs";
+    mod = "direnv";
+  };
+  inherit (context) cfg mod;
+
+  inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkOption mkTrue mkType;
-  payload = {
-    programs.${mod} = {
-      inherit (cfg) enable silent;
-      settings.global = {
-        log_format = cfg.format;
-        log_filter = cfg.filter;
-        load_dotenv = cfg.dotenv;
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkTrue mod;
+      silent = mkTrue "silent mode";
+      dotenv = mkTrue "load .env files";
+      format = mkOption {
+        description = "log format string";
+        default = "-";
+        type = mkType "str";
+      };
+      filter = mkOption {
+        description = "log filter regex";
+        default = "^$";
+        type = mkType "str";
       };
     };
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkTrue mod;
-    silent = mkTrue "silent mode";
-    dotenv = mkTrue "load .env files";
-    format = mkOption {
-      description = "log format string";
-      default = "-";
-      type = mkType "str";
+    outputs = {
+      programs.${mod} = {
+        inherit (cfg) enable silent;
+        settings.global = {
+          log_format = cfg.format;
+          log_filter = cfg.filter;
+          load_dotenv = cfg.dotenv;
+        };
+      };
     };
-    filter = mkOption {
-      description = "log filter regex";
-      default = "^$";
-      type = mkType "str";
-    };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+  }

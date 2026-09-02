@@ -1,57 +1,59 @@
 {
   config,
   host,
-  lib,
   lix,
   pkgs,
-  top,
   ...
 }: let
-  dom = "programs";
-  mod = "obs-studio";
-  cfg = config.${top}.resolved.${dom}.${mod};
+  context = mkContext {
+    inherit config;
+    dom = "programs";
+    mod = "obs-studio";
+  };
+  inherit (context) cfg mod top;
+
+  inherit (lix.lists.construction) optionals;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) literalExpression mkEnable mkOption;
+  inherit (lix.types.combinators) listOf;
+  inherit (lix.types.primitives) package;
+
   hw = host.hardware;
+  displayProtocol = config.${top}.resolved.interface.displayProtocol or null;
 
-  inherit (config.${top}.resolved.interface) displayProtocol;
-  inherit (lib.types) listOf package;
-  inherit (lib.lists) optionals;
-  inherit (lix.options.construction) mkEnable mkOption;
-  pins = pkgs.obs-studio-plugins;
-  payload = {
-    programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};
-  };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnable {
-      description = "OBS Studio";
-      condition = hw.hasVideoCam;
+  defaultPlugins = with pkgs.obs-studio-plugins;
+    [
+      droidcam-obs
+      input-overlay
+      obs-advanced-masks
+      obs-aitum-multistream
+      obs-mute-filter
+      obs-retro-effects
+      obs-source-record
+      obs-source-switcher
+      obs-vertical-canvas
+    ]
+    ++ optionals (displayProtocol == "wayland") [wlrobs];
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {
+        description = "OBS Studio";
+        condition = hw.hasVideoCam;
+      };
+      enableVirtualCamera = mkEnable {
+        description = "OBS virtual camera";
+        condition = hw.hasVideoCam;
+      };
+      plugins = mkOption {
+        description = "Optional plugins for OBS.";
+        default = defaultPlugins;
+        defaultText = literalExpression "default OBS plugin set, plus wlrobs when interface.displayProtocol == \"wayland\"";
+        type = listOf package;
+      };
     };
-    enableVirtualCamera = mkEnable {
-      description = "OBS virtual camara";
-      condition = hw.hasVideoCam;
+    outputs = {
+      programs.${mod} = {inherit (cfg) enable enableVirtualCamera plugins;};
     };
-    plugins = mkOption {
-      description = "Optional plugins for OBS.";
-      default = with pins;
-        [
-          droidcam-obs
-          input-overlay
-          obs-advanced-masks
-          obs-aitum-multistream
-          obs-mute-filter
-          obs-retro-effects
-          obs-source-record
-          obs-source-switcher
-          obs-vertical-canvas
-        ]
-        ++ optionals (displayProtocol == "wayland") [wlrobs];
-      type = listOf package;
-    };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+  }
