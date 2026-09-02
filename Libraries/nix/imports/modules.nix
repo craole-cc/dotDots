@@ -41,7 +41,7 @@
       importJSON
       importTOML
       ;
-    inherit extend; # TODO: Check is this is the best place to house extend.
+    inherit extend;
   };
 
   migration = {

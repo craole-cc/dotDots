@@ -17,6 +17,8 @@
         aliases = {
           normalizeInputs = normalize;
           sourceInput = mkSource;
+          resolveInputs = normalize;
+          mkInputSource = mkSource;
         };
       in
         {inherit functions aliases;} // functions // aliases;
@@ -202,8 +204,8 @@
           message = "expected `value` to be an inputs attrset, path, or string";
         }; null;
 
-    flake = args.flake or null;
-    path = args.home or (args.path or (args.src or null));
+    # flake = args.flake or null;
+    # path = args.home or (args.path or (args.src or null));
     # inputs = args.inputs or((getFlake {inherit flake path;}).inputs or {});
     inherit (args) inputs;
 

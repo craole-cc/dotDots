@@ -161,16 +161,7 @@
       modulesPath = path;
     };
   in
-    all
-    // {
-      inherit
-        all
-        base
-        core
-        home
-        path
-        ;
-    };
+    all // {inherit all base core home path;};
 in
   __exports.internal
   // {
