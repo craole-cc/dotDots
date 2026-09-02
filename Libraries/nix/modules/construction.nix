@@ -266,7 +266,6 @@
     `{ templates = {...}; packages = {...}; devShells = {...}; ... }`
   */
   mkUtilities = {
-    flake,
     inputs ? {},
     hosts ? schema.hosts or {},
     paths ? _default.paths or {},
@@ -274,7 +273,7 @@
     ...
   } @ args: let
     systems = getSystems {
-      inherit flake hosts;
+      inherit hosts;
       inherit (inputs) nixpkgs;
       inherit (inputs.nixpkgs) legacyPackages;
     };

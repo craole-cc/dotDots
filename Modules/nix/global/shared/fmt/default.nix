@@ -1,15 +1,15 @@
 {
   lix,
   pkgs,
-  flake,
+  inputs,
   paths,
   pkgsFor,
   print,
   ...
-}: let
-  inherit (flake) inputs;
+} @ args: let
+  inherit inputs;
   path = paths.store.src;
-  treefmtInput = inputs.treeFormatter or inputs.treefmtNix or inputs.treefmt;
+  treefmtInput = inputs.treeFormatter or (inputs.treefmtNix or inputs.treefmt);
   inherit (treefmtInput.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
@@ -44,7 +44,7 @@
   #~@ Nix-side eval: store-path commands, used by `nix fmt`.
   init = let
     module = {
-      _module.args = {inherit lix flake;} // utils;
+      _module.args = {inherit lix;} // utils;
       imports = (importAllPaths ./.).value;
       projectRootFile = "flake.nix";
 

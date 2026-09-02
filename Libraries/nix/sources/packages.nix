@@ -721,7 +721,6 @@
     );
 
   mkAll = {
-    flake ? {},
     src ? {},
     host ? {},
     inputs ? {},
@@ -734,9 +733,10 @@
     inputs' = normalizeInputs (
       if isNotEmpty inputs
       then inputs
-      else if isNotEmpty flake.inputs
-      then flake
-      else getFlake {}
+      else {}
+      # else if isNotEmpty flake.inputs
+      # then flake
+      # else getFlake {}
     );
 
     system' = getSystemOrDefault {
@@ -792,7 +792,11 @@
     resolved = {
       inherit packages overlays;
 
-      inputs = inputs';
+      inputs =
+        if inputs'.home-manager != {}
+        then inputs'
+        else ''Inputs can be see via the flake: > :lf . > lib.inputs'';
+
       config = config';
       nixpkgs = nixpkgs';
 
@@ -802,6 +806,7 @@
         config = config';
       };
     };
+    # // (optionalAttrs (inputs' != {}) {inputs = inputs';});
   in
     src // args // resolved;
 in

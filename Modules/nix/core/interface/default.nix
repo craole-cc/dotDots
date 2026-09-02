@@ -1,13 +1,1 @@
-{
-  # config,
-  ...
-}: {
-  # imports = lix.filesystem.traversal.importAllPaths ./.;
-  imports = [
-    ./common
-    ./config.nix
-    ./environment
-    ./manager
-    ./options.nix
-  ];
-}
+{lix, ...}: {imports = (lix.filesystem.traversal.importAllPaths ./.).value;}

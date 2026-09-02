@@ -1,10 +1,10 @@
 args: let
   inherit
     (args)
-    flake
     pkgs
     lix
     inputs
+    names
     paths
     ;
   inherit (args.lix.sources.packages) pkgOf pkgsFrom;
@@ -14,16 +14,16 @@ args: let
   inherit (pkgs) writeShellScriptBin writeShellApplication;
   inherit (pkgs.stdenv.hostPlatform) system isLinux isDarwin;
 
+  name = names.src;
   fetch = mkFetch {
-    inherit pkgs paths;
-    inherit (flake) name;
+    inherit name pkgs paths;
   };
 
   cmdExists = writeShellScriptBin "cmd-exists" ''
     command -v "$@" >/dev/null 2>&1
   '';
 
-  mkName = name: "${flake.name}-${name}";
+  mkName = shell: "${name}-${shell}";
 
   pkgFor = {
     input ? null,

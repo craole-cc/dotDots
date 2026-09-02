@@ -189,12 +189,13 @@
 
   outputs = inputs @ {self, ...}: let
     lib = import ./. {
-      flake = {
-        inherit inputs;
-        _type = "flake";
-        name = "dots";
-        path = self.outPath;
-      };
+      inputs = inputs // {nixpkgs = inputs.nixPackages;};
+      # flake = {
+      #   inherit inputs;
+      #   _type = "flake";
+      #   name = "dots";
+      #   path = self.outPath;
+      # };
     };
   in
     {inherit lib;}

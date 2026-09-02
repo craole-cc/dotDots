@@ -186,7 +186,9 @@
   */
   normalize = value: let
     args =
-      if isAttrs value && (value ? flake || value ? path || value ? inputs)
+      if
+        isAttrs value
+        && (value ? flake || value ? path || value ? inputs)
       then value
       else if isAttrs value
       then {inputs = value;}
@@ -202,7 +204,8 @@
 
     flake = args.flake or null;
     path = args.home or (args.path or (args.src or null));
-    inputs = args.inputs or (getFlake {inherit flake path;}).inputs or {};
+    # inputs = args.inputs or((getFlake {inherit flake path;}).inputs or {});
+    inherit (args) inputs;
 
     tryNames = names: byNames {inherit inputs names;};
 
