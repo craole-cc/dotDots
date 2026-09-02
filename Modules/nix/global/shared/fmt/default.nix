@@ -8,7 +8,7 @@
   ...
 }: let
   inherit (flake) inputs;
-  path = paths.core.src.store;
+  path = paths.store.src;
   treefmtInput = inputs.treeFormatter or inputs.treefmtNix or inputs.treefmt;
   inherit (treefmtInput.lib) evalModule;
   inherit (lix.attrsets.access) attrNames;

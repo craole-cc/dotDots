@@ -354,7 +354,11 @@
     // {
       inherit variables;
       store = project "store" full.repo;
-      local = project "local" full;
+      local = project "local";
+      src = {
+        store = src.store;
+        local = src.local;
+      };
       mkLocal = base: mkLocal {inherit base stems;};
     };
 

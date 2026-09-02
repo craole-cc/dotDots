@@ -56,6 +56,7 @@
 
     stems = {
       repo = {
+        src = [];
         cache = let
           base = [".cache"];
           default = base ++ ["nix"];

@@ -134,7 +134,7 @@
         then host.id
         else generateHexId {inherit name;};
       home = host_roots.repo or (host.paths.dots or host.paths.flake);
-      system = host.specs.platform or null;
+      system = host.system or (host.specs.platform or null);
 
       interface = mkUI {
         inherit host;

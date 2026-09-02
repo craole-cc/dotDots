@@ -81,16 +81,17 @@
             || flake ? sourceInfo
             || flake ? outputs
           );
-        inputs = input:
-          input ? legacyPackages
-          && input ? lib.trivial;
+        inputs = key:
+          flake.inputs ? ${key}
+          && flake.inputs.${key} ? legacyPackages
+          && flake.inputs.${key} ? lib.trivial;
       };
     in
       if checks.source flake
       then let
         nixpkgsKey =
           findFirstOrNull
-          (input: checks.inputs flake.inputs.${input})
+          checks.inputs
           [
             "nixpkgs"
             "nixPackages"

@@ -10,7 +10,7 @@
   memory = import ./memory args;
   hermes = import ./agents/hermes (args
     // {
-      HOME = args.paths.core.src.local;
+      HOME = args.paths.repo.src.local;
       env = args.env or {};
     });
 
