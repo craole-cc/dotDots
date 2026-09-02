@@ -5,12 +5,7 @@
   excludedPatterns ? [],
   allowAliases ? false,
   allowTests ? false,
-  stores ? {
-    lib = ./.;
-    src = ../../.;
-    api = ../../API/nix;
-    build = ./internal;
-  },
+  paths ? {},
   ...
 } @ args: let
   derived = let
@@ -29,8 +24,8 @@
       else throw "Failed to resolve a valid Nix library instance (lib.trivial not found).";
 
     inherit (lib.attrsets) recursiveUpdate;
-
-    seed = recursiveUpdate args {
+  in
+    recursiveUpdate args {
       inherit lib;
       names =
         recursiveUpdate {
@@ -44,9 +39,9 @@
       paths =
         recursiveUpdate {
           repo = {
-            src.store = stores.src;
-            lib.default.store = stores.lib;
-            api.default.store = stores.api;
+            src.store = ../../.;
+            lib.default.store = ./.;
+            api.default.store = ../../API/nix;
           };
         }
         (args.paths or {});
@@ -60,26 +55,24 @@
         };
       };
     };
-    context = import stores.build seed;
-  in
-    context;
+
+  init = import ./_ derived;
 
   defined = let
-    _ = derived.libraries.default;
+    _ = init.libraries.default;
     inherit (_.attrsets.aggregation) recursiveUpdate;
     inherit (_.schema.construction) mkSchema;
     schema = mkSchema {
-      api = derived.paths.repo.api.default.store;
-      host = derived.host or {};
+      api = init.paths.repo.api.default.store;
+      host = init.host or {};
     };
     host = schema.hosts.default;
-
-    seed = recursiveUpdate derived {
+  in
+    recursiveUpdate init {
       inherit schema host;
       inherit (host) paths;
     };
-    # context =
-  in
-    seed;
+
+  eval = defined;
 in
-  defined
+  eval
