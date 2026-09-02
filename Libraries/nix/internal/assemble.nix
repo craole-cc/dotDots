@@ -12,7 +12,7 @@
 
   lib' = let
     base = let
-      raw = paths.core.lib.default.store + "/imports";
+      raw = paths.repo.lib.default.store + "/imports";
       set = import raw;
       init = fn:
         fn {
@@ -41,7 +41,7 @@
   custom = lib'.extend (
     _: prev:
       recursiveUpdate prev {
-        # src = paths.core.src.store;
+        # src = paths.repo.src.store;
         inherit lib;
       }
   );

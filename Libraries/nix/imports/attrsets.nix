@@ -34,6 +34,7 @@
   };
 
   aggregation = {
+    inherit (trivial) mergeAttrs;
     inherit
       (attrsets)
       intersectAttrs

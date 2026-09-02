@@ -3,10 +3,10 @@
   lib,
   names,
   paths,
-  seed,
   ...
 } @ args: let
   inherit (lib.fixedPoints) makeExtensible;
+  inherit (lib.attrsets) recursiveUpdate;
   inherit (settings) allowAliases allowTests exclusions;
 
   handleCollisions = import ./collisions.nix {
@@ -15,41 +15,41 @@
   };
 
   assembleLibrary = library:
-    import ./assemble.nix {
-      inherit handleCollisions lib library paths allowAliases;
-    };
-
-  default =
-    assembleLibrary (
-      makeExtensible (self: let
-        safe = handleCollisions {
-          msg = "Custom library has collisions with nixpkgs lib";
-          overrides = self;
-        };
-
-        env = let
-          extraArgs = {
-            inherit safe;
-            _ = self;
-            self = self;
-            name = names.lib;
-            _defaults = args;
-            _default = args;
-            projectPath = args.paths.core.src.store;
-            projectHome = args.paths.core.src.local;
-          };
-        in
-          args // extraArgs;
-
-        scan = import ./scan.nix {
-          inherit env paths lib allowTests exclusions;
-        };
-
-        resolved = scan paths.core.lib.default.store [];
-      in
-        resolved.modules // {__rootAliases = resolved.rootAliases;})
+    (
+      import ./assemble.nix
+      {inherit handleCollisions lib library paths allowAliases;}
     )
-    // {inherit seed;};
+    // {seed = extra: import ./. (recursiveUpdate args extra);};
+
+  default = assembleLibrary (
+    makeExtensible (self: let
+      safe = handleCollisions {
+        msg = "Custom library has collisions with nixpkgs lib";
+        overrides = self;
+      };
+
+      env = let
+        extraArgs = {
+          inherit safe;
+          _ = self;
+          self = self;
+          name = names.lib;
+          _defaults = args;
+          _default = args;
+          projectPath = args.paths.repo.src.store;
+          projectHome = args.paths.repo.src.local;
+        };
+      in
+        args // extraArgs;
+
+      scan = import ./scan.nix {
+        inherit env paths lib allowTests exclusions;
+      };
+
+      resolved = scan paths.repo.lib.default.store [];
+    in
+      resolved.modules // {__rootAliases = resolved.rootAliases;})
+  );
 
   named = {${names.lib} = default;};
 in

@@ -1,14 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (_.filesystem.paths) flakeOrNull;
-  inherit (_.debug.assertions) mkTest mkTest';
-  inherit (_.debug.runners) runTests;
-  inherit (lib.strings) hasSuffix;
-  inherit (lib.lists) elem;
-
+{_, ...}: let
   exports = rec {
     internal = {
       inherit
@@ -16,13 +6,22 @@
         isFlakePath
         isInExcludedFolder
         isNixFile
-        isPath
-        isStorePath
+        isPath'
+        isStorePath'
         pathExists
+        isPathLike
         ;
+      isLike = isPathLike;
     };
     external = internal;
   };
+
+  inherit (_.debug.assertions) mkTest mkTest';
+  inherit (_.debug.runners) runTests;
+  inherit (_.filesystem.paths) flakeOrNull;
+  inherit (_.lists.predicates) elem;
+  inherit (_.types.predicates) isPath isStorePath;
+  inherit (_.strings.predicates) isString hasSuffix;
 
   /**
   Check whether a path exists on disk at evaluation time.
@@ -51,7 +50,7 @@
   isPath "/etc"      # => false
   ```
   */
-  isPath = path: lib.strings.isPath path;
+  isPath' = path: isPath path;
 
   /**
   Check whether a value is a Nix store path.
@@ -67,7 +66,7 @@
   isStorePath "/etc/hosts"             # => false
   ```
   */
-  inherit (lib.strings) isStorePath;
+  isStorePath' = path: isStorePath path;
 
   /**
   Check whether a path refers to a `.nix` file.
@@ -108,6 +107,29 @@
   ```
   */
   isFlakePath = path: (flakeOrNull {inherit path;}) != null;
+
+  /**
+  Whether a value is path-like - either a Nix path literal or a string,
+  the two forms `importAttrs`/`construct`/etc. accept as an unresolved
+  location. Does not check that the path/string actually exists or is
+  well-formed - only that it's one of the two shapes that a resolver
+  function should attempt to import/construct from, as opposed to an
+  already-resolved value.
+
+  # Type
+  ```nix
+  isPathLike :: a -> bool
+  ```
+
+  # Examples
+  ```nix
+  isPathLike ./foo        # => true
+  isPathLike "/abs/path"  # => true
+  isPathLike { a = 1; }   # => false
+  isPathLike null         # => false
+  ```
+  */
+  isPathLike = value: isPath value || isString value;
 in
   exports.internal
   // {

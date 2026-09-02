@@ -48,14 +48,14 @@
     };
 
     roots = {
-      core = "";
-      home = {var = "HOME";};
-      root = "/";
-      xdg = {var = "HOME";};
+      repo = "";
+      home = {var = "HOME";}; # /home/${USER}
+      slash = "/";
+      xdg = {var = "HOME";}; # /home/${USER}/.config, /home/${USER}/.local/share, /home/${USER}/.cache, /home/${USER}/.local/state, /home/${USER}/.local/bin, /run/user/${UID} so this is not exactly home but rather a user-specific runtime directory. Our mkSchema adds UID to every user
     };
 
     stems = {
-      core = {
+      repo = {
         cache = let
           base = [".cache"];
           default = base ++ ["nix"];
@@ -197,7 +197,7 @@
         wallpapers = ["Pictures" "Wallpapers"];
       };
 
-      root = {
+      slash = {
         bin = let default = ["bin"]; in {inherit default;};
         boot = let default = ["boot"]; in {inherit default;};
         dev = let default = ["dev"]; in {inherit default;};

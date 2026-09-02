@@ -7,25 +7,45 @@
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) sort;
   inherit (_.strings.construction) hashToInt;
+  inherit (_.filesystem.construction) mkTree;
 
   mkUser = {
     name,
     user,
-  }:
+    stems ? {},
+    roots ? {},
+  }: let
+    uid =
+      if (user.uid or null) != null
+      then user.uid
+      else
+        hashToInt {
+          seed = "users/${name}";
+          min = 1000;
+          max = 60000;
+        };
+  in
     user
     // {
-      uid =
-        if (user.uid or null) != null
-        then user.uid
-        else
-          hashToInt {
-            seed = "users/${name}";
-            min = 1000;
-            max = 60000;
+      inherit uid;
+      paths = mkTree {
+        stems = recursiveUpdate stems (user.paths.stems or {});
+        roots =
+          recursiveUpdate roots (user.paths.roots or {})
+          // {
+            home = user.paths.roots.home or "/home/${name}";
+            xdg = user.paths.roots.xdg or user.paths.roots.home or "/home/${name}";
           };
+        vars = {UID = toString uid;};
+      };
     };
 
-  mkUsers = users: mapAttrs (name: user: mkUser {inherit name user;}) users;
+  mkUsers = {
+    users,
+    stems ? {},
+    roots ? {},
+  }:
+    mapAttrs (name: user: mkUser {inherit name user stems roots;}) users;
 
   /**
   Role priority rankings used for primary user selection.
@@ -217,11 +237,15 @@
   mkHome = {
     host,
     users,
+    stems ? {},
+    roots ? {},
   }: let
-    all = getAll {inherit host users;};
-    enabled = getEnabled (getAllWithDefault {
+    enrich = mapAttrs (name: user: mkUser {inherit name user stems roots;});
+
+    all = enrich (getAll {inherit host users;});
+    enabled = getEnabled (enrich (getAllWithDefault {
       inherit host users;
-    });
+    }));
     interactive = getInteractive enabled;
     autoLogin = getAutoLogin interactive;
     elevated = getElevated interactive;

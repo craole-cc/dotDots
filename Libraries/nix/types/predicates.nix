@@ -1,6 +1,14 @@
 {_, ...}: let
   __exports = {
-    internal = {} // attrsets // lists // debug // strings // trivial // {};
+    internal =
+      {}
+      // attrsets
+      // lists
+      // debug
+      // filesystem
+      // strings
+      // trivial
+      // {};
     external = trivial;
   };
 
@@ -15,6 +23,24 @@
     inherit isEnum;
   };
 
+  debug = with _.debug.predicates; {
+    inherit isTest;
+  };
+
+  filesystem = with _.filesystem.predicates; {
+    isPathLike = isLike;
+    isPath' = isPath;
+    isStorePath' = isStorePath;
+    inherit
+      isExcludedFile
+      isFlakePath
+      isInExcludedFolder
+      isNixFile
+      pathExists
+      isPathlike
+      ;
+  };
+
   strings = with _.strings.predicates; {
     isBinaryString = isBinary;
     isStringLike = isLike;
@@ -22,18 +48,8 @@
     isPOSIXString = isPOSIX;
   };
 
-  debug = with _.debug.predicates; {
-    inherit isTest;
-  };
-
   trivial = {
-    inherit
-      isBool
-      isFloat
-      isFunction
-      isInt
-      typeOf
-      ;
+    inherit isBool isFloat isFunction isInt typeOf;
   };
 
   /**

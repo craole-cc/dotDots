@@ -3,13 +3,17 @@
   _,
   ...
 }: let
-  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.aggregation) intersectAttrs recursiveUpdate;
+  inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.runners) runTests;
   inherit (_.lists.aggregation) foldl';
-  inherit (_.types.predicates) isAttrs isFunction;
+  inherit (_.lists.transformation) unique;
+  inherit (_.types.access) typeOf;
+  inherit (_.types.predicates) isAttrs isList isFunction;
 
   debug = mkModuleDebug __moduleRef;
 
@@ -146,54 +150,161 @@
       ) (base // override);
 
   /**
-  Recursively merge two attrsets.
+    Recursively merge a list of attrsets or a configured merge pipeline.
 
-  Nested attrsets are merged deeply rather than replaced wholesale.
-  Non-attrset values in `override` win over those in `base`.
+    Nested attrsets are merged deeply using native `//` for non-overlapping
+    keys and deep rules for collisions. Supports custom strategy functions,
+    type-mismatch handling, list concatenation/deduplication, function composition,
+    and recursion depth limits.
 
-  # Type
-  ```nix
-  mergeDeep :: { base :: AttrSet, override :: AttrSet } -> AttrSet
+    # Type
+    ```nix
+    mergeDeep :: ([AttrSet] | AttrSet) -> AttrSet
+
   ```
 
   # Examples
+
   ```nix
+  # Simple list merging
+  mergeDeep [
+    { a.b = 1; a.c = 2; x = 0; }
+    { a.b = 99; y = 1; }
+  ]
+  # => { a = { b = 99; c = 2; }; x = 0; y = 1; }
+
+  # Configured merging with type safety, list merging, and custom strategy
   mergeDeep {
-    base     = { a.b = 1; a.c = 2; x = 0; };
-    override = { a.b = 99; y = 1; };
+    depth = 50;
+    lists = { merge = true; unique = true; };
+    types = { mismatch = "throw"; allowNullOverride = false; functions = "compose"; };
+    strategies = {
+      extraConfig = base: override: base + "\n" + override;
+    };
+    attrs = [
+      { packages = [ "git" "vim" ]; }
+      { packages = [ "curl" "vim" ]; }
+    ];
   }
-  # => { a.b = 99; a.c = 2; x = 0; y = 1; }
+  # => { packages = [ "git" "vim" "curl" ]; }
   ```
   */
-  mergeDeep = {
-    base,
-    override,
-  }:
-    if !isAttrs base
-    then
-      throw (
-        debug.withLoc {
-          function = mkFn {
-            name = "mergeDeep";
-            fn = mergeDeep;
-          };
-          message = "base must be an attrset";
-          input = base;
-        }
-      )
-    else if !isAttrs override
-    then
-      throw (
-        debug.withLoc {
-          function = mkFn {
-            name = "mergeDeep";
-            fn = mergeDeep;
-          };
-          message = "override must be an attrset";
-          input = override;
-        }
-      )
-    else recursiveUpdate base override;
+  mergeDeep = input: let
+    # Formats exceptions using the framework's debug context
+    mkError = message: inputVal:
+      debug.withLoc {
+        function = mkFn {
+          name = "mergeDeep";
+          fn = mergeDeep;
+        };
+        inherit message;
+        input = inputVal;
+      };
+
+    # Parse inputs: direct list of attrsets or a config attrset
+    args =
+      if isList input
+      then {attrs = input;}
+      else if isAttrs input && (input ? attrs || input ? sets)
+      then input
+      else throw (mkError "expected a list of attrsets or a config set containing an 'attrs' list" input);
+
+    # Structured configuration with clean B2 taxonomy
+    _config = {
+      depth = args.depth or 100;
+
+      # Scoped type-handling options
+      types = {
+        mismatch = args.types.mismatch or args.onMismatch or "override"; # "override" | "keepBase" | "throw" | (s1: s2: ...)
+        allowNullOverride = args.types.allowNullOverride or true; # bool: set to false to protect existing values from null
+        functions = args.types.functions or "override"; # "override" | "compose" | "throw"
+      };
+
+      # Scoped list-handling options
+      lists = {
+        merge = args.lists.merge or args.mergeLists or false; # bool: concatenate lists instead of overriding
+        unique = args.lists.unique or args.uniqueLists or false; # bool: deduplicate concatenated lists using lib.unique
+      };
+
+      # Custom key-specific strategy functions
+      strategies = args.strategies or {};
+    };
+
+    # Optimized recursive deep merge engine
+    updateWithDepth = currentDepth: s1: s2:
+      if currentDepth > _config.depth
+      then
+        throw (mkError "maximum recursion depth of ${toString _config.depth} exceeded" {
+          depth = currentDepth;
+          base = s1;
+          override = s2;
+        })
+      else if isAttrs s1 && isAttrs s2
+      then let
+        # Native C++ intersection: only evaluate keys that exist in BOTH sets
+        commonKeys = intersectAttrs s1 s2;
+
+        # Apply full configurable logic ONLY to colliding keys
+        mergedCommon = listToAttrs (
+          map (key: {
+            name = key;
+            value =
+              if _config.strategies ? ${key}
+              then _config.strategies.${key} s1.${key} s2.${key}
+              else updateWithDepth (currentDepth + 1) s1.${key} s2.${key};
+          }) (attrNames commonKeys)
+        );
+      in
+        # (s1 // s2) handles all non-overlapping keys in C++ instantly;
+        # mergedCommon overwrites ONLY the colliding keys with their deep results.
+        (s1 // s2) // mergedCommon
+      else if (s2 == null) && !_config.types.allowNullOverride
+      then s1
+      else if isFunction s1 && isFunction s2
+      then
+        if _config.types.functions == "compose"
+        then x: s2 (s1 x)
+        else if _config.types.functions == "throw"
+        then
+          throw (mkError "cannot merge functions without an explicit strategy function" {
+            base = s1;
+            override = s2;
+          })
+        else s2
+      else if isList s1 && isList s2 && _config.lists.merge
+      then let
+        combined = s1 ++ s2;
+      in
+        if _config.lists.unique
+        then unique combined
+        else combined
+      else if (typeOf s1 != typeOf s2)
+      then let
+        handler = _config.types.mismatch;
+      in
+        if isFunction handler
+        then handler s1 s2
+        else if handler == "throw"
+        then
+          throw (mkError "type mismatch encountered (${typeOf s1} vs ${typeOf s2})" {
+            base = s1;
+            override = s2;
+          })
+        else if handler == "keepBase"
+        then s1
+        else s2 # "override"
+      else s2;
+
+    attrsList = args.attrs or args.sets;
+
+    mergeTwo = acc: set:
+      if !isAttrs set
+      then throw (mkError "expected all elements in 'attrs' to be attrsets, found ${typeOf set}" set)
+      else updateWithDepth 0 acc set;
+  in
+    if !isList attrsList
+    then throw (mkError "'attrs' must be a list of attrsets" attrsList)
+    else foldl' mergeTwo {} attrsList;
 
   /**
   Apply defaults: fill in missing keys from `defaults` without overriding

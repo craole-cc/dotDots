@@ -17,6 +17,7 @@
       toTitle
       toUpper'
       trim'
+      toEnv
       trimEnd
       trimStart
       wrap
@@ -35,7 +36,7 @@
     # trimStringEnd = trimEnd;
     # trimStringStart = trimStart;
     # replaceAllStrings = replaceAll;
-    # normalizeString = normalize;
+    normalizeString = normalize;
     quote = wrap;
   };
   __exports = {
@@ -72,14 +73,7 @@
   inherit (_.lists.construction) genList;
   inherit (_.lists.predicates) any;
   inherit (_.types.predicates) isAttrs isList isString;
-  inherit
-    (_.strings.transformation)
-    removePrefix
-    removeSuffix
-    replaceStrings
-    toLower
-    toUpper
-    ;
+  inherit (_.strings.transformation) removePrefix removeSuffix replaceStrings toLower toUpper;
   inherit (_.strings.construction) concat splitString optionalString;
   inherit (_.strings.access) stringLength substring;
   inherit (_.strings.predicates) hasPrefix hasSuffix;
@@ -673,6 +667,28 @@
     else if isList input
     then concat " " (map capitalize input)
     else asStr input;
+
+  /**
+  Convert a single stem segment into its env-var-safe fragment: upper-cased
+  and normalized (see `strings.transformation.normalizeString`). The one
+  canonical string transform that `mkEnv` and `flattenTree` both fold over
+  to build full env-var names - no caller normalizes by hand.
+
+  # Type
+  ```
+  toEnv :: string -> string
+  ```
+
+  # Examples
+  ```nix
+  toEnv "lib-rs"
+  # => "LIB_RS"
+
+  toEnv "default"
+  # => "DEFAULT"
+  ```
+  */
+  toEnv = value: toUpper (normalize value);
 
   # wrap = {
   #   token ? "`",

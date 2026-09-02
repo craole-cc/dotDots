@@ -1,20 +1,13 @@
 {
   _,
+  _defaults,
   # __moduleRef,
-  lib,
-  src,
   ...
 }: let
   inherit (_.filesystem.predicates) pathExists;
-  inherit
-    (_.types.predicates)
-    isAttrs
-    isList
-    isPath
-    isString
-    typeOf
-    ;
-  inherit (lib.strings) concatStringsSep hasPrefix;
+  inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
+  inherit (_.strings.construction) concatStringsSep;
+  inherit (_.strings.predicates) hasPrefix;
 
   exports = {
     internal = {
@@ -27,6 +20,8 @@
     };
     external = {};
   };
+
+  src = _defaults.paths.repo.src.store; # TODO: This has got to be temporary
 
   /**
     Join a root and stem into a single path string.
@@ -160,33 +155,32 @@
       path = root;
       inherit name;
     };
-
   /**
-    Build a resolved `{ store, local }` path from a root and a stem.
+      Build a resolved `{ store, local, stem, root }` path from a root and a stem.
 
-    `store` is a proper Nix path value safe to use in `imports`. `local` is a
-    string for interpolation. Accepts flexible calling patterns - attrset, bare
-    string, or bare list. Root defaults to `src`.
+      `store` is a proper Nix path value safe to use in `imports`. `local` is a
+      string for interpolation. `stem` is the normalized stem as a list. `root`
+      is the resolved root path used to build `store`/`local`. Accepts flexible
+      calling patterns - attrset, bare string, or bare list. Root defaults to
+      `src`.
 
-    # Type
-  ```
-    construct :: { root :: path?, stem :: string | [string]? } | string | [string]
-              -> { store :: path | null, local :: string }
-  ```
+      # Type
+  construct :: { root :: path?, stem :: string | [string]? } | string | [string]
+            -> { store :: path | null, local :: string, stem :: [string], root :: path }
 
-    # Examples
+      # Examples
   ```nix
-    construct {}
-    # => { store = /home/…/dotDots; local = "/home/…/dotDots"; }
+      construct {}
+      # => { store = /home/…/dotDots; local = "/home/…/dotDots"; stem = []; root = /home/…/dotDots; }
 
-    construct ["Libraries" "nix"]
-    # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; }
+      construct ["Libraries" "nix"]
+      # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; stem = ["Libraries" "nix"]; root = /home/…/dotDots; }
 
-    construct { stem = ["API" "nix" "hosts"]; }
-    # => { store = /home/…/dotDots/API/nix/hosts; local = "/home/…/dotDots/API/nix/hosts"; }
+      construct { stem = ["API" "nix" "hosts"]; }
+      # => { store = /home/…/dotDots/API/nix/hosts; local = "/home/…/dotDots/API/nix/hosts"; stem = ["API" "nix" "hosts"]; root = /home/…/dotDots; }
 
-    construct { root = ./Libraries; stem = ["nix"]; }
-    # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; }
+      construct { root = ./Libraries; stem = ["nix"]; }
+      # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; stem = ["nix"]; root = ./Libraries; }
   ```
   */
   construct = arg: let
@@ -199,6 +193,12 @@
 
     root = normalized.root or src;
     stem = normalized.stem or [];
+    stemList =
+      if isList stem
+      then stem
+      else if stem == ""
+      then []
+      else [stem];
     stemString =
       if isList stem
       then concatStringsSep "/" stem
@@ -238,6 +238,8 @@
   in {
     store = joinPath base.store;
     local = joinStr base.local;
+    stem = stemList;
+    inherit root;
   };
 in
   exports.internal

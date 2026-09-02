@@ -12,7 +12,14 @@
     evaluated before their inputs or modules are parsed.
   '';
 
-  functions = {inherit getFlakePath mkPath getFlake;};
+  functions = {
+    inherit
+      getFlakePath
+      mkPath
+      getFlake
+      pathAttrs
+      ;
+  };
   aliases = {
     mkFilePath = mkPath;
   };
@@ -30,7 +37,8 @@
   inherit (_.attrsets.resolution) normalizePath;
   inherit (_.content.emptiness) isEmpty;
   inherit (_.debug.tracing) traceIf;
-  inherit (_.filesystem.predicates) pathExists;
+  inherit (_.filesystem.predicates) isPathLike pathExists;
+  inherit (_.filesystem.traversal) importAttrs;
   inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasSuffix;
   inherit (_.types.predicates) isPath;
@@ -127,6 +135,38 @@
       ) "❌ Flake load failed: ${
         toString path
       } (${failureReason})" (derived // {srcPath = path;});
+
+  /**
+  Normalize a value that may be a path, an `importAttrs` raw `{ value; stems; }`
+  result, or an already-unwrapped value, into just the value.
+
+  Lets callers accept any of the three shapes for a single argument
+  (e.g. `api`) without repeating the same three-way branch at every
+  call site.
+
+  # Type
+  ```nix
+  pathAttrs :: path | string | { value :: a, stems :: AttrSet } | a -> a
+  ```
+
+  # Examples
+  ```nix
+  pathAttrs ./API/nix
+  # => (importAttrs ./API/nix).value
+
+  pathAttrs (importAttrs ./API/nix)
+  # => same as above - unwraps `.value`
+
+  pathAttrs { global = {}; hosts = {}; }
+  # => { global = {}; hosts = {}; }   # passed through as-is
+  ```
+  */
+  pathAttrs = value:
+    if isPathLike value
+    then (importAttrs value).value
+    else if value ? value
+    then value.value
+    else value;
 in
   __exports.internal
   // {

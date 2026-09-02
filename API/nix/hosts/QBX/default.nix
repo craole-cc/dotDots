@@ -10,8 +10,7 @@ in {
   id = "cfd69003";
 
   paths = {
-    src = "/home/craole/.dots";
-    # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+    roots.repo = "/home/craole/.dots";
   };
 
   # packages = {

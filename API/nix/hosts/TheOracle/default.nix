@@ -8,7 +8,7 @@ in {
   id = "9ab9ae6f";
 
   paths = {
-    src = "/home/craole-cc/Projects/craole-cc/dotDots";
+    roots.repo = "/home/craole-cc/Projects/craole-cc/dotDots";
   };
 
   specs = {

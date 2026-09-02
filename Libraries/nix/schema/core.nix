@@ -5,10 +5,12 @@
   };
 
   inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) any elem;
   inherit (_.schema.construction) mkUI mkHome mkLocale mkHardware;
   inherit (_.strings.construction) generateHexId;
+  inherit (_.filesystem.construction) mkTree;
 
   mkHost = {
     hosts,
@@ -103,46 +105,55 @@
     name,
     host,
     users,
+    roots ? {},
+    stems ? {},
+    exclusions ? {},
+    ...
   }: let
-    enrichedUser = mkHome {inherit host users;};
-    enrichedUI = mkUI {
-      inherit host;
-      user = enrichedUser.primary;
+    host_stems = recursiveUpdate stems (host.paths.stems or {});
+    host_roots = recursiveUpdate roots (host.paths.roots or {});
+
+    paths = mkTree {
+      stems = host_stems;
+      roots = host_roots;
     };
-    enrichedLocale = mkLocale {
-      inherit host;
-      user = enrichedUser.primary;
+
+    user = mkHome {
+      inherit host users;
+      stems = host_stems;
+      roots = host_roots;
     };
-    enrichedHardware = mkHardware {inherit host;};
-    enrichedAccess = mkAccess host;
-    enrichedNetwork = mkNetwork host;
-    enrichedCapabilities = {
-      development = mkDevelopmentCapability {
-        inherit host;
-        interactiveUsers = enrichedUser.interactive;
-      };
-    };
-    enrichedStorage = mkStorage host;
-    enrichment = {
-      inherit name;
+
+    defined = {
+      inherit name paths;
+      exclusions = recursiveUpdate exclusions (host.exclusions or {});
+      users = user;
 
       id =
         if (host.id or null) != null
         then host.id
         else generateHexId {inherit name;};
+      home = host_roots.repo or (host.paths.dots or host.paths.flake);
+      system = host.specs.platform or null;
 
-      home = host.paths.src or (host.paths.dots or host.paths.flake);
-      system = host.specs.platform or "x86_64-linux";
-      users = enrichedUser;
-      interface = enrichedUI;
-      localization = enrichedLocale;
-      hardware = enrichedHardware;
-      access = enrichedAccess;
-      network = enrichedNetwork;
-      capabilities = enrichedCapabilities;
-      storage = enrichedStorage;
+      interface = mkUI {
+        inherit host;
+        user = user.primary;
+      };
+      localization = mkLocale {
+        inherit host;
+        user = user.primary;
+      };
+      hardware = mkHardware {inherit host;};
+      access = mkAccess host;
+      network = mkNetwork host;
+      capabilities.development = mkDevelopmentCapability {
+        inherit host;
+        interactiveUsers = user.interactive;
+      };
+      storage = mkStorage host;
     };
   in
-    host // enrichment;
+    host // defined;
 in
   __exports.internal // {__rootAliases = __exports.external;}

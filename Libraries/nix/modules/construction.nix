@@ -64,7 +64,6 @@
   inherit (_.attrsets.construction) genAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.debug.assertions) withContext;
-  inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.construction) optionals;
   inherit (_.lists.predicates) elem;
@@ -75,7 +74,6 @@
   inherit (_.modules.home.users) mkUsers;
   inherit (_.options.construction) mkOption;
   inherit (_.sources.modules) mkModules;
-  inherit (_.sources.packages) mkPackages;
   inherit (_.strings.construction) concat;
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
@@ -100,7 +98,6 @@
     filterAttrs (_: host: (host.class or "nixos") == class) hosts;
 
   mkConfigurations = {
-    flake,
     inputs,
     paths,
     top ? _default.names.top ? "_",

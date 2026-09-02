@@ -13,25 +13,8 @@
   inherit (_.debug.runners) runTests;
   inherit (_.lists.aggregation) foldl';
   inherit (_.lists.predicates) elem;
-  inherit (_.types.access) typeOf;
   inherit (_.types.predicates) isAttrs isList;
   debug = mkModuleDebug __moduleRef;
-
-  attrNamesHead = set: let
-    err = {
-      isNull = "attrNamesHead: set is null";
-      notAttrs = "attrNamesHead: argument is not an attribute set (got ${typeOf set})";
-      isEmpty = "attrNamesHead: set is empty";
-    };
-    attrs = attrNames set;
-  in
-    if set == null
-    then throw err.isNull
-    else if !isAttrs set
-    then throw err.notAttrs
-    else if attrs == []
-    then throw err.isEmpty
-    else head attrs;
 
   /**
   Get an attribute value with a fallback default.
@@ -343,7 +326,6 @@ in {
     omit
     pick
     renameKey
-    attrNamesHead
     ;
 
   __rootAliases = {

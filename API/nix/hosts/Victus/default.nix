@@ -12,8 +12,10 @@ in {
   id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
-    src = "/home/craole/Downloads/public/dotDots";
-    # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+    roots.repo = "/home/craole/Downloads/public/dotDots";
+    stems.repo = {
+      # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+    };
   };
 
   packages = {

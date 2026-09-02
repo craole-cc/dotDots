@@ -192,8 +192,11 @@
       flake = self;
       inherit (inputs.nixPackages) lib;
     };
-    modules = with lib.libraries.default.modules.construction; (mkConfigurations lib);
-    # // (mkUtilities lib);
   in
-    {inherit lib;} // modules;
+    {inherit lib;}
+    // (
+      with lib.libraries.default.modules.construction;
+        (mkConfigurations lib)
+        // (mkUtilities lib)
+    );
 }

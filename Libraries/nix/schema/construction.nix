@@ -18,7 +18,7 @@
 
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.filesystem.traversal) importAttrs;
+  inherit (_.filesystem.resolution) pathAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
   inherit (_.strings.access) getEnvOr;
@@ -29,69 +29,82 @@
   deployment target.
 
   # Arguments
-  - api: The imported API module (.global, .hosts, .users)
-  - args: The flake/system arguments to extract host name overrides
+  - api: The API data - a path, `importAttrs`'s raw `{ value; stems; }`
+    result, or an already-unwrapped value. Normalized via `pathAttrs`.
+  - host: Caller-supplied host override. Trusted as-is only when it already
+    carries both non-negotiable fields (`paths.src`, `stateVersion`) - i.e.
+    it's already a fully resolved host, not just a name to look up. Otherwise
+    falls back to `$HOSTNAME`/first-declared, resolved against `base.hosts`.
 
   # Returns
   A fully hydrated schema attrset with active `default` pointers and `raw` fallbacks.
   */
   mkSchema = {
-    api ? (importAttrs paths.core.api.default.store).value,
-    paths ? _defaults.paths,
-    host ? _defaults.host or {},
+    api ? _defaults.paths.repo.api.default.store,
+    host ? {},
     ...
   }: let
-    raw = {
-      global = api.global or {};
-      users = api.users or {};
-      hosts = api.hosts or {};
-    };
+    api' = pathAttrs api;
+
+    raw =
+      api'
+      // {
+        global = api'.global or {};
+        users = api'.users or {};
+        hosts = api'.hosts or {};
+      };
+
+    paths = raw.global.paths or {};
 
     base = {
       hosts =
-        mapAttrs (name: host:
-          mkCore {
-            inherit name;
-            users = base.users;
-            host = recursiveUpdate (raw.hosts.default or {}) host;
-          })
+        mapAttrs (
+          name: host:
+            mkCore ({
+                inherit name;
+                users = base.users;
+                host = recursiveUpdate (raw.hosts.default or {}) host;
+              }
+              // paths)
+        )
         (removeAttrs raw.hosts ["default"])
         // {
-          default = mkCore {
-            name = "default";
-            users = base.users;
-            host = raw.hosts.default or {};
-          };
+          default = mkCore ({
+              name = "default";
+              users = base.users;
+              host = raw.hosts.default or {};
+            }
+            // paths);
         };
-      users = mkUsers raw.users;
+      # users = mkUsers raw.users;
+      users = mkUsers {users = raw.users;};
     };
 
     active = {
-      host = let
-        name =
-          host.name or (
-            getEnvOr "HOSTNAME" (
-              headOf (removeAttrs base.hosts ["default"])
-            )
-          );
-      in
-        base.hosts.${name} or base.hosts.default;
+      host =
+        if host ? paths.roots.repo.src && host ? stateVersion
+        then host
+        else let
+          name = getEnvOr "HOSTNAME" (headOf (removeAttrs base.hosts ["default"]));
+        in
+          base.hosts.${name};
       user = active.host.users.primary;
     };
-  in {
-    inherit (raw) global;
-    hosts =
-      base.hosts
-      // {
-        default = active.host;
-        raw = raw.hosts;
-      };
-    users =
-      base.users
-      // {
-        default = active.user;
-        raw = raw.users;
-      };
-  };
+  in
+    raw
+    // {
+      hosts =
+        base.hosts
+        // {
+          default = active.host;
+          raw = raw.hosts;
+        };
+      users =
+        base.users
+        // {
+          default = active.user;
+          raw = raw.users;
+        };
+    };
 in
   __exports.internal // {__rootAliases = __exports.external;}
