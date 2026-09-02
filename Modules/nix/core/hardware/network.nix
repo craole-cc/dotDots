@@ -15,13 +15,7 @@
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit
-    (lix.types.combinators)
-    attrsOf
-    enum
-    listOf
-    nullOr
-    ;
+  inherit (lix.types.combinators) attrsOf enum listOf nullOr;
   inherit (lix.types.primitives) bool int str;
 
   hw = host.hardware;
@@ -100,9 +94,7 @@ in
       networking = {
         inherit (cfg) hostName hostId nameservers;
         networkmanager.enable = cfg.backend == "networkmanager";
-        interfaces = genAttrs cfg.devices (_: {
-          useDHCP = true;
-        });
+        interfaces = genAttrs cfg.devices (_: {useDHCP = true;});
         firewall = {
           inherit (cfg.firewall) enable;
           allowedTCPPorts = cfg.firewall.tcpPorts;
