@@ -25,6 +25,7 @@
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
   inherit (lix.applications.resolution) bars browsers editors launchers terminals;
+  inherit (pkgs.stdenv.hostPlatform) system;
 
   registry = let
     editor = editors.packages {
@@ -126,8 +127,8 @@
     ];
 
     common = editor ++ browser ++ terminal ++ launcher ++ bar;
-    system = wayland ++ linux ++ darwin;
-    all = default ++ common ++ system;
+    machine = wayland ++ linux ++ darwin;
+    overall = default ++ common ++ machine;
   in {
     inherit
       editor
@@ -139,8 +140,8 @@
       linux
       darwin
       common
-      system
-      all
+      machine
+      overall
       ;
   };
 in

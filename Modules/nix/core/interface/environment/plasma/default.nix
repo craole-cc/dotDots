@@ -1,27 +1,31 @@
 {
   config,
-  lib,
-  pkgs,
-  top,
   lix,
+  pkgs,
   ...
 }: let
-  cfg = config.${top}.resolved.interface;
-  payload = {
-    services.desktopManager.plasma6 = {
-      enable = true;
-      # enableQt5Integration = false;
-    };
-    environment.systemPackages = with pkgs.kdePackages; [
-      plasma-browser-integration
-      kde-gtk-config
-      kdialog
-    ];
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "environment";
+    mod = "plasma";
   };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.desktopEnvironment == "plasma";
-  });
-}
+  inherit (context) cfg ctx;
+
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {inherit context;} // ctx.wantsPlasma;
+    };
+    outputs = {
+      services.desktopManager.plasma6.enable = cfg.enable;
+      environment.systemPackages = with pkgs.kdePackages; [
+        plasma-browser-integration
+        kde-gtk-config
+        kdialog
+      ];
+    };
+  }

@@ -1,21 +1,28 @@
 {
   config,
-  lib,
-  top,
   lix,
   ...
 }: let
-  cfg = config.${top}.resolved.interface;
-  payload = {
-    services.desktopManager.cosmic = {
-      enable = true;
-      showExcludedPkgsWarning = false;
-    };
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "environment";
+    mod = "cosmic";
   };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.desktopEnvironment == "cosmic";
-  });
-}
+  inherit (context) cfg ctx;
+
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {inherit context;} // ctx.wantsGnome;
+    };
+    outputs = {
+      services.desktopManager.cosmic = {
+        enable = cfg.enable;
+        showExcludedPkgsWarning = false;
+      };
+    };
+  }

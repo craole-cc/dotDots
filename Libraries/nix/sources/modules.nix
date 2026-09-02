@@ -1,6 +1,6 @@
 {
   _,
-  lib,
+  _default,
   ...
 }: let
   __doc = ''
@@ -13,7 +13,7 @@
 
   inherit (_.sources.inputs) resolveInputs;
   inherit (_.content.emptiness) isEmpty;
-  inherit (lib.lists) optionals;
+  inherit (_.lists.construction) optionals;
 
   __exports = {
     internal = {
@@ -67,39 +67,40 @@
     inputs,
     class ? "nixos",
   }:
-    (
-      if class == "darwin"
-      then [
-        (inputs.age.darwinModules.default or {})
-        (inputs.home-manager.darwinModules.home-manager or {})
-        (inputs.stylix.darwinModules.stylix or {})
-      ]
-      else [
-        (inputs.age.nixosModules.age or {})
-        (inputs.catppuccin.nixosModules.default or {})
-        (inputs.chaotic.nixosModules.default or {})
-        (inputs.dank-material-shell.nixosModules.default or {})
-        (inputs.dms-plugin-registry.nixosModules.default or {})
-        (inputs.home-manager.nixosModules.home-manager or {})
-        (inputs.stylix.nixosModules.stylix or {})
-      ]
-    )
-    ++ optionals (class == "darwin") [
-      {
-        system = {
-          checks.verifyNixPath = false;
-          darwinVersionSuffix = ".${
-            inputs.nix-darwin.shortRev or inputs.nix-darwin.dirtyShortRev or "dirty"
-          }";
-          darwinRevision = inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
-        };
-      }
-    ];
+    with inputs;
+      (
+        if class == "darwin"
+        then [
+          (age.darwinModules.default or {})
+          (home-manager.darwinModules.home-manager or {})
+          (stylix.darwinModules.stylix or {})
+        ]
+        else [
+          (age.nixosModules.age or {})
+          (catppuccin.nixosModules.default or {})
+          (chaotic.nixosModules.default or {})
+          (dank-material-shell.nixosModules.default or {})
+          (dms-plugin-registry.nixosModules.default or {})
+          (home-manager.nixosModules.home-manager or {})
+          (stylix.nixosModules.stylix or {})
+        ]
+      )
+      ++ optionals (class == "darwin") [
+        {
+          system = {
+            checks.verifyNixPath = false;
+            darwinVersionSuffix = ".${
+              nix-darwin.shortRev or nix-darwin.dirtyShortRev or "dirty"
+            }";
+            darwinRevision = nix-darwin.rev or nix-darwin.dirtyRev or "dirty";
+          };
+        }
+      ];
 
   /**
   Attrset of all home-manager modules provided by flake inputs.
   */
-  mkHome = {inputs}: {
+  mkHome = {inputs ? _default.inputs}: {
     dms-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};

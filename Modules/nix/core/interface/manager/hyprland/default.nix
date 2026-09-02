@@ -1,21 +1,28 @@
 {
   config,
-  lib,
-  top,
   lix,
   ...
 }: let
-  cfg = config.${top}.resolved.interface;
-  payload = {
-    programs.hyprland = {
-      enable = true;
-      withUWSM = true;
-    };
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "manager";
+    mod = "hyprland";
   };
-  inherit (lix.modules.core.staging) mkStaged;
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.windowManager == "hyprland";
-  });
-}
+  inherit (context) cfg ctx;
+
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {inherit context;} // ctx.wantsHyprland;
+    };
+    outputs = {
+      programs.hyprland = {
+        enable = cfg.enable;
+        withUWSM = true;
+      };
+    };
+  }

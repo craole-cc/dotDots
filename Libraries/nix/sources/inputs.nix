@@ -28,9 +28,7 @@
     in {
       inherit internal external;
     };
-  in {
-    inherit doc exports;
-  };
+  in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;

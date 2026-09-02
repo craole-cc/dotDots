@@ -100,7 +100,7 @@
   mkConfigurations = {
     inputs,
     paths,
-    top ? _default.names.top ? "_",
+    top ? _default.names.top or "_",
     ...
   } @ args: let
     types = let
@@ -346,10 +346,26 @@
       else null,
     name ? mod,
   }: let
-    path = mkPath {inherit top dom sub mod;};
+    self = rec {
+      inherit config dom kind mod name sub top;
+      path = mkPath {inherit top dom sub mod;};
+      resolved = getAttrFromPath [top "resolved" dom] config;
+      res = resolved;
+      iface = res.interface;
+      wm = iface.windowManager or null;
+      de = iface.desktopEnvironment or null;
+      panel = iface.panel or null;
+      cfg = (getAttrFromPath path config).explicit;
+      mkWants = name: value: {condition = value != null;};
+      wantsHyprland = mkWants "hyprland" wm;
+      wantsNiri = mkWants "niri" wm;
+      wantsPlasma = mkWants "plasma" de;
+      wantsGnome = mkWants "gnome" de;
+      wantsCosmic = mkWants "cosmic" de;
+      wantsDmsShell = mkWants "dms-shell" panel;
+    };
   in
-    {inherit config top dom sub mod path kind name;}
-    // {cfg = (getAttrFromPath path config).explicit;};
+    self // {ctx = self;};
 
   mkPath = {
     top ? _default.names.top,
