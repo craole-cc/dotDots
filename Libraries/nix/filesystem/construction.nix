@@ -112,20 +112,20 @@
     group,
     vars ? {},
   }: let
-    root = roots.${group} or src.path;
+    root = roots.${group} or src.local;
   in
     if isVar root
     then {
-      store = null;
+      store = src.store;
       local = resolveVar vars root;
     }
     else if isAttrs root && (root ? store || root ? local)
     then {
-      store = root.store or null;
+      store = root.store or src.store;
       local = resolveVar vars (root.local or root.store or null);
     }
     else {
-      store = root;
+      store = src.store;
       local = resolveVar vars root;
     };
 
@@ -309,7 +309,6 @@
   #    }
   ```
   */
-
   mkTree = {
     stems,
     roots ? {},
@@ -322,13 +321,13 @@
       })
     stems;
 
-    project = field: let
+    project = field: node: let
       walk = node:
         if isAttrs node && node ? ${field}
         then node.${field}
         else mapAttrs (_: walk) node;
     in
-      walk full;
+      walk node;
 
     variables = let
       walk = node:
@@ -354,8 +353,8 @@
     full
     // {
       inherit variables;
-      store = project "store";
-      local = project "local";
+      store = project "store" full.repo;
+      local = project "local" full;
       mkLocal = base: mkLocal {inherit base stems;};
     };
 

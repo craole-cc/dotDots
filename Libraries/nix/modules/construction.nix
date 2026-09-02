@@ -83,7 +83,7 @@
     host,
     ...
   } @ args:
-    import paths.core.src.store (args // {inherit host;});
+    import paths.repo.src.store (args // {inherit host;});
 
   mkFlake = lib:
     {inherit lib;}
@@ -180,7 +180,7 @@
           ++ classified.core
           ++ core
           ++ (host.imports or [])
-          ++ [paths.core.mod.default.store]
+          ++ [paths.repo.mod.default.store]
           ++ [{config._module.args = specialArgs;}];
       };
     in
@@ -284,9 +284,9 @@
       system,
       pkgs,
     }:
-      import paths.core.mod.global.store (args // {inherit pkgs system;});
+      import paths.repo.mod.global.store (args // {inherit pkgs system;});
   in
-    {templates = import paths.core.kit.default.store;}
+    {templates = import paths.repo.kit.default.store;}
     // genAttrs
     (
       attrNames (fn {

@@ -16,10 +16,7 @@ global: let
     (importAllNamed {
       inherit args;
       dir = ./.;
-      exclude = [
-        "shared"
-        "fmt"
-      ];
+      exclude = ["shared" "fmt"];
     }).value;
 
   inherit (args) fetch mkName print;
