@@ -4,6 +4,7 @@
   excludedFiles ? [],
   excludedPatterns ? [],
   flake ? {},
+  nixpkgs ? null,
   lib ? null,
   names ? {},
   allowAliases ? false,
@@ -70,16 +71,17 @@
     */
     normalizeFlake = {
       flake,
+      nixpkgs ? null,
       name ? names.src,
       path ? stores.src,
     }: let
       checks = {
-        source = flake:
-          flake ? inputs
+        source = target:
+          target ? inputs
           && (
-            (flake._type or "" == "flake")
-            || flake ? sourceInfo
-            || flake ? outputs
+            (target._type or "" == "flake") # Maybe remove this
+            || target ? sourceInfo
+            || target ? outputs
           );
         inputs = key:
           flake.inputs ? ${key}
@@ -107,7 +109,14 @@
 
         update = {
           #> Update inputs to include a canonical nixpkgs alias
-          inputs = flake.inputs // {nixpkgs = flake.inputs.${nixpkgsKey};};
+          inputs =
+            flake.inputs
+            // {nixpkgs = flake.inputs.${nixpkgsKey};}
+            // (
+              if nixpkgs == null || nixpkgs == {}
+              then {}
+              else {inherit nixpkgs;}
+            );
 
           #> Populate standard attributes with explicit fallbacks
           name = flake.name or name;
@@ -180,7 +189,7 @@
     };
 
     flake' = normalizeFlake {
-      inherit flake;
+      inherit flake nixpkgs;
       name = names'.src;
       path = stores.src;
     };
