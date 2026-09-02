@@ -168,9 +168,12 @@
 
       evaluated = evalModules {
         specialArgs =
-          removeAttrs
-          (hostArgs // {inherit top;})
-          ["lib" "config"];
+          specialArgs
+          // {
+            inherit (classified.all) modulesPath baseModules;
+            modules = classified // {host = core;};
+          };
+
         modules =
           classified.base
           ++ classified.core

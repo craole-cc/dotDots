@@ -187,15 +187,13 @@
     ];
   };
 
-  outputs = inputs @ {...}: let
+  outputs = inputs: let
+    nixpkgsTag = "nixPackages";
+
     lib = import ./. {
-      inputs = inputs // {nixpkgs = inputs.nixPackages;};
-      # flake = {
-      #   inherit inputs;
-      #   _type = "flake";
-      #   name = "dots";
-      #   path = self.outPath;
-      # };
+      inherit inputs;
+      # inherit inputs nixpkgsTag;
+      # inherit (inputs.${nixpkgsTag}) lib;
     };
   in
     {inherit lib;}
@@ -204,37 +202,5 @@
         (mkConfigurations lib)
         // (mkUtilities lib)
     )
-    // {
-      repl = let
-        _ = lib.libraries.default;
-        inherit (_.lib) filter isPath length match;
-        inherit (_.sources) modules;
-        inherit (_.modules.evaluation) evalModules;
-
-        classifiedNixos = modules.mkModules {
-          class = "nixos";
-          inherit (lib) inputs;
-        };
-
-        # minimal stub so evalModules doesn't fail on unrelated missing system config
-        stub = {nixpkgs.hostPlatform = "x86_64-linux";};
-
-        t1 = evalModules {modules = [stub] ++ classifiedNixos.base;};
-        t2 = evalModules {modules = [stub] ++ classifiedNixos.base ++ classifiedNixos.core;};
-      in {
-        inherit t1 t2;
-        t1hostName = t1.config.networking.hostName;
-        t2hostName = t2.config.networking.hostName;
-        coreLength = length classifiedNixos.core;
-        usesNixpkgsAlias = lib.inputs ? nixpkgs;
-        basePath = classifiedNixos.path;
-        baseHasNetworking =
-          filter (
-            path:
-              isPath path
-              && match ".*network-interfaces\\.nix" (toString path) != null
-          )
-          classifiedNixos.base;
-      };
-    };
+    // {};
 }

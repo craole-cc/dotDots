@@ -3,83 +3,44 @@
   excludedDirs ? [],
   excludedFiles ? [],
   excludedPatterns ? [],
-  flake ? {},
-  inputs ? null,
-  nixpkgs ? null,
-  lib ? null,
-  names ? {},
   allowAliases ? false,
   allowTests ? false,
   stores ? {
     lib = ./.;
     src = ../../.;
     api = ../../API/nix;
+    build = ./internal;
   },
-  paths ? {},
   ...
 } @ args: let
   derived = let
-    /*
-    Resolves and normalizes a valid Nix library (`lib`) instance using a 3-tier strategy:
-    1. Provided `lib` parameter (if valid and contains `lib.trivial`).
-    2. The `lib` exported by the normalized flake's primary Nixpkgs input.
-    3. Ambient system `<nixpkgs/lib>` via NIX_PATH lookup.
-
-    # Type:
-    ```nix
-      normalizeLib :: {
-        lib ? null,
-        flake ? null
-      } -> AttrSet
-    ```
-
-    # Example:
-    ```nix
-      normalizeLib {
-        lib = myLib;
-        flake = myFlake;
-      } ->  {
-        attrsets = <...>;
-        lists = <...>;
-        ...
-        trivial = <...>;
-        ...
-      }
-    ```
-    */
-    normalizeLib = {
-      lib ? null,
-      inputs ? {},
-    }: let
-      checks = {
-        lib = target: target ? attrsets.attrNames && target ? trivial;
-        inputs = target: target ? nixpkgs.lib && checks.lib target.nixpkgs.lib;
-      };
-
+    lib = let
+      nixpkgs = args.inputs.${args.nixpkgsTag or "nixPackages"} or {};
+      isValib = target: target ? attrsets.attrNames && target ? trivial;
       lib' =
-        if checks.lib lib
-        then lib
-        else if checks.inputs inputs
-        then inputs.nixpkgs.lib
+        if isValib (args.lib or null)
+        then args.lib
+        else if isValib (nixpkgs.lib or {})
+        then nixpkgs.lib
         else import <nixpkgs/lib>;
     in
-      if checks.lib lib'
+      if isValib lib'
       then lib'
       else throw "Failed to resolve a valid Nix library instance (lib.trivial not found).";
 
-    names' = {
-      top = names.top or "_";
-      lib = names.lib or "lix";
-      prefix = names.prefix or ".";
-      src = names.src or "dots";
-    };
-
-    lib' = normalizeLib {inherit lib inputs;};
-    inherit (lib'.attrsets) recursiveUpdate;
+    inherit (lib.attrsets) recursiveUpdate;
 
     seed = recursiveUpdate args {
-      lib = lib';
-      names = names';
+      inherit lib;
+      names =
+        recursiveUpdate {
+          top = "_";
+          lib = "lix";
+          prefix = ".";
+          src = "dots";
+        }
+        (args.names or {});
+
       paths =
         recursiveUpdate {
           repo = {
@@ -88,7 +49,8 @@
             api.default.store = stores.api;
           };
         }
-        paths;
+        (args.paths or {});
+
       settings = {
         inherit allowAliases allowTests collisionStrategy;
         exclusions = {
@@ -98,7 +60,7 @@
         };
       };
     };
-    context = import ./internal seed;
+    context = import stores.build seed;
   in
     context;
 

@@ -14,6 +14,10 @@
       allowAliases = false;
       allowTests = false;
     };
+    pkg = {
+      allowUnfree = true;
+      allowBroken = false;
+    };
   };
 
   paths = {

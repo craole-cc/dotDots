@@ -16,7 +16,11 @@
     hosts,
     name ? null,
   }:
-    hosts.${name} or (throw "Host '${name}' not found. Available hosts: ${toString (attrNames hosts)}");
+    hosts.${
+      name
+    } or (throw "Host '${name}' not found. Available hosts: ${
+      toString (attrNames hosts)
+    }");
 
   hostOrDefault = {
     hosts,
@@ -110,50 +114,48 @@
     exclusions ? {},
     ...
   }: let
-    host_stems = recursiveUpdate stems (host.paths.stems or {});
-    host_roots = recursiveUpdate roots (host.paths.roots or {});
+    derived = {
+      inherit host name;
+      stems = recursiveUpdate stems (host.paths.stems or {});
+      roots = recursiveUpdate roots (host.paths.roots or {});
+      paths = mkTree {inherit (derived) roots stems;};
 
-    paths = mkTree {
-      stems = host_stems;
-      roots = host_roots;
-    };
-
-    user = mkHome {
-      inherit host users;
-      stems = host_stems;
-      roots = host_roots;
-    };
-
-    defined = {
-      inherit name paths;
       exclusions = recursiveUpdate exclusions (host.exclusions or {});
-      users = user;
+
+      users = mkHome {
+        inherit host users;
+        inherit (derived) roots stems;
+      };
+
+      user = derived.users.primary;
+    };
+
+    defined = with derived; {
+      inherit name paths users exlusions;
 
       id =
         if (host.id or null) != null
         then host.id
         else generateHexId {inherit name;};
-      home = host_roots.repo or (host.paths.dots or host.paths.flake);
+
+      interface = mkUI {inherit host user;};
+      localization = mkLocale {inherit host user;};
+
+      home = host.paths.roots.repo;
       system = host.system or (host.specs.platform or null);
 
-      interface = mkUI {
-        inherit host;
-        user = user.primary;
-      };
-      localization = mkLocale {
-        inherit host;
-        user = user.primary;
-      };
       hardware = mkHardware {inherit host;};
       access = mkAccess host;
       network = mkNetwork host;
+
       capabilities.development = mkDevelopmentCapability {
         inherit host;
-        interactiveUsers = user.interactive;
+        interactiveUsers = users.interactive;
       };
+
       storage = mkStorage host;
     };
   in
-    host // defined;
+    recursiveUpdate host defined;
 in
   __exports.internal // {__rootAliases = __exports.external;}

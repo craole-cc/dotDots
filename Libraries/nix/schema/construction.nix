@@ -60,23 +60,26 @@
       hosts =
         mapAttrs (
           name: host:
-            mkCore ({
+            mkCore (
+              {
                 inherit name;
                 inherit (base) users;
                 host = recursiveUpdate (raw.hosts.default or {}) host;
               }
-              // paths)
+              // paths
+            )
         )
-        (removeAttrs raw.hosts ["default"])
+        (removeAttrs raw.hosts ["default" "raw"])
         // {
-          default = mkCore ({
+          default = mkCore (
+            {
               name = "default";
               inherit (base) users;
               host = raw.hosts.default or {};
             }
-            // paths);
+            // paths
+          );
         };
-      # users = mkUsers raw.users;
       users = mkUsers {inherit (raw) users;};
     };
 
