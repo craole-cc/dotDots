@@ -137,7 +137,7 @@
       )
     );
     default = [
-      "aarch64-darwin"
+      # "aarch64-darwin" #? NixOS is dropping support
       "aarch64-linux"
       "x86_64-linux"
     ];

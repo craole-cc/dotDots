@@ -13,7 +13,7 @@
   inherit (context) cfg;
 
   inherit (lix.attrsets.resolution) package;
-  inherit (lix.attrsets.transformation) mapAttrs removeAttrs;
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.construction) optionals;
   inherit (lix.lists.access) head;
   inherit (lix.lists.predicates) isIn;

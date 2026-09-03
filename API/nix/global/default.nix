@@ -1,23 +1,71 @@
 {
-  names = {
-    src = "dots";
-    repo = "https://github.com/craole-cc/dotDots.git";
+  # names = {
+  #   src = "dots";
+  #   prefix = ".";
+  #   top = "_";
+  #   lib = "lix";
+  #   alpha = "craole";
+  # };
+
+  # settings = {
+  #   lib = {
+  #     collisionStrategy = "warn";
+  #     allowAliases = false;
+  #     allowTests = false;
+  #   };
+  #   pkg = {
+  #     unstable = true;
+  #     allowUnfree = true;
+  #     allowBroken = false;
+  #   };
+  # };
+  #
+  repo = {
+    name = "dots";
+    url = "https://github.com/craole-cc/dotDots.git";
     prefix = ".";
     top = "_";
-    lib = "lix";
-    alpha = "craole";
   };
 
-  settings = {
-    lib = {
-      collisionStrategy = "warn";
-      allowAliases = false;
-      allowTests = false;
-    };
-    pkg = {
-      allowUnfree = true;
-      allowBroken = false;
-    };
+  libraries = {
+    collisionStrategy = "warn";
+    allowAliases = false;
+    allowTests = false;
+    name = "lix";
+  };
+
+  packages = {
+    unstable = true;
+    allowUnfree = true;
+    allowBroken = false;
+    allowUnsupportedSystem = true; # Fixes aarch64-darwin evaluation errors on Linux packages
+
+    core = [
+      "nixpkgs"
+      "nixpkgs-stable"
+      "nixpkgs-unstable"
+    ];
+
+    home = [
+      "age"
+      "caelestia"
+      "catppuccin"
+      "dank-material-shell"
+      "dms-plugin-registry"
+      "fresh-editor"
+      "helix"
+      "hermes-agent"
+      "home-manager"
+      "llm-agents"
+      "noctalia-shell"
+      "nvf"
+      "plasma"
+      "quickshell"
+      "treefmt"
+      "typix"
+      "vscode-insiders"
+      "zen-browser"
+    ];
   };
 
   paths = {
@@ -53,9 +101,13 @@
 
     roots = {
       repo = "";
-      home = {var = "HOME";}; # /home/${USER}
+      home = {
+        var = "HOME";
+      }; # /home/${USER}
       slash = "/";
-      xdg = {var = "HOME";}; # /home/${USER}/.config, /home/${USER}/.local/share, /home/${USER}/.cache, /home/${USER}/.local/state, /home/${USER}/.local/bin, /run/user/${UID} so this is not exactly home but rather a user-specific runtime directory. Our mkSchema adds UID to every user
+      xdg = {
+        var = "HOME";
+      }; # /home/${USER}/.config, /home/${USER}/.local/share, /home/${USER}/.cache, /home/${USER}/.local/state, /home/${USER}/.local/bin, /run/user/${UID} so this is not exactly home but rather a user-specific runtime directory. Our mkSchema adds UID to every user
     };
 
     stems = {
@@ -71,7 +123,10 @@
         };
 
         temp = let
-          default = [".cache" "tmp"];
+          default = [
+            ".cache"
+            "tmp"
+          ];
         in {
           inherit default;
         };
@@ -196,20 +251,54 @@
         private = ["Private"];
         projects = ["Projects"];
         public = ["Public"];
-        screenshots = ["Pictures" "Screenshots"];
+        screenshots = [
+          "Pictures"
+          "Screenshots"
+        ];
         templates = ["Templates"];
         videos = ["Videos"];
-        wallpapers = ["Pictures" "Wallpapers"];
+        wallpapers = [
+          "Pictures"
+          "Wallpapers"
+        ];
       };
 
       slash = {
-        bin = let default = ["bin"]; in {inherit default;};
-        boot = let default = ["boot"]; in {inherit default;};
-        dev = let default = ["dev"]; in {inherit default;};
-        etc = let default = ["etc"]; in {inherit default;};
-        lib = let default = ["lib"]; in {inherit default;};
-        media = let default = ["media"]; in {inherit default;};
-        mnt = let default = ["mnt"]; in {inherit default;};
+        bin = let
+          default = ["bin"];
+        in {
+          inherit default;
+        };
+        boot = let
+          default = ["boot"];
+        in {
+          inherit default;
+        };
+        dev = let
+          default = ["dev"];
+        in {
+          inherit default;
+        };
+        etc = let
+          default = ["etc"];
+        in {
+          inherit default;
+        };
+        lib = let
+          default = ["lib"];
+        in {
+          inherit default;
+        };
+        media = let
+          default = ["media"];
+        in {
+          inherit default;
+        };
+        mnt = let
+          default = ["mnt"];
+        in {
+          inherit default;
+        };
         nix = let
           base = ["nix"];
           default = base;
@@ -218,14 +307,46 @@
           store = base ++ ["store"];
           var = base ++ ["var"];
         };
-        opt = let default = ["opt"]; in {inherit default;};
-        proc = let default = ["proc"]; in {inherit default;};
-        root = let default = ["root"]; in {inherit default;};
-        run = let default = ["run"]; in {inherit default;};
-        sbin = let default = ["sbin"]; in {inherit default;};
-        srv = let default = ["srv"]; in {inherit default;};
-        sys = let default = ["sys"]; in {inherit default;};
-        tmp = let default = ["tmp"]; in {inherit default;};
+        opt = let
+          default = ["opt"];
+        in {
+          inherit default;
+        };
+        proc = let
+          default = ["proc"];
+        in {
+          inherit default;
+        };
+        root = let
+          default = ["root"];
+        in {
+          inherit default;
+        };
+        run = let
+          default = ["run"];
+        in {
+          inherit default;
+        };
+        sbin = let
+          default = ["sbin"];
+        in {
+          inherit default;
+        };
+        srv = let
+          default = ["srv"];
+        in {
+          inherit default;
+        };
+        sys = let
+          default = ["sys"];
+        in {
+          inherit default;
+        };
+        tmp = let
+          default = ["tmp"];
+        in {
+          inherit default;
+        };
         usr = let
           base = ["usr"];
           default = base;
@@ -254,11 +375,24 @@
 
       xdg = {
         config = [".config"];
-        data = [".local" "share"];
+        data = [
+          ".local"
+          "share"
+        ];
         cache = [".cache"];
-        state = [".local" "state"];
-        bin = [".local" "bin"];
-        runtime = ["/run" "user" {var = "UID";}];
+        state = [
+          ".local"
+          "state"
+        ];
+        bin = [
+          ".local"
+          "bin"
+        ];
+        runtime = [
+          "/run"
+          "user"
+          {var = "UID";}
+        ];
       };
     };
   };

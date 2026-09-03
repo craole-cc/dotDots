@@ -67,7 +67,7 @@ in {
     storage = {
       boot = {};
 
-      file = {
+      mounts = {
         "/" = {
           device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
           fsType = "ext4";

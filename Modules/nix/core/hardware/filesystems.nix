@@ -27,7 +27,7 @@ in
         condition = hw.hasFilesystems;
       };
       filesystemsRequired = mkOption {
-        description = "Require host.devices.file to declare at least one filesystem";
+        description = "Require host.devices.storage.mounts to declare at least one filesystem";
         default = storage.filesystemsRequired;
         type = bool;
       };
@@ -41,7 +41,7 @@ in
       assertions = [
         {
           assertion = !cfg.filesystemsRequired || hw.hasFilesystems;
-          message = "No filesystem declarations found. Add host.devices.file for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
+          message = "No filesystem declarations found. Add host.devices.storage.mounts for a real host, or set host.storage.filesystemsRequired = false for a template, container, or ephemeral target.";
         }
       ];
 
@@ -56,10 +56,12 @@ in
               then {}
               else {inherit (fs) options;}
             )
-        ) (host.devices.file or {})
+        ) (host.devices.storage.mounts or host.devices.storage.file or {})
       );
 
-      swapDevices = mkIf cfg.enable (map (s: {inherit (s) device;}) (host.devices.swap or []));
+      swapDevices = mkIf cfg.enable (
+        map (s: {inherit (s) device;}) (host.devices.storage.swap or host.devices.swap or [])
+      );
 
       services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
         enable = true;

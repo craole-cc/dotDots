@@ -8,7 +8,7 @@ let
   context = mkContext {
     inherit config;
     dom = "interface";
-    sub = "common";
+    # sub = "common";
     mod = "portal";
   };
   inherit (context) cfg hasHyprland hasNiri;

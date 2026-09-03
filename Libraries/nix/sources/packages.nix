@@ -51,7 +51,6 @@
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.attrsets.resolution) getFlake;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
@@ -444,8 +443,7 @@
       then [target]
       else
         unique (
-          (optionals (input != null) ["default"])
-          ++ suffixStripped ++ (optionals (input != null) [input])
+          (optionals (input != null) ["default"]) ++ suffixStripped ++ (optionals (input != null) [input])
         );
 
     lookup = candidates: let
@@ -508,7 +506,13 @@
         };
       in {
         inherit (check) name source value;
-        inherit command package paths revision version;
+        inherit
+          command
+          package
+          paths
+          revision
+          version
+          ;
 
         description =
           if description != null && description != ""
@@ -523,13 +527,12 @@
       };
   in
     if required
-    then
-      assert withContext {
-        name = _name;
-        context = "resolving package from input '${toString input}' or pkgs";
-        assertion = eval != null;
-        message = "Unable to locate a package for input '${toString input}' - tried: ${concat ", " candidateNames}. Pass `target` explicitly to pkgFor/pkgOf.";
-      }; eval
+    then assert withContext {
+      name = _name;
+      context = "resolving package from input '${toString input}' or pkgs";
+      assertion = eval != null;
+      message = "Unable to locate a package for input '${toString input}' - tried: ${concat ", " candidateNames}. Pass `target` explicitly to pkgFor/pkgOf.";
+    }; eval
     else eval;
 
   # -- pkgsFrom
@@ -642,23 +645,29 @@
       source = target: entry:
         pkgOf (
           {
-            inherit target inputs pkgs required;
-            inherit (entry) input versionArgs description exe;
+            inherit
+              target
+              inputs
+              pkgs
+              required
+              ;
+            inherit
+              (entry)
+              input
+              versionArgs
+              description
+              exe
+              ;
           }
           // optionalAttrs (system != null) {inherit system;}
         );
     in
       filterAttrs (_: src: src != null) (
-        mapAttrs
-        (name: entry: source name entry)
-        (mapAttrs (_: normalize) sources)
+        mapAttrs (name: entry: source name entry) (mapAttrs (_: normalize) sources)
       );
 
     records =
-      init
-      // filterAttrs
-      (_: v: v != null)
-      (mapAttrs (_: target: init.${target} or null) aliases);
+      init // filterAttrs (_: v: v != null) (mapAttrs (_: target: init.${target} or null) aliases);
 
     eval = {
       binaries = mapAttrs (_: pkg: pkg.exe) records;
@@ -670,10 +679,7 @@
         map (res: res.value) (attrValues init)
       );
       names = let
-        sortByCmd = sort (
-          a: b:
-            (records.${a}.cmd or a) < (records.${b}.cmd or b)
-        );
+        sortByCmd = sort (a: b: (records.${a}.cmd or a) < (records.${b}.cmd or b));
       in
         sortByCmd (attrNames records);
     };
@@ -684,10 +690,7 @@
       vr3n = versions;
     };
   in
-    records
-    // eval
-    // aliases'
-    // {inherit sources records;};
+    records // eval // aliases' // {inherit sources records;};
 
   bySystem = packages: let
     inputNames = attrNames packages;
@@ -734,9 +737,6 @@
       if isNotEmpty inputs
       then inputs
       else {}
-      # else if isNotEmpty flake.inputs
-      # then flake
-      # else getFlake {}
     );
 
     system' = getSystemOrDefault {
@@ -744,14 +744,23 @@
       inherit host system;
     };
 
-    config' = let
-      pkgs = host.packages or {};
-    in
+    # Normalize host package settings across all supported alias locations
+    pkgSettings =
+      host.settings.forNixpkgs or host.settings.pkg or host.settings.packages or host.packages or host.pkg
+          or {};
+
+    config' =
       {
-        allowUnfree = pkgs.allowUnfree or (defaults.allowUnfree or false);
-        allowBroken = pkgs.allowBroken or (defaults.allowBroken or false);
+        allowUnfree = pkgSettings.allowUnfree or defaults.config.allowUnfree;
+        allowBroken = pkgSettings.allowBroken or defaults.config.allowBroken;
       }
       // config;
+
+    # Dynamically pick input based on `unstable = true`
+    nixpkgsInput =
+      if pkgSettings.unstable or false
+      then inputs'.nixpkgs-unstable or inputs'.nixpkgs
+      else inputs'.nixpkgs;
 
     packages = let
       raw =
@@ -776,7 +785,7 @@
       source = let
         src = mkSource {
           inherit host;
-          input = inputs'.nixpkgs or null;
+          input = nixpkgsInput;
         };
       in
         optionalAttrs (isNotEmpty src) (src.flake.source or src.source);
@@ -785,7 +794,7 @@
       // {
         inputs = inputs';
         legacyPackages = mapAttrs (sys: base: base // ((bySystem packages).${sys} or {})) (
-          inputs'.nixpkgs.legacyPackages or {}
+          nixpkgsInput.legacyPackages or {}
         );
       };
 
@@ -795,18 +804,20 @@
       inputs =
         if inputs'.home-manager != {}
         then inputs'
-        else ''Inputs can be see via the flake: > :lf . > lib.inputs'';
+        else "Inputs can be see via the flake: > :lf . > lib.inputs";
 
       config = config';
       nixpkgs = nixpkgs';
 
-      pkgs = import inputs'.nixpkgs {
+      # Export kernel string or derivation reference for downstream module consumption
+      kernel = pkgSettings.kernel or null;
+
+      pkgs = import nixpkgsInput {
         inherit overlays;
         system = system';
         config = config';
       };
     };
-    # // (optionalAttrs (inputs' != {}) {inputs = inputs';});
   in
     src // args // resolved;
 in

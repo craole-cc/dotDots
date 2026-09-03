@@ -70,7 +70,9 @@
   mkHardware = {host}: let
     fun = host.functionalities or [];
     iface = host.interface or {};
-    boot = host.devices.boot or {};
+    storage = host.devices.storage or {};
+    boot = storage.boot or {};
+    mounts = storage.mounts or {};
     de = iface.desktopEnvironment or null;
     wm = iface.windowManager or null;
   in
@@ -86,14 +88,19 @@
       dualBootWindows = isIn "dualboot-windows" fun;
       hasDualBoot = isIn dualBootValues fun;
       hasNetwork = host.devices.network or [] != [];
-      hasFilesystems = (host.devices.file or {}) != {};
+      hasFilesystems = mounts != {};
       hasGui =
         (de != null && de != "none" && isIn de desktopEnvironments.values)
         || (wm != null && wm != "none" && isIn wm windowManagers.values);
       boot = {
         loader = iface.bootLoader or defaults.boot.loader;
         timeout = iface.bootLoaderTimeout or defaults.boot.timeout;
-        efiMount = boot.efiSysMountPoint or defaults.boot.efiMount;
+        efiMount =
+          boot.efiSysMountPoint or (
+            if mounts ? "/boot"
+            then "/boot"
+            else defaults.boot.efiMount
+          );
         kernelPkg = host.packages.kernel or null;
         modules = host.modules or [];
       };

@@ -94,7 +94,7 @@
   mkNix = {
     host,
     pkgs,
-    flake,
+    repo,
     kernel ? (host.packages.kernel or null),
     caches ? (host.caches or {}),
     max-jobs ? (host.specs.cpu.cores or "auto"),
@@ -104,7 +104,7 @@
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
     requiresNumtide = lockFileHas {
-      inherit (flake) path;
+      inherit (repo) path;
       field = "owner";
       value = "numtide";
     };
@@ -190,13 +190,13 @@
   ```
   */
   mkMaintenance = {
-    flake,
+    repo,
     pkgs,
     keep,
     paths,
     ...
   }: let
-    inherit (flake) name home;
+    inherit (repo) name home;
     keepArgs = concat " " keep.args;
     fetch = mkFetch {inherit name pkgs paths;};
   in {

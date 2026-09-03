@@ -26,6 +26,7 @@
   inherit (pkgs) linuxPackages;
 
   hw = host.hardware;
+  isX86 = pkgs.stdenv.hostPlatform.isx86;
 
   validPatterns = [
     "system"
@@ -43,10 +44,10 @@
 
     msg =
       if selection == null
-      then "ℹ Using default kernel (${linuxPackages.kernel.version})"
+      then "ℹ Using default kernel"
       else if exists
-      then "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})"
-      else "⚠️ Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})";
+      then "✓ Using kernel: ${selection}"
+      else "⚠️ Kernel '${selection}' not found in pkgs, falling back to default";
 
     packages = traceIf true msg pkgs';
   in {
@@ -120,8 +121,8 @@ in
             enable = true;
             configurationLimit = 20;
             editor = false;
-            memtest86.enable = true;
-            netbootxyz.enable = true;
+            memtest86.enable = isX86;
+            netbootxyz.enable = isX86;
             rebootForBitlocker = true;
           };
 
@@ -157,7 +158,7 @@ in
           inherit (cfg) timeout;
         };
 
-        initrd.availableKernelModules = host.modules or [];
+        initrd.availableKernelModules = host.hardware.kernelModules or host.modules or [];
       };
 
       environment.systemPackages = with pkgs; [efibootmgr];

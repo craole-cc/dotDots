@@ -37,7 +37,6 @@
   inherit (_.attrsets.resolution) byPaths;
   inherit (_.debug.assertions) withContext;
   inherit (_.content.emptiness) isNotEmpty;
-  inherit (_.filesystem.resolution) getFlake;
   inherit (_.strings.transformation) toLowerCase;
   inherit (_.types.predicates) isAttrs isPath isString;
 

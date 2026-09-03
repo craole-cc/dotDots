@@ -1,6 +1,5 @@
 {
   config,
-  flake,
   host,
   lix,
   names,
@@ -19,8 +18,23 @@
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
-  inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
-  inherit (lix.types.primitives) anything bool int ints path str;
+  inherit
+    (lix.types.combinators)
+    attrsOf
+    either
+    listOf
+    nullOr
+    submodule
+    ;
+  inherit
+    (lix.types.primitives)
+    anything
+    bool
+    int
+    ints
+    path
+    str
+    ;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
 in
   mkConfig {
@@ -53,9 +67,9 @@ in
         type = str;
       };
 
-      flake = mkOption {
+      repo = mkOption {
         description = ''
-          Absolute path to the dotfiles flake. Used by `nh` as the flake
+          Absolute path to the dotfiles repo. Used by `nh` as the flake
           reference for rebuilds and store maintenance.
         '';
         type = submodule {
@@ -69,7 +83,7 @@ in
 
             home = mkOption {
               description = "Local absolute path to the flake.";
-              default = flake.home or (host.paths.src or paths.core.src.local);
+              default = host.paths.roots.repo or paths.repo.src.local;
               defaultText = literalExpression "host.paths.flake";
               example = literalExpression "/home/craole/.dots";
               type = str;
@@ -77,8 +91,8 @@ in
 
             path = mkOption {
               description = "Nix store path to the flake.";
-              default = flake.home or (paths.core.src or ../../../../.);
-              defaultText = literalExpression "paths.flake.store or ../../../../.";
+              default = paths.repo.src.store or ../../../../.;
+              defaultText = literalExpression "paths.repo.src.store or ../../../../.";
               example = literalExpression "/nix/store/...-source";
               type = nullOr (either str path);
             };
@@ -227,12 +241,19 @@ in
     outputs = mkMerge [
       (mkNix {
         inherit host pkgs;
-        inherit (cfg) flake kernel caches max-jobs stateVersion;
+        inherit
+          (cfg)
+          repo
+          kernel
+          caches
+          max-jobs
+          stateVersion
+          ;
         store = tree.store.default;
       })
       (mkMaintenance {
         inherit pkgs paths;
-        inherit (cfg) flake keep;
+        inherit (cfg) repo keep;
       })
     ];
   }

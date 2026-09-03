@@ -11,6 +11,7 @@
       inherit (_.schema.home) mkHome;
       inherit (_.schema.io) mkKeyboard mkHyprKeybinds;
       inherit (_.schema.locale) mkLocale;
+      inherit (_.schema.settings) mkSettings;
       inherit (_.schema.ui) mkUI;
     };
     external = {inherit mkSchema;};
@@ -21,13 +22,15 @@
   inherit (_.filesystem.resolution) pathAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
+  inherit (_.schema.settings) mkSettings;
   inherit (_.strings.access) getEnvOr;
   inherit (_.types.access) headOf;
   inherit (_.types.predicates) isString;
 
   /**
-  Enrich each declared host against the hosts baseline and determine the active
-  deployment target.
+  Enrich each declared host against the hosts baseline, resolve global and host-level
+  settings via `mkSettings` (normalizing top-level `packages` or `settings.pkg`),
+  and determine the active deployment target.
 
   # Arguments
   - api: The API data - a path, `importAttrs`'s raw `{ value; stems; }`
@@ -38,7 +41,8 @@
     falls back to `$HOSTNAME`/first-declared, resolved against `base.hosts`.
 
   # Returns
-  A fully hydrated schema attrset with active `default` pointers and `raw` fallbacks.
+  A fully hydrated schema attrset with active `default` pointers, resolved `settings`,
+  and `raw` fallbacks.
   */
   mkSchema = {
     api ? _defaults.paths.repo.api.default.store,
@@ -60,12 +64,16 @@
     base = {
       hosts =
         mapAttrs (
-          name: host:
+          name: hostAttr:
             mkCore (
               {
-                inherit name;
+                settings = mkSettings {
+                  inherit (raw) global;
+                  host = hostAttr;
+                };
                 inherit (base) users;
-                host = recursiveUpdate (raw.hosts.default or {}) host;
+                host = recursiveUpdate (raw.hosts.default or {}) hostAttr;
+                inherit name;
               }
               // paths
             )
@@ -75,6 +83,10 @@
           default = mkCore (
             {
               name = "default";
+              settings = mkSettings {
+                inherit (raw) global;
+                host = raw.hosts.default or {};
+              };
               inherit (base) users;
               host = raw.hosts.default or {};
             }

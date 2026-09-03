@@ -4,11 +4,12 @@
   lix,
   inputs,
   pkgs,
-  flake,
+  names,
   top,
-  tree,
+  paths ? host.paths,
   ...
-}: let
+}:
+let
   context = mkContext {
     inherit config;
     dom = "environment";
@@ -16,8 +17,7 @@
   };
   inherit (context) cfg;
   inherit (pkgs.stdenv.hostPlatform) system;
-  inherit
-    (lix.applications.resolution)
+  inherit (lix.applications.resolution)
     editors
     browsers
     terminals
@@ -34,39 +34,39 @@
   ice = config.${top}.resolved.interface;
   isWayland = ice.displayProtocol == "wayland";
 
-  user = host.users.data.primary or {};
-  apps = user.applications or {};
-  wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
+  user = host.users.data.primary or { };
+  apps = user.applications or { };
+  wallpapers = host.paths.wallpapers or { };
 
-  registry = let
-    editor = editors.commands {
-      inherit pkgs system inputs;
-      config = apps.editor or {};
-    };
-    browser = browsers.commands {
-      inherit pkgs system inputs;
-      config = apps.browser or {};
-    };
-    terminal = terminals.commands {
-      inherit pkgs system inputs;
-      config = apps.terminal or {};
-    };
-    launcher = launchers.commands {
-      inherit pkgs system inputs;
-      config = apps.launcher or {};
-    };
-    bar = bars.commands {
-      inherit pkgs system inputs;
-      config = apps.bar or {};
-    };
+  registry =
+    let
+      editor = editors.commands {
+        inherit pkgs system inputs;
+        config = apps.editor or { };
+      };
+      browser = browsers.commands {
+        inherit pkgs system inputs;
+        config = apps.browser or { };
+      };
+      terminal = terminals.commands {
+        inherit pkgs system inputs;
+        config = apps.terminal or { };
+      };
+      launcher = launchers.commands {
+        inherit pkgs system inputs;
+        config = apps.launcher or { };
+      };
+      bar = bars.commands {
+        inherit pkgs system inputs;
+        config = apps.bar or { };
+      };
 
-    default =
-      {
+      default = {
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
         BAR = ice.panel or bar.primary;
         BROWSER = mkDefault browser.primary;
-        "${toUpper flake.name}" = flake.home;
+        "${toUpper names.src}" = paths.roots.repo;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;
         TERMINAL = terminal.primary;
@@ -95,34 +95,35 @@
         #~@ JAVA
         _JAVA_AWT_WM_NONREPARENTING = "1";
       };
-  in {
-    inherit
-      editor
-      browser
-      terminal
-      launcher
-      bar
-      default
-      ;
-    all = default // editor // browser // terminal // launcher // bar;
-  };
+    in
+    {
+      inherit
+        editor
+        browser
+        terminal
+        launcher
+        bar
+        default
+        ;
+      all = default // editor // browser // terminal // launcher // bar;
+    };
 in
-  mkConfig {
-    inherit context;
-    options = {
-      enable = mkEnable {inherit context;};
-      default = mkOption {
-        description = "Base session variables";
-        inherit (registry) default;
-        type = attrsOf str;
-      };
-      extra = mkOption {
-        description = "Additional session variables";
-        default = {};
-        type = attrsOf str;
-      };
+mkConfig {
+  inherit context;
+  options = {
+    enable = mkEnable { inherit context; };
+    default = mkOption {
+      description = "Base session variables";
+      inherit (registry) default;
+      type = attrsOf str;
     };
-    outputs = {
-      environment.sessionVariables = cfg.default // cfg.extra;
+    extra = mkOption {
+      description = "Additional session variables";
+      default = { };
+      type = attrsOf str;
     };
-  }
+  };
+  outputs = {
+    environment.sessionVariables = cfg.default // cfg.extra;
+  };
+}
