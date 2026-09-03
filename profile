@@ -1,7 +1,6 @@
 #!/bin/sh
 # shellcheck enable=all
 
-# TODO: We need an option for info:
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 configure() {
@@ -11,7 +10,7 @@ configure() {
   path="${home}/${name}"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.2.3"
+  version="0.2.5"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
   verbosity="info" #? Levels: quiet | info | verbose | debug | dry
@@ -135,6 +134,7 @@ configure() {
     bat
     bottom
     cfspeedtest
+    darkman
     delta
     dust
     eza
@@ -162,18 +162,16 @@ configure() {
     tealdeer
     tokei
     wl-clipboard
+    xdg-desktop-portal
+    xdg-desktop-portal-hyprland
     zoxide
   "
   dependencies_required="gawk gnused ripgrep fd sudo"
-  dependencies_optional="bat bottom delta dust eza fzf gum hyperfine hyprland rustup shellcheck shfmt tailscale tealdeer tokei wl-clipboard zoxide"
+  dependencies_optional="bat bottom darkman delta dust eza fzf gum hyperfine hyprland rustup shellcheck shfmt tailscale tealdeer tokei wl-clipboard xdg-desktop-portal xdg-desktop-portal-hyprland zoxide"
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-# ------------------------------------------------------------------------------
-# get_package_bin PACKAGE
-# ------------------------------------------------------------------------------
-# Maps a package name to the binary name exposed on PATH.
-# ------------------------------------------------------------------------------
+
 get_package_bin() {
   case "$1" in
   antigravity-cli) printf '%s\n' "agy" ;;
@@ -181,17 +179,14 @@ get_package_bin() {
   gawk) printf '%s\n' "awk" ;;
   gnused) printf '%s\n' "sed" ;;
   hyprland) printf '%s\n' "hyprctl" ;;
+  nodejs) printf '%s\n' "node" ;;
   wl-clipboard) printf '%s\n' "wl-copy" ;;
+  xdg-desktop-portal) printf '%s\n' "xdg-desktop-portal" ;;
+  xdg-desktop-portal-hyprland) printf '%s\n' "xdg-desktop-portal-hyprland" ;;
   zoxide) printf '%s\n' "z" ;;
   *) printf '%s\n' "$1" ;;
   esac
 }
-
-# ------------------------------------------------------------------------------
-# get_additional_packages
-# ------------------------------------------------------------------------------
-# Lists packages that are not declared as required or optional dependencies.
-# ------------------------------------------------------------------------------
 get_additional_packages() {
   for pkg in ${packages}; do
     case " ${dependencies_required} ${dependencies_optional} " in
@@ -201,11 +196,6 @@ get_additional_packages() {
   done
 }
 
-# ------------------------------------------------------------------------------
-# cleanup
-# ------------------------------------------------------------------------------
-# Removes nix-profile-installed packages that are now provided by the system.
-# ------------------------------------------------------------------------------
 cleanup() {
   _profile_json="$(nix profile list --json 2>/dev/null)" || _profile_json=""
 
@@ -231,9 +221,6 @@ cleanup() {
   done
 }
 
-# ------------------------------------------------------------------------------
-# require_arg FLAG VALUE
-# ------------------------------------------------------------------------------
 require_arg() {
   case "${2:-}" in
   "" | --*)
@@ -244,18 +231,15 @@ require_arg() {
   esac
 }
 
-# ── XDG/OpenURI workaround ────────────────────────────────────────────────────
+# ── XDG/OpenURI & Desktop Portals ─────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_xdg_open
-# ------------------------------------------------------------------------------
 setup_xdg_open() {
   mkdir -p "${HOME}/.local/bin"
 
-  cat >"${HOME}/.local/bin/xdg-open" <<'EOF'
-#!/usr/bin/env sh
-exec gio open "$@"
-EOF
+  {
+    printf '%s\n' '#!/usr/bin/env sh'
+    printf '%s\n' 'exec gio open "$@"'
+  } >"${HOME}/.local/bin/xdg-open"
 
   chmod +x "${HOME}/.local/bin/xdg-open"
 
@@ -270,13 +254,52 @@ EOF
   unset BROWSER
 }
 
+setup_portals() {
+  case "${compositor:-}" in
+  hyprland) ;;
+  *)
+    print_info "setup_portals: compositor is not Hyprland; skipping"
+    return 0
+    ;;
+  esac
+
+  print_info "Restarting XDG desktop portals for Hyprland..."
+
+  XDG_DATA_DIRS="${HOME}/.nix-profile/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  export XDG_DATA_DIRS
+  export XDG_CURRENT_DESKTOP=Hyprland
+
+  # Export variables to DBus activation environment
+  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS 2>/dev/null || true
+  fi
+
+  # Prefer systemd user units if active
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
+    systemctl --user restart xdg-desktop-portal-hyprland.service xdg-desktop-portal.service 2>/dev/null || true
+    print_success "Restarted XDG portals via systemd user units"
+    return 0
+  fi
+
+  # Manual fallback with isolated file descriptors
+  pkill -f xdg-desktop-portal 2>/dev/null || true
+
+  _hyprland_portal="$(find -L "${HOME}/.nix-profile" -name "xdg-desktop-portal-hyprland" -type f -executable 2>/dev/null | head -n 1)"
+  _portal_bin="$(find -L "${HOME}/.nix-profile" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n 1)"
+
+  if [ -n "${_hyprland_portal}" ] && [ -n "${_portal_bin}" ]; then
+    (exec "${_hyprland_portal}" >/dev/null 2>&1 </dev/null &)
+    (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
+    print_success "Launched Hyprland portal and main XDG desktop portal"
+  else
+    print_warn "setup_portals: could not find portal executables in ~/.nix-profile"
+    return 1
+  fi
+}
+
 # ── Monitors ──────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_monitors
-# ------------------------------------------------------------------------------
 setup_monitors() {
-  # Skip if no monitors configured (kf local machine)
   case "${monitor_pri_name:-}" in
   "")
     print_info "setup_monitors: no monitors configured; skipping"
@@ -617,9 +640,6 @@ setup_monitors() {
 
 # ── Tailscale ─────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_tailscale
-# ------------------------------------------------------------------------------
 setup_tailscale() {
   install() {
     case "$(command -v tailscale 2>/dev/null)" in
@@ -647,8 +667,6 @@ setup_tailscale() {
       return 1
     fi
 
-    # Service enablement is intentionally omitted: this profile owns post-login startup, not boot-time activation.
-    # Legacy rollback/reference: sudo systemctl enable --runtime tailscaled.service >/dev/null 2>&1 || true
     sleep 1
     daemon_ready
   }
@@ -703,15 +721,72 @@ setup_tailscale() {
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_utilities
-# ------------------------------------------------------------------------------
+setup_darkman() {
+  print_info "Setting up Darkman portal configurations and hooks..."
+
+  # 1. Portals configuration
+  mkdir -p "${HOME}/.config/xdg-desktop-portal"
+  {
+    printf '%s\n' '[preferred]'
+    printf '%s\n' 'default=gtk'
+    printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
+    printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
+  } >"${HOME}/.config/xdg-desktop-portal/portals.conf"
+
+  # 2. Write transition hook scripts
+  mkdir -p \
+    "${HOME}/.local/share/dark-mode.d" \
+    "${HOME}/.local/share/light-mode.d"
+
+  {
+    printf '%s\n' '#!/usr/bin/env sh'
+    printf '%s\n' \
+      "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
+    printf '%s\n' \
+      "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
+  } >"${HOME}/.local/share/dark-mode.d/gtk-theme.sh"
+
+  {
+    printf '%s\n' '#!/usr/bin/env sh'
+    printf '%s\n' \
+      "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
+    printf '%s\n' \
+      "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
+  } >"${HOME}/.local/share/light-mode.d/gtk-theme.sh"
+
+  chmod +x \
+    "${HOME}/.local/share/dark-mode.d/gtk-theme.sh" \
+    "${HOME}/.local/share/light-mode.d/gtk-theme.sh"
+
+  # 3. Export session environment to DBus/Systemd
+  if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
+    dbus-update-activation-environment \
+      --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
+  fi
+
+  # 4. Enable and restart darkman service if systemctl is available
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user enable darkman.service 2>/dev/null || true
+    systemctl --user restart darkman.service 2>/dev/null || true
+  fi
+
+  print_success "Darkman hooks and portal routing applied"
+}
+
 setup_utilities() {
+  export PATH="${HOME}/.nix-profile/bin:${PATH}"
+  _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
+
   # shellcheck disable=SC2086
   for pkg in $(get_additional_packages); do
     bin="$(get_package_bin "${pkg}")"
     case "$(command -v "${bin}" 2>/dev/null)" in
-    "") NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#${pkg}" ;;
+    "")
+      case "${_profile_list}" in
+      *"${pkg}"*) ;;
+      *) NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#${pkg}" 2>/dev/null || true ;;
+      esac
+      ;;
     *) ;;
     esac
   done
@@ -734,9 +809,6 @@ fix_net() {
 
 # ── Clipboard ─────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# clip [OPTIONS] [PATH ...]
-# ------------------------------------------------------------------------------
 clip() {
   no_ignore=0
   no_recurse=0
@@ -881,9 +953,6 @@ clip() {
 
 # ── Rust ──────────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_rust
-# ------------------------------------------------------------------------------
 setup_rust() {
   install() {
     case "$(command -v rustup 2>/dev/null)" in
@@ -912,9 +981,6 @@ setup_rust() {
 
 # ── Tmux ──────────────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_tmux
-# ------------------------------------------------------------------------------
 setup_tmux() {
   case "$(command -v tmux 2>/dev/null)" in
   "")
@@ -925,75 +991,88 @@ setup_tmux() {
   esac
 }
 
-# ── VS Code Server ─────────────────────────────────────────────────────────────
+# ── Remote Code Server ────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# setup_vscode_server
-# ------------------------------------------------------------------------------
-# Fixes VS Code Server on QBX for NixOS - run this ON QBX before connecting
-# from kf. Creates /usr/bin/env and pre-downloads the server.
-# ------------------------------------------------------------------------------
-setup_vscode_server() {
-  # Only run on QBX
+setup_remote_dev() {
+  # Enable on both Victus and QBX
   case "$(hostname)" in
-  QBX) ;;
+  Victus | QBX) ;;
   *)
-    print_info "setup_vscode_server: only needed on QBX, skipping"
+    print_info "setup_remote_dev: host not configured for remote dev; skipping"
     return 0
     ;;
   esac
 
-  print_info "Setting up VS Code Server on QBX for NixOS..."
+  print_info "Setting up Remote Dev (VS Code & Zed) on $(hostname)..."
 
-  # Create directories
+  # Create necessary base directories
   mkdir -p "${HOME}/.vscode-server/bin"
+  mkdir -p "${HOME}/.local/share/zed"
   mkdir -p "${HOME}/.local/bin"
 
-  # 1. Create /usr/bin/env if it doesn't exist (main fix for the loop)
+  # 1. Create /usr/bin/env wrapper if missing
   if [ ! -f /usr/bin/env ]; then
     print_info "Creating /usr/bin/env wrapper for NixOS..."
     sudo mkdir -p /usr/bin 2>/dev/null || true
-    sudo tee /usr/bin/env >/dev/null <<'EOF'
-#!/bin/sh
-exec /run/current-system/sw/bin/env "$@"
-EOF
+    {
+      printf '%s\n' '#!/bin/sh'
+      printf '%s\n' 'exec /run/current-system/sw/bin/env "$@"'
+    } | sudo tee /usr/bin/env >/dev/null
     sudo chmod +x /usr/bin/env
     print_success "Created /usr/bin/env"
   fi
 
-  # 2. Ensure node is available
-  if ! command -v node >/dev/null 2>&1; then
-    print_info "Installing nodejs for VS Code Remote..."
-    nix profile add "nixpkgs#nodejs" 2>/dev/null || true
+  # 2. Dynamic linker stub for precompiled ELFs (/lib64/ld-linux-x86-64.so.2)
+  if [ ! -f /lib64/ld-linux-x86-64.so.2 ]; then
+    print_info "Creating /lib64/ld-linux-x86-64.so.2 stub..."
+    SYSTEM_LD=$(find /run/current-system/sw/lib -maxdepth 1 -name "ld-linux-x86-64.so.*" 2>/dev/null | head -n 1)
+    if [ -n "${SYSTEM_LD}" ]; then
+      sudo mkdir -p /lib64 2>/dev/null || true
+      sudo ln -sf "${SYSTEM_LD}" /lib64/ld-linux-x86-64.so.2
+      print_success "Linked /lib64/ld-linux-x86-64.so.2 -> ${SYSTEM_LD}"
+    else
+      print_warn "Could not locate system ld-linux.so loader"
+    fi
   fi
 
-  # 3. Set up environment for VS Code Server
-  cat >"${HOME}/.vscode-server/env" <<'EOF'
-# VS Code Remote Server Environment for NixOS
-PATH="${HOME}/.nix-profile/bin:/run/current-system/sw/bin:${PATH}"
-LD_LIBRARY_PATH="${HOME}/.nix-profile/lib:/run/current-system/sw/lib:${LD_LIBRARY_PATH:-}"
-NODE_OPTIONS="--max-old-space-size=4096"
-EOF
+  # 3. Ensure nodejs is available (required by VS Code)
+  # 3. Ensure nodejs is available (required by VS Code)
+  if ! command -v node >/dev/null 2>&1; then
+    case "$(nix profile list 2>/dev/null)" in
+    *nodejs*) ;;
+    *)
+      print_info "Installing nodejs..."
+      nix profile add "nixpkgs#nodejs" 2>/dev/null || true
+      ;;
+    esac
+  fi
 
-  # 4. Pre-download the VS Code Server matching the CLIENT's commit
-  #    Get this from kf: VS Code > Help > About > "Commit" field.
-  #    Pass it in: setup_vscode_server <commit-hash>
+  # 4. Environment setup for VS Code Server
+  NIX_SW_LIBS="/run/current-system/sw/lib:${HOME}/.nix-profile/lib"
+
+  {
+    printf '%s\n' '# VS Code Remote Server Environment for NixOS'
+    printf '%s\n' "PATH=\"${HOME}/.nix-profile/bin:/run/current-system/sw/bin:\${PATH}\""
+    printf '%s\n' "LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${LD_LIBRARY_PATH:-}\""
+    printf '%s\n' "NIX_LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${NIX_LD_LIBRARY_PATH:-}\""
+    printf '%s\n' 'NODE_OPTIONS="--max-old-space-size=4096"'
+  } >"${HOME}/.vscode-server/env"
+
+  {
+    printf '%s\n' '#!/usr/bin/env sh'
+    printf '%s\n' "export PATH=\"${HOME}/.nix-profile/bin:/run/current-system/sw/bin:\${PATH}\""
+    printf '%s\n' "export LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${LD_LIBRARY_PATH:-}\""
+    printf '%s\n' "export NIX_LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${NIX_LD_LIBRARY_PATH:-}\""
+  } >"${HOME}/.vscode-server/server-env-setup"
+  chmod +x "${HOME}/.vscode-server/server-env-setup"
+
+  # 5. Pre-download VS Code Server commit if supplied as argument
   case "${1:-}" in
-  "")
-    print_warn "setup_vscode_server: no commit hash given; skipping pre-download"
-    print_warn "  Find it on kf via Help > About, then run: setup_vscode_server <commit>"
-    ;;
+  "") ;;
   *)
     VSCODE_COMMIT="$1"
-
     case "$(command -v wget 2>/dev/null)" in
-    "")
-      print_info "Installing wget..."
-      nix profile add "nixpkgs#wget" >/dev/null 2>&1 || {
-        print_error "setup_vscode_server: failed to install wget"
-        return 1
-      }
-      ;;
+    "") nix profile add "nixpkgs#wget" >/dev/null 2>&1 || true ;;
     *) ;;
     esac
 
@@ -1005,69 +1084,24 @@ EOF
         mv vscode-server-linux-x64 "${VSCODE_COMMIT}"
         rm -f vscode-server-linux-x64.tar.gz
         print_success "VS Code Server pre-downloaded"
-      else
-        print_warn "Failed to pre-download - will download on first connection"
       fi
       cd - >/dev/null || return 1
     fi
     ;;
   esac
 
-  # 5. Ensure SSH is running
+  # 6. Ensure SSH service is enabled and running
   if ! systemctl is-active sshd >/dev/null 2>&1; then
-    print_info "Starting SSH..."
+    print_info "Starting sshd..."
     sudo systemctl enable sshd 2>/dev/null || true
     sudo systemctl start sshd 2>/dev/null || true
   fi
 
-  print_success "VS Code Server ready on QBX!"
-  print_info "From kf: connect to qbx in VSCode Remote-SSH"
-}
-
-# ── nix-ld stub (VS Code Remote Server / generic Linux binaries) ──────────────
-
-# ------------------------------------------------------------------------------
-# setup_nix_ld_stub
-# ------------------------------------------------------------------------------
-# Manually creates the /lib64/ld-linux-x86-64.so.2 interpreter stub that
-# programs.nix-ld.enable would normally create via system activation.
-# Idempotent: skips sudo/eval work if the stub already exists and is correct.
-# ------------------------------------------------------------------------------
-setup_nix_ld_stub() {
-  _stub_path="/lib64/ld-linux-x86-64.so.2"
-  _target="$(nix eval --raw nixpkgs#stdenv.cc.bintools.dynamicLinker 2>/dev/null)" || {
-    print_error "setup_nix_ld_stub: failed to resolve dynamic linker"
-    return 1
-  }
-
-  case "$(readlink -f "${_stub_path}" 2>/dev/null)" in
-  "${_target}")
-    print_verbose "setup_nix_ld_stub: already up to date"
-    ;;
-  *)
-    print_info "setup_nix_ld_stub: creating ${_stub_path}..."
-    sudo mkdir -p /lib64 || return 1
-    sudo ln -sf "${_target}" "${_stub_path}" || return 1
-    print_success "setup_nix_ld_stub: linked to ${_target}"
-    ;;
-  esac
-
-  NIX_LD_LIBRARY_PATH="$(
-    nix eval --raw --impure --expr \
-      'let pkgs = import <nixpkgs> {}; in pkgs.lib.makeLibraryPath (with pkgs; [ stdenv.cc.cc.lib zlib openssl curl icu ])' \
-      2>/dev/null
-  )" || {
-    print_warn "setup_nix_ld_stub: failed to resolve NIX_LD_LIBRARY_PATH"
-    return 1
-  }
-  export NIX_LD_LIBRARY_PATH
+  print_success "Remote Dev environment ready on $(hostname)!"
 }
 
 # ── Remote Helix + tmux workflow ──────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# push_hx
-# ------------------------------------------------------------------------------
 push_hx() {
   case "$(command -v rsync 2>/dev/null)" in
   "")
@@ -1084,16 +1118,13 @@ push_hx() {
     return 1
   }
 
-  print_success "push_hx: synced Helix config to prec"
+  print_success "push_hx: synced Helix config to preci"
   case "$(command -v tmux 2>/dev/null)" in
   "") nix profile add "nixpkgs#tmux" >/dev/null 2>&1 ;;
   *) ;;
   esac
 }
 
-# ------------------------------------------------------------------------------
-# dev
-# ------------------------------------------------------------------------------
 dev() {
   no_sync=0
   while [ $# -gt 0 ]; do
@@ -1117,9 +1148,6 @@ dev() {
 
 # ── Orchestration ─────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# execute
-# ------------------------------------------------------------------------------
 execute() {
   cleanup
 
@@ -1131,14 +1159,17 @@ execute() {
     rust) setup_rust ;;
     tmux) setup_tmux ;;
     xdg) setup_xdg_open ;;
-    vscode-server) setup_vscode_server ;;
+    portals) setup_portals ;;
+    remote-dev) setup_remote_dev ;;
+    darkman) setup_darkman ;;
     all)
       setup_xdg_open
+      setup_portals
       setup_monitors
       setup_tailscale
+      setup_darkman
       setup_utilities
-      setup_vscode_server
-      setup_nix_ld_stub
+      setup_remote_dev
       setup_rust
       setup_tmux
       ;;
@@ -1172,13 +1203,10 @@ execute() {
 
 # ── Argument Parsing ──────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# parse_arguments "$@"
-# ------------------------------------------------------------------------------
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    monitors | tailscale | utilities | rust | tmux | xdg | vscode-server | nix-ld-stub | info | all)
+    monitors | tailscale | utilities | darkman | rust | tmux | xdg | portals | remote-dev | info | all)
       command="$1"
       ;;
 
@@ -1492,9 +1520,6 @@ show_app_status() {
   application_details="$(printf '## Required\n%s\n\n## Optional\n%s\n\n## Additional\n%s' "${_required_app_details:- \(none configured)}" "${_optional_app_details:- \(none configured)}" "${_additional_app_details:- \(none configured)}")"
 }
 
-# ------------------------------------------------------------------------------
-# show_info
-# ------------------------------------------------------------------------------
 show_info() {
   _info="$(
     cat <<EOF
@@ -1518,7 +1543,9 @@ ${application_details:- \(none configured)}
   **utilities**      Install utility tools
   **rust**           Set up Rust toolchain
   **tmux**           Install tmux
-  **vscode-server**  Fix VS Code Server on QBX for NixOS
+  **portals**        Configure and restart XDG desktop portals (Hyprland)
+  **darkman**        Configure Darkman theme hooks and portal settings
+  **remote-dev**     Configure VS Code & Zed Remote Dev (Victus & QBX)
   **all**            Run all setup steps (default)
 
 # OPTIONS
@@ -1565,9 +1592,6 @@ EOF
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
-# ------------------------------------------------------------------------------
-# main "$@"
-# ------------------------------------------------------------------------------
 main() {
   configure || return 1
   parse_arguments "$@" || return 1

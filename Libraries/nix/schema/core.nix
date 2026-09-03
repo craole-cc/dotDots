@@ -1,7 +1,6 @@
-{ _, ... }:
-let
+{_, ...}: let
   __exports = {
-    internal = { inherit mkHost mkCore hostOrDefault; };
+    internal = {inherit mkHost mkCore hostOrDefault;};
     external = {
       mkCoreSchema = mkCore;
     };
@@ -11,7 +10,8 @@ let
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) any elem;
-  inherit (_.schema.construction)
+  inherit
+    (_.schema.construction)
     mkUI
     mkHome
     mkLocale
@@ -20,69 +20,58 @@ let
   inherit (_.strings.construction) generateHexId;
   inherit (_.filesystem.construction) mkTree;
 
-  mkHost =
-    {
-      hosts,
-      name ? null,
-    }:
+  mkHost = {
+    hosts,
+    name ? null,
+  }:
     hosts.${name} or (throw "Host '${name}' not found. Available hosts: ${toString (attrNames hosts)}");
 
-  hostOrDefault =
-    {
-      hosts,
-      name ? null,
-    }:
-    if name != null && hosts ? ${name} then
-      hosts.${name}
-    else if hosts != { } then
-      head (attrValues hosts)
-    else
-      throw "No hosts available";
+  hostOrDefault = {
+    hosts,
+    name ? null,
+  }:
+    if name != null && hosts ? ${name}
+    then hosts.${name}
+    else if hosts != {}
+    then head (attrValues hosts)
+    else throw "No hosts available";
 
-  mkAccess =
-    host:
-    let
-      raw = host.access or { };
-      remote = raw.remote or { };
+  mkAccess = host: let
+    raw = host.access or {};
+    remote = raw.remote or {};
 
-      ssh =
-        let
-          ssh = remote.ssh or { };
-        in
-        ssh
-        // {
-          enable = ssh.enable or (raw.ssh or null) != null;
-          keyOnly = ssh.keyOnly or true;
-        };
-
-      tailscale =
-        let
-          tailscale = remote.tailscale or { };
-          enable = tailscale.enable or (elem "vpn" (host.functionalities or [ ]));
-        in
-        tailscale // { inherit enable; };
-
-      caddy =
-        let
-          caddy = remote.caddy or { };
-          enable = caddy.enable or (elem "webDev" (host.functionalities or [ ]));
-        in
-        caddy // { inherit enable; };
+    ssh = let
+      ssh = remote.ssh or {};
     in
+      ssh
+      // {
+        enable = ssh.enable or (raw.ssh or null) != null;
+        keyOnly = ssh.keyOnly or true;
+      };
+
+    tailscale = let
+      tailscale = remote.tailscale or {};
+      enable = tailscale.enable or (elem "vpn" (host.functionalities or []));
+    in
+      tailscale // {inherit enable;};
+
+    caddy = let
+      caddy = remote.caddy or {};
+      enable = caddy.enable or (elem "webDev" (host.functionalities or []));
+    in
+      caddy // {inherit enable;};
+  in
     raw
     // {
-      remote = { inherit caddy ssh tailscale; };
+      remote = {inherit caddy ssh tailscale;};
       inherit tailscale;
     };
 
-  mkNetwork =
-    host:
-    let
-      network = host.network or { };
-    in
-    {
-      backend = network.backend or "networkmanager";
-    };
+  mkNetwork = host: let
+    network = host.network or {};
+  in {
+    backend = network.backend or "networkmanager";
+  };
 
   # Development capability precedence, strongest to weakest:
   # 1. Explicit host.capabilities.development = false disables it absolutely.
@@ -91,108 +80,99 @@ let
   # 4. host.functionalities containing "development" enables it.
   # 5. Any enabled interactive user's capabilities containing "development" enables it.
   # 6. Otherwise non-hardened hosts default to true.
-  mkDevelopmentCapability =
-    {
-      host,
-      interactiveUsers,
-    }:
-    let
-      explicit = (host.capabilities or { }).development or null;
-      hardened = host.hardened or false;
-      hostDeclared = elem "development" (host.functionalities or [ ]);
-      userDeclared = any (user: elem "development" (user.capabilities or [ ])) (
-        attrValues interactiveUsers
-      );
-    in
-    if explicit != null then
-      explicit
-    else if hardened then
-      false
-    else
-      hostDeclared || userDeclared || true;
+  mkDevelopmentCapability = {
+    host,
+    interactiveUsers,
+  }: let
+    explicit = (host.capabilities or {}).development or null;
+    hardened = host.hardened or false;
+    hostDeclared = elem "development" (host.functionalities or []);
+    userDeclared = any (user: elem "development" (user.capabilities or [])) (
+      attrValues interactiveUsers
+    );
+  in
+    if explicit != null
+    then explicit
+    else if hardened
+    then false
+    else hostDeclared || userDeclared || true;
 
-  mkStorage =
-    host:
-    let
-      raw = host.devices.storage or { };
-    in
-    {
-      filesystemsRequired = raw.filesystemsRequired or (host.class or "nixos" == "nixos");
-    };
+  mkStorage = host: let
+    raw = host.devices.storage or {};
+  in {
+    filesystemsRequired = raw.filesystemsRequired or (host.class or "nixos" == "nixos");
+  };
 
   /**
-    Enrich a single host with user data, interface normalization, and metadata.
+  Enrich a single host with user data, interface normalization, and metadata.
   */
-  mkCore =
-    {
-      name,
-      host,
-      users,
-      roots ? { },
-      stems ? { },
-      exclusions ? { },
-      ...
-    }:
-    let
-      derived = {
-        inherit host name;
-        stems = recursiveUpdate stems (host.paths.stems or { });
-        roots = recursiveUpdate roots (host.paths.roots or { });
-        paths = mkTree { inherit (derived) roots stems; };
+  mkCore = {
+    name,
+    host,
+    users,
+    roots ? {},
+    stems ? {},
+    exclusions ? {},
+    ...
+  }: let
+    derived = {
+      inherit host name;
+      stems = recursiveUpdate stems (host.paths.stems or {});
+      roots = recursiveUpdate roots (host.paths.roots or {});
+      paths = mkTree {inherit (derived) roots stems;};
 
-        exclusions = recursiveUpdate exclusions (host.exclusions or { });
+      exclusions = recursiveUpdate exclusions (host.exclusions or {});
 
-        users = mkHome {
-          inherit host users;
-          inherit (derived) roots stems;
-        };
-
-        user = derived.users.primary;
+      users = mkHome {
+        inherit host users;
+        inherit (derived) roots stems;
       };
 
-      defined = with derived; {
-        inherit
-          name
-          paths
-          users
-          exclusions
-          ;
+      user = derived.users.primary;
+    };
 
-        id = if (host.id or null) != null then host.id else generateHexId { inherit name; };
+    defined = with derived; {
+      inherit
+        name
+        paths
+        users
+        exclusions
+        ;
 
-        interface = mkUI { inherit host user; };
-        localization = mkLocale { inherit host user; };
+      id =
+        if (host.id or null) != null
+        then host.id
+        else generateHexId {inherit name;};
 
-        home =
-          let
-            src = host.paths.roots.repo;
-          in
-          if src != null then
-            src
-          else
-            throw "Host: '${name}' must explicitly set `paths.roots.repo` to the path of the repo.";
+      interface = mkUI {inherit host user;};
+      localization = mkLocale {inherit host user;};
 
-        system =
-          let
-            sys = host.system or (host.specs.platform or null);
-          in
-          if sys != null then
-            sys
-          else
-            throw "Host '${name}' must explicitly set 'system' or 'specs.platform'.";
+      home = let
+        src = host.paths.roots.repo;
+      in
+        if src != null
+        then src
+        else throw "Host: '${name}' must explicitly set `paths.roots.repo` to the path of the repo.";
 
-        hardware = mkHardware { inherit host; };
-        access = mkAccess host;
-        network = mkNetwork host;
+      system = let
+        sys = host.system or (host.specs.platform or null);
+      in
+        if sys != null
+        then sys
+        else throw "Host '${name}' must explicitly set 'system' or 'specs.platform'.";
 
-        capabilities.development = mkDevelopmentCapability {
-          inherit host;
-          interactiveUsers = derived.users.interactive;
-        };
+      hardware = mkHardware {inherit host;};
+      access = mkAccess host;
+      network = mkNetwork host;
 
-        storage = mkStorage host;
+      capabilities.development = mkDevelopmentCapability {
+        inherit host;
+        interactiveUsers = derived.users.interactive;
       };
-    in
+
+      storage = mkStorage host;
+    };
+  in
     recursiveUpdate host defined;
 in
-__exports.internal // { __rootAliases = __exports.external; }
+  __exports.internal // {__rootAliases = __exports.external;}

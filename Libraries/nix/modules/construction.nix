@@ -370,20 +370,6 @@
     ];
   };
 
-  mkPath = {
-    top ? _default.names.top,
-    dom,
-    sub,
-    mod,
-  }:
-    [
-      top
-      "resolved"
-      dom
-    ]
-    ++ (optionals (sub != null) [sub])
-    ++ [mod];
-
   mkContext = {
     config,
     top ? _default.names.top,
@@ -396,36 +382,27 @@
       else null,
     name ? mod,
   }: let
-    self = rec {
-      inherit
-        config
-        dom
-        kind
-        mod
-        name
-        sub
-        top
-        ;
-      path = mkPath {
-        inherit
-          top
-          dom
-          sub
-          mod
-          ;
-      };
-
-      # The current module's resolved domain (e.g., config._.resolved.interface)
-      resolved = getAttrFromPath [top "resolved" dom] config;
-      res = resolved;
-
-      # Fetch interface domain directly from config._.resolved.interface
-      interface = (getAttrFromPath [top "resolved"] config).interface or {};
-
-      wm = interface.windowManager or null;
-      de = interface.desktopEnvironment or null;
-      panel = interface.panel or null;
+    derived = rec {
+      path =
+        [top "resolved" dom]
+        ++ (optionals (sub != null) [sub])
+        ++ [mod];
       cfg = (getAttrFromPath path config).explicit;
+    };
+
+    resolved = rec {
+      cfg = getAttrFromPath [top "resolved"] config;
+      dom = cfg.${dom} or {};
+      ice = cfg.interface or {};
+
+      windowManagers = ice.windowManager or null;
+      wm = windowManagers;
+
+      desktopEnvironments = ice.desktopEnvironment or null;
+      de = desktopEnvironments;
+
+      panels = ice.panel or null;
+      bar = panels;
 
       hasHyprland =
         (wm == "hyprland")
@@ -435,15 +412,29 @@
       hasNiri = (wm == "niri") || config.programs.niri.enable or false;
 
       mkWants = name: value: {condition = value != null;};
-      wantsHyprland = mkWants "hyprland" wm;
-      wantsNiri = mkWants "niri" wm;
-      wantsPlasma = mkWants "plasma" de;
-      wantsGnome = mkWants "gnome" de;
-      wantsCosmic = mkWants "cosmic" de;
-      wantsDmsShell = mkWants "dms-shell" panel;
+      wantsCosmic = mkWants "cosmic" desktopEnvironments;
+      wantsDmsShell = mkWants "dms-shell" panels;
+      wantsGnome = mkWants "gnome" desktopEnvironments;
+      wantsHyprland = mkWants "hyprland" windowManagers;
+      wantsNiri = mkWants "niri" windowManagers;
+      wantsPlasma = mkWants "plasma" desktopEnvironments;
+    };
+
+    ctx = {
+      inherit
+        config
+        derived
+        dom
+        kind
+        mod
+        name
+        resolved
+        sub
+        top
+        ;
     };
   in
-    self // {ctx = self;};
+    ctx // {inherit ctx;};
 in
   meta.exports.local
   // {
