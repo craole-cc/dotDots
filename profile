@@ -17,6 +17,22 @@ configure() {
   command="all"    #? The active command to run
   help_requested=0
 
+  # ── Base Paths ──────────────────────────────────────────────────────────
+  #? Common roots reused throughout; join_path builds anything deeper.
+  #? XDG vars are self-assigned with fallback and exported so any child
+  #? process (or gum/gsettings/etc.) sees the same values we resolve here.
+  NIX_PROFILE_DIR="$(find_nix_profile_dir)"
+  VSCODE_SERVER_DIR="${HOME}/.vscode-server"
+  XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
+  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+  XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
+  #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
+  #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
+  XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
+  # XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  export NIX_PROFILE_DIR VSCODE_SERVER_DIR \
+    XDG_BIN_HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME
+
   # ── Display ─────────────────────────────────────────────────────
   #? Detect gum once; shared by all print functions and print_format
   case "$(command -v gum 2>/dev/null)" in
@@ -170,6 +186,33 @@ configure() {
   dependencies_optional="bat bottom darkman delta dust eza fzf gum hyperfine hyprland rustup shellcheck shfmt tailscale tealdeer tokei wl-clipboard xdg-desktop-portal xdg-desktop-portal-hyprland zoxide"
 }
 
+# ── Path Helpers ──────────────────────────────────────────────────────────────
+
+#? join_path base seg [seg ...] — join segments onto base with '/'
+join_path() {
+  _jp_out="$1"
+  shift
+  for _jp_seg in "$@"; do
+    _jp_out="${_jp_out}/${_jp_seg}"
+  done
+  printf '%s\n' "${_jp_out}"
+}
+
+#? find_nix_profile_dir — pick the first usable nix profile tree.
+#? NIX_USER_PROFILE_DIR (when set) points at the profile *generations*
+#? store, not an activated tree with bin/lib/share, so it isn't usable
+#? directly here. NIX_PROFILES is a space-separated priority list of
+#? activated trees (system-wide, per-user, legacy symlink, etc.) — walk
+#? it and return the first entry that actually has a bin/ directory.
+#? Falls back to the legacy ~/.nix-profile symlink if nothing matched
+#? or NIX_PROFILES is unset (non-NixOS systems, minimal shells, etc.).
+find_nix_profile_dir() {
+  for _fnp_dir in ${NIX_PROFILES:-}; do
+    [ -d "${_fnp_dir}/bin" ] && printf '%s\n' "${_fnp_dir}" && return 0
+  done
+  printf '%s\n' "${HOME}/.nix-profile"
+}
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 get_package_bin() {
@@ -234,19 +277,19 @@ require_arg() {
 # ── XDG/OpenURI & Desktop Portals ─────────────────────────────────────────────
 
 setup_xdg_open() {
-  mkdir -p "${HOME}/.local/bin"
+  mkdir -p "${XDG_BIN_HOME}"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
     printf '%s\n' 'exec gio open "$@"'
-  } >"${HOME}/.local/bin/xdg-open"
+  } >"$(join_path "${XDG_BIN_HOME}" xdg-open)"
 
-  chmod +x "${HOME}/.local/bin/xdg-open"
+  chmod +x "$(join_path "${XDG_BIN_HOME}" xdg-open)"
 
   case ":${PATH}:" in
-  *":${HOME}/.local/bin:"*) ;;
+  *":${XDG_BIN_HOME}:"*) ;;
   *)
-    PATH="${HOME}/.local/bin:${PATH}"
+    PATH="${XDG_BIN_HOME}:${PATH}"
     export PATH
     ;;
   esac
@@ -265,7 +308,7 @@ setup_portals() {
 
   print_info "Restarting XDG desktop portals for Hyprland..."
 
-  XDG_DATA_DIRS="${HOME}/.nix-profile/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  XDG_DATA_DIRS="$(join_path "${NIX_PROFILE_DIR}" share):${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   export XDG_DATA_DIRS
   export XDG_CURRENT_DESKTOP=Hyprland
 
@@ -284,15 +327,15 @@ setup_portals() {
   # Manual fallback with isolated file descriptors
   pkill -f xdg-desktop-portal 2>/dev/null || true
 
-  _hyprland_portal="$(find -L "${HOME}/.nix-profile" -name "xdg-desktop-portal-hyprland" -type f -executable 2>/dev/null | head -n 1)"
-  _portal_bin="$(find -L "${HOME}/.nix-profile" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n 1)"
+  _hyprland_portal="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-hyprland" -type f -executable 2>/dev/null | head -n 1)"
+  _portal_bin="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n 1)"
 
   if [ -n "${_hyprland_portal}" ] && [ -n "${_portal_bin}" ]; then
     (exec "${_hyprland_portal}" >/dev/null 2>&1 </dev/null &)
     (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
     print_success "Launched Hyprland portal and main XDG desktop portal"
   else
-    print_warn "setup_portals: could not find portal executables in ~/.nix-profile"
+    print_warn "setup_portals: could not find portal executables in ${NIX_PROFILE_DIR}"
     return 1
   fi
 }
@@ -638,6 +681,7 @@ setup_monitors() {
   esac
 }
 
+
 # ── Tailscale ─────────────────────────────────────────────────────────────────
 
 setup_tailscale() {
@@ -719,24 +763,27 @@ setup_tailscale() {
   connect
 }
 
+
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
 setup_darkman() {
   print_info "Setting up Darkman portal configurations and hooks..."
 
+  _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
+  _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
+  _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
+
   # 1. Portals configuration
-  mkdir -p "${HOME}/.config/xdg-desktop-portal"
+  mkdir -p "${_portal_conf_dir}"
   {
     printf '%s\n' '[preferred]'
     printf '%s\n' 'default=gtk'
     printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
     printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
-  } >"${HOME}/.config/xdg-desktop-portal/portals.conf"
+  } >"$(join_path "${_portal_conf_dir}" portals.conf)"
 
   # 2. Write transition hook scripts
-  mkdir -p \
-    "${HOME}/.local/share/dark-mode.d" \
-    "${HOME}/.local/share/light-mode.d"
+  mkdir -p "${_dark_hook_dir}" "${_light_hook_dir}"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
@@ -744,7 +791,7 @@ setup_darkman() {
       "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
     printf '%s\n' \
       "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
-  } >"${HOME}/.local/share/dark-mode.d/gtk-theme.sh"
+  } >"$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
@@ -752,11 +799,11 @@ setup_darkman() {
       "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
     printf '%s\n' \
       "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
-  } >"${HOME}/.local/share/light-mode.d/gtk-theme.sh"
+  } >"$(join_path "${_light_hook_dir}" gtk-theme.sh)"
 
   chmod +x \
-    "${HOME}/.local/share/dark-mode.d/gtk-theme.sh" \
-    "${HOME}/.local/share/light-mode.d/gtk-theme.sh"
+    "$(join_path "${_dark_hook_dir}" gtk-theme.sh)" \
+    "$(join_path "${_light_hook_dir}" gtk-theme.sh)"
 
   # 3. Export session environment to DBus/Systemd
   if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
@@ -774,7 +821,7 @@ setup_darkman() {
 }
 
 setup_utilities() {
-  export PATH="${HOME}/.nix-profile/bin:${PATH}"
+  export PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
   _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
 
   # shellcheck disable=SC2086
@@ -951,6 +998,7 @@ clip() {
   print_info "clip: copied ${file_count} file(s) to clipboard"
 }
 
+
 # ── Rust ──────────────────────────────────────────────────────────────────────
 
 setup_rust() {
@@ -991,6 +1039,7 @@ setup_tmux() {
   esac
 }
 
+
 # ── Remote Code Server ────────────────────────────────────────────────────────
 
 setup_remote_dev() {
@@ -1005,10 +1054,11 @@ setup_remote_dev() {
 
   print_info "Setting up Remote Dev (VS Code & Zed) on $(hostname)..."
 
+  _vscode_bin_dir="$(join_path "${VSCODE_SERVER_DIR}" bin)"
+  _zed_data_dir="$(join_path "${XDG_DATA_HOME}" zed)"
+
   # Create necessary base directories
-  mkdir -p "${HOME}/.vscode-server/bin"
-  mkdir -p "${HOME}/.local/share/zed"
-  mkdir -p "${HOME}/.local/bin"
+  mkdir -p "${_vscode_bin_dir}" "${_zed_data_dir}" "${XDG_BIN_HOME}"
 
   # 1. Create /usr/bin/env wrapper if missing
   if [ ! -f /usr/bin/env ]; then
@@ -1025,17 +1075,16 @@ setup_remote_dev() {
   # 2. Dynamic linker stub for precompiled ELFs (/lib64/ld-linux-x86-64.so.2)
   if [ ! -f /lib64/ld-linux-x86-64.so.2 ]; then
     print_info "Creating /lib64/ld-linux-x86-64.so.2 stub..."
-    SYSTEM_LD=$(find /run/current-system/sw/lib -maxdepth 1 -name "ld-linux-x86-64.so.*" 2>/dev/null | head -n 1)
-    if [ -n "${SYSTEM_LD}" ]; then
+    _system_ld="$(find /run/current-system/sw/lib -maxdepth 1 -name "ld-linux-x86-64.so.*" 2>/dev/null | head -n 1)"
+    if [ -n "${_system_ld}" ]; then
       sudo mkdir -p /lib64 2>/dev/null || true
-      sudo ln -sf "${SYSTEM_LD}" /lib64/ld-linux-x86-64.so.2
-      print_success "Linked /lib64/ld-linux-x86-64.so.2 -> ${SYSTEM_LD}"
+      sudo ln -sf "${_system_ld}" /lib64/ld-linux-x86-64.so.2
+      print_success "Linked /lib64/ld-linux-x86-64.so.2 -> ${_system_ld}"
     else
       print_warn "Could not locate system ld-linux.so loader"
     fi
   fi
 
-  # 3. Ensure nodejs is available (required by VS Code)
   # 3. Ensure nodejs is available (required by VS Code)
   if ! command -v node >/dev/null 2>&1; then
     case "$(nix profile list 2>/dev/null)" in
@@ -1048,40 +1097,42 @@ setup_remote_dev() {
   fi
 
   # 4. Environment setup for VS Code Server
-  NIX_SW_LIBS="/run/current-system/sw/lib:${HOME}/.nix-profile/lib"
+  _nix_sw_libs="/run/current-system/sw/lib:$(join_path "${NIX_PROFILE_DIR}" lib)"
+  _vscode_bin="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin"
 
   {
     printf '%s\n' '# VS Code Remote Server Environment for NixOS'
-    printf '%s\n' "PATH=\"${HOME}/.nix-profile/bin:/run/current-system/sw/bin:\${PATH}\""
-    printf '%s\n' "LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${LD_LIBRARY_PATH:-}\""
-    printf '%s\n' "NIX_LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${NIX_LD_LIBRARY_PATH:-}\""
+    printf '%s\n' "PATH=\"${_vscode_bin}:\${PATH}\""
+    printf '%s\n' "LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${LD_LIBRARY_PATH:-}\""
+    printf '%s\n' "NIX_LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${NIX_LD_LIBRARY_PATH:-}\""
     printf '%s\n' 'NODE_OPTIONS="--max-old-space-size=4096"'
-  } >"${HOME}/.vscode-server/env"
+  } >"$(join_path "${VSCODE_SERVER_DIR}" env)"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
-    printf '%s\n' "export PATH=\"${HOME}/.nix-profile/bin:/run/current-system/sw/bin:\${PATH}\""
-    printf '%s\n' "export LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${LD_LIBRARY_PATH:-}\""
-    printf '%s\n' "export NIX_LD_LIBRARY_PATH=\"${NIX_SW_LIBS}:\${NIX_LD_LIBRARY_PATH:-}\""
-  } >"${HOME}/.vscode-server/server-env-setup"
-  chmod +x "${HOME}/.vscode-server/server-env-setup"
+    printf '%s\n' "export PATH=\"${_vscode_bin}:\${PATH}\""
+    printf '%s\n' "export LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${LD_LIBRARY_PATH:-}\""
+    printf '%s\n' "export NIX_LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${NIX_LD_LIBRARY_PATH:-}\""
+  } >"$(join_path "${VSCODE_SERVER_DIR}" server-env-setup)"
+  chmod +x "$(join_path "${VSCODE_SERVER_DIR}" server-env-setup)"
 
   # 5. Pre-download VS Code Server commit if supplied as argument
   case "${1:-}" in
   "") ;;
   *)
-    VSCODE_COMMIT="$1"
+    _vscode_commit="$1"
     case "$(command -v wget 2>/dev/null)" in
     "") nix profile add "nixpkgs#wget" >/dev/null 2>&1 || true ;;
     *) ;;
     esac
 
-    if [ ! -d "${HOME}/.vscode-server/bin/${VSCODE_COMMIT}" ]; then
-      print_info "Pre-downloading VS Code Server (${VSCODE_COMMIT})..."
-      cd "${HOME}/.vscode-server/bin" || return 1
-      if wget -q "https://update.code.visualstudio.com/commit:${VSCODE_COMMIT}/server-linux-x64/stable" -O vscode-server-linux-x64.tar.gz; then
+    _vscode_commit_dir="$(join_path "${_vscode_bin_dir}" "${_vscode_commit}")"
+    if [ ! -d "${_vscode_commit_dir}" ]; then
+      print_info "Pre-downloading VS Code Server (${_vscode_commit})..."
+      cd "${_vscode_bin_dir}" || return 1
+      if wget -q "https://update.code.visualstudio.com/commit:${_vscode_commit}/server-linux-x64/stable" -O vscode-server-linux-x64.tar.gz; then
         tar -xzf vscode-server-linux-x64.tar.gz
-        mv vscode-server-linux-x64 "${VSCODE_COMMIT}"
+        mv vscode-server-linux-x64 "${_vscode_commit}"
         rm -f vscode-server-linux-x64.tar.gz
         print_success "VS Code Server pre-downloaded"
       fi
@@ -1145,6 +1196,7 @@ dev() {
 
   ssh craole@preci -t "tmux attach-session -t dots 2>/dev/null || tmux new-session -s dots"
 }
+
 
 # ── Orchestration ─────────────────────────────────────────────────────────────
 
@@ -1517,74 +1569,79 @@ show_app_status() {
   _optional_app_details="$(format_app_status "${dependencies_optional}")"
   _additional_packages="$(get_additional_packages)"
   _additional_app_details="$(format_app_status "${_additional_packages}")"
-  application_details="$(printf '## Required\n%s\n\n## Optional\n%s\n\n## Additional\n%s' "${_required_app_details:- \(none configured)}" "${_optional_app_details:- \(none configured)}" "${_additional_app_details:- \(none configured)}")"
+
+  application_details="$(
+    printf '## Required\n%s\n\n' "${_required_app_details:- \(none configured)}"
+    printf '## Optional\n%s\n\n' "${_optional_app_details:- \(none configured)}"
+    printf '## Additional\n%s' "${_additional_app_details:- \(none configured)}"
+  )"
 }
 
 show_info() {
   _info="$(
-    cat <<EOF
-_Usage_        \`. ${name} [COMMAND] [OPTIONS]\`
-_Description_  ${description}
-_Path_         ${path}
-_Author_       ${author}
-_Version_      ${version}
-_Host_         ${host}
-_Compositor_   ${compositor}
-_Command_      ${command}
-_Verbosity_    ${verbosity}
+    printf '_Usage_        `. %s [COMMAND] [OPTIONS]`\n' "${name}"
+    printf '_Description_  %s\n' "${description}"
+    printf '_Path_         %s\n' "${path}"
+    printf '_Author_       %s\n' "${author}"
+    printf '_Version_      %s\n' "${version}"
+    printf '_Host_         %s\n' "${host}"
+    printf '_Compositor_   %s\n' "${compositor}"
+    printf '_Command_      %s\n' "${command}"
+    printf '_Verbosity_    %s\n' "${verbosity}"
+    printf '\n'
 
-# APPLICATIONS
-${application_details:- \(none configured)}
+    printf '# APPLICATIONS\n%s\n\n' "${application_details:- \(none configured)}"
 
-# COMMANDS
-  **info**           Show script, runtime, and configuration information
-  **monitors**       Configure monitor layout (Hyprland and niri)
-  **tailscale**      Install and connect Tailscale
-  **utilities**      Install utility tools
-  **rust**           Set up Rust toolchain
-  **tmux**           Install tmux
-  **portals**        Configure and restart XDG desktop portals (Hyprland)
-  **darkman**        Configure Darkman theme hooks and portal settings
-  **remote-dev**     Configure VS Code & Zed Remote Dev (Victus & QBX)
-  **all**            Run all setup steps (default)
+    printf '# COMMANDS\n'
+    printf '  **info**           Show script, runtime, and configuration information\n'
+    printf '  **monitors**       Configure monitor layout (Hyprland and niri)\n'
+    printf '  **tailscale**      Install and connect Tailscale\n'
+    printf '  **utilities**      Install utility tools\n'
+    printf '  **rust**           Set up Rust toolchain\n'
+    printf '  **tmux**           Install tmux\n'
+    printf '  **portals**        Configure and restart XDG desktop portals (Hyprland)\n'
+    printf '  **darkman**        Configure Darkman theme hooks and portal settings\n'
+    printf '  **remote-dev**     Configure VS Code & Zed Remote Dev (Victus & QBX)\n'
+    printf '  **all**            Run all setup steps (default)\n'
+    printf '\n'
 
-# OPTIONS
+    printf '# OPTIONS\n\n'
+    printf '## GENERAL\n'
+    printf '  `-h, --help   `            Show this help\n'
+    printf '  `-q, --quiet  `            Suppress all output\n'
+    printf '  `-d, --debug  `            Show detailed internal progress\n'
+    printf '  `-v, --verbose`            Show all commands as they run\n'
+    printf '  `    --dry-run`            Show what would be done without doing it\n'
+    printf '\n'
 
-## GENERAL
-  \`-h, --help   \`            Show this help
-  \`-q, --quiet  \`            Suppress all output
-  \`-d, --debug  \`            Show detailed internal progress
-  \`-v, --verbose\`            Show all commands as they run
-  \`    --dry-run\`            Show what would be done without doing it
+    printf '## MONITOR\n'
+    printf '  `--monitor-{tag}-{flag}`   Set monitor configuration\n'
+    printf '\n'
 
-## MONITOR
-  \`--monitor-{tag}-{flag}\`   Set monitor configuration
+    printf '### Tags\n'
+    printf '  - **pri**        primary\n'
+    printf '  - **sec**        secondary\n'
+    printf '  - **ter**        tertiary\n'
+    printf '\n'
 
-### Tags
-  - **pri**        primary
-  - **sec**        secondary
-  - **ter**        tertiary
+    printf '### Flags\n'
+    printf '  - **name**       an empty name disables the monitor\n'
+    printf '  - **width**      horizontal resolution\n'
+    printf '  - **height**     vertical resolution\n'
+    printf '  - **rate**       refresh rate\n'
+    printf '  - **pos**        placement can be left, right, top, bottom, or mirror\n'
+    printf '  - **disable**    force this monitor off (e.g. --monitor-sec-disable)\n'
+    printf '\n'
 
-### Flags
-  - **name**       an empty name disables the monitor
-  - **width**      horizontal resolution
-  - **height**     vertical resolution
-  - **rate**       refresh rate
-  - **pos**        placement can be left, right, top, bottom, or mirror
-  - **disable**    force this monitor off (e.g. --monitor-sec-disable)
+    printf '### Configuration\n%s\n\n' "${configuration_details}"
 
-### Configuration
-${configuration_details}
+    printf '## TAILSCALE (%s)\n%s\n\n' "${tailscale_status}" "${tailscale_details}"
 
-## TAILSCALE (${tailscale_status})
-${tailscale_details}
-
-# NOTES
-- Defaults are host-specific, resolved via \`hostname\`
-- DE/WM is auto-detected via session environment
-- When sourced exported variables persist in the parent shell: \`. ${name}\`
-- When called as a subshell variables are lost: \`${name}\`
-EOF
+    printf '# NOTES\n'
+    printf -- '- Defaults are host-specific, resolved via `hostname`\n'
+    printf -- '- DE/WM is auto-detected via session environment\n'
+    printf -- '- When sourced exported variables persist in the parent shell: `. %s`\n' "${name}"
+    printf -- '- When called as a subshell variables are lost: `%s`\n' "${name}"
   )"
 
   print_markdown "${_info}"
