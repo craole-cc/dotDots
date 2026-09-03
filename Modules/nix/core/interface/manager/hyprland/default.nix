@@ -21,7 +21,7 @@ in
     };
     outputs = {
       programs.hyprland = {
-        enable = cfg.enable;
+        inherit (cfg) enable;
         withUWSM = true;
       };
     };

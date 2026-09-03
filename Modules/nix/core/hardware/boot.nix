@@ -40,11 +40,15 @@
       if exists
       then getAttr selection pkgs
       else linuxPackages;
-    packages = traceIf exists "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})" (
-      traceIf (!exists)
-      "⚠️  Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})"
-      (traceIf (selection == null) "ℹ Using default kernel (${linuxPackages.kernel.version})" pkgs')
-    );
+
+    msg =
+      if selection == null
+      then "ℹ Using default kernel (${linuxPackages.kernel.version})"
+      else if exists
+      then "✓ Using kernel: ${selection} (${pkgs'.kernel.version or "unknown"})"
+      else "⚠️ Kernel '${selection}' not found, using default (${linuxPackages.kernel.version})";
+
+    packages = traceIf true msg pkgs';
   in {
     inherit packages;
   };

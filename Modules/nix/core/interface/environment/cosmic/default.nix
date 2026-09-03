@@ -21,7 +21,7 @@ in
     };
     outputs = {
       services.desktopManager.cosmic = {
-        enable = cfg.enable;
+        inherit (cfg) enable;
         showExcludedPkgsWarning = false;
       };
     };

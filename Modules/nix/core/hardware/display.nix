@@ -10,7 +10,13 @@
   };
   inherit (context) cfg;
 
-  inherit (lix.modules.construction) mkConfig mkContext mkDefault mkIf;
+  inherit
+    (lix.modules.construction)
+    mkConfig
+    mkContext
+    mkDefault
+    mkIf
+    ;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.strings.predicates) versionAtLeast;
   inherit (lix.types.primitives) bool str;
@@ -22,8 +28,7 @@
   isWayland = protocol == "wayland";
 
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
-  nvidiaVersionAtLeast = version:
-    versionAtLeast (config.hardware.nvidia.package.version or "0") version;
+  nvidiaVersionAtLeast = version: versionAtLeast (config.hardware.nvidia.package.version or "0") version;
 in
   mkConfig {
     inherit context;

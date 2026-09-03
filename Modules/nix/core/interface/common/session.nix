@@ -24,7 +24,10 @@ in
     options = {
       protocol = mkOption {
         description = "Target display server protocol for the interface.";
-        type = enum ["wayland" "x11"];
+        type = enum [
+          "wayland"
+          "x11"
+        ];
         default = "wayland";
       };
 
@@ -73,11 +76,13 @@ in
           user = cfg.autologin.user;
         };
 
-        gdm.autoLogin.delay =
-          mkIf (config.services.displayManager.gdm.enable or false) cfg.autologin.delay;
+        gdm.autoLogin.delay = mkIf (config.services.displayManager.gdm.enable or false) cfg.autologin.delay;
 
         sddm.autoLogin.relogin =
-          mkIf (config.services.displayManager.sddm.enable or false) cfg.autologin.relogin;
+          mkIf (
+            config.services.displayManager.sddm.enable or false
+          )
+          cfg.autologin.relogin;
       };
     };
   }
