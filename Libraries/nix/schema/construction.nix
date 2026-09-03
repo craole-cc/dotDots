@@ -23,6 +23,7 @@
   inherit (_.schema.home) mkUsers;
   inherit (_.strings.access) getEnvOr;
   inherit (_.types.access) headOf;
+  inherit (_.types.predicates) isString;
 
   /**
   Enrich each declared host against the hosts baseline and determine the active
@@ -69,7 +70,7 @@
               // paths
             )
         )
-        (removeAttrs raw.hosts ["default" "raw"])
+        raw.hosts
         // {
           default = mkCore (
             {
@@ -84,13 +85,20 @@
     };
 
     active = {
+      name =
+        if isString host && host != "" && base.hosts ? ${host}
+        then host
+        else if host ? name && base.hosts ? ${host.name}
+        then host.name
+        else getEnvOr "HOSTNAME" (headOf raw.hosts);
+
       host =
         if host ? paths.roots.repo.src && host ? stateVersion
         then host
         else let
-          name = getEnvOr "HOSTNAME" (headOf (removeAttrs base.hosts ["default"]));
         in
           base.hosts.${name};
+
       user = active.host.users.primary;
     };
   in

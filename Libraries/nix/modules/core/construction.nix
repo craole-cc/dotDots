@@ -73,7 +73,7 @@
     tree ? {},
     ...
   }: [
-    {inherit nixpkgs;}
+    # {inherit nixpkgs;}
     (mkHome {
       inherit host specialArgs inputs tree;
       modules = modules.home;
