@@ -432,6 +432,7 @@
         sub
         top
         ;
+      inherit (derived) path;
     };
   in
     ctx // {inherit ctx;};

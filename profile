@@ -10,7 +10,7 @@ configure() {
   path="${home}/${name}"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.2.5"
+  version="0.2.6"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
   verbosity="info" #? Levels: quiet | info | verbose | debug | dry
@@ -299,18 +299,42 @@ setup_xdg_open() {
 
 setup_portals() {
   case "${compositor:-}" in
-  hyprland) ;;
+  hyprland | niri | mango | cosmic) ;;
   *)
-    print_info "setup_portals: compositor is not Hyprland; skipping"
+    print_info "setup_portals: no supported compositor detected; skipping"
     return 0
     ;;
   esac
 
-  print_info "Restarting XDG desktop portals for Hyprland..."
+  #? Per-compositor portal backend package/binary + systemd unit name.
+  case "${compositor}" in
+  hyprland)
+    _portal_backend_bin="xdg-desktop-portal-hyprland"
+    _portal_backend_unit="xdg-desktop-portal-hyprland.service"
+    _xdg_current_desktop="Hyprland"
+    ;;
+  niri)
+    _portal_backend_bin="xdg-desktop-portal-gnome"
+    _portal_backend_unit="xdg-desktop-portal-gnome.service"
+    _xdg_current_desktop="niri"
+    ;;
+  mango)
+    _portal_backend_bin="xdg-desktop-portal-wlr"
+    _portal_backend_unit="xdg-desktop-portal-wlr.service"
+    _xdg_current_desktop="wlroots"
+    ;;
+  cosmic)
+    _portal_backend_bin="xdg-desktop-portal-cosmic"
+    _portal_backend_unit="xdg-desktop-portal-cosmic.service"
+    _xdg_current_desktop="COSMIC"
+    ;;
+  esac
+
+  print_info "Restarting XDG desktop portals for ${compositor}..."
 
   XDG_DATA_DIRS="$(join_path "${NIX_PROFILE_DIR}" share):${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   export XDG_DATA_DIRS
-  export XDG_CURRENT_DESKTOP=Hyprland
+  export XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
 
   # Export variables to DBus activation environment
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
@@ -319,7 +343,7 @@ setup_portals() {
 
   # Prefer systemd user units if active
   if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
-    systemctl --user restart xdg-desktop-portal-hyprland.service xdg-desktop-portal.service 2>/dev/null || true
+    systemctl --user restart "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
     print_success "Restarted XDG portals via systemd user units"
     return 0
   fi
@@ -327,13 +351,13 @@ setup_portals() {
   # Manual fallback with isolated file descriptors
   pkill -f xdg-desktop-portal 2>/dev/null || true
 
-  _hyprland_portal="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-hyprland" -type f -executable 2>/dev/null | head -n 1)"
+  _backend_portal="$(find -L "${NIX_PROFILE_DIR}" -name "${_portal_backend_bin}" -type f -executable 2>/dev/null | head -n 1)"
   _portal_bin="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n 1)"
 
-  if [ -n "${_hyprland_portal}" ] && [ -n "${_portal_bin}" ]; then
-    (exec "${_hyprland_portal}" >/dev/null 2>&1 </dev/null &)
+  if [ -n "${_backend_portal}" ] && [ -n "${_portal_bin}" ]; then
+    (exec "${_backend_portal}" >/dev/null 2>&1 </dev/null &)
     (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
-    print_success "Launched Hyprland portal and main XDG desktop portal"
+    print_success "Launched ${_portal_backend_bin} and main XDG desktop portal"
   else
     print_warn "setup_portals: could not find portal executables in ${NIX_PROFILE_DIR}"
     return 1
@@ -353,7 +377,7 @@ setup_monitors() {
 
   case "${compositor}" in
   none)
-    print_info "setup_monitors: no supported compositor detected (Hyprland or niri); skipping"
+    print_info "setup_monitors: no supported compositor detected (Hyprland, niri, or mango); skipping"
     return 0
     ;;
   *) ;;
@@ -368,6 +392,7 @@ setup_monitors() {
     case "${compositor}" in
     hyprland) hyprctl monitors all 2>/dev/null | rg -q "^Monitor $1" ;;
     niri) niri msg outputs 2>/dev/null | rg -q "Output.*$1" ;;
+    mango) mmsg -O 2>/dev/null | rg -qx "$1" ;;
     *) return 1 ;;
     esac
   }
@@ -377,6 +402,7 @@ setup_monitors() {
     case "${compositor}" in
     hyprland) hyprctl keyword monitor "$1, disable" >/dev/null 2>&1 ;;
     niri) niri msg output "$1" off >/dev/null 2>&1 ;;
+    mango) mmsg dispatch disable_monitor,"$1" >/dev/null 2>&1 ;;
     *) ;;
     esac
   }
@@ -664,6 +690,72 @@ setup_monitors() {
     esac
   }
 
+  mango_apply() {
+    #? Mango has no live per-monitor IPC call for mode/position — layout
+    #? is declarative: a monitorrule= line per output in a config file,
+    #? applied via reload_config. We own a dedicated include file so we
+    #? never touch the user's hand-maintained config.conf directly.
+    _mango_conf_dir="$(join_path "${XDG_CONFIG_HOME}" mango)"
+    _mango_conf="$(join_path "${_mango_conf_dir}" config.conf)"
+    _mango_monitors_conf="$(join_path "${_mango_conf_dir}" monitors.conf)"
+    mkdir -p "${_mango_conf_dir}"
+
+    #? Ensure config.conf sources our managed file — append once, idempotently.
+    if [ -f "${_mango_conf}" ]; then
+      rg -qF "source=${_mango_monitors_conf}" "${_mango_conf}" 2>/dev/null ||
+        printf '\nsource=%s\n' "${_mango_monitors_conf}" >>"${_mango_conf}"
+    else
+      printf 'source=%s\n' "${_mango_monitors_conf}" >"${_mango_conf}"
+    fi
+
+    case "${monitor_sec_pos}" in
+    mirror)
+      case "${monitor_ter_name:-}" in
+      "") ;;
+      *)
+        print_error "mango: tertiary monitor with monitor_sec_pos=mirror is not supported"
+        return 1
+        ;;
+      esac
+      print_warn "mango: output mirroring is not supported; configuring primary only"
+      {
+        printf 'monitorrule=name:%s,width:%s,height:%s,refresh:%s,x:%s,y:%s\n' \
+          "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" \
+          "${monitor_pri_rate}" "${monitor_pri_pos_xy%%x*}" "${monitor_pri_pos_xy#*x}"
+      } >"${_mango_monitors_conf}"
+      mmsg dispatch reload_config >/dev/null 2>&1
+      return 0
+      ;;
+    *) ;;
+    esac
+
+    {
+      printf 'monitorrule=name:%s,width:%s,height:%s,refresh:%s,x:%s,y:%s\n' \
+        "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" \
+        "${monitor_pri_rate}" "${monitor_pri_pos_xy%%x*}" "${monitor_pri_pos_xy#*x}"
+
+      case "${monitor_sec_name:-}" in
+      "") ;;
+      *)
+        printf 'monitorrule=name:%s,width:%s,height:%s,refresh:%s,x:%s,y:%s\n' \
+          "${monitor_sec_name}" "${monitor_sec_width}" "${monitor_sec_height}" \
+          "${monitor_sec_rate}" "${monitor_sec_pos_xy%%x*}" "${monitor_sec_pos_xy#*x}"
+        ;;
+      esac
+
+      case "${monitor_ter_name:-}" in
+      "") ;;
+      *)
+        printf 'monitorrule=name:%s,width:%s,height:%s,refresh:%s,x:%s,y:%s\n' \
+          "${monitor_ter_name}" "${monitor_ter_width}" "${monitor_ter_height}" \
+          "${monitor_ter_rate}" "${monitor_ter_pos_xy%%x*}" "${monitor_ter_pos_xy#*x}"
+        ;;
+      esac
+    } >"${_mango_monitors_conf}"
+
+    mmsg dispatch reload_config >/dev/null 2>&1
+  }
+
   apply_monitor_states() {
     case "${monitor_pri_disable:-0}" in 1) ;; *) kernel_force_connector "${monitor_pri_name:-}" ;; esac
     case "${monitor_sec_disable:-0}" in 1) ;; *) kernel_force_connector "${monitor_sec_name:-}" ;; esac
@@ -677,6 +769,7 @@ setup_monitors() {
   case "${compositor}" in
   hyprland) hyprland_apply ;;
   niri) niri_apply ;;
+  mango) mango_apply ;;
   *) print_error "Unknown compositor: ${compositor}" ;;
   esac
 }
@@ -1374,7 +1467,17 @@ detect_compositor() {
   *)
     case "${NIRI_SOCKET:-}" in
     ?*) compositor="niri" ;;
-    *) compositor="none" ;;
+    *)
+      case "${MANGO_INSTANCE_SIGNATURE:-}" in
+      ?*) compositor="mango" ;;
+      *)
+        case "${XDG_CURRENT_DESKTOP:-}" in
+        COSMIC) compositor="cosmic" ;;
+        *) compositor="none" ;;
+        esac
+        ;;
+      esac
+      ;;
     esac
     ;;
   esac
@@ -1446,6 +1549,9 @@ detect_monitors() {
         print "- " name
       }
     ')"
+    ;;
+  mango)
+    detected_monitors="$(mmsg -O 2>/dev/null | awk '{ print "- " $0 }')"
     ;;
   *) ;;
   esac
@@ -1594,12 +1700,12 @@ show_info() {
 
     printf '# COMMANDS\n'
     printf '  **info**           Show script, runtime, and configuration information\n'
-    printf '  **monitors**       Configure monitor layout (Hyprland and niri)\n'
+    printf '  **monitors**       Configure monitor layout (Hyprland, niri, mango)\n'
     printf '  **tailscale**      Install and connect Tailscale\n'
     printf '  **utilities**      Install utility tools\n'
     printf '  **rust**           Set up Rust toolchain\n'
     printf '  **tmux**           Install tmux\n'
-    printf '  **portals**        Configure and restart XDG desktop portals (Hyprland)\n'
+    printf '  **portals**        Configure and restart XDG desktop portals\n'
     printf '  **darkman**        Configure Darkman theme hooks and portal settings\n'
     printf '  **remote-dev**     Configure VS Code & Zed Remote Dev (Victus & QBX)\n'
     printf '  **all**            Run all setup steps (default)\n'
