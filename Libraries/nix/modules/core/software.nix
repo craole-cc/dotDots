@@ -99,6 +99,7 @@
     caches ? (host.caches or {}),
     max-jobs ? (host.specs.cpu.cores or "auto"),
     stateVersion ? host.stateVersion,
+    system ? host.system,
     ...
   }: let
     requiresNyx = (kernel != null) && (hasInfix "cachyos" kernel || hasAttr kernel pkgs);
@@ -127,6 +128,7 @@
     in
       attrValues (filterAttrs (_: cache: cache.enable or true) (recursiveUpdate common custom));
   in {
+    nixpkgs.hostPlatform = system;
     system = {inherit stateVersion;};
 
     nix.settings = {
