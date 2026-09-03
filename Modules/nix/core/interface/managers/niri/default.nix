@@ -6,7 +6,7 @@
   context = mkContext {
     inherit config;
     dom = "interface";
-    sub = "manager";
+    sub = "managers";
     mod = "niri";
   };
   inherit (context) cfg ctx;

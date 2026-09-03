@@ -6,7 +6,7 @@
   context = mkContext {
     inherit config;
     dom = "interface";
-    sub = "environment";
+    sub = "environments";
     mod = "cosmic";
   };
   inherit (context) cfg ctx;

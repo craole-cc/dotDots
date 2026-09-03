@@ -2,11 +2,12 @@
   config,
   lix,
   ...
-}: let
+}:
+let
   context = mkContext {
     inherit config;
     dom = "interface";
-    sub = "panel";
+    sub = "panels";
     mod = "dms-shell";
   };
   inherit (context) cfg;
@@ -16,15 +17,15 @@
 
   panel = config.${context.top}.resolved.interface.panel or null;
 in
-  mkConfig {
-    inherit context;
-    options = {
-      enable = mkEnable {
-        inherit context;
-        condition = panel == "dms-shell";
-      };
+mkConfig {
+  inherit context;
+  options = {
+    enable = mkEnable {
+      inherit context;
+      condition = panel == "dms-shell";
     };
-    outputs = {
-      programs.dms-shell.enable = cfg.enable;
-    };
-  }
+  };
+  outputs = {
+    programs.dms-shell.enable = cfg.enable;
+  };
+}
