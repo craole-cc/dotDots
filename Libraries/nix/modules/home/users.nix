@@ -57,7 +57,7 @@
     host,
     inputs,
     modules,
-    paths,
+    paths ? host.paths or {},
     standalone ? false,
   }:
     mapAttrs (

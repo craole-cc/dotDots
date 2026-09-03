@@ -2,7 +2,7 @@
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.aggregation) recursiveUpdate;
-  inherit (_.attrsets.transformation) mapAttrs filterAttrs removeAttrs;
+  inherit (_.attrsets.transformation) mapAttrs filterAttrs;
   inherit (_.lists.access) head length;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) sort;
@@ -45,7 +45,7 @@
     stems ? {},
     roots ? {},
   }:
-    mapAttrs (name: user: mkUser {inherit name user stems roots;}) users;
+    mapAttrs (name: user: mkUser {inherit name user roots stems;}) users;
 
   /**
   Role priority rankings used for primary user selection.

@@ -131,7 +131,7 @@
     };
 
     defined = with derived; {
-      inherit name paths users exlusions;
+      inherit name paths users exclusions;
 
       id =
         if (host.id or null) != null

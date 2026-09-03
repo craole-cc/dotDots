@@ -61,7 +61,6 @@
     specialArgs,
     inputs,
     modules,
-    tree ? {},
     ...
   }: {
     home-manager = {
@@ -76,7 +75,7 @@
             hm = inputs.home-manager.lib.hm or {};
           });
         };
-      users = mkUsers {inherit inputs modules host tree;};
+      users = mkUsers {inherit inputs modules host;};
     };
   };
 in

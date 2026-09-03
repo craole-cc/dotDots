@@ -115,6 +115,9 @@
       home = of "home-manager";
     };
 
+    inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
+    lib = extend (_self: _super: {inherit hm;});
+
     # #> Per-host resolved package set - identical call for every class;
     # #> each builder below pulls whichever field it needs (`.nixpkgs` for
     # #> evalModules-based classes, `.pkgs` for home-manager's standalone
@@ -153,7 +156,7 @@
       `host.class == "darwin"`.
     */
     mkSystem = host: let
-      hostArgs = sourceArgs (args // {inherit host;});
+      hostArgs = sourceArgs (args // {inherit host;} // host);
       class = host.class or "nixos";
       specialArgs =
         removeAttrs
@@ -161,10 +164,19 @@
         ["config" "lib"];
 
       classified = modulesOf class;
-      core = mkCore (recursiveUpdate hostArgs {
-        inherit specialArgs;
-        modules = classified;
-      });
+      core = {
+        home-manager = {
+          extraSpecialArgs = specialArgs // {inherit lib;};
+          backupFileExtension = "hm-backup";
+          overwriteBackup = true;
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users = mkUsers {
+            inherit inputs host;
+            modules = classified.home;
+          };
+        };
+      };
 
       evaluated = evalModules {
         specialArgs =
@@ -177,7 +189,7 @@
         modules =
           classified.base
           ++ classified.core
-          ++ core
+          ++ [core]
           ++ (host.imports or [])
           ++ [paths.repo.mod.default.store]
           ++ [{config._module.args = specialArgs;}];
@@ -188,54 +200,16 @@
       else evaluated
     );
 
-    # mkSystem = host: let
-    #   hostArgs = sourceArgs (args // {inherit host;});
-    #   class = host.class or "nixos";
-    #   specialArgs =
-    #     removeAttrs
-    #     (hostArgs // {inherit top;})
-    #     ["lib"]; # TODO: Do this in libraries/internal/default
-
-    #   # inherit (specialArgs) tree;
-
-    #   classified = modulesOf class;
-    #   core = mkCore (recursiveUpdate hostArgs {
-    #     inherit specialArgs;
-    #     modules = classified;
-    #   });
-
-    #   evaluated = evalModules {
-    #     specialArgs =
-    #       specialArgs
-    #       // {
-    #         inherit (classified.all) modulesPath baseModules;
-    #         modules = classified // {host = core;};
-    #       };
-    #     modules =
-    #       classified.base
-    #       ++ classified.core
-    #       ++ core
-    #       ++ (host.imports or [])
-    #       ++ [paths.repo.mod.default.store]
-    #       ++ [{config._module.args = specialArgs;}];
-    #   };
-    # in
-    #   if class == "darwin"
-    #   then evaluated // {system = evaluated.config.system.build.toplevel;}
-    #   else evaluated;
-
     /**
     Evaluate a single `home-manager`-class host through
     `home-manager.lib.homeManagerConfiguration`.
     */
     mkManager = name: host: let
-      inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
       hostArgs = sourceArgs (args // {inherit host;});
-      specialArgs = hostArgs // {lib = extend (_self: _super: {inherit hm;});};
+      specialArgs = hostArgs // {inherit lib;};
       users = let
         specs = mkUsers {
           inherit host inputs;
-          inherit (specialArgs) tree;
           modules = (modulesOf "home-manager").home;
           standalone = true;
         };

@@ -9,15 +9,6 @@
     to evaluated Nixpkgs instances.
   '';
 
-  inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.transformation) mapAttrsToList;
-  inherit (_.debug.assertions) mkTest mkTest';
-  inherit (_.debug.runners) runTests;
-  inherit (_.lists.access) findFirst head;
-  inherit (_.lists.predicates) all elem mostFrequent;
-  inherit (_.lists.transformation) flatten unique;
-  currentSystem = builtins.currentSystem or null;
-
   __exports = {
     internal = {
       inherit
@@ -29,6 +20,16 @@
     };
     external = {inherit systemOf getPackages getSystems;};
   };
+
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.transformation) mapAttrsToList;
+  inherit (_.debug.assertions) mkTest mkTest';
+  inherit (_.debug.runners) runTests;
+  inherit (_.lists.access) findFirst head;
+  inherit (_.lists.construction) toList;
+  inherit (_.lists.predicates) all elem mostFrequent;
+  inherit (_.lists.transformation) flatten unique;
+  currentSystem = builtins.currentSystem or null;
 
   /**
   Extracts the host platform string from an evaluated packages set.
@@ -128,8 +129,13 @@
     host ? {},
   }: let
     #~@ Types Lists
-    defined =
-      host.system or (flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts));
+    # Ensure defined is a list before passing it to mostFrequent
+    defined = toList (
+      host.system or (
+        flatten
+        (mapAttrsToList (_: host: host.platform or host.system or []) hosts)
+      )
+    );
     default = [
       "aarch64-darwin"
       "aarch64-linux"

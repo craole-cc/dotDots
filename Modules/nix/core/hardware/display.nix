@@ -15,11 +15,15 @@
   inherit (lix.strings.predicates) versionAtLeast;
   inherit (lix.types.primitives) bool str;
 
-  iface = config.${context.top}.resolved.interface;
-  isWayland = iface.displayProtocol == "wayland";
-  nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
+  # Safe protocol resolution with fallback chain
+  iface = config.${context.top}.resolved.interface or {};
+  session = config.interface.common.session or {};
+  protocol = iface.protocol or iface.displayProtocol or session.protocol or "wayland";
+  isWayland = protocol == "wayland";
 
-  nvidiaVersionAtLeast = version: versionAtLeast config.hardware.nvidia.package.version version;
+  nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
+  nvidiaVersionAtLeast = version:
+    versionAtLeast (config.hardware.nvidia.package.version or "0") version;
 in
   mkConfig {
     inherit context;
