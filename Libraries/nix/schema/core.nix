@@ -26,8 +26,8 @@
     hosts,
     name ? null,
   }:
-    if name == null
-    then mkHost {inherit hosts name;}
+    if name != null && hosts ? ${name}
+    then hosts.${name}
     else if hosts != {}
     then head (attrValues hosts)
     else throw "No hosts available";
@@ -141,8 +141,19 @@
       interface = mkUI {inherit host user;};
       localization = mkLocale {inherit host user;};
 
-      home = host.paths.roots.repo;
-      system = host.system or (host.specs.platform or null);
+      home = let
+        src = host.paths.roots.repo;
+      in
+        if src != null
+        then src
+        else throw "Host: '${name}' must explicitly set `paths.roots.repo` to the path of the repo.";
+
+      system = let
+        sys = host.system or (host.specs.platform or null);
+      in
+        if sys != null
+        then sys
+        else throw "Host '${name}' must explicitly set 'system' or 'specs.platform'.";
 
       hardware = mkHardware {inherit host;};
       access = mkAccess host;

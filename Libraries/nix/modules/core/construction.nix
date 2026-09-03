@@ -66,7 +66,7 @@
   */
   mkModules = {
     host,
-    nixpkgs,
+    # nixpkgs,
     inputs,
     modules,
     specialArgs,

@@ -85,17 +85,16 @@
     };
 
     active = {
-      name =
-        if isString host && host != "" && base.hosts ? ${host}
-        then host
-        else if host ? name && base.hosts ? ${host.name}
-        then host.name
-        else getEnvOr "HOSTNAME" (headOf raw.hosts);
-
       host =
         if host ? paths.roots.repo.src && host ? stateVersion
         then host
         else let
+          name =
+            if isString host && host != "" && base.hosts ? ${host}
+            then host
+            else if host ? name && base.hosts ? ${host.name}
+            then host.name
+            else getEnvOr "HOSTNAME" (headOf raw.hosts);
         in
           base.hosts.${name};
 
