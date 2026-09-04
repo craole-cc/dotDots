@@ -9,97 +9,117 @@
 : "${BINIT_ACTION:=--run}"
 : "${BINIT_VERBOSITY:=quiet}"
 
-#> Make scripts executable
 make_executable() {
-	changed_count=0
+  changed_count=0
 
-	find "${DOTS_LIB}" -type f 2>/dev/null | while read -r file; do
-		#> Get file extension
-		ext="${file##*.}"
+  #> Build a find -prune expression from BIN_IGNORE, mirroring add_to_path
+  _prune=""
+  for dir in ${BIN_IGNORE}; do
+    _prune="${_prune}${_prune:+ -o }-name ${dir}"
+  done
 
-		#> Skip blacklisted extensions
-		case " ${BLACKLIST_EXT} " in
-		*" ${ext} "*) continue ;;
-		*) ;;
-		esac
+  _file_list="$(mktemp)"
+  if [ -n "${_prune}" ]; then
+    find "${DOTS_LIB}" \( -type d \( ${_prune} \) -prune \) -o -type f -print 2>/dev/null >"${_file_list}"
+  else
+    find "${DOTS_LIB}" -type f 2>/dev/null >"${_file_list}"
+  fi
 
-		#> Check for shebang
-		if dd if="${file}" bs=1 count=2 2>/dev/null | grep -q "#!"; then
-			#> Skip if already executable
-			[ -x "${file}" ] && continue
+  while IFS= read -r file; do
+    [ -z "${file}" ] && continue
 
-			chmod +x "${file}" 2>/dev/null && changed_count=$((changed_count + 1))
-		fi
-	done
+    #> Skip blacklisted extensions
+    ext="${file##*.}"
+    case " ${BLACKLIST_EXT} " in
+    *" ${ext} "*) continue ;;
+    *) ;;
+    esac
 
-	[ "${changed_count}" -gt 0 ] && printf "Made %s scripts executable\n" "${changed_count}" >&2
+    #> Skip if already executable
+    [ -x "${file}" ] && continue
+
+    #> Check for shebang with a single in-shell read (no dd/grep subprocess)
+    IFS= read -r first_line <"${file}" 2>/dev/null
+    case "${first_line}" in
+    "#!"*)
+      chmod +x "${file}" 2>/dev/null &&
+        changed_count=$((changed_count + 1))
+      ;;
+    *) ;;
+    esac
+  done <"${_file_list}"
+
+  rm -f "${_file_list}"
+
+  [ "${changed_count}" -gt 0 ] &&
+    printf "Made %s scripts executable\n" "${changed_count}" >&2
 }
 
 #> Add Libraries directories to PATH
 add_to_path() {
-	DOTS_PATH=""
-	dir_count=0
+  DOTS_PATH=""
+  dir_count=0
 
-	#> Filter directories
-	if command -v fd >/dev/null 2>&1; then
-		#> Build fd command
-		fd_cmd="fd --type d --max-depth $((BIN_DEPTH * 2)) . ${DOTS_LIB}"
-		for dir in ${BIN_IGNORE}; do
-			fd_cmd="${fd_cmd} --exclude ${dir}"
-		done
-		BIN_DIRS=$(eval "${fd_cmd}")
-	else
-		#> Fallback to find
-		BIN_IGNORE_PATTERN=$(printf "%s" "${BIN_IGNORE}" | tr ' ' '|')
-		BIN_DIRS="$(find "${DOTS_LIB}" -maxdepth "${BIN_DEPTH}" -type d 2>/dev/null |
-			grep -v -E "/(${BIN_IGNORE_PATTERN})$")"
-	fi
+  #> Filter directories
+  if command -v fd >/dev/null 2>&1; then
+    #> Build fd command
+    fd_cmd="fd --type d --max-depth $((BIN_DEPTH * 2)) . ${DOTS_LIB}"
+    for dir in ${BIN_IGNORE}; do
+      fd_cmd="${fd_cmd} --exclude ${dir}"
+    done
+    BIN_DIRS=$(eval "${fd_cmd}")
+  else
+    #> Fallback to find
+    BIN_IGNORE_PATTERN=$(printf "%s" "${BIN_IGNORE}" | tr ' ' '|')
+    BIN_DIRS="$(find "${DOTS_LIB}" -maxdepth "${BIN_DEPTH}" -type d 2>/dev/null |
+      grep -v -E "/(${BIN_IGNORE_PATTERN})$")"
+  fi
 
-	#> Process directories
-	for dir in ${BIN_DIRS:-}; do
-		[ -d "${dir}" ] || continue
+  #> Process directories
+  for dir in ${BIN_DIRS:-}; do
+    [ -d "${dir}" ] || continue
 
-		case ":${PATH}:${DOTS_PATH}:" in
-		*:"${dir}":*) ;;
-		*)
-			DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
-			dir_count=$((dir_count + 1))
-			;;
-		esac
-	done
+    case ":${PATH}:${DOTS_PATH}:" in
+    *:"${dir}":*) ;;
+    *)
+      DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
+      dir_count=$((dir_count + 1))
+      ;;
+    esac
+  done
 
-	#> Update PATH if needed
-	if [ -n "${DOTS_PATH}" ]; then
-		PATH="${DOTS_PATH}:${PATH}"
-		export PATH
-		case ${BINIT_VERBOSITY:-} in quiet) ;;
-		*) printf "Added %s directories to PATH\n" "${dir_count}" >&2 ;;
-		esac
-	fi
+  #> Update PATH if needed
+  if [ -n "${DOTS_PATH}" ]; then
+    PATH="${DOTS_PATH}:${PATH}"
+    export PATH
+    case ${BINIT_VERBOSITY:-} in quiet) ;;
+    *) printf "Added %s directories to PATH\n" "${dir_count}" >&2 ;;
+    esac
+  fi
 }
 
 #> Main initialization
 binit() {
-	make_executable
-	add_to_path
+  make_executable
+  add_to_path
 }
 
 #> Execute based on BINIT_ACTION
 dispatch() {
-	case "${1:-${BINIT_ACTION}}" in
-	"--run" | "")
-		binit
-		;;
-	"--executable")
-		make_executable
-		;;
-	"--path")
-		add_to_path
-		;;
-	*)
-		printf "Usage: Set BINIT_ACTION to --run, --executable, or --path\n" >&2
-		;;
-	esac
+  case "${1:-${BINIT_ACTION}}" in
+  "--run" | "")
+    binit
+    ;;
+  "--executable")
+    make_executable
+    ;;
+  "--path")
+    add_to_path
+    ;;
+  *)
+    printf "Usage: Set BINIT_ACTION to --run, --executable, or --path\n" >&2
+    ;;
+  esac
 }
 
 #> ALWAYS run dispatch when sourced
@@ -107,5 +127,5 @@ dispatch
 
 #> Keep this for direct execution compatibility
 if [ "${0##*/}" = "binit" ]; then
-	exit 0
+  exit 0
 fi

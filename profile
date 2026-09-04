@@ -1,7 +1,10 @@
 #!/bin/sh
 # shellcheck enable=all
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: config.sh
+# Metadata, runtime defaults, base paths, DOTS environment.
+# ═══════════════════════════════════════════════════════════════════════════
 
 configure() {
   # ── Metadata ────────────────────────────────────────────────────────────
@@ -16,6 +19,7 @@ configure() {
   verbosity="info" #? Levels: quiet | info | verbose | debug | dry
   command="all"    #? The active command to run
   help_requested=0
+  host=$(hostname || echo "unknown host")
 
   # ── Base Paths ──────────────────────────────────────────────────────────
   #? Common roots reused throughout; join_path builds anything deeper.
@@ -29,75 +33,36 @@ configure() {
   #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
   #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
   XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
-  # XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-  export NIX_PROFILE_DIR VSCODE_SERVER_DIR \
-    XDG_BIN_HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME
+  XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  export \
+    NIX_PROFILE_DIR \
+    VSCODE_SERVER_DIR \
+    XDG_BIN_HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_DATA_DIRS
 
-  # ── Display ─────────────────────────────────────────────────────
-  #? Detect gum once; shared by all print functions and print_format
-  case "$(command -v gum 2>/dev/null)" in
-  "")
-    _has_gum=0
-    ;;
-  *)
-    _has_gum=1
-    ;;
-  esac
+  # ── DOTS Environment ──────────────────────────────────────────────────
+  DOTS="${DOTS:-"${PWD:-"$(pwd -P)"}"}"
+  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}"
+  DOTS_LIB="${DOTS_LIB:-"${DOTS}/Libraries"}"
+  DOTS_LIB_BASH="${DOTS_LIB_BASH:-"${DOTS_LIB}/bash"}"
+  DOTS_LIB_CMD="${DOTS_LIB_CMD:-"${DOTS_LIB}/cmd"}"
+  DOTS_LIB_NIX="${DOTS_LIB_NIX:-"${DOTS_LIB}/nix"}"
+  DOTS_LIB_NU="${DOTS_LIB_NU:-"${DOTS_LIB}/nushell"}"
+  DOTS_LIB_PS="${DOTS_LIB_PS:-"${DOTS_LIB}/powershell"}"
+  DOTS_LIB_PY="${DOTS_LIB_PY:-"${DOTS_LIB}/python"}"
+  DOTS_LIB_RS="${DOTS_LIB_RS:-"${DOTS_LIB}/rust"}"
+  DOTS_LIB_SH="${DOTS_LIB_SH:-"${DOTS_LIB}/posix"}"
+  DOTS_LIB_XML="${DOTS_LIB_XML:-"${DOTS_LIB}/xml"}"
+  export DOTS DOTS_CFG DOTS_LIB DOTS_LIB_BASH DOTS_LIB_CMD DOTS_LIB_NIX DOTS_LIB_NU DOTS_LIB_PS DOTS_LIB_PY DOTS_LIB_RS DOTS_LIB_SH DOTS_LIB_XML
+}
 
-  #? Internal dispatcher — not for direct use
-  _print() {
-    _p_level="$1"
-    shift
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: packages.sh
+# Host-specific monitor defaults + the package/dependency manifest.
+# Split out if host profiles or package lists grow large enough to
+# warrant their own file (e.g. one file per host).
+# ═══════════════════════════════════════════════════════════════════════════
 
-    #> Validate level once — recurse as error if unknown
-    case "${_p_level}" in
-    debug | info | warn | error | success) ;;
-    *)
-      _print error "_print: unknown level '${_p_level}': $*"
-      return
-      ;;
-    esac
-
-    #> Dispatch to backend — invalid levels already handled above
-    case "${_has_gum}" in
-    1)
-      case "${_p_level}" in
-      debug) gum log --level debug --message.foreground="99" "$*" ;;
-      info) gum log --level info "$*" ;;
-      warn) gum log --level warn "$*" ;;
-      error) gum log --level error "$*" ;;
-      success) gum log --level info "$*" ;;
-      *) ;;
-      esac
-      ;;
-    *)
-      case "${_p_level}" in
-      debug) printf "debug: %s\n" "$*" ;;
-      info) printf "info:  %s\n" "$*" ;;
-      warn) printf "warn:  %s\n" "$*" ;;
-      error) printf "error: %s\n" "$*" >&2 ;;
-      success) printf "ok:    %s\n" "$*" ;;
-      *) ;;
-      esac
-      ;;
-    esac
-  }
-
-  print_error() { _print error "$*"; }
-  print_warn() { case "${verbosity}" in quiet) ;; *) _print warn "$*" ;; esac }
-  print_success() { case "${verbosity}" in quiet) ;; *) _print success "$*" ;; esac }
-  print_info() { case "${verbosity}" in quiet) ;; *) _print info "$*" ;; esac }
-  print_debug() { case "${verbosity}" in debug) _print debug "$*" ;; *) ;; esac }
-  print_verbose() { case "${verbosity}" in verbose | debug) _print info "$*" ;; *) ;; esac }
-  print_markdown() {
-    case "${_has_gum}" in
-    1) printf "%s\n\n" "$*" | gum format ;;
-    *) printf "%s\n" "$*" ;;
-    esac
-  }
-
-  # ── Host ───────────────────────────────────────────────────────
-  host="$(hostname)" #? The current host
+configure_host_profile() {
   case "${host}" in
   Victus)
     monitor_pri_name="HDMI-A-1"
@@ -137,12 +102,13 @@ configure() {
     monitor_ter_pos="right"
     ;;
   *)
-    print_error "Unknown monitor setup; define profile mappings"
+    print --error "Unknown monitor setup; define profile mappings"
     return 1
     ;;
   esac
+}
 
-  # ── Packages ──────────────────────────────────────────────────────
+configure_packages() {
   packages="
     alejandra
     antigravity-cli
@@ -163,6 +129,7 @@ configure() {
     gum
     hyperfine
     hyprland
+    lorri
     nix-ld
     nodejs
     ollama
@@ -182,11 +149,247 @@ configure() {
     xdg-desktop-portal-hyprland
     zoxide
   "
-  dependencies_required="gawk gnused ripgrep fd sudo"
-  dependencies_optional="bat bottom darkman delta dust eza fzf gum hyperfine hyprland rustup shellcheck shfmt tailscale tealdeer tokei wl-clipboard xdg-desktop-portal xdg-desktop-portal-hyprland zoxide"
+  dependencies_required="gawk gnused lorri ripgrep fd sudo"
+  dependencies_optional="
+    bat
+    bottom
+    darkman
+    delta
+    dust
+    eza
+    fzf
+    gum
+    hyperfine
+    hyprland
+    rustup
+    shellcheck
+    shfmt
+    tailscale
+    tealdeer
+    tokei
+    wl-clipboard
+    xdg-desktop-portal
+    xdg-desktop-portal-hyprland
+    zoxide
+  "
 }
 
-# ── Path Helpers ──────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: logging.sh
+# Verbosity normalization, the print() engine, and tagged helpers.
+# ═══════════════════════════════════════════════════════════════════════════
+
+initialize_logger() {
+  # ── Verbosity Normalization ────────────────────────────────────────────
+  # Scale: 0=quiet, 1=error, 2=warn, 3=info (default), 4=debug, 5=trace/verbose
+  _verb_input="$(printf '%s' "${VERBOSITY:-3}" | tr '[:upper:]' '[:lower:]')"
+  case ${_verb_input} in
+  0 | quiet | silent | off) VERBOSITY=0 ;;
+  1 | error | err) VERBOSITY=1 ;;
+  2 | warn | warning) VERBOSITY=2 ;;
+  3 | info | default | normal) VERBOSITY=3 ;;
+  4 | debug) VERBOSITY=4 ;;
+  5 | trace | verbose) VERBOSITY=5 ;;
+  *) VERBOSITY=3 ;;
+  esac
+  export VERBOSITY
+
+  # ── Core Printing Engine ────────────────────────────────────────────────
+  if command -v gum >/dev/null 2>&1; then
+    _has_gum=1
+  else
+    _has_gum=0
+  fi
+
+  print() {
+    _lvl=3
+    _name="info"
+    _force=0
+    _is_fatal=0
+
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      --force) _force=1 ;;
+      --fatal)
+        _lvl=1
+        _name="fatal"
+        _is_fatal=1
+        ;;
+      --error)
+        _lvl=1
+        _name="error"
+        ;;
+      --warn)
+        _lvl=2
+        _name="warn"
+        ;;
+      --info)
+        _lvl=3
+        _name="info"
+        ;;
+      --success)
+        _lvl=3
+        _name="success"
+        ;;
+      --markdown)
+        _lvl=3
+        _name="markdown"
+        ;;
+      --debug)
+        _lvl=4
+        _name="debug"
+        ;;
+      --verbose)
+        _lvl=5
+        _name="verbose"
+        ;;
+      --trace)
+        _lvl=5
+        _name="trace"
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*) ;;
+      *) break ;;
+      esac
+      shift
+    done
+
+    # Dynamically resolve current VERBOSITY to prevent integer syntax errors
+    _verb_local="$(printf '%s' "${VERBOSITY:-3}" | tr '[:upper:]' '[:lower:]')"
+    case "${_verb_local}" in
+    0 | quiet | silent | off) _verbosity=0 ;;
+    1 | error) _verbosity=1 ;;
+    2 | warn | warning) _verbosity=2 ;;
+    3 | info | default | normal) _verbosity=3 ;;
+    4 | debug) _verbosity=4 ;;
+    5 | trace | verbose) _verbosity=5 ;;
+    *)
+      case "${_verb_local}" in
+      '' | *[!0-9]*) _verbosity=3 ;;
+      *) _verbosity="${_verb_local}" ;;
+      esac
+      ;;
+    esac
+
+    # Suppress message if VERBOSITY is too low, unless forced or fatal
+    if
+      [ "${_force}" -eq 0 ] &&
+        [ "${_is_fatal}" -eq 0 ] &&
+        [ "${_verbosity}" -lt "${_lvl}" ]
+    then
+      return 0
+    fi
+
+    if [ "${_has_gum}" -eq 1 ]; then
+      case "${_name}" in
+      fatal)
+        gum log \
+          --level fatal \
+          --message.foreground="196" "$*"
+        ;;
+      error)
+        gum log \
+          --level error \
+          --message.foreground="203" "$*"
+        ;;
+      warn)
+        gum log \
+          --level warn \
+          --message.foreground="214" "$*"
+        ;;
+      info)
+        gum log \
+          --level info \
+          --message.foreground="39" "$*"
+        ;;
+      success)
+        gum log \
+          --prefix="SUCCESS" \
+          --prefix.foreground="82" \
+          --message.foreground="82" "$*"
+        ;;
+        # --level info \
+      debug)
+        gum log \
+          --level debug \
+          --prefix.foreground="99" \
+          --message.foreground="99" "$*"
+        ;;
+      trace)
+        gum log \
+          --level debug \
+          --prefix="TRACE" \
+          --prefix.foreground="242" \
+          --message.foreground="242" "$*"
+        ;;
+      verbose)
+        gum log \
+          --level debug \
+          --prefix="VERB" \
+          --prefix.foreground="245" \
+          --message.foreground="250" "$*"
+        ;;
+      markdown) printf "%s\n\n" "$*" | gum format ;;
+      *) gum log "$*" ;;
+      esac
+    else
+      case "${_name}" in
+      fatal) printf "[  FATAL ] %s\n" "$*" >&2 ;;
+      error) printf "[  ERROR ] %s\n" "$*" >&2 ;;
+      warn) printf "[   WARN ] %s\n" "$*" ;;
+      info) printf "[   INFO ] %s\n" "$*" ;;
+      success) printf "[ SUCCESS] %s\n" "$*" ;;
+      debug) printf "[  DEBUG ] %s\n" "$*" ;;
+      trace | verbose) printf "[  TRACE ] %s\n" "$*" ;;
+      markdown | *) printf "%s\n" "$*" ;;
+      esac
+    fi
+  }
+
+  # ── Tagged Helper API ────────────────────────────────────────────────────
+  # Tagged status helpers bypass VERBOSITY checks
+  print_fatal() { print --fatal "$*"; }
+  print_error() { print --force --error "$*"; }
+  print_warn() { print --force --warn "$*"; }
+  print_info() { print --force --info "$*"; }
+  print_success() { print --force --success "$*"; }
+  print_markdown() { print --force --markdown "$*"; }
+  print_debug() { print --force --debug "$*"; }
+  print_verbose() { print --force --verbose "$*"; }
+  print_trace() { print --force --trace "$*"; }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: bootstrap.sh
+# binit + flake initialization for the current shell.
+# ═══════════════════════════════════════════════════════════════════════════
+initialize_bin() {
+  BINIT_PATH="${DOTS_LIB_SH}/base/binit"
+  BINIT_ACTION="--run"
+  export BINIT_PATH BINIT_ACTION
+
+  if [ -f "${BINIT_PATH}" ]; then :; else
+    print --warn "binit not found at ${BINIT_PATH}"
+  fi
+
+  if [ -x "${BINIT_PATH}" ]; then :; else
+    chmod -c +x "${BINIT_PATH}"
+  fi
+
+  # shellcheck disable=SC1090
+  if . "${BINIT_PATH}"; then :; else
+    print --error "Failed to initialize bin at ${BINIT_PATH}"
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: paths.sh
+# join_path / find_nix_profile_dir — generic path helpers with no
+# dependency on anything else in this file.
+# ═══════════════════════════════════════════════════════════════════════════
 
 #? join_path base seg [seg ...] — join segments onto base with '/'
 join_path() {
@@ -213,7 +416,40 @@ find_nix_profile_dir() {
   printf '%s\n' "${HOME}/.nix-profile"
 }
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: timing.sh
+# Single-shot stage timing (see: hyperfine isn't a fit for side-effecting,
+# network-touching stages — this wraps one real run instead).
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Timing Utility ─────────────────────────────────────────────────────────────
+# ── Timing Utility ──────────────────────────────────────────────────────────
+time_stage() {
+  _stage_name="$1"
+  shift
+
+  _t0=$(date +%s.%N 2>/dev/null || date +%s)
+
+  "$@"
+  _stage_status=$?
+
+  _t1=$(date +%s.%N 2>/dev/null || date +%s)
+  _elapsed=$(
+    awk \
+      -v t0="${_t0}" \
+      -v t1="${_t1}" \
+      'BEGIN { printf "%.3fs", t1 - t0 }'
+  )
+
+  print --debug "${_stage_name} initialized in ${_elapsed}"
+  return "${_stage_status}"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: packages_helpers.sh
+# Package-name <-> binary-name mapping, additional-package diffing,
+# and profile cleanup of packages now provided by the system.
+# ═══════════════════════════════════════════════════════════════════════════
 
 get_package_bin() {
   case "$1" in
@@ -230,6 +466,7 @@ get_package_bin() {
   *) printf '%s\n' "$1" ;;
   esac
 }
+
 get_additional_packages() {
   for pkg in ${packages}; do
     case " ${dependencies_required} ${dependencies_optional} " in
@@ -251,9 +488,11 @@ cleanup() {
       case "${_profile_json}" in
       *\"${pkg}\":*)
         if nix profile remove "${pkg}" >/dev/null 2>&1; then
-          print_info "cleanup: removed ${pkg} (now provided by system)"
+          print --info \
+            "cleanup: removed ${pkg} (now provided by system)"
         else
-          print_warn "cleanup: failed to remove ${pkg} from the user profile"
+          print --warn \
+            "cleanup: failed to remove ${pkg} from the user profile"
         fi
         ;;
       *) ;;
@@ -267,24 +506,29 @@ cleanup() {
 require_arg() {
   case "${2:-}" in
   "" | --*)
-    print_error "Flag '$1' requires an argument"
+    print --error \
+      "Flag '$1' requires an argument"
     return 1
     ;;
   *) ;;
   esac
 }
 
-# ── XDG/OpenURI & Desktop Portals ─────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: xdg_portals.sh
+# xdg-open shim + XDG desktop portal restart/configure.
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_xdg_open() {
   mkdir -p "${XDG_BIN_HOME}"
+  _xdg_open="$(join_path "${XDG_BIN_HOME}" xdg-open)"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
     printf '%s\n' 'exec gio open "$@"'
-  } >"$(join_path "${XDG_BIN_HOME}" xdg-open)"
+  } >"${_xdg_open}"
 
-  chmod +x "$(join_path "${XDG_BIN_HOME}" xdg-open)"
+  chmod +x "${_xdg_open}"
 
   case ":${PATH}:" in
   *":${XDG_BIN_HOME}:"*) ;;
@@ -301,7 +545,8 @@ setup_portals() {
   case "${compositor:-}" in
   hyprland | niri | mango | cosmic) ;;
   *)
-    print_info "setup_portals: no supported compositor detected; skipping"
+    print --info \
+      "setup_portals: no supported compositor detected; skipping"
     return 0
     ;;
   esac
@@ -328,48 +573,85 @@ setup_portals() {
     _portal_backend_unit="xdg-desktop-portal-cosmic.service"
     _xdg_current_desktop="COSMIC"
     ;;
+  *) ;;
   esac
 
-  print_info "Restarting XDG desktop portals for ${compositor}..."
+  print --info \
+    "Restarting XDG desktop portals for ${compositor}..."
 
-  XDG_DATA_DIRS="$(join_path "${NIX_PROFILE_DIR}" share):${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-  export XDG_DATA_DIRS
-  export XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
+  XDG_DATA_DIRS="$(join_path "${NIX_PROFILE_DIR}" share):${XDG_DATA_DIRS}"
+  XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
+  export XDG_DATA_DIRS XDG_CURRENT_DESKTOP
 
   # Export variables to DBus activation environment
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
-    dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS 2>/dev/null || true
+    dbus-update-activation-environment \
+      --systemd \
+      WAYLAND_DISPLAY \
+      XDG_CURRENT_DESKTOP \
+      XDG_DATA_DIRS \
+      2>/dev/null || true
   fi
 
   # Prefer systemd user units if active
-  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
-    systemctl --user restart "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
-    print_success "Restarted XDG portals via systemd user units"
+  if
+    command -v systemctl >/dev/null 2>&1 &&
+      systemctl --user \
+        is-active \
+        dbus \
+        >/dev/null 2>&1
+  then
+    systemctl \
+      --user \
+      restart \
+      "${_portal_backend_unit}" \
+      xdg-desktop-portal.service \
+      2>/dev/null || true
+    print --success "Restarted XDG portals via systemd user units"
     return 0
   fi
 
   # Manual fallback with isolated file descriptors
   pkill -f xdg-desktop-portal 2>/dev/null || true
 
-  _backend_portal="$(find -L "${NIX_PROFILE_DIR}" -name "${_portal_backend_bin}" -type f -executable 2>/dev/null | head -n 1)"
-  _portal_bin="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n 1)"
+  _backend_portal="$(
+    find \
+      -L "${NIX_PROFILE_DIR}" \
+      -name "${_portal_backend_bin}" \
+      -type f -executable 2>/dev/null |
+      head -n 1
+  )"
+  _portal_bin="$(
+    find \
+      -L "${NIX_PROFILE_DIR}" \
+      -name "xdg-desktop-portal" \
+      -type f -executable 2>/dev/null |
+      head -n 1
+  )"
 
   if [ -n "${_backend_portal}" ] && [ -n "${_portal_bin}" ]; then
     (exec "${_backend_portal}" >/dev/null 2>&1 </dev/null &)
     (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
-    print_success "Launched ${_portal_backend_bin} and main XDG desktop portal"
+    print --success \
+      "Launched ${_portal_backend_bin} and main XDG desktop portal"
   else
-    print_warn "setup_portals: could not find portal executables in ${NIX_PROFILE_DIR}"
+    print --warn \
+      "setup_portals: could not find portal executables in ${NIX_PROFILE_DIR}"
     return 1
   fi
 }
 
-# ── Monitors ──────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: monitors.sh
+# Compositor-agnostic monitor layout: detection, disabling, positioning,
+# and per-compositor apply functions (hyprland/niri/mango).
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_monitors() {
   case "${monitor_pri_name:-}" in
   "")
-    print_info "setup_monitors: no monitors configured; skipping"
+    print --info \
+      "setup_monitors: no monitors configured; skipping"
     return 0
     ;;
   *) ;;
@@ -377,7 +659,8 @@ setup_monitors() {
 
   case "${compositor}" in
   none)
-    print_info "setup_monitors: no supported compositor detected (Hyprland, niri, or mango); skipping"
+    print --info \
+      "setup_monitors: no supported compositor detected (Hyprland, niri, or mango); skipping"
     return 0
     ;;
   *) ;;
@@ -417,7 +700,8 @@ setup_monitors() {
     done
     case "${_kfc_status}" in
     "")
-      print_warn "kernel_force_connector: ${_kfc_name} not found under /sys/class/drm"
+      print --warn \
+        "kernel_force_connector: ${_kfc_name} not found under /sys/class/drm"
       return 1
       ;;
     *) ;;
@@ -429,7 +713,8 @@ setup_monitors() {
     esac
 
     if ! sudo -n true 2>/dev/null; then
-      print_warn "kernel_force_connector: sudo needs a password; skipping kernel-level force for ${_kfc_name}"
+      print --warn \
+        "kernel_force_connector: sudo password required; skipping kernel-level force for ${_kfc_name}"
       return 1
     fi
 
@@ -439,7 +724,8 @@ setup_monitors() {
     done
     case "${_kfc_dir}" in
     "")
-      print_warn "kernel_force_connector: no debugfs entry found for ${_kfc_name}"
+      print --warn \
+        "kernel_force_connector: no debugfs entry found for ${_kfc_name}"
       return 1
       ;;
     *) ;;
@@ -451,11 +737,13 @@ setup_monitors() {
 
     case "$(cat "${_kfc_status}" 2>/dev/null)" in
     connected)
-      print_success "kernel_force_connector: ${_kfc_name} forced connected"
+      print --success \
+        "kernel_force_connector: ${_kfc_name} forced connected"
       return 0
       ;;
     *)
-      print_warn "kernel_force_connector: ${_kfc_name} still disconnected after force"
+      print --warn \
+        "kernel_force_connector: ${_kfc_name} still disconnected after force"
       return 1
       ;;
     esac
@@ -468,7 +756,8 @@ setup_monitors() {
         force_disable "${monitor_pri_name}"
         monitor_pri_name=""
       else
-        print_warn "apply_disables: no fallback monitor detected; keeping ${monitor_pri_name} enabled"
+        print --warn \
+          "apply_disables: no fallback monitor detected; keeping ${monitor_pri_name} enabled"
       fi
       ;;
     *) ;;
@@ -480,7 +769,8 @@ setup_monitors() {
         force_disable "${monitor_sec_name}"
         monitor_sec_name=""
       else
-        print_warn "apply_disables: no fallback monitor detected; keeping ${monitor_sec_name} enabled"
+        print --warn \
+          "apply_disables: no fallback monitor detected; keeping ${monitor_sec_name} enabled"
       fi
       ;;
     *) ;;
@@ -492,7 +782,8 @@ setup_monitors() {
         force_disable "${monitor_ter_name}"
         monitor_ter_name=""
       else
-        print_warn "apply_disables: no fallback monitor detected; keeping ${monitor_ter_name} enabled"
+        print --warn \
+          "apply_disables: no fallback monitor detected; keeping ${monitor_ter_name} enabled"
       fi
       ;;
     *) ;;
@@ -522,7 +813,8 @@ setup_monitors() {
       monitor_sec_pos_xy="auto"
       ;;
     *)
-      print_error "Unknown secondary monitor position: ${monitor_sec_pos}"
+      print --error \
+        "Unknown secondary monitor position: ${monitor_sec_pos}"
       return 1
       ;;
     esac
@@ -548,7 +840,8 @@ setup_monitors() {
         monitor_ter_pos_xy="0x${monitor_pri_height}"
         ;;
       *)
-        print_error "Unknown tertiary monitor position: ${monitor_ter_pos}"
+        print --error \
+          "Unknown tertiary monitor position: ${monitor_ter_pos}"
         return 1
         ;;
       esac
@@ -557,15 +850,27 @@ setup_monitors() {
   }
 
   hyprland_apply() {
-    _pri_res="$(build_res "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}")"
+    _pri_res="$(
+      build_res \
+        "${monitor_pri_width}" \
+        "${monitor_pri_height}" \
+        "${monitor_pri_rate}"
+    )"
 
     case "${monitor_sec_name:-}" in
     "")
-      hyprctl keyword monitor "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" >/dev/null
+      hyprctl keyword monitor \
+        "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" \
+        >/dev/null
       return 0
       ;;
     *)
-      _sec_res="$(build_res "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}")"
+      _sec_res="$(
+        build_res \
+          "${monitor_sec_width}" \
+          "${monitor_sec_height}" \
+          "${monitor_sec_rate}"
+      )"
       ;;
     esac
 
@@ -574,12 +879,17 @@ setup_monitors() {
       case "${monitor_ter_name:-}" in
       "") ;;
       *)
-        print_error "hyprland: tertiary monitor with monitor_sec_pos=mirror is not supported"
+        print --error \
+          "hyprland: tertiary monitor with monitor_sec_pos=mirror is not supported"
         return 1
         ;;
       esac
-      hyprctl keyword monitor "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" >/dev/null
-      hyprctl keyword monitor "${monitor_sec_name}, ${_sec_res}, auto, 1, mirror, ${monitor_pri_name}" >/dev/null
+      hyprctl keyword monitor \
+        "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" \
+        >/dev/null
+      hyprctl keyword monitor \
+        "${monitor_sec_name}, ${_sec_res}, auto, 1, mirror, ${monitor_pri_name}" \
+        >/dev/null
       return 0
       ;;
     *) ;;
@@ -605,13 +915,24 @@ setup_monitors() {
 
     case "${_needs_reload}" in
     1)
-      hyprctl keyword monitor "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" >/dev/null
-      hyprctl keyword monitor "${monitor_sec_name}, ${_sec_res}, ${monitor_sec_pos_xy}, 1" >/dev/null
+      hyprctl keyword monitor \
+        "${monitor_pri_name}, ${_pri_res}, ${monitor_pri_pos_xy}, 1" \
+        >/dev/null
+      hyprctl keyword monitor \
+        "${monitor_sec_name}, ${_sec_res}, ${monitor_sec_pos_xy}, 1" \
+        >/dev/null
       case "${monitor_ter_name:-}" in
       "") ;;
       *)
-        _ter_res="$(build_res "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}")"
-        hyprctl keyword monitor "${monitor_ter_name}, ${_ter_res}, ${monitor_ter_pos_xy}, 1" >/dev/null
+        _ter_res="$(
+          build_res \
+            "${monitor_ter_width}" \
+            "${monitor_ter_height}" \
+            "${monitor_ter_rate}"
+        )"
+        hyprctl keyword monitor \
+          "${monitor_ter_name}, ${_ter_res}, ${monitor_ter_pos_xy}, 1" \
+          >/dev/null
         ;;
       esac
       ;;
@@ -620,32 +941,49 @@ setup_monitors() {
   }
 
   niri_get_pos() {
-    niri msg outputs 2>/dev/null | rg -N "Output $1" -A 20 | rg -N '"logical":' -A 2 | rg -N '"x":' -A 1 | awk '
-      BEGIN { x=""; y="" }
-      /"x":/ { x=$2; gsub(/[,]/, "", x) }
-      /"y":/ { y=$2; gsub(/[,]/, "", y); printf "%sx%s", x, y; exit }
-    '
+    niri msg outputs 2>/dev/null |
+      rg -N "Output $1" -A 20 |
+      rg -N '"logical":' -A 2 |
+      rg -N '"x":' -A 1 |
+      awk '
+        BEGIN { x=""; y="" }
+        /"x":/ { x=$2; gsub(/[,]/, "", x) }
+        /"y":/ { y=$2; gsub(/[,]/, "", y); printf "%sx%s", x, y; exit }
+      '
   }
 
   niri_apply() {
-    _pri_res="$(build_res "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}")"
+    _pri_res="$(
+      build_res \
+        "${monitor_pri_width}" \
+        "${monitor_pri_height}" \
+        "${monitor_pri_rate}"
+    )"
 
     case "${monitor_sec_name:-}" in
     "")
-      niri msg output "${monitor_pri_name}" \
+      niri msg \
+        output "${monitor_pri_name}" \
         mode "${_pri_res}" \
         position x="${monitor_pri_pos_xy%%x*}" y="${monitor_pri_pos_xy#*x}"
       return 0
       ;;
     *)
-      _sec_res="$(build_res "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}")"
+      _sec_res="$(
+        build_res \
+          "${monitor_sec_width}" \
+          "${monitor_sec_height}" \
+          "${monitor_sec_rate}"
+      )"
       ;;
     esac
 
     case "${monitor_sec_pos}" in
     mirror)
-      print_warn "niri: output mirroring is not supported; configuring primary only"
-      niri msg output "${monitor_pri_name}" \
+      print --warn \
+        "niri: output mirroring is not supported; configuring primary only"
+      niri msg \
+        output "${monitor_pri_name}" \
         mode "${_pri_res}" \
         position x="${monitor_pri_pos_xy%%x*}" y="${monitor_pri_pos_xy#*x}"
       return 0
@@ -713,11 +1051,11 @@ setup_monitors() {
       case "${monitor_ter_name:-}" in
       "") ;;
       *)
-        print_error "mango: tertiary monitor with monitor_sec_pos=mirror is not supported"
+        print --error "mango: tertiary monitor with monitor_sec_pos=mirror is not supported"
         return 1
         ;;
       esac
-      print_warn "mango: output mirroring is not supported; configuring primary only"
+      print --warn "mango: output mirroring is not supported; configuring primary only"
       {
         printf 'monitorrule=name:%s,width:%s,height:%s,refresh:%s,x:%s,y:%s\n' \
           "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" \
@@ -770,18 +1108,20 @@ setup_monitors() {
   hyprland) hyprland_apply ;;
   niri) niri_apply ;;
   mango) mango_apply ;;
-  *) print_error "Unknown compositor: ${compositor}" ;;
+  *) print --error "Unknown compositor: ${compositor}" ;;
   esac
 }
 
-
-# ── Tailscale ─────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: tailscale.sh
+# Install, daemon bring-up (systemd or manual fallback), and connect.
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_tailscale() {
   install() {
     case "$(command -v tailscale 2>/dev/null)" in
     "")
-      print_info "Installing Tailscale from nixpkgs..."
+      print --info "Installing Tailscale from nixpkgs..."
       nix profile add nixpkgs#tailscale || return 1
       ;;
     *) ;;
@@ -818,7 +1158,12 @@ setup_tailscale() {
       --state=/var/lib/tailscale/tailscaled.state \
       --socket=/run/tailscale/tailscaled.sock \
       --port=0 \
-      >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
+      >/dev/null 2>&1 &
+    # sudo tailscaled \
+    #   --state=/var/lib/tailscale/tailscaled.state \
+    #   --socket=/run/tailscale/tailscaled.sock \
+    #   --port=0 \
+    #   >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
 
     _i=0
     while [ "${_i}" -lt 20 ]; do
@@ -827,13 +1172,13 @@ setup_tailscale() {
       _i=$((_i + 1))
     done
 
-    print_error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
+    print --error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
     return 1
   }
 
   connect() {
     if ! daemon_ready; then
-      print_error "Tailscale daemon is not responding"
+      print --error "Tailscale daemon is not responding"
       return 1
     fi
 
@@ -841,14 +1186,14 @@ setup_tailscale() {
       sudo tailscale up
       return
     fi
-    print_verbose "Tailscale already connected"
+    print --verbose "Tailscale already connected"
   }
 
   install || return 1
 
   if ! daemon_ready; then
     if ! start_systemd; then
-      print_warn "systemd tailscaled service unavailable; using manual daemon fallback"
+      print --warn "systemd tailscaled service unavailable; using manual daemon fallback"
       start_manual || return 1
     fi
   fi
@@ -856,11 +1201,28 @@ setup_tailscale() {
   connect
 }
 
+fix_net() {
+  sudo tailscale down 2>/dev/null || true
+  sudo pkill tailscaled 2>/dev/null || true
 
-# ── Utilities ─────────────────────────────────────────────────────────────────
+  _iface="$(ip route 2>/dev/null | rg default | awk '{ print $5; exit }')" || _iface=""
+  case "${_iface}" in "") ;; *)
+    sudo resolvectl revert "${_iface}" 2>/dev/null || true
+    ;;
+  esac
+
+  sudo resolvectl flush-caches 2>/dev/null || true
+
+  print --success "Stopped Tailscale and reset DNS for the default interface"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: darkman.sh
+# Portal preference config + light/dark GTK theme transition hooks.
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_darkman() {
-  print_info "Setting up Darkman portal configurations and hooks..."
+  print --info "Setting up Darkman portal configurations and hooks..."
 
   _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
   _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
@@ -910,11 +1272,18 @@ setup_darkman() {
     systemctl --user restart darkman.service 2>/dev/null || true
   fi
 
-  print_success "Darkman hooks and portal routing applied"
+  print --success "Darkman hooks and portal routing applied"
 }
 
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: utilities.sh
+# Bulk install of missing optional/additional packages via nix profile.
+# ═══════════════════════════════════════════════════════════════════════════
+
 setup_utilities() {
-  export PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
+  PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
+  export PATH
+
   _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
 
   # shellcheck disable=SC2086
@@ -932,22 +1301,10 @@ setup_utilities() {
   done
 }
 
-fix_net() {
-  sudo tailscale down 2>/dev/null || true
-  sudo pkill tailscaled 2>/dev/null || true
-
-  _iface="$(ip route 2>/dev/null | rg default | awk '{ print $5; exit }')" || _iface=""
-  case "${_iface}" in "") ;; *)
-    sudo resolvectl revert "${_iface}" 2>/dev/null || true
-    ;;
-  esac
-
-  sudo resolvectl flush-caches 2>/dev/null || true
-
-  print_success "Stopped Tailscale and reset DNS for the default interface"
-}
-
-# ── Clipboard ─────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: clipboard.sh
+# Interactive clip() helper for copying file contents to the clipboard.
+# ═══════════════════════════════════════════════════════════════════════════
 
 clip() {
   no_ignore=0
@@ -985,7 +1342,7 @@ clip() {
       case "${exit_code}" in
       0) printf "%s\n" "${target}" ;;
       130)
-        print_warn "clip: cancelled"
+        print --warn "clip: cancelled"
         return 1
         ;;
       *) ;;
@@ -999,7 +1356,7 @@ clip() {
       exit_code=$?
       case "${exit_code:-0}" in
       130)
-        print_warn "clip: cancelled"
+        print --warn "clip: cancelled"
         return 1
         ;;
       *) ;;
@@ -1045,7 +1402,7 @@ clip() {
       esac
 
     else
-      print_error "clip: not found: ${target}"
+      print --error "clip: not found: ${target}"
     fi
   }
 
@@ -1065,21 +1422,21 @@ clip() {
 
   case "${selected}" in
   "")
-    print_error "clip: nothing selected"
+    print --error "clip: nothing selected"
     return 1
     ;;
   *) ;;
   esac
 
   file_count="$(printf "%s\n" "${selected}" | wc -l | tr -d ' ')"
-  print_info "clip: Building content from ${file_count} file(s)..."
+  print --info "clip: Building content from ${file_count} file(s)..."
 
   content=""
   _content_tmp="$(mktemp)"
   printf "%s\n" "${selected}" >"${_content_tmp}"
 
   while IFS= read -r file; do
-    print_verbose "clip: adding ${file}"
+    print --verbose "clip: adding ${file}"
     file_content="$(cat "${file}")"
     # shellcheck disable=SC2016
     content="$(printf '%s```\n# %s\n%s\n```\n\n' \
@@ -1088,17 +1445,18 @@ clip() {
   rm -f "${_content_tmp}"
 
   printf "%s" "${content}" | wl-copy
-  print_info "clip: copied ${file_count} file(s) to clipboard"
+  print --info "clip: copied ${file_count} file(s) to clipboard"
 }
 
-
-# ── Rust ──────────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: rust.sh
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_rust() {
   install() {
     case "$(command -v rustup 2>/dev/null)" in
     "")
-      print_info "Installing rustup..."
+      print --info "Installing rustup..."
       nix profile add "nixpkgs#rustup"
       ;;
     *) ;;
@@ -1109,7 +1467,7 @@ setup_rust() {
     case "$(rustup toolchain list 2>/dev/null)" in
     *"stable"*) ;;
     *)
-      print_info "Setting up stable toolchain..."
+      print --info "Setting up stable toolchain..."
       rustup default stable
       rustup component add clippy rustfmt rust-analyzer
       ;;
@@ -1120,32 +1478,37 @@ setup_rust() {
   apply
 }
 
-# ── Tmux ──────────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: tmux.sh
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_tmux() {
   case "$(command -v tmux 2>/dev/null)" in
   "")
-    print_info "Installing tmux..."
+    print --info "Installing tmux..."
     nix profile add "nixpkgs#tmux"
     ;;
   *) ;;
   esac
 }
 
-
-# ── Remote Code Server ────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: remote_dev.sh
+# VS Code / Zed remote dev bootstrap (env wrapper, ld stub, node,
+# VS Code server env, optional pre-download, sshd).
+# ═══════════════════════════════════════════════════════════════════════════
 
 setup_remote_dev() {
   # Enable on both Victus and QBX
-  case "$(hostname)" in
+  case "${host}" in
   Victus | QBX) ;;
   *)
-    print_info "setup_remote_dev: host not configured for remote dev; skipping"
+    print --info "setup_remote_dev: host not configured for remote dev; skipping"
     return 0
     ;;
   esac
 
-  print_info "Setting up Remote Dev (VS Code & Zed) on $(hostname)..."
+  print --info "Setting up Remote Dev (VS Code & Zed) on ${host}..."
 
   _vscode_bin_dir="$(join_path "${VSCODE_SERVER_DIR}" bin)"
   _zed_data_dir="$(join_path "${XDG_DATA_HOME}" zed)"
@@ -1155,26 +1518,26 @@ setup_remote_dev() {
 
   # 1. Create /usr/bin/env wrapper if missing
   if [ ! -f /usr/bin/env ]; then
-    print_info "Creating /usr/bin/env wrapper for NixOS..."
+    print --info "Creating /usr/bin/env wrapper for NixOS..."
     sudo mkdir -p /usr/bin 2>/dev/null || true
     {
       printf '%s\n' '#!/bin/sh'
       printf '%s\n' 'exec /run/current-system/sw/bin/env "$@"'
     } | sudo tee /usr/bin/env >/dev/null
     sudo chmod +x /usr/bin/env
-    print_success "Created /usr/bin/env"
+    print --success "Created /usr/bin/env"
   fi
 
   # 2. Dynamic linker stub for precompiled ELFs (/lib64/ld-linux-x86-64.so.2)
   if [ ! -f /lib64/ld-linux-x86-64.so.2 ]; then
-    print_info "Creating /lib64/ld-linux-x86-64.so.2 stub..."
+    print --info "Creating /lib64/ld-linux-x86-64.so.2 stub..."
     _system_ld="$(find /run/current-system/sw/lib -maxdepth 1 -name "ld-linux-x86-64.so.*" 2>/dev/null | head -n 1)"
     if [ -n "${_system_ld}" ]; then
       sudo mkdir -p /lib64 2>/dev/null || true
       sudo ln -sf "${_system_ld}" /lib64/ld-linux-x86-64.so.2
-      print_success "Linked /lib64/ld-linux-x86-64.so.2 -> ${_system_ld}"
+      print --success "Linked /lib64/ld-linux-x86-64.so.2 -> ${_system_ld}"
     else
-      print_warn "Could not locate system ld-linux.so loader"
+      print --warn "Could not locate system ld-linux.so loader"
     fi
   fi
 
@@ -1183,7 +1546,7 @@ setup_remote_dev() {
     case "$(nix profile list 2>/dev/null)" in
     *nodejs*) ;;
     *)
-      print_info "Installing nodejs..."
+      print --info "Installing nodejs..."
       nix profile add "nixpkgs#nodejs" 2>/dev/null || true
       ;;
     esac
@@ -1192,22 +1555,26 @@ setup_remote_dev() {
   # 4. Environment setup for VS Code Server
   _nix_sw_libs="/run/current-system/sw/lib:$(join_path "${NIX_PROFILE_DIR}" lib)"
   _vscode_bin="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin"
+  _vscode_server_env="$(join_path "${VSCODE_SERVER_DIR}" env)"
+  _vscode_server_setup="$(join_path "${VSCODE_SERVER_DIR}" server-env-setup)"
 
+  #> Write environment declarations to the env file
   {
     printf '%s\n' '# VS Code Remote Server Environment for NixOS'
     printf '%s\n' "PATH=\"${_vscode_bin}:\${PATH}\""
     printf '%s\n' "LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${LD_LIBRARY_PATH:-}\""
     printf '%s\n' "NIX_LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${NIX_LD_LIBRARY_PATH:-}\""
     printf '%s\n' 'NODE_OPTIONS="--max-old-space-size=4096"'
-  } >"$(join_path "${VSCODE_SERVER_DIR}" env)"
+  } >"${_vscode_server_setup}"
 
+  #> Write the executable setup wrapper script
   {
     printf '%s\n' '#!/usr/bin/env sh'
     printf '%s\n' "export PATH=\"${_vscode_bin}:\${PATH}\""
     printf '%s\n' "export LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${LD_LIBRARY_PATH:-}\""
     printf '%s\n' "export NIX_LD_LIBRARY_PATH=\"${_nix_sw_libs}:\${NIX_LD_LIBRARY_PATH:-}\""
-  } >"$(join_path "${VSCODE_SERVER_DIR}" server-env-setup)"
-  chmod +x "$(join_path "${VSCODE_SERVER_DIR}" server-env-setup)"
+  } >"${_vscode_server_setup}"
+  chmod +x "${_vscode_server_setup}"
 
   # 5. Pre-download VS Code Server commit if supplied as argument
   case "${1:-}" in
@@ -1221,13 +1588,13 @@ setup_remote_dev() {
 
     _vscode_commit_dir="$(join_path "${_vscode_bin_dir}" "${_vscode_commit}")"
     if [ ! -d "${_vscode_commit_dir}" ]; then
-      print_info "Pre-downloading VS Code Server (${_vscode_commit})..."
+      print --info "Pre-downloading VS Code Server (${_vscode_commit})..."
       cd "${_vscode_bin_dir}" || return 1
       if wget -q "https://update.code.visualstudio.com/commit:${_vscode_commit}/server-linux-x64/stable" -O vscode-server-linux-x64.tar.gz; then
         tar -xzf vscode-server-linux-x64.tar.gz
         mv vscode-server-linux-x64 "${_vscode_commit}"
         rm -f vscode-server-linux-x64.tar.gz
-        print_success "VS Code Server pre-downloaded"
+        print --success "VS Code Server pre-downloaded"
       fi
       cd - >/dev/null || return 1
     fi
@@ -1236,21 +1603,25 @@ setup_remote_dev() {
 
   # 6. Ensure SSH service is enabled and running
   if ! systemctl is-active sshd >/dev/null 2>&1; then
-    print_info "Starting sshd..."
+    print --info "Starting sshd..."
     sudo systemctl enable sshd 2>/dev/null || true
     sudo systemctl start sshd 2>/dev/null || true
   fi
 
-  print_success "Remote Dev environment ready on $(hostname)!"
+  print --success "Remote Dev environment ready on ${host}!"
 }
 
-# ── Remote Helix + tmux workflow ──────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: remote_helix.sh
+# push_hx (sync Helix config to preci) + dev (attach/create tmux session
+# on preci over SSH).
+# ═══════════════════════════════════════════════════════════════════════════
 
 push_hx() {
   case "$(command -v rsync 2>/dev/null)" in
   "")
     nix profile add "nixpkgs#rsync" >/dev/null 2>&1 || {
-      print_error "push_hx: failed to install rsync"
+      print --error "push_hx: failed to install rsync"
       return 1
     }
     ;;
@@ -1258,11 +1629,11 @@ push_hx() {
   esac
 
   rsync -av --delete ~/.config/helix/ craole@preci:~/.config/helix/ || {
-    print_error "push_hx: rsync failed"
+    print --error "push_hx: rsync failed"
     return 1
   }
 
-  print_success "push_hx: synced Helix config to preci"
+  print --success "push_hx: synced Helix config to preci"
   case "$(command -v tmux 2>/dev/null)" in
   "") nix profile add "nixpkgs#tmux" >/dev/null 2>&1 ;;
   *) ;;
@@ -1275,7 +1646,7 @@ dev() {
     case "$1" in
     -n | --no-sync) no_sync=1 ;;
     *)
-      print_error "dev: unknown option: $1"
+      print --error "dev: unknown option: $1"
       return 1
       ;;
     esac
@@ -1290,14 +1661,17 @@ dev() {
   ssh craole@preci -t "tmux attach-session -t dots 2>/dev/null || tmux new-session -s dots"
 }
 
-
-# ── Orchestration ─────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: orchestrate.sh
+# execute() dispatches on ${command}, timing each stage in the "all" path.
+# ═══════════════════════════════════════════════════════════════════════════
 
 execute() {
-  cleanup
+  time_stage cleanup cleanup
 
   run() {
     case "${command}" in
+    bin) initialize_bin ;;
     monitors) setup_monitors ;;
     tailscale) setup_tailscale ;;
     utilities) setup_utilities ;;
@@ -1305,18 +1679,18 @@ execute() {
     tmux) setup_tmux ;;
     xdg) setup_xdg_open ;;
     portals) setup_portals ;;
-    remote-dev) setup_remote_dev ;;
+    remote-dev) setup_remote_dev "${@}" ;;
     darkman) setup_darkman ;;
     all)
-      setup_xdg_open
-      setup_portals
-      setup_monitors
-      setup_tailscale
-      setup_darkman
-      setup_utilities
-      setup_remote_dev
-      setup_rust
-      setup_tmux
+      time_stage xdg setup_xdg_open
+      time_stage portals setup_portals
+      time_stage monitors setup_monitors
+      time_stage tailscale setup_tailscale
+      time_stage darkman setup_darkman
+      time_stage utilities setup_utilities
+      time_stage remote-dev setup_remote_dev "${@}"
+      time_stage rust setup_rust
+      time_stage tmux setup_tmux
       ;;
     *) ;;
     esac
@@ -1325,7 +1699,7 @@ execute() {
   case "${verbosity}" in
   verbose)
     set -x
-    run
+    run "${@}"
     set +x
     ;;
   dry | debug)
@@ -1346,14 +1720,15 @@ execute() {
   esac
 }
 
-# ── Argument Parsing ──────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: args.sh
+# Argument parsing (command selection, monitor overrides, verbosity flags).
+# ═══════════════════════════════════════════════════════════════════════════
 
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    monitors | tailscale | utilities | darkman | rust | tmux | xdg | portals | remote-dev | info | all)
-      command="$1"
-      ;;
+    monitors | tailscale | utilities | darkman | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
 
     --monitor-pri-disable) monitor_pri_disable=1 ;;
     --monitor-pri-enable) monitor_pri_disable=0 ;;
@@ -1443,7 +1818,7 @@ parse_arguments() {
       help_requested=1
       ;;
     *)
-      print_error "Unknown option: $1"
+      print --error "Unknown option: $1"
       show_info
       return 1
       ;;
@@ -1452,7 +1827,11 @@ parse_arguments() {
   done
 }
 
-# ── Info ─────────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: info.sh
+# Detection (compositor, monitors, tailscale, app status) and the
+# show_info() help/status renderer.
+# ═══════════════════════════════════════════════════════════════════════════
 
 collect_info() {
   detect_compositor
@@ -1494,7 +1873,7 @@ detect_tailscale_status() {
     fi
 
     tailscale_details="$(
-      printf '%s\n' "${tailscale_output:-\(no status output\)}" |
+      printf '%s\n' "${tailscale_output:-(no status output)}" |
         sed 's/^/    /'
     )"
   fi
@@ -1647,13 +2026,13 @@ detect_monitors() {
   fi
 
   case "${detected_monitor_signature}" in
-  "") configuration_details="${configured_monitors:- \(none configured)}" ;;
-  "${configured_monitor_signature}") configuration_details="${configured_monitors:- \(none configured)}" ;;
+  "") configuration_details="${configured_monitors:-(none configured)}" ;;
+  "${configured_monitor_signature}") configuration_details="${configured_monitors:-(none configured)}" ;;
   *) configuration_details="### Detected
-${detected_monitors:- \(none detected)}
+${detected_monitors:-(none detected)}
 
 ### Intended
-${configured_monitors:- \(none configured)}" ;;
+${configured_monitors:-(none configured)}" ;;
   esac
 }
 
@@ -1677,15 +2056,16 @@ show_app_status() {
   _additional_app_details="$(format_app_status "${_additional_packages}")"
 
   application_details="$(
-    printf '## Required\n%s\n\n' "${_required_app_details:- \(none configured)}"
-    printf '## Optional\n%s\n\n' "${_optional_app_details:- \(none configured)}"
-    printf '## Additional\n%s' "${_additional_app_details:- \(none configured)}"
+    printf '## Required\n%s\n\n' "${_required_app_details:-(none configured)}"
+    printf '## Optional\n%s\n\n' "${_optional_app_details:-(none configured)}"
+    printf '## Additional\n%s' "${_additional_app_details:-(none configured)}"
   )"
 }
 
 show_info() {
+  bt='`'
   _info="$(
-    printf '_Usage_        `. %s [COMMAND] [OPTIONS]`\n' "${name}"
+    printf '_Usage_        %s. %s [COMMAND] [OPTIONS]%s\n' "${bt}" "${name}" "${bt}"
     printf '_Description_  %s\n' "${description}"
     printf '_Path_         %s\n' "${path}"
     printf '_Author_       %s\n' "${author}"
@@ -1696,7 +2076,7 @@ show_info() {
     printf '_Verbosity_    %s\n' "${verbosity}"
     printf '\n'
 
-    printf '# APPLICATIONS\n%s\n\n' "${application_details:- \(none configured)}"
+    printf '# APPLICATIONS\n%s\n\n' "${application_details:-(none configured)}"
 
     printf '# COMMANDS\n'
     printf '  **info**           Show script, runtime, and configuration information\n'
@@ -1713,15 +2093,15 @@ show_info() {
 
     printf '# OPTIONS\n\n'
     printf '## GENERAL\n'
-    printf '  `-h, --help   `            Show this help\n'
-    printf '  `-q, --quiet  `            Suppress all output\n'
-    printf '  `-d, --debug  `            Show detailed internal progress\n'
-    printf '  `-v, --verbose`            Show all commands as they run\n'
-    printf '  `    --dry-run`            Show what would be done without doing it\n'
+    printf '  %s-h, --help   %s            Show this help\n' "${bt}" "${bt}"
+    printf '  %s-q, --quiet  %s            Suppress all output\n' "${bt}" "${bt}"
+    printf '  %s-d, --debug  %s            Show detailed internal progress\n' "${bt}" "${bt}"
+    printf '  %s-v, --verbose%s            Show all commands as they run\n' "${bt}" "${bt}"
+    printf '  %s    --dry-run%s            Show what would be done without doing it\n' "${bt}" "${bt}"
     printf '\n'
 
     printf '## MONITOR\n'
-    printf '  `--monitor-{tag}-{flag}`   Set monitor configuration\n'
+    printf '  %s--monitor-{tag}-{flag}%s   Set monitor configuration\n' "${bt}" "${bt}"
     printf '\n'
 
     printf '### Tags\n'
@@ -1744,23 +2124,34 @@ show_info() {
     printf '## TAILSCALE (%s)\n%s\n\n' "${tailscale_status}" "${tailscale_details}"
 
     printf '# NOTES\n'
-    printf -- '- Defaults are host-specific, resolved via `hostname`\n'
+    printf -- '- Defaults are host-specific, resolved via %shostname%s\n' "${bt}" "${bt}"
     printf -- '- DE/WM is auto-detected via session environment\n'
-    printf -- '- When sourced exported variables persist in the parent shell: `. %s`\n' "${name}"
-    printf -- '- When called as a subshell variables are lost: `%s`\n' "${name}"
+    printf -- '- When sourced exported variables persist in the parent shell: %s. %s%s\n' "${bt}" "${name}" "${bt}"
+    printf -- '- When called as a subshell variables are lost: %s%s%s\n' "${bt}" "${name}" "${bt}"
   )"
-
-  print_markdown "${_info}"
+  print --markdown "${_info}"
 }
 
-# ── Entry Point ───────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: main.sh
+# Entry point — this is the only part that should stay in the top-level
+# file once the sections above move out. It just sources/calls each stage
+# in order, exactly as shown below.
+# ═══════════════════════════════════════════════════════════════════════════
 
 main() {
   configure || return 1
+  initialize_logger
+  configure_host_profile || return 1
+  configure_packages
   parse_arguments "$@" || return 1
-  collect_info || return 1
+
+  # time_stage flake initialize_flake
+  time_stage environment collect_info || return 1
+
   case "${help_requested}:${command}" in
   1:* | *:info) show_info ;;
   *) execute ;;
   esac
-} && main "$@"
+}
+main "$@"

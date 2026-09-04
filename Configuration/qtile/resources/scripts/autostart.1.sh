@@ -2,13 +2,14 @@
 #shellcheck enable=all
 
 function run() {
-  if ! pgrep -x "$(basename "$1" | head -c 15)" 1>/dev/null; then
+  first_lines="$(basename "$1" | head -c 15)"
+  if ! pgrep -x "${first_lines}" 1>/dev/null; then
     "$@" &
   fi
 }
 
-Qtile="$HOME/.config/qtile"
-Qrun="$Qtile/resourses/scripts"
+Qtile="${HOME}/.config/qtile"
+Qrun="${Qtile}/resourses/scripts"
 Qconf="$Qtile/resourses/config"
 # WALLPAPERS="$HOME/Pictures/Wallpapers"
 
