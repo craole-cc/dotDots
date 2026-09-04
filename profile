@@ -146,6 +146,7 @@ configure_packages() {
     tokei
     wl-clipboard
     xdg-desktop-portal
+    xdg-desktop-portal-gtk
     xdg-desktop-portal-hyprland
     zoxide
   "
@@ -1228,12 +1229,26 @@ setup_darkman() {
   _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
   _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
 
+  #? Same compositor -> portal-name mapping as setup_portals; the
+  #? "default=" value here is the portal implementation's own name
+  #? (from its .portal file), not the compositor name itself, so
+  #? niri (gnome backend) and mango (wlr backend) mustn't fall
+  #? through to a literal "niri"/"mango" that no backend answers to.
+  case "${compositor:-}" in
+  hyprland) _portal_default_name="hyprland" ;;
+  niri) _portal_default_name="gnome" ;;
+  mango) _portal_default_name="wlr" ;;
+  cosmic) _portal_default_name="cosmic" ;;
+  *) _portal_default_name="" ;;
+  esac
+
   # 1. Portals configuration
   mkdir -p "${_portal_conf_dir}"
   {
     printf '%s\n' '[preferred]'
-    printf '%s\n' 'default=gtk'
+    printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
     printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
+    printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
     printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
   } >"$(join_path "${_portal_conf_dir}" portals.conf)"
 
@@ -1365,7 +1380,7 @@ setup_lorri() {
 
     # Start (or restart) so a rewritten unit/PATH is picked up.
     systemctl --user daemon-reload 2>/dev/null || true
-    systemctl --user restart lorri.service >/dev/null 2>&1 || \
+    systemctl --user restart lorri.service >/dev/null 2>&1 ||
       systemctl --user start lorri.service >/dev/null 2>&1 || true
 
     if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
@@ -1813,12 +1828,12 @@ execute() {
     lorri) setup_lorri ;;
     all)
       time_stage xdg setup_xdg_open
+      time_stage utilities setup_utilities
+      time_stage darkman setup_darkman
       time_stage portals setup_portals
       time_stage monitors setup_monitors
       time_stage tailscale setup_tailscale
-      time_stage darkman setup_darkman
       time_stage lorri setup_lorri
-      time_stage utilities setup_utilities
       time_stage remote-dev setup_remote_dev "${@}"
       time_stage rust setup_rust
       time_stage tmux setup_tmux
@@ -2314,7 +2329,8 @@ initialize_flake() {
   *)
     # shellcheck disable=SC2312
     eval "${_lorri_env}"
-    print --verbose "lorri: loaded cached evaluation into this shell"
+    print --debug \
+      "lorri: loaded cached evaluation into this shell"
     ;;
   esac
 }
