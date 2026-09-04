@@ -1318,8 +1318,10 @@ setup_lorri() {
       printf '%s\n' 'WantedBy=sockets.target'
     } >"$(join_path "${_unit_dir}" lorri.socket)"
 
-    # Service unit — use the resolved binary path so it works whether
-    # lorri lives in ~/.nix-profile or another NIX_PROFILES entry.
+    # Service unit — resolved binary + a PATH that includes nix/git/tar.
+    # systemd user units do not inherit the login PATH, so without this
+    # the daemon starts but never evaluates (no `nix` on PATH).
+    _lorri_path="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin:${HOME}/.nix-profile/bin:/etc/profiles/per-user/${USER:-$(id -un)}/bin:/usr/bin:/bin"
     {
       printf '%s\n' '[Unit]'
       printf '%s\n' 'Description=Lorri Daemon'
@@ -1328,8 +1330,8 @@ setup_lorri() {
       printf '%s\n' ''
       printf '%s\n' '[Service]'
       printf '%s\n' "ExecStart=${_lorri_bin} daemon"
+      printf '%s\n' "Environment=PATH=${_lorri_path}"
       printf '%s\n' 'PrivateTmp=true'
-      printf '%s\n' 'ProtectSystem=full'
       printf '%s\n' 'Restart=on-failure'
     } >"$(join_path "${_unit_dir}" lorri.service)"
   }
@@ -1361,14 +1363,22 @@ setup_lorri() {
       }
     fi
 
-    # Optionally ensure the service itself is ready if something already connected
-    systemctl --user start lorri.service >/dev/null 2>&1 || true
+    # Start (or restart) so a rewritten unit/PATH is picked up.
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user restart lorri.service >/dev/null 2>&1 || \
+      systemctl --user start lorri.service >/dev/null 2>&1 || true
 
     if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
       print --success "lorri daemon (socket-activated) is enabled and running"
     else
       print --warn "setup_lorri: lorri.socket is not active after start attempt"
       return 1
+    fi
+
+    if systemctl --user is-active lorri.service >/dev/null 2>&1; then
+      print --verbose "lorri.service is active"
+    else
+      print --warn "lorri.service is not active; check: journalctl --user -u lorri.service"
     fi
   }
 

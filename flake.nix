@@ -188,9 +188,8 @@
   };
 
   outputs = inputs: let
-    nixpkgsTag = "nixPackages";
-
     lib = import ./. {
+      nixpkgsTag = "nixPackages";
       inherit inputs;
       # inherit inputs nixpkgsTag;
       # inherit (inputs.${nixpkgsTag}) lib;
