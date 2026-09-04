@@ -1276,6 +1276,125 @@ setup_darkman() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+# SECTION: lorri.sh
+# Install lorri if missing and ensure the user systemd socket-activated
+# daemon is enabled and running.
+# ═══════════════════════════════════════════════════════════════════════════
+
+setup_lorri() {
+  install() {
+    case "$(command -v lorri 2>/dev/null)" in
+    "")
+      print --info "Installing lorri from nixpkgs..."
+      NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#lorri" || return 1
+      ;;
+    *) ;;
+    esac
+  }
+
+  write_units() {
+    _unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
+    mkdir -p "${_unit_dir}"
+
+    _lorri_bin="$(command -v lorri 2>/dev/null)"
+    case "${_lorri_bin}" in
+    "")
+      print --error "setup_lorri: lorri binary not found after install"
+      return 1
+      ;;
+    *) ;;
+    esac
+
+    # Socket unit (socket-activated)
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Socket for Lorri Daemon'
+      printf '%s\n' ''
+      printf '%s\n' '[Socket]'
+      printf '%s\n' 'ListenStream=%t/lorri/daemon.socket'
+      printf '%s\n' 'RuntimeDirectory=lorri'
+      printf '%s\n' ''
+      printf '%s\n' '[Install]'
+      printf '%s\n' 'WantedBy=sockets.target'
+    } >"$(join_path "${_unit_dir}" lorri.socket)"
+
+    # Service unit — use the resolved binary path so it works whether
+    # lorri lives in ~/.nix-profile or another NIX_PROFILES entry.
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Lorri Daemon'
+      printf '%s\n' 'Requires=lorri.socket'
+      printf '%s\n' 'After=lorri.socket'
+      printf '%s\n' ''
+      printf '%s\n' '[Service]'
+      printf '%s\n' "ExecStart=${_lorri_bin} daemon"
+      printf '%s\n' 'PrivateTmp=true'
+      printf '%s\n' 'ProtectSystem=full'
+      printf '%s\n' 'Restart=on-failure'
+    } >"$(join_path "${_unit_dir}" lorri.service)"
+  }
+
+  enable_and_start() {
+    if ! command -v systemctl >/dev/null 2>&1; then
+      print --warn "setup_lorri: systemctl not available; start with: lorri daemon"
+      return 1
+    fi
+
+    systemctl --user daemon-reload 2>/dev/null || true
+
+    if systemctl --user is-enabled lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already enabled"
+    else
+      systemctl --user enable lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to enable lorri.socket"
+        return 1
+      }
+    fi
+
+    # Start the socket (daemon starts on first client connection)
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already active"
+    else
+      systemctl --user start lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to start lorri.socket"
+        return 1
+      }
+    fi
+
+    # Optionally ensure the service itself is ready if something already connected
+    systemctl --user start lorri.service >/dev/null 2>&1 || true
+
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --success "lorri daemon (socket-activated) is enabled and running"
+    else
+      print --warn "setup_lorri: lorri.socket is not active after start attempt"
+      return 1
+    fi
+  }
+
+  # Register this directory so the daemon starts the first evaluation.
+  # `lorri watch` is a one-shot ping (not a long-running foreground process).
+  watch_project() {
+    if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+      print --verbose "lorri: no flake.nix/shell.nix/default.nix here; skip watch"
+      return 0
+    fi
+
+    if lorri watch >/dev/null 2>&1; then
+      print --info "lorri: registered $(pwd -P) for background evaluation"
+    else
+      print --warn "lorri: failed to register this project with the daemon"
+      return 1
+    fi
+  }
+
+  install || return 1
+  write_units || return 1
+  enable_and_start || return 1
+  watch_project
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 # SECTION: utilities.sh
 # Bulk install of missing optional/additional packages via nix profile.
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1681,12 +1800,14 @@ execute() {
     portals) setup_portals ;;
     remote-dev) setup_remote_dev "${@}" ;;
     darkman) setup_darkman ;;
+    lorri) setup_lorri ;;
     all)
       time_stage xdg setup_xdg_open
       time_stage portals setup_portals
       time_stage monitors setup_monitors
       time_stage tailscale setup_tailscale
       time_stage darkman setup_darkman
+      time_stage lorri setup_lorri
       time_stage utilities setup_utilities
       time_stage remote-dev setup_remote_dev "${@}"
       time_stage rust setup_rust
@@ -1728,7 +1849,7 @@ execute() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    monitors | tailscale | utilities | darkman | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
+    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
 
     --monitor-pri-disable) monitor_pri_disable=1 ;;
     --monitor-pri-enable) monitor_pri_disable=0 ;;
@@ -2087,6 +2208,7 @@ show_info() {
     printf '  **tmux**           Install tmux\n'
     printf '  **portals**        Configure and restart XDG desktop portals\n'
     printf '  **darkman**        Configure Darkman theme hooks and portal settings\n'
+    printf '  **lorri**          Install lorri and enable the socket-activated daemon\n'
     printf '  **remote-dev**     Configure VS Code & Zed Remote Dev (Victus & QBX)\n'
     printf '  **all**            Run all setup steps (default)\n'
     printf '\n'
@@ -2139,6 +2261,54 @@ show_info() {
 # in order, exactly as shown below.
 # ═══════════════════════════════════════════════════════════════════════════
 
+initialize_flake() {
+  if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+    return 0
+  fi
+
+  # direnv stdlib (`watch_file`, `use`) exists only while evaluating .envrc.
+  # `lorri export direnv-adapter` emits watch_file — never eval it in a
+  # normal shell (that is the `bash: watch_file: command not found` error).
+  if [ -n "${DIRENV_IN_ENVRC:-}" ]; then
+    case "${1:-}" in
+    --impure)
+      #TODO: This should be done in overlays, but it's not working right now
+      NIXPKGS_ALLOW_UNFREE=1
+      export NIXPKGS_ALLOW_UNFREE
+      use flake . --no-pure-eval
+      ;;
+    *)
+      if command -v lorri >/dev/null 2>&1; then
+        # shellcheck disable=SC2312
+        eval "$(lorri export direnv-adapter)"
+      else
+        use flake
+      fi
+      ;;
+    esac
+    return 0
+  fi
+
+  command -v lorri >/dev/null 2>&1 || return 0
+
+  # Register with the daemon (no-op if already watched) then load the last
+  # completed evaluation into this shell. Do not wait for the first build.
+  lorri watch >/dev/null 2>&1 || true
+
+  _lorri_env="$(lorri export bash 2>/dev/null)" || _lorri_env=""
+  case "${_lorri_env}" in
+  "")
+    print --info \
+      "lorri: no completed evaluation yet; daemon is building in the background"
+    ;;
+  *)
+    # shellcheck disable=SC2312
+    eval "${_lorri_env}"
+    print --verbose "lorri: loaded cached evaluation into this shell"
+    ;;
+  esac
+}
+
 main() {
   configure || return 1
   initialize_logger
@@ -2146,12 +2316,15 @@ main() {
   configure_packages
   parse_arguments "$@" || return 1
 
-  # time_stage flake initialize_flake
   time_stage environment collect_info || return 1
 
   case "${help_requested}:${command}" in
   1:* | *:info) show_info ;;
-  *) execute ;;
+  *)
+    execute
+    # After the daemon is up so `lorri watch` / export can talk to it.
+    time_stage flake initialize_flake
+    ;;
   esac
 }
 main "$@"
