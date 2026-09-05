@@ -78,8 +78,8 @@ configure() {
 configure_packages() {
   packages="
     alejandra
-    antigravity-cli
-    antigravity-fhs
+    # antigravity-cli
+    # antigravity-fhs
     bat
     biome
     bottom
@@ -92,9 +92,9 @@ configure_packages() {
     fzf
     gawk
     gh
+    gitui
     gnome-keyring
     gnused
-    gitui
     gum
     hyperfine
     hyprland
@@ -107,10 +107,13 @@ configure_packages() {
     ripgrep
     rustup
     shellcheck
+    shellcheck
+    shfmt
     shfmt
     shortwave
     speedtest-go
     speedtest-rs
+    statix
     sudo
     tailscale
     tealdeer
@@ -118,12 +121,21 @@ configure_packages() {
     typos
     wl-clipboard
     xdg-desktop-portal
-    # xdg-desktop-portal-wlr
     xdg-desktop-portal-gtk
     xdg-desktop-portal-hyprland
     zoxide
   "
-  dependencies_required="gawk gnused lorri ripgrep fd sudo"
+  dependencies_required="
+    alejandra
+    darkman
+    fd
+    gawk
+    gnused
+    lorri
+    ripgrep
+    statix
+    sudo
+  "
   dependencies_optional="
     bat
     bottom
