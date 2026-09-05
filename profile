@@ -13,7 +13,7 @@ configure() {
   path="${home}/${name}"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.2.6"
+  version="0.3.0"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
   verbosity="debug" #? Levels: quiet | info | debug | trace
@@ -24,11 +24,11 @@ configure() {
   #? Common roots reused throughout; join_path builds anything deeper.
   #? XDG vars are self-assigned with fallback and exported so any child
   #? process (or gum/gsettings/etc.) sees the same values we resolve here.
-  NIX_PROFILE_DIR="$(find_nix_profile_dir)"
-  VSCODE_SERVER_DIR="${HOME}/.vscode-server"
-  XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
-  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
-  XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
+  NIX_PROFILE_DIR="$(find_nix_profile_dir)" 
+  VSCODE_SERVER_DIR="${HOME}/.vscode-server" # TODO: Thi should use join_path
+  XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}" # TODO: Thi should use join_path
+  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}" # TODO: Thi should use join_path
+  XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}" # TODO: Thi should use join_path
   #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
   #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
   XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
@@ -81,6 +81,7 @@ configure_packages() {
     antigravity-cli
     antigravity-fhs
     bat
+    biome
     bottom
     cfspeedtest
     darkman
@@ -97,6 +98,8 @@ configure_packages() {
     gum
     hyperfine
     hyprland
+    jj-starship
+    jujutsu
     lorri
     nix-ld
     nodejs
@@ -112,12 +115,12 @@ configure_packages() {
     tailscale
     tealdeer
     tokei
+    typos
     wl-clipboard
     xdg-desktop-portal
-    xdg-desktop-portal-wlr
+    # xdg-desktop-portal-wlr
     xdg-desktop-portal-gtk
     xdg-desktop-portal-hyprland
-    kdePackages.xdg-desktop-portal-kde
     zoxide
   "
   dependencies_required="gawk gnused lorri ripgrep fd sudo"
@@ -866,7 +869,7 @@ setup_portals() {
       "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP}" \
       "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
     chkpath "02-after-push-1"
-    systemctl --user unset-environment PATH 2>/dev/null || true
+    # systemctl --user unset-environment PATH 2>/dev/null || true
     chkpath "03-after-unset-1"
   fi
 
@@ -885,7 +888,7 @@ setup_portals() {
       "XDG_CURRENT_DESKTOP=${_xdg_current_desktop}" \
       "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
     chkpath "06-after-push-2"
-    systemctl --user unset-environment PATH 2>/dev/null || true
+    # systemctl --user unset-environment PATH 2>/dev/null || true
     chkpath "07-after-unset-2"
   fi
 
@@ -903,7 +906,7 @@ setup_portals() {
     chkpath "10-after-start-gtk"
     systemctl --user start xdg-desktop-portal.service 2>/dev/null || true
     chkpath "11-after-start-main"
-    systemctl --user unset-environment PATH 2>/dev/null || true
+    # systemctl --user unset-environment PATH 2>/dev/null || true
     chkpath "12-after-final-unset"
     print --success "Restarted XDG portals (GTK backend for OpenURI)"
   else
@@ -1428,42 +1431,42 @@ setup_tailscale() {
     daemon_ready
   }
 
-   start_manual() {
-     if pgrep -x tailscaled >/dev/null 2>&1; then
-       return 0
-     fi
- 
-     launch() {
-       mkdir -p "${HOME}/.cache/tailscale"
-       sudo tailscaled \
-         --state=/var/lib/tailscale/tailscaled.state \
-         --socket=/run/tailscale/tailscaled.sock \
-         --port=0 \
-         >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
- 
-       _i=0
-       while [ "${_i}" -lt 20 ]; do
-         daemon_ready && return 0
-         sleep 0.25
-         _i=$((_i + 1))
-       done
-       return 1
-     }
- 
-     launch && return 0
- 
-     # First attempt failed; the stale-socket case is the common culprit.
-     # No process is running (we already checked pgrep above), so it's
-     # safe to clear a leftover lock/socket and retry once.
-     print --warn "tailscaled failed to start; clearing stale socket and retrying"
-     sudo rm -f /run/tailscale/tailscaled.sock
-     sudo systemctl reset-failed tailscaled.service >/dev/null 2>&1 || true
- 
-     launch && return 0
- 
-     print --error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
-     return 1
-   }
+  start_manual() {
+    if pgrep -x tailscaled >/dev/null 2>&1; then
+      return 0
+    fi
+
+    launch() {
+      mkdir -p "${HOME}/.cache/tailscale"
+      sudo tailscaled \
+        --state=/var/lib/tailscale/tailscaled.state \
+        --socket=/run/tailscale/tailscaled.sock \
+        --port=0 \
+        >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
+
+      _i=0
+      while [ "${_i}" -lt 20 ]; do
+        daemon_ready && return 0
+        sleep 0.25
+        _i=$((_i + 1))
+      done
+      return 1
+    }
+
+    launch && return 0
+
+    # First attempt failed; the stale-socket case is the common culprit.
+    # No process is running (we already checked pgrep above), so it's
+    # safe to clear a leftover lock/socket and retry once.
+    print --warn "tailscaled failed to start; clearing stale socket and retrying"
+    sudo rm -f /run/tailscale/tailscaled.sock
+    sudo systemctl reset-failed tailscaled.service >/dev/null 2>&1 || true
+
+    launch && return 0
+
+    print --error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
+    return 1
+  }
 
   connect() {
     if ! daemon_ready; then
@@ -2427,7 +2430,7 @@ initialize_flake() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" ;;
+    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" ;;
     --monitor-pri-disable) monitor_pri_disable=1 ;;
     --monitor-pri-enable) monitor_pri_disable=0 ;;
     --monitor-pri-name)
