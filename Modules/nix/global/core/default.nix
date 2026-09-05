@@ -133,7 +133,9 @@
     fi
 
     #> Display shell information with the defined fetcher
-    ${fetch.name}
+      if [ -t 1 ]; then
+        ${fetch.name}
+      fi
   '';
 in {
   inherit
