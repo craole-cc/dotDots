@@ -13,7 +13,7 @@ configure() {
   path="${home}/${name}"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.3.0"
+  version="0.3.1"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
   verbosity="debug" #? Levels: quiet | info | debug | trace
@@ -24,16 +24,16 @@ configure() {
   #? Common roots reused throughout; join_path builds anything deeper.
   #? XDG vars are self-assigned with fallback and exported so any child
   #? process (or gum/gsettings/etc.) sees the same values we resolve here.
-  NIX_PROFILE_DIR="$(find_nix_profile_dir)" 
-  VSCODE_SERVER_DIR="${HOME}/.vscode-server" # TODO: Thi should use join_path
-  XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}" # TODO: Thi should use join_path
-  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}" # TODO: Thi should use join_path
-  XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}" # TODO: Thi should use join_path
+  NIX_PROFILE_DIR="$(find_nix_profile_dir)"
+  VSCODE_SERVER_DIR="${VSCODE_SERVER_DIR:-$(join_path "${HOME}" .vscode-server)}"
+  XDG_CACHE_HOME="${XDG_CACHE_HOME:-$(join_path "${HOME}" .cache)}"
+  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$(join_path "${HOME}" .config)}"
+  XDG_DATA_HOME="${XDG_DATA_HOME:-$(join_path "${HOME}" .local/share)}"
   #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
   #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
   XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
   #? Always include ~/.local/share first (for portal overrides) and keep existing entries
-  XDG_DATA_DIRS="${XDG_DATA_HOME:-${HOME}/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  XDG_DATA_DIRS="${XDG_DATA_HOME:-${XDG_DATA_HOME}}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   USER_ID="$(id -u || true)"
   XDG_RUNTIME_DIR="$(join_path "/run/user" "${USER_ID}")"
   export \
@@ -777,6 +777,138 @@ enable_gnome_keyring() {
   print --success "gnome-keyring running"
 }
 
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: darkman.sh
+# Runs darkman as a systemd user service so xdg-desktop-portal's Settings
+# backend (org.freedesktop.impl.portal.Settings=darkman, per portals.conf)
+# has something real to query. darkman must be up before the portal is
+# (re)started — ordering matters — so this is called from setup_portals
+# before the restart sequence, not left to D-Bus auto-activation alone.
+# ═══════════════════════════════════════════════════════════════════════════
+
+setup_darkman() {
+  #? darkman is already declared in dependencies_optional and installed
+  #? by setup_utilities, which runs before this in the `all` pipeline.
+  #? No install-if-missing check here — that would duplicate the same
+  #? logic setup_utilities already owns. If darkman genuinely isn't on
+  #? PATH when this runs, the binary-not-found check below catches it
+  #? and reports clearly rather than silently reinstalling.
+  _dm_unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
+
+  _dm_bin="$(command -v darkman 2>/dev/null)"
+  case "${_dm_bin}" in
+  "")
+    print --error "setup_darkman: darkman not found on PATH (expected setup_utilities to have installed it)"
+    return 1
+    ;;
+  *) ;;
+  esac
+
+  #? A minimal darkman.conf, only written if absent — this never
+  #? overwrites hand-tuned config (location for sunrise/sunset, etc).
+  _dm_conf_dir="$(join_path "${XDG_CONFIG_HOME}" darkman)"
+  _dm_conf="$(join_path "${_dm_conf_dir}" config.yaml)"
+  if [ ! -f "${_dm_conf}" ]; then
+    mkdir -p "${_dm_conf_dir}"
+    {
+      printf '%s\n' 'usegeoclue: false'
+    } >"${_dm_conf}"
+    print --info "setup_darkman: wrote minimal ${_dm_conf} (usegeoclue: false; run 'darkman set light|dark' or 'darkman toggle' manually, or add lat/lng for sunrise/sunset automation)"
+  fi
+
+  #? Service unit — darkman must be ready before xdg-desktop-portal
+  #? starts. We don't set BusName/Type=dbus here since darkman handles
+  #? its own bus acquisition; ordering (Before=) is what matters.
+  #? ~/.config is declaratively managed (home-manager) on this setup,
+  #? and specific subpaths under it can be read-only even though the
+  #? directory itself exists and other files inside it (e.g. lorri's
+  #? own unit) are writable. Detect that case rather than let a bare
+  #? redirect fail loudly mid-function, and fall back to a
+  #? non-managed unit search path systemd --user also honors.
+  mkdir -p "${_dm_unit_dir}" 2>/dev/null
+  if [ ! -w "${_dm_unit_dir}" ]; then
+    _dm_unit_dir="$(join_path "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" systemd user)"
+    mkdir -p "${_dm_unit_dir}" || {
+      print --error "setup_darkman: ${XDG_CONFIG_HOME}/systemd/user is read-only and fallback ${_dm_unit_dir} could not be created"
+      return 1
+    }
+    print --info "setup_darkman: ~/.config/systemd/user is read-only (home-manager?); writing unit to ${_dm_unit_dir} instead"
+  fi
+
+  {
+    printf '%s\n' '[Unit]'
+    printf '%s\n' 'Description=Darkman dark-mode/light-mode daemon'
+    printf '%s\n' 'Before=xdg-desktop-portal.service'
+    printf '%s\n' ''
+    printf '%s\n' '[Service]'
+    printf '%s\n' "ExecStart=${_dm_bin} run"
+    printf '%s\n' 'Restart=on-failure'
+    printf '%s\n' ''
+    printf '%s\n' '[Install]'
+    printf '%s\n' 'WantedBy=default.target'
+  } >"$(join_path "${_dm_unit_dir}" darkman.service)" || {
+    print --error "setup_darkman: failed to write darkman.service to ${_dm_unit_dir}"
+    return 1
+  }
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    print --warn "setup_darkman: systemctl not available; start manually with: darkman run"
+    return 1
+  fi
+
+  systemctl --user daemon-reload 2>/dev/null || true
+
+  if systemctl --user is-enabled darkman.service >/dev/null 2>&1; then
+    print --verbose "darkman.service already enabled"
+  else
+    systemctl --user enable darkman.service >/dev/null 2>&1 || {
+      print --warn "setup_darkman: failed to enable darkman.service"
+      return 1
+    }
+  fi
+
+  systemctl --user restart darkman.service >/dev/null 2>&1 ||
+    systemctl --user start darkman.service >/dev/null 2>&1 || {
+    print --warn "setup_darkman: failed to start darkman.service"
+    return 1
+  }
+
+  #? Give darkman a moment to acquire its bus name before anything
+  #? (notably xdg-desktop-portal, started right after this returns)
+  #? tries to query it.
+  _dm_i=0
+  while [ "${_dm_i}" -lt 20 ]; do
+    systemctl --user is-active darkman.service >/dev/null 2>&1 && break
+    sleep 0.25
+    _dm_i=$((_dm_i + 1))
+  done
+
+  if systemctl --user is-active darkman.service >/dev/null 2>&1; then
+    print --success "darkman running ($(darkman get 2>/dev/null || printf 'mode unknown'))"
+  else
+    print --warn "setup_darkman: darkman.service did not become active"
+    return 1
+  fi
+}
+
+# ------------------------------------------------------------------------------
+# darkman_toggle — manual light/dark switch, for a keybind or command alias.
+# Unlike setup_darkman (idempotent service bring-up), this is meant to be
+# invoked interactively/from a hotkey.
+# ------------------------------------------------------------------------------
+darkman_toggle() {
+  case "$(command -v darkman 2>/dev/null)" in
+  "")
+    print --error "darkman_toggle: darkman not installed; run: . \$DOTS/profile darkman"
+    return 1
+    ;;
+  *) ;;
+  esac
+
+  darkman toggle
+  print --info "darkman: now $(darkman get 2>/dev/null || printf 'unknown')"
+}
+
 setup_portals() {
   setup_xdg_open
   setup_xdg_data_dirs
@@ -820,6 +952,14 @@ setup_portals() {
   *) ;;
   esac
 
+  #? darkman is named as the Settings portal backend below
+  #? (org.freedesktop.impl.portal.Settings=darkman). It must be up and
+  #? holding its D-Bus name BEFORE xdg-desktop-portal (re)starts, or the
+  #? Settings queries it makes on startup have nothing to answer them —
+  #? this is the actual reason color-scheme-aware apps (Zed included)
+  #? silently fail to follow darkman toggles.
+  setup_darkman || print --warn "setup_portals: darkman did not come up cleanly; color-scheme switching may not work"
+
   # Centralized portals.conf Generation
   _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
   mkdir -p "${_portal_conf_dir}"
@@ -854,60 +994,38 @@ setup_portals() {
     esac
   }
 
-  #? TEMPORARY DIAGNOSTIC — remove once the corrupting line is found.
-  chkpath() {
-    print --debug "PATHCHK[$1]: $(systemctl --user show-environment 2>/dev/null | grep -i '^PATH=')"
-  }
-
-  chkpath "00-entry"
-
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
-    chkpath "01-after-import-1"
     push_portal_env \
       "XDG_DATA_DIRS=${XDG_DATA_DIRS}" \
       "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP}" \
       "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
-    chkpath "02-after-push-1"
-    # systemctl --user unset-environment PATH 2>/dev/null || true
-    chkpath "03-after-unset-1"
   fi
 
   # Stop systemd services completely to clear cached backends
   if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
     systemctl --user stop xdg-desktop-portal-gtk.service "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
   fi
-  chkpath "04-after-stop"
 
   # Push environment
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
-    chkpath "05-after-import-2"
     push_portal_env \
       "XDG_DATA_DIRS=${XDG_DATA_DIRS}" \
       "XDG_CURRENT_DESKTOP=${_xdg_current_desktop}" \
       "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
-    chkpath "06-after-push-2"
-    # systemctl --user unset-environment PATH 2>/dev/null || true
-    chkpath "07-after-unset-2"
   fi
 
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
     dbus-update-activation-environment --systemd \
       XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY 2>/dev/null || true
   fi
-  chkpath "08-after-dbus-update"
 
   # Start compositor backend, GTK portal, and main portal in sequence
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user start "${_portal_backend_unit}" 2>/dev/null || true
-    chkpath "09-after-start-backend"
     systemctl --user start xdg-desktop-portal-gtk.service 2>/dev/null || true
-    chkpath "10-after-start-gtk"
     systemctl --user start xdg-desktop-portal.service 2>/dev/null || true
-    chkpath "11-after-start-main"
-    # systemctl --user unset-environment PATH 2>/dev/null || true
-    chkpath "12-after-final-unset"
     print --success "Restarted XDG portals (GTK backend for OpenURI)"
   else
     pkill -f xdg-desktop-portal 2>/dev/null || true
@@ -920,8 +1038,6 @@ setup_portals() {
     [ -n "${_portal_bin}" ] && (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
     print --success "Launched portals manually (GTK for OpenURI)"
   fi
-
-  chkpath "13-exit"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1438,11 +1554,30 @@ setup_tailscale() {
 
     launch() {
       mkdir -p "${HOME}/.cache/tailscale"
+
+      #? `sudo` has no effect on shell redirects: `>"file" 2>&1` is
+      #? opened by THIS shell (as the current user) before sudo ever
+      #? execs tailscaled, not by the privileged child. If the file is
+      #? missing or owned by a previous root-run instance, that open
+      #? can fail or silently misbehave depending on directory perms —
+      #? this was the actual cause of the earlier
+      #? "Permission denied" writing to tailscaled.log. Pre-create and
+      #? correctly own the file as the current user first so the
+      #? redirect that follows always has a clean, writable target.
+      _ts_log="${HOME}/.cache/tailscale/tailscaled.log"
+      : >"${_ts_log}" 2>/dev/null || {
+        sudo rm -f "${_ts_log}" 2>/dev/null
+        : >"${_ts_log}"
+      }
+      chmod 644 "${_ts_log}" 2>/dev/null || true
+
+      # The redirect must run as the current user (log lives in $HOME).
+      # shellcheck disable=SC2024
       sudo tailscaled \
         --state=/var/lib/tailscale/tailscaled.state \
         --socket=/run/tailscale/tailscaled.sock \
         --port=0 \
-        >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
+        >"${_ts_log}" 2>&1 &
 
       _i=0
       while [ "${_i}" -lt 20 ]; do
@@ -1506,135 +1641,6 @@ fix_net() {
   sudo resolvectl flush-caches 2>/dev/null || true
 
   print --success "Stopped Tailscale and reset DNS for the default interface"
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: lorri.sh
-# Install lorri if missing and ensure the user systemd socket-activated
-# daemon is enabled and running.
-# ═══════════════════════════════════════════════════════════════════════════
-
-setup_lorri() {
-  install() {
-    case "$(command -v lorri 2>/dev/null)" in
-    "")
-      print --info "Installing lorri from nixpkgs..."
-      NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#lorri" || return 1
-      ;;
-    *) ;;
-    esac
-  }
-
-  write_units() {
-    _unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
-    mkdir -p "${_unit_dir}"
-
-    _lorri_bin="$(command -v lorri 2>/dev/null)"
-    case "${_lorri_bin}" in
-    "")
-      print --error "setup_lorri: lorri binary not found after install"
-      return 1
-      ;;
-    *) ;;
-    esac
-
-    # Socket unit (socket-activated)
-    {
-      printf '%s\n' '[Unit]'
-      printf '%s\n' 'Description=Socket for Lorri Daemon'
-      printf '%s\n' ''
-      printf '%s\n' '[Socket]'
-      printf '%s\n' 'ListenStream=%t/lorri/daemon.socket'
-      printf '%s\n' 'RuntimeDirectory=lorri'
-      printf '%s\n' ''
-      printf '%s\n' '[Install]'
-      printf '%s\n' 'WantedBy=sockets.target'
-    } >"$(join_path "${_unit_dir}" lorri.socket)"
-
-    # Service unit — resolved binary + a PATH that includes nix/git/tar.
-    # systemd user units do not inherit the login PATH, so without this
-    # the daemon starts but never evaluates (no `nix` on PATH).
-    _lorri_path="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin:${HOME}/.nix-profile/bin:/etc/profiles/per-user/${USER:-$(id -un)}/bin:/usr/bin:/bin"
-    {
-      printf '%s\n' '[Unit]'
-      printf '%s\n' 'Description=Lorri Daemon'
-      printf '%s\n' 'Requires=lorri.socket'
-      printf '%s\n' 'After=lorri.socket'
-      printf '%s\n' ''
-      printf '%s\n' '[Service]'
-      printf '%s\n' "ExecStart=${_lorri_bin} daemon"
-      printf '%s\n' "Environment=PATH=${_lorri_path}"
-      printf '%s\n' 'PrivateTmp=true'
-      printf '%s\n' 'Restart=on-failure'
-    } >"$(join_path "${_unit_dir}" lorri.service)"
-  }
-
-  enable_and_start() {
-    if ! command -v systemctl >/dev/null 2>&1; then
-      print --warn "setup_lorri: systemctl not available; start with: lorri daemon"
-      return 1
-    fi
-
-    systemctl --user daemon-reload 2>/dev/null || true
-
-    if systemctl --user is-enabled lorri.socket >/dev/null 2>&1; then
-      print --verbose "lorri.socket already enabled"
-    else
-      systemctl --user enable lorri.socket >/dev/null 2>&1 || {
-        print --warn "setup_lorri: failed to enable lorri.socket"
-        return 1
-      }
-    fi
-
-    # Start the socket (daemon starts on first client connection)
-    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
-      print --verbose "lorri.socket already active"
-    else
-      systemctl --user start lorri.socket >/dev/null 2>&1 || {
-        print --warn "setup_lorri: failed to start lorri.socket"
-        return 1
-      }
-    fi
-
-    # Start (or restart) so a rewritten unit/PATH is picked up.
-    systemctl --user daemon-reload 2>/dev/null || true
-    systemctl --user restart lorri.service >/dev/null 2>&1 ||
-      systemctl --user start lorri.service >/dev/null 2>&1 || true
-
-    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
-      print --success "lorri daemon (socket-activated) is enabled and running"
-    else
-      print --warn "setup_lorri: lorri.socket is not active after start attempt"
-      return 1
-    fi
-
-    if systemctl --user is-active lorri.service >/dev/null 2>&1; then
-      print --verbose "lorri.service is active"
-    else
-      print --warn "lorri.service is not active; check: journalctl --user -u lorri.service"
-    fi
-  }
-
-  # Register this directory so the daemon starts the first evaluation.
-  # `lorri watch` is a one-shot ping (not a long-running foreground process).
-  watch_project() {
-    if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
-      print --verbose "lorri: no flake.nix/shell.nix/default.nix here; skip watch"
-      return 0
-    fi
-
-    if lorri watch >/dev/null 2>&1; then
-      print --info "lorri: registered ${PWD} for background evaluation"
-    else
-      print --warn "lorri: failed to register this project with the daemon"
-      return 1
-    fi
-  }
-
-  install || return 1
-  write_units || return 1
-  enable_and_start || return 1
-  watch_project
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1705,7 +1711,7 @@ setup_utilities() {
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: clipboard.sh
 # Interactive clip() helper for copying file contents to the clipboard.
-# ═══════════════════════════════════════════════════════════════════════════
+# ════════════════════════���������������������������══════════════════════════════════════════════════
 
 clip() {
   no_ignore=0
@@ -2373,53 +2379,221 @@ show_info() {
 # SECTION: flake.sh
 # Flake initialization and evaluation.
 # ══════════════════════════════════════════════════════════════════════════════
-initialize_flake() {
-  if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
-    return 0
-  fi
 
-  # direnv stdlib (`watch_file`, `use`) exists only while evaluating .envrc.
-  # `lorri export direnv-adapter` emits watch_file — never eval it in a
-  # normal shell (that is the `bash: watch_file: command not found` error).
-  if [ -n "${DIRENV_IN_ENVRC:-}" ]; then
-    case "${1:-}" in
-    --impure)
-      #TODO: This should be done in overlays, but it's not working right now
-      NIXPKGS_ALLOW_UNFREE=1
-      export NIXPKGS_ALLOW_UNFREE
-      use flake . --no-pure-eval
-      ;;
-    *)
-      if command -v lorri >/dev/null 2>&1; then
-        # shellcheck disable=SC2312
-        eval "$(lorri export direnv-adapter)"
-      else
-        use flake
-      fi
-      ;;
-    esac
+# Lightweight – safe & fast for every direnv load / shell entry
+# Lightweight – safe & fast for every direnv load / shell entry
+load_flake() {
+  # direnv path (DIRENV_IN_ENVRC is set by direnv itself)
+  case "${DIRENV_IN_ENVRC:-}" in
+  "") ;;
+  *)
+    if command -v lorri >/dev/null 2>&1; then
+      # shellcheck disable=SC2312
+      eval "$(lorri direnv)"
+    else
+      use flake
+    fi
     return 0
-  fi
+    ;;
+  esac
 
+  # Normal shell: try to load a completed evaluation
   command -v lorri >/dev/null 2>&1 || return 0
 
-  # Register with the daemon (no-op if already watched) then load the last
-  # completed evaluation into this shell. Do not wait for the first build.
-  lorri watch >/dev/null 2>&1 || true
-
-  _lorri_env="$(lorri export bash 2>/dev/null)" || _lorri_env=""
+  _lorri_env="$(lorri hook bash 2>/dev/null)" || _lorri_env=""
   case "${_lorri_env}" in
   "")
-    print --info \
-      "lorri: no completed evaluation yet; daemon is building in the background"
+    print --info "lorri: no completed evaluation yet; daemon is building in the background"
     ;;
   *)
     # shellcheck disable=SC2312
     eval "${_lorri_env}"
-    print --debug \
-      "lorri: loaded cached evaluation into this shell"
+    print --debug "lorri: loaded cached evaluation into this shell"
     ;;
   esac
+}
+
+# Heavier – ensure lorri is installed, units are present, daemon is up,
+# and the current project is registered. Then try to load a cached eval.
+setup_flake() {
+  if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+    return 0
+  fi
+
+  setup_lorri # already does install + units + start + watch_project
+  load_flake  # inject cached evaluation if one is ready
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: lorri.sh
+# Install lorri if missing and ensure the user systemd socket-activated
+# daemon is enabled and running.
+# ═══════════════════════════════════════════════════════════════════════════
+
+setup_lorri() {
+  install() {
+    case "$(command -v lorri 2>/dev/null)" in
+    "")
+      print --info "Installing lorri from nixpkgs..."
+      NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#lorri" || return 1
+      ;;
+    *) ;;
+    esac
+  }
+
+  write_units() {
+    _unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
+    mkdir -p "${_unit_dir}" 2>/dev/null
+
+    #? Same read-only-~/.config fallback as setup_darkman — see the
+    #? comment there for why this can happen even when other files in
+    #? the same nominal directory are writable.
+    if [ ! -w "${_unit_dir}" ]; then
+      _unit_dir="$(join_path "${XDG_RUNTIME_DIR:?}" systemd user)"
+      mkdir -p "${_unit_dir}" || {
+        print --error "setup_lorri: ${XDG_CONFIG_HOME}/systemd/user is read-only and fallback ${_unit_dir} could not be created"
+        return 1
+      }
+      print --info "setup_lorri: ~/.config/systemd/user is read-only (home-manager?); writing units to ${_unit_dir} instead"
+    fi
+
+    _lorri_bin="$(command -v lorri 2>/dev/null)"
+    case "${_lorri_bin}" in
+    "")
+      print --error "setup_lorri: lorri binary not found after install"
+      return 1
+      ;;
+    *) ;;
+    esac
+
+    # Socket unit (socket-activated)
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Socket for Lorri Daemon'
+      printf '%s\n' ''
+      printf '%s\n' '[Socket]'
+      printf '%s\n' 'ListenStream=%t/lorri/daemon.socket'
+      printf '%s\n' 'RuntimeDirectory=lorri'
+      printf '%s\n' ''
+      printf '%s\n' '[Install]'
+      printf '%s\n' 'WantedBy=sockets.target'
+    } >"$(join_path "${_unit_dir}" lorri.socket)" || {
+      print --error "setup_lorri: failed to write lorri.socket to ${_unit_dir}"
+      return 1
+    }
+
+    # Service unit — resolved binary + a PATH that includes nix/git/tar.
+    # systemd user units do not inherit the login PATH, so without this
+    # the daemon starts but never evaluates (no `nix` on PATH).
+    _lorri_path="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin:/usr/bin:/bin"
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Lorri Daemon'
+      printf '%s\n' 'Requires=lorri.socket'
+      printf '%s\n' 'After=lorri.socket'
+      printf '%s\n' ''
+      printf '%s\n' '[Service]'
+      printf '%s\n' "ExecStart=${_lorri_bin} daemon"
+      printf '%s\n' "Environment=PATH=${_lorri_path}"
+      printf '%s\n' 'PrivateTmp=true'
+      printf '%s\n' 'Restart=on-failure'
+    } >"$(join_path "${_unit_dir}" lorri.service)" || {
+      print --error "setup_lorri: failed to write lorri.service to ${_unit_dir}"
+      return 1
+    }
+  }
+
+  enable_and_start() {
+    if ! command -v systemctl >/dev/null 2>&1; then
+      print --warn "setup_lorri: systemctl not available; start with: lorri daemon"
+      return 1
+    fi
+
+    systemctl --user daemon-reload 2>/dev/null || true
+
+    if systemctl --user is-enabled lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already enabled"
+    else
+      systemctl --user enable lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to enable lorri.socket"
+        return 1
+      }
+    fi
+
+    # Start the socket (daemon starts on first client connection)
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already active"
+    else
+      systemctl --user start lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to start lorri.socket"
+        return 1
+      }
+    fi
+
+    # Start (or restart) so a rewritten unit/PATH is picked up.
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user restart lorri.service >/dev/null 2>&1 ||
+      systemctl --user start lorri.service >/dev/null 2>&1 || true
+
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --success "lorri daemon (socket-activated) is enabled and running"
+    else
+      print --warn "setup_lorri: lorri.socket is not active after start attempt"
+      return 1
+    fi
+
+    if systemctl --user is-active lorri.service >/dev/null 2>&1; then
+      print --verbose "lorri.service is active"
+    else
+      print --warn "lorri.service is not active; check: journalctl --user -u lorri.service"
+    fi
+  }
+
+  # Register this directory so the daemon starts the first evaluation.
+  # IMPORTANT: `lorri watch` is NOT a one-shot ping — it registers the
+  # project AND then keeps running in the foreground, watching for file
+  # changes, for as long as it's left attached. Running it unbackgrounded
+  # here blocks this whole function (and the calling shell) for as long
+  # as `lorri watch` stays attached — which, on a first cold evaluation
+  # of a large flake, can be minutes, with zero feedback since output is
+  # redirected to /dev/null. That was the actual cause of the hang that
+  # required killing the terminal.
+  #
+  # The daemon itself does all the real evaluation work independently of
+  # whether any `lorri watch` process is still attached to it, so the
+  # fix is simply: launch it detached, note the registration attempt,
+  # and move on immediately. Use `lorri info --flake .` afterward (or
+  # `journalctl --user -u lorri.service`) to check evaluation progress.
+  watch_project() {
+    if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+      print --verbose "lorri: no flake.nix/shell.nix/default.nix here; skip watch"
+      return 0
+    fi
+
+    #? Do NOT wrap this in a `( ... & )` subshell — a subshell that only
+    #? launches a background job and then has nothing else to do exits
+    #? immediately, and the orphaned `lorri watch` process can be reaped
+    #? or fail to complete its daemon handshake before it does anything
+    #? useful. That was the actual bug: the daemon logged "ready" every
+    #? run but never a single "connection"/"ping"/"build" line, meaning
+    #? `lorri watch` never got far enough to register at all.
+    #?
+    #? Backgrounding directly in the current shell (no wrapping
+    #? subshell) is what actually fixes this. `disown` is NOT used here
+    #? — it's a bash builtin, not POSIX sh, and this script is #!/bin/sh.
+    #? It also isn't needed for correctness: it would only additionally
+    #? detach the job from shell job-control bookkeeping (hiding it from
+    #? `jobs`, avoiding a SIGHUP if the shell exits) — a nice-to-have,
+    #? not the fix for the actual registration bug.
+    _lorri_watch_log="$(join_path "${XDG_CACHE_HOME}" lorri-watch.log)"
+    lorri watch >"${_lorri_watch_log}" 2>&1 &
+    print --info "lorri: registration for ${PWD} launched in background (pid $!; log: ${_lorri_watch_log}; check 'lorri info --flake .' for evaluation status)"
+  }
+
+  install || return 1
+  write_units || return 1
+  enable_and_start || return 1
+  watch_project
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2430,7 +2604,9 @@ initialize_flake() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" ;;
+    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | flake | load-flake | all)
+      command="$1"
+      ;;
     --monitor-pri-disable) monitor_pri_disable=1 ;;
     --monitor-pri-enable) monitor_pri_disable=0 ;;
     --monitor-pri-name)
@@ -2544,15 +2720,18 @@ execute() {
     utilities) setup_utilities ;;
     rust) setup_rust ;;
     tmux) setup_tmux ;;
-    portals | xdg | darkman) setup_portals ;;
+    portals | xdg) setup_portals ;;
+    darkman) darkman_toggle ;;
     remote-dev) setup_remote_dev "${@}" ;;
     lorri) setup_lorri ;;
+    flake) setup_flake ;;
+    load-flake) load_flake ;;
     all)
       time_stage utilities setup_utilities
       time_stage portals setup_portals
       time_stage monitors setup_monitors
       time_stage tailscale setup_tailscale
-      time_stage lorri setup_lorri
+      time_stage flake setup_flake
       time_stage remote-dev setup_remote_dev "${@}"
       time_stage rust setup_rust
       time_stage tmux setup_tmux
@@ -2598,6 +2777,18 @@ main() {
   configure_packages
   parse_arguments "$@" || return 1
 
+  case "${DIRENV_IN_ENVRC:-}" in
+  "") ;;
+  *)
+    case "${command}" in flake | load-flake)
+      load_flake
+      return
+      ;;
+    *) ;;
+    esac
+    ;;
+  esac
+
   time_stage environment collect_info || return 1
 
   case "${help_requested}:${command}" in
@@ -2605,8 +2796,6 @@ main() {
   *)
     sudo -v || print --warn "sudo authentication failed or was declined; some setup stages may fail or stall"
     execute
-    # After the daemon is up so `lorri watch` / export can talk to it.
-    time_stage flake initialize_flake
     ;;
   esac
 }
