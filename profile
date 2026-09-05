@@ -641,8 +641,15 @@ setup_xdg_open() {
   # bash/ble keep the old xdg-open until hash is cleared
   hash -r 2>/dev/null || true
 
+  #? PATH is intentionally excluded here. GTK_USE_PORTAL/GIO_USE_PORTALS
+  #? are session-wide toggles portal-aware apps read via D-Bus activation
+  #? and are safe to import. PATH is not: whatever this shell's PATH
+  #? happens to contain at call time (including any transient additions
+  #? from earlier stages) would otherwise be baked into the persistent
+  #? systemd --user environment, corrupting PATH resolution — including
+  #? sudo's setuid wrapper lookup — for every future login shell.
   if command -v systemctl >/dev/null 2>&1; then
-    systemctl --user import-environment PATH GTK_USE_PORTAL GIO_USE_PORTALS 2>/dev/null || true
+    systemctl --user import-environment GTK_USE_PORTAL GIO_USE_PORTALS 2>/dev/null || true
   fi
 
   print --success "xdg-open -> gio open (${_xdg_open})"
@@ -827,38 +834,77 @@ setup_portals() {
   export XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
   export XDG_DATA_DIRS
 
+  push_portal_env() {
+    _ppe_args=""
+    for _ppe_pair in "$@"; do
+      case "${_ppe_pair}" in
+      *=) ;;
+      *) _ppe_args="${_ppe_args}${_ppe_args:+ }${_ppe_pair}" ;;
+      esac
+    done
+    case "${_ppe_args}" in
+    "") return 0 ;;
+    *)
+      # shellcheck disable=SC2086
+      systemctl --user set-environment ${_ppe_args}
+      ;;
+    esac
+  }
+
+  #? TEMPORARY DIAGNOSTIC — remove once the corrupting line is found.
+  chkpath() {
+    print --debug "PATHCHK[$1]: $(systemctl --user show-environment 2>/dev/null | grep -i '^PATH=')"
+  }
+
+  chkpath "00-entry"
+
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
-    systemctl --user set-environment \
-      XDG_DATA_DIRS="${XDG_DATA_DIRS}" \
-      XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP}" \
-      WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}"
+    chkpath "01-after-import-1"
+    push_portal_env \
+      "XDG_DATA_DIRS=${XDG_DATA_DIRS}" \
+      "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP}" \
+      "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
+    chkpath "02-after-push-1"
+    systemctl --user unset-environment PATH 2>/dev/null || true
+    chkpath "03-after-unset-1"
   fi
 
   # Stop systemd services completely to clear cached backends
   if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
     systemctl --user stop xdg-desktop-portal-gtk.service "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
   fi
+  chkpath "04-after-stop"
 
   # Push environment
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
-    systemctl --user set-environment \
-      XDG_DATA_DIRS="${XDG_DATA_DIRS}" \
-      XDG_CURRENT_DESKTOP="${_xdg_current_desktop}" \
-      WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}"
+    chkpath "05-after-import-2"
+    push_portal_env \
+      "XDG_DATA_DIRS=${XDG_DATA_DIRS}" \
+      "XDG_CURRENT_DESKTOP=${_xdg_current_desktop}" \
+      "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
+    chkpath "06-after-push-2"
+    systemctl --user unset-environment PATH 2>/dev/null || true
+    chkpath "07-after-unset-2"
   fi
 
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
     dbus-update-activation-environment --systemd \
       XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY 2>/dev/null || true
   fi
+  chkpath "08-after-dbus-update"
 
   # Start compositor backend, GTK portal, and main portal in sequence
-  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
+  if command -v systemctl >/dev/null 2>&1; then
     systemctl --user start "${_portal_backend_unit}" 2>/dev/null || true
+    chkpath "09-after-start-backend"
     systemctl --user start xdg-desktop-portal-gtk.service 2>/dev/null || true
+    chkpath "10-after-start-gtk"
     systemctl --user start xdg-desktop-portal.service 2>/dev/null || true
+    chkpath "11-after-start-main"
+    systemctl --user unset-environment PATH 2>/dev/null || true
+    chkpath "12-after-final-unset"
     print --success "Restarted XDG portals (GTK backend for OpenURI)"
   else
     pkill -f xdg-desktop-portal 2>/dev/null || true
@@ -871,6 +917,8 @@ setup_portals() {
     [ -n "${_portal_bin}" ] && (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
     print --success "Launched portals manually (GTK for OpenURI)"
   fi
+
+  chkpath "13-exit"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1380,33 +1428,42 @@ setup_tailscale() {
     daemon_ready
   }
 
-  start_manual() {
-    if pgrep -x tailscaled >/dev/null 2>&1; then
-      return 0
-    fi
-
-    mkdir -p "${HOME}/.cache/tailscale"
-    sudo tailscaled \
-      --state=/var/lib/tailscale/tailscaled.state \
-      --socket=/run/tailscale/tailscaled.sock \
-      --port=0 \
-      >/dev/null 2>&1 &
-    # sudo tailscaled \
-    #   --state=/var/lib/tailscale/tailscaled.state \
-    #   --socket=/run/tailscale/tailscaled.sock \
-    #   --port=0 \
-    #   >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
-
-    _i=0
-    while [ "${_i}" -lt 20 ]; do
-      daemon_ready && return 0
-      sleep 0.25
-      _i=$((_i + 1))
-    done
-
-    print --error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
-    return 1
-  }
+   start_manual() {
+     if pgrep -x tailscaled >/dev/null 2>&1; then
+       return 0
+     fi
+ 
+     launch() {
+       mkdir -p "${HOME}/.cache/tailscale"
+       sudo tailscaled \
+         --state=/var/lib/tailscale/tailscaled.state \
+         --socket=/run/tailscale/tailscaled.sock \
+         --port=0 \
+         >"${HOME}/.cache/tailscale/tailscaled.log" 2>&1 &
+ 
+       _i=0
+       while [ "${_i}" -lt 20 ]; do
+         daemon_ready && return 0
+         sleep 0.25
+         _i=$((_i + 1))
+       done
+       return 1
+     }
+ 
+     launch && return 0
+ 
+     # First attempt failed; the stale-socket case is the common culprit.
+     # No process is running (we already checked pgrep above), so it's
+     # safe to clear a leftover lock/socket and retry once.
+     print --warn "tailscaled failed to start; clearing stale socket and retrying"
+     sudo rm -f /run/tailscale/tailscaled.sock
+     sudo systemctl reset-failed tailscaled.service >/dev/null 2>&1 || true
+ 
+     launch && return 0
+ 
+     print --error "Tailscale daemon did not become ready; see ${HOME}/.cache/tailscale/tailscaled.log"
+     return 1
+   }
 
   connect() {
     if ! daemon_ready; then
@@ -1447,86 +1504,6 @@ fix_net() {
 
   print --success "Stopped Tailscale and reset DNS for the default interface"
 }
-
-# # ═══════════════════════════════════════════════════════════════════════════
-# # SECTION: darkman.sh
-# # Portal preference config + light/dark GTK theme transition hooks.
-# # ═══════════════════════════════════════════════════════════════════════════
-# setup_darkman() {
-#   print --info "Setting up Darkman portal configurations and hooks..."
-
-#   _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
-#   _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
-#   _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
-
-#   case "${compositor:-}" in
-#   hyprland) _portal_default_name="hyprland" ;;
-#   niri) _portal_default_name="gnome" ;;
-#   mango) _portal_default_name="wlr" ;;
-#   cosmic) _portal_default_name="cosmic" ;;
-#   *) _portal_default_name="" ;;
-#   esac
-
-#   #> Create theme hooks.
-#   mkdir -p "${_portal_conf_dir}" "${_dark_hook_dir}" "${_light_hook_dir}"
-
-#   _portal_conf="$(join_path "${_portal_conf_dir}" portals.conf)"
-#   _dark_hook="$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
-#   _light_hook="$(join_path "${_light_hook_dir}" gtk-theme.sh)"
-
-#   {
-#     printf '%s\n' '[preferred]'
-#     printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
-#     printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
-#     printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
-#     printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
-#   } >"${_portal_conf}"
-
-#   {
-#     printf '%s\n' '#!/usr/bin/env sh'
-#     printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
-#     printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
-#   } >"${_dark_hook}"
-
-#   {
-#     printf '%s\n' '#!/usr/bin/env sh'
-#     printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
-#     printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
-#   } >"${_light_hook}"
-
-#   chmod +x "${_dark_hook}" "${_light_hook}"
-
-#   #> Ensure environment variables are set for D-Bus activation
-#   if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
-#     # dbus-update-activation-environment --systemd \
-#     #   WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
-#     dbus-update-activation-environment \
-#       --systemd \
-#       WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS ||
-#       true
-#     systemctl --user import-environment \
-#       WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS ||
-#       true
-#   fi
-
-#   # Restart darkman and portal services
-#   if command -v systemctl >/dev/null 2>&1; then
-#     systemctl --user enable darkman.service 2>/dev/null || true
-#     systemctl --user restart darkman.service 2>/dev/null || true
-#     systemctl --user restart xdg-desktop-portal.service || true
-#   fi
-
-#   _color_scheme="$(
-#     busctl --user call \
-#       org.freedesktop.portal.Desktop \
-#       /org/freedesktop/portal/desktop \
-#       org.freedesktop.portal.Settings \
-#       Read ss "org.freedesktop.appearance" "color-scheme"
-#   )" || true
-#   print --trace "${_color_scheme}"
-
-#   print --success "Darkman hooks and portal routing applied"
-# }
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: lorri.sh
@@ -1663,57 +1640,63 @@ setup_lorri() {
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_utilities() {
-  # Start with the profile bin directory
-  PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
+  #? All PATH additions below exist only to help the command -v checks in
+  #? this function find portal/nix-profile binaries. They must never
+  #? leak into the calling shell or the systemd user environment — wrap
+  #? the whole body in a subshell so `PATH="..."` here is scoped to it.
+  (
+    PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
 
-  # ---- Find and add portal binary directories ----
-  # Method 1: Parse ExecStart from systemd service files (most reliable)
-  for service in /run/current-system/sw/lib/systemd/user/xdg-desktop-portal*.service; do
-    if [ -f "${service}" ]; then
-      exec_path="$(grep -m1 '^ExecStart=' "${service}" | cut -d= -f2 | cut -d' ' -f1)"
-      if [ -n "${exec_path}" ] && [ -f "${exec_path}" ]; then
-        exec_dir="$(dirname "${exec_path}")"
-        case ":${PATH}:" in
-        *":${exec_dir}:"*) ;;
-        *) PATH="${exec_dir}:${PATH}" ;;
-        esac
-      fi
-    fi
-  done
-
-  # Method 2: Use fd to search the Nix store directly (fallback)
-  if command -v fd >/dev/null 2>&1; then
-    # Include all portal backends – especially kde for OpenURI
-    for portal in xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-hyprland xdg-desktop-portal-kde; do
-      portal_path="$(fd -t x -e "" "${portal}" /nix/store 2>/dev/null | head -n1)"
-      if [ -n "${portal_path}" ]; then
-        portal_dir="$(dirname "${portal_path}")"
-        case ":${PATH}:" in
-        *":${portal_dir}:"*) ;;
-        *) PATH="${portal_dir}:${PATH}" ;;
-        esac
+    # ---- Find and add portal binary directories ----
+    # Method 1: Parse ExecStart from systemd service files (most reliable)
+    for service in /run/current-system/sw/lib/systemd/user/xdg-desktop-portal*.service; do
+      if [ -f "${service}" ]; then
+        exec_path="$(grep -m1 '^ExecStart=' "${service}" | cut -d= -f2 | cut -d' ' -f1)"
+        if [ -n "${exec_path}" ] && [ -f "${exec_path}" ]; then
+          exec_dir="$(dirname "${exec_path}")"
+          case ":${PATH}:" in
+          *":${exec_dir}:"*) ;;
+          *) PATH="${exec_dir}:${PATH}" ;;
+          esac
+        fi
       fi
     done
-  fi
 
-  export PATH
+    # Method 2: Use fd to search the Nix store directly (fallback)
+    if command -v fd >/dev/null 2>&1; then
+      # Include all portal backends – especially kde for OpenURI
+      for portal in xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-hyprland xdg-desktop-portal-kde; do
+        portal_path="$(fd -t x -e "" "${portal}" /nix/store 2>/dev/null | head -n1)"
+        if [ -n "${portal_path}" ]; then
+          portal_dir="$(dirname "${portal_path}")"
+          case ":${PATH}:" in
+          *":${portal_dir}:"*) ;;
+          *) PATH="${portal_dir}:${PATH}" ;;
+          esac
+        fi
+      done
+    fi
 
-  # ---- Install missing packages (existing logic) ----
-  _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
+    # PATH here is subshell-local only — deliberately not exported past
+    # this point, and definitely never pushed to systemd --user.
 
-  # shellcheck disable=SC2086
-  for pkg in $(get_additional_packages); do
-    bin="$(get_package_bin "${pkg}")"
-    case "$(command -v "${bin}" 2>/dev/null)" in
-    "")
-      case "${_profile_list}" in
-      *"${pkg}"*) ;;
-      *) NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#${pkg}" 2>/dev/null || true ;;
+    # ---- Install missing packages (existing logic) ----
+    _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
+
+    # shellcheck disable=SC2086
+    for pkg in $(get_additional_packages); do
+      bin="$(get_package_bin "${pkg}")"
+      case "$(command -v "${bin}" 2>/dev/null)" in
+      "")
+        case "${_profile_list}" in
+        *"${pkg}"*) ;;
+        *) NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#${pkg}" 2>/dev/null || true ;;
+        esac
+        ;;
+      *) ;;
       esac
-      ;;
-    *) ;;
-    esac
-  done
+    done
+  )
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2444,8 +2427,7 @@ initialize_flake() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
-
+      monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" ;;
     --monitor-pri-disable) monitor_pri_disable=1 ;;
     --monitor-pri-enable) monitor_pri_disable=0 ;;
     --monitor-pri-name)
@@ -2618,6 +2600,7 @@ main() {
   case "${help_requested}:${command}" in
   1:* | *:info) show_info ;;
   *)
+    sudo -v || print --warn "sudo authentication failed or was declined; some setup stages may fail or stall"
     execute
     # After the daemon is up so `lorri watch` / export can talk to it.
     time_stage flake initialize_flake
