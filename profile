@@ -2604,6 +2604,10 @@ setup_lorri() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
+    "" | *.envrc)
+      shift
+      continue
+      ;;
     monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | flake | load-flake | all)
       command="$1"
       ;;
