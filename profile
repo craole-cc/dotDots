@@ -34,6 +34,8 @@ configure() {
   XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
   #? Always include ~/.local/share first (for portal overrides) and keep existing entries
   XDG_DATA_DIRS="${XDG_DATA_HOME:-${HOME}/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  USER_ID="$(id -u || true)"
+  XDG_RUNTIME_DIR="$(join_path "/run/user" "${USER_ID}")"
   export \
     NIX_PROFILE_DIR \
     VSCODE_SERVER_DIR \
@@ -568,6 +570,27 @@ setup_xdg_data_dirs() {
     esac
   fi
 
+  # Filter out paths that don't actually exist on disk (POSIX-safe)
+  _cleaned_dirs=""
+  # Use tr to convert colons to newlines for standard safe iteration
+  if [ -n "${XDG_DATA_DIRS}" ]; then
+    _old_ifs="${IFS}"
+    IFS=':'
+    set -f # Disable globbing
+    for _dir in ${XDG_DATA_DIRS}; do
+      if [ -d "${_dir}" ]; then
+        if [ -z "${_cleaned_dirs}" ]; then
+          _cleaned_dirs="${_dir}"
+        else
+          _cleaned_dirs="${_cleaned_dirs}:${_dir}"
+        fi
+      fi
+    done
+    set +f
+    IFS="${_old_ifs}"
+  fi
+  XDG_DATA_DIRS="${_cleaned_dirs}"
+
   export XDG_DATA_DIRS
   # Propagate to D-Bus/systemd
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
@@ -584,20 +607,41 @@ setup_xdg_open() {
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
+    printf '%s\n' 'unset GTK_USE_PORTAL GIO_USE_PORTALS'
+    printf '%s\n' 'export GTK_USE_PORTAL=0 GIO_USE_PORTALS=0'
     printf '%s\n' 'exec gio open "$@"'
   } >"${_xdg_open}"
-
   chmod +x "${_xdg_open}"
 
-  case ":${PATH}:" in
-  *":${XDG_BIN_HOME}:"*) ;;
-  *)
-    PATH="${XDG_BIN_HOME}:${PATH}"
-    export PATH
-    ;;
-  esac
+  # Always put the shim directory first (even if it already appears later)
+  _new_path="${XDG_BIN_HOME}"
+  _old_ifs="${IFS}"
+  IFS=':'
+  set -f
+  for _p in ${PATH}; do
+    case "${_p}" in
+    "${XDG_BIN_HOME}" | "") ;;
+    *) _new_path="${_new_path}:${_p}" ;;
+    esac
+  done
+  set +f
+  IFS="${_old_ifs}"
+  PATH="${_new_path}"
+  export PATH
 
   unset BROWSER
+  export GTK_USE_PORTAL=0
+  export GIO_USE_PORTALS=0
+
+  # bash/ble keep the old xdg-open until hash is cleared
+  hash -r 2>/dev/null || true
+
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment PATH GTK_USE_PORTAL GIO_USE_PORTALS 2>/dev/null || true
+  fi
+
+  print --success "xdg-open -> gio open (${_xdg_open})"
+  print --info "resolved xdg-open: $(command -v xdg-open)"
 }
 
 create_gtk_portal_override() {
@@ -649,19 +693,23 @@ enable_gnome_keyring() {
   print --info "Enabling gnome-keyring"
   systemctl --user enable gnome-keyring-daemon.service
   # Create the runtime socket directory
-  mkdir -p $XDG_RUNTIME_DIR/keyring
+  _keyring_dir="$(join_path "${XDG_RUNTIME_DIR}" keyring)"
+  mkdir -p "${_keyring_dir}" || true
 
   # Force-spawn a new daemon instance
-  eval $(gnome-keyring-daemon --daemonize --components=secrets)
+  _gkd_env="$(gnome-keyring-daemon --daemonize --components=secrets)" || true
+  eval "${_gkd_env}"
+  export SSH_AUTH_SOCK
   export SSH_AUTH_SOCK
 
   print --success "gnome-keyring enabled"
 }
 
 setup_portals() {
+  setup_xdg_open
   setup_xdg_data_dirs
   enable_gnome_keyring
-  create_gtk_portal_override # keeps GTK for FileChooser, etc.
+  create_gtk_portal_override
 
   case "${compositor:-}" in
   hyprland | niri | mango | cosmic) ;;
@@ -671,92 +719,104 @@ setup_portals() {
     ;;
   esac
 
-  # Per-compositor backend
+  # Determine default portal based on compositor
   case "${compositor}" in
   hyprland)
     _portal_backend_bin="xdg-desktop-portal-hyprland"
     _portal_backend_unit="xdg-desktop-portal-hyprland.service"
     _xdg_current_desktop="Hyprland"
+    _portal_default_name="hyprland"
     ;;
   niri)
     _portal_backend_bin="xdg-desktop-portal-gnome"
     _portal_backend_unit="xdg-desktop-portal-gnome.service"
     _xdg_current_desktop="niri"
+    _portal_default_name="gnome"
     ;;
   mango)
     _portal_backend_bin="xdg-desktop-portal-wlr"
     _portal_backend_unit="xdg-desktop-portal-wlr.service"
     _xdg_current_desktop="wlroots"
+    _portal_default_name="wlr"
     ;;
   cosmic)
     _portal_backend_bin="xdg-desktop-portal-cosmic"
     _portal_backend_unit="xdg-desktop-portal-cosmic.service"
     _xdg_current_desktop="COSMIC"
+    _portal_default_name="cosmic"
     ;;
   *) ;;
   esac
 
-  # ---- Start KDE portal (provides OpenURI) ----
-  _kde_bin="$(command -v xdg-desktop-portal-kde 2>/dev/null || find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-kde" -type f -executable 2>/dev/null | head -n1)"
-  if [ -n "${_kde_bin}" ]; then
-    # Kill any stale KDE portal process
-    pkill -f "${_kde_bin}" 2>/dev/null || true
-    # Launch it in the background
-    (exec "${_kde_bin}" >/dev/null 2>&1 </dev/null &)
-    print --debug "KDE portal launched manually"
-  else
-    print --warn "KDE portal binary not found – OpenURI will not work"
-  fi
+  # Centralized portals.conf Generation
+  _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
+  mkdir -p "${_portal_conf_dir}"
+
+  {
+    printf '%s\n' '[preferred]'
+    printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
+    printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
+    printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
+  } >"$(join_path "${_portal_conf_dir}" portals.conf)"
 
   print --info "Restarting XDG desktop portals for ${compositor}..."
 
+  # Export to systemd user environment explicitly
   export XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
   export XDG_DATA_DIRS
 
-  # Stop only systemd services (GTK and compositor backend and main)
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
+    systemctl --user set-environment \
+      XDG_DATA_DIRS="${XDG_DATA_DIRS}" \
+      XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP}" \
+      WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}"
+  fi
+
+  # Stop systemd services completely to clear cached backends
   if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
     systemctl --user stop xdg-desktop-portal-gtk.service "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
   fi
 
   # Push environment
   if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY
     systemctl --user set-environment \
       XDG_DATA_DIRS="${XDG_DATA_DIRS}" \
-      XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP}" \
+      XDG_CURRENT_DESKTOP="${_xdg_current_desktop}" \
       WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}"
   fi
+
   if command -v dbus-update-activation-environment >/dev/null 2>&1; then
     dbus-update-activation-environment --systemd \
       XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY 2>/dev/null || true
   fi
 
-  # Start compositor backend and main portal (KDE is already running)
+  # Start compositor backend, GTK portal, and main portal in sequence
   if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
     systemctl --user start "${_portal_backend_unit}" 2>/dev/null || true
+    systemctl --user start xdg-desktop-portal-gtk.service 2>/dev/null || true
     systemctl --user start xdg-desktop-portal.service 2>/dev/null || true
-    print --success "Restarted XDG portals (KDE backend for OpenURI)"
+    print --success "Restarted XDG portals (GTK backend for OpenURI)"
   else
-    # Manual fallback (also launch KDE)
     pkill -f xdg-desktop-portal 2>/dev/null || true
     _backend_portal="$(find -L "${NIX_PROFILE_DIR}" -name "${_portal_backend_bin}" -type f -executable 2>/dev/null | head -n1)"
     _portal_bin="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n1)"
     _gtk_bin="$(command -v xdg-desktop-portal-gtk 2>/dev/null || find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-gtk" -type f -executable 2>/dev/null | head -n1)"
+
     [ -n "${_gtk_bin}" ] && (exec "${_gtk_bin}" >/dev/null 2>&1 </dev/null &)
-    [ -n "${_kde_bin}" ] && (exec "${_kde_bin}" >/dev/null 2>&1 </dev/null &)
     [ -n "${_backend_portal}" ] && (exec "${_backend_portal}" >/dev/null 2>&1 </dev/null &)
     [ -n "${_portal_bin}" ] && (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
-    print --success "Launched portals manually (KDE for OpenURI)"
+    print --success "Launched portals manually (GTK for OpenURI)"
   fi
 
   # Verify
   sleep 1
   if command -v busctl >/dev/null 2>&1; then
     if busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop 2>/dev/null | grep -q OpenURI; then
-      print --success "OpenURI interface is now available"
+      print --success "OpenURI interface is now available via GTK"
     else
-      print --warn "OpenURI still missing – check:"
-      print --warn "  ps aux | grep xdg-desktop-portal-kde"
-      print --warn "  journalctl --user -u xdg-desktop-portal.service -b -n 50"
+      print --warn "OpenURI still missing – check journalctl --user -u xdg-desktop-portal.service"
     fi
   fi
 }
@@ -1336,67 +1396,85 @@ fix_net() {
   print --success "Stopped Tailscale and reset DNS for the default interface"
 }
 
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: darkman.sh
-# Portal preference config + light/dark GTK theme transition hooks.
-# ═══════════════════════════════════════════════════════════════════════════
-setup_darkman() {
-  print --info "Setting up Darkman portal configurations and hooks..."
+# # ═══════════════════════════════════════════════════════════════════════════
+# # SECTION: darkman.sh
+# # Portal preference config + light/dark GTK theme transition hooks.
+# # ═══════════════════════════════════════════════════════════════════════════
+# setup_darkman() {
+#   print --info "Setting up Darkman portal configurations and hooks..."
 
-  _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
-  _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
-  _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
+#   _portal_conf_dir="$(join_path "${XDG_CONFIG_HOME}" xdg-desktop-portal)"
+#   _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
+#   _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
 
-  case "${compositor:-}" in
-  hyprland) _portal_default_name="hyprland" ;;
-  niri) _portal_default_name="gnome" ;;
-  mango) _portal_default_name="wlr" ;;
-  cosmic) _portal_default_name="cosmic" ;;
-  *) _portal_default_name="" ;;
-  esac
+#   case "${compositor:-}" in
+#   hyprland) _portal_default_name="hyprland" ;;
+#   niri) _portal_default_name="gnome" ;;
+#   mango) _portal_default_name="wlr" ;;
+#   cosmic) _portal_default_name="cosmic" ;;
+#   *) _portal_default_name="" ;;
+#   esac
 
-  #> Create theme hooks.
-  mkdir -p "${_portal_conf_dir}" "${_dark_hook_dir}" "${_light_hook_dir}"
+#   #> Create theme hooks.
+#   mkdir -p "${_portal_conf_dir}" "${_dark_hook_dir}" "${_light_hook_dir}"
 
-  _portal_conf="$(join_path "${_portal_conf_dir}" portals.conf)"
-  _dark_hook="$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
-  _light_hook="$(join_path "${_light_hook_dir}" gtk-theme.sh)"
+#   _portal_conf="$(join_path "${_portal_conf_dir}" portals.conf)"
+#   _dark_hook="$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
+#   _light_hook="$(join_path "${_light_hook_dir}" gtk-theme.sh)"
 
-  {
-    printf '%s\n' '[preferred]'
-    printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
-    printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=kde'
-    printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
-    printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
-  } >"${_portal_conf}"
+#   {
+#     printf '%s\n' '[preferred]'
+#     printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
+#     printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
+#     printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
+#     printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
+#   } >"${_portal_conf}"
 
-  {
-    printf '%s\n' '#!/usr/bin/env sh'
-    printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
-    printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
-  } >"${_dark_hook}"
+#   {
+#     printf '%s\n' '#!/usr/bin/env sh'
+#     printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
+#     printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
+#   } >"${_dark_hook}"
 
-  {
-    printf '%s\n' '#!/usr/bin/env sh'
-    printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
-    printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
-  } >"${_light_hook}"
+#   {
+#     printf '%s\n' '#!/usr/bin/env sh'
+#     printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
+#     printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
+#   } >"${_light_hook}"
 
-  chmod +x "${_dark_hook}" "${_light_hook}"
+#   chmod +x "${_dark_hook}" "${_light_hook}"
 
-  #> Ensure environment variables are set for D-Bus activation
-  if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
-    dbus-update-activation-environment --systemd \
-      WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
-  fi
+#   #> Ensure environment variables are set for D-Bus activation
+#   if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
+#     # dbus-update-activation-environment --systemd \
+#     #   WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
+#     dbus-update-activation-environment \
+#       --systemd \
+#       WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS ||
+#       true
+#     systemctl --user import-environment \
+#       WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS ||
+#       true
+#   fi
 
-  if command -v systemctl >/dev/null 2>&1; then
-    systemctl --user enable darkman.service 2>/dev/null || true
-    systemctl --user restart darkman.service 2>/dev/null || true
-  fi
+#   # Restart darkman and portal services
+#   if command -v systemctl >/dev/null 2>&1; then
+#     systemctl --user enable darkman.service 2>/dev/null || true
+#     systemctl --user restart darkman.service 2>/dev/null || true
+#     systemctl --user restart xdg-desktop-portal.service || true
+#   fi
 
-  print --success "Darkman hooks and portal routing applied"
-}
+#   _color_scheme="$(
+#     busctl --user call \
+#       org.freedesktop.portal.Desktop \
+#       /org/freedesktop/portal/desktop \
+#       org.freedesktop.portal.Settings \
+#       Read ss "org.freedesktop.appearance" "color-scheme"
+#   )" || true
+#   print --trace "${_color_scheme}"
+
+#   print --success "Darkman hooks and portal routing applied"
+# }
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: lorri.sh
@@ -1514,7 +1592,7 @@ setup_lorri() {
     fi
 
     if lorri watch >/dev/null 2>&1; then
-      print --info "lorri: registered $(pwd -P) for background evaluation"
+      print --info "lorri: registered ${PWD} for background evaluation"
     else
       print --warn "lorri: failed to register this project with the daemon"
       return 1
@@ -1567,14 +1645,6 @@ setup_utilities() {
   fi
 
   export PATH
-
-  # Debug: show what we found (remove after testing)
-  echo "=== Portal binaries on PATH ==="
-  which xdg-desktop-portal 2>/dev/null || echo "xdg-desktop-portal: not found"
-  which xdg-desktop-portal-gtk 2>/dev/null || echo "xdg-desktop-portal-gtk: not found"
-  which xdg-desktop-portal-hyprland 2>/dev/null || echo "xdg-desktop-portal-hyprland: not found"
-  which xdg-desktop-portal-kde 2>/dev/null || echo "xdg-desktop-portal-kde: not found"
-  echo "================================"
 
   # ---- Install missing packages (existing logic) ----
   _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
@@ -1904,11 +1974,11 @@ setup_remote_dev() {
   print --success "Remote Dev environment ready on ${host}!"
 }
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ══════════��������══════════════════════════════════════════════════════════════
 # SECTION: remote_helix.sh
 # push_hx (sync Helix config to preci) + dev (attach/create tmux session
 # on preci over SSH).
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════���═══════
 
 push_hx() {
   case "$(command -v rsync 2>/dev/null)" in
@@ -1952,171 +2022,6 @@ dev() {
   esac
 
   ssh craole@preci -t "tmux attach-session -t dots 2>/dev/null || tmux new-session -s dots"
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: orchestrate.sh
-# 'execute' dispatches on ${command}, timing each stage in the "all" path.
-# ═══════════════════════════════════════════════════════════════════════════
-
-execute() {
-  time_stage cleanup cleanup
-
-  run() {
-    case "${command}" in
-    bin) initialize_bin ;;
-    monitors) setup_monitors ;;
-    tailscale) setup_tailscale ;;
-    utilities) setup_utilities ;;
-    rust) setup_rust ;;
-    tmux) setup_tmux ;;
-    portals | xdg) setup_portals ;;
-    remote-dev) setup_remote_dev "${@}" ;;
-    darkman) setup_darkman ;;
-    lorri) setup_lorri ;;
-    all)
-      time_stage utilities setup_utilities
-      time_stage darkman setup_darkman
-      time_stage portals setup_portals
-      time_stage monitors setup_monitors
-      time_stage tailscale setup_tailscale
-      time_stage lorri setup_lorri
-      time_stage remote-dev setup_remote_dev "${@}"
-      time_stage rust setup_rust
-      time_stage tmux setup_tmux
-      ;;
-    *) ;;
-    esac
-  }
-
-  case "${verbosity}" in
-  verbose | trace)
-    set -x
-    run "${@}"
-    set +x
-    ;;
-  dry)
-    printf "Would run: %s\n" "${command}"
-    printf "  primary:    %s  %sx%s@%s\n" \
-      "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}"
-    printf "  secondary:  %s  %sx%s@%s  pos=%s\n" \
-      "${monitor_sec_name}" "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}" "${monitor_sec_pos}"
-    case "${monitor_ter_name:-}" in
-    "") printf "  tertiary:   (disabled)\n" ;;
-    *) printf "  tertiary:   %s  %sx%s@%s  pos=%s\n" \
-      "${monitor_ter_name}" "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}" "${monitor_ter_pos}" ;;
-    esac
-    ;;
-  quiet) run >/dev/null ;;
-  *) run "${@}" ;;
-  esac
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: args.sh
-# Argument parsing (command selection, monitor overrides, verbosity flags).
-# ═══════════════════════════════════════════════════════════════════════════
-
-parse_arguments() {
-  while [ $# -gt 0 ]; do
-    case "$1" in
-    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
-
-    --monitor-pri-disable) monitor_pri_disable=1 ;;
-    --monitor-pri-enable) monitor_pri_disable=0 ;;
-    --monitor-pri-name)
-      require_arg "$1" "$2" || return 1
-      monitor_pri_name="$2"
-      shift
-      ;;
-    --monitor-pri-width)
-      require_arg "$1" "$2" || return 1
-      monitor_pri_width="$2"
-      shift
-      ;;
-    --monitor-pri-height)
-      require_arg "$1" "$2" || return 1
-      monitor_pri_height="$2"
-      shift
-      ;;
-    --monitor-pri-rate)
-      require_arg "$1" "$2" || return 1
-      monitor_pri_rate="$2"
-      shift
-      ;;
-
-    --monitor-sec-disable) monitor_sec_disable=1 ;;
-    --monitor-sec-enable) monitor_sec_disable=0 ;;
-    --monitor-sec-name)
-      require_arg "$1" "$2" || return 1
-      monitor_sec_name="$2"
-      shift
-      ;;
-    --monitor-sec-width)
-      require_arg "$1" "$2" || return 1
-      monitor_sec_width="$2"
-      shift
-      ;;
-    --monitor-sec-height)
-      require_arg "$1" "$2" || return 1
-      monitor_sec_height="$2"
-      shift
-      ;;
-    --monitor-sec-rate)
-      require_arg "$1" "$2" || return 1
-      monitor_sec_rate="$2"
-      shift
-      ;;
-    --monitor-sec-pos)
-      require_arg "$1" "$2" || return 1
-      monitor_sec_pos="$2"
-      shift
-      ;;
-
-    --monitor-ter-disable) monitor_ter_disable=1 ;;
-    --monitor-ter-enable) monitor_ter_disable=0 ;;
-    --monitor-ter-name)
-      require_arg "$1" "$2" || return 1
-      monitor_ter_name="$2"
-      shift
-      ;;
-    --monitor-ter-width)
-      require_arg "$1" "$2" || return 1
-      monitor_ter_width="$2"
-      shift
-      ;;
-    --monitor-ter-height)
-      require_arg "$1" "$2" || return 1
-      monitor_ter_height="$2"
-      shift
-      ;;
-    --monitor-ter-rate)
-      require_arg "$1" "$2" || return 1
-      monitor_ter_rate="$2"
-      shift
-      ;;
-    --monitor-ter-pos)
-      require_arg "$1" "$2" || return 1
-      monitor_ter_pos="$2"
-      shift
-      ;;
-
-    -q | --quiet) verbosity="quiet" ;;
-    -d | --debug) verbosity="debug" ;;
-    -v | --verbose) verbosity="verbose" ;;
-    --dry-run) verbosity="dry" ;;
-
-    -h | --help)
-      help_requested=1
-      ;;
-    *)
-      print --error "Unknown option: $1"
-      show_info
-      return 1
-      ;;
-    esac
-    shift
-  done
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2171,6 +2076,7 @@ detect_tailscale_status() {
   fi
 }
 
+# TODO: this is ugly
 detect_monitors() {
   detected_monitors=""
   detected_monitor_signature=""
@@ -2425,13 +2331,10 @@ show_info() {
   print --markdown "${_info}"
 }
 
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: main.sh
-# Entry point — this is the only part that should stay in the top-level
-# file once the sections above move out. It just sources/calls each stage
-# in order, exactly as shown below.
-# ═══════════════════════════════════════════════════════════════════════════
-
+# ══════════════════════════════════════════════════════════════════════════════
+# SECTION: flake.sh
+# Flake initialization and evaluation.
+# ══════════════════════════════════════════════════════════════════════════════
 initialize_flake() {
   if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
     return 0
@@ -2480,6 +2383,176 @@ initialize_flake() {
     ;;
   esac
 }
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: args.sh
+# Argument parsing (command selection, monitor overrides, verbosity flags).
+# ═══════════════════════════════════════════════════════════════════════════
+
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | all) command="$1" "$@" ;;
+
+    --monitor-pri-disable) monitor_pri_disable=1 ;;
+    --monitor-pri-enable) monitor_pri_disable=0 ;;
+    --monitor-pri-name)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_name="$2"
+      shift
+      ;;
+    --monitor-pri-width)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_width="$2"
+      shift
+      ;;
+    --monitor-pri-height)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_height="$2"
+      shift
+      ;;
+    --monitor-pri-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_pri_rate="$2"
+      shift
+      ;;
+
+    --monitor-sec-disable) monitor_sec_disable=1 ;;
+    --monitor-sec-enable) monitor_sec_disable=0 ;;
+    --monitor-sec-name)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_name="$2"
+      shift
+      ;;
+    --monitor-sec-width)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_width="$2"
+      shift
+      ;;
+    --monitor-sec-height)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_height="$2"
+      shift
+      ;;
+    --monitor-sec-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_rate="$2"
+      shift
+      ;;
+    --monitor-sec-pos)
+      require_arg "$1" "$2" || return 1
+      monitor_sec_pos="$2"
+      shift
+      ;;
+
+    --monitor-ter-disable) monitor_ter_disable=1 ;;
+    --monitor-ter-enable) monitor_ter_disable=0 ;;
+    --monitor-ter-name)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_name="$2"
+      shift
+      ;;
+    --monitor-ter-width)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_width="$2"
+      shift
+      ;;
+    --monitor-ter-height)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_height="$2"
+      shift
+      ;;
+    --monitor-ter-rate)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_rate="$2"
+      shift
+      ;;
+    --monitor-ter-pos)
+      require_arg "$1" "$2" || return 1
+      monitor_ter_pos="$2"
+      shift
+      ;;
+
+    -q | --quiet) verbosity="quiet" ;;
+    -d | --debug) verbosity="debug" ;;
+    -v | --verbose) verbosity="verbose" ;;
+    --dry-run) verbosity="dry" ;;
+
+    -h | --help)
+      help_requested=1
+      ;;
+    *)
+      print --error "Unknown option: $1"
+      show_info
+      return 1
+      ;;
+    esac
+    shift
+  done
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: orchestrate.sh
+# 'execute' dispatches on ${command}, timing each stage in the "all" path.
+# ═══════════════════════════════════════════════════════════════════════════
+
+execute() {
+  time_stage cleanup cleanup
+
+  run() {
+    case "${command}" in
+    bin) initialize_bin ;;
+    monitors) setup_monitors ;;
+    tailscale) setup_tailscale ;;
+    utilities) setup_utilities ;;
+    rust) setup_rust ;;
+    tmux) setup_tmux ;;
+    portals | xdg | darkman) setup_portals ;;
+    remote-dev) setup_remote_dev "${@}" ;;
+    lorri) setup_lorri ;;
+    all)
+      time_stage utilities setup_utilities
+      time_stage portals setup_portals
+      time_stage monitors setup_monitors
+      time_stage tailscale setup_tailscale
+      time_stage lorri setup_lorri
+      time_stage remote-dev setup_remote_dev "${@}"
+      time_stage rust setup_rust
+      time_stage tmux setup_tmux
+      ;;
+    *) ;;
+    esac
+  }
+
+  case "${verbosity}" in
+  verbose | trace)
+    set -x
+    run "${@}"
+    set +x
+    ;;
+  dry)
+    printf "Would run: %s\n" "${command}"
+    printf "  primary:    %s  %sx%s@%s\n" \
+      "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}"
+    printf "  secondary:  %s  %sx%s@%s  pos=%s\n" \
+      "${monitor_sec_name}" "${monitor_sec_width}" "${monitor_sec_height}" "${monitor_sec_rate}" "${monitor_sec_pos}"
+    case "${monitor_ter_name:-}" in
+    "") printf "  tertiary:   (disabled)\n" ;;
+    *) printf "  tertiary:   %s  %sx%s@%s  pos=%s\n" \
+      "${monitor_ter_name}" "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}" "${monitor_ter_pos}" ;;
+    esac
+    ;;
+  quiet) run >/dev/null ;;
+  *) run "${@}" ;;
+  esac
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: main.sh
+# Entry point — this is the only part that should stay in the top-level
+# file once the sections above move out. It just sources/calls each stage
+# in order, exactly as shown below.
+# ═══════════════════════════════════════════════════════════════════════════
 
 main() {
   configure || return 1
