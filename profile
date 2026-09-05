@@ -16,10 +16,9 @@ configure() {
   version="0.2.6"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
-  verbosity="info" #? Levels: quiet | info | verbose | debug | dry
-  command="all"    #? The active command to run
+  verbosity="debug" #? Levels: quiet | info | debug | trace
+  command="all"     #? The active command to run
   help_requested=0
-  host=$(hostname || echo "unknown host")
 
   # ── Base Paths ──────────────────────────────────────────────────────────
   #? Common roots reused throughout; join_path builds anything deeper.
@@ -33,7 +32,8 @@ configure() {
   #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
   #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
   XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
-  XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  #? Always include ~/.local/share first (for portal overrides) and keep existing entries
+  XDG_DATA_DIRS="${XDG_DATA_HOME:-${HOME}/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   export \
     NIX_PROFILE_DIR \
     VSCODE_SERVER_DIR \
@@ -56,13 +56,160 @@ configure() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# SECTION: packages.sh
+# SECTION: packages_helpers.sh
+# Package-name <-> binary-name mapping, additional-package diffing,
+# and profile cleanup of packages now provided by the system.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: PACKAGES.sh
+# Host-specific monitor defaults + the package/dependency manifest.
+# Split out if host profiles or package lists grow large enough to
+# warrant their own file (e.g. one file per host).
+# ═══════════════════════════════════════════════════════════════════════════
+
+configure_packages() {
+  packages="
+    alejandra
+    antigravity-cli
+    antigravity-fhs
+    bat
+    bottom
+    cfspeedtest
+    darkman
+    delta
+    dust
+    eza
+    fd
+    fzf
+    gawk
+    gh
+    gnome-keyring
+    gnused
+    gitui
+    gum
+    hyperfine
+    hyprland
+    lorri
+    nix-ld
+    nodejs
+    ollama
+    ripgrep
+    rustup
+    shellcheck
+    shfmt
+    shortwave
+    speedtest-go
+    speedtest-rs
+    sudo
+    tailscale
+    tealdeer
+    tokei
+    wl-clipboard
+    xdg-desktop-portal
+    xdg-desktop-portal-wlr
+    xdg-desktop-portal-gtk
+    xdg-desktop-portal-hyprland
+    kdePackages.xdg-desktop-portal-kde
+    zoxide
+  "
+  dependencies_required="gawk gnused lorri ripgrep fd sudo"
+  dependencies_optional="
+    bat
+    bottom
+    darkman
+    delta
+    dust
+    eza
+    fzf
+    gum
+    hyperfine
+    hyprland
+    rustup
+    shellcheck
+    shfmt
+    tailscale
+    tealdeer
+    tokei
+    wl-clipboard
+    zoxide
+  "
+}
+
+get_package_bin() {
+  case "$1" in
+  antigravity-cli) printf '%s\n' "agy" ;;
+  antigravity-fhs) printf '%s\n' "antigravity" ;;
+  gawk) printf '%s\n' "awk" ;;
+  gnused) printf '%s\n' "sed" ;;
+  hyprland) printf '%s\n' "hyprctl" ;;
+  nodejs) printf '%s\n' "node" ;;
+  wl-clipboard) printf '%s\n' "wl-copy" ;;
+  xdg-desktop-portal) printf '%s\n' "xdg-desktop-portal" ;;
+  xdg-desktop-portal-wlr) printf '%s\n' "xdg-desktop-portal-wlr" ;;
+  xdg-desktop-portal-hyprland) printf '%s\n' "xdg-desktop-portal-hyprland" ;;
+  zoxide) printf '%s\n' "z" ;;
+  *) printf '%s\n' "$1" ;;
+  esac
+}
+
+get_additional_packages() {
+  for pkg in ${packages}; do
+    case " ${dependencies_required} ${dependencies_optional} " in
+    *" ${pkg} "*) ;;
+    *) printf '%s\n' "${pkg}" ;;
+    esac
+  done
+}
+
+cleanup() {
+  _profile_json="$(nix profile list --json 2>/dev/null)" || _profile_json=""
+
+  # shellcheck disable=SC2086
+  for pkg in $(get_additional_packages); do
+    bin="$(get_package_bin "${pkg}")"
+    bin_path="$(command -v "${bin}" 2>/dev/null)"
+    case "${bin_path:-}" in
+    /run/current-system/sw/bin/* | /etc/profiles/per-user/*/bin/*)
+      case "${_profile_json}" in
+      *\"${pkg}\":*)
+        if nix profile remove "${pkg}" >/dev/null 2>&1; then
+          print --info \
+            "cleanup: removed ${pkg} (now provided by system)"
+        else
+          print --warn \
+            "cleanup: failed to remove ${pkg} from the user profile"
+        fi
+        ;;
+      *) ;;
+      esac
+      ;;
+    *) ;;
+    esac
+  done
+}
+
+require_arg() {
+  case "${2:-}" in
+  "" | --*)
+    print --error \
+      "Flag '$1' requires an argument"
+    return 1
+    ;;
+  *) ;;
+  esac
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: HOST.sh
 # Host-specific monitor defaults + the package/dependency manifest.
 # Split out if host profiles or package lists grow large enough to
 # warrant their own file (e.g. one file per host).
 # ═══════════════════════════════════════════════════════════════════════════
 
 configure_host_profile() {
+  host=$(hostname || echo "unknown host")
+
   case "${host}" in
   Victus)
     monitor_pri_name="HDMI-A-1"
@@ -108,73 +255,6 @@ configure_host_profile() {
   esac
 }
 
-configure_packages() {
-  packages="
-    alejandra
-    antigravity-cli
-    antigravity-fhs
-    bat
-    bottom
-    cfspeedtest
-    darkman
-    delta
-    dust
-    eza
-    fd
-    fzf
-    gawk
-    gh
-    gnused
-    gitui
-    gum
-    hyperfine
-    hyprland
-    lorri
-    nix-ld
-    nodejs
-    ollama
-    ripgrep
-    rustup
-    shellcheck
-    shfmt
-    shortwave
-    speedtest-go
-    speedtest-rs
-    sudo
-    tailscale
-    tealdeer
-    tokei
-    wl-clipboard
-    xdg-desktop-portal
-    xdg-desktop-portal-gtk
-    xdg-desktop-portal-hyprland
-    zoxide
-  "
-  dependencies_required="gawk gnused lorri ripgrep fd sudo"
-  dependencies_optional="
-    bat
-    bottom
-    darkman
-    delta
-    dust
-    eza
-    fzf
-    gum
-    hyperfine
-    hyprland
-    rustup
-    shellcheck
-    shfmt
-    tailscale
-    tealdeer
-    tokei
-    wl-clipboard
-    xdg-desktop-portal
-    xdg-desktop-portal-hyprland
-    zoxide
-  "
-}
-
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: logging.sh
 # Verbosity normalization, the print() engine, and tagged helpers.
@@ -183,7 +263,7 @@ configure_packages() {
 initialize_logger() {
   # ── Verbosity Normalization ────────────────────────────────────────────
   # Scale: 0=quiet, 1=error, 2=warn, 3=info (default), 4=debug, 5=trace/verbose
-  _verb_input="$(printf '%s' "${VERBOSITY:-3}" | tr '[:upper:]' '[:lower:]')"
+  _verb_input="$(printf '%s' "${VERBOSITY:-${verbosity:-info}}" | tr '[:upper:]' '[:lower:]')"
   case ${_verb_input} in
   0 | quiet | silent | off) VERBOSITY=0 ;;
   1 | error | err) VERBOSITY=1 ;;
@@ -417,6 +497,26 @@ find_nix_profile_dir() {
   printf '%s\n' "${HOME}/.nix-profile"
 }
 
+#? find_gsettings_schema_dir — locate the directory that contains
+#? glib-2.0/schemas/gschemas.compiled and return the parent directory
+#? that should be added to XDG_DATA_DIRS.
+find_gsettings_schema_dir() {
+  _schema_file="$(
+    find -L "${NIX_PROFILE_DIR}" \
+      -path "*/glib-2.0/schemas/gschemas.compiled" \
+      -type f 2>/dev/null | head -n 1
+  )"
+  if [ -n "${_schema_file}" ]; then
+    # go up three levels: schemas/ -> glib-2.0/ -> package root
+    _dir="$(dirname "${_schema_file}")" # .../glib-2.0/schemas
+    _dir="$(dirname "${_dir}")"         # .../glib-2.0
+    _dir="$(dirname "${_dir}")"         # .../share/gsettings-schemas/pkg-...
+    printf '%s\n' "${_dir}"
+    return 0
+  fi
+  return 1
+}
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: timing.sh
 # Single-shot stage timing (see: hyperfine isn't a fit for side-effecting,
@@ -447,78 +547,36 @@ time_stage() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# SECTION: packages_helpers.sh
-# Package-name <-> binary-name mapping, additional-package diffing,
-# and profile cleanup of packages now provided by the system.
-# ═══════════════════════════════════════════════════════════════════════════
-
-get_package_bin() {
-  case "$1" in
-  antigravity-cli) printf '%s\n' "agy" ;;
-  antigravity-fhs) printf '%s\n' "antigravity" ;;
-  gawk) printf '%s\n' "awk" ;;
-  gnused) printf '%s\n' "sed" ;;
-  hyprland) printf '%s\n' "hyprctl" ;;
-  nodejs) printf '%s\n' "node" ;;
-  wl-clipboard) printf '%s\n' "wl-copy" ;;
-  xdg-desktop-portal) printf '%s\n' "xdg-desktop-portal" ;;
-  xdg-desktop-portal-hyprland) printf '%s\n' "xdg-desktop-portal-hyprland" ;;
-  zoxide) printf '%s\n' "z" ;;
-  *) printf '%s\n' "$1" ;;
-  esac
-}
-
-get_additional_packages() {
-  for pkg in ${packages}; do
-    case " ${dependencies_required} ${dependencies_optional} " in
-    *" ${pkg} "*) ;;
-    *) printf '%s\n' "${pkg}" ;;
-    esac
-  done
-}
-
-cleanup() {
-  _profile_json="$(nix profile list --json 2>/dev/null)" || _profile_json=""
-
-  # shellcheck disable=SC2086
-  for pkg in $(get_additional_packages); do
-    bin="$(get_package_bin "${pkg}")"
-    bin_path="$(command -v "${bin}" 2>/dev/null)"
-    case "${bin_path:-}" in
-    /run/current-system/sw/bin/* | /etc/profiles/per-user/*/bin/*)
-      case "${_profile_json}" in
-      *\"${pkg}\":*)
-        if nix profile remove "${pkg}" >/dev/null 2>&1; then
-          print --info \
-            "cleanup: removed ${pkg} (now provided by system)"
-        else
-          print --warn \
-            "cleanup: failed to remove ${pkg} from the user profile"
-        fi
-        ;;
-      *) ;;
-      esac
-      ;;
-    *) ;;
-    esac
-  done
-}
-
-require_arg() {
-  case "${2:-}" in
-  "" | --*)
-    print --error \
-      "Flag '$1' requires an argument"
-    return 1
-    ;;
-  *) ;;
-  esac
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
 # SECTION: xdg_portals.sh
 # xdg-open shim + XDG desktop portal restart/configure.
 # ═══════════════════════════════════════════════════════════════════════════
+
+setup_xdg_data_dirs() {
+  # Ensure ~/.local/share is in XDG_DATA_DIRS (needed for portal overrides)
+  _local_share="${XDG_DATA_HOME:-${HOME}/.local/share}"
+  case ":${XDG_DATA_DIRS}:" in
+  *":${_local_share}:"*) ;;
+  *) XDG_DATA_DIRS="${_local_share}:${XDG_DATA_DIRS}" ;;
+  esac
+
+  # Add the gsettings schema path if found
+  _schema_dir="$(find_gsettings_schema_dir)"
+  if [ -n "${_schema_dir}" ]; then
+    case ":${XDG_DATA_DIRS}:" in
+    *":${_schema_dir}:"*) ;;
+    *) XDG_DATA_DIRS="${_schema_dir}:${XDG_DATA_DIRS}" ;;
+    esac
+  fi
+
+  export XDG_DATA_DIRS
+  # Propagate to D-Bus/systemd
+  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd XDG_DATA_DIRS 2>/dev/null || true
+  fi
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment XDG_DATA_DIRS 2>/dev/null || true
+  fi
+}
 
 setup_xdg_open() {
   mkdir -p "${XDG_BIN_HOME}"
@@ -542,17 +600,78 @@ setup_xdg_open() {
   unset BROWSER
 }
 
+create_gtk_portal_override() {
+  _portal_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/xdg-desktop-portal/portals"
+  mkdir -p "${_portal_dir}"
+  _target="${_portal_dir}/gtk.portal"
+
+  # Locate the original gtk.portal from the Nix store
+  _orig="$(
+    find -L "${NIX_PROFILE_DIR}" \
+      -path "*/xdg-desktop-portal/portals/gtk.portal" \
+      -type f 2>/dev/null | head -n 1
+  )"
+  if [ -z "${_orig}" ]; then
+    print --warn "create_gtk_portal_override: cannot find original gtk.portal; skipping"
+    return 1
+  fi
+
+  # Extract needed lines (use grep -m1 to get first occurrence)
+  _dbusname="$(grep -m1 '^DBusName=' "${_orig}" | cut -d= -f2-)"
+  _interfaces="$(grep -m1 '^Interfaces=' "${_orig}" | cut -d= -f2-)"
+  _usein="$(grep -m1 '^UseIn=' "${_orig}" | cut -d= -f2-)"
+
+  # Add OpenURI to Interfaces if not already present
+  case ";${_interfaces};" in
+  *";org.freedesktop.impl.portal.OpenURI;"*) ;;
+  *) _interfaces="${_interfaces};org.freedesktop.impl.portal.OpenURI" ;;
+  esac
+
+  # Add Hyprland to UseIn (also keep gnome)
+  case ";${_usein};" in
+  *";Hyprland;"*) ;;
+  *) _usein="${_usein};Hyprland" ;;
+  esac
+
+  # Write the override file
+  {
+    printf '[portal]\n'
+    printf 'DBusName=%s\n' "${_dbusname}"
+    printf 'Interfaces=%s\n' "${_interfaces}"
+    printf 'UseIn=%s\n' "${_usein}"
+  } >"${_target}"
+
+  print --success "Created gtk.portal override (OpenURI added, UseIn includes Hyprland)"
+  return 0
+}
+
+enable_gnome_keyring() {
+  print --info "Enabling gnome-keyring"
+  systemctl --user enable gnome-keyring-daemon.service
+  # Create the runtime socket directory
+  mkdir -p $XDG_RUNTIME_DIR/keyring
+
+  # Force-spawn a new daemon instance
+  eval $(gnome-keyring-daemon --daemonize --components=secrets)
+  export SSH_AUTH_SOCK
+
+  print --success "gnome-keyring enabled"
+}
+
 setup_portals() {
+  setup_xdg_data_dirs
+  enable_gnome_keyring
+  create_gtk_portal_override # keeps GTK for FileChooser, etc.
+
   case "${compositor:-}" in
   hyprland | niri | mango | cosmic) ;;
   *)
-    print --info \
-      "setup_portals: no supported compositor detected; skipping"
+    print --info "setup_portals: no supported compositor detected; skipping"
     return 0
     ;;
   esac
 
-  #? Per-compositor portal backend package/binary + systemd unit name.
+  # Per-compositor backend
   case "${compositor}" in
   hyprland)
     _portal_backend_bin="xdg-desktop-portal-hyprland"
@@ -577,68 +696,68 @@ setup_portals() {
   *) ;;
   esac
 
-  print --info \
-    "Restarting XDG desktop portals for ${compositor}..."
-
-  XDG_DATA_DIRS="$(join_path "${NIX_PROFILE_DIR}" share):${XDG_DATA_DIRS}"
-  XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
-  export XDG_DATA_DIRS XDG_CURRENT_DESKTOP
-
-  # Export variables to DBus activation environment
-  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
-    dbus-update-activation-environment \
-      --systemd \
-      WAYLAND_DISPLAY \
-      XDG_CURRENT_DESKTOP \
-      XDG_DATA_DIRS \
-      2>/dev/null || true
-  fi
-
-  # Prefer systemd user units if active
-  if
-    command -v systemctl >/dev/null 2>&1 &&
-      systemctl --user \
-        is-active \
-        dbus \
-        >/dev/null 2>&1
-  then
-    systemctl \
-      --user \
-      restart \
-      "${_portal_backend_unit}" \
-      xdg-desktop-portal.service \
-      2>/dev/null || true
-    print --success "Restarted XDG portals via systemd user units"
-    return 0
-  fi
-
-  # Manual fallback with isolated file descriptors
-  pkill -f xdg-desktop-portal 2>/dev/null || true
-
-  _backend_portal="$(
-    find \
-      -L "${NIX_PROFILE_DIR}" \
-      -name "${_portal_backend_bin}" \
-      -type f -executable 2>/dev/null |
-      head -n 1
-  )"
-  _portal_bin="$(
-    find \
-      -L "${NIX_PROFILE_DIR}" \
-      -name "xdg-desktop-portal" \
-      -type f -executable 2>/dev/null |
-      head -n 1
-  )"
-
-  if [ -n "${_backend_portal}" ] && [ -n "${_portal_bin}" ]; then
-    (exec "${_backend_portal}" >/dev/null 2>&1 </dev/null &)
-    (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
-    print --success \
-      "Launched ${_portal_backend_bin} and main XDG desktop portal"
+  # ---- Start KDE portal (provides OpenURI) ----
+  _kde_bin="$(command -v xdg-desktop-portal-kde 2>/dev/null || find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-kde" -type f -executable 2>/dev/null | head -n1)"
+  if [ -n "${_kde_bin}" ]; then
+    # Kill any stale KDE portal process
+    pkill -f "${_kde_bin}" 2>/dev/null || true
+    # Launch it in the background
+    (exec "${_kde_bin}" >/dev/null 2>&1 </dev/null &)
+    print --debug "KDE portal launched manually"
   else
-    print --warn \
-      "setup_portals: could not find portal executables in ${NIX_PROFILE_DIR}"
-    return 1
+    print --warn "KDE portal binary not found – OpenURI will not work"
+  fi
+
+  print --info "Restarting XDG desktop portals for ${compositor}..."
+
+  export XDG_CURRENT_DESKTOP="${_xdg_current_desktop}"
+  export XDG_DATA_DIRS
+
+  # Stop only systemd services (GTK and compositor backend and main)
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
+    systemctl --user stop xdg-desktop-portal-gtk.service "${_portal_backend_unit}" xdg-desktop-portal.service 2>/dev/null || true
+  fi
+
+  # Push environment
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user set-environment \
+      XDG_DATA_DIRS="${XDG_DATA_DIRS}" \
+      XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP}" \
+      WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}"
+  fi
+  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd \
+      XDG_DATA_DIRS XDG_CURRENT_DESKTOP WAYLAND_DISPLAY 2>/dev/null || true
+  fi
+
+  # Start compositor backend and main portal (KDE is already running)
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active dbus >/dev/null 2>&1; then
+    systemctl --user start "${_portal_backend_unit}" 2>/dev/null || true
+    systemctl --user start xdg-desktop-portal.service 2>/dev/null || true
+    print --success "Restarted XDG portals (KDE backend for OpenURI)"
+  else
+    # Manual fallback (also launch KDE)
+    pkill -f xdg-desktop-portal 2>/dev/null || true
+    _backend_portal="$(find -L "${NIX_PROFILE_DIR}" -name "${_portal_backend_bin}" -type f -executable 2>/dev/null | head -n1)"
+    _portal_bin="$(find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal" -type f -executable 2>/dev/null | head -n1)"
+    _gtk_bin="$(command -v xdg-desktop-portal-gtk 2>/dev/null || find -L "${NIX_PROFILE_DIR}" -name "xdg-desktop-portal-gtk" -type f -executable 2>/dev/null | head -n1)"
+    [ -n "${_gtk_bin}" ] && (exec "${_gtk_bin}" >/dev/null 2>&1 </dev/null &)
+    [ -n "${_kde_bin}" ] && (exec "${_kde_bin}" >/dev/null 2>&1 </dev/null &)
+    [ -n "${_backend_portal}" ] && (exec "${_backend_portal}" >/dev/null 2>&1 </dev/null &)
+    [ -n "${_portal_bin}" ] && (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
+    print --success "Launched portals manually (KDE for OpenURI)"
+  fi
+
+  # Verify
+  sleep 1
+  if command -v busctl >/dev/null 2>&1; then
+    if busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop 2>/dev/null | grep -q OpenURI; then
+      print --success "OpenURI interface is now available"
+    else
+      print --warn "OpenURI still missing – check:"
+      print --warn "  ps aux | grep xdg-desktop-portal-kde"
+      print --warn "  journalctl --user -u xdg-desktop-portal.service -b -n 50"
+    fi
   fi
 }
 
@@ -1221,7 +1340,6 @@ fix_net() {
 # SECTION: darkman.sh
 # Portal preference config + light/dark GTK theme transition hooks.
 # ═══════════════════════════════════════════════════════════════════════════
-
 setup_darkman() {
   print --info "Setting up Darkman portal configurations and hooks..."
 
@@ -1229,11 +1347,6 @@ setup_darkman() {
   _dark_hook_dir="$(join_path "${XDG_DATA_HOME}" dark-mode.d)"
   _light_hook_dir="$(join_path "${XDG_DATA_HOME}" light-mode.d)"
 
-  #? Same compositor -> portal-name mapping as setup_portals; the
-  #? "default=" value here is the portal implementation's own name
-  #? (from its .portal file), not the compositor name itself, so
-  #? niri (gnome backend) and mango (wlr backend) mustn't fall
-  #? through to a literal "niri"/"mango" that no backend answers to.
   case "${compositor:-}" in
   hyprland) _portal_default_name="hyprland" ;;
   niri) _portal_default_name="gnome" ;;
@@ -1242,46 +1355,41 @@ setup_darkman() {
   *) _portal_default_name="" ;;
   esac
 
-  # 1. Portals configuration
-  mkdir -p "${_portal_conf_dir}"
+  #> Create theme hooks.
+  mkdir -p "${_portal_conf_dir}" "${_dark_hook_dir}" "${_light_hook_dir}"
+
+  _portal_conf="$(join_path "${_portal_conf_dir}" portals.conf)"
+  _dark_hook="$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
+  _light_hook="$(join_path "${_light_hook_dir}" gtk-theme.sh)"
+
   {
     printf '%s\n' '[preferred]'
     printf '%s\n' "default=${_portal_default_name:+${_portal_default_name};}gtk"
-    printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=gtk'
+    printf '%s\n' 'org.freedesktop.impl.portal.OpenURI=kde'
     printf '%s\n' 'org.freedesktop.impl.portal.FileChooser=gtk'
     printf '%s\n' 'org.freedesktop.impl.portal.Settings=darkman'
-  } >"$(join_path "${_portal_conf_dir}" portals.conf)"
-
-  # 2. Write transition hook scripts
-  mkdir -p "${_dark_hook_dir}" "${_light_hook_dir}"
+  } >"${_portal_conf}"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
-    printf '%s\n' \
-      "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
-    printf '%s\n' \
-      "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
-  } >"$(join_path "${_dark_hook_dir}" gtk-theme.sh)"
+    printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
+    printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
+  } >"${_dark_hook}"
 
   {
     printf '%s\n' '#!/usr/bin/env sh'
-    printf '%s\n' \
-      "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
-    printf '%s\n' \
-      "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
-  } >"$(join_path "${_light_hook_dir}" gtk-theme.sh)"
+    printf '%s\n' "gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'"
+    printf '%s\n' "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
+  } >"${_light_hook}"
 
-  chmod +x \
-    "$(join_path "${_dark_hook_dir}" gtk-theme.sh)" \
-    "$(join_path "${_light_hook_dir}" gtk-theme.sh)"
+  chmod +x "${_dark_hook}" "${_light_hook}"
 
-  # 3. Export session environment to DBus/Systemd
+  #> Ensure environment variables are set for D-Bus activation
   if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
-    dbus-update-activation-environment \
-      --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
+    dbus-update-activation-environment --systemd \
+      WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY 2>/dev/null || true
   fi
 
-  # 4. Enable and restart darkman service if systemctl is available
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user enable darkman.service 2>/dev/null || true
     systemctl --user restart darkman.service 2>/dev/null || true
@@ -1425,9 +1533,50 @@ setup_lorri() {
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_utilities() {
+  # Start with the profile bin directory
   PATH="$(join_path "${NIX_PROFILE_DIR}" bin):${PATH}"
+
+  # ---- Find and add portal binary directories ----
+  # Method 1: Parse ExecStart from systemd service files (most reliable)
+  for service in /run/current-system/sw/lib/systemd/user/xdg-desktop-portal*.service; do
+    if [ -f "${service}" ]; then
+      exec_path="$(grep -m1 '^ExecStart=' "${service}" | cut -d= -f2 | cut -d' ' -f1)"
+      if [ -n "${exec_path}" ] && [ -f "${exec_path}" ]; then
+        exec_dir="$(dirname "${exec_path}")"
+        case ":${PATH}:" in
+        *":${exec_dir}:"*) ;;
+        *) PATH="${exec_dir}:${PATH}" ;;
+        esac
+      fi
+    fi
+  done
+
+  # Method 2: Use fd to search the Nix store directly (fallback)
+  if command -v fd >/dev/null 2>&1; then
+    # Include all portal backends – especially kde for OpenURI
+    for portal in xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-hyprland xdg-desktop-portal-kde; do
+      portal_path="$(fd -t x -e "" "${portal}" /nix/store 2>/dev/null | head -n1)"
+      if [ -n "${portal_path}" ]; then
+        portal_dir="$(dirname "${portal_path}")"
+        case ":${PATH}:" in
+        *":${portal_dir}:"*) ;;
+        *) PATH="${portal_dir}:${PATH}" ;;
+        esac
+      fi
+    done
+  fi
+
   export PATH
 
+  # Debug: show what we found (remove after testing)
+  echo "=== Portal binaries on PATH ==="
+  which xdg-desktop-portal 2>/dev/null || echo "xdg-desktop-portal: not found"
+  which xdg-desktop-portal-gtk 2>/dev/null || echo "xdg-desktop-portal-gtk: not found"
+  which xdg-desktop-portal-hyprland 2>/dev/null || echo "xdg-desktop-portal-hyprland: not found"
+  which xdg-desktop-portal-kde 2>/dev/null || echo "xdg-desktop-portal-kde: not found"
+  echo "================================"
+
+  # ---- Install missing packages (existing logic) ----
   _profile_list="$(nix profile list 2>/dev/null)" || _profile_list=""
 
   # shellcheck disable=SC2086
@@ -1807,7 +1956,7 @@ dev() {
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: orchestrate.sh
-# execute() dispatches on ${command}, timing each stage in the "all" path.
+# 'execute' dispatches on ${command}, timing each stage in the "all" path.
 # ═══════════════════════════════════════════════════════════════════════════
 
 execute() {
@@ -1821,13 +1970,11 @@ execute() {
     utilities) setup_utilities ;;
     rust) setup_rust ;;
     tmux) setup_tmux ;;
-    xdg) setup_xdg_open ;;
-    portals) setup_portals ;;
+    portals | xdg) setup_portals ;;
     remote-dev) setup_remote_dev "${@}" ;;
     darkman) setup_darkman ;;
     lorri) setup_lorri ;;
     all)
-      time_stage xdg setup_xdg_open
       time_stage utilities setup_utilities
       time_stage darkman setup_darkman
       time_stage portals setup_portals
@@ -1843,12 +1990,12 @@ execute() {
   }
 
   case "${verbosity}" in
-  verbose)
+  verbose | trace)
     set -x
     run "${@}"
     set +x
     ;;
-  dry | debug)
+  dry)
     printf "Would run: %s\n" "${command}"
     printf "  primary:    %s  %sx%s@%s\n" \
       "${monitor_pri_name}" "${monitor_pri_width}" "${monitor_pri_height}" "${monitor_pri_rate}"
@@ -1860,9 +2007,8 @@ execute() {
       "${monitor_ter_name}" "${monitor_ter_width}" "${monitor_ter_height}" "${monitor_ter_rate}" "${monitor_ter_pos}" ;;
     esac
     ;;
-  info) run ;;
   quiet) run >/dev/null ;;
-  *) ;;
+  *) run "${@}" ;;
   esac
 }
 

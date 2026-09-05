@@ -2,8 +2,7 @@
   lib,
   flatten ? false,
   ...
-}:
-let
+}: let
   __exports = {
     namespaced = {
       inherit
@@ -21,7 +20,8 @@ let
   inherit (lib) attrsets trivial;
 
   access = {
-    inherit (attrsets)
+    inherit
+      (attrsets)
       attrNames
       attrValues
       getAttr
@@ -35,7 +35,8 @@ let
 
   aggregation = {
     inherit (trivial) mergeAttrs;
-    inherit (attrsets)
+    inherit
+      (attrsets)
       intersectAttrs
       mergeAttrsList
       recursiveUpdate
@@ -46,7 +47,8 @@ let
   };
 
   construction = {
-    inherit (attrsets)
+    inherit
+      (attrsets)
       genAttrs
       listToAttrs
       nameValuePair
@@ -55,7 +57,8 @@ let
   };
 
   transformation = {
-    inherit (attrsets)
+    inherit
+      (attrsets)
       concatMapAttrs
       filterAttrs
       filterAttrsRecursive
@@ -70,7 +73,8 @@ let
   };
 
   selection = {
-    inherit (attrsets)
+    inherit
+      (attrsets)
       filterAttrs
       filterAttrsRecursive
       removeAttrs
@@ -78,7 +82,8 @@ let
   };
 
   predicates = {
-    inherit (attrsets)
+    inherit
+      (attrsets)
       hasAttr
       hasAttrByPath
       isAttrs
@@ -86,4 +91,6 @@ let
       ;
   };
 in
-if flatten then __exports.namespaced // __exports.flattened else __exports.namespaced
+  if flatten
+  then __exports.namespaced // __exports.flattened
+  else __exports.namespaced

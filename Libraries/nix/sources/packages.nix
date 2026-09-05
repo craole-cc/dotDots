@@ -527,12 +527,13 @@
       };
   in
     if required
-    then assert withContext {
-      name = _name;
-      context = "resolving package from input '${toString input}' or pkgs";
-      assertion = eval != null;
-      message = "Unable to locate a package for input '${toString input}' - tried: ${concat ", " candidateNames}. Pass `target` explicitly to pkgFor/pkgOf.";
-    }; eval
+    then
+      assert withContext {
+        name = _name;
+        context = "resolving package from input '${toString input}' or pkgs";
+        assertion = eval != null;
+        message = "Unable to locate a package for input '${toString input}' - tried: ${concat ", " candidateNames}. Pass `target` explicitly to pkgFor/pkgOf.";
+      }; eval
     else eval;
 
   # -- pkgsFrom
