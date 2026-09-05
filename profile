@@ -39,7 +39,12 @@ configure() {
   export \
     NIX_PROFILE_DIR \
     VSCODE_SERVER_DIR \
-    XDG_BIN_HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_DATA_DIRS
+    XDG_BIN_HOME \
+    XDG_CACHE_HOME \
+    XDG_CONFIG_HOME \
+    XDG_DATA_HOME \
+    XDG_DATA_DIRS \
+    XDG_RUNTIME_DIR
 
   # ── DOTS Environment ──────────────────────────────────────────────────
   DOTS="${DOTS:-"${PWD:-"$(pwd -P)"}"}"
@@ -641,7 +646,7 @@ setup_xdg_open() {
   fi
 
   print --success "xdg-open -> gio open (${_xdg_open})"
-  print --info "resolved xdg-open: $(command -v xdg-open)"
+  print --info "resolved xdg-open: $(command -v xdg-open || true)"
 }
 
 create_gtk_portal_override() {
@@ -690,19 +695,76 @@ create_gtk_portal_override() {
 }
 
 enable_gnome_keyring() {
-  print --info "Enabling gnome-keyring"
-  systemctl --user enable gnome-keyring-daemon.service
-  # Create the runtime socket directory
-  _keyring_dir="$(join_path "${XDG_RUNTIME_DIR}" keyring)"
-  mkdir -p "${_keyring_dir}" || true
+  print --info "Starting gnome-keyring"
 
-  # Force-spawn a new daemon instance
-  _gkd_env="$(gnome-keyring-daemon --daemonize --components=secrets)" || true
-  eval "${_gkd_env}"
-  export SSH_AUTH_SOCK
-  export SSH_AUTH_SOCK
+  case "$(command -v gnome-keyring-daemon 2>/dev/null)" in
+  "")
+    print --warn "enable_gnome_keyring: gnome-keyring-daemon not on PATH"
+    return 1
+    ;;
+  *) ;;
+  esac
 
-  print --success "gnome-keyring enabled"
+  _keyring_dir="$(join_path "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" keyring)"
+  if [ -d "${_keyring_dir}" ]; then
+    chmod 700 "${_keyring_dir}" 2>/dev/null ||
+      print --warn "enable_gnome_keyring: could not chmod 700 ${_keyring_dir}"
+  fi
+
+  _gkd_unit=""
+  case "$(command -v systemctl 2>/dev/null)" in
+  "") ;;
+  *)
+    for _u in gnome-keyring.service gnome-keyring-daemon.service; do
+      if systemctl --user cat "${_u}" >/dev/null 2>&1; then
+        _gkd_unit="${_u}"
+        break
+      fi
+    done
+    ;;
+  esac
+
+  case "${_gkd_unit}" in
+  ?*)
+    systemctl --user enable --now "${_gkd_unit}" >/dev/null 2>&1 ||
+      systemctl --user start "${_gkd_unit}" >/dev/null 2>&1 || true
+    ;;
+  *)
+    print --debug "enable_gnome_keyring: no user unit; starting daemon directly"
+    ;;
+  esac
+
+  _gkd_env="$(
+    gnome-keyring-daemon \
+      --replace \
+      --daemonize \
+      --components=pkcs11,secrets,ssh \
+      2>/dev/null
+  )" || _gkd_env=""
+
+  case "${_gkd_env}" in
+  "")
+    print --warn "enable_gnome_keyring: daemon produced no control environment"
+    return 1
+    ;;
+  *)
+    # shellcheck disable=SC2086
+    eval "${_gkd_env}"
+    ;;
+  esac
+
+  export GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
+
+  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd \
+      GNOME_KEYRING_CONTROL SSH_AUTH_SOCK 2>/dev/null || true
+  fi
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment \
+      GNOME_KEYRING_CONTROL SSH_AUTH_SOCK 2>/dev/null || true
+  fi
+
+  print --success "gnome-keyring running"
 }
 
 setup_portals() {
