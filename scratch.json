@@ -1,0 +1,7 @@
+{
+  "name": "scratch",
+  "version": "0.1.0",
+  "tags": ["a", "b", "c"],
+  "nested": { "x": 1, "y": 2 },
+  "list": [1, 2, 3]
+}

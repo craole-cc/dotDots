@@ -2111,6 +2111,12 @@ treefmt_stdin() {
 }
 
 setup_treefmt() {
+  #? treefmt is already declared in packages and installed by
+  #? setup_utilities, which runs before this in the `all` pipeline.
+  #? No install-if-missing check here — that would duplicate the same
+  #? logic setup_utilities already owns. If treefmt genuinely isn't on
+  #? PATH when this runs, the binary-not-found check below catches it
+  #? and reports clearly rather than silently reinstalling.
   case "$(command -v treefmt 2>/dev/null)" in
   "")
     print --warn "setup_treefmt: treefmt not found on PATH (expected setup_utilities to have installed it)"
