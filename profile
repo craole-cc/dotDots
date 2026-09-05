@@ -1,5 +1,4 @@
 #!/bin/sh
-# shellcheck enable=all
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: config.sh
@@ -118,6 +117,7 @@ configure_packages() {
     tailscale
     tealdeer
     tokei
+    treefmt
     typos
     wl-clipboard
     xdg-desktop-portal
@@ -2081,6 +2081,305 @@ dev() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+# SECTION: treefmt_stdin.sh
+# Bridges treefmt's stdin bug (numtide/treefmt#644 — --stdin echoes input
+# unchanged for JSON/JS) by writing to a real temp file, formatting that
+# in place (the mode that actually works), then emitting it to stdout.
+# Used as Zed's external formatter: treefmt-stdin {buffer_path}
+# ═══════════════════════════════════════════════════════════════════════════
+
+treefmt_stdin() {
+  _buffer_path="${1:?treefmt_stdin: buffer path required}"
+  _ext="${_buffer_path##*.}"
+  _tree_root="${DOTS:-$(pwd -P)}"
+
+  _tmp="$(mktemp --suffix=".${_ext}")" || {
+    print --error "treefmt_stdin: mktemp failed"
+    return 1
+  }
+  trap 'rm -f "${_tmp}"' EXIT INT TERM
+
+  cat >"${_tmp}"
+
+  if ! treefmt --tree-root "${_tree_root}" "${_tmp}" >&2; then
+    print --error "treefmt_stdin: treefmt failed on ${_buffer_path}"
+    cat "${_tmp}"
+    return 1
+  fi
+
+  cat "${_tmp}"
+}
+
+setup_treefmt() {
+  case "$(command -v treefmt 2>/dev/null)" in
+  "")
+    print --warn "setup_treefmt: treefmt not found on PATH (expected setup_utilities to have installed it)"
+    return 1
+    ;;
+  *) ;;
+  esac
+
+  mkdir -p "${XDG_BIN_HOME:?}"
+  _shim="$(join_path "${XDG_BIN_HOME:?}" treefmt-stdin)"
+
+  {
+    printf '%s\n' "#!/bin/sh"
+    printf '%s\n' "buffer_path=\"\${1:?treefmt-stdin: buffer path required}\""
+    printf '%s\n' "ext=\"\${buffer_path##*.}\""
+    printf '%s\n' "tree_root=\"\${DOTS:-.}\""
+    printf '%s\n' "buffer_dir=\"\$(dirname \"\${buffer_path}\")\""
+    printf '%s\n' "tmp=\"\$(mktemp -p \"\${buffer_dir}\" \".treefmt-stdin-XXXXXX.\${ext}\")\" || exit 1"
+    printf '%s\n' "trap 'rm -f \"\${tmp}\"' EXIT INT TERM"
+    printf '%s\n' "cat >\"\${tmp}\""
+    printf '%s\n' "if ! treefmt --allow-missing-formatter --tree-root \"\${tree_root}\" \"\${tmp}\" >&2; then"
+    printf '%s\n' "  cat \"\${tmp}\""
+    printf '%s\n' "  exit 1"
+    printf '%s\n' "fi"
+    printf '%s\n' "cat \"\${tmp}\""
+  } >"${_shim}" || {
+    print --error "setup_treefmt: failed to write shim to ${_shim}"
+    return 1
+  }
+
+  chmod +x "${_shim}" || {
+    print --error "setup_treefmt: failed to chmod ${_shim}"
+    return 1
+  }
+
+  # shellcheck disable=SC2031
+  #? PATH read here reflects the real parent shell;
+  #? setup_utilities' mutation is subshell-scoped and never leaks
+  case ":${PATH:?}:" in
+  *":${XDG_BIN_HOME:?}:"*) ;;
+  *) print --warn \
+    "setup_treefmt: ${XDG_BIN_HOME:?} not on PATH yet — run setup_xdg_open, or restart your shell, before Zed can find treefmt-stdin" ;;
+  esac
+
+  print --success "treefmt-stdin shim written to ${_shim}"
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SECTION: flake.sh
+# Flake initialization and evaluation.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Lightweight – safe & fast for every direnv load / shell entry
+# Lightweight – safe & fast for every direnv load / shell entry
+load_flake() {
+  # direnv path (DIRENV_IN_ENVRC is set by direnv itself)
+  case "${DIRENV_IN_ENVRC:-}" in
+  "") ;;
+  *)
+    if command -v lorri >/dev/null 2>&1; then
+      # shellcheck disable=SC2312
+      eval "$(lorri direnv)"
+    else
+      use flake
+    fi
+    return 0
+    ;;
+  esac
+
+  # Normal shell: try to load a completed evaluation
+  command -v lorri >/dev/null 2>&1 || return 0
+
+  _lorri_env="$(lorri hook bash 2>/dev/null)" || _lorri_env=""
+  case "${_lorri_env}" in
+  "")
+    print --info "lorri: no completed evaluation yet; daemon is building in the background"
+    ;;
+  *)
+    # shellcheck disable=SC2312
+    eval "${_lorri_env}"
+    print --debug "lorri: loaded cached evaluation into this shell"
+    ;;
+  esac
+}
+
+# Heavier – ensure lorri is installed, units are present, daemon is up,
+# and the current project is registered. Then try to load a cached eval.
+setup_flake() {
+  if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+    return 0
+  fi
+
+  setup_lorri # already does install + units + start + watch_project
+  load_flake  # inject cached evaluation if one is ready
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECTION: lorri.sh
+# Install lorri if missing and ensure the user systemd socket-activated
+# daemon is enabled and running.
+# ═══════════════════════════════════════════════════════════════════════════
+
+setup_lorri() {
+  install() {
+    case "$(command -v lorri 2>/dev/null)" in
+    "")
+      print --info "Installing lorri from nixpkgs..."
+      NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#lorri" || return 1
+      ;;
+    *) ;;
+    esac
+  }
+
+  write_units() {
+    _unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
+    mkdir -p "${_unit_dir}" 2>/dev/null
+
+    #? Same read-only-~/.config fallback as setup_darkman — see the
+    #? comment there for why this can happen even when other files in
+    #? the same nominal directory are writable.
+    if [ ! -w "${_unit_dir}" ]; then
+      _unit_dir="$(join_path "${XDG_RUNTIME_DIR:?}" systemd user)"
+      mkdir -p "${_unit_dir}" || {
+        print --error "setup_lorri: ${XDG_CONFIG_HOME}/systemd/user is read-only and fallback ${_unit_dir} could not be created"
+        return 1
+      }
+      print --info "setup_lorri: ~/.config/systemd/user is read-only (home-manager?); writing units to ${_unit_dir} instead"
+    fi
+
+    _lorri_bin="$(command -v lorri 2>/dev/null)"
+    case "${_lorri_bin}" in
+    "")
+      print --error "setup_lorri: lorri binary not found after install"
+      return 1
+      ;;
+    *) ;;
+    esac
+
+    # Socket unit (socket-activated)
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Socket for Lorri Daemon'
+      printf '%s\n' ''
+      printf '%s\n' '[Socket]'
+      printf '%s\n' 'ListenStream=%t/lorri/daemon.socket'
+      printf '%s\n' 'RuntimeDirectory=lorri'
+      printf '%s\n' ''
+      printf '%s\n' '[Install]'
+      printf '%s\n' 'WantedBy=sockets.target'
+    } >"$(join_path "${_unit_dir}" lorri.socket)" || {
+      print --error "setup_lorri: failed to write lorri.socket to ${_unit_dir}"
+      return 1
+    }
+
+    # Service unit — resolved binary + a PATH that includes nix/git/tar.
+    # systemd user units do not inherit the login PATH, so without this
+    # the daemon starts but never evaluates (no `nix` on PATH).
+    _lorri_path="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin:/usr/bin:/bin"
+    {
+      printf '%s\n' '[Unit]'
+      printf '%s\n' 'Description=Lorri Daemon'
+      printf '%s\n' 'Requires=lorri.socket'
+      printf '%s\n' 'After=lorri.socket'
+      printf '%s\n' ''
+      printf '%s\n' '[Service]'
+      printf '%s\n' "ExecStart=${_lorri_bin} daemon"
+      printf '%s\n' "Environment=PATH=${_lorri_path}"
+      printf '%s\n' 'PrivateTmp=true'
+      printf '%s\n' 'Restart=on-failure'
+    } >"$(join_path "${_unit_dir}" lorri.service)" || {
+      print --error "setup_lorri: failed to write lorri.service to ${_unit_dir}"
+      return 1
+    }
+  }
+
+  enable_and_start() {
+    if ! command -v systemctl >/dev/null 2>&1; then
+      print --warn "setup_lorri: systemctl not available; start with: lorri daemon"
+      return 1
+    fi
+
+    systemctl --user daemon-reload 2>/dev/null || true
+
+    if systemctl --user is-enabled lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already enabled"
+    else
+      systemctl --user enable lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to enable lorri.socket"
+        return 1
+      }
+    fi
+
+    # Start the socket (daemon starts on first client connection)
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --verbose "lorri.socket already active"
+    else
+      systemctl --user start lorri.socket >/dev/null 2>&1 || {
+        print --warn "setup_lorri: failed to start lorri.socket"
+        return 1
+      }
+    fi
+
+    # Start (or restart) so a rewritten unit/PATH is picked up.
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user restart lorri.service >/dev/null 2>&1 ||
+      systemctl --user start lorri.service >/dev/null 2>&1 || true
+
+    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
+      print --success "lorri daemon (socket-activated) is enabled and running"
+    else
+      print --warn "setup_lorri: lorri.socket is not active after start attempt"
+      return 1
+    fi
+
+    if systemctl --user is-active lorri.service >/dev/null 2>&1; then
+      print --verbose "lorri.service is active"
+    else
+      print --warn "lorri.service is not active; check: journalctl --user -u lorri.service"
+    fi
+  }
+
+  # Register this directory so the daemon starts the first evaluation.
+  # IMPORTANT: `lorri watch` is NOT a one-shot ping — it registers the
+  # project AND then keeps running in the foreground, watching for file
+  # changes, for as long as it's left attached. Running it unbackgrounded
+  # here blocks this whole function (and the calling shell) for as long
+  # as `lorri watch` stays attached — which, on a first cold evaluation
+  # of a large flake, can be minutes, with zero feedback since output is
+  # redirected to /dev/null. That was the actual cause of the hang that
+  # required killing the terminal.
+  #
+  # The daemon itself does all the real evaluation work independently of
+  # whether any `lorri watch` process is still attached to it, so the
+  # fix is simply: launch it detached, note the registration attempt,
+  # and move on immediately. Use `lorri info --flake .` afterward (or
+  # `journalctl --user -u lorri.service`) to check evaluation progress.
+  watch_project() {
+    if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
+      print --verbose "lorri: no flake.nix/shell.nix/default.nix here; skip watch"
+      return 0
+    fi
+
+    #? Do NOT wrap this in a `( ... & )` subshell — a subshell that only
+    #? launches a background job and then has nothing else to do exits
+    #? immediately, and the orphaned `lorri watch` process can be reaped
+    #? or fail to complete its daemon handshake before it does anything
+    #? useful. That was the actual bug: the daemon logged "ready" every
+    #? run but never a single "connection"/"ping"/"build" line, meaning
+    #? `lorri watch` never got far enough to register at all.
+    #?
+    #? Backgrounding directly in the current shell (no wrapping
+    #? subshell) is what actually fixes this. `disown` is NOT used here
+    #? — it's a bash builtin, not POSIX sh, and this script is #!/bin/sh.
+    #? It also isn't needed for correctness: it would only additionally
+    #? detach the job from shell job-control bookkeeping (hiding it from
+    #? `jobs`, avoiding a SIGHUP if the shell exits) — a nice-to-have,
+    #? not the fix for the actual registration bug.
+    _lorri_watch_log="$(join_path "${XDG_CACHE_HOME}" lorri-watch.log)"
+    lorri watch >"${_lorri_watch_log}" 2>&1 &
+    print --info "lorri: registration for ${PWD} launched in background (pid $!; log: ${_lorri_watch_log}; check 'lorri info --flake .' for evaluation status)"
+  }
+
+  install || return 1
+  write_units || return 1
+  enable_and_start || return 1
+  watch_project
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 # SECTION: info.sh
 # Detection (compositor, monitors, tailscale, app status) and the
 # show_info() help/status renderer.
@@ -2387,227 +2686,6 @@ show_info() {
   print --markdown "${_info}"
 }
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SECTION: flake.sh
-# Flake initialization and evaluation.
-# ══════════════════════════════════════════════════════════════════════════════
-
-# Lightweight – safe & fast for every direnv load / shell entry
-# Lightweight – safe & fast for every direnv load / shell entry
-load_flake() {
-  # direnv path (DIRENV_IN_ENVRC is set by direnv itself)
-  case "${DIRENV_IN_ENVRC:-}" in
-  "") ;;
-  *)
-    if command -v lorri >/dev/null 2>&1; then
-      # shellcheck disable=SC2312
-      eval "$(lorri direnv)"
-    else
-      use flake
-    fi
-    return 0
-    ;;
-  esac
-
-  # Normal shell: try to load a completed evaluation
-  command -v lorri >/dev/null 2>&1 || return 0
-
-  _lorri_env="$(lorri hook bash 2>/dev/null)" || _lorri_env=""
-  case "${_lorri_env}" in
-  "")
-    print --info "lorri: no completed evaluation yet; daemon is building in the background"
-    ;;
-  *)
-    # shellcheck disable=SC2312
-    eval "${_lorri_env}"
-    print --debug "lorri: loaded cached evaluation into this shell"
-    ;;
-  esac
-}
-
-# Heavier – ensure lorri is installed, units are present, daemon is up,
-# and the current project is registered. Then try to load a cached eval.
-setup_flake() {
-  if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
-    return 0
-  fi
-
-  setup_lorri # already does install + units + start + watch_project
-  load_flake  # inject cached evaluation if one is ready
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
-# SECTION: lorri.sh
-# Install lorri if missing and ensure the user systemd socket-activated
-# daemon is enabled and running.
-# ═══════════════════════════════════════════════════════════════════════════
-
-setup_lorri() {
-  install() {
-    case "$(command -v lorri 2>/dev/null)" in
-    "")
-      print --info "Installing lorri from nixpkgs..."
-      NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#lorri" || return 1
-      ;;
-    *) ;;
-    esac
-  }
-
-  write_units() {
-    _unit_dir="$(join_path "${XDG_CONFIG_HOME}" systemd user)"
-    mkdir -p "${_unit_dir}" 2>/dev/null
-
-    #? Same read-only-~/.config fallback as setup_darkman — see the
-    #? comment there for why this can happen even when other files in
-    #? the same nominal directory are writable.
-    if [ ! -w "${_unit_dir}" ]; then
-      _unit_dir="$(join_path "${XDG_RUNTIME_DIR:?}" systemd user)"
-      mkdir -p "${_unit_dir}" || {
-        print --error "setup_lorri: ${XDG_CONFIG_HOME}/systemd/user is read-only and fallback ${_unit_dir} could not be created"
-        return 1
-      }
-      print --info "setup_lorri: ~/.config/systemd/user is read-only (home-manager?); writing units to ${_unit_dir} instead"
-    fi
-
-    _lorri_bin="$(command -v lorri 2>/dev/null)"
-    case "${_lorri_bin}" in
-    "")
-      print --error "setup_lorri: lorri binary not found after install"
-      return 1
-      ;;
-    *) ;;
-    esac
-
-    # Socket unit (socket-activated)
-    {
-      printf '%s\n' '[Unit]'
-      printf '%s\n' 'Description=Socket for Lorri Daemon'
-      printf '%s\n' ''
-      printf '%s\n' '[Socket]'
-      printf '%s\n' 'ListenStream=%t/lorri/daemon.socket'
-      printf '%s\n' 'RuntimeDirectory=lorri'
-      printf '%s\n' ''
-      printf '%s\n' '[Install]'
-      printf '%s\n' 'WantedBy=sockets.target'
-    } >"$(join_path "${_unit_dir}" lorri.socket)" || {
-      print --error "setup_lorri: failed to write lorri.socket to ${_unit_dir}"
-      return 1
-    }
-
-    # Service unit — resolved binary + a PATH that includes nix/git/tar.
-    # systemd user units do not inherit the login PATH, so without this
-    # the daemon starts but never evaluates (no `nix` on PATH).
-    _lorri_path="$(join_path "${NIX_PROFILE_DIR}" bin):/run/current-system/sw/bin:/usr/bin:/bin"
-    {
-      printf '%s\n' '[Unit]'
-      printf '%s\n' 'Description=Lorri Daemon'
-      printf '%s\n' 'Requires=lorri.socket'
-      printf '%s\n' 'After=lorri.socket'
-      printf '%s\n' ''
-      printf '%s\n' '[Service]'
-      printf '%s\n' "ExecStart=${_lorri_bin} daemon"
-      printf '%s\n' "Environment=PATH=${_lorri_path}"
-      printf '%s\n' 'PrivateTmp=true'
-      printf '%s\n' 'Restart=on-failure'
-    } >"$(join_path "${_unit_dir}" lorri.service)" || {
-      print --error "setup_lorri: failed to write lorri.service to ${_unit_dir}"
-      return 1
-    }
-  }
-
-  enable_and_start() {
-    if ! command -v systemctl >/dev/null 2>&1; then
-      print --warn "setup_lorri: systemctl not available; start with: lorri daemon"
-      return 1
-    fi
-
-    systemctl --user daemon-reload 2>/dev/null || true
-
-    if systemctl --user is-enabled lorri.socket >/dev/null 2>&1; then
-      print --verbose "lorri.socket already enabled"
-    else
-      systemctl --user enable lorri.socket >/dev/null 2>&1 || {
-        print --warn "setup_lorri: failed to enable lorri.socket"
-        return 1
-      }
-    fi
-
-    # Start the socket (daemon starts on first client connection)
-    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
-      print --verbose "lorri.socket already active"
-    else
-      systemctl --user start lorri.socket >/dev/null 2>&1 || {
-        print --warn "setup_lorri: failed to start lorri.socket"
-        return 1
-      }
-    fi
-
-    # Start (or restart) so a rewritten unit/PATH is picked up.
-    systemctl --user daemon-reload 2>/dev/null || true
-    systemctl --user restart lorri.service >/dev/null 2>&1 ||
-      systemctl --user start lorri.service >/dev/null 2>&1 || true
-
-    if systemctl --user is-active lorri.socket >/dev/null 2>&1; then
-      print --success "lorri daemon (socket-activated) is enabled and running"
-    else
-      print --warn "setup_lorri: lorri.socket is not active after start attempt"
-      return 1
-    fi
-
-    if systemctl --user is-active lorri.service >/dev/null 2>&1; then
-      print --verbose "lorri.service is active"
-    else
-      print --warn "lorri.service is not active; check: journalctl --user -u lorri.service"
-    fi
-  }
-
-  # Register this directory so the daemon starts the first evaluation.
-  # IMPORTANT: `lorri watch` is NOT a one-shot ping — it registers the
-  # project AND then keeps running in the foreground, watching for file
-  # changes, for as long as it's left attached. Running it unbackgrounded
-  # here blocks this whole function (and the calling shell) for as long
-  # as `lorri watch` stays attached — which, on a first cold evaluation
-  # of a large flake, can be minutes, with zero feedback since output is
-  # redirected to /dev/null. That was the actual cause of the hang that
-  # required killing the terminal.
-  #
-  # The daemon itself does all the real evaluation work independently of
-  # whether any `lorri watch` process is still attached to it, so the
-  # fix is simply: launch it detached, note the registration attempt,
-  # and move on immediately. Use `lorri info --flake .` afterward (or
-  # `journalctl --user -u lorri.service`) to check evaluation progress.
-  watch_project() {
-    if [ ! -f flake.nix ] && [ ! -f shell.nix ] && [ ! -f default.nix ]; then
-      print --verbose "lorri: no flake.nix/shell.nix/default.nix here; skip watch"
-      return 0
-    fi
-
-    #? Do NOT wrap this in a `( ... & )` subshell — a subshell that only
-    #? launches a background job and then has nothing else to do exits
-    #? immediately, and the orphaned `lorri watch` process can be reaped
-    #? or fail to complete its daemon handshake before it does anything
-    #? useful. That was the actual bug: the daemon logged "ready" every
-    #? run but never a single "connection"/"ping"/"build" line, meaning
-    #? `lorri watch` never got far enough to register at all.
-    #?
-    #? Backgrounding directly in the current shell (no wrapping
-    #? subshell) is what actually fixes this. `disown` is NOT used here
-    #? — it's a bash builtin, not POSIX sh, and this script is #!/bin/sh.
-    #? It also isn't needed for correctness: it would only additionally
-    #? detach the job from shell job-control bookkeeping (hiding it from
-    #? `jobs`, avoiding a SIGHUP if the shell exits) — a nice-to-have,
-    #? not the fix for the actual registration bug.
-    _lorri_watch_log="$(join_path "${XDG_CACHE_HOME}" lorri-watch.log)"
-    lorri watch >"${_lorri_watch_log}" 2>&1 &
-    print --info "lorri: registration for ${PWD} launched in background (pid $!; log: ${_lorri_watch_log}; check 'lorri info --flake .' for evaluation status)"
-  }
-
-  install || return 1
-  write_units || return 1
-  enable_and_start || return 1
-  watch_project
-}
-
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION: args.sh
 # Argument parsing (command selection, monitor overrides, verbosity flags).
@@ -2620,7 +2698,7 @@ parse_arguments() {
       shift
       continue
       ;;
-    monitors | tailscale | utilities | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | flake | load-flake | all)
+    monitors | tailscale | utilities | treefmt | darkman | lorri | rust | tmux | xdg | portals | remote-dev | info | flake | load-flake | all)
       command="$1"
       ;;
     --monitor-pri-disable) monitor_pri_disable=1 ;;
@@ -2739,6 +2817,7 @@ execute() {
     portals | xdg) setup_portals ;;
     darkman) darkman_toggle ;;
     remote-dev) setup_remote_dev "${@}" ;;
+    treefmt) setup_treefmt ;;
     lorri) setup_lorri ;;
     flake) setup_flake ;;
     load-flake) load_flake ;;
@@ -2747,6 +2826,7 @@ execute() {
       time_stage portals setup_portals
       time_stage monitors setup_monitors
       time_stage tailscale setup_tailscale
+      time_stage treefmt setup_treefmt
       time_stage flake setup_flake
       time_stage remote-dev setup_remote_dev "${@}"
       time_stage rust setup_rust

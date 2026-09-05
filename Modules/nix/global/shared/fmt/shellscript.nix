@@ -12,10 +12,7 @@
   settings.formatter = {
     shellcheck = {
       priority = 1;
-      options = [
-        "--rcfile"
-        ".shellcheckrc"
-      ];
+      options = ["--rcfile" ".shellcheckrc"];
     };
 
     shfmt = {
