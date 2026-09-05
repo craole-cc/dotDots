@@ -16,8 +16,8 @@ configure() {
   version="0.3.1"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
-  verbosity="debug" #? Levels: quiet | info | debug | trace
-  command="all"     #? The active command to run
+  verbosity="${DOTS_INIT_VERBOSITY:-${VERBOSITY:-debug}}" #? Checks DOTS_INIT_VERBOSITY, then VERBOSITY, then defaults to 'debug'
+  command="${DOTS_INIT_COMMAND:-all}"                     #? The active command to run (defaults to 'all' if unset)
   help_requested=0
 
   # ── Base Paths ──────────────────────────────────────────────────────────
