@@ -871,16 +871,6 @@ setup_portals() {
     [ -n "${_portal_bin}" ] && (exec "${_portal_bin}" -r >/dev/null 2>&1 </dev/null &)
     print --success "Launched portals manually (GTK for OpenURI)"
   fi
-
-  # Verify
-  sleep 1
-  if command -v busctl >/dev/null 2>&1; then
-    if busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop 2>/dev/null | grep -q OpenURI; then
-      print --success "OpenURI interface is now available via GTK"
-    else
-      print --warn "OpenURI still missing – check journalctl --user -u xdg-desktop-portal.service"
-    fi
-  fi
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
