@@ -7,7 +7,7 @@
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.strings.transformation) toUpper;
 
-  HOME = env.HOME or "/home/craole";
+  HOME = env.HOME or "/home/craole-cc";
   PRIVATE = env.PRIVATE or "${HOME}/Private";
 
   target = env.name or "hindsight";
@@ -18,14 +18,14 @@
   get = name: vars."${prefix}_${name}";
 
   vars =
-    set "DATA_DIR" "${HOME}/data/${target}"
+    set "DATA_DIR" "${HOME}/.local/share/${target}"
     // set "SECRETS_FILE" "${PRIVATE}/${target}.env"
     // set "API_URL" "http://100.90.252.109:8888"
     // set "BIND_ADDRESS" "100.90.252.109"
-    // set "LLM_BASE_URL" "http://100.76.128.70:20128/v1"
-    // set "LLM_MODEL" "auto/best-fast"
-    // set "REFLECT_LLM_MODEL" "auto/best-chat"
-    // set "API_WORKER_ID" "Hindsight-Victus"
+    // set "LLM_BASE_URL" "https://openrouter.ai/api/v1"
+    // set "LLM_MODEL" "openrouter/free"
+    // set "REFLECT_LLM_MODEL" "openrouter/free"
+    // set "API_WORKER_ID" "Hindsight-TheOracle"
     // set "COMPOSE_PROJECT" target
     // set "CONTAINER_NAME" target;
 in {
