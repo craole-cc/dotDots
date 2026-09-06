@@ -432,7 +432,7 @@
         sub
         top
         ;
-      inherit (derived) path;
+      inherit (derived) path cfg;
     };
   in
     ctx // {inherit ctx;};
