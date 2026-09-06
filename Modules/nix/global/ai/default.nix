@@ -6,11 +6,20 @@
   inherit (args) pkgs;
   inherit (pkgs) mkShell;
 
+  home =
+    args.env.HOME
+    or (let
+      value = builtins.getEnv "HOME";
+    in
+      if value != ""
+      then value
+      else "/home/craole-cc");
+
   router = import ./router args;
   hindsight = import ./memory/hindsight (args // {env = args.env or {};});
   hermes = import ./agents/hermes (args
     // {
-      HOME = args.env.HOME or args.paths.repo.src.local;
+      HOME = home;
       env = args.env or {};
     });
 
