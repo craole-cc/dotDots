@@ -23,41 +23,47 @@ jobs:
           nix eval --json .#lib --apply '
             lib:
             let
-              schema = lib.libraries.default.schema.construction.mkSchema {};
-              core = lib.libraries.default.schema.core;
-              home = lib.libraries.default.schema.home;
+              lix = lib.libraries.default;
+              schema = lix.schema.construction.mkSchema {};
+              core = lix.schema.core;
+              home = lix.schema.home;
+              recursiveUpdate = lix.attrsets.aggregation.recursiveUpdate;
               rawHost = schema.hosts.raw.TheOracle;
               rawUsers = schema.users.raw;
               users = home.mkUsers { users = rawUsers; };
+              paths = schema.global.paths or {};
               direct = home.mkHome {
                 host = rawHost;
                 inherit users;
               };
+              directWithPaths = home.mkHome {
+                host = rawHost;
+                inherit users;
+                roots = paths.roots or {};
+                stems = paths.stems or {};
+              };
+              merged = recursiveUpdate rawHost { users = directWithPaths; };
               directCore = core.mkCore (
                 {
                   name = "TheOracle";
                   host = rawHost;
                   inherit users;
                 }
-                // (schema.global.paths or {})
+                // paths
               );
               host = schema.hosts.TheOracle;
             in {
               rawPrincipalNames = map (p: p.name or null) (rawHost.principals or []);
               rawHostUserKeys = builtins.attrNames (rawHost.users or {});
-              rawUserKeys = builtins.attrNames rawUsers;
-              enrichedUserKeys = builtins.attrNames users;
-              directAll = builtins.attrNames direct.all;
               directEnabled = builtins.attrNames direct.enabled;
-              directInteractive = builtins.attrNames direct.interactive;
-              directPrimary = (direct.primary or {}).name or null;
+              directWithPathsEnabled = builtins.attrNames directWithPaths.enabled;
+              mergedEnabled = builtins.attrNames (merged.users.enabled or {});
               directCoreEnabled = builtins.attrNames (directCore.users.enabled or {});
               directCoreInteractive = builtins.attrNames (directCore.users.interactive or {});
               directCorePrimary = (directCore.users.primary or {}).name or null;
               schemaEnabled = builtins.attrNames (host.users.enabled or {});
               schemaInteractive = builtins.attrNames (host.users.interactive or {});
               schemaPrimary = (host.users.primary or {}).name or null;
-              schemaPrimaryUser = (host.users.names or {}).primaryUser or null;
             }
           '
 
