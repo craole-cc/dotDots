@@ -7,23 +7,23 @@
   inherit (pkgs) mkShell;
 
   router = import ./router args;
-  memory = import ./memory args;
-  hermes = import ./agents/hermes (args
-    // {
-      HOME = args.paths.repo.src.local;
-      env = args.env or {};
-    });
+  hindsight = import ./memory/hindsight (args // {env = args.env or {};});
+  hermes = import ./agents/hermes (args // {env = args.env or {};});
 
   aiShell = {
     description = "AI Development";
     agents = {inherit hermes;};
-    inherit memory router;
-    env = (args.env or {}) // router.env // memory.env // hermes.env;
-    packages = router.packages ++ memory.packages ++ hermes.packages;
+    memory = {inherit hindsight;};
+    env = (args.env or {}) // hindsight.env // hermes.env;
+    packages = hindsight.packages ++ hermes.packages;
     shellHook = ''
+      ${hindsight.shellHook}
+      ${hermes.shellHook}
+
       if [ -t 1 ]; then
-        printf "%s\n" "AI shell: OmniRoute + Mem0 + Hermes"
-        printf "%s\n" "Focused shells: nix develop .#ai-router | .#ai-memory | .#ai-hermes | .#ai-hindsight"
+        printf "%s\n" "AI shell: Hermes + Hindsight"
+        printf "%s\n" "Focused shells: nix develop .#ai-hermes | .#ai-hindsight"
+        printf "%s\n" "Optional router: nix develop .#ai-router"
       fi
     '';
   };
@@ -34,12 +34,6 @@
     packages = core.packages ++ router.packages;
   };
 
-  aiMemory = {
-    env = core.env // memory.env;
-    inherit (memory) shellHook;
-    packages = core.packages ++ memory.packages;
-  };
-
   aiHermes = {
     env = core.env // hermes.env;
     inherit (hermes) shellHook;
@@ -47,25 +41,15 @@
   };
 
   aiHindsight = {
-    env = core.env // memory.hindsight.env;
-    inherit (memory.hindsight) shellHook;
-    packages = core.packages ++ memory.hindsight.packages;
+    env = core.env // hindsight.env;
+    inherit (hindsight) shellHook;
+    packages = core.packages ++ hindsight.packages;
   };
 
   devShells = {
     ai = mkShell {
       name = "dots-ai";
       inherit (aiShell) env shellHook packages;
-    };
-
-    "ai-router" = mkShell {
-      name = "dots-ai-router";
-      inherit (aiRouter) env shellHook packages;
-    };
-
-    "ai-memory" = mkShell {
-      name = "dots-ai-memory";
-      inherit (aiMemory) env shellHook packages;
     };
 
     "ai-hermes" = mkShell {
@@ -77,11 +61,13 @@
       name = "dots-ai-hindsight";
       inherit (aiHindsight) env shellHook packages;
     };
+
+    "ai-router" = mkShell {
+      name = "dots-ai-router";
+      inherit (aiRouter) env shellHook packages;
+    };
   };
 in {
   inherit devShells;
-  inherit (aiShell) description;
-  inherit (aiShell) env;
-  inherit (aiShell) packages;
-  inherit (aiShell) shellHook;
+  inherit (aiShell) description env packages shellHook;
 }
