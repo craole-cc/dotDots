@@ -10,13 +10,10 @@
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) any elem;
-  inherit
-    (_.schema.construction)
-    mkUI
-    mkHome
-    mkLocale
-    mkHardware
-    ;
+  inherit (_.schema.hardware) mkHardware;
+  inherit (_.schema.home) mkHome;
+  inherit (_.schema.locale) mkLocale;
+  inherit (_.schema.ui) mkUI;
   inherit (_.strings.construction) generateHexId;
   inherit (_.filesystem.construction) mkTree;
 
