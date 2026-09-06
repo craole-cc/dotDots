@@ -1,4 +1,4 @@
-name: PR Nix evaluation
+name: AI devshell acceptance
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  flake-check:
+  ai-devshells:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,54 +18,104 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Inspect TheOracle schema
+      - name: Evaluate AI shells
         run: |
-          nix eval --json .#lib --apply '
-            lib:
-            let
-              lix = lib.libraries.default;
-              schema = lix.schema.construction.mkSchema {};
-              core = lix.schema.core;
-              home = lix.schema.home;
-              recursiveUpdate = lix.attrsets.aggregation.recursiveUpdate;
-              rawHost = schema.hosts.raw.TheOracle;
-              rawUsers = schema.users.raw;
-              users = home.mkUsers { users = rawUsers; };
-              paths = schema.global.paths or {};
-              direct = home.mkHome {
-                host = rawHost;
-                inherit users;
-              };
-              directWithPaths = home.mkHome {
-                host = rawHost;
-                inherit users;
-                roots = paths.roots or {};
-                stems = paths.stems or {};
-              };
-              merged = recursiveUpdate rawHost { users = directWithPaths; };
-              directCore = core.mkCore (
-                {
-                  name = "TheOracle";
-                  host = rawHost;
-                  inherit users;
-                }
-                // paths
-              );
-              host = schema.hosts.TheOracle;
-            in {
-              rawPrincipalNames = map (p: p.name or null) (rawHost.principals or []);
-              rawHostUserKeys = builtins.attrNames (rawHost.users or {});
-              directEnabled = builtins.attrNames direct.enabled;
-              directWithPathsEnabled = builtins.attrNames directWithPaths.enabled;
-              mergedEnabled = builtins.attrNames (merged.users.enabled or {});
-              directCoreEnabled = builtins.attrNames (directCore.users.enabled or {});
-              directCoreInteractive = builtins.attrNames (directCore.users.interactive or {});
-              directCorePrimary = (directCore.users.primary or {}).name or null;
-              schemaEnabled = builtins.attrNames (host.users.enabled or {});
-              schemaInteractive = builtins.attrNames (host.users.interactive or {});
-              schemaPrimary = (host.users.primary or {}).name or null;
-            }
+          set -eu
+
+          for system in x86_64-linux aarch64-linux; do
+            for shell in ai ai-hermes ai-hindsight; do
+              nix eval --raw ".#devShells.${system}.${shell}.drvPath" > /dev/null
+            done
+          done
+
+      - name: Smoke-test Hermes shell
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai-hermes --command sh -lc '
+            set -eu
+
+            test "$HERMES_HOME" = "$HOME/.hermes"
+            test "$HERMES_GATEWAY_CFG" = "$HERMES_HOME/gateway.json"
+
+            command -v hermes > /dev/null
+            command -v hermes-help > /dev/null
+            command -v configure-hindsight > /dev/null
+            command -v hermes-gateway > /dev/null
+            command -v hermes-gateway-service > /dev/null
+
+            hermes --help > /dev/null
+            hermes-help > /dev/null
+
+            configure-hindsight --force
+            test -s "$HERMES_HOME/hindsight/config.json"
+            grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
+            grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
           '
 
-      - name: Evaluate flake
-        run: nix flake check --no-build --show-trace
+      - name: Smoke-test Hindsight shell
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai-hindsight --command sh -lc '
+            set -eu
+
+            command -v hindsight-help > /dev/null
+            command -v hindsight-up > /dev/null
+            command -v hindsight-down > /dev/null
+            command -v hindsight-status > /dev/null
+            command -v hindsight-verify > /dev/null
+            command -v hindsight-bank-create > /dev/null
+            command -v hindsight-bank-list > /dev/null
+
+            hindsight-help > /dev/null
+
+            export HINDSIGHT_BIND_ADDRESS=127.0.0.1
+            export HINDSIGHT_API_URL=http://127.0.0.1:8888
+            export HINDSIGHT_DATA_DIR="$HOME/.local/share/hindsight"
+            export HINDSIGHT_SECRETS_FILE="$HOME/Private/hindsight.env"
+
+            mkdir -p "$HOME/Private"
+            printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
+
+            set -a
+            . "$HINDSIGHT_SECRETS_FILE"
+            set +a
+
+            docker compose \
+              -p "$HINDSIGHT_COMPOSE_PROJECT" \
+              -f "$HINDSIGHT_COMPOSE_FILE" config > /dev/null
+
+            hindsight-up
+            trap "hindsight-down" EXIT HUP INT TERM
+            hindsight-status
+            hindsight-verify
+            hindsight-down
+            trap - EXIT HUP INT TERM
+          '
+
+      - name: Smoke-test combined AI shell
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai --command sh -lc '
+            set -eu
+
+            command -v hermes > /dev/null
+            command -v configure-hindsight > /dev/null
+            command -v hindsight-help > /dev/null
+            command -v hindsight-status > /dev/null
+
+            if env | grep -q "^OMNIROUTE_"; then
+              echo "OmniRoute environment leaked into .#ai" >&2
+              exit 1
+            fi
+
+            if env | grep -q "^MEM0_"; then
+              echo "Mem0 environment leaked into .#ai" >&2
+              exit 1
+            fi
+          '
