@@ -433,6 +433,24 @@
         top
         ;
       inherit (derived) path cfg;
+      inherit
+        (resolved)
+        bar
+        de
+        desktopEnvironments
+        hasHyprland
+        hasNiri
+        ice
+        panels
+        wantsCosmic
+        wantsDmsShell
+        wantsGnome
+        wantsHyprland
+        wantsNiri
+        wantsPlasma
+        windowManagers
+        wm
+        ;
     };
   in
     ctx // {inherit ctx;};
