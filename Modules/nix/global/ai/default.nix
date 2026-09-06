@@ -8,7 +8,11 @@
 
   router = import ./router args;
   hindsight = import ./memory/hindsight (args // {env = args.env or {};});
-  hermes = import ./agents/hermes (args // {env = args.env or {};});
+  hermes = import ./agents/hermes (args
+    // {
+      HOME = args.env.HOME or args.paths.repo.src.local;
+      env = args.env or {};
+    });
 
   aiShell = {
     description = "AI Development";
