@@ -24,12 +24,27 @@ jobs:
             lib:
             let
               schema = lib.libraries.default.schema.construction.mkSchema {};
+              home = lib.libraries.default.schema.home;
+              rawHost = schema.hosts.raw.TheOracle;
+              rawUsers = schema.users.raw;
+              users = home.mkUsers { users = rawUsers; };
+              direct = home.mkHome {
+                host = rawHost;
+                inherit users;
+              };
               host = schema.hosts.TheOracle;
             in {
-              interactive = builtins.attrNames (host.users.interactive or {});
-              primary = (host.users.primary or {}).name or null;
-              primaryUser = (host.users.names or {}).primaryUser or null;
-              enabled = builtins.attrNames (host.users.enabled or {});
+              rawPrincipalNames = map (p: p.name or null) (rawHost.principals or []);
+              rawUserKeys = builtins.attrNames rawUsers;
+              enrichedUserKeys = builtins.attrNames users;
+              directAll = builtins.attrNames direct.all;
+              directEnabled = builtins.attrNames direct.enabled;
+              directInteractive = builtins.attrNames direct.interactive;
+              directPrimary = (direct.primary or {}).name or null;
+              schemaEnabled = builtins.attrNames (host.users.enabled or {});
+              schemaInteractive = builtins.attrNames (host.users.interactive or {});
+              schemaPrimary = (host.users.primary or {}).name or null;
+              schemaPrimaryUser = (host.users.names or {}).primaryUser or null;
             }
           '
 
