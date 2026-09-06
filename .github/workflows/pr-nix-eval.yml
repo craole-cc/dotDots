@@ -18,5 +18,20 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
 
+      - name: Inspect TheOracle schema
+        run: |
+          nix eval --json .#lib --apply '
+            lib:
+            let
+              schema = lib.libraries.default.schema.construction.mkSchema {};
+              host = schema.hosts.TheOracle;
+            in {
+              interactive = builtins.attrNames (host.users.interactive or {});
+              primary = (host.users.primary or {}).name or null;
+              primaryUser = (host.users.names or {}).primaryUser or null;
+              enabled = builtins.attrNames (host.users.enabled or {});
+            }
+          '
+
       - name: Evaluate flake
         run: nix flake check --no-build --show-trace
