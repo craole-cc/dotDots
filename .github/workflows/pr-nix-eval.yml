@@ -1,0 +1,22 @@
+name: PR Nix evaluation
+
+on:
+  push:
+    branches:
+      - ai/hermes-hindsight-cleanup
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Evaluate flake
+        run: nix flake check --no-build --show-trace
