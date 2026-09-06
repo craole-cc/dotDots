@@ -60,6 +60,7 @@
       };
 
     paths = raw.global.paths or {};
+    users = mkUsers {inherit (raw) users;};
 
     base = {
       hosts =
@@ -71,7 +72,7 @@
                   inherit (raw) global;
                   host = hostAttr;
                 };
-                inherit (base) users;
+                inherit users;
                 host = recursiveUpdate (raw.hosts.default or {}) hostAttr;
                 inherit name;
               }
@@ -87,13 +88,13 @@
                 inherit (raw) global;
                 host = raw.hosts.default or {};
               };
-              inherit (base) users;
+              inherit users;
               host = raw.hosts.default or {};
             }
             // paths
           );
         };
-      users = mkUsers {inherit (raw) users;};
+      inherit users;
     };
 
     active = {
