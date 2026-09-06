@@ -115,6 +115,8 @@
     exclusions ? {},
     ...
   }: let
+    userProfiles = users;
+
     derived = {
       inherit host name;
       stems = recursiveUpdate stems (host.paths.stems or {});
@@ -124,7 +126,8 @@
       exclusions = recursiveUpdate exclusions (host.exclusions or {});
 
       users = mkHome {
-        inherit host users;
+        inherit host;
+        users = userProfiles;
         inherit (derived) roots stems;
       };
 
