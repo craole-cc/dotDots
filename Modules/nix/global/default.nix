@@ -54,10 +54,9 @@ global: let
       inherit
         (ai.devShells)
         ai
-        "ai-router"
-        "ai-memory"
         "ai-hermes"
         "ai-hindsight"
+        "ai-router"
         ;
 
       fmt = args.treefmt.devShell;
