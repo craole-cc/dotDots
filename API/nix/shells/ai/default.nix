@@ -1,5 +1,6 @@
 {
   defaultPreset = "hermes-hindsight";
+  directory = "ai";
   instance = "default";
   bindAddress = "127.0.0.1";
   portOffset = 0;
@@ -36,6 +37,9 @@
 
   omniroute = {
     secrets = "omniroute.env";
+    bindAddress = "127.0.0.1";
     port = 20128;
+    state = "omniroute";
+    session = "omniroute";
   };
 }

@@ -1,25 +1,35 @@
 {
   name,
   components,
+  cfg,
+  paths,
   init ? "",
   start ? "",
 }: let
   env = builtins.foldl' (acc: component: acc // (component.env or {})) {} components;
   packages = builtins.concatLists (map (component: component.packages or []) components);
   hooks = builtins.concatStringsSep "\n" (map (component: component.shellHook or "") components);
+
+  dataRoot = "${paths.xdg.data.local}/${cfg.directory}";
+  cacheRoot = "${paths.xdg.cache.local}/${cfg.directory}";
+  privateRoot = paths.home.private.local;
 in {
   inherit name env packages;
 
   shellHook = ''
     export AI_PRESET="${name}"
-    export AI_INSTANCE="''${AI_INSTANCE:-default}"
-    export AI_HOME="''${AI_HOME:-''${XDG_DATA_HOME:-$HOME/.local/share}/ai/$AI_PRESET/$AI_INSTANCE}"
-    export AI_BIND_ADDRESS="''${AI_BIND_ADDRESS:-127.0.0.1}"
-    export AI_PORT_OFFSET="''${AI_PORT_OFFSET:-0}"
-    export HERMES_HOME="$AI_HOME/hermes"
-    export HERMES_GATEWAY_CFG="$HERMES_HOME/gateway.json"
+    export AI_INSTANCE="''${AI_INSTANCE:-${cfg.instance}}"
+    export AI_BIND_ADDRESS="''${AI_BIND_ADDRESS:-${cfg.bindAddress}}"
+    export AI_PORT_OFFSET="''${AI_PORT_OFFSET:-${toString cfg.portOffset}}"
+    export AI_DATA_ROOT="${dataRoot}"
+    export AI_CACHE_ROOT="${cacheRoot}"
+    export AI_PRIVATE_DIR="${privateRoot}"
+    export AI_HOME="''${AI_HOME:-$AI_DATA_ROOT/$AI_PRESET/$AI_INSTANCE}"
+    export AI_CACHE_DIR="''${AI_CACHE_DIR:-$AI_CACHE_ROOT/$AI_PRESET/$AI_INSTANCE}"
+    export HERMES_HOME="$AI_HOME/${cfg.hermes.state}"
+    export HERMES_GATEWAY_CFG="$HERMES_HOME/${cfg.hermes.gateway}"
 
-    mkdir -p "$AI_HOME" "$HERMES_HOME"
+    mkdir -p "$AI_HOME" "$AI_CACHE_DIR" "$HERMES_HOME"
 
     ${init}
     ${hooks}
