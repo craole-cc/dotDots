@@ -77,6 +77,6 @@
     entries;
 in {
   env = env';
-  packages = scripts;
+  packages = [docker] ++ scripts;
   inherit helpEntries;
 }
