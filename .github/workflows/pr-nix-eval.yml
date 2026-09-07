@@ -62,6 +62,9 @@ jobs:
           HOME="$test_home" nix develop .#ai-hindsight --command sh -lc '
             set -eu
 
+            test "$HINDSIGHT_DATA_DIR" = "$HOME/.local/share/hindsight"
+            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
+
             command -v hindsight-help > /dev/null
             command -v hindsight-up > /dev/null
             command -v hindsight-down > /dev/null
@@ -74,8 +77,6 @@ jobs:
 
             export HINDSIGHT_BIND_ADDRESS=127.0.0.1
             export HINDSIGHT_API_URL=http://127.0.0.1:8888
-            export HINDSIGHT_DATA_DIR="$HOME/.local/share/hindsight"
-            export HINDSIGHT_SECRETS_FILE="$HOME/Private/hindsight.env"
 
             mkdir -p "$HOME/Private"
             printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
