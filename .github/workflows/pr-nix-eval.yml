@@ -37,7 +37,8 @@ jobs:
               ai-hindsight \
               ai-mem0 \
               ai-omniroute; do
-              nix eval --raw ".#devShells.${system}.${shell}.drvPath" > /dev/null
+              nix eval --raw ".#devShells.${system}.${shell}" \
+                --apply 'shell: shell.drvPath' > /dev/null
             done
           done
 
