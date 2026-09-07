@@ -18,6 +18,7 @@
     set "API_URL" "http://127.0.0.1:8888"
     // set "BIND_ADDRESS" "127.0.0.1"
     // set "IMAGE" "ghcr.io/vectorize-io/hindsight:0.9.2"
+    // set "LLM_BACKEND" "openrouter"
     // set "LLM_BASE_URL" "https://openrouter.ai/api/v1"
     // set "LLM_MODEL" "openrouter/free"
     // set "REFLECT_LLM_MODEL" "openrouter/free"
