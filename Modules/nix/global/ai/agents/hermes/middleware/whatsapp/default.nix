@@ -2,8 +2,6 @@
   pkgs,
   lix,
   sources,
-  env,
-  HOME,
   ...
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
@@ -18,10 +16,7 @@
   envPrefix = toUpper (replaceStrings ["-"] ["_"] name);
   bridgeSetup = writeShellScript "${name}-bridge-setup" (readFile ./bridge.sh);
 
-  bridgeDir = (env.XDG_STATE_HOME or (HOME + "/.local/state")) + "/hermes/whatsapp-bridge";
-
   env' = {
-    "${envPrefix}_BRIDGE_DIR" = bridgeDir;
     "${envPrefix}_BRIDGE_SETUP" = escapeShellArg bridgeSetup;
     "${envPrefix}_BRIDGE_SRC" = escapeShellArg (src + "/scripts/whatsapp-bridge");
     "${envPrefix}_GATEWAY_PY" = escapeShellArg ./gateway.py;
@@ -36,6 +31,8 @@
   ];
 
   shellHook = ''
+    export HERMES_WHATSAPP_BRIDGE_DIR="''${HERMES_WHATSAPP_BRIDGE_DIR:-$HERMES_HOME/whatsapp/bridge}"
+
     if [ -t 1 ]; then
       sh ${env'."${envPrefix}_BRIDGE_SETUP"}
     fi
