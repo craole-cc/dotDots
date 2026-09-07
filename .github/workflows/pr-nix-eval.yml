@@ -59,6 +59,8 @@ jobs:
             command -v hermes > /dev/null
             command -v hermes-help > /dev/null
             command -v hermes-gateway-service > /dev/null
+            command -v hermes-whatsapp > /dev/null
+            test -f "$HERMES_WHATSAPP_GATEWAY_PY"
             hermes --help > /dev/null
             hermes-help > /dev/null
 
