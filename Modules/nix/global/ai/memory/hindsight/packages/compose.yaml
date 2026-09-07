@@ -1,8 +1,9 @@
 services:
   hindsight:
-    image: ghcr.io/vectorize-io/hindsight:latest
+    image: ${HINDSIGHT_IMAGE}
     container_name: ${HINDSIGHT_CONTAINER_NAME}
     restart: unless-stopped
+    shm_size: 1gb
     ports:
       - "${HINDSIGHT_BIND_ADDRESS}:${HINDSIGHT_API_PORT}:8888"
       - "${HINDSIGHT_BIND_ADDRESS}:${HINDSIGHT_MCP_PORT}:9999"
