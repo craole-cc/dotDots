@@ -55,14 +55,10 @@ in {
     export HINDSIGHT_DATA_DIR="''${HINDSIGHT_DATA_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/hindsight}"
     export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-''${PRIVATE:-$HOME/Private}/hindsight.env}"
 
-    ${headline}
-    ${tables.help}
-
     if [ -t 1 ]; then
+      ${headline}
+      ${tables.help}
       printf '%s\n' "API URL: ${get "API_URL"}"
-      if ! ${tag "status"} > /dev/null 2>&1; then
-        ${tag "up"}
-      fi
     fi
   '';
   packages = [(writeScriptBin (tag "help") helpContent)];
