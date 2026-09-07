@@ -15,6 +15,14 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
 
+      - name: Inspect devshell exports
+        run: |
+          set -eu
+          printf '%s\n' 'devShell systems:'
+          nix eval --json .#devShells --apply builtins.attrNames
+          printf '%s\n' 'x86_64-linux devShells:'
+          nix eval --json .#devShells.x86_64-linux --apply builtins.attrNames
+
       - name: Evaluate AI shells
         run: |
           set -eu
