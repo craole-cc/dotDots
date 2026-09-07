@@ -53,13 +53,11 @@ in {
 
   env = {
     MEM0_BASE_URL = "http://127.0.0.1:8888";
-    MEM0_OPENAI_BASE_URL = "http://127.0.0.1:20128/v1";
   };
 
   shellHook = ''
     if [ -t 1 ]; then
       printf "%s\n" "Mem0 shell: mem0, mem0-status, mem0-verify"
-      printf "%s\n" "Model routing: MEM0_OPENAI_BASE_URL -> OmniRoute"
     fi
   '';
 }
