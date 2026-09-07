@@ -17,6 +17,7 @@
   vars =
     set "API_URL" "http://100.90.252.109:8888"
     // set "BIND_ADDRESS" "100.90.252.109"
+    // set "IMAGE" "ghcr.io/vectorize-io/hindsight:0.9.2"
     // set "LLM_BASE_URL" "https://openrouter.ai/api/v1"
     // set "LLM_MODEL" "openrouter/free"
     // set "REFLECT_LLM_MODEL" "openrouter/free"
