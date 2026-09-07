@@ -58,8 +58,19 @@ jobs:
 
             command -v hermes > /dev/null
             command -v hermes-help > /dev/null
+            command -v hermes-gateway-service > /dev/null
             hermes --help > /dev/null
             hermes-help > /dev/null
+
+            if command -v configure-hindsight > /dev/null 2>&1; then
+              echo "Hindsight integration leaked into ai-hermes" >&2
+              exit 1
+            fi
+
+            unit="$(hermes-gateway-service)"
+            printf "%s\n" "$unit" | grep -F "WorkingDirectory=$HERMES_HOME" > /dev/null
+            printf "%s\n" "$unit" | grep -F "Environment=HERMES_HOME=$HERMES_HOME" > /dev/null
+            printf "%s\n" "$unit" | grep -F "Environment=HERMES_GATEWAY_CFG=$HERMES_GATEWAY_CFG" > /dev/null
 
             if env | grep -q "^HINDSIGHT_"; then
               echo "Hindsight leaked into ai-hermes" >&2
@@ -151,6 +162,7 @@ jobs:
             test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
 
             command -v hermes > /dev/null
+            command -v configure-hindsight > /dev/null
             command -v hindsight-status > /dev/null
             command -v omniroute > /dev/null
             command -v omniroute-daemon > /dev/null
@@ -183,6 +195,11 @@ jobs:
             command -v mem0 > /dev/null
             command -v mem0-status > /dev/null
             command -v mem0-verify > /dev/null
+
+            if command -v configure-hindsight > /dev/null 2>&1; then
+              echo "Hindsight integration leaked into ai-hermes-mem0" >&2
+              exit 1
+            fi
 
             if env | grep -q "^HINDSIGHT_"; then
               echo "Hindsight leaked into ai-hermes-mem0" >&2
