@@ -14,6 +14,8 @@ in {
     export AI_PRESET="${name}"
     export AI_INSTANCE="''${AI_INSTANCE:-default}"
     export AI_HOME="''${AI_HOME:-''${XDG_DATA_HOME:-$HOME/.local/share}/ai/$AI_PRESET/$AI_INSTANCE}"
+    export AI_BIND_ADDRESS="''${AI_BIND_ADDRESS:-127.0.0.1}"
+    export AI_PORT_OFFSET="''${AI_PORT_OFFSET:-0}"
     export HERMES_HOME="$AI_HOME/hermes"
     export HERMES_GATEWAY_CFG="$HERMES_HOME/gateway.json"
 
