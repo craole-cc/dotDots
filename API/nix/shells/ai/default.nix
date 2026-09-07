@@ -1,0 +1,41 @@
+{
+  defaultPreset = "hermes-hindsight";
+  instance = "default";
+  bindAddress = "127.0.0.1";
+  portOffset = 0;
+
+  hermes = {
+    secrets = "hermes.env";
+    state = "hermes";
+    gateway = "gateway.json";
+  };
+
+  hindsight = {
+    secrets = "hindsight.env";
+    image = "ghcr.io/vectorize-io/hindsight:0.9.2";
+
+    ports = {
+      api = 8888;
+      mcp = 9999;
+      ui = 8889;
+    };
+
+    mode = "local_external";
+    bank = "hermes";
+    recallBudget = "mid";
+
+    llm = {
+      backend = "openrouter";
+      baseUrl = "https://openrouter.ai/api/v1";
+      model = "openrouter/free";
+      reflectModel = "openrouter/free";
+    };
+  };
+
+  mem0.port = 8888;
+
+  omniroute = {
+    secrets = "omniroute.env";
+    port = 20128;
+  };
+}
