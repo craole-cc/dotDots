@@ -1,9 +1,6 @@
 name: AI devshell acceptance
 
 on:
-  push:
-    branches:
-      - ai/hermes-hindsight-cleanup
   pull_request:
     branches:
       - main
@@ -83,6 +80,11 @@ jobs:
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
+            test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
+            test "$HINDSIGHT_API_PORT" = 8888
+            test "$HINDSIGHT_MCP_PORT" = 9999
+            test "$HINDSIGHT_UI_PORT" = 8889
+            test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
             test "$HINDSIGHT_COMPOSE_PROJECT" = hermes-hindsight-default-hindsight
             test "$HINDSIGHT_CONTAINER_NAME" = hermes-hindsight-default-hindsight
 
@@ -109,9 +111,6 @@ jobs:
             grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
             grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
 
-            export HINDSIGHT_BIND_ADDRESS=127.0.0.1
-            export HINDSIGHT_API_URL=http://127.0.0.1:8888
-
             mkdir -p "$HOME/Private"
             printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
 
@@ -136,6 +135,7 @@ jobs:
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
             test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
+            test "$OMNIROUTE_PORT" = 20128
             test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
             test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
 
@@ -165,6 +165,7 @@ jobs:
             test "$AI_PRESET" = hermes-mem0
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-mem0/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$MEM0_PORT" = 8888
             test "$MEM0_HOST" = "$MEM0_BASE_URL"
 
             command -v hermes > /dev/null
@@ -184,6 +185,29 @@ jobs:
 
             hermes config set memory.provider mem0
           '
+
+      - name: Smoke-test preset instance isolation
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" \
+          AI_INSTANCE=work \
+          AI_PORT_OFFSET=100 \
+            nix develop .#ai-hermes-hindsight-omniroute --command sh -lc '
+              set -eu
+
+              test "$AI_INSTANCE" = work
+              test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/work"
+              test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
+              test "$HINDSIGHT_API_PORT" = 8988
+              test "$HINDSIGHT_MCP_PORT" = 10099
+              test "$HINDSIGHT_UI_PORT" = 8989
+              test "$HINDSIGHT_API_URL" = http://127.0.0.1:8988
+              test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
+              test "$OMNIROUTE_PORT" = 20228
+              test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-work-omniroute
+            '
 
       - name: Smoke-test default AI alias
         run: |
