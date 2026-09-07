@@ -4,7 +4,7 @@
   lib,
   ...
 }: let
-  inherit (pkgs) curl docker gum jq writeShellApplication;
+  inherit (pkgs) coreutils curl docker gum jq writeShellApplication;
   inherit (lix.filesystem.access) readFile;
   inherit (lib) target tag set;
 
@@ -40,6 +40,12 @@
       description = "Validate the ${target} OpenAPI document";
       runtimeInputs = [curl jq];
       script = ./verify.sh;
+    }
+    {
+      name = "storage";
+      description = "Report ${target} Docker storage usage";
+      runtimeInputs = [coreutils docker];
+      script = ./storage.sh;
     }
     {
       name = "bank-create";
