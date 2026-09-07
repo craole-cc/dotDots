@@ -7,6 +7,22 @@ set -eu
 : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
 : "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
 
+case "${HINDSIGHT_COMPOSE_FILE}" in
+/nix/store/*-source/*)
+  gum log \
+    --level error \
+    "Hindsight Compose manifest must be a packaged store artifact: ${HINDSIGHT_COMPOSE_FILE}"
+  exit 1
+  ;;
+esac
+
+if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
+  gum log \
+    --level error \
+    "Hindsight Compose manifest is missing: ${HINDSIGHT_COMPOSE_FILE}"
+  exit 1
+fi
+
 if ! docker info > /dev/null 2>&1; then
   gum log \
     --level error \
