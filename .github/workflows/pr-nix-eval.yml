@@ -103,6 +103,7 @@ jobs:
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_INSTANCE" = default
             test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
+            test "$HINDSIGHT_LLM_BACKEND" = openrouter
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
             test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
             test "$HINDSIGHT_API_PORT" = 8888
@@ -138,7 +139,7 @@ jobs:
             grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
 
             mkdir -p "$(dirname "$HINDSIGHT_SECRETS_FILE")"
-            printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
+            printf "%s\n" "HINDSIGHT_OPENROUTER_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
 
             hindsight-up
             trap "hindsight-down" EXIT HUP INT TERM
@@ -162,6 +163,7 @@ jobs:
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_INSTANCE" = default
             test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
+            test "$HINDSIGHT_LLM_BACKEND" = openrouter
             test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
             test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
