@@ -26,12 +26,14 @@ fi
 
 case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
 openrouter)
-  : "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
-  HINDSIGHT_API_LLM_API_KEY="${OPENROUTER_API_KEY}"
+  key="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+  : "${key:?OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  HINDSIGHT_API_LLM_API_KEY="${key}"
   ;;
 groq)
-  : "${GROQ_API_KEY:?GROQ_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
-  HINDSIGHT_API_LLM_API_KEY="${GROQ_API_KEY}"
+  key="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
+  : "${key:?GROQ_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  HINDSIGHT_API_LLM_API_KEY="${key}"
   ;;
 *)
   gum log \
@@ -41,6 +43,7 @@ groq)
   ;;
 esac
 export HINDSIGHT_API_LLM_API_KEY
+unset key
 
 docker compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
