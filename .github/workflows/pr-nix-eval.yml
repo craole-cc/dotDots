@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -23,12 +23,20 @@ jobs:
           set -eu
 
           for system in x86_64-linux aarch64-linux; do
-            for shell in ai ai-hermes ai-hindsight; do
+            for shell in \
+              ai \
+              ai-hermes \
+              ai-hermes-hindsight \
+              ai-hermes-hindsight-omniroute \
+              ai-hermes-mem0 \
+              ai-hindsight \
+              ai-mem0 \
+              ai-omniroute; do
               nix eval --raw ".#devShells.${system}.${shell}.drvPath" > /dev/null
             done
           done
 
-      - name: Smoke-test Hermes shell
+      - name: Smoke-test Hermes preset
         run: |
           set -eu
           test_home="$(mktemp -d)"
@@ -36,58 +44,76 @@ jobs:
           HOME="$test_home" nix develop .#ai-hermes --command sh -lc '
             set -eu
 
-            test "$HERMES_HOME" = "$HOME/.hermes"
+            test "$AI_PRESET" = hermes
+            test "$AI_INSTANCE" = default
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes/default"
+            test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HERMES_GATEWAY_CFG" = "$HERMES_HOME/gateway.json"
 
             command -v hermes > /dev/null
             command -v hermes-help > /dev/null
-            command -v configure-hindsight > /dev/null
-            command -v hermes-gateway > /dev/null
-            command -v hermes-gateway-service > /dev/null
-
             hermes --help > /dev/null
             hermes-help > /dev/null
 
-            configure-hindsight --force
-            test -s "$HERMES_HOME/hindsight/config.json"
-            grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
-            grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
+            if env | grep -q "^HINDSIGHT_"; then
+              echo "Hindsight leaked into ai-hermes" >&2
+              exit 1
+            fi
+
+            if env | grep -q "^OMNIROUTE_"; then
+              echo "OmniRoute leaked into ai-hermes" >&2
+              exit 1
+            fi
+
+            if env | grep -q "^MEM0_"; then
+              echo "Mem0 leaked into ai-hermes" >&2
+              exit 1
+            fi
           '
 
-      - name: Smoke-test Hindsight shell
+      - name: Smoke-test Hermes Hindsight preset
         run: |
           set -eu
           test_home="$(mktemp -d)"
 
-          HOME="$test_home" nix develop .#ai-hindsight --command sh -lc '
+          HOME="$test_home" nix develop .#ai-hermes-hindsight --command sh -lc '
             set -eu
 
-            test "$HINDSIGHT_DATA_DIR" = "$HOME/.local/share/hindsight"
-            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
+            test "$AI_PRESET" = hermes-hindsight
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
+            test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
+            test "$HINDSIGHT_COMPOSE_PROJECT" = hermes-hindsight-default-hindsight
+            test "$HINDSIGHT_CONTAINER_NAME" = hermes-hindsight-default-hindsight
 
+            command -v hermes > /dev/null
+            command -v configure-hindsight > /dev/null
             command -v hindsight-help > /dev/null
             command -v hindsight-up > /dev/null
             command -v hindsight-down > /dev/null
             command -v hindsight-status > /dev/null
             command -v hindsight-verify > /dev/null
-            command -v hindsight-bank-create > /dev/null
-            command -v hindsight-bank-list > /dev/null
 
-            hindsight-help > /dev/null
+            if env | grep -q "^OMNIROUTE_"; then
+              echo "OmniRoute leaked into ai-hermes-hindsight" >&2
+              exit 1
+            fi
+
+            if env | grep -q "^MEM0_"; then
+              echo "Mem0 leaked into ai-hermes-hindsight" >&2
+              exit 1
+            fi
+
+            configure-hindsight --force
+            test -s "$HERMES_HOME/hindsight/config.json"
+            grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
+            grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
 
             export HINDSIGHT_BIND_ADDRESS=127.0.0.1
             export HINDSIGHT_API_URL=http://127.0.0.1:8888
 
             mkdir -p "$HOME/Private"
             printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
-
-            set -a
-            . "$HINDSIGHT_SECRETS_FILE"
-            set +a
-
-            docker compose \
-              -p "$HINDSIGHT_COMPOSE_PROJECT" \
-              -f "$HINDSIGHT_COMPOSE_FILE" config > /dev/null
 
             hindsight-up
             trap "hindsight-down" EXIT HUP INT TERM
@@ -97,26 +123,75 @@ jobs:
             trap - EXIT HUP INT TERM
           '
 
-      - name: Smoke-test combined AI shell
+      - name: Smoke-test Hermes Hindsight OmniRoute preset
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai-hermes-hindsight-omniroute --command sh -lc '
+            set -eu
+
+            test "$AI_PRESET" = hermes-hindsight-omniroute
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/default"
+            test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
+            test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
+            test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
+            test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
+
+            command -v hermes > /dev/null
+            command -v hindsight-status > /dev/null
+            command -v omniroute > /dev/null
+            command -v omniroute-daemon > /dev/null
+            command -v omniroute-status > /dev/null
+            command -v omniroute-stop > /dev/null
+
+            if env | grep -q "^MEM0_"; then
+              echo "Mem0 leaked into ai-hermes-hindsight-omniroute" >&2
+              exit 1
+            fi
+
+            omniroute --version > /dev/null
+          '
+
+      - name: Smoke-test Hermes Mem0 preset
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai-hermes-mem0 --command sh -lc '
+            set -eu
+
+            test "$AI_PRESET" = hermes-mem0
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-mem0/default"
+            test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$MEM0_HOST" = "$MEM0_BASE_URL"
+
+            command -v hermes > /dev/null
+            command -v mem0 > /dev/null
+            command -v mem0-status > /dev/null
+            command -v mem0-verify > /dev/null
+
+            if env | grep -q "^HINDSIGHT_"; then
+              echo "Hindsight leaked into ai-hermes-mem0" >&2
+              exit 1
+            fi
+
+            if env | grep -q "^OMNIROUTE_"; then
+              echo "OmniRoute leaked into ai-hermes-mem0" >&2
+              exit 1
+            fi
+
+            hermes config set memory.provider mem0
+          '
+
+      - name: Smoke-test default AI alias
         run: |
           set -eu
           test_home="$(mktemp -d)"
 
           HOME="$test_home" nix develop .#ai --command sh -lc '
             set -eu
-
-            command -v hermes > /dev/null
-            command -v configure-hindsight > /dev/null
-            command -v hindsight-help > /dev/null
-            command -v hindsight-status > /dev/null
-
-            if env | grep -q "^OMNIROUTE_"; then
-              echo "OmniRoute environment leaked into .#ai" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^MEM0_"; then
-              echo "Mem0 environment leaked into .#ai" >&2
-              exit 1
-            fi
+            test "$AI_PRESET" = hermes-hindsight
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
           '
