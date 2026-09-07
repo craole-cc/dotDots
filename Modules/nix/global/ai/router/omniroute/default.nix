@@ -16,8 +16,6 @@
   nodejs = nodejs_22;
 
   omnirouteVersion = "3.8.49";
-  npxCacheDir = "$HOME/.cache/omniroute-flake/npx";
-  dataDir = "$HOME/.local/share/omniroute";
 
   gums = ''
     fmt_accent()  { gum style --foreground 212 "$@"; }
@@ -73,11 +71,12 @@
       patch
     ];
     text = ''
-      mkdir -p "${npxCacheDir}/npm-cache"
-      NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
+      cache_dir="''${OMNIROUTE_NPX_CACHE:-''${XDG_CACHE_HOME:-$HOME/.cache}/omniroute/npx}"
+      mkdir -p "$cache_dir/npm-cache"
+      NPM_CONFIG_CACHE="$cache_dir/npm-cache"
       NPM_CONFIG_UPDATE_NOTIFIER=false
       NODE_EXTRA_CA_CERTS="${cacert}/etc/ssl/certs/ca-bundle.crt"
-      OMNIROUTE_NPX_CACHE="${npxCacheDir}"
+      OMNIROUTE_NPX_CACHE="$cache_dir"
       OMNIROUTE_CODEX_RESPONSES_PATCH="${./codex-responses-reasoning.patch}"
       OMNIROUTE_CODEX_EXECUTOR_PATCH="${./codex-executor-reasoning.patch}"
       OMNIROUTE_CODEX_TARGET_PATCH="${./codex-target-sanitizer.patch}"
@@ -105,9 +104,10 @@
     ];
     text = ''
       ${gums}
-      export DATA_DIR="${dataDir}"
-      export OMNIROUTE_DATA_DIR="$DATA_DIR"
-      mkdir -p "$DATA_DIR"
+      data_dir="''${OMNIROUTE_DATA_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/omniroute}"
+      export DATA_DIR="$data_dir"
+      export OMNIROUTE_DATA_DIR="$data_dir"
+      mkdir -p "$data_dir"
       omniroute-policy
       port="''${OMNIROUTE_PORT:-20128}"
       export PORT="$port"
@@ -126,7 +126,7 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
+      session="''${OMNIROUTE_SESSION:-omniroute}"
       if tmux has-session -t "$session" 2>/dev/null; then
         fmt_warn "OmniRoute is already running in tmux session '$session'"
         fmt_faint "Attach with: tmux attach -t $session"
@@ -147,7 +147,7 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
+      session="''${OMNIROUTE_SESSION:-omniroute}"
       if tmux has-session -t "$session" 2>/dev/null; then
         tmux kill-session -t "$session"
         fmt_err "OmniRoute stopped"
@@ -168,7 +168,7 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
+      session="''${OMNIROUTE_SESSION:-omniroute}"
       port="''${OMNIROUTE_PORT:-20128}"
       if tmux has-session -t "$session" 2>/dev/null; then
         printf "%s %s\n" "$(fmt_success "●")" "tmux session: running ('$session')"
@@ -208,12 +208,18 @@ in {
   ];
 
   env = {
-    OMNIROUTE_DATA_DIR = dataDir;
     OMNIROUTE_PORT = "20128";
     OMNIROUTE_BASE_URL = "http://127.0.0.1:20128/v1";
   };
 
   shellHook = ''
-    ${mkMenuBox "OmniRoute Development Shell" "Local OpenAI-compatible model router"}
+    export OMNIROUTE_DATA_DIR="''${OMNIROUTE_DATA_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/omniroute}"
+    export OMNIROUTE_NPX_CACHE="''${OMNIROUTE_NPX_CACHE:-''${XDG_CACHE_HOME:-$HOME/.cache}/omniroute/npx}"
+    export OMNIROUTE_SESSION="''${OMNIROUTE_SESSION:-omniroute}"
+    export OMNIROUTE_BASE_URL="http://127.0.0.1:''${OMNIROUTE_PORT:-20128}/v1"
+
+    if [ -t 1 ]; then
+      ${mkMenuBox "OmniRoute Development Shell" "Local OpenAI-compatible model router"}
+    fi
   '';
 }
