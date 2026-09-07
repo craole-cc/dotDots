@@ -35,7 +35,7 @@
       rows = map (entry: with entry; [command description]) entries.merged;
     };
 
-    vars = {
+    vars = print.table {
       columns = ["Variable" "Value"];
       rows = map (name: [name "\${${name}:-unset}"]) (
         filter (hasPrefix "${prefix}_") (attrNames env)
@@ -47,8 +47,8 @@
     #!/bin/sh
     set -eu
     ${headline}
-    ${print.table tables.help}
-    ${print.table tables.vars}
+    ${tables.help}
+    ${tables.vars}
   '';
 in {
   shellHook = ''
@@ -60,7 +60,7 @@ in {
 
     if [ -t 1 ]; then
       ${headline}
-      ${print.table tables.help}
+      ${tables.help}
       printf '%s\n' "API URL: ${get "API_URL"}"
     fi
   '';
