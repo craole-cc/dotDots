@@ -31,9 +31,18 @@
 
   roots = {
     repo = "";
-    home = {var = "HOME";};
-    slash = "/";
-    xdg = {var = "HOME";};
+    home = {
+      store = null;
+      local = {var = "HOME";};
+    };
+    slash = {
+      store = null;
+      local = "/";
+    };
+    xdg = {
+      store = null;
+      local = {var = "HOME";};
+    };
   };
 
   stems = {
@@ -69,6 +78,9 @@
         sh = base ++ ["bash"];
         global = default ++ ["global"];
         hosts = default ++ ["hosts"];
+        options = default ++ ["options"];
+        paths = default ++ ["paths"];
+        shells = default ++ ["shells"];
         users = default ++ ["users"];
       };
 
