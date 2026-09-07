@@ -101,15 +101,18 @@ jobs:
             test "$AI_PRESET" = hermes-hindsight
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$HINDSIGHT_INSTANCE" = default
+            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/default.env"
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
             test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
             test "$HINDSIGHT_API_PORT" = 8888
             test "$HINDSIGHT_MCP_PORT" = 9999
             test "$HINDSIGHT_UI_PORT" = 8889
             test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
-            test "$HINDSIGHT_COMPOSE_PROJECT" = hermes-hindsight-default-hindsight
-            test "$HINDSIGHT_CONTAINER_NAME" = hermes-hindsight-default-hindsight
+            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
+            test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
 
+            command -v docker > /dev/null
             command -v hermes > /dev/null
             command -v configure-hindsight > /dev/null
             command -v hindsight-help > /dev/null
@@ -134,7 +137,7 @@ jobs:
             grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
             grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
 
-            mkdir -p "$HOME/Private"
+            mkdir -p "$(dirname "$HINDSIGHT_SECRETS_FILE")"
             printf "%s\n" "HINDSIGHT_API_LLM_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
 
             hindsight-up
@@ -157,12 +160,17 @@ jobs:
             test "$AI_PRESET" = hermes-hindsight-omniroute
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
+            test "$HINDSIGHT_INSTANCE" = default
+            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/default.env"
+            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
+            test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
             test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
             test "$OMNIROUTE_PORT" = 20128
             test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
             test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
 
+            command -v docker > /dev/null
             command -v hermes > /dev/null
             command -v configure-hindsight > /dev/null
             command -v hindsight-status > /dev/null
@@ -229,6 +237,10 @@ jobs:
 
               test "$AI_INSTANCE" = work
               test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/work"
+              test "$HINDSIGHT_INSTANCE" = work
+              test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/work.env"
+              test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-work
+              test "$HINDSIGHT_CONTAINER_NAME" = hindsight-work
               test "$HINDSIGHT_API_PORT" = 8988
               test "$HINDSIGHT_MCP_PORT" = 10099
               test "$HINDSIGHT_UI_PORT" = 8989
@@ -247,4 +259,6 @@ jobs:
             set -eu
             test "$AI_PRESET" = hermes-hindsight
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
+            test "$HINDSIGHT_INSTANCE" = default
+            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
           '
