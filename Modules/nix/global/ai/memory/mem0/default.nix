@@ -1,5 +1,11 @@
-{pkgs, ...}: let
+{
+  pkgs,
+  cfg,
+  ...
+}: let
   inherit (pkgs) curl jq writeShellApplication;
+
+  endpoint = "http://${cfg.bindAddress}:${toString cfg.mem0.port}";
 
   mem0 = writeShellApplication {
     name = "mem0";
@@ -20,7 +26,7 @@
       jq
     ];
     text = ''
-      endpoint="''${MEM0_BASE_URL:-http://127.0.0.1:8888}"
+      endpoint="''${MEM0_BASE_URL:-${endpoint}}"
       if curl -fsS "$endpoint/openapi.json" -o /dev/null; then
         printf "Mem0 API: up (%s)\n" "$endpoint"
       else
@@ -37,7 +43,7 @@
       jq
     ];
     text = ''
-      endpoint="''${MEM0_BASE_URL:-http://127.0.0.1:8888}"
+      endpoint="''${MEM0_BASE_URL:-${endpoint}}"
       curl -fsS "$endpoint/openapi.json" | jq -e '.paths | type == "object"' >/dev/null
       printf "Mem0 API OpenAPI document is valid at %s\n" "$endpoint"
     '';
@@ -51,9 +57,7 @@ in {
     verify
   ];
 
-  env = {
-    MEM0_BASE_URL = "http://127.0.0.1:8888";
-  };
+  env.MEM0_BASE_URL = endpoint;
 
   shellHook = ''
     if [ -t 1 ]; then
