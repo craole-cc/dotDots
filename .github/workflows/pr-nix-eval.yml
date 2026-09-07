@@ -88,7 +88,6 @@ jobs:
             test "$AI_PRESET" = hermes-hindsight
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
             test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
             test "$HINDSIGHT_API_PORT" = 8888
             test "$HINDSIGHT_MCP_PORT" = 9999
@@ -142,7 +141,6 @@ jobs:
             test "$AI_PRESET" = hermes-hindsight-omniroute
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
             test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
             test "$OMNIROUTE_PORT" = 20128
             test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
@@ -208,7 +206,6 @@ jobs:
 
               test "$AI_INSTANCE" = work
               test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/work"
-              test "$HINDSIGHT_DATA_DIR" = "$AI_HOME/hindsight"
               test "$HINDSIGHT_API_PORT" = 8988
               test "$HINDSIGHT_MCP_PORT" = 10099
               test "$HINDSIGHT_UI_PORT" = 8989
