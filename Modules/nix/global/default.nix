@@ -55,8 +55,12 @@ global: let
         (ai.devShells)
         ai
         "ai-hermes"
+        "ai-hermes-hindsight"
+        "ai-hermes-hindsight-omniroute"
+        "ai-hermes-mem0"
         "ai-hindsight"
-        "ai-router"
+        "ai-mem0"
+        "ai-omniroute"
         ;
 
       fmt = args.treefmt.devShell;
