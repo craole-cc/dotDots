@@ -11,7 +11,6 @@ import ./lib.nix {
   ];
 
   init = ''
-    export HINDSIGHT_DATA_DIR="$AI_HOME/hindsight"
     export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-''${PRIVATE:-$HOME/Private}/hindsight.env}"
     export HINDSIGHT_BIND_ADDRESS="$AI_BIND_ADDRESS"
     export HINDSIGHT_API_PORT="$((8888 + AI_PORT_OFFSET))"
