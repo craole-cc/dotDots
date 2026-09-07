@@ -52,6 +52,9 @@
   '';
 in {
   shellHook = ''
+    export HINDSIGHT_DATA_DIR="''${HINDSIGHT_DATA_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/hindsight}"
+    export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-''${PRIVATE:-$HOME/Private}/hindsight.env}"
+
     ${headline}
     ${tables.help}
 
