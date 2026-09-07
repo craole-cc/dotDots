@@ -35,7 +35,7 @@
       rows = map (entry: with entry; [command description]) entries.merged;
     };
 
-    vars = print.table {
+    vars = {
       columns = ["Variable" "Value"];
       rows = map (name: [name "\${${name}:-unset}"]) (
         filter (hasPrefix "${prefix}_") (attrNames env)
@@ -47,8 +47,8 @@
     #!/bin/sh
     set -eu
     ${headline}
-    ${tables.help}
-    ${tables.vars}
+    ${print.table tables.help}
+    ${print.table tables.vars}
   '';
 in {
   shellHook = ''
@@ -56,10 +56,11 @@ in {
     export HINDSIGHT_API_PORT="''${HINDSIGHT_API_PORT:-8888}"
     export HINDSIGHT_MCP_PORT="''${HINDSIGHT_MCP_PORT:-9999}"
     export HINDSIGHT_UI_PORT="''${HINDSIGHT_UI_PORT:-8889}"
+    export HINDSIGHT_API_WORKER_ID="''${HINDSIGHT_API_WORKER_ID:-Hindsight-''${HOSTNAME:-local}}"
 
     if [ -t 1 ]; then
       ${headline}
-      ${tables.help}
+      ${print.table tables.help}
       printf '%s\n' "API URL: ${get "API_URL"}"
     fi
   '';
