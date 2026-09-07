@@ -11,7 +11,9 @@ import ./lib.nix {
   ];
 
   init = ''
-    export MEM0_HOST="''${MEM0_HOST:-$MEM0_BASE_URL}"
+    export MEM0_PORT="$((8888 + AI_PORT_OFFSET))"
+    export MEM0_BASE_URL="http://$AI_BIND_ADDRESS:$MEM0_PORT"
+    export MEM0_HOST="$MEM0_BASE_URL"
   '';
 
   start = ''
