@@ -7,6 +7,13 @@ set -eu
 : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
 : "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
 
+if ! docker info > /dev/null 2>&1; then
+  gum log \
+    --level error \
+    "Docker daemon is unavailable; start the host Docker service before Hindsight."
+  exit 1
+fi
+
 if [ ! -r "${HINDSIGHT_SECRETS_FILE}" ]; then
   gum log \
     --level error \
