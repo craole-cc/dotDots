@@ -54,6 +54,9 @@ in {
   shellHook = ''
     export HINDSIGHT_DATA_DIR="''${HINDSIGHT_DATA_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/hindsight}"
     export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-''${PRIVATE:-$HOME/Private}/hindsight.env}"
+    export HINDSIGHT_API_PORT="''${HINDSIGHT_API_PORT:-8888}"
+    export HINDSIGHT_MCP_PORT="''${HINDSIGHT_MCP_PORT:-9999}"
+    export HINDSIGHT_UI_PORT="''${HINDSIGHT_UI_PORT:-8889}"
 
     if [ -t 1 ]; then
       ${headline}
