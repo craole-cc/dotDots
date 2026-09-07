@@ -23,7 +23,7 @@
       );
     name =
       _defaults.names.src or (
-        _defaults.flake.name or  "dots"
+        _defaults.flake.name or "dots"
       );
   };
 
@@ -113,19 +113,23 @@
     vars ? {},
   }: let
     root = roots.${group} or src.local;
+    store =
+      if group == "repo"
+      then src.store
+      else null;
   in
     if isVar root
     then {
-      inherit (src) store;
+      inherit store;
       local = resolveVar vars root;
     }
     else if isAttrs root && (root ? store || root ? local)
     then {
-      store = root.store or src.store;
+      store = root.store or store;
       local = resolveVar vars (root.local or root.store or null);
     }
     else {
-      inherit (src) store;
+      inherit store;
       local = resolveVar vars root;
     };
 
@@ -209,8 +213,8 @@
   Build a fully-resolved path tree from caller-supplied stems.
 
   Every group and key comes from the `stems` argument - the single source
-  of truth (typically `cfg.paths` from `API/nix/global/config.toml`). No
-  built-in groups or defaults are merged in.
+  of truth (typically API path data). No built-in groups or defaults are
+  merged in.
 
   The returned tree has every leaf as a `{ store; local; env; stem; }`
   record - this is the canonical, single source of truth (e.g.
@@ -225,17 +229,16 @@
     bare `store` path of that group's `default` leaf, nothing else. Not a
     general per-leaf projection - groups without a `default`, and any
     group's non-default siblings (`lib.rs`, `api.hosts`, ...), are only
-    reachable through the full tree or the `store`/`local` projections.
+    reachable through the full tree or `store`/`local` projections.
 
   These projections are mechanically derived once from the canonical tree,
   so they can never drift from it - use whichever access style reads best
   at a given call site.
 
-  Each group in `stems` resolves against `src` by default. Callers may
-  override the root for individual groups via `roots.<group>` - e.g.
-  resolving `home`/`xdg` against `home` instead of the repo root. Root
-  overrides are bare paths (string or path value) - the same shape as
-  `src` itself.
+  The `repo` group is store-backed by default. All other groups are local-only
+  (`store = null`) unless a caller explicitly supplies a root pair with a
+  `store` value. This keeps runtime roots such as HOME, XDG, and `/` out of
+  the repository store projection without requiring API boilerplate.
 
   Leaf resolution itself (root lookup, var placeholders, `construct` calls,
   env-var naming) is delegated entirely to `mkTreePath`, called once per
@@ -262,8 +265,7 @@
   - a group: `{ <key> = [segments]; … }` - each key resolves to its own
     `{ store; local; env; stem; }` leaf
   - a bare stem: a string or list of segments - resolves directly to a
-    single `{ store; local; env; stem; }` leaf, with no sub-keys (e.g.
-    TOML's flat `cache = ".cache"` or `src = []`)
+    single `{ store; local; env; stem; }` leaf
 
   # Type
   ```
@@ -273,7 +275,6 @@
          -> { default :: { store :: path | null, local :: string }
             , store   :: { <group> :: { <key> :: path | null } | path | null, … }
             , local   :: { <group> :: { <key> :: string } | string, … }
-            , stores  :: { src :: path | null, <group> :: path | null, … }
             , <group>  :: { <key> :: { store :: path | null, local :: string, env :: string, stem } }
                          | { store :: path | null, local :: string, env :: string, stem }
             , …
@@ -283,8 +284,8 @@
   # Arguments
   - `stems` - attrset of `<group> = { <key> = [segments]; }` (or a bare
               stem), taken as-is - no merging with built-in defaults
-  - `roots` - optional per-group root override, a bare path. Groups not
-              listed here resolve against `src`.
+  - `roots` - optional per-group root override. `repo` is store-backed by
+              default; all other roots are local-only unless explicitly paired.
 
   # Examples
   ```nix
@@ -301,11 +302,6 @@
   #      repo.lib.rs      = { store = /…/dotDots/Libraries/rust; local = "..."; env = "DOTS_LIB_RS"; stem = [...]; };
   #      slash.usr.bin    = { store = null; local = "/usr/bin"; env = "USR_BIN"; stem = [...]; };
   #      home.downloads   = { store = null; local = "/home/user/Downloads"; env = "DOWNLOADS"; stem = [...]; };
-  #
-  #      store.repo.lib.default = /…/dotDots/Libraries/nix;   # same data, projected
-  #      local.repo.lib.default = "/…/dotDots/Libraries/nix";
-  #      stores.lib              = /…/dotDots/Libraries/nix;  # flat anchor projection
-  #      stores.src              = /…/dotDots;
   #    }
   ```
   */
@@ -338,17 +334,6 @@
         else {};
     in
       walk full;
-    # # Flat anchor projection: one bare store path per group that declares
-    # # a `default` sub-key, plus `src` for the tree's own root. Does NOT
-    # # cover non-default siblings (`lib.rs`, `api.hosts`, ...) - those stay
-    # # reachable only through the full tree or `store`/`local`.
-    # stores =
-    #   {src = src.path;}
-    #   // (
-    #     mapAttrs
-    #     (_: group: group.default.store)
-    #     (filterAttrs (_: group: isAttrs group && group ? default) full)
-    #   );
   in
     full
     // {

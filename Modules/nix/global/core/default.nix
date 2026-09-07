@@ -1,6 +1,7 @@
 {
   pkgs,
   system,
+  paths,
   fetch,
   formatters,
   isLinux,
@@ -60,35 +61,23 @@
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
+    DOTS = paths.repo.src.local;
+    DOTS_LIB_SH = paths.repo.lib.sh.local;
+    DOTS_CACHE = paths.repo.cache.base.local;
   };
+
   shellHook = ''
     #> Determine host info dynamically
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
 
-    #> Ensure DOTS directories are defined
-    if [ -z "$DOTS" ]; then
-      DOTS="$(pwd -P)"
-      export DOTS
-    fi
-
-    if [ -z "$DOTS_LIB_SH" ]; then
-      DOTS_LIB_SH="$DOTS/Libraries/shellscript"
-      export DOTS_LIB_SH
-    fi
-
-    if [ -z "$DOTS_CACHE" ]; then
-      DOTS_CACHE="$DOTS/.cache"
-      export DOTS_CACHE
-    fi
-
     #> Set up cache directory structure
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
-    export DOTS_CACHE DOTS_LOGS DOTS_TMP
+    export ENV_BIN DOTS_LOGS DOTS_TMP
 
     nix-check() {
       local log status
@@ -118,7 +107,7 @@
     fi
 
     #> Initialize yazi
-    YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
+    YAZI_INIT="${paths.repo.cfg.default.local}/yazi/init.sh"
     if [ -f "$YAZI_INIT" ]; then
       . "$YAZI_INIT"
     else
@@ -127,15 +116,15 @@
 
     #> Use starship for prompt
     if cmd-exists starship; then
-      STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+      STARSHIP_CONFIG="${paths.repo.cfg.default.local}/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
 
     #> Display shell information with the defined fetcher
-      if [ -t 1 ]; then
-        ${fetch.name}
-      fi
+    if [ -t 1 ]; then
+      ${fetch.name}
+    fi
   '';
 in {
   inherit

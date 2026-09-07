@@ -7,5 +7,5 @@ lix.attrsets.aggregation.mkShellFragments {
     ./packages/scripts
     ./hooks
   ];
-  inherit args;
+  args = args // {env = args.env or {};};
 }

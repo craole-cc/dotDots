@@ -18,7 +18,6 @@
     (readFile path);
 
   ownEntries = [
-    ["configure-hindsight" "Configure this profile for Victus external Hindsight"]
     ["start" "Start the Hermes gateway (--no-confirm to skip prompt)"]
     ["hermes-gateway" "Run the composed Hermes messaging gateway"]
     ["hermes-gateway-service" "Print the canonical systemd user unit"]
@@ -65,7 +64,6 @@
     ./gateway-service.sh);
 
   scripts = {
-    configure-hindsight = writeScriptBin "configure-hindsight" (readFile ./configure-hindsight.sh);
     hermes-gateway = gateway;
     hermes-gateway-service = gatewayService;
     hermes-help = writeScriptBin "hermes-help" helpContent;
@@ -79,5 +77,5 @@
 in
   scripts
   // {
-    packages = with scripts; [configure-hindsight hermes-gateway hermes-gateway-service hermes-help hermes-tui start];
+    packages = with scripts; [hermes-gateway hermes-gateway-service hermes-help hermes-tui start];
   }

@@ -29,20 +29,7 @@
 
   /**
   Enrich each declared host against the hosts baseline, resolve global and host-level
-  settings via `mkSettings` (normalizing top-level `packages` or `settings.pkg`),
-  and determine the active deployment target.
-
-  # Arguments
-  - api: The API data - a path, `importAttrs`'s raw `{ value; stems; }`
-    result, or an already-unwrapped value. Normalized via `pathAttrs`.
-  - host: Caller-supplied host override. Trusted as-is only when it already
-    carries both non-negotiable fields (`paths.src`, `stateVersion`) - i.e.
-    it's already a fully resolved host, not just a name to look up. Otherwise
-    falls back to `$HOSTNAME`/first-declared, resolved against `base.hosts`.
-
-  # Returns
-  A fully hydrated schema attrset with active `default` pointers, resolved `settings`,
-  and `raw` fallbacks.
+  settings via `mkSettings`, and determine the active deployment target.
   */
   mkSchema = {
     api ? _defaults.paths.repo.api.default.store,
@@ -55,11 +42,14 @@
       api'
       // {
         global = api'.global or {};
+        paths = api'.paths or (api'.global.paths or {});
+        shells = api'.shells or {};
         users = api'.users or {};
         hosts = api'.hosts or {};
       };
 
-    paths = raw.global.paths or {};
+    paths = raw.paths;
+    users = mkUsers {inherit (raw) users;};
 
     base = {
       hosts =
@@ -71,7 +61,8 @@
                   inherit (raw) global;
                   host = hostAttr;
                 };
-                inherit (base) users;
+                inherit users;
+                inherit (raw) shells;
                 host = recursiveUpdate (raw.hosts.default or {}) hostAttr;
                 inherit name;
               }
@@ -87,13 +78,14 @@
                 inherit (raw) global;
                 host = raw.hosts.default or {};
               };
-              inherit (base) users;
+              inherit users;
+              inherit (raw) shells;
               host = raw.hosts.default or {};
             }
             // paths
           );
         };
-      users = mkUsers {inherit (raw) users;};
+      inherit users;
     };
 
     active = {

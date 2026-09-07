@@ -52,14 +52,16 @@
   '';
 in {
   shellHook = ''
-    ${headline}
-    ${tables.help}
+    export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-''${PRIVATE:-$HOME/Private}/hindsight.env}"
+    export HINDSIGHT_API_PORT="''${HINDSIGHT_API_PORT:-8888}"
+    export HINDSIGHT_MCP_PORT="''${HINDSIGHT_MCP_PORT:-9999}"
+    export HINDSIGHT_UI_PORT="''${HINDSIGHT_UI_PORT:-8889}"
+    export HINDSIGHT_API_WORKER_ID="''${HINDSIGHT_API_WORKER_ID:-Hindsight-''${HOSTNAME:-local}}"
 
     if [ -t 1 ]; then
+      ${headline}
+      ${tables.help}
       printf '%s\n' "API URL: ${get "API_URL"}"
-      if ! ${tag "status"} > /dev/null 2>&1; then
-        ${tag "up"}
-      fi
     fi
   '';
   packages = [(writeScriptBin (tag "help") helpContent)];

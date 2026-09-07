@@ -1,7 +1,9 @@
 #!/bin/sh
 set -eu
 
-: "${HERMES_HOME:?HERMES_HOME not set}"
+HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+export HERMES_HOME
+
 : "${HINDSIGHT_MODE:?HINDSIGHT_MODE not set}"
 : "${HINDSIGHT_API_URL:?HINDSIGHT_API_URL not set}"
 : "${HINDSIGHT_BANK_ID:?HINDSIGHT_BANK_ID not set}"

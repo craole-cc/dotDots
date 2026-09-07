@@ -3,10 +3,32 @@
 set -eu
 
 : "${HINDSIGHT_SECRETS_FILE:?HINDSIGHT_SECRETS_FILE not set}"
-: "${HINDSIGHT_DATA_DIR:?HINDSIGHT_DATA_DIR not set}"
 : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
 : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
 : "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
+
+case "${HINDSIGHT_COMPOSE_FILE}" in
+/nix/store/*-source/*)
+  gum log \
+    --level error \
+    "Hindsight Compose manifest must be a packaged store artifact: ${HINDSIGHT_COMPOSE_FILE}"
+  exit 1
+  ;;
+esac
+
+if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
+  gum log \
+    --level error \
+    "Hindsight Compose manifest is missing: ${HINDSIGHT_COMPOSE_FILE}"
+  exit 1
+fi
+
+if ! docker info > /dev/null 2>&1; then
+  gum log \
+    --level error \
+    "Docker daemon is unavailable; start the host Docker service before Hindsight."
+  exit 1
+fi
 
 if [ ! -r "${HINDSIGHT_SECRETS_FILE}" ]; then
   gum log \
@@ -15,14 +37,30 @@ if [ ! -r "${HINDSIGHT_SECRETS_FILE}" ]; then
   exit 1
 fi
 
-set -a
 # shellcheck disable=SC1090
 . "${HINDSIGHT_SECRETS_FILE}"
-set +a
 
-: "${HINDSIGHT_API_LLM_API_KEY:?HINDSIGHT_API_LLM_API_KEY is required}"
+case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
+openrouter)
+  key="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+  : "${key:?OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  HINDSIGHT_API_LLM_API_KEY="${key}"
+  ;;
+groq)
+  key="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
+  : "${key:?GROQ_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  HINDSIGHT_API_LLM_API_KEY="${key}"
+  ;;
+*)
+  gum log \
+    --level error \
+    "Unsupported Hindsight LLM backend: ${HINDSIGHT_LLM_BACKEND}"
+  exit 1
+  ;;
+esac
+export HINDSIGHT_API_LLM_API_KEY
+unset key
 
-mkdir -p "${HINDSIGHT_DATA_DIR}"
 docker compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
   -f "${HINDSIGHT_COMPOSE_FILE}" up -d

@@ -2,14 +2,13 @@
 {
   lix,
   env,
+  cfg,
   ...
 }: let
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.strings.transformation) toUpper;
 
-  HOME = env.HOME or "/home/craole";
-  PRIVATE = env.PRIVATE or "${HOME}/Private";
-
+  h = cfg.hindsight;
   target = env.name or "hindsight";
   prefix = toUpper target;
 
@@ -18,16 +17,15 @@
   get = name: vars."${prefix}_${name}";
 
   vars =
-    set "DATA_DIR" "${HOME}/data/${target}"
-    // set "SECRETS_FILE" "${PRIVATE}/${target}.env"
-    // set "API_URL" "http://100.90.252.109:8888"
-    // set "BIND_ADDRESS" "100.90.252.109"
-    // set "LLM_BASE_URL" "http://100.76.128.70:20128/v1"
-    // set "LLM_MODEL" "auto/best-fast"
-    // set "REFLECT_LLM_MODEL" "auto/best-chat"
-    // set "API_WORKER_ID" "Hindsight-Victus"
-    // set "COMPOSE_PROJECT" target
-    // set "CONTAINER_NAME" target;
+    set "API_URL" "http://${cfg.bindAddress}:${toString h.ports.api}"
+    // set "BIND_ADDRESS" cfg.bindAddress
+    // set "IMAGE" h.image
+    // set "LLM_BACKEND" h.llm.backend
+    // set "LLM_BASE_URL" h.llm.baseUrl
+    // set "LLM_MODEL" h.llm.model
+    // set "REFLECT_LLM_MODEL" h.llm.reflectModel
+    // set "COMPOSE_PROJECT" "hindsight-${cfg.instance}"
+    // set "CONTAINER_NAME" "hindsight-${cfg.instance}";
 in {
   title = "Hindsight Memory Service";
   env = recursiveUpdate env vars;

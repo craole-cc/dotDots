@@ -6,82 +6,88 @@
   inherit (args) pkgs;
   inherit (pkgs) mkShell;
 
-  router = import ./router args;
-  memory = import ./memory args;
-  hermes = import ./agents/hermes (args
-    // {
-      HOME = args.paths.repo.src.local;
-      env = args.env or {};
-    });
+  cfg = args.host.shells.ai or (throw "AI shell configuration is missing from host.shells.ai");
+  paths = args.paths;
+  aiArgs = args // {inherit cfg paths;};
 
-  aiShell = {
-    description = "AI Development";
-    agents = {inherit hermes;};
-    inherit memory router;
-    env = (args.env or {}) // router.env // memory.env // hermes.env;
-    packages = router.packages ++ memory.packages ++ hermes.packages;
-    shellHook = ''
-      if [ -t 1 ]; then
-        printf "%s\n" "AI shell: OmniRoute + Mem0 + Hermes"
-        printf "%s\n" "Focused shells: nix develop .#ai-router | .#ai-memory | .#ai-hermes | .#ai-hindsight"
-      fi
+  agents = import ./agents aiArgs;
+  memory = import ./memory aiArgs;
+  router = import ./router aiArgs;
+  presets = import ./presets (aiArgs // {inherit agents memory router;});
+
+  componentEnv = {
+    hindsight = let
+      h = cfg.hindsight;
+    in {
+      HINDSIGHT_API_URL = "http://${cfg.bindAddress}:${toString h.ports.api}";
+      HINDSIGHT_BIND_ADDRESS = cfg.bindAddress;
+      HINDSIGHT_API_PORT = toString h.ports.api;
+      HINDSIGHT_MCP_PORT = toString h.ports.mcp;
+      HINDSIGHT_UI_PORT = toString h.ports.ui;
+      HINDSIGHT_IMAGE = h.image;
+      HINDSIGHT_LLM_BACKEND = h.llm.backend;
+      HINDSIGHT_LLM_BASE_URL = h.llm.baseUrl;
+      HINDSIGHT_LLM_MODEL = h.llm.model;
+      HINDSIGHT_REFLECT_LLM_MODEL = h.llm.reflectModel;
+      HINDSIGHT_MODE = h.mode;
+      HINDSIGHT_BANK_ID = h.bank;
+      HINDSIGHT_RECALL_BUDGET = h.recallBudget;
+      HINDSIGHT_COMPOSE_PROJECT = "hindsight-${cfg.instance}";
+      HINDSIGHT_CONTAINER_NAME = "hindsight-${cfg.instance}";
+    };
+
+    mem0 = {
+      MEM0_BASE_URL = "http://${cfg.bindAddress}:${toString cfg.mem0.port}";
+    };
+
+    omniroute = {
+      OMNIROUTE_PORT = toString cfg.omniroute.port;
+      OMNIROUTE_BASE_URL = "http://${cfg.omniroute.bindAddress}:${toString cfg.omniroute.port}/v1";
+    };
+  };
+
+  componentHook = {
+    hindsight = ''
+      export HINDSIGHT_SECRETS_FILE="''${HINDSIGHT_SECRETS_FILE:-${paths.home.private.local}/${cfg.hindsight.secrets}}"
+    '';
+
+    omniroute = ''
+      export OMNIROUTE_DATA_DIR="''${OMNIROUTE_DATA_DIR:-${paths.xdg.data.local}/${cfg.directory}/${cfg.omniroute.state}}"
+      export OMNIROUTE_NPX_CACHE="''${OMNIROUTE_NPX_CACHE:-${paths.xdg.cache.local}/${cfg.directory}/${cfg.omniroute.state}/npx}"
+      export OMNIROUTE_SESSION="''${OMNIROUTE_SESSION:-${cfg.omniroute.session}}"
     '';
   };
 
-  aiRouter = {
-    env = core.env // router.env;
-    inherit (router) shellHook;
-    packages = core.packages ++ router.packages;
-  };
-
-  aiMemory = {
-    env = core.env // memory.env;
-    inherit (memory) shellHook;
-    packages = core.packages ++ memory.packages;
-  };
-
-  aiHermes = {
-    env = core.env // hermes.env;
-    inherit (hermes) shellHook;
-    packages = core.packages ++ hermes.packages;
-  };
-
-  aiHindsight = {
-    env = core.env // memory.hindsight.env;
-    inherit (memory.hindsight) shellHook;
-    packages = core.packages ++ memory.hindsight.packages;
-  };
-
-  devShells = {
-    ai = mkShell {
-      name = "dots-ai";
-      inherit (aiShell) env shellHook packages;
+  mkPresetShell = preset:
+    mkShell {
+      name = "dots-${preset.name}";
+      env = core.env // preset.env;
+      packages = core.packages ++ preset.packages;
+      inherit (preset) shellHook;
     };
 
-    "ai-router" = mkShell {
-      name = "dots-ai-router";
-      inherit (aiRouter) env shellHook packages;
+  mkComponentShell = name: component:
+    mkShell {
+      name = "dots-ai-${name}";
+      env = core.env // (component.env or {}) // (componentEnv.${name} or {});
+      packages = core.packages ++ (component.packages or []);
+      shellHook = (componentHook.${name} or "") + (component.shellHook or "");
     };
 
-    "ai-memory" = mkShell {
-      name = "dots-ai-memory";
-      inherit (aiMemory) env shellHook packages;
-    };
+  shells = builtins.mapAttrs (_: mkPresetShell) presets;
+  defaultName = "ai-${cfg.defaultPreset}";
+  default = presets.${defaultName} or (throw "Unknown default AI preset '${defaultName}'");
 
-    "ai-hermes" = mkShell {
-      name = "dots-ai-hermes";
-      inherit (aiHermes) env shellHook packages;
+  devShells =
+    shells
+    // {
+      ai = shells.${defaultName};
+      "ai-hindsight" = mkComponentShell "hindsight" memory.hindsight;
+      "ai-mem0" = mkComponentShell "mem0" memory.mem0;
+      "ai-omniroute" = mkComponentShell "omniroute" router.omniroute;
     };
-
-    "ai-hindsight" = mkShell {
-      name = "dots-ai-hindsight";
-      inherit (aiHindsight) env shellHook packages;
-    };
-  };
 in {
   inherit devShells;
-  inherit (aiShell) description;
-  inherit (aiShell) env;
-  inherit (aiShell) packages;
-  inherit (aiShell) shellHook;
+  inherit (default) env packages shellHook;
+  description = "AI Development";
 }

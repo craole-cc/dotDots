@@ -1,4 +1,9 @@
-{pkgs, ...}: let
+{
+  pkgs,
+  cfg,
+  paths,
+  ...
+}: let
   inherit (pkgs.lib.strings) concatMapStringsSep;
   inherit
     (pkgs)
@@ -15,9 +20,13 @@
     ;
   nodejs = nodejs_22;
 
+  o = cfg.omniroute;
+  bindAddress = o.bindAddress;
+  port = toString o.port;
+  dataDir = "${paths.xdg.data.local}/${cfg.directory}/${o.state}";
+  cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${o.state}/npx";
+
   omnirouteVersion = "3.8.49";
-  npxCacheDir = "$HOME/.cache/omniroute-flake/npx";
-  dataDir = "$HOME/.local/share/omniroute";
 
   gums = ''
     fmt_accent()  { gum style --foreground 212 "$@"; }
@@ -73,11 +82,12 @@
       patch
     ];
     text = ''
-      mkdir -p "${npxCacheDir}/npm-cache"
-      NPM_CONFIG_CACHE="${npxCacheDir}/npm-cache"
+      cache_dir="''${OMNIROUTE_NPX_CACHE:-${cacheDir}}"
+      mkdir -p "$cache_dir/npm-cache"
+      NPM_CONFIG_CACHE="$cache_dir/npm-cache"
       NPM_CONFIG_UPDATE_NOTIFIER=false
       NODE_EXTRA_CA_CERTS="${cacert}/etc/ssl/certs/ca-bundle.crt"
-      OMNIROUTE_NPX_CACHE="${npxCacheDir}"
+      OMNIROUTE_NPX_CACHE="$cache_dir"
       OMNIROUTE_CODEX_RESPONSES_PATCH="${./codex-responses-reasoning.patch}"
       OMNIROUTE_CODEX_EXECUTOR_PATCH="${./codex-executor-reasoning.patch}"
       OMNIROUTE_CODEX_TARGET_PATCH="${./codex-target-sanitizer.patch}"
@@ -105,14 +115,15 @@
     ];
     text = ''
       ${gums}
-      export DATA_DIR="${dataDir}"
-      export OMNIROUTE_DATA_DIR="$DATA_DIR"
-      mkdir -p "$DATA_DIR"
+      data_dir="''${OMNIROUTE_DATA_DIR:-${dataDir}}"
+      export DATA_DIR="$data_dir"
+      export OMNIROUTE_DATA_DIR="$data_dir"
+      mkdir -p "$data_dir"
       omniroute-policy
-      port="''${OMNIROUTE_PORT:-20128}"
+      port="''${OMNIROUTE_PORT:-${port}}"
       export PORT="$port"
-      fmt_accent --bold "OmniRoute starting -> http://127.0.0.1:$port"
-      fmt_faint "OpenAI-compatible API: http://127.0.0.1:$port/v1"
+      fmt_accent --bold "OmniRoute starting -> http://${bindAddress}:$port"
+      fmt_faint "OpenAI-compatible API: http://${bindAddress}:$port/v1"
       exec omniroute "$@"
     '';
   };
@@ -126,7 +137,7 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
+      session="''${OMNIROUTE_SESSION:-${o.session}}"
       if tmux has-session -t "$session" 2>/dev/null; then
         fmt_warn "OmniRoute is already running in tmux session '$session'"
         fmt_faint "Attach with: tmux attach -t $session"
@@ -147,7 +158,7 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
+      session="''${OMNIROUTE_SESSION:-${o.session}}"
       if tmux has-session -t "$session" 2>/dev/null; then
         tmux kill-session -t "$session"
         fmt_err "OmniRoute stopped"
@@ -168,15 +179,15 @@
     ];
     text = ''
       ${gums}
-      session="omniroute"
-      port="''${OMNIROUTE_PORT:-20128}"
+      session="''${OMNIROUTE_SESSION:-${o.session}}"
+      port="''${OMNIROUTE_PORT:-${port}}"
       if tmux has-session -t "$session" 2>/dev/null; then
         printf "%s %s\n" "$(fmt_success "●")" "tmux session: running ('$session')"
       else
         printf "%s %s\n" "$(fmt_err "○")" "tmux session: not running ('$session')"
       fi
-      if curl -fsS "http://127.0.0.1:$port/v1/models" -o /dev/null 2>/dev/null; then
-        printf "%s %s\n" "$(fmt_success "●")" "OpenAI endpoint: up (http://127.0.0.1:$port/v1)"
+      if curl -fsS "http://${bindAddress}:$port/v1/models" -o /dev/null 2>/dev/null; then
+        printf "%s %s\n" "$(fmt_success "●")" "OpenAI endpoint: up (http://${bindAddress}:$port/v1)"
       else
         printf "%s %s\n" "$(fmt_err "○")" "OpenAI endpoint: not responding on port $port"
       fi
@@ -208,12 +219,18 @@ in {
   ];
 
   env = {
-    OMNIROUTE_DATA_DIR = dataDir;
-    OMNIROUTE_PORT = "20128";
-    OMNIROUTE_BASE_URL = "http://127.0.0.1:20128/v1";
+    OMNIROUTE_PORT = port;
+    OMNIROUTE_BASE_URL = "http://${bindAddress}:${port}/v1";
   };
 
   shellHook = ''
-    ${mkMenuBox "OmniRoute Development Shell" "Local OpenAI-compatible model router"}
+    export OMNIROUTE_DATA_DIR="''${OMNIROUTE_DATA_DIR:-${dataDir}}"
+    export OMNIROUTE_NPX_CACHE="''${OMNIROUTE_NPX_CACHE:-${cacheDir}}"
+    export OMNIROUTE_SESSION="''${OMNIROUTE_SESSION:-${o.session}}"
+    export OMNIROUTE_BASE_URL="http://${bindAddress}:''${OMNIROUTE_PORT:-${port}}/v1"
+
+    if [ -t 1 ]; then
+      ${mkMenuBox "OmniRoute Development Shell" "Local OpenAI-compatible model router"}
+    fi
   '';
 }

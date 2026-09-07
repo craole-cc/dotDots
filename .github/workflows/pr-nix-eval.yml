@@ -1,0 +1,115 @@
+name: AI devshell acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ai-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Inspect devshell exports
+        run: |
+          set -eu
+          printf '%s\n' 'devShell systems:'
+          nix eval --json .#devShells --apply builtins.attrNames
+          printf '%s\n' 'x86_64-linux devShells:'
+          nix eval --json .#devShells.x86_64-linux --apply builtins.attrNames
+
+      - name: Evaluate AI shells
+        run: |
+          set -eu
+
+          for system in x86_64-linux aarch64-linux; do
+            for shell in \
+              ai \
+              ai-hermes \
+              ai-hermes-hindsight \
+              ai-hermes-hindsight-omniroute \
+              ai-hermes-mem0 \
+              ai-hindsight \
+              ai-mem0 \
+              ai-omniroute; do
+              nix eval --raw ".#devShells.${system}.${shell}" \
+                --apply 'shell: shell.drvPath' >/dev/null
+            done
+          done
+
+  ai-presets:
+    needs: ai-eval
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - hermes
+          - hermes-hindsight
+          - hermes-mem0
+          - hermes-hindsight-omniroute
+
+    name: e2e-${{ matrix.preset }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Run preset end-to-end
+        run: sh .github/scripts/ai-preset-e2e.sh "${{ matrix.preset }}"
+
+  ai-contracts:
+    needs: ai-eval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Smoke-test preset instance isolation
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" \
+          AI_INSTANCE=work \
+          AI_PORT_OFFSET=100 \
+            nix develop .#ai-hermes-hindsight-omniroute --command sh -lc '
+              set -eu
+
+              test "$AI_INSTANCE" = work
+              test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/work"
+              test "$HINDSIGHT_INSTANCE" = work
+              test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
+              test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-work
+              test "$HINDSIGHT_CONTAINER_NAME" = hindsight-work
+              test "$HINDSIGHT_API_PORT" = 8988
+              test "$HINDSIGHT_MCP_PORT" = 10099
+              test "$HINDSIGHT_UI_PORT" = 8989
+              test "$HINDSIGHT_API_URL" = http://127.0.0.1:8988
+              test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
+              test "$OMNIROUTE_PORT" = 20228
+              test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-work-omniroute
+            '
+
+      - name: Smoke-test default AI alias
+        run: |
+          set -eu
+          test_home="$(mktemp -d)"
+
+          HOME="$test_home" nix develop .#ai --command sh -lc '
+            set -eu
+            test "$AI_PRESET" = hermes-hindsight
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
+            test "$HINDSIGHT_INSTANCE" = default
+            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
+          '

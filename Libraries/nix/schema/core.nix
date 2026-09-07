@@ -10,13 +10,10 @@
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) any elem;
-  inherit
-    (_.schema.construction)
-    mkUI
-    mkHome
-    mkLocale
-    mkHardware
-    ;
+  inherit (_.schema.hardware) mkHardware;
+  inherit (_.schema.home) mkHome;
+  inherit (_.schema.locale) mkLocale;
+  inherit (_.schema.ui) mkUI;
   inherit (_.strings.construction) generateHexId;
   inherit (_.filesystem.construction) mkTree;
 
@@ -73,13 +70,6 @@
     backend = network.backend or "networkmanager";
   };
 
-  # Development capability precedence, strongest to weakest:
-  # 1. Explicit host.capabilities.development = false disables it absolutely.
-  # 2. Explicit host.capabilities.development = true enables it absolutely.
-  # 3. host.hardened = true disables inferred development capability.
-  # 4. host.functionalities containing "development" enables it.
-  # 5. Any enabled interactive user's capabilities containing "development" enables it.
-  # 6. Otherwise non-hardened hosts default to true.
   mkDevelopmentCapability = {
     host,
     interactiveUsers,
@@ -104,27 +94,33 @@
   };
 
   /**
-  Enrich a single host with user data, interface normalization, and metadata.
+  Enrich a single host with user data, shell policy, interface normalization,
+  and metadata.
   */
   mkCore = {
     name,
     host,
     users,
+    shells ? {},
     roots ? {},
     stems ? {},
     exclusions ? {},
     ...
   }: let
+    userProfiles = users;
+
     derived = {
       inherit host name;
       stems = recursiveUpdate stems (host.paths.stems or {});
       roots = recursiveUpdate roots (host.paths.roots or {});
       paths = mkTree {inherit (derived) roots stems;};
+      shells = recursiveUpdate shells (host.shells or {});
 
       exclusions = recursiveUpdate exclusions (host.exclusions or {});
 
       users = mkHome {
-        inherit host users;
+        inherit host;
+        users = userProfiles;
         inherit (derived) roots stems;
       };
 
@@ -135,6 +131,7 @@
       inherit
         name
         paths
+        shells
         users
         exclusions
         ;
