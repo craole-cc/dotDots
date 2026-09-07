@@ -1,1 +1,3 @@
-args: import ./omniroute args
+args: {
+  omniroute = import ./omniroute args;
+}
