@@ -102,7 +102,7 @@ jobs:
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_INSTANCE" = default
-            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/default.env"
+            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
             test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
             test "$HINDSIGHT_API_PORT" = 8888
@@ -161,7 +161,7 @@ jobs:
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/default"
             test "$HERMES_HOME" = "$AI_HOME/hermes"
             test "$HINDSIGHT_INSTANCE" = default
-            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/default.env"
+            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
             test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
             test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
             test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
@@ -238,7 +238,7 @@ jobs:
               test "$AI_INSTANCE" = work
               test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/work"
               test "$HINDSIGHT_INSTANCE" = work
-              test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/ai/hindsight/work.env"
+              test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
               test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-work
               test "$HINDSIGHT_CONTAINER_NAME" = hindsight-work
               test "$HINDSIGHT_API_PORT" = 8988
