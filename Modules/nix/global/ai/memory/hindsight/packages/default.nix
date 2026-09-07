@@ -4,11 +4,12 @@
   lib,
   ...
 }: let
-  inherit (pkgs) coreutils curl docker gum jq writeShellApplication;
+  inherit (pkgs) coreutils curl docker gum jq writeShellApplication writeText;
   inherit (lix.filesystem.access) readFile;
   inherit (lib) target tag set;
 
-  env' = set "COMPOSE_FILE" (toString ./compose.yaml);
+  compose = writeText "${target}-compose.yaml" (readFile ./compose.yaml);
+  env' = set "COMPOSE_FILE" compose;
 
   entries = [
     {
