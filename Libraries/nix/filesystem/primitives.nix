@@ -111,7 +111,7 @@
       then "${toString src}/${concatStringsSep "/" raw}"
       else if isPath raw
       then toString raw
-      else if isString raw && hasPrefix "/" raw
+      else if isString raw && (hasPrefix "/" raw || hasPrefix "$" raw)
       then raw
       else "${toString src}/${raw}";
 
