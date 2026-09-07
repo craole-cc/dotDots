@@ -19,9 +19,12 @@ services:
       - HINDSIGHT_API_EMBEDDINGS_PROVIDER=local
       - HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-small-en-v1.5
     volumes:
-      - ${HINDSIGHT_DATA_DIR}:/home/hindsight/.pg0
+      - hindsight-pg0:/home/hindsight/.pg0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  hindsight-pg0:
