@@ -21,12 +21,22 @@ if [ ! -r "${HINDSIGHT_SECRETS_FILE}" ]; then
   exit 1
 fi
 
-set -a
 # shellcheck disable=SC1090
 . "${HINDSIGHT_SECRETS_FILE}"
-set +a
 
-: "${HINDSIGHT_API_LLM_API_KEY:?HINDSIGHT_API_LLM_API_KEY is required}"
+case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
+openrouter)
+  : "${HINDSIGHT_OPENROUTER_API_KEY:?HINDSIGHT_OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  HINDSIGHT_API_LLM_API_KEY="${HINDSIGHT_OPENROUTER_API_KEY}"
+  ;;
+*)
+  gum log \
+    --level error \
+    "Unsupported Hindsight LLM backend: ${HINDSIGHT_LLM_BACKEND}"
+  exit 1
+  ;;
+esac
+export HINDSIGHT_API_LLM_API_KEY
 
 docker compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
