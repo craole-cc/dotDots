@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  ai-devshells:
+  ai-eval:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,193 +38,42 @@ jobs:
               ai-mem0 \
               ai-omniroute; do
               nix eval --raw ".#devShells.${system}.${shell}" \
-                --apply 'shell: shell.drvPath' > /dev/null
+                --apply 'shell: shell.drvPath' >/dev/null
             done
           done
 
-      - name: Smoke-test Hermes preset
-        run: |
-          set -eu
-          test_home="$(mktemp -d)"
+  ai-presets:
+    needs: ai-eval
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - hermes
+          - hermes-hindsight
+          - hermes-mem0
+          - hermes-hindsight-omniroute
 
-          HOME="$test_home" nix develop .#ai-hermes --command sh -lc '
-            set -eu
+    name: e2e-${{ matrix.preset }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            test "$AI_PRESET" = hermes
-            test "$AI_INSTANCE" = default
-            test "$AI_HOME" = "$HOME/.local/share/ai/hermes/default"
-            test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$HERMES_GATEWAY_CFG" = "$HERMES_HOME/gateway.json"
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
 
-            command -v hermes > /dev/null
-            command -v hermes-help > /dev/null
-            command -v hermes-gateway-service > /dev/null
-            command -v hermes-whatsapp > /dev/null
-            test -f "$HERMES_WHATSAPP_GATEWAY_PY"
-            hermes --help > /dev/null
-            hermes-help > /dev/null
+      - name: Run preset end-to-end
+        run: sh .github/scripts/ai-preset-e2e.sh "${{ matrix.preset }}"
 
-            if command -v configure-hindsight > /dev/null 2>&1; then
-              echo "Hindsight integration leaked into ai-hermes" >&2
-              exit 1
-            fi
+  ai-contracts:
+    needs: ai-eval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            unit="$(hermes-gateway-service)"
-            printf "%s\n" "$unit" | grep -F "WorkingDirectory=$HERMES_HOME" > /dev/null
-            printf "%s\n" "$unit" | grep -F "Environment=HERMES_HOME=$HERMES_HOME" > /dev/null
-            printf "%s\n" "$unit" | grep -F "Environment=HERMES_GATEWAY_CFG=$HERMES_GATEWAY_CFG" > /dev/null
-
-            if env | grep -q "^HINDSIGHT_"; then
-              echo "Hindsight leaked into ai-hermes" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^OMNIROUTE_"; then
-              echo "OmniRoute leaked into ai-hermes" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^MEM0_"; then
-              echo "Mem0 leaked into ai-hermes" >&2
-              exit 1
-            fi
-          '
-
-      - name: Smoke-test Hermes Hindsight preset
-        run: |
-          set -eu
-          test_home="$(mktemp -d)"
-
-          HOME="$test_home" nix develop .#ai-hermes-hindsight --command sh -lc '
-            set -eu
-
-            test "$AI_PRESET" = hermes-hindsight
-            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
-            test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$HINDSIGHT_INSTANCE" = default
-            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
-            test "$HINDSIGHT_LLM_BACKEND" = openrouter
-            test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
-            test "$HINDSIGHT_BIND_ADDRESS" = 127.0.0.1
-            test "$HINDSIGHT_API_PORT" = 8888
-            test "$HINDSIGHT_MCP_PORT" = 9999
-            test "$HINDSIGHT_UI_PORT" = 8889
-            test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
-            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
-            test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
-
-            command -v docker > /dev/null
-            command -v hermes > /dev/null
-            command -v configure-hindsight > /dev/null
-            command -v hindsight-help > /dev/null
-            command -v hindsight-up > /dev/null
-            command -v hindsight-down > /dev/null
-            command -v hindsight-status > /dev/null
-            command -v hindsight-verify > /dev/null
-            command -v hindsight-storage > /dev/null
-
-            if env | grep -q "^OMNIROUTE_"; then
-              echo "OmniRoute leaked into ai-hermes-hindsight" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^MEM0_"; then
-              echo "Mem0 leaked into ai-hermes-hindsight" >&2
-              exit 1
-            fi
-
-            configure-hindsight --force
-            test -s "$HERMES_HOME/hindsight/config.json"
-            grep -F "\"api_url\": \"$HINDSIGHT_API_URL\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
-            grep -F "\"bank_id\": \"$HINDSIGHT_BANK_ID\"" "$HERMES_HOME/hindsight/config.json" > /dev/null
-
-            mkdir -p "$(dirname "$HINDSIGHT_SECRETS_FILE")"
-            printf "%s\n" "HINDSIGHT_OPENROUTER_API_KEY=ci-dummy-key" > "$HINDSIGHT_SECRETS_FILE"
-
-            hindsight-up
-            trap "hindsight-down" EXIT HUP INT TERM
-            hindsight-status
-            hindsight-verify
-            hindsight-storage
-            hindsight-down
-            trap - EXIT HUP INT TERM
-          '
-
-      - name: Smoke-test Hermes Hindsight OmniRoute preset
-        run: |
-          set -eu
-          test_home="$(mktemp -d)"
-
-          HOME="$test_home" nix develop .#ai-hermes-hindsight-omniroute --command sh -lc '
-            set -eu
-
-            test "$AI_PRESET" = hermes-hindsight-omniroute
-            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-omniroute/default"
-            test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$HINDSIGHT_INSTANCE" = default
-            test "$HINDSIGHT_SECRETS_FILE" = "$HOME/Private/hindsight.env"
-            test "$HINDSIGHT_LLM_BACKEND" = openrouter
-            test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
-            test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
-            test "$HINDSIGHT_IMAGE" = ghcr.io/vectorize-io/hindsight:0.9.2
-            test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
-            test "$OMNIROUTE_PORT" = 20128
-            test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
-            test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
-
-            command -v docker > /dev/null
-            command -v hermes > /dev/null
-            command -v configure-hindsight > /dev/null
-            command -v hindsight-status > /dev/null
-            command -v omniroute > /dev/null
-            command -v omniroute-daemon > /dev/null
-            command -v omniroute-status > /dev/null
-            command -v omniroute-stop > /dev/null
-
-            if env | grep -q "^MEM0_"; then
-              echo "Mem0 leaked into ai-hermes-hindsight-omniroute" >&2
-              exit 1
-            fi
-
-            omniroute --version > /dev/null
-          '
-
-      - name: Smoke-test Hermes Mem0 preset
-        run: |
-          set -eu
-          test_home="$(mktemp -d)"
-
-          HOME="$test_home" nix develop .#ai-hermes-mem0 --command sh -lc '
-            set -eu
-
-            test "$AI_PRESET" = hermes-mem0
-            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-mem0/default"
-            test "$HERMES_HOME" = "$AI_HOME/hermes"
-            test "$MEM0_PORT" = 8888
-            test "$MEM0_HOST" = "$MEM0_BASE_URL"
-
-            command -v hermes > /dev/null
-            command -v mem0 > /dev/null
-            command -v mem0-status > /dev/null
-            command -v mem0-verify > /dev/null
-
-            if command -v configure-hindsight > /dev/null 2>&1; then
-              echo "Hindsight integration leaked into ai-hermes-mem0" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^HINDSIGHT_"; then
-              echo "Hindsight leaked into ai-hermes-mem0" >&2
-              exit 1
-            fi
-
-            if env | grep -q "^OMNIROUTE_"; then
-              echo "OmniRoute leaked into ai-hermes-mem0" >&2
-              exit 1
-            fi
-
-            hermes config set memory.provider mem0
-          '
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
 
       - name: Smoke-test preset instance isolation
         run: |
