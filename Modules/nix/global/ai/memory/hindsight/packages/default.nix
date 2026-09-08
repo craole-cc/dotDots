@@ -38,12 +38,50 @@
     name = "${target}-native";
     runtimeInputs = [cacert coreutils python3 uv];
     text = ''
+      : "''${HINDSIGHT_SECRETS_FILE:?HINDSIGHT_SECRETS_FILE not set}"
       : "''${HINDSIGHT_DATA_DIR:?HINDSIGHT_DATA_DIR not set}"
       : "''${HINDSIGHT_CACHE_DIR:?HINDSIGHT_CACHE_DIR not set}"
       : "''${HINDSIGHT_BIND_ADDRESS:?HINDSIGHT_BIND_ADDRESS not set}"
       : "''${HINDSIGHT_API_PORT:?HINDSIGHT_API_PORT not set}"
 
+      if [ ! -r "''${HINDSIGHT_SECRETS_FILE}" ]; then
+        printf '%s\n' "Hindsight secrets file is not readable: ''${HINDSIGHT_SECRETS_FILE}" >&2
+        exit 1
+      fi
+
+      # shellcheck disable=SC1090
+      . "''${HINDSIGHT_SECRETS_FILE}"
+
+      case "''${HINDSIGHT_LLM_BACKEND:-openrouter}" in
+      openrouter)
+        key="''${OPENROUTER_API_KEY:-''${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+        : "''${key:?OPENROUTER_API_KEY is required in ''${HINDSIGHT_SECRETS_FILE}}"
+        ;;
+      groq)
+        key="''${GROQ_API_KEY:-''${HINDSIGHT_GROQ_API_KEY:-}}"
+        : "''${key:?GROQ_API_KEY is required in ''${HINDSIGHT_SECRETS_FILE}}"
+        ;;
+      *)
+        printf '%s\n' "Unsupported Hindsight LLM backend: ''${HINDSIGHT_LLM_BACKEND}" >&2
+        exit 1
+        ;;
+      esac
+
       mkdir -p "''${HINDSIGHT_DATA_DIR}" "''${HINDSIGHT_CACHE_DIR}"
+
+      export HINDSIGHT_API_LLM_API_KEY="''${key}"
+      export HINDSIGHT_API_LLM_PROVIDER="openai"
+      export HINDSIGHT_API_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL}"
+      export HINDSIGHT_API_LLM_MODEL="''${HINDSIGHT_LLM_MODEL}"
+      export HINDSIGHT_API_RETAIN_LLM_MODEL="''${HINDSIGHT_LLM_MODEL}"
+      export HINDSIGHT_API_CONSOLIDATION_LLM_MODEL="''${HINDSIGHT_LLM_MODEL}"
+      export HINDSIGHT_API_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL}"
+      export HINDSIGHT_API_DATABASE_URL="pg0"
+      export HINDSIGHT_API_HOST="''${HINDSIGHT_BIND_ADDRESS}"
+      export HINDSIGHT_API_PORT="''${HINDSIGHT_API_PORT}"
+      export HINDSIGHT_API_EMBEDDINGS_PROVIDER="local"
+      export HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL="BAAI/bge-small-en-v1.5"
+      unset key
 
       export HOME="''${HINDSIGHT_DATA_DIR}"
       export XDG_CACHE_HOME="''${HINDSIGHT_CACHE_DIR}"
