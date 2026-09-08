@@ -127,8 +127,13 @@
       user = derived.users.primary;
     };
 
-    defined = with derived; {
+    # `with derived` is intentionally avoided here. Lexically-bound mkCore
+    # arguments such as `shells`, `users`, and `exclusions` take precedence
+    # over names introduced by `with`, which previously caused the raw/global
+    # values to be inherited instead of their host-enriched derivatives.
+    defined = {
       inherit
+        (derived)
         name
         paths
         shells
@@ -141,8 +146,14 @@
         then host.id
         else generateHexId {inherit name;};
 
-      interface = mkUI {inherit host user;};
-      localization = mkLocale {inherit host user;};
+      interface = mkUI {
+        inherit host;
+        user = derived.user;
+      };
+      localization = mkLocale {
+        inherit host;
+        user = derived.user;
+      };
 
       home = let
         src = host.paths.roots.repo;
