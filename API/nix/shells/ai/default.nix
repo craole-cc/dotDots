@@ -11,9 +11,12 @@
     gateway = "gateway.json";
   };
 
-  hindsight = {
+  hindsight = let
+    version = "0.9.2";
+  in {
+    inherit version;
     secrets = "hindsight.env";
-    image = "ghcr.io/vectorize-io/hindsight:0.9.2";
+    image = "ghcr.io/vectorize-io/hindsight:${version}";
     runtime = "podman";
 
     ports = {
