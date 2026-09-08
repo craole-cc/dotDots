@@ -1,7 +1,6 @@
 {
   pkgs,
   system,
-  paths,
   fetch,
   formatters,
   isLinux,
@@ -58,21 +57,37 @@
   #|---------------------------------------------------------|
   #| Shell Configuration  -----------------------------------|
   #|---------------------------------------------------------|
+  #? Per-system devShells are not host-specific, so local checkout paths
+  #? must be resolved when the shell starts instead of being baked into
+  #? the derivation from whichever host happened to drive flake evaluation.
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
-    DOTS = paths.repo.src.local;
-    DOTS_LIB_SH = paths.repo.lib.sh.local;
-    DOTS_CACHE = paths.repo.cache.base.local;
   };
 
-  shellHook = ''
-    #> Determine host info dynamically
+  runtimeHook = ''
+    #> Resolve the active checkout at runtime.
+    if _dots_root="$(git rev-parse --show-toplevel 2>/dev/null)" && [ -f "$_dots_root/flake.nix" ]; then
+      DOTS="$_dots_root"
+    elif [ -n "''${DOTS:-}" ] && [ -f "$DOTS/flake.nix" ]; then
+      DOTS="$(cd "$DOTS" && pwd -P)"
+    else
+      DOTS="$(pwd -P)"
+    fi
+
+    DOTS_CFG="$DOTS/Configuration"
+    DOTS_LIB="$DOTS/Libraries"
+    DOTS_LIB_SH="$DOTS_LIB/posix"
+    DOTS_CACHE="$DOTS/.cache"
+    export DOTS DOTS_CFG DOTS_LIB DOTS_LIB_SH DOTS_CACHE
+    unset _dots_root
+
+    #> Determine host info dynamically.
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
 
-    #> Set up cache directory structure
+    #> Set up cache directory structure.
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -90,14 +105,26 @@
       return "$status"
     }
 
-    #> Add bin directory to PATH
+    #> Add the repo-local bin directory to PATH.
     case ":$PATH:" in
       *":$ENV_BIN:"*) ;;
       *) PATH="$ENV_BIN:$PATH" ;;
     esac
-    export PATH
 
-    #> Initialize bin directories with binit if available
+    #> On NixOS, privileged wrappers must win over the unprivileged
+    #> package binaries. Rootless Podman depends on the setuid newuidmap /
+    #> newgidmap wrappers, and sudo must resolve through the wrapper too.
+    if [ -d /run/wrappers/bin ]; then
+      case ":$PATH:" in
+        :/run/wrappers/bin:*) ;;
+        *) PATH="/run/wrappers/bin:$PATH" ;;
+      esac
+    fi
+    export PATH
+  '';
+
+  shellHook = runtimeHook + ''
+    #> Initialize bin directories with binit if available.
     BINIT_PATH="$DOTS_LIB_SH/base/binit"
     if [ -f "''${BINIT_PATH:-}" ]; then
       if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
@@ -106,22 +133,29 @@
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
 
-    #> Initialize yazi
-    YAZI_INIT="${paths.repo.cfg.default.local}/yazi/init.sh"
+    #> binit prepends repo library directories; restore NixOS wrapper
+    #> precedence afterwards so privileged commands cannot be shadowed.
+    if [ -d /run/wrappers/bin ]; then
+      PATH="/run/wrappers/bin:$PATH"
+      export PATH
+    fi
+
+    #> Initialize yazi.
+    YAZI_INIT="$DOTS_CFG/yazi/init.sh"
     if [ -f "$YAZI_INIT" ]; then
       . "$YAZI_INIT"
     else
       printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
     fi
 
-    #> Use starship for prompt
+    #> Use starship for prompt.
     if cmd-exists starship; then
-      STARSHIP_CONFIG="${paths.repo.cfg.default.local}/starship/config.toml"
+      STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
 
-    #> Display shell information with the defined fetcher
+    #> Display shell information with the defined fetcher.
     if [ -t 1 ]; then
       ${fetch.name}
     fi
@@ -131,6 +165,7 @@ in {
     description
     packages
     env
+    runtimeHook
     shellHook
     ;
 }
