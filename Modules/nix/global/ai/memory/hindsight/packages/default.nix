@@ -51,13 +51,13 @@
     {
       name = "bank-create";
       description = "Create a ${target} memory bank";
-      runtimeInputs = [docker];
+      runtimeInputs = [curl jq];
       script = ./bank-create.sh;
     }
     {
       name = "bank-list";
       description = "List ${target} memory banks";
-      runtimeInputs = [docker];
+      runtimeInputs = [curl jq];
       script = ./bank-list.sh;
     }
   ];
