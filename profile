@@ -15,8 +15,8 @@ configure() {
   version="0.3.1"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
-  verbosity="${DOTS_INIT_VERBOSITY:-${VERBOSITY:-debug}}" #? Checks DOTS_INIT_VERBOSITY, then VERBOSITY, then defaults to 'debug'
-  command="${DOTS_INIT_COMMAND:-all}"                     #? The active command to run (defaults to 'all' if unset)
+  verbosity="${DOTS_INIT_VERBOSITY:-${VERBOSITY:-debug}}"
+  command="${DOTS_INIT_COMMAND:-all}"
   help_requested=0
 
   # ── Base Paths ──────────────────────────────────────────────────────────
@@ -234,6 +234,10 @@ configure_host_profile() {
 
   case "${host}" in
   Victus)
+    # monitor_pri_name=" HDMI-A-1"
+    # monitor_pri_width="2560"
+    # monitor_pri_height="1440"
+    # monitor_pri_rate="99.965"
     monitor_pri_name="HDMI-A-1"
     monitor_pri_width="1920"
     monitor_pri_height="1080"
