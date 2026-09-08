@@ -40,7 +40,7 @@
     {
       name = "up";
       description = "Start the ${target} service";
-      runtimeInputs = runtimeInputs ++ [gum];
+      runtimeInputs = [coreutils] ++ runtimeInputs ++ [gum];
       script = ./up.sh;
     }
     {
