@@ -2,32 +2,57 @@
   pkgs,
   lix,
   lib,
+  cfg,
   ...
 }: let
-  inherit (pkgs) coreutils curl docker gum jq writeShellApplication writeText;
+  inherit (pkgs) coreutils curl docker gum jq podman podman-compose writeShellApplication writeText;
   inherit (lix.filesystem.access) readFile;
   inherit (lib) target tag set;
 
+  runtime = cfg.hindsight.runtime or "podman";
+  runtimeInputs =
+    if runtime == "podman"
+    then [podman podman-compose]
+    else if runtime == "docker"
+    then [docker]
+    else throw "Unsupported Hindsight container runtime '${runtime}'";
+
   compose = writeText "${target}-compose.yaml" (readFile ./compose.yaml);
-  env' = set "COMPOSE_FILE" compose;
+  policy = writeText "${target}-containers-policy.json" ''
+    {
+      "default": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ]
+    }
+  '';
+
+  env' =
+    set "COMPOSE_FILE" compose
+    // set "CONTAINER_RUNTIME" runtime
+    // {
+      CONTAINERS_POLICY_JSON = policy;
+      PODMAN_COMPOSE_PROVIDER = "${podman-compose}/bin/podman-compose";
+    };
 
   entries = [
     {
       name = "up";
       description = "Start the ${target} service";
-      runtimeInputs = [docker gum];
+      runtimeInputs = runtimeInputs ++ [gum];
       script = ./up.sh;
     }
     {
       name = "down";
       description = "Stop the ${target} service";
-      runtimeInputs = [docker];
+      inherit runtimeInputs;
       script = ./down.sh;
     }
     {
       name = "logs";
       description = "Follow ${target} container logs";
-      runtimeInputs = [docker];
+      inherit runtimeInputs;
       script = ./logs.sh;
     }
     {
@@ -44,8 +69,8 @@
     }
     {
       name = "storage";
-      description = "Report ${target} Docker storage usage";
-      runtimeInputs = [coreutils docker];
+      description = "Report ${target} container storage usage";
+      runtimeInputs = [coreutils] ++ runtimeInputs;
       script = ./storage.sh;
     }
     {
@@ -78,6 +103,6 @@
     entries;
 in {
   env = env';
-  packages = [docker] ++ scripts;
+  packages = runtimeInputs ++ scripts;
   inherit helpEntries;
 }
