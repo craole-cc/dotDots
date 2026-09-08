@@ -14,6 +14,7 @@
   hindsight = {
     secrets = "hindsight.env";
     image = "ghcr.io/vectorize-io/hindsight:0.9.2";
+    runtime = "podman";
 
     ports = {
       api = 8888;
