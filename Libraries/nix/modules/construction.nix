@@ -272,35 +272,19 @@
     };
 
   /**
-  Generate every non-host-specific flake output: the per-system output
-  matrix (`packages.<system>.*`, `devShells.<system>.*`, `checks.<system>.*`,
-  `formatter.<system>`, ...) plus `templates`. Neither is host-derived, so
-  neither belongs in `mkConfigurations`.
+  Generate flake utility outputs. Repository-wide outputs remain per-system,
+  while development shells are additionally host-qualified because their
+  local path environment is host-specific.
 
-  ## Per-system fanout
+  `devShells.<system>` therefore contains flat names of the form
+  `<host>-<shell>` (for example `Victus-ai-hermes-hindsight-omniroute`).
+  The flat shape is intentional: the flake schema requires each
+  `devShells.<system>.<name>` value to be a derivation, so a nested
+  `devShells.<system>.<host>.<shell>` tree is not valid flake output.
 
-  `tree.mod.global.store` is imported once per system via `fn`, expected to
-  return an attrset keyed by output category (`devShells`, `packages`,
-  `checks`, `formatter`, ...). `perSystem` evaluates `fn` once per system in
-  `all`; the closing `genAttrs`/`mapAttrs` pair transposes that from "one
-  attrset per system" to "one attrset per category, each keyed by system" -
-  the shape flakes expect at the top level.
-
-  `perSystemNames` reads category names off a single representative system
-  (`derived`) rather than unioning across all of them - every system is
-  expected to expose the same categories; if that stops being true,
-  categories present only on non-`derived` systems are silently dropped.
-
-  # Args:
-    flake: The evaluated flake (name/path/home derived from it).
-    inputs: Canonically resolved flake inputs.
-    tree: Repository tree metadata - `tree.kit.nix.store` for `templates`,
-      `tree.mod.global.store` for the per-system module `fn` imports.
-    schema: Discovered host/user schema; `schema.hosts` decides which
-      systems `getSystems` derives.
-
-  # Returns:
-    `{ templates = {...}; packages = {...}; devShells = {...}; ... }`
+  The future `dots develop <shell>` CLI can detect the runtime hostname and
+  translate it to this explicit target; cross-host use remains explicit via
+  `--host` without making evaluation depend on ambient hostname state.
   */
   mkUtilities = {
     inputs ? {},
@@ -319,28 +303,66 @@
     fn = {
       system,
       pkgs,
+      host ? null,
     }:
-      import paths.repo.mod.global.store (args // {inherit pkgs system;});
+      import paths.repo.mod.global.store (
+        args
+        // {inherit pkgs system;}
+        // optionalAttrs (host != null) {
+          inherit host;
+          paths = host.paths;
+        }
+      );
+
+    systemHosts = system:
+      filterAttrs (_: host: host.system == system) hosts;
+
+    hostShells = system: let
+      matching = systemHosts system;
+      pkgs = pkgsFor system;
+    in
+      builtins.listToAttrs (
+        builtins.concatLists (
+          map (
+            hostName: let
+              host = matching.${hostName};
+              outputs = fn {inherit host pkgs system;};
+            in
+              map
+              (shellName: {
+                name = "${hostName}-${shellName}";
+                value = outputs.devShells.${shellName};
+              })
+              (attrNames outputs.devShells)
+          )
+          (attrNames matching)
+        )
+      );
+
+    representative = fn {
+      system = derived;
+      pkgs = pkgsFor derived;
+    };
   in
     {
       templates = import paths.repo.kit.default.store;
     }
     // genAttrs
-    (attrNames (fn {
-      system = derived;
-      pkgs = pkgsFor derived;
-    }))
+    (attrNames representative)
     (
       name:
-        mapAttrs (_: outputs: outputs.${name}) (
-          genAttrs all (
-            system:
-              fn {
-                inherit system;
-                pkgs = pkgsFor system;
-              }
+        if name == "devShells"
+        then genAttrs all hostShells
+        else
+          mapAttrs (_: outputs: outputs.${name}) (
+            genAttrs all (
+              system:
+                fn {
+                  inherit system;
+                  pkgs = pkgsFor system;
+                }
+            )
           )
-        )
     );
 
   mkConfig = {
