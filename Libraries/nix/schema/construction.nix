@@ -107,18 +107,8 @@
   in
     raw
     // {
-      hosts =
-        base.hosts
-        // {
-          default = active.host;
-          raw = raw.hosts;
-        };
-      users =
-        base.users
-        // {
-          default = active.user;
-          raw = raw.users;
-        };
+      hosts = base.hosts // {default = active.host;};
+      users = base.users // {default = active.user;};
     };
 in
   __exports.internal // {__rootAliases = __exports.external;}
