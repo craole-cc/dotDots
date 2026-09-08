@@ -23,24 +23,21 @@ jobs:
           printf '%s\n' 'x86_64-linux devShells:'
           nix eval --json .#devShells.x86_64-linux --apply builtins.attrNames
 
-      - name: Evaluate AI shells
+      - name: Evaluate all host-qualified shells
         run: |
           set -eu
+          nix eval --json .#devShells \
+            --apply 'systems: builtins.mapAttrs (_: shells: builtins.mapAttrs (_: shell: shell.drvPath) shells) systems' \
+            >/dev/null
 
-          for system in x86_64-linux aarch64-linux; do
-            for shell in \
-              ai \
-              ai-hermes \
-              ai-hermes-hindsight \
-              ai-hermes-hindsight-omniroute \
-              ai-hermes-mem0 \
-              ai-hindsight \
-              ai-mem0 \
-              ai-omniroute; do
-              nix eval --raw ".#devShells.${system}.${shell}" \
-                --apply 'shell: shell.drvPath' >/dev/null
-            done
-          done
+      - name: Validate host AI runtime overrides
+        run: |
+          set -eu
+          schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
+          shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
+          printf 'schema=%s shell=%s\n' "$schema_runtime" "$shell_runtime"
+          test "$schema_runtime" = native
+          test "$shell_runtime" = native
 
   ai-presets:
     needs: ai-eval
@@ -83,7 +80,7 @@ jobs:
           HOME="$test_home" \
           AI_INSTANCE=work \
           AI_PORT_OFFSET=100 \
-            nix develop .#ai-hermes-hindsight-omniroute --command sh -lc '
+            nix develop .#Victus-ai-hermes-hindsight-omniroute --command sh -lc '
               set -eu
 
               test "$AI_INSTANCE" = work
@@ -106,7 +103,7 @@ jobs:
           set -eu
           test_home="$(mktemp -d)"
 
-          HOME="$test_home" nix develop .#ai --command sh -lc '
+          HOME="$test_home" nix develop .#Victus-ai --command sh -lc '
             set -eu
             test "$AI_PRESET" = hermes-hindsight
             test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
