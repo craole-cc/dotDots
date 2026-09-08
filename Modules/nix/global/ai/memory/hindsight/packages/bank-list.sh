@@ -2,6 +2,6 @@
 #shellcheck enable=all
 set -eu
 
-: "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
+: "${HINDSIGHT_API_URL:?HINDSIGHT_API_URL not set}"
 
-exec docker exec "${HINDSIGHT_CONTAINER_NAME}" hindsight-api bank list
+curl -fsS "${HINDSIGHT_API_URL}/v1/default/banks" | jq .
