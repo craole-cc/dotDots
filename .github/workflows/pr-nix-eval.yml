@@ -18,9 +18,14 @@ jobs:
       - name: Validate host AI runtime overrides
         run: |
           set -eu
+          direct_runtime="$(nix eval --raw --expr '(import ./API/nix/hosts/TheOracle).shells.ai.hindsight.runtime')"
+          imported_runtime="$(nix eval --raw --impure --expr 'let f = builtins.getFlake (toString ./.); in (f.lib.libraries.default.filesystem.resolution.pathAttrs ./API/nix).hosts.TheOracle.shells.ai.hindsight.runtime')"
           schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
           shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
-          printf 'schema=%s shell=%s\n' "$schema_runtime" "$shell_runtime"
+          printf 'direct=%s imported=%s schema=%s shell=%s\n' \
+            "$direct_runtime" "$imported_runtime" "$schema_runtime" "$shell_runtime"
+          test "$direct_runtime" = native
+          test "$imported_runtime" = native
           test "$schema_runtime" = native
           test "$shell_runtime" = native
 
