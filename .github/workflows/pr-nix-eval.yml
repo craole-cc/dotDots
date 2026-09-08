@@ -15,6 +15,15 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
 
+      - name: Validate host AI runtime overrides
+        run: |
+          set -eu
+          schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
+          shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
+          printf 'schema=%s shell=%s\n' "$schema_runtime" "$shell_runtime"
+          test "$schema_runtime" = native
+          test "$shell_runtime" = native
+
       - name: Inspect devshell exports
         run: |
           set -eu
@@ -29,15 +38,6 @@ jobs:
           nix eval --json .#devShells \
             --apply 'systems: builtins.mapAttrs (_: shells: builtins.mapAttrs (_: shell: shell.drvPath) shells) systems' \
             >/dev/null
-
-      - name: Validate host AI runtime overrides
-        run: |
-          set -eu
-          schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
-          shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
-          printf 'schema=%s shell=%s\n' "$schema_runtime" "$shell_runtime"
-          test "$schema_runtime" = native
-          test "$shell_runtime" = native
 
   ai-presets:
     needs: ai-eval
