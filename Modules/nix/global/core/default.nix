@@ -1,6 +1,7 @@
 {
   pkgs,
   system,
+  paths,
   fetch,
   formatters,
   isLinux,
@@ -57,66 +58,22 @@
   #|---------------------------------------------------------|
   #| Shell Configuration  -----------------------------------|
   #|---------------------------------------------------------|
-  #? Per-system devShells are not host-specific, so local checkout paths
-  #? must be resolved when the shell starts instead of being baked into
-  #? the derivation from whichever host happened to drive flake evaluation.
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
+    DOTS = paths.repo.src.local;
+    DOTS_LIB_SH = paths.repo.lib.sh.local;
+    DOTS_CACHE = paths.repo.cache.base.local;
   };
 
+  #? Shared runtime setup for shells that reuse the core environment.
+  #? Canonical paths are already resolved by the host API/schema; this hook
+  #? only initializes runtime state and NixOS wrapper precedence.
   runtimeHook = ''
-    #> Resolve the active dotDots checkout without consulting Git state.
-    #> This intentionally uses only shell/filesystem semantics: DOTS is a
-    #> runtime path and therefore cannot be recovered from a pure flake's
-    #> store path. Prefer the nearest ancestor with the dotDots root markers;
-    #> fall back to an already-valid DOTS when the shell is entered elsewhere.
-    _dots_root_of() {
-      _dots_dir="''${1:-''${PWD:-.}}"
-      _dots_dir="$(cd "$_dots_dir" 2>/dev/null && pwd -P)" || return 1
-
-      while :; do
-        if [ -f "$_dots_dir/flake.nix" ] \
-          && [ -f "$_dots_dir/profile" ] \
-          && [ -d "$_dots_dir/API/nix" ] \
-          && [ -d "$_dots_dir/Modules/nix" ] \
-          && [ -d "$_dots_dir/Libraries/nix" ]; then
-          printf '%s\n' "$_dots_dir"
-          return 0
-        fi
-
-        [ "$_dots_dir" = "/" ] && return 1
-        _dots_parent="''${_dots_dir%/*}"
-        [ -n "$_dots_parent" ] || _dots_parent="/"
-        [ "$_dots_parent" = "$_dots_dir" ] && return 1
-        _dots_dir="$_dots_parent"
-      done
-    }
-
-    if _dots_root="$(_dots_root_of "''${PWD:-.}")"; then
-      DOTS="$_dots_root"
-    elif [ -n "''${DOTS:-}" ] && _dots_root="$(_dots_root_of "$DOTS")"; then
-      DOTS="$_dots_root"
-    else
-      printf 'dotDots: unable to resolve repository root from PWD=%s or DOTS=%s\n' \
-        "''${PWD:-}" "''${DOTS:-}" >&2
-      return 1
-    fi
-
-    DOTS_CFG="$DOTS/Configuration"
-    DOTS_LIB="$DOTS/Libraries"
-    DOTS_LIB_SH="$DOTS_LIB/posix"
-    DOTS_CACHE="$DOTS/.cache"
-    export DOTS DOTS_CFG DOTS_LIB DOTS_LIB_SH DOTS_CACHE
-    unset _dots_root _dots_dir _dots_parent
-    unset -f _dots_root_of 2>/dev/null || true
-
-    #> Determine host info dynamically.
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
 
-    #> Set up cache directory structure.
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -134,26 +91,21 @@
       return "$status"
     }
 
-    #> Add the repo-local bin directory to PATH.
     case ":$PATH:" in
       *":$ENV_BIN:"*) ;;
       *) PATH="$ENV_BIN:$PATH" ;;
     esac
 
-    #> On NixOS, privileged wrappers must win over the unprivileged
-    #> package binaries. Rootless Podman depends on the setuid newuidmap /
-    #> newgidmap wrappers, and sudo must resolve through the wrapper too.
+    #> NixOS privileged wrappers must resolve before the corresponding
+    #> unprivileged package binaries (sudo, newuidmap, newgidmap, ...).
     if [ -d /run/wrappers/bin ]; then
-      case ":$PATH:" in
-        :/run/wrappers/bin:*) ;;
-        *) PATH="/run/wrappers/bin:$PATH" ;;
-      esac
+      PATH="/run/wrappers/bin:$PATH"
     fi
     export PATH
   '';
 
   shellHook = runtimeHook + ''
-    #> Initialize bin directories with binit if available.
+    #> Initialize bin directories with binit if available
     BINIT_PATH="$DOTS_LIB_SH/base/binit"
     if [ -f "''${BINIT_PATH:-}" ]; then
       if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
@@ -162,29 +114,28 @@
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
 
-    #> binit prepends repo library directories; restore NixOS wrapper
-    #> precedence afterwards so privileged commands cannot be shadowed.
+    #> binit prepends repository library paths; restore wrapper precedence.
     if [ -d /run/wrappers/bin ]; then
       PATH="/run/wrappers/bin:$PATH"
       export PATH
     fi
 
-    #> Initialize yazi.
-    YAZI_INIT="$DOTS_CFG/yazi/init.sh"
+    #> Initialize yazi
+    YAZI_INIT="${paths.repo.cfg.default.local}/yazi/init.sh"
     if [ -f "$YAZI_INIT" ]; then
       . "$YAZI_INIT"
     else
       printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
     fi
 
-    #> Use starship for prompt.
+    #> Use starship for prompt
     if cmd-exists starship; then
-      STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
+      STARSHIP_CONFIG="${paths.repo.cfg.default.local}/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
 
-    #> Display shell information with the defined fetcher.
+    #> Display shell information with the defined fetcher
     if [ -t 1 ]; then
       ${fetch.name}
     fi
