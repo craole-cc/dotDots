@@ -66,13 +66,41 @@
   };
 
   runtimeHook = ''
-    #> Resolve the active checkout at runtime.
-    if _dots_root="$(git rev-parse --show-toplevel 2>/dev/null)" && [ -f "$_dots_root/flake.nix" ]; then
+    #> Resolve the active dotDots checkout without consulting Git state.
+    #> This intentionally uses only shell/filesystem semantics: DOTS is a
+    #> runtime path and therefore cannot be recovered from a pure flake's
+    #> store path. Prefer the nearest ancestor with the dotDots root markers;
+    #> fall back to an already-valid DOTS when the shell is entered elsewhere.
+    _dots_root_of() {
+      _dots_dir="''${1:-''${PWD:-.}}"
+      _dots_dir="$(cd "$_dots_dir" 2>/dev/null && pwd -P)" || return 1
+
+      while :; do
+        if [ -f "$_dots_dir/flake.nix" ] \
+          && [ -f "$_dots_dir/profile" ] \
+          && [ -d "$_dots_dir/API/nix" ] \
+          && [ -d "$_dots_dir/Modules/nix" ] \
+          && [ -d "$_dots_dir/Libraries/nix" ]; then
+          printf '%s\n' "$_dots_dir"
+          return 0
+        fi
+
+        [ "$_dots_dir" = "/" ] && return 1
+        _dots_parent="''${_dots_dir%/*}"
+        [ -n "$_dots_parent" ] || _dots_parent="/"
+        [ "$_dots_parent" = "$_dots_dir" ] && return 1
+        _dots_dir="$_dots_parent"
+      done
+    }
+
+    if _dots_root="$(_dots_root_of "''${PWD:-.}")"; then
       DOTS="$_dots_root"
-    elif [ -n "''${DOTS:-}" ] && [ -f "$DOTS/flake.nix" ]; then
-      DOTS="$(cd "$DOTS" && pwd -P)"
+    elif [ -n "''${DOTS:-}" ] && _dots_root="$(_dots_root_of "$DOTS")"; then
+      DOTS="$_dots_root"
     else
-      DOTS="$(pwd -P)"
+      printf 'dotDots: unable to resolve repository root from PWD=%s or DOTS=%s\n' \
+        "''${PWD:-}" "''${DOTS:-}" >&2
+      return 1
     fi
 
     DOTS_CFG="$DOTS/Configuration"
@@ -80,7 +108,8 @@
     DOTS_LIB_SH="$DOTS_LIB/posix"
     DOTS_CACHE="$DOTS/.cache"
     export DOTS DOTS_CFG DOTS_LIB DOTS_LIB_SH DOTS_CACHE
-    unset _dots_root
+    unset _dots_root _dots_dir _dots_parent
+    unset -f _dots_root_of 2>/dev/null || true
 
     #> Determine host info dynamically.
     HOSTNAME="$(hostname)"
