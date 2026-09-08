@@ -90,7 +90,7 @@
 
     active = {
       host =
-        if host ? paths.roots.repo.src && host ? stateVersion
+        if host ? paths.roots.repo && host ? stateVersion
         then host
         else let
           name =
