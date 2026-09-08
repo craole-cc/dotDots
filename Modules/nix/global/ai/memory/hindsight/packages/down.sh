@@ -2,29 +2,37 @@
 #shellcheck enable=all
 set -eu
 
-: "${HINDSIGHT_SECRETS_FILE:?HINDSIGHT_SECRETS_FILE not set}"
-: "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
-: "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
-: "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
+: "${HINDSIGHT_RUNTIME_KIND:?HINDSIGHT_RUNTIME_KIND not set}"
 
-if [ -r "${HINDSIGHT_SECRETS_FILE}" ]; then
-  # shellcheck disable=SC1090
-  . "${HINDSIGHT_SECRETS_FILE}"
-fi
+case "${HINDSIGHT_RUNTIME_KIND}" in
+native)
+  : "${HINDSIGHT_SESSION:?HINDSIGHT_SESSION not set}"
+  if ! tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
+    exit 0
+  fi
 
-case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
-openrouter)
-  HINDSIGHT_API_LLM_API_KEY="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+  tmux send-keys -t "${HINDSIGHT_SESSION}" C-c
+  i=0
+  while [ "$i" -lt 10 ] && tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; do
+    i=$((i + 1))
+    sleep 1
+  done
+
+  if tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
+    tmux kill-session -t "${HINDSIGHT_SESSION}"
+  fi
   ;;
-groq)
-  HINDSIGHT_API_LLM_API_KEY="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
+podman|docker)
+  : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
+  : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
+  : "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
+
+  "${HINDSIGHT_CONTAINER_RUNTIME}" compose \
+    -p "${HINDSIGHT_COMPOSE_PROJECT}" \
+    -f "${HINDSIGHT_COMPOSE_FILE}" down
   ;;
 *)
-  HINDSIGHT_API_LLM_API_KEY="${HINDSIGHT_API_LLM_API_KEY:-}"
+  printf '%s\n' "Unsupported Hindsight runtime: ${HINDSIGHT_RUNTIME_KIND}" >&2
+  exit 1
   ;;
 esac
-export HINDSIGHT_API_LLM_API_KEY
-
-"${HINDSIGHT_CONTAINER_RUNTIME}" compose \
-  -p "${HINDSIGHT_COMPOSE_PROJECT}" \
-  -f "${HINDSIGHT_COMPOSE_FILE}" down
