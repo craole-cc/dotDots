@@ -7,11 +7,22 @@ set -eu
 : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
 
 if [ -r "${HINDSIGHT_SECRETS_FILE}" ]; then
-  set -a
   # shellcheck disable=SC1090
   . "${HINDSIGHT_SECRETS_FILE}"
-  set +a
 fi
+
+case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
+openrouter)
+  HINDSIGHT_API_LLM_API_KEY="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+  ;;
+groq)
+  HINDSIGHT_API_LLM_API_KEY="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
+  ;;
+*)
+  HINDSIGHT_API_LLM_API_KEY="${HINDSIGHT_API_LLM_API_KEY:-}"
+  ;;
+esac
+export HINDSIGHT_API_LLM_API_KEY
 
 docker compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
