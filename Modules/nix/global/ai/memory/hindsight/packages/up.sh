@@ -24,10 +24,7 @@ if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
   exit 1
 fi
 
-# Podman before v6 does not honor CONTAINERS_POLICY_JSON, but still requires
-# policy.json at its standard user/system locations. Keep the devShell
-# self-contained by installing the packaged policy only when neither exists.
-if [ "${HINDSIGHT_CONTAINER_RUNTIME}" = "podman" ]; then
+if [ "${HINDSIGHT_CONTAINER_RUNTIME_KIND:-}" = "podman" ]; then
   user_policy="${XDG_CONFIG_HOME:-${HOME}/.config}/containers/policy.json"
   if [ ! -r "${user_policy}" ] && [ ! -r /etc/containers/policy.json ]; then
     : "${CONTAINERS_POLICY_JSON:?CONTAINERS_POLICY_JSON not set}"
@@ -40,7 +37,7 @@ fi
 if ! "${HINDSIGHT_CONTAINER_RUNTIME}" info > /dev/null 2>&1; then
   gum log \
     --level error \
-    "${HINDSIGHT_CONTAINER_RUNTIME} is unavailable for Hindsight."
+    "${HINDSIGHT_CONTAINER_RUNTIME_KIND:-container runtime} is unavailable for Hindsight."
   exit 1
 fi
 

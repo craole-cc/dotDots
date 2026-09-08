@@ -7,6 +7,7 @@ set -eu
 : "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
 
 runtime=${HINDSIGHT_CONTAINER_RUNTIME}
+kind=${HINDSIGHT_CONTAINER_RUNTIME_KIND:-}
 volume="${HINDSIGHT_COMPOSE_PROJECT}_hindsight-pg0"
 
 printf '%s\n' "Hindsight image: ${HINDSIGHT_IMAGE}"
@@ -22,10 +23,10 @@ fi
 printf '\n%s\n' "Hindsight volume for ${HINDSIGHT_COMPOSE_PROJECT}:"
 "${runtime}" volume ls --filter "name=${volume}"
 
-printf '\n%s\n' "${runtime} disk usage:"
+printf '\n%s\n' "${kind:-container runtime} disk usage:"
 "${runtime}" system df
 
-case "${runtime}" in
+case "${kind}" in
 podman)
   root=$("${runtime}" info --format '{{.Store.GraphRoot}}' 2> /dev/null || true)
   ;;
