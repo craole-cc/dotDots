@@ -61,17 +61,27 @@
   defined = let
     _ = init.libraries.default;
     inherit (_.attrsets.aggregation) recursiveUpdate;
+    inherit (_.filesystem.construction) mkTree;
     inherit (_.schema.construction) mkSchema;
+
     schema = mkSchema {
       api = init.paths.repo.api.default.store;
     };
+
+    # API-owned structural tree used when no physical host is selected.
+    # Its repository store projection is sufficient for importing modules,
+    # while host-specific local paths are supplied only by explicit hosts.
+    structuralPaths = mkTree {
+      inherit (schema.paths) roots stems;
+    };
+
     selected =
       if args ? host
       then {
         host = args.host;
         inherit (args.host) paths;
       }
-      else {};
+      else {paths = structuralPaths;};
   in
     recursiveUpdate init ({inherit schema;} // selected);
 
