@@ -15,6 +15,8 @@ if [ ! -r "${HINDSIGHT_SECRETS_FILE}" ]; then
   exit 1
 fi
 
+native_log=""
+
 case "${HINDSIGHT_RUNTIME_KIND}" in
 native)
   : "${HINDSIGHT_NATIVE_RUNTIME:?HINDSIGHT_NATIVE_RUNTIME not set}"
@@ -26,10 +28,16 @@ native)
     tmux kill-session -t "${HINDSIGHT_SESSION}" || true
   fi
 
+  native_log="${HINDSIGHT_DATA_DIR}/service.log"
+  mkdir -p "${HINDSIGHT_DATA_DIR}"
+  : > "${native_log}"
+
   # OmniRoute may already own the tmux server, whose environment predates
   # this shell's Hindsight initialization. Pass all non-secret runtime
   # configuration explicitly; the native service reads its API key directly
-  # from HINDSIGHT_SECRETS_FILE inside the new session.
+  # from HINDSIGHT_SECRETS_FILE inside the new session. Persist stdout/stderr
+  # so an early process exit can be surfaced instead of looking like a
+  # five-minute health timeout.
   tmux new-session -d \
     -s "${HINDSIGHT_SESSION}" \
     -e "HINDSIGHT_SECRETS_FILE=${HINDSIGHT_SECRETS_FILE}" \
@@ -42,7 +50,7 @@ native)
     -e "HINDSIGHT_LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}" \
     -e "HINDSIGHT_LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \
     -e "HINDSIGHT_REFLECT_LLM_MODEL=${HINDSIGHT_REFLECT_LLM_MODEL}" \
-    "${HINDSIGHT_NATIVE_RUNTIME}"
+    "exec \"${HINDSIGHT_NATIVE_RUNTIME}\" >>\"${native_log}\" 2>&1"
   ;;
 podman|docker)
   : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
@@ -115,9 +123,32 @@ while [ "$i" -lt "$attempts" ]; do
     gum log --level info "Hindsight is healthy."
     exit 0
   fi
+
+  if [ "${HINDSIGHT_RUNTIME_KIND}" = "native" ] \
+    && ! tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
+    gum log --level error "Hindsight native process exited before becoming healthy."
+    if [ -s "${native_log}" ]; then
+      printf '%s\n' '----- Hindsight startup log -----' >&2
+      tail -n 120 "${native_log}" >&2
+      printf '%s\n' '---------------------------------' >&2
+    else
+      printf '%s\n' "No startup output was captured in ${native_log}" >&2
+    fi
+    exit 1
+  fi
+
   i=$((i + 1))
   sleep 2
 done
 
-gum log --level warn "Hindsight did not become healthy after $((attempts * 2))s"
+if [ "${HINDSIGHT_RUNTIME_KIND}" = "native" ]; then
+  gum log --level warn "Hindsight is still running but did not become healthy after $((attempts * 2))s"
+  if [ -s "${native_log}" ]; then
+    printf '%s\n' '----- Hindsight startup log (tail) -----' >&2
+    tail -n 80 "${native_log}" >&2
+    printf '%s\n' '----------------------------------------' >&2
+  fi
+else
+  gum log --level warn "Hindsight did not become healthy after $((attempts * 2))s"
+fi
 exit 1
