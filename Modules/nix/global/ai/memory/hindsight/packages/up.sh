@@ -6,6 +6,7 @@ set -eu
 : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
 : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
 : "${HINDSIGHT_CONTAINER_NAME:?HINDSIGHT_CONTAINER_NAME not set}"
+: "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
 
 case "${HINDSIGHT_COMPOSE_FILE}" in
 /nix/store/*-source/*)
@@ -23,10 +24,10 @@ if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
   exit 1
 fi
 
-if ! docker info > /dev/null 2>&1; then
+if ! "${HINDSIGHT_CONTAINER_RUNTIME}" info > /dev/null 2>&1; then
   gum log \
     --level error \
-    "Docker daemon is unavailable; start the host Docker service before Hindsight."
+    "${HINDSIGHT_CONTAINER_RUNTIME} is unavailable for Hindsight."
   exit 1
 fi
 
@@ -61,7 +62,7 @@ esac
 export HINDSIGHT_API_LLM_API_KEY
 unset key
 
-docker compose \
+"${HINDSIGHT_CONTAINER_RUNTIME}" compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
   -f "${HINDSIGHT_COMPOSE_FILE}" up -d
 
@@ -71,7 +72,7 @@ status="unknown"
 i=0
 while [ "$i" -lt "$attempts" ]; do
   status=$(
-    docker inspect \
+    "${HINDSIGHT_CONTAINER_RUNTIME}" inspect \
       -f '{{.State.Health.Status}}' \
       "${HINDSIGHT_CONTAINER_NAME}" 2> /dev/null \
       || echo "unknown"
@@ -89,6 +90,6 @@ else
   gum log --level info "Hindsight is healthy."
 fi
 
-docker compose \
+"${HINDSIGHT_CONTAINER_RUNTIME}" compose \
   -p "${HINDSIGHT_COMPOSE_PROJECT}" \
   -f "${HINDSIGHT_COMPOSE_FILE}" ps
