@@ -20,12 +20,14 @@ jobs:
           set -eu
           direct_runtime="$(nix eval --raw --impure --expr '(import ./API/nix/hosts/TheOracle).shells.ai.hindsight.runtime')"
           imported_runtime="$(nix eval --raw --impure --expr 'let f = builtins.getFlake (toString ./.); in (f.lib.libraries.default.filesystem.resolution.pathAttrs ./API/nix).hosts.TheOracle.shells.ai.hindsight.runtime')"
+          merge_runtime="$(nix eval --raw .#lib --apply 'l: (l.libraries.default.attrsets.aggregation.recursiveUpdate { ai.hindsight.runtime = "podman"; } { ai.hindsight.runtime = "native"; }).ai.hindsight.runtime')"
           schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
           shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
-          printf 'direct=%s imported=%s schema=%s shell=%s\n' \
-            "$direct_runtime" "$imported_runtime" "$schema_runtime" "$shell_runtime"
+          printf 'direct=%s imported=%s merge=%s schema=%s shell=%s\n' \
+            "$direct_runtime" "$imported_runtime" "$merge_runtime" "$schema_runtime" "$shell_runtime"
           test "$direct_runtime" = native
           test "$imported_runtime" = native
+          test "$merge_runtime" = native
           test "$schema_runtime" = native
           test "$shell_runtime" = native
 
