@@ -17,23 +17,21 @@
     external = {inherit mkSchema;};
   };
 
-  inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.resolution) pathAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
   inherit (_.schema.settings) mkSettings;
-  inherit (_.strings.access) getEnvOr;
-  inherit (_.types.access) headOf;
-  inherit (_.types.predicates) isString;
 
   /**
-  Enrich each declared host against the hosts baseline, resolve global and host-level
-  settings via `mkSettings`, and determine the active deployment target.
+  Enrich each declared host and user from the API.
+
+  Host identity is explicit: every public host remains keyed by its API name.
+  `default.nix` files are domain baselines consumed by `importAttrs`; they are
+  not public host/user identities and no active host is inferred here.
   */
   mkSchema = {
     api ? _defaults.paths.repo.api.default.store,
-    host ? {},
     ...
   }: let
     api' = pathAttrs api;
@@ -50,65 +48,26 @@
 
     paths = raw.paths;
     users = mkUsers {inherit (raw) users;};
-
-    base = {
-      hosts =
-        mapAttrs (
-          name: hostAttr:
-            mkCore (
-              {
-                settings = mkSettings {
-                  inherit (raw) global;
-                  host = hostAttr;
-                };
-                inherit users;
-                inherit (raw) shells;
-                host = recursiveUpdate (raw.hosts.default or {}) hostAttr;
-                inherit name;
-              }
-              // paths
-            )
-        )
-        raw.hosts
-        // {
-          default = mkCore (
+    hosts =
+      mapAttrs (
+        name: host:
+          mkCore (
             {
-              name = "default";
               settings = mkSettings {
                 inherit (raw) global;
-                host = raw.hosts.default or {};
+                inherit host;
               };
-              inherit users;
+              inherit users host name;
               inherit (raw) shells;
-              host = raw.hosts.default or {};
             }
             // paths
-          );
-        };
-      inherit users;
-    };
-
-    active = {
-      host =
-        if host ? paths.roots.repo && host ? stateVersion
-        then host
-        else let
-          name =
-            if isString host && host != "" && base.hosts ? ${host}
-            then host
-            else if host ? name && base.hosts ? ${host.name}
-            then host.name
-            else getEnvOr "HOSTNAME" (headOf raw.hosts);
-        in
-          base.hosts.${name};
-
-      user = active.host.users.primary;
-    };
+          )
+      )
+      raw.hosts;
   in
     raw
     // {
-      hosts = base.hosts // {default = active.host;};
-      users = base.users // {default = active.user;};
+      inherit hosts users;
     };
 in
   __exports.internal // {__rootAliases = __exports.external;}

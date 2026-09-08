@@ -64,14 +64,16 @@
     inherit (_.schema.construction) mkSchema;
     schema = mkSchema {
       api = init.paths.repo.api.default.store;
-      host = init.host or {};
     };
-    host = schema.hosts.default;
+    selected =
+      if args ? host
+      then {
+        host = args.host;
+        inherit (args.host) paths;
+      }
+      else {};
   in
-    recursiveUpdate init {
-      inherit schema host;
-      inherit (host) paths;
-    };
+    recursiveUpdate init ({inherit schema;} // selected);
 
   eval = defined;
 in
