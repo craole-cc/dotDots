@@ -49,6 +49,12 @@ in
           "agenix.service"
         ];
         requires = ["vpn-veth.service"];
+
+        # The VPN profile is mutable host state, not a store input. A missing
+        # profile should skip this optional service rather than make an
+        # otherwise successful nixos-rebuild switch fail.
+        unitConfig.ConditionPathExists = cfg.configFile;
+
         serviceConfig = {
           Type = "simple";
           ExecStart = writeShellScript "vpn-start" ''
