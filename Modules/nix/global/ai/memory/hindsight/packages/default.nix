@@ -122,11 +122,6 @@
     tmpdir = "${run}/tmp";
   };
 
-  podmanConfig = writeText "${target}-podman-containers.conf" ''
-    [engine]
-    database_backend = "boltdb"
-  '';
-
   podmanRuntime = writeShellApplication {
     name = "${target}-podman";
     runtimeInputs = [coreutils podman];
@@ -140,14 +135,15 @@
         "''${HINDSIGHT_PODMAN_RUNROOT}" \
         "''${HINDSIGHT_PODMAN_TMPDIR}"
 
-      # Load the host/Nix Podman configuration normally, but force only the
-      # database backend for this isolated Hindsight runtime.
-      export CONTAINERS_CONF_OVERRIDE="${podmanConfig}"
-
+      # Force the database backend as a Podman global option instead of via
+      # containers.conf. Podman also records this option in its generated
+      # cleanup/restart commands, keeping every subprocess on the same backend.
+      export SUPPRESS_BOLTDB_WARNING=1
       exec ${podman}/bin/podman \
         --root "''${HINDSIGHT_PODMAN_ROOT}" \
         --runroot "''${HINDSIGHT_PODMAN_RUNROOT}" \
         --tmpdir "''${HINDSIGHT_PODMAN_TMPDIR}" \
+        --db-backend boltdb \
         "$@"
     '';
   };
