@@ -2,6 +2,8 @@
 set -eu
 
 preset=${1:?usage: ai-preset-e2e.sh PRESET}
+host=${AI_E2E_HOST:-Victus}
+shell=".#${host}-ai-${preset}"
 root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
 cd "$root"
 
@@ -56,7 +58,7 @@ printf '%s\n' "$unit" | grep -F "WorkingDirectory=$HERMES_HOME" >/dev/null
 printf '%s\n' "$unit" | grep -F "Environment=HERMES_HOME=$HERMES_HOME" >/dev/null
 printf '%s\n' "$unit" | grep -F "Environment=HERMES_GATEWAY_CFG=$HERMES_GATEWAY_CFG" >/dev/null
 EOF
-    HOME="$test_home" nix develop .#ai-hermes --command sh "$inner"
+    HOME="$test_home" nix develop "$shell" --command sh "$inner"
     ;;
 
   hermes-hindsight)
@@ -84,7 +86,7 @@ test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
 test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
 test "$HINDSIGHT_CONTAINER_NAME" = hindsight-default
 
-for command in docker hermes configure-hindsight hindsight-help hindsight-up hindsight-down hindsight-status hindsight-verify hindsight-storage; do
+for command in hermes configure-hindsight hindsight-help hindsight-up hindsight-down hindsight-status hindsight-verify hindsight-storage; do
   command -v "$command" >/dev/null
 done
 
@@ -112,7 +114,7 @@ hindsight-storage
 hindsight-down
 trap - EXIT HUP INT TERM
 EOF
-    HOME="$test_home" nix develop .#ai-hermes-hindsight --command sh "$inner"
+    HOME="$test_home" nix develop "$shell" --command sh "$inner"
     ;;
 
   hermes-mem0)
@@ -189,7 +191,7 @@ assert empty.get("result") == "No relevant memories found.", empty
 provider.shutdown()
 PY
 EOF
-    HOME="$test_home" nix develop .#ai-hermes-mem0 --command sh "$inner"
+    HOME="$test_home" nix develop "$shell" --command sh "$inner"
     ;;
 
   hermes-hindsight-omniroute)
@@ -217,7 +219,7 @@ test "$OMNIROUTE_PORT" = 20128
 test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-default-omniroute
 test "$OPENAI_BASE_URL" = "$OMNIROUTE_BASE_URL"
 
-for command in docker curl hermes configure-hindsight hindsight-up hindsight-down hindsight-status hindsight-verify omniroute omniroute-daemon omniroute-status omniroute-stop; do
+for command in curl hermes configure-hindsight hindsight-up hindsight-down hindsight-status hindsight-verify omniroute omniroute-daemon omniroute-status omniroute-stop; do
   command -v "$command" >/dev/null
 done
 
@@ -254,7 +256,7 @@ hindsight-down
 omniroute-stop
 trap - EXIT HUP INT TERM
 EOF
-    HOME="$test_home" nix develop .#ai-hermes-hindsight-omniroute --command sh "$inner"
+    HOME="$test_home" nix develop "$shell" --command sh "$inner"
     ;;
 
   *)
