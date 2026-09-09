@@ -27,6 +27,11 @@ in {
     kernel = "linuxPackages_cachyos-lto";
   };
 
+  caches.nyx = {
+    sub = "https://nyx-cache.chaotic.cx/";
+    key = "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=";
+  };
+
   modules = [
     "nvme"
     "xhci_pci"
