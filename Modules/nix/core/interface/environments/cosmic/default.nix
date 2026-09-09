@@ -17,7 +17,7 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable {inherit context;} // ctx.wantsGnome;
+      enable = mkEnable ({inherit context;} // ctx.wantsCosmic);
     };
     outputs = {
       services.desktopManager.cosmic = {
