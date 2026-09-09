@@ -1,6 +1,5 @@
 {
   pkgs,
-  inputs,
   lix,
   lib,
   cfg,
@@ -15,6 +14,7 @@
     docker
     gum
     jq
+    podman
     podman-compose
     python3
     tmux
@@ -27,15 +27,6 @@
 
   runtime = cfg.hindsight.runtime or "podman";
   version = cfg.hindsight.version or "0.9.2";
-
-  # Podman 5.8 switched new deployments to SQLite. Victus reproduces a
-  # state-save `disk I/O error: bad file descriptor` with 5.8.6 even against
-  # a fresh Hindsight-only graphroot. nixos-25.11 currently carries Podman
-  # 5.7.0, before that default-backend switch, so use it only for Hindsight's
-  # isolated Podman runtime. The host/global Podman installation is untouched.
-  # `inputs` here is the normalized input set, where the stable channel's
-  # canonical key is `nixpkgs-stable` rather than the raw flake input name.
-  podman = inputs.nixpkgs-stable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.podman;
 
   nativeState = {
     data = "${paths.xdg.data.local}/${cfg.directory}/${target}/${cfg.instance}";
@@ -99,11 +90,19 @@
       export HF_HOME="''${HINDSIGHT_CACHE_DIR}/huggingface"
       export SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      # uv installs upstream binary wheels outside the Nix store. Those wheels
-      # expect the standard GNU C++ runtime by soname (for example tokenizers
-      # needs libstdc++.so.6), so expose the stdenv compiler runtime explicitly
-      # instead of relying on host-global libraries.
-      export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}''${LD_LIBRARY_PATH:+:''${LD_LIBRARY_PATH}}"
+      # uv/pg0 execute upstream ELF binaries outside the Nix store. Expose
+      # their runtime sonames explicitly instead of depending on host-global
+      # libraries. This covers Python wheels such as tokenizers plus pg0's
+      # bundled PostgreSQL runtime.
+      export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
+        pkgs.stdenv.cc.cc.lib
+        pkgs.zstd
+        pkgs.lz4
+        pkgs.openssl
+        pkgs.krb5
+        pkgs.zlib
+        pkgs.xz
+      ]}''${LD_LIBRARY_PATH:+:''${LD_LIBRARY_PATH}}"
 
       exec ${uv}/bin/uvx \
         --python ${python3}/bin/python \
@@ -118,8 +117,8 @@
   nativeRuntimeBin = "${nativeRuntime}/bin/${target}-native";
 
   podmanState = let
-    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}/podman-5.7";
-    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}/podman-5.7";
+    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
+    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
   in {
     root = "${data}/storage";
     runroot = "${run}/run";
