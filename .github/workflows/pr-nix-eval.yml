@@ -26,8 +26,8 @@ jobs:
           printf 'Victus: schema=%s shell=%s\n' "$victus_schema" "$victus_shell"
           test "$oracle_schema" = docker
           test "$oracle_shell" = docker
-          test "$victus_schema" = podman
-          test "$victus_shell" = podman
+          test "$victus_schema" = native
+          test "$victus_shell" = native
 
       - name: Inspect devshell exports
         run: |
