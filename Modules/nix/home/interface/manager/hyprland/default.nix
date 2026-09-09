@@ -55,6 +55,12 @@
       (import ./submaps {inherit mkMerge;})
     ];
 
+    # Home Manager enables portal integration for the Hyprland profile. Since
+    # xdg-desktop-portal >= 1.17 requires an explicit backend selection, keep
+    # the traditional first-compatible-backend behaviour at the Home layer;
+    # NixOS owns the detailed Hyprland/GTK portal routing.
+    xdg.portal.config.common.default = "*";
+
     programs = mkAddons "programs";
     services = mkAddons "services";
 
