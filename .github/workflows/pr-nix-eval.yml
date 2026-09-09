@@ -39,7 +39,7 @@ jobs:
           wm="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.windowManager)"
           de="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.desktopEnvironment)"
           panel="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.panel)"
-          protocol="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.protocol)"
+          protocol="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.displayProtocol)"
           hyprland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.hyprland.enable)"
           xwayland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.xwayland.enable)"
           gnome="$(nix eval --json .#nixosConfigurations.Victus.config.services.desktopManager.gnome.enable)"
