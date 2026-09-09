@@ -18,6 +18,11 @@ in {
     };
   };
 
+  # Podman 5.8.6 reproduces SQLite state-save failures even with a fresh,
+  # Hindsight-only graphroot on Victus. Run Hindsight directly with pg0 and
+  # keep the existing Podman state/volume untouched for later migration.
+  shells.ai.hindsight.runtime = "native";
+
   packages = {
     kernel = "linuxPackages_cachyos-lto";
   };
