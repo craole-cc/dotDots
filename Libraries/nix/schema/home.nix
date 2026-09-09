@@ -233,6 +233,9 @@
     names: Attrset of username lists - `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primaryUser`.
     count: Attrset of counts   - `total`, `enabled`, `interactive`, `elevated`.
     data:  Attrset of full user configs - `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primary`.
+
+  The flat data aliases are retained temporarily for callers that have not yet
+  migrated to `users.data.*`.
   */
   mkHome = {
     host,
@@ -269,5 +272,13 @@
       interactive = length names.interactive;
       elevated = length names.elevated;
     };
-  in {inherit all autoLogin count elevated enabled interactive names primary;};
+
+    data = {
+      inherit all autoLogin elevated enabled interactive primary;
+    };
+  in
+    {
+      inherit count data names;
+    }
+    // data;
 in {inherit mkHome mkUser mkUsers getPrincipals getAll;}

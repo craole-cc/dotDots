@@ -124,7 +124,7 @@
         isNormalUser = user.role != "service";
         isSystemUser = user.role == "service";
         description = user.description or name;
-        password = user.password or null;
+        hashedPassword = user.password or null;
         group = name;
         extraGroups =
           (

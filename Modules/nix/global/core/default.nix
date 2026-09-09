@@ -68,8 +68,16 @@
 
   #? Shared runtime setup for shells that reuse the core environment.
   #? Canonical paths are already resolved by the host API/schema; this hook
-  #? only initializes runtime state and NixOS wrapper precedence.
+  #? only materializes that resolved state and establishes runtime precedence.
   runtimeHook = ''
+    #> Do not preserve stale DOTS values from a parent shell/direnv instance.
+    #> These remain consumers of the host-derived schema paths; the devShell
+    #> does not discover or define repository roots.
+    DOTS="${paths.repo.src.local}"
+    DOTS_LIB_SH="${paths.repo.lib.sh.local}"
+    DOTS_CACHE="${paths.repo.cache.base.local}"
+    export DOTS DOTS_LIB_SH DOTS_CACHE
+
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
@@ -96,12 +104,23 @@
       *) PATH="$ENV_BIN:$PATH" ;;
     esac
 
-    #> NixOS privileged wrappers must resolve before the corresponding
-    #> unprivileged package binaries (sudo, newuidmap, newgidmap, ...).
+    #> NixOS privileged programs must always enter through /run/wrappers.
+    #> nix-direnv only reliably preserves environment state, not shell
+    #> functions, so put stable shims in ENV_BIN as well as preferring the
+    #> wrapper directory in PATH. This prevents /run/current-system/sw/bin
+    #> copies of sudo/su from bypassing their setuid wrappers.
     if [ -d /run/wrappers/bin ]; then
-      PATH="/run/wrappers/bin:$PATH"
+      if [ -x /run/wrappers/bin/sudo ]; then
+        ln -sfn /run/wrappers/bin/sudo "$ENV_BIN/sudo"
+      fi
+      if [ -x /run/wrappers/bin/su ]; then
+        ln -sfn /run/wrappers/bin/su "$ENV_BIN/su"
+      fi
+
+      PATH="/run/wrappers/bin:$ENV_BIN:$PATH"
+      export PATH
+      hash -r 2>/dev/null || true
     fi
-    export PATH
   '';
 
   shellHook = runtimeHook + ''
@@ -114,10 +133,12 @@
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
 
-    #> binit prepends repository library paths; restore wrapper precedence.
+    #> binit may prepend repository library paths; restore privileged wrapper
+    #> and ENV_BIN precedence after it runs.
     if [ -d /run/wrappers/bin ]; then
-      PATH="/run/wrappers/bin:$PATH"
+      PATH="/run/wrappers/bin:$ENV_BIN:$PATH"
       export PATH
+      hash -r 2>/dev/null || true
     fi
 
     #> Initialize yazi

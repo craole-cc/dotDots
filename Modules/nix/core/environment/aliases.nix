@@ -1,10 +1,8 @@
 {
   config,
-  flake,
   lix,
   ...
 }: let
-  inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf;
@@ -17,29 +15,29 @@
   };
   inherit (context) cfg;
 
+  repo = context.resolved.cfg.system.nix.explicit.repo;
+
   registry = {
-    default =
-      {
-        #~@ File listing
-        ll = "lsd --long --git --almost-all";
-        lt = "lsd --tree";
-        lr = "lsd --long --git --recursive";
-      }
-      // optionalAttrs (flake != null) {
-        #~@ Dotfiles management
-        "edit-${flake.name}" = "$EDITOR ${flake.home}";
-        "ide-${flake.name}" = "$VISUAL ${flake.home}";
-        "push-${flake.name}" = "gitui --directory ${flake.home}";
+    default = {
+      #~@ File listing
+      ll = "lsd --long --git --almost-all";
+      lt = "lsd --tree";
+      lr = "lsd --long --git --recursive";
 
-        #~@ Nix REPL
-        repl-host = "nix repl ${flake.home}#nixosConfigurations.$(hostname)";
-        "repl-${flake.name}" = "nix repl ${flake.home}#repl";
+      #~@ Dotfiles management
+      "edit-${repo.name}" = "$EDITOR ${repo.home}";
+      "ide-${repo.name}" = "$VISUAL ${repo.home}";
+      "push-${repo.name}" = "gitui --directory ${repo.home}";
 
-        #~@ Rebuild shortcuts
-        "switch-${flake.name}" = "sudo nixos-rebuild switch --flake ${flake.home}";
-        nxs = "push-${flake.name}; switch-${flake.name}";
-        nxu = "push-${flake.name}; switch-${flake.name}; topgrade";
-      };
+      #~@ Nix REPL
+      repl-host = "nix repl ${repo.home}#nixosConfigurations.$(hostname)";
+      "repl-${repo.name}" = "nix repl ${repo.home}#repl";
+
+      #~@ Rebuild shortcuts
+      "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}";
+      nxs = "push-${repo.name}; switch-${repo.name}";
+      nxu = "push-${repo.name}; switch-${repo.name}; topgrade";
+    };
   };
 in
   mkConfig {

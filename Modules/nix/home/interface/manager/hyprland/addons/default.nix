@@ -1,7 +1,6 @@
 {
   lib,
   mkMerge,
-  paths,
   ...
 }: {
   programs = mkMerge [
@@ -12,7 +11,7 @@
 
   services = mkMerge [
     (import ./idle.nix)
-    (import ./paper.nix {inherit paths;})
+    (import ./paper.nix {})
     (import ./polkit.nix)
     # // (import ./shell.nix)
     (import ./sunset.nix)

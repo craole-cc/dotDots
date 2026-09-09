@@ -3,34 +3,41 @@
   host,
   lib,
   lix,
-  top,
   user,
   apps,
   keyboard,
-  paths,
-  nixosConfig,
   ...
 }: let
-  dom = "interface";
-  mod = "hyprland";
-  cfg = config.${top}.resolved.${dom}.${mod};
-  cfgTop = nixosConfig.${top}.resolved;
-  #> Use user.interface directly - already normalized per-user in mkUsers
-  inherit (user.interface) windowManager;
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "managers";
+    mod = "hyprland";
+  };
+  inherit (context) cfg ctx;
 
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.types.primitives) bool;
 
-  mkAddons = target: mkIf cfg.withAddons (import ./addons {inherit lib mkMerge paths;}).${target};
+  mkAddons = target:
+    mkIf cfg.withAddons (import ./addons {
+      inherit lib mkMerge;
+    }).${target};
 
   payload = {
     wayland.windowManager.hyprland = mkMerge [
       {
-        enable = true;
+        enable = cfg.enable;
         configType = "hyprlang";
         plugins = [];
+
+        # NixOS owns the Hyprland package and UWSM session. Home Manager's
+        # Hyprland systemd integration creates a competing session target and
+        # conflicts with programs.hyprland.withUWSM.
+        package = null;
+        systemd.enable = false;
       }
       (import ./settings {
         inherit
@@ -43,10 +50,16 @@
           mkMerge
           ;
         inherit (cfg) withRules;
-        keys = cfgTop.interface.keyboard;
+        keys = user.interface.keyboard;
       })
       (import ./submaps {inherit mkMerge;})
     ];
+
+    # Home Manager enables portal integration for the Hyprland profile. Since
+    # xdg-desktop-portal >= 1.17 requires an explicit backend selection, keep
+    # the traditional first-compatible-backend behaviour at the Home layer;
+    # NixOS owns the detailed Hyprland/GTK portal routing.
+    xdg.portal.config.common.default = "*";
 
     programs = mkAddons "programs";
     services = mkAddons "services";
@@ -68,27 +81,19 @@
       EOF_DMS_OUTPUTS
     '';
   };
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = windowManager == "hyprland";
-      };
-    withAddons = mkOption {
-      description = "Enable hyprland addons";
-      default = true;
-      type = bool;
-    };
-    withRules =
-      mkEnableOption "Window rules"
-      // {
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable ({inherit context;} // ctx.wantsHyprland);
+      withAddons = mkOption {
+        description = "Enable Hyprland addons";
         default = true;
+        type = bool;
       };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+      withRules = mkEnable {
+        description = "Hyprland window rules";
+      };
+    };
+    outputs = payload;
+  }

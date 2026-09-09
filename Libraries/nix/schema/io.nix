@@ -325,9 +325,13 @@
   mkKeybindings = {
     hyprland = kb:
       map (b: "${b.mod}, ${b.key}, exec, ${b.action}") (
-        filter (b: b.mod != null && b.key != null && b.action != null && b.action != "") (
-          attrValues kb.bindings
-        )
+        filter (
+          b:
+            (b.mod or null) != null
+            && (b.key or null) != null
+            && (b.action or null) != null
+            && (b.action or "") != ""
+        ) (attrValues kb.bindings)
       );
   };
 in

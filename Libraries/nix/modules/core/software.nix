@@ -83,8 +83,8 @@
     #   system.stateVersion = "25.11";
     #   nix.settings = {
     #     experimental-features = [ "nix-command" "flakes" "pipe-operators" ];
-    #     substituters = [ "https://cache.numtide.com" "https://geo-mirror.chaotic.cx/" ];
-    #     trusted-public-keys = [ "cache.numtide.com-1:..." "nyx.chaotic.cx-1:..." ];
+    #     substituters = [ "https://cache.numtide.com" "https://nyx-cache.chaotic.cx/" ];
+    #     trusted-public-keys = [ "cache.numtide.com-1:..." "nyx-cache.chaotic.cx:..." ];
     #     ...
     #   };
     #   systemd.services.nix-daemon.serviceConfig.LimitNOFILE = "65536 1048576";
@@ -120,8 +120,8 @@
         }
         // optionalAttrs requiresNyx {
           nyx = {
-            sub = "https://geo-mirror.chaotic.cx/";
-            key = "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
+            sub = "https://nyx-cache.chaotic.cx/";
+            key = "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=";
           };
         };
       custom = caches;
@@ -167,7 +167,7 @@
   Build a NixOS configuration fragment for automated Nix store maintenance.
 
   Enables `nh clean` on a systemd timer with a retention policy of 3 days or
-  3 generations, whichever is greater. Also exposes shell aliases for manual
+  3 generations, whichever is greater. It also exposes shell aliases for manual
   store operations, keyed off `host.paths.flake`.
 
   # Type

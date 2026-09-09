@@ -33,11 +33,11 @@
       top
       ;
   };
-  inherit (context) cfg interface;
+  inherit (context) cfg ice;
 
   user = host.users.data.primary or {};
   apps = user.applications or {};
-  displayProtocol = interface.displayProtocol or null;
+  displayProtocol = ice.displayProtocol or null;
 
   registry = let
     editor = editors.packages {

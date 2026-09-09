@@ -21,10 +21,20 @@
   inherit (lix.strings.predicates) versionAtLeast;
   inherit (lix.types.primitives) bool str;
 
-  # Safe protocol resolution with fallback chain
+  # The schema's normalized interface contract exposes `displayProtocol`.
+  # Do not use `attr or fallback` to chain nullable option values: `or` only
+  # handles a missing attribute, so an existing `protocol = null` masks the
+  # resolved displayProtocol and incorrectly disables XWayland.
   iface = config.${context.top}.resolved.interface or {};
   session = config.interface.common.session or {};
-  protocol = iface.protocol or iface.displayProtocol or session.protocol or "wayland";
+  resolvedProtocol = iface.displayProtocol or null;
+  sessionProtocol = session.protocol or null;
+  protocol =
+    if resolvedProtocol != null
+    then resolvedProtocol
+    else if sessionProtocol != null
+    then sessionProtocol
+    else "wayland";
   isWayland = protocol == "wayland";
 
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;

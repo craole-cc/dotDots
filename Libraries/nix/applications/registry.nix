@@ -8,7 +8,7 @@
       primitive tree inspection for recursive processing, validated registry
       lookup, and registry-derived identification metadata.
 
-      Depends on: applications.primitives filesystem.traversal.
+      Depends on: applications.primitives filesystem.importers.
     '';
     functions = {
       inherit
@@ -38,7 +38,7 @@
   inherit (_.applications.primitives) normalizeList normalizeOptional;
   inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
-  inherit (_.filesystem.traversal) importAllMerged;
+  inherit (_.filesystem.importers) importAllMerged;
   inherit (_.lists.access) head;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.selection) filter;

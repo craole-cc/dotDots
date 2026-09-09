@@ -1,6 +1,6 @@
 {
   _,
-  src,
+  _default,
   ...
 }: let
   __doc = ''
@@ -48,7 +48,7 @@
   ```
   */
   lockFileHas = {
-    path ? src,
+    path ? _default.paths.repo.src.store,
     field,
     value,
     fuzzy ? false,

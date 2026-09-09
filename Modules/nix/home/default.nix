@@ -40,8 +40,8 @@
     else last values;
 
   outputType = mkOptionType {
-    name = "staged output";
-    description = "recursively merged staged output";
+    name = "home output";
+    description = "recursively merged Home Manager output";
     check = _: true;
     merge = _: definitions: mergeOutput (map (definition: definition.value) definitions);
   };
@@ -64,5 +64,13 @@ in {
     };
   };
 
-  imports = (lix.filesystem.traversal ./.).value;
+  # Home is being migrated incrementally to the same mkContext/mkConfig
+  # contract as Core. Only migrated modules are wired here; the legacy tree
+  # remains available for staged conversion without participating in eval.
+  imports = [
+    ./interface/options.nix
+    ./interface/catppuccin.nix
+    ./interface/dms.nix
+    ./interface/manager/hyprland
+  ];
 }

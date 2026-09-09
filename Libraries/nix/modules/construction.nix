@@ -100,6 +100,10 @@
     top ? _default.names.top or "_",
     ...
   } @ args: let
+    # Home is wired again, but Modules/nix/home/default.nix explicitly imports
+    # only modules already migrated to the mkContext/mkConfig contract.
+    wireHome = true;
+
     types = let
       of = class:
         hostsByClass {
@@ -115,43 +119,22 @@
     inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
     lib = extend (_self: _super: {inherit hm;});
 
-    # #> Per-host resolved package set - identical call for every class;
-    # #> each builder below pulls whichever field it needs (`.nixpkgs` for
-    # #> evalModules-based classes, `.pkgs` for home-manager's standalone
-    # #> builder).
-    # packagesOf = host: mkPackages {inherit host inputs;};
+    # Home Manager owns these module arguments per user/evaluation. Passing
+    # host-level values with the same names through extraSpecialArgs masks the
+    # submodule values (for example `name = "Victus"` replacing `craole`).
+    homeReservedArgs = [
+      "config"
+      "name"
+      "options"
+      "pkgs"
+      "inputs"
+      "paths"
+    ];
 
     #> Per-class module set. `class` is `"nixos"`/`"darwin"` for
     #> `mkSystem`, `"home-manager"` for `mkHomeHost`.
     modulesOf = class: mkModules {inherit class inputs;};
 
-    /**
-    Evaluate a single `nixos`/`darwin` host through `evalModules`. Darwin
-    hosts additionally expose the built system derivation under `system`
-    for easier downstream consumption - mirroring what `nix-darwin`'s own
-    `darwinSystem` wrapper does, without depending on that wrapper.
-
-    # Args:
-      host: The enriched host definition being evaluated.
-
-    # Returns:
-      The evaluated module config for `host`, with `system` added when
-      `host.class == "darwin"`.
-    */
-
-    /**
-    Evaluate a single `nixos`/`darwin` host through `evalModules`. Darwin
-    hosts additionally expose the built system derivation under `system`
-    for easier downstream consumption - mirroring what `nix-darwin`'s own
-    `darwinSystem` wrapper does, without depending on that wrapper.
-
-    # Args:
-      host: The enriched host definition being evaluated.
-
-    # Returns:
-      The evaluated module config for `host`, with `system` added when
-      `host.class == "darwin"`.
-    */
     mkSystem = host: let
       hostArgs = sourceArgs (args // {inherit host;} // host);
       class = host.class or "nixos";
@@ -159,15 +142,14 @@
         "config"
         "lib"
       ];
+      # `inputs` and `paths` are supplied per user by mkUsers._module.args;
+      # reserved Home Manager module arguments must remain owned by HM.
+      homeSpecialArgs = removeAttrs (specialArgs // {inherit lib;}) homeReservedArgs;
 
       classified = modulesOf class;
-      core = {
+      core = optionalAttrs wireHome {
         home-manager = {
-          extraSpecialArgs =
-            specialArgs
-            // {
-              inherit lib;
-            };
+          extraSpecialArgs = homeSpecialArgs;
           backupFileExtension = "hm-backup";
           overwriteBackup = true;
           useGlobalPkgs = true;
@@ -204,17 +186,9 @@
       then evaluated // {system = evaluated.config.system.build.toplevel;}
       else evaluated;
 
-    /**
-    Evaluate a single `home-manager`-class host through
-    `home-manager.lib.homeManagerConfiguration`.
-    */
     mkManager = name: host: let
       hostArgs = sourceArgs (args // {inherit host;});
-      specialArgs =
-        hostArgs
-        // {
-          inherit lib;
-        };
+      specialArgs = removeAttrs (hostArgs // {inherit lib;}) homeReservedArgs;
       users = let
         specs = mkUsers {
           inherit host inputs;
@@ -267,25 +241,10 @@
     // optionalAttrs (types.darwin != {}) {
       darwinConfigurations = mapAttrs (_: mkSystem) types.darwin;
     }
-    // optionalAttrs (types.home != {}) {
+    // optionalAttrs (wireHome && types.home != {}) {
       homeConfigurations = mapAttrs mkManager types.home;
     };
 
-  /**
-  Generate flake utility outputs. Repository-wide outputs remain per-system,
-  while development shells are additionally host-qualified because their
-  local path environment is host-specific.
-
-  `devShells.<system>` therefore contains flat names of the form
-  `<host>-<shell>` (for example `Victus-ai-hermes-hindsight-omniroute`).
-  The flat shape is intentional: the flake schema requires each
-  `devShells.<system>.<name>` value to be a derivation, so a nested
-  `devShells.<system>.<host>.<shell>` tree is not valid flake output.
-
-  The future `dots develop <shell>` CLI can detect the runtime hostname and
-  translate it to this explicit target; cross-host use remains explicit via
-  `--host` without making evaluation depend on ambient hostname state.
-  */
   mkUtilities = {
     inputs ? {},
     hosts ? schema.hosts or {},
@@ -433,7 +392,7 @@
 
       hasNiri = (wm == "niri") || config.programs.niri.enable or false;
 
-      mkWants = name: value: {condition = value != null;};
+      mkWants = name: value: {condition = value == name;};
       wantsCosmic = mkWants "cosmic" desktopEnvironments;
       wantsDmsShell = mkWants "dms-shell" panels;
       wantsGnome = mkWants "gnome" desktopEnvironments;
