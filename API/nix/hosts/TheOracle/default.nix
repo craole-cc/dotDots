@@ -11,10 +11,11 @@ in {
     roots.repo = "/home/craole-cc/Projects/craole-cc/dotDots";
   };
 
-  # Home Manager does not own the host's privileged rootless-container
-  # prerequisites. Run Hindsight directly with its supported embedded pg0
-  # backend instead of coupling this shell to system Podman configuration.
-  shells.ai.hindsight.runtime = "native";
+  # This Home Manager host already provides a working Docker daemon. Keep the
+  # Hindsight service containerized so its pg0/PostgreSQL runtime dependencies
+  # remain inside the image instead of leaking host shared-library requirements
+  # into the native Nix shell.
+  shells.ai.hindsight.runtime = "docker";
 
   specs = {
     machine = "cloud"; # OCI free-tier ARM instance
