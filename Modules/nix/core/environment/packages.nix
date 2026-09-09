@@ -52,7 +52,7 @@
 
     terminal = terminals.packages {
       inherit pkgs system inputs;
-      config = apps.terminal or {};
+      config =apps.terminal or {};
     };
 
     launcher = launchers.packages {
@@ -65,7 +65,7 @@
       config = apps.bar or {};
     };
 
-    wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
+    wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard foot kitty]);
     linux = optionals isLinux (with pkgs; [xsel]);
     darwin = optionals isDarwin (with pkgs; [pngpaste]);
 
