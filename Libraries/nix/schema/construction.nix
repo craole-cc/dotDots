@@ -18,6 +18,8 @@
   };
 
   inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.filesystem.importers) importAttrs;
+  inherit (_.filesystem.predicates) isPathLike;
   inherit (_.filesystem.resolution) pathAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
@@ -26,9 +28,10 @@
   /**
   Enrich each declared host and user from the API.
 
-  Host identity is explicit: every public host remains keyed by its API name.
-  `default.nix` files are domain baselines consumed by `importAttrs`; they are
-  not public host/user identities and no active host is inferred here.
+  Host and user identity records are atomic at their named `default.nix`.
+  Nested directories below a host/user belong to that identity but must not
+  replace its profile data. Other API domains may remain recursively shaped.
+  No active host is inferred here.
   */
   mkSchema = {
     api ? _defaults.paths.repo.api.default.store,
@@ -36,14 +39,19 @@
   }: let
     api' = pathAttrs api;
 
+    identities = name: fallback:
+      if isPathLike api
+      then importAttrs (api + "/${name}")
+      else fallback;
+
     raw =
       api'
       // {
         global = api'.global or {};
         paths = api'.paths or (api'.global.paths or {});
         shells = api'.shells or {};
-        users = api'.users or {};
-        hosts = api'.hosts or {};
+        users = identities "users" (api'.users or {});
+        hosts = identities "hosts" (api'.hosts or {});
       };
 
     paths = raw.paths;
