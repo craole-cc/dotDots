@@ -100,6 +100,8 @@
     top ? _default.names.top or "_",
     ...
   } @ args: let
+    # TODO(home): re-enable only after Modules/nix/home is migrated to the
+    # mkContext/mkConfig model used by Modules/nix/core.
     wireHome = false;
 
     types = let
