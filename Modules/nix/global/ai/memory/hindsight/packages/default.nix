@@ -90,6 +90,12 @@
       export HF_HOME="''${HINDSIGHT_CACHE_DIR}/huggingface"
       export SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
 
+      # uv installs upstream binary wheels outside the Nix store. Those wheels
+      # expect the standard GNU C++ runtime by soname (for example tokenizers
+      # needs libstdc++.so.6), so expose the stdenv compiler runtime explicitly
+      # instead of relying on host-global libraries.
+      export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}''${LD_LIBRARY_PATH:+:''${LD_LIBRARY_PATH}}"
+
       exec ${uv}/bin/uvx \
         --python ${python3}/bin/python \
         --from "hindsight-api==${version}" \
