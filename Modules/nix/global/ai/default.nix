@@ -63,7 +63,7 @@
       name = "dots-${preset.name}";
       env = core.env // preset.env;
       packages = core.packages ++ preset.packages;
-      inherit (preset) shellHook;
+      shellHook = core.runtimeHook + preset.shellHook;
     };
 
   mkComponentShell = name: component:
@@ -71,7 +71,7 @@
       name = "dots-ai-${name}";
       env = core.env // (component.env or {}) // (componentEnv.${name} or {});
       packages = core.packages ++ (component.packages or []);
-      shellHook = (componentHook.${name} or "") + (component.shellHook or "");
+      shellHook = core.runtimeHook + (componentHook.${name} or "") + (component.shellHook or "");
     };
 
   shells = builtins.mapAttrs (_: mkPresetShell) presets;

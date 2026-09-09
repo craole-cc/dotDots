@@ -39,7 +39,10 @@ global: let
         mkShell {
           name = mkName name;
           env = core.env // (cfg.env or {});
-          shellHook = cfg.shellHook or "";
+          shellHook =
+            if name == "core"
+            then cfg.shellHook or ""
+            else core.runtimeHook + (cfg.shellHook or "");
           packages =
             (cfg.packages or []) ++ (optionals ((name != "minimal") && (name != "media")) core.packages);
         }
@@ -76,7 +79,7 @@ global: let
             # "ai"
           ]);
 
-        shellHook = ''
+        shellHook = core.runtimeHook + ''
           ${fetch.name} --full
           ${print.info "Full profile - every devShell package installed"}
         '';

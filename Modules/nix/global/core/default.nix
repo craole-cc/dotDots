@@ -66,13 +66,14 @@
     DOTS_CACHE = paths.repo.cache.base.local;
   };
 
-  shellHook = ''
-    #> Determine host info dynamically
+  #? Shared runtime setup for shells that reuse the core environment.
+  #? Canonical paths are already resolved by the host API/schema; this hook
+  #? only initializes runtime state and NixOS wrapper precedence.
+  runtimeHook = ''
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
 
-    #> Set up cache directory structure
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -90,13 +91,20 @@
       return "$status"
     }
 
-    #> Add bin directory to PATH
     case ":$PATH:" in
       *":$ENV_BIN:"*) ;;
       *) PATH="$ENV_BIN:$PATH" ;;
     esac
-    export PATH
 
+    #> NixOS privileged wrappers must resolve before the corresponding
+    #> unprivileged package binaries (sudo, newuidmap, newgidmap, ...).
+    if [ -d /run/wrappers/bin ]; then
+      PATH="/run/wrappers/bin:$PATH"
+    fi
+    export PATH
+  '';
+
+  shellHook = runtimeHook + ''
     #> Initialize bin directories with binit if available
     BINIT_PATH="$DOTS_LIB_SH/base/binit"
     if [ -f "''${BINIT_PATH:-}" ]; then
@@ -104,6 +112,12 @@
       . "$BINIT_PATH"
     else
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+    fi
+
+    #> binit prepends repository library paths; restore wrapper precedence.
+    if [ -d /run/wrappers/bin ]; then
+      PATH="/run/wrappers/bin:$PATH"
+      export PATH
     fi
 
     #> Initialize yazi
@@ -131,6 +145,7 @@ in {
     description
     packages
     env
+    runtimeHook
     shellHook
     ;
 }
