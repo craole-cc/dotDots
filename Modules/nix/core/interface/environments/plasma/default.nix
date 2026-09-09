@@ -18,7 +18,7 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable {inherit context;} // ctx.wantsPlasma;
+      enable = mkEnable ({inherit context;} // ctx.wantsPlasma);
     };
     outputs = {
       services.desktopManager.plasma6.enable = cfg.enable;
