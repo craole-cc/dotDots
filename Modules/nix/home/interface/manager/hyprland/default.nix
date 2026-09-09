@@ -32,6 +32,12 @@
         enable = cfg.enable;
         configType = "hyprlang";
         plugins = [];
+
+        # NixOS owns the Hyprland package and UWSM session. Home Manager's
+        # Hyprland systemd integration creates a competing session target and
+        # conflicts with programs.hyprland.withUWSM.
+        package = null;
+        systemd.enable = false;
       }
       (import ./settings {
         inherit
