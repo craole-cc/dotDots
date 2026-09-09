@@ -176,27 +176,39 @@
     // (
       if runtime == "native"
       then
-        set "DATA_DIR" nativeState.data
-        // set "CACHE_DIR" nativeState.cache
-        // set "SESSION" nativeState.session
+        set "SESSION" nativeState.session
         // set "NATIVE_RUNTIME" nativeRuntimeBin
       else
         set "COMPOSE_FILE" compose
         // set "CONTAINER_RUNTIME" containerRuntimeBin
         // (
           if runtime == "podman"
-          then
-            set "PODMAN_ROOT" podmanState.root
-            // set "PODMAN_RUNROOT" podmanState.runroot
-            // set "PODMAN_TMPDIR" podmanState.tmpdir
-            // {
-              CONTAINERS_POLICY_JSON = policy;
-              PODMAN_COMPOSE_PROVIDER = "${podmanCompose}/bin/${target}-podman-compose";
-              PODMAN_COMPOSE_WARNING_LOGS = "false";
-            }
+          then {
+            CONTAINERS_POLICY_JSON = policy;
+            PODMAN_COMPOSE_PROVIDER = "${podmanCompose}/bin/${target}-podman-compose";
+            PODMAN_COMPOSE_WARNING_LOGS = "false";
+          }
           else {}
         )
     );
+
+  # Schema paths may intentionally contain runtime variables such as
+  # ${HOME} or ${UID}. mkShell's `env` passes those strings literally, so
+  # materialize path-valued runtime state in the shell hook where the shell
+  # can expand them. The source of truth remains the schema-derived `paths`.
+  runtimeHook =
+    if runtime == "native"
+    then ''
+      export HINDSIGHT_DATA_DIR="${nativeState.data}"
+      export HINDSIGHT_CACHE_DIR="${nativeState.cache}"
+    ''
+    else if runtime == "podman"
+    then ''
+      export HINDSIGHT_PODMAN_ROOT="${podmanState.root}"
+      export HINDSIGHT_PODMAN_RUNROOT="${podmanState.runroot}"
+      export HINDSIGHT_PODMAN_TMPDIR="${podmanState.tmpdir}"
+    ''
+    else "";
 
   entries = [
     {
@@ -266,5 +278,6 @@
 in {
   env = env';
   packages = runtimeInputs ++ scripts;
+  shellHook = runtimeHook;
   inherit helpEntries;
 }
