@@ -34,8 +34,8 @@
     session = "${target}-${cfg.instance}";
   };
 
-  nativeRuntime = writeShellApplication {
-    name = "${target}-native";
+  nativeRuntimeInner = writeShellApplication {
+    name = "${target}-native-inner";
     runtimeInputs = [cacert coreutils python3 uv];
     text = ''
       : "''${HINDSIGHT_SECRETS_FILE:?HINDSIGHT_SECRETS_FILE not set}"
@@ -96,10 +96,10 @@
       export HF_HOME="''${HINDSIGHT_CACHE_DIR}/huggingface"
       export SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      # uv/pg0 execute upstream ELF binaries outside the Nix store. Expose
-      # their runtime sonames explicitly instead of depending on host-global
-      # libraries. This covers Python wheels such as tokenizers/onnxruntime
-      # plus pg0's bundled PostgreSQL runtime.
+      # uv installs upstream extension wheels outside the Nix store, so expose
+      # their runtime sonames explicitly. pg0 and the PostgreSQL binaries it
+      # spawns run inside the FHS environment below instead of relying on this
+      # library path to emulate a conventional Linux runtime.
       export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
         pkgs.stdenv.cc.cc.lib
         pkgs.zstd
@@ -118,6 +118,27 @@
         --port "''${HINDSIGHT_API_PORT}" \
         "$@"
     '';
+  };
+
+  # pg0-embedded ships generic-Linux ELF executables and then launches its own
+  # PostgreSQL binaries. On NixOS, providing the shared libraries alone is not
+  # enough: those children also expect the conventional ELF interpreter and
+  # FHS paths. Run the complete native Hindsight process inside a small FHS
+  # namespace so pg0 and every PostgreSQL child inherit that runtime unchanged.
+  nativeRuntime = pkgs.buildFHSEnv {
+    name = "${target}-native";
+    targetPkgs = p: [
+      p.glibc
+      p.zstd
+      p.lz4
+      p.openssl
+      p.krb5
+      p.zlib
+      p.xz
+      p.tzdata
+      p.readline
+    ];
+    runScript = "${nativeRuntimeInner}/bin/${target}-native-inner";
   };
 
   nativeRuntimeBin = "${nativeRuntime}/bin/${target}-native";
