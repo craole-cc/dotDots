@@ -1,4 +1,4 @@
-{lix, ...}: {imports = (lix.filesystem.traversal ./.).value;}
+{lix, ...}: {imports = (lix.filesystem.traversal.importAllPaths ./.).value;}
 # {
 #   lib,
 #   lix,

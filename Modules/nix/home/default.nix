@@ -64,5 +64,5 @@ in {
     };
   };
 
-  imports = (lix.filesystem.traversal ./.).value;
+  imports = (lix.filesystem.traversal.importAllPaths ./.).value;
 }
