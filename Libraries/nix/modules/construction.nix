@@ -100,9 +100,9 @@
     top ? _default.names.top or "_",
     ...
   } @ args: let
-    # TODO(home): re-enable only after Modules/nix/home is migrated to the
-    # mkContext/mkConfig model used by Modules/nix/core.
-    wireHome = false;
+    # Home is wired again, but Modules/nix/home/default.nix explicitly imports
+    # only modules already migrated to the mkContext/mkConfig contract.
+    wireHome = true;
 
     types = let
       of = class:
@@ -163,15 +163,18 @@
         "config"
         "lib"
       ];
+      # `inputs` and `paths` are per-user Home context. Leaving the host-level
+      # values in extraSpecialArgs masks the values mkUsers provides through
+      # _module.args and can produce conflicting/mismatched Home variables.
+      homeSpecialArgs = removeAttrs (specialArgs // {inherit lib;}) [
+        "inputs"
+        "paths"
+      ];
 
       classified = modulesOf class;
       core = optionalAttrs wireHome {
         home-manager = {
-          extraSpecialArgs =
-            specialArgs
-            // {
-              inherit lib;
-            };
+          extraSpecialArgs = homeSpecialArgs;
           backupFileExtension = "hm-backup";
           overwriteBackup = true;
           useGlobalPkgs = true;
@@ -214,11 +217,10 @@
     */
     mkManager = name: host: let
       hostArgs = sourceArgs (args // {inherit host;});
-      specialArgs =
-        hostArgs
-        // {
-          inherit lib;
-        };
+      specialArgs = removeAttrs (hostArgs // {inherit lib;}) [
+        "inputs"
+        "paths"
+      ];
       users = let
         specs = mkUsers {
           inherit host inputs;
