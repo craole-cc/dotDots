@@ -34,25 +34,29 @@ jobs:
           set -eu
           enabled_users="$(nix eval --json .#lib.schema.hosts.Victus.users.names.enabled)"
           craole_normal="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.isNormalUser)"
-          craole_password="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.password)"
-          craole_hashed="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.hashedPassword)"
+          craole_password_null="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole --apply 'user: user.password == null')"
+          craole_hashed_set="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole --apply 'user: user.hashedPassword != null')"
           wm="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.windowManager)"
           de="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.desktopEnvironment)"
           panel="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.panel)"
+          protocol="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.protocol)"
           hyprland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.hyprland.enable)"
+          xwayland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.xwayland.enable)"
           gnome="$(nix eval --json .#nixosConfigurations.Victus.config.services.desktopManager.gnome.enable)"
           dms_shell="$(nix eval --json .#nixosConfigurations.Victus.config.programs.dms-shell.enable)"
           greeter="$(nix eval --json .#nixosConfigurations.Victus.config.services.displayManager.dms-greeter.enable)"
           session="$(nix eval --raw .#nixosConfigurations.Victus.config.services.displayManager.defaultSession)"
-          printf 'Victus: users=%s craole.normal=%s wm=%s de=%s panel=%s hyprland=%s gnome=%s dms-shell=%s dms-greeter=%s session=%s\n' "$enabled_users" "$craole_normal" "$wm" "$de" "$panel" "$hyprland" "$gnome" "$dms_shell" "$greeter" "$session"
+          printf 'Victus: users=%s craole.normal=%s password.null=%s hash.set=%s wm=%s de=%s panel=%s protocol=%s hyprland=%s xwayland=%s gnome=%s dms-shell=%s dms-greeter=%s session=%s\n' "$enabled_users" "$craole_normal" "$craole_password_null" "$craole_hashed_set" "$wm" "$de" "$panel" "$protocol" "$hyprland" "$xwayland" "$gnome" "$dms_shell" "$greeter" "$session"
           printf '%s' "$enabled_users" | grep -q 'craole'
           test "$craole_normal" = true
-          test "$craole_password" = null
-          test "$craole_hashed" != null
+          test "$craole_password_null" = true
+          test "$craole_hashed_set" = true
           test "$wm" = hyprland
           test "$de" = gnome
           test "$panel" = dms-shell
+          test "$protocol" = wayland
           test "$hyprland" = true
+          test "$xwayland" = true
           test "$gnome" = true
           test "$dms_shell" = true
           test "$greeter" = true
@@ -72,6 +76,9 @@ jobs:
           test "$home_panel" = dms-shell
           test "$home_hyprland" = true
           test "$home_dms" = true
+
+      - name: Evaluate Victus system derivation
+        run: nix eval --raw .#nixosConfigurations.Victus.config.system.build.toplevel.drvPath >/dev/null
 
       - name: Inspect devshell exports
         run: |
