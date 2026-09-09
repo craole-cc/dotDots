@@ -228,7 +228,7 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    # desktopEnvironment = "plasma";
+    desktopEnvironment = "gnome";
     windowManager = "hyprland";
     # displayProtocol = "wayland";
     # session = "niri";
