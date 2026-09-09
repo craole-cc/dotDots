@@ -34,11 +34,27 @@ jobs:
           set -eu
           enabled_users="$(nix eval --json .#lib.schema.hosts.Victus.users.names.enabled)"
           craole_normal="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.isNormalUser)"
+          craole_password="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.password)"
+          craole_hashed="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.hashedPassword)"
+          wm="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.windowManager)"
+          de="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.desktopEnvironment)"
+          panel="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.panel)"
+          hyprland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.hyprland.enable)"
+          gnome="$(nix eval --json .#nixosConfigurations.Victus.config.services.desktopManager.gnome.enable)"
+          dms_shell="$(nix eval --json .#nixosConfigurations.Victus.config.programs.dms-shell.enable)"
           greeter="$(nix eval --json .#nixosConfigurations.Victus.config.services.displayManager.dms-greeter.enable)"
           session="$(nix eval --raw .#nixosConfigurations.Victus.config.services.displayManager.defaultSession)"
-          printf 'Victus: users=%s craole.normal=%s dms-greeter=%s session=%s\n' "$enabled_users" "$craole_normal" "$greeter" "$session"
+          printf 'Victus: users=%s craole.normal=%s wm=%s de=%s panel=%s hyprland=%s gnome=%s dms-shell=%s dms-greeter=%s session=%s\n' "$enabled_users" "$craole_normal" "$wm" "$de" "$panel" "$hyprland" "$gnome" "$dms_shell" "$greeter" "$session"
           printf '%s' "$enabled_users" | grep -q 'craole'
           test "$craole_normal" = true
+          test "$craole_password" = null
+          test "$craole_hashed" != null
+          test "$wm" = hyprland
+          test "$de" = gnome
+          test "$panel" = dms-shell
+          test "$hyprland" = true
+          test "$gnome" = true
+          test "$dms_shell" = true
           test "$greeter" = true
           test "$session" = hyprland-uwsm
 
