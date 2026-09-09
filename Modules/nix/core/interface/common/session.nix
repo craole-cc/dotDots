@@ -23,7 +23,11 @@
   };
   inherit (context) cfg ctx;
 
-  user = host.users.primary or {};
+  user = host.users.data.primary or host.users.primary or {};
+  defaultSession =
+    if ctx.wm == "hyprland" && (config.programs.hyprland.withUWSM or false)
+    then "hyprland-uwsm"
+    else ctx.wm or ctx.de or null;
 in
   mkConfig {
     inherit context;
@@ -38,22 +42,22 @@ in
       };
 
       defaultSession = mkOption {
-        description = "Default session name passed to the display manager (e.g. hyprland, gnome, cosmic).";
+        description = "Default session name passed to the display manager (e.g. hyprland-uwsm, gnome, cosmic).";
         type = nullOr str;
-        default = ctx.wm or ctx.de or null;
-        defaultText = literalExpression "ctx.wm or ctx.de or null";
+        default = defaultSession;
+        defaultText = literalExpression ''if ctx.wm == "hyprland" && config.programs.hyprland.withUWSM then "hyprland-uwsm" else ctx.wm or ctx.de or null'';
       };
 
       autologin = {
         enable = mkEnable {
           description = "Whether to enable automatic login for the primary user.";
           condition = user.autoLogin or false;
-          defaultText = literalExpression "host.users.primary.autoLogin or false";
+          defaultText = literalExpression "host.users.data.primary.autoLogin or false";
         };
         user = mkOption {
           description = "Username for automatic login. Defaults to the primary user's name.";
           default = user.name or null;
-          defaultText = literalExpression "host.users.primary.name or null";
+          defaultText = literalExpression "host.users.data.primary.name or null";
           example = literalExpression ''"craole"'';
           type = nullOr str;
         };
