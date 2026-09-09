@@ -140,7 +140,10 @@
     programs = mkAddons "programs";
     services = mkAddons "services";
 
-    home.activation.removeLegacyHyprlandConf = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Home Manager creates/removes managed links in linkGeneration. Run the
+    # compatibility cleanup afterwards so a stale hyprland.conf cannot win
+    # Hyprland's config discovery over the native Lua entrypoint.
+    home.activation.removeLegacyHyprlandConf = lib.hm.dag.entryAfter ["linkGeneration"] ''
       legacy="$HOME/.config/hypr/hyprland.conf"
       if [ -e "$legacy" ] || [ -L "$legacy" ]; then
         rm -f "$legacy"
@@ -150,7 +153,7 @@
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in
     # /run/current-system/sw/share/xdg-desktop-portal/portals. Remove only the
     # known stale copies; the system packages remain the source of truth.
-    home.activation.removeLegacyUserPortalDescriptors = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.removeLegacyUserPortalDescriptors = lib.hm.dag.entryAfter ["linkGeneration"] ''
       portal_dir="$HOME/.local/share/xdg-desktop-portal/portals"
       for portal in gtk.portal darkman.portal; do
         path="$portal_dir/$portal"
@@ -163,7 +166,7 @@
     # DMS expects Lua output fragments in 1.5/1.6. Use a regular file rather
     # than a Home Manager store symlink because DMS may reload this fragment at
     # runtime. Home Manager remains the source of truth for the initial layout.
-    home.activation.normalizeDmsHyprlandOutputs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.normalizeDmsHyprlandOutputs = lib.hm.dag.entryAfter ["linkGeneration"] ''
       dms_dir="$HOME/.config/hypr/dms"
       outputs="$dms_dir/outputs.lua"
       mkdir -p "$dms_dir"
