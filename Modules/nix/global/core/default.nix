@@ -103,9 +103,19 @@
     #> setuid wrapper is now first.
     if [ -d /run/wrappers/bin ]; then
       PATH="/run/wrappers/bin:$PATH"
+      export PATH
       hash -r 2>/dev/null || true
+
+      #> Do not allow a devShell/profile copy of sudo or su to bypass the
+      #> NixOS security wrapper. Functions are deliberate here: they remain
+      #> authoritative even if another hook later prepends a package path.
+      if [ -x /run/wrappers/bin/sudo ]; then
+        sudo() { /run/wrappers/bin/sudo "$@"; }
+      fi
+      if [ -x /run/wrappers/bin/su ]; then
+        su() { /run/wrappers/bin/su "$@"; }
+      fi
     fi
-    export PATH
   '';
 
   shellHook = runtimeHook + ''
