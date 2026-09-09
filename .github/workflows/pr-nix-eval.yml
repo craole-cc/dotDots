@@ -18,11 +18,16 @@ jobs:
       - name: Validate host AI runtime overrides
         run: |
           set -eu
-          schema_runtime="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
-          shell_runtime="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
-          printf 'schema=%s shell=%s\n' "$schema_runtime" "$shell_runtime"
-          test "$schema_runtime" = native
-          test "$shell_runtime" = native
+          oracle_schema="$(nix eval --raw .#lib.schema.hosts.TheOracle.shells.ai.hindsight.runtime)"
+          oracle_shell="$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
+          victus_schema="$(nix eval --raw .#lib.schema.hosts.Victus.shells.ai.hindsight.runtime)"
+          victus_shell="$(nix eval --raw .#devShells.x86_64-linux.Victus-ai-hermes-hindsight-omniroute.HINDSIGHT_RUNTIME_KIND)"
+          printf 'TheOracle: schema=%s shell=%s\n' "$oracle_schema" "$oracle_shell"
+          printf 'Victus: schema=%s shell=%s\n' "$victus_schema" "$victus_shell"
+          test "$oracle_schema" = docker
+          test "$oracle_shell" = docker
+          test "$victus_schema" = podman
+          test "$victus_shell" = podman
 
       - name: Inspect devshell exports
         run: |
