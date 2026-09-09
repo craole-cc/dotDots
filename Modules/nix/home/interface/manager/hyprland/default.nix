@@ -3,32 +3,33 @@
   host,
   lib,
   lix,
-  top,
   user,
   apps,
   keyboard,
-  paths,
-  nixosConfig,
   ...
 }: let
-  dom = "interface";
-  mod = "hyprland";
-  cfg = config.${top}.resolved.${dom}.${mod};
-  cfgTop = nixosConfig.${top}.resolved;
-  #> Use user.interface directly - already normalized per-user in mkUsers
-  inherit (user.interface) windowManager;
+  context = mkContext {
+    inherit config;
+    dom = "interface";
+    sub = "managers";
+    mod = "hyprland";
+  };
+  inherit (context) cfg ctx;
 
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.modules.core.staging) mkStaged;
-  inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.types.primitives) bool;
 
-  mkAddons = target: mkIf cfg.withAddons (import ./addons {inherit lib mkMerge paths;}).${target};
+  mkAddons = target:
+    mkIf cfg.withAddons (import ./addons {
+      inherit lib mkMerge;
+    }).${target};
 
   payload = {
     wayland.windowManager.hyprland = mkMerge [
       {
-        enable = true;
+        enable = cfg.enable;
         configType = "hyprlang";
         plugins = [];
       }
@@ -43,7 +44,7 @@
           mkMerge
           ;
         inherit (cfg) withRules;
-        keys = cfgTop.interface.keyboard;
+        keys = user.interface.keyboard;
       })
       (import ./submaps {inherit mkMerge;})
     ];
@@ -68,27 +69,19 @@
       EOF_DMS_OUTPUTS
     '';
   };
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = windowManager == "hyprland";
-      };
-    withAddons = mkOption {
-      description = "Enable hyprland addons";
-      default = true;
-      type = bool;
-    };
-    withRules =
-      mkEnableOption "Window rules"
-      // {
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable ({inherit context;} // ctx.wantsHyprland);
+      withAddons = mkOption {
+        description = "Enable Hyprland addons";
         default = true;
+        type = bool;
       };
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+      withRules = mkEnable {
+        description = "Hyprland window rules";
+      };
+    };
+    outputs = payload;
+  }
