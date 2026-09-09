@@ -17,7 +17,7 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable {inherit context;} // ctx.wantsHyprland;
+      enable = mkEnable ({inherit context;} // ctx.wantsHyprland);
     };
     outputs = {
       programs.hyprland = {
