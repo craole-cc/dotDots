@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  pkgs,
   ...
 }: let
   context = mkContext {
@@ -20,6 +21,15 @@ in
       enable = mkEnable ({inherit context;} // ctx.wantsDmsShell);
     };
     outputs = {
-      programs.dank-material-shell.enable = cfg.enable;
+      programs.dank-material-shell = {
+        enable = cfg.enable;
+
+        # The flake module is still used for Home Manager integration, but its
+        # pinned package closure is expensive to rebuild locally. Victus tracks
+        # nixos-unstable, where both packages are available from nixpkgs and can
+        # normally be substituted from cache.nixos.org.
+        package = pkgs.dms-shell;
+        quickshell.package = pkgs.quickshell;
+      };
     };
   }
