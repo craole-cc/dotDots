@@ -17,7 +17,7 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable {inherit context;} // ctx.wantsNiri;
+      enable = mkEnable ({inherit context;} // ctx.wantsNiri);
     };
     outputs = {
       programs.niri.enable = cfg.enable;
