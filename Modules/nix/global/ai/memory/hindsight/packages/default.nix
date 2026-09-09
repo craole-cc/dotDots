@@ -33,7 +33,9 @@
   # a fresh Hindsight-only graphroot. nixos-25.11 currently carries Podman
   # 5.7.0, before that default-backend switch, so use it only for Hindsight's
   # isolated Podman runtime. The host/global Podman installation is untouched.
-  podman = inputs.nixPackagesStable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.podman;
+  # `inputs` here is the normalized input set, where the stable channel's
+  # canonical key is `nixpkgs-stable` rather than the raw flake input name.
+  podman = inputs.nixpkgs-stable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.podman;
 
   nativeState = {
     data = "${paths.xdg.data.local}/${cfg.directory}/${target}/${cfg.instance}";
