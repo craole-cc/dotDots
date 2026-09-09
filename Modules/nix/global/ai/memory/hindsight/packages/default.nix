@@ -79,8 +79,14 @@
       export HINDSIGHT_API_DATABASE_URL="pg0"
       export HINDSIGHT_API_HOST="''${HINDSIGHT_BIND_ADDRESS}"
       export HINDSIGHT_API_PORT="''${HINDSIGHT_API_PORT}"
-      export HINDSIGHT_API_EMBEDDINGS_PROVIDER="local"
-      export HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL="BAAI/bge-small-en-v1.5"
+
+      # The top-level hindsight-api package pulls the `all` extra, including
+      # PyTorch and multi-gigabyte CUDA wheels. Native shells do not need that
+      # stack: use Hindsight's ONNX embeddings plus the pure RRF reranker.
+      export HINDSIGHT_API_EMBEDDINGS_PROVIDER="onnx"
+      export HINDSIGHT_API_EMBEDDINGS_ONNX_MODEL_ID="intfloat/multilingual-e5-small"
+      export HINDSIGHT_API_EMBEDDINGS_ONNX_FILE="onnx/model.onnx"
+      export HINDSIGHT_API_RERANKER_PROVIDER="rrf"
       unset key
 
       export HOME="''${HINDSIGHT_DATA_DIR}"
@@ -92,8 +98,8 @@
 
       # uv/pg0 execute upstream ELF binaries outside the Nix store. Expose
       # their runtime sonames explicitly instead of depending on host-global
-      # libraries. This covers Python wheels such as tokenizers plus pg0's
-      # bundled PostgreSQL runtime.
+      # libraries. This covers Python wheels such as tokenizers/onnxruntime
+      # plus pg0's bundled PostgreSQL runtime.
       export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
         pkgs.stdenv.cc.cc.lib
         pkgs.zstd
@@ -106,7 +112,7 @@
 
       exec ${uv}/bin/uvx \
         --python ${python3}/bin/python \
-        --from "hindsight-api==${version}" \
+        --from "hindsight-api-slim[local-onnx,embedded-db]==${version}" \
         hindsight-api \
         --host "''${HINDSIGHT_BIND_ADDRESS}" \
         --port "''${HINDSIGHT_API_PORT}" \
