@@ -437,7 +437,7 @@
 
       hasNiri = (wm == "niri") || config.programs.niri.enable or false;
 
-      mkWants = name: value: {condition = value != null;};
+      mkWants = name: value: {condition = value == name;};
       wantsCosmic = mkWants "cosmic" desktopEnvironments;
       wantsDmsShell = mkWants "dms-shell" panels;
       wantsGnome = mkWants "gnome" desktopEnvironments;
