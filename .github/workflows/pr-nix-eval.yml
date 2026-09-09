@@ -33,8 +33,8 @@ jobs:
         run: |
           set -eu
           enabled_users="$(nix eval --json .#lib.schema.hosts.Victus.users.names.enabled)"
-          craole_normal="$(nix eval --raw .#nixosConfigurations.Victus.config.users.users.craole.isNormalUser)"
-          greeter="$(nix eval --raw .#nixosConfigurations.Victus.config.services.displayManager.dms-greeter.enable)"
+          craole_normal="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.isNormalUser)"
+          greeter="$(nix eval --json .#nixosConfigurations.Victus.config.services.displayManager.dms-greeter.enable)"
           session="$(nix eval --raw .#nixosConfigurations.Victus.config.services.displayManager.defaultSession)"
           printf 'Victus: users=%s craole.normal=%s dms-greeter=%s session=%s\n' "$enabled_users" "$craole_normal" "$greeter" "$session"
           printf '%s' "$enabled_users" | grep -q 'craole'
