@@ -108,14 +108,24 @@
 
   nativeRuntimeBin = "${nativeRuntime}/bin/${target}-native";
 
+  # Podman 5.8 defaults new deployments to SQLite. Victus currently hits an
+  # upstream SQLite state-save failure even with a fresh, Hindsight-only
+  # graphroot. Keep Hindsight on a fresh BoltDB namespace until the affected
+  # Podman release can be replaced. This does not touch the user's global
+  # Podman database or the earlier isolated SQLite graphroot.
   podmanState = let
-    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
-    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
+    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}/boltdb";
+    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}/boltdb";
   in {
     root = "${data}/storage";
     runroot = "${run}/run";
     tmpdir = "${run}/tmp";
   };
+
+  podmanConfig = writeText "${target}-podman-containers.conf" ''
+    [engine]
+    database_backend = "boltdb"
+  '';
 
   podmanRuntime = writeShellApplication {
     name = "${target}-podman";
@@ -129,6 +139,10 @@
         "''${HINDSIGHT_PODMAN_ROOT}" \
         "''${HINDSIGHT_PODMAN_RUNROOT}" \
         "''${HINDSIGHT_PODMAN_TMPDIR}"
+
+      # Load the host/Nix Podman configuration normally, but force only the
+      # database backend for this isolated Hindsight runtime.
+      export CONTAINERS_CONF_OVERRIDE="${podmanConfig}"
 
       exec ${podman}/bin/podman \
         --root "''${HINDSIGHT_PODMAN_ROOT}" \
