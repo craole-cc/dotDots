@@ -100,10 +100,16 @@ podman|docker)
     unset user_policy
   fi
 
-  if ! "${HINDSIGHT_CONTAINER_RUNTIME}" info > /dev/null 2>&1; then
+  if ! runtime_info="$("${HINDSIGHT_CONTAINER_RUNTIME}" info 2>&1)"; then
     gum log --level error "${HINDSIGHT_RUNTIME_KIND} is unavailable for Hindsight."
+    if [ -n "${runtime_info}" ]; then
+      printf '%s\n' '----- Container runtime probe -----' >&2
+      printf '%s\n' "${runtime_info}" >&2
+      printf '%s\n' '-----------------------------------' >&2
+    fi
     exit 1
   fi
+  unset runtime_info
 
   "${HINDSIGHT_CONTAINER_RUNTIME}" compose \
     -p "${HINDSIGHT_COMPOSE_PROJECT}" \
