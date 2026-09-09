@@ -1,4 +1,5 @@
 {
+  dmsEnabled ? false,
   lib,
   mkMerge,
   ...
@@ -12,7 +13,7 @@
   services = mkMerge [
     (import ./idle.nix)
     (import ./paper.nix {})
-    (import ./polkit.nix)
+    (lib.mkIf (!dmsEnabled) (import ./polkit.nix))
     # // (import ./shell.nix)
     (import ./sunset.nix)
     # {
