@@ -97,9 +97,13 @@
     esac
 
     #> NixOS privileged wrappers must resolve before the corresponding
-    #> unprivileged package binaries (sudo, newuidmap, newgidmap, ...).
+    #> unprivileged package binaries (sudo, su, newuidmap, newgidmap, ...).
+    #> Clear the shell command cache after changing PATH; otherwise bash can
+    #> keep using a previously hashed store/profile binary even though the
+    #> setuid wrapper is now first.
     if [ -d /run/wrappers/bin ]; then
       PATH="/run/wrappers/bin:$PATH"
+      hash -r 2>/dev/null || true
     fi
     export PATH
   '';
@@ -114,10 +118,12 @@
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
 
-    #> binit prepends repository library paths; restore wrapper precedence.
+    #> binit prepends repository library paths; restore wrapper precedence
+    #> and invalidate any privileged-command paths cached before binit ran.
     if [ -d /run/wrappers/bin ]; then
       PATH="/run/wrappers/bin:$PATH"
       export PATH
+      hash -r 2>/dev/null || true
     fi
 
     #> Initialize yazi
