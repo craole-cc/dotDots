@@ -100,6 +100,8 @@
     top ? _default.names.top or "_",
     ...
   } @ args: let
+    wireHome = false;
+
     types = let
       of = class:
         hostsByClass {
@@ -161,7 +163,7 @@
       ];
 
       classified = modulesOf class;
-      core = {
+      core = optionalAttrs wireHome {
         home-manager = {
           extraSpecialArgs =
             specialArgs
@@ -267,7 +269,7 @@
     // optionalAttrs (types.darwin != {}) {
       darwinConfigurations = mapAttrs (_: mkSystem) types.darwin;
     }
-    // optionalAttrs (types.home != {}) {
+    // optionalAttrs (wireHome && types.home != {}) {
       homeConfigurations = mapAttrs mkManager types.home;
     };
 
