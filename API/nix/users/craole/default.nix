@@ -153,8 +153,8 @@
       };
     };
     terminal = {
-      primary = "feet";
-      secondary = "ghostty";
+      primary = "ghostty";
+      secondary = "warp-terminal";
     };
     launcher = {
       primary = "vicinae";
