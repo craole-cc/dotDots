@@ -58,6 +58,21 @@ jobs:
           test "$greeter" = true
           test "$session" = hyprland-uwsm
 
+      - name: Validate Victus staged Home contract
+        run: |
+          set -eu
+          home_user="$(nix eval --raw .#nixosConfigurations.Victus.config.home-manager.users.craole.home.username)"
+          home_wm="$(nix eval --raw .#nixosConfigurations.Victus.config.home-manager.users.craole._.resolved.interface.windowManager)"
+          home_panel="$(nix eval --raw .#nixosConfigurations.Victus.config.home-manager.users.craole._.resolved.interface.panel)"
+          home_hyprland="$(nix eval --json .#nixosConfigurations.Victus.config.home-manager.users.craole.wayland.windowManager.hyprland.enable)"
+          home_dms="$(nix eval --json .#nixosConfigurations.Victus.config.home-manager.users.craole.programs.dank-material-shell.enable)"
+          printf 'Victus Home: user=%s wm=%s panel=%s hyprland=%s dms=%s\n' "$home_user" "$home_wm" "$home_panel" "$home_hyprland" "$home_dms"
+          test "$home_user" = craole
+          test "$home_wm" = hyprland
+          test "$home_panel" = dms-shell
+          test "$home_hyprland" = true
+          test "$home_dms" = true
+
       - name: Inspect devshell exports
         run: |
           set -eu
