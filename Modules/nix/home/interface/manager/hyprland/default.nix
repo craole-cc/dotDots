@@ -24,6 +24,7 @@
   mkAddons = target:
     mkIf cfg.withAddons (import ./addons {
       inherit lib mkMerge;
+      dmsEnabled = config.programs.dank-material-shell.enable or false;
     }).${target};
 
   payload = {
@@ -69,6 +70,19 @@
       if [ -e "$legacy" ] || [ -L "$legacy" ]; then
         rm -f "$legacy"
       fi
+    '';
+
+    # Old user-local portal descriptors shadow the NixOS-owned descriptors in
+    # /run/current-system/sw/share/xdg-desktop-portal/portals. Remove only the
+    # known stale copies; the system packages remain the source of truth.
+    home.activation.removeLegacyUserPortalDescriptors = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      portal_dir="$HOME/.local/share/xdg-desktop-portal/portals"
+      for portal in gtk.portal darkman.portal; do
+        path="$portal_dir/$portal"
+        if [ -e "$path" ] || [ -L "$path" ]; then
+          rm -f "$path"
+        fi
+      done
     '';
 
     home.activation.normalizeDmsHyprlandOutputs = lib.hm.dag.entryAfter ["writeBoundary"] ''
