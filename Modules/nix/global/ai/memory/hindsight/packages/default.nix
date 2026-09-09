@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   lix,
   lib,
   cfg,
@@ -14,7 +15,6 @@
     docker
     gum
     jq
-    podman
     podman-compose
     python3
     tmux
@@ -27,6 +27,13 @@
 
   runtime = cfg.hindsight.runtime or "podman";
   version = cfg.hindsight.version or "0.9.2";
+
+  # Podman 5.8 switched new deployments to SQLite. Victus reproduces a
+  # state-save `disk I/O error: bad file descriptor` with 5.8.6 even against
+  # a fresh Hindsight-only graphroot. nixos-25.11 currently carries Podman
+  # 5.7.0, before that default-backend switch, so use it only for Hindsight's
+  # isolated Podman runtime. The host/global Podman installation is untouched.
+  podman = inputs.nixPackagesStable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.podman;
 
   nativeState = {
     data = "${paths.xdg.data.local}/${cfg.directory}/${target}/${cfg.instance}";
@@ -108,14 +115,9 @@
 
   nativeRuntimeBin = "${nativeRuntime}/bin/${target}-native";
 
-  # Podman 5.8 defaults new deployments to SQLite. Victus currently hits an
-  # upstream SQLite state-save failure even with a fresh, Hindsight-only
-  # graphroot. Keep Hindsight on a fresh BoltDB namespace until the affected
-  # Podman release can be replaced. This does not touch the user's global
-  # Podman database or the earlier isolated SQLite graphroot.
   podmanState = let
-    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}/boltdb";
-    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}/boltdb";
+    data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}/podman-5.7";
+    run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}/podman-5.7";
   in {
     root = "${data}/storage";
     runroot = "${run}/run";
@@ -135,15 +137,10 @@
         "''${HINDSIGHT_PODMAN_RUNROOT}" \
         "''${HINDSIGHT_PODMAN_TMPDIR}"
 
-      # Force the database backend as a Podman global option instead of via
-      # containers.conf. Podman also records this option in its generated
-      # cleanup/restart commands, keeping every subprocess on the same backend.
-      export SUPPRESS_BOLTDB_WARNING=1
       exec ${podman}/bin/podman \
         --root "''${HINDSIGHT_PODMAN_ROOT}" \
         --runroot "''${HINDSIGHT_PODMAN_RUNROOT}" \
         --tmpdir "''${HINDSIGHT_PODMAN_TMPDIR}" \
-        --db-backend boltdb \
         "$@"
     '';
   };
