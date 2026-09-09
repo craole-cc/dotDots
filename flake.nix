@@ -172,12 +172,6 @@
       owner = "numtide";
       type = "github";
     };
-
-    hermes = {
-      repo = "hermes-agent";
-      owner = "NousResearch";
-      type = "github";
-    };
   };
 
   nixConfig = {
