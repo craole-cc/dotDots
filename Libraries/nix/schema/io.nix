@@ -99,24 +99,30 @@
         };
         editor = {
           binding = {
-            mod = mod ++ ["SHIFT"];
-            key = "grave";
+            inherit mod;
+            key = "C";
           };
           startup = [];
         };
         browser = {
           binding = {
-            mod = mod ++ ["CTRL"];
-            key = "grave";
+            inherit mod;
+            key = "B";
           };
           startup = [];
         };
         media = {
-          binding = {};
+          binding = {
+            inherit mod;
+            key = "M";
+          };
           startup = [];
         };
         "file-manager" = {
-          binding = {};
+          binding = {
+            inherit mod;
+            key = "E";
+          };
           startup = [];
         };
       };
