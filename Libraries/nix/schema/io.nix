@@ -46,6 +46,10 @@
             type = nullOr str;
             default = null;
           };
+          workspace = mkOption {
+            type = nullOr str;
+            default = null;
+          };
         };
       };
 
@@ -129,6 +133,26 @@
           mod = mod ++ ["SHIFT"];
           key = "SPACE";
           action = "$LAUNCHER_SEC";
+        };
+
+        # ── Special workspaces ───────────────────────────────────────────────────
+        # These are compositor actions, so `action` remains null. Consumers use
+        # `workspace`, `mod`, and `key`; user/host API values recursively override
+        # these defaults before normalizeKeyboard converts modifier lists to strings.
+        specialTerminal = {
+          inherit mod;
+          key = "grave";
+          workspace = "terminal";
+        };
+        specialEditor = {
+          mod = mod ++ ["SHIFT"];
+          key = "grave";
+          workspace = "editor";
+        };
+        specialBrowser = {
+          mod = mod ++ ["CTRL"];
+          key = "grave";
+          workspace = "browser";
         };
 
         # ── Window state ─────────────────────────────────────────────────────────
