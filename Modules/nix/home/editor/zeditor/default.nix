@@ -23,6 +23,7 @@
     name = "zed-editor";
     category = "gui";
     resolutionHints = [
+      "zed"
       "zeditor"
       "zed-editor"
     ];
