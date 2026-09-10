@@ -92,10 +92,12 @@
           keyboard = mkKeyboard {inherit host user;};
           locale = mkLocale {inherit host user;};
           paths = mkSessionPaths {inherit config host user pkgs paths;};
-          inputs = inputs';
+          # `inputs` is the canonical normalized flake-input contract.
+          # Keep the per-user app/module selections separate so leaf modules
+          # can reliably resolve inputs such as `vscode-insiders`.
+          inherit inputs;
           inherit mkInput mkInputModules;
-          # inherit inputs inputs';
-          inputsForHome = inputs'; #TODO: Direct callers to use inputs or mkInput instead
+          inputsForHome = inputs';
         };
 
         home =
