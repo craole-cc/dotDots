@@ -25,9 +25,9 @@
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
 
-  # Scratchpad keys/modifiers are normalized by the schema. Primary/secondary
-  # commands come from the same resolved application contract that exports the
-  # *_PRI/*_SEC session variables, so the bindings cannot drift from them.
+  # Scratchpad keys/modifiers are normalized by the schema. Application roles
+  # come from the same resolved contract used by the session variables, while
+  # launch metadata handles app-specific new-window and terminal wrapping.
   scratchpads = user.interface.keyboard.scratchpads or {};
   scratchpadRoles = [
     "primary"
@@ -41,11 +41,31 @@
     "file-manager" = apps.explorer;
   };
 
+  primaryTerminal = apps.terminal.primary or null;
+
+  wrapTerminalCommand = entry: command:
+    if command == null
+    then null
+    else if (entry.needsTerminal or false) && builtins.isAttrs primaryTerminal
+    then let
+      terminalCommand = primaryTerminal.command or null;
+      execFlag = primaryTerminal.wrap.execFlag or "-e";
+    in
+      if terminalCommand == null
+      then command
+      else "${terminalCommand} ${execFlag} ${command}"
+    else command;
+
   defaultScratchpadCommand = category: role: let
     categoryApps = scratchpadApps.${category} or {};
+    entry = categoryApps.${role} or null;
+    command =
+      if builtins.isAttrs entry
+      then entry.launch.scratchpad or entry.command or null
+      else null;
   in
-    if builtins.hasAttr role categoryApps
-    then categoryApps.${role}.command or null
+    if builtins.isAttrs entry
+    then wrapTerminalCommand entry command
     else null;
 
   scratchpadCommand = category: role: roleConfig: let
