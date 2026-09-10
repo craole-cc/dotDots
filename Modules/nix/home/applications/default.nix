@@ -39,5 +39,17 @@
     ../shells/tools/nix-index.nix
     ../shells/tools/topgrade.nix
     ../shells/tools/yazi.nix
+
+    # Terminals
+    ../terminal/core/foot
+    ../terminal/core/ghostty
+    ../terminal/tools/tmux
+
+    # Version control
+    ../version-control/core/git.nix
+    ../version-control/core/jujutsu.nix
+    ../version-control/clients/github.nix
+    ../version-control/clients/gitui.nix
+    ../version-control/tools/delta.nix
   ];
 }
