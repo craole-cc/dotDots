@@ -3,6 +3,7 @@
   host,
   lib,
   lix,
+  pkgs,
   user,
   apps,
   keyboard,
@@ -22,6 +23,15 @@
   inherit (lix.types.primitives) bool;
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
+  dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
+  dmsBinds = pkgs.runCommand "dms-hypr-binds.lua" {} ''
+    substitute \
+      ${dmsEmbedded}/hypr-binds.lua \
+      "$out" \
+      --replace-fail \
+        '{{TERMINAL_COMMAND}}' \
+        ${lib.escapeShellArg apps.terminal.primary.command}
+  '';
 
   mkAddons = target:
     mkIf cfg.withAddons (import ./addons {
@@ -31,9 +41,9 @@
   payload = {
     wayland.windowManager.hyprland = mkMerge [
       {
-        # DMS owns the active Hyprland Lua configuration when enabled. Keeping
-        # Home Manager's Hyprland module active at the same time recreates the
-        # legacy hyprland.conf that DMS is trying to migrate away from.
+        # DMS 1.6 owns the active Lua configuration contract. The legacy Home
+        # Manager tree remains available when DMS is not selected, but must not
+        # recreate hyprland.conf alongside the DMS Lua tree.
         enable = cfg.enable && !dmsEnabled;
         configType = "hyprlang";
         plugins = [];
@@ -68,6 +78,34 @@
 
     programs = mkAddons "programs";
     services = mkAddons "services";
+
+    # DMS's compositor setup is intentionally not part of the runtime workflow.
+    # Materialize the DMS 1.6 Lua entrypoint from the exact dms-shell package
+    # source selected by Nix. DMS owns the writable dms/*.lua state files; Nix
+    # seeds them when absent and refreshes only the DMS-owned default binds.
+    home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''
+      config_dir=${lib.escapeShellArg config.xdg.configHome}/hypr
+      dms_dir="$config_dir/dms"
+
+      ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
+      ${pkgs.coreutils}/bin/install -m 0644 ${dmsEmbedded}/hyprland.lua "$config_dir/hyprland.lua"
+      ${pkgs.coreutils}/bin/install -m 0644 ${dmsBinds} "$dms_dir/binds.lua"
+
+      seed() {
+        src="$1"
+        dst="$2"
+        if [ ! -s "$dst" ]; then
+          ${pkgs.coreutils}/bin/install -m 0644 "$src" "$dst"
+        fi
+      }
+
+      seed ${dmsEmbedded}/hypr-binds-user.lua "$dms_dir/binds-user.lua"
+      seed ${dmsEmbedded}/hypr-colors.lua "$dms_dir/colors.lua"
+      seed ${dmsEmbedded}/hypr-cursor.lua "$dms_dir/cursor.lua"
+      seed ${dmsEmbedded}/hypr-layout.lua "$dms_dir/layout.lua"
+      seed ${dmsEmbedded}/hypr-outputs.lua "$dms_dir/outputs.lua"
+      seed ${dmsEmbedded}/hypr-windowrules.lua "$dms_dir/windowrules.lua"
+    '');
 
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in
     # /run/current-system/sw/share/xdg-desktop-portal/portals. Remove only the
