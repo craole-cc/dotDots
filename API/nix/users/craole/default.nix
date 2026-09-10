@@ -173,6 +173,7 @@
       "obs-studio"
       "yazi"
       "vim"
+      "vscode" # stable FHS + declarative Insiders are kept as a pair
       # "tmux"
     ];
     utilities = {
