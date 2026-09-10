@@ -68,6 +68,7 @@ in {
   # contract as Core. Only migrated modules are wired here; the legacy tree
   # remains available for staged conversion without participating in eval.
   imports = [
+    ./applications
     ./interface/options.nix
     ./interface/catppuccin.nix
     ./interface/dms.nix
