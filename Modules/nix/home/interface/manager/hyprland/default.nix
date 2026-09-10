@@ -24,11 +24,24 @@
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
+  dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" ''
+    -- dotDots declarative special-workspace bindings.
+    -- Inserted before DMS's mutable binds-user.lua so user overrides win.
+    hl.bind("SUPER + grave", hl.dsp.workspace.toggle_special("terminal"), { description = "Toggle terminal workspace" })
+    hl.bind("SUPER + SHIFT + grave", hl.dsp.workspace.toggle_special("editor"), { description = "Toggle editor workspace" })
+    hl.bind("SUPER + CTRL + grave", hl.dsp.workspace.toggle_special("browser"), { description = "Toggle browser workspace" })
+  '';
   dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
     ${pkgs.gnused}/bin/sed \
-      -e '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
-      -e '/require("dms.binds-user")/i require("dms.binds-dots")' \
-      ${dmsEmbedded}/hyprland.lua > "$out"
+      '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
+      ${dmsEmbedded}/hyprland.lua \
+      | ${pkgs.gawk}/bin/awk -v binds=${lib.escapeShellArg dmsDotBinds} '
+          /require\("dms.binds-user"\)/ {
+            while ((getline line < binds) > 0) print line
+            close(binds)
+          }
+          { print }
+        ' > "$out"
   '';
   dmsBinds = pkgs.runCommand "dms-hypr-binds.lua" {} ''
     substitute \
@@ -37,13 +50,6 @@
       --replace-fail \
         '{{TERMINAL_COMMAND}}' \
         ${lib.escapeShellArg apps.terminal.primary.command}
-  '';
-  dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" ''
-    -- dotDots declarative special-workspace bindings.
-    -- DMS's mutable binds-user.lua loads afterwards and may override them.
-    hl.bind("SUPER + grave", hl.dsp.workspace.toggle_special("terminal"), { description = "Toggle terminal workspace" })
-    hl.bind("SUPER + SHIFT + grave", hl.dsp.workspace.toggle_special("editor"), { description = "Toggle editor workspace" })
-    hl.bind("SUPER + CTRL + grave", hl.dsp.workspace.toggle_special("browser"), { description = "Toggle browser workspace" })
   '';
 
   mkAddons = target:
@@ -95,9 +101,9 @@
     # DMS's compositor setup is intentionally not part of the runtime workflow.
     # Materialize the DMS 1.6 Lua entrypoint from the exact dms-shell package
     # source selected by Nix. UWSM owns session activation, so strip DMS's
-    # legacy hyprland-session.target hook from the upstream template. DMS owns
-    # its writable dms/*.lua state; Nix refreshes the DMS default binds and the
-    # dotDots-owned declarative bind layer while only seeding mutable fragments.
+    # legacy hyprland-session.target hook from the upstream template. The
+    # dotDots-owned binds are embedded directly into the root Lua file before
+    # DMS's mutable binds-user.lua, avoiding a second runtime Lua module path.
     home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''
       config_dir=${lib.escapeShellArg config.xdg.configHome}/hypr
       dms_dir="$config_dir/dms"
@@ -105,7 +111,10 @@
       ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
       ${pkgs.coreutils}/bin/install -m 0644 ${dmsRoot} "$config_dir/hyprland.lua"
       ${pkgs.coreutils}/bin/install -m 0644 ${dmsBinds} "$dms_dir/binds.lua"
-      ${pkgs.coreutils}/bin/install -m 0644 ${dmsDotBinds} "$dms_dir/binds-dots.lua"
+
+      # This was briefly a separately required module. It is now embedded in
+      # hyprland.lua so the compositor has no extra runtime lookup dependency.
+      ${pkgs.coreutils}/bin/rm -f "$dms_dir/binds-dots.lua"
 
       seed() {
         src="$1"
