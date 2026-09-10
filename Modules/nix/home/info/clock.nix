@@ -1,14 +1,26 @@
 {
   config,
-  lib,
   lix,
-  top,
+  user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  payload = {
-    programs.clock-rs = {
-      enable = config.${top}.resolved.applications.utilities.clock.enable;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+
+  context = mkContext {
+    inherit config;
+    dom = "info";
+    mod = "clock";
+  };
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.clock.enable or false;
+    };
+    outputs.programs.clock-rs = {
+      enable = true;
       settings = {
         general = {
           color = "magenta";
@@ -30,9 +42,4 @@
         };
       };
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
-}
+  }
