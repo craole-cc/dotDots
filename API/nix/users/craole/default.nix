@@ -42,33 +42,14 @@
       swapCapsEscape = false;
       vimKeybinds = false;
 
-      # Scratchpad names and binding defaults are schema-owned. User values
-      # recursively override only the fields declared here.
-      scratchpads = {
-        terminal = {
-          startup = [
-            "kitty"
-            "foot"
-            "ghostty"
-          ];
-        };
-        # editor.binding = {
-        #   mod = "SUPER SHIFT";
-        #   key = "grave";
-        # };
-        # browser.binding = {
-        #   mod = "SUPER CTRL";
-        #   key = "grave";
-        # };
-        # media.binding = {
-        #   mod = "SUPER ALT";
-        #   key = "grave";
-        # };
-        # "file-manager".binding = {
-        #   mod = "SUPER ALT SHIFT";
-        #   key = "grave";
-        # };
-      };
+      # Binding defaults are schema-owned:
+      # terminal=SUPER+grave, editor=SUPER+C, browser=SUPER+B,
+      # media=SUPER+M, file-manager=SUPER+E.
+      scratchpads.terminal.startup = [
+        "kitty"
+        "foot"
+        "ghostty"
+      ];
 
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
@@ -182,7 +163,7 @@
       };
     };
     terminal = {
-      primary = "ghostty";
+      primary = "foot";
       secondary = "warp-terminal";
     };
     launcher = {
@@ -198,6 +179,7 @@
       "fastfetch"
       "foot"
       "freetube"
+      "ghostty"
       "kitty"
       "warp-terminal"
       "jujutsu"
