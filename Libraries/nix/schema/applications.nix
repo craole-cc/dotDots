@@ -22,8 +22,10 @@
       secondary = "chromium";
     };
     terminal = {
-      primary = "ghostty";
-      secondary = "foot";
+      # Kitty is the protocol-neutral schema default. Users/hosts may provide
+      # protocol-specific overrides such as `terminal.wayland.primary = "foot"`.
+      primary = "kitty";
+      secondary = "ghostty";
     };
     editor = {
       tty = {
@@ -225,9 +227,39 @@
     host,
     user ? {},
   }: let
-    raw = recursiveUpdate (recursiveUpdate defaults (host.applications or {})) (
+    merged = recursiveUpdate (recursiveUpdate defaults (host.applications or {})) (
       user.applications or {}
     );
+
+    userProtocol = (user.interface or {}).displayProtocol or null;
+    hostProtocol = (host.interface or {}).displayProtocol or null;
+    protocol =
+      if userProtocol != null
+      then userProtocol
+      else hostProtocol;
+
+    # App contracts may refine a category by display protocol. The selected
+    # protocol override is folded into the normalized category and the
+    # conditional branches are then removed from the consumer-facing contract.
+    resolveProtocol = value: let
+      override =
+        if protocol != null
+        then value.${protocol} or {}
+        else {};
+    in
+      removeAttrs (recursiveUpdate value override) [
+        "wayland"
+        "x11"
+        "xorg"
+      ];
+
+    raw = merged // {
+      browser = resolveProtocol merged.browser;
+      terminal = resolveProtocol merged.terminal;
+      editor = resolveProtocol merged.editor;
+      launcher = resolveProtocol merged.launcher;
+      explorer = resolveProtocol merged.explorer;
+    };
   in {
     browser = {
       primary = mkEntry "browser" raw.browser.primary;
