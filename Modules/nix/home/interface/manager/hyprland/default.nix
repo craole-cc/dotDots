@@ -25,40 +25,54 @@
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
 
-  # Special-workspace bindings come from the normalized interface schema. The
-  # schema supplies defaults while host/user API values may recursively replace
-  # `mod`, `key`, or `workspace`. Setting key/workspace to null disables a bind.
-  specialWorkspaceBindings = let
-    bindings = user.interface.keyboard.bindings;
-  in [
-    bindings.specialTerminal
-    bindings.specialEditor
-    bindings.specialBrowser
-  ];
+  # Scratchpads are an attrset keyed by workspace name. The schema owns the
+  # default bindings while user/host API values may recursively override each
+  # workspace's binding and startup list.
+  scratchpads = user.interface.keyboard.scratchpads or {};
 
-  mkDmsChord = binding:
+  mkDmsChord = scratchpad: let
+    binding = scratchpad.binding or {};
+  in
     lib.concatStringsSep " + " (
       builtins.filter (part: part != "") (lib.splitString " " (binding.mod or ""))
       ++ [binding.key]
     );
 
-  mkDmsSpecialBind = binding:
-    if (binding.key or null) == null || (binding.workspace or null) == null
+  mkDmsScratchpadBind = workspace: scratchpad: let
+    binding = scratchpad.binding or {};
+  in
+    if (binding.key or null) == null
     then ""
     else let
-      chord = mkDmsChord binding;
-      workspace = binding.workspace;
+      chord = mkDmsChord scratchpad;
     in ''
       hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${workspace} workspace"} })
     '';
 
+  mkDmsScratchpadStartup = workspace: scratchpad:
+    lib.concatStringsSep "" (
+      map (
+        command: ''
+          hl.exec_cmd(${builtins.toJSON command}, { workspace = ${builtins.toJSON "special:${workspace} silent"} })
+        ''
+      ) (scratchpad.startup or [])
+    );
+
+  dmsScratchpadStartup =
+    lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadStartup scratchpads);
+
   dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" (
     ''
-      -- dotDots declarative special-workspace bindings.
+      -- dotDots declarative scratchpads.
       -- Defaults are schema-owned; user API overrides are already normalized.
       -- Inserted before DMS's mutable binds-user.lua so runtime overrides win.
     ''
-    + lib.concatStringsSep "" (map mkDmsSpecialBind specialWorkspaceBindings)
+    + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBind scratchpads)
+    + lib.optionalString (dmsScratchpadStartup != "") ''
+
+      hl.on("hyprland.start", function()
+      ${dmsScratchpadStartup}end)
+    ''
   );
 
   dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
