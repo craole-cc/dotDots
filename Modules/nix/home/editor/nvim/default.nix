@@ -4,17 +4,23 @@
   lix,
   user,
   pkgs,
-  top,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
   inherit (lib.modules) mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
-    name = "nvf";
+  context = mkContext {
+    inherit config;
+    dom = "editor";
+    mod = "nvim";
     kind = "editor";
+  };
+
+  resolved = userApplicationConfig {
+    inherit context user pkgs;
+    name = "nvf";
     category = "tty";
     resolutionHints = [
       "neovim"
@@ -28,10 +34,12 @@
     ];
     debug = false;
   };
-  payload = {inherit (cfg) home programs;};
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = resolved.enable;
+    };
+    outputs = {inherit (resolved) home programs;};
+  }

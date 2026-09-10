@@ -1,24 +1,32 @@
 {
+  config,
   policies,
   lib,
+  lix,
   user,
   pkgs,
   ...
 }: let
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
   inherit (lib.strings) toUpper;
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf;
   inherit (lib.strings) match toJSON;
   inherit (policies) webGui;
 
+  context = mkContext {
+    inherit config;
+    dom = "browser";
+    mod = "chromium";
+  };
+
   name = "chromium";
-  target = user.applications.browser.chromium;
+  target = user.applications.browser.chromium or null;
   normalizedTarget =
     if target == null
     then "default"
     else target;
 
-  matches = pred: str: match pred str != null;
+  matches = pred: str: str != null && match pred str != null;
 
   variant =
     #| Brave
@@ -66,8 +74,18 @@
       };
     };
   };
-in {
-  programs.chromium = mkIf enable {inherit enable package;};
-
-  home.sessionVariables = optionalAttrs enable {${debug.key} = debug.val;};
-}
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = enable;
+    };
+    outputs = {
+      programs.chromium = {
+        enable = true;
+        inherit package;
+      };
+      home.sessionVariables.${debug.key} = debug.val;
+    };
+  }
