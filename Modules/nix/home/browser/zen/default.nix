@@ -20,13 +20,13 @@
     dom = "browser";
     mod = "zen";
   };
-  inherit (context) wantsGnome;
 
   name = "Zen";
   apps = user.applications or {};
   allowed = normalize (apps.allowed or []);
   primary = normalize (apps.browser.primary or "");
   secondary = normalize (apps.browser.secondary or "");
+  tertiary = normalize (apps.browser.tertiary or "");
   browser = value:
     resolve {
       inherit value;
@@ -39,6 +39,7 @@
   isZen = value: value != "" && (browser value).family == "zen";
   isPrimary = isZen primary;
   isSecondary = isZen secondary;
+  isTertiary = isZen tertiary;
   isAllowed = builtins.any isZen allowed;
   variant = twilight.package.attribute;
   darwinName = "${name}-${variant}";
@@ -48,7 +49,7 @@
     inherit inputs pkgs system;
   };
 
-  enable = isPrimary || isSecondary || isAllowed;
+  enable = isPrimary || isSecondary || isTertiary || isAllowed;
 in
   mkConfig {
     inherit context;
@@ -63,7 +64,6 @@ in
         darwinAppName = darwinName;
         wrappedPackageName = variant;
         setAsDefaultBrowser = isPrimary;
-        enableGnomeExtensions = wantsGnome.condition;
         profiles.${user.name} = mkMerge [
           (import ./bookmarks.nix)
           (import ./containers.nix)
@@ -85,6 +85,8 @@ in
         }
         else if isSecondary
         then {BROWSER_SEC = lib.mkForce twilight.exec;}
+        else if isTertiary
+        then {BROWSER_TER = lib.mkForce twilight.exec;}
         else {};
     };
   }
