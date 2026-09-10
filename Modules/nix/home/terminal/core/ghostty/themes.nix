@@ -1,14 +1,10 @@
-{lix, ...}: let
-  inherit (lix.modules.construction) mkForce;
-
-  light = "Catppuccin Latte";
-  dark = "Catppuccin Frappe";
+{dmsEnabled, lix, ...}: let
+  inherit (lix.attrsets.construction) optionalAttrs;
 in {
-  settings = {
-    # Ghostty can follow the desktop appearance when both variants are declared.
-    # Force this value so generic theming modules cannot collapse the pair to a
-    # single static theme.
-    theme = mkForce "light:${light},dark:${dark}";
-    window-theme = "system";
+  # Keep behavioral configuration in Home Manager, but delegate terminal
+  # colors to DMS when DMS owns the desktop shell. DMS regenerates the
+  # `dankcolors` Ghostty theme from its active Material/Matugen palette.
+  settings = optionalAttrs dmsEnabled {
+    theme = "dankcolors";
   };
 }
