@@ -1,15 +1,30 @@
-_: let
-  app = "fish";
-  isAllowed = false;
-  # isAllowed = isIn app (
-  #   (user.shells.system or user.shells.interactive or [])
-  #   ++ user.applications.allowed or []
-  #   ++ [user.interface.shell or null]
-  # );
-in {
-  programs.${app} =
-    {
-      enable = isAllowed;
-    }
-    // import ./settings.nix;
-}
+{
+  config,
+  user,
+  lix,
+  ...
+}: let
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+  inherit (lix.lists.predicates) isIn;
+
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "core";
+    mod = "fish";
+  };
+  isAllowed = isIn "fish" ((user.shells or []) ++ (user.applications.allowed or []));
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = isAllowed;
+    };
+    outputs.programs.fish =
+      {
+        enable = true;
+      }
+      // import ./settings.nix;
+  }
