@@ -1,14 +1,27 @@
 {
   config,
-  lib,
   lix,
-  top,
+  user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  payload = {
-    programs.topgrade = {
-      enable = config.${top}.resolved.applications.utilities.topgrade.enable;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "tools";
+    mod = "topgrade";
+  };
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.topgrade.enable or false;
+    };
+    outputs.programs.topgrade = {
+      enable = true;
       settings = {
         misc = {
           assume_yes = true;
@@ -21,9 +34,4 @@
         };
       };
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
-}
+  }

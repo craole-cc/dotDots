@@ -1,25 +1,38 @@
 {
   config,
-  lib,
   lix,
-  top,
+  user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  payload = {
-    programs = {
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "tools";
+    mod = "grep";
+  };
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.grep.enable or false;
+    };
+    outputs.programs = {
       ripgrep = {
-        enable = config.${top}.resolved.applications.utilities.grep.enable;
+        enable = true;
         arguments = [
           "--max-columns-preview"
           "--colors=line:style:bold"
         ];
       };
 
-      ripgrep-all.enable = config.${top}.resolved.applications.utilities.grep.enable;
+      ripgrep-all.enable = true;
 
       fd = {
-        enable = config.${top}.resolved.applications.utilities.grep.enable;
+        enable = true;
         extraOptions = ["--absolute-path"];
         ignores = [
           ".git/"
@@ -30,9 +43,4 @@
         ];
       };
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
-}
+  }

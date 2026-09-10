@@ -1,21 +1,27 @@
 {
   config,
-  lib,
   lix,
-  top,
+  user,
   ...
 }: let
-  enable = config.${top}.resolved.applications.utilities.bat.enable;
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
 
-  payload = {
-    programs.bat = {
-      inherit enable;
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "tools";
+    mod = "bat";
+  };
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.bat.enable or false;
+    };
+    outputs.programs.bat = {
+      enable = true;
       config.pager = "less -F";
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
-}
+  }
