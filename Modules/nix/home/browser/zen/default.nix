@@ -3,7 +3,6 @@
   host,
   inputs,
   lix,
-  osConfig ? {},
   pkgs,
   user,
   paths,
@@ -21,6 +20,7 @@
     dom = "browser";
     mod = "zen";
   };
+  inherit (context) wantsGnome;
 
   name = "Zen";
   apps = user.applications or {};
@@ -63,7 +63,7 @@ in
         darwinAppName = darwinName;
         wrappedPackageName = variant;
         setAsDefaultBrowser = isPrimary;
-        enableGnomeExtensions = osConfig.services.desktopManager.gnome.enable or false;
+        enableGnomeExtensions = wantsGnome.condition;
         profiles.${user.name} = mkMerge [
           (import ./bookmarks.nix)
           (import ./containers.nix)
