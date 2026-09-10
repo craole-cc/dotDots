@@ -20,30 +20,36 @@
     browser = {
       primary = "zen-twilight";
       secondary = "chromium";
+      tertiary = null;
     };
     terminal = {
       # Kitty is the protocol-neutral schema default. Users/hosts may provide
       # protocol-specific overrides such as `terminal.wayland.primary = "foot"`.
       primary = "kitty";
       secondary = "ghostty";
+      tertiary = null;
     };
     editor = {
       tty = {
         primary = "helix";
         secondary = "neovim";
+        tertiary = null;
       };
       gui = {
         primary = "vscode";
         secondary = "zed";
+        tertiary = null;
       };
     };
     launcher = {
       primary = "vicinae";
       secondary = "fuzzel";
+      tertiary = null;
     };
     explorer = {
       primary = "yazi";
       secondary = "nautilus";
+      tertiary = null;
     };
     bar = null;
     prompt = "starship";
@@ -74,7 +80,7 @@
   };
 
   # ── Command resolution ───────────────────────────────────────────────────────
-  # Maps app names to the actual binary command to run
+  # Maps app names to the actual binary command to run.
 
   commandMap = {
     browser = {
@@ -103,6 +109,8 @@
       "neovim" = "nvim";
       "nvim" = "nvim";
       "vscode" = "code";
+      "vscode-insiders" = "code-insiders";
+      "code-insiders" = "code-insiders";
       "vscodium" = "codium";
       "zed" = "zeditor";
       "zeditor" = "zeditor";
@@ -122,6 +130,7 @@
     };
     explorer = {
       "yazi" = "yazi";
+      "doublecmd" = "doublecmd";
       "nautilus" = "org.gnome.Nautilus";
       "dolphin" = "dolphin";
       "thunar" = "thunar";
@@ -138,7 +147,6 @@
   };
 
   # ── Class resolution ─────────────────────────────────────────────────────────
-  # Maps commands to their window class for use in window rules
 
   classMap = {
     "zen" = "zen";
@@ -158,6 +166,7 @@
     "hx" = "Helix";
     "nvim" = "nvim";
     "code" = "code";
+    "code-insiders" = "code - Insiders";
     "codium" = "VSCodium";
     "zeditor" = "dev.zed.Zed";
     "vim" = "vim";
@@ -166,6 +175,7 @@
     "wofi" = "wofi";
     "rofi" = "rofi";
     "yazi" = "yazi";
+    "doublecmd" = "doublecmd";
     "org.gnome.Nautilus" = "org.gnome.Nautilus";
     "dolphin" = "dolphin";
     "thunar" = "thunar";
@@ -202,24 +212,52 @@
       }).exec
     else legacyCommand category name;
 
+  registryCategory = category:
+    if category == "explorer"
+    then "file-manager"
+    else category;
+
+  getMeta = category: name: let
+    result = builtins.tryEval (resolve {
+      value = name;
+      category = registryCategory category;
+    });
+  in
+    if result.success
+    then result.value
+    else {};
+
   getClass = category: name: let
     command = getCommand category name;
+    meta = getMeta category name;
   in
-    if category == "browser"
-    then
-      (
-        (resolve {
-          value = name;
-          inherit category;
-        }).names.class or command
-      )
-    else legacyClass command;
+    meta.names.class or (legacyClass command);
 
-  mkEntry = category: name: {
-    inherit name;
+  scratchpadCommand = category: meta: command:
+    if category == "browser"
+    then "${command} --new-window about:blank"
+    else if category == "editor" && (meta.family or null) == "vscode"
+    then "${command} --new-window"
+    else if category == "editor" && (meta.name or null) == "zed"
+    then "${command} --new"
+    else command;
+
+  mkEntry = category: name: let
+    meta = getMeta category name;
     command = getCommand category name;
+  in {
+    name = meta.name or name;
+    inherit command;
     class = getClass category name;
+    needsTerminal = meta.needsTerminal or false;
+    wrap = meta.wrap or {};
+    launch.scratchpad = scratchpadCommand category meta command;
   };
+
+  mkMaybeEntry = category: name:
+    if name == null
+    then null
+    else mkEntry category name;
 
   # ── Resolution ───────────────────────────────────────────────────────────────
 
@@ -263,31 +301,38 @@
   in {
     browser = {
       primary = mkEntry "browser" raw.browser.primary;
-      secondary = mkEntry "browser" raw.browser.secondary;
+      secondary = mkMaybeEntry "browser" raw.browser.secondary;
+      tertiary = mkMaybeEntry "browser" raw.browser.tertiary;
     };
     terminal = {
       primary = mkEntry "terminal" raw.terminal.primary;
-      secondary = mkEntry "terminal" raw.terminal.secondary;
+      secondary = mkMaybeEntry "terminal" raw.terminal.secondary;
+      tertiary = mkMaybeEntry "terminal" raw.terminal.tertiary;
     };
     editor = {
       tty = {
         primary = mkEntry "editor" raw.editor.tty.primary;
-        secondary = mkEntry "editor" raw.editor.tty.secondary;
+        secondary = mkMaybeEntry "editor" raw.editor.tty.secondary;
+        tertiary = mkMaybeEntry "editor" raw.editor.tty.tertiary;
       };
       gui = {
         primary = mkEntry "editor" raw.editor.gui.primary;
-        secondary = mkEntry "editor" raw.editor.gui.secondary;
+        secondary = mkMaybeEntry "editor" raw.editor.gui.secondary;
+        tertiary = mkMaybeEntry "editor" raw.editor.gui.tertiary;
       };
       primary = mkEntry "editor" raw.editor.gui.primary;
-      secondary = mkEntry "editor" raw.editor.gui.secondary;
+      secondary = mkMaybeEntry "editor" raw.editor.gui.secondary;
+      tertiary = mkMaybeEntry "editor" raw.editor.gui.tertiary;
     };
     launcher = {
       primary = mkEntry "launcher" raw.launcher.primary;
-      secondary = mkEntry "launcher" raw.launcher.secondary;
+      secondary = mkMaybeEntry "launcher" raw.launcher.secondary;
+      tertiary = mkMaybeEntry "launcher" raw.launcher.tertiary;
     };
     explorer = {
       primary = mkEntry "explorer" raw.explorer.primary;
-      secondary = mkEntry "explorer" raw.explorer.secondary;
+      secondary = mkMaybeEntry "explorer" raw.explorer.secondary;
+      tertiary = mkMaybeEntry "explorer" raw.explorer.tertiary;
     };
     bar = {
       primary = mkEntry "bar" (
