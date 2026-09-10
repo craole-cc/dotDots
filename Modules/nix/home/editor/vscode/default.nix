@@ -4,19 +4,21 @@
   lix,
   inputs,
   pkgs,
-  top,
   user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  dom = "editors";
-  mod = "vscode";
-  cfg = config.${top}.resolved.${dom}.${mod};
-
-  inherit (lix.modules.construction) mkMerge mkDefault;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.options.construction) mkEnable;
+
+  context = mkContext {
+    inherit config;
+    dom = "editor";
+    mod = "vscode";
+    kind = "editor";
+  };
+  inherit (context) cfg;
 
   base = import ./base/default.nix {inherit lib mkDefault;};
   features = import ./features/default.nix {
@@ -28,10 +30,9 @@
       ;
   };
 
-  appCfg = userApplicationConfig {
-    inherit user pkgs config;
+  resolved = userApplicationConfig {
+    inherit context user pkgs;
     name = "vscode";
-    kind = "editor";
     category = "gui";
     customPackage = pkgs.vscode-fhs;
     resolutionHints = [
@@ -52,18 +53,15 @@
     };
     debug = false;
   };
-  payload = {inherit (appCfg) home programs;};
-in {
-  options.${top}.resolved.${dom}.${mod} = {
-    enable = mkEnable {
-      description = mod;
-      condition = appCfg.enable;
+in
+  mkConfig {
+    inherit context;
+    options = {
+      enable = mkEnable {
+        inherit context;
+        condition = resolved.enable;
+      };
+      withExtensions = features.options;
     };
-    withExtensions = features.options;
-  };
-
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = cfg.enable;
-  });
-}
+    outputs = {inherit (resolved) home programs;};
+  }

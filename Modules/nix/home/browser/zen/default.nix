@@ -1,20 +1,26 @@
 {
+  config,
   host,
   inputs,
   lix,
-  nixosConfig,
+  osConfig ? {},
   pkgs,
   user,
   paths,
   lib,
-  top,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
-  inherit (lix.modules.construction) mkMerge;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
+  inherit (lix.options.construction) mkEnable;
   inherit (lix.applications.registry) resolve;
   inherit (lix.applications.runtime) resolvePackage;
   inherit (lix.strings.transformation) normalize;
+
+  context = mkContext {
+    inherit config;
+    dom = "browser";
+    mod = "zen";
+  };
 
   name = "Zen";
   apps = user.applications or {};
@@ -43,29 +49,35 @@
   };
 
   enable = isPrimary || isSecondary || isAllowed;
-  payload = {
-    programs.zen-browser = {
-      inherit enable name;
-      darwinAppName = darwinName;
-      wrappedPackageName = variant;
-      inherit package;
-      setAsDefaultBrowser = isPrimary;
-      enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
-      profiles.${user.name} = mkMerge [
-        (import ./bookmarks.nix)
-        (import ./containers.nix)
-        (import ./search.nix {inherit host;})
-        (import ./settings.nix)
-      ];
-      policies = mkMerge [
-        (import ./policies.nix {inherit paths;})
-        (import ./extensions.nix {inherit lix;})
-        (import ./preferences.nix {inherit lix;})
-      ];
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = enable;
     };
+    outputs = {
+      programs.zen-browser = {
+        enable = true;
+        inherit name package;
+        darwinAppName = darwinName;
+        wrappedPackageName = variant;
+        setAsDefaultBrowser = isPrimary;
+        enableGnomeExtensions = osConfig.services.desktopManager.gnome.enable or false;
+        profiles.${user.name} = mkMerge [
+          (import ./bookmarks.nix)
+          (import ./containers.nix)
+          (import ./search.nix {inherit host;})
+          (import ./settings.nix)
+        ];
+        policies = mkMerge [
+          (import ./policies.nix {inherit paths;})
+          (import ./extensions.nix {inherit lix;})
+          (import ./preferences.nix {inherit lix;})
+        ];
+      };
 
-    home = {
-      sessionVariables =
+      home.sessionVariables =
         if isPrimary
         then {
           BROWSER = lib.mkForce "zen";
@@ -75,10 +87,4 @@
         then {BROWSER_SEC = lib.mkForce "zen";}
         else {};
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = enable;
-  });
-}
+  }
