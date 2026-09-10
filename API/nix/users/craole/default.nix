@@ -163,8 +163,10 @@
       };
     };
     terminal = {
-      primary = "foot";
+      # Kitty remains the protocol-neutral schema default. Craole prefers Foot
+      # when the normalized session protocol is Wayland.
       secondary = "warp-terminal";
+      wayland.primary = "foot";
     };
     launcher = {
       primary = "vicinae";
@@ -177,7 +179,6 @@
     allowed = [
       # "atuin"
       "fastfetch"
-      "foot"
       "freetube"
       "ghostty"
       "kitty"
