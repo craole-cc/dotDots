@@ -172,58 +172,64 @@ in
               };
             };
 
-          # VS Code writes settings/keybindings itself. Materialize the
-          # declarative profile as regular files on activation instead of
-          # linking them into the Nix store, so runtime saves do not fail EROFS.
-          # A future activation restores the declared baseline.
-          activation.materializeVSCodeInsidersProfile = lib.hm.dag.entryAfter ["linkGeneration"] ''
-            materialize_json() {
-              source="$1"
-              target="$2"
+          # Keep both activation entries under one attribute. A top-level `//`
+          # between two `{ activation = ...; }` sets is shallow and previously
+          # caused the DMS seed action to replace the profile materializer.
+          activation =
+            {
+              # VS Code writes settings/keybindings itself. Materialize the
+              # declarative profile as regular files on activation instead of
+              # linking them into the Nix store, so runtime saves do not fail
+              # EROFS. A future activation restores the declared baseline.
+              materializeVSCodeInsidersProfile = lib.hm.dag.entryAfter ["linkGeneration"] ''
+                materialize_json() {
+                  source="$1"
+                  target="$2"
 
-              ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$target")"
-              ${pkgs.coreutils}/bin/rm -f "$target"
-              ${pkgs.coreutils}/bin/install -m 0644 "$source" "$target"
+                  ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$target")"
+                  ${pkgs.coreutils}/bin/rm -f "$target"
+                  ${pkgs.coreutils}/bin/install -m 0644 "$source" "$target"
+                }
+
+                materialize_json \
+                  ${lib.escapeShellArg insidersSettingsFile} \
+                  "$HOME/.config/Code - Insiders/User/settings.json"
+                materialize_json \
+                  ${lib.escapeShellArg insidersKeybindingsFile} \
+                  "$HOME/.config/Code - Insiders/User/keybindings.json"
+              '';
             }
+            // lib.optionalAttrs dmsEnabled {
+              seedDmsVSCodeTheme = lib.hm.dag.entryAfter ["linkGeneration"] ''
+                source=${lib.escapeShellArg dmsThemeSource}
+                theme_dir=${lib.escapeShellArg dmsThemeDir}
 
-            materialize_json \
-              ${lib.escapeShellArg insidersSettingsFile} \
-              "$HOME/.config/Code - Insiders/User/settings.json"
-            materialize_json \
-              ${lib.escapeShellArg insidersKeybindingsFile} \
-              "$HOME/.config/Code - Insiders/User/keybindings.json"
-          '';
-        }
-        // lib.optionalAttrs dmsEnabled {
-          activation.seedDmsVSCodeTheme = lib.hm.dag.entryAfter ["linkGeneration"] ''
-            source=${lib.escapeShellArg dmsThemeSource}
-            theme_dir=${lib.escapeShellArg dmsThemeDir}
+                seed_dms_theme() {
+                  root="$1"
+                  target="$root/$theme_dir"
 
-            seed_dms_theme() {
-              root="$1"
-              target="$root/$theme_dir"
+                  ${pkgs.coreutils}/bin/mkdir -p "$root"
 
-              ${pkgs.coreutils}/bin/mkdir -p "$root"
+                  # Keep exactly the DMS extension that matches the pinned shell
+                  # input. Other user-installed extensions are untouched.
+                  for candidate in "$root"/danklinux.dms-theme-*; do
+                    [ -e "$candidate" ] || [ -L "$candidate" ] || continue
+                    [ "$candidate" = "$target" ] || ${pkgs.coreutils}/bin/rm -rf "$candidate"
+                  done
 
-              # Keep exactly the DMS extension that matches the pinned shell
-              # input. Other user-installed extensions are untouched.
-              for candidate in "$root"/danklinux.dms-theme-*; do
-                [ -e "$candidate" ] || [ -L "$candidate" ] || continue
-                [ "$candidate" = "$target" ] || ${pkgs.coreutils}/bin/rm -rf "$candidate"
-              done
+                  # DMS must be able to rewrite themes/*.json, so never leave
+                  # this extension as a Nix-store symlink.
+                  if [ -L "$target" ] || [ ! -f "$target/package.json" ]; then
+                    ${pkgs.coreutils}/bin/rm -rf "$target"
+                    ${pkgs.coreutils}/bin/cp -RL "$source" "$target"
+                  fi
+                  ${pkgs.coreutils}/bin/chmod -R u+w "$target"
+                }
 
-              # DMS must be able to rewrite themes/*.json, so never leave this
-              # extension as a Nix-store symlink.
-              if [ -L "$target" ] || [ ! -f "$target/package.json" ]; then
-                ${pkgs.coreutils}/bin/rm -rf "$target"
-                ${pkgs.coreutils}/bin/cp -RL "$source" "$target"
-              fi
-              ${pkgs.coreutils}/bin/chmod -R u+w "$target"
-            }
-
-            seed_dms_theme "$HOME/.vscode/extensions"
-            seed_dms_theme "$HOME/.vscode-insiders/extensions"
-          '';
+                seed_dms_theme "$HOME/.vscode/extensions"
+                seed_dms_theme "$HOME/.vscode-insiders/extensions"
+              '';
+            };
         };
     };
   }
