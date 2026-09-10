@@ -8,6 +8,7 @@
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
+  inherit (lib.lists) findFirst;
   inherit (lib.strings) match toJSON toUpper;
 
   context = mkContext {
@@ -17,11 +18,11 @@
   };
 
   name = "chromium";
-  target = user.applications.browser.chromium or null;
+  browser = user.applications.browser or {};
 
   matches = pred: str: str != null && match pred str != null;
 
-  variant =
+  variantFor = target:
     if target == null
     then null
     #| Brave
@@ -37,6 +38,15 @@
     else if matches "viv" target
     then "vivaldi"
     else null;
+
+  targets = [
+    (browser.primary or null)
+    (browser.secondary or null)
+    (browser.tertiary or null)
+  ] ++ (user.applications.allowed or []);
+
+  target = findFirst (candidate: variantFor candidate != null) null targets;
+  variant = variantFor target;
 
   package =
     if variant != null
