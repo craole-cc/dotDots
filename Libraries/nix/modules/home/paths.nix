@@ -6,8 +6,8 @@
   inherit (_.strings.access) getEnv;
   inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
   inherit (_.lists.access) elemAt head toList;
-  inherit (_.strings.construction) concat;
-  inherit (_.strings.transformation) removePrefix removeSuffix splitString;
+  inherit (_.strings.construction) concat splitString;
+  inherit (_.strings.transformation) removePrefix removeSuffix;
   inherit (_.strings.predicates) hasPrefix;
 
   exports = rec {
@@ -127,6 +127,7 @@
              , user   :: AttrSet
              , pkgs   :: AttrSet
              , paths  :: AttrSet?
+             , env    :: AttrSet?
              } -> AttrSet
   ```
 
@@ -146,7 +147,7 @@
     user,
     pkgs,
     tree ? {},
-    env,
+    env ? {},
     ...
   }: let
     inherit
