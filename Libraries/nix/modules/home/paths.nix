@@ -5,7 +5,8 @@
   inherit (_.filesystem.tree) wallman;
   inherit (_.strings.access) getEnv;
   inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
-  inherit (_.lists.access) elemAt head toList;
+  inherit (_.lists.access) elemAt head;
+  inherit (_.lists.construction) toList;
   inherit (_.strings.construction) concat splitString;
   inherit (_.strings.transformation) removePrefix removeSuffix;
   inherit (_.strings.predicates) hasPrefix;
