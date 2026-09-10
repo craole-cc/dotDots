@@ -1,6 +1,5 @@
 {
   _,
-  _defaults,
   __moduleRef,
   ...
 }: let
@@ -140,9 +139,8 @@
   inherit (_.lists.access) elemAt head findFirst;
   inherit (_.lists.construction) optionals toList;
   inherit (_.lists.transformation) filter;
-  inherit (_.strings.construction) concatStringsSep optionalString;
+  inherit (_.strings.construction) concatStringsSep optionalString splitString splitStringBy;
   inherit (_.strings.predicates) isString;
-  inherit (_.strings.transformation) splitString splitStringBy;
   inherit (_.types.predicates) isDerivation;
 
   debug = mkModuleDebug __moduleRef;
