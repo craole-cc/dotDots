@@ -13,8 +13,12 @@
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.lists.construction) optionals;
+  inherit (lix.lists.selection) filter;
+  inherit (lix.lists.transformation) unique;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
+  inherit (lix.applications.registry) resolve;
+  inherit (lix.applications.runtime) resolvePackage;
   inherit
     (lix.applications.resolution)
     bars
@@ -64,6 +68,29 @@
       inherit pkgs system inputs;
       config = apps.bar or {};
     };
+
+    # File managers are registry-native even though the older application
+    # resolution helper has no explorer wrapper yet. Install every selected
+    # role so GUI/TUI file-manager choices are not accidental transitive deps.
+    explorerNames = filter (name: name != null) [
+      (apps.explorer.primary or null)
+      (apps.explorer.secondary or null)
+      (apps.explorer.tertiary or null)
+    ];
+    explorer = unique (filter (pkg: pkg != null) (
+      map (
+        name: let
+          app = resolve {
+            value = name;
+            category = "file-manager";
+          };
+        in
+          resolvePackage {
+            inherit app inputs pkgs system;
+          }
+      )
+      explorerNames
+    ));
 
     wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
     linux = optionals isLinux (with pkgs; [xsel]);
@@ -123,6 +150,7 @@
       helix
       imagemagick
       imv
+      jq
       jql
       nomacs
       qimgv
@@ -138,7 +166,7 @@
       lolcat
     ];
 
-    common = editor ++ browser ++ terminal ++ launcher ++ bar;
+    common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar;
     machine = wayland ++ linux ++ darwin;
     overall = default ++ common ++ machine;
   in {
@@ -146,6 +174,7 @@
       editor
       browser
       terminal
+      explorer
       launcher
       bar
       wayland
