@@ -25,57 +25,91 @@
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
 
-  # Scratchpads are an attrset keyed by workspace name. The schema owns the
-  # default bindings while user/host API values may recursively override each
-  # workspace's binding and startup list.
+  # Scratchpad keys/modifiers are normalized by the schema. Primary/secondary
+  # commands come from the same resolved application contract that exports the
+  # *_PRI/*_SEC session variables, so the bindings cannot drift from them.
   scratchpads = user.interface.keyboard.scratchpads or {};
+  scratchpadRoles = [
+    "primary"
+    "secondary"
+    "tertiary"
+  ];
 
-  mkDmsChord = scratchpad: let
-    binding = scratchpad.binding or {};
+  scratchpadApps = {
+    inherit (apps) terminal browser;
+    editor = apps.editor;
+    "file-manager" = apps.explorer;
+  };
+
+  defaultScratchpadCommand = category: role: let
+    categoryApps = scratchpadApps.${category} or {};
   in
+    if builtins.hasAttr role categoryApps
+    then categoryApps.${role}.command or null
+    else null;
+
+  scratchpadCommand = category: role: roleConfig: let
+    configured = roleConfig.command or null;
+  in
+    if configured != null
+    then configured
+    else defaultScratchpadCommand category role;
+
+  mkDmsChord = key: roleConfig:
     lib.concatStringsSep " + " (
-      builtins.filter (part: part != "") (lib.splitString " " (binding.mod or ""))
-      ++ [binding.key]
+      builtins.filter (part: part != "") (lib.splitString " " (roleConfig.mod or ""))
+      ++ [key]
     );
 
-  mkDmsScratchpadBind = workspace: scratchpad: let
-    binding = scratchpad.binding or {};
-  in
-    if (binding.key or null) == null
-    then ""
-    else let
-      chord = mkDmsChord scratchpad;
-    in ''
-      -- Scratchpads own their chord. DMS defaults are loaded first, so remove
-      -- any prior action (for example DMS's SUPER + M process-list binding).
-      hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${workspace} workspace"} })
+  mkLazyScratchpad = workspace: command:
+    pkgs.writeShellScript "dotdots-scratchpad-${workspace}" ''
+      set -euo pipefail
+
+      hyprctl=${lib.escapeShellArg "${pkgs.hyprland}/bin/hyprctl"}
+      workspace=${lib.escapeShellArg workspace}
+      special="special:$workspace"
+
+      # Spawn only when this role's scratchpad currently has no client. This
+      # makes scratchpads lazy on first use and recreates the app after it exits.
+      if ! "$hyprctl" clients -j \
+        | ${pkgs.jq}/bin/jq -e --arg workspace "$special" \
+          '.[] | select(.workspace.name == $workspace)' >/dev/null; then
+        "$hyprctl" dispatch exec ${lib.escapeShellArg "[workspace special:${workspace} silent] ${command}"} >/dev/null
+      fi
+
+      "$hyprctl" dispatch togglespecialworkspace "$workspace" >/dev/null
     '';
 
-  mkDmsScratchpadStartup = workspace: scratchpad:
-    lib.concatStringsSep "" (
-      map (
-        command: ''
-          hl.exec_cmd(${builtins.toJSON "[workspace special:${workspace} silent] ${command}"})
-        ''
-      ) (scratchpad.startup or [])
-    );
+  mkDmsScratchpadRoleBind = category: scratchpad: role: let
+    key = scratchpad.key or null;
+    roleConfig = scratchpad.${role} or {};
+    mod = roleConfig.mod or null;
+    command = scratchpadCommand category role roleConfig;
+  in
+    if key == null || mod == null || command == null || command == ""
+    then ""
+    else let
+      chord = mkDmsChord key roleConfig;
+      workspace = "${category}-${role}";
+      launcher = mkLazyScratchpad workspace command;
+    in ''
+      -- Each application role owns an independent lazy special workspace.
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, hl.dsp.exec_cmd(${builtins.toJSON "${launcher}"}), { description = ${builtins.toJSON "Toggle ${category} ${role} scratchpad"} })
+    '';
 
-  dmsScratchpadStartup =
-    lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadStartup scratchpads);
+  mkDmsScratchpadBinds = category: scratchpad:
+    lib.concatStringsSep "" (
+      map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
+    );
 
   dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" (
     ''
-      -- dotDots declarative scratchpads.
+      -- dotDots declarative lazy scratchpads.
       -- Defaults are schema-owned; user API overrides are already normalized.
       -- Inserted before DMS's mutable binds-user.lua so runtime overrides win.
     ''
-    + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBind scratchpads)
-    + lib.optionalString (dmsScratchpadStartup != "") ''
-
-      hl.on("hyprland.start", function()
-      ${dmsScratchpadStartup}end)
-    ''
+    + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBinds scratchpads)
   );
 
   dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
