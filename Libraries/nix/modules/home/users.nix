@@ -69,7 +69,22 @@
         nixosConfig = args.nixosConfig or null;
         user = spec // {inherit name;};
 
-        inputs' = mkApps {inherit user inputs modules;};
+        # Resolve interface first, then use that normalized protocol to resolve
+        # protocol-specific application preferences. Leaf modules receive the
+        # normalized application contract through `user.applications`, so they
+        # never need to reinterpret API conditionals themselves.
+        enrichedInterface = mkUI {inherit host user;};
+        interfaceUser = user // {interface = enrichedInterface;};
+        enrichedApplications = mkApplications {
+          inherit host;
+          user = interfaceUser;
+        };
+        moduleUser = interfaceUser // {applications = enrichedApplications.raw;};
+
+        inputs' = mkApps {
+          inherit inputs modules;
+          user = moduleUser;
+        };
         mkInput = name:
           optionalAttrs
           (inputs' ? ${name}.module)
@@ -82,16 +97,26 @@
             (input != {})
             [inputs'.${name}.module])
           names;
-
-        enrichedInterface = mkUI {inherit host user;};
       in {
         _module.args = {
-          style = mkStyle {inherit host user;};
-          user = user // {interface = enrichedInterface;};
-          apps = mkApplications {inherit host user;};
-          keyboard = mkKeyboard {inherit host user;};
-          locale = mkLocale {inherit host user;};
-          paths = mkSessionPaths {inherit config host user pkgs paths;};
+          style = mkStyle {
+            inherit host;
+            user = moduleUser;
+          };
+          user = moduleUser;
+          apps = enrichedApplications;
+          keyboard = mkKeyboard {
+            inherit host;
+            user = moduleUser;
+          };
+          locale = mkLocale {
+            inherit host;
+            user = moduleUser;
+          };
+          paths = mkSessionPaths {
+            inherit config host pkgs paths;
+            user = moduleUser;
+          };
           # `inputs` is the canonical normalized flake-input contract.
           # Keep the per-user app/module selections separate so leaf modules
           # can reliably resolve inputs such as `vscode-insiders`.
@@ -124,7 +149,7 @@
             "zen-browser"
           ]
           ++ [paths.store.mod.home]
-          ++ (user.imports or []);
+          ++ (moduleUser.imports or []);
       }
     ) (homeUsers host);
 in
