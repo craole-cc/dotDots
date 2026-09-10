@@ -49,14 +49,17 @@
       #? YAML formatter
       "bluebrown.yamlfmt"
       #? TOML LSP and formatter
-      "tamasfe.even-better-toml"
+      "tombi-toml.tombi"
+      #? SQL formatter
+      "adpyke.vscode-sql-formatter"
       #? INI/properties formatter
       "lkrms.inifmt"
       #? KDL document language support
       "kdl-org.kdl"
     ];
     userSettings = {
-      "[toml]"."editor.defaultFormatter" = "tamasfe.even-better-toml";
+      "[toml]"."editor.defaultFormatter" = "tombi-toml.tombi";
+      "[sql]"."editor.defaultFormatter" = "adpyke.vscode-sql-formatter";
       "[yaml]"."editor.defaultFormatter" = "redhat.vscode-yaml";
       "[github-actions-workflow]"."editor.defaultFormatter" = "redhat.vscode-yaml";
       "redhat.telemetry.enabled" = false;
@@ -64,7 +67,7 @@
   };
 
   typst = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Typst LSP and preview
       "myriad-dreamin.tinymist"
