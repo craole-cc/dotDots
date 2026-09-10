@@ -42,14 +42,10 @@
       swapCapsEscape = false;
       vimKeybinds = false;
 
-      # Binding defaults are schema-owned:
-      # terminal=SUPER+grave, editor=SUPER+C, browser=SUPER+B,
-      # media=SUPER+M, file-manager=SUPER+E.
-      scratchpads.terminal.startup = [
-        "kitty"
-        "foot"
-        "ghostty"
-      ];
+      # Scratchpad keys and role modifiers are schema-owned. Primary and
+      # secondary commands follow the normalized application contract. Kitty is
+      # Craole's explicit tertiary terminal scratchpad.
+      scratchpads.terminal.tertiary.command = "kitty";
 
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
@@ -163,9 +159,10 @@
       };
     };
     terminal = {
-      # Kitty remains the protocol-neutral schema default. Craole prefers Foot
-      # when the normalized session protocol is Wayland.
-      secondary = "warp-terminal";
+      # Kitty remains the protocol-neutral schema default. On Wayland Craole
+      # promotes Foot to primary and Ghostty to secondary; Kitty remains the
+      # explicit tertiary scratchpad while Warp stays installed as an extra.
+      secondary = "ghostty";
       wayland.primary = "foot";
     };
     launcher = {
