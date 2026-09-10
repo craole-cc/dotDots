@@ -43,6 +43,7 @@
     # Terminals
     ../terminal/core/foot
     ../terminal/core/ghostty
+    ../terminal/core/kitty
     ../terminal/tools/tmux
 
     # Version control
