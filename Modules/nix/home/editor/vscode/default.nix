@@ -9,6 +9,7 @@
 }: let
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault;
   inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.predicates) waylandEnabled;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.options.construction) mkEnable;
 
@@ -83,9 +84,16 @@
     vscodeExtensions = profile.extensions;
   };
 
+  hasWayland = waylandEnabled {
+    inherit config;
+    interface = user.interface or {};
+  };
+
   # Stable VS Code is deliberately mutable: install the FHS package, but do
   # not enable Home Manager's programs.vscode profile/file management. Insiders
   # is the declarative editor and gets the managed settings + extension set.
+  # Both are baseline GUI tools whenever Wayland is available; the application
+  # role only controls VISUAL_* session variables, not whether either is present.
   resolved = userApplicationConfig {
     inherit context user pkgs;
     name = "vscode";
@@ -105,13 +113,15 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = resolved.enable;
+        condition = hasWayland;
       };
       withExtensions = features.options;
     };
     outputs = {
       inherit (resolved) home;
 
+      # Only Insiders is declarative. Stable `code` owns ~/.config/Code and
+      # ~/.vscode itself so settings/extensions can be changed interactively.
       xdg.configFile = {
         "Code - Insiders/User/settings.json".source =
           jsonFormat.generate "vscode-insiders-settings.json" profile.userSettings;
