@@ -1,20 +1,14 @@
 {lib, ...}: let
-  inherit (lib.modules) mkMerge mkDefault;
+  inherit (lib.modules) mkForce;
 
   bindings = import ./bindings.nix {};
-  editor = import ./editor.nix {inherit mkDefault;};
-  files = import ./files.nix {};
-  global = import ./global.nix {};
-  terminal = import ./terminal.nix {inherit mkDefault;};
-in
-  mkMerge [
-    {
-      userSettings = mkMerge [
-        editor.userSettings
-        terminal.userSettings
-        files.userSettings
-        global.userSettings
-      ];
-    }
-    {inherit (bindings) keybindings;}
-  ]
+  learnedSettings = builtins.fromJSON (builtins.readFile ./settings.json);
+in {
+  # Stable VS Code is the mutable learning environment. The settings captured
+  # from it are the authoritative declarative baseline for Insiders; feature
+  # modules still select extensions, while DMS may overlay runtime-owned theme
+  # keys after this profile is evaluated.
+  userSettings = mkForce learnedSettings;
+
+  inherit (bindings) keybindings;
+}
