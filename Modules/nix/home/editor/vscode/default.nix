@@ -63,7 +63,21 @@
     }).config;
 
   system = pkgs.stdenv.hostPlatform.system;
-  insidersBase = inputs.vscode-insiders.packages.${system}.vscode-insiders;
+  insidersRaw = inputs.vscode-insiders.packages.${system}.vscode-insiders;
+
+  # vscode-insiders-nix derives from nixpkgs' stable VS Code package and keeps
+  # its passthru metadata. Correct that metadata before feeding it to
+  # vscode-with-extensions so the wrapper targets code-insiders and the
+  # Insiders desktop/icon names rather than stable `code`.
+  insidersBase = insidersRaw.overrideAttrs (old: {
+    passthru =
+      (old.passthru or {})
+      // {
+        executableName = "code-insiders";
+        longName = "Visual Studio Code - Insiders";
+        iconName = "vscode-insiders";
+      };
+  });
   insiders = pkgs.vscode-with-extensions.override {
     vscode = insidersBase;
     vscodeExtensions = profile.extensions;
