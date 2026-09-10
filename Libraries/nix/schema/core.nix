@@ -95,12 +95,13 @@
 
   /**
   Enrich a single host with user data, shell policy, interface normalization,
-  and metadata.
+  settings normalization, and metadata.
   */
   mkCore = {
     name,
     host,
     users,
+    settings ? {},
     shells ? {},
     roots ? {},
     stems ? {},
@@ -140,6 +141,15 @@
         users
         exclusions
         ;
+
+      # mkSchema normalizes global + host package/library settings before
+      # calling mkCore. Keep the canonical settings tree and project the
+      # normalized aliases back onto the host so existing consumers of
+      # host.packages / host.libraries see the merged schema values rather
+      # than only the sparse per-host declarations.
+      inherit settings;
+      packages = settings.pkg or settings.packages or (host.packages or {});
+      libraries = settings.lib or settings.libraries or (host.libraries or {});
 
       id =
         if (host.id or null) != null
