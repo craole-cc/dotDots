@@ -22,7 +22,7 @@
     extraProgramConfig = mkMerge [
       (import ./general.nix)
       (import ./input.nix)
-      (import ./themes.nix)
+      (import ./themes.nix {inherit lix;})
     ];
     debug = false;
   };
@@ -33,12 +33,5 @@ in
       inherit context;
       condition = resolved.enable;
     };
-    outputs = {
-      inherit (resolved) programs home;
-
-      # Ghostty owns its light/dark theme pair and follows the desktop color
-      # scheme. Stylix's Ghostty target replaces `settings.theme` with its
-      # static generated theme, which prevents runtime light/dark switching.
-      stylix.targets.ghostty.enable = false;
-    };
+    outputs = {inherit (resolved) programs home;};
   }
