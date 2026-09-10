@@ -46,6 +46,9 @@
     else let
       chord = mkDmsChord scratchpad;
     in ''
+      -- Scratchpads own their chord. DMS defaults are loaded first, so remove
+      -- any prior action (for example DMS's SUPER + M process-list binding).
+      hl.unbind(${builtins.toJSON chord})
       hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${workspace} workspace"} })
     '';
 
@@ -53,7 +56,7 @@
     lib.concatStringsSep "" (
       map (
         command: ''
-          hl.exec_cmd(${builtins.toJSON command}, { workspace = ${builtins.toJSON "special:${workspace} silent"} })
+          hl.exec_cmd(${builtins.toJSON "[workspace special:${workspace} silent] ${command}"})
         ''
       ) (scratchpad.startup or [])
     );
