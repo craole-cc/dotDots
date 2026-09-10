@@ -24,6 +24,11 @@
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
+  dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
+    ${pkgs.gnused}/bin/sed \
+      '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
+      ${dmsEmbedded}/hyprland.lua > "$out"
+  '';
   dmsBinds = pkgs.runCommand "dms-hypr-binds.lua" {} ''
     substitute \
       ${dmsEmbedded}/hypr-binds.lua \
@@ -81,14 +86,16 @@
 
     # DMS's compositor setup is intentionally not part of the runtime workflow.
     # Materialize the DMS 1.6 Lua entrypoint from the exact dms-shell package
-    # source selected by Nix. DMS owns the writable dms/*.lua state files; Nix
-    # seeds them when absent and refreshes only the DMS-owned default binds.
+    # source selected by Nix. UWSM owns session activation, so strip DMS's
+    # legacy hyprland-session.target hook from the upstream template. DMS owns
+    # writable dms/*.lua state; Nix seeds it when absent and refreshes only the
+    # DMS-owned default binds.
     home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''
       config_dir=${lib.escapeShellArg config.xdg.configHome}/hypr
       dms_dir="$config_dir/dms"
 
       ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
-      ${pkgs.coreutils}/bin/install -m 0644 ${dmsEmbedded}/hyprland.lua "$config_dir/hyprland.lua"
+      ${pkgs.coreutils}/bin/install -m 0644 ${dmsRoot} "$config_dir/hyprland.lua"
       ${pkgs.coreutils}/bin/install -m 0644 ${dmsBinds} "$dms_dir/binds.lua"
 
       seed() {
