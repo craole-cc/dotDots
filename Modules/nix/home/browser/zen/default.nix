@@ -42,10 +42,10 @@
   isAllowed = builtins.any isZen allowed;
   variant = twilight.package.attribute;
   darwinName = "${name}-${variant}";
+  system = pkgs.stdenv.hostPlatform.system;
   package = resolvePackage {
     app = twilight;
-    inherit inputs pkgs;
-    inherit (pkgs) system;
+    inherit inputs pkgs system;
   };
 
   enable = isPrimary || isSecondary || isAllowed;
@@ -80,11 +80,11 @@ in
       home.sessionVariables =
         if isPrimary
         then {
-          BROWSER = lib.mkForce "zen";
-          BROWSER_PRI = lib.mkForce "zen";
+          BROWSER = lib.mkForce twilight.exec;
+          BROWSER_PRI = lib.mkForce twilight.exec;
         }
         else if isSecondary
-        then {BROWSER_SEC = lib.mkForce "zen";}
+        then {BROWSER_SEC = lib.mkForce twilight.exec;}
         else {};
     };
   }
