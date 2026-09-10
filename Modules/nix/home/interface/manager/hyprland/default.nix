@@ -21,16 +21,20 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) bool;
 
+  dmsEnabled = config.programs.dank-material-shell.enable or false;
+
   mkAddons = target:
     mkIf cfg.withAddons (import ./addons {
-      inherit lib mkMerge;
-      dmsEnabled = config.programs.dank-material-shell.enable or false;
+      inherit lib mkMerge dmsEnabled;
     }).${target};
 
   payload = {
     wayland.windowManager.hyprland = mkMerge [
       {
-        enable = cfg.enable;
+        # DMS owns the active Hyprland Lua configuration when enabled. Keeping
+        # Home Manager's Hyprland module active at the same time recreates the
+        # legacy hyprland.conf that DMS is trying to migrate away from.
+        enable = cfg.enable && !dmsEnabled;
         configType = "hyprlang";
         plugins = [];
 
@@ -65,13 +69,6 @@
     programs = mkAddons "programs";
     services = mkAddons "services";
 
-    home.activation.removeLegacyHyprlandLua = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      legacy="$HOME/.config/hypr/hyprland.lua"
-      if [ -e "$legacy" ] || [ -L "$legacy" ]; then
-        rm -f "$legacy"
-      fi
-    '';
-
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in
     # /run/current-system/sw/share/xdg-desktop-portal/portals. Remove only the
     # known stale copies; the system packages remain the source of truth.
@@ -83,16 +80,6 @@
           rm -f "$path"
         fi
       done
-    '';
-
-    home.activation.normalizeDmsHyprlandOutputs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-            outputs="$HOME/.config/hypr/dms/outputs.conf"
-            mkdir -p "$(dirname "$outputs")"
-            cat > "$outputs" <<'EOF_DMS_OUTPUTS'
-      # Managed by Home Manager; keep monitor syntax compatible with Hyprland.
-      monitor = eDP-1, 1920x1080@144, 0x0, 1
-      monitor = HDMI-A-1, 1920x1080@100, 0x1080, 1
-      EOF_DMS_OUTPUTS
     '';
   };
 in
