@@ -42,22 +42,33 @@
       swapCapsEscape = false;
       vimKeybinds = false;
 
-      # Special-workspace defaults live in the keyboard schema. Override only
-      # the pieces that differ for this user; omitted fields inherit defaults.
-      # bindings = {
-      #   specialTerminal = {
-      #     mod = "SUPER";
-      #     key = "grave";
-      #   };
-      #   specialEditor = {
-      #     mod = "SUPER SHIFT";
-      #     key = "grave";
-      #   };
-      #   specialBrowser = {
-      #     mod = "SUPER CTRL";
-      #     key = "grave";
-      #   };
-      # };
+      # Scratchpad names and binding defaults are schema-owned. User values
+      # recursively override only the fields declared here.
+      scratchpads = {
+        terminal = {
+          startup = [
+            "kitty"
+            "foot"
+            "ghostty"
+          ];
+        };
+        # editor.binding = {
+        #   mod = "SUPER SHIFT";
+        #   key = "grave";
+        # };
+        # browser.binding = {
+        #   mod = "SUPER CTRL";
+        #   key = "grave";
+        # };
+        # media.binding = {
+        #   mod = "SUPER ALT";
+        #   key = "grave";
+        # };
+        # "file-manager".binding = {
+        #   mod = "SUPER ALT SHIFT";
+        #   key = "grave";
+        # };
+      };
 
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
@@ -187,6 +198,7 @@
       "fastfetch"
       "foot"
       "freetube"
+      "kitty"
       "warp-terminal"
       "jujutsu"
       "obs-studio"
