@@ -146,30 +146,34 @@
     services = mkAddons "services";
 
     # DMS's compositor setup is intentionally not part of the runtime workflow.
-    # Materialize the DMS 1.6 Lua entrypoint from the exact dms-shell package
-    # source selected by Nix. UWSM owns session activation, so strip DMS's
-    # legacy hyprland-session.target hook from the upstream template. The
-    # dotDots-owned binds are embedded directly into the root Lua file before
-    # DMS's mutable binds-user.lua, avoiding a second runtime Lua module path.
+    # Materialize all dependencies before atomically replacing the active Lua
+    # entrypoint. Hyprland watches this path, so replacing it last avoids a
+    # transient reload against a missing or half-written configuration.
     home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''
       config_dir=${lib.escapeShellArg config.xdg.configHome}/hypr
       dms_dir="$config_dir/dms"
 
       ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
-      ${pkgs.coreutils}/bin/install -m 0644 ${dmsRoot} "$config_dir/hyprland.lua"
-      ${pkgs.coreutils}/bin/install -m 0644 ${dmsBinds} "$dms_dir/binds.lua"
 
-      # This was briefly a separately required module. It is now embedded in
-      # hyprland.lua so the compositor has no extra runtime lookup dependency.
-      ${pkgs.coreutils}/bin/rm -f "$dms_dir/binds-dots.lua"
+      atomic_install() {
+        src="$1"
+        dst="$2"
+        tmp="$dst.new.$$"
+        ${pkgs.coreutils}/bin/install -m 0644 "$src" "$tmp"
+        ${pkgs.coreutils}/bin/mv -f "$tmp" "$dst"
+      }
 
       seed() {
         src="$1"
         dst="$2"
         if [ ! -s "$dst" ]; then
-          ${pkgs.coreutils}/bin/install -m 0644 "$src" "$dst"
+          atomic_install "$src" "$dst"
         fi
       }
+
+      # This was briefly a separately required module. It is now embedded in
+      # hyprland.lua so the compositor has no extra runtime lookup dependency.
+      ${pkgs.coreutils}/bin/rm -f "$dms_dir/binds-dots.lua"
 
       seed ${dmsEmbedded}/hypr-binds-user.lua "$dms_dir/binds-user.lua"
       seed ${dmsEmbedded}/hypr-colors.lua "$dms_dir/colors.lua"
@@ -177,6 +181,18 @@
       seed ${dmsEmbedded}/hypr-layout.lua "$dms_dir/layout.lua"
       seed ${dmsEmbedded}/hypr-outputs.lua "$dms_dir/outputs.lua"
       seed ${dmsEmbedded}/hypr-windowrules.lua "$dms_dir/windowrules.lua"
+
+      # The root Lua requires dms/binds.lua, so install that first and replace
+      # hyprland.lua last. Both replacements are same-directory atomic renames.
+      atomic_install ${dmsBinds} "$dms_dir/binds.lua"
+      atomic_install ${dmsRoot} "$config_dir/hyprland.lua"
+
+      # Home Manager may run inside the live session. If Hyprland's instance
+      # environment is available, reload once after the complete tree exists so
+      # a stale transient config error is cleared without making activation fail.
+      if [ -n "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
+        hyprctl reload >/dev/null 2>&1 || true
+      fi
     '');
 
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in
