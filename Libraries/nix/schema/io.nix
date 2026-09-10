@@ -8,8 +8,7 @@
   inherit (_.strings.construction) concatStringsSep;
   inherit (_.options.construction) mkOption mkEnableOption;
   inherit (_.types.primitives) str;
-  inherit (_.types.combinators) attrsOf nullOr;
-  inherit (_.types.combinators) submodule;
+  inherit (_.types.combinators) attrsOf listOf nullOr submodule;
 
   __exports = {
     internal =
@@ -46,9 +45,18 @@
             type = nullOr str;
             default = null;
           };
-          workspace = mkOption {
-            type = nullOr str;
-            default = null;
+        };
+      };
+
+      scratchpad = submodule {
+        options = {
+          binding = mkOption {
+            type = keybinding;
+            default = {};
+          };
+          startup = mkOption {
+            type = listOf str;
+            default = [];
           };
         };
       };
@@ -65,6 +73,10 @@
             type = attrsOf keybinding;
             default = {};
           };
+          scratchpads = mkOption {
+            type = attrsOf scratchpad;
+            default = {};
+          };
         };
       };
     };
@@ -76,6 +88,38 @@
     keyboard = {
       modifier = concatStringsSep " " mod;
       swapCapsEscape = true;
+
+      scratchpads = {
+        terminal = {
+          binding = {
+            inherit mod;
+            key = "grave";
+          };
+          startup = [];
+        };
+        editor = {
+          binding = {
+            mod = mod ++ ["SHIFT"];
+            key = "grave";
+          };
+          startup = [];
+        };
+        browser = {
+          binding = {
+            mod = mod ++ ["CTRL"];
+            key = "grave";
+          };
+          startup = [];
+        };
+        media = {
+          binding = {};
+          startup = [];
+        };
+        "file-manager" = {
+          binding = {};
+          startup = [];
+        };
+      };
 
       bindings = {
         # ── Applications ─────────────────────────────────────────────────────────
@@ -133,26 +177,6 @@
           mod = mod ++ ["SHIFT"];
           key = "SPACE";
           action = "$LAUNCHER_SEC";
-        };
-
-        # ── Special workspaces ───────────────────────────────────────────────────
-        # These are compositor actions, so `action` remains null. Consumers use
-        # `workspace`, `mod`, and `key`; user/host API values recursively override
-        # these defaults before normalizeKeyboard converts modifier lists to strings.
-        specialTerminal = {
-          inherit mod;
-          key = "grave";
-          workspace = "terminal";
-        };
-        specialEditor = {
-          mod = mod ++ ["SHIFT"];
-          key = "grave";
-          workspace = "editor";
-        };
-        specialBrowser = {
-          mod = mod ++ ["CTRL"];
-          key = "grave";
-          workspace = "browser";
         };
 
         # ── Window state ─────────────────────────────────────────────────────────
