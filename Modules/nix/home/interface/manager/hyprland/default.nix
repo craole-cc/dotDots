@@ -24,13 +24,43 @@
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
-  dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" ''
-    -- dotDots declarative special-workspace bindings.
-    -- Inserted before DMS's mutable binds-user.lua so user overrides win.
-    hl.bind("SUPER + grave", hl.dsp.workspace.toggle_special("terminal"), { description = "Toggle terminal workspace" })
-    hl.bind("SUPER + SHIFT + grave", hl.dsp.workspace.toggle_special("editor"), { description = "Toggle editor workspace" })
-    hl.bind("SUPER + CTRL + grave", hl.dsp.workspace.toggle_special("browser"), { description = "Toggle browser workspace" })
-  '';
+
+  # Special-workspace bindings come from the normalized interface schema. The
+  # schema supplies defaults while host/user API values may recursively replace
+  # `mod`, `key`, or `workspace`. Setting key/workspace to null disables a bind.
+  specialWorkspaceBindings = let
+    bindings = user.interface.keyboard.bindings;
+  in [
+    bindings.specialTerminal
+    bindings.specialEditor
+    bindings.specialBrowser
+  ];
+
+  mkDmsChord = binding:
+    lib.concatStringsSep " + " (
+      builtins.filter (part: part != "") (lib.splitString " " (binding.mod or ""))
+      ++ [binding.key]
+    );
+
+  mkDmsSpecialBind = binding:
+    if (binding.key or null) == null || (binding.workspace or null) == null
+    then ""
+    else let
+      chord = mkDmsChord binding;
+      workspace = binding.workspace;
+    in ''
+      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${workspace} workspace"} })
+    '';
+
+  dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" (
+    ''
+      -- dotDots declarative special-workspace bindings.
+      -- Defaults are schema-owned; user API overrides are already normalized.
+      -- Inserted before DMS's mutable binds-user.lua so runtime overrides win.
+    ''
+    + lib.concatStringsSep "" (map mkDmsSpecialBind specialWorkspaceBindings)
+  );
+
   dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
     ${pkgs.gnused}/bin/sed \
       '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
