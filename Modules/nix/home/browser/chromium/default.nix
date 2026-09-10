@@ -1,6 +1,5 @@
 {
   config,
-  policies,
   lib,
   lix,
   user,
@@ -9,9 +8,7 @@
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
-  inherit (lib.strings) toUpper;
-  inherit (lib.strings) match toJSON;
-  inherit (policies) webGui;
+  inherit (lib.strings) match toJSON toUpper;
 
   context = mkContext {
     inherit config;
@@ -21,22 +18,20 @@
 
   name = "chromium";
   target = user.applications.browser.chromium or null;
-  normalizedTarget =
-    if target == null
-    then "default"
-    else target;
 
   matches = pred: str: str != null && match pred str != null;
 
   variant =
+    if target == null
+    then null
     #| Brave
-    if matches "brave" target
+    else if matches "brave" target
     then "brave"
     #| Chrome
     else if matches "chrome" target
     then "google-chrome"
     #| Chromium
-    else if normalizedTarget == "default" || matches "chromium" target || matches "ungoogled" target
+    else if target == "default" || matches "chromium" target || matches "ungoogled" target
     then "chromium"
     #| Vivaldi
     else if matches "viv" target
@@ -48,18 +43,16 @@
     then pkgs.${variant}
     else null;
 
-  enable = webGui && variant != null;
+  enable = variant != null;
 
   debug = {
     key = "_dbg_${toUpper name}";
     val = toJSON {
       criteria = {
-        inherit webGui;
         targetRequested =
           if target == null
           then "undefined"
           else target;
-        normalized = normalizedTarget;
         valid = enable;
       };
       resolved = {
