@@ -197,7 +197,7 @@
       #   package = <derivation helix-...>;
       #   command = "hx";
       #   isPrimary = true;
-      #   isPlatformCompatible = true;  # no platform requirements
+      #   isPlatformCompatible = true;
       #   isAllowed = true;
       #   sessionVariables = { EDITOR = "hx"; EDITOR_NAME = "helix"; };
       #   ...
@@ -215,12 +215,6 @@
         requiresWayland = true;
         customCommand = "feet";
       }
-      # => {
-      #   name = "foot";
-      #   isPlatformCompatible = true;  # only if Wayland is available
-      #   isAllowed = true;  # only if wayland check passes
-      #   ...
-      # }
   ```
       :::
 
@@ -237,7 +231,7 @@
       :::
 
       # Type
-  ```
+  ```nix
       application :: {
         user :: AttrSet,
         pkgs :: AttrSet,
@@ -282,6 +276,7 @@
     debug ? false,
     ...
   }: let
+    #~@ Package Resolution
     package =
       if customPackage != null
       then customPackage
@@ -307,6 +302,7 @@
       then baseNameOf command
       else null;
 
+    #~@ Complete Identifiers - FILTER OUT NULL VALUES
     identifiers = unique (
       filter (x: x != null) (
         [
@@ -318,6 +314,7 @@
       )
     );
 
+    #~@ Role Classification — inert when kind is null
     default =
       if kind == null
       then null
@@ -328,6 +325,7 @@
     isSecondary = kind != null && isIn (default.secondary or null) identifiers;
     isRequested = isIn identifiers (user.applications.allowed or []);
 
+    #~@ Platform Compatibility — unchanged, doesn't touch kind
     checkPlatform = requiresWayland || requiresX11;
     isWaylandAvailable =
       if requiresWayland
@@ -345,6 +343,7 @@
 
     isAllowed = packageFound && (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
 
+    #~@ Environment — var/varWithCategory only meaningful when kind != null
     var =
       if kind != null
       then toUpper kind
@@ -439,16 +438,8 @@
 
       variablesWithPlatform = ''
         │  Compatible: ${fromBool isPlatformCompatible}
-        ${
-          if requiresWayland
-          then "│     Wayland: ${fromBool isWaylandAvailable}"
-          else "│"
-        }
-        ${
-          if requiresWayland
-          then "│         X11: ${fromBool isX11Available}"
-          else "│"
-        }
+        ${if requiresWayland then "│     Wayland: ${fromBool isWaylandAvailable}" else "│"}
+        ${if requiresWayland then "│         X11: ${fromBool isX11Available}" else "│"}
         ${variables}'';
 
       variables =
@@ -459,30 +450,64 @@
       debug = ''
         ╭─ mkApplication ${name} ────│ ${status} │
         │        Kind: ${kind}${optionalString (category != null) " (${category})"}
-        │     Command: ${
-          if command != null
-          then command
-          else "null (package not found)"
-        }
+        │     Command: ${if command != null then command else "null (package not found)"}
         │ Identifiers: [${concatStringsSep ", " identifiers}]
-        │     Package: ${
-          if packageFound
-          then package.name or package
-          else "not found"
-        }
-        ${
-          if checkPlatform
-          then variablesWithPlatform
-          else variables
-        }
+        │     Package: ${if packageFound then package.name or package else "not found"}
+        ${if checkPlatform then variablesWithPlatform else variables}
         ╰──────────────────────────────
       '';
     };
+    #~@ Debug Output
   in
     if debug
     then trace output.debug export
     else export;
 
+  /**
+      Generate a home-manager module configuration for an application.
+
+      This is a convenience function that creates the standard structure for
+      a home-manager program configuration with session variables and packages.
+      It does NOT handle conditional logic - callers should wrap with `mkIf`
+      or other module system functions as needed.
+
+      # Inputs
+
+      `name`
+
+      : Application name, used as the key in `programs.<name>`.
+
+      `package`
+
+      : Package derivation to install.
+
+      `extraConfig` (optional, default: `{}`)
+
+      : Program-specific configuration to merge into `programs.<name>`.
+
+      `sessionVariables` (optional, default: `{}`)
+
+      : Environment variables to set in `home.sessionVariables`.
+
+      `extraPackages` (optional, default: `[]`)
+
+      : Additional packages to install in `home.packages`.
+
+      # Output
+
+      Returns an attribute set with `programs.<name>` and `home` configuration.
+
+      # Type
+  ```nix
+      program :: {
+        name :: String,
+        package :: Derivation,
+        extraConfig :: AttrSet,
+        sessionVariables :: AttrSet,
+        extraPackages :: [Derivation],
+      } -> AttrSet
+  ```
+  */
   program = {
     config,
     name,
@@ -506,6 +531,7 @@
     };
     exports = {
       inherit programs home;
+      # inherit config;
     };
   in
     exports;
@@ -559,21 +585,9 @@
 
     testVariables = optionalAttrs resolved.debug {
       "__${moduleName}" =
-        (
-          if hasHome
-          then "${moduleName} is a home config"
-          else "${moduleName} is a core config"
-        )
-        + (
-          if hasProg
-          then " with an existing programs module"
-          else " without a programs module"
-        )
-        + (
-          if enable
-          then ". It should be enabled"
-          else ". It should not be enabled"
-        );
+        (if hasHome then "${moduleName} is a home config" else "${moduleName} is a core config")
+        + (if hasProg then " with an existing programs module" else " without a programs module")
+        + (if enable then ". It should be enabled" else ". It should not be enabled");
     };
 
     inherit (resolved) package;
