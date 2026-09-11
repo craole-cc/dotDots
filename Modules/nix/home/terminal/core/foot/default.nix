@@ -7,7 +7,8 @@
   pkgs,
   ...
 }: let
-  inherit (lix.modules.construction) mkContext mkConfig mkMerge;
+  inherit (lib.modules) mkMerge;
+  inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.construction) mkScriptWrappers;
@@ -25,6 +26,7 @@
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
   dmsColorsPath = "~/.config/foot/dotdots-dms-colors.ini";
+  footSystemdTarget = config.programs.foot.server.systemdTarget;
 
   themeSync = pkgs.writeShellApplication {
     name = "feet-theme-sync";
@@ -177,15 +179,15 @@ in
           systemd.user.services.feet-theme-sync = {
             Unit = {
               Description = "Synchronize Foot with Dank Material Shell";
-              PartOf = ["graphical-session.target"];
-              After = ["graphical-session.target"];
+              PartOf = [footSystemdTarget];
+              After = [footSystemdTarget];
             };
             Service = {
               ExecStart = "${themeSync}/bin/feet-theme-sync monitor";
               Restart = "on-failure";
               RestartSec = "2s";
             };
-            Install.WantedBy = ["graphical-session.target"];
+            Install.WantedBy = [footSystemdTarget];
           };
 
           # Activation may run before DMS has generated its color state. The
