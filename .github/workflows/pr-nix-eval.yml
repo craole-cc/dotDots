@@ -60,7 +60,7 @@ jobs:
           test "$gnome" = true
           test "$dms_shell" = true
           test "$greeter" = true
-          test "$session" = hyprland-uwsm
+          test "$session" = hyprland-dms-uwsm
 
       - name: Validate Victus staged Home contract
         run: |
