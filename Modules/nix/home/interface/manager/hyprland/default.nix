@@ -95,9 +95,9 @@
       special = "special:${workspace}";
       description = "Toggle ${category} ${role} scratchpad";
     in ''
-      -- Hyprland 0.55+ owns scratchpads natively in Lua. Creating the special
-      -- workspace lazily runs the role command; closing the final client drops
-      -- the workspace, so the next toggle recreates both workspace and app.
+      -- Hyprland owns scratchpad lifecycle. The role command stays application-
+      -- specific (for example `feet` retains its Foot server/client policy),
+      -- while the compositor owns lazy workspace creation and visibility.
       hl.workspace_rule({ workspace = ${builtins.toJSON special}, on_created_empty = ${builtins.toJSON command} })
       hl.unbind(${builtins.toJSON chord})
       hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON description} })
