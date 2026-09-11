@@ -74,7 +74,7 @@ jobs:
           test "$home_user" = craole
           test "$home_wm" = hyprland
           test "$home_panel" = dms-shell
-          test "$home_hyprland" = true
+          test "$home_hyprland" = false
           test "$home_dms" = true
 
       - name: Evaluate Victus system derivation without warnings
