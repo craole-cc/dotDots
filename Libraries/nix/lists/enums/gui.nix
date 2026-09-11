@@ -1,4 +1,5 @@
 {_, ...}: let
+  inherit (_.lists.access) length;
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
 
@@ -351,7 +352,7 @@ in {
       };
       correctCount = mkTest {
         desired = 13;
-        outcome = builtins.length desktopEnvironments.values;
+        outcome = length desktopEnvironments.values;
       };
     };
 
@@ -378,7 +379,7 @@ in {
       };
       correctCount = mkTest {
         desired = 16;
-        outcome = builtins.length windowManagers.values;
+        outcome = length windowManagers.values;
       };
     };
 
@@ -405,7 +406,7 @@ in {
       };
       correctCount = mkTest {
         desired = 8;
-        outcome = builtins.length waylandSupport.values;
+        outcome = length waylandSupport.values;
       };
     };
   };
