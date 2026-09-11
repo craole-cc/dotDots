@@ -7,11 +7,15 @@
   user,
   ...
 }: let
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault;
-  inherit (lix.attrsets.access) attrNames;
-  inherit (lix.attrsets.predicates) waylandEnabled;
   inherit (lix.applications.generators) userApplicationConfig;
+  inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.construction) listToAttrs;
+  inherit (lix.attrsets.predicates) waylandEnabled;
+  inherit (lix.filesystem.access) readFile;
+  inherit (lix.filesystem.traversal) readDir;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault;
   inherit (lix.options.construction) mkEnable;
+  inherit (lix.strings.construction) fromJSON;
 
   context = mkContext {
     inherit config;
@@ -21,7 +25,7 @@
   };
   inherit (context) cfg;
 
-  base = import ./base/default.nix {inherit lib mkDefault;};
+  base = import ./base/default.nix {inherit lib lix mkDefault;};
   features = import ./features/default.nix {
     inherit
       lib
@@ -90,7 +94,7 @@
   # directory. Keep this one extension mutable because Matugen rewrites its
   # theme JSON files whenever DMS colors change.
   dmsThemeSource = "${inputs.dank-material-shell.outPath}/quickshell/matugen/vsix-build";
-  dmsThemeMeta = builtins.fromJSON (builtins.readFile "${dmsThemeSource}/package.json");
+  dmsThemeMeta = fromJSON (readFile "${dmsThemeSource}/package.json");
   dmsThemeDir = "danklinux.dms-theme-${dmsThemeMeta.version}";
 
   # Insiders remains declarative while using its normal mutable extensions
@@ -99,9 +103,9 @@
   extensionNames = extension:
     if extension ? vscodeExtUniqueId
     then [extension.vscodeExtUniqueId]
-    else attrNames (builtins.readDir "${extension}/share/vscode/extensions");
+    else attrNames (readDir "${extension}/share/vscode/extensions");
 
-  insidersExtensionFiles = builtins.listToAttrs (
+  insidersExtensionFiles = listToAttrs (
     lib.concatMap
     (extension:
       map
