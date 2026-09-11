@@ -45,12 +45,12 @@
     #   inputs.nixpkgs.follows = "nixPackages";
     # };
 
-    editorHelix = {
-      repo = "helix";
-      owner = "helix-editor";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # editorHelix = {
+    #   repo = "helix";
+    #   owner = "helix-editor";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     # editorFresh = {
     #   repo = "fresh";
