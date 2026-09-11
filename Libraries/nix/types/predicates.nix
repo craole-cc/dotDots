@@ -48,6 +48,8 @@
     isPOSIXString = isPOSIX;
   };
 
+  inherit (_.types.access) typeOf;
+
   trivial = {
     inherit isBool isFloat isFunction isInt typeOf;
   };
@@ -55,7 +57,7 @@
   /**
   Return the Nix type of a value as a string.
 
-  Delegates to `builtins.typeOf`.
+  Delegates to `_.types.access.typeOf`.
 
   # Type
   ```nix
@@ -72,7 +74,6 @@
   typeOf null         # => "null"
   ```
   */
-  inherit (builtins) typeOf;
 
   /**
   Check whether a value is a boolean.
@@ -89,7 +90,7 @@
   isBool 1      # => false
   ```
   */
-  inherit (builtins) isBool;
+  isBool = input: typeOf input == "bool";
 
   /**
   Check whether a value is a floating point number.
@@ -105,7 +106,7 @@
   isFloat 1    # => false
   ```
   */
-  isFloat = input: builtins.typeOf input == "float";
+  isFloat = input: typeOf input == "float";
 
   /**
   Check whether a value is a function.
@@ -121,7 +122,7 @@
   isFunction "hello"  # => false
   ```
   */
-  inherit (builtins) isFunction;
+  isFunction = input: typeOf input == "lambda";
 
   /**
   Check whether a value is an integer.
@@ -138,6 +139,6 @@
   isInt "1"  # => false
   ```
   */
-  isInt = input: builtins.typeOf input == "int";
+  isInt = input: typeOf input == "int";
 in
   __exports.internal // {__rootAliases = __exports.external;}
