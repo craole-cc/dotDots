@@ -30,12 +30,13 @@
     inherit doc exports functions;
   };
 
+  inherit (_.attrsets.access) attrByPath attrValues;
+  inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.predicates) isList;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.strings.construction) concatStringsSep optionalString splitString;
   inherit (_.strings.transformation) toPascal;
-  inherit (_.attrsets.access) attrByPath attrValues;
 
   /**
   Normalize a field identifier into a path segment list.
@@ -231,7 +232,7 @@
   */
   keysFromMembers = field: set:
     unique (
-      builtins.concatMap (
+      concatMap (
         item:
           normalizeList (
             toValue {
