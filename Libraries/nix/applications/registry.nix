@@ -77,7 +77,7 @@
         // {
           inherit name;
           aliases = unique (
-            filter isString ([name] ++ (app.aliases or []) ++ (builtins.attrValues (app.names or {})))
+            filter isString ([name] ++ (app.aliases or []) ++ (attrValues (app.names or {})))
           );
           categories = normalizeList (app.categories or []);
           channel = normalizeOptional (app.channel or null);
