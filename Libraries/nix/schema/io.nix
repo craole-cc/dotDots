@@ -247,8 +247,11 @@
           action = "";
         };
         windowLast = {
-          mod = ["ALT"];
-          key = "ESCAPE";
+          mod = [
+            "ALT"
+            "CTRL"
+          ];
+          key = "TAB";
           action = "";
         };
 
