@@ -41,6 +41,9 @@
     "file-manager" = apps.explorer;
   };
 
+  terminalLaunch = keyboard.bindings.terminal or {};
+  windowCycle = keyboard.bindings.windowCycle or {};
+  windowLast = keyboard.bindings.windowLast or {};
   primaryTerminal = apps.terminal.primary or null;
 
   wrapTerminalCommand = entry: command:
@@ -75,11 +78,14 @@
     then configured
     else defaultScratchpadCommand category role;
 
-  mkDmsChord = key: roleConfig:
+  mkDmsChordWith = key: binding: extraMods:
     lib.concatStringsSep " + " (
-      builtins.filter (part: part != "") (lib.splitString " " (roleConfig.mod or ""))
+      builtins.filter (part: part != "") (lib.splitString " " (binding.mod or ""))
+      ++ extraMods
       ++ [key]
     );
+
+  mkDmsChord = key: binding: mkDmsChordWith key binding [];
 
   mkDmsScratchpadRoleBind = category: scratchpad: role: let
     key = scratchpad.key or null;
@@ -103,14 +109,144 @@
       map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
     );
 
+  dmsTerminalBind = let
+    key = terminalLaunch.key or null;
+    mod = terminalLaunch.mod or null;
+    command =
+      if builtins.isAttrs primaryTerminal
+      then primaryTerminal.command or null
+      else null;
+  in
+    if key == null || mod == null || command == null || command == ""
+    then ""
+    else let
+      chord = mkDmsChord key terminalLaunch;
+    in ''
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, hl.dsp.exec_cmd(${builtins.toJSON command}), { description = "Open primary terminal" })
+    '';
+
+  dmsWindowLastBind = let
+    key = windowLast.key or null;
+    mod = windowLast.mod or null;
+  in
+    if key == null || mod == null
+    then ""
+    else let
+      chord = mkDmsChord key windowLast;
+    in ''
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, hl.dsp.focus({ last = true }), { description = "Focus previous window" })
+    '';
+
+  dmsWindowCycleBinds = let
+    key = windowCycle.key or null;
+    mod = windowCycle.mod or null;
+  in
+    if key == null || mod == null
+    then ""
+    else let
+      chord = mkDmsChord key windowCycle;
+      reverseChord = mkDmsChordWith key windowCycle ["SHIFT"];
+    in ''
+      -- Global MRU window switching. Hyprland exposes its compositor-wide focus
+      -- history directly to Lua, so keep the cycle in-process rather than
+      -- spawning hyprctl/jq on every Tab press. Regular and special workspaces
+      -- are both valid application locations and participate in the same MRU.
+      local dotdots_mru = { windows = nil, index = 0 }
+
+      local function dotdots_mru_reset()
+        dotdots_mru.windows = nil
+        dotdots_mru.index = 0
+      end
+
+      local function dotdots_mru_snapshot()
+        local windows = {}
+        local active = hl.get_active_window()
+        local active_address = active and active.address or nil
+
+        for _, window in ipairs(hl.get_windows()) do
+          local workspace = window.workspace
+          if window.mapped
+            and window.focus_history_id >= 0
+            and workspace ~= nil
+          then
+            table.insert(windows, {
+              address = window.address,
+              focus_history_id = window.focus_history_id,
+            })
+          end
+        end
+
+        table.sort(windows, function(a, b)
+          return a.focus_history_id < b.focus_history_id
+        end)
+
+        local active_index = 0
+        for index, window in ipairs(windows) do
+          if window.address == active_address then
+            active_index = index
+            break
+          end
+        end
+
+        return windows, active_index
+      end
+
+      local function dotdots_mru_cycle(step)
+        if dotdots_mru.windows == nil then
+          dotdots_mru.windows, dotdots_mru.index = dotdots_mru_snapshot()
+        end
+
+        local count = #dotdots_mru.windows
+        if count == 0 then
+          return
+        end
+
+        local attempts = 0
+        repeat
+          if dotdots_mru.index == 0 then
+            dotdots_mru.index = step > 0 and 1 or count
+          else
+            dotdots_mru.index = ((dotdots_mru.index - 1 + step) % count) + 1
+          end
+
+          local target = dotdots_mru.windows[dotdots_mru.index]
+          if target ~= nil and hl.get_window("address:" .. target.address) ~= nil then
+            hl.dispatch(hl.dsp.focus({ window = "address:" .. target.address }))
+            return
+          end
+
+          attempts = attempts + 1
+        until attempts >= count
+      end
+
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, function()
+        dotdots_mru_cycle(1)
+      end, { description = "Cycle recent windows" })
+
+      hl.unbind(${builtins.toJSON reverseChord})
+      hl.bind(${builtins.toJSON reverseChord}, function()
+        dotdots_mru_cycle(-1)
+      end, { description = "Cycle recent windows backwards" })
+
+      -- Modifier-only release binds close the current MRU transaction. Keep
+      -- them non-consuming so applications still receive the Alt release.
+      hl.bind("ALT + ALT_L", dotdots_mru_reset, { release = true, non_consuming = true })
+      hl.bind("ALT + ALT_R", dotdots_mru_reset, { release = true, non_consuming = true })
+    '';
+
   dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" (
     ''
-      -- dotDots declarative Hyprland scratchpads. DMS only supplies the
-      -- surrounding Lua entrypoint; scratchpad lifecycle belongs to Hyprland.
-      -- Defaults are schema-owned; user API overrides are already normalized.
-      -- Loaded after DMS's mutable binds-user.lua so schema-owned scratchpad
-      -- chords remain authoritative even if DMS has persisted older bindings.
+      -- dotDots declarative Hyprland runtime bindings. DMS supplies the
+      -- surrounding Lua entrypoint; schema-owned behavior belongs here.
+      -- Loaded after DMS's mutable binds-user.lua so explicit dotDots chords
+      -- remain authoritative even if DMS has persisted older bindings.
     ''
+    + dmsTerminalBind
+    + dmsWindowLastBind
+    + dmsWindowCycleBinds
     + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBinds scratchpads)
   );
 
