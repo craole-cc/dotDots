@@ -108,7 +108,8 @@
       -- dotDots declarative Hyprland scratchpads. DMS only supplies the
       -- surrounding Lua entrypoint; scratchpad lifecycle belongs to Hyprland.
       -- Defaults are schema-owned; user API overrides are already normalized.
-      -- Inserted before DMS's mutable binds-user.lua so runtime overrides win.
+      -- Loaded after DMS's mutable binds-user.lua so schema-owned scratchpad
+      -- chords remain authoritative even if DMS has persisted older bindings.
     ''
     + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBinds scratchpads)
   );
@@ -118,11 +119,11 @@
       '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
       ${dmsEmbedded}/hyprland.lua \
       | ${pkgs.gawk}/bin/awk -v binds=${lib.escapeShellArg dmsDotBinds} '
+          { print }
           /require\("dms.binds-user"\)/ {
             while ((getline line < binds) > 0) print line
             close(binds)
           }
-          { print }
         ' > "$out"
   '';
   dmsBinds = pkgs.runCommand "dms-hypr-binds.lua" {} ''
