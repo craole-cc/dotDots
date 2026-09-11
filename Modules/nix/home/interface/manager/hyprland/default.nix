@@ -119,8 +119,8 @@
     in ''
       -- Global MRU window switching. Hyprland exposes its compositor-wide focus
       -- history directly to Lua, so keep the cycle in-process rather than
-      -- spawning hyprctl/jq on every Tab press. Special-workspace scratchpads
-      -- stay on their dedicated chords and are intentionally excluded here.
+      -- spawning hyprctl/jq on every Tab press. Regular and special workspaces
+      -- are both valid application locations and participate in the same MRU.
       local dotdots_mru = { windows = nil, index = 0 }
 
       local function dotdots_mru_reset()
@@ -138,7 +138,6 @@
           if window.mapped
             and window.focus_history_id >= 0
             and workspace ~= nil
-            and not workspace.special
           then
             table.insert(windows, {
               address = window.address,
