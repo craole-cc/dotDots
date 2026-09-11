@@ -1,11 +1,14 @@
 {
   _,
-  lib,
   ...
 }: let
   inherit (_.applications.registry) resolve;
-  inherit (lib.attrsets) attrByPath recursiveUpdate;
-  inherit (lib.strings) hasInfix toLower;
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.transformation) removeAttrs;
+  inherit (_.debug.tracing) tryEval;
+  inherit (_.strings.predicates) hasInfix;
+  inherit (_.strings.transformation) toLower;
 
   __exports = {
     internal = {inherit defaults uiDefaults mkApplications;};
@@ -218,7 +221,7 @@
     else category;
 
   getMeta = category: name: let
-    result = builtins.tryEval (resolve {
+    result = tryEval (resolve {
       value = name;
       category = registryCategory category;
     });
