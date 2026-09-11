@@ -1,9 +1,12 @@
 {
+  lix,
   writeScriptBin,
   prepare-hermes-messaging ? "",
   prepare-whatsapp-bridge ? "",
   ...
 }: let
+  inherit (lix.attrsets.construction) listToAttrs;
+
   profiles = [
     "dev"
     "lab"
@@ -20,7 +23,7 @@
       exec hermes --profile ${name} "$@"
     '';
 in
-  builtins.listToAttrs (
+  listToAttrs (
     map (name: {
       name = "hermes-${name}";
       value = mkProfile name;
