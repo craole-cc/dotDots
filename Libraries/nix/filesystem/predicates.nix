@@ -18,10 +18,11 @@
 
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
+  inherit (_.filesystem.access) pathExists;
   inherit (_.filesystem.paths) flakeOrNull;
   inherit (_.lists.predicates) elem;
-  inherit (_.types.predicates) isPath isStorePath;
   inherit (_.strings.predicates) isString hasSuffix;
+  inherit (_.types.predicates) isPath isStorePath;
 
   /**
   Check whether a path exists on disk at evaluation time.
@@ -34,7 +35,6 @@
   pathExists :: path | string -> bool
   ```
   */
-  pathExists = path: builtins.pathExists path;
 
   /**
   Check whether a value is a Nix path type (not a string).
