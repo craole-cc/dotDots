@@ -8,13 +8,15 @@
   helpEntries ? [],
   ...
 }: let
-  inherit (pkgs) writeScriptBin;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.filesystem.access) readFile;
+  inherit (lix.strings.transformation) replaceStrings;
+  inherit (pkgs) writeScriptBin;
   inherit (tools) names commands descriptions;
 
   render = replacements: path:
-    builtins.replaceStrings (builtins.attrNames replacements)
-    (map (key: replacements.${key}) (builtins.attrNames replacements))
+    replaceStrings (attrNames replacements)
+    (map (key: replacements.${key}) (attrNames replacements))
     (readFile path);
 
   ownEntries = [
