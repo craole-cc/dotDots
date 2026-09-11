@@ -12,6 +12,7 @@
   };
   inherit (context) cfg ctx;
 
+  inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable;
 
@@ -19,7 +20,7 @@
   primaryUser = host.users.data.primary or host.users.primary or {};
   primaryUserName = primaryUser.name or null;
   primaryHome =
-    if primaryUserName != null && builtins.hasAttr primaryUserName config.users.users
+    if primaryUserName != null && hasAttr primaryUserName config.users.users
     then config.users.users.${primaryUserName}.home
     else null;
   hyprlandLua =
