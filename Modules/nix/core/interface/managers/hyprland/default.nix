@@ -45,17 +45,18 @@ in
         withUWSM = true;
       };
 
-      # Hyprland 0.55 does not select hyprland.lua merely because the file is
-      # present. DMS requires the compositor to be launched explicitly with
-      # `-c ~/.config/hypr/hyprland.lua`, so expose a dedicated UWSM session
-      # whose argv is fully declarative.
+      # Hyprland 0.55+ expects normal sessions to enter through start-hyprland,
+      # which owns the watchdog lifecycle. Arguments after `--` are forwarded
+      # to Hyprland, so keep the DMS Lua config selection explicit while letting
+      # UWSM and Hyprland use their supported startup path.
       programs.uwsm = mkIf (cfg.enable && dmsEnabled) {
         enable = true;
         waylandCompositors.hyprland-dms = {
           prettyName = "Hyprland (DMS)";
           comment = "Hyprland using the Dank Material Shell Lua configuration";
-          binPath = "/run/current-system/sw/bin/Hyprland";
+          binPath = "/run/current-system/sw/bin/start-hyprland";
           extraArgs = [
+            "--"
             "-c"
             hyprlandLua
           ];
