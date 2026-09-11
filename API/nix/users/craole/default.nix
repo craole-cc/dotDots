@@ -11,6 +11,10 @@
   git = {
     name = "Craole";
     email = "32288735+Craole@users.noreply.github.com";
+    settings = {
+      alias.project-summary = "!which onefetch && onefetch";
+      push.autoSetupRemote = true;
+    };
   };
 
   capabilities = [
