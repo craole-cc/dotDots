@@ -1,12 +1,9 @@
 # Test tree execution and failure collection.
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit (lib.attrsets) mapAttrs isAttrs mapAttrsToList;
-  inherit (lib.lists) flatten;
-  inherit (_.types.predicates) isTest;
+{_, ...}: let
+  inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
+  inherit (_.lists.transformation) flatten;
+  inherit (_.strings.construction) toJSON;
+  inherit (_.types.predicates) isAttrs isTest;
 
   /**
   Recursively walk a test tree and annotate each leaf test with pass/fail metadata.
@@ -39,7 +36,7 @@
             ;
           error =
             if !test.passed
-            then "Test `${name}` failed: expected ${builtins.toJSON test.desired}, got ${builtins.toJSON test.result}"
+            then "Test `${name}` failed: expected ${toJSON test.desired}, got ${toJSON test.result}"
             else null;
         }
         else if isAttrs test
