@@ -1,19 +1,19 @@
 {
   _,
-  lib,
   ...
 }: let
-  inherit (_.sources.modules) mkModule;
   inherit (_.applications.registry) resolve;
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.attrsets.transformation) mapAttrs removeAttrs;
+  inherit (_.debug.tracing) tryEval;
+  inherit (_.lists.access) head;
   inherit (_.lists.predicates) isIn;
-  inherit (lib.attrsets) attrByPath isAttrs mapAttrs;
-  inherit
-    (lib.strings)
-    hasInfix
-    replaceStrings
-    splitString
-    toLower
-    ;
+  inherit (_.lists.selection) filter;
+  inherit (_.sources.modules) mkModule;
+  inherit (_.strings.construction) splitString;
+  inherit (_.strings.predicates) hasInfix;
+  inherit (_.strings.transformation) replaceStrings toLower;
+  inherit (_.types.predicates) isAttrs;
 
   __exports = rec {
     internal = {
@@ -226,7 +226,7 @@
       if value == null || value == ""
       then null
       else let
-        result = builtins.tryEval (resolve {
+        result = tryEval (resolve {
           value = normalizeName value;
           category = "browser";
         });
@@ -235,7 +235,7 @@
         then result.value
         else null;
 
-    browserCandidates = builtins.filter
+    browserCandidates = filter
       (app: app != null)
       (map resolveBrowser (
         [
@@ -245,13 +245,13 @@
         ]
         ++ appsAllowed
       ));
-    zenBrowsers = builtins.filter
+    zenBrowsers = filter
       (app: (app.family or "") == "zen")
       browserCandidates;
     selectedZenBrowser =
       if zenBrowsers == []
       then null
-      else builtins.head zenBrowsers;
+      else head zenBrowsers;
 
     tty = let
       t = attrByPath ["editor" "tty"] {} apps;
