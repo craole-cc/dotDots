@@ -223,11 +223,15 @@
       atomic_install ${dmsBinds} "$dms_dir/binds.lua"
       atomic_install ${dmsRoot} "$config_dir/hyprland.lua"
 
-      # Home Manager may run inside the live session. If Hyprland's instance
-      # environment is available, reload once after the complete tree exists so
-      # a stale transient config error is cleared without making activation fail.
-      if [ -n "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
-        hyprctl reload >/dev/null 2>&1 || true
+      # `nixos-rebuild switch` does not reliably preserve the live compositor's
+      # HYPRLAND_INSTANCE_SIGNATURE in Home Manager's activation environment.
+      # hyprctl can select an instance by index, so reload every live instance
+      # owned by this user and stop at the first nonexistent index.
+      if command -v hyprctl >/dev/null 2>&1; then
+        instance=0
+        while hyprctl -i "$instance" reload >/dev/null 2>&1; do
+          instance=$((instance + 1))
+        done
       fi
     '');
 
