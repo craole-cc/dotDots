@@ -1,11 +1,16 @@
 {
   config,
+  lib,
   lix,
+  pkgs,
   user,
   ...
 }: let
+  inherit (lib.hm.dag) entryAfter;
   inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnable mkEnableOption mkOption;
+  inherit (lix.strings.construction) concatMapStringsSep;
+  inherit (lix.strings.transformation) escapeShellArg;
   inherit
     (lix.types.combinators)
     attrsOf
@@ -13,7 +18,8 @@
     nullOr
     submodule
     ;
-  inherit (lix.types.primitives) anything str;
+  inherit (lix.types.primitives) anything bool str;
+  inherit (pkgs) git;
 
   context = mkContext {
     inherit config;
@@ -22,6 +28,22 @@
     mod = "git";
   };
   inherit (context) cfg;
+
+  userGitSettings = user.git.settings or {};
+
+  legacyOwnedKeys = [
+    "user.name"
+    "user.email"
+    "alias.project-summary"
+    "push.autoSetupRemote"
+    "credential.helper"
+    "credential.https://github.com.helper"
+    "credential.https://gist.github.com.helper"
+  ];
+
+  unsetLegacyOwnedKeys = concatMapStringsSep "\n" (key: ''
+    $DRY_RUN_CMD ${git}/bin/git config --file "$legacy" --unset-all ${escapeShellArg key} 2>/dev/null || true
+  '') legacyOwnedKeys;
 in
   mkConfig {
     inherit context;
@@ -51,15 +73,25 @@ in
       };
 
       settings = {
+        alias = mkOption {
+          type = attrsOf str;
+          default = userGitSettings.alias or {};
+          description = "Git aliases";
+        };
         core.whitespace = mkOption {
           type = str;
-          default = "trailing-space,space-before-tab";
+          default = userGitSettings.core.whitespace or "trailing-space,space-before-tab";
           description = "Git core.whitespace rule setting";
         };
         init.defaultBranch = mkOption {
           type = str;
-          default = "main";
+          default = userGitSettings.init.defaultBranch or "main";
           description = "Default branch name for new repositories";
+        };
+        push.autoSetupRemote = mkOption {
+          type = bool;
+          default = userGitSettings.push.autoSetupRemote or false;
+          description = "Automatically set the upstream remote on first push";
         };
         url = mkOption {
           type = attrsOf (submodule {
@@ -69,8 +101,8 @@ in
               description = "URL prefixes to rewrite";
             };
           });
-          default = {
-            "https://github./" = {
+          default = userGitSettings.url or {
+            "https://github.com/" = {
               insteadOf = [
                 "gh:"
                 "github:"
@@ -97,11 +129,27 @@ in
             name = cfg.user.name;
             email = cfg.user.email;
           };
+          inherit (cfg.settings) alias url;
           core.whitespace = cfg.settings.core.whitespace;
           init.defaultBranch = cfg.settings.init.defaultBranch;
-          url = cfg.settings.url;
+          push.autoSetupRemote = cfg.settings.push.autoSetupRemote;
         };
         inherit (cfg) includes;
       };
+
+      # Home Manager owns ~/.config/git/config. Remove only legacy ~/.gitconfig
+      # keys that are now represented declaratively, preserving unrelated data.
+      home.activation.removeLegacyGitConfig = entryAfter ["writeBoundary"] ''
+        legacy="$HOME/.gitconfig"
+
+        if [ -f "$legacy" ]; then
+          ${unsetLegacyOwnedKeys}
+
+          remaining="$(${git}/bin/git config --file "$legacy" --list 2>/dev/null || true)"
+          if [ -z "$remaining" ]; then
+            $DRY_RUN_CMD rm -f "$legacy"
+          fi
+        fi
+      '';
     };
   }
