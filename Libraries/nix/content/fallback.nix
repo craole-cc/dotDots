@@ -1,6 +1,5 @@
 {
   _,
-  lib,
   __moduleRef,
   ...
 }: let
@@ -8,8 +7,8 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
-  inherit (builtins) tryEval;
-  inherit (lib.lists) findFirst length;
+  inherit (_.debug.tracing) tryEval;
+  inherit (_.lists.access) findFirst length;
 
   exports = rec {
     internal = {
@@ -43,8 +42,8 @@
   orDefault { content = "hello"; default = "fallback"; }  # => "hello"
   orDefault { content = null;    default = "fallback"; }  # => "fallback"
   orDefault { content = "";      default = "fallback"; }  # => "fallback"
-  orDefault { content = 0;       default = 42;         }  # => 0     (zero is not empty)
-  orDefault { content = false;   default = true;       }  # => false (false is not empty)
+  orDefault { content = 0;       default = 42;         }  # => 0
+  orDefault { content = false;   default = true;       }  # => false
   ```
   */
   orDefault = {
@@ -65,13 +64,6 @@
   ```nix
   orNull :: { content :: a, default :: a } -> a
   ```
-
-  # Examples
-  ```nix
-  orNull { content = null; default = "fallback"; }  # => "fallback"
-  orNull { content = "";   default = "fallback"; }  # => ""  (empty string preserved)
-  orNull { content = [];   default = "fallback"; }  # => []  (empty list preserved)
-  ```
   */
   orNull = {
     content,
@@ -83,22 +75,6 @@
 
   /**
   Throw if `content` is empty, otherwise return it.
-
-  Use when a value is required and there is no meaningful fallback - makes
-  the missing-value failure loud and located rather than silently propagating
-  an empty value downstream.
-
-  # Type
-  ```nix
-  orError :: { content :: a, message :: string } -> a
-  ```
-
-  # Examples
-  ```nix
-  orError { content = "hello"; message = "hostname is required"; }  # => "hello"
-  orError { content = null;    message = "hostname is required"; }  # throws
-  orError { content = "";      message = "hostname is required"; }  # throws
-  ```
   */
   orError = {
     content,
@@ -114,45 +90,10 @@
       )
     else content;
 
-  /**
-  Return the first non-empty value from a list, or null if all are empty.
-
-  Single-arg so stays curried - the list is the whole input.
-
-  # Type
-  ```nix
-  firstNonEmpty :: [a] -> a | null
-  ```
-
-  # Examples
-  ```nix
-  firstNonEmpty ["" null "hello" "world"]  # => "hello"
-  firstNonEmpty [null "" {} []]            # => null
-
-  content = firstNonEmpty [
-    (env.CUSTOM_VALUE or null)
-    (config.userValue  or null)
-    "built-in-default"
-  ];
-  ```
-  */
+  /** Return the first non-empty value from a list, or null. */
   firstNonEmpty = findFirst (v: !isEmpty v) null;
 
-  /**
-  Apply `fn` to `value` if non-empty, otherwise return `default`.
-
-  # Type
-  ```nix
-  mapOrDefault :: { fn :: (a -> b), content :: a, default :: b } -> b
-  ```
-
-  # Examples
-  ```nix
-  mapOrDefault { fn = x: x + 1;    content = 5;    default = 0;   }  # => 6
-  mapOrDefault { fn = x: x + 1;    content = null; default = 0;   }  # => 0
-  mapOrDefault { fn = s: s + "!";  content = "";   default = "?"; }  # => "?"
-  ```
-  */
+  /** Apply `fn` to `value` if non-empty, otherwise return `default`. */
   mapOrDefault = {
     fn,
     content,
@@ -162,23 +103,7 @@
     then default
     else fn content;
 
-  /**
-  Apply `fn` to `value` if not null, otherwise return `default`.
-
-  Like `mapOrDefault` but with a null-only guard - empty strings and lists
-  are still passed to `fn`.
-
-  # Type
-  ```nix
-  mapOrNull :: { fn :: (a -> b), content :: a, default :: b } -> b
-  ```
-
-  # Examples
-  ```nix
-  mapOrNull { fn = s: s + "!"; content = null; default = "?"; }  # => "?"
-  mapOrNull { fn = s: s + "!"; content = "";   default = "?"; }  # => "!"  (empty string transformed)
-  ```
-  */
+  /** Apply `fn` to `value` if non-null, otherwise return `default`. */
   mapOrNull = {
     fn,
     content,
@@ -188,23 +113,7 @@
     then default
     else fn content;
 
-  /**
-  Apply `fn` to `content` if non-empty, otherwise throw.
-
-  The strict counterpart to `mapOrDefault` - use when the value is required
-  for the transformation to make sense and an empty input is always a bug.
-
-  # Type
-  ```nix
-  mapOrError :: { fn :: (a -> b), content :: a, message :: string } -> b
-  ```
-
-  # Examples
-  ```nix
-  mapOrError { fn = readFile; content = ./config.nix; message = "config path is required"; }
-  mapOrError { fn = x: x + 1;         content = null;          message = "count must be provided";  }  # throws
-  ```
-  */
+  /** Apply `fn` to `content` if non-empty, otherwise throw. */
   mapOrError = {
     fn,
     content,
