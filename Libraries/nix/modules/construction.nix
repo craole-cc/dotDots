@@ -62,11 +62,11 @@
   };
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
-  inherit (_.attrsets.construction) genAttrs optionalAttrs;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystems;
-  inherit (_.lists.construction) optionals;
+  inherit (_.lists.construction) concatLists optionals;
   inherit (_.lists.predicates) elem;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge;
@@ -280,8 +280,8 @@
       matching = systemHosts system;
       pkgs = pkgsFor system;
     in
-      builtins.listToAttrs (
-        builtins.concatLists (
+      listToAttrs (
+        concatLists (
           map (
             hostName: let
               host = matching.${hostName};
