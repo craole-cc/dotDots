@@ -1,9 +1,11 @@
 {
   pkgsFor,
   inputs,
+  lix,
   pkgs,
   ...
 }: let
+  inherit (lix.lists.selection) filter;
   inherit (pkgs) writeShellScriptBin;
 
   sources = {
@@ -48,7 +50,7 @@
   ];
 
   packages =
-    (builtins.filter
+    (filter
       (package: package != tools.desktop.package && package != tools.hermes-one.package)
       tools.packages)
     ++ graphicalLaunchers;
