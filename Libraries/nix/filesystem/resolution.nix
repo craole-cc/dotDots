@@ -111,7 +111,7 @@
   }: let
     normalizedPath = getFlakePath {inherit flake path;};
 
-    derived = optionalAttrs (normalizedPath != null && builtins ? getGlake) (
+    derived = optionalAttrs (normalizedPath != null && builtins ? getFlake) (
       let
         inherit (builtins) getFlake;
       in
