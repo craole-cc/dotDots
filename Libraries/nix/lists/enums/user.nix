@@ -1,4 +1,5 @@
 {_, ...}: let
+  inherit (_.lists.access) length;
   inherit (_.lists.construction) mkEnum;
   inherit (_.trivial.tests) mkTest runTests;
 
@@ -119,12 +120,12 @@ in {
     roles = {
       validatesAdmin = mkTest true (roles.validator.check "administrator");
       validatesDev = mkTest true (roles.validator.check "developer");
-      correctCount = mkTest 8 (builtins.length roles.values);
+      correctCount = mkTest 8 (length roles.values);
     };
     capabilities = {
       validatesDevelopment = mkTest true (capabilities.validator.check "development");
       validatesGaming = mkTest true (capabilities.validator.check "gaming");
-      correctCount = mkTest 10 (builtins.length capabilities.values);
+      correctCount = mkTest 10 (length capabilities.values);
     };
   };
 }
