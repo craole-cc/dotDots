@@ -1,6 +1,7 @@
 #TODO: The modules need to be options, not hardcoded
 {
   config,
+  lib,
   lix,
   user,
   pkgs,
@@ -21,6 +22,21 @@
     mod = "foot";
   };
   inherit (context) cfg;
+
+  dmsEnabled = config.programs.dank-material-shell.enable or false;
+  dmsColorsPath = "~/.config/foot/dotdots-dms-colors.ini";
+
+  themeSync = pkgs.writeShellApplication {
+    name = "feet-theme-sync";
+    runtimeInputs = with pkgs; [
+      coreutils
+      dms-shell
+      jq
+      procps
+      systemd
+    ];
+    text = builtins.readFile ./theme-sync.sh;
+  };
 
   wrappers = mkScriptWrappers {
     inherit pkgs;
@@ -77,13 +93,16 @@
         desktop
         quake
       ]
+      ++ (if dmsEnabled then [themeSync] else [])
       ++ cfg.extraPackages;
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
         (import ./settings.nix {inherit lix;})
         (import ./input.nix)
-        (import ./themes.nix)
+        (import ./themes.nix {
+          inherit dmsEnabled dmsColorsPath;
+        })
       ];
     };
     inherit (cfg) debug;
@@ -144,5 +163,39 @@ in
         readOnly = true;
       };
     };
-    outputs = {inherit (resolved) programs home;};
+    outputs = mkMerge [
+      {inherit (resolved) programs home;}
+      (
+        if dmsEnabled
+        then {
+          # DMS owns palette values at runtime. Keep a dual dark/light Foot
+          # palette materialized before the Home Manager Foot server starts,
+          # then follow DMS mode changes without requiring per-terminal F12.
+          systemd.user.services.foot.Service.ExecStartPre =
+            "${themeSync}/bin/feet-theme-sync prepare";
+
+          systemd.user.services.feet-theme-sync = {
+            Unit = {
+              Description = "Synchronize Foot with Dank Material Shell";
+              PartOf = ["graphical-session.target"];
+              After = ["graphical-session.target"];
+            };
+            Service = {
+              ExecStart = "${themeSync}/bin/feet-theme-sync monitor";
+              Restart = "on-failure";
+              RestartSec = "2s";
+            };
+            Install.WantedBy = ["graphical-session.target"];
+          };
+
+          # Activation may run before DMS has generated its color state. The
+          # helper seeds a safe fallback in that case; the monitor replaces it
+          # as soon as DMS's dual-scheme state becomes available.
+          home.activation.prepareFootDmsTheme = lib.hm.dag.entryAfter ["writeBoundary"] ''
+            ${themeSync}/bin/feet-theme-sync prepare
+          '';
+        }
+        else {}
+      )
+    ];
   }
