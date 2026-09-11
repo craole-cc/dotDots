@@ -19,7 +19,7 @@
   inherit (lib) filesystem path strings;
 
   access = {
-    inherit (builtins) readFile;
+    inherit (builtins) pathExists readFile;
     inherit
       (filesystem)
       readDir
