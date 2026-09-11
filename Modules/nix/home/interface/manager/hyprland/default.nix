@@ -136,10 +136,9 @@
         for _, window in ipairs(hl.get_windows()) do
           local workspace = window.workspace
           if window.mapped
-            and not window.hidden
-            and window.accepts_input
             and window.focus_history_id >= 0
-            and (workspace == nil or not workspace.special)
+            and workspace ~= nil
+            and not workspace.special
           then
             table.insert(windows, {
               address = window.address,
