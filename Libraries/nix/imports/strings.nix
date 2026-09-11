@@ -46,6 +46,7 @@
       optionalString
       splitString
       splitStringBy
+      toJSON
       ;
   };
 
