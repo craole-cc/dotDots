@@ -1,5 +1,7 @@
 {lix, ...} @ args: let
   inherit (lix.attrsets.aggregation) mergeShellFragments;
+  inherit (lix.lists.selection) filter;
+  inherit (lix.strings.construction) concatStringsSep;
 
   fragments = [
     (import ./telegram args)
@@ -7,7 +9,7 @@
     (import ./discord args)
   ];
 
-  gatewayFragments = builtins.filter (fragment: fragment != "") (
+  gatewayFragments = filter (fragment: fragment != "") (
     map (fragment: fragment.gatewayFragment or "") fragments
   );
 in
@@ -15,5 +17,5 @@ in
   // {
     # Middleware registers an optional runtime fragment instead of requiring a
     # central service definition to know every transport by name.
-    prepare-hermes-gateway = builtins.concatStringsSep "\n" gatewayFragments;
+    prepare-hermes-gateway = concatStringsSep "\n" gatewayFragments;
   }
