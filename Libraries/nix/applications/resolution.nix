@@ -7,7 +7,7 @@
   inherit (_.lists.aggregation) concatMap;
   inherit (_.applications.registry) resolve;
   inherit (_.applications.runtime) resolvePackage;
-  inherit (_.types.predicates) isFunction isList;
+  inherit (_.types.predicates) isFunction isList isString;
 
   /**
   mkapp - create a generic application handler with flake support
@@ -138,7 +138,7 @@
   normalizeInputPath = path:
     if path == null
     then null
-    else if builtins.isString path
+    else if isString path
     then [path]
     else if isList path
     then let
@@ -148,7 +148,7 @@
         else [segment])
       path;
     in
-      if all builtins.isString flattened
+      if all isString flattened
       then flattened
       else null
     else null;
@@ -263,7 +263,6 @@
       }: {
         cmd = "noctalia";
         pkg = pkgs.noctalia or null;
-        # Uses specialArgs.inputs.packages.noctalia-shell
         inputPath = [
           "noctalia-shell"
           system
