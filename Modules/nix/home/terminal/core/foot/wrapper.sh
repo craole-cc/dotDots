@@ -41,7 +41,22 @@ has_cmd() {
 }
 
 detect_theme() {
-  #| 1. Check KDE Plasma
+  #| 1. Prefer DMS when it owns the active desktop theme.
+  if has_cmd dms; then
+    DMS_MODE=$(dms ipc call theme getMode 2> /dev/null || printf "")
+    case "$DMS_MODE" in
+      *light*)
+        printf "light"
+        return 0
+        ;;
+      *dark*)
+        printf "dark"
+        return 0
+        ;;
+    esac
+  fi
+
+  #| 2. Check KDE Plasma
   if [ -f "$HOME/.config/kdeglobals" ]; then
     KDE_SCHEME=$(grep "^ColorScheme=" "$HOME/.config/kdeglobals" | head -1 | cut -d= -f2)
     case "$KDE_SCHEME" in
@@ -69,7 +84,7 @@ detect_theme() {
     esac
   fi
 
-  #| 2. Check freedesktop portal
+  #| 3. Check freedesktop portal
   if has_cmd dbus-send; then
     THEME=$(dbus-send --session --print-reply=literal --reply-timeout=100 \
       --dest=org.freedesktop.portal.Desktop \
@@ -90,7 +105,7 @@ detect_theme() {
     esac
   fi
 
-  #| 3. Check GNOME settings
+  #| 4. Check GNOME settings
   if has_cmd gsettings; then
     SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || printf "")
     case "$SCHEME" in
@@ -105,7 +120,7 @@ detect_theme() {
     esac
   fi
 
-  #| 4. Check GTK theme
+  #| 5. Check GTK theme
   for conf in "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"; do
     if [ -f "$conf" ]; then
       GTK_THEME=$(grep "^gtk-theme-name" "$conf" | cut -d= -f2 | tr -d ' "')
@@ -122,7 +137,7 @@ detect_theme() {
     fi
   done
 
-  #| 5. Check environment variables
+  #| 6. Check environment variables
   case "${GTK_THEME:-}:${QT_STYLE_OVERRIDE:-}" in
     *[Dd]ark*)
       printf "dark"
@@ -134,7 +149,7 @@ detect_theme() {
       ;;
   esac
 
-  #| 6. Time-based fallback
+  #| 7. Time-based fallback
   HOUR=$(date +%H)
   if [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 18 ]; then
     printf "light"
@@ -143,12 +158,29 @@ detect_theme() {
   fi
 }
 
+signal_theme() {
+  case "$1" in
+    dark) SIGNAL=USR1 ;;
+    light) SIGNAL=USR2 ;;
+    *) return 0 ;;
+  esac
+
+  FOOT_PIDS=$(pgrep -x foot 2> /dev/null || printf "")
+  [ -n "$FOOT_PIDS" ] || return 0
+  # shellcheck disable=SC2086
+  kill -"$SIGNAL" $FOOT_PIDS 2> /dev/null || true
+}
+
 start_server() {
   theme="$1"
   case "$theme" in
     dark | light) foot_theme="${theme}" ;;
     *) foot_theme="dark" ;;
   esac
+
+  if has_cmd feet-theme-sync; then
+    feet-theme-sync prepare > /dev/null 2>&1 || true
+  fi
 
   foot_bin=$(command -v foot 2> /dev/null) || {
     printf "Error: foot not in PATH\n" >&2
@@ -198,14 +230,19 @@ launch_with_server() {
 }
 
 monitor_mode() {
-  # Enable debug mode if DEBUG env var is set
+  if has_cmd feet-theme-sync; then
+    exec feet-theme-sync monitor
+  fi
+
+  # Fallback for non-DMS/manual installations: follow the detected desktop mode
+  # with Foot's server-wide theme signals instead of asking each client to F12.
   DEBUG="${FOOT_THEME_DEBUG:-0}"
 
   printf "Starting foot theme monitor...\n" >&2
 
-  # Initialize theme file
   CURRENT_THEME=$(detect_theme)
   printf '%s' "$CURRENT_THEME" > "$THEME_FILE"
+  signal_theme "$CURRENT_THEME"
   printf "Initial theme: %s\n" "$CURRENT_THEME" >&2
 
   while true; do
@@ -222,7 +259,7 @@ monitor_mode() {
       if [ "$LAST_THEME" != "$NEW_THEME" ]; then
         printf "Theme changed: %s → %s\n" "$LAST_THEME" "$NEW_THEME" >&2
         printf '%s' "$NEW_THEME" > "$THEME_FILE"
-        printf "Press F12 in terminals to toggle theme, or close and reopen them.\n" >&2
+        signal_theme "$NEW_THEME"
       fi
     fi
   done
@@ -284,7 +321,7 @@ USAGE:
 
 OPTIONS:
   (no args)        Launch terminal with automatic theme detection
-  --monitor, -m    Run theme monitoring service (watches for system changes)
+  --monitor, -m    Synchronize Foot with the current desktop theme
   --quake, -q      Toggle quake-style dropdown terminal
   --detect, -d     Detect and print current theme (dark/light)
   --help, -h       Show this help message
@@ -297,11 +334,12 @@ EXAMPLES:
 
 NOTES:
   - Requires foot terminal emulator installed
-  - Theme detection works with KDE, GNOME, GTK, and freedesktop portals
-  - Monitor updates theme file; use F12 to toggle in existing terminals
+  - DMS mode is authoritative when Dank Material Shell is running
+  - Existing terminals follow dark/light mode changes automatically
+  - F12 remains available as a manual Foot theme-toggle fallback
 
 ENVIRONMENT:
-  FOOT_THEME_DEBUG=1     Enable debug logging in monitor mode
+  FOOT_THEME_DEBUG=1     Enable debug logging in fallback monitor mode
 EOF
 }
 initialize_environment
