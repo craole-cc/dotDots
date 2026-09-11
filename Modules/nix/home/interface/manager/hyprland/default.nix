@@ -41,7 +41,9 @@
     "file-manager" = apps.explorer;
   };
 
+  terminalLaunch = keyboard.bindings.terminal or {};
   windowCycle = keyboard.bindings.windowCycle or {};
+  windowLast = keyboard.bindings.windowLast or {};
   primaryTerminal = apps.terminal.primary or null;
 
   wrapTerminalCommand = entry: command:
@@ -106,6 +108,36 @@
     lib.concatStringsSep "" (
       map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
     );
+
+  dmsTerminalBind = let
+    key = terminalLaunch.key or null;
+    mod = terminalLaunch.mod or null;
+    command =
+      if builtins.isAttrs primaryTerminal
+      then primaryTerminal.command or null
+      else null;
+  in
+    if key == null || mod == null || command == null || command == ""
+    then ""
+    else let
+      chord = mkDmsChord key terminalLaunch;
+    in ''
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, hl.dsp.exec_cmd(${builtins.toJSON command}), { description = "Open primary terminal" })
+    '';
+
+  dmsWindowLastBind = let
+    key = windowLast.key or null;
+    mod = windowLast.mod or null;
+  in
+    if key == null || mod == null
+    then ""
+    else let
+      chord = mkDmsChord key windowLast;
+    in ''
+      hl.unbind(${builtins.toJSON chord})
+      hl.bind(${builtins.toJSON chord}, hl.dsp.focus({ last = true }), { description = "Focus previous window" })
+    '';
 
   dmsWindowCycleBinds = let
     key = windowCycle.key or null;
@@ -212,6 +244,8 @@
       -- Loaded after DMS's mutable binds-user.lua so explicit dotDots chords
       -- remain authoritative even if DMS has persisted older bindings.
     ''
+    + dmsTerminalBind
+    + dmsWindowLastBind
     + dmsWindowCycleBinds
     + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBinds scratchpads)
   );
