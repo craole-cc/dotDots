@@ -24,6 +24,7 @@
       inherit (meta) getExe getExe';
       inherit (attrsets) getBin;
       inherit (builtins) getEnv;
+      currentSystem = builtins.currentSystem or null;
     }
     // (
       if builtins ? getFlake
