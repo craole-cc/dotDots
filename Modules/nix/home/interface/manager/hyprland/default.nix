@@ -92,15 +92,10 @@
     else let
       chord = mkDmsChord key roleConfig;
       workspace = "${category}-${role}";
-      special = "special:${workspace}";
-      description = "Toggle ${category} ${role} scratchpad";
     in ''
-      -- Hyprland owns scratchpad lifecycle. The role command stays application-
-      -- specific (for example `feet` retains its Foot server/client policy),
-      -- while the compositor owns lazy workspace creation and visibility.
-      hl.workspace_rule({ workspace = ${builtins.toJSON special}, on_created_empty = ${builtins.toJSON command} })
+      hl.workspace_rule({ workspace = ${builtins.toJSON "special:${workspace}"}, on_created_empty = ${builtins.toJSON command} })
       hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON description} })
+      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${category} ${role} scratchpad"} })
     '';
 
   mkDmsScratchpadBinds = category: scratchpad:
