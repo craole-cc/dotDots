@@ -87,6 +87,8 @@
       "formulahendry.code-runner"
       #? Test explorer sidebar UI
       "hbenl.vscode-test-explorer"
+      #? Bridge legacy Test Explorer adapters into VS Code's native test API
+      "ms-vscode.test-adapter-converter"
     ];
   };
 

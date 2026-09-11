@@ -209,6 +209,7 @@
           value = bar;
           category = "panel";
         };
+
     browserInput = attrByPath ["browser" "primary"] null apps;
     legacyBrowser = attrByPath ["browser" "firefox"] "twilight" apps;
     browser = normalizeName (
@@ -220,6 +221,37 @@
       value = browser;
       category = "browser";
     };
+
+    resolveBrowser = value:
+      if value == null || value == ""
+      then null
+      else let
+        result = builtins.tryEval (resolve {
+          value = normalizeName value;
+          category = "browser";
+        });
+      in
+        if result.success
+        then result.value
+        else null;
+
+    browserCandidates = builtins.filter
+      (app: app != null)
+      (map resolveBrowser (
+        [
+          (attrByPath ["browser" "primary"] null apps)
+          (attrByPath ["browser" "secondary"] null apps)
+          (attrByPath ["browser" "tertiary"] null apps)
+        ]
+        ++ appsAllowed
+      ));
+    zenBrowsers = builtins.filter
+      (app: (app.family or "") == "zen")
+      browserCandidates;
+    selectedZenBrowser =
+      if zenBrowsers == []
+      then null
+      else builtins.head zenBrowsers;
 
     tty = let
       t = attrByPath ["editor" "tty"] {} apps;
@@ -237,6 +269,7 @@
         de
         browser
         selectedBrowser
+        selectedZenBrowser
         hasAnyApp
         tty
         ;
@@ -300,9 +333,12 @@
         ];
 
       "zen-browser" = {
-        variant = selectedBrowser.channel or "default";
-        condition = {selectedBrowser, ...}:
-          (selectedBrowser.family or "") == "zen";
+        variant =
+          if selectedZenBrowser == null
+          then "default"
+          else selectedZenBrowser.channel or "default";
+        condition = {selectedZenBrowser, ...}:
+          selectedZenBrowser != null;
       };
     };
   in

@@ -1,29 +1,37 @@
 {
-  lib,
+  config,
   lix,
   user,
-  top,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+  inherit (lix.lists.predicates) isIn;
+
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "prompt";
+    mod = "starship";
+  };
+
   app = "starship";
-  opt = [
+  aliases = [
     app
     "starship-prompt"
     "starship-rs"
   ];
-  inherit (lix.lists.predicates) isIn;
-
-  isAllowed = isIn opt (
-    (user.applications.allowed or []) ++ [(user.interface.shell.prompt or null)]
-  );
-  payload = {
-    # home.file.".config/starship.toml" = {
-    #   source = src + "/Configuration/starship/config.toml";
-    # };
-
-    programs.${app} = {
-      enable = false;
+  requested = (user.applications.allowed or []) ++ [user.applications.prompt or null];
+  isAllowed = isIn aliases requested;
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = isAllowed;
+    };
+    outputs.programs.starship = {
+      enable = true;
       settings = {
         command_timeout = 1111;
         scan_timeout = 1000;
@@ -68,7 +76,6 @@
         };
 
         cmd_duration = {
-          # format = "[◄ $duration ](italic white)"
           min_time = 1000;
           show_notifications = true;
         };
@@ -103,9 +110,7 @@
           };
         };
 
-        fill = {
-          symbol = " ";
-        };
+        fill.symbol = " ";
 
         git_branch = {
           format = " [$branch(:$remote_branch)]($style)";
@@ -142,7 +147,6 @@
           renamed = "[ $count](bold italic bright-blue)";
           stashed = "[ $count](bold italic cyan)";
           up_to_date = "";
-          # disabled = true;
         };
 
         nix_shell = {
@@ -155,16 +159,13 @@
         };
 
         time = {
-          # disabled = true;
           format = "󱑏 [ $time ]($style)";
           time_format = "%H:%M";
           time_range = "22:00:00-07:00:00";
           utc_time_offset = "-5";
         };
 
-        shell = {
-          disabled = true;
-        };
+        shell.disabled = true;
 
         sudo = {
           allow_windows = true;
@@ -172,17 +173,7 @@
           style = "bold italic bright-purple";
           symbol = " ";
           disabled = true;
-          # symbol = "[ ](bold red)";
-          # symbol = "[ ](bold red)";
-          # symbol = "[󱨚  ](bold red)";
-          # disabled = true;
         };
       };
     };
-  };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-    condition = isAllowed;
-  });
-}
+  }

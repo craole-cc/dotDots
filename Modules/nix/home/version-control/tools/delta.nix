@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  user,
   ...
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
@@ -17,11 +18,10 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable =
-        mkEnable {inherit context;}
-        // {
-          default = config.programs.git.enable;
-        };
+      enable = mkEnable {
+        inherit context;
+        condition = user.applications.utilities.delta.enable or false;
+      };
       git.enable =
         mkEnable {description = "Enable Delta's Git integration";}
         // {

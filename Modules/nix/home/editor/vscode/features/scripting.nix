@@ -36,7 +36,7 @@
   };
 
   powershell = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? PowerShell LSP and debugger
       "ms-vscode.powershell"

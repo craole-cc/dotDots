@@ -24,8 +24,11 @@
   inherit (context) cfg ctx;
 
   user = host.users.data.primary or host.users.primary or {};
+  hasDmsHyprlandSession = builtins.hasAttr "hyprland-dms" config.programs.uwsm.waylandCompositors;
   defaultSession =
-    if ctx.wm == "hyprland" && (config.programs.hyprland.withUWSM or false)
+    if ctx.wm == "hyprland" && hasDmsHyprlandSession
+    then "hyprland-dms-uwsm"
+    else if ctx.wm == "hyprland" && (config.programs.hyprland.withUWSM or false)
     then "hyprland-uwsm"
     else ctx.wm or ctx.de or null;
 in
@@ -42,10 +45,10 @@ in
       };
 
       defaultSession = mkOption {
-        description = "Default session name passed to the display manager (e.g. hyprland-uwsm, gnome, cosmic).";
+        description = "Default session name passed to the display manager (e.g. hyprland-dms-uwsm, hyprland-uwsm, gnome, cosmic).";
         type = nullOr str;
         default = defaultSession;
-        defaultText = literalExpression ''if ctx.wm == "hyprland" && config.programs.hyprland.withUWSM then "hyprland-uwsm" else ctx.wm or ctx.de or null'';
+        defaultText = literalExpression ''if a DMS Hyprland UWSM session exists then "hyprland-dms-uwsm" else if ctx.wm == "hyprland" && config.programs.hyprland.withUWSM then "hyprland-uwsm" else ctx.wm or ctx.de or null'';
       };
 
       autologin = {

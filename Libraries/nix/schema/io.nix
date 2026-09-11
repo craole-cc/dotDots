@@ -8,8 +8,7 @@
   inherit (_.strings.construction) concatStringsSep;
   inherit (_.options.construction) mkOption mkEnableOption;
   inherit (_.types.primitives) str;
-  inherit (_.types.combinators) attrsOf nullOr;
-  inherit (_.types.combinators) submodule;
+  inherit (_.types.combinators) attrsOf nullOr submodule;
 
   __exports = {
     internal =
@@ -49,6 +48,41 @@
         };
       };
 
+      scratchpadRole = submodule {
+        options = {
+          mod = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+          command = mkOption {
+            description = "Optional command override for this scratchpad role";
+            type = nullOr str;
+            default = null;
+          };
+        };
+      };
+
+      scratchpad = submodule {
+        options = {
+          key = mkOption {
+            type = nullOr str;
+            default = null;
+          };
+          primary = mkOption {
+            type = scratchpadRole;
+            default = {};
+          };
+          secondary = mkOption {
+            type = scratchpadRole;
+            default = {};
+          };
+          tertiary = mkOption {
+            type = scratchpadRole;
+            default = {};
+          };
+        };
+      };
+
       keyboard = submodule {
         options = {
           modifier = mkOption {
@@ -61,6 +95,10 @@
             type = attrsOf keybinding;
             default = {};
           };
+          scratchpads = mkOption {
+            type = attrsOf scratchpad;
+            default = {};
+          };
         };
       };
     };
@@ -68,10 +106,28 @@
 
   mod = ["SUPER"];
 
+  # Scratchpad role modifiers are normalized exactly like the rest of the
+  # keyboard schema. Categories own only their base key; role selection adds
+  # SHIFT/ALT consistently across terminals, editors, browsers, and explorers.
+  mkScratchpad = key: {
+    inherit key;
+    primary.mod = mod;
+    secondary.mod = mod ++ ["SHIFT"];
+    tertiary.mod = mod ++ ["ALT"];
+  };
+
   defaults = {
     keyboard = {
       modifier = concatStringsSep " " mod;
       swapCapsEscape = true;
+
+      scratchpads = {
+        terminal = mkScratchpad "grave";
+        editor = mkScratchpad "C";
+        browser = mkScratchpad "B";
+        media = mkScratchpad "M";
+        "file-manager" = mkScratchpad "E";
+      };
 
       bindings = {
         # ── Applications ─────────────────────────────────────────────────────────

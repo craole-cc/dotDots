@@ -7,6 +7,7 @@
     gtk-single-instance = true;
     quit-after-last-window-closed = false;
     # initial-window = false;
+    copy-on-select = "clipboard";
     right-click-action = "copy-or-paste";
     selection-clear-on-copy = true;
     mouse-hide-while-typing = true;

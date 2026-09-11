@@ -41,6 +41,10 @@
       # modifier = "SUPER";
       swapCapsEscape = false;
       vimKeybinds = false;
+
+      # Scratchpad keys and role modifiers are schema-owned. Scratchpad
+      # applications follow the normalized application roles below.
+
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
       # bindings = {
@@ -134,13 +138,9 @@
   };
 
   applications = {
-    browser = let
-      firefox = "twilight";
-      chromium = "chromium";
-    in {
-      inherit firefox chromium;
-      primary = firefox;
-      secondary = chromium;
+    browser = {
+      primary = "chromium";
+      secondary = "zen-twilight";
     };
     editor = {
       tty = {
@@ -149,12 +149,20 @@
       };
       gui = {
         primary = "vscode";
-        secondary = "zeditor";
+        secondary = "zed";
+        tertiary = "vscode-insiders";
       };
     };
     terminal = {
-      primary = "feet";
+      # Kitty remains the protocol-neutral schema default. On Wayland Craole
+      # promotes Foot, with Ghostty and Kitty as secondary/tertiary roles.
       secondary = "ghostty";
+      tertiary = "kitty";
+      wayland.primary = "foot";
+    };
+    explorer = {
+      primary = "yazi";
+      secondary = "doublecmd";
     };
     launcher = {
       primary = "vicinae";
@@ -168,11 +176,14 @@
       # "atuin"
       "fastfetch"
       "freetube"
+      "ghostty"
+      "kitty"
       "warp-terminal"
       "jujutsu"
       "obs-studio"
       "yazi"
       "vim"
+      "vscode" # stable FHS + declarative Insiders are kept as a pair
       # "tmux"
     ];
     utilities = {
@@ -217,7 +228,7 @@
     #   # monitors = {
     #   # "HDMI-A-3" = {
     #   #   dark = wallpapersDir + "/2560x1440/dark/ktc-special.jpg";
-    #   #   light = wallpapersDir + "/2560x1440/light/ktc-day.jpg";
+    #   #   light = wallpapersDir + "/2560x1440/light.jpg";
     #   # };
     #   #
     #   # Example: Use a directory for random selection

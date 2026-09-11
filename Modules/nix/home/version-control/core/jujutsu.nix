@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  user,
   ...
 }: let
   inherit (config.programs) git;
@@ -22,7 +23,10 @@ in
     inherit context;
 
     options = {
-      enable = mkEnable {inherit context;};
+      enable = mkEnable {
+        inherit context;
+        condition = user.applications.utilities.jujutsu.enable or false;
+      };
 
       user = {
         name = mkOption {
@@ -40,7 +44,7 @@ in
 
     outputs = {
       programs.jujutsu = {
-        # inherit (cfg) enable;
+        inherit (cfg) enable;
         settings.user = {
           name = cfg.user.name;
           email = cfg.user.email;

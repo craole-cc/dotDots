@@ -26,7 +26,10 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable {inherit context;};
+      enable = mkEnable {
+        inherit context;
+        condition = user.applications.utilities.git.enable or false;
+      };
 
       lfs.enable =
         mkEnableOption "Git Large File Storage (LFS)"

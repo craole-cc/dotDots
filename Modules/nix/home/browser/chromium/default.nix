@@ -1,57 +1,68 @@
 {
-  policies,
+  config,
   lib,
+  lix,
   user,
   pkgs,
   ...
 }: let
-  inherit (lib.strings) toUpper;
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.modules) mkIf;
-  inherit (lib.strings) match toJSON;
-  inherit (policies) webGui;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+  inherit (lib.lists) findFirst;
+  inherit (lib.strings) match toJSON toUpper;
+
+  context = mkContext {
+    inherit config;
+    dom = "browser";
+    mod = "chromium";
+  };
 
   name = "chromium";
-  target = user.applications.browser.chromium;
-  normalizedTarget =
+  browser = user.applications.browser or {};
+
+  matches = pred: str: str != null && match pred str != null;
+
+  variantFor = target:
     if target == null
-    then "default"
-    else target;
-
-  matches = pred: str: match pred str != null;
-
-  variant =
+    then null
     #| Brave
-    if matches "brave" target
+    else if matches "brave" target
     then "brave"
     #| Chrome
     else if matches "chrome" target
     then "google-chrome"
     #| Chromium
-    else if normalizedTarget == "default" || matches "chromium" target || matches "ungoogled" target
+    else if target == "default" || matches "chromium" target || matches "ungoogled" target
     then "chromium"
     #| Vivaldi
     else if matches "viv" target
     then "vivaldi"
     else null;
 
+  targets = [
+    (browser.primary or null)
+    (browser.secondary or null)
+    (browser.tertiary or null)
+  ] ++ (user.applications.allowed or []);
+
+  target = findFirst (candidate: variantFor candidate != null) null targets;
+  variant = variantFor target;
+
   package =
     if variant != null
     then pkgs.${variant}
     else null;
 
-  enable = webGui && variant != null;
+  enable = variant != null;
 
   debug = {
     key = "_dbg_${toUpper name}";
     val = toJSON {
       criteria = {
-        inherit webGui;
         targetRequested =
           if target == null
           then "undefined"
           else target;
-        normalized = normalizedTarget;
         valid = enable;
       };
       resolved = {
@@ -66,8 +77,18 @@
       };
     };
   };
-in {
-  programs.chromium = mkIf enable {inherit enable package;};
-
-  home.sessionVariables = optionalAttrs enable {${debug.key} = debug.val;};
-}
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = enable;
+    };
+    outputs = {
+      programs.chromium = {
+        enable = true;
+        inherit package;
+      };
+      home.sessionVariables.${debug.key} = debug.val;
+    };
+  }

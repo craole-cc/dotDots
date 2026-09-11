@@ -1,23 +1,33 @@
 {
-  pkgs,
-  lib,
   config,
+  lib,
   lix,
-  top,
+  pkgs,
+  user,
   ...
 }: let
-  inherit (lix.modules.core.staging) mkStaged;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
   inherit (lib.lists) optionals;
-  payload = {
-    programs.yazi = {
-      enable = config.${top}.resolved.applications.utilities.yazi.enable;
-      shellWrapperName = "y";
-    };
 
-    home.packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.isDarwin [mactag];
+  context = mkContext {
+    inherit config;
+    dom = "shells";
+    sub = "tools";
+    mod = "yazi";
   };
-in {
-  config = lib.mkMerge (mkStaged {
-    inherit top payload;
-  });
-}
+in
+  mkConfig {
+    inherit context;
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.yazi.enable or false;
+    };
+    outputs = {
+      programs.yazi = {
+        enable = true;
+        shellWrapperName = "y";
+      };
+      home.packages = with pkgs.yaziPlugins; optionals pkgs.stdenv.hostPlatform.isDarwin [mactag];
+    };
+  }

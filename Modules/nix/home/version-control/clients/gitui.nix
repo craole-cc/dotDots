@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  user,
   ...
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
@@ -16,6 +17,9 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {inherit context;};
+    options.enable = mkEnable {
+      inherit context;
+      condition = user.applications.utilities.gitui.enable or false;
+    };
     outputs.programs.gitui.enable = cfg.enable;
   }
