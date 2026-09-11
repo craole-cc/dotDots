@@ -12,11 +12,12 @@
   };
   inherit (context) cfg;
 
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
 
   panel = config.${context.top}.resolved.interface.panel or null;
-  dmsUsers = builtins.mapAttrs (_: _: {extraGroups = ["input"];}) (host.users.interactive or {});
+  dmsUsers = mapAttrs (_: _: {extraGroups = ["input"];}) (host.users.interactive or {});
 in
   mkConfig {
     inherit context;
