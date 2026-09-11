@@ -165,7 +165,12 @@ monitor() {
     mode="$(current_mode || true)"
     if [ -n "$mode" ] && [ "$mode" != "$last_mode" ]; then
       signal_foot "$mode"
-      last_mode="$mode"
+      # Do not mark the mode synchronized until a Foot server actually exists;
+      # this covers graphical-session startup ordering without forcing Foot to
+      # be a hard dependency of the DMS monitor service.
+      if pgrep -x foot >/dev/null 2>&1; then
+        last_mode="$mode"
+      fi
     fi
 
     if [ "$palette_pending" -eq 1 ]; then
