@@ -110,7 +110,8 @@
 
   dmsDotBinds = pkgs.writeText "dms-hypr-binds-dots.lua" (
     ''
-      -- dotDots declarative lazy scratchpads.
+      -- dotDots declarative Hyprland scratchpads. DMS only supplies the
+      -- surrounding Lua entrypoint; scratchpad lifecycle belongs to Hyprland.
       -- Defaults are schema-owned; user API overrides are already normalized.
       -- Inserted before DMS's mutable binds-user.lua so runtime overrides win.
     ''
