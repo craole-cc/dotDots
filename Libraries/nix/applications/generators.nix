@@ -16,12 +16,14 @@
   };
 
   inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.debug.tracing) trace;
+  inherit (_.lists.access) head;
   inherit (_.lists.construction) optionals;
   inherit (_.lists.predicates) isIn;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) unique;
   inherit (_.modules.construction) mkMerge;
-  inherit (_.strings.construction) concatStringsSep fromBool optionalString;
+  inherit (_.strings.construction) concatStringsSep fromBool optionalString toJSON;
   inherit (_.strings.transformation) toUpper;
   inherit (_.types.predicates) isDerivation;
 
@@ -280,7 +282,6 @@
     debug ? false,
     ...
   }: let
-    #~@ Package Resolution
     package =
       if customPackage != null
       then customPackage
@@ -297,7 +298,7 @@
       then customCommand
       else if packageFound
       then let
-        binaryName = package.meta.mainProgram or (builtins.head resolutionHints);
+        binaryName = package.meta.mainProgram or (head resolutionHints);
       in "${package}/bin/${binaryName}"
       else null;
 
@@ -306,7 +307,6 @@
       then baseNameOf command
       else null;
 
-    #~@ Complete Identifiers - FILTER OUT NULL VALUES
     identifiers = unique (
       filter (x: x != null) (
         [
@@ -318,7 +318,6 @@
       )
     );
 
-    #~@ Role Classification — inert when kind is null
     default =
       if kind == null
       then null
@@ -329,7 +328,6 @@
     isSecondary = kind != null && isIn (default.secondary or null) identifiers;
     isRequested = isIn identifiers (user.applications.allowed or []);
 
-    #~@ Platform Compatibility — unchanged, doesn't touch kind
     checkPlatform = requiresWayland || requiresX11;
     isWaylandAvailable =
       if requiresWayland
@@ -347,7 +345,6 @@
 
     isAllowed = packageFound && (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
 
-    #~@ Environment — var/varWithCategory only meaningful when kind != null
     var =
       if kind != null
       then toUpper kind
@@ -457,7 +454,7 @@
       variables =
         if sessionVariables == {}
         then "│   Variables: none"
-        else builtins.toJSON sessionVariables;
+        else toJSON sessionVariables;
 
       debug = ''
         ╭─ mkApplication ${name} ────│ ${status} │
@@ -481,159 +478,11 @@
         ╰──────────────────────────────
       '';
     };
-    #~@ Debug Output
   in
-    #TODO: use traceIf
     if debug
-    then builtins.trace output.debug export
+    then trace output.debug export
     else export;
 
-  /**
-      Generate a home-manager module configuration for an application.
-
-      This is a convenience function that creates the standard structure for
-      a home-manager program configuration with session variables and packages.
-      It does NOT handle conditional logic - callers should wrap with `mkIf`
-      or other module system functions as needed.
-
-      # Inputs
-
-      `name`
-
-      : Application name, used as the key in `programs.<name>`.
-
-      `package`
-
-      : Package derivation to install.
-
-      `extraConfig` (optional, default: `{}`)
-
-      : Program-specific configuration to merge into `programs.<name>`.
-        This is merged after the base `{ enable = true; package = ...; }`,
-        allowing you to add or override any program settings.
-
-      `sessionVariables` (optional, default: `{}`)
-
-      : Environment variables to set in `home.sessionVariables`.
-
-      `extraPackages` (optional, default: `[]`)
-
-      : Additional packages to install in `home.packages`.
-        Useful for wrapper scripts or companion tools.
-
-      # Output
-
-      Returns an attribute set with:
-  ```nix
-      {
-        programs.<name> = {
-          enable = true;
-          package = <package>;
-        } // <extraConfig>;
-
-        home = {
-          sessionVariables = <sessionVariables>;
-          packages = <extraPackages>;
-        };
-      }
-  ```
-
-      # Examples
-
-      :::{.example}
-      ## Basic program configuration
-  ```nix
-      program {
-        name = "helix";
-        package = pkgs.helix;
-        sessionVariables = { EDITOR = "hx"; };
-      }
-      # => {
-      #   programs.helix = {
-      #     enable = true;
-      #     package = <derivation helix-...>;
-      #   };
-      #   home.sessionVariables = { EDITOR = "hx"; };
-      # }
-  ```
-      :::
-
-      :::{.example}
-      ## With conditional logic (caller's responsibility)
-  ```nix
-      let
-        app = application { ... };
-      in {
-        config = mkIf app.isAllowed (program {
-          inherit (app) name package sessionVariables;
-          extraConfig = {
-            defaultEditor = app.isPrimary;
-          };
-        });
-      }
-  ```
-      :::
-
-      :::{.example}
-      ## Program with additional configuration
-  ```nix
-      program {
-        name = "foot";
-        package = pkgs.foot;
-        sessionVariables = { TERMINAL = "feet"; };
-        extraPackages = [ feetWrapper ];
-        extraConfig = {
-          server.enable = true;
-          settings = {
-            main = {
-              font = "monospace:size=12";
-            };
-          };
-        };
-      }
-      # => {
-      #   programs.foot = {
-      #     enable = true;
-      #     package = <derivation foot-...>;
-      #     server.enable = true;
-      #     settings = { main = { ... }; };
-      #   };
-      #   home = {
-      #     sessionVariables = { TERMINAL = "feet"; };
-      #     packages = [ <derivation feet-wrapper> ];
-      #   };
-      # }
-  ```
-      :::
-
-      :::{.example}
-      ## Merging multiple configuration sources
-  ```nix
-      program {
-        name = "helix";
-        package = pkgs.helix;
-        sessionVariables = { EDITOR = "hx"; };
-        extraConfig =
-          { defaultEditor = true; }
-          // import ./editor.nix
-          // import ./keybindings.nix
-          // import ./languages.nix
-          // {};
-      }
-  ```
-      :::
-
-      # Type
-  ```
-      program :: {
-        name :: String,
-        package :: Derivation,
-        extraConfig :: AttrSet,
-        sessionVariables :: AttrSet,
-        extraPackages :: [Derivation],
-      } -> AttrSet
-  ```
-  */
   program = {
     config,
     name,
@@ -657,7 +506,6 @@
     };
     exports = {
       inherit programs home;
-      # inherit config;
     };
   in
     exports;
