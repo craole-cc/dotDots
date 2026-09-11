@@ -1,67 +1,38 @@
-let
+{
+  dmsEnabled ? false,
+  dmsColorsPath ? "~/.config/foot/dotdots-dms-colors.ini",
+}: let
   alpha = 0.95;
-in {
-  #~@ Primary Color Theme (Dark - Catppuccin Frappe)
-  #? Theme 1, accessed via initial-color-theme=1
-  colors-dark = {
-    inherit alpha;
-    background = "303446";
-    foreground = "c6d0f5";
+in
+  {
+    # Cursor behavior remains owned by dotDots regardless of palette source.
+    cursor = {
+      style = "beam";
+      blink = "yes";
+      blink-rate = 500;
+      beam-thickness = 1.5;
+    };
+  }
+  // (
+    if dmsEnabled
+    then {
+      # DMS owns palette values. The runtime sync helper materializes both
+      # [colors-dark] and [colors-light] from DMS's dual-scheme color state so
+      # Foot can switch modes server-wide without rewriting this Nix config.
+      main.include = dmsColorsPath;
+    }
+    else {
+      # Non-DMS fallback remains deterministic and fully Nix-owned.
+      colors-dark = {
+        inherit alpha;
+        background = "303446";
+        foreground = "c6d0f5";
+      };
 
-    # #~@ Regular Colors (0-7)
-    # regular0 = "51576d";
-    # regular1 = "e78284";
-    # regular2 = "a6d189";
-    # regular3 = "e5c890";
-    # regular4 = "8caaee";
-    # regular5 = "f4b8e4";
-    # regular6 = "81c8be";
-    # regular7 = "b5bfe2";
-
-    # #~@ Bright Colors (8-15)
-    # bright0 = "626880";
-    # bright1 = "e78284";
-    # bright2 = "a6d189";
-    # bright3 = "e5c890";
-    # bright4 = "8caaee";
-    # bright5 = "f4b8e4";
-    # bright6 = "81c8be";
-    # bright7 = "a5adce";
-  };
-
-  #~@ Alternative Color Theme (Light - Catppuccin Latte)
-  #? Theme 2, accessed via initial-color-theme=2
-  colors-light = {
-    inherit alpha;
-    background = "eff1f5";
-    foreground = "4c4f69";
-
-    # #~@ Regular Colors (0-7)
-    # regular0 = "5c5f77";
-    # regular1 = "d20f39";
-    # regular2 = "40a02b";
-    # regular3 = "df8e1d";
-    # regular4 = "1e66f5";
-    # regular5 = "ea76cb";
-    # regular6 = "179299";
-    # regular7 = "acb0be";
-
-    # #~@ Bright Colors (8-15)
-    # bright0 = "6c6f85";
-    # bright1 = "d20f39";
-    # bright2 = "40a02b";
-    # bright3 = "df8e1d";
-    # bright4 = "1e66f5";
-    # bright5 = "ea76cb";
-    # bright6 = "179299";
-    # bright7 = "bcc0cc";
-  };
-
-  #~@ Cursor Configuration
-  cursor = {
-    style = "beam";
-    blink = "yes";
-    blink-rate = 500;
-    beam-thickness = 1.5;
-  };
-}
+      colors-light = {
+        inherit alpha;
+        background = "eff1f5";
+        foreground = "4c4f69";
+      };
+    }
+  )
