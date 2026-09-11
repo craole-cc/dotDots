@@ -2,11 +2,12 @@
   agents,
   memory,
   cfg,
+  lix,
   paths,
   ...
 }:
 import ./lib.nix {
-  inherit cfg paths;
+  inherit cfg lix paths;
   name = "hermes-mem0";
   components = [
     memory.mem0
