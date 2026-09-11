@@ -3,7 +3,8 @@
   core,
   ...
 }: let
-  inherit (args) pkgs;
+  inherit (args) lix pkgs;
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (pkgs) mkShell;
 
   cfg = args.host.shells.ai or (throw "AI shell configuration is missing from host.shells.ai");
@@ -74,7 +75,7 @@
       shellHook = core.runtimeHook + (componentHook.${name} or "") + (component.shellHook or "");
     };
 
-  shells = builtins.mapAttrs (_: mkPresetShell) presets;
+  shells = mapAttrs (_: mkPresetShell) presets;
   defaultName = "ai-${cfg.defaultPreset}";
   default = presets.${defaultName} or (throw "Unknown default AI preset '${defaultName}'");
 
