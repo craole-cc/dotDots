@@ -1,8 +1,13 @@
 {
   apps,
-  lib,
+  lix,
   ...
 }: let
+  inherit (lix.attrsets.access) foldlAttrs;
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.predicates) isAttrs;
+  inherit (lix.modules.construction) mkDefault;
+
   roles = {
     primary = "PRI";
     secondary = "SEC";
@@ -10,34 +15,34 @@
   };
 
   mkRoleVariables = prefix: set:
-    lib.foldlAttrs (
+    foldlAttrs (
       acc: role: suffix: let
         entry = set.${role} or null;
       in
         acc
-        // lib.optionalAttrs (builtins.isAttrs entry && (entry.command or null) != null) {
-          "${prefix}_${suffix}" = lib.mkDefault entry.command;
-          "${prefix}_${suffix}_NAME" = lib.mkDefault entry.name;
+        // optionalAttrs (isAttrs entry && (entry.command or null) != null) {
+          "${prefix}_${suffix}" = mkDefault entry.command;
+          "${prefix}_${suffix}_NAME" = mkDefault entry.name;
         }
     )
     {}
     roles;
 
   primaryVariables =
-    lib.optionalAttrs (builtins.isAttrs (apps.terminal.primary or null)) {
-      TERMINAL = lib.mkDefault apps.terminal.primary.command;
+    optionalAttrs (isAttrs (apps.terminal.primary or null)) {
+      TERMINAL = mkDefault apps.terminal.primary.command;
     }
-    // lib.optionalAttrs (builtins.isAttrs (apps.browser.primary or null)) {
-      BROWSER = lib.mkDefault apps.browser.primary.command;
+    // optionalAttrs (isAttrs (apps.browser.primary or null)) {
+      BROWSER = mkDefault apps.browser.primary.command;
     }
-    // lib.optionalAttrs (builtins.isAttrs (apps.editor.tty.primary or null)) {
-      EDITOR = lib.mkDefault apps.editor.tty.primary.command;
+    // optionalAttrs (isAttrs (apps.editor.tty.primary or null)) {
+      EDITOR = mkDefault apps.editor.tty.primary.command;
     }
-    // lib.optionalAttrs (builtins.isAttrs (apps.editor.gui.primary or null)) {
-      VISUAL = lib.mkDefault apps.editor.gui.primary.command;
+    // optionalAttrs (isAttrs (apps.editor.gui.primary or null)) {
+      VISUAL = mkDefault apps.editor.gui.primary.command;
     }
-    // lib.optionalAttrs (builtins.isAttrs (apps.explorer.primary or null)) {
-      FILE_MANAGER = lib.mkDefault apps.explorer.primary.command;
+    // optionalAttrs (isAttrs (apps.explorer.primary or null)) {
+      FILE_MANAGER = mkDefault apps.explorer.primary.command;
     };
 in {
   imports = [
