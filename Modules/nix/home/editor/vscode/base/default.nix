@@ -1,8 +1,14 @@
-{lib, ...}: let
+{
+  lib,
+  lix,
+  ...
+}: let
   inherit (lib.modules) mkForce;
+  inherit (lix.filesystem.access) readFile;
+  inherit (lix.strings.construction) fromJSON;
 
   bindings = import ./bindings.nix {};
-  learnedSettings = builtins.fromJSON (builtins.readFile ./settings.json);
+  learnedSettings = fromJSON (readFile ./settings.json);
 in {
   # Stable VS Code is the mutable learning environment. The settings captured
   # from it are the authoritative declarative baseline for Insiders; feature
