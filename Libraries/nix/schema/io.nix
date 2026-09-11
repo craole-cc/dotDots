@@ -133,7 +133,7 @@
         # ── Applications ─────────────────────────────────────────────────────────
         terminal = {
           inherit mod;
-          key = "Grave";
+          key = "RETURN";
           action = "$TERMINAL";
         };
         terminalSec = {
@@ -244,6 +244,11 @@
         windowCycle = {
           mod = ["ALT"];
           key = "TAB";
+          action = "";
+        };
+        windowLast = {
+          mod = ["ALT"];
+          key = "ESCAPE";
           action = "";
         };
 
