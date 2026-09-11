@@ -3,6 +3,7 @@
   memory,
   router,
   cfg,
+  lix,
   paths,
   ...
 } @ args: let
@@ -11,7 +12,7 @@
   o = cfg.omniroute;
 in
   import ./lib.nix {
-    inherit cfg paths;
+    inherit cfg lix paths;
     name = "hermes-hindsight-omniroute";
     components = [
       router.omniroute
