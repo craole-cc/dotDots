@@ -81,25 +81,6 @@
       ++ [key]
     );
 
-  mkLazyScratchpad = workspace: command:
-    pkgs.writeShellScript "dotdots-scratchpad-${workspace}" ''
-      set -euo pipefail
-
-      hyprctl=${lib.escapeShellArg "${pkgs.hyprland}/bin/hyprctl"}
-      workspace=${lib.escapeShellArg workspace}
-      special="special:$workspace"
-
-      # Spawn only when this role's scratchpad currently has no client. This
-      # makes scratchpads lazy on first use and recreates the app after it exits.
-      if ! "$hyprctl" clients -j \
-        | ${pkgs.jq}/bin/jq -e --arg workspace "$special" \
-          '.[] | select(.workspace.name == $workspace)' >/dev/null; then
-        "$hyprctl" dispatch exec ${lib.escapeShellArg "[workspace special:${workspace} silent] ${command}"} >/dev/null
-      fi
-
-      "$hyprctl" dispatch togglespecialworkspace "$workspace" >/dev/null
-    '';
-
   mkDmsScratchpadRoleBind = category: scratchpad: role: let
     key = scratchpad.key or null;
     roleConfig = scratchpad.${role} or {};
@@ -111,11 +92,15 @@
     else let
       chord = mkDmsChord key roleConfig;
       workspace = "${category}-${role}";
-      launcher = mkLazyScratchpad workspace command;
+      special = "special:${workspace}";
+      description = "Toggle ${category} ${role} scratchpad";
     in ''
-      -- Each application role owns an independent lazy special workspace.
+      -- Hyprland 0.55+ owns scratchpads natively in Lua. Creating the special
+      -- workspace lazily runs the role command; closing the final client drops
+      -- the workspace, so the next toggle recreates both workspace and app.
+      hl.workspace_rule({ workspace = ${builtins.toJSON special}, on_created_empty = ${builtins.toJSON command} })
       hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.exec_cmd(${builtins.toJSON "${launcher}"}), { description = ${builtins.toJSON "Toggle ${category} ${role} scratchpad"} })
+      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON description} })
     '';
 
   mkDmsScratchpadBinds = category: scratchpad:
