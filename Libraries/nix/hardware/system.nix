@@ -29,7 +29,7 @@
   inherit (_.lists.construction) toList;
   inherit (_.lists.predicates) all elem mostFrequent;
   inherit (_.lists.transformation) flatten unique;
-  currentSystem = builtins.currentSystem or null;
+  inherit (_.sources.access) currentSystem;
 
   /**
   Extracts the host platform string from an evaluated packages set.
@@ -53,7 +53,7 @@
   Resolves and normalizes Nixpkgs package sets.
 
   Provides a safe fallback mechanism to prevent evaluation errors when
-  systems are missing or pure evaluation blocks `builtins.currentSystem`.
+  systems are missing or pure evaluation blocks `currentSystem`.
 
   Args:
     flake: The current flake's inputs.
