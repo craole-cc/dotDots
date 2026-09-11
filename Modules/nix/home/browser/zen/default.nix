@@ -4,12 +4,14 @@
   lix,
   user,
   paths,
-  lib,
   ...
 }: let
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
-  inherit (lix.options.construction) mkEnable;
   inherit (lix.applications.registry) resolve;
+  inherit (lix.debug.tracing) tryEval;
+  inherit (lix.lists.access) head;
+  inherit (lix.lists.selection) filter;
+  inherit (lix.modules.construction) mkConfig mkContext mkForce mkMerge;
+  inherit (lix.options.construction) mkEnable;
   inherit (lix.strings.transformation) normalize;
 
   context = mkContext {
@@ -34,7 +36,7 @@
     if value == null || value == ""
     then null
     else let
-      result = builtins.tryEval (browser value);
+      result = tryEval (browser value);
     in
       if result.success
       then result.value
@@ -45,8 +47,8 @@
   primaryBrowser = maybeBrowser primary;
   secondaryBrowser = maybeBrowser secondary;
   tertiaryBrowser = maybeBrowser tertiary;
-  allowedZen = builtins.filter isZen (
-    builtins.filter
+  allowedZen = filter isZen (
+    filter
     (app: app != null)
     (map maybeBrowser allowed)
   );
@@ -62,7 +64,7 @@
     else if isTertiary
     then tertiaryBrowser
     else if allowedZen != []
-    then builtins.head allowedZen
+    then head allowedZen
     else null;
 
   enable = selectedZen != null;
@@ -93,13 +95,13 @@ in
       home.sessionVariables =
         if isPrimary
         then {
-          BROWSER = lib.mkForce selectedZen.exec;
-          BROWSER_PRI = lib.mkForce selectedZen.exec;
+          BROWSER = mkForce selectedZen.exec;
+          BROWSER_PRI = mkForce selectedZen.exec;
         }
         else if isSecondary
-        then {BROWSER_SEC = lib.mkForce selectedZen.exec;}
+        then {BROWSER_SEC = mkForce selectedZen.exec;}
         else if isTertiary
-        then {BROWSER_TER = lib.mkForce selectedZen.exec;}
+        then {BROWSER_TER = mkForce selectedZen.exec;}
         else {};
     };
   }
