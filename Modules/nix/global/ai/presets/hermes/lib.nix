@@ -2,13 +2,18 @@
   name,
   components,
   cfg,
+  lix,
   paths,
   init ? "",
   start ? "",
 }: let
-  env = builtins.foldl' (acc: component: acc // (component.env or {})) {} components;
-  packages = builtins.concatLists (map (component: component.packages or []) components);
-  hooks = builtins.concatStringsSep "\n" (map (component: component.shellHook or "") components);
+  inherit (lix.lists.aggregation) foldl';
+  inherit (lix.lists.construction) concatLists;
+  inherit (lix.strings.construction) concatStringsSep;
+
+  env = foldl' (acc: component: acc // (component.env or {})) {} components;
+  packages = concatLists (map (component: component.packages or []) components);
+  hooks = concatStringsSep "\n" (map (component: component.shellHook or "") components);
 
   dataRoot = "${paths.xdg.data.local}/${cfg.directory}";
   cacheRoot = "${paths.xdg.cache.local}/${cfg.directory}";
