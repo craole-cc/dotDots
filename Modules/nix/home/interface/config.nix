@@ -9,54 +9,46 @@
   dom = "interface";
   cfg = config.${top}.resolved.${dom};
   inherit (lib.modules) mkForce;
-  # inherit (lib.strings) toLower;
-  getPackage = lix.attrsets.resolution.package;
-  # get = lix.attrsets.resolution.get;
+  inherit (lix.attrsets.resolution) package;
 
-  #~@ Style configuration from user API
-  # style = user.interface.style or {};
-  # current = style.current or "dark";
-
-  #~@ Cursor configuration
-  cursor = rec {
+  cursor = {
     name = cfg.cursors.name;
-    package = getPackage {
+    package = package {
       inherit pkgs;
-      target = name;
+      target = cfg.cursors.name;
       default = pkgs.material-cursors;
     };
     size = cfg.cursors.size;
   };
 
-  #~@ Icons configuration
-  icons = rec {
+  icons = {
     name = cfg.icons.name;
-    package = getPackage {
+    package = package {
       inherit pkgs;
-      target = name;
+      target = cfg.icons.name;
       default = pkgs.candy-icons;
     };
   };
 in {
-  # _module.args = {inherit cursor icons;};
   _module.args.${dom} = cfg;
 
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {inherit (icons) package name;};
     cursorTheme = mkForce {inherit (cursor) package name size;};
-    gtk3.extraConfig.gtk-application-prefer-dark-theme = 0;
-    gtk4 = {
-      theme = null;
-      # theme=config.gtk.theme;
-      extraConfig.gtk-application-prefer-dark-theme = 0;
-    };
+    gtk4.theme = null;
   };
 
-  home.pointerCursor = mkForce {
-    gtk.enable = true;
-    x11.enable = true;
-    inherit (cursor) package name size;
+  home = {
+    pointerCursor = mkForce {
+      gtk.enable = true;
+      x11.enable = true;
+      inherit (cursor) package name size;
+    };
+
+    # Quickshell/DMS can resolve themed application icons independently of
+    # GTK. Keep it on the same dotDots-resolved icon contract.
+    sessionVariables.QS_ICON_THEME = icons.name;
   };
 
   qt = mkForce {
