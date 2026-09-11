@@ -17,9 +17,14 @@
   };
   inherit (context) cfg ctx;
 
-  inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lib.hm.dag) entryAfter;
+  inherit (lix.attrsets.predicates) isAttrs;
+  inherit (lix.attrsets.transformation) mapAttrsToList;
+  inherit (lix.lists.selection) filter;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf mkMerge;
   inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.strings.construction) concatStringsSep splitString toJSON;
+  inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.types.primitives) bool;
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
@@ -49,7 +54,7 @@
   wrapTerminalCommand = entry: command:
     if command == null
     then null
-    else if (entry.needsTerminal or false) && builtins.isAttrs primaryTerminal
+    else if (entry.needsTerminal or false) && isAttrs primaryTerminal
     then let
       terminalCommand = primaryTerminal.command or null;
       execFlag = primaryTerminal.wrap.execFlag or "-e";
@@ -63,11 +68,11 @@
     categoryApps = scratchpadApps.${category} or {};
     entry = categoryApps.${role} or null;
     command =
-      if builtins.isAttrs entry
+      if isAttrs entry
       then entry.launch.scratchpad or entry.command or null
       else null;
   in
-    if builtins.isAttrs entry
+    if isAttrs entry
     then wrapTerminalCommand entry command
     else null;
 
@@ -79,8 +84,8 @@
     else defaultScratchpadCommand category role;
 
   mkDmsChordWith = key: binding: extraMods:
-    lib.concatStringsSep " + " (
-      builtins.filter (part: part != "") (lib.splitString " " (binding.mod or ""))
+    concatStringsSep " + " (
+      filter (part: part != "") (splitString " " (binding.mod or ""))
       ++ extraMods
       ++ [key]
     );
@@ -99,13 +104,13 @@
       chord = mkDmsChord key roleConfig;
       workspace = "${category}-${role}";
     in ''
-      hl.workspace_rule({ workspace = ${builtins.toJSON "special:${workspace}"}, on_created_empty = ${builtins.toJSON command} })
-      hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON workspace}), { description = ${builtins.toJSON "Toggle ${category} ${role} scratchpad"} })
+      hl.workspace_rule({ workspace = ${toJSON "special:${workspace}"}, on_created_empty = ${toJSON command} })
+      hl.unbind(${toJSON chord})
+      hl.bind(${toJSON chord}, hl.dsp.workspace.toggle_special(${toJSON workspace}), { description = ${toJSON "Toggle ${category} ${role} scratchpad"} })
     '';
 
   mkDmsScratchpadBinds = category: scratchpad:
-    lib.concatStringsSep "" (
+    concatStringsSep "" (
       map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
     );
 
@@ -113,7 +118,7 @@
     key = terminalLaunch.key or null;
     mod = terminalLaunch.mod or null;
     command =
-      if builtins.isAttrs primaryTerminal
+      if isAttrs primaryTerminal
       then primaryTerminal.command or null
       else null;
   in
@@ -122,8 +127,8 @@
     else let
       chord = mkDmsChord key terminalLaunch;
     in ''
-      hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.exec_cmd(${builtins.toJSON command}), { description = "Open primary terminal" })
+      hl.unbind(${toJSON chord})
+      hl.bind(${toJSON chord}, hl.dsp.exec_cmd(${toJSON command}), { description = "Open primary terminal" })
     '';
 
   dmsWindowLastBind = let
@@ -135,8 +140,8 @@
     else let
       chord = mkDmsChord key windowLast;
     in ''
-      hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, hl.dsp.focus({ last = true }), { description = "Focus previous window" })
+      hl.unbind(${toJSON chord})
+      hl.bind(${toJSON chord}, hl.dsp.focus({ last = true }), { description = "Focus previous window" })
     '';
 
   dmsWindowCycleBinds = let
@@ -221,13 +226,13 @@
         until attempts >= count
       end
 
-      hl.unbind(${builtins.toJSON chord})
-      hl.bind(${builtins.toJSON chord}, function()
+      hl.unbind(${toJSON chord})
+      hl.bind(${toJSON chord}, function()
         dotdots_mru_cycle(1)
       end, { description = "Cycle recent windows" })
 
-      hl.unbind(${builtins.toJSON reverseChord})
-      hl.bind(${builtins.toJSON reverseChord}, function()
+      hl.unbind(${toJSON reverseChord})
+      hl.bind(${toJSON reverseChord}, function()
         dotdots_mru_cycle(-1)
       end, { description = "Cycle recent windows backwards" })
 
@@ -247,14 +252,14 @@
     + dmsTerminalBind
     + dmsWindowLastBind
     + dmsWindowCycleBinds
-    + lib.concatStringsSep "" (lib.mapAttrsToList mkDmsScratchpadBinds scratchpads)
+    + concatStringsSep "" (mapAttrsToList mkDmsScratchpadBinds scratchpads)
   );
 
   dmsRoot = pkgs.runCommand "dms-hyprland.lua" {} ''
     ${pkgs.gnused}/bin/sed \
       '/-- DMS_STARTUP_BEGIN/,/-- DMS_STARTUP_END/d' \
       ${dmsEmbedded}/hyprland.lua \
-      | ${pkgs.gawk}/bin/awk -v binds=${lib.escapeShellArg dmsDotBinds} '
+      | ${pkgs.gawk}/bin/awk -v binds=${escapeShellArg dmsDotBinds} '
           { print }
           /require\("dms.binds-user"\)/ {
             while ((getline line < binds) > 0) print line
@@ -268,7 +273,7 @@
       "$out" \
       --replace-fail \
         '{{TERMINAL_COMMAND}}' \
-        ${lib.escapeShellArg apps.terminal.primary.command}
+        ${escapeShellArg apps.terminal.primary.command}
   '';
 
   mkAddons = target:
@@ -321,8 +326,8 @@
     # Materialize all dependencies before atomically replacing the active Lua
     # entrypoint. Hyprland watches this path, so replacing it last avoids a
     # transient reload against a missing or half-written configuration.
-    home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''
-      config_dir=${lib.escapeShellArg config.xdg.configHome}/hypr
+    home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (entryAfter ["writeBoundary"] ''
+      config_dir=${escapeShellArg config.xdg.configHome}/hypr
       dms_dir="$config_dir/dms"
 
       ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
@@ -374,7 +379,7 @@
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in
     # /run/current-system/sw/share/xdg-desktop-portal/portals. Remove only the
     # known stale copies; the system packages remain the source of truth.
-    home.activation.removeLegacyUserPortalDescriptors = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.removeLegacyUserPortalDescriptors = entryAfter ["writeBoundary"] ''
       portal_dir="$HOME/.local/share/xdg-desktop-portal/portals"
       for portal in gtk.portal darkman.portal; do
         path="$portal_dir/$portal"
