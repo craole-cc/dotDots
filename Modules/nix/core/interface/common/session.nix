@@ -4,6 +4,7 @@
   host,
   ...
 }: let
+  inherit (lix.attrsets.predicates) hasAttr;
   inherit
     (lix.modules.construction)
     mkConfig
@@ -24,7 +25,7 @@
   inherit (context) cfg ctx;
 
   user = host.users.data.primary or host.users.primary or {};
-  hasDmsHyprlandSession = builtins.hasAttr "hyprland-dms" config.programs.uwsm.waylandCompositors;
+  hasDmsHyprlandSession = hasAttr "hyprland-dms" config.programs.uwsm.waylandCompositors;
   defaultSession =
     if ctx.wm == "hyprland" && hasDmsHyprlandSession
     then "hyprland-dms-uwsm"
