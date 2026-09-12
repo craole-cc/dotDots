@@ -12,7 +12,7 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.styles.icons) mkIcon;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (pkgs) coreutils dms-shell jq procps quickshell;
+  inherit (pkgs) coreutils dms-shell jq quickshell;
 
   context = mkContext {
     inherit config;
@@ -58,9 +58,6 @@
     bright5=ca9ee6
     bright6=81c8be
     bright7=c6d0f5
-  '';
-  reloadFoot = pkgs.writeShellScript "reload-foot-dms-theme" ''
-    ${procps}/bin/pkill -USR1 -x foot || true
   '';
 in
   mkConfig {
@@ -165,21 +162,5 @@ in
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set currentThemeCategory custom >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set currentThemeName custom >/dev/null 2>&1 || true
       '';
-
-      systemd.user = {
-        services.dotdots-foot-dms-theme-reload = {
-          Unit.Description = "Reload Foot after DMS regenerates its palette";
-          Service = {
-            Type = "oneshot";
-            ExecStart = reloadFoot;
-          };
-        };
-
-        paths.dotdots-foot-dms-theme-reload = {
-          Unit.Description = "Watch the DMS-generated Foot palette";
-          Path.PathChanged = "%h/.config/foot/dank-colors.ini";
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      };
     };
   }
