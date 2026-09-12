@@ -77,7 +77,8 @@
     '';
 
     headroom = ''
-      export HEADROOM_WORKSPACE="''${HEADROOM_WORKSPACE:-${paths.xdg.data.local}/${cfg.directory}/${cfg.headroom.state}}"
+      export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${paths.xdg.data.local}/${cfg.directory}/${cfg.headroom.state}}"
+      export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${paths.xdg.config.local}/${cfg.directory}/${cfg.headroom.state}}"
       export HEADROOM_UV_CACHE="''${HEADROOM_UV_CACHE:-${paths.xdg.cache.local}/${cfg.directory}/${cfg.headroom.state}/uv}"
       export HEADROOM_SESSION="''${HEADROOM_SESSION:-${cfg.headroom.session}}"
     '';
