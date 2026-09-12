@@ -48,10 +48,15 @@
 
   #~@ Home overlays - flake input packages
 
-  #> Flattened - exposes each input's default package directly on pkgs
-  #> e.g. pkgs.helix = inputs.editorHelix.packages.${system}.default
-  flattenedOverlay = {packages}: _final: prev: let
+  #> Flattened - exposes each input's default package directly on pkgs.
+  #> Inputs listed in `exclude` remain available under pkgs.fromInputs but do
+  #> not replace an existing nixpkgs package of the same name.
+  flattenedOverlay = {
+    packages,
+    exclude ? [],
+  }: _final: prev: let
     system = systemOf prev;
+    flattenedPackages = builtins.removeAttrs packages exclude;
     resolve = pkgsSet: let
       val = pkgsSet.${system} or null;
     in
@@ -66,7 +71,7 @@
         inherit name;
         value = resolve pkgsSet;
       })
-      packages
+      flattenedPackages
     );
 
   #> Variant expansion - explicitly expose named variants for known multi-output inputs
@@ -102,7 +107,13 @@
     inputs,
     packages,
   }: [
-    (flattenedOverlay {inherit packages;})
+    # The application registry resolves Helix from nixpkgs. Keep the flake
+    # input available for explicit consumers without allowing its default
+    # package to shadow pkgs.helix during whole-system evaluation.
+    (flattenedOverlay {
+      inherit packages;
+      exclude = ["helix"];
+    })
     (variantOverlay {inherit packages;})
     (fromInputsOverlay {inherit packages;})
     (inputs.chaotic.overlays.default or (_: _: {}))

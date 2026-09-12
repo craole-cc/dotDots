@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   ai-eval:
     runs-on: ubuntu-latest
@@ -14,6 +17,10 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          extra-conf: |
+            accept-flake-config = true
 
       - name: Validate host AI runtime overrides
         run: |
@@ -114,6 +121,10 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          extra-conf: |
+            accept-flake-config = true
 
       - name: Run preset end-to-end
         run: sh .github/scripts/ai-preset-e2e.sh "${{ matrix.preset }}"
@@ -127,6 +138,10 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          extra-conf: |
+            accept-flake-config = true
 
       - name: Smoke-test preset instance isolation
         run: |
