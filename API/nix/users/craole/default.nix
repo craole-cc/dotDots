@@ -153,7 +153,7 @@
       };
     };
     terminal = {
-      primary = "feet";
+      primary = "ghostty";
       secondary = "ghostty";
     };
     launcher = {
