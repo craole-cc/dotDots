@@ -213,7 +213,7 @@
       # "tmux"
     ];
     utilities = {
-      atuin.enable = false;
+      atuin.enable = true;
       bat.enable = true;
       btop.enable = true;
       clock.enable = true;
