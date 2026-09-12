@@ -3,14 +3,12 @@
   lib,
   lix,
   pkgs,
-  user,
   ...
 }: let
   inherit (lib.hm.dag) entryAfter;
   inherit (lib.modules) mkForce;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.styles.icons) mkIcon;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (pkgs) coreutils dms-shell jq quickshell;
 
@@ -22,12 +20,9 @@
   };
   inherit (context) cfg ctx;
 
-  style = user.style or {};
-  polarity = (style.theme or {}).polarity or "dark";
-  iconStyle = style.icons or {};
-  resolvedIcons = mkIcon {
-    inherit pkgs polarity;
-    icon = iconStyle.${polarity} or null;
+  resolvedIcons = {
+    name = "candy-icons";
+    package = pkgs.candy-icons;
   };
 
   iconTheme = cfg.icons.name;
