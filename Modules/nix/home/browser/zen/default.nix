@@ -66,6 +66,8 @@
     else null;
 
   enable = selectedZen != null;
+  dmsEnabled = config.programs.dank-material-shell.enable or false;
+  dmsZenCss = "${config.xdg.configHome}/DankMaterialShell/zen.css";
 in
   mkConfig {
     inherit context;
@@ -78,6 +80,18 @@ in
         enable = true;
         setAsDefaultBrowser = isPrimary;
         profiles.${user.name} = mkMerge [
+          (
+            if dmsEnabled
+            then {
+              # DMS's native Zen Matugen template writes this file. Keep the
+              # profile declarative and import the mutable generated palette
+              # rather than duplicating DMS colors in Nix.
+              userChrome = ''
+                @import url("file://${dmsZenCss}");
+              '';
+            }
+            else {}
+          )
           (import ./bookmarks.nix)
           (import ./containers.nix)
           (import ./search.nix {inherit host;})
