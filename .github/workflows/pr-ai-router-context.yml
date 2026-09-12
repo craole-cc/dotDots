@@ -1,0 +1,36 @@
+name: AI router/context acceptance
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  router-context:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          extra-conf: |
+            accept-flake-config = true
+
+      - name: Evaluate new component and preset shells
+        run: |
+          set -eu
+          for shell in \
+            Victus-ai-nine-router \
+            Victus-ai-headroom \
+            Victus-ai-hermes-hindsight-nine-router \
+            Victus-ai-hermes-hindsight-headroom-nine-router
+          do
+            nix eval --raw ".#devShells.x86_64-linux.$shell.drvPath" >/dev/null
+          done
+
+      - name: Run router/context contract tests
+        run: sh .github/scripts/ai-router-context-e2e.sh
