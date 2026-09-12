@@ -19,55 +19,9 @@
 
     state = Path(os.environ["DOTDOTS_THEME_STATE"])
     sock = Path(os.environ["DOTDOTS_THEME_SOCKET"])
-    dark_foot = """background=303446
-    foreground=c6d0f5
-    selection-background=626880
-    selection-foreground=c6d0f5
-    regular0=51576d
-    regular1=e78284
-    regular2=a6d189
-    regular3=e5c890
-    regular4=8caaee
-    regular5=ca9ee6
-    regular6=81c8be
-    regular7=b5bfe2
-    bright0=626880
-    bright1=e78284
-    bright2=a6d189
-    bright3=e5c890
-    bright4=8caaee
-    bright5=ca9ee6
-    bright6=81c8be
-    bright7=c6d0f5
-    """
-    light_foot = """background=eff1f5
-    foreground=4c4f69
-    selection-background=acb0be
-    selection-foreground=4c4f69
-    regular0=5c5f77
-    regular1=d20f39
-    regular2=40a02b
-    regular3=df8e1d
-    regular4=1e66f5
-    regular5=ea76cb
-    regular6=179299
-    regular7=acb0be
-    bright0=6c6f85
-    bright1=d20f39
-    bright2=40a02b
-    bright3=df8e1d
-    bright4=1e66f5
-    bright5=ea76cb
-    bright6=179299
-    bright7=bcc0cc
-    """
-
     def emit(mode):
         state.parent.mkdir(parents=True, exist_ok=True)
         state.write_text(mode + "\n")
-        foot = Path(os.environ["HOME"]) / ".config/foot/theme.ini"
-        foot.parent.mkdir(parents=True, exist_ok=True)
-        foot.write_text(dark_foot if mode == "dark" else light_foot)
         try:
             subprocess.run(["dbus-send", "--session", "--type=signal", "/org/dotDots/Theme", "org.dotDots.Theme.Polarity", "string:" + mode], check=False)
         except OSError:
@@ -76,8 +30,6 @@
             subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark" if mode == "dark" else "prefer-light"], check=False)
         except OSError:
             pass
-        subprocess.run(["pkill", "-USR1", "-x", "foot"], check=False)
-        subprocess.run(["pkill", "-USR1", "-x", "footclient"], check=False)
 
     def current():
         try:
