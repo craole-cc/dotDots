@@ -46,29 +46,23 @@
       swapCapsEscape = false;
       vimKeybinds = false;
 
-      # AI follows the schema's scratchpad role convention on the A key:
-      # primary = Super, secondary = Super+Shift, tertiary = Super+Alt.
-      scratchpads.ai = {
-        key = "A";
-        primary = {
-          mod = ["SUPER"];
-          command = "hermes-desktop";
-        };
-        secondary = {
-          mod = [
-            "SUPER"
-            "SHIFT"
-          ];
-          command = "claude-desktop";
-        };
-        tertiary = {
-          mod = [
-            "SUPER"
-            "ALT"
-          ];
-          command = "chatgpt";
-        };
-      };
+      # # AI follows the schema's scratchpad role convention on the A key:
+      # # primary = Super, secondary = Super+Shift, tertiary = Super+Alt.
+      # scratchpads.ai = {
+      #   key = "A";
+      #   primary = {
+      #     mod = ["SUPER"];
+      #     command = "hermes-desktop";
+      #   };
+      #   secondary = {
+      #     mod = ["SUPER" "SHIFT"];
+      #     command = "claude-desktop";
+      #   };
+      #   tertiary = {
+      #     mod = ["SUPER" "ALT"];
+      #     command = "chatgpt";
+      #   };
+      # };
 
       # Scratchpad keys and role modifiers are schema-owned. Scratchpad
       # applications follow the normalized application roles below.
@@ -166,6 +160,12 @@
   };
 
   applications = {
+    ai = {
+      primary = "hermes-desktop";
+      secondary = "chatgpt";
+      tertiary = "claude-desktop";
+    };
+
     browser = {
       primary = "zen-twilight";
       secondary = "chromium";
@@ -182,10 +182,8 @@
       };
     };
     terminal = {
-      # Ghostty is the primary terminal. Foot remains available as the
-      # lightweight secondary and Kitty as the tertiary fallback.
-      primary = "ghostty";
-      secondary = "foot";
+      primary = "foot";
+      secondary = "ghostty";
       tertiary = "kitty";
     };
     explorer = {
