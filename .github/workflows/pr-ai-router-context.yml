@@ -20,28 +20,30 @@ jobs:
           extra-conf: |
             accept-flake-config = true
 
-      - name: Evaluate new component and preset shells
+      - name: Evaluate router, context, and full-stack shells
         run: |
           set -eu
           for shell in \
             Victus-ai \
-            Victus-ai-nine-router \
+            Victus-ai-9router \
+            Victus-ai-omniroute \
             Victus-ai-headroom \
-            Victus-ai-hermes-hindsight-nine-router \
-            Victus-ai-hermes-hindsight-headroom-nine-router
+            Victus-ai-hermes-hindsight-9router \
+            Victus-ai-hermes-hindsight-headroom-9router \
+            Victus-ai-hermes-hindsight-headroom-omniroute
           do
             nix eval --raw ".#devShells.x86_64-linux.$shell.drvPath" >/dev/null
           done
 
-      - name: Prove default AI alias selects full stack
+      - name: Prove default AI alias selects most capable OmniRoute stack
         run: |
           set -eu
           HOME="$(mktemp -d)" nix develop .#Victus-ai --command sh -lc '
             set -eu
-            test "$AI_PRESET" = hermes-hindsight-headroom-nine-router
+            test "$AI_PRESET" = hermes-hindsight-headroom-omniroute
             test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
-            test "$OPENAI_TARGET_API_URL" = "$NINE_ROUTER_BASE_URL"
+            test "$OPENAI_TARGET_API_URL" = "$OMNIROUTE_BASE_URL"
           '
 
-      - name: Run router/context contract tests
+      - name: Run 9Router and Headroom contract tests
         run: sh .github/scripts/ai-router-context-e2e.sh
