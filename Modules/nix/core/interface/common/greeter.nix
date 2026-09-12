@@ -45,10 +45,10 @@ in
         compositor.name = cfg.compositor;
       };
 
-      # greetd's PAM stack includes the login stack. Enabling the NixOS GNOME
-      # Keyring service wires pam_gnome_keyring into that login path so the
-      # user's login keyring is unlocked by the greeter password instead of
-      # starting an unrelated daemon later in the graphical session.
-      services.gnome.gnome-keyring.enable = lib.mkIf cfg.enable true;
+      # oo7 is a cross-desktop Freedesktop Secret Service provider. Its NixOS
+      # module enables pam_oo7 on the login stack, and greetd delegates its
+      # auth/password/session handling to that stack, so the user's keyring is
+      # unlocked by the greeter password without depending on GNOME Keyring.
+      services.oo7.enable = lib.mkIf cfg.enable true;
     };
   }
