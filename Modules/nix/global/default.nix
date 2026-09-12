@@ -60,13 +60,14 @@ global: let
         "ai-headroom"
         "ai-hermes"
         "ai-hermes-hindsight"
-        "ai-hermes-hindsight-headroom-nine-router"
-        "ai-hermes-hindsight-nine-router"
+        "ai-hermes-hindsight-headroom-9router"
+        "ai-hermes-hindsight-headroom-omniroute"
+        "ai-hermes-hindsight-9router"
         "ai-hermes-hindsight-omniroute"
         "ai-hermes-mem0"
         "ai-hindsight"
         "ai-mem0"
-        "ai-nine-router"
+        "ai-9router"
         "ai-omniroute"
         ;
 
