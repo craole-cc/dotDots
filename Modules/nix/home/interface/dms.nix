@@ -3,11 +3,14 @@
   lib,
   lix,
   pkgs,
+  user,
   ...
 }: let
   inherit (lib.hm.dag) entryAfter;
+  inherit (lib.modules) mkForce;
   inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.options.construction) mkEnable;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.styles.icons) mkIcon;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (pkgs) coreutils dms-shell jq procps quickshell;
 
@@ -19,8 +22,15 @@
   };
   inherit (context) cfg ctx;
 
-  appearance = context.resolved.cfg.interface.style.appearance.explicit;
-  iconTheme = appearance.icons.name;
+  style = user.style or {};
+  polarity = (style.theme or {}).polarity or "dark";
+  iconStyle = style.icons or {};
+  resolvedIcons = mkIcon {
+    inherit pkgs polarity;
+    icon = iconStyle.${polarity} or null;
+  };
+
+  iconTheme = cfg.icons.name;
   themeName = "dotdots-catppuccin";
   themeFile = ./themes/dms-catppuccin.json;
   themePath = "${config.xdg.configHome}/DankMaterialShell/themes/${themeName}.json";
@@ -57,6 +67,12 @@ in
     inherit context;
     options = {
       enable = mkEnable ({inherit context;} // ctx.wantsDmsShell);
+      icons = mkOption {
+        description = "Resolved DMS desktop icon contract";
+        default = resolvedIcons;
+        type = lix.styles.icons.types.icon.home;
+        readOnly = true;
+      };
     };
     outputs = {
       programs.dank-material-shell = {
@@ -70,7 +86,18 @@ in
         quickshell.package = quickshell;
       };
 
-      xdg.configFile."DankMaterialShell/themes/${themeName}.json".source = themeFile;
+      xdg = {
+        configFile."DankMaterialShell/themes/${themeName}.json".source = themeFile;
+        dataFile."icons/${cfg.icons.name}".source =
+          "${cfg.icons.package}/share/icons/${cfg.icons.name}";
+      };
+
+      gtk = {
+        enable = mkForce true;
+        iconTheme = mkForce {inherit (cfg.icons) package name;};
+      };
+
+      home.sessionVariables.QS_ICON_THEME = cfg.icons.name;
 
       # DMS owns its mutable settings file. Preserve the user's bar/widget/etc.
       # settings and only assert the declarative dotDots theme selection.
