@@ -55,7 +55,7 @@
     EDITOR = "hx";
     VISUAL = "code";
     PAGER = "less";
-    BROWSER = "firefox";
+    BROWSER = "zen";
     TERMINAL = "ghostty";
 
     LOCALHOST = "127.0.0.1";
