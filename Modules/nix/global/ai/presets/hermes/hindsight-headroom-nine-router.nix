@@ -14,7 +14,7 @@
 in
   import ./lib.nix {
     inherit cfg paths;
-    name = "hermes-hindsight-headroom-nine-router";
+    name = "hermes-hindsight-headroom-9router";
     components = [
       router."nine-router"
       context.headroom
@@ -64,8 +64,8 @@ in
     '';
 
     start = ''
-      if ! nine-router-status > /dev/null 2>&1; then
-        nine-router-daemon || true
+      if ! 9router-status > /dev/null 2>&1; then
+        9router-daemon || true
       fi
 
       if ! headroom-status > /dev/null 2>&1; then
