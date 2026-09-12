@@ -10,7 +10,7 @@
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (pkgs) coreutils dms-shell jq quickshell;
+  inherit (pkgs) coreutils dms-shell jq procps quickshell;
 
   context = mkContext {
     inherit config;
@@ -54,6 +54,9 @@
     bright6=81c8be
     bright7=c6d0f5
   '';
+  reloadFoot = pkgs.writeShellScript "reload-foot-dms-theme" ''
+    ${procps}/bin/pkill -USR1 -x foot || true
+  '';
 in
   mkConfig {
     inherit context;
@@ -90,6 +93,22 @@ in
       };
 
       home.sessionVariables.QS_ICON_THEME = cfg.icons.name;
+
+      systemd.user = {
+        services.dotdots-foot-dms-theme-reload = {
+          Unit.Description = "Reload Foot after DMS regenerates its palette";
+          Service = {
+            Type = "oneshot";
+            ExecStart = reloadFoot;
+          };
+        };
+
+        paths.dotdots-foot-dms-theme-reload = {
+          Unit.Description = "Watch the DMS-generated Foot palette";
+          Path.PathChanged = "%h/.config/foot/dank-colors.ini";
+          Install.WantedBy = ["graphical-session.target"];
+        };
+      };
 
       # DMS owns its mutable settings file. Preserve the user's bar/widget/etc.
       # settings and only assert the declarative dotDots theme selection.
