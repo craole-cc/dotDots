@@ -143,8 +143,8 @@
 
   applications = {
     browser = {
-      primary = "chromium";
-      secondary = "zen-twilight";
+      primary = "zen-twilight";
+      secondary = "chromium";
     };
     editor = {
       tty = {
@@ -158,11 +158,11 @@
       };
     };
     terminal = {
-      # Kitty remains the protocol-neutral schema default. On Wayland Craole
-      # promotes Foot, with Ghostty and Kitty as secondary/tertiary roles.
-      secondary = "ghostty";
+      # Ghostty is the primary terminal. Foot remains available as the
+      # lightweight secondary and Kitty as the tertiary fallback.
+      primary = "ghostty";
+      secondary = "foot";
       tertiary = "kitty";
-      wayland.primary = "foot";
     };
     explorer = {
       primary = "yazi";
