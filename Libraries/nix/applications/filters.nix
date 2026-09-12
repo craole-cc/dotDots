@@ -201,7 +201,7 @@
       `needsTerminal` entries (lf, yazi, ranger, nnn, broot) require
       a host terminal emulator to launch.
       */
-      fileManager = mkSection {set = byCategory."file-manager";};
+      fileManager = mkSection {set = byCategory.explorer;};
 
       /**
       Media players and audio applications.

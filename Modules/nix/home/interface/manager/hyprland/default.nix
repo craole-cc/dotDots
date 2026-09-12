@@ -36,28 +36,15 @@
   ];
 
   scratchpadApps = {
-    inherit (apps) terminal browser;
+    inherit (apps) ai terminal browser;
     editor = apps.editor;
-    "file-manager" = apps.explorer;
+    explorer = apps.explorer;
   };
 
   terminalLaunch = keyboard.bindings.terminal or {};
   windowCycle = keyboard.bindings.windowCycle or {};
   windowLast = keyboard.bindings.windowLast or {};
   primaryTerminal = apps.terminal.primary or null;
-
-  # Keep the three desktop AI clients together in one named special workspace.
-  # Launching is handled directly by the Lua binding so the first toggle does
-  # not depend on on_created_empty timing or an external shell wrapper.
-  aiWorkspace = {
-    name = "ai";
-    chord = "SUPER + ALT + A";
-    commands = [
-      "chatgpt"
-      "hermes-desktop"
-      "claude-desktop"
-    ];
-  };
 
   wrapTerminalCommand = entry: command:
     if command == null
@@ -121,29 +108,6 @@
     lib.concatStringsSep "" (
       map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
     );
-
-  dmsAiWorkspaceLaunch = lib.concatMapStrings (command: ''
-    hl.dispatch(hl.dsp.exec_cmd(${builtins.toJSON command}, { workspace = ${builtins.toJSON "special:${aiWorkspace.name} silent"} }))
-  '') aiWorkspace.commands;
-
-  dmsAiWorkspaceBind = ''
-    hl.unbind(${builtins.toJSON aiWorkspace.chord})
-    hl.bind(${builtins.toJSON aiWorkspace.chord}, function()
-      local workspace_name = ${builtins.toJSON "special:${aiWorkspace.name}"}
-      local workspace = hl.get_workspace(workspace_name)
-      local should_launch = workspace == nil
-
-      if workspace ~= nil then
-        should_launch = #hl.get_workspace_windows(workspace_name) == 0
-      end
-
-      hl.dispatch(hl.dsp.workspace.toggle_special(${builtins.toJSON aiWorkspace.name}))
-
-      if should_launch then
-        ${dmsAiWorkspaceLaunch}
-      end
-    end, { description = "Toggle AI workspace" })
-  '';
 
   dmsTerminalBind = let
     key = terminalLaunch.key or null;
@@ -280,7 +244,6 @@
       -- Loaded after DMS's mutable binds-user.lua so explicit dotDots chords
       -- remain authoritative even if DMS has persisted older bindings.
     ''
-    + dmsAiWorkspaceBind
     + dmsTerminalBind
     + dmsWindowLastBind
     + dmsWindowCycleBinds
@@ -309,9 +272,12 @@
   '';
 
   mkAddons = target:
-    mkIf cfg.withAddons (import ./addons {
+    mkIf cfg.withAddons
+    (import ./addons {
       inherit lib mkMerge dmsEnabled;
-    }).${target};
+    }).${
+      target
+    };
 
   payload = {
     wayland.windowManager.hyprland = mkMerge [

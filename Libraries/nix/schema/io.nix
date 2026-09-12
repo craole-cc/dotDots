@@ -125,8 +125,9 @@
         terminal = mkScratchpad "grave";
         editor = mkScratchpad "C";
         browser = mkScratchpad "B";
+        ai = mkScratchpad "A";
         media = mkScratchpad "M";
-        "file-manager" = mkScratchpad "E";
+        explorer = mkScratchpad "E";
       };
 
       bindings = {
@@ -391,7 +392,8 @@
       map (b: "${b.mod}, ${b.key}, exec, ${b.action}") (
         filter (
           b:
-            (b.mod or null) != null
+            (b.mod or null)
+            != null
             && (b.key or null) != null
             && (b.action or null) != null
             && (b.action or "") != ""

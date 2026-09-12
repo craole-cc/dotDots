@@ -82,7 +82,7 @@
         name: let
           app = resolve {
             value = name;
-            category = "file-manager";
+            category = explorer;
           };
         in
           resolvePackage {

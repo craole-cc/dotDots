@@ -51,6 +51,11 @@
       secondary = "nautilus";
       tertiary = null;
     };
+    ai = {
+      primary = null;
+      secondary = null;
+      tertiary = null;
+    };
     bar = null;
     prompt = "starship";
     allowed = [];
@@ -204,7 +209,7 @@
     else classMap.${n} or n;
 
   getCommand = category: name:
-    if category == "browser"
+    if category == "browser" || category == "ai"
     then
       (resolve {
         value = name;
@@ -214,7 +219,7 @@
 
   registryCategory = category:
     if category == "explorer"
-    then "file-manager"
+    then explorer
     else category;
 
   getMeta = category: name: let
@@ -291,14 +296,21 @@
         "xorg"
       ];
 
-    raw = merged // {
-      browser = resolveProtocol merged.browser;
-      terminal = resolveProtocol merged.terminal;
-      editor = resolveProtocol merged.editor;
-      launcher = resolveProtocol merged.launcher;
-      explorer = resolveProtocol merged.explorer;
-    };
+    raw =
+      merged
+      // {
+        browser = resolveProtocol merged.browser;
+        terminal = resolveProtocol merged.terminal;
+        editor = resolveProtocol merged.editor;
+        launcher = resolveProtocol merged.launcher;
+        explorer = resolveProtocol merged.explorer;
+      };
   in {
+    ai = {
+      primary = mkMaybeEntry "ai" raw.ai.primary;
+      secondary = mkMaybeEntry "ai" raw.ai.secondary;
+      tertiary = mkMaybeEntry "ai" raw.ai.tertiary;
+    };
     browser = {
       primary = mkEntry "browser" raw.browser.primary;
       secondary = mkMaybeEntry "browser" raw.browser.secondary;

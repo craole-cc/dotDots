@@ -54,7 +54,7 @@ _: {
     exec = "emacs";
     categories = [
       "editor"
-      "file-manager"
+      explorer
     ];
     family = "emacs";
     channel = "stable";
