@@ -46,6 +46,19 @@
   windowLast = keyboard.bindings.windowLast or {};
   primaryTerminal = apps.terminal.primary or null;
 
+  # Keep the three desktop AI clients together in one persistent special
+  # workspace. This preserves the post-PR14 contract while expressing it in
+  # the active DMS Lua configuration rather than the retired Hyprlang path.
+  aiWorkspace = {
+    name = "ai";
+    chord = "SUPER + ALT + A";
+  };
+  aiWorkspaceLauncher = pkgs.writeShellScript "dotdots-ai-workspace" ''
+    chatgpt >/dev/null 2>&1 &
+    hermes-desktop >/dev/null 2>&1 &
+    claude-desktop >/dev/null 2>&1 &
+  '';
+
   wrapTerminalCommand = entry: command:
     if command == null
     then null
@@ -108,6 +121,12 @@
     lib.concatStringsSep "" (
       map (role: mkDmsScratchpadRoleBind category scratchpad role) scratchpadRoles
     );
+
+  dmsAiWorkspaceBind = ''
+    hl.workspace_rule({ workspace = ${builtins.toJSON "special:${aiWorkspace.name}"}, on_created_empty = ${builtins.toJSON "${aiWorkspaceLauncher}"} })
+    hl.unbind(${builtins.toJSON aiWorkspace.chord})
+    hl.bind(${builtins.toJSON aiWorkspace.chord}, hl.dsp.workspace.toggle_special(${builtins.toJSON aiWorkspace.name}), { description = "Toggle AI workspace" })
+  '';
 
   dmsTerminalBind = let
     key = terminalLaunch.key or null;
@@ -244,6 +263,7 @@
       -- Loaded after DMS's mutable binds-user.lua so explicit dotDots chords
       -- remain authoritative even if DMS has persisted older bindings.
     ''
+    + dmsAiWorkspaceBind
     + dmsTerminalBind
     + dmsWindowLastBind
     + dmsWindowCycleBinds
