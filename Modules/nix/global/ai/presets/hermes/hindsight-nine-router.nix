@@ -12,7 +12,7 @@
 in
   import ./lib.nix {
     inherit cfg paths;
-    name = "hermes-hindsight-nine-router";
+    name = "hermes-hindsight-9router";
     components = [
       router."nine-router"
       memory.hindsight
@@ -52,8 +52,8 @@ in
     '';
 
     start = ''
-      if ! nine-router-status > /dev/null 2>&1; then
-        nine-router-daemon || true
+      if ! 9router-status > /dev/null 2>&1; then
+        9router-daemon || true
       fi
 
       configure-hindsight --force || true
