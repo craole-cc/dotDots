@@ -219,7 +219,7 @@
 
   registryCategory = category:
     if category == "explorer"
-    then explorer
+    then "explorer"
     else category;
 
   getMeta = category: name: let
@@ -290,11 +290,7 @@
         then value.${protocol} or {}
         else {};
     in
-      removeAttrs (recursiveUpdate value override) [
-        "wayland"
-        "x11"
-        "xorg"
-      ];
+      removeAttrs (recursiveUpdate value override) ["wayland" "x11" "xorg"];
 
     raw =
       merged
@@ -306,10 +302,10 @@
         explorer = resolveProtocol merged.explorer;
       };
   in {
-    ai = {
-      primary = mkMaybeEntry "ai" raw.ai.primary;
-      secondary = mkMaybeEntry "ai" raw.ai.secondary;
-      tertiary = mkMaybeEntry "ai" raw.ai.tertiary;
+    ai = with raw.ai; {
+      primary = mkMaybeEntry "ai" primary;
+      secondary = mkMaybeEntry "ai" secondary;
+      tertiary = mkMaybeEntry "ai" tertiary;
     };
     browser = {
       primary = mkEntry "browser" raw.browser.primary;
