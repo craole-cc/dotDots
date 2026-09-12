@@ -1,6 +1,7 @@
 {
   lib,
   keyboard,
+  apps,
   ...
 }: let
   inherit (lib.lists) elem flatten range;
@@ -108,23 +109,39 @@
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
 
+  # A single persistent AI workspace is more useful than the primary/Alt
+  # split used by the generic special-workspace helper. Keep the three desktop
+  # clients together and toggle the workspace with Super+Alt+A.
+  aiWorkspace = {
+    name = "ai";
+    bind = "${mod} ALT,A,togglespecialworkspace,ai";
+    exec = map (command: "[workspace special:ai silent] ${command}") [
+      "chatgpt"
+      "hermes-desktop"
+      "claude-desktop"
+    ];
+  };
+
   mkDirectionalBinds = {
     modifier ? mod,
     action,
   }:
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
-  specialWorkspaceNames = flatten (
-    mat (name: _: [
-      name
-      "${name}Alt"
-    ])
-    specialWorkspaces
-  );
+  specialWorkspaceNames =
+    [aiWorkspace.name]
+    ++ flatten (
+      mat (name: _: [
+        name
+        "${name}Alt"
+      ])
+      specialWorkspaces
+    );
   windowrule = cat (v: v.rule) allVariants;
-  exec-once = map (v: v.exec) allVariants;
+  exec-once = (map (v: v.exec) allVariants) ++ aiWorkspace.exec;
 
   bind = flatten [
+    [aiWorkspace.bind]
     (map (v: v.bind) allVariants)
 
     (cat (
