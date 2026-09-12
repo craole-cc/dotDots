@@ -139,7 +139,7 @@
       chromium = "chromium";
     in {
       inherit firefox chromium;
-      primary = firefox;
+      primary = "zen-twilight";
       secondary = chromium;
     };
     editor = {
