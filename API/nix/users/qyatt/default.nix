@@ -50,7 +50,7 @@
       };
       gui = {
         visual = "code";
-        sudo = "zed";
+        sudo = "zeditor";
       };
     };
     terminal = {

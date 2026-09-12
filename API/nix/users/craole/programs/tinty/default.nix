@@ -42,7 +42,7 @@
 
     ${optionalString (isEnabled "zed-editor") ''
       # Update Zed theme (follows system mode)
-      if command -v zed >/dev/null 2>&1 && [ -f "${HOME}/.config/zed/settings.json" ]; then
+      if command -v zeditor >/dev/null 2>&1 && [ -f "${HOME}/.config/zed/settings.json" ]; then
         ${pkgs.jq}/bin/jq ".theme.mode = \"system\"" \
           "${HOME}/.config/zed/settings.json" > "${HOME}/.config/zed/settings.json.tmp" && \
           mv "${HOME}/.config/zed/settings.json.tmp" "${HOME}/.config/zed/settings.json"

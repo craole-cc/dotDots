@@ -15,12 +15,13 @@
   inherit (_.strings.transformation) toLower toEnv;
   inherit (_.types.predicates) isAttrs isList isString;
 
-  # TODO Why are we defining this? The library would not have been imported if both we not already defined.
+  # TODO Why are we defining this? The library would not have been imported if both were not already defined.
   src = {
     store =
       _defaults.paths.repo.src.store or (
         _defaults.paths.repo.src.store or ../../../.
       );
+    local = _defaults.paths.repo.src.local or null;
     name =
       _defaults.names.src or (
         _defaults.flake.name or "dots"
@@ -340,10 +341,7 @@
       inherit variables;
       store = project "store" full.repo;
       local = project "local";
-      src = {
-        inherit (src) store;
-        inherit (src) local;
-      };
+      inherit src;
       mkLocal = base: mkLocal {inherit base stems;};
     };
 

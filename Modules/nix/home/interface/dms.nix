@@ -6,8 +6,7 @@
   ...
 }: let
   inherit (lib.hm.dag) entryAfter;
-  inherit (lib.modules) mkForce;
-  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (pkgs) coreutils dms-shell jq procps quickshell;
@@ -83,8 +82,7 @@ in
 
       xdg = {
         configFile."DankMaterialShell/themes/${themeName}.json".source = themeFile;
-        dataFile."icons/${cfg.icons.name}".source =
-          "${cfg.icons.package}/share/icons/${cfg.icons.name}";
+        dataFile."icons/${cfg.icons.name}".source = "${cfg.icons.package}/share/icons/${cfg.icons.name}";
       };
 
       gtk = {

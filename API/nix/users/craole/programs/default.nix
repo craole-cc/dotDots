@@ -15,6 +15,6 @@
     # ./starship
     # # ./tinty # TODO: Not ready yet
     # ./vscode
-    # ./zed
+    # ./zeditor
   ];
 }

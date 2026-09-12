@@ -12,8 +12,8 @@
       "snippets"
       "toml"
       "typos"
-      "zig"
-      "jj-lsp"
+      # "zig"
+      # "jj-lsp"
     ];
   };
 }
