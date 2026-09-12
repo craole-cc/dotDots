@@ -141,6 +141,8 @@ in
               matugenTemplateGtk: true,
               matugenTemplateFoot: true,
               matugenTemplateVscode: true,
+              matugenTemplateZed: true,
+              matugenTemplateZenBrowser: true,
               iconThemeDark: $icons,
               iconThemeLight: $icons,
               iconThemePerMode: false
@@ -155,6 +157,8 @@ in
             matugenTemplateGtk: true,
             matugenTemplateFoot: true,
             matugenTemplateVscode: true,
+            matugenTemplateZed: true,
+            matugenTemplateZenBrowser: true,
             iconThemeDark: $icons,
             iconThemeLight: $icons,
             iconThemePerMode: false
@@ -170,6 +174,8 @@ in
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set matugenTemplateGtk true >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set matugenTemplateFoot true >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set matugenTemplateVscode true >/dev/null 2>&1 || true
+        $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set matugenTemplateZed true >/dev/null 2>&1 || true
+        $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set matugenTemplateZenBrowser true >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set iconThemeDark "$icons" >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set iconThemeLight "$icons" >/dev/null 2>&1 || true
         $DRY_RUN_CMD ${dms-shell}/bin/dms ipc call settings set iconThemePerMode false >/dev/null 2>&1 || true
