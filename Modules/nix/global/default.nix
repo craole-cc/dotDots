@@ -57,12 +57,16 @@ global: let
       inherit
         (ai.devShells)
         ai
+        "ai-headroom"
         "ai-hermes"
         "ai-hermes-hindsight"
+        "ai-hermes-hindsight-headroom-nine-router"
+        "ai-hermes-hindsight-nine-router"
         "ai-hermes-hindsight-omniroute"
         "ai-hermes-mem0"
         "ai-hindsight"
         "ai-mem0"
+        "ai-nine-router"
         "ai-omniroute"
         ;
 
