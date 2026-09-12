@@ -68,11 +68,13 @@
     # The llm-agents input repackages the vendors' desktop clients for NixOS.
     # ChatGPT itself is OpenAI's official Linux binary; Claude is Anthropic's
     # official Linux package; Hermes Desktop is the native Nous desktop shell.
-    aiDesktop = optionals isLinux [
-      inputs.ai.packages.${system}.chatgpt
-      inputs.ai.packages.${system}.hermes-desktop
-      inputs.ai.packages.${system}.claude-desktop
-    ];
+    aiDesktop = optionals isLinux (let
+      llmAgents = inputs."llm-agents";
+    in [
+      llmAgents.packages.${system}.chatgpt
+      llmAgents.packages.${system}.hermes-desktop
+      llmAgents.packages.${system}.claude-desktop
+    ]);
 
     wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
     linux = optionals isLinux (with pkgs; [xsel]);
