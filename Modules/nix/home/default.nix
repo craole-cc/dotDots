@@ -70,7 +70,6 @@ in {
   imports = [
     ./applications
     ./interface/options.nix
-    ./interface/config.nix
     ./interface/catppuccin.nix
     ./interface/dms.nix
     ./interface/manager/hyprland
