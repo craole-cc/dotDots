@@ -77,8 +77,8 @@ jobs:
           test "$home_hyprland" = false
           test "$home_dms" = true
 
-      - name: Diagnose Victus system derivation
-        run: nix eval --impure --show-trace --raw --expr '(builtins.getFlake (toString ./.)).nixosConfigurations.Victus.config.system.build.toplevel.drvPath' >/dev/null
+      - name: Evaluate Victus system derivation without warnings
+        run: NIX_ABORT_ON_WARN=1 nix eval --show-trace --raw .#nixosConfigurations.Victus.config.system.build.toplevel.drvPath >/dev/null
 
       - name: Inspect devshell exports
         run: |
