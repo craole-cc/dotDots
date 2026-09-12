@@ -1,9 +1,9 @@
 {
-  programs.zed-editor.userSettings = {
+  userSettings = {
     theme = {
       mode = "system";
-      light = "Catppuccin Latte";
-      dark = "Catppuccin Frappé";
+      light = "DankShell Light";
+      dark = "DankShell Dark";
     };
 
     icon_theme = {

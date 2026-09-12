@@ -29,10 +29,10 @@
     ];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
+      (import ./theme.nix)
       # (import ./editor.nix)
       # (import ./keybindings.nix)
       # (import ./languages.nix)
-      # (import ./themes.nix)
     ];
     debug = false;
   };

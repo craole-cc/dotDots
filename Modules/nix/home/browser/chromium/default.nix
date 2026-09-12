@@ -88,6 +88,10 @@ in
       programs.chromium = {
         enable = true;
         inherit package;
+        commandLineArgs = [
+          "--ui-toolkit=gtk"
+          "--gtk-version=4"
+        ];
       };
       home.sessionVariables.${debug.key} = debug.val;
     };
