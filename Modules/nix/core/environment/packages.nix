@@ -65,6 +65,15 @@
       config = apps.bar or {};
     };
 
+    # The llm-agents input repackages the vendors' desktop clients for NixOS.
+    # ChatGPT itself is OpenAI's official Linux binary; Claude is Anthropic's
+    # official Linux package; Hermes Desktop is the native Nous desktop shell.
+    aiDesktop = optionals isLinux [
+      inputs.ai.packages.${system}.chatgpt
+      inputs.ai.packages.${system}.hermes-desktop
+      inputs.ai.packages.${system}.claude-desktop
+    ];
+
     wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
     linux = optionals isLinux (with pkgs; [xsel]);
     darwin = optionals isDarwin (with pkgs; [pngpaste]);
@@ -138,7 +147,7 @@
       lolcat
     ];
 
-    common = editor ++ browser ++ terminal ++ launcher ++ bar;
+    common = editor ++ browser ++ terminal ++ launcher ++ bar ++ aiDesktop;
     machine = wayland ++ linux ++ darwin;
     overall = default ++ common ++ machine;
   in {
@@ -148,6 +157,7 @@
       terminal
       launcher
       bar
+      aiDesktop
       wayland
       linux
       darwin
