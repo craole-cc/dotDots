@@ -69,6 +69,7 @@ in {
   # remains available for staged conversion without participating in eval.
   imports = [
     ./interface/options.nix
+    ./interface/browser.nix
     ./interface/catppuccin.nix
     ./interface/dms.nix
     ./interface/manager/hyprland
