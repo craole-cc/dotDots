@@ -1,11 +1,7 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   inherit (_.attrsets.resolution) vscodePackages;
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) optionals;
+  inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.lists.construction) optionals;
 
   __exports = {
     internal = {

@@ -302,10 +302,10 @@
         explorer = resolveProtocol merged.explorer;
       };
   in {
-    ai = with raw.ai; {
-      primary = mkMaybeEntry "ai" primary;
-      secondary = mkMaybeEntry "ai" secondary;
-      tertiary = mkMaybeEntry "ai" tertiary;
+    ai = {
+      primary = mkMaybeEntry "ai" raw.ai.primary;
+      secondary = mkMaybeEntry "ai" raw.ai.secondary;
+      tertiary = mkMaybeEntry "ai" raw.ai.tertiary;
     };
     browser = {
       primary = mkEntry "browser" raw.browser.primary;
