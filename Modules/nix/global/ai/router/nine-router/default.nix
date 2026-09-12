@@ -13,8 +13,8 @@
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${r.state}/npm";
   version = "0.5.75";
 
-  nineRouter = writeShellApplication {
-    name = "nine-router";
+  router9 = writeShellApplication {
+    name = "9router";
     runtimeInputs = [nodejs_22 cacert];
     text = ''
       export NPM_CONFIG_CACHE="''${NINE_ROUTER_NPM_CACHE:-${cacheDir}}"
@@ -26,19 +26,19 @@
   };
 
   start = writeShellApplication {
-    name = "nine-router-start";
-    runtimeInputs = [nineRouter];
+    name = "9router-start";
+    runtimeInputs = [router9];
     text = ''
       export DATA_DIR="''${NINE_ROUTER_DATA_DIR:-${dataDir}}"
       export PORT="''${NINE_ROUTER_PORT:-${port}}"
       export HOSTNAME="''${NINE_ROUTER_BIND_ADDRESS:-${bindAddress}}"
       mkdir -p "$DATA_DIR"
-      exec nine-router --port "$PORT" --no-browser --skip-update
+      exec 9router --port "$PORT" --no-browser --skip-update
     '';
   };
 
   daemon = writeShellApplication {
-    name = "nine-router-daemon";
+    name = "9router-daemon";
     runtimeInputs = [tmux start];
     text = ''
       session="''${NINE_ROUTER_SESSION:-${r.session}}"
@@ -46,13 +46,13 @@
         printf '%s\n' "9Router already running in tmux session '$session'"
         exit 0
       fi
-      tmux new-session -d -s "$session" "nine-router-start"
+      tmux new-session -d -s "$session" "9router-start"
       printf '%s\n' "9Router started in tmux session '$session'"
     '';
   };
 
   stop = writeShellApplication {
-    name = "nine-router-stop";
+    name = "9router-stop";
     runtimeInputs = [tmux];
     text = ''
       session="''${NINE_ROUTER_SESSION:-${r.session}}"
@@ -63,7 +63,7 @@
   };
 
   status = writeShellApplication {
-    name = "nine-router-status";
+    name = "9router-status";
     runtimeInputs = [curl tmux lsof procps];
     text = ''
       port="''${NINE_ROUTER_PORT:-${port}}"
@@ -72,7 +72,7 @@
     '';
   };
 in {
-  packages = [nineRouter start daemon stop status tmux curl lsof procps nodejs_22];
+  packages = [router9 start daemon stop status tmux curl lsof procps nodejs_22];
 
   env = {
     NINE_ROUTER_PORT = port;
@@ -88,7 +88,7 @@ in {
 
     if [ -t 1 ]; then
       printf '%s\n' "9Router: $NINE_ROUTER_BASE_URL"
-      printf '%s\n' "Commands: nine-router-daemon | nine-router-status | nine-router-stop"
+      printf '%s\n' "Commands: 9router-daemon | 9router-status | 9router-stop"
     fi
   '';
 }
