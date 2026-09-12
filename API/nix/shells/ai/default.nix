@@ -46,4 +46,19 @@
     state = "omniroute";
     session = "omniroute";
   };
+
+  nineRouter = {
+    secrets = "nine-router.env";
+    bindAddress = "127.0.0.1";
+    port = 20129;
+    state = "nine-router";
+    session = "nine-router";
+  };
+
+  headroom = {
+    bindAddress = "127.0.0.1";
+    port = 8787;
+    state = "headroom";
+    session = "headroom";
+  };
 }
