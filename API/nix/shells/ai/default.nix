@@ -1,5 +1,5 @@
 {
-  defaultPreset = "hermes-hindsight";
+  defaultPreset = "hermes-hindsight-headroom-nine-router";
   directory = "ai";
   instance = "default";
   bindAddress = "127.0.0.1";
