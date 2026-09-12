@@ -92,6 +92,29 @@
       explorerNames
     ));
 
+    # AI desktop clients are registry-owned too. Resolve them through the same
+    # normalized input contract as the rest of the application model so raw
+    # flake aliases such as `ai` never leak into module consumers.
+    aiNames = [
+      "chatgpt"
+      "hermes-desktop"
+      "claude-desktop"
+    ];
+    aiDesktop = optionals isLinux (unique (filter (pkg: pkg != null) (
+      map (
+        name: let
+          app = resolve {
+            value = name;
+            category = "ai";
+          };
+        in
+          resolvePackage {
+            inherit app inputs pkgs system;
+          }
+      )
+      aiNames
+    )));
+
     wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
     linux = optionals isLinux (with pkgs; [xsel]);
     darwin = optionals isDarwin (with pkgs; [pngpaste]);
@@ -166,7 +189,7 @@
       lolcat
     ];
 
-    common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar;
+    common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar ++ aiDesktop;
     machine = wayland ++ linux ++ darwin;
     overall = default ++ common ++ machine;
   in {
@@ -177,6 +200,7 @@
       explorer
       launcher
       bar
+      aiDesktop
       wayland
       linux
       darwin
