@@ -4,22 +4,23 @@
   paths,
   ...
 }: let
-  inherit (pkgs) curl gum lsof procps tmux uv writeShellApplication;
+  inherit (pkgs) curl gum lsof procps python313 tmux uv writeShellApplication;
 
   h = cfg.headroom;
   bindAddress = h.bindAddress;
   port = toString h.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${h.state}";
+  configDir = "${paths.xdg.config.local}/${cfg.directory}/${h.state}";
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${h.state}";
   version = "0.37.0";
 
   headroom = writeShellApplication {
     name = "headroom";
-    runtimeInputs = [uv];
+    runtimeInputs = [uv python313];
     text = ''
       export UV_CACHE_DIR="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
       mkdir -p "$UV_CACHE_DIR"
-      exec uvx --python 3.13 --from "headroom-ai[proxy]==${version}" headroom "$@"
+      exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy]==${version}" headroom "$@"
     '';
   };
 
@@ -30,8 +31,9 @@
       export HEADROOM_HOST="''${HEADROOM_HOST:-${bindAddress}}"
       export HEADROOM_PORT="''${HEADROOM_PORT:-${port}}"
       export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-off}"
-      export HEADROOM_WORKSPACE="''${HEADROOM_WORKSPACE:-${dataDir}}"
-      mkdir -p "$HEADROOM_WORKSPACE"
+      export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
+      export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
+      mkdir -p "$HEADROOM_WORKSPACE_DIR" "$HEADROOM_CONFIG_DIR"
       exec headroom proxy --host "$HEADROOM_HOST" --port "$HEADROOM_PORT"
     '';
   };
@@ -70,7 +72,7 @@
     '';
   };
 in {
-  packages = [headroom start daemon stop status tmux gum curl lsof procps uv];
+  packages = [headroom start daemon stop status tmux gum curl lsof procps uv python313];
 
   env = {
     HEADROOM_HOST = bindAddress;
@@ -79,7 +81,8 @@ in {
   };
 
   shellHook = ''
-    export HEADROOM_WORKSPACE="''${HEADROOM_WORKSPACE:-${dataDir}}"
+    export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
+    export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
     export HEADROOM_UV_CACHE="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
     export HEADROOM_SESSION="''${HEADROOM_SESSION:-${h.session}}"
     export HEADROOM_BASE_URL="http://${bindAddress}:''${HEADROOM_PORT:-${port}}"
