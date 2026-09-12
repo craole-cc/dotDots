@@ -3,7 +3,6 @@
   lib,
   lix,
   pkgs,
-  top,
   ...
 }: let
   inherit (lib.hm.dag) entryAfter;
@@ -20,7 +19,8 @@
   };
   inherit (context) cfg ctx;
 
-  iconTheme = config.${top}.resolved.interface.icons.name;
+  appearance = context.resolved.cfg.interface.style.appearance.explicit;
+  iconTheme = appearance.icons.name;
   themeName = "dotdots-catppuccin";
   themeFile = ./themes/dms-catppuccin.json;
   themePath = "${config.xdg.configHome}/DankMaterialShell/themes/${themeName}.json";
