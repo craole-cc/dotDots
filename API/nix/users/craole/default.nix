@@ -46,6 +46,30 @@
       swapCapsEscape = false;
       vimKeybinds = false;
 
+      # AI follows the schema's scratchpad role convention on the A key:
+      # primary = Super, secondary = Super+Shift, tertiary = Super+Alt.
+      scratchpads.ai = {
+        key = "A";
+        primary = {
+          mod = ["SUPER"];
+          command = "hermes-desktop";
+        };
+        secondary = {
+          mod = [
+            "SUPER"
+            "SHIFT"
+          ];
+          command = "claude-desktop";
+        };
+        tertiary = {
+          mod = [
+            "SUPER"
+            "ALT"
+          ];
+          command = "chatgpt";
+        };
+      };
+
       # Scratchpad keys and role modifiers are schema-owned. Scratchpad
       # applications follow the normalized application roles below.
 
