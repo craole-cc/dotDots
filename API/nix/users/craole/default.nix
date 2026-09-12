@@ -262,7 +262,7 @@
     #   # Example: Use a directory for random selection
     #   # "DP-3" = {
     #   #   dark = wallpapersDir + "/1600x900/dark/";
-    #   #   light = wallpapersDir + "/1600x900/light.jpg";
+    #   #   light = wallpapersDir + "/1600x900/light/";
     #   # };
     # };
   };
