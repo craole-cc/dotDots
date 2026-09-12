@@ -111,7 +111,7 @@
       "ai-headroom" = mkComponentShell "headroom" context.headroom;
       "ai-hindsight" = mkComponentShell "hindsight" memory.hindsight;
       "ai-mem0" = mkComponentShell "mem0" memory.mem0;
-      "ai-nine-router" = mkComponentShell "nine-router" router."nine-router";
+      "ai-9router" = mkComponentShell "nine-router" router."nine-router";
       "ai-omniroute" = mkComponentShell "omniroute" router.omniroute;
     };
 in {
