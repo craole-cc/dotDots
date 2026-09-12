@@ -1,6 +1,7 @@
 {
   config,
   host,
+  lib,
   lix,
   ...
 }: let
@@ -43,5 +44,11 @@ in
         enable = cfg.enable;
         compositor.name = cfg.compositor;
       };
+
+      # greetd's PAM stack includes the login stack. Enabling the NixOS GNOME
+      # Keyring service wires pam_gnome_keyring into that login path so the
+      # user's login keyring is unlocked by the greeter password instead of
+      # starting an unrelated daemon later in the graphical session.
+      services.gnome.gnome-keyring.enable = lib.mkIf cfg.enable true;
     };
   }
