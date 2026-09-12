@@ -32,6 +32,11 @@
 in {
   _module.args.${dom} = cfg;
 
+  # DMS scans the XDG user icon directory directly. Expose the resolved
+  # package there so Candy is both selectable and usable by Quickshell.
+  xdg.dataFile."icons/${icons.name}".source =
+    "${icons.package}/share/icons/${icons.name}";
+
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {inherit (icons) package name;};
