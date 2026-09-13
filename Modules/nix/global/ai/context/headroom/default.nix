@@ -37,6 +37,14 @@
       export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
       export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
       mkdir -p "$HEADROOM_WORKSPACE_DIR" "$HEADROOM_CONFIG_DIR"
+
+      if [ -n "''${OPENAI_TARGET_API_URL:-}" ]; then
+        exec headroom proxy \
+          --host "$HEADROOM_HOST" \
+          --port "$HEADROOM_PORT" \
+          --openai-api-url "$OPENAI_TARGET_API_URL"
+      fi
+
       exec headroom proxy --host "$HEADROOM_HOST" --port "$HEADROOM_PORT"
     '';
   };
