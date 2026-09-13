@@ -21,11 +21,13 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
-# Host identity owns the memory namespace; the budget remains invariant.
-test "$(nix eval --raw .#devShells.x86_64-linux.Victus-ai-hermes-hindsight-headroom-9router.HINDSIGHT_BANK_ID)" = hermes-victus
-test "$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_BANK_ID)" = hermes-theoracle
-test "$(nix eval --raw .#devShells.x86_64-linux.QBX-ai-hermes-hindsight-omniroute.HINDSIGHT_BANK_ID)" = hermes-qbx
-test "$(nix eval --raw .#devShells.x86_64-linux.Victus-ai-hermes-hindsight-headroom-9router.HINDSIGHT_RECALL_BUDGET)" = mid
+# Shell environment variables are available after entering the devShell, not
+# as flake attributes. Host identity owns the memory namespace; the budget
+# remains invariant.
+HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command sh -lc '
+  test "$HINDSIGHT_BANK_ID" = hermes-victus
+  test "$HINDSIGHT_RECALL_BUDGET" = mid
+'
 
 HOME="$test_home" nix develop .#Victus-ai-9router --command sh -lc '
   set -eu
