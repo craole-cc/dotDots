@@ -143,6 +143,32 @@ jobs:
           extra-conf: |
             accept-flake-config = true
 
+      - name: Preserve workstation devshell contract
+        run: |
+          set -eu
+          expected_dots="$PWD"
+          test_cache="$(mktemp -d)"
+
+          sudo mkdir -p /run/wrappers/bin
+          if [ ! -e /run/wrappers/bin/sudo ]; then
+            sudo ln -s "$(command -v sudo)" /run/wrappers/bin/sudo
+          fi
+
+          DOTS="$expected_dots" \
+          DOTS_CACHE="$test_cache" \
+          EXPECTED_DOTS="$expected_dots" \
+          EXPECTED_CACHE="$test_cache" \
+            nix develop .#Victus-ai --command sh -lc '
+              set -eu
+              test "$DOTS" = "$EXPECTED_DOTS"
+              test "$DOTS_LIB_SH" = "$EXPECTED_DOTS/Libraries/posix"
+              test "$DOTS_CACHE" = "$EXPECTED_CACHE"
+              test "$(command -v sudo)" = /run/wrappers/bin/sudo
+              sudo -n true
+              test ! -e "$ENV_BIN/sudo"
+              test ! -e "$ENV_BIN/su"
+            '
+
       - name: Smoke-test preset instance isolation
         run: |
           set -eu

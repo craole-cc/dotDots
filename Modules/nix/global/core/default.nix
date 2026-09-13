@@ -61,21 +61,15 @@
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = system;
-    DOTS = paths.repo.src.local;
-    DOTS_LIB_SH = paths.repo.lib.sh.local;
-    DOTS_CACHE = paths.repo.cache.base.local;
   };
 
   #? Shared runtime setup for shells that reuse the core environment.
-  #? Canonical paths are already resolved by the host API/schema; this hook
-  #? only materializes that resolved state and establishes runtime precedence.
+  #? The interactive environment owns DOTS. Host schema paths are only the
+  #? fallback when a caller has not already selected a checkout.
   runtimeHook = ''
-    #> Do not preserve stale DOTS values from a parent shell/direnv instance.
-    #> These remain consumers of the host-derived schema paths; the devShell
-    #> does not discover or define repository roots.
-    DOTS="${paths.repo.src.local}"
-    DOTS_LIB_SH="${paths.repo.lib.sh.local}"
-    DOTS_CACHE="${paths.repo.cache.base.local}"
+    DOTS="''${DOTS:-${paths.repo.src.local}}"
+    DOTS_LIB_SH="''${DOTS_LIB_SH:-$DOTS/Libraries/posix}"
+    DOTS_CACHE="''${DOTS_CACHE:-$DOTS/.cache}"
     export DOTS DOTS_LIB_SH DOTS_CACHE
 
     HOSTNAME="$(hostname)"
@@ -104,20 +98,13 @@
       *) PATH="$ENV_BIN:$PATH" ;;
     esac
 
-    #> NixOS privileged programs must always enter through /run/wrappers.
-    #> nix-direnv only reliably preserves environment state, not shell
-    #> functions, so put stable shims in ENV_BIN as well as preferring the
-    #> wrapper directory in PATH. This prevents /run/current-system/sw/bin
-    #> copies of sudo/su from bypassing their setuid wrappers.
+    #> NixOS privileged programs must resolve through the host wrapper tree.
+    #> Do not mirror privileged commands into persistent project state.
     if [ -d /run/wrappers/bin ]; then
-      if [ -x /run/wrappers/bin/sudo ]; then
-        ln -sfn /run/wrappers/bin/sudo "$ENV_BIN/sudo"
-      fi
-      if [ -x /run/wrappers/bin/su ]; then
-        ln -sfn /run/wrappers/bin/su "$ENV_BIN/su"
-      fi
-
-      PATH="/run/wrappers/bin:$ENV_BIN:$PATH"
+      case "$PATH" in
+        /run/wrappers/bin:*) ;;
+        *) PATH="/run/wrappers/bin:$PATH" ;;
+      esac
       export PATH
       hash -r 2>/dev/null || true
     fi
@@ -133,25 +120,28 @@
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
 
-    #> binit may prepend repository library paths; restore privileged wrapper
-    #> and ENV_BIN precedence after it runs.
+    #> binit may prepend repository library paths; restore the host wrapper
+    #> directory to the front without creating sudo/su shims.
     if [ -d /run/wrappers/bin ]; then
-      PATH="/run/wrappers/bin:$ENV_BIN:$PATH"
+      case "$PATH" in
+        /run/wrappers/bin:*) ;;
+        *) PATH="/run/wrappers/bin:$PATH" ;;
+      esac
       export PATH
       hash -r 2>/dev/null || true
     fi
 
-    #> Initialize yazi
-    YAZI_INIT="${paths.repo.cfg.default.local}/yazi/init.sh"
+    #> Initialize yazi from the active DOTS checkout.
+    YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
     if [ -f "$YAZI_INIT" ]; then
       . "$YAZI_INIT"
     else
       printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
     fi
 
-    #> Use starship for prompt
+    #> Use starship for prompt from the active DOTS checkout.
     if cmd-exists starship; then
-      STARSHIP_CONFIG="${paths.repo.cfg.default.local}/starship/config.toml"
+      STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
       export STARSHIP_CONFIG
       eval "$(starship init bash)"
     fi
