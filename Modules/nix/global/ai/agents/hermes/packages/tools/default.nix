@@ -19,6 +19,7 @@
         };
         minimal = {
           input = "hermes-agent";
+          target = "default";
           description = "Official Command Line Interface";
         };
         tui = {
