@@ -233,7 +233,7 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    desktopEnvironment = "gnome";
+    # desktopEnvironment = "gnome";
     windowManager = "hyprland";
     # displayProtocol = "wayland";
     # session = "niri";
