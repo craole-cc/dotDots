@@ -10,34 +10,36 @@
     inherit (inputs) hermes-agent llm-agents;
   };
 
-  tools =
-    pkgsFor {
-      sources = {
-        desktop = {
-          input = "hermes-agent";
-          description = "Official Desktop Interface";
-        };
-        minimal = {
-          input = "hermes-agent";
-          target = "default";
-          description = "Official Command Line Interface";
-        };
-        tui = {
-          input = "hermes-agent";
-          description = "Official Terminal Interface";
-          exe = "hermes-tui";
-        };
-        hermes-hud = {
-          input = "llm-agents";
-          description = "Community-maintained Terminal Interface";
-        };
-        hermes-one = {
-          input = "llm-agents";
-          description = "Community-maintained Desktop Interface";
-        };
+  resolvedTools = pkgsFor {
+    sources = {
+      default = {
+        input = "hermes-agent";
+        description = "Official Command Line Interface";
       };
-    }
-    // {default = tools.minimal;};
+      desktop = {
+        input = "hermes-agent";
+        description = "Official Desktop Interface";
+      };
+      tui = {
+        input = "hermes-agent";
+        description = "Official Terminal Interface";
+        exe = "hermes-tui";
+      };
+      hermes-hud = {
+        input = "llm-agents";
+        description = "Community-maintained Terminal Interface";
+      };
+      hermes-one = {
+        input = "llm-agents";
+        description = "Community-maintained Desktop Interface";
+      };
+    };
+  };
+
+  # Upstream `packages.default` is the full Hermes build and includes the
+  # Hindsight dependency group. Keep the historical `minimal` handle for
+  # callers while resolving the actual CLI from the full package.
+  tools = resolvedTools // {minimal = resolvedTools.default;};
 
   graphicalLaunchers = [
     (writeShellScriptBin "hermes-desktop" ''
