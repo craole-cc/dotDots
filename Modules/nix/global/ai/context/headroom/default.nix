@@ -5,6 +5,7 @@
   ...
 }: let
   inherit (pkgs) curl gum lsof procps python313 tmux uv writeShellApplication;
+  inherit (pkgs.lib) makeLibraryPath;
 
   h = cfg.headroom;
   bindAddress = h.bindAddress;
@@ -13,12 +14,14 @@
   configDir = "${paths.xdg.config.local}/${cfg.directory}/${h.state}";
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${h.state}";
   version = "0.37.0";
+  runtimeLibraryPath = makeLibraryPath [pkgs.stdenv.cc.cc.lib];
 
   headroom = writeShellApplication {
     name = "headroom";
     runtimeInputs = [uv python313];
     text = ''
       export UV_CACHE_DIR="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
+      export LD_LIBRARY_PATH="${runtimeLibraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       mkdir -p "$UV_CACHE_DIR"
       exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy]==${version}" headroom "$@"
     '';
