@@ -58,7 +58,10 @@ in
       export HEADROOM_CONFIG_DIR="$AI_HOME/${c.state}/config"
       export HEADROOM_UV_CACHE="$AI_CACHE_DIR/${c.state}/uv"
       export HEADROOM_SESSION="$AI_PRESET-$AI_INSTANCE-${c.session}"
-      export OPENAI_TARGET_API_URL="$NINE_ROUTER_BASE_URL"
+      # Headroom appends `/v1` while forwarding to an OpenAI-compatible
+      # upstream. Keep the router's public base URL for clients, but give
+      # Headroom the origin to avoid `/v1/v1/...` requests.
+      export OPENAI_TARGET_API_URL="http://$NINE_ROUTER_BIND_ADDRESS:$NINE_ROUTER_PORT"
       export OPENAI_BASE_URL="$HEADROOM_BASE_URL/v1"
       if [ -n "''${NINE_ROUTER_API_KEY:-}" ]; then
         export OPENAI_API_KEY="$NINE_ROUTER_API_KEY"

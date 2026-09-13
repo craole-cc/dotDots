@@ -12,7 +12,7 @@ packages=$(nix eval --json "$home.home.packages" --apply 'xs: map (x: x.name) xs
 
 printf '%s' "$session" | jq -e '
   .OPENAI_BASE_URL == "http://127.0.0.1:8787/v1"
-  and .OPENAI_TARGET_API_URL == "http://127.0.0.1:20129/v1"
+  and .OPENAI_TARGET_API_URL == "http://127.0.0.1:20129"
   and .HINDSIGHT_BANK_ID == "hermes-victus"
   and .HINDSIGHT_RECALL_BUDGET == "mid"
 ' >/dev/null
@@ -61,7 +61,7 @@ printf '%s' "$headroom" | jq -e '
   and (.Service.Environment | index("HEADROOM_SAVINGS_PROFILE=coding"))
   and (.Service.Environment | index("HEADROOM_TELEMETRY=on"))
   and (.Service.Environment | index("HEADROOM_PROVIDER_NAME=9Router"))
-  and (.Service.Environment | index("OPENAI_TARGET_API_URL=http://127.0.0.1:20129/v1"))
+  and (.Service.Environment | index("OPENAI_TARGET_API_URL=http://127.0.0.1:20129"))
 ' >/dev/null
 
 printf '%s' "$hindsight" | jq -e '

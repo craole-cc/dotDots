@@ -99,7 +99,10 @@
     HEADROOM_SAVINGS_PROFILE = "coding";
     HEADROOM_TELEMETRY = "on";
     HEADROOM_PROVIDER_NAME = "9Router";
-    OPENAI_TARGET_API_URL = "http://${r.bindAddress}:${toString r.port}/v1";
+    # Headroom owns the OpenAI `/v1` path segment when forwarding. Its
+    # upstream must therefore be the 9Router origin, not its client-facing
+    # OpenAI base URL (which already ends in `/v1`).
+    OPENAI_TARGET_API_URL = "http://${r.bindAddress}:${toString r.port}";
     OPENAI_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
   };
 
