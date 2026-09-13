@@ -190,6 +190,9 @@ jobs:
               test "$HINDSIGHT_MCP_PORT" = 10099
               test "$HINDSIGHT_UI_PORT" = 8989
               test "$HINDSIGHT_API_URL" = http://127.0.0.1:8988
+              test "$HINDSIGHT_UI_URL" = http://127.0.0.1:8989
+              test "$HINDSIGHT_BANK_ID" = hermes-victus
+              test "$HINDSIGHT_RECALL_BUDGET" = mid
               test "$OMNIROUTE_DATA_DIR" = "$AI_HOME/omniroute"
               test "$OMNIROUTE_PORT" = 20228
               test "$OMNIROUTE_SESSION" = hermes-hindsight-omniroute-work-omniroute
@@ -202,8 +205,11 @@ jobs:
 
           HOME="$test_home" nix develop .#Victus-ai --command sh -lc '
             set -eu
-            test "$AI_PRESET" = hermes-hindsight
-            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight/default"
+            test "$AI_PRESET" = hermes-hindsight-headroom-omniroute
+            test "$AI_HOME" = "$HOME/.local/share/ai/hermes-hindsight-headroom-omniroute/default"
             test "$HINDSIGHT_INSTANCE" = default
+            test "$HINDSIGHT_BANK_ID" = hermes-victus
             test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
+            test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
+            test "$OPENAI_TARGET_API_URL" = "$OMNIROUTE_BASE_URL"
           '
