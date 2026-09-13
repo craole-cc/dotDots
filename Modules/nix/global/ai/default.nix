@@ -5,10 +5,13 @@
 }: let
   inherit (args) pkgs;
   inherit (pkgs) mkShell;
+  inherit (pkgs.lib.strings) toLower;
 
   cfg = args.host.shells.ai or (throw "AI shell configuration is missing from host.shells.ai");
   paths = args.paths;
-  aiArgs = args // {inherit cfg paths;};
+  hostName = args.host.name or (throw "AI shell host identity is missing from host.name");
+  hindsightBank = "${cfg.hindsight.bankPrefix}-${toLower hostName}";
+  aiArgs = args // {inherit cfg paths hindsightBank;};
 
   agents = import ./agents aiArgs;
   context = import ./context aiArgs;
@@ -21,6 +24,7 @@
       h = cfg.hindsight;
     in {
       HINDSIGHT_API_URL = "http://${cfg.bindAddress}:${toString h.ports.api}";
+      HINDSIGHT_UI_URL = "http://${cfg.bindAddress}:${toString h.ports.ui}";
       HINDSIGHT_BIND_ADDRESS = cfg.bindAddress;
       HINDSIGHT_API_PORT = toString h.ports.api;
       HINDSIGHT_MCP_PORT = toString h.ports.mcp;
@@ -31,7 +35,7 @@
       HINDSIGHT_LLM_MODEL = h.llm.model;
       HINDSIGHT_REFLECT_LLM_MODEL = h.llm.reflectModel;
       HINDSIGHT_MODE = h.mode;
-      HINDSIGHT_BANK_ID = h.bank;
+      HINDSIGHT_BANK_ID = hindsightBank;
       HINDSIGHT_RECALL_BUDGET = h.recallBudget;
       HINDSIGHT_COMPOSE_PROJECT = "hindsight-${cfg.instance}";
       HINDSIGHT_CONTAINER_NAME = "hindsight-${cfg.instance}";
