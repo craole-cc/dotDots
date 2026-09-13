@@ -106,6 +106,7 @@
   serviceEnvironment = lib.mapAttrsToList (name: value: "${name}=${value}") environment;
   configureHermes = pkgs.writeShellScript "configure-hermes-hindsight" ''
     export ${lib.concatStringsSep "\nexport " serviceEnvironment}
+    export PATH="${lib.makeBinPath agents.hermes.packages}:$PATH"
     mkdir -p "$HERMES_HOME"
     exec ${configureHindsight}/bin/configure-hindsight --force
   '';

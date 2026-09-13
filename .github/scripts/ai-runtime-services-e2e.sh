@@ -8,6 +8,7 @@ home='.#nixosConfigurations.Victus.config.home-manager.users.craole'
 session=$(nix eval --json "$home.home.sessionVariables")
 units=$(nix eval --json "$home.systemd.user")
 linger=$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole.linger)
+packages=$(nix eval --json "$home.home.packages" --apply 'xs: map (x: x.name) xs')
 
 printf '%s' "$session" | jq -e '
   .OPENAI_BASE_URL == "http://127.0.0.1:8787/v1"
@@ -16,6 +17,7 @@ printf '%s' "$session" | jq -e '
   and .HINDSIGHT_RECALL_BUDGET == "mid"
 ' >/dev/null
 test "$linger" = true
+printf '%s' "$packages" | jq -e 'any(.[]; startswith("hermes-agent-"))' >/dev/null
 
 target=$(printf '%s' "$units" | jq -c '.targets."ai-runtime"')
 printf '%s' "$target" | jq -e '
