@@ -7,6 +7,9 @@ set -eu
 case "${HINDSIGHT_RUNTIME_KIND}" in
 native)
   : "${HINDSIGHT_SESSION:?HINDSIGHT_SESSION not set}"
+
+  hindsight-ui-stop >/dev/null 2>&1 || true
+
   if ! tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
     exit 0
   fi
