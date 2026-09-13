@@ -214,5 +214,5 @@ jobs:
             test "$HINDSIGHT_BANK_ID" = hermes-victus
             test "$HINDSIGHT_COMPOSE_PROJECT" = hindsight-default
             test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
-            test "$OPENAI_TARGET_API_URL" = "$OMNIROUTE_BASE_URL"
+            test "$OPENAI_TARGET_API_URL" = "http://127.0.0.1:$OMNIROUTE_PORT"
           '

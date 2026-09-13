@@ -38,11 +38,13 @@ jobs:
       - name: Prove default AI alias selects most capable OmniRoute stack
         run: |
           set -eu
-          HOME="$(mktemp -d)" nix develop .#Victus-ai --command sh -lc '
+          test_home="$(mktemp -d)"
+          HOME="$test_home" DOTS="$PWD" DOTS_CACHE="$test_home/.cache" \
+            nix develop .#Victus-ai --command sh -lc '
             set -eu
             test "$AI_PRESET" = hermes-hindsight-headroom-omniroute
             test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
-            test "$OPENAI_TARGET_API_URL" = "$OMNIROUTE_BASE_URL"
+            test "$OPENAI_TARGET_API_URL" = "http://127.0.0.1:$OMNIROUTE_PORT"
           '
 
       - name: Run persistent AI runtime service contract tests
