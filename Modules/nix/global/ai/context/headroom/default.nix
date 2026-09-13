@@ -50,7 +50,16 @@
         printf '%s\n' "Headroom already running in tmux session '$session'"
         exit 0
       fi
-      tmux new-session -d -s "$session" "headroom-start"
+      tmux new-session -d \
+        -s "$session" \
+        -e "HEADROOM_HOST=''${HEADROOM_HOST:-${bindAddress}}" \
+        -e "HEADROOM_PORT=''${HEADROOM_PORT:-${port}}" \
+        -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-off}" \
+        -e "HEADROOM_WORKSPACE_DIR=''${HEADROOM_WORKSPACE_DIR:-${dataDir}}" \
+        -e "HEADROOM_CONFIG_DIR=''${HEADROOM_CONFIG_DIR:-${configDir}}" \
+        -e "HEADROOM_UV_CACHE=''${HEADROOM_UV_CACHE:-${cacheDir}/uv}" \
+        -e "OPENAI_TARGET_API_URL=''${OPENAI_TARGET_API_URL:-}" \
+        "headroom-start"
       printf '%s\n' "Headroom started in tmux session '$session'"
     '';
   };
