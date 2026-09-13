@@ -44,7 +44,10 @@ jobs:
           craole_password_null="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole --apply 'user: user.password == null')"
           craole_hashed_set="$(nix eval --json .#nixosConfigurations.Victus.config.users.users.craole --apply 'user: user.hashedPassword != null')"
           wm="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.windowManager)"
-          de="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.desktopEnvironment)"
+          # Victus deliberately uses the Hyprland/DMS compositor stack without
+          # a full desktop environment. Keep this nullable contract JSON-typed:
+          # `--raw` cannot render a legitimate Nix null.
+          de="$(nix eval --json .#nixosConfigurations.Victus.config._.resolved.interface.desktopEnvironment)"
           panel="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.panel)"
           protocol="$(nix eval --raw .#nixosConfigurations.Victus.config._.resolved.interface.displayProtocol)"
           hyprland="$(nix eval --json .#nixosConfigurations.Victus.config.programs.hyprland.enable)"
@@ -59,12 +62,12 @@ jobs:
           test "$craole_password_null" = true
           test "$craole_hashed_set" = true
           test "$wm" = hyprland
-          test "$de" = gnome
+          test "$de" = null
           test "$panel" = dms-shell
           test "$protocol" = wayland
           test "$hyprland" = true
           test "$xwayland" = true
-          test "$gnome" = true
+          test "$gnome" = false
           test "$dms_shell" = true
           test "$greeter" = true
           test "$session" = hyprland-dms-uwsm
