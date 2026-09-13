@@ -27,6 +27,7 @@
 
   runtime = cfg.hindsight.runtime or "podman";
   version = cfg.hindsight.version or "0.9.2";
+  nativeUi = import ./control-plane.nix {inherit pkgs cfg;};
 
   nativeState = {
     data = "${paths.xdg.data.local}/${cfg.directory}/${target}/${cfg.instance}";
@@ -96,10 +97,6 @@
       export HF_HOME="''${HINDSIGHT_CACHE_DIR}/huggingface"
       export SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      # uv installs upstream extension wheels outside the Nix store, so expose
-      # their runtime sonames explicitly. pg0 and the PostgreSQL binaries it
-      # spawns run inside the FHS environment below instead of relying on this
-      # library path to emulate a conventional Linux runtime.
       export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
         pkgs.stdenv.cc.cc.lib
         pkgs.zstd
@@ -120,11 +117,6 @@
     '';
   };
 
-  # pg0-embedded ships generic-Linux ELF executables and then launches its own
-  # PostgreSQL binaries. On NixOS, providing the shared libraries alone is not
-  # enough: those children also expect the conventional ELF interpreter and
-  # FHS paths. Run the complete native Hindsight process inside a small FHS
-  # namespace so pg0 and every PostgreSQL child inherit that runtime unchanged.
   nativeRuntime = pkgs.buildFHSEnv {
     name = "${target}-native";
     targetPkgs = p: [
@@ -194,7 +186,7 @@
 
   runtimeInputs =
     if runtime == "native"
-    then [nativeRuntime tmux uv python3 cacert]
+    then [nativeRuntime tmux uv python3 cacert] ++ nativeUi.packages
     else if runtime == "podman"
     then [podman podman-compose podmanRuntime podmanCompose]
     else if runtime == "docker"
@@ -233,10 +225,6 @@
         )
     );
 
-  # Schema paths may intentionally contain runtime variables such as
-  # ${HOME} or ${UID}. mkShell's `env` passes those strings literally, so
-  # materialize path-valued runtime state in the shell hook where the shell
-  # can expand them. The source of truth remains the schema-derived `paths`.
   runtimeHook =
     if runtime == "native"
     then ''
