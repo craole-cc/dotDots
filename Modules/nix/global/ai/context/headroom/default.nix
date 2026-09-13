@@ -4,7 +4,7 @@
   paths,
   ...
 }: let
-  inherit (pkgs) curl gum lsof procps python313 tmux uv writeShellApplication;
+  inherit (pkgs) coreutils curl gum lsof procps python313 tmux uv writeShellApplication;
   inherit (pkgs.lib) makeLibraryPath;
 
   h = cfg.headroom;
@@ -49,15 +49,42 @@
     '';
   };
 
-  daemon = writeShellApplication {
-    name = "headroom-daemon";
-    runtimeInputs = [tmux start];
+  status = writeShellApplication {
+    name = "headroom-status";
+    runtimeInputs = [curl];
     text = ''
-      session="''${HEADROOM_SESSION:-${h.session}}"
-      if tmux has-session -t "$session" 2>/dev/null; then
-        printf '%s\n' "Headroom already running in tmux session '$session'"
+      host="''${HEADROOM_HOST:-${bindAddress}}"
+      port="''${HEADROOM_PORT:-${port}}"
+      base="http://$host:$port"
+
+      if curl -fsS "$base/readyz" >/dev/null 2>&1; then
+        printf '%s\n' "Headroom ready: $base/readyz"
         exit 0
       fi
+
+      if curl -fsS "$base/health" >/dev/null 2>&1; then
+        printf '%s\n' "Headroom healthy: $base/health"
+        exit 0
+      fi
+
+      exit 1
+    '';
+  };
+
+  daemon = writeShellApplication {
+    name = "headroom-daemon";
+    runtimeInputs = [coreutils tmux start status];
+    text = ''
+      session="''${HEADROOM_SESSION:-${h.session}}"
+
+      if tmux has-session -t "$session" 2>/dev/null; then
+        if headroom-status >/dev/null 2>&1; then
+          printf '%s\n' "Headroom is already ready in tmux session '$session'"
+          exit 0
+        fi
+        tmux kill-session -t "$session" || true
+      fi
+
       tmux new-session -d \
         -s "$session" \
         -e "HEADROOM_HOST=''${HEADROOM_HOST:-${bindAddress}}" \
@@ -68,7 +95,23 @@
         -e "HEADROOM_UV_CACHE=''${HEADROOM_UV_CACHE:-${cacheDir}/uv}" \
         -e "OPENAI_TARGET_API_URL=''${OPENAI_TARGET_API_URL:-}" \
         "headroom-start"
-      printf '%s\n' "Headroom started in tmux session '$session'"
+
+      i=0
+      while [ "$i" -lt 60 ]; do
+        if headroom-status >/dev/null 2>&1; then
+          printf '%s\n' "Headroom is ready in tmux session '$session'"
+          exit 0
+        fi
+        if ! tmux has-session -t "$session" 2>/dev/null; then
+          printf '%s\n' "Headroom exited before becoming ready" >&2
+          exit 1
+        fi
+        i=$((i + 1))
+        sleep 1
+      done
+
+      printf '%s\n' "Headroom did not become ready within 60s" >&2
+      exit 1
     '';
   };
 
@@ -80,15 +123,6 @@
       if tmux has-session -t "$session" 2>/dev/null; then
         tmux kill-session -t "$session"
       fi
-    '';
-  };
-
-  status = writeShellApplication {
-    name = "headroom-status";
-    runtimeInputs = [curl tmux lsof procps];
-    text = ''
-      port="''${HEADROOM_PORT:-${port}}"
-      curl -fsS "http://${bindAddress}:$port/health"
     '';
   };
 in {
@@ -105,7 +139,7 @@ in {
     export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
     export HEADROOM_UV_CACHE="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
     export HEADROOM_SESSION="''${HEADROOM_SESSION:-${h.session}}"
-    export HEADROOM_BASE_URL="http://${bindAddress}:''${HEADROOM_PORT:-${port}}"
+    export HEADROOM_BASE_URL="http://''${HEADROOM_HOST:-${bindAddress}}:''${HEADROOM_PORT:-${port}}"
 
     if [ -t 1 ]; then
       printf '%s\n' "Headroom context proxy: $HEADROOM_BASE_URL"

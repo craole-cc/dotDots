@@ -26,7 +26,7 @@
     };
 
     mode = "local_external";
-    bank = "hermes";
+    bankPrefix = "hermes";
     recallBudget = "mid";
 
     llm = {
