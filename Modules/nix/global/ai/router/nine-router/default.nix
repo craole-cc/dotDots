@@ -33,7 +33,7 @@
       export PORT="''${NINE_ROUTER_PORT:-${port}}"
       export HOSTNAME="''${NINE_ROUTER_BIND_ADDRESS:-${bindAddress}}"
       mkdir -p "$DATA_DIR"
-      exec 9router --port "$PORT" --no-browser --skip-update
+      exec 9router --host "$HOSTNAME" --port "$PORT" --no-browser --skip-update
     '';
   };
 

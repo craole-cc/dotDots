@@ -51,6 +51,8 @@ printf '%s' "$router" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/9router-start"))
   and (.Unit.After | index("network-online.target"))
 ' >/dev/null
+grep -F 'exec 9router --host "$HOSTNAME" --port "$PORT" --no-browser --skip-update' \
+  Modules/nix/global/ai/router/nine-router/default.nix >/dev/null
 
 printf '%s' "$headroom" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/headroom-start"))
