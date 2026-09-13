@@ -3,35 +3,30 @@
   cfg,
   ...
 }: let
-  inherit (pkgs) buildNpmPackage coreutils curl importNpmLock makeWrapper nodejs_22 tmux writeShellApplication;
+  inherit (pkgs) coreutils curl fetchurl makeWrapper nodejs_22 stdenvNoCC tmux writeShellApplication;
 
   h = cfg.hindsight;
   version = h.version or "0.9.2";
 
-  # v0.9.2 is the release behind the native API package used by this shell.
-  # Pin the upstream source by commit so the Control Plane build is reproducible
-  # and does not install npm dependencies at runtime.
-  source = builtins.fetchGit {
-    url = "https://github.com/vectorize-io/hindsight.git";
-    rev = "ebad478240d3171bb88201ececda5e8d9883d22d";
-  };
-
-  controlPlane = buildNpmPackage {
+  # Upstream publishes the Control Plane as a release tarball containing the
+  # already-built Next.js standalone tree. Package that immutable artifact
+  # directly instead of re-resolving the monorepo's npm workspaces in Nix.
+  controlPlane = stdenvNoCC.mkDerivation {
     pname = "hindsight-control-plane";
     inherit version;
-    src = source;
-    nodejs = nodejs_22;
-    npmWorkspace = "hindsight-control-plane";
-    npmDeps = importNpmLock {npmRoot = source;};
-    npmConfigHook = importNpmLock.npmConfigHook;
-    npmBuildScript = "build";
+
+    src = fetchurl {
+      url = "https://github.com/vectorize-io/hindsight/releases/download/v${version}/vectorize-io-hindsight-control-plane-${version}.tgz";
+      hash = "sha256-lU0lSqHsnG0UXcsq/j7C1wo8J11arQW56mhLSTI6i3g=";
+    };
+
     nativeBuildInputs = [makeWrapper];
-    NEXT_TELEMETRY_DISABLED = "1";
+    dontBuild = true;
 
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/lib/hindsight-control-plane" "$out/bin"
-      cp -r hindsight-control-plane/standalone/. "$out/lib/hindsight-control-plane/"
+      cp -r standalone/. "$out/lib/hindsight-control-plane/"
       makeWrapper ${nodejs_22}/bin/node "$out/bin/hindsight-control-plane" \
         --add-flags "$out/lib/hindsight-control-plane/server.js"
       runHook postInstall
