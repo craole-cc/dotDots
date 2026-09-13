@@ -1,5 +1,5 @@
 {
-  defaultPreset = "hermes-hindsight";
+  defaultPreset = "hermes-hindsight-headroom-omniroute";
   directory = "ai";
   instance = "default";
   bindAddress = "127.0.0.1";
@@ -45,5 +45,20 @@
     port = 20128;
     state = "omniroute";
     session = "omniroute";
+  };
+
+  nineRouter = {
+    secrets = "9router.env";
+    bindAddress = "127.0.0.1";
+    port = 20129;
+    state = "9router";
+    session = "9router";
+  };
+
+  headroom = {
+    bindAddress = "127.0.0.1";
+    port = 8787;
+    state = "headroom";
+    session = "headroom";
   };
 }

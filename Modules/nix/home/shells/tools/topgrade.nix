@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lix,
   user,
   ...
@@ -25,7 +26,10 @@ in
       settings = {
         misc = {
           assume_yes = true;
-          # disable = ["nix"];
+          disable =
+            if host.class == "nixos"
+            then ["home_manager"]
+            else [];
           set_title = false;
           cleanup = true;
         };

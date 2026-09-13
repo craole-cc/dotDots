@@ -23,9 +23,9 @@
     name = "zed-editor";
     category = "gui";
     resolutionHints = [
-      "zed"
-      "zeditor"
       "zed-editor"
+      "zeditor"
+      "zed"
     ];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
