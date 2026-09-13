@@ -6,6 +6,9 @@ set -eu
 : "${HINDSIGHT_RUNTIME_KIND:?HINDSIGHT_RUNTIME_KIND not set}"
 
 if hindsight-status > /dev/null 2>&1; then
+  if [ "${HINDSIGHT_RUNTIME_KIND}" = "native" ]; then
+    hindsight-ui-daemon
+  fi
   gum log --level info "Hindsight is already healthy at ${HINDSIGHT_API_URL}"
   exit 0
 fi
@@ -23,6 +26,9 @@ native)
   : "${HINDSIGHT_SESSION:?HINDSIGHT_SESSION not set}"
   : "${HINDSIGHT_DATA_DIR:?HINDSIGHT_DATA_DIR not set}"
   : "${HINDSIGHT_CACHE_DIR:?HINDSIGHT_CACHE_DIR not set}"
+  : "${HINDSIGHT_UI_URL:?HINDSIGHT_UI_URL not set}"
+
+  hindsight-ui-stop >/dev/null 2>&1 || true
 
   if tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
     tmux kill-session -t "${HINDSIGHT_SESSION}" || true
@@ -32,12 +38,6 @@ native)
   mkdir -p "${HINDSIGHT_DATA_DIR}"
   : > "${native_log}"
 
-  # OmniRoute may already own the tmux server, whose environment predates
-  # this shell's Hindsight initialization. Pass all non-secret runtime
-  # configuration explicitly; the native service reads its API key directly
-  # from HINDSIGHT_SECRETS_FILE inside the new session. Persist stdout/stderr
-  # so an early process exit can be surfaced instead of looking like a
-  # five-minute health timeout.
   tmux new-session -d \
     -s "${HINDSIGHT_SESSION}" \
     -e "HINDSIGHT_SECRETS_FILE=${HINDSIGHT_SECRETS_FILE}" \
@@ -126,7 +126,13 @@ attempts=150
 i=0
 while [ "$i" -lt "$attempts" ]; do
   if hindsight-status > /dev/null 2>&1; then
-    gum log --level info "Hindsight is healthy."
+    if [ "${HINDSIGHT_RUNTIME_KIND}" = "native" ]; then
+      hindsight-ui-daemon
+      hindsight-ui-status > /dev/null
+      gum log --level info "Hindsight API and UI are ready (${HINDSIGHT_API_URL}, ${HINDSIGHT_UI_URL})."
+    else
+      gum log --level info "Hindsight is healthy."
+    fi
     exit 0
   fi
 
