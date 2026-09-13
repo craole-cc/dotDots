@@ -18,7 +18,7 @@
 
   controlPlane = buildNpmPackage {
     pname = "hindsight-control-plane";
-    inherit version source;
+    inherit version;
     src = source;
     nodejs = nodejs_22;
     npmWorkspace = "hindsight-control-plane";
@@ -58,10 +58,7 @@
         unset HINDSIGHT_CP_DATAPLANE_API_KEY
       fi
 
-      exec hindsight-control-plane \
-        --hostname "$HOSTNAME" \
-        --port "$PORT" \
-        --api-url "$HINDSIGHT_CP_DATAPLANE_API_URL"
+      exec hindsight-control-plane
     '';
   };
 
