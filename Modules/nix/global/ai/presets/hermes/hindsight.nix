@@ -3,6 +3,7 @@
   memory,
   cfg,
   paths,
+  hindsightBank,
   ...
 } @ args: let
   integration = import ./hindsight-integration.nix args;
@@ -25,13 +26,14 @@ in
       export HINDSIGHT_MCP_PORT="$(( ${toString h.ports.mcp} + AI_PORT_OFFSET ))"
       export HINDSIGHT_UI_PORT="$(( ${toString h.ports.ui} + AI_PORT_OFFSET ))"
       export HINDSIGHT_API_URL="http://$HINDSIGHT_BIND_ADDRESS:$HINDSIGHT_API_PORT"
+      export HINDSIGHT_UI_URL="http://$HINDSIGHT_BIND_ADDRESS:$HINDSIGHT_UI_PORT"
       export HINDSIGHT_IMAGE="''${HINDSIGHT_IMAGE:-${h.image}}"
       export HINDSIGHT_LLM_BACKEND="''${HINDSIGHT_LLM_BACKEND:-${h.llm.backend}}"
       export HINDSIGHT_LLM_BASE_URL="''${HINDSIGHT_LLM_BASE_URL:-${h.llm.baseUrl}}"
       export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-${h.llm.model}}"
       export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-${h.llm.reflectModel}}"
       export HINDSIGHT_MODE="''${HINDSIGHT_MODE:-${h.mode}}"
-      export HINDSIGHT_BANK_ID="''${HINDSIGHT_BANK_ID:-${h.bank}}"
+      export HINDSIGHT_BANK_ID="''${HINDSIGHT_BANK_ID:-${hindsightBank}}"
       export HINDSIGHT_RECALL_BUDGET="''${HINDSIGHT_RECALL_BUDGET:-${h.recallBudget}}"
       export HINDSIGHT_COMPOSE_PROJECT="hindsight-$HINDSIGHT_INSTANCE"
       export HINDSIGHT_CONTAINER_NAME="hindsight-$HINDSIGHT_INSTANCE"
