@@ -49,9 +49,19 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-9router --command sh 
   test "$OPENAI_BASE_URL" = "$NINE_ROUTER_BASE_URL"
   test "$HERMES_SECRETS_FILE" = "$HOME/Private/hermes.env"
   test "$OPENROUTER_API_KEY" = test-hermes-openrouter-key
+  test "$HERMES_DISABLE_LAZY_INSTALLS" = 1
   command -v hermes >/dev/null
   command -v 9router >/dev/null
   command -v configure-hindsight >/dev/null
+
+  hermes_wrapper=$(command -v hermes)
+  hermes_root=$(dirname "$(dirname "$hermes_wrapper")")
+  hermes_python=$(sed -n "s|.*HERMES_PYTHON='\''\([^'\'']*\)'\''.*|\1|p" "$hermes_wrapper" | sed -n '"'"'1p'"'"')
+  test -n "$hermes_python"
+  test -x "$hermes_python"
+  PYTHONPATH="$hermes_root/share/hermes-agent${PYTHONPATH:+:$PYTHONPATH}" \
+    "$hermes_python" -c '"'"'import hindsight_client'"'"'
+
   if env | grep -q "^HEADROOM_"; then
     printf "%s\n" "Headroom leaked into the 9Router-only preset" >&2
     exit 1
@@ -68,6 +78,7 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
   test "$HERMES_SECRETS_FILE" = "$HOME/Private/hermes.env"
   test "$OPENROUTER_API_KEY" = test-hermes-openrouter-key
+  test "$HERMES_DISABLE_LAZY_INSTALLS" = 1
   command -v hermes >/dev/null
   command -v headroom >/dev/null
   command -v 9router >/dev/null
