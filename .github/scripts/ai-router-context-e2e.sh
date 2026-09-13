@@ -5,6 +5,10 @@ root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
 cd "$root"
 
 test_home=$(mktemp -d)
+mkdir -p "$test_home/Private"
+printf '%s\n' 'OPENROUTER_API_KEY=test-hermes-openrouter-key' > "$test_home/Private/hermes.env"
+chmod 600 "$test_home/Private/hermes.env"
+
 cleanup() {
   HOME="$test_home" nix develop .#Victus-ai-9router --command 9router-stop >/dev/null 2>&1 || true
   HOME="$test_home" nix develop .#Victus-ai-headroom --command headroom-stop >/dev/null 2>&1 || true
@@ -43,6 +47,8 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-9router --command sh 
   test "$NINE_ROUTER_DATA_DIR" = "$AI_HOME/9router"
   test "$NINE_ROUTER_SESSION" = hermes-hindsight-9router-default-9router
   test "$OPENAI_BASE_URL" = "$NINE_ROUTER_BASE_URL"
+  test "$HERMES_SECRETS_FILE" = "$HOME/Private/hermes.env"
+  test "$OPENROUTER_API_KEY" = test-hermes-openrouter-key
   command -v hermes >/dev/null
   command -v 9router >/dev/null
   command -v configure-hindsight >/dev/null
@@ -60,6 +66,8 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   test "$HEADROOM_CONFIG_DIR" = "$AI_HOME/headroom/config"
   test "$OPENAI_TARGET_API_URL" = "$NINE_ROUTER_BASE_URL"
   test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
+  test "$HERMES_SECRETS_FILE" = "$HOME/Private/hermes.env"
+  test "$OPENROUTER_API_KEY" = test-hermes-openrouter-key
   command -v hermes >/dev/null
   command -v headroom >/dev/null
   command -v 9router >/dev/null
