@@ -59,7 +59,7 @@ in
       users = {
         groups = mapAttrs (_: _: {}) hostUsers;
         users =
-          (mapAttrs (name: user: {
+          mapAttrs (name: user: {
             isNormalUser = user.role != "service";
             isSystemUser = user.role == "service";
             description = user.description or name;
@@ -76,12 +76,11 @@ in
               inherit pkgs;
               target = head (user.shells or ["bash"]);
             };
-          }) hostUsers)
-          // lib.optionalAttrs (hostUsers ? craole) {
+          } // lib.optionalAttrs (name == "craole") {
             # The Home Manager AI runtime belongs to the primary interactive
             # user. Lingering starts it at boot and keeps it alive after logout.
-            craole.linger = true;
-          };
+            linger = true;
+          }) hostUsers;
       };
     };
   }
