@@ -39,7 +39,7 @@ in
       export HINDSIGHT_LLM_MODEL="''${HINDSIGHT_LLM_MODEL:-${h.llm.model}}"
       export HINDSIGHT_REFLECT_LLM_MODEL="''${HINDSIGHT_REFLECT_LLM_MODEL:-${h.llm.reflectModel}}"
       export HINDSIGHT_MODE="''${HINDSIGHT_MODE:-${h.mode}}"
-      export HINDSIGHT_BANK_ID="''${HINDSIGHT_BANK_ID:-${hindsightBank}}"
+      export HINDSIGHT_BANK_ID="${hindsightBank}"
       export HINDSIGHT_RECALL_BUDGET="''${HINDSIGHT_RECALL_BUDGET:-${h.recallBudget}}"
       export HINDSIGHT_COMPOSE_PROJECT="hindsight-$HINDSIGHT_INSTANCE"
       export HINDSIGHT_CONTAINER_NAME="hindsight-$HINDSIGHT_INSTANCE"
@@ -77,9 +77,7 @@ in
       configure-hindsight --force || true
 
       if [ -r "$HINDSIGHT_SECRETS_FILE" ]; then
-        if ! hindsight-status > /dev/null 2>&1; then
-          hindsight-up || true
-        fi
+        hindsight-up || true
       else
         printf '%s\n' "Hindsight not started: missing $HINDSIGHT_SECRETS_FILE"
       fi
