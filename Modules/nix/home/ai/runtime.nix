@@ -114,9 +114,12 @@ in
   home = {
     packages = unique (
       agents.hermes.packages
-      ++ context.headroom.packages
-      ++ memory.hindsight.packages
-      ++ router."nine-router".packages
+      ++ [
+        context.headroom.packagesStart
+        memory.hindsight.packagesServiceStart
+        memory.hindsight.packagesUiStart
+        router."nine-router".packagesStart
+      ]
       ++ hindsightIntegration.packages
     );
     sessionVariables = environment;
