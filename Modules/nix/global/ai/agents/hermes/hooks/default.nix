@@ -12,6 +12,7 @@ in {
     export HERMES_HOME="''${HERMES_HOME:-$HOME/.hermes}"
     export HERMES_GATEWAY_CFG="''${HERMES_GATEWAY_CFG:-$HERMES_HOME/gateway.json}"
     export HERMES_SECRETS_FILE="''${HERMES_SECRETS_FILE:-${hermesSecrets}}"
+    export HERMES_DISABLE_LAZY_INSTALLS=1
 
     if [ -r "$HERMES_SECRETS_FILE" ]; then
       if [ -L "$HERMES_SECRETS_FILE" ] || [ ! -f "$HERMES_SECRETS_FILE" ]; then
