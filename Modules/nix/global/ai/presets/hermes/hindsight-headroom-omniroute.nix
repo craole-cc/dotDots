@@ -47,6 +47,7 @@ in
       export OMNIROUTE_DATA_DIR="$AI_HOME/${o.state}"
       export OMNIROUTE_NPX_CACHE="$AI_CACHE_DIR/${o.state}/npx"
       export OMNIROUTE_SESSION="$AI_PRESET-$AI_INSTANCE-${o.session}"
+      export OMNIROUTE_SECRETS_FILE="''${OMNIROUTE_SECRETS_FILE:-$AI_PRIVATE_DIR/${o.secrets}}"
 
       export HEADROOM_HOST="''${HEADROOM_HOST:-${c.bindAddress}}"
       export HEADROOM_PORT="$(( ${toString c.port} + AI_PORT_OFFSET ))"
@@ -64,7 +65,12 @@ in
 
     start = ''
       if ! omniroute-status > /dev/null 2>&1; then
-        omniroute-daemon || true
+        if [ -r "$OMNIROUTE_SECRETS_FILE" ]; then
+          tmux new-session -d -s "$OMNIROUTE_SESSION" "set -a; . \"$OMNIROUTE_SECRETS_FILE\"; set +a; exec omniroute-start" || true
+        else
+          printf '%s\n' "OmniRoute secrets not loaded: missing $OMNIROUTE_SECRETS_FILE"
+          omniroute-daemon || true
+        fi
       fi
 
       if ! headroom-status > /dev/null 2>&1; then
