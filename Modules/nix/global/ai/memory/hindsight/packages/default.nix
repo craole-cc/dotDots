@@ -135,6 +135,37 @@
 
   nativeRuntimeBin = "${nativeRuntime}/bin/${target}-native";
 
+  # The tmux-oriented `hindsight-up` helper remains useful in devShells, but
+  # systemd must supervise the API process itself. Keep this foreground
+  # launcher deliberately small so its lifetime is the API's lifetime.
+  serviceStart = writeShellApplication {
+    name = "${target}-service-start";
+    runtimeInputs =
+      if runtime == "native"
+      then [nativeRuntime]
+      else if runtime == "podman"
+      then [podmanRuntime podmanCompose]
+      else if runtime == "docker"
+      then [docker]
+      else throw "Unsupported Hindsight runtime '${runtime}'";
+    text =
+      if runtime == "native"
+      then ''
+        exec ${nativeRuntimeBin}
+      ''
+      else ''
+        : "''${HINDSIGHT_SECRETS_FILE:?HINDSIGHT_SECRETS_FILE not set}"
+        : "''${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
+        : "''${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
+        : "''${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
+        # shellcheck disable=SC1090
+        . "''${HINDSIGHT_SECRETS_FILE}"
+        exec "''${HINDSIGHT_CONTAINER_RUNTIME}" compose \
+          -p "''${HINDSIGHT_COMPOSE_PROJECT}" \
+          -f "''${HINDSIGHT_COMPOSE_FILE}" up
+      '';
+  };
+
   podmanState = let
     data = "${paths.xdg.data.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
     run = "${paths.xdg.runtime.local}/${cfg.directory}/containers/${target}/${cfg.instance}";
@@ -305,8 +336,10 @@
     })
     entries;
 in {
+  packagesServiceStart = serviceStart;
+  packagesUiStart = nativeUi.start;
   env = env';
-  packages = runtimeInputs ++ scripts;
+  packages = runtimeInputs ++ scripts ++ [serviceStart];
   shellHook = runtimeHook;
   inherit helpEntries;
 }

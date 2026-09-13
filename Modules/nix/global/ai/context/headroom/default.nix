@@ -33,7 +33,11 @@
     text = ''
       export HEADROOM_HOST="''${HEADROOM_HOST:-${bindAddress}}"
       export HEADROOM_PORT="''${HEADROOM_PORT:-${port}}"
-      export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-off}"
+      # This runtime is intentionally tuned for coding agents. Telemetry is
+      # in-process only and powers the local stats/metrics/dashboard endpoints.
+      export HEADROOM_SAVINGS_PROFILE="''${HEADROOM_SAVINGS_PROFILE:-coding}"
+      export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-on}"
+      export HEADROOM_PROVIDER_NAME="''${HEADROOM_PROVIDER_NAME:-9Router}"
       export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
       export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
       mkdir -p "$HEADROOM_WORKSPACE_DIR" "$HEADROOM_CONFIG_DIR"
@@ -42,7 +46,8 @@
         exec headroom proxy \
           --host "$HEADROOM_HOST" \
           --port "$HEADROOM_PORT" \
-          --openai-api-url "$OPENAI_TARGET_API_URL"
+          --openai-api-url "$OPENAI_TARGET_API_URL" \
+          --provider-name "$HEADROOM_PROVIDER_NAME"
       fi
 
       exec headroom proxy --host "$HEADROOM_HOST" --port "$HEADROOM_PORT"
@@ -89,7 +94,9 @@
         -s "$session" \
         -e "HEADROOM_HOST=''${HEADROOM_HOST:-${bindAddress}}" \
         -e "HEADROOM_PORT=''${HEADROOM_PORT:-${port}}" \
-        -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-off}" \
+        -e "HEADROOM_SAVINGS_PROFILE=''${HEADROOM_SAVINGS_PROFILE:-coding}" \
+        -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-on}" \
+        -e "HEADROOM_PROVIDER_NAME=''${HEADROOM_PROVIDER_NAME:-9Router}" \
         -e "HEADROOM_WORKSPACE_DIR=''${HEADROOM_WORKSPACE_DIR:-${dataDir}}" \
         -e "HEADROOM_CONFIG_DIR=''${HEADROOM_CONFIG_DIR:-${configDir}}" \
         -e "HEADROOM_UV_CACHE=''${HEADROOM_UV_CACHE:-${cacheDir}/uv}" \
@@ -126,12 +133,16 @@
     '';
   };
 in {
+  packagesStart = start;
   packages = [headroom start daemon stop status tmux gum curl lsof procps uv python313];
 
   env = {
     HEADROOM_HOST = bindAddress;
     HEADROOM_PORT = port;
     HEADROOM_BASE_URL = "http://${bindAddress}:${port}";
+    HEADROOM_SAVINGS_PROFILE = "coding";
+    HEADROOM_TELEMETRY = "on";
+    HEADROOM_PROVIDER_NAME = "9Router";
   };
 
   shellHook = ''

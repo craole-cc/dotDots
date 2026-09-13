@@ -100,6 +100,7 @@
     '';
   };
 in {
+  packagesStart = start;
   packages = [router9 start daemon stop status tmux curl lsof procps nodejs_22];
 
   env = {

@@ -45,5 +45,8 @@ jobs:
             test "$OPENAI_TARGET_API_URL" = "$OMNIROUTE_BASE_URL"
           '
 
+      - name: Run persistent AI runtime service contract tests
+        run: sh .github/scripts/ai-runtime-services-e2e.sh
+
       - name: Run 9Router and Headroom contract tests
         run: sh .github/scripts/ai-router-context-e2e.sh
