@@ -16,6 +16,7 @@ printf '%s' "$session" | jq -e '
   and .HERMES_MODEL_PROVIDER == "openai"
   and .HERMES_MODEL_BASE_URL == .OPENAI_BASE_URL
   and .HERMES_MODEL_DEFAULT == "cx/gpt-6-astra"
+  and (.HERMES_HOME | test("/\\.local/share/ai/hermes-victus$"))
   and .HINDSIGHT_BANK_ID == "hermes-victus"
   and .HINDSIGHT_RECALL_BUDGET == "mid"
 ' > /dev/null
@@ -107,5 +108,7 @@ grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix > /dev/
 grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'name = "hermes-desktop-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'hermesHome = "${dataRoot}/hermes-${toLower host.name}";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'activation.linkManagedHermesHome' Modules/nix/home/ai/runtime.nix > /dev/null
 
 printf '%s\n' 'PASS: persistent AI runtime target, services, gateway, desktop launcher, and environment contracts'

@@ -23,6 +23,11 @@
   dataRoot = "${config.xdg.dataHome}/${cfg.directory}";
   cacheRoot = "${config.xdg.cacheHome}/${cfg.directory}";
   runtimeHome = "${dataRoot}/${runtimeName}/${cfg.instance}";
+  # Keep Hermes's externally visible state home below the Linux AF_UNIX path
+  # limit.  Its target remains in the normal per-runtime state tree, while
+  # this short, host-specific alias is the primary user-facing scratchpad.
+  hermesStateHome = "${runtimeHome}/${cfg.hermes.state}";
+  hermesHome = "${dataRoot}/hermes-${toLower host.name}";
   privateRoot = "${config.home.homeDirectory}/Private";
   hindsightData = "${dataRoot}/hindsight/${cfg.instance}";
   hindsightCache = "${cacheRoot}/hindsight/${cfg.instance}";
@@ -63,8 +68,8 @@
       AI_INSTANCE = cfg.instance;
       AI_HOME = runtimeHome;
       AI_CACHE_DIR = "${cacheRoot}/${runtimeName}/${cfg.instance}";
-      HERMES_HOME = "${runtimeHome}/${cfg.hermes.state}";
-      HERMES_GATEWAY_CFG = "${runtimeHome}/${cfg.hermes.state}/${cfg.hermes.gateway}";
+      HERMES_HOME = hermesHome;
+      HERMES_GATEWAY_CFG = "${hermesHome}/${cfg.hermes.gateway}";
       HERMES_SECRETS_FILE = "${privateRoot}/${cfg.hermes.secrets}";
       HERMES_DISABLE_LAZY_INSTALLS = "1";
       # Use the local OpenAI-compatible route, rather than Hermes's distinct
@@ -170,7 +175,21 @@ in
         ++ hindsightIntegration.packages
       );
       sessionVariables = environment;
-      activation.configureHermesHindsight = entryAfter ["writeBoundary"] ''
+      activation.linkManagedHermesHome = entryAfter ["writeBoundary"] ''
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg hermesStateHome}
+        if [ -L ${lib.escapeShellArg hermesHome} ]; then
+          if [ "$(${pkgs.coreutils}/bin/readlink -f ${lib.escapeShellArg hermesHome})" != ${lib.escapeShellArg hermesStateHome} ]; then
+            echo "refusing to replace unexpected managed Hermes home link: ${hermesHome}" >&2
+            exit 1
+          fi
+        elif [ -e ${lib.escapeShellArg hermesHome} ]; then
+          echo "refusing to replace existing managed Hermes home: ${hermesHome}" >&2
+          exit 1
+        else
+          $DRY_RUN_CMD ${pkgs.coreutils}/bin/ln -s ${lib.escapeShellArg hermesStateHome} ${lib.escapeShellArg hermesHome}
+        fi
+      '';
+      activation.configureHermesHindsight = entryAfter ["linkManagedHermesHome"] ''
         $DRY_RUN_CMD ${configureHermes}
       '';
     };
