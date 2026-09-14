@@ -16,6 +16,7 @@ printf '%s' "$session" | jq -e '
   and .HERMES_MODEL_PROVIDER == "openai"
   and .HERMES_MODEL_BASE_URL == .OPENAI_BASE_URL
   and .HERMES_MODEL_DEFAULT == "cx/gpt-6-astra"
+  and .API_SERVER_PORT == "8643"
   and (.HERMES_HOME | test("/\\.local/share/ai/hermes-victus$"))
   and .HINDSIGHT_BANK_ID == "hermes-victus"
   and .HINDSIGHT_RECALL_BUDGET == "mid"

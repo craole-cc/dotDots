@@ -77,6 +77,10 @@
       HERMES_MODEL_PROVIDER = "openai";
       HERMES_MODEL_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
       HERMES_MODEL_DEFAULT = "cx/gpt-6-astra";
+      # The legacy Hermes desktop uses its default API-server port (8642).
+      # Reserve an adjacent loopback port for the managed runtime so both can
+      # coexist during the migration without competing for a listener.
+      API_SERVER_PORT = "8643";
 
       HINDSIGHT_SECRETS_FILE = hindsightSecrets;
       HINDSIGHT_RUNTIME_KIND = h.runtime;
