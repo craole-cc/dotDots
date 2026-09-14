@@ -13,9 +13,10 @@ packages=$(nix eval --json "$home.home.packages" --apply 'xs: map (x: x.name) xs
 printf '%s' "$session" | jq -e '
   .OPENAI_BASE_URL == "http://127.0.0.1:8787/v1"
   and .OPENAI_TARGET_API_URL == "http://127.0.0.1:20129"
-  and .HERMES_MODEL_PROVIDER == "custom:9router"
-  and .HERMES_MODEL_BASE_URL == .OPENAI_BASE_URL
-  and .HERMES_MODEL_DEFAULT == "openrouter/openrouter/free"
+  and .HERMES_MODEL_PROVIDER == "openai-codex"
+  and .HERMES_MODEL_DEFAULT == "gpt-6-astra"
+  and .HERMES_9ROUTER_PROVIDER == "custom:9router"
+  and .HERMES_9ROUTER_BASE_URL == .OPENAI_BASE_URL
   and .API_SERVER_PORT == "8643"
   and (.HERMES_HOME | test("/\\.local/share/ai/hermes-victus$"))
   and .HINDSIGHT_BANK_ID == "hermes-victus"

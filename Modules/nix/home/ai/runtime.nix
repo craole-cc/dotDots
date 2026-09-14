@@ -72,15 +72,16 @@
       HERMES_GATEWAY_CFG = "${hermesHome}/${cfg.hermes.gateway}";
       HERMES_SECRETS_FILE = "${privateRoot}/${cfg.hermes.secrets}";
       HERMES_DISABLE_LAZY_INSTALLS = "1";
-      # Use a named custom OpenAI-compatible endpoint.  `openai` is reserved
-      # by Hermes for an official OpenAI API credential; 9Router's local key
-      # must instead resolve through this explicit Headroom-backed provider.
-      HERMES_MODEL_PROVIDER = "custom:9router";
-      HERMES_MODEL_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
-      # A verified OpenRouter route through 9Router.  `cx/gpt-6-astra` belongs
-      # to 9Router's separate Codex provider and requires credentials that are
-      # intentionally not configured in this runtime.
-      HERMES_MODEL_DEFAULT = "openrouter/openrouter/free";
+      # Preserve Hermes's native ChatGPT/Codex OAuth route as the primary
+      # experience. It uses the user's official ChatGPT plan sign-in; a
+      # subscription session is not sent through third-party routers.
+      HERMES_MODEL_PROVIDER = "openai-codex";
+      HERMES_MODEL_DEFAULT = "gpt-6-astra";
+      # The API-backed alternate lane is a named custom provider below. Its
+      # traffic flows through Headroom then 9Router without changing the
+      # native Plus/Codex default.
+      HERMES_9ROUTER_PROVIDER = "custom:9router";
+      HERMES_9ROUTER_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
       # The legacy Hermes desktop uses its default API-server port (8642).
       # Reserve an adjacent loopback port for the managed runtime so both can
       # coexist during the migration without competing for a listener.
@@ -198,14 +199,15 @@
     mkdir -p "$HERMES_HOME"
     ${configureHindsight}/bin/configure-hindsight --force
     # Hermes resolves its persistent profile before the process environment;
-    # write the declared provider and default into that isolated profile too.
+    # write the declared primary provider and default into that isolated
+    # profile too.
     # `OPENAI_API_KEY` is loaded privately by the gateway wrapper, never saved
     # in this profile: the provider merely names its runtime environment key.
     hermes config set model.provider "$HERMES_MODEL_PROVIDER"
-    hermes config set model.base_url "$HERMES_MODEL_BASE_URL"
+    hermes config unset model.base_url
     hermes config set model.default "$HERMES_MODEL_DEFAULT"
     hermes config set providers.9router.name 9Router
-    hermes config set providers.9router.base_url "$HERMES_MODEL_BASE_URL"
+    hermes config set providers.9router.base_url "$HERMES_9ROUTER_BASE_URL"
     hermes config set providers.9router.key_env OPENAI_API_KEY
     hermes config set providers.9router.transport openai_chat
   '';
