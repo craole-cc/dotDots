@@ -91,6 +91,7 @@ grep -F 'headroom-ai[proxy,code]==${version}' Modules/nix/global/ai/context/head
 grep -F -- '--mode "$HEADROOM_MODE"' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 grep -F -- '--code-aware' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 grep -F -- '--lossless' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
+grep -F 'chmod 600 "$HERMES_HOME/.env"' Modules/nix/home/ai/runtime.nix > /dev/null
 
 printf '%s' "$hindsight" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/hindsight-service-start"))
