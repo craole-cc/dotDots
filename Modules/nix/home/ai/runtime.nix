@@ -135,6 +135,19 @@
       exec hermes-gateway
     '';
   };
+  # Hermes Desktop uses Electron's single-instance lock.  A separate user-data
+  # directory is therefore required in addition to a separate HERMES_HOME if
+  # the managed runtime and an existing/legacy desktop are to run together.
+  hermesDesktopAiRuntime = pkgs.writeShellApplication {
+    name = "hermes-desktop-ai-runtime";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      export ${lib.concatStringsSep "\nexport " serviceEnvironment}
+      export HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"
+      mkdir -p "$HERMES_DESKTOP_USER_DATA_DIR"
+      exec ${../../global/ai/agents/hermes/packages/scripts/launch-wayland.sh} ${agents.hermes.tools.desktop.exe} "$@"
+    '';
+  };
   configureHermes = pkgs.writeShellScript "configure-hermes-hindsight" ''
     export ${lib.concatStringsSep "\nexport " serviceEnvironment}
     export PATH="${lib.makeBinPath agents.hermes.packages}:$PATH"
@@ -152,6 +165,7 @@ in
           memory.hindsight.packagesUiStart
           router."nine-router".packagesStart
           hermesGateway
+          hermesDesktopAiRuntime
         ]
         ++ hindsightIntegration.packages
       );
@@ -160,6 +174,20 @@ in
         $DRY_RUN_CMD ${configureHermes}
       '';
     };
+
+    # `xdg.desktopEntries` is incompatible with the pinned Nixpkgs version's
+    # removed `extraConfig` option.  Keep the menu entry declarative through
+    # Home Manager's stable XDG data-file interface instead.
+    xdg.dataFile."applications/hermes-desktop-ai-runtime.desktop".text = ''
+      [Desktop Entry]
+      Type=Application
+      Name=Hermes Desktop (AI runtime)
+      GenericName=Hermes Assistant
+      Comment=Hermes Desktop using the local Headroom, 9Router, and Hindsight runtime
+      Exec=hermes-desktop-ai-runtime %U
+      Terminal=false
+      Categories=Utility;
+    '';
 
     # `ai-runtime.target` is enabled at user-manager start. On NixOS, the
     # companion core module enables lingering for interactive users so this

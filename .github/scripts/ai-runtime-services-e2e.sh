@@ -18,9 +18,10 @@ printf '%s' "$session" | jq -e '
   and .HERMES_MODEL_DEFAULT == "cx/gpt-6-astra"
   and .HINDSIGHT_BANK_ID == "hermes-victus"
   and .HINDSIGHT_RECALL_BUDGET == "mid"
-' >/dev/null
+' > /dev/null
 test "$linger" = true
-printf '%s' "$packages" | jq -e 'any(.[]; startswith("hermes-agent-"))' >/dev/null
+printf '%s' "$packages" | jq -e 'any(.[]; startswith("hermes-agent-"))' > /dev/null
+printf '%s' "$packages" | jq -e 'any(.[]; startswith("hermes-desktop-ai-runtime"))' > /dev/null
 
 target=$(printf '%s' "$units" | jq -c '.targets."ai-runtime"')
 printf '%s' "$target" | jq -e '
@@ -32,7 +33,7 @@ printf '%s' "$target" | jq -e '
     "ai-hindsight-ui.service",
     "ai-hindsight.service"
   ]
-' >/dev/null
+' > /dev/null
 
 service() {
   printf '%s' "$units" | jq -c ".services.\"$1\""
@@ -49,17 +50,17 @@ for unit in "$router" "$headroom" "$hindsight" "$hindsight_ui" "$gateway"; do
     .Service.Restart == "on-failure"
     and .Service.RestartSec == 5
     and ([.Service.ExecStart[]] | all(test("tmux") | not))
-  ' >/dev/null
+  ' > /dev/null
 done
 
 printf '%s' "$router" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/9router-start"))
   and (.Unit.After | index("network-online.target"))
-' >/dev/null
+' > /dev/null
 grep -F 'exec 9router --host "$HOSTNAME" --port "$PORT" --no-browser --skip-update' \
-  Modules/nix/global/ai/router/nine-router/default.nix >/dev/null
+  Modules/nix/global/ai/router/nine-router/default.nix > /dev/null
 grep -F 'runtimeInputs = [nodejs_22 cacert tailscale];' \
-  Modules/nix/global/ai/router/nine-router/default.nix >/dev/null
+  Modules/nix/global/ai/router/nine-router/default.nix > /dev/null
 
 printf '%s' "$headroom" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/headroom-start"))
@@ -71,23 +72,23 @@ printf '%s' "$headroom" | jq -e '
   and (.Service.Environment | index("HEADROOM_TELEMETRY=on"))
   and (.Service.Environment | index("HEADROOM_PROVIDER_NAME=9Router"))
   and (.Service.Environment | index("OPENAI_TARGET_API_URL=http://127.0.0.1:20129"))
-' >/dev/null
-grep -F 'headroom-ai[proxy,code]==${version}' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
-grep -F -- '--mode "$HEADROOM_MODE"' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
-grep -F -- '--code-aware' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
+' > /dev/null
+grep -F 'headroom-ai[proxy,code]==${version}' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
+grep -F -- '--mode "$HEADROOM_MODE"' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
+grep -F -- '--code-aware' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 
 printf '%s' "$hindsight" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/hindsight-service-start"))
   and ([.Service.Environment[] | select(test("^HINDSIGHT_DATA_DIR=.*/\\.local/share/ai/hindsight/default$"))] | length == 1)
   and ([.Service.Environment[] | select(test("^HINDSIGHT_SECRETS_FILE=.*/Private/hindsight\\.env$"))] | length == 1)
   and ([.Service.Environment[] | select(test("API_KEY|OPENROUTER_API_KEY|NINE_ROUTER_API_KEY"))] | length == 0)
-' >/dev/null
+' > /dev/null
 
 printf '%s' "$hindsight_ui" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/hindsight-ui-start"))
   and .Unit.Requires == ["ai-hindsight.service"]
   and .Unit.After == ["ai-hindsight.service"]
-' >/dev/null
+' > /dev/null
 
 printf '%s' "$gateway" | jq -e '
   (.Service.ExecCondition | endswith("/bin/hermes-gateway-ready"))
@@ -101,8 +102,10 @@ printf '%s' "$gateway" | jq -e '
     "ai-hindsight.service"
   ]
   and ([.Service.Environment[] | select(test("TELEGRAM_BOT_TOKEN|TELEGRAM_ALLOWED_USERS"))] | length == 0)
-' >/dev/null
-grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix >/dev/null
-grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix >/dev/null
+' > /dev/null
+grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'name = "hermes-desktop-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"' Modules/nix/home/ai/runtime.nix > /dev/null
 
-printf '%s\n' 'PASS: persistent AI runtime target, services, gateway, and environment contracts'
+printf '%s\n' 'PASS: persistent AI runtime target, services, gateway, desktop launcher, and environment contracts'
