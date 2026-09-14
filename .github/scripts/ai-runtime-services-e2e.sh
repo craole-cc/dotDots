@@ -13,7 +13,7 @@ packages=$(nix eval --json "$home.home.packages" --apply 'xs: map (x: x.name) xs
 printf '%s' "$session" | jq -e '
   .OPENAI_BASE_URL == "http://127.0.0.1:8787/v1"
   and .OPENAI_TARGET_API_URL == "http://127.0.0.1:20129"
-  and .HERMES_MODEL_PROVIDER == "openai"
+  and .HERMES_MODEL_PROVIDER == "custom:9router"
   and .HERMES_MODEL_BASE_URL == .OPENAI_BASE_URL
   and .HERMES_MODEL_DEFAULT == "openrouter/openrouter/free"
   and .API_SERVER_PORT == "8643"
@@ -111,6 +111,7 @@ grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix > /dev/
 grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'name = "hermes-with-private-secrets";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'NINE_ROUTER_API_KEY' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'providers.9router.key_env OPENAI_API_KEY' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'name = "hermes-desktop-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'hermesHome = "${dataRoot}/hermes-${toLower host.name}";' Modules/nix/home/ai/runtime.nix > /dev/null

@@ -72,9 +72,10 @@
       HERMES_GATEWAY_CFG = "${hermesHome}/${cfg.hermes.gateway}";
       HERMES_SECRETS_FILE = "${privateRoot}/${cfg.hermes.secrets}";
       HERMES_DISABLE_LAZY_INSTALLS = "1";
-      # Use the local OpenAI-compatible route, rather than Hermes's distinct
-      # `openai-codex` OAuth backend which talks to ChatGPT directly.
-      HERMES_MODEL_PROVIDER = "openai";
+      # Use a named custom OpenAI-compatible endpoint.  `openai` is reserved
+      # by Hermes for an official OpenAI API credential; 9Router's local key
+      # must instead resolve through this explicit Headroom-backed provider.
+      HERMES_MODEL_PROVIDER = "custom:9router";
       HERMES_MODEL_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
       # A verified OpenRouter route through 9Router.  `cx/gpt-6-astra` belongs
       # to 9Router's separate Codex provider and requires credentials that are
@@ -197,8 +198,16 @@
     mkdir -p "$HERMES_HOME"
     ${configureHindsight}/bin/configure-hindsight --force
     # Hermes resolves its persistent profile before the process environment;
-    # write the declared default into that isolated profile as well.
+    # write the declared provider and default into that isolated profile too.
+    # `OPENAI_API_KEY` is loaded privately by the gateway wrapper, never saved
+    # in this profile: the provider merely names its runtime environment key.
+    hermes config set model.provider "$HERMES_MODEL_PROVIDER"
+    hermes config set model.base_url "$HERMES_MODEL_BASE_URL"
     hermes config set model.default "$HERMES_MODEL_DEFAULT"
+    hermes config set providers.9router.name 9Router
+    hermes config set providers.9router.base_url "$HERMES_MODEL_BASE_URL"
+    hermes config set providers.9router.key_env OPENAI_API_KEY
+    hermes config set providers.9router.transport openai_chat
   '';
 in
   lib.mkIf (user.name == "craole") {
