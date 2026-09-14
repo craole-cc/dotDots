@@ -118,6 +118,23 @@
     };
 
   serviceEnvironment = lib.mapAttrsToList (name: value: "${name}=${value}") environment;
+  hermesGatewayReady = pkgs.writeShellApplication {
+    name = "hermes-gateway-ready";
+    runtimeInputs = [pkgs.gnugrep];
+    text = ''
+      env_file="$HERMES_HOME/.env"
+      test -f "$env_file"
+      grep -q '^TELEGRAM_BOT_TOKEN=.' "$env_file"
+      grep -q '^TELEGRAM_ALLOWED_USERS=.' "$env_file"
+    '';
+  };
+  hermesGateway = pkgs.writeShellApplication {
+    name = "hermes-gateway-ai-runtime";
+    runtimeInputs = agents.hermes.packages;
+    text = ''
+      exec hermes-gateway
+    '';
+  };
   configureHermes = pkgs.writeShellScript "configure-hermes-hindsight" ''
     export ${lib.concatStringsSep "\nexport " serviceEnvironment}
     export PATH="${lib.makeBinPath agents.hermes.packages}:$PATH"
@@ -134,6 +151,7 @@ in
           memory.hindsight.packagesServiceStart
           memory.hindsight.packagesUiStart
           router."nine-router".packagesStart
+          hermesGateway
         ]
         ++ hindsightIntegration.packages
       );
@@ -154,12 +172,14 @@ in
           "ai-headroom.service"
           "ai-hindsight.service"
           "ai-hindsight-ui.service"
+          "ai-hermes-gateway.service"
         ];
         After = [
           "ai-9router.service"
           "ai-headroom.service"
           "ai-hindsight.service"
           "ai-hindsight-ui.service"
+          "ai-hermes-gateway.service"
         ];
       };
       Install.WantedBy = ["default.target"];
@@ -220,6 +240,32 @@ in
         };
         Service = {
           ExecStart = "${memory.hindsight.packagesUiStart}/bin/hindsight-ui-start";
+          Environment = serviceEnvironment;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+      };
+
+      # This is deliberately separate from the interactive Hermes client.
+      # It starts only after Telegram credentials have been written to the
+      # isolated managed Hermes home, so a fresh machine does not spin in a
+      # restart loop before its user creates or configures a bot.
+      ai-hermes-gateway = {
+        Unit = {
+          Description = "Hermes Telegram gateway for the local AI runtime";
+          Requires = [
+            "ai-headroom.service"
+            "ai-hindsight.service"
+          ];
+          After = [
+            "ai-headroom.service"
+            "ai-hindsight.service"
+          ];
+          PartOf = ["ai-runtime.target"];
+        };
+        Service = {
+          ExecCondition = "${hermesGatewayReady}/bin/hermes-gateway-ready";
+          ExecStart = "${hermesGateway}/bin/hermes-gateway-ai-runtime";
           Environment = serviceEnvironment;
           Restart = "on-failure";
           RestartSec = 5;

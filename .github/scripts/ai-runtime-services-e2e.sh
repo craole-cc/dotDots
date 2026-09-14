@@ -28,6 +28,7 @@ printf '%s' "$target" | jq -e '
   and (.Unit.Wants | sort) == [
     "ai-9router.service",
     "ai-headroom.service",
+    "ai-hermes-gateway.service",
     "ai-hindsight-ui.service",
     "ai-hindsight.service"
   ]
@@ -41,8 +42,9 @@ router=$(service ai-9router)
 headroom=$(service ai-headroom)
 hindsight=$(service ai-hindsight)
 hindsight_ui=$(service ai-hindsight-ui)
+gateway=$(service ai-hermes-gateway)
 
-for unit in "$router" "$headroom" "$hindsight" "$hindsight_ui"; do
+for unit in "$router" "$headroom" "$hindsight" "$hindsight_ui" "$gateway"; do
   printf '%s' "$unit" | jq -e '
     .Service.Restart == "on-failure"
     and .Service.RestartSec == 5
@@ -87,4 +89,20 @@ printf '%s' "$hindsight_ui" | jq -e '
   and .Unit.After == ["ai-hindsight.service"]
 ' >/dev/null
 
-printf '%s\n' 'PASS: persistent AI runtime target, services, and environment contracts'
+printf '%s' "$gateway" | jq -e '
+  (.Service.ExecCondition | endswith("/bin/hermes-gateway-ready"))
+  and (.Service.ExecStart[0] | endswith("/bin/hermes-gateway-ai-runtime"))
+  and (.Unit.Requires | sort) == [
+    "ai-headroom.service",
+    "ai-hindsight.service"
+  ]
+  and (.Unit.After | sort) == [
+    "ai-headroom.service",
+    "ai-hindsight.service"
+  ]
+  and ([.Service.Environment[] | select(test("TELEGRAM_BOT_TOKEN|TELEGRAM_ALLOWED_USERS"))] | length == 0)
+' >/dev/null
+grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix >/dev/null
+grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix >/dev/null
+
+printf '%s\n' 'PASS: persistent AI runtime target, services, gateway, and environment contracts'
