@@ -4,10 +4,10 @@
   paths,
   ...
 }: let
-  inherit (pkgs) cacert coreutils curl lsof nodejs_22 procps tmux writeShellApplication;
+  inherit (pkgs) cacert coreutils curl lsof nodejs_22 procps tailscale tmux writeShellApplication;
 
   r = cfg.nineRouter;
-  bindAddress = r.bindAddress;
+  inherit (r) bindAddress;
   port = toString r.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${r.state}";
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${r.state}/npm";
@@ -15,7 +15,11 @@
 
   router9 = writeShellApplication {
     name = "9router";
-    runtimeInputs = [nodejs_22 cacert];
+    # 9Router discovers Tailscale at runtime when its optional Funnel support
+    # is opened in the dashboard. Keep the CLI in this launcher’s Nix path so
+    # it matches the declarative system daemon instead of an incidental user
+    # profile version.
+    runtimeInputs = [nodejs_22 cacert tailscale];
     text = ''
       export NPM_CONFIG_CACHE="''${NINE_ROUTER_NPM_CACHE:-${cacheDir}}"
       export NPM_CONFIG_UPDATE_NOTIFIER=false
@@ -33,7 +37,7 @@
       export PORT="''${NINE_ROUTER_PORT:-${port}}"
       export HOSTNAME="''${NINE_ROUTER_BIND_ADDRESS:-${bindAddress}}"
       mkdir -p "$DATA_DIR"
-      exec 9router --port "$PORT" --no-browser --skip-update
+      exec 9router --host "$HOSTNAME" --port "$PORT" --no-browser --skip-update
     '';
   };
 
@@ -100,6 +104,7 @@
     '';
   };
 in {
+  packagesStart = start;
   packages = [router9 start daemon stop status tmux curl lsof procps nodejs_22];
 
   env = {

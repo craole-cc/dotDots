@@ -122,5 +122,6 @@
     '';
   };
 in {
+  inherit start;
   packages = [controlPlane start status daemon stop];
 }

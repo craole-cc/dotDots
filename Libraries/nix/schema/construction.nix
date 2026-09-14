@@ -33,10 +33,7 @@
   replace its profile data. Other API domains may remain recursively shaped.
   No active host is inferred here.
   */
-  mkSchema = {
-    api ? _defaults.paths.repo.api.default.store,
-    ...
-  }: let
+  mkSchema = {api ? _defaults.paths.repo.api.default.store, ...}: let
     api' = pathAttrs api;
 
     identities = name: fallback:
@@ -54,7 +51,7 @@
         hosts = identities "hosts" (api'.hosts or {});
       };
 
-    paths = raw.paths;
+    inherit (raw) paths;
     users = mkUsers {inherit (raw) users;};
     hosts =
       mapAttrs (

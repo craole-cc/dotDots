@@ -8,7 +8,7 @@
   inherit (pkgs.lib.strings) toLower;
 
   cfg = args.host.shells.ai or (throw "AI shell configuration is missing from host.shells.ai");
-  paths = args.paths;
+  inherit (args) paths;
   hostName = args.host.name or (throw "AI shell host identity is missing from host.name");
   hindsightBank = "${cfg.hindsight.bankPrefix}-${toLower hostName}";
   aiArgs = args // {inherit cfg paths hindsightBank;};

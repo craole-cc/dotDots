@@ -34,7 +34,9 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/search":
             results = []
             if memory["text"] is not None:
-                results.append({"id": memory["id"], "memory": memory["text"], "score": 1.0})
+                results.append(
+                    {"id": memory["id"], "memory": memory["text"], "score": 1.0}
+                )
             self._send({"results": results})
         else:
             self._send({"error": "not found"}, 404)

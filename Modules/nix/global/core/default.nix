@@ -110,47 +110,49 @@
     fi
   '';
 
-  shellHook = runtimeHook + ''
-    #> Initialize bin directories with binit if available
-    BINIT_PATH="$DOTS_LIB_SH/base/binit"
-    if [ -f "''${BINIT_PATH:-}" ]; then
-      if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
-      . "$BINIT_PATH"
-    else
-      printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
-    fi
+  shellHook =
+    runtimeHook
+    + ''
+      #> Initialize bin directories with binit if available
+      BINIT_PATH="$DOTS_LIB_SH/base/binit"
+      if [ -f "''${BINIT_PATH:-}" ]; then
+        if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
+        . "$BINIT_PATH"
+      else
+        printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+      fi
 
-    #> binit may prepend repository library paths; restore the host wrapper
-    #> directory to the front without creating sudo/su shims.
-    if [ -d /run/wrappers/bin ]; then
-      case "$PATH" in
-        /run/wrappers/bin:*) ;;
-        *) PATH="/run/wrappers/bin:$PATH" ;;
-      esac
-      export PATH
-      hash -r 2>/dev/null || true
-    fi
+      #> binit may prepend repository library paths; restore the host wrapper
+      #> directory to the front without creating sudo/su shims.
+      if [ -d /run/wrappers/bin ]; then
+        case "$PATH" in
+          /run/wrappers/bin:*) ;;
+          *) PATH="/run/wrappers/bin:$PATH" ;;
+        esac
+        export PATH
+        hash -r 2>/dev/null || true
+      fi
 
-    #> Initialize yazi from the active DOTS checkout.
-    YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
-    if [ -f "$YAZI_INIT" ]; then
-      . "$YAZI_INIT"
-    else
-      printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
-    fi
+      #> Initialize yazi from the active DOTS checkout.
+      YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
+      if [ -f "$YAZI_INIT" ]; then
+        . "$YAZI_INIT"
+      else
+        printf "yazi: init.sh not found at %s\n" "$YAZI_INIT" >&2
+      fi
 
-    #> Use starship for prompt from the active DOTS checkout.
-    if cmd-exists starship; then
-      STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
-      export STARSHIP_CONFIG
-      eval "$(starship init bash)"
-    fi
+      #> Use starship for prompt from the active DOTS checkout.
+      if cmd-exists starship; then
+        STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+        export STARSHIP_CONFIG
+        eval "$(starship init bash)"
+      fi
 
-    #> Display shell information with the defined fetcher
-    if [ -t 1 ]; then
-      ${fetch.name}
-    fi
-  '';
+      #> Display shell information with the defined fetcher
+      if [ -t 1 ]; then
+        ${fetch.name}
+      fi
+    '';
 in {
   inherit
     description

@@ -84,10 +84,12 @@ global: let
             # "ai"
           ]);
 
-        shellHook = core.runtimeHook + ''
-          ${fetch.name} --full
-          ${print.info "Full profile - every devShell package installed"}
-        '';
+        shellHook =
+          core.runtimeHook
+          + ''
+            ${fetch.name} --full
+            ${print.info "Full profile - every devShell package installed"}
+          '';
 
         packages = concatMap (cfg: cfg.packages or []) (attrValues shellsWithAi);
       };

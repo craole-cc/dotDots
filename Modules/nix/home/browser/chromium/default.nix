@@ -39,11 +39,13 @@
     then "vivaldi"
     else null;
 
-  targets = [
-    (browser.primary or null)
-    (browser.secondary or null)
-    (browser.tertiary or null)
-  ] ++ (user.applications.allowed or []);
+  targets =
+    [
+      (browser.primary or null)
+      (browser.secondary or null)
+      (browser.tertiary or null)
+    ]
+    ++ (user.applications.allowed or []);
 
   target = findFirst (candidate: variantFor candidate != null) null targets;
   variant = variantFor target;

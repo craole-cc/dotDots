@@ -269,7 +269,7 @@
         // {inherit pkgs system;}
         // optionalAttrs (host != null) {
           inherit host;
-          paths = host.paths;
+          inherit (host) paths;
         }
       );
 

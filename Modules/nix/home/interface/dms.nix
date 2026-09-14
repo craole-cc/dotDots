@@ -70,7 +70,7 @@ in
     };
     outputs = {
       programs.dank-material-shell = {
-        enable = cfg.enable;
+        inherit (cfg) enable;
 
         # The flake module is still used for Home Manager integration, but its
         # pinned package closure is expensive to rebuild locally. Victus tracks

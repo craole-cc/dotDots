@@ -21,7 +21,13 @@ in {
   # Podman 5.8.6 reproduces SQLite state-save failures even with a fresh,
   # Hindsight-only graphroot on Victus. Run Hindsight directly with pg0 and
   # keep the existing Podman state/volume untouched for later migration.
-  shells.ai.hindsight.runtime = "native";
+  shells.ai = {
+    # Victus runs the persistent local 9Router and Headroom services. Keep
+    # OmniRoute available as an explicit diagnostic/compatibility preset, but
+    # make `nix develop .#Victus-ai` match the normal runtime path.
+    defaultPreset = "hermes-hindsight-headroom-9router";
+    hindsight.runtime = "native";
+  };
 
   packages = {
     kernel = "linuxPackages_cachyos-lto";

@@ -58,7 +58,10 @@ in
       export HEADROOM_CONFIG_DIR="$AI_HOME/${c.state}/config"
       export HEADROOM_UV_CACHE="$AI_CACHE_DIR/${c.state}/uv"
       export HEADROOM_SESSION="$AI_PRESET-$AI_INSTANCE-${c.session}"
-      export OPENAI_TARGET_API_URL="$OMNIROUTE_BASE_URL"
+      # Headroom appends `/v1` while forwarding to an OpenAI-compatible
+      # upstream, so it needs OmniRoute's origin rather than its public
+      # client base URL.
+      export OPENAI_TARGET_API_URL="http://${o.bindAddress}:$OMNIROUTE_PORT"
       export OPENAI_BASE_URL="$HEADROOM_BASE_URL/v1"
       if [ -n "''${OMNIROUTE_API_KEY:-}" ]; then
         export OPENAI_API_KEY="$OMNIROUTE_API_KEY"

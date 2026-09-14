@@ -12,20 +12,22 @@ chmod 600 "$test_home/Private/hermes.env"
 provider_pid=""
 router_pid=""
 cleanup() {
-  HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command headroom-stop >/dev/null 2>&1 || true
-  HOME="$test_home" nix develop .#Victus-ai-9router --command 9router-stop >/dev/null 2>&1 || true
-  HOME="$test_home" nix develop .#Victus-ai-hindsight --command hindsight-down >/dev/null 2>&1 || true
-  [ -z "$router_pid" ] || kill "$router_pid" >/dev/null 2>&1 || true
-  [ -z "$provider_pid" ] || kill "$provider_pid" >/dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command headroom-stop > /dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-9router --command 9router-stop > /dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-hindsight --command hindsight-down > /dev/null 2>&1 || true
+  [ -z "$router_pid" ] || kill "$router_pid" > /dev/null 2>&1 || true
+  [ -z "$provider_pid" ] || kill "$provider_pid" > /dev/null 2>&1 || true
   rm -rf "$test_home"
 }
 trap cleanup EXIT HUP INT TERM
 
-# Host identity owns the memory namespace; the budget remains invariant.
-test "$(nix eval --raw .#devShells.x86_64-linux.Victus-ai-hermes-hindsight-headroom-9router.HINDSIGHT_BANK_ID)" = hermes-victus
-test "$(nix eval --raw .#devShells.aarch64-linux.TheOracle-ai-hermes-hindsight-omniroute.HINDSIGHT_BANK_ID)" = hermes-theoracle
-test "$(nix eval --raw .#devShells.x86_64-linux.QBX-ai-hermes-hindsight-omniroute.HINDSIGHT_BANK_ID)" = hermes-qbx
-test "$(nix eval --raw .#devShells.x86_64-linux.Victus-ai-hermes-hindsight-headroom-9router.HINDSIGHT_RECALL_BUDGET)" = mid
+# Shell environment variables are available after entering the devShell, not
+# as flake attributes. Host identity owns the memory namespace; the budget
+# remains invariant.
+HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command sh -lc '
+  test "$HINDSIGHT_BANK_ID" = hermes-victus
+  test "$HINDSIGHT_RECALL_BUDGET" = mid
+'
 
 HOME="$test_home" nix develop .#Victus-ai-9router --command sh -lc '
   set -eu
@@ -103,8 +105,11 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   test "$NINE_ROUTER_DATA_DIR" = "$AI_HOME/9router"
   test "$HEADROOM_WORKSPACE_DIR" = "$AI_HOME/headroom"
   test "$HEADROOM_CONFIG_DIR" = "$AI_HOME/headroom/config"
-  test "$OPENAI_TARGET_API_URL" = "$NINE_ROUTER_BASE_URL"
+  test "$OPENAI_TARGET_API_URL" = "http://$NINE_ROUTER_BIND_ADDRESS:$NINE_ROUTER_PORT"
   test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
+  test "$HERMES_MODEL_PROVIDER" = openai
+  test "$HERMES_MODEL_BASE_URL" = "$OPENAI_BASE_URL"
+  test "$HERMES_MODEL_DEFAULT" = cx/gpt-6-astra
   test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
   test "$HINDSIGHT_UI_URL" = http://127.0.0.1:8889
   test "$HINDSIGHT_BANK_ID" = hermes-victus
@@ -117,6 +122,11 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   command -v 9router >/dev/null
   command -v configure-hindsight >/dev/null
   command -v hindsight-ui-status >/dev/null
+
+  configure-hindsight --force
+  test "$(hermes config get model.provider)" = openai
+  test "$(hermes config get model.base_url)" = "$OPENAI_BASE_URL"
+  test "$(hermes config get model.default)" = cx/gpt-6-astra
 '
 
 # Deterministic traversal: real Hermes -> real Headroom -> 9Router-shaped local

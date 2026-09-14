@@ -18,7 +18,12 @@ def provider_handler(marker: str | None):
 
         def do_GET(self):
             if self.path == "/v1/models":
-                body = json.dumps({"object": "list", "data": [{"id": "test-model", "object": "model"}]}).encode()
+                body = json.dumps(
+                    {
+                        "object": "list",
+                        "data": [{"id": "test-model", "object": "model"}],
+                    }
+                ).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(body)))
@@ -42,9 +47,39 @@ def provider_handler(marker: str | None):
                 self.send_header("Cache-Control", "no-cache")
                 self.end_headers()
                 chunks = [
-                    {"id": "fixture", "object": "chat.completion.chunk", "created": 0, "model": "test-model", "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}]},
-                    {"id": "fixture", "object": "chat.completion.chunk", "created": 0, "model": "test-model", "choices": [{"index": 0, "delta": {"content": "traversal-ok"}, "finish_reason": None}]},
-                    {"id": "fixture", "object": "chat.completion.chunk", "created": 0, "model": "test-model", "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]},
+                    {
+                        "id": "fixture",
+                        "object": "chat.completion.chunk",
+                        "created": 0,
+                        "model": "test-model",
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"role": "assistant"},
+                                "finish_reason": None,
+                            }
+                        ],
+                    },
+                    {
+                        "id": "fixture",
+                        "object": "chat.completion.chunk",
+                        "created": 0,
+                        "model": "test-model",
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"content": "traversal-ok"},
+                                "finish_reason": None,
+                            }
+                        ],
+                    },
+                    {
+                        "id": "fixture",
+                        "object": "chat.completion.chunk",
+                        "created": 0,
+                        "model": "test-model",
+                        "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                    },
                 ]
                 for chunk in chunks:
                     self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
@@ -53,14 +88,26 @@ def provider_handler(marker: str | None):
                 self.wfile.flush()
                 return
 
-            body = json.dumps({
-                "id": "fixture",
-                "object": "chat.completion",
-                "created": 0,
-                "model": "test-model",
-                "choices": [{"index": 0, "message": {"role": "assistant", "content": "traversal-ok"}, "finish_reason": "stop"}],
-                "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
-            }).encode()
+            body = json.dumps(
+                {
+                    "id": "fixture",
+                    "object": "chat.completion",
+                    "created": 0,
+                    "model": "test-model",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {"role": "assistant", "content": "traversal-ok"},
+                            "finish_reason": "stop",
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 1,
+                        "completion_tokens": 1,
+                        "total_tokens": 2,
+                    },
+                }
+            ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
@@ -77,7 +124,12 @@ def router_handler(upstream: str, marker: str | None):
 
         def do_GET(self):
             if self.path == "/v1/models":
-                body = json.dumps({"object": "list", "data": [{"id": "test-model", "object": "model"}]}).encode()
+                body = json.dumps(
+                    {
+                        "object": "list",
+                        "data": [{"id": "test-model", "object": "model"}],
+                    }
+                ).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(body)))
@@ -95,14 +147,21 @@ def router_handler(upstream: str, marker: str | None):
                 data=body,
                 method="POST",
                 headers={
-                    "Content-Type": self.headers.get("Content-Type", "application/json"),
-                    "Authorization": self.headers.get("Authorization", "Bearer fixture"),
+                    "Content-Type": self.headers.get(
+                        "Content-Type", "application/json"
+                    ),
+                    "Authorization": self.headers.get(
+                        "Authorization", "Bearer fixture"
+                    ),
                 },
             )
             with urlopen(request, timeout=30) as response:
                 response_body = response.read()
                 self.send_response(response.status)
-                self.send_header("Content-Type", response.headers.get("Content-Type", "application/json"))
+                self.send_header(
+                    "Content-Type",
+                    response.headers.get("Content-Type", "application/json"),
+                )
                 self.send_header("Content-Length", str(len(response_body)))
                 self.end_headers()
                 self.wfile.write(response_body)

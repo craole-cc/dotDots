@@ -8,7 +8,7 @@
   inherit (pkgs.lib) makeLibraryPath;
 
   h = cfg.headroom;
-  bindAddress = h.bindAddress;
+  inherit (h) bindAddress;
   port = toString h.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${h.state}";
   configDir = "${paths.xdg.config.local}/${cfg.directory}/${h.state}";
@@ -23,7 +23,7 @@
       export UV_CACHE_DIR="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
       export LD_LIBRARY_PATH="${runtimeLibraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       mkdir -p "$UV_CACHE_DIR"
-      exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy]==${version}" headroom "$@"
+      exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy,code]==${version}" headroom "$@"
     '';
   };
 
@@ -33,7 +33,17 @@
     text = ''
       export HEADROOM_HOST="''${HEADROOM_HOST:-${bindAddress}}"
       export HEADROOM_PORT="''${HEADROOM_PORT:-${port}}"
-      export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-off}"
+      # Keep our concise policy label for users, then map it to Headroom's
+      # supported 0.37 settings: token savings plus AST-aware compression.
+      export HEADROOM_SAVINGS_PROFILE="''${HEADROOM_SAVINGS_PROFILE:-coding}"
+      export HEADROOM_MODE="''${HEADROOM_MODE:-token}"
+      export HEADROOM_CODE_AWARE_ENABLED="''${HEADROOM_CODE_AWARE_ENABLED:-1}"
+      # 9Router returns streaming OpenAI-compatible responses.  Headroom's
+      # default CCR markers require a retrieval tool round-trip that those
+      # clients cannot perform, so keep code-aware savings marker-free.
+      export HEADROOM_LOSSLESS="''${HEADROOM_LOSSLESS:-1}"
+      export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-on}"
+      export HEADROOM_PROVIDER_NAME="''${HEADROOM_PROVIDER_NAME:-9Router}"
       export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
       export HEADROOM_CONFIG_DIR="''${HEADROOM_CONFIG_DIR:-${configDir}}"
       mkdir -p "$HEADROOM_WORKSPACE_DIR" "$HEADROOM_CONFIG_DIR"
@@ -42,10 +52,19 @@
         exec headroom proxy \
           --host "$HEADROOM_HOST" \
           --port "$HEADROOM_PORT" \
-          --openai-api-url "$OPENAI_TARGET_API_URL"
+          --mode "$HEADROOM_MODE" \
+          --code-aware \
+          --lossless \
+          --openai-api-url "$OPENAI_TARGET_API_URL" \
+          --provider-name "$HEADROOM_PROVIDER_NAME"
       fi
 
-      exec headroom proxy --host "$HEADROOM_HOST" --port "$HEADROOM_PORT"
+      exec headroom proxy \
+        --host "$HEADROOM_HOST" \
+        --port "$HEADROOM_PORT" \
+        --mode "$HEADROOM_MODE" \
+        --code-aware \
+        --lossless
     '';
   };
 
@@ -89,7 +108,12 @@
         -s "$session" \
         -e "HEADROOM_HOST=''${HEADROOM_HOST:-${bindAddress}}" \
         -e "HEADROOM_PORT=''${HEADROOM_PORT:-${port}}" \
-        -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-off}" \
+        -e "HEADROOM_SAVINGS_PROFILE=''${HEADROOM_SAVINGS_PROFILE:-coding}" \
+        -e "HEADROOM_MODE=''${HEADROOM_MODE:-token}" \
+        -e "HEADROOM_CODE_AWARE_ENABLED=''${HEADROOM_CODE_AWARE_ENABLED:-1}" \
+        -e "HEADROOM_LOSSLESS=''${HEADROOM_LOSSLESS:-1}" \
+        -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-on}" \
+        -e "HEADROOM_PROVIDER_NAME=''${HEADROOM_PROVIDER_NAME:-9Router}" \
         -e "HEADROOM_WORKSPACE_DIR=''${HEADROOM_WORKSPACE_DIR:-${dataDir}}" \
         -e "HEADROOM_CONFIG_DIR=''${HEADROOM_CONFIG_DIR:-${configDir}}" \
         -e "HEADROOM_UV_CACHE=''${HEADROOM_UV_CACHE:-${cacheDir}/uv}" \
@@ -126,12 +150,19 @@
     '';
   };
 in {
+  packagesStart = start;
   packages = [headroom start daemon stop status tmux gum curl lsof procps uv python313];
 
   env = {
     HEADROOM_HOST = bindAddress;
     HEADROOM_PORT = port;
     HEADROOM_BASE_URL = "http://${bindAddress}:${port}";
+    HEADROOM_SAVINGS_PROFILE = "coding";
+    HEADROOM_MODE = "token";
+    HEADROOM_CODE_AWARE_ENABLED = "1";
+    HEADROOM_LOSSLESS = "1";
+    HEADROOM_TELEMETRY = "on";
+    HEADROOM_PROVIDER_NAME = "9Router";
   };
 
   shellHook = ''
