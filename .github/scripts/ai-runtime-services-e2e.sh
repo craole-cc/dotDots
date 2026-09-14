@@ -15,7 +15,7 @@ printf '%s' "$session" | jq -e '
   and .OPENAI_TARGET_API_URL == "http://127.0.0.1:20129"
   and .HERMES_MODEL_PROVIDER == "openai"
   and .HERMES_MODEL_BASE_URL == .OPENAI_BASE_URL
-  and .HERMES_MODEL_DEFAULT == "cx/gpt-6-astra"
+  and .HERMES_MODEL_DEFAULT == "openrouter/openrouter/free"
   and .API_SERVER_PORT == "8643"
   and (.HERMES_HOME | test("/\\.local/share/ai/hermes-victus$"))
   and .HINDSIGHT_BANK_ID == "hermes-victus"
@@ -71,6 +71,7 @@ printf '%s' "$headroom" | jq -e '
   and (.Service.Environment | index("HEADROOM_SAVINGS_PROFILE=coding"))
   and (.Service.Environment | index("HEADROOM_MODE=token"))
   and (.Service.Environment | index("HEADROOM_CODE_AWARE_ENABLED=1"))
+  and (.Service.Environment | index("HEADROOM_LOSSLESS=1"))
   and (.Service.Environment | index("HEADROOM_TELEMETRY=on"))
   and (.Service.Environment | index("HEADROOM_PROVIDER_NAME=9Router"))
   and (.Service.Environment | index("OPENAI_TARGET_API_URL=http://127.0.0.1:20129"))
@@ -78,6 +79,7 @@ printf '%s' "$headroom" | jq -e '
 grep -F 'headroom-ai[proxy,code]==${version}' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 grep -F -- '--mode "$HEADROOM_MODE"' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 grep -F -- '--code-aware' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
+grep -F -- '--lossless' Modules/nix/global/ai/context/headroom/default.nix > /dev/null
 
 printf '%s' "$hindsight" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/hindsight-service-start"))

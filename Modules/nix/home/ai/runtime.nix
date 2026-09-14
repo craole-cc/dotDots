@@ -76,7 +76,10 @@
       # `openai-codex` OAuth backend which talks to ChatGPT directly.
       HERMES_MODEL_PROVIDER = "openai";
       HERMES_MODEL_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
-      HERMES_MODEL_DEFAULT = "cx/gpt-6-astra";
+      # A verified OpenRouter route through 9Router.  `cx/gpt-6-astra` belongs
+      # to 9Router's separate Codex provider and requires credentials that are
+      # intentionally not configured in this runtime.
+      HERMES_MODEL_DEFAULT = "openrouter/openrouter/free";
       # The legacy Hermes desktop uses its default API-server port (8642).
       # Reserve an adjacent loopback port for the managed runtime so both can
       # coexist during the migration without competing for a listener.
@@ -117,6 +120,7 @@
       HEADROOM_SAVINGS_PROFILE = "coding";
       HEADROOM_MODE = "token";
       HEADROOM_CODE_AWARE_ENABLED = "1";
+      HEADROOM_LOSSLESS = "1";
       HEADROOM_TELEMETRY = "on";
       HEADROOM_PROVIDER_NAME = "9Router";
       # Headroom owns the OpenAI `/v1` path segment when forwarding. Its
@@ -191,7 +195,10 @@
     export ${lib.concatStringsSep "\nexport " serviceEnvironment}
     export PATH="${lib.makeBinPath agents.hermes.packages}:$PATH"
     mkdir -p "$HERMES_HOME"
-    exec ${configureHindsight}/bin/configure-hindsight --force
+    ${configureHindsight}/bin/configure-hindsight --force
+    # Hermes resolves its persistent profile before the process environment;
+    # write the declared default into that isolated profile as well.
+    hermes config set model.default "$HERMES_MODEL_DEFAULT"
   '';
 in
   lib.mkIf (user.name == "craole") {

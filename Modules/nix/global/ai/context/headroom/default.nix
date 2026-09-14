@@ -38,6 +38,10 @@
       export HEADROOM_SAVINGS_PROFILE="''${HEADROOM_SAVINGS_PROFILE:-coding}"
       export HEADROOM_MODE="''${HEADROOM_MODE:-token}"
       export HEADROOM_CODE_AWARE_ENABLED="''${HEADROOM_CODE_AWARE_ENABLED:-1}"
+      # 9Router returns streaming OpenAI-compatible responses.  Headroom's
+      # default CCR markers require a retrieval tool round-trip that those
+      # clients cannot perform, so keep code-aware savings marker-free.
+      export HEADROOM_LOSSLESS="''${HEADROOM_LOSSLESS:-1}"
       export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-on}"
       export HEADROOM_PROVIDER_NAME="''${HEADROOM_PROVIDER_NAME:-9Router}"
       export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
@@ -50,6 +54,7 @@
           --port "$HEADROOM_PORT" \
           --mode "$HEADROOM_MODE" \
           --code-aware \
+          --lossless \
           --openai-api-url "$OPENAI_TARGET_API_URL" \
           --provider-name "$HEADROOM_PROVIDER_NAME"
       fi
@@ -58,7 +63,8 @@
         --host "$HEADROOM_HOST" \
         --port "$HEADROOM_PORT" \
         --mode "$HEADROOM_MODE" \
-        --code-aware
+        --code-aware \
+        --lossless
     '';
   };
 
@@ -105,6 +111,7 @@
         -e "HEADROOM_SAVINGS_PROFILE=''${HEADROOM_SAVINGS_PROFILE:-coding}" \
         -e "HEADROOM_MODE=''${HEADROOM_MODE:-token}" \
         -e "HEADROOM_CODE_AWARE_ENABLED=''${HEADROOM_CODE_AWARE_ENABLED:-1}" \
+        -e "HEADROOM_LOSSLESS=''${HEADROOM_LOSSLESS:-1}" \
         -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-on}" \
         -e "HEADROOM_PROVIDER_NAME=''${HEADROOM_PROVIDER_NAME:-9Router}" \
         -e "HEADROOM_WORKSPACE_DIR=''${HEADROOM_WORKSPACE_DIR:-${dataDir}}" \
@@ -153,6 +160,7 @@ in {
     HEADROOM_SAVINGS_PROFILE = "coding";
     HEADROOM_MODE = "token";
     HEADROOM_CODE_AWARE_ENABLED = "1";
+    HEADROOM_LOSSLESS = "1";
     HEADROOM_TELEMETRY = "on";
     HEADROOM_PROVIDER_NAME = "9Router";
   };
