@@ -76,7 +76,10 @@
       # experience. It uses the user's official ChatGPT plan sign-in; a
       # subscription session is not sent through third-party routers.
       HERMES_MODEL_PROVIDER = "openai-codex";
-      HERMES_MODEL_DEFAULT = "gpt-6-astra";
+      # Terra is the sustainable Plus default for routine implementation. Keep
+      # Astra available for deliberate escalation, rather than consuming the
+      # smaller high-capability allowance on every ordinary Telegram turn.
+      HERMES_MODEL_DEFAULT = "gpt-5.6-terra";
       # The API-backed alternate lane is a named custom provider below. Its
       # traffic flows through Headroom then 9Router without changing the
       # native Plus/Codex default.
