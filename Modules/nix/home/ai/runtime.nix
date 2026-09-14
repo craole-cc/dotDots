@@ -156,6 +156,7 @@
           exit 1
         fi
         set -a
+        # shellcheck disable=SC1090
         . "$secrets_file"
         set +a
       fi
