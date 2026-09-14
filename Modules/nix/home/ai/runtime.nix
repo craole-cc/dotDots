@@ -28,6 +28,11 @@
   # this short, host-specific alias is the primary user-facing scratchpad.
   hermesStateHome = "${runtimeHome}/${cfg.hermes.state}";
   hermesHome = "${dataRoot}/hermes-${toLower host.name}";
+  # `hermes-desktop`, the primary interactive client, uses this conventional
+  # home when launched normally from the desktop/session.  Keep it separate
+  # from the experimental managed profile above so its existing sessions,
+  # credentials, and model choice remain intact.
+  desktopHermesHome = "${config.home.homeDirectory}/.hermes";
   privateRoot = "${config.home.homeDirectory}/Private";
   hindsightData = "${dataRoot}/hindsight/${cfg.instance}";
   hindsightCache = "${cacheRoot}/hindsight/${cfg.instance}";
@@ -264,6 +269,18 @@
       chmod 600 "$HERMES_HOME/.env"
     fi
   '';
+  configureDesktopHindsight = pkgs.writeShellScript "configure-desktop-hermes-hindsight" ''
+    export ${lib.concatStringsSep "\nexport " serviceEnvironment}
+    export HERMES_HOME=${lib.escapeShellArg desktopHermesHome}
+    export PATH="${lib.makeBinPath agents.hermes.packages}:$PATH"
+    mkdir -p "$HERMES_HOME"
+    # Configure only the persistent-memory adapter.  In particular, do not
+    # rewrite the desktop's provider, model, OAuth session, or gateway setup.
+    ${configureHindsight}/bin/configure-hindsight --force
+    if [ -f "$HERMES_HOME/.env" ] && [ ! -L "$HERMES_HOME/.env" ]; then
+      chmod 600 "$HERMES_HOME/.env"
+    fi
+  '';
 in
   lib.mkIf (user.name == "craole") {
     home = {
@@ -297,6 +314,9 @@ in
       activation.configureHermesHindsight = entryAfter ["linkManagedHermesHome"] ''
         $DRY_RUN_CMD ${configureHermes}
       '';
+      activation.configureDesktopHermesHindsight = entryAfter ["configureHermesHindsight"] ''
+        $DRY_RUN_CMD ${configureDesktopHindsight}
+      '';
     };
 
     # `xdg.desktopEntries` is incompatible with the pinned Nixpkgs version's
@@ -313,25 +333,20 @@ in
       Categories=Utility;
     '';
 
-    # `ai-runtime.target` is enabled at user-manager start. On NixOS, the
-    # companion core module enables lingering for interactive users so this
-    # happens at boot too, before a graphical/login shell is opened.
+    # Hindsight is machine infrastructure, not a development-shell side
+    # effect.  Keep only its API and UI persistent; the experimental router,
+    # compressor, and separate Hermes gateway remain available for manual
+    # diagnostics but are not started for the ordinary Hermes Desktop path.
     systemd.user.targets.ai-runtime = {
       Unit = {
-        Description = "dotDots local AI runtime";
+        Description = "dotDots persistent Hindsight memory runtime";
         Wants = [
-          "ai-9router.service"
-          "ai-headroom.service"
           "ai-hindsight.service"
           "ai-hindsight-ui.service"
-          "ai-hermes-gateway.service"
         ];
         After = [
-          "ai-9router.service"
-          "ai-headroom.service"
           "ai-hindsight.service"
           "ai-hindsight-ui.service"
-          "ai-hermes-gateway.service"
         ];
       };
       Install.WantedBy = ["default.target"];
