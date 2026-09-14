@@ -63,6 +63,12 @@ in
       # Headroom the origin to avoid `/v1/v1/...` requests.
       export OPENAI_TARGET_API_URL="http://$NINE_ROUTER_BIND_ADDRESS:$NINE_ROUTER_PORT"
       export OPENAI_BASE_URL="$HEADROOM_BASE_URL/v1"
+      # `openai-codex` OAuth routes directly to ChatGPT and intentionally
+      # ignores OPENAI_BASE_URL.  Make this preset's local route an explicit
+      # Hermes model configuration instead.
+      export HERMES_MODEL_PROVIDER=openai
+      export HERMES_MODEL_BASE_URL="$OPENAI_BASE_URL"
+      export HERMES_MODEL_DEFAULT="cx/gpt-6-astra"
       if [ -n "''${NINE_ROUTER_API_KEY:-}" ]; then
         export OPENAI_API_KEY="$NINE_ROUTER_API_KEY"
       fi

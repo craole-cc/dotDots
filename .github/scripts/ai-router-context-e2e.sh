@@ -107,6 +107,9 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   test "$HEADROOM_CONFIG_DIR" = "$AI_HOME/headroom/config"
   test "$OPENAI_TARGET_API_URL" = "http://$NINE_ROUTER_BIND_ADDRESS:$NINE_ROUTER_PORT"
   test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
+  test "$HERMES_MODEL_PROVIDER" = openai
+  test "$HERMES_MODEL_BASE_URL" = "$OPENAI_BASE_URL"
+  test "$HERMES_MODEL_DEFAULT" = cx/gpt-6-astra
   test "$HINDSIGHT_API_URL" = http://127.0.0.1:8888
   test "$HINDSIGHT_UI_URL" = http://127.0.0.1:8889
   test "$HINDSIGHT_BANK_ID" = hermes-victus
@@ -119,6 +122,11 @@ HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --co
   command -v 9router >/dev/null
   command -v configure-hindsight >/dev/null
   command -v hindsight-ui-status >/dev/null
+
+  configure-hindsight --force
+  test "$(hermes config get model.provider)" = openai
+  test "$(hermes config get model.base_url)" = "$OPENAI_BASE_URL"
+  test "$(hermes config get model.default)" = cx/gpt-6-astra
 '
 
 # Deterministic traversal: real Hermes -> real Headroom -> 9Router-shaped local

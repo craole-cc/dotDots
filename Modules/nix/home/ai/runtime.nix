@@ -42,11 +42,13 @@
     home.private.local = privateRoot;
   };
   shared = import ../../global/shared (args // {paths = aiPaths;});
-  aiArgs = (recursiveUpdate args shared) // {
-    inherit cfg;
-    paths = aiPaths;
-    hindsightBank = hostBank;
-  };
+  aiArgs =
+    (recursiveUpdate args shared)
+    // {
+      inherit cfg;
+      paths = aiPaths;
+      hindsightBank = hostBank;
+    };
   agents = import ../../global/ai/agents aiArgs;
   context = import ../../global/ai/context aiArgs;
   memory = import ../../global/ai/memory aiArgs;
@@ -54,59 +56,66 @@
   hindsightIntegration = import ../../global/ai/presets/hermes/hindsight-integration.nix aiArgs;
   configureHindsight = builtins.head hindsightIntegration.packages;
 
-  environment = memory.hindsight.env // {
-    AI_PRESET = runtimeName;
-    AI_INSTANCE = cfg.instance;
-    AI_HOME = runtimeHome;
-    AI_CACHE_DIR = "${cacheRoot}/${runtimeName}/${cfg.instance}";
-    HERMES_HOME = "${runtimeHome}/${cfg.hermes.state}";
-    HERMES_GATEWAY_CFG = "${runtimeHome}/${cfg.hermes.state}/${cfg.hermes.gateway}";
-    HERMES_SECRETS_FILE = "${privateRoot}/${cfg.hermes.secrets}";
-    HERMES_DISABLE_LAZY_INSTALLS = "1";
+  environment =
+    memory.hindsight.env
+    // {
+      AI_PRESET = runtimeName;
+      AI_INSTANCE = cfg.instance;
+      AI_HOME = runtimeHome;
+      AI_CACHE_DIR = "${cacheRoot}/${runtimeName}/${cfg.instance}";
+      HERMES_HOME = "${runtimeHome}/${cfg.hermes.state}";
+      HERMES_GATEWAY_CFG = "${runtimeHome}/${cfg.hermes.state}/${cfg.hermes.gateway}";
+      HERMES_SECRETS_FILE = "${privateRoot}/${cfg.hermes.secrets}";
+      HERMES_DISABLE_LAZY_INSTALLS = "1";
+      # Use the local OpenAI-compatible route, rather than Hermes's distinct
+      # `openai-codex` OAuth backend which talks to ChatGPT directly.
+      HERMES_MODEL_PROVIDER = "openai";
+      HERMES_MODEL_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
+      HERMES_MODEL_DEFAULT = "cx/gpt-6-astra";
 
-    HINDSIGHT_SECRETS_FILE = hindsightSecrets;
-    HINDSIGHT_RUNTIME_KIND = h.runtime;
-    HINDSIGHT_DATA_DIR = hindsightData;
-    HINDSIGHT_CACHE_DIR = hindsightCache;
-    HINDSIGHT_BIND_ADDRESS = cfg.bindAddress;
-    HINDSIGHT_API_PORT = toString h.ports.api;
-    HINDSIGHT_MCP_PORT = toString h.ports.mcp;
-    HINDSIGHT_UI_PORT = toString h.ports.ui;
-    HINDSIGHT_API_URL = "http://${cfg.bindAddress}:${toString h.ports.api}";
-    HINDSIGHT_UI_URL = "http://${cfg.bindAddress}:${toString h.ports.ui}";
-    HINDSIGHT_LLM_BACKEND = h.llm.backend;
-    HINDSIGHT_LLM_BASE_URL = h.llm.baseUrl;
-    HINDSIGHT_LLM_MODEL = h.llm.model;
-    HINDSIGHT_REFLECT_LLM_MODEL = h.llm.reflectModel;
-    HINDSIGHT_MODE = h.mode;
-    HINDSIGHT_BANK_ID = hostBank;
-    HINDSIGHT_RECALL_BUDGET = h.recallBudget;
-    HINDSIGHT_COMPOSE_PROJECT = "hindsight-${cfg.instance}";
-    HINDSIGHT_CONTAINER_NAME = "hindsight-${cfg.instance}";
+      HINDSIGHT_SECRETS_FILE = hindsightSecrets;
+      HINDSIGHT_RUNTIME_KIND = h.runtime;
+      HINDSIGHT_DATA_DIR = hindsightData;
+      HINDSIGHT_CACHE_DIR = hindsightCache;
+      HINDSIGHT_BIND_ADDRESS = cfg.bindAddress;
+      HINDSIGHT_API_PORT = toString h.ports.api;
+      HINDSIGHT_MCP_PORT = toString h.ports.mcp;
+      HINDSIGHT_UI_PORT = toString h.ports.ui;
+      HINDSIGHT_API_URL = "http://${cfg.bindAddress}:${toString h.ports.api}";
+      HINDSIGHT_UI_URL = "http://${cfg.bindAddress}:${toString h.ports.ui}";
+      HINDSIGHT_LLM_BACKEND = h.llm.backend;
+      HINDSIGHT_LLM_BASE_URL = h.llm.baseUrl;
+      HINDSIGHT_LLM_MODEL = h.llm.model;
+      HINDSIGHT_REFLECT_LLM_MODEL = h.llm.reflectModel;
+      HINDSIGHT_MODE = h.mode;
+      HINDSIGHT_BANK_ID = hostBank;
+      HINDSIGHT_RECALL_BUDGET = h.recallBudget;
+      HINDSIGHT_COMPOSE_PROJECT = "hindsight-${cfg.instance}";
+      HINDSIGHT_CONTAINER_NAME = "hindsight-${cfg.instance}";
 
-    NINE_ROUTER_DATA_DIR = nineRouterData;
-    NINE_ROUTER_NPM_CACHE = nineRouterCache;
-    NINE_ROUTER_BIND_ADDRESS = r.bindAddress;
-    NINE_ROUTER_PORT = toString r.port;
-    NINE_ROUTER_BASE_URL = "http://${r.bindAddress}:${toString r.port}/v1";
+      NINE_ROUTER_DATA_DIR = nineRouterData;
+      NINE_ROUTER_NPM_CACHE = nineRouterCache;
+      NINE_ROUTER_BIND_ADDRESS = r.bindAddress;
+      NINE_ROUTER_PORT = toString r.port;
+      NINE_ROUTER_BASE_URL = "http://${r.bindAddress}:${toString r.port}/v1";
 
-    HEADROOM_WORKSPACE_DIR = headroomData;
-    HEADROOM_CONFIG_DIR = headroomConfig;
-    HEADROOM_UV_CACHE = headroomCache;
-    HEADROOM_HOST = c.bindAddress;
-    HEADROOM_PORT = toString c.port;
-    HEADROOM_BASE_URL = "http://${c.bindAddress}:${toString c.port}";
-    HEADROOM_SAVINGS_PROFILE = "coding";
-    HEADROOM_MODE = "token";
-    HEADROOM_CODE_AWARE_ENABLED = "1";
-    HEADROOM_TELEMETRY = "on";
-    HEADROOM_PROVIDER_NAME = "9Router";
-    # Headroom owns the OpenAI `/v1` path segment when forwarding. Its
-    # upstream must therefore be the 9Router origin, not its client-facing
-    # OpenAI base URL (which already ends in `/v1`).
-    OPENAI_TARGET_API_URL = "http://${r.bindAddress}:${toString r.port}";
-    OPENAI_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
-  };
+      HEADROOM_WORKSPACE_DIR = headroomData;
+      HEADROOM_CONFIG_DIR = headroomConfig;
+      HEADROOM_UV_CACHE = headroomCache;
+      HEADROOM_HOST = c.bindAddress;
+      HEADROOM_PORT = toString c.port;
+      HEADROOM_BASE_URL = "http://${c.bindAddress}:${toString c.port}";
+      HEADROOM_SAVINGS_PROFILE = "coding";
+      HEADROOM_MODE = "token";
+      HEADROOM_CODE_AWARE_ENABLED = "1";
+      HEADROOM_TELEMETRY = "on";
+      HEADROOM_PROVIDER_NAME = "9Router";
+      # Headroom owns the OpenAI `/v1` path segment when forwarding. Its
+      # upstream must therefore be the 9Router origin, not its client-facing
+      # OpenAI base URL (which already ends in `/v1`).
+      OPENAI_TARGET_API_URL = "http://${r.bindAddress}:${toString r.port}";
+      OPENAI_BASE_URL = "http://${c.bindAddress}:${toString c.port}/v1";
+    };
 
   serviceEnvironment = lib.mapAttrsToList (name: value: "${name}=${value}") environment;
   configureHermes = pkgs.writeShellScript "configure-hermes-hindsight" ''
@@ -117,104 +126,104 @@
   '';
 in
   lib.mkIf (user.name == "craole") {
-  home = {
-    packages = unique (
-      agents.hermes.packages
-      ++ [
-        context.headroom.packagesStart
-        memory.hindsight.packagesServiceStart
-        memory.hindsight.packagesUiStart
-        router."nine-router".packagesStart
-      ]
-      ++ hindsightIntegration.packages
-    );
-    sessionVariables = environment;
-    activation.configureHermesHindsight = entryAfter ["writeBoundary"] ''
-      $DRY_RUN_CMD ${configureHermes}
-    '';
-  };
-
-  # `ai-runtime.target` is enabled at user-manager start. On NixOS, the
-  # companion core module enables lingering for interactive users so this
-  # happens at boot too, before a graphical/login shell is opened.
-  systemd.user.targets.ai-runtime = {
-    Unit = {
-      Description = "dotDots local AI runtime";
-      Wants = [
-        "ai-9router.service"
-        "ai-headroom.service"
-        "ai-hindsight.service"
-        "ai-hindsight-ui.service"
-      ];
-      After = [
-        "ai-9router.service"
-        "ai-headroom.service"
-        "ai-hindsight.service"
-        "ai-hindsight-ui.service"
-      ];
+    home = {
+      packages = unique (
+        agents.hermes.packages
+        ++ [
+          context.headroom.packagesStart
+          memory.hindsight.packagesServiceStart
+          memory.hindsight.packagesUiStart
+          router."nine-router".packagesStart
+        ]
+        ++ hindsightIntegration.packages
+      );
+      sessionVariables = environment;
+      activation.configureHermesHindsight = entryAfter ["writeBoundary"] ''
+        $DRY_RUN_CMD ${configureHermes}
+      '';
     };
-    Install.WantedBy = ["default.target"];
-  };
 
-  systemd.user.services = {
-    ai-9router = {
+    # `ai-runtime.target` is enabled at user-manager start. On NixOS, the
+    # companion core module enables lingering for interactive users so this
+    # happens at boot too, before a graphical/login shell is opened.
+    systemd.user.targets.ai-runtime = {
       Unit = {
-        Description = "9Router OpenAI-compatible local router";
-        After = ["network-online.target"];
-        Wants = ["network-online.target"];
-        PartOf = ["ai-runtime.target"];
+        Description = "dotDots local AI runtime";
+        Wants = [
+          "ai-9router.service"
+          "ai-headroom.service"
+          "ai-hindsight.service"
+          "ai-hindsight-ui.service"
+        ];
+        After = [
+          "ai-9router.service"
+          "ai-headroom.service"
+          "ai-hindsight.service"
+          "ai-hindsight-ui.service"
+        ];
       };
-      Service = {
-        ExecStart = "${router."nine-router".packagesStart}/bin/9router-start";
-        Environment = serviceEnvironment;
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
+      Install.WantedBy = ["default.target"];
     };
 
-    ai-headroom = {
-      Unit = {
-        Description = "Headroom coding context proxy";
-        Requires = ["ai-9router.service"];
-        After = ["ai-9router.service"];
-        PartOf = ["ai-runtime.target"];
+    systemd.user.services = {
+      ai-9router = {
+        Unit = {
+          Description = "9Router OpenAI-compatible local router";
+          After = ["network-online.target"];
+          Wants = ["network-online.target"];
+          PartOf = ["ai-runtime.target"];
+        };
+        Service = {
+          ExecStart = "${router."nine-router".packagesStart}/bin/9router-start";
+          Environment = serviceEnvironment;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
-      Service = {
-        ExecStart = "${context.headroom.packagesStart}/bin/headroom-start";
-        Environment = serviceEnvironment;
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-    };
 
-    ai-hindsight = {
-      Unit = {
-        Description = "Hindsight local memory API";
-        After = ["network-online.target"];
-        Wants = ["network-online.target"];
-        PartOf = ["ai-runtime.target"];
+      ai-headroom = {
+        Unit = {
+          Description = "Headroom coding context proxy";
+          Requires = ["ai-9router.service"];
+          After = ["ai-9router.service"];
+          PartOf = ["ai-runtime.target"];
+        };
+        Service = {
+          ExecStart = "${context.headroom.packagesStart}/bin/headroom-start";
+          Environment = serviceEnvironment;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
-      Service = {
-        ExecStart = "${memory.hindsight.packagesServiceStart}/bin/hindsight-service-start";
-        Environment = serviceEnvironment;
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-    };
 
-    ai-hindsight-ui = {
-      Unit = {
-        Description = "Hindsight local Control Plane UI";
-        Requires = ["ai-hindsight.service"];
-        After = ["ai-hindsight.service"];
-        PartOf = ["ai-runtime.target"];
+      ai-hindsight = {
+        Unit = {
+          Description = "Hindsight local memory API";
+          After = ["network-online.target"];
+          Wants = ["network-online.target"];
+          PartOf = ["ai-runtime.target"];
+        };
+        Service = {
+          ExecStart = "${memory.hindsight.packagesServiceStart}/bin/hindsight-service-start";
+          Environment = serviceEnvironment;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
-      Service = {
-        ExecStart = "${memory.hindsight.packagesUiStart}/bin/hindsight-ui-start";
-        Environment = serviceEnvironment;
-        Restart = "on-failure";
-        RestartSec = 5;
+
+      ai-hindsight-ui = {
+        Unit = {
+          Description = "Hindsight local Control Plane UI";
+          Requires = ["ai-hindsight.service"];
+          After = ["ai-hindsight.service"];
+          PartOf = ["ai-runtime.target"];
+        };
+        Service = {
+          ExecStart = "${memory.hindsight.packagesUiStart}/bin/hindsight-ui-start";
+          Environment = serviceEnvironment;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
     };
-  };
-}
+  }

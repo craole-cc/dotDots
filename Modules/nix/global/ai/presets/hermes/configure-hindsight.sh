@@ -47,4 +47,19 @@ EOF
 
 mv "${tmp_file}" "${config_file}"
 hermes config set memory.provider hindsight
+
+# The local routing presets are OpenAI-compatible endpoints.  Keep the model
+# configuration explicit when such a preset supplies its routing contract: an
+# `openai-codex` OAuth provider has its own ChatGPT endpoint and deliberately
+# does not consume OPENAI_BASE_URL.  The variables are opt-in so the plain
+# Hindsight preset continues to leave a user's model choice alone.
+if [ -n "${HERMES_MODEL_PROVIDER:-}" ]; then
+  hermes config set model.provider "$HERMES_MODEL_PROVIDER"
+fi
+if [ -n "${HERMES_MODEL_BASE_URL:-}" ]; then
+  hermes config set model.base_url "$HERMES_MODEL_BASE_URL"
+fi
+if [ -n "${HERMES_MODEL_DEFAULT:-}" ]; then
+  hermes config set model.default "$HERMES_MODEL_DEFAULT"
+fi
 printf '%s\n' "Configured Hermes Hindsight external memory at ${HINDSIGHT_API_URL} (bank: ${HINDSIGHT_BANK_ID})."
