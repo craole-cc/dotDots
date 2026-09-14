@@ -23,7 +23,7 @@
       export UV_CACHE_DIR="''${HEADROOM_UV_CACHE:-${cacheDir}/uv}"
       export LD_LIBRARY_PATH="${runtimeLibraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       mkdir -p "$UV_CACHE_DIR"
-      exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy]==${version}" headroom "$@"
+      exec uvx --python ${python313}/bin/python3.13 --from "headroom-ai[proxy,code]==${version}" headroom "$@"
     '';
   };
 
@@ -33,9 +33,11 @@
     text = ''
       export HEADROOM_HOST="''${HEADROOM_HOST:-${bindAddress}}"
       export HEADROOM_PORT="''${HEADROOM_PORT:-${port}}"
-      # This runtime is intentionally tuned for coding agents. Telemetry is
-      # in-process only and powers the local stats/metrics/dashboard endpoints.
+      # Keep our concise policy label for users, then map it to Headroom's
+      # supported 0.37 settings: token savings plus AST-aware compression.
       export HEADROOM_SAVINGS_PROFILE="''${HEADROOM_SAVINGS_PROFILE:-coding}"
+      export HEADROOM_MODE="''${HEADROOM_MODE:-token}"
+      export HEADROOM_CODE_AWARE_ENABLED="''${HEADROOM_CODE_AWARE_ENABLED:-1}"
       export HEADROOM_TELEMETRY="''${HEADROOM_TELEMETRY:-on}"
       export HEADROOM_PROVIDER_NAME="''${HEADROOM_PROVIDER_NAME:-9Router}"
       export HEADROOM_WORKSPACE_DIR="''${HEADROOM_WORKSPACE_DIR:-${dataDir}}"
@@ -46,11 +48,17 @@
         exec headroom proxy \
           --host "$HEADROOM_HOST" \
           --port "$HEADROOM_PORT" \
+          --mode "$HEADROOM_MODE" \
+          --code-aware \
           --openai-api-url "$OPENAI_TARGET_API_URL" \
           --provider-name "$HEADROOM_PROVIDER_NAME"
       fi
 
-      exec headroom proxy --host "$HEADROOM_HOST" --port "$HEADROOM_PORT"
+      exec headroom proxy \
+        --host "$HEADROOM_HOST" \
+        --port "$HEADROOM_PORT" \
+        --mode "$HEADROOM_MODE" \
+        --code-aware
     '';
   };
 
@@ -95,6 +103,8 @@
         -e "HEADROOM_HOST=''${HEADROOM_HOST:-${bindAddress}}" \
         -e "HEADROOM_PORT=''${HEADROOM_PORT:-${port}}" \
         -e "HEADROOM_SAVINGS_PROFILE=''${HEADROOM_SAVINGS_PROFILE:-coding}" \
+        -e "HEADROOM_MODE=''${HEADROOM_MODE:-token}" \
+        -e "HEADROOM_CODE_AWARE_ENABLED=''${HEADROOM_CODE_AWARE_ENABLED:-1}" \
         -e "HEADROOM_TELEMETRY=''${HEADROOM_TELEMETRY:-on}" \
         -e "HEADROOM_PROVIDER_NAME=''${HEADROOM_PROVIDER_NAME:-9Router}" \
         -e "HEADROOM_WORKSPACE_DIR=''${HEADROOM_WORKSPACE_DIR:-${dataDir}}" \
@@ -141,6 +151,8 @@ in {
     HEADROOM_PORT = port;
     HEADROOM_BASE_URL = "http://${bindAddress}:${port}";
     HEADROOM_SAVINGS_PROFILE = "coding";
+    HEADROOM_MODE = "token";
+    HEADROOM_CODE_AWARE_ENABLED = "1";
     HEADROOM_TELEMETRY = "on";
     HEADROOM_PROVIDER_NAME = "9Router";
   };

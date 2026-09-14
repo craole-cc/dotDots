@@ -59,10 +59,15 @@ printf '%s' "$headroom" | jq -e '
   and .Unit.Requires == ["ai-9router.service"]
   and .Unit.After == ["ai-9router.service"]
   and (.Service.Environment | index("HEADROOM_SAVINGS_PROFILE=coding"))
+  and (.Service.Environment | index("HEADROOM_MODE=token"))
+  and (.Service.Environment | index("HEADROOM_CODE_AWARE_ENABLED=1"))
   and (.Service.Environment | index("HEADROOM_TELEMETRY=on"))
   and (.Service.Environment | index("HEADROOM_PROVIDER_NAME=9Router"))
   and (.Service.Environment | index("OPENAI_TARGET_API_URL=http://127.0.0.1:20129"))
 ' >/dev/null
+grep -F 'headroom-ai[proxy,code]==${version}' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
+grep -F -- '--mode "$HEADROOM_MODE"' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
+grep -F -- '--code-aware' Modules/nix/global/ai/context/headroom/default.nix >/dev/null
 
 printf '%s' "$hindsight" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/hindsight-service-start"))

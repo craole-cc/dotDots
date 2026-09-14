@@ -97,6 +97,8 @@
     HEADROOM_PORT = toString c.port;
     HEADROOM_BASE_URL = "http://${c.bindAddress}:${toString c.port}";
     HEADROOM_SAVINGS_PROFILE = "coding";
+    HEADROOM_MODE = "token";
+    HEADROOM_CODE_AWARE_ENABLED = "1";
     HEADROOM_TELEMETRY = "on";
     HEADROOM_PROVIDER_NAME = "9Router";
     # Headroom owns the OpenAI `/v1` path segment when forwarding. Its
