@@ -53,6 +53,8 @@ printf '%s' "$router" | jq -e '
 ' >/dev/null
 grep -F 'exec 9router --host "$HOSTNAME" --port "$PORT" --no-browser --skip-update' \
   Modules/nix/global/ai/router/nine-router/default.nix >/dev/null
+grep -F 'runtimeInputs = [nodejs_22 cacert tailscale];' \
+  Modules/nix/global/ai/router/nine-router/default.nix >/dev/null
 
 printf '%s' "$headroom" | jq -e '
   (.Service.ExecStart[0] | endswith("/bin/headroom-start"))

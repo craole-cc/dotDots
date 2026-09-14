@@ -4,7 +4,7 @@
   paths,
   ...
 }: let
-  inherit (pkgs) cacert coreutils curl lsof nodejs_22 procps tmux writeShellApplication;
+  inherit (pkgs) cacert coreutils curl lsof nodejs_22 procps tailscale tmux writeShellApplication;
 
   r = cfg.nineRouter;
   bindAddress = r.bindAddress;
@@ -15,7 +15,11 @@
 
   router9 = writeShellApplication {
     name = "9router";
-    runtimeInputs = [nodejs_22 cacert];
+    # 9Router discovers Tailscale at runtime when its optional Funnel support
+    # is opened in the dashboard. Keep the CLI in this launcher’s Nix path so
+    # it matches the declarative system daemon instead of an incidental user
+    # profile version.
+    runtimeInputs = [nodejs_22 cacert tailscale];
     text = ''
       export NPM_CONFIG_CACHE="''${NINE_ROUTER_NPM_CACHE:-${cacheDir}}"
       export NPM_CONFIG_UPDATE_NOTIFIER=false
