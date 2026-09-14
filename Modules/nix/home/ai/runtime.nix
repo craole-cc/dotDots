@@ -90,6 +90,14 @@
       HERMES_DELEGATION_REASONING_EFFORT = "medium";
       HERMES_REVIEW_PROVIDER = "openai-codex";
       HERMES_REVIEW_MODEL = "gpt-5.6-sol";
+      # Native Hermes model aliases. Telegram's gateway accepts these through
+      # `/model <alias>`; user-defined bare slash commands such as `/terra`
+      # are not an extension point in Hermes 0.21.2.
+      HERMES_MODEL_ALIAS_LUNA = "gpt-5.6-luna";
+      HERMES_MODEL_ALIAS_TERRA = "gpt-5.6-terra";
+      HERMES_MODEL_ALIAS_SOL = "gpt-5.6-sol";
+      HERMES_MODEL_ALIAS_ASTRA = "gpt-6-astra";
+      HERMES_MODEL_ALIAS_NINE = "openrouter/openrouter/free";
       # The API-backed alternate lane is a named custom provider below. Its
       # traffic flows through Headroom then 9Router without changing the
       # native Plus/Codex default.
@@ -228,6 +236,21 @@
     hermes config set delegation.reasoning_effort "$HERMES_DELEGATION_REASONING_EFFORT"
     hermes config set auxiliary.review.provider "$HERMES_REVIEW_PROVIDER"
     hermes config set auxiliary.review.model "$HERMES_REVIEW_MODEL"
+    # Provider-qualified aliases make session switches concise without
+    # persisting provider credentials in Nix. `nine` is intentionally the
+    # no-cost OpenRouter pool: an explicit alternative, never the default.
+    for alias in luna terra sol astra; do
+      variable="HERMES_MODEL_ALIAS_$(printf '%s' "$alias" | tr '[:lower:]' '[:upper:]')"
+      model="''${!variable}"
+      hermes config set "model_aliases.$alias.model" "$model"
+      hermes config set "model_aliases.$alias.provider" openai-codex
+      hermes config unset "model_aliases.$alias.base_url" || true
+      hermes config unset "model_aliases.$alias.key_env" || true
+    done
+    hermes config set model_aliases.nine.model "$HERMES_MODEL_ALIAS_NINE"
+    hermes config set model_aliases.nine.provider "$HERMES_9ROUTER_PROVIDER"
+    hermes config set model_aliases.nine.base_url "$HERMES_9ROUTER_BASE_URL"
+    hermes config set model_aliases.nine.key_env OPENAI_API_KEY
     hermes config set providers.9router.name 9Router
     hermes config set providers.9router.base_url "$HERMES_9ROUTER_BASE_URL"
     hermes config set providers.9router.key_env OPENAI_API_KEY
