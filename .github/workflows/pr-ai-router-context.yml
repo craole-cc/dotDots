@@ -35,16 +35,19 @@ jobs:
             nix eval --raw ".#devShells.x86_64-linux.$shell.drvPath" >/dev/null
           done
 
-      - name: Prove default AI alias selects most capable OmniRoute stack
+      - name: Prove default AI alias selects the Victus 9Router stack
         run: |
           set -eu
           test_home="$(mktemp -d)"
           HOME="$test_home" DOTS="$PWD" DOTS_CACHE="$test_home/.cache" \
             nix develop .#Victus-ai --command sh -lc '
             set -eu
-            test "$AI_PRESET" = hermes-hindsight-headroom-omniroute
+            test "$AI_PRESET" = hermes-hindsight-headroom-9router
             test "$OPENAI_BASE_URL" = "$HEADROOM_BASE_URL/v1"
-            test "$OPENAI_TARGET_API_URL" = "http://127.0.0.1:$OMNIROUTE_PORT"
+            test "$OPENAI_TARGET_API_URL" = "http://127.0.0.1:$NINE_ROUTER_PORT"
+            test "$HERMES_MODEL_PROVIDER" = openai
+            test "$HERMES_MODEL_BASE_URL" = "$OPENAI_BASE_URL"
+            test "$HERMES_MODEL_DEFAULT" = cx/gpt-6-astra
           '
 
       - name: Run persistent AI runtime service contract tests
