@@ -107,6 +107,8 @@ printf '%s' "$gateway" | jq -e '
 ' > /dev/null
 grep -F 'name = "hermes-gateway-ready";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'name = "hermes-gateway-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'name = "hermes-with-private-secrets";' Modules/nix/home/ai/runtime.nix > /dev/null
+grep -F 'NINE_ROUTER_API_KEY' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'name = "hermes-desktop-ai-runtime";' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"' Modules/nix/home/ai/runtime.nix > /dev/null
 grep -F 'hermesHome = "${dataRoot}/hermes-${toLower host.name}";' Modules/nix/home/ai/runtime.nix > /dev/null

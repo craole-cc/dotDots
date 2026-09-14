@@ -137,11 +137,40 @@
       grep -q '^TELEGRAM_ALLOWED_USERS=.' "$env_file"
     '';
   };
+  # Services do not run the interactive devShell hook, so load the private
+  # Hermes secrets file here.  The locally generated 9Router key is deliberately
+  # distinct from upstream provider keys: it authenticates Hermes to Headroom
+  # and 9Router, never to OpenRouter or NVIDIA directly.
+  hermesWithPrivateSecrets = pkgs.writeShellApplication {
+    name = "hermes-with-private-secrets";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      secrets_file="$HERMES_SECRETS_FILE"
+      if [ -r "$secrets_file" ]; then
+        if [ -L "$secrets_file" ] || [ ! -f "$secrets_file" ]; then
+          echo "refusing non-regular Hermes secrets file: $secrets_file" >&2
+          exit 1
+        fi
+        if [ "$(stat -c '%u' "$secrets_file")" != "$(id -u)" ] || [ $((0$(stat -c '%a' "$secrets_file") & 077)) -ne 0 ]; then
+          echo "refusing Hermes secrets file not owned and private to this user: $secrets_file" >&2
+          exit 1
+        fi
+        set -a
+        . "$secrets_file"
+        set +a
+      fi
+
+      if [ -z "''${OPENAI_API_KEY:-}" ] && [ -n "''${NINE_ROUTER_API_KEY:-}" ]; then
+        export OPENAI_API_KEY="$NINE_ROUTER_API_KEY"
+      fi
+      exec "$@"
+    '';
+  };
   hermesGateway = pkgs.writeShellApplication {
     name = "hermes-gateway-ai-runtime";
     runtimeInputs = agents.hermes.packages;
     text = ''
-      exec hermes-gateway
+      exec ${hermesWithPrivateSecrets}/bin/hermes-with-private-secrets hermes-gateway
     '';
   };
   # Hermes Desktop uses Electron's single-instance lock.  A separate user-data
@@ -154,7 +183,7 @@
       export ${lib.concatStringsSep "\nexport " serviceEnvironment}
       export HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop-user-data"
       mkdir -p "$HERMES_DESKTOP_USER_DATA_DIR"
-      exec ${../../global/ai/agents/hermes/packages/scripts/launch-wayland.sh} ${agents.hermes.tools.desktop.exe} "$@"
+      exec ${hermesWithPrivateSecrets}/bin/hermes-with-private-secrets ${../../global/ai/agents/hermes/packages/scripts/launch-wayland.sh} ${agents.hermes.tools.desktop.exe} "$@"
     '';
   };
   configureHermes = pkgs.writeShellScript "configure-hermes-hindsight" ''
