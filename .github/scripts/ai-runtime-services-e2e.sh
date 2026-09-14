@@ -25,7 +25,6 @@ printf '%s' "$session" | jq -e '
   and .HERMES_MODEL_ALIAS_SOL == "gpt-5.6-sol"
   and .HERMES_MODEL_ALIAS_ASTRA == "gpt-6-astra"
   and .HERMES_MODEL_ALIAS_NINE == "openrouter/openrouter/free"
-  and .HERMES_9ROUTER_ALIASES == "nine open 9"
   and .HERMES_9ROUTER_PROVIDER == "custom:9router"
   and .HERMES_9ROUTER_BASE_URL == .OPENAI_BASE_URL
   and .API_SERVER_PORT == "8643"

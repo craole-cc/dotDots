@@ -98,7 +98,6 @@
       HERMES_MODEL_ALIAS_SOL = "gpt-5.6-sol";
       HERMES_MODEL_ALIAS_ASTRA = "gpt-6-astra";
       HERMES_MODEL_ALIAS_NINE = "openrouter/openrouter/free";
-      HERMES_9ROUTER_ALIASES = "nine open 9";
       # The API-backed alternate lane is a named custom provider below. Its
       # traffic flows through Headroom then 9Router without changing the
       # native Plus/Codex default.
@@ -248,7 +247,7 @@
       hermes config unset "model_aliases.$alias.base_url" || true
       hermes config unset "model_aliases.$alias.key_env" || true
     done
-    for alias in $HERMES_9ROUTER_ALIASES; do
+    for alias in nine open 9; do
       hermes config set "model_aliases.$alias.model" "$HERMES_MODEL_ALIAS_NINE"
       hermes config set "model_aliases.$alias.provider" "$HERMES_9ROUTER_PROVIDER"
       hermes config set "model_aliases.$alias.base_url" "$HERMES_9ROUTER_BASE_URL"
