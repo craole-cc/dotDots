@@ -78,7 +78,7 @@
     selected =
       if args ? host
       then {
-        host = args.host;
+        inherit (args) host;
         inherit (args.host) paths;
       }
       else {paths = structuralPaths;};

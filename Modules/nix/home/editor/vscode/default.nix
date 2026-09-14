@@ -41,7 +41,7 @@
         {
           options = {
             userSettings = lib.mkOption {
-              type = jsonFormat.type;
+              inherit (jsonFormat) type;
               default = {};
             };
             keybindings = lib.mkOption {

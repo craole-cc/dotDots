@@ -8,7 +8,7 @@
   inherit (pkgs.lib) makeLibraryPath;
 
   h = cfg.headroom;
-  bindAddress = h.bindAddress;
+  inherit (h) bindAddress;
   port = toString h.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${h.state}";
   configDir = "${paths.xdg.config.local}/${cfg.directory}/${h.state}";

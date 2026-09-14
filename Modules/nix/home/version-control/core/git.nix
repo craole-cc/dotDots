@@ -41,9 +41,11 @@
     "credential.https://gist.github.com.helper"
   ];
 
-  unsetLegacyOwnedKeys = concatMapStringsSep "\n" (key: ''
-    $DRY_RUN_CMD ${git}/bin/git config --file "$legacy" --unset-all ${escapeShellArg key} 2>/dev/null || true
-  '') legacyOwnedKeys;
+  unsetLegacyOwnedKeys =
+    concatMapStringsSep "\n" (key: ''
+      $DRY_RUN_CMD ${git}/bin/git config --file "$legacy" --unset-all ${escapeShellArg key} 2>/dev/null || true
+    '')
+    legacyOwnedKeys;
 in
   mkConfig {
     inherit context;
@@ -101,14 +103,15 @@ in
               description = "URL prefixes to rewrite";
             };
           });
-          default = userGitSettings.url or {
-            "https://github.com/" = {
-              insteadOf = [
-                "gh:"
-                "github:"
-              ];
+          default =
+            userGitSettings.url or {
+              "https://github.com/" = {
+                insteadOf = [
+                  "gh:"
+                  "github:"
+                ];
+              };
             };
-          };
           description = "Git URL rewrite mappings";
         };
       };

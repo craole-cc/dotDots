@@ -21,7 +21,7 @@
   nodejs = nodejs_22;
 
   o = cfg.omniroute;
-  bindAddress = o.bindAddress;
+  inherit (o) bindAddress;
   port = toString o.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${o.state}";
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${o.state}/npx";

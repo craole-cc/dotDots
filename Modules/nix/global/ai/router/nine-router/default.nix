@@ -7,7 +7,7 @@
   inherit (pkgs) cacert coreutils curl lsof nodejs_22 procps tailscale tmux writeShellApplication;
 
   r = cfg.nineRouter;
-  bindAddress = r.bindAddress;
+  inherit (r) bindAddress;
   port = toString r.port;
   dataDir = "${paths.xdg.data.local}/${cfg.directory}/${r.state}";
   cacheDir = "${paths.xdg.cache.local}/${cfg.directory}/${r.state}/npm";

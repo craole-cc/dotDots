@@ -183,7 +183,7 @@ pout() {
 
 set_dependencies() {
   #{ Initialize variables
-  dependency_type="ammenity"
+  dependency_type="amenity"
   dependencies=""
   val="" var=""
   IFS="${delimiter}"

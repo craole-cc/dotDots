@@ -1,4 +1,8 @@
-{dmsEnabled, lix, ...}: let
+{
+  dmsEnabled,
+  lix,
+  ...
+}: let
   inherit (lix.attrsets.construction) optionalAttrs;
 in {
   # Keep behavioral configuration in Home Manager, but delegate terminal

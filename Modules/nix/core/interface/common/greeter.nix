@@ -41,7 +41,7 @@ in
 
     outputs = {
       services.displayManager.dms-greeter = {
-        enable = cfg.enable;
+        inherit (cfg) enable;
         compositor.name = cfg.compositor;
       };
 

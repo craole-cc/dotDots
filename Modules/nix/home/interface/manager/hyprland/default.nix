@@ -37,8 +37,8 @@
 
   scratchpadApps = {
     inherit (apps) ai terminal browser;
-    editor = apps.editor;
-    explorer = apps.explorer;
+    inherit (apps) editor;
+    inherit (apps) explorer;
   };
 
   terminalLaunch = keyboard.bindings.terminal or {};

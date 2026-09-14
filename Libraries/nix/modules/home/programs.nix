@@ -235,7 +235,8 @@
         then result.value
         else null;
 
-    browserCandidates = builtins.filter
+    browserCandidates =
+      builtins.filter
       (app: app != null)
       (map resolveBrowser (
         [
@@ -245,7 +246,8 @@
         ]
         ++ appsAllowed
       ));
-    zenBrowsers = builtins.filter
+    zenBrowsers =
+      builtins.filter
       (app: (app.family or "") == "zen")
       browserCandidates;
     selectedZenBrowser =

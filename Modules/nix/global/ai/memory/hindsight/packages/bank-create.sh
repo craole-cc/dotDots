@@ -13,5 +13,5 @@ curl -fsS \
   -X PUT \
   -H 'Content-Type: application/json' \
   --data-binary "@${config_file}" \
-  "${HINDSIGHT_API_URL}/v1/default/banks/${bank_id}" |
-  jq .
+  "${HINDSIGHT_API_URL}/v1/default/banks/${bank_id}" \
+  | jq .

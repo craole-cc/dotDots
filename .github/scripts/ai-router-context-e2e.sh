@@ -12,11 +12,11 @@ chmod 600 "$test_home/Private/hermes.env"
 provider_pid=""
 router_pid=""
 cleanup() {
-  HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command headroom-stop >/dev/null 2>&1 || true
-  HOME="$test_home" nix develop .#Victus-ai-9router --command 9router-stop >/dev/null 2>&1 || true
-  HOME="$test_home" nix develop .#Victus-ai-hindsight --command hindsight-down >/dev/null 2>&1 || true
-  [ -z "$router_pid" ] || kill "$router_pid" >/dev/null 2>&1 || true
-  [ -z "$provider_pid" ] || kill "$provider_pid" >/dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-hermes-hindsight-headroom-9router --command headroom-stop > /dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-9router --command 9router-stop > /dev/null 2>&1 || true
+  HOME="$test_home" nix develop .#Victus-ai-hindsight --command hindsight-down > /dev/null 2>&1 || true
+  [ -z "$router_pid" ] || kill "$router_pid" > /dev/null 2>&1 || true
+  [ -z "$provider_pid" ] || kill "$provider_pid" > /dev/null 2>&1 || true
   rm -rf "$test_home"
 }
 trap cleanup EXIT HUP INT TERM

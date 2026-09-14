@@ -21,104 +21,104 @@ fi
 native_log=""
 
 case "${HINDSIGHT_RUNTIME_KIND}" in
-native)
-  : "${HINDSIGHT_NATIVE_RUNTIME:?HINDSIGHT_NATIVE_RUNTIME not set}"
-  : "${HINDSIGHT_SESSION:?HINDSIGHT_SESSION not set}"
-  : "${HINDSIGHT_DATA_DIR:?HINDSIGHT_DATA_DIR not set}"
-  : "${HINDSIGHT_CACHE_DIR:?HINDSIGHT_CACHE_DIR not set}"
-  : "${HINDSIGHT_UI_URL:?HINDSIGHT_UI_URL not set}"
+  native)
+    : "${HINDSIGHT_NATIVE_RUNTIME:?HINDSIGHT_NATIVE_RUNTIME not set}"
+    : "${HINDSIGHT_SESSION:?HINDSIGHT_SESSION not set}"
+    : "${HINDSIGHT_DATA_DIR:?HINDSIGHT_DATA_DIR not set}"
+    : "${HINDSIGHT_CACHE_DIR:?HINDSIGHT_CACHE_DIR not set}"
+    : "${HINDSIGHT_UI_URL:?HINDSIGHT_UI_URL not set}"
 
-  hindsight-ui-stop >/dev/null 2>&1 || true
+    hindsight-ui-stop > /dev/null 2>&1 || true
 
-  if tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
-    tmux kill-session -t "${HINDSIGHT_SESSION}" || true
-  fi
+    if tmux has-session -t "${HINDSIGHT_SESSION}" 2> /dev/null; then
+      tmux kill-session -t "${HINDSIGHT_SESSION}" || true
+    fi
 
-  native_log="${HINDSIGHT_DATA_DIR}/service.log"
-  mkdir -p "${HINDSIGHT_DATA_DIR}"
-  : > "${native_log}"
+    native_log="${HINDSIGHT_DATA_DIR}/service.log"
+    mkdir -p "${HINDSIGHT_DATA_DIR}"
+    : > "${native_log}"
 
-  tmux new-session -d \
-    -s "${HINDSIGHT_SESSION}" \
-    -e "HINDSIGHT_SECRETS_FILE=${HINDSIGHT_SECRETS_FILE}" \
-    -e "HINDSIGHT_DATA_DIR=${HINDSIGHT_DATA_DIR}" \
-    -e "HINDSIGHT_CACHE_DIR=${HINDSIGHT_CACHE_DIR}" \
-    -e "HINDSIGHT_BIND_ADDRESS=${HINDSIGHT_BIND_ADDRESS}" \
-    -e "HINDSIGHT_API_PORT=${HINDSIGHT_API_PORT}" \
-    -e "HINDSIGHT_API_WORKER_ID=${HINDSIGHT_API_WORKER_ID:-Hindsight-${HOSTNAME:-local}}" \
-    -e "HINDSIGHT_LLM_BACKEND=${HINDSIGHT_LLM_BACKEND}" \
-    -e "HINDSIGHT_LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}" \
-    -e "HINDSIGHT_LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \
-    -e "HINDSIGHT_REFLECT_LLM_MODEL=${HINDSIGHT_REFLECT_LLM_MODEL}" \
-    "exec \"${HINDSIGHT_NATIVE_RUNTIME}\" >>\"${native_log}\" 2>&1"
-  ;;
-podman|docker)
-  : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
-  : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
-  : "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
-
-  # shellcheck disable=SC1090
-  . "${HINDSIGHT_SECRETS_FILE}"
-
-  case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
-  openrouter)
-    key="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
-    : "${key:?OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+    tmux new-session -d \
+      -s "${HINDSIGHT_SESSION}" \
+      -e "HINDSIGHT_SECRETS_FILE=${HINDSIGHT_SECRETS_FILE}" \
+      -e "HINDSIGHT_DATA_DIR=${HINDSIGHT_DATA_DIR}" \
+      -e "HINDSIGHT_CACHE_DIR=${HINDSIGHT_CACHE_DIR}" \
+      -e "HINDSIGHT_BIND_ADDRESS=${HINDSIGHT_BIND_ADDRESS}" \
+      -e "HINDSIGHT_API_PORT=${HINDSIGHT_API_PORT}" \
+      -e "HINDSIGHT_API_WORKER_ID=${HINDSIGHT_API_WORKER_ID:-Hindsight-${HOSTNAME:-local}}" \
+      -e "HINDSIGHT_LLM_BACKEND=${HINDSIGHT_LLM_BACKEND}" \
+      -e "HINDSIGHT_LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}" \
+      -e "HINDSIGHT_LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \
+      -e "HINDSIGHT_REFLECT_LLM_MODEL=${HINDSIGHT_REFLECT_LLM_MODEL}" \
+      "exec \"${HINDSIGHT_NATIVE_RUNTIME}\" >>\"${native_log}\" 2>&1"
     ;;
-  groq)
-    key="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
-    : "${key:?GROQ_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+  podman | docker)
+    : "${HINDSIGHT_COMPOSE_FILE:?HINDSIGHT_COMPOSE_FILE not set}"
+    : "${HINDSIGHT_COMPOSE_PROJECT:?HINDSIGHT_COMPOSE_PROJECT not set}"
+    : "${HINDSIGHT_CONTAINER_RUNTIME:?HINDSIGHT_CONTAINER_RUNTIME not set}"
+
+    # shellcheck disable=SC1090
+    . "${HINDSIGHT_SECRETS_FILE}"
+
+    case "${HINDSIGHT_LLM_BACKEND:-openrouter}" in
+      openrouter)
+        key="${OPENROUTER_API_KEY:-${HINDSIGHT_OPENROUTER_API_KEY:-}}"
+        : "${key:?OPENROUTER_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+        ;;
+      groq)
+        key="${GROQ_API_KEY:-${HINDSIGHT_GROQ_API_KEY:-}}"
+        : "${key:?GROQ_API_KEY is required in ${HINDSIGHT_SECRETS_FILE}}"
+        ;;
+      *)
+        gum log --level error "Unsupported Hindsight LLM backend: ${HINDSIGHT_LLM_BACKEND}"
+        exit 1
+        ;;
+    esac
+
+    export HINDSIGHT_API_LLM_API_KEY="${key}"
+    unset key
+
+    case "${HINDSIGHT_COMPOSE_FILE}" in
+      /nix/store/*-source/*)
+        gum log --level error "Hindsight Compose manifest must be a packaged store artifact: ${HINDSIGHT_COMPOSE_FILE}"
+        exit 1
+        ;;
+    esac
+
+    if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
+      gum log --level error "Hindsight Compose manifest is missing: ${HINDSIGHT_COMPOSE_FILE}"
+      exit 1
+    fi
+
+    if [ "${HINDSIGHT_RUNTIME_KIND}" = "podman" ]; then
+      user_policy="${XDG_CONFIG_HOME:-${HOME}/.config}/containers/policy.json"
+      if [ ! -r "${user_policy}" ] && [ ! -r /etc/containers/policy.json ]; then
+        : "${CONTAINERS_POLICY_JSON:?CONTAINERS_POLICY_JSON not set}"
+        install -Dm644 "${CONTAINERS_POLICY_JSON}" "${user_policy}"
+        gum log --level info "Installed Podman policy at ${user_policy}"
+      fi
+      unset user_policy
+    fi
+
+    if ! runtime_info="$("${HINDSIGHT_CONTAINER_RUNTIME}" info 2>&1)"; then
+      gum log --level error "${HINDSIGHT_RUNTIME_KIND} is unavailable for Hindsight."
+      if [ -n "${runtime_info}" ]; then
+        printf '%s\n' '----- Container runtime probe -----' >&2
+        printf '%s\n' "${runtime_info}" >&2
+        printf '%s\n' '-----------------------------------' >&2
+      fi
+      exit 1
+    fi
+    unset runtime_info
+
+    "${HINDSIGHT_CONTAINER_RUNTIME}" compose \
+      -p "${HINDSIGHT_COMPOSE_PROJECT}" \
+      -f "${HINDSIGHT_COMPOSE_FILE}" up -d
     ;;
   *)
-    gum log --level error "Unsupported Hindsight LLM backend: ${HINDSIGHT_LLM_BACKEND}"
+    gum log --level error "Unsupported Hindsight runtime: ${HINDSIGHT_RUNTIME_KIND}"
     exit 1
     ;;
-  esac
-
-  export HINDSIGHT_API_LLM_API_KEY="${key}"
-  unset key
-
-  case "${HINDSIGHT_COMPOSE_FILE}" in
-  /nix/store/*-source/*)
-    gum log --level error "Hindsight Compose manifest must be a packaged store artifact: ${HINDSIGHT_COMPOSE_FILE}"
-    exit 1
-    ;;
-  esac
-
-  if [ ! -f "${HINDSIGHT_COMPOSE_FILE}" ]; then
-    gum log --level error "Hindsight Compose manifest is missing: ${HINDSIGHT_COMPOSE_FILE}"
-    exit 1
-  fi
-
-  if [ "${HINDSIGHT_RUNTIME_KIND}" = "podman" ]; then
-    user_policy="${XDG_CONFIG_HOME:-${HOME}/.config}/containers/policy.json"
-    if [ ! -r "${user_policy}" ] && [ ! -r /etc/containers/policy.json ]; then
-      : "${CONTAINERS_POLICY_JSON:?CONTAINERS_POLICY_JSON not set}"
-      install -Dm644 "${CONTAINERS_POLICY_JSON}" "${user_policy}"
-      gum log --level info "Installed Podman policy at ${user_policy}"
-    fi
-    unset user_policy
-  fi
-
-  if ! runtime_info="$("${HINDSIGHT_CONTAINER_RUNTIME}" info 2>&1)"; then
-    gum log --level error "${HINDSIGHT_RUNTIME_KIND} is unavailable for Hindsight."
-    if [ -n "${runtime_info}" ]; then
-      printf '%s\n' '----- Container runtime probe -----' >&2
-      printf '%s\n' "${runtime_info}" >&2
-      printf '%s\n' '-----------------------------------' >&2
-    fi
-    exit 1
-  fi
-  unset runtime_info
-
-  "${HINDSIGHT_CONTAINER_RUNTIME}" compose \
-    -p "${HINDSIGHT_COMPOSE_PROJECT}" \
-    -f "${HINDSIGHT_COMPOSE_FILE}" up -d
-  ;;
-*)
-  gum log --level error "Unsupported Hindsight runtime: ${HINDSIGHT_RUNTIME_KIND}"
-  exit 1
-  ;;
 esac
 
 gum log --level info "Waiting for Hindsight to become healthy..."

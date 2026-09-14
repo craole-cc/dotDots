@@ -158,11 +158,11 @@
 
       interface = mkUI {
         inherit host;
-        user = derived.user;
+        inherit (derived) user;
       };
       localization = mkLocale {
         inherit host;
-        user = derived.user;
+        inherit (derived) user;
       };
 
       home = let

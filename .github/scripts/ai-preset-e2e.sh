@@ -12,8 +12,8 @@ fixture_pid=""
 
 cleanup() {
   if [ -n "$fixture_pid" ]; then
-    kill "$fixture_pid" 2>/dev/null || true
-    wait "$fixture_pid" 2>/dev/null || true
+    kill "$fixture_pid" 2> /dev/null || true
+    wait "$fixture_pid" 2> /dev/null || true
   fi
   rm -rf "$test_home"
 }
@@ -23,7 +23,7 @@ inner="$test_home/e2e.sh"
 
 case "$preset" in
   hermes)
-    cat >"$inner" <<'EOF'
+    cat > "$inner" << 'EOF'
 #!/bin/sh
 set -eu
 
@@ -62,7 +62,7 @@ EOF
     ;;
 
   hermes-hindsight)
-    cat >"$inner" <<'EOF'
+    cat > "$inner" << 'EOF'
 #!/bin/sh
 set -eu
 
@@ -118,11 +118,11 @@ EOF
     ;;
 
   hermes-mem0)
-    python3 .github/scripts/mem0-fixture.py 8888 >"$test_home/mem0-fixture.log" 2>&1 &
+    python3 .github/scripts/mem0-fixture.py 8888 > "$test_home/mem0-fixture.log" 2>&1 &
     fixture_pid=$!
 
     attempts=0
-    until curl -fsS http://127.0.0.1:8888/openapi.json >/dev/null 2>&1; do
+    until curl -fsS http://127.0.0.1:8888/openapi.json > /dev/null 2>&1; do
       attempts=$((attempts + 1))
       if [ "$attempts" -ge 30 ]; then
         cat "$test_home/mem0-fixture.log" >&2
@@ -131,7 +131,7 @@ EOF
       sleep 1
     done
 
-    cat >"$inner" <<'EOF'
+    cat > "$inner" << 'EOF'
 #!/bin/sh
 set -eu
 
@@ -195,7 +195,7 @@ EOF
     ;;
 
   hermes-hindsight-omniroute)
-    cat >"$inner" <<'EOF'
+    cat > "$inner" << 'EOF'
 #!/bin/sh
 set -eu
 
