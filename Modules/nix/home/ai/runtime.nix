@@ -80,6 +80,16 @@
       # Astra available for deliberate escalation, rather than consuming the
       # smaller high-capability allowance on every ordinary Telegram turn.
       HERMES_MODEL_DEFAULT = "gpt-5.6-terra";
+      # Hermes 0.21.2 has one enforceable delegation rail rather than
+      # task-type-specific automatic routing. Pin that rail to Terra so a
+      # future cheap front door cannot accidentally make Luna implement an
+      # entire repository task itself. Sol is separately pinned to Hermes's
+      # explicit `/review` rail for independent validation.
+      HERMES_DELEGATION_PROVIDER = "openai-codex";
+      HERMES_DELEGATION_MODEL = "gpt-5.6-terra";
+      HERMES_DELEGATION_REASONING_EFFORT = "medium";
+      HERMES_REVIEW_PROVIDER = "openai-codex";
+      HERMES_REVIEW_MODEL = "gpt-5.6-sol";
       # The API-backed alternate lane is a named custom provider below. Its
       # traffic flows through Headroom then 9Router without changing the
       # native Plus/Codex default.
@@ -209,6 +219,15 @@
     hermes config set model.provider "$HERMES_MODEL_PROVIDER"
     hermes config unset model.base_url
     hermes config set model.default "$HERMES_MODEL_DEFAULT"
+    # Keep implementation and validation on independently declared models.
+    # The delegate_task API has no per-task model parameter in Hermes 0.21.2,
+    # so this is deliberately one reliable worker rail, not a claim of fully
+    # automatic semantic escalation.
+    hermes config set delegation.provider "$HERMES_DELEGATION_PROVIDER"
+    hermes config set delegation.model "$HERMES_DELEGATION_MODEL"
+    hermes config set delegation.reasoning_effort "$HERMES_DELEGATION_REASONING_EFFORT"
+    hermes config set auxiliary.review.provider "$HERMES_REVIEW_PROVIDER"
+    hermes config set auxiliary.review.model "$HERMES_REVIEW_MODEL"
     hermes config set providers.9router.name 9Router
     hermes config set providers.9router.base_url "$HERMES_9ROUTER_BASE_URL"
     hermes config set providers.9router.key_env OPENAI_API_KEY
