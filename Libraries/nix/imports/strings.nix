@@ -46,6 +46,8 @@
       optionalString
       splitString
       splitStringBy
+      makeBinPath
+      makeLibraryPath
       ;
   };
 

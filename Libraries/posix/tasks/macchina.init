@@ -1,13 +1,13 @@
 #!/bin/sh
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,2154
 
 __init__() {
   #| Load Environment Variables
-  . "$DOTS_ENV_CTX/macchina"
+  . "${DOTS_ENV_CTX}/macchina"
 
   #| Push to $CONFIG_HOME
-  symbiolink --src "$ASCII" --lnk "$MACCHINA_IMAGES"
-  symbiolink --src "$MACCHINA_HOME" --lnk "$MACCHINA_LINK"
+  symbiolink --src "${ASCII}" --lnk "${MACCHINA_IMAGES}"
+  symbiolink --src "${MACCHINA_HOME}" --lnk "${MACCHINA_LINK}"
 }
 
 if weHave macchina; then

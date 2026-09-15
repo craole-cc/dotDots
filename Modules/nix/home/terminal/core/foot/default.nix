@@ -3,6 +3,7 @@
   config,
   lix,
   user,
+  paths,
   pkgs,
   ...
 }: let
@@ -13,6 +14,7 @@
   inherit (lix.types.combinators) listOf nullOr;
   inherit (lix.types.primitives) bool package str;
   inherit (pkgs) makeDesktopItem;
+  inherit (paths.store.lib) sh;
 
   context = mkContext {
     inherit config;
@@ -25,9 +27,19 @@
   wrappers = mkScriptWrappers {
     inherit pkgs;
     scripts = let
-      script = ./wrapper.sh;
+      colorscheme = sh + "/interface/theme/colorscheme";
+      verbosity = sh + "/output/verbosity";
+      feet = sh + "/packages/wrappers/foot.sh";
+      /**
+      Q: Should colorscheme keep its own -q/--quiet and -d/--verbose flags as shortcuts (mapping to verbosity levels), or drop them in favor of verbosity's own flag syntax?
+      A: No — replace -q/-d entirely with verbosity's own flags (--level, +1, etc.)
+
+      Q: Should colorscheme resolve the verbosity tool the same three-tier way (env var, relative to script, PATH) that we just built for foot.sh?
+      A: Yes, use the same resolve_tool/run_tool pattern from foot.sh
+      */
+      script = feet;
     in {
-      feet = script;
+      inherit feet;
       feet-quake = {
         inherit script;
         extraArgs = ["--quake"];

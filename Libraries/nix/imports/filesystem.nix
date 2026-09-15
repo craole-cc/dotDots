@@ -37,11 +37,12 @@
   construction = {
     inherit (builtins) path toPath;
     inherit (path) subpath;
+    inherit (strings) makeBinPath makeLibraryPath;
   };
 
   transformation = {
     inherit (path) append removePrefix;
-    inherit (strings) makeBinPath;
+    inherit (strings) makeBinPath makeLibraryPath;
   };
 
   predicates = {

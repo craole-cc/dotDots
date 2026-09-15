@@ -163,6 +163,22 @@
         "type": "github"
       }
     },
+    "dank-qml-common_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788376015,
+        "narHash": "sha256-/tT8rTznLADndTwLBzdgzzgfJH1ZhYQibYo5v/F8U+U=",
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "rev": "26396ce432d6c71c3f5367438f96f4a8d667e160",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "type": "github"
+      }
+    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -387,6 +403,27 @@
         "ref": "50.1",
         "repo": "gnome-shell",
         "type": "gitlab"
+      }
+    },
+    "greeterDankMaterial": {
+      "inputs": {
+        "dank-qml-common": "dank-qml-common",
+        "nixpkgs": [
+          "nixPackages"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789053332,
+        "narHash": "sha256-Z6tV5jX8Ah6RHIHeSnV6kEwJJZ6Ore+FR8F+vr9xjxY=",
+        "owner": "AvengeMedia",
+        "repo": "dank-greeter",
+        "rev": "0175be5c2084e2c5027324403a329e04040cd0bc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AvengeMedia",
+        "repo": "dank-greeter",
+        "type": "github"
       }
     },
     "hermes": {
@@ -717,6 +754,7 @@
         "editorTypix": "editorTypix",
         "editorVSCode": "editorVSCode",
         "editorVSCodeExtensions": "editorVSCodeExtensions",
+        "greeterDankMaterial": "greeterDankMaterial",
         "hermes": "hermes",
         "nixChaotic": "nixChaotic",
         "nixDarwin": "nixDarwin",
@@ -757,7 +795,7 @@
     },
     "shellDankMaterial": {
       "inputs": {
-        "dank-qml-common": "dank-qml-common",
+        "dank-qml-common": "dank-qml-common_2",
         "flake-compat": "flake-compat",
         "nixpkgs": [
           "nixPackages"

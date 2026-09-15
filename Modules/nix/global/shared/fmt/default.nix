@@ -1,7 +1,7 @@
 {
   lix,
   pkgs,
-  inputs,
+  inputs ? {},
   paths,
   pkgsFor,
   print,

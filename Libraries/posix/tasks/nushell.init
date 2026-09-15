@@ -8,4 +8,4 @@ weHave nu || exit
 . "$DOTS_ENV_CTX/nu"
 
 #| Deploy Link
-symbiolink --src "$src" --lnk "$link" --force --verbose
+symbiolink --src "${src}" --lnk "${link}" --force --verbose

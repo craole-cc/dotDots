@@ -4,61 +4,57 @@
 # SECTION: config.sh
 # Metadata, runtime defaults, base paths, DOTS environment.
 # ═══════════════════════════════════════════════════════════════════════════
-
 configure() {
+  # ── DOTS Environment ──────────────────────────────────────────────────
+  assign_path DOTS "${DOTS:-${PWD:-$(pwd -P || true)}}"
+  assign_path DOTS_CFG "${DOTS}" "Configuration"
+  assign_path DOTS_LIB "${DOTS}" "Libraries"
+  assign_path DOTS_LIB_BASH "${DOTS_LIB}" "bash"
+  assign_path DOTS_LIB_CMD "${DOTS_LIB}" "cmd"
+  assign_path DOTS_LIB_NIX "${DOTS_LIB}" "nix"
+  assign_path DOTS_LIB_NU "${DOTS_LIB}" "nushell"
+  assign_path DOTS_LIB_PS "${DOTS_LIB}" "powershell"
+  assign_path DOTS_LIB_PY "${DOTS_LIB}" "python"
+  assign_path DOTS_LIB_RS "${DOTS_LIB}" "rust"
+  assign_path DOTS_LIB_SH "${DOTS_LIB}" "posix"
+  assign_path DOTS_LIB_XML "${DOTS_LIB}" "xml"
+  assign_path DOTS_BINIT "${DOTS_LIB_SH}" "base" "binit"
+  assign_var DOTS_BINIT_ACTION "run"
+
+  export DOTS DOTS_BINIT DOTS_BINIT_ACTION DOTS_CFG DOTS_LIB DOTS_LIB_BASH DOTS_LIB_CMD DOTS_LIB_NIX DOTS_LIB_NU DOTS_LIB_PS DOTS_LIB_PY DOTS_LIB_RS DOTS_LIB_SH DOTS_LIB_XML
+
   # ── Metadata ────────────────────────────────────────────────────────────
   name="profile"
-  home="${DOTS:-${HOME}}"
-  path="${home}/${name}"
+  home="${DOTS}"
+  assign_path path "${home}" "${name}"
   description="Temporary bootstrap for NixOS environment"
   author="craole"
-  version="0.3.1"
+  version="0.3.2"
 
   # ── Runtime ─────────────────────────────────────────────────────────────
   verbosity="${DOTS_INIT_VERBOSITY:-${VERBOSITY:-debug}}"
-  command="${DOTS_INIT_COMMAND:-all}"
+  command="${DOTS_INIT_COMMAND:-"initialize_bin"}"
   help_requested=0
 
   # ── Base Paths ──────────────────────────────────────────────────────────
-  #? Common roots reused throughout; join_path builds anything deeper.
-  #? XDG vars are self-assigned with fallback and exported so any child
-  #? process (or gum/gsettings/etc.) sees the same values we resolve here.
-  NIX_PROFILE_DIR="$(find_nix_profile_dir)"
-  VSCODE_SERVER_DIR="${VSCODE_SERVER_DIR:-$(join_path "${HOME}" .vscode-server)}"
-  XDG_CACHE_HOME="${XDG_CACHE_HOME:-$(join_path "${HOME}" .cache)}"
-  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$(join_path "${HOME}" .config)}"
-  XDG_DATA_HOME="${XDG_DATA_HOME:-$(join_path "${HOME}" .local/share)}"
-  #? Not a standard XDG var, but ~/.local/bin shares ~/.local with
-  #? XDG_DATA_HOME, so derive it from there rather than ${HOME} directly.
-  XDG_BIN_HOME="${XDG_BIN_HOME:-$(join_path "$(dirname "${XDG_DATA_HOME}")" bin)}"
-  #? Always include ~/.local/share first (for portal overrides) and keep existing entries
-  XDG_DATA_DIRS="${XDG_DATA_HOME:-${XDG_DATA_HOME}}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-  USER_ID="$(id -u || true)"
-  XDG_RUNTIME_DIR="$(join_path "/run/user" "${USER_ID}")"
-  export \
-    NIX_PROFILE_DIR \
-    VSCODE_SERVER_DIR \
-    XDG_BIN_HOME \
-    XDG_CACHE_HOME \
-    XDG_CONFIG_HOME \
-    XDG_DATA_HOME \
-    XDG_DATA_DIRS \
-    XDG_RUNTIME_DIR
+  USER_ID=$(id -u 2>/dev/null || echo 1000)
+  NIX_PROFILE_DIR=$(find_nix_profile_dir)
+  assign_path VSCODE_SERVER_DIR "${HOME}" ".vscode-server"
+  export NIX_PROFILE_DIR VSCODE_SERVER_DIR
 
-  # ── DOTS Environment ──────────────────────────────────────────────────
-  DOTS="${DOTS:-"${PWD:-"$(pwd -P)"}"}"
-  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}"
-  DOTS_LIB="${DOTS_LIB:-"${DOTS}/Libraries"}"
-  DOTS_LIB_BASH="${DOTS_LIB_BASH:-"${DOTS_LIB}/bash"}"
-  DOTS_LIB_CMD="${DOTS_LIB_CMD:-"${DOTS_LIB}/cmd"}"
-  DOTS_LIB_NIX="${DOTS_LIB_NIX:-"${DOTS_LIB}/nix"}"
-  DOTS_LIB_NU="${DOTS_LIB_NU:-"${DOTS_LIB}/nushell"}"
-  DOTS_LIB_PS="${DOTS_LIB_PS:-"${DOTS_LIB}/powershell"}"
-  DOTS_LIB_PY="${DOTS_LIB_PY:-"${DOTS_LIB}/python"}"
-  DOTS_LIB_RS="${DOTS_LIB_RS:-"${DOTS_LIB}/rust"}"
-  DOTS_LIB_SH="${DOTS_LIB_SH:-"${DOTS_LIB}/posix"}"
-  DOTS_LIB_XML="${DOTS_LIB_XML:-"${DOTS_LIB}/xml"}"
-  export DOTS DOTS_CFG DOTS_LIB DOTS_LIB_BASH DOTS_LIB_CMD DOTS_LIB_NIX DOTS_LIB_NU DOTS_LIB_PS DOTS_LIB_PY DOTS_LIB_RS DOTS_LIB_SH DOTS_LIB_XML
+  # ── XDG Environment ────────────────────────────────────────────────────
+  assign_path XDG_CACHE_HOME "${HOME}" ".cache"
+  assign_path XDG_CONFIG_HOME "${HOME}" ".config"
+  assign_path XDG_DATA_HOME "${HOME}" ".local/share"
+
+  # Derived paths
+  XDG_DATA_PARENT=$(dirname "${XDG_DATA_HOME}")
+  assign_path XDG_BIN_HOME "${XDG_DATA_PARENT}" "bin"
+
+  XDG_DATA_DIRS="${XDG_DATA_HOME}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  assign_path XDG_RUNTIME_DIR "/run/user" "${USER_ID}"
+
+  export XDG_BIN_HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_DATA_DIRS XDG_RUNTIME_DIR
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -474,21 +470,22 @@ initialize_logger() {
 # binit + flake initialization for the current shell.
 # ═══════════════════════════════════════════════════════════════════════════
 initialize_bin() {
-  BINIT_PATH="${DOTS_LIB_SH}/base/binit"
-  BINIT_ACTION="--run"
-  export BINIT_PATH BINIT_ACTION
+  configure
 
-  if [ -f "${BINIT_PATH}" ]; then :; else
-    print --warn "binit not found at ${BINIT_PATH}"
+  # ── Validation & Execution ──────────────────────────────────────────────
+  if [ ! -f "${DOTS_BINIT}" ]; then
+    print --warn "binit not found at ${DOTS_BINIT}"
+    return 1
   fi
 
-  if [ -x "${BINIT_PATH}" ]; then :; else
-    chmod -c +x "${BINIT_PATH}"
+  if [ ! -x "${DOTS_BINIT}" ]; then
+    chmod +x "${DOTS_BINIT}"
   fi
 
   # shellcheck disable=SC1090
-  if . "${BINIT_PATH}"; then :; else
-    print --error "Failed to initialize bin at ${BINIT_PATH}"
+  if ! . "${DOTS_BINIT}"; then
+    print --error "Failed to initialize bin at ${DOTS_BINIT}"
+    return 1
   fi
 }
 
@@ -506,6 +503,28 @@ join_path() {
     _jp_out="${_jp_out}/${_jp_seg}"
   done
   printf '%s\n' "${_jp_out}"
+}
+
+#? assign_var var_name value
+#> Assigns value to var_name only if unset/empty.
+assign_var() {
+  _av_var="$1"
+  eval "_av_val=\${${_av_var}:-}"
+  [ -n "${_av_val}" ] && return 0
+  eval "${_av_var}=\"\$2\""
+}
+
+#? assign_path var_name base seg [seg ...]
+#> Assigns joined path string to var_name only if unset/empty.
+assign_path() {
+  _ap_var="$1"
+  shift
+
+  eval "_ap_val=\${${_ap_var}:-}"
+  [ -n "${_ap_val}" ] && return 0
+
+  _ap_out=$(join_path "$@")
+  eval "${_ap_var}=\"\${_ap_out}\""
 }
 
 #? find_nix_profile_dir — pick the first usable nix profile tree.

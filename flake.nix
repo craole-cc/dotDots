@@ -102,6 +102,13 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
+    greeterDankMaterial = {
+      repo = "dank-greeter";
+      owner = "AvengeMedia";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
     shellDankMaterialPlugins = {
       repo = "dms-plugin-registry";
       owner = "AvengeMedia";

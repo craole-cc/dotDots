@@ -1,0 +1,114 @@
+#!/bin/sh
+#| Unit tests for Libraries/posix/environment/assign
+#? Run directly: ./tasks/assign.test
+
+set -eu
+
+# ── Test Framework Helpers ───────────────────────────────────────────────
+TESTS_RUN=0
+TESTS_FAILED=0
+
+pass() {
+  TESTS_RUN=$((TESTS_RUN + 1))
+  printf "  \033[32m✓\033[0m %s\n" "$1"
+}
+
+fail() {
+  TESTS_RUN=$((TESTS_RUN + 1))
+  TESTS_FAILED=$((TESTS_FAILED + 1))
+  printf "  \033[31m✗\033[0m %s (expected '%s', got '%s')\n" "$1" "$2" "$3"
+}
+
+assert_eq() {
+  _desc="$1"
+  _expected="$2"
+  _actual="$3"
+  if [ "${_expected}" = "${_actual}" ]; then
+    pass "${_desc}"
+  else
+    fail "${_desc}" "${_expected}" "${_actual}"
+  fi
+}
+
+# ── Environment Setup ───────────────────────────────────────────────────
+# ── Locate Repository Root Safely ─────────────────────────────────────────
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
+else
+  # Fallback: assume relative location if git is unavailable
+  _test_dir="$(cd "$(dirname "$0")" && pwd -P)"
+  REPO_ROOT="$(cd "${_test_dir}/.." && pwd -P)"
+  unset _test_dir
+fi
+
+ASSIGN_SCRIPT="${REPO_ROOT}/Libraries/posix/environment/assign"
+
+if [ ! -f "${ASSIGN_SCRIPT}" ]; then
+  printf "Error: Cannot locate assign script at %s\n" "${ASSIGN_SCRIPT}" >&2
+  exit 1
+fi
+
+# Source the assign library into current shell session
+# shellcheck disable=SC1090
+. "${ASSIGN_SCRIPT}"
+
+printf "\nRunning tests for Libraries/posix/environment/assign...\n\n"
+
+# ── Test Suite ──────────────────────────────────────────────────────────
+
+# 1. Direct function calls: assign_var
+TEST_VAR_1=""
+assign_var TEST_VAR_1 "hello_world"
+assert_eq "assign_var sets unset variable" "hello_world" "${TEST_VAR_1}"
+
+# Idempotency check: should not overwrite
+assign_var TEST_VAR_1 "overwritten_value"
+assert_eq "assign_var preserves existing value (idempotent)" "hello_world" "${TEST_VAR_1}"
+
+# 2. Direct function calls: assign_path
+TEST_PATH_1=""
+assign_path TEST_PATH_1 "/tmp" "foo" "bar"
+assert_eq "assign_path joins path segments correctly" "/tmp/foo/bar" "${TEST_PATH_1}"
+
+# Idempotency check: should not overwrite
+assign_path TEST_PATH_1 "/opt" "baz"
+assert_eq "assign_path preserves existing value (idempotent)" "/tmp/foo/bar" "${TEST_PATH_1}"
+
+# 3. Path normalization (slashes & empty segments)
+TEST_PATH_2=""
+assign_path TEST_PATH_2 "/var/" "/log/" "" "syslog"
+assert_eq "assign_path normalizes redundant slashes and empty segments" "/var/log/syslog" "${TEST_PATH_2}"
+
+# 4. CLI Flag Dispatcher: parse_arguments / assign
+TEST_VAR_2=""
+parse_arguments --var TEST_VAR_2 "flag_value"
+assert_eq "parse_arguments --var assigns correct value" "flag_value" "${TEST_VAR_2}"
+
+TEST_PATH_3=""
+parse_arguments --path TEST_PATH_3 "usr" "local" "bin"
+assert_eq "parse_arguments --path assigns correct path" "usr/local/bin" "${TEST_PATH_3}"
+
+# 5. Standalone Execution Guard (Subshell Execution)
+SUB_OUT=$(TEST_VAR_SUB="" "${ASSIGN_SCRIPT}" --var TEST_VAR_SUB "subshell_value" 2>/dev/null || true)
+assert_eq "Standalone script execution returns 0 status" "" "${SUB_OUT}"
+
+# 6. Error Handling
+ERR_OUT=$(parse_arguments --invalid-flag 2>&1 || true)
+case "${ERR_OUT}" in
+*"assign: expected --var or --path"*)
+  pass "parse_arguments catches invalid flags correctly"
+  ;;
+*)
+  fail "parse_arguments catches invalid flags correctly" "error message" "${ERR_OUT}"
+  ;;
+esac
+
+# ── Test Summary ────────────────────────────────────────────────────────
+printf "\n──────────────────────────────────────────────────\n"
+if [ "${TESTS_FAILED}" -eq 0 ]; then
+  printf "\033[32mALL TESTS PASSED\033[0m (%d/%d tests)\n\n" "${TESTS_RUN}" "${TESTS_RUN}"
+  exit 0
+else
+  printf "\033[31mSOME TESTS FAILED\033[0m (%d/%d failed)\n\n" "${TESTS_FAILED}" "${TESTS_RUN}"
+  exit 1
+fi

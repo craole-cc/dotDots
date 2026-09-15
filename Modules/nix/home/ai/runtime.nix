@@ -51,7 +51,7 @@
     };
     home.private.local = privateRoot;
   };
-  shared = import ../../global/shared (args // {paths = aiPaths;});
+  # shared = import ../../global/shared (args // {paths = aiPaths;});
   aiArgs =
     (recursiveUpdate args shared)
     // {

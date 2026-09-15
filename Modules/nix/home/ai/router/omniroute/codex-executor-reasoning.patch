@@ -1,0 +1,32 @@
+--- a/open-sse/executors/codex.ts
++++ b/open-sse/executors/codex.ts
+@@ -1413,9 +1413,21 @@ export class CodexExecutor extends BaseExecutor {
+     const reasoningRecord =
+       body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+         ? (body.reasoning as Record<string, unknown>)
+         : null;
+-    const explicitReasoning = normalizeEffortValue(reasoningRecord?.effort);
++    // Generic clients can send `{ reasoning: { enabled: boolean } }`, but the
++    // Codex Responses API accepts only `reasoning.effort`. Never spread the
++    // generic toggle into the final upstream body.
++    const genericReasoningEnabled = reasoningRecord?.enabled;
++    const sanitizedReasoningRecord = reasoningRecord ? { ...reasoningRecord } : null;
++    if (sanitizedReasoningRecord) delete sanitizedReasoningRecord.enabled;
++    const explicitReasoning = normalizeEffortValue(sanitizedReasoningRecord?.effort);
+     const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
++    const genericReasoningEffort =
++      genericReasoningEnabled === true
++        ? requestDefaults.reasoningEffort || "medium"
++        : genericReasoningEnabled === false
++          ? "none"
++          : undefined;
+     const fallbackReasoningEffort = allowConnectionReasoningDefaults
+       ? requestDefaults.reasoningEffort || "medium"
+       : undefined;
+@@ -1425,2 +1437,2 @@ export class CodexExecutor extends BaseExecutor {
+     const rawEffort =
+-      modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
++      modelEffort || explicitReasoning || requestReasoningEffort || genericReasoningEffort || fallbackReasoningEffort;
+@@ -1431 +1443 @@ export class CodexExecutor extends BaseExecutor {
+-        ...(reasoningRecord || {}),
++        ...(sanitizedReasoningRecord || {}),

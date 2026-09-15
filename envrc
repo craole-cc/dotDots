@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# case "${IN_NIX_SHELL:-}" in
+# "")
+#   DOTS_INIT_COMMAND="load-flake"
+#   . ./profile
+#   ;;
+# *) ;;
+# esac
+
+#~@ Ensure DOTS points at this repo (the directory containing .envrc)
+#? Only sets it if unset -- respects a DOTS already exported by the
+#? flake's devShell rather than clobbering it.
+: "${DOTS:=${PWD}}"
+export DOTS
+
+#~@ Source the dotfiles poly-RC's POSIX block for PATH/env setup.
+#? Runs unconditionally (both branches above) -- PATH/env setup is
+#? independent of whether the nix dev shell is loaded. Only exported
+#? variables (PATH, DOTS_*, XDG_*) survive into your actual shell;
+#? helper functions defined inside dots.sh do not, since direnv only
+#? diffs the environment, it doesn't inherit functions.
+RC="direnv"
+export RC
+
+if [ -f "${DOTS}/.dotsrc" ]; then
+  # shellcheck disable=SC1094
+  . "${DOTS}/.dotsrc"
+else
+  echo "WARNING: .dotsrc not found at '${DOTS}/.dotsrc'" >&2
+fi

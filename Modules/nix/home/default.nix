@@ -68,7 +68,7 @@ in {
   # contract as Core. Only migrated modules are wired here; the legacy tree
   # remains available for staged conversion without participating in eval.
   imports = [
-    ./ai/runtime.nix
+    # ./ai/runtime.nix
     ./applications
     ./interface/options.nix
     ./interface/catppuccin.nix
