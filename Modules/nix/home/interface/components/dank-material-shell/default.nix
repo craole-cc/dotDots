@@ -26,7 +26,7 @@
 
   iconTheme = cfg.icons.name;
   themeName = "dotdots-catppuccin";
-  themeFile = ./themes/dms-catppuccin.json;
+  themeFile = ./dms-catppuccin.json;
   themePath = "${config.xdg.configHome}/DankMaterialShell/themes/${themeName}.json";
   footFallback = pkgs.writeText "dms-foot-fallback.ini" ''
     [colors-dark]
