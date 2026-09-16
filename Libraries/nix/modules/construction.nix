@@ -127,7 +127,7 @@
       "name"
       "options"
       "pkgs"
-      "inputs"
+      # "inputs"
       # "paths"
     ];
 
