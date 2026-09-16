@@ -27,19 +27,19 @@
     };
 
   primaryVariables =
-    optionalAttrs (builtins.isAttrs (apps.terminal.primary or null)) {
+    optionalAttrs (isAttrs (apps.terminal.primary or null)) {
       TERMINAL = mkDefault apps.terminal.primary.command;
     }
-    // optionalAttrs (builtins.isAttrs (apps.browser.primary or null)) {
+    // optionalAttrs (isAttrs (apps.browser.primary or null)) {
       BROWSER = mkDefault apps.browser.primary.command;
     }
-    // optionalAttrs (builtins.isAttrs (apps.editor.tty.primary or null)) {
+    // optionalAttrs (isAttrs (apps.editor.tty.primary or null)) {
       EDITOR = mkDefault apps.editor.tty.primary.command;
     }
-    // optionalAttrs (builtins.isAttrs (apps.editor.gui.primary or null)) {
+    // optionalAttrs (isAttrs (apps.editor.gui.primary or null)) {
       VISUAL = mkDefault apps.editor.gui.primary.command;
     }
-    // optionalAttrs (builtins.isAttrs (apps.explorer.primary or null)) {
+    // optionalAttrs (isAttrs (apps.explorer.primary or null)) {
       FILE_MANAGER = mkDefault apps.explorer.primary.command;
     };
 in {

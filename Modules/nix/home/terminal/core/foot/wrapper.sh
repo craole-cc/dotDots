@@ -43,12 +43,12 @@ initialize_environment() {
 # clean "1" or "0". Anything unrecognized -> "0".
 normalize_bool() {
   case "$1" in
-  1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Yy] | [Oo][Nn])
-    printf "1"
-    ;;
-  *)
-    printf "0"
-    ;;
+    1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Yy] | [Oo][Nn])
+      printf "1"
+      ;;
+    *)
+      printf "0"
+      ;;
   esac
 }
 
@@ -60,12 +60,12 @@ set_global_verbosity() {
 
   VERBOSE=0
   case "${_env_verbose}${_debug_env}" in
-  *1*)
-    VERBOSE=1
-    ;;
-  *)
-    VERBOSE=0
-    ;;
+    *1*)
+      VERBOSE=1
+      ;;
+    *)
+      VERBOSE=0
+      ;;
   esac
 
   # `verbosity` is a numeric threshold (>3), not a bool, so normalize it
@@ -73,14 +73,14 @@ set_global_verbosity() {
   # numeric, anything else (empty, "abc", "4x") is treated as "not set"
   # rather than tripping a comparison error.
   case "${verbosity:-}" in
-  '' | *[!0-9]*)
-    : # unset or non-numeric -- leave VERBOSE as-is
-    ;;
-  *)
-    if [ "${verbosity}" -gt 3 ]; then
-      VERBOSE=1
-    fi
-    ;;
+    '' | *[!0-9]*)
+      : # unset or non-numeric -- leave VERBOSE as-is
+      ;;
+    *)
+      if [ "${verbosity}" -gt 3 ]; then
+        VERBOSE=1
+      fi
+      ;;
   esac
 
   unset _env_verbose _debug_env
@@ -88,8 +88,8 @@ set_global_verbosity() {
 
 is_verbose() {
   case "${VERBOSE:-0}" in
-  1) return 0 ;;
-  *) return 1 ;;
+    1) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -103,31 +103,31 @@ log_debug() {
 
 parse_arguments() {
   case "${1:-}" in
-  --monitor | -m)
-    shift
-    strip_verbose_flag "$@"
-    # shellcheck disable=SC2086
-    set -- ${STRIPPED_ARGS}
-    monitor_mode "$@"
-    ;;
-  --quake | -q)
-    shift
-    quake_mode
-    ;;
-  --detect | -d)
-    shift
-    strip_verbose_flag "$@"
-    # shellcheck disable=SC2086
-    set -- ${STRIPPED_ARGS}
-    detect_scheme "$@"
-    printf "\n"
-    ;;
-  --help | -h)
-    print_help
-    ;;
-  *)
-    launch_terminal "$@"
-    ;;
+    --monitor | -m)
+      shift
+      strip_verbose_flag "$@"
+      # shellcheck disable=SC2086
+      set -- ${STRIPPED_ARGS}
+      monitor_mode "$@"
+      ;;
+    --quake | -q)
+      shift
+      quake_mode
+      ;;
+    --detect | -d)
+      shift
+      strip_verbose_flag "$@"
+      # shellcheck disable=SC2086
+      set -- ${STRIPPED_ARGS}
+      detect_scheme "$@"
+      printf "\n"
+      ;;
+    --help | -h)
+      print_help
+      ;;
+    *)
+      launch_terminal "$@"
+      ;;
   esac
 }
 
@@ -139,18 +139,18 @@ strip_verbose_flag() {
   STRIPPED_ARGS=""
   for arg in "$@"; do
     case "${arg}" in
-    -v | --verbose)
-      VERBOSE=1
-      ;;
-    *)
-      STRIPPED_ARGS="${STRIPPED_ARGS} ${arg}"
-      ;;
+      -v | --verbose)
+        VERBOSE=1
+        ;;
+      *)
+        STRIPPED_ARGS="${STRIPPED_ARGS} ${arg}"
+        ;;
     esac
   done
 }
 
 has_cmd() {
-  command -v "$1" >/dev/null 2>&1
+  command -v "$1" > /dev/null 2>&1
 }
 
 detect_scheme() {
@@ -171,25 +171,25 @@ detect_scheme() {
   if [ -f "${kdeglobals}" ]; then
     scheme=$(grep -m1 "^ColorScheme=" "${kdeglobals}" | cut -d= -f2)
     case "${scheme}" in
-    *[Dd]ark*)
-      _report "dark" "KDE Plasma (kdeglobals ColorScheme)"
-      return 0
-      ;;
-    *[Ll]ight*)
-      _report "light" "KDE Plasma (kdeglobals ColorScheme)"
-      return 0
-      ;;
-    *) ;;
+      *[Dd]ark*)
+        _report "dark" "KDE Plasma (kdeglobals ColorScheme)"
+        return 0
+        ;;
+      *[Ll]ight*)
+        _report "light" "KDE Plasma (kdeglobals ColorScheme)"
+        return 0
+        ;;
+      *) ;;
     esac
 
     # Fallback for older KDE settings
     inactive_color=$(
-      grep -A5 "^\[ColorEffects:Inactive\]" "${kdeglobals}" 2>/dev/null |
-        grep -m1 "^Color=" | cut -d= -f2
+      grep -A5 "^\[ColorEffects:Inactive\]" "${kdeglobals}" 2> /dev/null \
+        | grep -m1 "^Color=" | cut -d= -f2
     )
     if [ -n "${inactive_color}" ]; then
       red=$(printf '%s' "${inactive_color}" | cut -d, -f1)
-      if [ "${red}" -gt 100 ] 2>/dev/null; then
+      if [ "${red}" -gt 100 ] 2> /dev/null; then
         _report "light" "KDE Plasma (kdeglobals ColorEffects)"
         return 0
       else
@@ -209,36 +209,36 @@ detect_scheme() {
         --dest=org.freedesktop.portal.Desktop \
         /org/freedesktop/portal/desktop \
         org.freedesktop.portal.Settings.Read \
-        string:'org.freedesktop.appearance' string:'color-scheme' 2>/dev/null |
-        grep -oE 'uint32 [0-9]+' | awk '{print $2}'
+        string:'org.freedesktop.appearance' string:'color-scheme' 2> /dev/null \
+        | grep -oE 'uint32 [0-9]+' | awk '{print $2}'
     )
 
     case "${scheme}" in
-    1)
-      _report "dark" "Freedesktop Portal (dbus)"
-      return 0
-      ;;
-    2)
-      _report "light" "Freedesktop Portal (dbus)"
-      return 0
-      ;;
-    *) ;;
+      1)
+        _report "dark" "Freedesktop Portal (dbus)"
+        return 0
+        ;;
+      2)
+        _report "light" "Freedesktop Portal (dbus)"
+        return 0
+        ;;
+      *) ;;
     esac
   fi
 
   # 3. Check GNOME settings (gsettings)
   if has_cmd gsettings; then
-    scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null)
+    scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null)
     case "${scheme}" in
-    *dark*)
-      _report "dark" "GNOME (gsettings)"
-      return 0
-      ;;
-    *light*)
-      _report "light" "GNOME (gsettings)"
-      return 0
-      ;;
-    *) ;;
+      *dark*)
+        _report "dark" "GNOME (gsettings)"
+        return 0
+        ;;
+      *light*)
+        _report "light" "GNOME (gsettings)"
+        return 0
+        ;;
+      *) ;;
     esac
   fi
 
@@ -249,30 +249,30 @@ detect_scheme() {
     if [ -f "${conf}" ]; then
       scheme=$(grep -m1 "^gtk-theme-name" "${conf}" | cut -d= -f2 | tr -d ' "')
       case "${scheme}" in
-      *[Dd]ark*)
-        _report "dark" "GTK Theme (${conf})"
-        return 0
-        ;;
-      *[Ll]ight*)
-        _report "light" "GTK Theme (${conf})"
-        return 0
-        ;;
-      *) ;;
+        *[Dd]ark*)
+          _report "dark" "GTK Theme (${conf})"
+          return 0
+          ;;
+        *[Ll]ight*)
+          _report "light" "GTK Theme (${conf})"
+          return 0
+          ;;
+        *) ;;
       esac
     fi
   done
 
   # 5. Check environment variables (Combined QT and GTK check)
   case "${QT_STYLE_OVERRIDE:-}:${GTK_THEME:-}" in
-  *[Dd]ark*)
-    _report "dark" "Environment Variables (QT_STYLE_OVERRIDE/GTK_THEME)"
-    return 0
-    ;;
-  *[Ll]ight*)
-    _report "light" "Environment Variables (QT_STYLE_OVERRIDE/GTK_THEME)"
-    return 0
-    ;;
-  *) ;;
+    *[Dd]ark*)
+      _report "dark" "Environment Variables (QT_STYLE_OVERRIDE/GTK_THEME)"
+      return 0
+      ;;
+    *[Ll]ight*)
+      _report "light" "Environment Variables (QT_STYLE_OVERRIDE/GTK_THEME)"
+      return 0
+      ;;
+    *) ;;
   esac
 
   # 6. Time-based fallback
@@ -287,21 +287,21 @@ detect_scheme() {
 start_server() {
   theme="$1"
   case "${theme}" in
-  dark | light)
-    foot_theme="${theme}"
-    ;;
-  *)
-    foot_theme="dark"
-    ;;
+    dark | light)
+      foot_theme="${theme}"
+      ;;
+    *)
+      foot_theme="dark"
+      ;;
   esac
 
-  foot_bin=$(command -v foot 2>/dev/null) || {
+  foot_bin=$(command -v foot 2> /dev/null) || {
     printf "Error: foot not in PATH\n" >&2
     return 1
   }
 
   log_debug "Starting foot server with theme=${foot_theme}"
-  "${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" >/dev/null 2>&1 &
+  "${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" > /dev/null 2>&1 &
   return 0
 }
 
@@ -329,12 +329,12 @@ launch_with_server() {
   client_cmd="$4"
 
   #> Cleanup stale socket
-  [ -S "${socket}" ] && ! pgrep -x foot >/dev/null 2>&1 && rm -f "${socket}"
+  [ -S "${socket}" ] && ! pgrep -x foot > /dev/null 2>&1 && rm -f "${socket}"
 
   #? Server check → start/connect
-  if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "${socket}" ]; then
+  if ! pgrep -x foot > /dev/null 2>&1 || [ ! -S "${socket}" ]; then
     log_debug "No running foot server found, starting one"
-    printf '%s' "${theme}" >"${theme_file}"
+    printf '%s' "${theme}" > "${theme_file}"
     rm -f "${socket}"
     start_server "${theme}" || return 1
     wait_for_socket "${socket}" || return 1
@@ -354,7 +354,7 @@ monitor_mode() {
 
   # Initialize theme file
   CURRENT_THEME=$(detect_scheme)
-  printf '%s' "${CURRENT_THEME}" >"${THEME_FILE}"
+  printf '%s' "${CURRENT_THEME}" > "${THEME_FILE}"
   printf "Initial theme: %s\n" "${CURRENT_THEME}" >&2
 
   while true; do
@@ -368,7 +368,7 @@ monitor_mode() {
 
       if [ "${LAST_THEME}" != "${NEW_THEME}" ]; then
         printf "Theme changed: %s → %s\n" "${LAST_THEME}" "${NEW_THEME}" >&2
-        printf '%s' "${NEW_THEME}" >"${THEME_FILE}"
+        printf '%s' "${NEW_THEME}" > "${THEME_FILE}"
         printf "Press F12 in terminals to toggle theme, or close and reopen them.\n" >&2
       fi
     fi
@@ -377,10 +377,10 @@ monitor_mode() {
 
 find_window_id() {
   #> Get list of all windows
-  windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2>/dev/null)
+  windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2> /dev/null)
   for window in ${windows}; do
     #> Get window info and check if it matches our appId
-    info=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${window}" 2>/dev/null)
+    info=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${window}" 2> /dev/null)
     if printf "%s" "${info}" | grep -q "appId: $1"; then
       printf "%s" "${window}"
       return 0
@@ -395,21 +395,21 @@ quake_mode() {
 
   if [ -n "${WINDOW_ID:-}" ]; then
     #? Window exists, check its state and toggle it
-    WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${WINDOW_ID}" 2>/dev/null)
+    WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${WINDOW_ID}" 2> /dev/null)
 
     if printf "%s" "${WINDOW_INFO}" | grep -q "minimized: true"; then
       #> Window is minimized, show it
       log_debug "Quake window ${WINDOW_ID} is minimized, unminimizing"
-      qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "${WINDOW_ID}" 2>/dev/null
-      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "${WINDOW_ID}" 2> /dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2> /dev/null
     elif printf "%s" "${WINDOW_INFO}" | grep -q "active: true"; then
       #> Window is active and visible, hide it
       log_debug "Quake window ${WINDOW_ID} is active, minimizing"
-      qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2>/dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2> /dev/null
     else
       #> Window exists but not active, activate it
       log_debug "Quake window ${WINDOW_ID} exists but inactive, activating"
-      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
+      qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2> /dev/null
     fi
   else
     #> Window doesn't exist, launch it
@@ -419,7 +419,7 @@ quake_mode() {
     launch_with_server "${THEME_FILE}" "${SOCKET}" "${detected_mode}" footclient \
       --app-id="${QUAKE_ID}" \
       --window-size-chars=240x40 \
-      >/dev/null 2>&1 &
+      > /dev/null 2>&1 &
   fi
 }
 
@@ -430,7 +430,7 @@ launch_terminal() {
 
 #> Main execution
 print_help() {
-  cat <<EOF
+  cat << EOF
 Feet - Smart Foot Terminal Wrapper
 
 USAGE:

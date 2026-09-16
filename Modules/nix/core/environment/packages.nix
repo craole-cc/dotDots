@@ -115,15 +115,20 @@
       aiNames
     )));
 
-    wayland = optionals (displayProtocol == "wayland") (with pkgs; [wl-clipboard]);
+    wayland =
+      optionals
+      (displayProtocol == "wayland")
+      (with pkgs; [wl-clipboard]);
     linux = optionals isLinux (with pkgs; [xsel]);
     darwin = optionals isDarwin (with pkgs; [pngpaste]);
 
     default = with pkgs; [
       #~@ Nix
       alejandra
+      lorri
       nixfmt
       cachix
+      statix
       nil
       nixd
       nix-index
@@ -171,15 +176,13 @@
       bat
       gitui
       helix
-      imagemagick
-      imv
       jq
       jql
-      nomacs
-      qimgv
       ripgrep
-      viu
       gum
+      shfmt
+      shellcheck
+      dprint
 
       #~@ Shell
       btop
@@ -187,6 +190,14 @@
       fend
       figlet
       lolcat
+
+      #TODO: Move these to a real home
+      shortwave
+      imagemagick
+      imv
+      nomacs
+      qimgv
+      viu
     ];
 
     common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar ++ aiDesktop;

@@ -128,7 +128,7 @@
       "options"
       "pkgs"
       "inputs"
-      "paths"
+      # "paths"
     ];
 
     #> Per-class module set. `class` is `"nixos"`/`"darwin"` for

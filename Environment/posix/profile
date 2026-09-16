@@ -2193,7 +2193,6 @@ setup_treefmt() {
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Lightweight – safe & fast for every direnv load / shell entry
-# Lightweight – safe & fast for every direnv load / shell entry
 load_flake() {
   # direnv path (DIRENV_IN_ENVRC is set by direnv itself)
   case "${DIRENV_IN_ENVRC:-}" in

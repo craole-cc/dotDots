@@ -38,6 +38,7 @@ case "${HINDSIGHT_RUNTIME_KIND}" in
     mkdir -p "${HINDSIGHT_DATA_DIR}"
     : > "${native_log}"
 
+    host="$(hostname)"
     tmux new-session -d \
       -s "${HINDSIGHT_SESSION}" \
       -e "HINDSIGHT_SECRETS_FILE=${HINDSIGHT_SECRETS_FILE}" \
@@ -45,7 +46,7 @@ case "${HINDSIGHT_RUNTIME_KIND}" in
       -e "HINDSIGHT_CACHE_DIR=${HINDSIGHT_CACHE_DIR}" \
       -e "HINDSIGHT_BIND_ADDRESS=${HINDSIGHT_BIND_ADDRESS}" \
       -e "HINDSIGHT_API_PORT=${HINDSIGHT_API_PORT}" \
-      -e "HINDSIGHT_API_WORKER_ID=${HINDSIGHT_API_WORKER_ID:-Hindsight-${HOSTNAME:-local}}" \
+      -e "HINDSIGHT_API_WORKER_ID=${HINDSIGHT_API_WORKER_ID:-Hindsight-${host:-local}}" \
       -e "HINDSIGHT_LLM_BACKEND=${HINDSIGHT_LLM_BACKEND}" \
       -e "HINDSIGHT_LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}" \
       -e "HINDSIGHT_LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \

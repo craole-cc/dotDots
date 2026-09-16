@@ -16,7 +16,7 @@ init_sync() {
 
   error_exit() {
     printf "❌ Error: %s\n" "$1" >&2
-    if (return 0) 2>/dev/null; then return "${2:-1}"; else exit "${2:-1}"; fi
+    if (return 0) 2> /dev/null; then return "${2:-1}"; else exit "${2:-1}"; fi
   }
 
   info() { printf "➡️  %s\n" "$1"; }
@@ -24,19 +24,19 @@ init_sync() {
   skip() { printf "📌 %s\n" "$1"; }
 
   switch_gh_user() {
-    if ! command -v gh >/dev/null 2>&1; then
+    if ! command -v gh > /dev/null 2>&1; then
       error_exit "GitHub CLI (gh) is not installed"
     fi
     info "Switching to GitHub user: $1..."
-    gh auth switch --user "$1" >/dev/null 2>&1 ||
-      error_exit "Failed to switch GitHub user to $1" 2
+    gh auth switch --user "$1" > /dev/null 2>&1 \
+      || error_exit "Failed to switch GitHub user to $1" 2
   }
 
-  is_git_repo() { git rev-parse --git-dir >/dev/null 2>&1; }
+  is_git_repo() { git rev-parse --git-dir > /dev/null 2>&1; }
 
   has_changes() {
-    ! git diff-index --quiet HEAD -- 2>/dev/null && {
-      _untracked="$(git ls-files --others --exclude-standard 2>/dev/null)"
+    ! git diff-index --quiet HEAD -- 2> /dev/null && {
+      _untracked="$(git ls-files --others --exclude-standard 2> /dev/null)"
       [ -z "${_untracked}" ]
     }
   }
@@ -77,7 +77,7 @@ init_sync() {
   switch_gh_user "${PARENT_USER}"
 
   git_exec "add submodule" add "${SUBMODULE_PATH}"
-  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2>/dev/null; then
+  if git diff --cached --quiet -- "${SUBMODULE_PATH}" 2> /dev/null; then
     skip "No submodule pointer change in ${PARENT_NAME}"
   else
     git_exec "commit" commit --message "bump ${SUBMODULE_NAME} submodule: ${_msg}"

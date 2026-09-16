@@ -1,11 +1,14 @@
 {
   args,
   core,
+  lix,
+  inputs, # This is not ideal
   ...
 }: let
   inherit (args) pkgs;
+  inherit (lix.attrsets.transformation) mapAttrs;
+  inherit (lix.strings.transformation) toLower;
   inherit (pkgs) mkShell;
-  inherit (pkgs.lib.strings) toLower;
 
   cfg = args.host.shells.ai or (throw "AI shell configuration is missing from host.shells.ai");
   inherit (args) paths;
@@ -119,7 +122,8 @@
       "ai-omniroute" = mkComponentShell "omniroute" router.omniroute;
     };
 in {
-  inherit devShells;
-  inherit (default) env packages shellHook;
-  description = "AI Development";
+  imports = [./hermes.nix];
+  # inherit devShells;
+  # inherit (default) env packages shellHook;
+  # description = "AI Development";
 }

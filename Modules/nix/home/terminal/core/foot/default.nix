@@ -14,6 +14,7 @@
   inherit (lix.types.combinators) listOf nullOr;
   inherit (lix.types.primitives) bool package str;
   inherit (pkgs) makeDesktopItem;
+  # sh = paths.repo.lib.sh.store;
   inherit (paths.store.lib) sh;
 
   context = mkContext {

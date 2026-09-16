@@ -1,6 +1,6 @@
 {
   imports = [
-    # ./chromium
+    ./chromium
     # ./edge
     ./zen
     # ./firefox
