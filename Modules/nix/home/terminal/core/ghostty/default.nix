@@ -13,7 +13,7 @@
   context = mkContext {
     inherit config;
     dom = "terminal";
-    sub = "core";
+    sub = "emulators";
     mod = "ghostty";
   };
 
@@ -32,9 +32,9 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = resolved.enable;
-    };
+    # options.enable = mkEnable {
+    #   inherit context;
+    #   condition = resolved.enable;
+    # };
     outputs = {inherit (resolved) programs home;};
   }

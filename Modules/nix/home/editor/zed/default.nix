@@ -39,9 +39,9 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = resolved.enable;
-    };
+    # options.enable = mkEnable {
+    #   inherit context;
+    #   condition = resolved.enable;
+    # };
     outputs = {inherit (resolved) home programs;};
   }

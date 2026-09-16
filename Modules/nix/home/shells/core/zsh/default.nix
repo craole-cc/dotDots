@@ -18,13 +18,13 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = isAllowed;
+    options = {
     };
+    # options.enable = mkEnable {
+    #   inherit context;
+    #   condition = isAllowed;
+    # };
     outputs.programs.zsh =
-      {
-        enable = true;
-      }
+      {enable = true;}
       // import ./settings.nix;
   }

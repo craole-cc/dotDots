@@ -8,12 +8,12 @@
 }: let
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.options.construction) mkEnable;
+  inherit (lix.options.construction) mkTrue;
 
   context = mkContext {
     inherit config;
     dom = "terminal";
-    sub = "core";
+    sub = "emulators";
     mod = "kitty";
   };
 
@@ -35,9 +35,10 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = resolved.enable;
-    };
+    # options.enable = mkTrue "Kitty Terminal Emulator";
+    # options.enable = mkEnable {
+    #   inherit context;
+    #   condition = resolved.enable;
+    # };
     outputs = {inherit (resolved) programs home;};
   }

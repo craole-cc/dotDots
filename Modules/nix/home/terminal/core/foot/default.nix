@@ -20,7 +20,7 @@
   context = mkContext {
     inherit config;
     dom = "terminal";
-    sub = "core";
+    sub = "emulators";
     mod = "foot";
   };
   inherit (context) cfg;
@@ -99,7 +99,7 @@
         (import ./themes.nix)
       ];
     };
-    inherit (cfg) debug;
+    # inherit (cfg) debug;
   };
 in
   mkConfig {
@@ -134,10 +134,10 @@ in
         type = bool;
       };
 
-      enable = mkEnable {
-        inherit context;
-        condition = resolved.enable;
-      };
+      # enable = mkEnable {
+      #   inherit context;
+      #   condition = resolved.enable;
+      # };
       isPrimary = mkOption {
         description = "Whether `foot` is the user's primary terminal choice.";
         default = resolved.isPrimary;
