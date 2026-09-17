@@ -72,11 +72,6 @@
     # File managers are registry-native even though the older application
     # resolution helper has no explorer wrapper yet. Install every selected
     # role so GUI/TUI file-manager choices are not accidental transitive deps.
-    explorerNames = filter (name: name != null) [
-      (apps.explorer.primary or null)
-      (apps.explorer.secondary or null)
-      (apps.explorer.tertiary or null)
-    ];
     explorer = unique (filter (pkg: pkg != null) (
       map (
         name: let
@@ -89,7 +84,11 @@
             inherit app inputs pkgs system;
           }
       )
-      explorerNames
+      (filter (name: name != null) [
+        (apps.explorer.primary or null)
+        (apps.explorer.secondary or null)
+        (apps.explorer.tertiary or null)
+      ])
     ));
 
     # AI desktop clients are registry-owned too. Resolve them through the same

@@ -78,6 +78,11 @@ in
         # normally be substituted from cache.nixos.org.
         package = dms-shell;
         quickshell.package = quickshell;
+
+        systemd = {
+          enable = true;
+          target = "graphical-session.target";
+        };
       };
 
       xdg = {
