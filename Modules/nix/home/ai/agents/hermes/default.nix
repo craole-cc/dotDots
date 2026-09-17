@@ -1,6 +1,6 @@
 {
-  config,
   lix,
+  config,
   user,
   ...
 }: let
@@ -17,15 +17,16 @@
   };
 
   ai = user.applications.ai or {};
-  isSelected = isIn [
-    "hermes"
-    "hermes-agent"
-    "hermes-desktop"
-  ] [
-    (ai.primary or null)
-    (ai.secondary or null)
-    (ai.tertiary or null)
-  ];
+  isSelected =
+    isIn [
+      "hermes"
+      "hermes-agent"
+      "hermes-desktop"
+    ] [
+      (ai.primary or null)
+      (ai.secondary or null)
+      (ai.tertiary or null)
+    ];
 in
   mkConfig {
     inherit context;
@@ -48,4 +49,3 @@ in
       };
     };
   }
-{}
