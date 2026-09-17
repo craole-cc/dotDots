@@ -151,13 +151,7 @@
           useUserPackages = true;
           users = mkUsers {
             inherit inputs host;
-            # modules = classified.home;
-            modules =
-              classified.home
-              ++ [
-                # TODO: This needs to be gated by schema
-                inputs.hermes-agent.homeManagerModules.default
-              ];
+            modules = classified.home;
           };
         };
       };

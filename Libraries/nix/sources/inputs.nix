@@ -313,6 +313,15 @@
         "caelestia"
       ];
 
+      dank-greeter = tryNames [
+        "greeterDankMaterial"
+        "shellDank"
+        "dank-material-greeter"
+        "dms-greeter"
+        "greeterDankMaterial"
+        "dank-greeter"
+      ];
+
       dank-material-shell = tryNames [
         "shellDankMaterial"
         "dankMaterialShell"
@@ -362,6 +371,7 @@
       hermes-agent = tryNames [
         "hermes"
         "hermes-agent"
+        "nous"
       ];
 
       noctalia-shell = tryNames [

@@ -80,7 +80,9 @@
           (catppuccin.nixosModules.default or {})
           (chaotic.nixosModules.default or {})
           (dank-material-shell.nixosModules.default or {})
+          (dank-greeter.nixosModules.default or {})
           (dms-plugin-registry.nixosModules.default or {})
+          (hermes-agent.nixosModules.default or {})
           (home-manager.nixosModules.home-manager or {})
           (stylix.nixosModules.stylix or {})
         ]
@@ -111,6 +113,7 @@
       niri = inputs.dank-material-shell.homeModules.niri or {};
     };
     dms-plugin-registry = inputs.dms-plugin-registry.homeModules or {};
+    hermes-agent = inputs.hermes-agent.homeManagerModules or {};
     noctalia-shell = inputs.noctalia-shell.homeModules or {};
     caelestia = inputs.caelestia.homeManagerModules or {};
     catppuccin = inputs.catppuccin.homeModules or {};

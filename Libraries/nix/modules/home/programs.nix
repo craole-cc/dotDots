@@ -71,6 +71,10 @@
         "dmsp"
         "dank-plugins"
       ];
+      "hermes-agent".aliases = normalizeNames [
+        "hermes"
+        "hermes-desktop"
+      ];
       "noctalia-shell".aliases = normalizeNames [
         "noctalia"
         "noctalia-dev"
@@ -189,6 +193,7 @@
   }: let
     apps = user.applications or {};
     appsAllowed = normalizeNames (attrByPath ["applications" "allowed"] [] user);
+    ai = attrByPath ["ai"] {} apps;
     ui = user.interface or {};
     de = normalizeName (attrByPath ["desktopEnvironment"] "" ui);
 
@@ -265,6 +270,7 @@
     context = {
       inherit
         appsAllowed
+        ai
         bar
         selectedPanel
         theme
@@ -314,6 +320,18 @@
 
       "dms-shell".condition = isDmsShellAllowed;
       "dms-plugin-registry".condition = isDmsShellAllowed;
+
+      "hermes-agent".condition = {
+        ai,
+        names,
+        hasAnyApp,
+        ...
+      }:
+        hasAnyApp names [
+          ai.primary
+          ai.secondary
+          ai.tertiary
+        ];
 
       "noctalia-shell".condition = {
         names,
