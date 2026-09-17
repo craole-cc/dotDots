@@ -21,7 +21,7 @@
   inherit (lix.lists.predicates) any elem;
   inherit (lix.lists.transformation) filter unique;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
-  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.options.construction) mkEnable mkOption mkTrue;
   inherit (lix.strings.construction) concat splitString;
   inherit (lix.strings.transformation) escapeShellArgs toEnvVar;
   inherit (lix.strings.predicates) hasInfix;
@@ -208,6 +208,7 @@ in
     inherit context;
     options = {
       enable = mkEnable {inherit context;};
+      chmod = mkTrue "Whether to make discovered scripts executable at system activation";
       exclusions = {
         extensions = mkOption {
           description = "File extensions to ignore when discovering valid scripts";
