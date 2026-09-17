@@ -66,7 +66,7 @@
   inherit (_.attrsets.transformation) filterAttrs mapAttrs setAttrByPath;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystems;
-  inherit (_.lists.construction) optionals;
+  inherit (_.lists.construction) optional optionals;
   inherit (_.lists.predicates) elem;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge;
@@ -78,13 +78,6 @@
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
 
-  sourceArgs = {
-    paths ? _default.paths,
-    host,
-    ...
-  } @ args:
-    import paths.repo.src.store (args // {inherit host;});
-
   mkFlake = lib: {inherit lib;} // (mkConfigurations lib) // (mkUtilities lib);
 
   #> Every host whose `class` (default `"nixos"`) matches `class`.
@@ -95,14 +88,35 @@
     filterAttrs (_: host: (host.class or "nixos") == class) hosts;
 
   mkConfigurations = {
-    inputs,
-    paths,
+    inputs, # TODO: Maybw this is in defaults as well, check.
+    paths ? _default.paths,
     top ? _default.names.top or "_",
     ...
   } @ args: let
+    mkArgs = host: let
+      hostArgs = import paths.repo.src.store (
+        args // {inherit host;} // host
+      );
+      specialArgs = removeAttrs hostArgs [
+        "config"
+        "lib"
+        "name"
+        "options"
+        "pkgs"
+      ];
+      extraSpecialArgs =
+        specialArgs
+        // {
+          lib = extend (_self: _super: {
+            inherit (inputs.home-manager.lib) hm;
+          });
+        };
+    in
+      hostArgs // {inherit hostArgs specialArgs extraSpecialArgs;};
+
     # Home is wired again, but Modules/nix/home/default.nix explicitly imports
     # only modules already migrated to the mkContext/mkConfig contract.
-    wireHome = true;
+    wireHome = true; # TODO: This is not something we want to keep
 
     types = let
       of = class:
@@ -116,61 +130,43 @@
       home = of "home-manager";
     };
 
-    inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
-    lib = extend (_self: _super: {inherit hm;});
-
-    # Home Manager owns these module arguments per user/evaluation. Passing
-    # host-level values with the same names through extraSpecialArgs masks the
-    # submodule values (for example `name = "Victus"` replacing `craole`).
-    homeReservedArgs = [
-      "config"
-      "name"
-      "options"
-      "pkgs"
-      # "inputs"
-      # "paths"
-    ];
+    inherit (inputs.home-manager.lib) homeManagerConfiguration;
 
     #> Per-class module set. `class` is `"nixos"`/`"darwin"` for
     #> `mkSystem`, `"home-manager"` for `mkHomeHost`.
     modulesOf = class: mkModules {inherit class inputs;};
 
     mkSystem = host: let
-      hostArgs = sourceArgs (args // {inherit host;} // host);
       class = host.class or "nixos";
-      specialArgs = removeAttrs (hostArgs // {inherit top;}) [
-        "config"
-        "lib"
-      ];
-      # `inputs` and `paths` are supplied per user by mkUsers._module.args;
-      # reserved Home Manager module arguments must remain owned by HM.
-      homeSpecialArgs = removeAttrs (specialArgs // {inherit lib;}) homeReservedArgs;
+      args' = mkArgs {inherit host top;};
+      inherit (args') specialArgs;
 
       classified = modulesOf class;
       core = optionalAttrs wireHome {
         home-manager = {
-          extraSpecialArgs = homeSpecialArgs;
+          inherit (args') extraSpecialArgs;
           backupFileExtension = "hm-backup";
           overwriteBackup = true;
           useGlobalPkgs = true;
           useUserPackages = true;
           users = mkUsers {
             inherit inputs host;
-            modules = classified.home;
+            # modules = classified.home;
+            modules =
+              classified.home
+              ++ [
+                # TODO: This needs to be gated by schema
+                inputs.hermes-agent.homeManagerModules.default
+              ];
           };
         };
       };
-
       evaluated = evalModules {
         specialArgs =
           specialArgs
           // {
             inherit (classified.all) modulesPath baseModules;
-            modules =
-              classified
-              // {
-                host = core;
-              };
+            modules = classified // {host = core;};
           };
 
         modules =
@@ -187,15 +183,13 @@
       else evaluated;
 
     mkManager = name: host: let
-      hostArgs = sourceArgs (args // {inherit host;});
-      specialArgs = removeAttrs (hostArgs // {inherit lib;}) homeReservedArgs;
+      args' = mkArgs host;
       users = let
         specs = mkUsers {
           inherit host inputs;
           modules = (modulesOf "home-manager").home;
           standalone = true;
         };
-
         primary = let
           names = attrNames specs;
           primaryName = host.users.primary.name or null;
@@ -206,16 +200,14 @@
             assertion = primaryName != null && elem primaryName names;
             message = "host.users.primary.name must be set to one of: ${concat ", " names}";
           }; primaryName;
-
         modules = [specs.${primary}];
       in {
         inherit specs modules;
       };
     in
       homeManagerConfiguration {
-        inherit (hostArgs) pkgs;
         inherit (users) modules;
-        extraSpecialArgs = specialArgs;
+        inherit (args') pkgs extraSpecialArgs;
       };
   in
     optionalAttrs (types.nixos != {}) {
@@ -227,7 +219,7 @@
               // {
                 modules =
                   (sys.modules or [])
-                  ++ (lib.optional (name == "default") {
+                  ++ (optional (name == "default") {
                     fileSystems."/" = {
                       device = "/dev/null";
                       fsType = "ext4";

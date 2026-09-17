@@ -29,8 +29,35 @@ in
       condition = isAllowed;
     };
     outputs = {
-      home.packages = attrValues inputs.hermes-agent.packages.${system};
-      #         nix-repl> inputs.hermes-agent.packages.${system}
+      services.hermes-agent = {
+        enable = true;
+        gateway.enable = true;
+        extraDependencyGroups = [
+          "messaging"
+        ];
+      };
+
+      programs.hermes-agent = {
+        enable = true;
+
+        desktop.enable = true;
+      };
+      # home.packages = attrValues (
+      #   removeAttrs
+      #   inputs.hermes-agent.packages.${system}
+      #   ["configKeys"]
+      # );
+      # home.packages = with inputs.hermes-agent.packages.${system}; [
+      #   configKeys
+      #   default
+      #   desktop
+      #   messaging
+      #   node-gyp
+      #   sandbox
+      #   tui
+      #   update-npm-lockfile
+      #   web
+      # ];
       # {
       #   configKeys = «derivation /nix/store/42ii9y4skyqr6pwk1azhis0rhfi4jpjm-hermes-config-keys.drv»;
       #   default = «derivation /nix/store/wgr57bi16av7db2z5dnag4h1v2vg9gwi-hermes-agent-0.21.3.drv»;

@@ -125,12 +125,10 @@
     default = with pkgs; [
       #~@ Nix
       alejandra
-      lorri
-      nixfmt
       cachix
-      statix
+      lorri
       nil
-      nixd
+      nix-diff
       nix-index
       nix-info
       nix-output-monitor
@@ -138,7 +136,10 @@
       nix-prefetch-docker
       nix-prefetch-github
       nix-prefetch-scripts
+      nixd
+      nixfmt
       nvfetcher
+      statix
 
       #~@ System
       coreutils
