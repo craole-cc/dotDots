@@ -200,6 +200,7 @@
 
     allowed = [
       # "atuin"
+      "codex"
       "fastfetch"
       "freetube"
       "ghostty"
