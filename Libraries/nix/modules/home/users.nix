@@ -143,7 +143,6 @@
             "catppuccin"
             "dms-shell"
             "dms-plugin-registry"
-            "hermes-agent"
             "noctalia-shell"
             "nvf"
             "plasma"
