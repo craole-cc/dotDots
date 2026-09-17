@@ -6,7 +6,7 @@
 }: let
   dom = "ai";
   sub = "agents";
-  mod = "hermes";
+  mod = "hermes-agent";
 
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter;
@@ -16,15 +16,6 @@
 
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
-
-  selectedApplications = let
-    ai = user.applications.ai or {};
-  in
-    map (key: ai.${key}) (
-      filter (key: ai ? ${key})
-      ["primary" "secondary" "tertiary"]
-    )
-    ++ (user.applications.allowed or []);
 in
   mkConfig {
     inherit context;
@@ -38,7 +29,14 @@ in
             "hermes-agent"
             "hermes-desktop"
           ]
-          selectedApplications;
+          (let
+            domain = user.applications.${dom} or {};
+          in
+            (user.applications.allowed or [])
+            ++ map (module: domain.${module}) (
+              filter (module: domain ? ${module})
+              ["primary" "secondary" "tertiary"]
+            ));
       };
 
       # These are forwarded without narrowing the upstream Hermes interface.

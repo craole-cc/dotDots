@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lix,
   pkgs,
   ...
@@ -8,6 +9,8 @@
   sub = "agents";
   mod = "ollama";
 
+  inherit (lix.lists.predicates) isIn;
+  inherit (lix.lists.transformation) filter;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) anything package;
@@ -22,7 +25,16 @@ in
     # GPU/runtime configuration consequently belong to NixOS, not to a user's
     # Home Manager profile.
     options = {
-      enable = mkEnable {inherit context;};
+      enable = mkEnable {
+        inherit context;
+        condition = isIn ["ollama"] (let
+          domain = (host.users.data.primary or {}).applications.${dom} or {};
+        in
+          map (module: domain.${module}) (
+            filter (module: domain ? ${module})
+            ["primary" "secondary" "tertiary"]
+          ));
+      };
 
       package = mkOption {
         type = package;

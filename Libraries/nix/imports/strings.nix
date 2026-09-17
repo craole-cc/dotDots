@@ -35,19 +35,20 @@
       (strings)
       charToInt
       concatImapStringsSep
-      concatMapStringsSep
       concatMapStrings
+      concatMapStringsSep
       concatStrings
       concatStringsSep
       fixedWidthNumber
       fixedWidthString
       floatToString
       fromJSON
+      makeBinPath
+      makeLibraryPath
       optionalString
       splitString
       splitStringBy
-      makeBinPath
-      makeLibraryPath
+      toJSON
       ;
   };
 

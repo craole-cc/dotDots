@@ -19,33 +19,18 @@
   inherit (lix.types.combinators) attrsOf listOf nullOr;
   inherit (lix.types.primitives) anything package path str;
   inherit (lib.hm.dag) entryAfter;
-  inherit (lib.strings) escapeShellArg;
+  inherit (lix.strings.transformation) escapeShellArg;
+  inherit (lix.strings.construction) toJSON;
+  inherit (pkgs) writeText;
   sh = with pkgs; {
     rm = "${coreutils}/bin/rm";
     mkdir = "${coreutils}/bin/mkdir";
     install = "${coreutils}/bin/install";
     dirname = "${coreutils}/bin/dirname";
   };
+
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
-
-  selectedApplications = let
-    ai = user.applications.ai or {};
-  in
-    map (key: ai.${key}) (
-      filter (key: ai ? ${key})
-      ["primary" "secondary" "tertiary"]
-    )
-    ++ (user.applications.allowed or []);
-
-  settingsSource =
-    if cfg.settingsFile != null
-    then cfg.settingsFile
-    else pkgs.writeText "claude-code-settings.json" (builtins.toJSON cfg.settings);
-  instructionsSource =
-    if cfg.instructionsFile != null
-    then cfg.instructionsFile
-    else pkgs.writeText "claude-code-instructions.md" cfg.instructions;
 in
   mkConfig {
     inherit context;
@@ -55,7 +40,14 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = isIn ["claude-code" "claude"] selectedApplications;
+        condition = isIn ["claude-code" "claude"] (let
+          domain = user.applications.${dom} or {};
+        in
+          (user.applications.allowed or [])
+          ++ map (module: domain.${module}) (
+            filter (module: domain ? ${module})
+            ["primary" "secondary" "tertiary"]
+          ));
       };
 
       package = mkOption {
@@ -114,27 +106,39 @@ in
           sessionVariables = cfg.environment;
         };
       }
-      (mkIf (cfg.settingsFile != null || cfg.settings != {}) {
-        # Claude Code may update user settings. Install a real file rather than
-        # a Home Manager symlink so its writes never target the Nix store.
-        home.activation.materializeClaudeCodeSettings = entryAfter ["linkGeneration"] ''
-          target="$HOME/.claude/settings.json"
-          if [ -L "$target" ]; then
-            ${sh.rm} -f "$target"
-          fi
-          ${sh.mkdir} -p "$( ${sh.dirname} "$target")"
-          ${sh.install} -m 0600 ${escapeShellArg settingsSource} "$target"
-        '';
-      })
-      (mkIf (cfg.instructionsFile != null || cfg.instructions != "") {
-        home.activation.materializeClaudeCodeInstructions = entryAfter ["linkGeneration"] ''
-          target="$HOME/.claude/CLAUDE.md"
-          if [ -L "$target" ]; then
-            ${sh.rm} -f "$target"
-          fi
-          ${sh.mkdir} -p "$( ${sh.dirname} "$target")"
-          ${sh.install} -m 0644 ${escapeShellArg instructionsSource} "$target"
-        '';
-      })
+      (let
+        inherit (cfg) settingsFile settings;
+        source =
+          if settingsFile != null
+          then settingsFile
+          else writeText "claude-code-settings.json" (toJSON settings);
+        target = "$HOME/.claude/settings.json";
+      in
+        mkIf (settingsFile != null || settings != {}) {
+          home.activation.materializeClaudeCodeSettings = entryAfter ["linkGeneration"] ''
+            if [ -L "${target}" ]; then
+              ${sh.rm} -f "${target}"
+            fi
+            ${sh.mkdir} -p "$( ${sh.dirname} "${target}")"
+            ${sh.install} -m 0600 ${escapeShellArg source} "$target"
+          '';
+        })
+      (let
+        inherit (cfg) instructionsFile instructions;
+        source =
+          if instructionsFile != null
+          then instructionsFile
+          else writeText "claude-code-instructions.md" instructions;
+        target = "$HOME/.claude/CLAUDE.md";
+      in
+        mkIf (instructionsFile != null || instructions != "") {
+          home.activation.materializeClaudeCodeInstructions = entryAfter ["linkGeneration"] ''
+            if [ -L "${target}" ]; then
+              ${sh.rm} -f "${target}"
+            fi
+            ${sh.mkdir} -p "$( ${sh.dirname} "${target}")"
+            ${sh.install} -m 0644 ${escapeShellArg source} "${target}"
+          '';
+        })
     ];
   }

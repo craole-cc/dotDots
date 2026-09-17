@@ -12,33 +12,27 @@
   sub = "agents";
   mod = "openclaw";
 
+  inherit (lib.hm.dag) entryAfter;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter;
   inherit (lix.modules.construction) mkConfig mkContext mkIf mkMerge;
   inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.strings.construction) toJSON;
+  inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.types.combinators) attrsOf listOf nullOr;
   inherit (lix.types.primitives) anything bool package path str;
-  inherit (lib.attrsets) recursiveUpdate;
-  inherit (lib.hm.dag) entryAfter;
-  inherit (lib.strings) escapeShellArg;
+  inherit (pkgs) writeText;
+  bin = with pkgs; {
+    rm = "${coreutils}/bin/rm";
+    mkdir = "${coreutils}/bin/mkdir";
+    install = "${coreutils}/bin/install";
+    dirname = "${coreutils}/bin/dirname";
+    mod = "${cfg.package}/bin/${mod}";
+  };
 
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
-
-  selectedApplications = let
-    ai = user.applications.ai or {};
-  in
-    map (key: ai.${key}) (
-      filter (key: ai ? ${key})
-      ["primary" "secondary" "tertiary"]
-    )
-    ++ (user.applications.allowed or []);
-
-  configSource =
-    if cfg.configFile != null
-    then cfg.configFile
-    else pkgs.writeText "openclaw.json" (builtins.toJSON cfg.settings);
-  hasConfig = cfg.configFile != null || cfg.settings != {};
 in
   mkConfig {
     inherit context;
@@ -46,12 +40,19 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = isIn ["openclaw"] selectedApplications;
+        condition = isIn [mod] (let
+          domain = user.applications.${dom} or {};
+        in
+          (user.applications.allowed or [])
+          ++ map (module: domain.${module}) (
+            filter (module: domain ? ${module})
+            ["primary" "secondary" "tertiary"]
+          ));
       };
 
       package = mkOption {
         type = package;
-        default = inputs.llm-agents.packages.${system}.openclaw;
+        default = inputs.llm-agents.packages.${system}.${mod};
         description = "OpenClaw package to expose in this user's profile.";
       };
 
@@ -101,22 +102,33 @@ in
 
     outputs = mkMerge [
       {
-        home.packages = [cfg.package] ++ cfg.extraPackages;
-        home.sessionVariables = cfg.environment;
+        home = {
+          packages = [cfg.package] ++ cfg.extraPackages;
+          sessionVariables = cfg.environment;
+        };
       }
-      (mkIf hasConfig {
-        # OpenClaw requires its active config path to be a regular file; a
-        # Home Manager symlink would let OpenClaw replace the store target.
-        home.activation.materializeOpenClawConfig = entryAfter ["linkGeneration"] ''
-          target="$HOME/.openclaw/openclaw.json"
-          if [ -L "$target" ]; then
-            ${pkgs.coreutils}/bin/rm -f "$target"
-          fi
-          ${pkgs.coreutils}/bin/mkdir -p "$( ${pkgs.coreutils}/bin/dirname "$target")"
-          ${pkgs.coreutils}/bin/install -m 0600 ${escapeShellArg configSource} "$target"
-        '';
-        home.sessionVariables.OPENCLAW_CONFIG_READONLY = "1";
-      })
+      (let
+        inherit (cfg) configFile settings;
+        source =
+          if configFile != null
+          then configFile
+          else writeText "openclaw.json" (toJSON settings);
+        target = "$HOME/.openclaw/openclaw.json";
+      in
+        mkIf (configFile != null || settings != {}) {
+          # OpenClaw requires its active config path to be a regular file; a
+          # Home Manager symlink would let OpenClaw replace the store target.
+          home = {
+            activation.materializeOpenClawConfig = entryAfter ["linkGeneration"] ''
+              if [ -L "${target}" ]; then
+                ${bin.rm} -f "${target}"
+              fi
+              ${bin.mkdir} -p "$( ${bin.dirname} "${target}")"
+              ${bin.install} -m 0600 ${escapeShellArg source} "${target}"
+            '';
+            sessionVariables.OPENCLAW_CONFIG_READONLY = "1";
+          };
+        })
       (mkIf cfg.gateway.enable {
         systemd.user.services.openclaw =
           recursiveUpdate {
@@ -125,7 +137,7 @@ in
               After = ["network-online.target"];
             };
             Service = {
-              ExecStart = "${cfg.package}/bin/openclaw gateway run";
+              ExecStart = "${bin.mod} gateway run";
               Restart = "on-failure";
               RestartSec = 5;
             };

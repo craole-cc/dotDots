@@ -6,7 +6,7 @@
 }: let
   dom = "ai";
   sub = "agents";
-  mod = "hermes";
+  mod = "hermes-agent";
 
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter;
@@ -14,14 +14,6 @@
   inherit (lix.options.construction) mkEnable;
 
   context = mkContext {inherit config dom sub mod;};
-
-  selectedApplications = let
-    ai = (host.users.data.primary or {}).applications.ai or {};
-  in
-    map (key: ai.${key}) (
-      filter (key: ai ? ${key})
-      ["primary" "secondary" "tertiary"]
-    );
 in
   mkConfig {
     inherit context;
@@ -37,7 +29,13 @@ in
           "hermes-agent"
           "hermes-desktop"
         ]
-        selectedApplications;
+        (let
+          domain = (host.users.data.primary or {}).applications.${dom} or {};
+        in
+          map (module: domain.${module}) (
+            filter (module: domain ? ${module})
+            ["primary" "secondary" "tertiary"]
+          ));
     };
 
     outputs = {};

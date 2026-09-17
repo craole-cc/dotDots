@@ -22,15 +22,6 @@
   inherit (context) cfg;
 
   toml = pkgs.formats.toml {};
-
-  selectedApplications = let
-    ai = user.applications.ai or {};
-  in
-    map (key: ai.${key}) (
-      filter (key: ai ? ${key})
-      ["primary" "secondary" "tertiary"]
-    )
-    ++ (user.applications.allowed or []);
 in
   mkConfig {
     inherit context;
@@ -42,12 +33,19 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = isIn ["codex"] selectedApplications;
+        condition = isIn ["codex"] (let
+          domain = user.applications.${dom} or {};
+        in
+          (user.applications.allowed or [])
+          ++ map (module: domain.${module}) (
+            filter (module: domain ? ${module})
+            ["primary" "secondary" "tertiary"]
+          ));
       };
 
       package = mkOption {
         type = package;
-        default = inputs.llm-agents.packages.${system}.codex;
+        default = inputs.llm-agents.packages.${system}.${mod};
       };
 
       config = mkOption {
@@ -65,11 +63,14 @@ in
 
     outputs = mkMerge [
       {home.packages = [cfg.package];}
-      (mkIf (cfg.configFile != null || cfg.config != {}) {
-        home.file.".codex/config.toml" =
-          if cfg.configFile != null
-          then {source = cfg.configFile;}
-          else {source = toml.generate "config.toml" cfg.config;};
-      })
+      (let
+        inherit (cfg) configFile config;
+      in
+        mkIf (configFile != null || config != {}) {
+          home.file.".${mod}/config.toml" =
+            if configFile != null
+            then {source = configFile;}
+            else {source = toml.generate "config.toml" config;};
+        })
     ];
   }
