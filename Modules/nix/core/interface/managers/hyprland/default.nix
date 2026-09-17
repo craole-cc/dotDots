@@ -15,7 +15,12 @@
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable;
 
+  interface = host.interface or {};
   dmsEnabled = ctx.wantsDmsShell.condition;
+  isSelected =
+    (interface.windowManager or null)
+    == "hyprland"
+    || ((interface.compositor or {}).window or null) == "hyprland";
   primaryUser = host.users.data.primary or host.users.primary or {};
   primaryUserName = primaryUser.name or null;
   primaryHome =
@@ -30,7 +35,10 @@ in
   mkConfig {
     inherit context;
     options = {
-      enable = mkEnable ({inherit context;} // ctx.wantsHyprland);
+      enable = mkEnable {
+        inherit context;
+        condition = isSelected;
+      };
     };
     outputs = {
       assertions = [

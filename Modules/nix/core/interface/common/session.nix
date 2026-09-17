@@ -21,16 +21,21 @@
     # sub = "common";
     mod = "session";
   };
-  inherit (context) cfg ctx;
+  inherit (context) cfg;
 
+  interface = host.interface or {};
   user = host.users.data.primary or host.users.primary or {};
+  windowManager = interface.windowManager or null;
+  desktopEnvironment = interface.desktopEnvironment or null;
   hasDmsHyprlandSession = builtins.hasAttr "hyprland-dms" config.programs.uwsm.waylandCompositors;
   defaultSession =
-    if ctx.wm == "hyprland" && hasDmsHyprlandSession
+    if windowManager == "hyprland" && hasDmsHyprlandSession
     then "hyprland-dms-uwsm"
-    else if ctx.wm == "hyprland" && (config.programs.hyprland.withUWSM or false)
+    else if windowManager == "hyprland" && (config.programs.hyprland.withUWSM or false)
     then "hyprland-uwsm"
-    else ctx.wm or ctx.de or null;
+    else if windowManager != null
+    then windowManager
+    else desktopEnvironment;
 in
   mkConfig {
     inherit context;
@@ -48,7 +53,7 @@ in
         description = "Default session name passed to the display manager (e.g. hyprland-dms-uwsm, hyprland-uwsm, gnome, cosmic).";
         type = nullOr str;
         default = defaultSession;
-        defaultText = literalExpression ''if a DMS Hyprland UWSM session exists then "hyprland-dms-uwsm" else if ctx.wm == "hyprland" && config.programs.hyprland.withUWSM then "hyprland-uwsm" else ctx.wm or ctx.de or null'';
+        defaultText = literalExpression ''if a DMS Hyprland UWSM session exists then "hyprland-dms-uwsm" else if host.interface.windowManager == "hyprland" && config.programs.hyprland.withUWSM then "hyprland-uwsm" else host.interface.windowManager or host.interface.desktopEnvironment or null'';
       };
 
       autologin = {

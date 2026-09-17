@@ -200,11 +200,13 @@
 
     allowed = [
       # "atuin"
+      "claude-code"
       "codex"
       "fastfetch"
       "freetube"
       "ghostty"
       "kitty"
+      "openclaw"
       "warp-terminal"
       "jujutsu"
       "obs-studio"

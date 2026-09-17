@@ -20,7 +20,7 @@
 
   interface = host.interface or {};
   selected = interface.displayManager or null;
-  compositor = interface.compositor.window or interface.compositor.desktop or null;
+  compositor = interface.compositor.window or (interface.compositor.desktop or null);
 in
   mkConfig {
     inherit context;

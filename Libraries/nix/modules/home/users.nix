@@ -68,6 +68,7 @@
       } @ args: let
         nixosConfig = args.nixosConfig or null;
         user = spec // {inherit name;};
+        inherit (pkgs.stdenv.hostPlatform) system;
 
         # Resolve interface first, then use that normalized protocol to resolve
         # protocol-specific application preferences. Leaf modules receive the
@@ -120,7 +121,7 @@
           # `inputs` is the canonical normalized flake-input contract.
           # Keep the per-user app/module selections separate so leaf modules
           # can reliably resolve inputs such as `vscode-insiders`.
-          inherit inputs;
+          inherit inputs system;
           inherit mkInput mkInputModules;
           inputsForHome = inputs';
         };

@@ -1,9 +1,10 @@
 {
   config,
   inputs,
+  system,
   lix,
-  pkgs,
   user,
+  pkgs,
   ...
 }: let
   dom = "ai";
@@ -11,36 +12,64 @@
   mod = "codex";
 
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.options.construction) mkEnable;
+  inherit (lix.lists.transformation) filter;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf mkMerge;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.types.combinators) attrsOf nullOr;
+  inherit (lix.types.primitives) anything package path;
 
-  context = mkContext {
-    inherit config dom sub mod;
-  };
+  context = mkContext {inherit config dom sub mod;};
+  inherit (context) cfg;
 
-  ai = user.applications.ai or {};
-  selectedApplications =
-    [
-      (ai.primary or null)
-      (ai.secondary or null)
-      (ai.tertiary or null)
-    ]
+  toml = pkgs.formats.toml {};
+
+  selectedApplications = let
+    ai = user.applications.ai or {};
+  in
+    map (key: ai.${key}) (
+      filter (key: ai ? ${key})
+      ["primary" "secondary" "tertiary"]
+    )
     ++ (user.applications.allowed or []);
-
-  codex = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 in
   mkConfig {
     inherit context;
 
     # Codex authentication and profiles are per-user state under ~/.codex.
-    # Install the client declaratively, but leave those secrets and login state
-    # to the user rather than copying them into the Nix store.
+    # `config` produces ~/.codex/config.toml. It supports models, providers,
+    # MCP, sandboxing, profiles, and other public Codex settings; use provider
+    # env_key/auth commands rather than placing credentials in this attrset.
     options = {
       enable = mkEnable {
         inherit context;
         condition = isIn ["codex"] selectedApplications;
       };
+
+      package = mkOption {
+        type = package;
+        default = inputs.llm-agents.packages.${system}.codex;
+      };
+
+      config = mkOption {
+        type = attrsOf anything;
+        default = {};
+      };
+
+      # A prewritten public config.toml takes precedence over generated config.
+      # Do not use this for tokens: Nix path inputs are copied into the store.
+      configFile = mkOption {
+        type = nullOr path;
+        default = null;
+      };
     };
 
-    outputs.home.packages = [codex];
+    outputs = mkMerge [
+      {home.packages = [cfg.package];}
+      (mkIf (cfg.configFile != null || cfg.config != {}) {
+        home.file.".codex/config.toml" =
+          if cfg.configFile != null
+          then {source = cfg.configFile;}
+          else {source = toml.generate "config.toml" cfg.config;};
+      })
+    ];
   }

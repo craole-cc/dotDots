@@ -44,6 +44,7 @@
   primitives = {
     inherit
       (types)
+      anything
       bool
       commas
       envVar
@@ -55,11 +56,10 @@
       package
       path
       pathInStore
+      raw
       separatedString
       str
       strMatching
-      anything
-      raw
       unspecified
       ;
   };

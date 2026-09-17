@@ -36,6 +36,8 @@
     str
     ;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
+
+  packagePolicy = host.settings.forNixpkgs or {};
 in
   mkConfig {
     inherit context;
@@ -239,6 +241,15 @@ in
     };
 
     outputs = mkMerge [
+      {
+        # The normalized host package policy also governs packages evaluated
+        # by NixOS modules, including QBX's NVIDIA driver. Environment
+        # variables only affect impure command invocations, not flake checks.
+        nixpkgs.config = {
+          allowBroken = packagePolicy.allowBroken or false;
+          allowUnfree = packagePolicy.allowUnfree or false;
+        };
+      }
       (mkNix {
         inherit host pkgs;
         inherit

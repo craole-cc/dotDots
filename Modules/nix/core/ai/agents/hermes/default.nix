@@ -9,19 +9,19 @@
   mod = "hermes";
 
   inherit (lix.lists.predicates) isIn;
+  inherit (lix.lists.transformation) filter;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
 
-  context = mkContext {
-    inherit config dom sub mod;
-  };
+  context = mkContext {inherit config dom sub mod;};
 
-  ai = (host.users.data.primary or {}).applications.ai or {};
-  selectedApplications = [
-    (ai.primary or null)
-    (ai.secondary or null)
-    (ai.tertiary or null)
-  ];
+  selectedApplications = let
+    ai = (host.users.data.primary or {}).applications.ai or {};
+  in
+    map (key: ai.${key}) (
+      filter (key: ai ? ${key})
+      ["primary" "secondary" "tertiary"]
+    );
 in
   mkConfig {
     inherit context;
@@ -31,11 +31,13 @@ in
     # deliberately does not reference services.hermes-agent.
     options.enable = mkEnable {
       inherit context;
-      condition = isIn [
-        "hermes"
-        "hermes-agent"
-        "hermes-desktop"
-      ] selectedApplications;
+      condition =
+        isIn [
+          "hermes"
+          "hermes-agent"
+          "hermes-desktop"
+        ]
+        selectedApplications;
     };
 
     outputs = {};
