@@ -29,13 +29,6 @@
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) str;
 
-  # A string -> path coercion trick: `/.` is the root path, and
-  # `path + string` concatenates then re-parses as a path. `dir` here
-  # must already be a resolved absolute-path *string* (paths.repo.lib.*
-  # is an { env, local, stem, store } set -- `.local` is the concrete
-  # on-disk string, the only representation readDir can walk).
-  asPath = dir: /. + dir;
-
   # True if `name` contains any of the configured exclusion patterns
   # as a substring -- e.g. "script copy.sh" matched by " copy.".
   matchesPattern = name: any (pattern: hasInfix pattern name) cfg.exclusions.patterns;
@@ -44,64 +37,25 @@
     parts = splitString "." name;
   in
     (length parts > 1) && elem (last parts) cfg.exclusions.extensions;
-  # Recursively collect directories that contain at least one
-  # qualifying file, pruning excluded directory names *before*
-  # descending -- so anything under review/, archive/, backup/, etc.
-  # is never even read, same as rg's --glob exclusion in dots.sh.
-  collect = dir:
-    if !(pathExists (asPath dir))
-    then []
-    else let
-      entries = readDir (asPath dir);
-      # TODO: Filter out patterns
-      scripts = attrNames entries;
-
-      dirs =
-        filter (
-          name:
-            (entries.${name} == "directory")
-            && !(elem name cfg.exclusions.directories)
-        )
-        scripts;
-
-      files =
-        filter (
-          name:
-            (entries.${name} == "regular")
-            && !(
-              let
-                parts = splitString "." name;
-              in
-                (length parts > 1)
-                && elem (last parts) cfg.exclusions.extensions
-            )
-        )
-        scripts;
-
-      children =
-        concatMap (
-          name: collect "${dir}/${name}"
-        )
-        dirs;
-    in
-      (optional (files != []) dir) ++ children;
-
   # Single tree walk producing both:
-  #   dirs  -- directories containing at least one qualifying file,
-  #            for PATH (same rule as before: pruning excluded dir
-  #            names, blacklisted extensions, and pattern matches
-  #            before descending)
-  #   files -- the qualifying files themselves, full path, for chmod
-  # Previously this would've needed two separate readDir passes over
-  # the same tree; one recursion now serves both consumers.
-  discover = dir:
-    if !(pathExists (asPath dir))
+  #   local.directories -- local directories containing at least one
+  #                        qualifying file, for PATH
+  #   local.files       -- qualifying local files, for chmod
+  # The store-backed source is traversed during pure evaluation, while
+  # every emitted value names the corresponding mutable local path.
+  discover = {
+    source,
+    local,
+  }:
+    if source == null || !(pathExists source)
     then {
-      dirs = [];
-      files = [];
+      local = {
+        directories = [];
+        files = [];
+      };
     }
     else let
-      entries = readDir (asPath dir);
+      entries = readDir source;
       entryNames = filter (name: !(matchesPattern name)) (attrNames entries);
 
       subdirs =
@@ -120,58 +74,50 @@
         )
         entryNames;
 
-      childResults = map (name: discover "${dir}/${name}") subdirs;
+      childResults = map (name:
+        discover {
+          source = source + "/${name}";
+          local = "${local}/${name}";
+        }) subdirs;
     in {
-      dirs =
-        (optional (localFiles != []) dir)
-        ++ (concatMap (r: r.dirs) childResults);
-      files =
-        (map (name: "${dir}/${name}") localFiles)
-        ++ (concatMap (r: r.files) childResults);
+      local = {
+        directories =
+          (optional (localFiles != []) local)
+          ++ (concatMap (result: result.local.directories) childResults);
+        files =
+          (map (name: "${local}/${name}") localFiles)
+          ++ (concatMap (result: result.local.files) childResults);
+      };
     };
 
   # rs > py > nu > pwsh > bash > sh -- label order here IS PATH
   # priority order downstream, since `unique` keeps first occurrence.
   labels = ["rs" "py" "nu" "pwsh" "bash" "sh"];
 
-  # { rs = "/.../rust"; py = "/.../python"; ... } -- .local pulls the
-  # resolved filesystem string out of each { env, local, stem, store } set.
+  # Keep both projections: `.store` is safe to traverse during pure flake
+  # evaluation, while `.local` is the path used by the activated system.
   roots = with paths.repo.lib;
     listToAttrs (map (name: {
         inherit name;
-        value =
-          (
-            getAttr name
-            {inherit rs py nu pwsh bash sh;}
-          ).local;
+        value = getAttr name {inherit rs py nu pwsh bash sh;};
       })
       labels);
 
   discovered = let
-    results = map (name: discover roots.${name}) labels;
+    results = map (name:
+      discover {
+        source = roots.${name}.store;
+        local = roots.${name}.local;
+      })
+    labels;
   in {
-    dirs = unique (concatMap (r: r.dirs) results);
-    files = unique (concatMap (r: r.files) results);
+    local = {
+      directories = unique (concatMap (result: result.local.directories) results);
+      files = unique (concatMap (result: result.local.files) results);
+    };
   };
 
   sessionVariables = let
-    # rs > py > nu > pwsh > bash > sh -- label order here IS PATH
-    # priority order downstream, since `unique` keeps first occurrence.
-    labels = ["rs" "py" "nu" "pwsh" "bash" "sh"];
-
-    # { rs = "/.../rust"; py = "/.../python"; ... } -- .local pulls the
-    # resolved filesystem string out of each { env, local, stem, store } set.
-    roots = with paths.repo.lib;
-      listToAttrs (map (name: {
-          inherit name;
-          value =
-            (
-              getAttr name
-              {inherit rs py nu pwsh bash sh;}
-            ).local;
-        })
-        labels);
-
     toVar = {
       name ? null,
       suffix ? null,
@@ -192,16 +138,13 @@
         acc
         // toVar {
           inherit suffix;
-          value = roots.${suffix};
+          value = roots.${suffix}.local;
         }) {}
       labels
     )
     // (toVar {
       name = "PATH";
-      value = unique (
-        cfg.extra
-        ++ (concatMap collect (map (name: roots.${name}) labels))
-      );
+      value = unique (cfg.extra ++ discovered.local.directories);
     });
 in
   mkConfig {
@@ -266,14 +209,15 @@ in
         type = listOf str;
       };
     };
-    # outputs = {
-    #   environment = {inherit sessionVariables;};
-    # };
     outputs = {
-      environment = {inherit sessionVariables;};
+      environment = {
+        inherit sessionVariables;
+      };
 
-      system.activationScripts.dotsScriptPermissions = mkIf (cfg.chmod && discovered.files != []) {
-        text = "chmod +x -- " + escapeShellArgs discovered.files;
+      system = {
+        activationScripts.dotsScriptPermissions = mkIf (cfg.chmod && discovered.local.files != []) {
+          text = "chmod +x -- " + escapeShellArgs discovered.local.files;
+        };
       };
     };
   }
