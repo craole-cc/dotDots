@@ -21,6 +21,7 @@
     ];
 
     patterns = [
+      " copy."
       " copy.nix"
       ".test.nix"
       ".spec.nix"

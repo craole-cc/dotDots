@@ -20,12 +20,11 @@
   inherit (lix.lists.construction) optional;
   inherit (lix.lists.predicates) any elem;
   inherit (lix.lists.transformation) filter unique;
-  inherit (lix.modules.construction) mkConfig mkContext mkIf;
-  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable mkOption mkTrue;
   inherit (lix.strings.construction) concat splitString;
-  inherit (lix.strings.transformation) escapeShellArgs toEnvVar;
   inherit (lix.strings.predicates) hasInfix;
-
+  inherit (lix.strings.transformation) escapeShellArgs toEnvVar;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) str;
 
@@ -44,47 +43,6 @@
     parts = splitString "." name;
   in
     (length parts > 1) && elem (last parts) cfg.exclusions.extensions;
-  # Recursively collect directories that contain at least one
-  # qualifying file, pruning excluded directory names *before*
-  # descending -- so anything under review/, archive/, backup/, etc.
-  # is never even read, same as rg's --glob exclusion in dots.sh.
-  collect = dir:
-    if !(pathExists (asPath dir))
-    then []
-    else let
-      entries = readDir (asPath dir);
-      # TODO: Filter out patterns
-      scripts = attrNames entries;
-
-      dirs =
-        filter (
-          name:
-            (entries.${name} == "directory")
-            && !(elem name cfg.exclusions.directories)
-        )
-        scripts;
-
-      files =
-        filter (
-          name:
-            (entries.${name} == "regular")
-            && !(
-              let
-                parts = splitString "." name;
-              in
-                (length parts > 1)
-                && elem (last parts) cfg.exclusions.extensions
-            )
-        )
-        scripts;
-
-      children =
-        concatMap (
-          name: collect "${dir}/${name}"
-        )
-        dirs;
-    in
-      (optional (files != []) dir) ++ children;
 
   # Single tree walk producing both:
   #   dirs  -- directories containing at least one qualifying file,
@@ -155,23 +113,6 @@
   };
 
   sessionVariables = let
-    # rs > py > nu > pwsh > bash > sh -- label order here IS PATH
-    # priority order downstream, since `unique` keeps first occurrence.
-    labels = ["rs" "py" "nu" "pwsh" "bash" "sh"];
-
-    # { rs = "/.../rust"; py = "/.../python"; ... } -- .local pulls the
-    # resolved filesystem string out of each { env, local, stem, store } set.
-    roots = with paths.repo.lib;
-      listToAttrs (map (name: {
-          inherit name;
-          value =
-            (
-              getAttr name
-              {inherit rs py nu pwsh bash sh;}
-            ).local;
-        })
-        labels);
-
     toVar = {
       name ? null,
       suffix ? null,
@@ -198,16 +139,14 @@
     )
     // (toVar {
       name = "PATH";
-      value = unique (
-        cfg.extra
-        ++ (concatMap collect (map (name: roots.${name}) labels))
-      );
+      value = unique (cfg.extra ++ discovered.dirs);
     });
 in
   mkConfig {
     inherit context;
     options = {
       enable = mkEnable {inherit context;};
+      chmod = mkTrue "Whether to make discovered scripts executable at system activation";
       exclusions = {
         extensions = mkOption {
           description = "File extensions to ignore when discovering valid scripts";
@@ -253,7 +192,7 @@ in
         };
 
         patterns = mkOption {
-          description = "Patterns to ignore when from paths names when discovering valid scripts";
+          description = "Substrings to exclude from paths names when discovering valid scripts";
           default =
             paths.exclusions.patterns or [" copy."];
           type = listOf str;
@@ -265,14 +204,14 @@ in
         type = listOf str;
       };
     };
-    # outputs = {
-    #   environment = {inherit sessionVariables;};
-    # };
-    outputs = {
-      environment = {inherit sessionVariables;};
-
-      system.activationScripts.dotsScriptPermissions = mkIf (cfg.chmod && discovered.files != []) {
-        text = "chmod +x -- " + escapeShellArgs discovered.files;
-      };
-    };
+    outputs =
+      {environment = {inherit sessionVariables;};}
+      // (
+        if cfg.chmod && discovered.files != []
+        then {
+          system.activationScripts.dotsScriptPermissions.text =
+            "chmod +x -- " + escapeShellArgs discovered.files;
+        }
+        else {}
+      );
   }

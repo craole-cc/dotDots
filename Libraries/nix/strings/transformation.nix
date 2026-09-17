@@ -18,6 +18,7 @@
       toUpper'
       trim'
       toEnv
+      toEnvVar
       trimEnd
       trimStart
       wrap
@@ -690,40 +691,22 @@
   */
   toEnv = value: toUpper (normalize value);
 
-  # wrap = {
-  #   token ? "`",
-  #   input,
-  #   type ? "string",
-  #   sep ? "",
-  # }: let
-  #   types = ["string" "list"];
+  /**
+  Build a single session/env binding: { NAME = value; }.
+  name is any stem or list of stems accepted by toEnvName.
+  Type
+  nixtoEnv :: (string | [string]) -> a -> { ${string} :: a }
+  Examples
+  nixtoEnv "path" "/usr/bin"
+  # => { PATH = "/usr/bin"; }
 
-  #   asList = token': input':
-  #     map (item:
-  #       concat "" [
-  #         token'
-  #         (toString item)
-  #         token'
-  #       ]) (toList input');
+  toEnvVar ["dots" "lib" "rs"] "/…/rust"
+  # => { DOTS_LIB_RS = "/…/rust"; }
+  */
+  toEnvVar = name: value: {
+    ${toScreamingSnake name} = value;
+  };
 
-  #   asString = token': input': sep':
-  #     concat sep' (asList token' (toString input'));
-  # in
-  #   assert withContext {
-  #     name = concat "." ["strings" "construction" "wrap"];
-  #     context = concat " " ["wrapping" "string" "values"];
-  #     assertion = isIn type types;
-  #     message = concat " " [
-  #       "expected"
-  #       (asString "`" "type" "")
-  #       "to"
-  #       "be"
-  #       (asString "`" types " or ")
-  #     ];
-  #   };
-  #     if type == "list"
-  #     then asList token input
-  #     else asString token input sep;
   wrap = value: let
     args =
       if isAttrs value
@@ -735,16 +718,8 @@
           then value // {input = value.text;}
           else
             assert withContext {
-              name = concat "." [
-                "strings"
-                "construction"
-                "wrap"
-              ];
-              context = concat " " [
-                "validating"
-                "wrap"
-                "input"
-              ];
+              name = concat "." ["strings" "construction" "wrap"];
+              context = concat " " ["validating" "wrap" "input"];
               assertion = false;
               message = "expected attrset to have an `input` or `text` key";
             }; null
@@ -753,31 +728,15 @@
       then {input = value;}
       else
         assert withContext {
-          name = concat "." [
-            "strings"
-            "construction"
-            "wrap"
-          ];
-          context = concat " " [
-            "validating"
-            "wrap"
-            "value"
-          ];
+          name = concat "." ["strings" "construction" "wrap"];
+          context = concat " " ["validating" "wrap" "value"];
           assertion = false;
           message = "expected `value` to be a string, list, or attrset";
         }; null;
 
     input = assert withContext {
-      name = concat "." [
-        "strings"
-        "construction"
-        "wrap"
-      ];
-      context = concat " " [
-        "validating"
-        "wrap"
-        "input"
-      ];
+      name = concat "." ["strings" "construction" "wrap"];
+      context = concat " " ["validating" "wrap" "input"];
       assertion = isNotEmpty args.input;
       message = "expected `input` to be a non-null value or a non-empty list";
     };
@@ -787,43 +746,35 @@
       token' = args.token or "`";
     in
       assert withContext {
-        name = concat "." [
-          "strings"
-          "construction"
-          "wrap"
-        ];
-        context = concat " " [
-          "validating"
-          "wrap"
-          "token"
-        ];
+        name = concat "." ["strings" "construction" "wrap"];
+        context = concat " " ["validating" "wrap" "token"];
         assertion = isString token' && token' != "";
         message = "expected `token` to be a non-empty string";
       }; token';
+
+    escape = args.escape or false;
 
     delimiter = let
       sep = args.delimiter or (args.sep or (optionalString (isList args.input) " or "));
     in
       assert withContext {
-        name = concat "." [
-          "strings"
-          "construction"
-          "wrap"
-        ];
-        context = concat " " [
-          "validating"
-          "wrap"
-          "delimiter"
-        ];
+        name = concat "." ["strings" "construction" "wrap"];
+        context = concat " " ["validating" "wrap" "delimiter"];
         assertion = isString sep;
         message = "expected `delimiter` to be a string";
       }; sep;
+
+    # Shell single-quote escape: ' → '\''
+    escapeBody = s:
+      if escape && token == "'"
+      then replaceStrings ["'"] ["'\\''"] (toString s)
+      else toString s;
 
     rendered = map (
       item:
         concat "" [
           token
-          (toString item)
+          (escapeBody item)
           token
         ]
     ) (toList input);
