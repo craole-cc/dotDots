@@ -1,46 +1,51 @@
-# {
-#   config,
-#   host,
-#   lix,
-#   ...
-# }: let
-#   dom = "ai";
-#   sub = "agents";
-#   mod = "hermes";
-#   inherit (lix.modules.construction) mkConfig mkContext;
-#   inherit (lix.lists.predicates) isIn;
-#   inherit (lix.options.construction) mkEnable;
-#   context = mkContext {
-#     inherit config dom sub mod;
-#   };
-#   ai = (host.users.data.primary or {}).applications.ai or {};
-#   selectedApplications = [
-#     (ai.primary or null)
-#     (ai.secondary or null)
-#     (ai.tertiary or null)
-#   ];
-#   isSelected =
-#     isIn [
-#       "hermes"
-#       "hermes-agent"
-#       "hermes-desktop"
-#     ]
-#     selectedApplications;
-# in
-#   mkConfig {
-#     inherit context;
-#     options.enable = mkEnable {
-#       inherit context;
-#       condition = isSelected;
-#     };
-#     outputs = {
-#       services.hermes-agent = {
-#         enable = true;
-#         # The system module runs the gateway. Install its optional messaging
-#         # integrations without imposing a model, secret source, or backend on
-#         # every host; those remain explicit host-level service settings.
-#         extraDependencyGroups = ["messaging"];
-#       };
-#     };
-#   }
+{
+  config,
+  lix,
+  user,
+  ...
+}: let
+  dom = "ai";
+  sub = "agents";
+  mod = "hermes";
+
+  inherit (lix.lists.predicates) isIn;
+  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.options.construction) mkEnable;
+
+  context = mkContext {
+    inherit config dom sub mod;
+  };
+
+  ai = user.applications.ai or {};
+  isSelected = isIn [
+    "hermes"
+    "hermes-agent"
+    "hermes-desktop"
+  ] [
+    (ai.primary or null)
+    (ai.secondary or null)
+    (ai.tertiary or null)
+  ];
+in
+  mkConfig {
+    inherit context;
+
+    options.enable = mkEnable {
+      inherit context;
+      condition = isSelected;
+    };
+
+    outputs = {
+      services.hermes-agent = {
+        enable = true;
+        gateway.enable = true;
+        extraDependencyGroups = ["messaging"];
+      };
+
+      programs.hermes-agent = {
+        enable = true;
+        desktop.enable = true;
+      };
+    };
+  }
 {}
