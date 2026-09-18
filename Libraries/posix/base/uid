@@ -1,14 +1,30 @@
 #!/bin/sh
 
-#{ Get the current shell PID }
-proc="$$"
+#~@ Process IDs
+#> Get the parent and current shell process IDs
+#? Each zero-padded to 5 digits
+proc="$(printf '%05d_%05d' "${$}" "${PPID:-0}" 2>/dev/null)"
 
-#{ Try to get Unix timestamp, fallback to a fixed value}
-secs="$(date +%s 2>/dev/null || printf '1000000001')"
-
-#{ Try to get formatted timestamp from custom 'clock' script }
-#? Assumes 'clock' is in PATH; otherwise 'time' will be empty
+#~@ Timestamp
+#> Try to get formatted timestamp from custom 'clock' script
 time="$(clock --timestamp --format "%Y%m%d%H%M%S" 2>/dev/null)"
 
-#{ Print unique identifier: _PID_timestamp or _PID_seconds }
-printf "_%s_%s\n" "${proc}" "${time:-"${secs}"}"
+#> Try standard date command (`YYYYMMDDHHMMSS`)
+[ -n "${time:-}" ] || time="$(date +%Y%m%d%H%M%S 2>/dev/null)"
+
+#> Fallback to `Unix` seconds if it fails
+[ -n "${time:-}" ] || time="$(date +%s 2>/dev/null)"
+
+#~@ Portable Pseudo-Random Suffix
+#> Read 4 raw bytes from `/dev/urandom` and pipe into POSIX `cksum` (outputs: "`CRC_NUM` `BYTE_COUNT`")
+rand_raw="$(dd if=/dev/urandom bs=4 count=1 2>/dev/null | cksum)"
+
+#> Strip trailing space & byte count (${rand_raw%% *}), then format CRC number into an 8-char hex string
+rand_hex="$(printf '%08x' "${rand_raw%% *}" 2>/dev/null)"
+
+#~@ Final Output
+#> Return the strictly sortable identifier: `Datetime_PIDs_HEX`
+printf "%s_%s_%s\n" \
+  "${time:-1000000001}" \
+  "${proc:-00000_00000}" \
+  "${rand_hex:-00000000}"

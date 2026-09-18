@@ -1,3 +1,10 @@
 {
-  "Includes": ["platform.ps1", "color.ps1", "module.ps1", "updates.ps1", "_._"]
+  "Includes": [
+    "platform.ps1",
+    "color.ps1",
+    "module.ps1",
+    "uid.ps1",
+    "updates.ps1",
+    "_._"
+  ]
 }
