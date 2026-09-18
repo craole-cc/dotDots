@@ -90,26 +90,53 @@
       };
     };
 
-  # rs > py > nu > pwsh > bash > sh -- label order here IS PATH
-  # priority order downstream, since `unique` keeps first occurrence.
-  labels = ["rs" "py" "nu" "pwsh" "bash" "sh"];
+  # Keep every named library root available for its DOTS_LIB_* variable.
+  languageLabels = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix"];
+
+  # Only these roots receive explicit PATH priority. Every other top-level
+  # Libraries directory is appended after them.
+  priorityLabels = ["rs" "py" "sh"];
 
   # Keep both projections: `.store` is safe to traverse during pure flake
   # evaluation, while `.local` is the path used by the activated system.
   roots = with paths.repo.lib;
     listToAttrs (map (name: {
         inherit name;
-        value = getAttr name {inherit rs py nu pwsh bash sh;};
+        value = getAttr name {inherit rs py nu pwsh bash sh nix;};
       })
-      labels);
+      languageLabels);
+
+  # Traverse the store-backed Libraries tree during pure evaluation, while
+  # emitting only corresponding local paths for PATH and activation.
+  libraryRoot = {
+    source = dirOf paths.repo.lib.default.store;
+    local = dirOf paths.repo.lib.default.local;
+  };
+  libraryEntries = readDir libraryRoot.source;
+  priorityDirectoryNames = map (name: baseNameOf roots.${name}.local) priorityLabels;
+  additionalDirectoryNames =
+    filter (
+      name:
+        (libraryEntries.${name} == "directory")
+        && name != "nix"
+        && !(elem name priorityDirectoryNames)
+    )
+    (attrNames libraryEntries);
+  discoveryRoots =
+    (map (name: roots.${name}) priorityLabels)
+    ++ (map (name: {
+        store = libraryRoot.source + "/${name}";
+        local = "${libraryRoot.local}/${name}";
+      })
+      additionalDirectoryNames);
 
   discovered = let
-    results = map (name:
+    results = map (root:
       discover {
-        source = roots.${name}.store;
-        local = roots.${name}.local;
+        source = root.store;
+        local = root.local;
       })
-    labels;
+    discoveryRoots;
   in {
     local = {
       directories = unique (concatMap (result: result.local.directories) results);
@@ -133,14 +160,14 @@
     (toVar {value = dirOf paths.repo.lib.default.local;})
     // (
       # DOTS_LIB_RS, DOTS_LIB_PY, DOTS_LIB_NU, DOTS_LIB_PWSH, DOTS_LIB_BASH,
-      # DOTS_LIB_SH -- one var per language root, pointing at its resolved dir.
+      # DOTS_LIB_SH, DOTS_LIB_NIX -- one variable per named library root.
       foldl' (acc: suffix:
         acc
         // toVar {
           inherit suffix;
           value = roots.${suffix}.local;
         }) {}
-      labels
+      languageLabels
     )
     // (toVar {
       name = "PATH";

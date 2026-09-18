@@ -8,29 +8,20 @@
 # ? `colorscheme` and `verbosity` tools rather than reimplemented here
 # ? -- this script used to carry its own copy of the KDE/portal/GNOME/
 # ? GTK detection cascade and its own bool/env verbosity parsing; both
-# ? are now single-source-of-truth elsewhere. See resolve_tool() (from
-# ? the shared lib below) for how their paths are found.
+# ? are now single-source-of-truth elsewhere. The helpers below resolve
+# ? their commands through an explicit override or PATH.
 
-#> Locate & source the shared resolve-tool library (has_cmd,
-#? resolve_tool, run_tool, require_tool). Inlined rather than calling
-#? resolve_tool itself, since that isn't defined until this succeeds.
-#? Same override -> relative-path -> PATH cascade philosophy as
-#? resolve_tool proper, just self-contained for this bootstrap step.
-if [ -n "${CMD_RESOLVE_TOOL_LIB:-}" ] && [ -f "${CMD_RESOLVE_TOOL_LIB}" ]; then
-  . "${CMD_RESOLVE_TOOL_LIB}"
-else
-  _rt_self_dir=$(dirname -- "$0" 2> /dev/null) || _rt_self_dir="."
-  _rt_candidate="${_rt_self_dir}/../../lib/resolve-tool.sh"
-  if [ -f "${_rt_candidate}" ]; then
-    . "${_rt_candidate}"
-  elif command -v resolve-tool.sh > /dev/null 2>&1; then
-    . "$(command -v resolve-tool.sh)"
+#> Resolve optional helper commands from explicit overrides or PATH.
+resolve_command() {
+  configured="$1"
+  command_name="$2"
+
+  if [ -n "${configured}" ] && [ -x "${configured}" ]; then
+    printf "%s\n" "${configured}"
   else
-    printf "Error: resolve-tool.sh library not found (CMD_RESOLVE_TOOL_LIB, relative path, or PATH)\n" >&2
-    exit 1
+    command -v "${command_name}" 2> /dev/null || true
   fi
-  unset _rt_self_dir _rt_candidate
-fi
+}
 
 initialize_environment() {
   #> Early exit if not on Wayland
@@ -46,10 +37,12 @@ initialize_environment() {
   #> Resolve tool paths once, so detect_scheme/log_debug/etc never
   #? need to re-run this lookup. Missing tools are reported here, up
   #? front, rather than surfacing later as an opaque failure.
-  COLORSCHEME_CMD=$(resolve_tool "colorscheme" "CMD_COLORSCHEME" "$0" "../../interface/theme/colorscheme") \
-    || printf "Warning: colorscheme not found (CMD_COLORSCHEME, relative path, or PATH); theme detection will default to dark.\n" >&2
-  VERBOSITY_CMD=$(resolve_tool "verbosity" "CMD_VERBOSITY" "$0" "../../output/verbosity") \
-    || printf "Warning: verbosity not found (CMD_VERBOSITY, relative path, or PATH); defaulting to level 3.\n" >&2
+  COLORSCHEME_CMD=$(resolve_command "${CMD_COLORSCHEME:-}" "colorscheme")
+  [ -n "${COLORSCHEME_CMD}" ] ||
+    printf "Warning: colorscheme not found (CMD_COLORSCHEME or PATH); theme detection will default to dark.\n" >&2
+  VERBOSITY_CMD=$(resolve_command "${CMD_VERBOSITY:-}" "verbosity")
+  [ -n "${VERBOSITY_CMD}" ] ||
+    printf "Warning: verbosity not found (CMD_VERBOSITY or PATH); defaulting to level 3.\n" >&2
 
   #> Resolve verbosity ONCE, numerically, via the `verbosity` tool.
   #? Everything else in this script just compares $LEVEL with [ ], via
@@ -57,7 +50,7 @@ initialize_environment() {
   #? and +N/-N handling all owned by `verbosity` itself -- this script
   #? never re-parses VERBOSE/DEBUG/verbosity env vars on its own.
   if [ -n "${VERBOSITY_CMD:-}" ]; then
-    LEVEL=$(run_tool "${VERBOSITY_CMD}")
+    LEVEL=$("${VERBOSITY_CMD}")
   else
     LEVEL=3
   fi
@@ -117,7 +110,7 @@ strip_verbose_flag() {
     case "${arg}" in
       -v | --verbose)
         if [ -n "${VERBOSITY_CMD:-}" ]; then
-          LEVEL=$(run_tool "${VERBOSITY_CMD}" --level "${LEVEL:-3}" --default "${LEVEL:-3}" +1)
+          LEVEL=$("${VERBOSITY_CMD}" --level "${LEVEL:-3}" --default "${LEVEL:-3}" +1)
         else
           #? verbosity tool unavailable -- fall back to a plain bump,
           #? clamped to the same 0-5 range verbosity itself enforces.
@@ -144,7 +137,7 @@ detect_scheme() {
     return 1
   fi
 
-  scheme=$(run_tool "${COLORSCHEME_CMD}" --get 2> /dev/null)
+  scheme=$("${COLORSCHEME_CMD}" --get 2> /dev/null)
   case "${scheme}" in
     light | dark)
       printf "%s" "${scheme}"
@@ -324,19 +317,11 @@ EXAMPLES:
 NOTES:
   - Requires foot terminal emulator installed
   - Theme detection and verbosity resolution are delegated to the
-    \`colorscheme\` and \`verbosity\` tools, found via the shared
-    lib/resolve-tool.sh library's resolve_tool(), in order:
+    \`colorscheme\` and \`verbosity\` tools, found in order:
       1. CMD_COLORSCHEME / CMD_VERBOSITY env var, if set
-      2. relative to this script's own location (e.g. alongside it
-         in the same Nix store path)
-      3. on PATH
+      2. on PATH
     If neither tool can be found, theme detection defaults to dark
     and verbosity defaults to level 3, with a warning on startup.
-  - lib/resolve-tool.sh itself is located the same way (env override,
-    then ../../lib/resolve-tool.sh relative to this script, then
-    PATH) -- see the bootstrap block at the top of this file. Set
-    CMD_RESOLVE_TOOL_LIB to pin it explicitly (e.g. from a Nix
-    wrapper).
   - Monitor updates theme file; use F12 to toggle in existing terminals
   - -v/--verbose on --detect/--monitor bumps the already-resolved
     verbosity level by one step (via \`verbosity ... +1\`), it doesn't
@@ -345,7 +330,6 @@ NOTES:
 ENVIRONMENT:
   CMD_COLORSCHEME        Explicit path to the colorscheme tool
   CMD_VERBOSITY          Explicit path to the verbosity tool
-  CMD_RESOLVE_TOOL_LIB   Explicit path to lib/resolve-tool.sh
 
   Verbosity is resolved once at startup via \`verbosity\` -- see
   \`verbosity --help\` for the full set of recognized environment

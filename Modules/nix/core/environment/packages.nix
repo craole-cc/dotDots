@@ -118,7 +118,10 @@
       optionals
       (displayProtocol == "wayland")
       (with pkgs; [wl-clipboard]);
-    linux = optionals isLinux (with pkgs; [xsel]);
+    linux = optionals isLinux (with pkgs; [
+      bubblewrap
+      xsel
+    ]);
     darwin = optionals isDarwin (with pkgs; [pngpaste]);
 
     default = with pkgs; [
@@ -142,6 +145,7 @@
 
       #~@ System
       coreutils
+      diffutils
       uutils-coreutils-noprefix
       findutils
       gawk
@@ -159,6 +163,7 @@
       dust
       eza
       fd
+      file
       fzf
       lsd
       ouch
@@ -174,6 +179,7 @@
 
       #~@ Dev
       bat
+      patch
       gitui
       helix
       jq
