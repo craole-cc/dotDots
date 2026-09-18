@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lix,
   ...
 }: let
@@ -10,20 +11,23 @@
   };
   inherit (context) cfg mod top;
 
-  inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkTrue;
 
-  shell = config.${top}.resolved.interface.shell.interactive or null;
+  shell = host.interface.shell.interactive or null;
+  lineEditor = host.interface.shell.lineEditor or null;
 in
   mkConfig {
     inherit context;
     options = {
       enable = mkEnable {
         description = "Bourne Again Shell";
-        condition = isIn "bash" [shell];
+        condition = shell == "bash";
       };
-      blesh = mkTrue "ble.sh";
+      blesh = mkEnable {
+        description = "ble.sh";
+        condition = lineEditor == "blesh";
+      };
       undistractMe = mkTrue "Undistract Me";
     };
     outputs = {
