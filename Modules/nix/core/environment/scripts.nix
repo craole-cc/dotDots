@@ -25,18 +25,14 @@
   inherit (lix.strings.construction) concat splitString;
   inherit (lix.strings.transformation) escapeShellArgs toEnvVar;
   inherit (lix.strings.predicates) hasInfix;
-
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) str;
 
-  # True if `name` contains any of the configured exclusion patterns
-  # as a substring -- e.g. "script copy.sh" matched by " copy.".
-  matchesPattern = name: any (pattern: hasInfix pattern name) cfg.exclusions.patterns;
+  labels = {
+    common = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix"];
+    priority = ["rs" "py" "sh"];
+  };
 
-  hasBlacklistedExt = name: let
-    parts = splitString "." name;
-  in
-    (length parts > 1) && elem (last parts) cfg.exclusions.extensions;
   # Single tree walk producing both:
   #   local.directories -- local directories containing at least one
   #                        qualifying file, for PATH
@@ -55,196 +51,219 @@
       };
     }
     else let
-      entries = readDir source;
-      entryNames = filter (name: !(matchesPattern name)) (attrNames entries);
+      contents = readDir source;
+      entries =
+        filter
+        (name:
+          !(
+            any
+            (pattern: hasInfix pattern name)
+            cfg.exclusions.patterns
+          ))
+        (attrNames contents);
 
-      subdirs =
-        filter (
-          name:
-            (entries.${name} == "directory")
-            && !(elem name cfg.exclusions.directories)
-        )
-        entryNames;
-
-      localFiles =
-        filter (
-          name:
-            (entries.${name} == "regular")
-            && !(hasBlacklistedExt name)
-        )
-        entryNames;
-
-      childResults = map (name:
+      directories = map (name:
         discover {
           source = source + "/${name}";
           local = "${local}/${name}";
-        }) subdirs;
+        }) (
+        filter (
+          name:
+            (contents.${name} == "directory")
+            && !(elem name cfg.exclusions.directories)
+        )
+        entries
+      );
+
+      files =
+        filter (
+          name:
+            (contents.${name} == "regular")
+            && !(
+              let
+                parts = splitString "." name;
+              in
+                (length parts > 1)
+                && elem (last parts) cfg.exclusions.extensions
+            )
+        )
+        entries;
     in {
       local = {
         directories =
-          (optional (localFiles != []) local)
-          ++ (concatMap (result: result.local.directories) childResults);
+          (optional (files != []) local)
+          ++ (
+            concatMap
+            (results: results.local.directories)
+            directories
+          );
         files =
-          (map (name: "${local}/${name}") localFiles)
-          ++ (concatMap (result: result.local.files) childResults);
+          (map (name: "${local}/${name}") files)
+          ++ (
+            concatMap
+            (results: results.local.files)
+            directories
+          );
       };
     };
 
-  # Keep every named library root available for its DOTS_LIB_* variable.
-  languageLabels = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix"];
-
-  # Only these roots receive explicit PATH priority. Every other top-level
-  # Libraries directory is appended after them.
-  priorityLabels = ["rs" "py" "sh"];
-
   # Keep both projections: `.store` is safe to traverse during pure flake
   # evaluation, while `.local` is the path used by the activated system.
-  roots = with paths.repo.lib;
-    listToAttrs (map (name: {
-        inherit name;
-        value = getAttr name {inherit rs py nu pwsh bash sh nix;};
-      })
-      languageLabels);
+  roots = listToAttrs (
+    map (name: {
+      inherit name;
+      value = getAttr name (
+        removeAttrs paths.repo.lib ["default"]
+      );
+    })
+    labels.common
+  );
 
-  # Traverse the store-backed Libraries tree during pure evaluation, while
-  # emitting only corresponding local paths for PATH and activation.
-  libraryRoot = {
-    source = dirOf paths.repo.lib.default.store;
-    local = dirOf paths.repo.lib.default.local;
-  };
-  libraryEntries = readDir libraryRoot.source;
-  priorityDirectoryNames = map (name: baseNameOf roots.${name}.local) priorityLabels;
-  additionalDirectoryNames =
-    filter (
-      name:
-        (libraryEntries.${name} == "directory")
-        && name != "nix"
-        && !(elem name priorityDirectoryNames)
-    )
-    (attrNames libraryEntries);
-  discoveryRoots =
-    (map (name: roots.${name}) priorityLabels)
-    ++ (map (name: {
-        store = libraryRoot.source + "/${name}";
-        local = "${libraryRoot.local}/${name}";
-      })
-      additionalDirectoryNames);
+  libraries = let
+    # Traverse the store-backed Libraries tree during pure evaluation, while
+    # emitting only corresponding local paths for PATH and activation.
+    root = with paths.repo.lib.default; {
+      source = dirOf store;
+      local = dirOf local;
+    };
+    entries = readDir root.source;
+  in {inherit root entries;};
 
   discovered = let
     results = map (root:
       discover {
         source = root.store;
         local = root.local;
-      })
-    discoveryRoots;
+      }) (
+      (map (name: roots.${name}) labels.priority)
+      ++ (map (name: {
+          store = libraries.root.source + "/${name}";
+          local = "${libraries.root.local}/${name}";
+        })
+        (filter (
+          name:
+            (libraries.entries.${name} == "directory")
+            && name != "nix"
+            && !(elem name (
+              map (name: baseNameOf roots.${name}.local)
+              labels.priority
+            ))
+        ) (attrNames libraries.entries)))
+    );
   in {
     local = {
-      directories = unique (concatMap (result: result.local.directories) results);
-      files = unique (concatMap (result: result.local.files) results);
+      directories = unique (
+        concatMap
+        (result: result.local.directories)
+        results
+      );
+      files = unique (
+        concatMap
+        (result: result.local.files)
+        results
+      );
     };
   };
 
-  sessionVariables = let
-    toVar = {
-      name ? null,
-      suffix ? null,
-      value,
-    }:
-      toEnvVar (
-        if name != null
-        then name
-        else (concat "_" [(names.src or "dots") "lib" suffix])
-      )
-      value;
-  in
-    (toVar {value = dirOf paths.repo.lib.default.local;})
-    // (
-      # DOTS_LIB_RS, DOTS_LIB_PY, DOTS_LIB_NU, DOTS_LIB_PWSH, DOTS_LIB_BASH,
-      # DOTS_LIB_SH, DOTS_LIB_NIX -- one variable per named library root.
-      foldl' (acc: suffix:
-        acc
-        // toVar {
-          inherit suffix;
-          value = roots.${suffix}.local;
-        }) {}
-      languageLabels
-    )
-    // (toVar {
-      name = "PATH";
-      value = unique (cfg.extra ++ discovered.local.directories);
-    });
-in
-  mkConfig {
-    inherit context;
-    options = {
-      enable = mkEnable {inherit context;};
-      chmod = mkTrue "Whether to make discovered scripts executable at system activation";
-      exclusions = {
-        extensions = mkOption {
-          description = "File extensions to ignore when discovering valid scripts";
-          default = [
-            "bac"
-            "bak"
-            "gif"
-            "jpeg"
-            "jpg"
-            "json"
-            "lock"
-            "md"
-            "old"
-            "pdf"
-            "png"
-            "svg"
-            "toml"
-            "txt"
-            "yaml"
-            "yml"
-          ];
-          type = listOf str;
-        };
-
-        directories = mkOption {
-          description = "Directories to ignore when discovering valid scripts";
-          default =
-            paths.exclusions.directories or [
-              "review"
-              "archive"
-              "internal"
-              "imports"
-              "data"
-              "test"
-              "tmp"
-              "temp"
-              "wip"
-              "deprecated"
-              "experimental"
-              "backup"
-            ];
-          type = listOf str;
-        };
-
-        patterns = mkOption {
-          description = "Patterns to ignore when from paths names when discovering valid scripts";
-          default =
-            paths.exclusions.patterns or [" copy."];
-          type = listOf str;
-        };
+  options = {
+    enable = mkEnable {inherit context;};
+    chmod = mkTrue "Whether to make discovered scripts executable at system activation";
+    exclusions = {
+      extensions = mkOption {
+        description = "File extensions to ignore when discovering valid scripts";
+        default = [
+          "bac"
+          "bak"
+          "gif"
+          "jpeg"
+          "jpg"
+          "json"
+          "lock"
+          "md"
+          "old"
+          "pdf"
+          "png"
+          "svg"
+          "toml"
+          "txt"
+          "yaml"
+          "yml"
+        ];
+        type = listOf str;
       };
-      extra = mkOption {
-        description = "Additional directories to prepend to PATH, highest priority first";
-        default = [];
+
+      directories = mkOption {
+        description = "Directories to ignore when discovering valid scripts";
+        default =
+          paths.exclusions.directories or [
+            "review"
+            "archive"
+            "internal"
+            "imports"
+            "data"
+            "test"
+            "tmp"
+            "temp"
+            "wip"
+            "deprecated"
+            "experimental"
+            "backup"
+          ];
+        type = listOf str;
+      };
+
+      patterns = mkOption {
+        description = "Patterns to ignore when from paths names when discovering valid scripts";
+        default =
+          paths.exclusions.patterns or [" copy."];
         type = listOf str;
       };
     };
-    outputs = {
-      environment = {
-        inherit sessionVariables;
-      };
-
-      system = {
-        activationScripts.dotsScriptPermissions = mkIf (cfg.chmod && discovered.local.files != []) {
-          text = "chmod +x -- " + escapeShellArgs discovered.local.files;
-        };
-      };
+    extra = mkOption {
+      description = "Additional directories to prepend to PATH, highest priority first";
+      default = [];
+      type = listOf str;
     };
-  }
+  };
+
+  outputs = {
+    environment.sessionVariables = let
+      toVar = {
+        name ? null,
+        suffix ? null,
+        value,
+      }:
+        toEnvVar (
+          if name != null
+          then name
+          else (concat "_" [(names.src or "dots") "lib" suffix])
+        )
+        value;
+    in
+      (toVar {value = libraries.root.local;})
+      // (
+        # DOTS_LIB_RS, DOTS_LIB_PY, DOTS_LIB_NU, DOTS_LIB_PWSH, DOTS_LIB_BASH,
+        # DOTS_LIB_SH, DOTS_LIB_NIX -- one variable per named library root.
+        foldl' (acc: suffix:
+          acc
+          // toVar {
+            inherit suffix;
+            value = roots.${suffix}.local;
+          }) {}
+        labels.common
+      )
+      // (toVar {
+        name = "PATH";
+        value = unique (cfg.extra ++ discovered.local.directories);
+      });
+
+    system.activationScripts.dotsScriptPermissions =
+      mkIf
+      (cfg.chmod && discovered.local.files != []) {
+        text =
+          "chmod +x -- "
+          + escapeShellArgs discovered.local.files;
+      };
+  };
+in
+  mkConfig {inherit context options outputs;}

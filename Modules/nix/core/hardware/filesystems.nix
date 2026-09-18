@@ -12,6 +12,7 @@
   inherit (context) cfg;
 
   inherit (lix.attrsets.transformation) mapAttrs;
+  inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) bool;
@@ -48,24 +49,32 @@ in
       fileSystems = mkIf cfg.enable (
         mapAttrs (
           _: fs:
-            {
-              inherit (fs) device fsType;
-            }
+            {inherit (fs) device fsType;}
             // (
-              if fs.options or [] == []
-              then {}
-              else {inherit (fs) options;}
+              optionalAttrs
+              ((fs.options or []) != [])
+              {inherit (fs) options;}
+              # if (fs.options or []) == []
+              # then {}
+              # else {inherit (fs) options;}
             )
-        ) (host.devices.storage.mounts or host.devices.storage.file or {})
+        ) (host.devices.storage.mounts or (
+          host.devices.storage.file or {}
+        ))
       );
 
       swapDevices = mkIf cfg.enable (
-        map (s: {inherit (s) device;}) (host.devices.storage.swap or host.devices.swap or [])
+        map (swap: {inherit (swap) device;})
+        (host.devices.storage.swap or (
+          host.devices.swap or []
+        ))
       );
 
-      services.udisks2 = mkIf (cfg.enable && cfg.udisks) {
-        enable = true;
-        mountOnMedia = true;
+      services = {
+        udisks2 = mkIf (cfg.enable && cfg.udisks) {
+          enable = true;
+          mountOnMedia = true;
+        };
       };
     };
   }

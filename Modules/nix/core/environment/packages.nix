@@ -180,6 +180,7 @@
       rsync
       sad
       trashy
+      udiskie
 
       #~@ Network
       curl
@@ -187,8 +188,16 @@
       gh
 
       #~@ Dev
+      (rust-bin.selectLatestNightlyWith (toolchain:
+        toolchain.default.override {
+          extensions = [
+            "clippy"
+            "rust-analyzer"
+            "rust-src"
+            "rustfmt"
+          ];
+        }))
       bat
-      rustNightly
       patch
       gitui
       helix
