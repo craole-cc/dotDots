@@ -60,6 +60,16 @@ function Global:Get-DOTS {
     )
   )
 
+  if ($env:DOTS) {
+    $dotsRc = Join-Path $env:DOTS '.dotsrc'
+    if (Test-Path -LiteralPath $dotsRc -PathType Leaf) {
+      $Global:DOTS = $env:DOTS
+      $Global:DOTS_RC = $dotsRc
+      Set-Item -Path 'env:DOTS_RC' -Value $DOTS_RC
+      return
+    }
+  }
+
   foreach ($parent in $Parents) {
     # Normalize to full system path
     try { $absParent = [IO.Path]::GetFullPath($parent) } catch { continue }

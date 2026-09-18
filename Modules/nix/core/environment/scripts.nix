@@ -11,8 +11,7 @@
     mod = "scripts";
   };
   inherit (context) cfg;
-  inherit (lix.attrsets.access) attrNames getAttr;
-  inherit (lix.attrsets.construction) listToAttrs;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.filesystem.access) readDir;
   inherit (lix.filesystem.predicates) pathExists;
   inherit (lix.lists.access) last length;
@@ -25,13 +24,8 @@
   inherit (lix.strings.construction) concat splitString;
   inherit (lix.strings.transformation) escapeShellArgs toEnvVar;
   inherit (lix.strings.predicates) hasInfix;
-  inherit (lix.types.combinators) listOf;
+  inherit (lix.types.combinators) enum listOf;
   inherit (lix.types.primitives) str;
-
-  labels = {
-    common = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix" "zig"];
-    priority = ["rs" "zig" "py" "sh"];
-  };
 
   # Single tree walk producing both:
   #   local.directories -- local directories containing at least one
@@ -109,15 +103,7 @@
 
   # Keep both projections: `.store` is safe to traverse during pure flake
   # evaluation, while `.local` is the path used by the activated system.
-  roots = listToAttrs (
-    map (name: {
-      inherit name;
-      value = getAttr name (
-        removeAttrs paths.repo.lib ["default"]
-      );
-    })
-    labels.common
-  );
+  roots = removeAttrs paths.repo.lib ["default"];
 
   libraries = let
     # Traverse the store-backed Libraries tree during pure evaluation, while
@@ -131,11 +117,18 @@
 
   discovered = let
     results = map (root:
-      discover {
-        source = root.store;
-        local = root.local;
-      }) (
-      (map (name: roots.${name}) labels.priority)
+      discover (
+        if pathExists (root.store + "/bin")
+        then {
+          source = root.store + "/bin";
+          local = "${root.local}/bin";
+        }
+        else {
+          source = root.store;
+          local = root.local;
+        }
+      )) (
+      (map (name: roots.${name}) cfg.priority)
       ++ (map (name: {
           store = libraries.root.source + "/${name}";
           local = "${libraries.root.local}/${name}";
@@ -146,7 +139,7 @@
             && name != "nix"
             && !(elem name (
               map (name: baseNameOf roots.${name}.local)
-              labels.priority
+              cfg.priority
             ))
         ) (attrNames libraries.entries)))
     );
@@ -168,6 +161,11 @@
   options = {
     enable = mkEnable {inherit context;};
     chmod = mkTrue "Whether to make discovered scripts executable at system activation";
+    priority = mkOption {
+      description = "Library labels to place first on PATH, highest priority first";
+      default = ["zig" "rs" "py" "bash" "sh"];
+      type = listOf (enum (attrNames roots));
+    };
     exclusions = {
       extensions = mkOption {
         description = "File extensions to ignore when discovering valid scripts";
@@ -250,7 +248,7 @@
             inherit suffix;
             value = roots.${suffix}.local;
           }) {}
-        labels.common
+        (attrNames roots)
       )
       // (toVar {
         name = "PATH";
