@@ -20,8 +20,8 @@
 .SYNOPSIS
     Locates the DOTS directory by searching parent directories for target folders with marker files.
 .DESCRIPTION
-    Searches through specified parent directories for target folder names (like '.dots', 'dotfiles', etc.) and checks for the presence
-    of marker files (like '.dotsrc', '.git', 'flake.nix') to identify the DOTS directory.
+    Searches through specified parent directories for target folder names (like `.dots`, 'dotfiles', etc.) and checks for the presence
+    of marker files (like `.dotsrc`, `.git`, `flake.nix`) to identify the DOTS directory.
 .PARAMETER Parents
     An array of parent directories to search. Defaults to common dotfiles locations.
 .PARAMETER Targets
@@ -122,6 +122,7 @@ function Global:Invoke-DOTS {
   }
   else {
     try {
+      Set-DOTSPowerShellPath
       Write-Verbose "Attempting to invoke polyglot RC: ${DOTS_RC}"
       Invoke-PolyglotRC $DOTS_RC
     }
@@ -129,6 +130,43 @@ function Global:Invoke-DOTS {
       Write-Error "Failed to load DOTS_RC: $_"
       return $null
     }
+  }
+}
+
+#endregion
+
+#region Shell Path
+
+<#
+.SYNOPSIS
+    Places the discovered PowerShell library directories before other libraries.
+
+.DESCRIPTION
+    Keeps the system PATH language-neutral while giving a PowerShell session
+    precedence to its native .ps1 command directories. The paths have already
+    been discovered by the Nix script environment; this function only reorders
+    them and does not walk the library tree at shell startup.
+#>
+function Global:Set-DOTSPowerShellPath {
+  [CmdletBinding()]
+  param()
+
+  $library = $env:DOTS_LIB_PWSH
+  if (-not $library) {
+    $library = Join-Path $DOTS 'Libraries/powershell'
+  }
+
+  $separator = [string][IO.Path]::PathSeparator
+  $entries = @($env:PATH -split [Regex]::Escape($separator) | Where-Object { $_ })
+  $native = @($entries | Where-Object {
+      $_ -eq $library -or
+      $_.StartsWith("$library/") -or
+      $_.StartsWith("$library\\")
+    })
+
+  if ($native.Count -gt 0) {
+    $env:PATH = (@($native) + @($entries | Where-Object { $_ -notin $native }) |
+      Select-Object -Unique) -join $separator
   }
 }
 

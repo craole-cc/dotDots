@@ -163,7 +163,7 @@
     chmod = mkTrue "Whether to make discovered scripts executable at system activation";
     priority = mkOption {
       description = "Library labels to place first on PATH, highest priority first";
-      default = ["zig" "rs" "py" "bash" "sh"];
+      default = ["zig" "rs" "py" "bash" "sh"]; #TODO: This should come from the schema (global < host < user)
       type = listOf (enum (attrNames roots));
     };
     exclusions = {

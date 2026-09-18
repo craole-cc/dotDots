@@ -2,6 +2,7 @@
   config,
   lib,
   lix,
+  paths,
   pkgs,
   user,
   ...
@@ -18,6 +19,11 @@
     mod = "nushell";
   };
   isAllowed = isIn "nushell" ((user.shells or []) ++ (user.applications.allowed or []));
+  nuSection = lib.concatMapStringsSep "\n" (line: lib.removePrefix "#nu " line) (
+    lib.filter (line: lib.hasPrefix "#nu " line) (
+      lib.splitString "\n" (builtins.readFile ../../../../../../.dotsrc)
+    )
+  );
 in
   mkConfig {
     inherit context;
@@ -27,7 +33,14 @@ in
     };
     outputs = {
       programs.nushell = mkMerge [
-        {enable = true;}
+        {
+          enable = true;
+          extraEnv = ''
+            $env.DOTS = ($env.DOTS? | default "${paths.repo.src.local}")
+            $env.DOTS_RC = ($env.DOTS | path join ".dotsrc")
+          '';
+          extraConfig = nuSection;
+        }
         # (import ./plugins.nix {inherit pkgs;})
         (import ./settings.nix)
       ];

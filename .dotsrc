@@ -6,24 +6,18 @@
 
 # === NUSHELL ===
 # Nushell ignores lines starting with '#' except when they start with '#nu'
-#nu if ($env.DOTS == null) {
-#nu     print --error "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
-#nu     exit 1
+#nu if not ("DOTS" in $env) {
+#nu     error make {msg: "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."}
 #nu }
 #nu
 #nu if not ($env.DOTS | path exists) {
-#nu     print --error $"Missing DOTS directory: ($env.DOTS)"
-#nu     exit 1
+#nu     error make {msg: $"Missing DOTS directory: ($env.DOTS)"}
 #nu }
 #nu
-#nu let dots_env = ($env.DOTS | path join "Environment" "_.nu")
-#nu if not ($dots_env | path exists) {
-#nu     print --error $"Missing required configuration module: ($dots_env)"
-#nu     exit 1
-#nu }
-#nu
-#nu source $dots_env
-#nu exit $env.LAST_EXIT_CODE
+#nu $env.DOTS_BIN = ($env.DOTS_BIN? | default ($env.DOTS | path join "Bin"))
+#nu $env.DOTS_CFG = ($env.DOTS_CFG? | default ($env.DOTS | path join "Configuration"))
+#nu $env.DOTS_ENV = ($env.DOTS_ENV? | default ($env.DOTS | path join "Environment"))
+#nu $env.DOTS_MOD = ($env.DOTS_MOD? | default ($env.DOTS | path join "Modules"))
 
 # === POSIX SHELLS (bash, zsh, sh) ===
 #~@ Load the DOTS environment

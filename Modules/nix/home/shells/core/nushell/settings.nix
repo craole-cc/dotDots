@@ -1,7 +1,7 @@
 {
   settings = {
     history = {
-      format = "sqlite";
+      file_format = "sqlite";
     };
     show_banner = false;
   };
