@@ -29,7 +29,7 @@
   inherit (lix.types.primitives) str;
 
   labels = {
-    common = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix"];
+    common = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix" "zig"];
     priority = ["rs" "zig" "py" "sh"];
   };
 

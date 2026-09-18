@@ -68,6 +68,7 @@
         rs = base ++ ["rust"];
         py = base ++ ["python"];
         sh = base ++ ["bash"];
+        zig = base ++ ["zig"];
         global = default ++ ["global"];
         hosts = default ++ ["hosts"];
         users = default ++ ["users"];
@@ -119,6 +120,7 @@
         pwsh = base ++ ["powershell"];
         bash = base ++ ["bash"];
         py = base ++ ["python"];
+        zig = base ++ ["zig"];
       };
 
       mod = let
