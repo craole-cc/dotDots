@@ -10,33 +10,19 @@
   dom = "environment";
   mod = "packages";
 
-  inherit (lix.modules.construction) mkConfig mkContext mkIf;
-  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.applications.registry) resolve;
+  inherit (lix.applications.resolution) bars browsers editors launchers terminals;
+  inherit (lix.applications.runtime) resolvePackage;
   inherit (lix.lists.construction) optionals;
   inherit (lix.lists.selection) filter;
-  inherit (lix.lists.transformation) unique;
+  inherit (lix.lists.transformation) flatten unique;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package;
-  inherit (lix.applications.registry) resolve;
-  inherit (lix.applications.runtime) resolvePackage;
-  inherit
-    (lix.applications.resolution)
-    bars
-    browsers
-    editors
-    launchers
-    terminals
-    ;
-  inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin system;
+  inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux system;
 
-  context = mkContext {
-    inherit
-      config
-      dom
-      mod
-      top
-      ;
-  };
+  context = mkContext {inherit config dom mod top;};
   inherit (context) cfg ice;
 
   user = host.users.data.primary or {};
@@ -69,9 +55,6 @@
       config = apps.bar or {};
     };
 
-    # File managers are registry-native even though the older application
-    # resolution helper has no explorer wrapper yet. Install every selected
-    # role so GUI/TUI file-manager choices are not accidental transitive deps.
     explorer = unique (filter (pkg: pkg != null) (
       map (
         name: let
@@ -91,74 +74,126 @@
       ])
     ));
 
-    # AI desktop clients are registry-owned too. Resolve them through the same
-    # normalized input contract as the rest of the application model so raw
-    # flake aliases such as `ai` never leak into module consumers.
-    aiNames = [
-      "chatgpt"
-      "hermes-desktop"
-      "claude-desktop"
-    ];
-    aiDesktop = optionals isLinux (unique (filter (pkg: pkg != null) (
-      map (
-        name: let
-          app = resolve {
-            value = name;
-            category = "ai";
-          };
-        in
-          resolvePackage {
-            inherit app inputs pkgs system;
-          }
-      )
-      aiNames
-    )));
+    ai = let
+      tools = ["chatgpt" "hermes-desktop" "claude-desktop"];
+    in
+      optionals isLinux (unique (filter (pkg: pkg != null) (
+        map (
+          name: let
+            app = resolve {
+              value = name;
+              category = "ai";
+            };
+          in
+            resolvePackage {inherit app inputs pkgs system;}
+        )
+        tools
+      )));
 
-    wayland =
-      optionals
-      (displayProtocol == "wayland")
-      (with pkgs; [wl-clipboard]);
-    linux = optionals isLinux (with pkgs; [
-      bubblewrap
-      xsel
-    ]);
-    darwin = optionals isDarwin (with pkgs; [pngpaste]);
+    #~@ Languages & Development
+    dev = let
+      Nix = with pkgs; [
+        alejandra
+        cachix
+        lorri
+        nil
+        nix-diff
+        nix-index
+        nix-info
+        nix-output-monitor
+        nix-prefetch
+        nix-prefetch-docker
+        nix-prefetch-github
+        nix-prefetch-scripts
+        nixd
+        nixfmt
+        nvfetcher
+        statix
+      ];
 
-    default = with pkgs; [
-      #~@ Nix
-      alejandra
-      cachix
-      lorri
-      nil
-      nix-diff
-      nix-index
-      nix-info
-      nix-output-monitor
-      nix-prefetch
-      nix-prefetch-docker
-      nix-prefetch-github
-      nix-prefetch-scripts
-      nixd
-      nixfmt
-      nvfetcher
-      statix
+      Python = with pkgs; [
+        python3Minimal
+        ruff
+      ];
 
-      #~@ System
+      Rust = with pkgs; [
+        (rust-bin.selectLatestNightlyWith (toolchain:
+          toolchain.default.override {
+            extensions = [
+              "clippy"
+              "rust-analyzer"
+              "rust-src"
+              "rustfmt"
+            ];
+          }))
+      ];
+
+      Shellscript = with pkgs; [
+        shellcheck
+        shfmt
+      ];
+
+      Nushell = with pkgs; [
+        nu-lint
+      ];
+
+      PowerShell = with pkgs; [
+        powershell
+      ];
+
+      Zig = with pkgs; [
+        zig
+        zls
+        ziglint
+      ];
+
+      Tools = with pkgs; [
+        bat
+        dprint
+        gitui
+        gum
+        helix
+        jq
+        jql
+        patch
+        ripgrep
+        treefmt
+      ];
+    in
+      flatten [
+        Nix
+        Nushell
+        PowerShell
+        Python
+        Rust
+        Shellscript
+        Tools
+        Zig
+      ];
+
+    #~@ System & Utilities
+    utils = with pkgs; [
+      btop
       coreutils
       diffutils
-      uutils-coreutils-noprefix
+      fastfetch
+      fend
+      figlet
       findutils
       gawk
       getent
+      gnome-randr
       gnused
+      lolcat
       lshw
       pciutils
-      usbutils
-      gnome-randr
-      wlr-randr
       procs
+      usbutils
+      uutils-coreutils-noprefix
+      wlr-randr
+    ];
 
-      #~@ Files
+    files = with pkgs; [
       dua
       dust
       eza
@@ -172,44 +207,15 @@
       sad
       trashy
       udiskie
+    ];
 
-      #~@ Network
+    network = with pkgs; [
       curl
       wget
       gh
+    ];
 
-      #~@ Dev
-      python3Minimal
-      (rust-bin.selectLatestNightlyWith (toolchain:
-        toolchain.default.override {
-          extensions = [
-            "clippy"
-            "rust-analyzer"
-            "rust-src"
-            "rustfmt"
-          ];
-        }))
-      bat
-      patch
-      gitui
-      helix
-      jq
-      jql
-      ripgrep
-      gum
-      shfmt
-      shellcheck
-      nu-lint
-      dprint
-
-      #~@ Shell
-      btop
-      fastfetch
-      fend
-      figlet
-      lolcat
-
-      #TODO: Move these to a real home
+    media = with pkgs; [
       shortwave
       imagemagick
       imv
@@ -218,24 +224,39 @@
       viu
     ];
 
-    common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar ++ aiDesktop;
+    #~@ Platform Helpers
+    wayland = optionals (displayProtocol == "wayland") (with pkgs; [
+      wl-clipboard
+    ]);
+    linux = optionals isLinux (with pkgs; [
+      bubblewrap
+      xsel
+    ]);
+    darwin = optionals isDarwin (with pkgs; [pngpaste]);
+
+    common = editor ++ browser ++ terminal ++ explorer ++ launcher ++ bar ++ ai;
     machine = wayland ++ linux ++ darwin;
-    overall = default ++ common ++ machine;
+    overall = utils ++ dev ++ files ++ network ++ media ++ common ++ machine;
   in {
     inherit
-      editor
-      browser
-      terminal
-      explorer
-      launcher
+      ai
       bar
-      aiDesktop
-      wayland
-      linux
-      darwin
+      browser
       common
+      darwin
+      dev
+      editor
+      explorer
+      files
+      launcher
+      linux
       machine
+      media
+      network
       overall
+      utils
+      terminal
+      wayland
       ;
   };
 in
@@ -260,6 +281,6 @@ in
 
     outputs = mkIf cfg.enable {
       nixpkgs.overlays = [inputs."rust-overlay".overlays.default];
-      environment.systemPackages = cfg.default ++ cfg.extra;
+      environment.systemPackages = flatten (cfg.default ++ cfg.extra);
     };
   }

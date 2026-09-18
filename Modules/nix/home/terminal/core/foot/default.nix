@@ -22,6 +22,7 @@
     dom = "terminal";
     sub = "emulators";
     mod = "foot";
+    kind = "terminal";
   };
   inherit (context) cfg;
 
@@ -31,13 +32,6 @@
       colorscheme = sh + "/interface/theme/colorscheme";
       verbosity = sh + "/output/verbosity";
       feet = sh + "/packages/wrappers/foot.sh";
-      /**
-      Q: Should colorscheme keep its own -q/--quiet and -d/--verbose flags as shortcuts (mapping to verbosity levels), or drop them in favor of verbosity's own flag syntax?
-      A: No — replace -q/-d entirely with verbosity's own flags (--level, +1, etc.)
-
-      Q: Should colorscheme resolve the verbosity tool the same three-tier way (env var, relative to script, PATH) that we just built for foot.sh?
-      A: Yes, use the same resolve_tool/run_tool pattern from foot.sh
-      */
       script = feet;
     in {
       inherit feet;
@@ -105,6 +99,10 @@ in
   mkConfig {
     inherit context;
     options = {
+      enable = mkEnable {
+        inherit context;
+        condition = resolved.enable;
+      };
       customCommand = mkOption {
         description = "Command name to run, overriding the resolved package binary.";
         default = "feet";
@@ -133,11 +131,6 @@ in
         default = false;
         type = bool;
       };
-
-      # enable = mkEnable {
-      #   inherit context;
-      #   condition = resolved.enable;
-      # };
       isPrimary = mkOption {
         description = "Whether `foot` is the user's primary terminal choice.";
         default = resolved.isPrimary;

@@ -213,9 +213,9 @@
       "obs-studio"
       "yazi"
       "vim"
-      "vscode" # stable FHS + declarative Insiders are kept as a pair
-      # "tmux"
+      "vscode"
     ];
+
     utilities = {
       atuin.enable = true;
       bat.enable = true;
