@@ -42,6 +42,15 @@
   user = host.users.data.primary or {};
   apps = user.applications or {};
   displayProtocol = ice.displayProtocol or null;
+  rustNightly = pkgs.rust-bin.selectLatestNightlyWith (toolchain:
+    toolchain.default.override {
+      extensions = [
+        "rust-src"
+        "rust-analyzer"
+        "rustfmt"
+        "clippy"
+      ];
+    });
 
   registry = let
     editor = editors.packages {
@@ -179,6 +188,7 @@
 
       #~@ Dev
       bat
+      rustNightly
       patch
       gitui
       helix
@@ -247,6 +257,7 @@ in
     };
 
     outputs = mkIf cfg.enable {
+      nixpkgs.overlays = [inputs."rust-overlay".overlays.default];
       environment.systemPackages = cfg.default ++ cfg.extra;
     };
   }

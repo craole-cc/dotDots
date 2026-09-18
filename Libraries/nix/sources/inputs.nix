@@ -374,6 +374,12 @@
         "nous"
       ];
 
+      rust-overlay = tryNames [
+        "rustOverlay"
+        "rust-overlay"
+        "oxalica"
+      ];
+
       noctalia-shell = tryNames [
         "shellNoctalia"
         "noctaliaShell"

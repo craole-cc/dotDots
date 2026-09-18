@@ -116,6 +116,7 @@
     })
     (variantOverlay {inherit packages;})
     (fromInputsOverlay {inherit packages;})
+    (inputs.rust-overlay.overlays.default or (_: _: {}))
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
 

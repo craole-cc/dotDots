@@ -1,5 +1,6 @@
 {
   imports = [
+    ./programs/common/rust.nix
     # ./programs
     # ./services
   ];

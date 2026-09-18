@@ -185,6 +185,13 @@
       owner = "NousResearch";
       type = "github";
     };
+
+    rustOverlay = {
+      repo = "rust-overlay";
+      owner = "oxalica";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
   };
 
   nixConfig = {
