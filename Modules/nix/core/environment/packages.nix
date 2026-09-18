@@ -133,31 +133,33 @@
         shfmt
       ];
 
-      Nushell = with pkgs; [
-        nu-lint
-      ];
+      Nushell =
+        (with pkgs; [
+          nushell
+          nu-lint
+          nufmt
+        ])
+        ++ (with pkgs.nushellPlugins; [
+          net
+          polars
+          gstat
+          units
+          skim
+          query
+          formats
+          highlight
+          desktop_notifications
+        ]);
 
       PowerShell = with pkgs; [
         powershell
+        powershell-editor-services
       ];
 
       Zig = with pkgs; [
         zig
         zls
         ziglint
-      ];
-
-      Tools = with pkgs; [
-        bat
-        dprint
-        gitui
-        gum
-        helix
-        jq
-        jql
-        patch
-        ripgrep
-        treefmt
       ];
     in
       flatten [
@@ -167,12 +169,21 @@
         Python
         Rust
         Shellscript
-        Tools
         Zig
       ];
 
     #~@ System & Utilities
     utils = with pkgs; [
+      bat
+      dprint
+      gitui
+      gum
+      helix
+      jq
+      jql
+      patch
+      ripgrep
+      treefmt
       btop
       coreutils
       diffutils
