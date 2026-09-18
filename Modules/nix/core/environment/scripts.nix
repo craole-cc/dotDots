@@ -30,7 +30,7 @@
 
   labels = {
     common = ["rs" "py" "nu" "pwsh" "bash" "sh" "nix"];
-    priority = ["rs" "py" "sh"];
+    priority = ["rs" "zig" "py" "sh"];
   };
 
   # Single tree walk producing both:
