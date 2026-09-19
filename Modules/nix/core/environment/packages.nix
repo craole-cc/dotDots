@@ -140,14 +140,14 @@
           nufmt
         ])
         ++ (with pkgs.nushellPlugins; [
-          net
+          # net #? Broken
           polars
           gstat
-          units
+          # units #? Broken
           skim
           query
           formats
-          highlight
+          # highlight #? Broken
           desktop_notifications
         ]);
 
