@@ -52,6 +52,12 @@
     in
       tailscale // {inherit enable;};
 
+    guacamole = let
+      guacamole = remote.guacamole or {};
+      enable = guacamole.enable or false;
+    in
+      guacamole // {inherit enable;};
+
     caddy = let
       caddy = remote.caddy or {};
       enable = caddy.enable or (elem "webDev" (host.functionalities or []));
@@ -60,7 +66,7 @@
   in
     raw
     // {
-      remote = {inherit caddy ssh tailscale;};
+      remote = {inherit caddy guacamole ssh tailscale;};
       inherit tailscale;
     };
 

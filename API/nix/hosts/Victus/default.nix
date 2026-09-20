@@ -169,6 +169,12 @@ in {
         keyOnly = true;
       };
       tailscale.enable = true;
+      guacamole = {
+        enable = true;
+        desktopUser = "craole";
+        username = "craole";
+        passwordHash = "6a3ec540d97df7547b694a1d8ec5b332";
+      };
       caddy.enable = false;
     };
     firewall = {

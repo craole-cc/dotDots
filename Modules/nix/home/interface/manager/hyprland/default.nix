@@ -401,5 +401,8 @@ in
         description = "Hyprland window rules";
       };
     };
-    outputs = payload;
+    outputs = mkMerge [
+      payload
+      (import ./wayvnc.nix {inherit host lib pkgs user;})
+    ];
   }

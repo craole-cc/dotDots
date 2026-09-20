@@ -69,6 +69,12 @@
 #       tailscale = {
 #         enable = true; #? Enable Tailscale mesh VPN daemon
 #       };
+#       guacamole = {
+#         enable = false; #? Enable the Tailscale-only Guacamole web gateway
+#         userMappingXml = null; #? Credentialed VNC/RDP/SSH connection mapping
+#         desktopUser = null; #? Logged-in user whose Wayland desktop to share
+#         passwordHash = null; #? MD5 hash for the generated Guacamole login
+#       };
 #       caddy = {
 #         enable = false; #? Enable Caddy reverse proxy server
 #       };
