@@ -11,138 +11,299 @@ The script supports two modes:
 - Stdin mode reads PowerShell source from standard input and writes the
   formatted source to standard output.
 
-PSScriptAnalyzer is provided by the surrounding Nix environment. This script
-does not install, update, or otherwise modify PowerShell modules.
+Formatting indentation is read from the nearest applicable .editorconfig.
+The following EditorConfig properties are supported:
+
+    indent_style = space | tab
+    indent_size  = <number> | tab
+
+PSScriptAnalyzer is provided by the surrounding environment. This script
+does not install or modify PowerShell modules.
 
 .PARAMETER stdin
 Reads PowerShell source from standard input and writes the formatted source
 to standard output.
 
-This mode is useful for editor integrations and Unix-style pipelines.
-
 .PARAMETER FilePaths
 One or more PowerShell script paths to format in-place.
 
 .EXAMPLE
-pwsh-format script.ps1
+pwshfmt script.ps1
 
 Formats script.ps1 in-place.
 
 .EXAMPLE
-pwsh-format script1.ps1 script2.ps1
+pwshfmt script1.ps1 script2.ps1
 
 Formats multiple PowerShell files in-place.
 
 .EXAMPLE
-Get-Content script.ps1 -Raw | pwsh-format --stdin
+Get-Content script.ps1 -Raw | pwshfmt --stdin
 
-Reads script.ps1 from standard input and writes the formatted source to
-standard output.
-
-.EXAMPLE
-pwsh-format --stdin < script.ps1 > formatted.ps1
-
-Formats a PowerShell file through standard input and writes the result to
-another file.
+Formats PowerShell source received through standard input.
 
 .NOTES
-Requires PSScriptAnalyzer.
+Formatting indentation is controlled by .editorconfig.
 
-PSScriptAnalyzer is supplied declaratively by Nix and is made available
-through PSModulePath by the pwsh-format wrapper.
+For example:
 
-Formatting behaviour is configured in this script through $formatSettings.
+    [*.ps1]
+    indent_style = space
+    indent_size = 2
 
-The formatter writes files as UTF-8 without a BOM.
+If no applicable .editorconfig is found, PSScriptAnalyzer's defaults are
+used.
 
-.LINK
-https://learn.microsoft.com/powershell/utility-modules/psscriptanalyzer/overview
-
-.LINK
-https://github.com/PowerShell/PSScriptAnalyzer
+PSScriptAnalyzer is supplied externally and is not installed by this script.
 #>
-
 
 [CmdletBinding()]
 param(
-    [switch]$stdin,
+  [switch]$stdin,
 
-    [Parameter(Position = 0, ValueFromRemainingArguments)]
-    [string[]]$FilePaths
+  [Parameter(Position = 0, ValueFromRemainingArguments)]
+  [string[]]$FilePaths
 )
 
 $ErrorActionPreference = "Stop"
 
 Import-Module PSScriptAnalyzer
 
-$formatSettings = @{
-    Rules = @{
-        PSUseConsistentIndentation = @{
-            Enable              = $true
-            IndentationSize     = 2
-            PipelineIndentation = "IncreaseIndentationForFirstPipeline"
-            Kind                = "space"
-        }
-        PSTrimWhitespaceAroundPipe = @{
-            Enable = $true
-        }
-        PSWhitespaceBetweenParameters = @{
-            Enable = $true
-        }
+
+function Get-EditorConfigPath {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Path
+  )
+
+  $directory = if (Test-Path -LiteralPath $Path -PathType Container) {
+    (Resolve-Path -LiteralPath $Path).ProviderPath
+  }
+  else {
+    (Resolve-Path -LiteralPath (Split-Path -Parent $Path)).ProviderPath
+  }
+
+  while ($true) {
+    $config = Join-Path $directory ".editorconfig"
+
+    if (Test-Path -LiteralPath $config -PathType Leaf) {
+      return $config
     }
+
+    $parent = [System.IO.Directory]::GetParent($directory)
+
+    if ($null -eq $parent) {
+      return $null
+    }
+
+    $directory = $parent.FullName
+  }
 }
+
+
+function Get-EditorConfigIndentation {
+  param(
+    [Parameter(Mandatory)]
+    [string]$FilePath
+  )
+
+  $configPath = Get-EditorConfigPath $FilePath
+
+  if ($null -eq $configPath) {
+    return @{}
+  }
+
+  $extension = [System.IO.Path]::GetExtension($FilePath).ToLowerInvariant()
+
+  $sections = @{}
+  $currentSection = $null
+
+  foreach ($line in [System.IO.File]::ReadLines($configPath)) {
+    $line = $line.Trim()
+
+    if (
+      [string]::IsNullOrWhiteSpace($line) -or
+      $line.StartsWith("#") -or
+      $line.StartsWith(";")
+    ) {
+      continue
+    }
+
+    if ($line -match '^\[(.+)\]$') {
+      $currentSection = $Matches[1]
+      $sections[$currentSection] = @{}
+      continue
+    }
+
+    if (
+      $null -ne $currentSection -and
+      $line -match '^\s*([^=]+?)\s*=\s*(.*?)\s*$'
+    ) {
+      $key = $Matches[1].Trim().ToLowerInvariant()
+      $value = $Matches[2].Trim()
+
+      $sections[$currentSection][$key] = $value
+    }
+  }
+
+  $settings = @{}
+
+  foreach ($section in $sections.Keys) {
+    $matches = $false
+
+    switch ($section) {
+      "*" {
+        $matches = $true
+      }
+
+      "*.ps1" {
+        $matches = $extension -eq ".ps1"
+      }
+
+      "*.psm1" {
+        $matches = $extension -eq ".psm1"
+      }
+
+      "*.psd1" {
+        $matches = $extension -eq ".psd1"
+      }
+    }
+
+    if ($matches) {
+      foreach ($key in $sections[$section].Keys) {
+        $settings[$key] = $sections[$section][$key]
+      }
+    }
+  }
+
+  return $settings
+}
+
+
+function New-FormatterSettings {
+  param(
+    [Parameter(Mandatory)]
+    [string]$FilePath
+  )
+
+  $editorConfig = Get-EditorConfigIndentation $FilePath
+
+  $rules = @{}
+
+  if ($editorConfig.ContainsKey("indent_style")) {
+    $style = $editorConfig["indent_style"]
+
+    switch ($style) {
+      "space" {
+        $kind = "space"
+      }
+
+      "tab" {
+        $kind = "tab"
+      }
+
+      default {
+        $kind = $null
+      }
+    }
+
+    if ($null -ne $kind) {
+      $indentation = @{
+        Enable              = $true
+        Kind                = $kind
+        PipelineIndentation = "IncreaseIndentationForFirstPipeline"
+      }
+
+      if ($editorConfig.ContainsKey("indent_size")) {
+        $size = $editorConfig["indent_size"]
+
+        if ($size -match '^\d+$') {
+          $indentation.IndentationSize = [int]$size
+        }
+      }
+
+      $rules.PSUseConsistentIndentation = $indentation
+    }
+  }
+
+  $rules.PSTrimWhitespaceAroundPipe = @{
+    Enable = $true
+  }
+
+  $rules.PSWhitespaceBetweenParameters = @{
+    Enable = $true
+  }
+
+  return @{
+    Rules = $rules
+  }
+}
+
 
 function Format-Code {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Code
-    )
+  param(
+    [Parameter(Mandatory)]
+    [string]$Code,
 
-    Invoke-Formatter `
-        -ScriptDefinition $Code `
-        -Settings $formatSettings
+    [Parameter(Mandatory)]
+    [string]$FilePath
+  )
+
+  $settings = New-FormatterSettings $FilePath
+
+  Invoke-Formatter `
+    -ScriptDefinition $Code `
+    -Settings $settings
 }
+
 
 if ($stdin) {
-    $reader = [System.IO.StreamReader]::new(
-        [System.Console]::OpenStandardInput()
-    )
+  $reader = [System.IO.StreamReader]::new(
+    [System.Console]::OpenStandardInput()
+  )
 
-    try {
-        $source = $reader.ReadToEnd()
-    }
-    finally {
-        $reader.Dispose()
-    }
+  try {
+    $source = $reader.ReadToEnd()
+  }
+  finally {
+    $reader.Dispose()
+  }
 
-    Format-Code $source
-    exit $LASTEXITCODE
+  # stdin has no inherent file path, so use the current directory
+  # when resolving .editorconfig.
+  $virtualPath = Join-Path (Get-Location) "stdin.ps1"
+
+  Format-Code $source $virtualPath
+  exit 0
 }
+
 
 if ($FilePaths.Count -eq 0) {
-    exit 0
+  exit 0
 }
+
 
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
+
 foreach ($file in $FilePaths) {
-    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
-        [Console]::Error.WriteLine(
-            "pwsh-format: file not found: $file"
-        )
-        exit 1
-    }
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+    [Console]::Error.WriteLine(
+      "pwshfmt: file not found: $file"
+    )
+    exit 1
+  }
 
-    $path = (Resolve-Path -LiteralPath $file).ProviderPath
-    $source = [System.IO.File]::ReadAllText($path)
+  $path = (Resolve-Path -LiteralPath $file).ProviderPath
+  $source = [System.IO.File]::ReadAllText($path)
 
-    $formatted = Format-Code $source
+  $formatted = Format-Code $source $path
 
-    if ($formatted -ne $source) {
-        [System.IO.File]::WriteAllText(
-            $path,
-            $formatted,
-            $utf8NoBom
-        )
-    }
+  if ($formatted -ne $source) {
+    [System.IO.File]::WriteAllText(
+      $path,
+      $formatted,
+      $utf8NoBom
+    )
+  }
 }
