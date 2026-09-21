@@ -79,7 +79,7 @@ $formatSettings = @{
     Rules = @{
         PSUseConsistentIndentation = @{
             Enable              = $true
-            IndentationSize     = 4
+            IndentationSize     = 2
             PipelineIndentation = "IncreaseIndentationForFirstPipeline"
             Kind                = "space"
         }
