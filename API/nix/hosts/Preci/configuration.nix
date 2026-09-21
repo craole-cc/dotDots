@@ -6,6 +6,11 @@
   system ? "x86_64-linux",
   ...
 }: let
+  inherit (lib.lists) flatten intersectLists optionals;
+  inherit (lib.strings) readFile toLower;
+  inherit (pkgs) writeText writeShellApplication;
+  inherit (pkgs.stdenv) hostPlatform;
+
   pkgConfig = {
     allowUnfree = true;
   };
@@ -33,11 +38,6 @@
       then inputs.dots
       else user.paths.dots;
   };
-
-  inherit (lib.lists) flatten intersectLists optionals;
-  inherit (lib.strings) readFile toLower;
-  inherit (pkgs) writeText writeShellApplication;
-  inherit (pkgs.stdenv) hostPlatform;
 
   name = "Preci";
   id = "91ba73c7";
@@ -258,18 +258,37 @@
         with pkgs; [
           powershell
           powershell-editor-services
-          (
-            writeShellApplication {
-              name = "pwsh-format";
-              runtimeInputs = [pkgs.powershell];
-              text = ''
-                exec pwsh -NoProfile -NonInteractive -File ${readFile (
-                  sources.dots
-                  + "/Libraries/powershell/Admin/fmt.ps1"
-                )} "$@"
-              '';
-            }
-          )
+
+          (writeShellApplication {
+            name = "pwshfmt";
+            runtimeInputs = [powershell];
+            text = ''
+              export PSModulePath="${let
+                pname = "PSScriptAnalyzer";
+                version = "1.25.0";
+              in
+                stdenvNoCC.mkDerivation {
+                  inherit pname version;
+                  src = fetchurl {
+                    url = "https://www.powershellgallery.com/api/v2/package/${pname}/${version}";
+                    hash = "sha256-FOY0yCjrmO+59AspGLqQ8TntXszfZjoqdHc22ZaZXWA="; #? lib.fakeHash to update
+                  };
+                  nativeBuildInputs = [unzip];
+                  dontUnpack = true;
+                  dontBuild = true;
+                  installPhase = ''
+                    mkdir -p "$out/share/powershell/Modules/${pname}"
+                    unzip -q "$src" -d "$out/share/powershell/Modules/${pname}"
+                  '';
+                }}/share/powershell/Modules''${PSModulePath:+:$PSModulePath}"
+
+              exec pwsh \
+                -NoProfile \
+                -NonInteractive \
+                -File ${sources.dots + "/Libraries/powershell/Admin/pwshfmt.ps1"} \
+                "$@"
+            '';
+          })
         ]
       );
 

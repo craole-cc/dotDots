@@ -161,7 +161,7 @@
 
 # ~@ PowerShell
 [formatter.powershell]
-  command = "pwsh-format"
+  command = "pwshfmt"
   includes = ["*.ps1", "*.psm1", "*.psd1"]
 
   # ~@ Spellckeck

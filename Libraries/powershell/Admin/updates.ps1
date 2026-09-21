@@ -14,6 +14,20 @@ function Global:Install-Updates {
   [CmdletBinding()]
   param()
 
+
+
+if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+  Write-Warning "PSScriptAnalyzer is not installed. Installing it now..."
+
+  Install-PSResource `
+    -Name PSScriptAnalyzer `
+    -Repository PSGallery `
+    -Scope CurrentUser `
+    -TrustRepository `
+    -Quiet
+}
+
+
   Write-Host 'Starting update process...' -ForegroundColor Cyan
 
   $platform = $PSVersionTable.PSPlatform
