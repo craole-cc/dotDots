@@ -1,104 +1,129 @@
 [[language]]
+  name = "nix"
   auto-format = true
   language-servers = ["nixd"]
-  name = "nix"
 
   [language.formatter]
     command = "alejandra"
 
 [[language]]
-  auto-format = true
   name = "bash"
+  auto-format = true
 
   [language.formatter]
-    arguments = "--posix --apply-ignore --case-indent --space-redirects --write"
     command = "shfmt"
+    args = [
+      "--apply-ignore",
+      "--binary-next-line",
+      "--space-redirects",
+      "--case-indent",
+      "--indent",
+      "2",
+    ]
 
   [language.indent]
     tab-width = 2
     unit = "\t"
 
 [[language]]
+  name = "rust"
   auto-format = true
   language-servers = ["rust-analyzer"]
-  name = "rust"
-
-[[language]]
-  auto-format = true
-  language-servers = ["rubocop", "solargraph"]
-  name = "ruby"
 
   [language.formatter]
-    args = ["exec", "stree", "format"]
-    command = "bundle"
+    command = "rustfmt"
 
 [[language]]
-  auto-format = true
   name = "python"
+  auto-format = true
 
   [language.formatter]
-    args = []
     command = "ruff"
-
-[[language]]
-  name = "sql"
-
-  [language.formatter]
-    args = ["--reindent", "--indent_width", "2", "--keywords", "upper", "--identifiers", "lower", "-"]
-    command = "sqlformat"
-
-[[language]]
-  auto-format = true
-  name = "toml"
-
-  [language.formatter]
     args = ["format", "-"]
-    command = "taplo"
 
 [[language]]
+  name = "toml"
   auto-format = true
-  name = "json"
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "json"]
-    command = "deno"
+    command = "tombi"
+    args = ["format", "-"]
 
 [[language]]
+  name = "zig"
   auto-format = true
-  name = "markdown"
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "md"]
-    command = "deno"
+    command = "zig"
+    args = ["fmt", "--stdin", "--stdout"]
 
 [[language]]
+  name = "typst"
   auto-format = true
-  name = "typescript"
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "ts"]
-    command = "deno"
+    command = "typstyle"
+    args = ["format", "-"]
 
 [[language]]
+  name = "lua"
   auto-format = true
-  name = "tsx"
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "tsx"]
-    command = "deno"
+    command = "stylua"
+    args = ["-"]
 
 [[language]]
+  name = "yaml"
   auto-format = true
+
+  [language.formatter]
+    command = "yamlfmt"
+
+[[language]]
   name = "javascript"
+  auto-format = true
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "js"]
-    command = "deno"
+    command = "biome"
+    args = ["format", "--stdin-file-path", "file.js"]
 
 [[language]]
+  name = "typescript"
   auto-format = true
-  name = "jsx"
 
   [language.formatter]
-    args = ["fmt", "-", "--ext", "jsx"]
-    command = "deno"
+    command = "biome"
+    args = ["format", "--stdin-file-path", "file.ts"]
+
+[[language]]
+  name = "tsx"
+  auto-format = true
+
+  [language.formatter]
+    command = "biome"
+    args = ["format", "--stdin-file-path", "file.tsx"]
+
+[[language]]
+  name = "jsx"
+  auto-format = true
+
+  [language.formatter]
+    command = "biome"
+    args = ["format", "--stdin-file-path", "file.jsx"]
+
+[[language]]
+  name = "json"
+  auto-format = true
+
+  [language.formatter]
+    command = "biome"
+    args = ["format", "--stdin-file-path", "file.json"]
+
+[[language]]
+  name = "markdown"
+  auto-format = true
+
+  [language.formatter]
+    command = "rumdl"
+    args = ["fmt", "-"]

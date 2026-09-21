@@ -1,0 +1,84 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+  // ~@ Formatter
+  "formatter": {
+    "enabled": true,
+    // Match the rest of the repository's formatters.
+    "indentStyle": "space",
+    "indentWidth": 2,
+    // Keep formatting deterministic across platforms.
+    "lineEnding": "lf",
+    "lineWidth": 100,
+    // Always leave files POSIX-friendly.
+    "trailingNewline": true,
+    // Respect .editorconfig when present.
+    "useEditorconfig": true
+  },
+  // ~@ JavaScript / TypeScript / JSX / TSX
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      // Prefer double quotes, matching Biome's default.
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      // Only quote object properties when required.
+      "quoteProperties": "asNeeded",
+      // Keep semicolons explicit.
+      "semicolons": "always",
+      // Keep trailing commas in multiline constructs.
+      "trailingCommas": "all",
+      // Always parenthesize arrow-function parameters.
+      "arrowParentheses": "always",
+      // Standard object/array/JSX spacing.
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      // Let Biome decide when JSX attributes need to wrap.
+      "attributePosition": "auto",
+      // Preserve normal Biome object/array expansion behavior.
+      "expand": "auto",
+      // Put binary operators at the end of continued lines.
+      "operatorLinebreak": "after"
+    }
+  },
+  // ~@ JSON / JSONC
+  "json": {
+    "formatter": {
+      "enabled": true,
+      // JSON itself doesn't allow trailing commas; JSONC can.
+      // Keep strict JSON formatting as the common baseline.
+      "trailingCommas": "none",
+      "bracketSpacing": true,
+      "expand": "auto",
+      "trailingNewline": true
+    },
+    "parser": {
+      // Required for *.jsonc.
+      "allowComments": true,
+      // Permit trailing commas in JSONC while the formatter still
+      // removes them because trailingCommas is set to "none".
+      "allowTrailingCommas": true
+    }
+  },
+  // ~@ CSS
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "double",
+      "trailingNewline": true
+    }
+    // Uncomment if this repository uses CSS Modules with a non-standard
+    // filename convention:
+    //
+    // "parser": {
+    //   "cssModules": true
+    // }
+  },
+  // ~@ GraphQL
+  "graphql": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "double",
+      "trailingNewline": true
+    }
+  }
+}

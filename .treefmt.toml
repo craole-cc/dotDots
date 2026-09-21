@@ -61,12 +61,12 @@ excludes = [
   options = []
   priority = 2
 
-[formatter.dprint]
-  command = "dprint"
-  excludes = []
-  includes = ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml", "*.css", "*.scss", "*.sass", "*.less"]
-  options = ["fmt", "--allow-no-files", "--config", "dprint.json"]
-  priority = 1
+  # [formatter.dprint]
+  #   command = "dprint"
+  #   excludes = []
+  #   includes = ["*.json", "*.jsonc", "*.md", "*.yaml", "*.yml", "*.css", "*.scss", "*.sass", "*.less"]
+  #   options = ["fmt", "--allow-no-files", "--config", "dprint.json"]
+  #   priority = 1
 
 [formatter.harper]
   command = "harper-ls"

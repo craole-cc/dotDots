@@ -1,10 +1,18 @@
-theme = "catppuccin_latte"
+theme = "base16_transparent"
 
 [editor]
+  auto-format = true
+  cursorline = true
+  true-color = true
+
   [editor.cursor-shape]
     insert = "bar"
     normal = "block"
     select = "underline"
+
+  [editor.lsp]
+    display-messages = true
+    display-inlay-hints = true
 
 [keys]
   [keys.insert]

@@ -1,0 +1,259 @@
+[global]
+  enable = []
+  disable = []
+  exclude = []
+  include = []
+  respect_gitignore = true
+  flavor = "standard"
+
+[MD001]
+  front-matter-title = true
+
+[MD003]
+  style = "consistent"
+
+[MD004]
+  style = "consistent"
+
+[MD007]
+  indent = 2
+  start-indent = 2
+  start-indented = false
+  style = "text-aligned"
+
+[MD009]
+  br-spaces = 2
+  list-item-empty-lines = false
+  strict = false
+
+[MD010]
+  spaces-per-tab = 4
+
+[MD012]
+  maximum = 1
+
+[MD013]
+  abbreviations = []
+  blockquotes = true
+  code-block-line-length = "__nullable__"
+  code-blocks = true
+  heading-line-length = "__nullable__"
+  headings = true
+  length-mode = "visual"
+  line-length = 80
+  paragraphs = true
+  reflow = false
+  reflow-mode = "default"
+  require-sentence-capital = true
+  stern = false
+  strict = false
+  tables = false
+
+[MD014]
+  show-output = true
+
+[MD018]
+  magiclink = false
+
+[MD022]
+  allowed-at-start = true
+  lines-above = 1
+  lines-below = 1
+
+[MD024]
+  allow-different-link-anchors = true
+  allow-different-nesting = false
+  siblings-only = true
+
+[MD025]
+  allow-document-sections = false
+  allow-with-separators = false
+  front-matter-title = "title"
+  level = 1
+
+[MD026]
+  punctuation = ".,;:!"
+
+[MD027]
+  list-items = false
+
+[MD029]
+  style = "one-or-ordered"
+
+[MD030]
+  ol-multi = 1
+  ol-single = 1
+  ul-multi = 1
+  ul-single = 1
+
+[MD031]
+  list-items = true
+
+[MD032]
+  allow-lazy-continuation = true
+
+[MD033]
+  allowed-elements = []
+  br-style = "trailing-spaces"
+  disallowed-elements = []
+  drop-attributes = ["target", "rel", "width", "height", "align", "class", "id", "style"]
+  fix = false
+  fix-mode = "conservative"
+  strip-wrapper-elements = ["p"]
+  table-allowed-elements = "__nullable__"
+
+[MD035]
+  style = "consistent"
+
+[MD036]
+  fix = true
+  heading-level = 2
+  heading-style = "atx"
+  punctuation = ".,;:!?"
+
+[MD040]
+  allowed-languages = []
+  disallowed-languages = []
+  preferred-aliases = {}
+  style = "disabled"
+  unknown-language-action = "ignore"
+
+[MD041]
+  fix = false
+  front-matter-title = "title"
+  front-matter-title-pattern = ""
+  level = 1
+
+[MD043]
+  headings = []
+  match-case = false
+
+[MD044]
+  code-blocks = false
+  html-comments = true
+  html-elements = true
+  names = []
+
+[MD046]
+  style = "consistent"
+
+[MD048]
+  style = "consistent"
+
+[MD049]
+  style = "consistent"
+
+[MD050]
+  style = "consistent"
+
+[MD051]
+  anchor-style = "github"
+  ignore-case = true
+  ignored-pattern = "__nullable__"
+
+[MD052]
+  ignore = []
+  shortcut-syntax = false
+
+[MD053]
+  ignored-definitions = []
+
+[MD054]
+  autolink = true
+  collapsed = true
+  full = true
+  inline = true
+  preferred-style = "auto"
+  shortcut = true
+  url-inline = true
+
+[MD055]
+  style = "consistent"
+
+[MD057]
+  absolute-links = "ignore"
+  compact-paths = false
+  roots = []
+  search-paths = []
+
+[MD058]
+  minimum-after = 1
+  minimum-before = 1
+
+[MD059]
+  prohibited-texts = ["click here", "here", "link", "more"]
+
+[MD060]
+  aligned-delimiter = false
+  column-align = "auto"
+  column-align-body = "__nullable__"
+  column-align-header = "__nullable__"
+  enabled = false
+  loose-last-column = false
+  max-width = 0
+  style = "any"
+
+[MD061]
+  case-sensitive = true
+  terms = []
+
+[MD063]
+  enabled = false
+  ignore-words = []
+  lowercase-words = [
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "but",
+    "by",
+    "for",
+    "from",
+    "in",
+    "into",
+    "nor",
+    "of",
+    "off",
+    "on",
+    "or",
+    "per",
+    "so",
+    "the",
+    "to",
+    "up",
+    "via",
+    "with",
+    "yet"
+  ]
+  max-level = 6
+  min-level = 1
+  preserve-cased-words = true
+  style = "title-case"
+
+[MD064]
+  allow-sentence-double-space = false
+
+[MD072]
+  enabled = false
+  key_order = "__nullable__"
+
+[MD073]
+  enabled = false
+  enforce-order = true
+  indent = 2
+  max-level = 4
+  min-level = 2
+
+[MD074]
+  absolute-links = "ignore"
+  not-found = "warn"
+  omitted-files = "ignore"
+
+[MD076]
+  allow-loose-continuation = false
+  style = "consistent"
+
+[MD080]
+  anchor-style = "github"
+  levels = [1, 2, 3, 4, 5, 6]
