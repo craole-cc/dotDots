@@ -7,6 +7,7 @@ main() {
   parse_arguments "$@"
   verbosity normalize
   ensure_dependencies
+  ensure_git_safe_directory
   check_flake_staleness
   commit_changes
   deploy_config
@@ -240,6 +241,23 @@ check_flake_staleness() {
     --structured "Updating flake inputs" flake "${dots}"
 
   nix flake update --flake "${dots}"
+}
+
+#~@ Step 0b: Ensure Git Trusts the Dots Repo (root-run builds need this)
+ensure_git_safe_directory() {
+  command -v git >/dev/null 2>&1 || return 0
+  [ -d "${dots}/.git" ] || return 0
+
+  if git config --system --get-all safe.directory 2>/dev/null | grep -qx "${dots}"; then
+    return 0
+  fi
+
+  gum log \
+    --level info \
+    --structured "Registering dots as a git safe.directory (system-wide)" \
+    path "${dots}"
+
+  sudo git config --system --add safe.directory "${dots}"
 }
 
 #~@ Step 1: Commit Changes
