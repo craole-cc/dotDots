@@ -17,21 +17,18 @@
 
   sources = let
     revision = {
-      /**
-      Updated input 'nixHomeManager':
-        - 'github:nix-community/home-manager/efa3ccb4c3cc90d832eab232976379058fa75aa3?narHash=sha256-pD3qVlQ4mUCFoTWrYtxecpSitQMsgJvJIN0FUIDZoEU%3D' (2026-09-15)
-        - 'github:nix-community/home-manager/a3dfb887d40d134af29fa8e924ba85a3e3a99194?narHash=sha256-wXAdaLBAjbQK/OfESV/i0pgolkz%2BUo4SbBP/MbfGLHU%3D' (2026-09-21)
-      */
-      nixpkgs = "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
-      /**
-      Updated input 'nixPackages':
-        - 'https://releases.nixos.org/nixos/unstable/nixos-26.11pre1073009.ef34387ddd75/nixexprs.tar.zst?narHash=sha256-3i80JnZ9pZ7tWReb/Sqpc32cfzffCu8TWLnbnH0hN9c%3D' (2026-09-13)
-        - 'https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst?narHash=sha256-uLLUj%2BTLUmBc6KrUzx76KZdPi5ZkI1ORR9A6lJUIZlo%3D' (2026-09-20)
-      */
-      home-manager = "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+      nixpkgs = {
+        url = "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst";
+        sha256 = "sha256-uLLUj+TLUmBc6KrUzx76KZdPi5ZkI1ORR9A6lJUIZlo=";
+      };
+      home-manager = {
+        url = "https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz";
+        sha256 = "sha256-wXAdaLBAjbQK/OfESV/i0pgolkz+Uo4SbBP/MbfGLHU=";
+      };
     };
   in {
     inherit revision;
+
     nixpkgs =
       if inputs != null && inputs ? nixpkgs
       then
@@ -437,95 +434,106 @@
     #~@ System & Utilities
     utils = with pkgs; [
       (writeShellApplication {
-        name = "switch";
+        name = "nixos-switch";
         runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
         text = ''
-          #~@ Configure
-          host="${name}"
-          rev_core="${sources.revision.nixpkgs}"
-          rev_home="${sources.revision.home-manager}"
-          dots="${user.paths.dots}"`
-          src="''${dots}/API/nix/hosts/''${host}}"
-          source="''${SOURCE:-''${src}}"
-          target="''${TARGET:-/etc/nixos}"
-          mode="''${MODE:-flake}"
-          message=""
-
-          #~@ Parse
-          while [ $# -gt 0 ]; do
-            case "''${1:-}" in
-              --flake) mode="flake" ;;
-              --legacy | --config) mode="config" ;;
-              --message|--msg|-m)
-                if [ -n "''${2:-}" ]; then
-                  message="$2"
-                  shift
-                else
-                  gum log --level error "$1 requires a value"
-                  exit 1
-                fi
-                ;;
-              *)
-                if [ -z "$message" ]; then
-                  message="$1"
-                else
-                  message="$message $1"
-                fi
-                ;;
-            esac
-            shift
-          done
-
-
-          #~@ Commit
-          if [ -d "$source/.git" ]; then
-            if [ -z "$message" ]; then
-              message="$(git -C "$source" log -1 --pretty=%s 2>/dev/null || true)"
-              [ -z "$message" ] && message="update"
-            fi
-
-            git -C "$source" add --all
-
-            if ! git -C "$source" diff --cached --quiet; then
-              gum log \
-                --level info \
-                --structured "Committing changes" \
-                source "$source" \
-                message "$message"
-
-              git -C "$source" commit --message "$message"
-            fi
-          fi
-
-          #~@ Deploy
-          if [ -d "$source" ]; then
-            gum log \
-              --level info \
-              --structured "Syncing config" \
-              source "$source" \
-              target "$target"
-            sudo cp "$source"/* "$target"
-          else
-            gum log \
-              --level warn \
-              --structured "Source not found — building with existing target" \
-              source "$source" \
-              target "$target"
-          fi
-
-          #~@ Switch
-          case "$mode" in
-            flake) sudo nixos-rebuild switch --flake "$target#$host" ;;
-            config)
-              sudo nixos-rebuild switch --no-flake \
-                -I "nixos-config=$target/configuration.nix" \
-                -I "nixpkgs=$rev_core"
-                -I "home-manager=$rev_home"
-              ;;
-            *) ;;
-          esac
+          HOST="${name}"
+          REV_CORE="${sources.revision.nixpkgs.url}"
+          REV_HOME="${sources.revision.home-manager.url}"
+          PRJ_DOTS="${user.paths.dots}"
+          export HOST REV_CORE REV_HOME PRJ_DOTS
+          ${readFile (sources.dots + "/Libraries/posix/project/nix/nixos-switch.sh")}
         '';
       })
+      # (writeShellApplication {
+      #   name = "nixos-switch";
+      #   runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
+      #   text = ''
+      #     #~@ Configure
+      #     host="${name}"
+      #     rev_core="${sources.revision.nixpkgs.url}"
+      #     rev_home="${sources.revision.home-manager.url}"
+      #     dots="${user.paths.dots}"
+      #     src="''${dots}/API/nix/hosts/''${host}"
+      #     source="''${SOURCE:-''${src}}"
+      #     target="''${TARGET:-/etc/nixos}"
+      #     mode="''${MODE:-flake}"
+      #     message=""
+
+      #     #~@ Parse
+      #     while [ $# -gt 0 ]; do
+      #       case "''${1:-}" in
+      #         --flake) mode="flake" ;;
+      #         --legacy | --config) mode="config" ;;
+      #         --message|--msg|-m)
+      #           if [ -n "''${2:-}" ]; then
+      #             message="$2"
+      #             shift
+      #           else
+      #             gum log --level error "$1 requires a value"
+      #             exit 1
+      #           fi
+      #           ;;
+      #         *)
+      #           if [ -z "$message" ]; then
+      #             message="$1"
+      #           else
+      #             message="$message $1"
+      #           fi
+      #           ;;
+      #       esac
+      #       shift
+      #     done
+
+      #     #~@ Commit
+      #     if [ -d "$source/.git" ]; then
+      #       if [ -z "$message" ]; then
+      #         message="$(git -C "$source" log -1 --pretty=%s 2>/dev/null || true)"
+      #         [ -z "$message" ] && message="update"
+      #       fi
+
+      #       git -C "$source" add --all
+
+      #       if ! git -C "$source" diff --cached --quiet; then
+      #         gum log \
+      #           --level info \
+      #           --structured "Committing changes" \
+      #           source "$source" \
+      #           message "$message"
+
+      #         git -C "$source" commit --message "$message"
+      #       fi
+      #     fi
+
+      #     #~@ Deploy
+      #     if [ -d "$source" ]; then
+      #       gum log \
+      #         --level info \
+      #         --structured "Syncing config" \
+      #         source "$source" \
+      #         target "$target"
+      #       sudo cp "$source"/* "$target"
+      #     else
+      #       gum log \
+      #         --level warn \
+      #         --structured "Source not found — building with existing target" \
+      #         source "$source" \
+      #         target "$target"
+      #     fi
+
+      #     #~@ Switch
+      #     case "$mode" in
+      #       flake) sudo nixos-rebuild switch --flake "$target#$host" ;;
+      #       config)
+      #         sudo nixos-rebuild switch --no-flake \
+      #           -I "nixos-config=$target/configuration.nix" \
+      #           -I "nixpkgs=$rev_core" \
+      #           -I "home-manager=$rev_home"
+      #         ;;
+      #       *) ;;
+      #     esac
+      #   '';
+      # })
 
       bat
       gitui
