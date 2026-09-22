@@ -1,0 +1,65 @@
+{
+  "nodes": {
+    "dots": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790107664,
+        "narHash": "sha256-iCLqS/aEcQQVPI2+u4PmcHoI9Oza5R70pctgoktcpHY=",
+        "owner": "craole-cc",
+        "repo": "dotDots",
+        "rev": "bb42e6bf7de6a20da0d1b2c58f9494c7f278db6c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "craole-cc",
+        "repo": "dotDots",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790080548,
+        "narHash": "sha256-u4sa7RCbwvk8cZmAGs35F7o0h4IqDc3wsrrnjQvMumk=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "cbcbfa2778e0c5653ef349df3ebae8288efac3c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1790046670,
+        "narHash": "sha256-MYiI+CzL0tuWgRPjGsKCDHqYs2T3OzMlMQWOYWG0qso=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "6774f7bc253789b113a4f39285dc0fa100abeacc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "dots": "dots",
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

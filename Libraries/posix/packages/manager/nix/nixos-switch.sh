@@ -313,14 +313,14 @@ deploy_config() {
 
     sudo mkdir -p "${target}"
 
-    cp_flags="-a"
+    rsync_flags="-a --delete --exclude=.git"
     #? `verbosity_priority`: 1=debug 2=info 3=warn 4=error 5=none(quiet)
     if [ "${verbosity_priority}" -lt 5 ]; then
-      cp_flags="${cp_flags} -v"
+      rsync_flags="${rsync_flags} -v"
     fi
 
     # shellcheck disable=SC2086
-    sudo cp ${cp_flags} "${source}"/. "${target}/"
+    sudo rsync ${rsync_flags} "${source}/" "${target}/"
 
     # switch_system always reads ${target} via `sudo nixos-rebuild switch`
     # right after this - so target must be root-owned regardless of what
