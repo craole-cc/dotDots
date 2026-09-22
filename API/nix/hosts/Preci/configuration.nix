@@ -15,7 +15,23 @@
     allowUnfree = true;
   };
 
-  sources = {
+  sources = let
+    revision = {
+      /**
+      Updated input 'nixHomeManager':
+        - 'github:nix-community/home-manager/efa3ccb4c3cc90d832eab232976379058fa75aa3?narHash=sha256-pD3qVlQ4mUCFoTWrYtxecpSitQMsgJvJIN0FUIDZoEU%3D' (2026-09-15)
+        - 'github:nix-community/home-manager/a3dfb887d40d134af29fa8e924ba85a3e3a99194?narHash=sha256-wXAdaLBAjbQK/OfESV/i0pgolkz%2BUo4SbBP/MbfGLHU%3D' (2026-09-21)
+      */
+      nixpkgs = "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
+      /**
+      Updated input 'nixPackages':
+        - 'https://releases.nixos.org/nixos/unstable/nixos-26.11pre1073009.ef34387ddd75/nixexprs.tar.zst?narHash=sha256-3i80JnZ9pZ7tWReb/Sqpc32cfzffCu8TWLnbnH0hN9c%3D' (2026-09-13)
+        - 'https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst?narHash=sha256-uLLUj%2BTLUmBc6KrUzx76KZdPi5ZkI1ORR9A6lJUIZlo%3D' (2026-09-20)
+      */
+      home-manager = "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+    };
+  in {
+    inherit revision;
     nixpkgs =
       if inputs != null && inputs ? nixpkgs
       then
@@ -24,14 +40,14 @@
           config = pkgConfig;
         }
       else
-        import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {
+        import (fetchTarball revision.nixpkgs) {
           config = pkgConfig;
         };
 
     home-manager =
       if inputs != null && inputs ? home-manager
       then inputs.home-manager
-      else fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+      else fetchTarball revision.home-manager;
 
     dots =
       if inputs != null && inputs ? dots
@@ -214,9 +230,7 @@
           typstyle
           yamlfmt
         ]
-        ++ (with typstPackages; [
-          typsy
-        ]);
+        ++ (with typstPackages; [typsy]);
 
       Nix = with pkgs; [
         alejandra
@@ -427,9 +441,14 @@
         runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
         text = ''
           #~@ Configure
-          source="''${PRJ_DOTS}/API/nix/hosts/${name}"
-          target="/etc/nixos"
-          mode="config"
+          host="${name}"
+          rev_core="${sources.revision.nixpkgs}"
+          rev_home="${sources.revision.home-manager}"
+          dots="${user.paths.dots}"`
+          src="''${dots}/API/nix/hosts/''${host}}"
+          source="''${SOURCE:-''${src}}"
+          target="''${TARGET:-/etc/nixos}"
+          mode="''${MODE:-flake}"
           message=""
 
           #~@ Parse
@@ -496,8 +515,13 @@
 
           #~@ Switch
           case "$mode" in
-            flake) sudo nixos-rebuild switch --flake;;
-            config) sudo nixos-rebuild switch --no-flake ;;
+            flake) sudo nixos-rebuild switch --flake "$target#$host" ;;
+            config)
+              sudo nixos-rebuild switch --no-flake \
+                -I "nixos-config=$target/configuration.nix" \
+                -I "nixpkgs=$rev_core"
+                -I "home-manager=$rev_home"
+              ;;
             *) ;;
           esac
         '';
@@ -893,7 +917,7 @@ in {
         '';
 
         defined = source + "/biome/config.jsonc";
-        deploy = "/biome.jsonc";
+        deploy = "/.biome.jsonc";
       in {
         text = ''
           _cfg="${default}"
@@ -1035,13 +1059,15 @@ in {
           includes = ["*.nix"]
         '';
         defined = "${source}/treefmt/config.toml";
-        deploy_path = "/treefmt.toml";
+        deploy_path = "/.treefmt.toml";
       in {
         text = ''
           CFG_TREEFMT=${default}
           [ -f ${defined} ] && CFG_TREEFMT=${defined}
           export CFG_TREEFMT
           install -m 0644 $CFG_TREEFMT ${deploy_path}
+          install -o ${name} -g users -m 0644 \
+            "$CFG_TREEFMT" "${user.paths.home + deploy_path}"
         '';
       };
     };
