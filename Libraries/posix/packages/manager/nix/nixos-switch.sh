@@ -243,21 +243,22 @@ check_flake_staleness() {
   nix flake update --flake "${dots}"
 }
 
-#~@ Step 0b: Ensure Git Trusts the Dots Repo (root-run builds need this)
+#~@ Step 0b: Verify Git Trusts the Dots Repo (declared via programs.git.config)
 ensure_git_safe_directory() {
   command -v git >/dev/null 2>&1 || return 0
   [ -d "${dots}/.git" ] || return 0
 
-  if git config --system --get-all safe.directory 2>/dev/null | grep -qx "${dots}"; then
+  if
+    git config --system --get-all safe.directory 2>/dev/null |
+      grep -qx "${dots}"
+  then
     return 0
   fi
 
   gum log \
-    --level info \
-    --structured "Registering dots as a git safe.directory (system-wide)" \
+    --level warn \
+    --structured "dots repo is not in git's system safe.directory list - rebuild once to apply the declared config" \
     path "${dots}"
-
-  sudo git config --system --add safe.directory "${dots}"
 }
 
 #~@ Step 1: Commit Changes
@@ -313,13 +314,18 @@ deploy_config() {
     sudo mkdir -p "${target}"
 
     cp_flags="-a"
-    # `verbosity_priority`: 1=debug 2=info 3=warn 4=error 5=none(quiet)
+    #? `verbosity_priority`: 1=debug 2=info 3=warn 4=error 5=none(quiet)
     if [ "${verbosity_priority}" -lt 5 ]; then
       cp_flags="${cp_flags} -v"
     fi
 
     # shellcheck disable=SC2086
     sudo cp ${cp_flags} "${source}"/. "${target}/"
+
+    # switch_system always reads ${target} via `sudo nixos-rebuild switch`
+    # right after this - so target must be root-owned regardless of what
+    # TARGET is set to, not just when it happens to equal /etc/nixos.
+    sudo chown -R root:root "${target}"
   else
     gum log \
       --level warn \
