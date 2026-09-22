@@ -28,6 +28,7 @@ set_defaults() {
   mode="${MODE:-flake}"
   message=""
   dry_run="${DRY_RUN:-0}"
+  dry_action="${DRY_ACTION:-dry-build}"
   max_age_days="${FLAKE_MAX_AGE_DAYS:-7}"
   skip_stale_check="${SKIP_FLAKE_CHECK:-0}"
 }
@@ -128,6 +129,7 @@ parse_arguments() {
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     --dry-run | -n) mode_dry_run=1 ;;
+    --dry-activate) dry_action="dry-activate" ;;
     --no-flake-check) skip_stale_check=1 ;;
     --max-age)
       if [ -n "${2:-}" ]; then
@@ -273,7 +275,6 @@ commit_changes() {
 }
 
 #~@ Step 2: Deploy to Target
-#~@ Step 2: Deploy to Target
 deploy_config() {
   if [ -d "${source}" ]; then
     if [ "${dry_run}" -eq 1 ]; then
@@ -315,15 +316,30 @@ switch_system() {
   if [ "${dry_run}" -eq 1 ]; then
     gum log \
       --level info \
-      --structured "[DRY-RUN] Would run nixos-rebuild switch" \
+      --structured "Running ${dry_action} against source (no sync, no switch)" \
       host "${host}" \
-      mode "${mode}" \
-      source "${source}" \
-      target "${target}" \
-      dots "${dots}" \
-      verbosity "${verbosity}" \
-      rev_core "${rev_core}" \
-      rev_home "${rev_home}"
+      action "${dry_action}" \
+      source "${source}"
+
+    case "${mode:-}" in
+    flake)
+      sudo nixos-rebuild "${dry_action}" \
+        --flake "${source}#${host}"
+      ;;
+    config)
+      sudo nixos-rebuild "${dry_action}" \
+        --no-flake \
+        -I "nixos-config=${source}/configuration.nix" \
+        -I "nixpkgs=${rev_core}" \
+        -I "home-manager=${rev_home}"
+      ;;
+    *)
+      gum log \
+        --level error \
+        --structured "Unknown mode" mode "${mode}"
+      exit 1
+      ;;
+    esac
     return 0
   fi
 
@@ -354,15 +370,22 @@ switch_system() {
 
 #~@ Help / Usage
 show_help() {
+  here="$(basename "$0")"
   cat <<EOF
-Usage: $(basename "$0") [OPTIONS] [COMMIT MESSAGE...]
+Usage: ${here} [OPTIONS] [COMMIT MESSAGE...]
 
 Commits dots changes, syncs the host config to /etc/nixos, and runs
 nixos-rebuild switch. Optionally checks flake.lock staleness first.
 
 OPTIONS
-  -n, --dry-run              Print what would happen; change nothing
+  -n, --dry-run              Run nixos-rebuild's \${dry_action} against
+                              SOURCE instead of switching (no commit sync,
+                              no /etc/nixos sync, no switch)
                               (default: ${dry_run})
+  --dry-activate              Under --dry-run, use 'nixos-rebuild dry-activate'
+                              instead of 'dry-build' (shows activation diff,
+                              needs root)
+                              (default action: ${dry_action})
 
   --flake                    Build via 'nixos-rebuild switch --flake'
                               (default mode)
@@ -389,27 +412,56 @@ OPTIONS
   Any other bare argument(s) are appended to the commit message.
 
 ENVIRONMENT (override any default above without flags)
-  HOST              Target host                          (current: ${host})
-  DOTS / PRJ_DOTS   Path to dots repo                    (current: ${dots})
-  SOURCE            Host config source dir               (current: ${source})
-  TARGET            Deploy target dir                    (current: ${target})
-  MODE              flake|config                         (current: ${mode})
-  DRY_RUN           1|0                                  (current: ${dry_run})
-  SKIP_FLAKE_CHECK  1|0                                  (current: ${skip_stale_check})
-  FLAKE_MAX_AGE_DAYS  Days before lock is stale          (current: ${max_age_days})
-  VERBOSITY / LOG_LEVEL  debug|info|warn|error|none      (current: ${verbosity})
-  REV_CORE          Legacy-mode nixpkgs channel URL      (current: ${rev_core})
-  REV_HOME          Legacy-mode home-manager channel URL (current: ${rev_home})
+  HOST                    Target host
+  (current: ${host})
+
+  PRJ_DOTS|DOTS           Path to dots repo
+  (current: ${dots})
+
+  SOURCE                  Host config source dir
+  (current: ${source})
+
+  TARGET                  Deploy target dir
+  (current: ${target})
+
+  MODE                    flake|legacy
+  (current: ${mode})
+
+  DRY_RUN                 1|0
+  (current: ${dry_run})
+
+  DRY_ACTION              dry-build|dry-activate (dry-run action)
+  (current: ${dry_action})
+
+  SKIP_FLAKE_CHECK        1|0
+  (current: ${skip_stale_check})
+
+  FLAKE_MAX_AGE_DAYS      Days before lock is stale
+  (current: ${max_age_days})
+
+  VERBOSITY|LOG_LEVEL     debug|info|warn|error|none
+  (current: ${verbosity})
+
+  REV_CORE                Legacy-mode nixpkgs channel URL
+  (current: ${rev_core})
+
+  REV_HOME                Legacy-mode home-manager channel URL
+  (current: ${rev_home})
+
 
 EXAMPLES
-  # Preview a switch for host Preci, no changes made
-  DRY_RUN=1 HOST=Preci $(basename "$0")
+  # Dry-build against source for host Preci, no changes made
+  DRY_RUN=1 HOST=Preci ${here}
+
+  # Dry-activate (show activation diff) instead of dry-build
+  HOST=Preci ${here} --dry-run --dry-activate
 
   # Force a flake update regardless of lock age, then switch
-  FLAKE_MAX_AGE_DAYS=0 HOST=Preci $(basename "$0")
+  FLAKE_MAX_AGE_DAYS=0 HOST=Preci ${here}
 
   # Skip the staleness check for a fast local iteration loop
-  $(basename "$0") --no-flake-check -m "quick fix"
+  ${here} --no-flake-check -m "quick fix"
 EOF
 }
+
 main "$@"
