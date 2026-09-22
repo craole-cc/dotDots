@@ -321,13 +321,21 @@ switch_system() {
       action "${dry_action}" \
       source "${source}"
 
+    # dry-build only evaluates+builds: no root needed, and running it as
+    # root would fail against a repo root doesn't own (git safe.directory).
+    # dry-activate needs root to inspect the live system for the diff.
+    case "${dry_action}" in
+    dry-build) rebuild_cmd="nixos-rebuild" ;;
+    *) rebuild_cmd="sudo nixos-rebuild" ;;
+    esac
+
     case "${mode:-}" in
     flake)
-      sudo nixos-rebuild "${dry_action}" \
+      ${rebuild_cmd} "${dry_action}" \
         --flake "${source}#${host}"
       ;;
     config)
-      sudo nixos-rebuild "${dry_action}" \
+      ${rebuild_cmd} "${dry_action}" \
         --no-flake \
         -I "nixos-config=${source}/configuration.nix" \
         -I "nixpkgs=${rev_core}" \
