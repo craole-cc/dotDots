@@ -273,6 +273,7 @@ commit_changes() {
 }
 
 #~@ Step 2: Deploy to Target
+#~@ Step 2: Deploy to Target
 deploy_config() {
   if [ -d "${source}" ]; then
     if [ "${dry_run}" -eq 1 ]; then
@@ -291,7 +292,15 @@ deploy_config() {
       target "${target}"
 
     sudo mkdir -p "${target}"
-    sudo cp -a "${source}"/. "${target}/"
+
+    cp_flags="-a"
+    # `verbosity_priority`: 1=debug 2=info 3=warn 4=error 5=none(quiet)
+    if [ "${verbosity_priority}" -lt 5 ]; then
+      cp_flags="${cp_flags} -v"
+    fi
+
+    # shellcheck disable=SC2086
+    sudo cp ${cp_flags} "${source}"/. "${target}/"
   else
     gum log \
       --level warn \
