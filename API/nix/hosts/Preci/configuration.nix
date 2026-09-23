@@ -230,17 +230,20 @@
     DOTS_LOCAL_HOSTS = DOTS_LOCAL + stems.hosts;
     DOTS_STORE_HOSTS = DOTS_STORE + stems.hosts;
     DOTS = DOTS_LOCAL;
+    DOTS_HOSTS = DOTS_LOCAL_HOSTS;
     DOTS_CONFIG = paths.roots.src;
     DOTS_STORE_CFG = DOTS_STORE + stems.cfg;
     DOTS_LOCAL_CFG = DOTS_LOCAL + stems.cfg;
     HOST = name;
   in {
+    #~@ Dotfiles
     inherit
       DOTS
       DOTS_CONFIG
       DOTS_LOCAL
       DOTS_LOCAL_CFG
       DOTS_LOCAL_HOSTS
+      DOTS_HOSTS
       DOTS_STORE
       DOTS_STORE_CFG
       DOTS_STORE_HOSTS
@@ -249,37 +252,18 @@
     "DOTS_LOCAL_HOST_${HOST}" = DOTS_LOCAL_HOSTS + stems.host;
     "DOTS_STORE_HOST_${HOST}" = DOTS_STORE_HOSTS + stems.host;
 
+    #~@ Inputs
     REV_URL_CORE = sources.revision.nixpkgs.url;
     REV_URL_HOME = sources.revision.home-manager.url;
     REV_URL_INDEX = sources.revision.nix-index.url;
 
-    XDG_CONFIG_HOME = "$HOME/.config";
-    XDG_CONFIG_DIRS = ["XDG_CONFIG_DIRS" "/etc/xdg"];
-    XDG_CACHE_HOME = "$HOME/.cache";
-    XDG_DATA_HOME = "$HOME/.local/share";
-    XDG_DATA_DIRS = ["$XDG_DATA_HOME" "/usr/local/share" "/usr/share"];
-    XDG_STATE_HOME = "$HOME/.local/state";
-    XDG_BIN_HOME = "$HOME/.local/bin";
-    XDG_RUNTIME_DIR = "/run/user/$UID";
-    XDG_DESKTOP_DIR = "$HOME/Desktop";
-    XDG_DOCUMENTS_DIR = "$HOME/Documents";
-    XDG_DOWNLOAD_DIR = "$HOME/Downloads";
-    XDG_MUSIC_DIR = "$HOME/Music";
-    XDG_PICTURES_DIR = "$HOME/Pictures";
-    XDG_PROJECTS_DIR = "$HOME/Projects";
-    XDG_PUBLICSHARE_DIR = "$HOME/Public";
-    XDG_TEMPLATES_DIR = "$HOME/Templates";
-    XDG_VIDEOS_DIR = "$HOME/Videos";
-
-    #~@ Convenience aliases (shorter names)
-    PROJECTS = "$XDG_PROJECTS_DIR";
-    PICTURES = "$XDG_PICTURES_DIR";
-    DOWNLOADS = "$XDG_DOWNLOAD_DIR";
-    MUSIC = "$XDG_MUSIC_DIR";
-    VIDEOS = "$XDG_VIDEOS_DIR";
-    DOCUMENTS = "$XDG_DOCUMENTS_DIR";
-
-    #~@ Wallpapers
+    #~@ User Directories
+    DOCUMENTS = "$HOME/Documents";
+    DOWNLOADS = "$HOME/Downloads";
+    MUSIC = "$HOME/Music";
+    PICTURES = "$HOME/Pictures";
+    PROJECTS = "$HOME/Projects";
+    VIDEOS = "$HOME/Videos";
     WALLPAPERS = "$PICTURES/Wallpapers";
     WALLPAPER_DIRS = [
       "$WALLPAPERS"
@@ -535,6 +519,7 @@
         text = ''
           export DOTS="${variables.DOTS}"
           export DOTS_CONFIG="${variables.DOTS_CONFIG}"
+          export DOTS_HOSTS="${variables.DOTS_HOSTS}"
           export HOST="${variables.HOST}"
           export REV_URL_CORE="${variables.REV_URL_CORE}"
           export REV_URL_HOME="${variables.REV_URL_HOME}"
@@ -730,7 +715,6 @@ in {
           defaultBranch = "main";
         };
         safe.directory = [
-          "/etc/nixos"
           user.paths.dots
         ];
         url = {
@@ -936,13 +920,15 @@ in {
         '';
 
         defined = source + "/biome/config.jsonc";
-        deploy = "/.biome.jsonc";
+        deploy_path = "/.biome.jsonc";
       in {
         text = ''
-          _cfg="${default}"
-          [ -f "${defined}" ] && _cfg="${defined}"
+          CFG_BIOME="${default}"
+          [ -f "${defined}" ] && CFG_BIOME="${defined}"
 
-          install -m 0644 "$_cfg" "${deploy}"
+          install -m 0644 "$CFG_BIOME" "${deploy_path}"
+          install -o ${name} -g users -m 0644 \
+            "$CFG_BIOME" "${user.paths.home + deploy_path}"
         '';
       };
 

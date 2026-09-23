@@ -7,9 +7,7 @@ main() {
   parse_arguments "$@"
   verbosity normalize
   ensure_dependencies
-  ensure_git_safe_directory
   check_flake_staleness
-  commit_changes
   deploy_config
   switch_system
 }
@@ -22,11 +20,11 @@ set_defaults() {
   rev_home="${REV_URL_HOME:-"https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz"}"
   rev_apps="${REV_URL_INDEX:-"https://github.com/nix-community/nix-index-database/archive/9ad722673ab3b3f91f02135e53775825b240b869.tar.gz"}"
 
+  dots="${DOTS:?}"
   host="${HOST:-$(hostname || printf "unknown")}"
-  source="${SOURCE:-${DOTS_HOSTS:-${DOTS:?}/API/nix/hosts}/${host}}"
+  source="${SOURCE:-${DOTS_HOSTS:-${dots:?}/API/nix/hosts}/${host}}"
   target="${TARGET:-${DOTS_CONFIG:-/etc/nixos}}"
   mode="${MODE:-flake}"
-  message=""
   dry_run="${DRY_RUN:-0}"
   dry_action="${DRY_ACTION:-dry-build}"
   max_age_days="${FLAKE_MAX_AGE_DAYS:-7}"
@@ -157,22 +155,7 @@ parse_arguments() {
         exit 1
       fi
       ;;
-    --message | --msg | -m)
-      if [ -n "${2:-}" ]; then
-        message="${2}"
-        shift
-      else
-        gum log --level error "Argument requires a value" arg "${1:-}"
-        exit 1
-      fi
-      ;;
-    *)
-      if [ -n "${message:-}" ]; then
-        message="${message} ${1:-}"
-      else
-        message="${1:-}"
-      fi
-      ;;
+    *) ;;
     esac
     shift
   done
@@ -182,7 +165,7 @@ parse_arguments() {
   fi
 }
 
-#~@ Step 0: Check Flake Staleness & Update if Needed
+#~@ Step 1: Check Flake Staleness & Update if Needed
 check_flake_staleness() {
   [ "${skip_stale_check:-0}" -eq 1 ] && return 0
   command -v nix >/dev/null 2>&1 || {
@@ -242,56 +225,6 @@ check_flake_staleness() {
   nix flake update --flake "${dots}"
 }
 
-#~@ Step 0b: Verify Git Trusts the Dots Repo (declared via programs.git.config)
-ensure_git_safe_directory() {
-  command -v git >/dev/null 2>&1 || return 0
-  [ -d "${dots}/.git" ] || return 0
-
-  if
-    git config --system --get-all safe.directory 2>/dev/null |
-      grep -qx "${dots}"
-  then
-    return 0
-  fi
-
-  gum log \
-    --level warn \
-    --structured "dots repo is not in git's system safe.directory list - rebuild once to apply the declared config" \
-    path "${dots}"
-}
-
-#~@ Step 1: Commit Changes
-commit_changes() {
-  if command -v git >/dev/null 2>&1 &&
-    git -C "${source}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    if [ -z "${message:-}" ]; then
-      message="$(git -C "${source}" log -1 --pretty=%s 2>/dev/null || true)"
-      [ -z "${message:-}" ] && message="update"
-    fi
-
-    if [ "${dry_run}" -eq 1 ]; then
-      gum log \
-        --level info \
-        --structured "[DRY-RUN] Would commit changes" \
-        source "${source}" \
-        message "${message}"
-      return 0
-    fi
-
-    git -C "${source}" add --all
-
-    if ! git -C "${source}" diff --cached --quiet; then
-      gum log \
-        --level info \
-        --structured "Committing changes" \
-        source "${source}" \
-        message "${message}"
-
-      git -C "${source}" commit --message "${message}" --quiet
-    fi
-  fi
-}
-
 #~@ Step 2: Deploy to Target
 deploy_config() {
   if [ -d "${source}" ]; then
@@ -312,7 +245,7 @@ deploy_config() {
 
     sudo mkdir -p "${target}"
 
-    rsync_flags="-a --delete --exclude=.git"
+    rsync_flags="-a --no-owner --no-group --delete --exclude=.git"
     #? `verbosity_priority`: 1=debug 2=info 3=warn 4=error 5=none(quiet)
     if [ "${verbosity_priority}" -lt 5 ]; then
       rsync_flags="${rsync_flags} -v"
@@ -320,11 +253,6 @@ deploy_config() {
 
     # shellcheck disable=SC2086
     sudo rsync ${rsync_flags} "${source}/" "${target}/"
-
-    # switch_system always reads ${target} via `sudo nixos-rebuild switch`
-    # right after this - so target must be root-owned regardless of what
-    # TARGET is set to, not just when it happens to equal /etc/nixos.
-    sudo chown -R root:root "${target}"
   else
     gum log \
       --level warn \
@@ -405,7 +333,7 @@ switch_system() {
 show_help() {
   here="$(basename "$0")"
   cat <<EOF
-Usage: ${here} [OPTIONS] [COMMIT MESSAGE...]
+Usage: ${here} [OPTIONS]
 
 Commits dots changes, syncs the host config to /etc/nixos, and runs
 nixos-rebuild switch. Optionally checks flake.lock staleness first.
@@ -431,9 +359,6 @@ OPTIONS
                               stale and gets updated
                               (default: ${max_age_days})
 
-  -m, --message, --msg <msg> Commit message for dots changes
-                              (default: last git log subject, else "update")
-
   -v, --verbose               Set verbosity to debug
   -q, --quiet                 Set verbosity to none
   --verbosity, --level,
@@ -442,13 +367,11 @@ OPTIONS
 
   -h, --help                  Show this help and exit
 
-  Any other bare argument(s) are appended to the commit message.
-
 ENVIRONMENT (override any default above without flags)
   HOST                    Target host
   (current: ${host})
 
-  PRJ_DOTS|DOTS           Path to dots repo
+  DOTS                    Path to dots repo
   (current: ${dots})
 
   SOURCE                  Host config source dir
@@ -475,11 +398,14 @@ ENVIRONMENT (override any default above without flags)
   VERBOSITY|LOG_LEVEL     debug|info|warn|error|none
   (current: ${verbosity})
 
-  REV_CORE                Legacy-mode nixpkgs channel URL
+  REV_URL_CORE            Legacy-mode nixpkgs channel URL
   (current: ${rev_core})
 
-  REV_HOME                Legacy-mode home-manager channel URL
+  REV_URL_HOME            Legacy-mode home-manager channel URL
   (current: ${rev_home})
+
+  REV_URL_INDEX           Legacy-mode nix-index channel URL
+  (current: ${rev_apps})
 
 
 EXAMPLES
