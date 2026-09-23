@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) flatten intersectLists optional optionals;
+  inherit (lib.lists) flatten head intersectLists optional optionals;
   # inherit (lib.modules) mkIf;
   inherit (lib.strings) readFile toLower;
   inherit (pkgs) writeText writeShellApplication;
@@ -57,6 +57,9 @@
       if inputs ? dots
       then inputs.dots
       else user.paths.dots;
+
+    llm = optional (inputs ? llm) inputs.llm;
+    hermes = optional (inputs ? hermes) inputs.hermes;
   };
 
   name = "Preci";
@@ -453,13 +456,28 @@
       vscode-fhs
     ];
 
-    ai = with pkgs; [
-      chatgpt
-      claude-code
-      opencode-desktop
-      opencode
-      cc-switch
-      codex
+    ai = flatten [
+      (
+        optionals (sources.llm != []) (
+          with (head sources.llm).packages.${system}; [
+            chatgpt
+            claude-code
+            opencode-desktop
+            opencode
+            codex
+            cc-switch-cli
+          ]
+        )
+      )
+      (
+        optional (sources.hermes != []) (
+          with (head sources.hermes).packages.${system}; [
+            default
+            desktop
+            messaging
+          ]
+        )
+      )
     ];
 
     theme = [

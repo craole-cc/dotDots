@@ -5,17 +5,32 @@
     nixpkgs = {
       url = "github:nixos/nixpkgs/nixos-unstable";
     };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     dots = {
       url = "github:craole-cc/dotDots";
       flake = false;
     };
+
     nix-index = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    llm = {
+      repo = "llm-agents.nix";
+      owner = "numtide";
+      type = "github";
+    };
+
+    hermes = {
+      repo = "hermes-agent";
+      owner = "NousResearch";
+      type = "github";
     };
   };
 
