@@ -368,24 +368,31 @@
 
     network = with pkgs; [
       curl
-      wget
       gh
       gitui
       speedtest-go
+      wget
     ];
 
     media = with pkgs; [
-      shortwave
+      # nomacs
+      brave
+      brave-search-cli
       chromium
-      shortwave
-      imagemagick
       imagemagick
       imv
-      # nomacs
-      qimgv
-      viu
       kitty
+      mpv
+      qimgv
+      shortwave
+      viu
       vscode-fhs
+    ];
+
+    ai = with pkgs; [
+      chatgpt
+      claude-code
+      codex
     ];
 
     theme = [
