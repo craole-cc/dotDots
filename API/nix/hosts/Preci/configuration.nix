@@ -376,9 +376,12 @@
 
     media = with pkgs; [
       shortwave
+      chromium
+      shortwave
+      imagemagick
       imagemagick
       imv
-      nomacs
+      # nomacs
       qimgv
       viu
       kitty
@@ -421,7 +424,9 @@
       ]
     );
 
-    darwin = optionals hostPlatform.isDarwin (with pkgs; [pngpaste]);
+    darwin = optionals hostPlatform.isDarwin (with pkgs; [
+      pngpaste
+    ]);
 
     plasma = optionals interface.isPlasma (
       (with pkgs; [vscode-runner])
