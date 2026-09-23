@@ -6,14 +6,12 @@
   system ? "x86_64-linux",
   ...
 }: let
-  inherit (lib.lists) flatten intersectLists optionals;
+  # inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.lists) flatten intersectLists optional optionals;
+  inherit (lib.modules) mkIf;
   inherit (lib.strings) readFile toLower;
   inherit (pkgs) writeText writeShellApplication;
   inherit (pkgs.stdenv) hostPlatform;
-
-  pkgConfig = {
-    allowUnfree = true;
-  };
 
   sources = let
     revision = {
@@ -25,29 +23,38 @@
         url = "https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz";
         sha256 = "sha256-wXAdaLBAjbQK/OfESV/i0pgolkz+Uo4SbBP/MbfGLHU=";
       };
+      nix-index = {
+        url = "https://github.com/nix-community/nix-index-database/archive/9ad722673ab3b3f91f02135e53775825b240b869.tar.gz";
+        sha256 = "sha256-Dkg4VKPmDPqTwaiw2WH5br73tXoL1qrOO0xJnR4TlcA=";
+      };
     };
+    config' = {allowUnfree = true;};
   in {
     inherit revision;
 
     nixpkgs =
-      if inputs != null && inputs ? nixpkgs
+      if inputs ? nixpkgs
       then
         import inputs.nixpkgs {
           inherit system;
-          config = pkgConfig;
+          config = config';
         }
-      else
-        import (fetchTarball revision.nixpkgs) {
-          config = pkgConfig;
-        };
+      else import (fetchTarball revision.nixpkgs) {config = config';};
 
-    home-manager =
-      if inputs != null && inputs ? home-manager
-      then inputs.home-manager
-      else fetchTarball revision.home-manager;
+    home-manager = [
+      (
+        if inputs ? home-manager.nixosModules.home-manager
+        then inputs.home-manager.nixosModules.home-manager
+        else import "${fetchTarball revision.home-manager}/nixos"
+      )
+    ];
+
+    nix-index =
+      optional (inputs ? nix-index.nixosModules.nix-index)
+      inputs.nix-index.nixosModules.nix-index;
 
     dots =
-      if inputs != null && inputs ? dots
+      if inputs ? dots
       then inputs.dots
       else user.paths.dots;
   };
@@ -210,6 +217,78 @@
     isNu = has "nu";
     isPwsh = has "pwsh";
     isZsh = has "zsh";
+  };
+
+  variables = let
+    stems = {
+      cfg = "/Configuration";
+      host = "/${name}";
+      hosts = "/API/nix/hosts";
+    };
+    DOTS_STORE = sources.dots;
+    DOTS_LOCAL = user.paths.dots;
+    DOTS_LOCAL_HOSTS = DOTS_LOCAL + stems.hosts;
+    DOTS_STORE_HOSTS = DOTS_STORE + stems.hosts;
+    DOTS = DOTS_LOCAL;
+    DOTS_CONFIG = paths.roots.src;
+    DOTS_STORE_CFG = DOTS_STORE + stems.cfg;
+    DOTS_LOCAL_CFG = DOTS_LOCAL + stems.cfg;
+    HOST = name;
+  in {
+    inherit
+      DOTS
+      DOTS_CONFIG
+      DOTS_LOCAL
+      DOTS_LOCAL_CFG
+      DOTS_LOCAL_HOSTS
+      DOTS_STORE
+      DOTS_STORE_CFG
+      DOTS_STORE_HOSTS
+      HOST
+      ;
+    "DOTS_LOCAL_HOST_${HOST}" = DOTS_LOCAL_HOSTS + stems.host;
+    "DOTS_STORE_HOST_${HOST}" = DOTS_STORE_HOSTS + stems.host;
+
+    REV_URL_CORE = sources.revision.nixpkgs.url;
+    REV_URL_HOME = sources.revision.home-manager.url;
+    REV_URL_INDEX = sources.revision.nix-index.url;
+
+    XDG_CONFIG_HOME = "$HOME/.config";
+    XDG_CONFIG_DIRS = ["XDG_CONFIG_DIRS" "/etc/xdg"];
+    XDG_CACHE_HOME = "$HOME/.cache";
+    XDG_DATA_HOME = "$HOME/.local/share";
+    XDG_DATA_DIRS = ["$XDG_DATA_HOME" "/usr/local/share" "/usr/share"];
+    XDG_STATE_HOME = "$HOME/.local/state";
+    XDG_BIN_HOME = "$HOME/.local/bin";
+    XDG_RUNTIME_DIR = "/run/user/$UID";
+    XDG_DESKTOP_DIR = "$HOME/Desktop";
+    XDG_DOCUMENTS_DIR = "$HOME/Documents";
+    XDG_DOWNLOAD_DIR = "$HOME/Downloads";
+    XDG_MUSIC_DIR = "$HOME/Music";
+    XDG_PICTURES_DIR = "$HOME/Pictures";
+    XDG_PROJECTS_DIR = "$HOME/Projects";
+    XDG_PUBLICSHARE_DIR = "$HOME/Public";
+    XDG_TEMPLATES_DIR = "$HOME/Templates";
+    XDG_VIDEOS_DIR = "$HOME/Videos";
+
+    #~@ Convenience aliases (shorter names)
+    PROJECTS = "$XDG_PROJECTS_DIR";
+    PICTURES = "$XDG_PICTURES_DIR";
+    DOWNLOADS = "$XDG_DOWNLOAD_DIR";
+    MUSIC = "$XDG_MUSIC_DIR";
+    VIDEOS = "$XDG_VIDEOS_DIR";
+    DOCUMENTS = "$XDG_DOCUMENTS_DIR";
+
+    #~@ Wallpapers
+    WALLPAPERS = "$PICTURES/Wallpapers";
+    WALLPAPER_DIRS = [
+      "$WALLPAPERS"
+      "$HOME/.local/share/wallpapers"
+      "$HOME/.local/share/backgrounds"
+      "/usr/share/pixmaps"
+      "/usr/share/backgrounds"
+      "/usr/local/share/wallpapers"
+    ];
   };
 
   packages = let
@@ -408,8 +487,9 @@
           # Use the DMS-generated Matugen schemes only while DMS is running;
           # otherwise (plain Plasma session) fall back to Breeze.
           if command -v dms >/dev/null 2>&1 && dms ipc call theme getMode >/dev/null 2>&1; then
-            export THEME_KDE_SCHEME_LIGHT=DankMatugenLight
-            export THEME_KDE_SCHEME_DARK=DankMatugenDark
+            THEME_KDE_SCHEME_LIGHT=DankMatugenLight
+            THEME_KDE_SCHEME_DARK=DankMatugenDark
+            export THEME_KDE_SCHEME_LIGHT THEME_KDE_SCHEME_DARK
           fi
 
           ${readFile (
@@ -453,11 +533,12 @@
         name = "nixos-switch";
         runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
         text = ''
-          HOST="${name}"
-          REV_CORE="${sources.revision.nixpkgs.url}"
-          REV_HOME="${sources.revision.home-manager.url}"
-          PRJ_DOTS="${user.paths.dots}"
-          export HOST REV_CORE REV_HOME PRJ_DOTS
+          export DOTS="${variables.DOTS}"
+          export DOTS_CONFIG="${variables.DOTS_CONFIG}"
+          export HOST="${variables.HOST}"
+          export REV_URL_CORE="${variables.REV_URL_CORE}"
+          export REV_URL_HOME="${variables.REV_URL_HOME}"
+          export REV_URL_INDEX="${variables.REV_URL_INDEX}"
           ${readFile (
             sources.dots
             + "/Libraries/posix/packages/manager/nix/nixos-switch.sh"
@@ -510,12 +591,6 @@
       ++ theme
       ++ ai
     );
-
-  variables = {
-    PRJ_DOTS = user.paths.dots;
-    DOTS = paths.roots.src;
-    DOTS_CFG = user.paths.cfg.source;
-  };
 in {
   boot = {
     loader = {
@@ -544,10 +619,10 @@ in {
     inherit (user) defaultLocale;
   };
 
-  imports = [
-    ./hardware-configuration.nix
-    "${sources.home-manager}/nixos"
-  ];
+  imports =
+    [./hardware-configuration.nix]
+    ++ sources.home-manager
+    ++ sources.nix-index;
 
   networking = {
     hostName = name;
@@ -717,6 +792,10 @@ in {
 
     nix-index = {
       enable = true;
+    };
+
+    nix-index-database = mkIf (sources.nix-index != []) {
+      comma.enable = true;
     };
 
     nix-ld = {

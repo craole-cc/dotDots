@@ -28,6 +28,13 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
+    nixIndex = {
+      repo = "nix-index-database";
+      owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
     browserZen = {
       repo = "zen-browser-flake";
       owner = "0xc000022070";

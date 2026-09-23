@@ -13,6 +13,10 @@
       url = "github:craole-cc/dotDots";
       flake = false;
     };
+    nix-index = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs: {

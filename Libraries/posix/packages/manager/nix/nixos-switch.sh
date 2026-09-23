@@ -18,14 +18,13 @@ main() {
 set_defaults() {
   verbosity="${VERBOSITY:-${LOG_LEVEL:-$(verbosity level)}}"
 
-  host="${HOST:-$(hostname || printf "unknown")}"
-  rev_core="${REV_CORE:-"https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst"}"
-  rev_home="${REV_HOME:-"https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz"}"
-  dots="${PRJ_DOTS:-${DOTS:-${HOME}/.dots}}"
+  rev_core="${REV_URL_CORE:-"https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst"}"
+  rev_home="${REV_URL_HOME:-"https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz"}"
+  rev_apps="${REV_URL_INDEX:-"https://github.com/nix-community/nix-index-database/archive/9ad722673ab3b3f91f02135e53775825b240b869.tar.gz"}"
 
-  src="${dots}/API/nix/hosts/${host}"
-  source="${SOURCE:-${src}}"
-  target="${TARGET:-/etc/nixos}"
+  host="${HOST:-$(hostname || printf "unknown")}"
+  source="${SOURCE:-${DOTS_HOSTS:-${DOTS:?}/API/nix/hosts}/${host}}"
+  target="${TARGET:-${DOTS_CONFIG:-/etc/nixos}}"
   mode="${MODE:-flake}"
   message=""
   dry_run="${DRY_RUN:-0}"
@@ -363,7 +362,8 @@ switch_system() {
         --no-flake \
         -I "nixos-config=${source}/configuration.nix" \
         -I "nixpkgs=${rev_core}" \
-        -I "home-manager=${rev_home}"
+        -I "home-manager=${rev_home}" \
+        -I "nix-index-database=${rev_apps}"
       ;;
     *)
       gum log \
@@ -389,7 +389,8 @@ switch_system() {
       --no-flake \
       -I "nixos-config=${target}/configuration.nix" \
       -I "nixpkgs=${rev_core}" \
-      -I "home-manager=${rev_home}"
+      -I "home-manager=${rev_home}" \
+      -I "nix-index-database=${rev_apps}"
     ;;
   *)
     gum log \
