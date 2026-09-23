@@ -378,7 +378,8 @@
       # nomacs
       brave
       brave-search-cli
-      chromium
+      # chromium
+      freetube
       imagemagick
       imv
       kitty
@@ -507,6 +508,7 @@
       ++ files
       ++ media
       ++ theme
+      ++ ai
     );
 
   variables = {
