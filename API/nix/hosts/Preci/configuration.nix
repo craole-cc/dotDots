@@ -392,6 +392,9 @@
     ai = with pkgs; [
       chatgpt
       claude-code
+      opencode-desktop
+      opencode
+      cc-switch
       codex
     ];
 
