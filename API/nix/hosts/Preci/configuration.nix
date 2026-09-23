@@ -6,9 +6,9 @@
   system ? "x86_64-linux",
   ...
 }: let
-  # inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) flatten intersectLists optional optionals;
-  inherit (lib.modules) mkIf;
+  # inherit (lib.modules) mkIf;
   inherit (lib.strings) readFile toLower;
   inherit (pkgs) writeText writeShellApplication;
   inherit (pkgs.stdenv) hostPlatform;
@@ -626,175 +626,175 @@ in {
     pkgs = sources.nixpkgs;
   };
 
-  programs = {
-    bash = {
-      enable = true;
-      blesh = {
+  programs =
+    {
+      bash = {
         enable = true;
-      };
-      undistractMe = {
-        enable = true;
-      };
-    };
-
-    bat = {
-      enable = true;
-
-      extraPackages = with pkgs.bat-extras; [
-        batdiff
-        batman
-        prettybat
-      ];
-
-      settings = {};
-    };
-
-    bandwhich = {
-      enable = true;
-    };
-
-    chromium = {
-      enable = true;
-    };
-
-    cpu-energy-meter = {
-      enable = true;
-    };
-
-    direnv = {
-      enable = true;
-      silent = true;
-      angrr = {
-        enable = true;
-      };
-    };
-
-    dms-shell = {
-      enable = with interface; isHyprland || isNiri;
-    };
-
-    firefox = {
-      enable = true;
-    };
-
-    fish = {
-      enable = shells.isFish;
-    };
-
-    foot = {
-      enable = interface.isWayland;
-      xdg.serverAutostart = true;
-
-      settings = {
-        main = {
-          selection-target = "clipboard";
-          font = "Monospace:size=18";
+        blesh = {
+          enable = true;
         };
-
-        scrollback = {
-          lines = 1000000;
+        undistractMe = {
+          enable = true;
         };
       };
-    };
 
-    git = {
-      enable = true;
-
-      lfs = {
+      bat = {
         enable = true;
-        enablePureSSHTransfer = true;
-      };
 
-      prompt.enable = true;
-
-      config = {
-        user = {
-          inherit (user) email name;
-        };
-        init = {
-          defaultBranch = "main";
-        };
-        safe.directory = [
-          user.paths.dots
+        extraPackages = with pkgs.bat-extras; [
+          batdiff
+          batman
+          prettybat
         ];
-        url = {
-          "https://github.com/" = {
-            insteadOf = [
-              "gh:"
-              "github:"
-            ];
+
+        settings = {};
+      };
+
+      bandwhich = {
+        enable = true;
+      };
+
+      chromium = {
+        enable = true;
+      };
+
+      cpu-energy-meter = {
+        enable = true;
+      };
+
+      direnv = {
+        enable = true;
+        silent = true;
+        angrr = {
+          enable = true;
+        };
+      };
+
+      dms-shell = {
+        enable = with interface; isHyprland || isNiri;
+      };
+
+      firefox = {
+        enable = true;
+      };
+
+      fish = {
+        enable = shells.isFish;
+      };
+
+      foot = {
+        enable = interface.isWayland;
+        xdg.serverAutostart = true;
+
+        settings = {
+          main = {
+            selection-target = "clipboard";
+            font = "Monospace:size=18";
+          };
+
+          scrollback = {
+            lines = 1000000;
           };
         };
       };
-    };
 
-    hyprland = {
-      enable = interface.isHyprland;
-    };
+      git = {
+        enable = true;
 
-    hyprlock = {
-      enable = interface.isHyprland;
-    };
+        lfs = {
+          enable = true;
+          enablePureSSHTransfer = true;
+        };
 
-    iio-hyprland = {
-      enable = interface.isHyprland;
-    };
+        prompt.enable = true;
 
-    kbdlight = {
-      enable = true;
-    };
+        config = {
+          user = {
+            inherit (user) email name;
+          };
+          init = {
+            defaultBranch = "main";
+          };
+          safe.directory = [
+            user.paths.dots
+          ];
+          url = {
+            "https://github.com/" = {
+              insteadOf = [
+                "gh:"
+                "github:"
+              ];
+            };
+          };
+        };
+      };
 
-    kdeconnect = {
-      enable = true;
-    };
+      hyprland = {
+        enable = interface.isHyprland;
+      };
 
-    labwc = {
-      enable = interface.isLab;
-    };
+      hyprlock = {
+        enable = interface.isHyprland;
+      };
 
-    lazygit = {
-      inherit (config.programs.git) enable;
-    };
+      iio-hyprland = {
+        enable = interface.isHyprland;
+      };
 
-    less = {
-      enable = true;
-    };
+      kbdlight = {
+        enable = true;
+      };
 
-    mango = {
-      enable = interface.isMango;
-    };
+      kdeconnect = {
+        enable = true;
+      };
 
-    nh = {
-      enable = true;
-      clean.enable = true;
-      clean.extraArgs = "--keep-since 4d --keep 3";
-    };
+      labwc = {
+        enable = interface.isLab;
+      };
 
-    niri = {
-      enable = interface.isNiri;
-    };
+      lazygit = {
+        inherit (config.programs.git) enable;
+      };
 
-    nix-index = {
-      enable = true;
-    };
+      less = {
+        enable = true;
+      };
 
-    nix-index-database = mkIf (sources.nix-index != []) {
-      comma.enable = true;
-    };
+      mango = {
+        enable = interface.isMango;
+      };
 
-    nix-ld = {
-      enable = true;
-    };
+      nh = {
+        enable = true;
+        clean.enable = true;
+        clean.extraArgs = "--keep-since 4d --keep 3";
+      };
 
-    starship = {
-      enable = true;
-      transientPrompt.enable = true;
-    };
+      niri = {
+        enable = interface.isNiri;
+      };
 
-    zsh = {
-      enable = shells.isZsh;
+      nix-index = {
+        enable = true;
+      };
+
+      nix-ld = {
+        enable = true;
+      };
+
+      starship = {
+        enable = true;
+        transientPrompt.enable = true;
+      };
+
+      zsh = {
+        enable = shells.isZsh;
+      };
+    }
+    // optionalAttrs (sources.nix-index != []) {
+      nix-index-database.comma.enable = true;
     };
-  };
 
   security = {
     sudo.extraRules = [

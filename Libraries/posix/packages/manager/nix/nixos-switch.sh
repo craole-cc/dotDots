@@ -155,7 +155,10 @@ parse_arguments() {
         exit 1
       fi
       ;;
-    *) ;;
+    *)
+      gum log --level error "Unknown argument" arg "${1:-}"
+      exit 1
+      ;;
     esac
     shift
   done
