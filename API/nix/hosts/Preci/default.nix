@@ -2,29 +2,12 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  imports = [./hardware-configuration.nix];
-
-  stateVersion = "25.11";
+  stateVersion = "26.05";
   system = "${arch}-${os}";
   class = "nixos";
-  id = "cfd69003";
   name = "Preci";
+  id = "91ba73c7";
   description = "Dell Precision M2800";
-
-  paths.roots.repo = "/home/craole/.dots";
-
-  packages.kernel = "linuxPackages_latest";
-
-  modules = [
-    "xhci_pci"
-    "ehci_pci"
-    "ahci"
-    "usb_storage"
-    "usbhid"
-    "sd_mod"
-    "sr_mod"
-    "sdhci_pci"
-  ];
 
   specs = {
     machine = "laptop";
@@ -34,24 +17,10 @@ in {
     };
   };
 
-  devices = {
-    storage = {
-      boot.efiSysMountPoint = "/boot";
-      mounts = {
-        "/" = {
-          device = "/dev/disk/by-uuid/05382bd2-cc99-4717-8343-0c6076d81441";
-          fsType = "ext4";
-        };
-        "/boot" = {
-          device = "/dev/disk/by-uuid/1FC3-D0C5";
-          fsType = "vfat";
-          options = [
-            "fmask=0077"
-            "dmask=0077"
-          ];
-        };
-      };
-      swap = [{device = "/dev/disk/by-uuid/7cd5b10d-efe9-4279-833c-6482cb6c1474";}];
+  paths = {
+    roots = {
+      src = "/home/craole-cc/Projects/dotDots";
+      run = "/etc/nixos";
     };
   };
 
@@ -86,7 +55,47 @@ in {
   ];
 
   interface = {
-    bootLoader = "systemd-boot";
-    bootLoaderTimeout = 1;
+    boot = {
+      loader = {
+        manager = "grub";
+        device = "/dev/sda";
+        timeout = 1;
+      };
+    };
+    desktops = [
+      "plasma"
+      # "hyprland"
+      "niri"
+      # "mango"
+      # "cosmic"
+    ];
   };
+
+  packages = {
+    kernel = "linuxPackages_latest";
+  };
+
+  principals = [
+    {
+      name = "craole-cc";
+      enable = true;
+      autoLogin = true;
+      role = "administrator";
+      email = "134658831+craole-cc@users.noreply.github.com";
+      description = "Craig 'Craole' Cole";
+      defaultLocale = "en_GB.UTF-8";
+      keyboard = {
+        layout = "us";
+        variant = "";
+      };
+      desktop = "plasma";
+      launchers = ["vicinae"];
+      shells = [
+        "bash"
+        "nushell"
+        "powershell"
+        "zsh"
+      ];
+    }
+  ];
 }

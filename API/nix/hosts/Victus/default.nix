@@ -12,7 +12,7 @@ in {
   id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
-    roots.repo = "/home/craole/Downloads/public/dotDots";
+    roots.src = "/home/craole/Downloads/public/dotDots";
     stems.repo = {
       # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
     };
@@ -33,9 +33,11 @@ in {
     kernel = "linuxPackages_cachyos-lto";
   };
 
-  caches.nyx = {
-    sub = "https://nyx-cache.chaotic.cx/";
-    key = "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=";
+  caches = {
+    nyx = {
+      sub = "https://nyx-cache.chaotic.cx/";
+      key = "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=";
+    };
   };
 
   modules = [

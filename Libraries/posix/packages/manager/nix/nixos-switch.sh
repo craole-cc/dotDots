@@ -23,7 +23,7 @@ set_defaults() {
   dots="${DOTS:?}"
   host="${HOST:-$(hostname || printf "unknown")}"
   source="${SOURCE:-${DOTS_HOSTS:-${dots:?}/API/nix/hosts}/${host}}"
-  target="${TARGET:-${DOTS_CONFIG:-/etc/nixos}}"
+  target="${TARGET:-${DOTS_BUILD:-/etc/nixos}}"
   mode="${MODE:-flake}"
   dry_run="${DRY_RUN:-0}"
   dry_action="${DRY_ACTION:-dry-build}"

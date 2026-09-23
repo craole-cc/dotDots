@@ -6,26 +6,206 @@
   system ? "x86_64-linux",
   ...
 }: let
-  inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) flatten head intersectLists optional optionals;
-  # inherit (lib.modules) mkIf;
-  inherit (lib.strings) readFile toLower;
-  inherit (pkgs) writeText writeShellApplication;
+  inherit (lib.attrsets) attrNames filterAttrs getAttr isAttrs listToAttrs mapAttrs optionalAttrs recursiveUpdate;
+  inherit (lib.lists) flatten head intersectLists isList optional optionals;
+  inherit (lib.modules) mkForce;
+  inherit (lib.strings) isString readFile stringLength toLower trim;
+  inherit (pkgs) writeShellApplication;
   inherit (pkgs.stdenv) hostPlatform;
 
+  isEmpty = value:
+    if (value == null)
+    then true
+    else if isString value
+    then ((value == "") || ((stringLength (trim value)) == 0))
+    else if isList value
+    then value == []
+    else if isAttrs value
+    then value == {}
+    else false;
+  isNotEmpty = value: !isEmpty value;
+
+  args = let
+    src = import ./.;
+  in
+    src
+    // {
+      users = let
+        normalize = principal: let
+          home = "/home/${principal.name}";
+          shells = principal.shells or ["bash"];
+          role = principal.role or "normal";
+          isNormalUser = role != "service";
+        in
+          principal
+          // {
+            inherit role shells isNormalUser;
+            isSystemUser = !isNormalUser;
+            paths =
+              principal.paths or {
+                inherit home;
+                inherit (paths.roots) src;
+                cfg = {
+                  source = "${paths.roots.src}/Configuration";
+                  target = "${home}/.config";
+                };
+              };
+          }
+          // optionalAttrs isNormalUser {
+            defaultLocale = principal.defaultLocale or
+          args.localization.defaultLocale;
+            keyboard =
+              recursiveUpdate {
+                layout = "us";
+                variant = "";
+              }
+              principal.keyboard;
+          };
+
+        normalized =
+          mapAttrs
+          (_: principal: normalize principal) (
+            listToAttrs (
+              map (value: {
+                inherit value;
+                inherit (value) name;
+              })
+              src.principals
+            )
+          );
+
+        enabled =
+          filterAttrs
+          (_: user: user.enable or false == true)
+          normalized;
+
+        disabled =
+          filterAttrs
+          (_: user: user.enable or false == false)
+          normalized;
+        normal =
+          filterAttrs
+          (_: principal: principal.isNormalUser)
+          normalized;
+
+        primary = enabled.${head (attrNames enabled)};
+
+        core =
+          mapAttrs
+          (
+            _: principal:
+              {
+                description = principal.description or principal.name;
+                inherit (principal) isNormalUser isSystemUser;
+                extraGroups =
+                  optionals
+                  (principal.role == "administrator") ["networkmanager" "wheel"];
+                shell = getAttr (head principal.shells) pkgs;
+              }
+              // optionalAttrs (principal ? password) {inherit (principal) password;}
+              // optionalAttrs (principal ? uid) {inherit (principal) uid;}
+          )
+          normalized;
+
+        autoLogin = let
+          candidates =
+            filterAttrs
+            (_: principal: principal.autoLogin or false)
+            normalized;
+          enable = isNotEmpty candidates;
+        in {
+          inherit enable;
+          user =
+            if enable
+            then head (attrNames candidates)
+            else primary.name;
+        };
+      in {inherit enabled disabled normal primary core autoLogin;};
+
+      localization = recursiveUpdate {
+        latitude = 18.015;
+        longitude = -77.49;
+        city = "Mandeville, Jamaica";
+        timeZone = "America/Jamaica";
+        defaultLocale = "en_US.UTF-8";
+      } (src.localization or {});
+
+      paths = let
+        roots = {
+          src = "/home/craole-cc/Projects/dotDots";
+          run = "/etc/nixos";
+        };
+        dots = paths.roots.src;
+      in
+        recursiveUpdate {inherit roots dots;} (src.paths or {});
+    };
+  inherit (args) id localization name paths stateVersion users;
+
   sources = let
+    normalize = {
+      owner,
+      repo,
+      rev,
+      sha256,
+      type ? "github",
+    }: {
+      inherit type owner repo rev sha256;
+      url = "https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
+    };
+
+    #? Uses sha256 when provided (reproducible), or fetches raw tarball when omitted/null (unpinned)
+    fetchSrc = src:
+      if src ? sha256 && src.sha256 != null && src.sha256 != ""
+      then fetchTarball {inherit (src) url sha256;}
+      else fetchTarball src.url;
+
+    fetchMod = {
+      name,
+      path ? null,
+      default ? null,
+    }:
+      if inputs ? ${name}
+      then inputs.${name}.nixosModules.${name} or inputs.${name}
+      else let
+        fetched = fetchSrc revision.${name};
+      in
+        if path != null
+        then import "${fetched}/${path}"
+        else default fetched;
+
     revision = {
-      nixpkgs = {
-        url = "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1077143.44a91898084f/nixexprs.tar.zst";
+      nixpkgs = normalize {
+        owner = "NixOS";
+        repo = "nixpkgs";
+        rev = "44a91898084f3e69bbbf407aa7e8d64efd6e812b";
         sha256 = "sha256-uLLUj+TLUmBc6KrUzx76KZdPi5ZkI1ORR9A6lJUIZlo=";
       };
-      home-manager = {
-        url = "https://github.com/nix-community/home-manager/archive/a3dfb887d40d134af29fa8e924ba85a3e3a99194.tar.gz";
+
+      home-manager = normalize {
+        owner = "nix-community";
+        repo = "home-manager";
+        rev = "a3dfb887d40d134af29fa8e924ba85a3e3a99194";
         sha256 = "sha256-wXAdaLBAjbQK/OfESV/i0pgolkz+Uo4SbBP/MbfGLHU=";
       };
-      nix-index = {
-        url = "https://github.com/nix-community/nix-index-database/archive/9ad722673ab3b3f91f02135e53775825b240b869.tar.gz";
+
+      dots = normalize {
+        owner = "craole-cc";
+        repo = "dotDots";
+        rev = "main";
+      };
+
+      nix-index = normalize {
+        owner = "nix-community";
+        repo = "nix-index-database";
+        rev = "9ad722673ab3b3f91f02135e53775825b240b869";
         sha256 = "sha256-Dkg4VKPmDPqTwaiw2WH5br73tXoL1qrOO0xJnR4TlcA=";
+      };
+
+      catppuccin = normalize {
+        owner = "catppuccin";
+        repo = "nix";
+        rev = "89b3eacf59d6b5eefbc2d69c3a4eb5aaf66d63bc";
+        sha256 = "sha256-W5dvgFOuVs24X3G5tUb8C2IHU7ICXNvyGPiWWFjfbuo=";
       };
     };
     config' = {allowUnfree = true;};
@@ -39,124 +219,60 @@
           inherit system;
           config = config';
         }
-      else import (fetchTarball revision.nixpkgs) {config = config';};
+      else import (fetchSrc revision.nixpkgs) {config = config';};
 
     home-manager = [
-      (
-        if inputs ? home-manager.nixosModules.home-manager
-        then inputs.home-manager.nixosModules.home-manager
-        else import "${fetchTarball revision.home-manager}/nixos"
-      )
+      (fetchMod {
+        name = "home-manager";
+        path = "nixos";
+      })
     ];
-
-    nix-index =
-      optional (inputs ? nix-index.nixosModules.nix-index)
-      inputs.nix-index.nixosModules.nix-index;
 
     dots =
       if inputs ? dots
       then inputs.dots
-      else user.paths.dots;
+      else fetchSrc revision.dots;
 
-    llm = optional (inputs ? llm) inputs.llm;
-    hermes = optional (inputs ? hermes) inputs.hermes;
-  };
-
-  name = "Preci";
-  id = "91ba73c7";
-  timeZone = "America/Jamaica";
-  autoLogin = true;
-  stateVersion = "26.05";
-  paths.roots.src = "/etc/nixos";
-
-  user = {
-    name = "craole-cc";
-    email = "134658831+craole-cc@users.noreply.github.com";
-    description = "Craig 'Craole' Cole";
-    defaultLocale = "en_GB.UTF-8";
-    keyboard = {
-      layout = "us";
-      variant = "";
+    catppuccin = fetchMod {
+      name = "catppuccin";
+      path = "modules/nixos";
     };
-    paths = let
-      home = "/home/${user.name}";
-      pictures = home + "/Pictures";
-      wallpapers = pictures + "/Wallpapers";
-      projects = home + "/Projects";
-      dots = projects + "/dotDots";
-      cfg = {
-        target = home + "/.config";
-        source = dots + "/Configuration";
-      };
-    in {
-      inherit
-        home
-        dots
-        pictures
-        projects
-        cfg
-        wallpapers
-        ;
+
+    nix-index = fetchMod {
+      name = "nix-index";
+      default = src: (import src).nixosModules.nix-index;
     };
-    panels = [];
-    launchers = ["vicinae"];
-    shells = [
-      "bash"
-      "nushell"
-      "powershell"
-      "zsh"
-    ];
   };
 
   interface = let
-    desktops = [
-      "plasma"
-      # "hyprland"
-      "niri"
-      # "mango"
-      # "cosmic"
-    ];
-
-    normalized = map toLower desktops;
+    normalized = map toLower args.interface.desktops;
 
     aliases = {
-      plasma = [
-        "plasma"
-        "plasma6"
-        "kde"
-      ];
-      hyprland = ["hyprland"];
+      plasma = ["plasma" "plasma6" "kde"];
+      hyprland = ["hyprland" "hypr" "hype"];
       niri = ["niri"];
       gnome = ["gnome"];
       cosmic = ["cosmic"];
       i3 = ["i3"];
       bspwm = ["bspwm"];
       openbox = ["openbox"];
-      lab = [
-        "labwc"
-        "lab"
-      ];
-      mango = [
-        "mango"
-        "mangowc"
-      ];
+      lab = ["labwc" "lab"];
+      mango = ["mango" "mangowc"];
     };
 
-    has = desktop: intersectLists aliases.${desktop} normalized != [];
-
-    protocols = {
-      wayland = intersectLists normalized [
+    protocols = let
+      collect = list: intersectLists normalized list;
+    in {
+      wayland = collect [
         "cosmic"
         "gnome"
         "hyprland"
-        "kde"
-        "mangowc"
+        "mango"
         "niri"
         "plasma"
-        "plasma6"
       ];
 
-      x11 = intersectLists normalized [
+      x11 = collect [
         "bspwm"
         "i3"
         "labwc"
@@ -164,62 +280,24 @@
       ];
     };
 
-    launchers = user.launchers or ["vicinae"];
-    panels = user.panels or [];
+    isRequired = desktop:
+      isNotEmpty
+      (intersectLists aliases.${desktop} normalized);
   in {
-    inherit
-      desktops
-      launchers
-      panels
-      protocols
-      ;
-
-    isBspwm = has "bspwm";
-    isCosmic = has "cosmic";
-    isGnome = has "gnome";
-    isHyprland = has "hyprland";
-    isI3 = has "i3";
-    isLab = has "lab";
-    isMango = has "mango";
-    isNiri = has "niri";
-    isOpenbox = has "openbox";
-    isPlasma = has "plasma";
-    isWayland = protocols.wayland != [];
-    isX11 = protocols.x11 != [];
-
-    defaultSession = "plasma";
-  };
-
-  shells = let
-    priority = user.shells or ["bash"];
-    normalized = map toLower priority;
-
-    aliases = {
-      bash = ["bash"];
-      fish = ["fish"];
-      nu = [
-        "nu"
-        "nushell"
-      ];
-      pwsh = [
-        "pwsh"
-        "powershell"
-      ];
-      zsh = [
-        "zsh"
-        "z-shell"
-      ];
-    };
-
-    has = shell: intersectLists aliases.${shell} normalized != [];
-  in {
-    inherit priority;
-
-    isBash = has "bash";
-    isFish = has "fish";
-    isNu = has "nu";
-    isPwsh = has "pwsh";
-    isZsh = has "zsh";
+    inherit protocols;
+    isBspwm = isRequired "bspwm";
+    isCosmic = isRequired "cosmic";
+    isGnome = isRequired "gnome";
+    isHyprland = isRequired "hyprland";
+    isI3 = isRequired "i3";
+    isLab = isRequired "lab";
+    isMango = isRequired "mango";
+    isNiri = isRequired "niri";
+    isOpenbox = isRequired "openbox";
+    isPlasma = isRequired "plasma";
+    isWayland = isNotEmpty protocols.wayland;
+    isX11 = isNotEmpty protocols.x11;
+    defaultSession = users.primary.desktop or "plasma";
   };
 
   variables = let
@@ -228,77 +306,133 @@
       host = "/${name}";
       hosts = "/API/nix/hosts";
     };
-    DOTS_STORE = sources.dots;
-    DOTS_LOCAL = user.paths.dots;
-    DOTS_LOCAL_HOSTS = DOTS_LOCAL + stems.hosts;
-    DOTS_STORE_HOSTS = DOTS_STORE + stems.hosts;
-    DOTS = DOTS_LOCAL;
-    DOTS_HOSTS = DOTS_LOCAL_HOSTS;
-    DOTS_CONFIG = paths.roots.src;
-    DOTS_STORE_CFG = DOTS_STORE + stems.cfg;
-    DOTS_LOCAL_CFG = DOTS_LOCAL + stems.cfg;
-    HOST = name;
+    env = variables;
   in {
-    #~@ Dotfiles
-    inherit
-      DOTS
-      DOTS_CONFIG
-      DOTS_LOCAL
-      DOTS_LOCAL_CFG
-      DOTS_LOCAL_HOSTS
-      DOTS_HOSTS
-      DOTS_STORE
-      DOTS_STORE_CFG
-      DOTS_STORE_HOSTS
-      HOST
-      ;
-    "DOTS_LOCAL_HOST_${HOST}" = DOTS_LOCAL_HOSTS + stems.host;
-    "DOTS_STORE_HOST_${HOST}" = DOTS_STORE_HOSTS + stems.host;
+    #~@ Paths
+    DOTS_STORE = sources.dots;
+    DOTS_LOCAL = paths.roots.src;
+    DOTS_BUILD = paths.roots.run;
+    DOTS = env.DOTS_LOCAL;
+    DOTS_HOSTS = env.DOTS_LOCAL_HOSTS;
+    DOTS_LOCAL_HOSTS = env.DOTS_LOCAL + stems.hosts;
+    DOTS_STORE_HOSTS = env.DOTS_STORE + stems.hosts;
+    "DOTS_LOCAL_HOST_${env.HOST}" = env.DOTS_LOCAL_HOSTS + stems.host;
+    "DOTS_STORE_HOST_${env.HOST}" = env.DOTS_STORE_HOSTS + stems.host;
+    DOTS_STORE_CFG = env.DOTS_STORE + stems.cfg;
+    DOTS_LOCAL_CFG = env.DOTS_LOCAL + stems.cfg;
 
     #~@ Inputs
     REV_URL_CORE = sources.revision.nixpkgs.url;
     REV_URL_HOME = sources.revision.home-manager.url;
     REV_URL_INDEX = sources.revision.nix-index.url;
 
-    #~@ User Directories
-    DOCUMENTS = "$HOME/Documents";
-    DOWNLOADS = "$HOME/Downloads";
-    MUSIC = "$HOME/Music";
-    PICTURES = "$HOME/Pictures";
-    PROJECTS = "$HOME/Projects";
-    VIDEOS = "$HOME/Videos";
-    WALLPAPERS = "$PICTURES/Wallpapers";
-    WALLPAPER_DIRS = [
-      "$WALLPAPERS"
-      "$HOME/.local/share/wallpapers"
-      "$HOME/.local/share/backgrounds"
-      "/usr/share/pixmaps"
-      "/usr/share/backgrounds"
-      "/usr/local/share/wallpapers"
-    ];
+    #~@ Metadata
+    HOST = name;
+
+    #~@ Theme
+    THEME_KDE_LIGHT = "BreezeLight";
+    THEME_KDE_DARK = "BreezeDark";
+    THEME_GTK_LIGHT = "catppuccin-latte-blue-standard";
+    THEME_GTK_DARK = "catppuccin-frappe-blue-standard";
+    THEME_ICONS_LIGHT = "buuf-nestort";
+    THEME_ICONS_DARK = "candy-icons";
   };
 
-  packages = let
-    #~@ Languages & Development
-    dev = let
-      Markup = with pkgs;
-        [
-          actionlint
-          biome
-          rumdl
-          stylua
-          tombi
-          typos
-          typst
-          typstyle
-          yamlfmt
-        ]
-        ++ (with typstPackages; [typsy]);
+  packages = flatten (
+    with pkgs;
+      [
+        (writeShellApplication {
+          name = "nixos-switch";
+          runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
+          text = ''
+            export DOTS="${variables.DOTS}"
+            export DOTS_BUILD="${variables.DOTS_BUILD}"
+            export DOTS_HOSTS="${variables.DOTS_HOSTS}"
+            export HOST="${variables.HOST}"
+            export REV_URL_CORE="${variables.REV_URL_CORE}"
+            export REV_URL_HOME="${variables.REV_URL_HOME}"
+            export REV_URL_INDEX="${variables.REV_URL_INDEX}"
+            ${readFile (sources.dots + "/Libraries/posix/packages/manager/nix/nixos-switch.sh")}
+          '';
+        })
 
-      Nix = with pkgs; [
+        (writeShellApplication {
+          name = "theme-toggle";
+          runtimeInputs = with pkgs; [coreutils libnotify];
+          bashOptions = [];
+          text = ''
+            #> Use the DMS-generated Matugen schemes only while DMS is running;
+            if
+              command -v dms >/dev/null 2>&1 &&
+                dms ipc call theme getMode >/dev/null 2>&1
+            then
+              THEME_KDE_LIGHT="DankMatugenLight";
+              THEME_KDE_DARK="DankMatugenDark";
+              THEME_GTK_LIGHT="DankMatugenLight";
+              THEME_GTK_DARK="DankMatugenDark";
+            else
+              THEME_KDE_LIGHT="${variables.THEME_KDE_LIGHT}";
+              THEME_KDE_DARK="${variables.THEME_KDE_DARK}";
+              THEME_GTK_LIGHT="${variables.THEME_GTK_LIGHT}";
+              THEME_GTK_DARK="${variables.THEME_GTK_DARK}";
+            fi
+
+            THEME_ICONS_LIGHT="${variables.THEME_ICONS_LIGHT}";
+            THEME_ICONS_DARK="${variables.THEME_ICONS_DARK}";
+            THEME_KDE_SCHEME_LIGHT="$THEME_KDE_LIGHT";
+            THEME_KDE_SCHEME_DARK="$THEME_KDE_DARK";
+
+            export \
+              THEME_KDE_SCHEME_LIGHT \
+              THEME_KDE_LOOKANDFEEL_LIGHT \
+              THEME_KDE_SCHEME_DARK \
+              THEME_KDE_LOOKANDFEEL_DARK \
+              THEME_KDE_LIGHT \
+              THEME_KDE_DARK \
+              THEME_GTK_LIGHT \
+              THEME_GTK_DARK \
+              THEME_ICONS_LIGHT \
+              THEME_ICONS_DARK
+
+            ${readFile (
+              sources.dots
+              + "/Libraries/posix/interface/theme/theme-switch.sh"
+            )}
+          '';
+        })
         alejandra
+        bat
+        btop
         cachix
+        coreutils
+        curl
+        diffutils
+        dua
+        dust
+        eza
+        fastfetch
+        fd
+        fend
+        figlet
+        file
+        findutils
+        fzf
+        gawk
+        gcc
+        getent
+        gh
+        gitui
+        gnused
+        gum
+        helix
+        imagemagick
+        imv
+        jq
+        jql
+        lolcat
         lorri
+        lsd
+        lshw
         nil
         nix-diff
         nix-index
@@ -309,323 +443,166 @@
         nix-prefetch-github
         nix-prefetch-scripts
         nixd
-        nvfetcher
         nixfmt
-        statix
-      ];
-
-      Nushell = optionals shells.isNu (
-        with pkgs;
-          [
-            nushell
-            nu-lint
-            nufmt
-          ]
-          ++ (with pkgs.nushellPlugins; [
-            polars
-            gstat
-            skim
-            query
-            formats
-            desktop_notifications
-          ])
-      );
-
-      PowerShell = optionals shells.isPwsh (
-        with pkgs; [
-          powershell
-          powershell-editor-services
-
-          (writeShellApplication {
-            name = "pwshfmt";
-            runtimeInputs = [powershell];
-            text = ''
-              export PSModulePath="${let
-                pname = "PSScriptAnalyzer";
-                version = "1.25.0";
-              in
-                stdenvNoCC.mkDerivation {
-                  inherit pname version;
-                  src = fetchurl {
-                    url = "https://www.powershellgallery.com/api/v2/package/${pname}/${version}";
-                    hash = "sha256-FOY0yCjrmO+59AspGLqQ8TntXszfZjoqdHc22ZaZXWA="; #? lib.fakeHash to update
-                  };
-                  nativeBuildInputs = [unzip];
-                  dontUnpack = true;
-                  dontBuild = true;
-                  installPhase = ''
-                    mkdir -p "$out/share/powershell/Modules/${pname}"
-                    unzip -q "$src" -d "$out/share/powershell/Modules/${pname}"
-                  '';
-                }}/share/powershell/Modules''${PSModulePath:+:$PSModulePath}"
-
-              exec pwsh \
-                -NoProfile \
-                -NonInteractive \
-                -File ${sources.dots + "/Libraries/powershell/Admin/pwshfmt.ps1"} \
-                "$@"
-            '';
-          })
-        ]
-      );
-
-      Python = with pkgs; [
-        python3Minimal
-        ruff
-      ];
-
-      Rust = with pkgs; [
-        cargo
-        rustc
-        clippy
-        rustfmt
-        rust-analyzer
-        leptosfmt
-      ];
-
-      ShellScript = with pkgs; [
+        nvfetcher
+        ouch
+        p7zip
+        patch
+        pciutils
+        pkg-config
+        procs
+        ripgrep
+        rsync
+        sad
         shellcheck
         shfmt
-
-        (writeShellApplication {
-          name = "shlint";
-          runtimeInputs = [shellcheck shfmt];
-          text = ''
-            for file in "$@"; do
-              shellcheck "$file"
-              shfmt -w -s "$file"
-            done
-          '';
-        })
-      ];
-
-      Zig = with pkgs; [
-        zig
-        ziglint
-        zls
-      ];
-    in
-      flatten [
-        Markup
-        Nix
-        Nushell
-        PowerShell
-        Python
-        Rust
-        ShellScript
-        Zig
-      ];
-
-    files = with pkgs; [
-      dua
-      dust
-      eza
-      fd
-      file
-      fzf
-      lsd
-      ouch
-      p7zip
-      rsync
-      sad
-      trashy
-      udiskie
-    ];
-
-    network = with pkgs; [
-      curl
-      gh
-      gitui
-      speedtest-go
-      wget
-    ];
-
-    media = with pkgs; [
-      # nomacs
-      brave
-      brave-search-cli
-      # chromium
-      freetube
-      imagemagick
-      imv
-      kitty
-      mpv
-      qimgv
-      shortwave
-      viu
-      vscode-fhs
-    ];
-
-    ai = flatten [
-      (
-        optionals (sources.llm != []) (
-          with (head sources.llm).packages.${system}; [
-            chatgpt
-            claude-code
-            opencode-desktop
-            opencode
-            codex
-            cc-switch-cli
-          ]
-        )
-      )
-      (
-        optional (sources.hermes != []) (
-          with (head sources.hermes).packages.${system}; [
-            default
-            desktop
-            messaging
-          ]
-        )
-      )
-    ];
-
-    theme = [
-      (writeShellApplication {
-        name = "theme-toggle";
-        runtimeInputs = with pkgs; [coreutils libnotify];
-        bashOptions = []; #? the script probes tools that may legitimately fail
-        text = ''
-          # Use the DMS-generated Matugen schemes only while DMS is running;
-          # otherwise (plain Plasma session) fall back to Breeze.
-          if command -v dms >/dev/null 2>&1 && dms ipc call theme getMode >/dev/null 2>&1; then
-            THEME_KDE_SCHEME_LIGHT=DankMatugenLight
-            THEME_KDE_SCHEME_DARK=DankMatugenDark
-            export THEME_KDE_SCHEME_LIGHT THEME_KDE_SCHEME_DARK
-          fi
-
-          ${readFile (
-            sources.dots
-            + "/Libraries/posix/interface/theme/theme-switch.sh"
-          )}
-        '';
-      })
-    ];
-
-    #~@ Platform Helpers
-    wayland = optionals interface.isWayland (
-      with pkgs; [
+        speedtest-go
+        statix
+        trashy
+        treefmt
+        udiskie
+        usbutils
+        uutils-coreutils-noprefix
+        viu
+        wget
+        wlr-randr
+        yazi
+      ]
+      ++ optionals interface.isWayland (with pkgs; [
         wl-clipboard
         xwayland-satellite
-      ]
-    );
-
-    linux = optionals hostPlatform.isLinux (
-      with pkgs; [
-        bubblewrap
-        xsel
-      ]
-    );
-
-    darwin = optionals hostPlatform.isDarwin (with pkgs; [
-      pngpaste
-    ]);
-
-    plasma = optionals interface.isPlasma (
-      (with pkgs; [vscode-runner])
-      ++ (with pkgs.kdePackages; [
+        foot
+      ])
+      ++ optionals hostPlatform.isLinux (with pkgs; [bubblewrap xsel])
+      ++ optionals hostPlatform.isDarwin (with pkgs; [pngpaste])
+      ++ optional interface.isNiri (with pkgs; [alacritty])
+      ++ optional interface.isHyprland (with pkgs; [kitty])
+      ++ optionals interface.isPlasma (with pkgs.kdePackages; [
         kate
+        kio
         yakuake
       ])
-    );
-
-    #~@ System & Utilities
-    utils = with pkgs; [
-      (writeShellApplication {
-        name = "nixos-switch";
-        runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
-        text = ''
-          export DOTS="${variables.DOTS}"
-          export DOTS_CONFIG="${variables.DOTS_CONFIG}"
-          export DOTS_HOSTS="${variables.DOTS_HOSTS}"
-          export HOST="${variables.HOST}"
-          export REV_URL_CORE="${variables.REV_URL_CORE}"
-          export REV_URL_HOME="${variables.REV_URL_HOME}"
-          export REV_URL_INDEX="${variables.REV_URL_INDEX}"
-          ${readFile (
-            sources.dots
-            + "/Libraries/posix/packages/manager/nix/nixos-switch.sh"
-          )}
-        '';
-      })
-
-      bat
-      gitui
-      treefmt
-      gum
-      helix
-      jq
-      jql
-      patch
-      ripgrep
-      pkg-config
-      gcc
-      btop
-      coreutils
-      diffutils
-      fastfetch
-      fend
-      figlet
-      findutils
-      gawk
-      getent
-      gnome-randr
-      gnused
-      lolcat
-      lshw
-      pciutils
-      procs
-      usbutils
-      uutils-coreutils-noprefix
-      wlr-randr
-      vicinae
-    ];
-  in
-    flatten (
-      linux
-      ++ darwin
-      ++ wayland
-      ++ plasma
-      ++ dev
-      ++ utils
-      ++ network
-      ++ files
-      ++ media
-      ++ theme
-      ++ ai
-    );
+      ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
+        brave
+        freetube
+        imagemagick
+        imv
+        qbittorrent-enhanced
+        qimgv
+        shortwave
+        viu
+        vscode-fhs
+      ])
+  );
 in {
-  boot = {
+  imports =
+    [./hardware-configuration.nix]
+    ++ sources.home-manager
+    ++ sources.nix-index;
+
+  boot = let
+    loader =
+      recursiveUpdate {
+        manager = "systemd-boot";
+        device = "nodev";
+        timeout = 1;
+      }
+      args.boot.loader;
+  in {
     loader = {
       grub = {
-        enable = true;
-        device = "/dev/sda";
+        inherit (loader) device;
+        enable = loader.manager == "grub";
         useOSProber = true;
         fsIdentifier = "provided";
+        gfxmodeEfi = "1920x1080";
+        font = "${
+          pkgs.nerd-fonts.jetbrains-mono
+        }/share/fonts/truetype/NerdFonts/JetBrainsMonoNerdFont-Regular.ttf";
       };
-      timeout = 1;
+      systemd-boot = {
+        enable = loader.manager == "systemd-boot";
+        consoleMode = "max";
+      };
+      inherit (loader) timeout;
     };
 
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages =
+      pkgs.${
+        args.packages.kernel or "linuxPackages_latest"
+      };
+  };
+
+  catppuccin = {
+    enable = true;
+    flavor = "frappe";
   };
 
   console = {
-    keyMap = user.keyboard.layout;
+    keyMap = args.user.keyboard.layout;
   };
 
   environment = {
     sessionVariables = variables;
     systemPackages = packages;
+    plasma6.excludePackages = with pkgs.kdePackages; [
+      khelpcenter
+      # elisa
+      # gwenview
+    ];
   };
 
+  fonts = let
+    clock = {
+      name = "Rubik";
+      package = pkgs.rubik;
+    };
+    emoji = {
+      name = "Noto Color Emoji";
+      package = pkgs.noto-fonts-color-emoji;
+    };
+    material = {
+      name = "Material Symbols Sharp";
+      package = pkgs.material-symbols;
+    };
+    monospace = {
+      name = "Maple Mono NF";
+      package = pkgs.maple-mono.NF-unhinted;
+    };
+    sansSerif = {
+      name = "Monaspace Radon Frozen";
+      package = pkgs.monaspace;
+    };
+    serif = {
+      name = "Noto Serif";
+      package = pkgs.noto-fonts;
+    };
+  in {
+    packages =
+      [
+        clock.package
+        emoji.package
+        material.package
+        monospace.package
+        sansSerif.package
+        serif.package
+      ]
+      ++ (with pkgs.nerd-fonts; [
+        jetbrains-mono
+        zed-mono
+      ]);
+    fontconfig = {
+      defaultFonts = {
+        monospace = [monospace.name];
+        sansSerif = [sansSerif.name];
+        serif = [serif.name];
+        emoji = [emoji.name];
+      };
+    };
+  };
   i18n = {
-    inherit (user) defaultLocale;
+    inherit (users.primary) defaultLocale;
   };
-
-  imports =
-    [./hardware-configuration.nix]
-    ++ sources.home-manager
-    ++ sources.nix-index;
 
   networking = {
     hostName = name;
@@ -644,180 +621,129 @@ in {
     pkgs = sources.nixpkgs;
   };
 
-  programs =
-    {
-      bash = {
-        enable = true;
-        blesh = {
-          enable = true;
-        };
-        undistractMe = {
-          enable = true;
-        };
-      };
-
-      bat = {
-        enable = true;
-
-        extraPackages = with pkgs.bat-extras; [
-          batdiff
-          batman
-          prettybat
-        ];
-
-        settings = {};
-      };
-
-      bandwhich = {
-        enable = true;
-      };
-
-      chromium = {
-        enable = true;
-      };
-
-      cpu-energy-meter = {
-        enable = true;
-      };
-
-      direnv = {
-        enable = true;
-        silent = true;
-        angrr = {
-          enable = true;
-        };
-      };
-
-      dms-shell = {
-        enable = with interface; isHyprland || isNiri;
-      };
-
-      firefox = {
-        enable = true;
-      };
-
-      fish = {
-        enable = shells.isFish;
-      };
-
-      foot = {
-        enable = interface.isWayland;
-        xdg.serverAutostart = true;
-
-        settings = {
-          main = {
-            selection-target = "clipboard";
-            font = "Monospace:size=18";
-          };
-
-          scrollback = {
-            lines = 1000000;
-          };
-        };
-      };
-
-      git = {
-        enable = true;
-
-        lfs = {
-          enable = true;
-          enablePureSSHTransfer = true;
-        };
-
-        prompt.enable = true;
-
-        config = {
-          user = {
-            inherit (user) email name;
-          };
-          init = {
-            defaultBranch = "main";
-          };
-          safe.directory = [
-            user.paths.dots
-          ];
-          url = {
-            "https://github.com/" = {
-              insteadOf = [
-                "gh:"
-                "github:"
-              ];
-            };
-          };
-        };
-      };
-
-      hyprland = {
-        enable = interface.isHyprland;
-      };
-
-      hyprlock = {
-        enable = interface.isHyprland;
-      };
-
-      iio-hyprland = {
-        enable = interface.isHyprland;
-      };
-
-      kbdlight = {
-        enable = true;
-      };
-
-      kdeconnect = {
-        enable = true;
-      };
-
-      labwc = {
-        enable = interface.isLab;
-      };
-
-      lazygit = {
-        inherit (config.programs.git) enable;
-      };
-
-      less = {
-        enable = true;
-      };
-
-      mango = {
-        enable = interface.isMango;
-      };
-
-      nh = {
-        enable = true;
-        clean.enable = true;
-        clean.extraArgs = "--keep-since 4d --keep 3";
-      };
-
-      niri = {
-        enable = interface.isNiri;
-      };
-
-      nix-index = {
-        enable = true;
-      };
-
-      nix-ld = {
-        enable = true;
-      };
-
-      starship = {
-        enable = true;
-        transientPrompt.enable = true;
-      };
-
-      zsh = {
-        enable = shells.isZsh;
-      };
-    }
-    // optionalAttrs (sources.nix-index != []) {
-      nix-index-database.comma.enable = true;
+  programs = {
+    bash = {
+      enable = true;
+      blesh.enable = true;
+      undistractMe.enable = true;
     };
+
+    bat = {
+      enable = true;
+
+      extraPackages = with pkgs.bat-extras; [
+        batdiff
+        batman
+        prettybat
+      ];
+
+      settings = {};
+    };
+
+    direnv = {
+      enable = true;
+      silent = true;
+      angrr = {
+        enable = true;
+      };
+    };
+
+    git = {
+      enable = true;
+      lfs = {
+        enable = true;
+        enablePureSSHTransfer = true;
+      };
+      prompt.enable = true;
+      config = {
+        user = {inherit (users.primary) email name;};
+        init.defaultBranch = "main";
+        safe.directory = [paths.dots];
+        url."https://github.com/".insteadOf = ["gh:" "github:"];
+      };
+    };
+
+    hyprland = {
+      enable = interface.isHyprland;
+      withUWSM = true;
+    };
+
+    hyprlock = {
+      enable = interface.isHyprland;
+    };
+
+    iio-hyprland = {
+      enable = interface.isHyprland;
+    };
+
+    kbdlight = {
+      enable = true;
+    };
+
+    kdeconnect = {
+      enable = true;
+    };
+
+    labwc = {
+      enable = interface.isLab;
+    };
+
+    lazygit = {
+      inherit (config.programs.git) enable;
+    };
+
+    less = {
+      enable = true;
+      envVariables = {
+        LESS = "--quit-if-one-screen";
+      };
+    };
+
+    mango = {
+      enable = interface.isMango;
+    };
+
+    nh = {
+      enable = true;
+      clean = {
+        enable = true;
+        extraArgs = "--keep-since 7d --keep 3";
+      };
+      flake = paths.dots;
+    };
+
+    niri = {
+      enable = interface.isNiri;
+    };
+
+    nix-index = {
+      enable = true;
+      comma.enable = true;
+    };
+
+    nix-ld = {
+      enable = true;
+    };
+
+    starship = {
+      enable = true;
+      transientPrompt.enable = true;
+      settings = fromTOML (readFile (
+        sources.dots + "/Configuration/starship/config.toml"
+      ));
+    };
+  };
+
+  qt = {
+    enable = true;
+    platformTheme = "gnome";
+    style.name = "adwaita";
+  };
 
   security = {
     sudo.extraRules = [
       {
-        users = [user.name];
+        users = [users.primary.name];
         commands = [
           {
             command = "ALL";
@@ -831,9 +757,17 @@ in {
   };
 
   services = {
+    darkman = {
+      enable = true;
+      settings = {
+        lat = localization.latitude;
+        lng = localization.longitude;
+      };
+    };
+
     displayManager = {
       enable = true;
-      defaultSession = lib.mkForce (
+      defaultSession = mkForce (
         if interface.isPlasma
         then "plasma"
         else if interface.isNiri
@@ -842,8 +776,7 @@ in {
       );
 
       autoLogin = {
-        user = user.name;
-        enable = autoLogin;
+        inherit (users.autoLogin) enable user;
       };
 
       plasma-login-manager = {
@@ -869,7 +802,7 @@ in {
       enable = interface.isX11;
 
       xkb = {
-        inherit (user.keyboard) layout variant;
+        inherit (users.primary.keyboard) layout variant;
       };
     };
 
@@ -906,213 +839,28 @@ in {
     };
   };
 
-  system = let
-    inherit (user) name;
-    inherit (user.paths.cfg) target source;
-  in {
+  system = {
     inherit stateVersion;
-    activationScripts = {
-      biome = let
-        default = writeText "biome.jsonc" ''
-          {
-            "assist": {
-              "enabled": true,
-              "actions": {
-                "source": {
-                  "useSortedKeys": "on"
-                }
-              }
-            },
-            "linter": {
-              "enabled": true,
-              "rules": {
-                "recommended": true
-              }
-            },
-            "formatter": {
-              "lineWidth": 80,
-              "indentStyle": "space",
-              "indentWidth": 6
-            }
-          }
-        '';
-
-        defined = source + "/biome/config.jsonc";
-        deploy_path = "/.biome.jsonc";
-      in {
-        text = ''
-          CFG_BIOME="${default}"
-          [ -f "${defined}" ] && CFG_BIOME="${defined}"
-
-          install -m 0644 "$CFG_BIOME" "${deploy_path}"
-          install -o ${name} -g users -m 0644 \
-            "$CFG_BIOME" "${user.paths.home + deploy_path}"
-        '';
-      };
-
-      helix = let
-        default = {
-          conf = writeText "helix-config.toml" ''
-            theme = "base16_transparent"
-
-            [editor]
-              auto-format = true
-              cursorline = true
-              true-color = true
-
-              [editor.cursor-shape]
-                insert = "bar"
-                normal = "block"
-                select = "underline"
-
-              [editor.lsp]
-                display-messages = true
-                display-inlay-hints = true
-
-
-            [keys]
-              [keys.insert]
-                A-e = "normal_mode"
-                A-f = ["normal_mode", ":format"]
-                A-q = ["normal_mode", ":quit"]
-                A-space = "normal_mode"
-                A-w = ["normal_mode", ":write"]
-
-              [keys.normal]
-                A-e = ["collapse_selection", "keep_primary_selection"]
-                A-w = ["collapse_selection", "keep_primary_selection", ":write"]
-                A-q = ":quit"
-                ret = ["open_below", "normal_mode"]
-
-              [keys.select]
-                A-e = ["collapse_selection", "keep_primary_selection", "normal_mode"]
-                A-q = ["normal_mode", ":quit"]
-                A-w = ["collapse_selection", "keep_primary_selection", "normal_mode", ":write"]
-
-          '';
-
-          lang = writeText "helix-languages.toml" ''
-            [[language]]
-            name = "nix"
-            language-servers = ["nixd"]
-            formatter = { command = "alejandra" }
-            auto-format = true
-          '';
-        };
-
-        defined = let
-          base = source + "/helix";
-        in {
-          conf = base + "/config.toml";
-          lang = base + "/languages.toml";
-        };
-
-        deploy = let
-          files = {
-            conf = "config.toml";
-            lang = "languages.toml";
-          };
-
-          install = {
-            base,
-            owner,
-            group,
-          }: ''
-            install -d -o ${owner} -g ${group} "${base}"
-            install -o ${owner} -g ${group} "$_conf" "${base}/${files.conf}"
-            install -o ${owner} -g ${group} "$_lang" "${base}/${files.lang}"
-          '';
-        in {
-          inherit files install;
-
-          user = {
-            base = target + "/helix";
-            owner = name;
-            group = "users";
-          };
-
-          root = {
-            base = "/root/.config/helix";
-            owner = "root";
-            group = "root";
-          };
-        };
-      in {
-        text = ''
-          _conf="${default.conf}"
-          [ -f "${defined.conf}" ] && _conf="${defined.conf}"
-
-          _lang="${default.lang}"
-          [ -f "${defined.lang}" ] && _lang="${defined.lang}"
-
-          ${deploy.install deploy.root}
-          ${deploy.install deploy.user}
-        '';
-      };
-
-      hypridle = let
-        cfg = writeText "hypridle.conf" ''
-          general {
-            lock_cmd = pidof hyprlock || hyprlock
-            before_sleep_cmd = loginctl lock-session
-            after_sleep_cmd = hyprctl dispatch dpms on
-          }
-
-          listener {
-            timeout = 300
-            on-timeout = hyprlock
-          }
-
-          # listener {
-          #   timeout = 330
-          #   on-timeout = hyprctl dispatch dpms off
-          #   on-resume = hyprctl dispatch dpms on
-          # }
-        '';
-      in {
-        text = ''
-          install -d -o ${name} -g users ${target}/hypr
-          install -o ${name} -g users ${cfg} ${target}/hypr/hypridle.conf
-        '';
-      };
-      treefmt = let
-        default = writeText "treefmt.toml" ''
-          [formatter.alejandra]
-          command = "alejandra"
-          includes = ["*.nix"]
-        '';
-        defined = "${source}/treefmt/config.toml";
-        deploy_path = "/.treefmt.toml";
-      in {
-        text = ''
-          CFG_TREEFMT=${default}
-          [ -f ${defined} ] && CFG_TREEFMT=${defined}
-          export CFG_TREEFMT
-          install -m 0644 $CFG_TREEFMT ${deploy_path}
-          install -o ${name} -g users -m 0644 \
-            "$CFG_TREEFMT" "${user.paths.home + deploy_path}"
-        '';
-      };
-    };
   };
 
   time = {
-    inherit timeZone;
+    timeZone = args.localization.timeZone or "America/Jamaica";
   };
 
-  users = {
-    users.${user.name} = {
-      isNormalUser = true;
-      inherit (user) description;
-      extraGroups = ["networkmanager" "wheel"];
-    };
-  };
+  users.users = users.core;
 
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    users.${user.name} = {
-      home.stateVersion = stateVersion;
-    };
+    extraSpecialArgs = args;
+    users =
+      mapAttrs (_: principal: {
+        home = {
+          inherit stateVersion;
+          username = principal.name;
+          homeDirectory = principal.paths.home;
+        };
+      })
+      users.normal;
   };
 }
