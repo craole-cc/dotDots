@@ -566,67 +566,6 @@
     #? (home.packages) based on that user's `coders` list in default.nix —
     #? never installed system-wide. Add new categories here as needed.
     forCoding = {
-      common = with pkgs; [
-        bat
-        btop
-        coreutils
-        curl
-        diffutils
-        dua
-        dust
-        eza
-        fastfetch
-        fd
-        fend
-        figlet
-        file
-        findutils
-        fzf
-        gawk
-        getent
-        gh
-        gitui
-        gnused
-        gum
-        glib
-        procs
-        glib
-        helix
-        imagemagick
-        imv
-        jq
-        jql
-        lolcat
-        lsd
-        lshw
-        dbus
-        glib
-        gnused
-        procps
-        systemd
-        onefetch
-        ouch
-        p7zip
-        patch
-        pciutils
-        pkg-config
-        procs
-        procps
-        ripgrep
-        rsync
-        sad
-        speedtest-go
-        trashy
-        treefmt
-        udiskie
-        usbutils
-        uutils-coreutils-noprefix
-        viu
-        wget
-        wlr-randr
-        yazi
-      ];
-
       markup = with pkgs;
         [
           actionlint
@@ -658,6 +597,7 @@
         nixfmt
         nvfetcher
         statix
+        treefmt
       ];
 
       python = with pkgs; [
@@ -672,7 +612,6 @@
         rustc
         rustfmt
         leptosfmt
-        gcc
       ];
 
       shellscript = with pkgs; [
@@ -696,6 +635,16 @@
         ziglint
         zls
       ];
+    };
+
+    #? Heavy GUI applications, opt-in per user via the `apps` list in
+    #? default.nix (home.packages). A user who omits a category does not get
+    #? its packages. Add new categories here as needed.
+    forApps = {
+      browsers = with pkgs; [brave];
+      editors = with pkgs; [vscode-fhs];
+      media = with pkgs; [freetube qimgv shortwave];
+      torrent = with pkgs; [qbittorrent-enhanced];
     };
 
     forStyle =
@@ -831,20 +780,12 @@
           wget
           wlr-randr
           yazi
-          viu
-          imagemagick
         ]
         ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
-          # brave
-          # freetube
-          # ghostty
-          # imagemagick
-          # imv
-          # qbittorrent-enhanced
-          # qimgv
-          # shortwave
-          # viu
-          # vscode-fhs
+          ghostty
+          imagemagick
+          imv
+          viu
         ])
         ++ optionals interface.isWayland (with pkgs; [
           wl-clipboard
@@ -881,7 +822,7 @@
           })
         ]
     );
-  in {inherit forShells forCoding forStyle forSystem;};
+  in {inherit forShells forCoding forApps forStyle forSystem;};
 in {
   imports = with sources; [
     ./hardware-configuration.nix
@@ -1240,22 +1181,24 @@ in {
           homeDirectory = user.paths.home;
           #~@ Shell/dev tooling lives in the user's own profile, opted into
           #~@ via `shells`/`codes` in default.nix, rather than system-wide.
-          packages = flatten (
-            (map (app: pkgs.${app}) (user.apps or []))
-            ++ (with packages; (
-              forStyle
-              ++ (
-                map
-                (shell: forShells.${shell} or [])
-                user.shells
-              )
-              ++ (
-                map
-                (lang: forCoding.${lang} or [])
-                (user.coding or [])
-              )
-            ))
-          );
+          packages = flatten (with packages; (
+            forStyle
+            ++ (
+              map
+              (shell: forShells.${shell} or [])
+              user.shells
+            )
+            ++ (
+              map
+              (lang: forCoding.${lang} or [])
+              (user.coding or [])
+            )
+            ++ (
+              map
+              (app: forApps.${app} or [])
+              (user.apps or [])
+            )
+          ));
         };
         services = {
           darkman = let

@@ -95,6 +95,22 @@ in {
       };
       desktop = "plasma";
       launchers = ["vicinae"];
+      shells = [
+        "bash"
+        "nushell"
+        "powershell"
+        "zsh"
+      ];
+      apps = [
+        "brave"
+        "freetube"
+        "ghostty"
+        "imv"
+        "qbittorrent-enhanced"
+        "qimgv"
+        "shortwave"
+        "vscode-fhs"
+      ];
       theme = {
         autoSwitch = true;
         polarity = "dark";
@@ -124,31 +140,6 @@ in {
         material = "Material Symbols Sharp";
         clock = "Rubik";
       };
-      shells = [
-        "bash"
-        "nushell"
-        "powershell"
-        "zsh"
-      ];
-      coding = [
-        "common"
-        "nix"
-        "markup"
-        "rust"
-        "python"
-        "shellscript"
-        "zig"
-      ];
-      apps = [
-        "brave"
-        "freetube"
-        "ghostty"
-        "imv"
-        "qbittorrent-enhanced"
-        "qimgv"
-        "shortwave"
-        "vscode-fhs"
-      ];
     }
   ];
 }

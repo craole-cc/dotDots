@@ -147,27 +147,6 @@
   inherit (args.users) principal;
 
   sources = let
-    /**
-    Pinned sources for the non-flake build.
-
-    Each entry is fetched by commit (`rev`) and verified by `sha256`, so the
-    result is reproducible. A branch name in `rev` (main, master,
-    nixos-unstable) cannot be pinned, because the tarball changes under a fixed
-    hash.
-
-    To bump an input:
-      1. Set `rev` to the new commit hash.
-      2. Set `sha256 = lib.fakeSha256;`
-      3. Rebuild. Nix fails with `specified: ... got: sha256:<hash>`.
-      4. Paste that `<hash>` into `sha256` and rebuild again.
-
-    `nixpkgs` should match the commit of the active channel, or `<nixpkgs>`
-    (used by nixos-rebuild) and `sources.nixpkgs` will disagree.
-      Get it with:
-        cat /nix/var/nix/profiles/per-user/root/channels/nixos/.git-revision
-
-    `dots` is intentionally unpinned so the local repo can move freely.
-    */
     normalize = {
       owner,
       repo,
@@ -206,15 +185,15 @@
       nixpkgs = normalize {
         owner = "NixOS";
         repo = "nixpkgs";
-        rev = "20b1ddd1aa5ace70c9468305030aa4f9ef79671b";
-        sha256 = "sha256-B44WL6h0XoLjJ41bUPJk0X5SDinLCII//6EcBLXKiJ0=";
+        rev = "44a91898084f3e69bbbf407aa7e8d64efd6e812b";
+        sha256 = "sha256-uLLUj+TLUmBc6KrUzx76KZdPi5ZkI1ORR9A6lJUIZlo=";
       };
 
       home-manager = normalize {
         owner = "nix-community";
         repo = "home-manager";
-        rev = "4900baf1e219645e4a2acba35723852b2091bc20";
-        sha256 = "sha256-BOyZoliWfm/beS4m3FxFKlu5at6npZen1PsWtvzzihk=";
+        rev = "a3dfb887d40d134af29fa8e924ba85a3e3a99194";
+        sha256 = "sha256-wXAdaLBAjbQK/OfESV/i0pgolkz+Uo4SbBP/MbfGLHU=";
       };
 
       dots = normalize {
@@ -499,78 +478,16 @@
     THEME_ICONS_DARK = (aesthetics.of principal).icons.dark;
   };
 
-  packages = let
-    #? Per-shell packages, pulled into a user's own profile (home.packages)
-    #? based on that user's `shells` list in default.nix — never installed
-    #? system-wide.
-    forShells = {
-      bash = with pkgs; [bash];
-      fish = with pkgs; [fish];
-      nushell = (
-        with pkgs;
-          [
-            nushell
-            nu-lint
-            nufmt
-          ]
-          ++ (with pkgs.nushellPlugins; [
-            polars
-            gstat
-            skim
-            query
-            formats
-            desktop_notifications
-          ])
-      );
-      powershell = (
-        with pkgs; [
-          powershell
-          powershell-editor-services
-
-          (writeShellApplication {
-            name = "pwshfmt";
-            runtimeInputs = [powershell];
-            text = ''
-              export PSModulePath="${let
-                pname = "PSScriptAnalyzer";
-                version = "1.25.0";
-              in
-                stdenvNoCC.mkDerivation {
-                  inherit pname version;
-                  src = fetchurl {
-                    url = "https://www.powershellgallery.com/api/v2/package/${pname}/${version}";
-                    hash = "sha256-FOY0yCjrmO+59AspGLqQ8TntXszfZjoqdHc22ZaZXWA="; #? lib.fakeHash to update
-                  };
-                  nativeBuildInputs = [unzip];
-                  dontUnpack = true;
-                  dontBuild = true;
-                  installPhase = ''
-                    mkdir -p "$out/share/powershell/Modules/${pname}"
-                    unzip -q "$src" -d "$out/share/powershell/Modules/${pname}"
-                  '';
-                }}/share/powershell/Modules''${PSModulePath:+:$PSModulePath}"
-
-              exec pwsh \
-                -NoProfile \
-                -NonInteractive \
-                -File ${sources.dots + "/Libraries/powershell/Admin/pwshfmt.ps1"} \
-                "$@"
-            '';
-          })
-        ]
-      );
-      zsh = with pkgs; [zsh zi];
-    };
-
-    #? Per-language/tooling packages, pulled into a user's own profile
-    #? (home.packages) based on that user's `coders` list in default.nix —
-    #? never installed system-wide. Add new categories here as needed.
-    forCoding = {
-      common = with pkgs; [
+  packages = flatten (
+    with pkgs;
+      [
+        alejandra
         bat
         btop
+        cachix
         coreutils
         curl
+        dbus
         diffutils
         dua
         dust
@@ -583,68 +500,24 @@
         findutils
         fzf
         gawk
+        gcc
         getent
         gh
         gitui
+        glib
+        glob
+        gnused
         gnused
         gum
-        glib
-        procs
-        glib
         helix
         imagemagick
         imv
         jq
         jql
         lolcat
+        lorri
         lsd
         lshw
-        dbus
-        glib
-        gnused
-        procps
-        systemd
-        onefetch
-        ouch
-        p7zip
-        patch
-        pciutils
-        pkg-config
-        procs
-        procps
-        ripgrep
-        rsync
-        sad
-        speedtest-go
-        trashy
-        treefmt
-        udiskie
-        usbutils
-        uutils-coreutils-noprefix
-        viu
-        wget
-        wlr-randr
-        yazi
-      ];
-
-      markup = with pkgs;
-        [
-          actionlint
-          biome
-          rumdl
-          stylua
-          tombi
-          typos
-          typst
-          typstyle
-          yamlfmt
-        ]
-        ++ (with typstPackages; [typsy]);
-
-      nix = with pkgs; [
-        alejandra
-        cachix
-        lorri
         nil
         nix-diff
         nix-index
@@ -657,69 +530,78 @@
         nixd
         nixfmt
         nvfetcher
-        statix
-      ];
-
-      python = with pkgs; [
-        python3Minimal
-        ruff
-      ];
-
-      rust = with pkgs; [
-        cargo
-        clippy
-        rust-analyzer
-        rustc
-        rustfmt
-        leptosfmt
-        gcc
-      ];
-
-      shellscript = with pkgs; [
+        onefetch
+        ouch
+        p7zip
+        patch
+        pciutils
+        pkg-config
+        procps
+        procps
+        procs
+        procs
+        ripgrep
+        rsync
+        sad
         shellcheck
         shfmt
-
-        (writeShellApplication {
-          name = "shflint";
-          runtimeInputs = [shellcheck shfmt];
-          text = ''
-            ${readFile (
-              sources.dots
-              + "/Libraries/posix/project/formatters/shflint"
-            )}
-          '';
-        })
-      ];
-
-      zig = with pkgs; [
-        zig
-        ziglint
-        zls
-      ];
-    };
-
-    forStyle =
-      []
-      ++ map
-      (name: sources.icons.${name} or pkgs.${name})
-      (unique (
+        speedtest-go
+        statix
+        systemd
+        trashy
+        treefmt
+        udiskie
+        usbutils
+        uutils-coreutils-noprefix
+        viu
+        wget
+        wlr-randr
+        yazi
+      ]
+      ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
+        brave
+        freetube
+        ghostty-bin
+        imagemagick
+        imv
+        qbittorrent-enhanced
+        qimgv
+        shortwave
+        viu
+        vscode-fhs
+      ])
+      ++ optionals interface.isWayland (with pkgs; [
+        wl-clipboard
+        xwayland-satellite
+        foot
+      ])
+      ++ optionals isLinux (with pkgs; [bubblewrap xsel])
+      ++ optionals isDarwin (with pkgs; [pngpaste])
+      ++ optional interface.isNiri (with pkgs; [alacritty])
+      ++ optional interface.isHyprland (with pkgs; [kitty])
+      ++ optionals interface.isPlasma (
+        with pkgs;
+          [kconfig plasma-workspace]
+          ++ (with kdePackages; [kate kio yakuake])
+      )
+      ++ map (name: sources.icons.${name} or pkgs.${name}) (unique (
         concatMap
         (elements: with elements.icons; [dark light])
         (attrValues aesthetics.users)
       ))
       ++ (let
-        perUser = attrValues aesthetics.users;
+        ofAllUsers = attrValues aesthetics.users;
       in [
         (pkgs.catppuccin-kde.override {
           flavour = unique (
             concatMap
             (user: with user.theme; [dark.flavor light.flavor])
-            perUser
+            ofAllUsers
           );
           accents = unique (
             concatMap
             (user: with user.theme; [dark.accent light.accent])
-            perUser
+            ofAllUsers
           );
         })
       ])
@@ -768,120 +650,25 @@
             )}
           '';
         })
-      ];
 
-    forSystem = flatten (
-      with pkgs;
-        [
-          bat
-          btop
-          coreutils
-          curl
-          diffutils
-          dua
-          dust
-          eza
-          fastfetch
-          fd
-          fend
-          figlet
-          file
-          findutils
-          fzf
-          gawk
-          gcc
-          getent
-          gh
-          gitui
-          gnused
-          gum
-          glib
-          procs
-          glib
-          helix
-          imagemagick
-          imv
-          jq
-          jql
-          lolcat
-          lsd
-          lshw
-          dbus
-          glib
-          gnused
-          procps
-          systemd
-          onefetch
-          ouch
-          p7zip
-          patch
-          pciutils
-          pkg-config
-          procs
-          procps
-          ripgrep
-          rsync
-          sad
-          speedtest-go
-          trashy
-          udiskie
-          usbutils
-          uutils-coreutils-noprefix
-          viu
-          wget
-          wlr-randr
-          yazi
-          viu
-          imagemagick
-        ]
-        ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
-          # brave
-          # freetube
-          # ghostty
-          # imagemagick
-          # imv
-          # qbittorrent-enhanced
-          # qimgv
-          # shortwave
-          # viu
-          # vscode-fhs
-        ])
-        ++ optionals interface.isWayland (with pkgs; [
-          wl-clipboard
-          xwayland-satellite
-          foot
-        ])
-        ++ optionals isLinux (with pkgs; [bubblewrap xsel])
-        ++ optionals isDarwin (with pkgs; [pngpaste])
-        ++ optional interface.isNiri (with pkgs; [alacritty])
-        ++ optional interface.isHyprland (with pkgs; [kitty])
-        ++ optionals interface.isPlasma (with pkgs.kdePackages; [
-          kate
-          kio
-          yakuake
-          kconfig
-          plasma-workspace
-        ])
-        ++ [
-          (writeShellApplication {
-            name = "nixos-switch";
-            runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
-            text = with variables; ''
-              export DOTS="${DOTS}"
-              export DOTS_BUILD="${DOTS_BUILD}"
-              export DOTS_HOSTS="${DOTS_HOSTS}"
-              export HOST="${HOST}"
-              export REV_URL_CORE="${REV_URL_CORE}"
-              export REV_URL_HOME="${REV_URL_HOME}"
-              export REV_URL_INDEX="${REV_URL_INDEX}"
-              export REV_URL_CATPPUCCIN="${REV_URL_CATPPUCCIN}"
-              export REV_URL_DOTS="${REV_URL_DOTS}"
-              ${readFile (sources.dots + "/Libraries/posix/packages/manager/nix/nixos-switch.sh")}
-            '';
-          })
-        ]
-    );
-  in {inherit forShells forCoding forStyle forSystem;};
+        (writeShellApplication {
+          name = "nixos-switch";
+          runtimeInputs = with pkgs; [coreutils git gum nixos-rebuild];
+          text = with variables; ''
+            export DOTS="${DOTS}"
+            export DOTS_BUILD="${DOTS_BUILD}"
+            export DOTS_HOSTS="${DOTS_HOSTS}"
+            export HOST="${HOST}"
+            export REV_URL_CORE="${REV_URL_CORE}"
+            export REV_URL_HOME="${REV_URL_HOME}"
+            export REV_URL_INDEX="${REV_URL_INDEX}"
+            export REV_URL_CATPPUCCIN="${REV_URL_CATPPUCCIN}"
+            export REV_URL_DOTS="${REV_URL_DOTS}"
+            ${readFile (sources.dots + "/Libraries/posix/packages/manager/nix/nixos-switch.sh")}
+          '';
+        })
+      ]
+  );
 in {
   imports = with sources; [
     ./hardware-configuration.nix
@@ -919,10 +706,6 @@ in {
     keyMap = principal.keyboard.layout;
   };
 
-  documentation = {
-    nixos.enable = false;
-  };
-
   environment = {
     pathsToLink = mkIf interface.isPlasma ["/share/konsole"];
     plasma6.excludePackages = with pkgs.kdePackages; [
@@ -931,7 +714,7 @@ in {
       # gwenview
     ];
     sessionVariables = variables;
-    systemPackages = packages.forSystem;
+    systemPackages = packages;
   };
 
   fonts = let
@@ -1238,28 +1021,9 @@ in {
           inherit stateVersion;
           username = user.name;
           homeDirectory = user.paths.home;
-          #~@ Shell/dev tooling lives in the user's own profile, opted into
-          #~@ via `shells`/`codes` in default.nix, rather than system-wide.
-          packages = flatten (
-            (map (app: pkgs.${app}) (user.apps or []))
-            ++ (with packages; (
-              forStyle
-              ++ (
-                map
-                (shell: forShells.${shell} or [])
-                user.shells
-              )
-              ++ (
-                map
-                (lang: forCoding.${lang} or [])
-                (user.coding or [])
-              )
-            ))
-          );
         };
         services = {
           darkman = let
-            # TODO: Should we make this a writeShellApplication
             inherit (aesthetics.users.${name}) icons kdeScheme;
             inherit (pkgs) dbus glib gnused procps systemd;
             inherit (pkgs.kdePackages) kconfig plasma-workspace;
@@ -1281,6 +1045,7 @@ in {
               icon = icons.${mode};
               konsole = {
                 profile = "Catppuccin ${capitalize mode}";
+                # args = "--group " Desktop Entry " --key DefaultProfile ${konsole.profile}";
               };
 
               foot = {
