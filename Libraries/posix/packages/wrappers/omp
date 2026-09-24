@@ -50,9 +50,9 @@ set_defaults() {
 cleanup() {
   exit_code="$?"
   case "${exit_code}" in
-  0) ;;
-  130) pout "Process cancelled by user." ;;
-  *) pout "Process exited with error. [Code: ${exit_code}]" ;;
+    0) ;;
+    130) pout "Process cancelled by user." ;;
+    *) pout "Process exited with error. [Code: ${exit_code}]" ;;
   esac
 
   unset app_name app_path app_description app_version app_usage
@@ -65,44 +65,44 @@ cleanup() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h)
-      printf "%s\n" "${app_usage}"
-      return 0
-      ;;
-    --help)
-      printf "%s\n" "${app_help}"
-      return 0
-      ;;
-    -v | --version)
-      action="get"
-      target="version"
-      ;;
-    -l | --list-themes)
-      action="get"
-      target="theme_names"
-      ;;
-    -P | --paths)
-      action="get"
-      target="theme_paths"
-      ;;
-    -p | --pretty)
-      action="get"
-      target="names_paged"
-      ;;
-    -g | --get)
-      action="get"
-      target="$2"
-      shift
-      ;;
-    -s | --set | -t | --theme)
-      action="set"
-      target="$2"
-      shift
-      ;;
-    *)
-      action="set"
-      target="$1"
-      ;;
+      -h)
+        printf "%s\n" "${app_usage}"
+        return 0
+        ;;
+      --help)
+        printf "%s\n" "${app_help}"
+        return 0
+        ;;
+      -v | --version)
+        action="get"
+        target="version"
+        ;;
+      -l | --list-themes)
+        action="get"
+        target="theme_names"
+        ;;
+      -P | --paths)
+        action="get"
+        target="theme_paths"
+        ;;
+      -p | --pretty)
+        action="get"
+        target="names_paged"
+        ;;
+      -g | --get)
+        action="get"
+        target="$2"
+        shift
+        ;;
+      -s | --set | -t | --theme)
+        action="set"
+        target="$2"
+        shift
+        ;;
+      *)
+        action="set"
+        target="$1"
+        ;;
     esac
     shift
   done
@@ -114,64 +114,64 @@ pout() {
 
   #{ Set verbosity
   case "${verbosity:-}" in
-  0 | quiet) return ;;
-  1 | error) verbosity=1 ;;
-  2 | warn*) verbosity=2 ;;
-  3 | info*) verbosity=3 ;;
-  4 | debug*) verbosity=4 ;;
-  5 | trace*) verbosity=5 ;;
-  *) verbosity=3 ;;
+    0 | quiet) return ;;
+    1 | error) verbosity=1 ;;
+    2 | warn*) verbosity=2 ;;
+    3 | info*) verbosity=3 ;;
+    4 | debug*) verbosity=4 ;;
+    5 | trace*) verbosity=5 ;;
+    *) verbosity=3 ;;
   esac
 
   #{ Parse arguments
   case "$1" in
-  --page*)
-    shift
-    if [ -x "${CMD_PAGER:-}" ]; then
-      "${CMD_PAGER:-}" "$*"
-    else
-      printf "%s\n" "$*" | "${CMD_BAT:-less -N -R}"
-    fi
-    return 0
-    ;;
-  --error)
-    if [ "${verbosity:-}" -lt 1 ]; then return; else
-      tag="ERROR"
+    --page*)
       shift
+      if [ -x "${CMD_PAGER:-}" ]; then
+        "${CMD_PAGER:-}" "$*"
+      else
+        printf "%s\n" "$*" | "${CMD_BAT:-less -N -R}"
+      fi
+      return 0
+      ;;
+    --error)
+      if [ "${verbosity:-}" -lt 1 ]; then return; else
+        tag="ERROR"
+        shift
+        msg="$*"
+      fi
+      ;;
+    --warn)
+      if [ "${verbosity:-}" -lt 2 ]; then return; else
+        tag=" WARN"
+        shift
+        msg="$*"
+      fi
+      ;;
+    --info)
+      if [ "${verbosity:-}" -lt 3 ]; then return; else
+        tag=" INFO"
+        shift
+        msg="$*"
+      fi
+      ;;
+    --debug)
+      if [ "${verbosity:-}" -lt 4 ]; then return; else
+        tag="DEBUG"
+        shift
+        msg="$*"
+      fi
+      ;;
+    --trace)
+      if [ "${verbosity:-}" -lt 5 ]; then return; else
+        tag="TRACE"
+        shift
+        msg="$*"
+      fi
+      ;;
+    *)
       msg="$*"
-    fi
-    ;;
-  --warn)
-    if [ "${verbosity:-}" -lt 2 ]; then return; else
-      tag=" WARN"
-      shift
-      msg="$*"
-    fi
-    ;;
-  --info)
-    if [ "${verbosity:-}" -lt 3 ]; then return; else
-      tag=" INFO"
-      shift
-      msg="$*"
-    fi
-    ;;
-  --debug)
-    if [ "${verbosity:-}" -lt 4 ]; then return; else
-      tag="DEBUG"
-      shift
-      msg="$*"
-    fi
-    ;;
-  --trace)
-    if [ "${verbosity:-}" -lt 5 ]; then return; else
-      tag="TRACE"
-      shift
-      msg="$*"
-    fi
-    ;;
-  *)
-    msg="$*"
-    ;;
+      ;;
   esac
 
   if [ -n "${tag}" ]; then
@@ -190,9 +190,9 @@ set_dependencies() {
 
   while [ "$#" -gt 0 ]; do
     case $1 in
-    --needed | --main | --prod) dependency_type="necessity" ;;
-    --nice | --dev) dependency_type="amenity" ;;
-    *) dependencies="${dependencies:+${dependencies}"${delimiter:- }"}$1" ;;
+      --needed | --main | --prod) dependency_type="necessity" ;;
+      --nice | --dev) dependency_type="amenity" ;;
+      *) dependencies="${dependencies:+${dependencies}"${delimiter:- }"}$1" ;;
     esac
     shift
   done
@@ -206,13 +206,13 @@ set_dependencies() {
       pout --debug "${var}: ${val}"
     else
       case "${dependency_type:-}" in
-      necessity)
-        pout --error "Missing critical dependency: ${cmd}"
-        return 2
-        ;;
-      amenity | *)
-        pout --warn "Missing dependency: ${cmd}"
-        ;;
+        necessity)
+          pout --error "Missing critical dependency: ${cmd}"
+          return 2
+          ;;
+        amenity | *)
+          pout --warn "Missing dependency: ${cmd}"
+          ;;
       esac
       unset "${var}"
     fi
@@ -230,14 +230,14 @@ establish_environment() {
   #{ Determine the shell and init command
   POSH_SHELL="$("${CMD_OH_MY_POSH:?}" get shell)"
   case "${POSH_SHELL:-}" in
-  zsh) POSH_SHELL="zsh" ;;
-  fish) POSH_SHELL="fish" ;;
-  elvish) POSH_SHELL="elvish" ;;
-  sh | dash | bash) POSH_SHELL="bash" ;;
-  *)
-    pout --error "Unsupported shell: ${POSH_SHELL}"
-    return 3
-    ;;
+    zsh) POSH_SHELL="zsh" ;;
+    fish) POSH_SHELL="fish" ;;
+    elvish) POSH_SHELL="elvish" ;;
+    sh | dash | bash) POSH_SHELL="bash" ;;
+    *)
+      pout --error "Unsupported shell: ${POSH_SHELL}"
+      return 3
+      ;;
   esac
 
   #{ Retrieve the themes from the oh-my-posh themes/config directory
@@ -262,17 +262,17 @@ establish_environment() {
       -name '*.toml' -o \
       -name '*.yaml' -o \
       -name '*.omp.json' \
-      \) 2>/dev/null
+      \) 2> /dev/null
   )"
 
   #{ Extract the theme names from the paths
   POSH_THEME_NAMES="$(
-    [ -n "${POSH_THEMES}" ] &&
-      printf "%s\n" "${POSH_THEMES}" |
-      sed \
+    [ -n "${POSH_THEMES}" ] \
+      && printf "%s\n" "${POSH_THEMES}" \
+      | sed \
         -e "s|^${posh_themes_dir}/||" -e "s|^${posh_config_dir}/||" \
-        -e "s|\.omp.json$||" -e "s|\.toml$||" -e "s|\.yaml$||" |
-        sort -u
+        -e "s|\.omp.json$||" -e "s|\.toml$||" -e "s|\.yaml$||" \
+        | sort -u
   )"
 }
 
@@ -285,18 +285,18 @@ execute_process() {
 
   #{ Define actions
   case "${action}" in
-  set) set_theme "${target}" ;;
-  get | *)
-    case "${target:-}" in
-    *names) pout "${POSH_THEME_NAMES}" ;;
-    *names*paged) pout --paged "${POSH_THEME_NAMES}" ;;
-    *paths) pout "${POSH_THEMES}" ;;
-    *paths*paged) pout --paged "${POSH_THEMES}" ;;
-    theme) pout "${POSH_THEME:-"Not set"}" ;;
-    version) "${CMD_OH_MY_POSH}" --version ;;
-    *) pout --paged "${POSH_THEME_NAMES}" ;;
-    esac
-    ;;
+    set) set_theme "${target}" ;;
+    get | *)
+      case "${target:-}" in
+        *names) pout "${POSH_THEME_NAMES}" ;;
+        *names*paged) pout --paged "${POSH_THEME_NAMES}" ;;
+        *paths) pout "${POSH_THEMES}" ;;
+        *paths*paged) pout --paged "${POSH_THEMES}" ;;
+        theme) pout "${POSH_THEME:-"Not set"}" ;;
+        version) "${CMD_OH_MY_POSH}" --version ;;
+        *) pout --paged "${POSH_THEME_NAMES}" ;;
+      esac
+      ;;
   esac
 }
 
@@ -341,10 +341,10 @@ set_theme() {
   POSH_INIT="$(oh-my-posh init "${POSH_SHELL}" --config "${POSH_THEME}" || true)"
 
   #{ Initialize oh-my-posh
-  if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+  if [ "${TERM_PROGRAM:?}" != "Apple_Terminal" ]; then
     printf "%s" "${POSH_INIT:-}"
   else
-    pout --error "Unsupported terminal: ${TERM_PROGRAM}"
+    pout --error "Unsupported terminal: ${TERM_PROGRAM:?}"
     return 3
   fi
 }

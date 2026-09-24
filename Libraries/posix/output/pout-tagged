@@ -26,66 +26,66 @@ tag="[DEBUG]" msg="" ctx=""
 #{ Parse named arguments }
 while [ $# -gt 0 ]; do
   case "${1}" in
-  --ctx=*) ctx="${1#--ctx=}" ;;
-  --ctx)
-    if [ "$#" -gt 1 ]; then
-      ctx="$2"
+    --ctx=*) ctx="${1#--ctx=}" ;;
+    --ctx)
+      if [ "$#" -gt 1 ]; then
+        ctx="$2"
+        shift
+      else
+        printf "Error: Missing value for %s\n" "$1" >&2
+        return 1
+      fi
+      ;;
+    --tag=*) tag="${1#--tag=}" ;;
+    --tag)
+      if [ "$#" -gt 1 ]; then
+        tag="$2"
+        shift
+      else
+        printf "Error: Missing value for %s\n" "$1" >&2
+        return 1
+      fi
+      ;;
+    --tag-head-sep=*) ctx_head_sep="${1#--ctx_head_sep=}" ;;
+    --tag-head-sep)
+      if [ $# -gt 1 ]; then
+        ctx_head_sep="$2"
+        shift
+      else
+        printf "Error: Missing value for %s\n" "$1" >&2
+        return 1
+      fi
+      ;;
+    --tag-tail-sep=*) ctx_tail_sep="${1#--ctx_tail_sep=}" ;;
+    --tag-tail-sep)
+      if [ $# -gt 1 ]; then
+        ctx_tail_sep="$2"
+        shift
+      else
+        printf "Error: Missing value for %s\n" "$1" >&2
+        return 1
+      fi
+      ;;
+    --msg=*) msg="${1#--msg=}" ;;
+    --msg)
+      if [ $# -gt 1 ]; then
+        msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
+        shift
+      else
+        printf "[Error] Missing value for --msg\n" >&2
+        return 1
+      fi
+      ;;
+    --)
+      #{ End of options, remaining args become message }
       shift
-    else
-      printf "Error: Missing value for %s\n" "$1" >&2
-      return 1
-    fi
-    ;;
-  --tag=*) tag="${1#--tag=}" ;;
-  --tag)
-    if [ "$#" -gt 1 ]; then
-      tag="$2"
-      shift
-    else
-      printf "Error: Missing value for %s\n" "$1" >&2
-      return 1
-    fi
-    ;;
-  --tag-head-sep=*) ctx_head_sep="${1#--ctx_head_sep=}" ;;
-  --tag-head-sep)
-    if [ $# -gt 1 ]; then
-      ctx_head_sep="$2"
-      shift
-    else
-      printf "Error: Missing value for %s\n" "$1" >&2
-      return 1
-    fi
-    ;;
-  --tag-tail-sep=*) ctx_tail_sep="${1#--ctx_tail_sep=}" ;;
-  --tag-tail-sep)
-    if [ $# -gt 1 ]; then
-      ctx_tail_sep="$2"
-      shift
-    else
-      printf "Error: Missing value for %s\n" "$1" >&2
-      return 1
-    fi
-    ;;
-  --msg=*) msg="${1#--msg=}" ;;
-  --msg)
-    if [ $# -gt 1 ]; then
-      msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
-      shift
-    else
-      printf "[Error] Missing value for --msg\n" >&2
-      return 1
-    fi
-    ;;
-  --)
-    #{ End of options, remaining args become message }
-    shift
-    msg="$*"
-    break
-    ;;
-  --*) ;; #? Unknown option, ignore
-  *)
-    msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
-    ;;
+      msg="$*"
+      break
+      ;;
+    --*) ;; #? Unknown option, ignore
+    *)
+      msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
+      ;;
   esac
   shift
 done
@@ -100,12 +100,12 @@ ctx="${ctx_head_sep}${ctx-"${scr_name}"}${ctx_tail_sep}"
 
 #{ Return early if verbosity is too low }
 case "${tag}" in
-*TRACE*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then exit 0; fi ;;
-*DEBUG*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then exit 0; fi ;;
-*INFO*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then exit 0; fi ;;
-*WARN*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then exit 0; fi ;;
-*ERROR*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then exit 0; fi ;;
-*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_QUIET:-0}" ]; then exit 0; fi ;;
+  *TRACE*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then exit 0; fi ;;
+  *DEBUG*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then exit 0; fi ;;
+  *INFO*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then exit 0; fi ;;
+  *WARN*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then exit 0; fi ;;
+  *ERROR*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then exit 0; fi ;;
+  *) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_QUIET:-0}" ]; then exit 0; fi ;;
 esac
 
 #{ Bound the tag in square brackets, if not already }

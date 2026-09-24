@@ -46,13 +46,13 @@ set_color() {
   case "$3" in
   *bg*)
     class="background"
-    tput_code="setab $color_code"
-    ansi_code="4$color_code"
+    tput_code="setab ${color_code}"
+    ansi_code="4${color_code}"
     ;;
   *)
     class="foreground"
-    tput_code="setaf $color_code"
-    ansi_code="3$color_code"
+    tput_code="setaf ${color_code}"
+    ansi_code="3${color_code}"
     ;;
   esac
   stylize
@@ -64,25 +64,25 @@ init_terminal() {
 
   #{ Check if terminal supports color and is interactive
   [ -t 1 ] && IS_TERMINAL=1
-  case "$TERM" in
+  case "${TERM}" in
   *color* | xterm* | rxvt* | vt100) HAS_COLOR=1 ;;
   esac
 
   # Cache terminal width with fallback
-  if [ "$HAS_TPUT" = 1 ] && [ "$IS_TERMINAL" = 1 ]; then
+  if [ "${HAS_TPUT}" = 1 ] && [ "${IS_TERMINAL}" = 1 ]; then
     TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
   fi
 }
 
 stylize() {
   #{ Return early if no attribute is set
-  [ "$attribute" ] || return 0
+  [ -n "${attribute}" ] || return 0
 
-  if [ "$HAS_TPUT" = 1 ] && [ "$tput_code" ]; then
-    printf '%b' "$(tput "$tput_code" 2>/dev/null)" ||
-      printf '\033[%sm' "$ansi_code"
+  if [ "${HAS_TPUT}" = 1 ] && [ -n "${tput_code}" ]; then
+    printf '%b' "$(tput "${tput_code}" 2>/dev/null)" ||
+      printf '\033[%sm' "${ansi_code}"
   else
-    printf '\033[%sm' "$ansi_code"
+    printf '\033[%sm' "${ansi_code}"
   fi
 }
 
@@ -93,12 +93,12 @@ align() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -t | --text)
-      [ "$2" ] || return 1
+      [ -n "$2" ] || return 1
       text="$2"
       shift
       ;;
     -s | --spacer)
-      [ "$2" ] || return 1
+      [ -n "$2" ] || return 1
       [ "${#2}" -eq 1 ] || {
         printf 'Error: Spacer must be a single character.\n' >&2
         return 1
@@ -112,19 +112,19 @@ align() {
   done
 
   #{ Get visible text length by stripping ANSI sequences
-  text_length=$(printf '%s' "$text" | sed 's/\033\[[0-9;]*[mGKHf]//g' | wc -m)
+  text_length=$(printf '%s' "${text}" | sed 's/\033\[[0-9;]*[mGKHf]//g' | wc -m)
   space_buffer=$(((TERM_WIDTH - text_length - 2) / 2))
 
-  if [ "$space_buffer" -gt 0 ]; then
+  if [ "${space_buffer}" -gt 0 ]; then
     buffer=""
     i=0
-    while [ "$i" -lt "$space_buffer" ]; do
-      buffer="$buffer$spacer"
+    while [ "${i}" -lt "${space_buffer}" ]; do
+      buffer="${buffer}${spacer}"
       i=$((i + 1))
     done
-    printf '%s %s %s\n' "$buffer" "$text" "$buffer"
+    printf '%s %s %s\n' "${buffer}" "${text}" "${buffer}"
   else
-    printf '%s\n' "$text"
+    printf '%s\n' "${text}"
   fi
 }
 
@@ -218,28 +218,28 @@ pout_char() {
     __char="$2"
 
     #{ Ensure the input is a valid number
-    validate --integer "$num" || {
+    validate --integer "${num}" || {
       printf 'ERROR: %s\n%s\n' \
         "" \
-        "$__usage"
+        "${__usage}"
       return 1
     }
 
     #{ Ensure the input is a valid number
-    validate --string "$__num" || {
+    validate --string "${__num}" || {
       printf 'Usage: pout_char__patterns [NUM] [PATTERN]\n'
       return 1
     }
 
     #{ Print the pattern
-    printf "%.0s$__char" $(seq "$__num")
+    printf "%.0s${__char}" $(seq "${__num}")
   }
 
   pout_char__parse_arguments() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
       -n | --num)
-        [ "$2" ] || {
+        [ -n "$2" ] || {
           pout_char__usage
           return 1
         }
@@ -247,7 +247,7 @@ pout_char() {
         shift
         ;;
       -c | --char)
-        [ "$2" ] || {
+        [ -n "$2" ] || {
           pout_char__usage
           return 1
         }
@@ -268,17 +268,17 @@ pout_char() {
   }
 
   pout_char__execute_process() {
-    [ -z "$num" ] && {
+    [ -z "${num}" ] && {
       pout_char__usage
       return 1
     }
 
-    if [ "$line" ]; then
-      pout_char__lines "$num"
-    elif [ "$space" ]; then
-      pout_char__spaces "$num"
-    elif [ "$char" ]; then
-      printf "%s" "$(printf "%.0s$char" $(seq "$num"))"
+    if [ -n "${line}" ]; then
+      pout_char__lines "${num}"
+    elif [ -n "${space}" ]; then
+      pout_char__spaces "${num}"
+    elif [ -n "${char}" ]; then
+      printf "%s" "$(printf "%.0s${char}" $(seq "${num}"))"
     else
       pout_char__usage
       return 1
@@ -335,7 +335,7 @@ parse_arguments() {
       [ -n "$2" ] && {
         __lead_lines="$(validate --integer "$2" || {
           printf "ERROR: Invalid leading line count: %s\n" "$2"
-          exit "$__code"
+          exit "${__code:?}"
         })"
         shift
       }
@@ -345,7 +345,7 @@ parse_arguments() {
       [ -n "$2" ] && {
         __trail_lines="$(validate --integer "$2" || {
           printf "ERROR: Invalid trailing line count: %s\n" "$2"
-          exit "$__code"
+          exit "${__code:?}"
         })"
         shift
       }

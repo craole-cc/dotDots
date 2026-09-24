@@ -29,7 +29,7 @@ parse_arguments() {
 
 proceed_if_verbose() {
   #{ Check for the verbosiy level greater than 0
-  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  case "${verbose:?}${verbosity:?}${VERBOSE:?}${VERBOSITY:?}" in
   [1-9] | true) ;;
   *) exit 2 ;;
   esac
@@ -39,10 +39,10 @@ display_info() {
   while [ $# -ge 1 ]; do
     case $1 in
     -h | --help)
-      printf "Usage: %s [ TEXT|FILE ]\n" "$scr_name"
-      printf "Description: %s %s.\n" "$scr_name" "$scr_description"
+      printf "Usage: %s [ TEXT|FILE ]\n" "${scr_name}"
+      printf "Description: %s %s.\n" "${scr_name}" "${scr_description}"
       ;;
-    -v | --version) printf "%s\n" "$scr_version" ;;
+    -v | --version) printf "%s\n" "${scr_version}" ;;
     -*) ;;
     *)
       if [ -f "$1" ]; then

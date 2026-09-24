@@ -8,7 +8,7 @@ __run__() {
 }
 
 for app_to_kill in "$@"; do
-  __run__ "$app_to_kill"
+  __run__ "${app_to_kill}"
 done
 
 unset app_to_kill

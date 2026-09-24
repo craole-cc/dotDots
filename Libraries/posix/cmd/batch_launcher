@@ -1,13 +1,13 @@
 #!/bin/bash
 scr_PATH="$(pathof "$0")"
-scr_NAME="$(basename "$scr_PATH")"
-scr_HOME="$(dirname -- "$scr_PATH")"
+scr_NAME="$(basename "${scr_PATH}")"
+scr_HOME="$(dirname -- "${scr_PATH}")"
 scr_VERSION="1.0"
 scr_DESCRIPTION="batch launch applications"
 scr_DEPENDENCIES="coreutils"
 
 function launch_if_inactive() {
-  if ! pgrep -x "$(basename "$1" | head -c 15)" 1> /dev/null; then
+  if ! pgrep -x "$(basename "$1" | head -c 15)" 1>/dev/null; then
     "$@" &
   fi
 }
@@ -16,7 +16,7 @@ function launch_if_inactive() {
 
 #Set your native resolution IF it does not exist in xrandr
 #More info in the script
-#run $Qrun/resolution.sh
+#run ${Qrun:?}/resolution.sh
 
 #Find out your monitor name with xrandr or arandr (save and you get this line)
 #xrandr --output VGA-1 --primary --mode 1360x768 --pos 0x0 --rotate normal
@@ -36,10 +36,10 @@ wAllter &
 #wallpaper for other Arch based systems
 #feh --bg-fill /usr/share/archlinux-tweak-tool/data/wallpaper/wallpaper.png &
 #start the conky to learn the shortcuts
-# (conky -c "$Qrun/conky") &
+# (conky -c "${Qrun:?}/conky") &
 alacrity &
 #start sxhkd to replace Qtile native key-bindings
-# run sxhkd -c "$Qrun/sxhkdrc" &
+# run sxhkd -c "${Qrun:?}/sxhkdrc" &
 
 #starting utility applications at boot time
 run variety &
@@ -48,7 +48,7 @@ run pamac-tray &
 run xfce4-power-manager &
 numlockx on &
 blueberry-tray &
-picom --config "$Qrun/picom.conf" &
+picom --config "${Qrun:?}/picom.conf" &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 /usr/lib/xfce4/notifyd/xfce4-notifyd &
 

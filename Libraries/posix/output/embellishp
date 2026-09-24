@@ -2,7 +2,7 @@
 
 parse_arguments() {
   for arg in "$@"; do
-    case $arg in
+    case ${arg} in
     -d | --simulate | --verbose) simulate=true ;;
     -h | --help) printf "%s" "USAGE" ;;
     -v | --version) printf "%s" "VERSION" ;;
@@ -146,23 +146,23 @@ parse_arguments() {
 
 stylize() {
   #{ Set the styling system [TPUT vs ANSI]
-  if type tput >/dev/null 2>&1 && [ "$tput_code" ]; then
+  if type tput >/dev/null 2>&1 && [ -n "${tput_code}" ]; then
     attribute_cmd="tput ${tput_code}"
   else
-    [ "$attribute_cmd" ] ||
+    [ -n "${attribute_cmd}" ] ||
       attribute_cmd="printf \"\033[${ansi_code}m\""
   fi
 
-  if [ "$simulate" ]; then
+  if [ -n "${simulate}" ]; then
 
     #{ Print a line of repeated characters
     charline "*"
 
     #{ Print the attribute information
     printf "ATTR: %s \nCODE: %s\n" \
-      "$attribute" "$attribute_cmd"
+      "${attribute}" "${attribute_cmd}"
   else
-    eval "$attribute_cmd"
+    eval "${attribute_cmd}"
   fi
 }
 

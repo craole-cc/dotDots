@@ -335,9 +335,9 @@ sort_results() {
     shift
   done
 
-  case "$sort_type" in
+  case "${sort_type}" in
   depth | d*)
-    printf "%s" "$sort_results" |
+    printf "%s" "${sort_results}" |
       awk -v ORS="\n" -v tab="$(printf '\t')" '
         BEGIN { FS = "/" }
 
@@ -418,28 +418,28 @@ sort_results() {
     with_punctuation() {
       printf "%s" "$1" |
         while IFS= read -r line; do
-          case "$line" in
-          */[[:punct:]]*) printf "%s\n" "$line" ;;
+          case "${line}" in
+          */[[:punct:]]*) printf "%s\n" "${line}" ;;
           esac
         done | eval "$2"
     }
     without_punctuation() {
       printf "%s" "$1" |
         while IFS= read -r line; do
-          case "$line" in
+          case "${line}" in
           */[[:punct:]]*) ;;
-          *) printf "%s\n" "$line" ;;
+          *) printf "%s\n" "${line}" ;;
           esac
         done | eval "$2"
     }
 
     printf "%s" "$(
-      with_punctuation "$sort_results" "$sort_cmd"
-      without_punctuation "$sort_results" "$sort_cmd"
+      with_punctuation "${sort_results}" "${sort_cmd}"
+      without_punctuation "${sort_results}" "${sort_cmd}"
     )" | grep --invert-match '^$'
     ;;
   natural | n*)
-    printf "%s" "$sort_results" |
+    printf "%s" "${sort_results}" |
       awk -v ORS="\n" -v tab="$(printf '\t')" '
             BEGIN { FS = "/" }
 
@@ -513,7 +513,7 @@ sort_results() {
       sort | cut -f3 | grep --invert-match '^$'
     ;;
   *)
-    printf "%s" "$sort_results"
+    printf "%s" "${sort_results}"
     ;;
   esac
 }
@@ -528,10 +528,10 @@ limit_results() {
     shift
   done
 
-  case "$limit" in
-  '') printf "%s" "$list" ;;
-  ![0-9]*) printf "%s" "$list" | head -n 1 ;;
-  *) printf "%s" "$list" | head -n "$limit" ;;
+  case "${limit}" in
+  '') printf "%s" "${list}" ;;
+  ![0-9]*) printf "%s" "${list}" | head -n 1 ;;
+  *) printf "%s" "${list}" | head -n "${limit}" ;;
   esac
 }
 
@@ -806,25 +806,25 @@ search_fs() {
     target="$2"
 
     if type fd >/dev/null 2>&1; then
-      cmd="fd --base-directory \"$dir\""
+      cmd="fd --base-directory \"${dir}\""
       opt="${opt:-} --absolute-path --glob"
-      [ "$hidden" ] && opt="$opt --hidden"
+      [ -n "${hidden}" ] && opt="${opt} --hidden"
       # [ "$depth" ] && opt="$opt --max-depth $depth"
-      pat="$target"
+      pat="${target}"
       # if [ "$pattern" ]; then
       #   fd --base-directory "$dir" --absolute-path --hidden --glob "$target"
       # else
       #   fd --base-directory "$dir" "$target"
       # fi
     elif type find >/dev/null 2>&1; then
-      cmd="find \"$dir\""
+      cmd="find \"${dir}\""
       # opt="$opt -type f"
-      pat="-wholename \"*/$target\""
+      pat="-wholename \"*/${target}\""
     fi
 
     # echo "LIMIT: $limit"
     # eval "$cmd" "$opt" ""
-    eval "${cmd}" "$opt" "$pat"
+    eval "${cmd}" "${opt}" "${pat}"
   }
 
   search_fs__upwards() {
@@ -840,10 +840,10 @@ search_fs() {
     dir="$1"
     target="$2"
 
-    while [ "$dir" != "/" ]; do
-      result="$(search_fs__downwards "$dir" "$target")"
-      [ "$result" ] && printf "%s" "$result" && break
-      dir="$(dirname "$dir")"
+    while [ "${dir}" != "/" ]; do
+      result="$(search_fs__downwards "${dir}" "${target}")"
+      [ -n "${result}" ] && printf "%s" "${result}" && break
+      dir="$(dirname "${dir}")"
     done
   }
 
@@ -863,7 +863,7 @@ search_fs() {
 
     #{ Extract the desired path from the list
     path="$(
-      printf "%s" "$pathlist" |
+      printf "%s" "${pathlist}" |
         awk -F'/' '{print NF-1, $0}' |
         # 1
         sort -n |
@@ -996,7 +996,7 @@ tests() {
 
   test_sort() {
     printf "\nSORT_TYPE: %s\n" "$1"
-    sort_results --type "$1" --list "$sort_results_test"
+    sort_results --type "$1" --list "${sort_results_test}"
   }
 
   test_sort "lexical"

@@ -11,8 +11,8 @@ _ARGS="-config /home/craole/DOTS/Config/tools/utilities/dunst/dunstrc"
 # murda "$_APP"
 
 #{ Launch with or without arguments
-if [ "$_ARGS" ]; then
-  eval "$_APP" "$_ARGS" &
+if [ -n "${_ARGS}" ]; then
+  eval "${_APP}" "${_ARGS}" &
 else
-  eval "$_APP" &
+  eval "${_APP}" &
 fi

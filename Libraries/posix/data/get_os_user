@@ -5,7 +5,7 @@ establish_environment() {
   scr_name="get_distro_name"
   scr_version="1.0"
   scr_usage="$(
-    printf "Usage: %s [OPTIONS]\n" "$scr_name"
+    printf "Usage: %s [OPTIONS]\n" "${scr_name}"
     printf "Options:\n"
     printf "  -h, --help      Display this help message\n"
     printf "  -v, --version   Display script version\n"
@@ -28,9 +28,9 @@ initialize_utilities() {
     #{ Check if the info_source is available
     info_source="$1"
 
-    if command -v "$info_source" >/dev/null 2>&1; then
+    if command -v "${info_source}" >/dev/null 2>&1; then
       return 0
-    elif [ -f "$info_source" ]; then
+    elif [ -f "${info_source}" ]; then
       return 0
     # elif [ -n "${info_source+x}" ]; then
     #   info_source="${!info_source}"
@@ -43,8 +43,8 @@ initialize_utilities() {
 
   get_via_var() {
     info_source="${USER:+\$USER}${USERNAME:+\$USERNAME}"
-    info="${USER:-$USERNAME}"
-    [ -n "$info" ] || return 1
+    info="${USER:-${USERNAME}}"
+    [ -n "${info}" ] || return 1
   }
 
   get_via_whoami() {
@@ -78,28 +78,28 @@ present_info() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -h | --help)
-      if [ "$2" ]; then
-        output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
+      if [ -n "$2" ]; then
+        output="$(printf "%s\n%s\n" "$2" "${scr_usage}")"
         shift
       else
-        output="$scr_usage"
+        output="${scr_usage}"
       fi
       ;;
     -v | --version)
-      output="$scr_version"
+      output="${scr_version}"
       ;;
     *) output="$1" ;;
     esac
 
     #{ Print the output
-    if [ "$verbosity" -gt 0 ]; then
-      if [ "$info_source" ]; then
-        printf "%s via %s: %s" "$label" "$info_source" "$output"
+    if [ "${verbosity}" -gt 0 ]; then
+      if [ -n "${info_source}" ]; then
+        printf "%s via %s: %s" "${label}" "${info_source}" "${output}"
       else
-        printf "%s: %s" "$label" "$output"
+        printf "%s: %s" "${label}" "${output}"
       fi
     else
-      printf "%s" "$output"
+      printf "%s" "${output}"
     fi
 
     #{ Continue to the next argument
@@ -118,7 +118,7 @@ process_info() {
   # [ -n "${USER+x}" ] && info="$USER"
   # [ -n "${USERNAME+x}" ] && info="$USERNAME"
 
-  present_info "${info:-$dud}"
+  present_info "${info:-${dud}}"
 }
 
 main() {
@@ -147,5 +147,5 @@ main() {
   process_info
 
   #{ Terminate the script with the appropriate exit code
-  return "$exit_code"
+  return "${exit_code}"
 } && main "$@"

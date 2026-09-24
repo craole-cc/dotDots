@@ -1,17 +1,17 @@
 # symdoc
 
-A POSIX shell script that creates a documentation mirror by symlinking all `.md`
+A POSIX shell script that creates a documentation mirror by symlinking all $(.md)
 files from a library directory.
 
 ## Usage
 
-```sh
+``$(sh
 symdoc [OPTIONS]
-```
+)``
 
 ## Options
 
-- `-l, --lib-dir DIR` - Library directory (default: auto-detect)
+- $(-l, --lib-dir DIR) - Library directory (default: auto-detect)
 - `-d, --doc-dir DIR` - Documentation directory (default:
   $PROJECT_ROOT/Documentation)
 - `-v, --verbose` - Show detailed output

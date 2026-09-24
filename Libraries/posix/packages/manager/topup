@@ -6,12 +6,12 @@ main() {
 }
 
 wehave() {
-  command -v "${1}" >/dev/null 2>&1
+  command -v "${1}" > /dev/null 2>&1
 }
 
 install_topgrade() {
   #{ Ship if topgrade is already installed
-  [ -x "${CMD_TOPGRADE}" ] || wehave topgrade || return
+  [ -x "${CMD_TOPGRADE:?}" ] || wehave topgrade || return
 
   #| System package managers first
   if wehave pacman; then

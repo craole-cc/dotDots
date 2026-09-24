@@ -1,0 +1,170 @@
+--- fyls copy
++++ fyls copy
+@@ -4,7 +4,7 @@
+   set_defaults
+   parse_arguments "$@"
+   set_environment
+-  echo "$cmd $opts $*"
++  echo "${cmd} ${opts} $*"
+ }
+ 
+ set_defaults() {
+@@ -50,7 +50,7 @@
+         [ -n "${2:-}" ] || {
+           printf \
+             "Option '%s' requires an argument: %s (Default: %s)\n" \
+-            "$1" "[ls, eza, lsd, pls]" "$cmd"
++            "$1" "[ls, eza, lsd, pls]" "${cmd}"
+           return 1
+         }
+         cmd="$2"
+@@ -67,7 +67,7 @@
+       -p | --pretty) color=true icons=true ;;
+       -H | --hyperlink) hyperlink=true ;;
+       # TODO: add more options including sort, columns to hide or show, etc.
+-      *) args="$args $1" ;;
++      *) args="${args} $1" ;;
+     esac
+     shift
+   done
+@@ -86,37 +86,37 @@
+   #{ Define options
+   case "${cmd}" in
+     eza)
+-      [ -n "${all}" ] && opts="$opts --all"
+-      [ -n "${long}" ] && opts="$opts --long"
+-      [ -n "${recurse}" ] && opts="$opts --recurse"
+-      [ -n "${octal}" ] && opts="$opts --octal-permissions"
+-      [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
+-      [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
+-      [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+-      [ -n "${icons}" ] && opts="$opts --icons=always"
+-      [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
++      [ -n "${all}" ] && opts="${opts} --all"
++      [ -n "${long}" ] && opts="${opts} --long"
++      [ -n "${recurse}" ] && opts="${opts} --recurse"
++      [ -n "${octal}" ] && opts="${opts} --octal-permissions"
++      [ -n "${dirs_first}" ] && opts="${opts} --group-directories-first"
++      [ -n "${dirs_only}" ] && opts="${opts} --list-dirs"
++      [ -n "${color}" ] && opts="${opts} --color=always --color-scale"
++      [ -n "${icons}" ] && opts="${opts} --icons=always"
++      [ -n "${hyperlink}" ] && opts="${opts} --hyperlink=auto"
+       ;;
+     lsd)
+-      [ -n "${all}" ] && opts="$opts --all"
+-      [ -n "${long}" ] && opts="$opts --long"
+-      [ -n "${recurse}" ] && opts="$opts --recurse"
+-      [ -n "${octal}" ] && opts="$opts --octal-permissions"
+-      [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
+-      [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
+-      [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+-      [ -n "${icons}" ] && opts="$opts --icons"
+-      [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
++      [ -n "${all}" ] && opts="${opts} --all"
++      [ -n "${long}" ] && opts="${opts} --long"
++      [ -n "${recurse}" ] && opts="${opts} --recurse"
++      [ -n "${octal}" ] && opts="${opts} --octal-permissions"
++      [ -n "${dirs_first}" ] && opts="${opts} --group-directories-first"
++      [ -n "${dirs_only}" ] && opts="${opts} --list-dirs"
++      [ -n "${color}" ] && opts="${opts} --color=always --color-scale"
++      [ -n "${icons}" ] && opts="${opts} --icons"
++      [ -n "${hyperlink}" ] && opts="${opts} --hyperlink=auto"
+       ;;
+     pls)
+-      [ -n "${all}" ] && opts="$opts --all"
+-      [ -n "${long}" ] && opts="$opts --long"
+-      [ -n "${recurse}" ] && opts="$opts --recurse"
+-      [ -n "${octal}" ] && opts="$opts --octal-permissions"
+-      [ -n "${dirs_first}" ] && opts="$opts --group-directories-first"
+-      [ -n "${dirs_only}" ] && opts="$opts --list-dirs"
+-      [ -n "${color}" ] && opts="$opts --color=always --color-scale"
+-      [ -n "${icons}" ] && opts="$opts --icons=always"
+-      [ -n "${hyperlink}" ] && opts="$opts --hyperlink=auto"
++      [ -n "${all}" ] && opts="${opts} --all"
++      [ -n "${long}" ] && opts="${opts} --long"
++      [ -n "${recurse}" ] && opts="${opts} --recurse"
++      [ -n "${octal}" ] && opts="${opts} --octal-permissions"
++      [ -n "${dirs_first}" ] && opts="${opts} --group-directories-first"
++      [ -n "${dirs_only}" ] && opts="${opts} --list-dirs"
++      [ -n "${color}" ] && opts="${opts} --color=always --color-scale"
++      [ -n "${icons}" ] && opts="${opts} --icons=always"
++      [ -n "${hyperlink}" ] && opts="${opts} --hyperlink=auto"
+       ;;
+     powershell)
+       opts="Get-ChildItem"
+@@ -144,40 +144,40 @@
+ cmd_pls() {
+   cmd="pls"
+ 
+-  opts="$opts --header false"
+-  opts="$opts --det oct"
+-  opts="$opts --det perm"
+-  opts="$opts --det group"
+-  opts="$opts --det user"
+-  opts="$opts --det typ"
++  opts="${opts} --header false"
++  opts="${opts} --det oct"
++  opts="${opts} --det perm"
++  opts="${opts} --det group"
++  opts="${opts} --det user"
++  opts="${opts} --det typ"
+ 
+-  eval "$cmd" "$opts" "$*"
++  eval "${cmd}" "${opts}" "$*"
+ }
+ 
+ initialize_options() {
+   unset opts
+-  case "$cmd" in
++  case "${cmd}" in
+     lsd)
+-      [ "$all" ] && opts="$opts --all"
+-      [ "$long" ] && opts="$opts --long"
+-      [ "$recurse" ] && opts="$opts --recurse"
+-      [ "$octal" ] && opts="$opts --octal-permissions"
+-      [ "$dirs_first" ] && opts="$opts --group-directories-first"
+-      [ "$dirs_only" ] && opts="$opts --list-dirs"
+-      [ "$color" ] && opts="$opts --color=always --color-scale"
+-      [ "$icons" ] && opts="$opts --icons"
+-      [ "$hyperlink" ] && opts="$opts --hyperlink=auto"
++      [ -n "${all}" ] && opts="${opts} --all"
++      [ -n "${long}" ] && opts="${opts} --long"
++      [ -n "${recurse}" ] && opts="${opts} --recurse"
++      [ -n "${octal}" ] && opts="${opts} --octal-permissions"
++      [ -n "${dirs_first}" ] && opts="${opts} --group-directories-first"
++      [ -n "${dirs_only}" ] && opts="${opts} --list-dirs"
++      [ -n "${color}" ] && opts="${opts} --color=always --color-scale"
++      [ -n "${icons}" ] && opts="${opts} --icons"
++      [ -n "${hyperlink}" ] && opts="${opts} --hyperlink=auto"
+       ;;
+     eza)
+-      [ "$all" ] && opts="$opts --all"
+-      [ "$long" ] && opts="$opts --long"
+-      [ "$recurse" ] && opts="$opts --recurse"
+-      [ "$octal" ] && opts="$opts --octal-permissions"
+-      [ "$dirs_first" ] && opts="$opts --group-directories-first"
+-      [ "$dirs_only" ] && opts="$opts --list-dirs"
+-      [ "$color" ] && opts="$opts --color=always --color-scale"
+-      [ "$icons" ] && opts="$opts --icons=always"
+-      [ "$hyperlink" ] && opts="$opts --hyperlink=auto"
++      [ -n "${all}" ] && opts="${opts} --all"
++      [ -n "${long}" ] && opts="${opts} --long"
++      [ -n "${recurse}" ] && opts="${opts} --recurse"
++      [ -n "${octal}" ] && opts="${opts} --octal-permissions"
++      [ -n "${dirs_first}" ] && opts="${opts} --group-directories-first"
++      [ -n "${dirs_only}" ] && opts="${opts} --list-dirs"
++      [ -n "${color}" ] && opts="${opts} --color=always --color-scale"
++      [ -n "${icons}" ] && opts="${opts} --icons=always"
++      [ -n "${hyperlink}" ] && opts="${opts} --hyperlink=auto"
+       ;;
+   esac
+ 
+@@ -202,7 +202,7 @@
+ }
+ 
+ process_core() {
+-  if [ "$SHELL" = "nu" ]; then
++  if [ "${SHELL}" = "nu" ]; then
+     ls_nu "$@"
+   elif weHave eza; then
+     cmd_eza "$@"

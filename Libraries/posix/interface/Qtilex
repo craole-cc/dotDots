@@ -1,16 +1,16 @@
 #!/bin/sh
 
-RC_QTILE="${RC_QTILE:-"$HOME/.config/qtile/config.py"}"
+RC_QTILE="${RC_QTILE:-"${HOME}/.config/qtile/config.py"}"
 XDISPLAY=${XDISPLAY:-:1}
 LOG_LEVEL=${LOG_LEVEL:-INFO}
-[ "$PYTHON" ] || PYTHON=python3
+[ -n "${PYTHON}" ] || PYTHON=python3
 
 __start__() {
   sleep 1
   env DISPLAY="${XDISPLAY}" "${PYTHON}" /bin/qtile start -c "${RC_QTILE}" -l "${LOG_LEVEL}" "$@" &
   QTILE_PID=$!
-  wait "$QTILE_PID"
-  pkill "$XEPHYR_PID"
+  wait "${QTILE_PID}"
+  pkill "${XEPHYR_PID}"
 }
 
 __run__() {
@@ -18,7 +18,7 @@ __run__() {
   echo Qtile before
   echo "wayland: ${WAYLAND_DISPLAY}"
   echo "x11: ${DISPLAY}"
-  { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } && return 1
+  { [ -n "${WAYLAND_DISPLAY}" ] || [ -n "${DISPLAY}" ]; } && return 1
   echo Qtile before
   echo "wayland: ${WAYLAND_DISPLAY}"
   echo "x11: ${DISPLAY}"
@@ -47,9 +47,9 @@ __test__() {
 }
 
 case $1 in
-  --test)
-    shift
-    __test__ "$@"
-    ;;
-  *) __run__ "$@" ;;
+--test)
+  shift
+  __test__ "$@"
+  ;;
+*) __run__ "$@" ;;
 esac

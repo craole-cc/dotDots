@@ -63,57 +63,57 @@ set_modes() {
 
   #{ Parse arguments
   case "$1" in
-  --pout-suppress | --pout*)
-    #| Pout Options
-    for arg in "$@"; do
-      case "${arg}" in
-      *tag*) pout_tag_suppress=1 ;;
-      *scr*) pout_scr_suppress=1 ;;
-      *ctx*) pout_ctx_suppress=1 ;;
-      *msg*) pout_msg_suppress=1 ;;
-      *) ;;
+    --pout-suppress | --pout*)
+      #| Pout Options
+      for arg in "$@"; do
+        case "${arg}" in
+          *tag*) pout_tag_suppress=1 ;;
+          *scr*) pout_scr_suppress=1 ;;
+          *ctx*) pout_ctx_suppress=1 ;;
+          *msg*) pout_msg_suppress=1 ;;
+          *) ;;
+        esac
+      done
+      ;;
+    --verbosity)
+      #| Verbosity Level
+      case "${2:-}" in
+        0 | off | false | quiet | " ") verbosity=0 ;;
+        1 | err*) verbosity=1 ;;
+        2 | warn*) verbosity=2 ;;
+        3 | info*) verbosity=3 ;;
+        4 | debug) verbosity=4 ;;
+        5 | trace) verbosity=5 ;;
+        *)
+          pout --warn --key "Invalid verbosity level" "${2}"
+          pout "Valid options: " "${verbosity_options}"
+          pout "Default option: " "${verbosity}"
+          ;;
       esac
-    done
-    ;;
-  --verbosity)
-    #| Verbosity Level
-    case "${2:-}" in
-    0 | off | false | quiet | " ") verbosity=0 ;;
-    1 | err*) verbosity=1 ;;
-    2 | warn*) verbosity=2 ;;
-    3 | info*) verbosity=3 ;;
-    4 | debug) verbosity=4 ;;
-    5 | trace) verbosity=5 ;;
-    *)
-      pout --warn --key "Invalid verbosity level" "${2}"
-      pout "Valid options: " "${verbosity_options}"
-      pout "Default option: " "${verbosity}"
       ;;
-    esac
-    ;;
-  --fail-on-error)
-    #| Script Operation Mode
-    case "${2:-}" in
-    1 | true | on | enabled) fail_on_error=1 ;;
-    0 | false | off | disabled) fail_on_error=0 ;;
-    *)
-      pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
-        "\nValid options: " "${fail_on_error_options}" \
-        "\nDefault option: " "${fail_on_error}"
+    --fail-on-error)
+      #| Script Operation Mode
+      case "${2:-}" in
+        1 | true | on | enabled) fail_on_error=1 ;;
+        0 | false | off | disabled) fail_on_error=0 ;;
+        *)
+          pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+            "\nValid options: " "${fail_on_error_options}" \
+            "\nDefault option: " "${fail_on_error}"
+          ;;
+      esac
       ;;
-    esac
-    ;;
-  *) ;;
+    *) ;;
   esac
 
   case "${fail_on_error:-}" in
-  1 | true | on | enabled) set -e ;;
-  *) ;;
+    1 | true | on | enabled) set -e ;;
+    *) ;;
   esac
 
   case "${verbosity}" in
-  0) set_modes --end msg ;;
-  *) ;;
+    0) set_modes --end msg ;;
+    *) ;;
   esac
 }
 
@@ -129,7 +129,7 @@ cache_commands() {
     pout --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
     #{ Retrieve the path, otherwise return empty string
-    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    cmd_val="$(command -v "${cmd}" 2> /dev/null || printf '')"
     pout --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
     #{ Create the environment variable of the command's location
@@ -154,43 +154,43 @@ cache_commands() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help) pout --usage ;;
-    -v | --version) pout --version ;;
-    -d | --debug | --verbose) set_modes --verbosity debug ;;
-    --info) set_modes --verbosity info ;;
-    --warn) set_modes --verbosity warn ;;
-    --error) set_modes --verbosity error ;;
-    -q | --quiet) set_modes --verbosity quiet ;;
-    --flake)
-      if [ -n "$2" ]; then
-        flake_root="$2"
-        shift
-      else
-        exit 1
-      fi
-      ;;
-    --host | --*target)
-      if [ -n "$2" ]; then
-        build_target="$2"
-        shift
-      else
-        exit 1
-      fi
-      ;;
-    switch | boot | test | build | dry-build | dry-activate | edit | repl | build-vm | build-vm-with-bootloader | build-image | list-generations) action="$1" ;;
-    --upgrade) upgrade=true ;;
-    -u | --up*) upgrade=true ;;
-    -t | --trace) trace=true ;;
-    --no-trace) trace="" ;;
-    --no-up*) upgrade="" ;;
-    *)
-      if [ -z "${flake_root:-}" ]; then
-        flake_root="$1"
-      else
-        args="${args:-}${args:+${delimiter:- }}${1}"
-      fi
+      -h | --help) pout --usage ;;
+      -v | --version) pout --version ;;
+      -d | --debug | --verbose) set_modes --verbosity debug ;;
+      --info) set_modes --verbosity info ;;
+      --warn) set_modes --verbosity warn ;;
+      --error) set_modes --verbosity error ;;
+      -q | --quiet) set_modes --verbosity quiet ;;
+      --flake)
+        if [ -n "$2" ]; then
+          flake_root="$2"
+          shift
+        else
+          exit 1
+        fi
+        ;;
+      --host | --*target)
+        if [ -n "$2" ]; then
+          build_target="$2"
+          shift
+        else
+          exit 1
+        fi
+        ;;
+      switch | boot | test | build | dry-build | dry-activate | edit | repl | build-vm | build-vm-with-bootloader | build-image | list-generations) action="$1" ;;
+      --upgrade) upgrade=true ;;
+      -u | --up*) upgrade=true ;;
+      -t | --trace) trace=true ;;
+      --no-trace) trace="" ;;
+      --no-up*) upgrade="" ;;
+      *)
+        if [ -z "${flake_root:-}" ]; then
+          flake_root="$1"
+        else
+          args="${args:-}${args:+${delimiter:- }}${1}"
+        fi
 
-      ;;
+        ;;
     esac
     shift
   done
@@ -213,14 +213,14 @@ check_flake_status() {
   fi
 
   #{ Get the absolute path to the flake directory
-  if [ -x "${CMD_REALPATH}" ]; then
-    _flake="$("${CMD_REALPATH}" "${_flake}")"
+  if [ -x "${CMD_REALPATH:?}" ]; then
+    _flake="$("${CMD_REALPATH:?}" "${_flake}")"
     pout --debug "Using 'realpath' to get absolute path"
-  elif [ -x "${CMD_READLINK}" ]; then
-    _flake="$("${CMD_READLINK}" -f "${_flake}")"
+  elif [ -x "${CMD_READLINK:?}" ]; then
+    _flake="$("${CMD_READLINK:?}" -f "${_flake}")"
     pout --debug "Using 'readlink -f' to get absolute path"
   else
-    _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
+    _flake="$(cd "${_flake}" 2> /dev/null && pwd)"
     pout --debug "Using 'cd/pwd' to get absolute path"
   fi
 
@@ -253,10 +253,10 @@ check_git_status() {
     else
       gyt_status="$?"
       case "${gyt_status:-}" in
-      130)
-        pout --error "Operation cancelleled but the user"
-        ;;
-      *) pout --error "Git status command returned with an error" ;;
+        130)
+          pout --error "Operation cancelleled but the user"
+          ;;
+        *) pout --error "Git status command returned with an error" ;;
       esac
     fi
   else
@@ -264,7 +264,7 @@ check_git_status() {
     if \cd "${_git_dir}"; then
       #{ Check git status and encourage commit, fail if there are changes
       [ -z "${CMD_GIT:-}" ] && pout --error "The git command is not available."
-      git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
+      git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2> /dev/null)"
 
       #{ Update the nothing_to_commit flag if there are no changes
       if [ -n "${git_changes_to_commit}" ]; then
@@ -306,20 +306,20 @@ validate_environment() {
   git_status="$?"
 
   case "${git_status}" in
-  0) ;;
-  *) return "${git_status}" ;;
+    0) ;;
+    *) return "${git_status}" ;;
   esac
 }
 
 run_process() {
   #{ Update the arguments
   case "${upgrade}" in
-  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
-  *) ;;
+    true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
+    *) ;;
   esac
   case "${trace}" in
-  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--show-trace" ;;
-  *) ;;
+    true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--show-trace" ;;
+    *) ;;
   esac
 
   #{ Update target
@@ -336,7 +336,7 @@ run_process() {
 
   #{ Print the command
   case "${debug}" in
-  true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
+    true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
   esac
 
   #{ Execute the command
@@ -360,83 +360,83 @@ pout() {
   #{ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
-    --usage)
-      usage_guide
-      exit_code="${exit_code:-0}"
-      ;;
-    --version)
-      msg="${scr_version}"
-      exit_code="${exit_code:-0}"
-      ;;
-    -k | --key) key="$2" shift ;;
-    -v | --val) val="$2" shift ;;
-    --trace)
-      if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
-        tag="TRACE"
-        lines=1
-        stream_code=2
-      else
-        dont_print=true
-      fi
-      ;;
-    --debug)
-      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
-        tag="DEBUG"
-        lines=1
-        stream_code=2
-      else
-        dont_print=true
-      fi
-      ;;
-    --info)
-      if [ "${verbosity}" -ge "${verbosity_info}" ]; then
-        tag=" INFO"
-        lines=1
-      else
-        dont_print=true
-      fi
-      ;;
-    --warn)
-      if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
-        tag=" WARN"
-        lines=1
-        stream_code=2
-      else
-        dont_print=true
-      fi
-      ;;
-    --error)
-      if [ "${verbosity}" -ge "${verbosity_error}" ]; then
-        lines=1
-      else
-        dont_print=true
-      fi
+      --usage)
+        usage_guide
+        exit_code="${exit_code:-0}"
+        ;;
+      --version)
+        msg="${scr_version}"
+        exit_code="${exit_code:-0}"
+        ;;
+      -k | --key) key="$2" shift ;;
+      -v | --val) val="$2" shift ;;
+      --trace)
+        if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
+          tag="TRACE"
+          lines=1
+          stream_code=2
+        else
+          dont_print=true
+        fi
+        ;;
+      --debug)
+        if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+          tag="DEBUG"
+          lines=1
+          stream_code=2
+        else
+          dont_print=true
+        fi
+        ;;
+      --info)
+        if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+          tag=" INFO"
+          lines=1
+        else
+          dont_print=true
+        fi
+        ;;
+      --warn)
+        if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+          tag=" WARN"
+          lines=1
+          stream_code=2
+        else
+          dont_print=true
+        fi
+        ;;
+      --error)
+        if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+          lines=1
+        else
+          dont_print=true
+        fi
 
-      tag="ERROR"
-      stream_code=2
-      exit_code="${exit_code:-1}"
-      ;;
-    --ctx | --context)
-      if [ -n "${2:-}" ]; then
-        ctx="$2"
-        shift
-      else
-        pout --error "No context specified"
-      fi
-      ;;
-    --no-scr) scr="" ;;
-    --no-tag) tag="" ;;
-    --no-ctx) ctx="" ;;
-    --no-msg) msg="" ;;
-    --no-trim) trim="" ;;
-    *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+        tag="ERROR"
+        stream_code=2
+        exit_code="${exit_code:-1}"
+        ;;
+      --ctx | --context)
+        if [ -n "${2:-}" ]; then
+          ctx="$2"
+          shift
+        else
+          pout --error "No context specified"
+        fi
+        ;;
+      --no-scr) scr="" ;;
+      --no-tag) tag="" ;;
+      --no-ctx) ctx="" ;;
+      --no-msg) msg="" ;;
+      --no-trim) trim="" ;;
+      *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
     esac
     shift
   done
 
   #{ Delimit the message with spaces
-  [ -n "${msg:-}" ] &&
-    msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+  [ -n "${msg:-}" ] \
+    && msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
 
   #{ Update the tag
   if [ -n "${tag:-}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
@@ -460,40 +460,40 @@ pout() {
     fi
 
     case "${tag}" in
-    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #{ Define the separator
-      sep=" | "
+      *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+        #{ Define the separator
+        sep=" | "
 
-      #{ Calculate padding for label alignment
-      debug_pad="${debug_pad:-18}"
-      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+        #{ Calculate padding for label alignment
+        debug_pad="${debug_pad:-18}"
+        pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #{ Format the tagged key-value pair
-      msg="$(
-        printf "%s%s%s%s%s\n" \
-          "${tag}" "${pad}" "${key}" "${sep}" "${val}"
-      )"
-      ;;
-    *)
-      #{ Define the separator
-      sep=": "
+        #{ Format the tagged key-value pair
+        msg="$(
+          printf "%s%s%s%s%s\n" \
+            "${tag}" "${pad}" "${key}" "${sep}" "${val}"
+        )"
+        ;;
+      *)
+        #{ Define the separator
+        sep=": "
 
-      #{ Print the key-value pair
-      msg="$(
-        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
-      )"
-      ;;
+        #{ Print the key-value pair
+        msg="$(
+          printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+        )"
+        ;;
     esac
   else
     case "${tag}" in
-    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #{ Format the tagged message
-      msg="$(
-        printf "%s %b\n" \
-          "${tag}" "${msg}"
-      )"
-      ;;
-    *) msg="$(trim_whitespace "${msg}")" ;;
+      *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+        #{ Format the tagged message
+        msg="$(
+          printf "%s %b\n" \
+            "${tag}" "${msg}"
+        )"
+        ;;
+      *) msg="$(trim_whitespace "${msg}")" ;;
     esac
   fi
 
@@ -524,10 +524,10 @@ manage_list() {
   #{ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --create | --make | --build) action=build ;;
-    --parse) action=parse ;;
-    --delim* | --sep*) separator="${2:-}" shift ;;
-    *) list="${list:+${list}${delimiter}}$1" ;;
+      --create | --make | --build) action=build ;;
+      --parse) action=parse ;;
+      --delim* | --sep*) separator="${2:-}" shift ;;
+      *) list="${list:+${list}${delimiter}}$1" ;;
     esac
     shift
   done
@@ -545,19 +545,19 @@ manage_list() {
   fi
 
   case "${action:-}" in
-  build)
-    printf "%s" "${list:-}"
-    ;;
-  parse)
-    #{ Parse the input string into an array-like output
-    old_IFS="${IFS}"
-    IFS="${delimiter}"
-    for item in ${list}; do
-      printf "%s\n" "${item}"
-    done
-    IFS="${old_IFS}"
-    ;;
-  *) ;;
+    build)
+      printf "%s" "${list:-}"
+      ;;
+    parse)
+      #{ Parse the input string into an array-like output
+      old_IFS="${IFS}"
+      IFS="${delimiter}"
+      for item in ${list}; do
+        printf "%s\n" "${item}"
+      done
+      IFS="${old_IFS}"
+      ;;
+    *) ;;
   esac
 }
 
@@ -566,7 +566,7 @@ trim_whitespace() {
 }
 
 usage_guide() {
-  cat <<-USAGE_GUIDE
+  cat <<- USAGE_GUIDE
   ${scr_name} (${scr_version})
 
   DESCRIPTION

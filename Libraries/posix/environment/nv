@@ -1,11 +1,11 @@
 #!/bin/sh
 scr_PATH="$(pathof "$0")"
-scr_NAME="$(basename "$scr_PATH")"
-scr_DIR="$(dirname "$scr_PATH")"
+scr_NAME="$(basename "${scr_PATH}")"
+scr_DIR="$(dirname "${scr_PATH}")"
 scr_VERSION="1.0"
 scr_DESCRIPTION="displays information about variables"
 scr_USAGE="Usage:
-    $scr_NAME [OPTIONS] [VARIABLES]
+    ${scr_NAME} [OPTIONS] [VARIABLES]
 "
 scr_OPTIONS="Options:
     -h, --help             Show detailed help information
@@ -17,22 +17,22 @@ scr_ARGUMENTS="Arguments:
     <LEVEL>    [quiet, info [default], debug, 0, 1, 2]
 "
 scr_EXAMPLES="Examples:
-    $scr_NAME HOME XDG_CONFIG
-    $scr_NAME HOME XDG_CONFIG --verbose info
-    $scr_NAME -d=debug HOME
+    ${scr_NAME} HOME XDG_CONFIG
+    ${scr_NAME} HOME XDG_CONFIG --verbose info
+    ${scr_NAME} -d=debug HOME
 "
 scr_AUTHORS="Authors:
     Craole <iamcraole@gmail.com>
 "
 scr_HELP="$(
   cat <<HELP
-  $scr_NAME [v.$scr_VERSION] $scr_DESCRIPTION.
+  ${scr_NAME} [v.${scr_VERSION}] ${scr_DESCRIPTION}.
 
-  $scr_USAGE
-  $scr_OPTIONS
-  $scr_ARGUMENTS
-  $scr_EXAMPLES
-  $scr_AUTHORS
+  ${scr_USAGE}
+  ${scr_OPTIONS}
+  ${scr_ARGUMENTS}
+  ${scr_EXAMPLES}
+  ${scr_AUTHORS}
 HELP
 )"
 
@@ -43,7 +43,7 @@ main() {
 }
 
 test_stuff() {
-  display_info "$scr_HELP"
+  display_info "${scr_HELP}"
   # printf "%s\n\n" "$scr_NAME ($scr_VERSION)"
   # printf "%s\n\n" "$scr_AUTHORS"
   # printf "%s\n\n" "$scr_DESCRIPTION"
@@ -75,8 +75,8 @@ parse_arguments() { #{ Initialize
   #{ Parse flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
-    -h | --help) end_process "$scr_HELP" ;;
-    -v | --version) end_process "$scr_VERSION" ;;
+    -h | --help) end_process "${scr_HELP}" ;;
+    -v | --version) end_process "${scr_VERSION}" ;;
     -q | --quiet) verbosity="quiet" ;;
     -d=* | --verbose=*) verbosity="${1#*=}" ;;
     -d | --verbose)
@@ -93,14 +93,14 @@ parse_arguments() { #{ Initialize
       ;;
     *)
       #{ Store arguments in an array
-      vars="$(are --save "$vars" "$1")"
+      vars="$(are --save "${vars}" "$1")"
       ;;
     esac
     shift
   done
 
   #{ Set verbosity level
-  case "$verbosity" in
+  case "${verbosity}" in
   0 | quiet) verbosity=0 ;;
   1 | error | debug) verbosity=1 ;;
   2 | info) verbosity=2 ;;
@@ -108,43 +108,43 @@ parse_arguments() { #{ Initialize
   esac
 
   #{ Extract variables
-  vars="$(are --expand "$vars")"
-  total_vars="$(are --count "$vars")"
-  last_var="$(are --last "$vars")"
+  vars="$(are --expand "${vars}")"
+  total_vars="$(are --count "${vars}")"
+  last_var="$(are --last "${vars}")"
 }
 
 #/> Core                                            <\
 run_process() { #{ Display information about each variable
 
   #{ Loop through all arguments
-  for var in $vars; do
+  for var in ${vars}; do
 
     #{ Extract the value of a variable
-    var_LABEL="$var"
-    var_VALUE="$(eval printf '%s' "\"\${$var_LABEL?}\"" 2>/dev/null)"
-    msg="$var_LABEL => $var_VALUE"
+    var_LABEL="${var}"
+    var_VALUE="$(eval printf '%s' "\"\${${var_LABEL}?}\"" 2>/dev/null)"
+    msg="${var_LABEL} => ${var_VALUE}"
 
     #{ Set output message based on verbosity level
-    if [ "$var_VALUE" ]; then
-      msg0="$var_VALUE"
-      msg1="✅ $msg"
-      msg2="✅ '$var_LABEL' resolves to $var_VALUE"
+    if [ -n "${var_VALUE}" ]; then
+      msg0="${var_VALUE}"
+      msg1="✅ ${msg}"
+      msg2="✅ '${var_LABEL}' resolves to ${var_VALUE}"
     else
       unset msg0
-      msg1="❌ $msg"
-      msg2="❌ '$var_LABEL' is not a valid parameter"
+      msg1="❌ ${msg}"
+      msg2="❌ '${var_LABEL}' is not a valid parameter"
       failure=true
     fi
 
     #{ Generate message based on verbosity eg. "$msg2"
     unset msg
-    msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2>/dev/null)"
+    msg="$(eval printf '%s' "\"\$msg${verbosity}\"" 2>/dev/null)"
     #{ Send information to display where applicable
-    [ "$msg" ] &&
-      if [ "$var" != "$last_var" ]; then
-        display_info -n "$msg"
+    [ -n "${msg}" ] &&
+      if [ "${var}" != "${last_var}" ]; then
+        display_info -n "${msg}"
       else
-        display_info "$msg"
+        display_info "${msg}"
       fi
   done
 }
@@ -154,7 +154,7 @@ display_info() { #{ Display information to via Stdout or Notification
   #? USAGE: display_info --noline $arg
 
   #{ Ensure there is something to print
-  [ "$*" ] || return 1
+  [ -n "$*" ] || return 1
 
   case "$1" in
   -l | -n | --new-line)
@@ -173,7 +173,7 @@ end_process() {
     *exit)
       shift
       display_info -n "$*"
-      display_info "$scr_USAGE"
+      display_info "${scr_USAGE}"
       collect_garbage
       ;;
     esac
@@ -196,10 +196,10 @@ collect_garbage() { #{ Remove variables
     vars last_vars \
     verbosity msg msg0 msg1 msg2 msg3
 
-  if [ "$failure" ]; then
-    unset "$failure" && exit 1
+  if [ -n "${failure}" ]; then
+    unset "${failure}" && exit 1
   else
-    unset "$failure" && exit 0
+    unset "${failure}" && exit 0
   fi
 }
 

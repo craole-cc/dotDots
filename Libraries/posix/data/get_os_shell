@@ -2,10 +2,10 @@
 
 establish_environment() {
   #{ Establish script information
-  scr_name="$get_os_shell"
+  scr_name="${get_os_shell:?}"
   scr_version="1.0"
   scr_usage="$(
-    printf "Usage: %s [OPTIONS]\n" "$scr_name"
+    printf "Usage: %s [OPTIONS]\n" "${scr_name}"
     printf "Options:\n"
     printf "  -h, --help      Display this help message\n"
     printf "  -v, --version   Display script version\n"
@@ -29,9 +29,9 @@ initialize_utilities() {
     #{ Check if the info_source is available
     info_source="$1"
 
-    if command -v "$info_source" >/dev/null 2>&1; then
+    if command -v "${info_source}" >/dev/null 2>&1; then
       return 0
-    elif [ -f "$info_source" ]; then
+    elif [ -f "${info_source}" ]; then
       return 0
     else
       unset info_source
@@ -43,28 +43,28 @@ initialize_utilities() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
       -h | --help)
-        if [ "$2" ]; then
-          output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
+        if [ -n "$2" ]; then
+          output="$(printf "%s\n%s\n" "$2" "${scr_usage}")"
           shift
         else
-          output="$scr_usage"
+          output="${scr_usage}"
         fi
         ;;
       -v | --version)
-        output="$scr_version"
+        output="${scr_version}"
         ;;
       *) output="$1" ;;
       esac
 
       #{ Print the output
-      if [ "$verbosity" -gt 0 ]; then
-        if [ "$info_source" ]; then
-          printf "%s via %s: %s\n" "$label" "$info_source" "$output"
+      if [ "${verbosity}" -gt 0 ]; then
+        if [ -n "${info_source}" ]; then
+          printf "%s via %s: %s\n" "${label}" "${info_source}" "${output}"
         else
-          printf "%s: %s" "$label" "$output"
+          printf "%s: %s" "${label}" "${output}"
         fi
       else
-        printf "%s" "$output"
+        printf "%s" "${output}"
       fi
 
       #{ Continue to the next argument
@@ -86,22 +86,22 @@ initialize_utilities() {
     extract_linux_process_name() {
       last_line_process_name=$(
         extract_process_name "$(
-          printf "%s" "$ps_output" | tail -n 1
+          printf "%s" "${ps_output}" | tail -n 1
         )"
       )
 
-      if [ -n "$last_line_process_name" ]; then
-        info="$last_line_process_name"
+      if [ -n "${last_line_process_name}" ]; then
+        info="${last_line_process_name}"
       else
         # If not found in the last line, check the previous line
         prev_line_process_name=$(
           extract_process_name "$(
-            printf "%s" "$ps_output" | tail -n 3 | head -n 1
+            printf "%s" "${ps_output}" | tail -n 3 | head -n 1
           )"
         )
 
-        if [ -n "$prev_line_process_name" ]; then
-          info="$prev_line_process_name"
+        if [ -n "${prev_line_process_name}" ]; then
+          info="${prev_line_process_name}"
         fi
       fi
     }
@@ -110,22 +110,22 @@ initialize_utilities() {
       # Extract the process name from the first line
       first_line_process_name=$(
         extract_process_name "$(
-          printf "%s" "$ps_output" | head -n 1
+          printf "%s" "${ps_output}" | head -n 1
         )"
       )
 
-      if [ -n "$first_line_process_name" ]; then
-        info="$first_line_process_name"
+      if [ -n "${first_line_process_name}" ]; then
+        info="${first_line_process_name}"
       else
         # If not found in the first line, check the second line
         second_line_process_name=$(
           extract_process_name "$(
-            printf "%s" "$ps_output" | sed --quiet '2p'
+            printf "%s" "${ps_output}" | sed --quiet '2p'
           )"
         )
 
-        if [ -n "$second_line_process_name" ]; then
-          info="$second_line_process_name"
+        if [ -n "${second_line_process_name}" ]; then
+          info="${second_line_process_name}"
         fi
       fi
     }
@@ -135,8 +135,8 @@ initialize_utilities() {
     *windows*) extract_windows_process_name ;;
     esac
 
-    if [ "$info" ]; then
-      info="$(command -v "$(basename "$info")")"
+    if [ -n "${info}" ]; then
+      info="$(command -v "$(basename "${info}")")"
     else
       return 1
     fi
@@ -146,7 +146,7 @@ initialize_utilities() {
 process_info() {
   get_via_ps || exit_code=1
 
-  present_info "${info:-$dud}"
+  present_info "${info:-${dud}}"
 }
 
 main() {
@@ -175,7 +175,7 @@ main() {
   process_info
 
   #{ Terminate the script with the appropriate exit code
-  return "$exit_code"
+  return "${exit_code}"
 }
 
 main "$@"

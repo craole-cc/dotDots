@@ -62,7 +62,7 @@ parse_arguments() {
       [ -n "${2:-}" ] || {
         printf \
           "Option '%s' requires an argument: %s (Default: %s)\n" \
-          "$1" "[ls, eza, lsd, pls]" "$cmd"
+          "$1" "[ls, eza, lsd, pls]" "${cmd}"
         return 1
       }
       cmd="$2"
@@ -221,7 +221,7 @@ set_environment() {
   [ -z "${cmd:-}" ] && use_ls
 
   if [ -n "${pagination:-}" ]; then
-    cmd="$(printf "%s | %s" "${cmd}" "$pager")"
+    cmd="$(printf "%s | %s" "${cmd}" "${pager}")"
   fi
   # 	opts="Get-ChildItem"
   # 	[ -n "${all}" ] && opts="${opts} -Force"

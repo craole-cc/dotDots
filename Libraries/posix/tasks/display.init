@@ -2,11 +2,11 @@
 
 # init_env() {
 #     if [ "${WAYLAND_DISPLAY}" ]; then
-#         [ -f "${DOTS_ENV_CTX}/wayland" ] &&
-#             . "${DOTS_ENV_CTX}/wayland"
+#         [ -f "${DOTS_ENV_CTX:?}/wayland" ] &&
+#             . "${DOTS_ENV_CTX:?}/wayland"
 #     elif [ "${DISPLAY}" ]; then
-#         [ -f "${DOTS_ENV_CTX}/X11" ] &&
-#             . "${DOTS_ENV_CTX}/X11"
+#         [ -f "${DOTS_ENV_CTX:?}/X11" ] &&
+#             . "${DOTS_ENV_CTX:?}/X11"
 #     fi
 # }
 
@@ -14,7 +14,7 @@
 # init_env
 # startplasma-x11
 # WMDE sway
-# [ -d "${DOTS_ENV_CTX}" ] &&
-# source.init --env "${DOTS_ENV_CTX}/X11"
+# [ -d "${DOTS_ENV_CTX:?}" ] &&
+# source.init --env "${DOTS_ENV_CTX:?}/X11"
 # }
-. "${DOTS_ENV_CTX}/X11"
+. "${DOTS_ENV_CTX:?}/X11"

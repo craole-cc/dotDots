@@ -1,0 +1,88 @@
+--- symdoc.orig
++++ symdoc.orig
+@@ -141,61 +141,61 @@
+   # Get absolute path to script directory (POSIX safe)
+   case "$0" in
+     /*) script_path="$0" ;;
+-    *) script_path="$PWD/$0" ;;
++    *) script_path="${PWD}/$0" ;;
+   esac
+ 
+-  script_dir=$(dirname "$script_path")
+-  (cd "$script_dir" && pwd)
++  script_dir=$(dirname "${script_path}")
++  (cd "${script_dir}" && pwd)
+ }
+ 
+ find_project_root() {
+   script_dir=$(get_script_dir)
+-  current="$script_dir"
++  current="${script_dir}"
+ 
+   # Walk up directory tree looking for project markers
+-  while [ "$current" != "/" ]; do
+-    if [ -d "$current/.git" ] \
+-      || [ -f "$current/flake.nix" ] \
+-      || [ -f "$current/Cargo.toml" ] \
+-      || [ -f "$current/pyproject.toml" ]; then
+-      project_root="$current"
++  while [ "${current}" != "/" ]; do
++    if [ -d "${current}/.git" ] \
++      || [ -f "${current}/flake.nix" ] \
++      || [ -f "${current}/Cargo.toml" ] \
++      || [ -f "${current}/pyproject.toml" ]; then
++      project_root="${current}"
+       break
+     fi
+-    current=$(cd "$current/.." && pwd)
++    current=$(cd "${current}/.." && pwd)
+   done
+ 
+   # Fallback to script directory if no markers found
+-  [ -z "$project_root" ] && project_root="$script_dir"
++  [ -z "${project_root}" ] && project_root="${script_dir}"
+ 
+   # Set defaults if not specified
+-  : "${lib_dir:=$project_root/Libraries}"
+-  : "${doc_dir:=$project_root/Documentation}"
++  : "${lib_dir:=${project_root}/Libraries}"
++  : "${doc_dir:=${project_root}/Documentation}"
+ 
+-  log_verbose "${c_blue}�  PRJ:${c_reset} $project_root"
++  log_verbose "${c_blue}�  PRJ:${c_reset} ${project_root}"
+ }
+ 
+ validate_paths() {
+   # Check library directory exists
+-  [ -d "$lib_dir" ] || die "Library directory not found: $lib_dir"
++  [ -d "${lib_dir}" ] || die "Library directory not found: ${lib_dir}"
+ 
+   # Convert to absolute paths
+-  lib_dir=$(cd "$lib_dir" && pwd)
++  lib_dir=$(cd "${lib_dir}" && pwd)
+ 
+   # Ensure doc_dir is absolute
+-  case "$doc_dir" in
++  case "${doc_dir}" in
+     /*) ;;
+-    *) doc_dir="$project_root/$doc_dir" ;;
++    *) doc_dir="${project_root}/${doc_dir}" ;;
+   esac
+ 
+   # Prevent doc_dir from being inside lib_dir (circular reference)
+-  case "$doc_dir" in
+-    "$lib_dir"/*)
+-      die "Documentation directory cannot be inside Library directory\nLib: $lib_dir\nDoc: $doc_dir"
++  case "${doc_dir}" in
++    "${lib_dir}"/*)
++      die "Documentation directory cannot be inside Library directory\nLib: ${lib_dir}\nDoc: ${doc_dir}"
+       ;;
+   esac
+ 
+-  log_verbose "${c_blue}📚 SRC:${c_reset} $lib_dir"
+-  log_verbose "${c_blue}📁 DOC:${c_reset} $doc_dir"
++  log_verbose "${c_blue}📚 SRC:${c_reset} ${lib_dir}"
++  log_verbose "${c_blue}📁 DOC:${c_reset} ${doc_dir}"
+   log_verbose ""
+ }
+ 

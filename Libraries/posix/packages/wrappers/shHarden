@@ -19,7 +19,7 @@ init_metadata() { #{ Initialize bin_name metadata
   SCRIPT_NAME="$(basename "$0")"
   SCRIPT_VERSION="1.0.0"
   SCRIPT_AUTHOR="Craole"
-  SCRIPT_USAGE="$SCRIPT_NAME [OPTIONS] <$required_arg>"
+  SCRIPT_USAGE="${SCRIPT_NAME} [OPTIONS] <${required_arg}>"
   SCRIPT_DESCRIPTION="allows the user to specify a binary bin_name to check with shellharden"
 }
 
@@ -53,8 +53,8 @@ parse_arguments() { #{ Parse command-line arguments
 validate_environment() { #{ Run various validation checks
 
   #{ Check if a path is provided as an argument
-  if [ "$binary" ]; then
-    binary="$(pathof "$binary")"
+  if [ -n "${binary}" ]; then
+    binary="$(pathof "${binary}")"
   else
     display_info --error-arg
     exit 1
@@ -66,23 +66,23 @@ validate_environment() { #{ Run various validation checks
 run_process() { #{ Lint with Shellharden
 
   if
-    ! shellharden --check "$binary" &&
-      [ "$shellharden_opt" = "--replace" ]
+    ! shellharden --check "${binary}" &&
+      [ "${shellharden_opt}" = "--replace" ]
   then
-    cp --backup=numbered "$binary" "$binary".bac || {
-      display_info --error-bac "$binary"
+    cp --backup=numbered "${binary}" "${binary}".bac || {
+      display_info --error-bac "${binary}"
       exit 1
     }
   fi
 
-  if [ "$shellharden_opt" ]; then
-    binary_harden="shellharden $shellharden_opt $binary"
+  if [ -n "${shellharden_opt}" ]; then
+    binary_harden="shellharden ${shellharden_opt} ${binary}"
   else
-    binary_harden="shellharden $binary"
+    binary_harden="shellharden ${binary}"
   fi
 
-  display_info --output "$binary_harden"
-  eval "$binary_harden"
+  display_info --output "${binary_harden}"
+  eval "${binary_harden}"
 }
 
 #/> Output Management                               <\
@@ -90,7 +90,7 @@ display_info() { #{ Display infoirmation
   case "$1" in
   --error-arg)
     printf "%s required \nUsage: %s\n" \
-      "$required_arg" "$SCRIPT_USAGE"
+      "${required_arg}" "${SCRIPT_USAGE}"
     ;;
   --error-bac)
     printf "Failed to archive file\n"
@@ -101,19 +101,19 @@ display_info() { #{ Display infoirmation
     # else
     #   printf "%s\n" "$binary"
     # fi
-    printf "%s\n" "$binary_harden"
+    printf "%s\n" "${binary_harden}"
 
     ;;
   --version)
-    printf "%s" "$SCRIPT_VERSION"
+    printf "%s" "${SCRIPT_VERSION}"
     ;;
   --usage)
     cat <<USAGE
 Debin_nameion:
-'$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
+'${SCRIPT_NAME}' by ${SCRIPT_AUTHOR} ${SCRIPT_DESCRIPTION}
 
 Usage:
-$SCRIPT_USAGE
+${SCRIPT_USAGE}
 
 Options:
   --suggest         Suggest changes to make the bin_name more secure.
@@ -133,9 +133,9 @@ Exit status:
   1                   An error occurred.
 
 Examples:
-  $SCRIPT_NAME -b $SCRIPT_NAME
-  $SCRIPT_NAME --suggest fd
-  $SCRIPT_NAME --transform fd
+  ${SCRIPT_NAME} -b ${SCRIPT_NAME}
+  ${SCRIPT_NAME} --suggest fd
+  ${SCRIPT_NAME} --transform fd
 
 For more information on the available options, see the shellharden documentation.
 USAGE

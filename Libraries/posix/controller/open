@@ -6,7 +6,7 @@ error_msg() {
 }
 
 usage() {
-  cat >&2 <<EOF
+  cat >&2 << EOF
 Usage: ${0##*/} [OPTIONS] [PATH]
 
 Options:
@@ -29,20 +29,20 @@ parse_args() {
   path=
   while [ $# -gt 0 ]; do
     case "${1}" in
-    -h | --help) usage ;;
-    -e | --explorer) explorer_mode=1 ;;
-    --)
-      shift
-      break
-      ;;
-    -*)
-      error_msg "Unknown option: ${1}"
-      usage
-      ;;
-    *)
-      path="${1}"
-      break
-      ;;
+      -h | --help) usage ;;
+      -e | --explorer) explorer_mode=1 ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        error_msg "Unknown option: ${1}"
+        usage
+        ;;
+      *)
+        path="${1}"
+        break
+        ;;
     esac
     shift
   done
@@ -61,9 +61,9 @@ parse_args() {
 get_default_file_manager() {
   #DOC Attempt to get the system's default file manager via xdg-mime
   #{ Only attempt if xdg-mime is available
-  if command -v xdg-mime >/dev/null 2>&1; then
+  if command -v xdg-mime > /dev/null 2>&1; then
     desktop_file=$(
-      xdg-mime query default inode/directory 2>/dev/null
+      xdg-mime query default inode/directory 2> /dev/null
     )
     if [ -n "${desktop_file}" ]; then
       #{ Try to extract the Exec line from the .desktop file
@@ -78,17 +78,17 @@ get_default_file_manager() {
       done
       if [ -n "${desktop_path}" ]; then
         exec_line=$(
-          grep -i '^Exec=' "${desktop_path}" |
-            head -1 | cut -d= -f2- | cut -d' ' -f1
+          grep -i '^Exec=' "${desktop_path}" \
+            | head -1 | cut -d= -f2- | cut -d' ' -f1
         )
         #{ Remove any trailing % or arguments, just get the command
         exec_cmd=$(
-          printf '%s\n' "${exec_line}" |
-            cut -d'%' -f1 | awk '{print $1}'
+          printf '%s\n' "${exec_line}" \
+            | cut -d'%' -f1 | awk '{print $1}'
         )
         if
-          [ -n "${exec_cmd}" ] &&
-            command -v "${exec_cmd}" >/dev/null 2>&1
+          [ -n "${exec_cmd}" ] \
+            && command -v "${exec_cmd}" > /dev/null 2>&1
         then
           file_manager_cmd="${exec_cmd}"
           return 0
@@ -117,8 +117,8 @@ detect_opener() {
     [ -z "${opener##*[!\ ]*}" ] || continue
 
     #{ Try to retrieve the command path
-    command -v "${opener}" >/dev/null 2>&1 &&
-      opener_cmd="${opener}" && break
+    command -v "${opener}" > /dev/null 2>&1 \
+      && opener_cmd="${opener}" && break
   done
 
   [ -z "${opener_cmd}" ] && {
@@ -138,7 +138,7 @@ detect_file_manager() {
   file_manager_cmd=
 
   #{ Check user override first
-  if [ -n "${FILE_MANAGER}" ] && command -v "${FILE_MANAGER}" >/dev/null 2>&1; then
+  if [ -n "${FILE_MANAGER}" ] && command -v "${FILE_MANAGER}" > /dev/null 2>&1; then
     file_manager_cmd="${FILE_MANAGER}"
     return 0
   fi
@@ -162,12 +162,12 @@ detect_file_manager() {
 
   for fm in ${file_managers}; do
     case "${fm}" in
-    \#*) continue ;;
-    "") continue ;;
-    *)
-      command -v "${fm}" >/dev/null 2>&1 &&
-        file_manager_cmd="${fm}" && return 0
-      ;;
+      \#*) continue ;;
+      "") continue ;;
+      *)
+        command -v "${fm}" > /dev/null 2>&1 \
+          && file_manager_cmd="${fm}" && return 0
+        ;;
     esac
   done
 
@@ -178,7 +178,7 @@ detect_file_manager() {
 
 convert_windows_path() {
   #{ Convert path to Windows format if cygpath is available
-  if command -v cygpath >/dev/null 2>&1; then
+  if command -v cygpath > /dev/null 2>&1; then
     path=$(cygpath -w "${path}")
   fi
 }
@@ -193,23 +193,23 @@ main() {
   cmd=
 
   case "${os}" in
-  linux*)
-    detect_opener
-    detect_file_manager
-    cmd=${explorer_mode:+"${file_manager_cmd}"}
-    cmd=${cmd:-"${opener_cmd}"}
-    ;;
-  darwin*)
-    cmd="open"
-    ;;
-  msys* | mingw* | cygwin*)
-    cmd="explorer"
-    convert_windows_path
-    ;;
-  *)
-    error_msg "Unsupported OS: ${os}"
-    exit 2
-    ;;
+    linux*)
+      detect_opener
+      detect_file_manager
+      cmd=${explorer_mode:+"${file_manager_cmd}"}
+      cmd=${cmd:-"${opener_cmd}"}
+      ;;
+    darwin*)
+      cmd="open"
+      ;;
+    msys* | mingw* | cygwin*)
+      cmd="explorer"
+      convert_windows_path
+      ;;
+    *)
+      error_msg "Unsupported OS: ${os}"
+      exit 2
+      ;;
   esac
 
   exec "${cmd}" "${path}"

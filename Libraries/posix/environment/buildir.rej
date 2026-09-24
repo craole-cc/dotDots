@@ -1,0 +1,11 @@
+--- buildir copy
++++ buildir copy
+@@ -449,7 +449,7 @@
+         *) sort_flags="-n" ;;
+       esac
+ 
+-      sort ${sort_flags} "${temp_file}" | while IFS= read -r line; do
++      sort "${sort_flags}" "${temp_file}" | while IFS= read -r line; do
+         printf "%s\n" "${line#* }"
+       done
+ 

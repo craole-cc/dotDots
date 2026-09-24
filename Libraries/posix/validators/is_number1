@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Check if the value is a valid number"
   _cmd_DEPENDENCIES="ripgrep, weHave"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
               ${_cmd_NAME} <[options]> <[arguments]>
@@ -44,20 +44,20 @@ parse_args() {
   #{ Declare user options
   for arg in "$@"; do
     case "${arg:-}" in
-    -h | --help) __help__ ;;
-    -v | --version) __version__ ;;
-    -d | --verbose) verbose=true ;;
-    -f | --float) num_type="float" ;;
-    -i | --integer) num_type="integer" ;;
-    *) ;;
+      -h | --help) __help__ ;;
+      -v | --version) __version__ ;;
+      -d | --verbose) verbose=true ;;
+      -f | --float) num_type="float" ;;
+      -i | --integer) num_type="integer" ;;
+      *) ;;
     esac
   done
 
   #{ Validate each number entered via a loop
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --* | -*) ;;
-    *) num="$1" ;;
+      --* | -*) ;;
+      *) num="$1" ;;
     esac
 
     __process__
@@ -72,7 +72,7 @@ parse_args() {
 __defaults__() {
   #{ GREP
 
-  if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null || true)"}" ]; then
+  if [ -x "${CMD_RG:-"$(command -v rg 2> /dev/null || true)"}" ]; then
     _grep() { rg -q "$@"; }
   else
     _grep() { grep -Eq "$@"; }
@@ -89,34 +89,34 @@ __defaults__() {
 __msg__() {
   [ -n "${verbose}" ] || return
   case "$1" in
-  --integer) printf "%s is an integer\n" "${num}" ;;
-  --float) printf "%s is a floating-point number\n" "${num}" ;;
-  --invalid) printf "%s is not a valid number\n" "${num}" ;;
-  *) ;;
+    --integer) printf "%s is an integer\n" "${num}" ;;
+    --float) printf "%s is a floating-point number\n" "${num}" ;;
+    --invalid) printf "%s is not a valid number\n" "${num}" ;;
+    *) ;;
   esac
 
 }
 
 __process__() {
   case "${num_type:-}" in
-  float)
-    printf "%s" "${num}" | _grep "${regex_float}"
-    __msg__ --float
-    ;;
-  integer)
-    printf "%s" "${num}" | _grep "${regex_integer}"
-    __msg__ --integer
-    ;;
-  *)
-    __msg__ --invalid
-    invalid=1
-    ;;
+    float)
+      printf "%s" "${num}" | _grep "${regex_float}"
+      __msg__ --float
+      ;;
+    integer)
+      printf "%s" "${num}" | _grep "${regex_integer}"
+      __msg__ --integer
+      ;;
+    *)
+      __msg__ --invalid
+      invalid=1
+      ;;
   esac
 
   #{ Float
   case "${allow_floats}" in true | 1 | y*) ;; *) return ;; esac
-  if [ -n "${allow_floats}" ] &&
-    echo "${num}" | _grep "${regex_float}"; then
+  if [ -n "${allow_floats}" ] \
+    && echo "${num}" | _grep "${regex_float}"; then
     __msg__ --float
 
   #{ Integer

@@ -4,13 +4,13 @@
 #TODO: So far, only nu and bash are supported
 establish_environment() {
   #{ Contextual Config Files
-  DOTS_ENV_CTX="${DOTS_ENV_CTX:-$DOTS/Environment/context}"
-  [ -d "$DOTS_ENV_CTX" ] || return 1
-  profile="$HOME/.profile"
+  DOTS_ENV_CTX="${DOTS_ENV_CTX:-${DOTS}/Environment/context}"
+  [ -d "${DOTS_ENV_CTX}" ] || return 1
+  profile="${HOME}/.profile"
   default_shell="bash"
 
   #{ Verbosity
-  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  case "${verbose:?}${verbosity:?}${VERBOSE:?}${VERBOSITY:?}" in
   [1-9] | true) verbose_flag=true ;; esac
 
   parse_arguments() {
@@ -18,7 +18,7 @@ establish_environment() {
       printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
     )"
 
-    case "$SHELL_INTERACTIVE" in
+    case "${SHELL_INTERACTIVE}" in
     *z*) SHELL_INTERACTIVE="zsh" ;;
     *f*) SHELL_INTERACTIVE="fish" ;;
     *n*) SHELL_INTERACTIVE="nu" ;;
@@ -27,12 +27,12 @@ establish_environment() {
     *t*) SHELL_INTERACTIVE="tcsh" ;;
     *b* | *s* | *d*) SHELL_INTERACTIVE="bash" ;;
     *)
-      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"$default_shell"}"
+      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"${default_shell}"}"
       ;;
     esac
   } && parse_arguments "$@"
 
-  case "$SHELL_INTERACTIVE" in
+  case "${SHELL_INTERACTIVE}" in
   nu)
     install_script_available=true
     ;;
@@ -64,17 +64,17 @@ establish_utilities() {
       sudo apt install starship
     fi
 
-    . "$DOTS_ENV_CTX/starship"
+    . "${DOTS_ENV_CTX}/starship"
   }
 
   #{ Nushell
   launch_nu() {
     nu \
-      --config "${NUSHDIR}/config.nu" \
-      --env-config "${NUSHDIR}/env.nu"
+      --config "${NUSHDIR:?}/config.nu" \
+      --env-config "${NUSHDIR:?}/env.nu"
     nu \
-      --config "$HOME/.dots/Config/cli/config.nu" \
-      --env-config "$HOME/.dots/Config/cli/env.nu"
+      --config "${HOME}/.dots/Config/cli/config.nu" \
+      --env-config "${HOME}/.dots/Config/cli/env.nu"
   }
 
   install_nu() {
@@ -84,7 +84,7 @@ establish_utilities() {
   }
 
   launch_bash() {
-    bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+    bash --init-file "${DOTS_ENV_CTX}/${SHELL_INTERACTIVE}"
   }
 
   launch_dash() {
@@ -95,15 +95,15 @@ establish_utilities() {
 initialize_shell() {
   #{ Ensure that the shell is available
   weHave "$1" || {
-    printf "We don't seem to have %s installed\n" "$SHELL_INTERACTIVE"
+    printf "We don't seem to have %s installed\n" "${SHELL_INTERACTIVE}"
     #TODO: Offer to install if there is a script to do so
     #TODO: The script name would be launch_"${SHELL_INTERACTIVE}"
     return 1
   }
 
   #{ Load Environment Variables, if available
-  [ -f "$DOTS_ENV_CTX/$SHELL_INTERACTIVE" ] &&
-    . "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+  [ -f "${DOTS_ENV_CTX}/${SHELL_INTERACTIVE}" ] &&
+    . "${DOTS_ENV_CTX}/${SHELL_INTERACTIVE}"
 }
 
 launch_shell() {
@@ -120,26 +120,26 @@ launch_shell() {
 }
 
 execute() {
-  case "$SHELL_INTERACTIVE" in
+  case "${SHELL_INTERACTIVE}" in
   bash)
     # bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
-    rc="$HOME/.bashrc"
-    [ -f "$rc" ] || touch "$rc"
+    rc="${HOME}/.bashrc"
+    [ -f "${rc}" ] || touch "${rc}"
     grep --quiet --fixed-strings \
-      ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" "$rc" ||
-      printf "%s\n" ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" >>"$rc"
+      ". ${DOTS_ENV_CTX}/${SHELL_INTERACTIVE}" "${rc}" ||
+      printf "%s\n" ". ${DOTS_ENV_CTX}/${SHELL_INTERACTIVE}" >>"${rc}"
     ;;
   nu | fish | zsh | ksh | pwsh | powershell | tcsh) ;;
   *)
-    printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"
+    printf "%s\n" "Unknown shell: ${SHELL_INTERACTIVE}"
     exit 1
     ;;
   esac
 
   #{ Launch the shell
-  launch_shell "$SHELL_INTERACTIVE" || return 1
-  [ "$verbose" = true ] &&
-    printf "Launched %s\n" "$SHELL_INTERACTIVE"
+  launch_shell "${SHELL_INTERACTIVE}" || return 1
+  [ "${verbose:?}" = true ] &&
+    printf "Launched %s\n" "${SHELL_INTERACTIVE}"
 }
 
 main() {

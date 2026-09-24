@@ -1,12 +1,12 @@
 #!/bin/sh
 
-case "$sys_INFO" in
-  *Linux*)
-    if [ "${WAYLAND_DISPLAY}" ]; then
-      Fuzzel
-    else
-      Rofi
-    fi
-    ;;
-  *) return ;;
+case "${sys_INFO:?}" in
+*Linux*)
+  if [ -n "${WAYLAND_DISPLAY}" ]; then
+    Fuzzel
+  else
+    Rofi
+  fi
+  ;;
+*) return ;;
 esac

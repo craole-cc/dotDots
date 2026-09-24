@@ -19,16 +19,16 @@ set_defaults() {
   args=""
   debug=""
 
-  tui_editor="${EDITOR:-"$(command -v nano 2>/dev/null || true)"}"
+  tui_editor="${EDITOR:-"$(command -v nano 2> /dev/null || true)"}"
   gui_editor="${VISUAL:-"${tui_editor}"}"
 
   check_nix
 }
 
 check_nix() {
-  if nix config show | grep '^experimental-features.*flakes*' 2>/dev/null; then
+  if nix config show | grep '^experimental-features.*flakes*' 2> /dev/null; then
     devnix="flake"
-  elif command -v nix-shell 2>/dev/null; then
+  elif command -v nix-shell 2> /dev/null; then
     devnix="shell"
   else
     devnix=""
@@ -37,49 +37,49 @@ check_nix() {
 pout_error() {
   printf "[ERROR] %s ===" "${src_name}"
   case "$1" in
-  --arg)
-    shift
-    printf "%s requires a value" "$*"
-    ;;
-  *)
-    printf "%s" "$*"
-    ;;
+    --arg)
+      shift
+      printf "%s requires a value" "$*"
+      ;;
+    *)
+      printf "%s" "$*"
+      ;;
   esac
 }
 
 pout_debug() {
   case "${debug:-}" in
-  '' | off | no | false) return ;;
-  1 | on | true | *) printf "[DEBUG] %s === %s\n" "${src_name}" "$*" ;;
+    '' | off | no | false) return ;;
+    1 | on | true | *) printf "[DEBUG] %s === %s\n" "${src_name}" "$*" ;;
   esac
 }
 
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --dir)
-      if [ -n "$2" ]; then
-        workspace="$2"
-        shift
-      else
-        pout_error --arg "$1"
-      fi
-      ;;
-    --arg*)
-      if [ -n "$2" ]; then
-        workspace="$2"
-        shift
-      else
-        pout_error --arg "$1"
-      fi
-      ;;
-    *)
-      if [ -z "${workspace}" ]; then
-        workspace="$1"
-      else
-        args="${args}${args:+${delimiter}}${1}"
-      fi
-      ;;
+      --dir)
+        if [ -n "$2" ]; then
+          workspace="$2"
+          shift
+        else
+          pout_error --arg "$1"
+        fi
+        ;;
+      --arg*)
+        if [ -n "$2" ]; then
+          workspace="$2"
+          shift
+        else
+          pout_error --arg "$1"
+        fi
+        ;;
+      *)
+        if [ -z "${workspace}" ]; then
+          workspace="$1"
+        else
+          args="${args}${args:+${delimiter}}${1}"
+        fi
+        ;;
     esac
     shift
   done
@@ -118,21 +118,21 @@ access_workspace() {
 
 initialize_environment() {
   case "${devnix}" in
-  flake)
-    [ -f "flake.nix" ] && nix develop
-    ;;
-  shell)
-    [ -f "shell.nix" ] && nix-shell
-    ;;
-  *)
-    if [ -n "${DISPLAY}" ]; then
-      [ -n "${gui_editor}" ] &&
-        pout_debug "${gui_editor}" "${PWD}"
-    else
-      [ -n "${tui_editor}" ] &&
-        pout_debug "${tui_editor}" "${PWD}"
-    fi
-    ;;
+    flake)
+      [ -f "flake.nix" ] && nix develop
+      ;;
+    shell)
+      [ -f "shell.nix" ] && nix-shell
+      ;;
+    *)
+      if [ -n "${DISPLAY}" ]; then
+        [ -n "${gui_editor}" ] \
+          && pout_debug "${gui_editor}" "${PWD}"
+      else
+        [ -n "${tui_editor}" ] \
+          && pout_debug "${tui_editor}" "${PWD}"
+      fi
+      ;;
   esac
 
   if [ "${devnix}" = "flake" ] && [ -f "flake.nix" ]; then
@@ -147,11 +147,11 @@ initialize_environment() {
     pout_debug "${PWD}" "cannot be initialized via nix. Defaulting to the editor."
 
     if [ -n "${DISPLAY}" ]; then #TODO: does the work for wayland too
-      [ -n "${gui_editor}" ] &&
-        pout_debug "${gui_editor}" "${PWD}"
+      [ -n "${gui_editor}" ] \
+        && pout_debug "${gui_editor}" "${PWD}"
     else
-      [ -n "${tui_editor}" ] &&
-        pout_debug "${tui_editor}" "${PWD}"
+      [ -n "${tui_editor}" ] \
+        && pout_debug "${tui_editor}" "${PWD}"
     fi
   fi
 }

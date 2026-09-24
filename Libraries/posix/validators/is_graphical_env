@@ -26,24 +26,24 @@ parse_cli() {
 post_info() {
   case "$1" in
   --help) #/> Script help and usage information
-    printf "Usage:\n%s%s [OPTIONS]\n" "$padding" "$scr_NAME"
+    printf "Usage:\n%s%s [OPTIONS]\n" "${padding}" "${scr_NAME}"
     printf "\nDescription:\n"
-    printf "%s%s\n" "$padding" "$scr_DESCRIPTION"
+    printf "%s%s\n" "${padding}" "${scr_DESCRIPTION}"
     printf "\nOptions:\n"
-    printf "%s-h, --help     Usage guide\n" "$padding"
-    printf "%s-v, --version  Script version\n" "$padding"
-    printf "%s-d, --verbose  Environment details\n" "$padding"
+    printf "%s-h, --help     Usage guide\n" "${padding}"
+    printf "%s-v, --version  Script version\n" "${padding}"
+    printf "%s-d, --verbose  Environment details\n" "${padding}"
     ;;
   --version) #/> Script version
-    printf "%s\n" "$scr_VERSION"
+    printf "%s\n" "${scr_VERSION}"
     ;;
   --error) #/> Error messages
     shift
-    printf "Error: \n%s%s\n\n" "$padding" "$*"
+    printf "Error: \n%s%s\n\n" "${padding}" "$*"
     ;;
   *) #/> Environment information if verbose mode is enabled
-    if [ "$flag_VERBOSE" -gt 0 ]; then
-      printf "A %s environment via %s\n" "$environment" "$protocol"
+    if [ "${flag_VERBOSE}" -gt 0 ]; then
+      printf "A %s environment via %s\n" "${environment}" "${protocol}"
     fi
     ;;
   esac
@@ -68,16 +68,16 @@ pull_out() {
 }
 
 process() {
-  if [ "$XDG_SESSION_TYPE" = "tty" ]; then
+  if [ "${XDG_SESSION_TYPE:?}" = "tty" ]; then
     #/> Non-graphical TTY environment
     environment="non-graphical TTY"
     protocol="$(tty)"
     post_info && pout
 
-  elif [ -n "${WAYLAND_DISPLAY:-$DISPLAY}" ]; then
+  elif [ -n "${WAYLAND_DISPLAY:-${DISPLAY}}" ]; then
     #/> Graphical Unix environment
     environment="graphical Unix"
-    if [ -n "$WAYLAND_DISPLAY" ]; then
+    if [ -n "${WAYLAND_DISPLAY}" ]; then
       protocol="Wayland"
     else
       protocol="X11"
@@ -93,7 +93,7 @@ process() {
   else
     #/> Graphical environment (fallback)
     environment="graphical"
-    protocol="$TERM"
+    protocol="${TERM}"
     post_info
   fi
 

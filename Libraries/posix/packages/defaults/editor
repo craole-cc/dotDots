@@ -53,69 +53,69 @@ set_modes() {
   verbosity_trace="${VERBOSITY_TRACE:-5}"
 
   case "${verbosity:-}" in
-  0 | quiet) verbosity="${verbosity_quiet}" ;;
-  1 | error) verbosity="${verbosity_error}" ;;
-  2 | warn) verbosity="${verbosity_warn}" ;;
-  3 | info) verbosity="${verbosity_info}" ;;
-  4 | debug) verbosity="${verbosity_debug}" ;;
-  5 | trace) verbosity="${verbosity_trace}" ;;
-  *) verbosity=3 ;;
+    0 | quiet) verbosity="${verbosity_quiet}" ;;
+    1 | error) verbosity="${verbosity_error}" ;;
+    2 | warn) verbosity="${verbosity_warn}" ;;
+    3 | info) verbosity="${verbosity_info}" ;;
+    4 | debug) verbosity="${verbosity_debug}" ;;
+    5 | trace) verbosity="${verbosity_trace}" ;;
+    *) verbosity=3 ;;
   esac
 }
 
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -h | --help | -v | --version)
-      editor__pout "$1"
-      exit 0
-      ;;
-    -V | --info) verbosity="${verbosity_info}" ;;
-    -D | --dry-run | --simulate) dry_run=true ;;
-    -d | --debug) verbosity="${verbosity_debug}" ;;
-    --trace | --verbose) verbosity="${verbosity_trace}" ;;
-    -q | --quiet) verbosity="${verbosity_quiet}" ;;
-    -t | --tui)
-      if [ -z "${2:-}" ]; then
-        pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
-        return 1
-      fi
-      case "$2" in
-      none) default_tuis="none" ;;
-      *) default_tuis="${default_tuis:+${default_tuis}${delimiter}}$2" ;;
-      esac
-      shift
-      ;;
-    -g | --gui)
-      if [ -z "${2:-}" ]; then
-        pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
-        return 1
-      fi
-      case "$2" in
-      none) default_guis="none" ;;
-      *) default_guis="${default_guis:+${default_guis}${delimiter}}$2" ;;
-      esac
-      shift
-      ;;
-    -x | --set)
-      action="set"
-      ;;
-    --)
-      #? Remaining arguments are meant for the editor
-      shift
-      while [ "$#" -ge 1 ]; do
-        from_args="${from_args:+${from_args}${delimiter}}$1"
+      -h | --help | -v | --version)
+        editor__pout "$1"
+        exit 0
+        ;;
+      -V | --info) verbosity="${verbosity_info}" ;;
+      -D | --dry-run | --simulate) dry_run=true ;;
+      -d | --debug) verbosity="${verbosity_debug}" ;;
+      --trace | --verbose) verbosity="${verbosity_trace}" ;;
+      -q | --quiet) verbosity="${verbosity_quiet}" ;;
+      -t | --tui)
+        if [ -z "${2:-}" ]; then
+          pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
+          return 1
+        fi
+        case "$2" in
+          none) default_tuis="none" ;;
+          *) default_tuis="${default_tuis:+${default_tuis}${delimiter}}$2" ;;
+        esac
         shift
-      done
-      break
-      ;;
-    --*)
-      pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Unknown option: $1"
-      return 1
-      ;;
-    *)
-      from_args="${from_args:+${from_args}${delimiter}}$1"
-      ;;
+        ;;
+      -g | --gui)
+        if [ -z "${2:-}" ]; then
+          pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
+          return 1
+        fi
+        case "$2" in
+          none) default_guis="none" ;;
+          *) default_guis="${default_guis:+${default_guis}${delimiter}}$2" ;;
+        esac
+        shift
+        ;;
+      -x | --set)
+        action="set"
+        ;;
+      --)
+        #? Remaining arguments are meant for the editor
+        shift
+        while [ "$#" -ge 1 ]; do
+          from_args="${from_args:+${from_args}${delimiter}}$1"
+          shift
+        done
+        break
+        ;;
+      --*)
+        pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Unknown option: $1"
+        return 1
+        ;;
+      *)
+        from_args="${from_args:+${from_args}${delimiter}}$1"
+        ;;
     esac
     shift
   done
@@ -127,7 +127,7 @@ establish_environment() {
   guis="${default_guis:-"${fallback_guis}"}"
 
   #{ Normalize variables
-  if command -v delim >/dev/null; then
+  if command -v delim > /dev/null; then
     tuis="$(delim --out-delimiter "${delimiter}" "${tuis}")"
     guis="$(delim --out-delimiter "${delimiter}" "${guis}")"
   else
@@ -143,15 +143,15 @@ establish_environment() {
 
   #{ Set editors to GUI editors if available, else fallback to TUI editors
   # shellcheck disable=SC2310
-  if check_gui_env 2>/dev/null; then
+  if check_gui_env 2> /dev/null; then
     case "${tuis:-}" in
-    none) editors="${tuis:-}" ;;
-    *) editors="${guis:-${tuis:-}}" ;;
+      none) editors="${tuis:-}" ;;
+      *) editors="${guis:-${tuis:-}}" ;;
     esac
   else
     case "${tuis:-}" in
-    none) editors="" ;;
-    *) editors="${tuis:-}" ;;
+      none) editors="" ;;
+      *) editors="${tuis:-}" ;;
     esac
   fi
 
@@ -174,7 +174,7 @@ establish_environment() {
       i=$((i + 1))
     fi
 
-    editor_path="$(command -v "${editor:-}" 2>/dev/null || true)"
+    editor_path="$(command -v "${editor:-}" 2> /dev/null || true)"
     if [ -n "${editor_path}" ] && [ -x "${editor_path}" ]; then
       break
     fi
@@ -214,80 +214,80 @@ execute_process() {
   fi
 
   case "${action:-}" in
-  set)
-    #{ Print the editor command
-    printf "%s" "${editor_path:-}"
-    ;;
-  *)
-    #{ Ensure there is an argument to pass to the editor }
-    if [ -n "${from_args:-}" ]; then
-      #{ Convert delimiter-separated string back to arguments }
-      old_IFS="${IFS}"
-      IFS="${delimiter}"
-      # shellcheck disable=SC2086
-      set -- ${from_args}
-      IFS="${old_IFS}"
-    else
-      set -- "${fallback_args}"
-    fi
-
-    #{ Include debug flags based, if necessary }
-    if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
-      case "${editor:-}" in
-      *code*)
-        #? Visual Studio Code: --verbose
-        set -- "--verbose" "$@"
-        ;;
-      *emacs*)
-        #? Emacs: --debug-init for init file debug, --debug-on-error for runtime errors
-        #? No numeric verbosity, use --debug-init at debug level, else empty
-        set -- "--debug-init" "$@"
-        ;;
-      *nvim* | *vim*)
-        #? Vim/Neovim: -V[N] where N is verbosity level (1-15)
-        if [ "${verbosity}" -eq "${verbosity_debug}" ]; then
-          set -- "-V10" "$@"
-        else
-          set -- "-V15" "$@"
-        fi
-        ;;
-      *) ;;
-      esac
-    fi
-
-    #{ Define a helper function to print debug info}
-    pout_debug() {
-      printf "  NAME |=> %s\n  PATH |=> %s\n" "${editor:-}" "${editor_path:-}"
-      i=0
-      for arg; do printf "  ARG%d |=> %s\n" "$((i + 1))" "${arg}"; done
-    }
-
-    #{ Determine action message and normalize dry_run }
-    case ${dry_run:-} in
-    true | 1 | yes | on)
-      action="Would execute"
+    set)
+      #{ Print the editor command
+      printf "%s" "${editor_path:-}"
       ;;
     *)
-      action="Executing"
-      unset dry_run #? Simplifies subsequent checks
+      #{ Ensure there is an argument to pass to the editor }
+      if [ -n "${from_args:-}" ]; then
+        #{ Convert delimiter-separated string back to arguments }
+        old_IFS="${IFS}"
+        IFS="${delimiter}"
+        # shellcheck disable=SC2086
+        set -- ${from_args}
+        IFS="${old_IFS}"
+      else
+        set -- "${fallback_args}"
+      fi
+
+      #{ Include debug flags based, if necessary }
+      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+        case "${editor:-}" in
+          *code*)
+            #? Visual Studio Code: --verbose
+            set -- "--verbose" "$@"
+            ;;
+          *emacs*)
+            #? Emacs: --debug-init for init file debug, --debug-on-error for runtime errors
+            #? No numeric verbosity, use --debug-init at debug level, else empty
+            set -- "--debug-init" "$@"
+            ;;
+          *nvim* | *vim*)
+            #? Vim/Neovim: -V[N] where N is verbosity level (1-15)
+            if [ "${verbosity}" -eq "${verbosity_debug}" ]; then
+              set -- "-V10" "$@"
+            else
+              set -- "-V15" "$@"
+            fi
+            ;;
+          *) ;;
+        esac
+      fi
+
+      #{ Define a helper function to print debug info}
+      pout_debug() {
+        printf "  NAME |=> %s\n  PATH |=> %s\n" "${editor:-}" "${editor_path:-}"
+        i=0
+        for arg; do printf "  ARG%d |=> %s\n" "$((i + 1))" "${arg}"; done
+      }
+
+      #{ Determine action message and normalize dry_run }
+      case ${dry_run:-} in
+        true | 1 | yes | on)
+          action="Would execute"
+          ;;
+        *)
+          action="Executing"
+          unset dry_run #? Simplifies subsequent checks
+          ;;
+      esac
+
+      #{ Show debug info if dry run or verbose mode }
+      if [ "${verbosity:-0}" -ge "${verbosity_info:-0}" ] \
+        || [ -n "${dry_run:-}" ]; then
+        debug_info=$(pout_debug "$@") #? Using a variable prevents set -e conflict
+        pout-tagged --ctx "editor" --tag "[INFO]" \
+          "${action} per these parameters " \
+          "${debug_info}"
+      fi
+
+      #{ Execute only if simulation mode is off }
+      case ${dry_run:-} in
+        true | 1 | yes | on) return 0 ;;
+        *) exec "${editor_path}" "$@" ;;
+      esac
       ;;
-    esac
-
-    #{ Show debug info if dry run or verbose mode }
-    if [ "${verbosity:-0}" -ge "${verbosity_info:-0}" ] ||
-      [ -n "${dry_run:-}" ]; then
-      debug_info=$(pout_debug "$@") #? Using a variable prevents set -e conflict
-      pout-tagged --ctx "editor" --tag "[INFO]" \
-        "${action} per these parameters " \
-        "${debug_info}"
-    fi
-
-    #{ Execute only if simulation mode is off }
-    case ${dry_run:-} in
-    true | 1 | yes | on) return 0 ;;
-    *) exec "${editor_path}" "$@" ;;
-    esac
-    ;;
   esac
 }
 
@@ -342,8 +342,8 @@ normalize_vars() {
 
   #{ Check for 'none' and output
   case "${delimiter}${vars}${delimiter}" in
-  *"${delimiter}none${delimiter}"*) return 0 ;;
-  *) printf '%s' "${vars:-}" ;;
+    *"${delimiter}none${delimiter}"*) return 0 ;;
+    *) printf '%s' "${vars:-}" ;;
   esac
 }
 
@@ -369,7 +369,7 @@ git_source_or() {
   #DOC
   #DOC Example:
   #DOC   repo_root=$(git_source_or "/default/path")
-  src=$(git rev-parse --show-toplevel 2>/dev/null)
+  src=$(git rev-parse --show-toplevel 2> /dev/null)
   if [ -n "${src:-}" ]; then
     #? Successfully found Git top-level directory
     printf '%s' "${src}"
@@ -386,8 +386,8 @@ check_gui_env() {
   #DOC - On Windows-like environments (Cygwin, MSYS, MinGW), assume GUI is available
   #DOC - On Unix/Linux, check if DISPLAY or WAYLAND_DISPLAY is set (X11 or Wayland GUI)
   case "$(uname -s)" in
-  CYGWIN* | MSYS* | MINGW*) return 0 ;;
-  *) [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] ;;
+    CYGWIN* | MSYS* | MINGW*) return 0 ;;
+    *) [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] ;;
   esac
 }
 
@@ -399,46 +399,46 @@ editor__pout() {
   #{ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -h | --help) editor__pout_help ;;
-    -v | --version) msg="${2:-"${app_version}"}" ;;
-    --error) tag="[ERROR]" ;;
-    --warn) tag=" [WARN]" ;;
-    --info) tag=" [INFO]" ;;
-    --debug) tag="[DEBUG]" ;;
-    --trace) tag="[TRACE]" ;;
-    --tab)
-      if [ -n "${2:-}" ] && [ "${2:-}" -eq "${2:-}" ] >/dev/null 2>&1; then
-        pad_lvl="$2"
-        shift
-      else
-        pad_lvl=1
-      fi
-      ;;
-    --[p | t]ab*1) pad_lvl=1 ;;
-    --pad-1) pad_lvl=1 ;;
-    --pad-2) pad_lvl=2 ;;
-    --pad-3) pad_lvl=3 ;;
-    --pad-lvl | --pad-size)
-      if [ -n "${2:-}" ] && [ "$2" -eq "$2" ] >/dev/null 2>&1; then
-        var="$(printf "%s" "$1" | sed -e 's/--//' -e 's/-/_/')"
-        eval "${var}=$2"
-      else
-        editor__pout --error "Invalid argument: $1"
-        return 1
-      fi
-      ;;
-    --padded)
-      #TODO: This makes no sense
-      if [ -n "${2:-}" ] && [ "$2" -eq "$2" ] >/dev/null 2>&1; then
-        pad_lvl="$2"
-        pad_size=${tab_size:-2}
-        shift
-      else
-        pad_lvl=${pad_lvl:-1}
-        pad_size=${tab_size:-2}
-      fi
-      ;;
-    *) msg=${msg:+${msg}${delimiter}}$1 ;;
+      -h | --help) editor__pout_help ;;
+      -v | --version) msg="${2:-"${app_version}"}" ;;
+      --error) tag="[ERROR]" ;;
+      --warn) tag=" [WARN]" ;;
+      --info) tag=" [INFO]" ;;
+      --debug) tag="[DEBUG]" ;;
+      --trace) tag="[TRACE]" ;;
+      --tab)
+        if [ -n "${2:-}" ] && [ "${2:-}" -eq "${2:-}" ] > /dev/null 2>&1; then
+          pad_lvl="$2"
+          shift
+        else
+          pad_lvl=1
+        fi
+        ;;
+      --[p | t]ab*1) pad_lvl=1 ;;
+      --pad-1) pad_lvl=1 ;;
+      --pad-2) pad_lvl=2 ;;
+      --pad-3) pad_lvl=3 ;;
+      --pad-lvl | --pad-size)
+        if [ -n "${2:-}" ] && [ "$2" -eq "$2" ] > /dev/null 2>&1; then
+          var="$(printf "%s" "$1" | sed -e 's/--//' -e 's/-/_/')"
+          eval "${var}=$2"
+        else
+          editor__pout --error "Invalid argument: $1"
+          return 1
+        fi
+        ;;
+      --padded)
+        #TODO: This makes no sense
+        if [ -n "${2:-}" ] && [ "$2" -eq "$2" ] > /dev/null 2>&1; then
+          pad_lvl="$2"
+          pad_size=${tab_size:-2}
+          shift
+        else
+          pad_lvl=${pad_lvl:-1}
+          pad_size=${tab_size:-2}
+        fi
+        ;;
+      *) msg=${msg:+${msg}${delimiter}}$1 ;;
     esac
     shift
   done
@@ -464,7 +464,7 @@ editor__pout() {
 }
 
 editor__pout_help() {
-  cat <<EOF
+  cat << EOF
     ${app_name} v.${app_version} - ${app_description}
     ${app_usage}
 

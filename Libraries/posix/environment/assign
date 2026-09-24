@@ -14,16 +14,16 @@ assign_path() {
   [ -n "${_ap_val}" ] && return 0
   shift
 
-  if command -v join_path >/dev/null 2>&1; then
+  if command -v join_path > /dev/null 2>&1; then
     _ap_result=$(join_path "$@")
   else
     _ap_result=""
     for _ap_seg in "$@"; do
       [ -z "${_ap_seg}" ] && continue
       case "${_ap_result}" in
-      "") _ap_result="${_ap_seg}" ;;
-      */) _ap_result="${_ap_result}${_ap_seg#/}" ;;
-      *) _ap_result="${_ap_result}/${_ap_seg#/}" ;;
+        "") _ap_result="${_ap_seg}" ;;
+        */) _ap_result="${_ap_result}${_ap_seg#/}" ;;
+        *) _ap_result="${_ap_result}/${_ap_seg#/}" ;;
       esac
     done
   fi
@@ -33,18 +33,18 @@ assign_path() {
 
 parse_arguments() {
   case "$1" in
-  --var)
-    shift
-    assign_var "$@"
-    ;;
-  --path)
-    shift
-    assign_path "$@"
-    ;;
-  *)
-    printf "assign: expected --var or --path, got '%s'\n" "${1:-<none>}" >&2
-    return 1
-    ;;
+    --var)
+      shift
+      assign_var "$@"
+      ;;
+    --path)
+      shift
+      assign_path "$@"
+      ;;
+    *)
+      printf "assign: expected --var or --path, got '%s'\n" "${1:-<none>}" >&2
+      return 1
+      ;;
   esac
 }
 

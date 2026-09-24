@@ -4,7 +4,7 @@ scr_NAME="EOLor"
 scr_VERSION="1.0"
 scr_DESCRIPTION="converts text file line endings between CRLF (Carriage Return and Line Feed) and LF (Line Feed) formats"
 scr_AUTHORS="Craole"
-scr_USAGE="$scr_NAME [OPTIONS] <PATH>"
+scr_USAGE="${scr_NAME} [OPTIONS] <PATH>"
 scr_DEPENDENCIES="POSIX shell utilities"
 scr_OPTIONAL_DEPENDENCIES="dos2unix, unix2dos"
 
@@ -18,7 +18,7 @@ main() {
 define_defaults() {
   #{ Verbosity
   # shellcheck disable=SC2153
-  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  case "${verbose:?}${verbosity:?}${VERBOSE:?}${VERBOSITY:?}" in
   [1-9] | true) verbose_flag=true ;;
   *) unset verbose_flag ;;
   esac
@@ -64,10 +64,10 @@ establish_environment() {
         eol_target="lf"
         ;;
       -e | --exclude)
-        [ "$2" ] && {
+        [ -n "$2" ] && {
           list_exclude="$(
             listman \
-              --list "$list_exclude" \
+              --list "${list_exclude}" \
               --item "$2" \
               --action "add"
           )"
@@ -75,10 +75,10 @@ establish_environment() {
         }
         ;;
       -i | --include)
-        [ "$2" ] && {
+        [ -n "$2" ] && {
           list_include="$(
             listman \
-              --list "$list_include" \
+              --list "${list_include}" \
               --item "$2" \
               --action "add"
           )"
@@ -92,7 +92,7 @@ establish_environment() {
       *)
         list_include="$(
           listman \
-            --list "$list_include" \
+            --list "${list_include}" \
             --item "$2" \
             --action "add"
         )"
@@ -127,7 +127,7 @@ establish_environment() {
         fi
         ;;
       -p | --path)
-        [ "$2" ] || {
+        [ -n "$2" ] || {
           printf "Error: Missing path argument.\n"
           print_scr_info -h
           return 1
@@ -142,20 +142,20 @@ establish_environment() {
         path="$2"
         ;;
       -e | --exclude | -s | --skip)
-        [ "$2" ] || {
+        [ -n "$2" ] || {
           printf "Error: Missing pattern argument.\n"
           print_scr_info -h
           return 1
         }
 
         # Add the pattern to the list of patterns to skip
-        patterns_to_skip="$patterns_to_skip $2"
+        patterns_to_skip="${patterns_to_skip} $2"
         # shift
 
         # Convert the patterns_to_skip into find-compatible conditions
         prune_conditions=""
-        for pattern in $patterns_to_skip; do
-          prune_conditions="$prune_conditions -name \"$pattern\" -o"
+        for pattern in ${patterns_to_skip}; do
+          prune_conditions="${prune_conditions} -name \"${pattern}\" -o"
         done
         prune_conditions="${prune_conditions% -o}"
         ;;
@@ -165,85 +165,85 @@ establish_environment() {
   }
 
   get_converter() {
-    if [ "$eol_target" = "crlf" ]; then
+    if [ "${eol_target}" = "crlf" ]; then
       converter_cmd="unix2dos"
     else
       converter_cmd="dos2unix"
     fi
 
     #| Use the installed converter if it exists
-    weHave "$converter_cmd" && return
+    weHave "${converter_cmd}" && return
 
     #| Fallback to the scripted converter
-    case "$converter_cmd" in
+    case "${converter_cmd}" in
     dos2unix) converter_cmd="convert_crlf_to_lf" ;;
     unix2dos) converter_cmd="convert_lf_to_crlf" ;;
     esac
 
     #| Display the converter command
-    [ "$verbose_flag" ] && {
-      printf "Converter: %s\n" "$converter_cmd"
+    [ -n "${verbose_flag}" ] && {
+      printf "Converter: %s\n" "${converter_cmd}"
     }
-    printf "Converter: %s\n" "$converter_cmd"
+    printf "Converter: %s\n" "${converter_cmd}"
   }
 
   get_paths() {
     #| Default to the current path if no paths are specified
-    [ "$default_to_pwd" ] && paths="${paths:-"$PWD"}"
+    [ -n "${default_to_pwd}" ] && paths="${paths:-"${PWD}"}"
 
     # Function to display valid and invalid paths
     display_paths() {
       # Count the total number of paths
       total_count=$((valid_paths_count + invalid_paths_count))
-      [ "$verbose_flag" ] && {
+      [ -n "${verbose_flag}" ] && {
         # Determine the header for the paths
-        if [ "$total_count" -gt 1 ]; then
+        if [ "${total_count}" -gt 1 ]; then
           printf "[Paths]\n"
         else
           printf "Path"
         fi
 
         # Display valid paths
-        [ "$valid_paths" ] && {
-          if [ "$valid_paths_count" -eq 1 ] &&
-            [ "$invalid_paths_count" -eq 0 ]; then
-            printf ":%s\n" "$valid_paths"
+        [ -n "${valid_paths}" ] && {
+          if [ "${valid_paths_count}" -eq 1 ] &&
+            [ "${invalid_paths_count}" -eq 0 ]; then
+            printf ":%s\n" "${valid_paths}"
           else
             i=1
-            [ "$invalid_paths" ] && printf "  Valid:\n"
-            IFS="$delimiter"
-            for path in $valid_paths; do
-              printf "  %3d: %s\n" "$i" "$path"
+            [ -n "${invalid_paths}" ] && printf "  Valid:\n"
+            IFS="${delimiter}"
+            for path in ${valid_paths}; do
+              printf "  %3d: %s\n" "${i}" "${path}"
               i=$((i + 1))
             done
             unset i
-            [ "$invalid_paths" ] && printf "  Invalid:\n"
+            [ -n "${invalid_paths}" ] && printf "  Invalid:\n"
           fi
         }
 
         # Display invalid paths
-        [ "$invalid_paths" ] && {
-          if [ "$valid_paths" ] || [ "$invalid_paths_count" -gt 1 ]; then
+        [ -n "${invalid_paths}" ] && {
+          if [ -n "${valid_paths}" ] || [ "${invalid_paths_count}" -gt 1 ]; then
             i=1
-            IFS="$delimiter"
-            for path in $invalid_paths; do
-              printf "  %3d: %s\n" "$i" "$path"
+            IFS="${delimiter}"
+            for path in ${invalid_paths}; do
+              printf "  %3d: %s\n" "${i}" "${path}"
               i=$((i + 1))
             done
             unset i
           else
-            printf " Invalid:%s\n" "$invalid_paths"
+            printf " Invalid:%s\n" "${invalid_paths}"
           fi
         }
       }
     }
 
     #| Get the status of each path
-    for path in $list_include; do
-      if [ -x "$path" ]; then
-        valid_paths="$(listman "$valid_paths" "$path")"
+    for path in ${list_include}; do
+      if [ -x "${path}" ]; then
+        valid_paths="$(listman "${valid_paths}" "${path}")"
       else
-        invalid_paths="$(listman "$invalid_paths" "$path")"
+        invalid_paths="$(listman "${invalid_paths}" "${path}")"
       fi
     done
 
@@ -254,12 +254,12 @@ establish_environment() {
     # valid_paths="$(prune_strlistman__ "$(list_paths "$valid_paths")")"
     # invalid_paths=$(prune_strlistman__ "$invalid_paths")
 
-    valid_paths_count="$(listman "$valid_paths" --count)"
-    invalid_paths_count=$(count_strlistman___items "$invalid_paths")
+    valid_paths_count="$(listman "${valid_paths}" --count)"
+    invalid_paths_count=$(count_strlistman___items "${invalid_paths}")
 
     #| Display the results
     # [ "$verbose_flag" ] && display_paths
-    echo "$list_include"
+    echo "${list_include}"
   }
 
   parse_arguments "$@"
@@ -270,12 +270,12 @@ initialize_utilities() {
   #{ Display script usage and version information
   print_scr_info() {
     case "$1" in
-    --usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
-    --version) printf "%s" "$scr_VERSION" ;;
+    --usage) printf "%s [OPTIONS] <PATH>" "${scr_NAME}" ;;
+    --version) printf "%s" "${scr_VERSION}" ;;
     --help)
-      printf "%s [v.%s]\n" "$scr_NAME" "$scr_VERSION"
-      printf "Usage: %s" "$scr_USAGE"
-      printf "\n\nDescription: \n%s %s" "$scr_NAME" "$scr_DESCRIPTION"
+      printf "%s [v.%s]\n" "${scr_NAME}" "${scr_VERSION}"
+      printf "Usage: %s" "${scr_USAGE}"
+      printf "\n\nDescription: \n%s %s" "${scr_NAME}" "${scr_DESCRIPTION}"
       printf "\n\nOptions:"
       printf "\n  -h                    Display the condensed usage guide"
       printf "\n      --help            Display this help message"
@@ -286,9 +286,9 @@ initialize_utilities() {
       printf "\n  -l, --nix, --lf       Convert to LF line endings"
       printf "\n  -t, --test            Test mode"
       printf "\n\nOptional Dependencies:"
-      printf "\n  %s" "$scr_OPTIONAL_DEPENDENCIES"
+      printf "\n  %s" "${scr_OPTIONAL_DEPENDENCIES}"
       printf "\n\nLicense: MIT"
-      printf "\nCopyright: (c) 2023 %s" "$scr_AUTHORS"
+      printf "\nCopyright: (c) 2023 %s" "${scr_AUTHORS}"
       ;;
     *) printf "%s\n" "$1" ;;
     esac
@@ -318,16 +318,16 @@ initialize_utilities() {
         --print) action="print" ;;
         --split) action="split" ;;
         *)
-          [ "$list" ] || list="${1:-}"
-          [ "$item" ] || item="${2:-}"
-          [ "$delimiter" ] || delimiter="${3:-|}"
-          [ "$action" ] || action="${4:-"add"}"
+          [ -n "${list}" ] || list="${1:-}"
+          [ -n "${item}" ] || item="${2:-}"
+          [ -n "${delimiter}" ] || delimiter="${3:-|}"
+          [ -n "${action}" ] || action="${4:-"add"}"
           ;;
         esac
         shift
       done
 
-      case "$action" in
+      case "${action}" in
       count) listman__count ;;
       drop | remove) listman__drop ;;
       print) listman__print ;;
@@ -338,12 +338,12 @@ initialize_utilities() {
 
     listman__add() {
       #| Set IFS to the delimiter
-      IFS="$delimiter"
+      IFS="${delimiter}"
 
       #| Prevent duplicates entries
-      for element in $list; do
-        [ "$element" = "$item" ] && {
-          printf "%s" "$list"
+      for element in ${list}; do
+        [ "${element}" = "${item}" ] && {
+          printf "%s" "${list}"
           return
         }
       done
@@ -355,17 +355,17 @@ initialize_utilities() {
     listman__drop() {
       #| Return the updated list with each item separated by the delimiter
       printf "%s" "$(
-        printf "%s" "$list" |
-          tr "$delimiter" '\n' |
-          grep -v "$item" |
-          tr '\n' "$delimiter"
+        printf "%s" "${list}" |
+          tr "${delimiter}" '\n' |
+          grep -v "${item}" |
+          tr '\n' "${delimiter}"
       )"
     }
 
     listman__split() {
       #TODO: Split the items by a new line
       #TODO: Ensure that each item is quoted
-      printf "%s\n" "$list" | tr "$delimiter" "\n" # tr "$delimiter" "\n"
+      printf "%s\n" "${list}" | tr "${delimiter}" "\n" # tr "$delimiter" "\n"
     }
 
     listman__print() {
@@ -427,27 +427,27 @@ initialize_utilities() {
     input_file="$1"
 
     #{ Check if the file is regular file and skip conversion
-    [ -f "$input_file" ] || {
-      printf "Skipping %s, not a regular file\n" "$input_file"
+    [ -f "${input_file}" ] || {
+      printf "Skipping %s, not a regular file\n" "${input_file}"
       return 1
     }
 
     #{ Check if the file is binary and skip conversion
-    is_binary_file "$input_file" && {
-      printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+    is_binary_file "${input_file}" && {
+      printf "%s: Skipping binary file %s\n" "${func_name}" "${input_file}"
       return 0
     }
 
     #{ Check for and remove the Byte Order Mark (BOM)
-    if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
-      tail -c +4 "$input_file" | tr '\n' '\r\n' >"$input_file.tmp"
-      mv "$input_file.tmp" "$input_file"
+    if [ "$(head -c 3 "${input_file}")" = "$(printf '\xef\xbb\xbf')" ]; then
+      tail -c +4 "${input_file}" | tr '\n' '\r\n' >"${input_file}.tmp"
+      mv "${input_file}.tmp" "${input_file}"
     else
-      tr <"$input_file" '\n' '\r\n' >"$input_file.tmp"
-      mv "$input_file.tmp" "$input_file"
+      tr <"${input_file}" '\n' '\r\n' >"${input_file}.tmp"
+      mv "${input_file}.tmp" "${input_file}"
     fi
 
-    printf "Converting %s to DOS format\n" "$input_file"
+    printf "Converting %s to DOS format\n" "${input_file}"
   }
 
   #{ Convert CRLF to LF (DOS to Unix)
@@ -456,27 +456,27 @@ initialize_utilities() {
     input_file="$1"
 
     #{ Check if the file is regular file and skip conversion
-    [ -f "$input_file" ] || {
-      printf "Skipping %s, not a regular file\n" "$input_file"
+    [ -f "${input_file}" ] || {
+      printf "Skipping %s, not a regular file\n" "${input_file}"
       return 1
     }
 
     #{ Check if the file is binary and skip conversion
-    is_binary_file "$input_file" && {
-      printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+    is_binary_file "${input_file}" && {
+      printf "%s: Skipping binary file %s\n" "${func_name}" "${input_file}"
       return 0
     }
 
     #{ Check for and remove the Byte Order Mark (BOM)
-    if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
-      tail -c +4 "$input_file" | tr -d '\r' >"$input_file.tmp"
-      mv "$input_file.tmp" "$input_file"
+    if [ "$(head -c 3 "${input_file}")" = "$(printf '\xef\xbb\xbf')" ]; then
+      tail -c +4 "${input_file}" | tr -d '\r' >"${input_file}.tmp"
+      mv "${input_file}.tmp" "${input_file}"
     else
-      tr <"$input_file" -d '\r' >"$input_file.tmp"
-      mv "$input_file.tmp" "$input_file"
+      tr <"${input_file}" -d '\r' >"${input_file}.tmp"
+      mv "${input_file}.tmp" "${input_file}"
     fi
 
-    printf "Converting %s to UNIX format\n" "$input_file"
+    printf "Converting %s to UNIX format\n" "${input_file}"
 
   }
 }
@@ -487,24 +487,24 @@ execute_core_process() {
   #doc - Test: print the command and file
   #doc - Verbose: execute with messaging
   #doc - Quiet: suppress messaging
-  [ "$test_flag" ] && printf "Simulating operation of %s\n" "$scr_NAME"
+  [ -n "${test_flag}" ] && printf "Simulating operation of %s\n" "${scr_NAME}"
 
   # get_converter
   # get_paths
   # printf "%s" "$list_include" | tr "$delimiter" '\n'
-  listman --list "$list_include" --print
-  listman --count "$list_include"
+  listman --list "${list_include}" --print
+  listman --count "${list_include}"
 
-  [ "$test_flag" ] ||
+  [ -n "${test_flag}" ] ||
     # find "$path" -type f | while IFS= read -r file; do
     #   [ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
     #   "$converter_cmd" "$file" >/dev/null 2>&1
     # done
     # Build and execute the find command
-    eval "find \"$path\" \( $prune_conditions \) -prune -o -type f -print" |
+    eval "find \"${path}\" \( ${prune_conditions} \) -prune -o -type f -print" |
     while IFS= read -r file; do
-      [ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
-      "$converter_cmd" "$file" >/dev/null 2>&1
+      [ -n "${verbose_flag}" ] && printf "%s: %s\n" "${converter_cmd}" "${file}"
+      "${converter_cmd}" "${file}" >/dev/null 2>&1
     done
 
 }

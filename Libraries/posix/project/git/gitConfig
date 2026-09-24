@@ -11,23 +11,23 @@ __opts__() {
 
 __declare__() {
 
-  if [ -f "$env" ]; then
-    . "$env"
-    [ "$Name" ] && gitNAME="$Name"
-    [ "$Email" ] && gitEMAIL="$Email"
+  if [ -f "${env}" ]; then
+    . "${env}"
+    [ -n "${Name}" ] && gitNAME="${Name}"
+    [ -n "${Email}" ] && gitEMAIL="${Email}"
   fi
 
 }
 __validate__() {
-  [ "${gitNAME}" ] || {
+  [ -n "${gitNAME}" ] || {
     printf "'%s' variable not set\n" "gitNAME"
     return 1
   }
-  [ "${gitEMAIL}" ] || {
+  [ -n "${gitEMAIL}" ] || {
     printf "'%s' variable not set\n" "gitEMAIL"
     return 1
   }
-  [ "${EDITOR}" ] || {
+  [ -n "${EDITOR}" ] || {
     printf "'%s' variable not set\n" "EDITOR"
     return 1
   }
@@ -40,7 +40,7 @@ __config__() {
   # --> Allow Update
   unset GIT_CONFIG
 
-  gitIGNORE="${GDOTDIR}/gitignore"
+  gitIGNORE="${GDOTDIR:?}/gitignore"
   git config --global user.name "${gitNAME}"
   git config --global user.email "${gitEMAIL}"
   git config --local user.name "${gitNAME}"

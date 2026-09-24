@@ -27,39 +27,39 @@ parse_arguments() {
   #{ Script Options
   for arg in "$@"; do
     case "${arg}" in
-    -h) pout_usage 0 ;;
-    --help) pout_guide ;;
-    *) ;;
+      -h) pout_usage 0 ;;
+      --help) pout_guide ;;
+      *) ;;
     esac
   done
 
   #{ Process Options
   while [ "$#" -ge "${expected_args:-1}" ]; do
     case "$1" in
-    -d | --verbose | --debug)
-      debug=1
-      ;;
-    -n | --num* | -r | --rep*)
-      is_positive_int "$2" || pout_usage --reps
-      repetitions="$2"
-      shift
-      ;;
-    -p | --pat* | -c | --char* | --str*)
-      [ -n "$2" ] || pout_usage --args
-      pattern="$2"
-      shift
-      ;;
-    -l | --line)
-      pattern="\n"
-      repetitions="${2:-1}"
-      break
-      ;;
-    -s | --space)
-      pattern=" "
-      repetitions="${2:-1}"
-      break
-      ;;
-    *) pattern="${pattern:+${pattern}"${delimiter}"}$1" ;;
+      -d | --verbose | --debug)
+        debug=1
+        ;;
+      -n | --num* | -r | --rep*)
+        is_positive_int "$2" || pout_usage --reps
+        repetitions="$2"
+        shift
+        ;;
+      -p | --pat* | -c | --char* | --str*)
+        [ -n "$2" ] || pout_usage --args
+        pattern="$2"
+        shift
+        ;;
+      -l | --line)
+        pattern="\n"
+        repetitions="${2:-1}"
+        break
+        ;;
+      -s | --space)
+        pattern=" "
+        repetitions="${2:-1}"
+        break
+        ;;
+      *) pattern="${pattern:+${pattern}"${delimiter}"}$1" ;;
     esac
     shift
   done
@@ -115,18 +115,18 @@ init_utilities() {
   pout_section() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --head*)
-        str="$2"
-        pad=0
-        head_sep="<|"
-        tail_sep="|>"
-        printf "\n%*s%s\n" "${pad}" "" "${head_sep}${str}${tail_sep}"
-        ;;
-      --info*)
-        pad=2
-        printf "%*s%s\n" "${pad}" "" "$2"
-        ;;
-      *) ;;
+        --head*)
+          str="$2"
+          pad=0
+          head_sep="<|"
+          tail_sep="|>"
+          printf "\n%*s%s\n" "${pad}" "" "${head_sep}${str}${tail_sep}"
+          ;;
+        --info*)
+          pad=2
+          printf "%*s%s\n" "${pad}" "" "$2"
+          ;;
+        *) ;;
       esac
       shift
     done
@@ -135,23 +135,23 @@ init_utilities() {
   pout_usage() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --args)
-        msg="$(
-          printf "Incorrect number of arguments. " >&2
-          printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
-        )"
-        ;;
-      --pos)
-        msg="$(
-          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-        )"
-        ;;
-      --reps)
-        msg="$(printf "Number of repetitions not defined\n" >&2)"
-        ;;
-      *)
-        exit_code="${1:-1}"
-        ;;
+        --args)
+          msg="$(
+            printf "Incorrect number of arguments. " >&2
+            printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
+          )"
+          ;;
+        --pos)
+          msg="$(
+            printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+          )"
+          ;;
+        --reps)
+          msg="$(printf "Number of repetitions not defined\n" >&2)"
+          ;;
+        *)
+          exit_code="${1:-1}"
+          ;;
       esac
       shift
     done

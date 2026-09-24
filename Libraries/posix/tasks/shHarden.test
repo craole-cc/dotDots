@@ -4,7 +4,7 @@ printf "~shHarden.test~\n"
 
 binary=blah
 
-shHarden "$binary"
+shHarden "${binary}"
 # shHarden "$binary" --check
 # shHarden "$binary" --suggest
 # shHarden "$binary" --syntax

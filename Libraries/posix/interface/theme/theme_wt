@@ -60,9 +60,9 @@ check_dependencies() {
 find_files() {
   base_path="$1"
   if cmd_exists "fd"; then
-    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2>/dev/null
+    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "${base_path}" --type d 2>/dev/null
   else
-    find "$base_path" \
+    find "${base_path}" \
       -name "Microsoft.WindowsTerminal*" \
       -type d 2>/dev/null
   fi
@@ -70,13 +70,13 @@ find_files() {
 
 find_settings_paths() {
   #{ Find both regular and preview settings
-  find "$LOCALAPPDATA/Packages" \
+  find "${LOCALAPPDATA:?}/Packages" \
     -name "Microsoft.WindowsTerminal*" \
     -type d 2>/dev/null |
     while read -r dir; do
-      settings_path="$dir/LocalState/settings.json"
-      if [ -f "$settings_path" ]; then
-        printf "%s" "$settings_path"
+      settings_path="${dir}/LocalState/settings.json"
+      if [ -f "${settings_path}" ]; then
+        printf "%s" "${settings_path}"
       fi
     done
 }
@@ -85,33 +85,33 @@ toggle_theme() {
   settings_file="$1"
 
   #{ Check if file exists and is readable
-  if [ ! -r "$settings_file" ]; then
-    printf "Error: Cannot read settings file: %s\n" "$settings_file" >&2
+  if [ ! -r "${settings_file}" ]; then
+    printf "Error: Cannot read settings file: %s\n" "${settings_file}" >&2
     return 1
   fi
 
   #{ Create backup
-  cp "$settings_file" "${settings_file}.bac"
+  cp "${settings_file}" "${settings_file}.bac"
 
   #{ Get current default theme
-  current_theme=$(jq --raw-output '.profiles.defaults.colorScheme // ""' "$settings_file")
+  current_theme=$(jq --raw-output '.profiles.defaults.colorScheme // ""' "${settings_file}")
 
   #{ Determine new theme
-  new_theme="$DARK_THEME"
-  [ "$current_theme" = "$DARK_THEME" ] && new_theme="$LIGHT_THEME"
+  new_theme="${DARK_THEME}"
+  [ "${current_theme}" = "${DARK_THEME}" ] && new_theme="${LIGHT_THEME}"
 
   #{ Update the theme
-  if ! jq --arg theme "$new_theme" \
+  if ! jq --arg theme "${new_theme}" \
     '.profiles.defaults.colorScheme = $theme' \
-    "$settings_file" >"${settings_file}.tmp"; then
-    printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
-    mv "${settings_file}.bac" "$settings_file"
+    "${settings_file}" >"${settings_file}.tmp"; then
+    printf "Error: Failed to update theme in: %s\n" "${settings_file}" >&2
+    mv "${settings_file}.bac" "${settings_file}"
     rm -f "${settings_file}.tmp"
     return 1
   fi
 
-  mv "${settings_file}.tmp" "$settings_file"
-  printf "Successfully updated theme to '%s' in: %s\n" "$new_theme" "$settings_file"
+  mv "${settings_file}.tmp" "${settings_file}"
+  printf "Successfully updated theme to '%s' in: %s\n" "${new_theme}" "${settings_file}"
 }
 
 main() {
@@ -119,14 +119,14 @@ main() {
 
   #{ Find all settings files
   settings_files=$(find_settings_paths "$1")
-  [ "$settings_files" ] || {
+  [ -n "${settings_files}" ] || {
     printf "Error: No Windows Terminal settings files found\n" >&2
     return 1
   }
 
   #{ Process each settings file
-  printf "%s\n" "$settings_files" | while read -r settings_file; do
-    toggle_theme "$settings_file"
+  printf "%s\n" "${settings_files}" | while read -r settings_file; do
+    toggle_theme "${settings_file}"
   done
 }
 

@@ -10,7 +10,7 @@ elif weHave kitty; then
     --config /store/DOTS/Config/apps/kitty/kitty.conf \
     --class "$@" \
     --detach "$@"
-elif weHave foot && [ "${WAYLAND_DISPLAY}" ]; then
+elif weHave foot && [ -n "${WAYLAND_DISPLAY}" ]; then
   foot "$@"
 elif weHave st; then
   st -c "$@" -e "$@" &

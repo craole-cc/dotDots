@@ -15,10 +15,10 @@ set_defaults() {
   VERBOSITY="$(verbosity "Info")"
   SEP=' ~@ '
   PAD=15
-  if command -v tput >/dev/null 2>&1; then
+  if command -v tput > /dev/null 2>&1; then
     BOLD=$(tput bold)
     RESET=$(tput sgr0)
-  elif command -v printf >/dev/null 2>&1; then
+  elif command -v printf > /dev/null 2>&1; then
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[0m')
   else
@@ -36,60 +36,60 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -h | --help)
-      show_help
-      exit 0
-      ;;
-    -v | --version)
-      show_version
-      exit 0
-      ;;
-    -x | --error)
-      VERBOSITY="$(verbosity "Error")"
-      ;;
-    -V | --verbose | -d | --debug)
-      VERBOSITY="$(verbosity "Debug")"
-      ;;
-    -q | --quiet | --silent | --check)
-      VERBOSITY="$(verbosity "Quiet")"
-      ;;
-    -i | --info | --normal)
-      VERBOSITY="$(verbosity "Info")"
-      ;;
-    --direction)
-      DIRECTION="$2"
-      shift
-      ;;
-    -U | --up)
-      DIRECTION="up"
-      ;;
-    -D | --down)
-      DIRECTION="down"
-      ;;
-    -B | --both)
-      DIRECTION="both"
-      ;;
-    -t | --target)
-      TARGET="$2"
-      shift
-      ;;
-    -a | --anchor)
-      ANCHOR="$2"
-      shift
-      ;;
-    -c | --case-sensitive)
-      CASE_SENSITIVE=true
-      shift
-      ;;
-    *)
-      if [ -z "${TARGET:-}" ]; then
-        #{ Define the target if not already defined }
-        TARGET="$1"
-      elif [ -z "${ANCHOR:-}" ]; then
-        #{ Define the starting directory }
-        ANCHOR="$1"
-      fi
-      ;;
+      -h | --help)
+        show_help
+        exit 0
+        ;;
+      -v | --version)
+        show_version
+        exit 0
+        ;;
+      -x | --error)
+        VERBOSITY="$(verbosity "Error")"
+        ;;
+      -V | --verbose | -d | --debug)
+        VERBOSITY="$(verbosity "Debug")"
+        ;;
+      -q | --quiet | --silent | --check)
+        VERBOSITY="$(verbosity "Quiet")"
+        ;;
+      -i | --info | --normal)
+        VERBOSITY="$(verbosity "Info")"
+        ;;
+      --direction)
+        DIRECTION="$2"
+        shift
+        ;;
+      -U | --up)
+        DIRECTION="up"
+        ;;
+      -D | --down)
+        DIRECTION="down"
+        ;;
+      -B | --both)
+        DIRECTION="both"
+        ;;
+      -t | --target)
+        TARGET="$2"
+        shift
+        ;;
+      -a | --anchor)
+        ANCHOR="$2"
+        shift
+        ;;
+      -c | --case-sensitive)
+        CASE_SENSITIVE=true
+        shift
+        ;;
+      *)
+        if [ -z "${TARGET:-}" ]; then
+          #{ Define the target if not already defined }
+          TARGET="$1"
+        elif [ -z "${ANCHOR:-}" ]; then
+          #{ Define the starting directory }
+          ANCHOR="$1"
+        fi
+        ;;
     esac
     shift
   done
@@ -117,26 +117,26 @@ parse_arguments() {
 
 execute_process() {
   case "${DIRECTION}" in
-  up)
-    result="$(find_up "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
-    ;;
-  down)
-    if [ -z "${target_lower}" ] || [ "${target}" = "${target_lower}" ]; then
-      path="$(find_down "${ANCHOR}" "${target}")"
-    else
-      path="$(find_down "${ANCHOR}" "${target}" "${target_lower}")"
-    fi
-    ;;
-  both)
-    result="$(find_down "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
-    if [ -z "${result:-}" ]; then
+    up)
       result="$(find_up "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
-    fi
-    ;;
-  *)
-    pout_tagged --ctx "execute_process" --tag "[ERROR]" "Invalid direction:" "${DIRECTION}"
-    return 1
-    ;;
+      ;;
+    down)
+      if [ -z "${target_lower}" ] || [ "${target:?}" = "${target_lower}" ]; then
+        path="$(find_down "${ANCHOR}" "${target:?}")"
+      else
+        path="$(find_down "${ANCHOR}" "${target:?}" "${target_lower}")"
+      fi
+      ;;
+    both)
+      result="$(find_down "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
+      if [ -z "${result:-}" ]; then
+        result="$(find_up "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
+      fi
+      ;;
+    *)
+      pout_tagged --ctx "execute_process" --tag "[ERROR]" "Invalid direction:" "${DIRECTION}"
+      return 1
+      ;;
   esac
 
   #{ Process the result and return the exit code }
@@ -173,7 +173,7 @@ find_up() {
 
   #{ Normalize base_dir to absolute path }
   original_dir="$(pwd -P)"
-  if cd "${base_dir}" 2>/dev/null; then
+  if cd "${base_dir}" 2> /dev/null; then
     current_dir="$(pwd -P)"
     base_dir="$(normalize_path "${current_dir}")"
   else
@@ -183,12 +183,12 @@ find_up() {
 
   #{ Pre-process pattern once }
   case "${keep_case}" in
-  0 | false | off | no | none)
-    search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
-    ;;
-  *)
-    search_pattern="${pattern}"
-    ;;
+    0 | false | off | no | none)
+      search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
+      ;;
+    *)
+      search_pattern="${pattern}"
+      ;;
   esac
 
   #{ Iterate directories }
@@ -207,14 +207,14 @@ find_up() {
 
     #{ Case-sensitive vs insensitive matching }
     case "${keep_case}" in
-    0 | false | off | no | none)
-      matches=$(printf '%s\n' "${entries}" |
-        awk -v pat="${search_pattern}" 'BEGIN{IGNORECASE=1} match(tolower($0), pat) {print}')
-      ;;
-    *)
-      matches=$(printf '%s\n' "${entries}" |
-        awk -v pat="${search_pattern}" '$0 ~ pat {print}')
-      ;;
+      0 | false | off | no | none)
+        matches=$(printf '%s\n' "${entries}" \
+          | awk -v pat="${search_pattern}" 'BEGIN{IGNORECASE=1} match(tolower($0), pat) {print}')
+        ;;
+      *)
+        matches=$(printf '%s\n' "${entries}" \
+          | awk -v pat="${search_pattern}" '$0 ~ pat {print}')
+        ;;
     esac
 
     #{ Return first match }
@@ -225,8 +225,8 @@ find_up() {
 
     #{ Continue the search in the parent directory }
     case "${base_dir}" in
-    */*) base_dir=${base_dir%/*} ;;
-    *) base_dir="/" ;;
+      */*) base_dir=${base_dir%/*} ;;
+      *) base_dir="/" ;;
     esac
   done
 
@@ -255,50 +255,50 @@ find_down() {
 
   #{ Pre-process pattern once }
   case "${keep_case}" in
-  0 | false | off | no | none)
-    search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
-    ;;
-  *)
-    search_pattern="${pattern}"
-    ;;
+    0 | false | off | no | none)
+      search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
+      ;;
+    *)
+      search_pattern="${pattern}"
+      ;;
   esac
 
   #{ Use find to get all files and directories }
   all_entries=$(
-    find "${base_dir}" -print 2>/dev/null
+    find "${base_dir}" -print 2> /dev/null
   )
 
   #{ Filter entries for case sensitivity }
   case "${keep_case}" in
-  0 | false | off | no | none)
-    matches=$(printf '%s\n' "${all_entries}" |
-      awk -F/ -v pat="${search_pattern}" '
+    0 | false | off | no | none)
+      matches=$(printf '%s\n' "${all_entries}" \
+        | awk -F/ -v pat="${search_pattern}" '
           {
             n=split($0, a, "/");
             name=a[n];
             if (tolower(name) == pat) print $0;
           }
         ')
-    ;;
-  *)
-    matches=$(printf '%s\n' "${all_entries}" |
-      awk -F/ -v pat="${search_pattern}" '
+      ;;
+    *)
+      matches=$(printf '%s\n' "${all_entries}" \
+        | awk -F/ -v pat="${search_pattern}" '
           {
             n=split($0, a, "/");
             name=a[n];
             if (name == pat) print $0;
           }
         ')
-    ;;
+      ;;
   esac
 
   #{ Return the closest match (shortest path) }
   if [ -n "${matches}" ]; then
-    printf '%s\n' "${matches}" |
-      awk '{ print length, $0 }' |
-      sort -n |
-      cut -d" " -f2- |
-      head -n1
+    printf '%s\n' "${matches}" \
+      | awk '{ print length, $0 }' \
+      | sort -n \
+      | cut -d" " -f2- \
+      | head -n1
     return 0
   fi
 
@@ -317,7 +317,7 @@ find_down_old() {
   shift
 
   #{ Append the first target to the find command }
-  find_cmd="${find_cmd:+${find_cmd} } -name \"${1:-"${target}"}\""
+  find_cmd="${find_cmd:+${find_cmd} } -name \"${1:-"${target:?}"}\""
   shift
 
   #{ Include additional targets to search for }
@@ -341,11 +341,17 @@ find_down_old() {
   fi
 
   #{ Try to find the closest matching target in or below the current directory }
-  printf "%s" "${find_res}" |
-    awk '{ print length, $0 }' | #? Sort by length of path
-    sort -n |                    #? Sort numerically
-    cut -d" " -f2- |             #? Extract the path
-    head -n 1                    #? Get the first matching path
+  printf "%s" "${find_res}" \
+    | awk '{ print length, $0 }' \
+    |
+    #? Sort by length of path
+    sort -n \
+    |
+    #? Sort numerically
+    cut -d" " -f2- \
+    |
+    #? Extract the path
+    head -n 1 #? Get the first matching path
 
   return
 }
@@ -379,7 +385,7 @@ normalize_path() {
   #DOC
 
   #{ Use cygpath if available }
-  if command -v cygpath >/dev/null 2>&1; then
+  if command -v cygpath > /dev/null 2>&1; then
     cygpath -u "$1"
   else
     #{ Replace backslashes with slashes }
@@ -415,12 +421,12 @@ normalize_case() {
   #DOC Returns:
   #DOC   The normalized string.
   case ${2:-${CASE_SENSITIVE}} in
-  0 | false | off | no | none)
-    printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
-    ;;
-  *)
-    printf '%s' "$1"
-    ;;
+    0 | false | off | no | none)
+      printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+      ;;
+    *)
+      printf '%s' "$1"
+      ;;
   esac
 }
 
@@ -431,19 +437,19 @@ pout_tagged() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --ctx)
-      ctx="${app_name} | $2"
-      shift
-      ;;
-    --tag)
-      tag="$2"
-      shift
-      ;;
-    --msg)
-      msg="$2"
-      shift
-      ;;
-    *) args="${args:+${args}"${DELIMITER}"}$1" ;; esac
+      --ctx)
+        ctx="${app_name} | $2"
+        shift
+        ;;
+      --tag)
+        tag="$2"
+        shift
+        ;;
+      --msg)
+        msg="$2"
+        shift
+        ;;
+      *) args="${args:+${args}"${DELIMITER}"}$1" ;; esac
     shift
   done
 
@@ -477,7 +483,7 @@ show_help() {
   # sed -n '/^#DOC/,/^$/p' "$0" |
   #   sed -e '1d;$d' -e 's?#DOC ??g' -e 's?#DOC??g'
 
-  cat <<-EOF
+  cat <<- EOF
 	${BOLD}${app_name} v${app_version}${RESET} - Seek a path within the filesystem
 	Usage: ${app_name} [OPTIONS] [TARGET] [ANCHOR]
 

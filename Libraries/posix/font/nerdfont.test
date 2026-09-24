@@ -24,7 +24,7 @@ main() {
 }
 
 set_defaults() {
-  if command -v tput >/dev/null 2>&1; then
+  if command -v tput > /dev/null 2>&1; then
     term_width="$(tput cols)"
     fmt_bold="$(tput bold)"
     fmt_italic="$(tput sitm)"
@@ -39,7 +39,7 @@ set_defaults() {
   fi
 
   #{ Get terminal width or fallback to 80
-  term_width="$(tput cols 2>/dev/null || printf 80)"
+  term_width="$(tput cols 2> /dev/null || printf 80)"
 
   #{ Calculate padding based on terminal width
   pad="$(awk -v width="${term_width}" 'BEGIN {printf "%.0f", width/3.5}')"
@@ -59,9 +59,9 @@ set_defaults() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    --detailed | --icons) STYLE="detailed" ;;
-    --basic | --simple | --no-icons) STYLE="basic" ;;
-    *) ;;
+      --detailed | --icons) STYLE="detailed" ;;
+      --basic | --simple | --no-icons) STYLE="basic" ;;
+      *) ;;
     esac
     shift
   done
@@ -81,28 +81,28 @@ pout_test() {
   #{ Parse options
   while [ $# -gt 0 ]; do
     case "$1" in
-    --trail-line | --newline | -l | -n | --nl) trailing_newline=1 ;;
-    --lead-line) leading_newline=1 ;;
-    --title)
-      shift
-      TITLE="$1"
-      ;;
-    --label)
-      shift
-      LABEL="$1"
-      ;;
-    --icon)
-      shift
-      ICON="${ICON:+${ICON}${ICON_SEP}}$1"
-      ;;
-    --arg)
-      shift
-      ARGS="${ARGS}${ARGS:+${DELIMITER}}$1"
-      ;;
-    --title=*) TITLE="${1#*=}" ;;
-    --label=*) LABEL="${1#*=}" ;;
-    --icon=*) ICON="${1#*=}" ;;
-    *) ARGS="${ARGS}${ARGS:+${DELIMITER}}${1}" ;;
+      --trail-line | --newline | -l | -n | --nl) trailing_newline=1 ;;
+      --lead-line) leading_newline=1 ;;
+      --title)
+        shift
+        TITLE="$1"
+        ;;
+      --label)
+        shift
+        LABEL="$1"
+        ;;
+      --icon)
+        shift
+        ICON="${ICON:+${ICON}${ICON_SEP}}$1"
+        ;;
+      --arg)
+        shift
+        ARGS="${ARGS}${ARGS:+${DELIMITER}}$1"
+        ;;
+      --title=*) TITLE="${1#*=}" ;;
+      --label=*) LABEL="${1#*=}" ;;
+      --icon=*) ICON="${1#*=}" ;;
+      *) ARGS="${ARGS}${ARGS:+${DELIMITER}}${1}" ;;
     esac
     shift
   done
@@ -159,9 +159,9 @@ pout_test() {
 
 execute_process() {
   case "${STYLE}" in
-  detailed) execute_tests ;;
-  basic) execute_basic ;;
-  *) ;;
+    detailed) execute_tests ;;
+    basic) execute_basic ;;
+    *) ;;
   esac
 }
 
@@ -342,10 +342,10 @@ test_filesystem() {
   #{ Retrieve the directory contents with the fist available lister
   if false; then
     :
-  elif command -v lsd >/dev/null 2>&1; then
+  elif command -v lsd > /dev/null 2>&1; then
     printf "Using lsd for directory listing with icons:\n"
     lsd --almost-all --group-directories-first
-  elif command -v eza >/dev/null 2>&1; then
+  elif command -v eza > /dev/null 2>&1; then
     printf "Using eza for directory listing with icons:\n"
     eza --icons --group-directories-first
   else
@@ -373,7 +373,7 @@ test_completion_message() {
 }
 
 execute_basic() {
-  cat <<-'EOF'
+  cat <<- 'EOF'
 abcdefghijklmnopqrstuvwxyz
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 0123456789

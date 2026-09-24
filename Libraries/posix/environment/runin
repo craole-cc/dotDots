@@ -36,59 +36,59 @@ parse_arguments() {
   #{ Parse command-line arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
-    -h | --help) pout --usage ;;
-    -v | --version) pout --version ;;
-    -d | --debug | --verbose) verbosity="${verbosity_debug}" ;;
-    --info) verbosity="${verbosity_info}" ;;
-    --warn) verbosity="${verbosity_warn}" ;;
-    --error) verbosity="${verbosity_error}" ;;
-    -q | --quiet) verbosity="${verbosity_quiet}" ;;
-    -[wW] | --dir* | --*wd)
-      [ -z "${2:-}" ] &&
-        pout --error "No path specified for" "$1"
-      target_dir="$2"
-      shift
-      ;;
-    -[cC] | --cmd | --command)
-      [ -z "${2:-}" ] &&
-        pout --error "No path specified for" "$1"
-      target_cmd="$2"
-      shift
-      ;;
-    *)
-      #{ Warn about positional arguments
-      if [ -z "${target_dir:-}" ] && [ -z "${target_cmd:-}" ]; then
-        pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
-      fi
+      -h | --help) pout --usage ;;
+      -v | --version) pout --version ;;
+      -d | --debug | --verbose) verbosity="${verbosity_debug}" ;;
+      --info) verbosity="${verbosity_info}" ;;
+      --warn) verbosity="${verbosity_warn}" ;;
+      --error) verbosity="${verbosity_error}" ;;
+      -q | --quiet) verbosity="${verbosity_quiet}" ;;
+      -[wW] | --dir* | --*wd)
+        [ -z "${2:-}" ] \
+          && pout --error "No path specified for" "$1"
+        target_dir="$2"
+        shift
+        ;;
+      -[cC] | --cmd | --command)
+        [ -z "${2:-}" ] \
+          && pout --error "No path specified for" "$1"
+        target_cmd="$2"
+        shift
+        ;;
+      *)
+        #{ Warn about positional arguments
+        if [ -z "${target_dir:-}" ] && [ -z "${target_cmd:-}" ]; then
+          pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
+        fi
 
-      #{ Parse positional arguments
-      if [ -z "${target_dir:-}" ] && [ -d "$1" ]; then
-        pout --warn "Work directory inferred from positional argument:" "$1"
-        target_dir="$1"
-      else
-        pout --warn "Command to run inferred from positional argument:" "$1"
-        target_cmd="${target_cmd:-}${target_cmd:+${delimiter:- }}${1}"
-      fi
-      ;;
+        #{ Parse positional arguments
+        if [ -z "${target_dir:-}" ] && [ -d "$1" ]; then
+          pout --warn "Work directory inferred from positional argument:" "$1"
+          target_dir="$1"
+        else
+          pout --warn "Command to run inferred from positional argument:" "$1"
+          target_cmd="${target_cmd:-}${target_cmd:+${delimiter:- }}${1}"
+        fi
+        ;;
     esac
     shift
   done
 
   #{ Set verbosity
   case "${verbosity:-}" in
-  "${verbosity_quiet:-0}" | quiet | off | false)
-    verbosity="${verbosity_quiet:-0}"
-    ;;
-  "${verbosity_error:-1}" | error)
-    verbosity="${verbosity_error:-1}"
-    ;;
-  "${verbosity_debug:-3}" | debug)
-    verbosity="${verbosity_debug:-3}"
-    ;;
-  "${verbosity_info:-2}" | info | on)
-    verbosity="${verbosity_info:-2}"
-    ;;
-  *) verbosity="${verbosity_error:-1}" ;;
+    "${verbosity_quiet:-0}" | quiet | off | false)
+      verbosity="${verbosity_quiet:-0}"
+      ;;
+    "${verbosity_error:-1}" | error)
+      verbosity="${verbosity_error:-1}"
+      ;;
+    "${verbosity_debug:-3}" | debug)
+      verbosity="${verbosity_debug:-3}"
+      ;;
+    "${verbosity_info:-2}" | info | on)
+      verbosity="${verbosity_info:-2}"
+      ;;
+    *) verbosity="${verbosity_error:-1}" ;;
   esac
 }
 
@@ -106,7 +106,7 @@ validate_environment() {
 
 execute_process() {
   #{ Change to working directory
-  if ! \cd "${target_dir:-}" >/dev/null; then
+  if ! \cd "${target_dir:-}" > /dev/null; then
     pout --error "Could not change to directory:" "${target_dir:-}"
   else
     eval "${target_cmd:-}"
@@ -127,22 +127,22 @@ pout() {
   #{ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
-    --usage)
-      usage_guide
-      exit_code="${exit_code:-0}"
-      ;;
-    --version)
-      msg="${scr_version}"
-      exit_code="${exit_code:-0}"
-      ;;
-    --debug) tag="DEBUG" ;;
-    --info) tag="INFO" ;;
-    --warn) tag="WARN" ;;
-    --error)
-      tag="ERROR"
-      exit_code="${exit_code:-1}"
-      ;;
-    *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+      --usage)
+        usage_guide
+        exit_code="${exit_code:-0}"
+        ;;
+      --version)
+        msg="${scr_version}"
+        exit_code="${exit_code:-0}"
+        ;;
+      --debug) tag="DEBUG" ;;
+      --info) tag="INFO" ;;
+      --warn) tag="WARN" ;;
+      --error)
+        tag="ERROR"
+        exit_code="${exit_code:-1}"
+        ;;
+      *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
     esac
     shift
   done
@@ -157,35 +157,35 @@ pout() {
 
   #{ Print the message
   case "${tag:-}" in
-  DEBUG)
-    if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
-      printf "%s\n" "${msg:-}"
-    else
-      :
-    fi
-    ;;
-  INFO)
-    if [ "${verbosity}" -ge "${verbosity_info}" ]; then
-      printf "%s\n" "${msg:-}"
-    else
-      :
-    fi
-    ;;
-  WARN)
-    if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
-      printf "%s\n" "${msg:-}"
-    else
-      :
-    fi
-    ;;
-  ERROR)
-    if [ "${verbosity}" -ge "${verbosity_error}" ]; then
-      printf "%s\n" "${msg:-}"
-    else
-      :
-    fi
-    ;;
-  *) printf "%s" "${msg:-}" ;;
+    DEBUG)
+      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+        printf "%s\n" "${msg:-}"
+      else
+        :
+      fi
+      ;;
+    INFO)
+      if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+        printf "%s\n" "${msg:-}"
+      else
+        :
+      fi
+      ;;
+    WARN)
+      if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+        printf "%s\n" "${msg:-}"
+      else
+        :
+      fi
+      ;;
+    ERROR)
+      if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+        printf "%s\n" "${msg:-}"
+      else
+        :
+      fi
+      ;;
+    *) printf "%s" "${msg:-}" ;;
   esac
 
   #{ Terminate, if requested
@@ -199,7 +199,7 @@ pout() {
 }
 
 usage_guide() {
-  cat <<-USAGE_GUIDE
+  cat <<- USAGE_GUIDE
   ${scr_name} (${scr_version})
 
   DESCRIPTION

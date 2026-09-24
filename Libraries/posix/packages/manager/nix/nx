@@ -13,17 +13,17 @@ establish_metadata() {
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
-                          $_cmd_NAME ($_cmd_VERSION)
+                          ${_cmd_NAME} (${_cmd_VERSION})
 ::------------------------------------------------------------::
   Usage:
-    $_cmd_NAME [OPTIONS] <MESSAGE>
+    ${_cmd_NAME} [OPTIONS] <MESSAGE>
 
   Description:
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 
   Options:
     -h, --help        Display this usage guide
-    -v, --version     Show the current version $_cmd_NAME
+    -v, --version     Show the current version ${_cmd_NAME}
     -i, --ignore      Honor .gitignore changes
     -s, --status      Show the git status
     -a, --add         Ensure all files are indexed
@@ -48,16 +48,16 @@ establish_metadata() {
 
   Examples:
     # Execute with defaults
-    $_cmd_NAME
+    ${_cmd_NAME}
 
     # Defaults with custom message
-    $_cmd_NAME "Updated the README.md"
+    ${_cmd_NAME} "Updated the README.md"
 
     # Include 'git rm -r --force --cached .'
-    $_cmd_NAME --ignore "Added cache to .gitignore"
+    ${_cmd_NAME} --ignore "Added cache to .gitignore"
 
   Dependencies:
-    $_cmd_DEPENDENCIES
+    ${_cmd_DEPENDENCIES}
 ::------------------------------------------------------------::
 USAGE_GUIDE
   )"
@@ -116,7 +116,7 @@ parse_arguments() {
 
 establish_defaults() {
   #| Configuration Option
-  if [ -z "$home" ] && [ -z "$core" ]; then
+  if [ -z "${home}" ] && [ -z "${core}" ]; then
     core=true
     # home=true
   fi
@@ -126,8 +126,8 @@ establish_defaults() {
 
   #| Messages
   msg="${msg:-"General updates"}"
-  msg_core="$(printf "|CORE| %s" "$msg")"
-  msg_home="$(printf "|HOME| %s" "$msg")"
+  msg_core="$(printf "|CORE| %s" "${msg}")"
+  msg_home="$(printf "|HOME| %s" "${msg}")"
 
   #| Editor
   editor="${editor:-${VISUAL:-${EDITOR:-code}}}"
@@ -136,8 +136,8 @@ establish_defaults() {
 establish_environment() {
   establish_defaults
 
-  cd "$dots" >/dev/null 2>&1 || {
-    printf "Error: Unable to access the DOTS directory: %s\n" "$dots" >&2
+  cd "${dots}" >/dev/null 2>&1 || {
+    printf "Error: Unable to access the DOTS directory: %s\n" "${dots}" >&2
     return 1
   }
 
@@ -158,13 +158,13 @@ establish_environment() {
 lint_dots() {
   type lint_sh >/dev/null 2>&1 &&
     type find_exec >/dev/null 2>&1 &&
-    find_exec "$bin" lint_sh
+    find_exec "${bin}" lint_sh
 
-  type treefmt >/dev/null 2>&1 && treefmt "$dots"
+  type treefmt >/dev/null 2>&1 && treefmt "${dots}"
 }
 
 edit_dots() {
-  eval "$editor" "$dots"
+  eval "${editor}" "${dots}"
 }
 
 update_inputs() {
@@ -186,7 +186,7 @@ collect_garbage() {
   )
 
   #{ Remove old home-manager generations
-  home-manager expire-generations "$last_gen_date"
+  home-manager expire-generations "${last_gen_date}"
 }
 
 process_core() {
@@ -195,7 +195,7 @@ process_core() {
   # display_info --line
 
   #{  Check the config and return, if requested
-  [ "$check" ] && {
+  [ -n "${check}" ] && {
     nix flake check --all-systems --show-trace --impure 2>&1 |
       grep -v '^warning:'
     return
@@ -203,7 +203,7 @@ process_core() {
 
   #{  Deploy the updated configuration
   if sudo nixos-rebuild switch \
-    --flake "$dots" \
+    --flake "${dots}" \
     --show-trace \
     --impure \
     --use-remote-sudo; then
@@ -218,8 +218,8 @@ process_core() {
 
 search() {
   #{  Search for packages on the system
-  [ "$package_local" ] && nix-locate "bin/${package_local}"
-  [ "$package_remote" ] && nix search nixpkgs "${package_remote}"
+  [ -n "${package_local}" ] && nix-locate "bin/${package_local}"
+  [ -n "${package_remote}" ] && nix search nixpkgs "${package_remote}"
 }
 
 process_home() {
@@ -228,20 +228,20 @@ process_home() {
   # display_info --line
 
   #{  Define the home-manager command
-  cmd_home="home-manager switch --flake $dots --show-trace"
+  cmd_home="home-manager switch --flake ${dots} --show-trace"
 
   #{  Check the config and return, if requested
-  [ "$check" ] && {
-    eval "$cmd_home -n"
+  [ -n "${check}" ] && {
+    eval "${cmd_home} -n"
     return
   }
 
   #{  Deploy the updated configuration
-  if ! eval "$cmd_home"; then
+  if ! eval "${cmd_home}"; then
     display_info --code 1 --error \
       "Home Configuration" \
       "Review the flake for errors."
-    return "$code"
+    return "${code}"
   fi
 }
 
@@ -267,8 +267,8 @@ display_info() {
   #{ Parse options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --usage) info="$_cmd_USAGEGUIDE" exit=true ;;
-    --version) info="$SCRIPT_VERSION" exit=true ;;
+    --usage) info="${_cmd_USAGEGUIDE}" exit=true ;;
+    --version) info="${SCRIPT_VERSION:?}" exit=true ;;
     --info)
       [ "$#" -eq 2 ] && info="$2"
       [ "$#" -gt 2 ] && {
@@ -283,9 +283,9 @@ display_info() {
         info_padding="$(printf "%-${padding_length}s")"
 
         # | Append additional info with leading padding and new line
-        shift 2 && [ "$2" ] && shift
+        shift 2 && [ -n "$2" ] && shift
         while [ "$#" -gt 1 ]; do
-          info="$info $(printf "\n%s%s" "$info_padding" "$1")"
+          info="${info} $(printf "\n%s%s" "${info_padding}" "$1")"
           shift
         done
       }
@@ -309,7 +309,7 @@ display_info() {
         # | Append additional info with leading padding and new line
         while [ "$#" -gt 3 ]; do
           case "$4" in -*) break ;; esac
-          info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+          info="$(printf "%s\n%s%s" "${info}" "${info_padding}" "$4")"
           shift
         done
       }
@@ -333,7 +333,7 @@ display_info() {
         # | Append additional info with leading padding and new line
         while [ "$#" -gt 3 ]; do
           case "$4" in -*) break ;; esac
-          info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+          info="$(printf "%s\n%s%s" "${info}" "${info_padding}" "$4")"
           shift
         done
       }
@@ -364,22 +364,22 @@ display_info() {
   done
 
   # | Quit the program if requested
-  [ "$exit" ] && {
+  [ -n "${exit}" ] && {
     code="${code:-0}"
-    if [ "$code" -eq 0 ]; then
-      printf "%s" "$info"
+    if [ "${code}" -eq 0 ]; then
+      printf "%s" "${info}"
     else
-      printf "%s" "$info" >&2
+      printf "%s" "${info}" >&2
     fi
 
-    exit "$code"
+    exit "${code}"
   }
 
   # | Print to terminal
-  if [ -z "$last_line" ] && [ -z "$exit" ]; then
-    printf "%s\n" "$info"
+  if [ -z "${last_line}" ] && [ -z "${exit}" ]; then
+    printf "%s\n" "${info}"
   else
-    printf "%s" "$info"
+    printf "%s" "${info}"
   fi
 }
 
@@ -387,7 +387,7 @@ print_a_line() {
   if command -v tput >/dev/null; then
     cols=$(tput cols)
     char="${1:-"="}"
-    printf "%${cols}s\n" | tr ' ' "$char"
+    printf "%${cols}s\n" | tr ' ' "${char}"
   else
     printf "\n"
   fi
@@ -397,54 +397,54 @@ print_a_line() {
 #@		                           EXECUTE  	                      @ #
 #{ ============================================================= @ #
 execute_tests() {
-  printf "DOTS: %s\n BIN: %s\n" "$dots" "$bin"
-  [ "$core" ] && printf "%s" "$msg_core"
-  [ "$core" ] && [ "$home" ] && printf "\n"
-  [ "$home" ] && printf "%s" "$msg_home"
+  printf "DOTS: %s\n BIN: %s\n" "${dots}" "${bin}"
+  [ -n "${core}" ] && printf "%s" "${msg_core}"
+  [ -n "${core}" ] && [ -n "${home}" ] && printf "\n"
+  [ -n "${home}" ] && printf "%s" "${msg_home}"
 }
 
 execute_process() {
-  [ "$debug" ] && {
+  [ -n "${debug}" ] && {
     execute_tests
     return
   }
 
   #{ Search for packages on the system
-  [ "$package_local" ] && {
+  [ -n "${package_local}" ] && {
     nix-locate "bin/${package_local}"
     return
   }
 
   #{ Search for packages remotely with mixpkgs
-  [ "$package_remote" ] && {
+  [ -n "${package_remote}" ] && {
     nix search nixpkgs "${package_remote}" |
       bat --style "grid" --force-colorization
     return
   }
 
-  [ "$lint" ] && {
+  [ -n "${lint}" ] && {
     lint_dots
     return
   }
 
-  [ "$edit" ] && {
+  [ -n "${edit}" ] && {
     edit_dots
     return
   }
 
-  [ "$update" ] && {
+  [ -n "${update}" ] && {
     update_inputs
     return
   }
 
-  [ "$clean" ] && {
+  [ -n "${clean}" ] && {
     collect_garbage
     return
   }
 
-  [ "$hostname" ] && sudo hostname -v "$hostname"
-  [ "$core" ] && process_core
-  [ "$home" ] && process_home
+  [ -n "${hostname}" ] && sudo hostname -v "${hostname}"
+  [ -n "${core}" ] && process_core
+  [ -n "${home}" ] && process_home
 
   return 0
 }

@@ -6,24 +6,24 @@ establish_environment() {
   scr_version="0.2"
   scr_description="replaces the users shell profile [ .bashrc, .profile ] with symbolic links to those of the DOTS Resources."
   scr_usage="$(
-    printf "Usage: %s [OPTIONS] [DIR]\n" "$scr_name"
-    printf "Description: %s %s\n" "$scr_name" "$scr_description"
+    printf "Usage: %s [OPTIONS] [DIR]\n" "${scr_name}"
+    printf "Description: %s %s\n" "${scr_name}" "${scr_description}"
     printf "Options:\n"
     printf "  -h, --help        Display this help message\n"
-    printf "  -v, --version     Display the version of %s\n" "$scr_name"
+    printf "  -v, --version     Display the version of %s\n" "${scr_name}"
     printf "  -d, --verbose     Enable verbose mode\n"
     printf "\n"
   )"
 
-  DOTS="${DOTS:-$HOME/.dots}" && export DOTS
-  res_HOME="$DOTS/Resources/Home"
+  DOTS="${DOTS:-${HOME}/.dots}" && export DOTS
+  res_HOME="${DOTS}/Resources/Home"
 
   parse_arguments "$@" # Call the argument parsing function
 
   # Validate that required files and directories exist
-  validate_file_or_directory "$res_HOME" "directory"
-  validate_file_or_directory "$res_HOME/profile" "source file"
-  validate_file_or_directory "$res_HOME/bashrc" "source file"
+  validate_file_or_directory "${res_HOME}" "directory"
+  validate_file_or_directory "${res_HOME}/profile" "source file"
+  validate_file_or_directory "${res_HOME}/bashrc" "source file"
 }
 
 # Function to parse command-line arguments
@@ -31,7 +31,7 @@ parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
     -h | --help)
-      printf "%s\n" "$scr_usage"
+      printf "%s\n" "${scr_usage}"
       exit
       ;;
     -v | --version)
@@ -50,15 +50,15 @@ parse_arguments() {
 validate_file_or_directory() {
   path="$1"
   type="$2"
-  if [ ! -e "$path" ]; then
-    printf "Error: The %s '%s' does not exist.\n" "$type" "$path"
+  if [ ! -e "${path}" ]; then
+    printf "Error: The %s '%s' does not exist.\n" "${type}" "${path}"
     return 1
   fi
 }
 
 # Function to create symbolic links with optional verbosity
 deploy_symlink() {
-  if [ "$verbose" ]; then
+  if [ -n "${verbose}" ]; then
     ln --symbolic --force --verbose "$1" "$2"
   else
     ln --symbolic --force "$1" "$2"
@@ -68,21 +68,21 @@ deploy_symlink() {
 # Function to deploy symbolic links for .profile
 deploy_profile_link() {
   # Escape the special characters in the variable for safe use in sed
-  escaped_dots=$(printf "%s" "$DOTS" | sed 's/[\/&]/\\&/g')
+  escaped_dots=$(printf "%s" "${DOTS}" | sed 's/[\/&]/\\&/g')
 
-  grep --quiet "^DOTS=\"$escaped_dots\"$" "$res_HOME/profile" || {
+  grep --quiet "^DOTS=\"${escaped_dots}\"$" "${res_HOME}/profile" || {
     # Use sed to replace the line starting with "DOTS" in the profile
-    sed --in-place "/^DOTS=/s/.*/DOTS=\"$escaped_dots\"/" "$res_HOME/profile"
-    [ "$verbose" ] && printf "Updated DOTS in profile.\n"
+    sed --in-place "/^DOTS=/s/.*/DOTS=\"${escaped_dots}\"/" "${res_HOME}/profile"
+    [ -n "${verbose}" ] && printf "Updated DOTS in profile.\n"
   }
 
   # Initialize DOTS via symlinks
-  deploy_symlink "$res_HOME/profile" "$HOME/.profile"
+  deploy_symlink "${res_HOME}/profile" "${HOME}/.profile"
 }
 
 # Function to deploy symbolic links for .bashrc
 deploy_bashrc_link() {
-  deploy_symlink "$res_HOME/bashrc" "$HOME/.bashrc"
+  deploy_symlink "${res_HOME}/bashrc" "${HOME}/.bashrc"
 }
 
 # Main function

@@ -5,7 +5,7 @@
 weHave qtile || exit
 
 #| Load Environment Variables
-. "$DOTS_ENV_CTX/qtile"
+. "${DOTS_ENV_CTX:?}/qtile"
 
 #| Deploy Link
-symbiolink --src "$DESKTOP_HOME" --lnk "$DESKTOP_LINK"
+symbiolink --src "${DESKTOP_HOME:?}" --lnk "${DESKTOP_LINK:?}"

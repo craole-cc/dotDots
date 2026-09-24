@@ -48,16 +48,16 @@ parse_arguments() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --help | -h)
-      pout_guide
-      exit 0
-      ;;
-    --name | -n)
-      cmd_name="$2"
-      ;;
-    *)
-      args="${args}${args:+${delimiter}}${1}"
-      ;;
+      --help | -h)
+        pout_guide
+        exit 0
+        ;;
+      --name | -n)
+        cmd_name="$2"
+        ;;
+      *)
+        args="${args}${args:+${delimiter}}${1}"
+        ;;
     esac
     shift
   done
@@ -87,12 +87,12 @@ execute_process() {
 pout_info() {
   #{ Define the tag based on the verbosity level
   case "${verbosity}" in
-  5) ctx_tag="TRACE" ;;
-  4) ctx_tag="DEBUG" ;;
-  3) ctx_tag="INFO" ;;
-  2) ctx_tag="WARN" ;;
-  1) ctx_tag="ERROR" ;;
-  *) ctx_tag="" ;;
+    5) ctx_tag="TRACE" ;;
+    4) ctx_tag="DEBUG" ;;
+    3) ctx_tag="INFO" ;;
+    2) ctx_tag="WARN" ;;
+    1) ctx_tag="ERROR" ;;
+    *) ctx_tag="" ;;
   esac
 
   #{ Update the tag to include the target name

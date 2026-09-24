@@ -1,6 +1,6 @@
 #!/bin/sh
 
-update_guix_system() { sudo -E guix system reconfigure "${DOTS_GUIX}/system.scm"; }
+update_guix_system() { sudo -E guix system reconfigure "${DOTS_GUIX:?}/system.scm"; }
 
 case "$1" in
   -s | --skip) update_guix_system ;;

@@ -36,8 +36,8 @@ set_defaults() {
 #{ Returns 0 (true) for truthy values, 1 (false) for falsy values
 is_truthy() {
   case "${1:-}" in
-  1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | [Ee][Nn][Aa][Bb][Ll][Ee][Dd]) return 0 ;;
-  *) return 1 ;;
+    1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | [Ee][Nn][Aa][Bb][Ll][Ee][Dd]) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -79,75 +79,75 @@ check_implicit_verbosity() {
 parse_arguments() {
   while [ ${#} -gt 0 ]; do
     case "${1}" in
-    -q | --quiet)
-      input="0"
-      shift
-      ;;
-    -1 | --dec | --decrement)
-      operation="decrement"
-      shift
-      ;;
-    +1 | --inc | --increment)
-      operation="increment"
-      shift
-      ;;
-    +[0-9]*)
-      operation="increment"
-      input="${1#+}"
-      shift
-      ;;
-    -[0-9]*)
-      operation="decrement"
-      input="${1#-}"
-      shift
-      ;;
-    -l | --level)
-      if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
-        input="${2}"
-        shift 2
-      else
-        printf "Error: --level requires a value\n" >&2
+      -q | --quiet)
+        input="0"
+        shift
+        ;;
+      -1 | --dec | --decrement)
+        operation="decrement"
+        shift
+        ;;
+      +1 | --inc | --increment)
+        operation="increment"
+        shift
+        ;;
+      +[0-9]*)
+        operation="increment"
+        input="${1#+}"
+        shift
+        ;;
+      -[0-9]*)
+        operation="decrement"
+        input="${1#-}"
+        shift
+        ;;
+      -l | --level)
+        if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
+          input="${2}"
+          shift 2
+        else
+          printf "Error: --level requires a value\n" >&2
+          exit 1
+        fi
+        ;;
+      -d | --default)
+        if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
+          default="${2}"
+          shift 2
+        else
+          printf "Error: --default requires a value\n" >&2
+          exit 1
+        fi
+        ;;
+      -h | --help)
+        show_usage
+        exit 0
+        ;;
+      --version)
+        printf "verbosity 1.1.0\n"
+        exit 0
+        ;;
+      --level=*)
+        input="${1#*=}"
+        shift
+        ;;
+      --default=*)
+        default="${1#*=}"
+        shift
+        ;;
+      -*)
+        printf "Error: Unknown option %s\n" "${1}" >&2
         exit 1
-      fi
-      ;;
-    -d | --default)
-      if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
-        default="${2}"
-        shift 2
-      else
-        printf "Error: --default requires a value\n" >&2
-        exit 1
-      fi
-      ;;
-    -h | --help)
-      show_usage
-      exit 0
-      ;;
-    --version)
-      printf "verbosity 1.1.0\n"
-      exit 0
-      ;;
-    --level=*)
-      input="${1#*=}"
-      shift
-      ;;
-    --default=*)
-      default="${1#*=}"
-      shift
-      ;;
-    -*)
-      printf "Error: Unknown option %s\n" "${1}" >&2
-      exit 1
-      ;;
-    *)
-      #{ Positional arguments (backwards compatibility)
-      if [ -z "${input}" ] && [ -z "${operation}" ]; then
-        input="${1}"
-      elif [ "${default}" = "3" ]; then
-        default="${1}"
-      fi
-      shift
-      ;;
+        ;;
+      *)
+        #{ Positional arguments (backwards compatibility)
+        if [ -z "${input}" ] && [ -z "${operation}" ]; then
+          input="${1}"
+        elif [ "${default}" = "3" ]; then
+          default="${1}"
+        fi
+        shift
+        ;;
     esac
   done
 }
@@ -155,17 +155,17 @@ parse_arguments() {
 #{ Validate default parameter
 validate_default() {
   case "${default}" in
-  '' | *[!0-9]*)
-    printf "Error: Default must be numeric (0-5), got: %s\n" "${default}" >&2
-    exit 1
-    ;;
-  *)
-    if [ "${default}" -lt 0 ]; then
-      default="0"
-    elif [ "${default}" -gt 5 ]; then
-      default="5"
-    fi
-    ;;
+    '' | *[!0-9]*)
+      printf "Error: Default must be numeric (0-5), got: %s\n" "${default}" >&2
+      exit 1
+      ;;
+    *)
+      if [ "${default}" -lt 0 ]; then
+        default="0"
+      elif [ "${default}" -gt 5 ]; then
+        default="5"
+      fi
+      ;;
   esac
 }
 
@@ -188,19 +188,19 @@ set_input_default() {
 #{ Convert input to lowercase using only shell builtins
 convert_to_lowercase() {
   case "${input}" in
-  *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-    #{ Convert manually on the most common patterns first
-    case "${input}" in
-    ERROR | ERR | RED) input="error" ;;
-    WARN* | ORANGE | YELLOW) input="warn" ;;
-    INFO* | BLUE) input="info" ;;
-    DEBUG | GREEN) input="debug" ;;
-    TRACE | MAGENTA) input="trace" ;;
-    QUIET | SILENT | OFF | FALSE | GRAY | GREY) input="quiet" ;;
-    *) input="$(printf '%s' "${input}" | tr '[:upper:]' '[:lower:]')" ;;
-    esac
-    ;;
-  *) ;;
+    *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
+      #{ Convert manually on the most common patterns first
+      case "${input}" in
+        ERROR | ERR | RED) input="error" ;;
+        WARN* | ORANGE | YELLOW) input="warn" ;;
+        INFO* | BLUE) input="info" ;;
+        DEBUG | GREEN) input="debug" ;;
+        TRACE | MAGENTA) input="trace" ;;
+        QUIET | SILENT | OFF | FALSE | GRAY | GREY) input="quiet" ;;
+        *) input="$(printf '%s' "${input}" | tr '[:upper:]' '[:lower:]')" ;;
+      esac
+      ;;
+    *) ;;
   esac
 }
 
@@ -212,44 +212,44 @@ handle_operation() {
 
   #{ Convert current level to numeric if it's named
   case "${current_level}" in
-  [0-5]) numeric_current="${current_level}" ;;
-  *)
-    #{ Handle named levels
-    case "${current_level}" in
-    ERROR | ERR | RED | error | err | red) numeric_current="1" ;;
-    WARN* | ORANGE | YELLOW | warn* | orange | yellow) numeric_current="2" ;;
-    INFO* | BLUE | info* | blue) numeric_current="3" ;;
-    DEBUG | GREEN | debug | green) numeric_current="4" ;;
-    TRACE | MAGENTA | trace | magenta) numeric_current="5" ;;
-    QUIET | SILENT | OFF | FALSE | GRAY | GREY | quiet | silent | off | false | gray | grey) numeric_current="0" ;;
-    *) numeric_current="3" ;; #{ Default to INFO level
-    esac
-    ;;
+    [0-5]) numeric_current="${current_level}" ;;
+    *)
+      #{ Handle named levels
+      case "${current_level}" in
+        ERROR | ERR | RED | error | err | red) numeric_current="1" ;;
+        WARN* | ORANGE | YELLOW | warn* | orange | yellow) numeric_current="2" ;;
+        INFO* | BLUE | info* | blue) numeric_current="3" ;;
+        DEBUG | GREEN | debug | green) numeric_current="4" ;;
+        TRACE | MAGENTA | trace | magenta) numeric_current="5" ;;
+        QUIET | SILENT | OFF | FALSE | GRAY | GREY | quiet | silent | off | false | gray | grey) numeric_current="0" ;;
+        *) numeric_current="3" ;; #{ Default to INFO level
+      esac
+      ;;
   esac
 
   #{ Apply operation
   case "${operation}" in
-  increment)
-    if [ -n "${input}" ]; then
-      #{ Increment by specified amount
-      result="$((numeric_current + input))"
-    else
-      #{ Increment by 1
-      result="$((numeric_current + 1))"
-    fi
-    ;;
-  decrement)
-    if [ -n "${input}" ]; then
-      #{ Decrement by specified amount
-      result="$((numeric_current - input))"
-    else
-      #{ Decrement by 1
-      result="$((numeric_current - 1))"
-    fi
-    ;;
-  *)
-    result="${numeric_current}"
-    ;;
+    increment)
+      if [ -n "${input}" ]; then
+        #{ Increment by specified amount
+        result="$((numeric_current + input))"
+      else
+        #{ Increment by 1
+        result="$((numeric_current + 1))"
+      fi
+      ;;
+    decrement)
+      if [ -n "${input}" ]; then
+        #{ Decrement by specified amount
+        result="$((numeric_current - input))"
+      else
+        #{ Decrement by 1
+        result="$((numeric_current - 1))"
+      fi
+      ;;
+    *)
+      result="${numeric_current}"
+      ;;
   esac
 
   #{ Clamp to valid range (0-5)
@@ -271,38 +271,38 @@ handle_verbosity_patterns() {
   fi
 
   case "${input}" in
-  0 | none | off | quiet | silent | false | gray | grey) printf "0" ;;
-  1 | err* | low | red) printf "1" ;;
-  2 | warn* | medium | orange | yellow) printf "2" ;;
-  3 | info* | normal | blue) printf "3" ;;
-  4 | debug | verbose | on | green) printf "4" ;;
-  5 | trace | high | magenta) printf "5" ;;
-  -) printf "0" ;;
-  -[0-9]* | [0-9]*)
-    #{ Extract numeric part and validate
-    case "${input}" in
-    *[!0-9-]* | --*) printf "%d" "${default}" ;;
-    *)
-      if [ "${input}" -lt 0 ]; then
-        printf "0"
-      elif [ "${input}" -gt 5 ]; then
-        printf "5"
-      else
-        printf "%d" "${input}"
-      fi
+    0 | none | off | quiet | silent | false | gray | grey) printf "0" ;;
+    1 | err* | low | red) printf "1" ;;
+    2 | warn* | medium | orange | yellow) printf "2" ;;
+    3 | info* | normal | blue) printf "3" ;;
+    4 | debug | verbose | on | green) printf "4" ;;
+    5 | trace | high | magenta) printf "5" ;;
+    -) printf "0" ;;
+    -[0-9]* | [0-9]*)
+      #{ Extract numeric part and validate
+      case "${input}" in
+        *[!0-9-]* | --*) printf "%d" "${default}" ;;
+        *)
+          if [ "${input}" -lt 0 ]; then
+            printf "0"
+          elif [ "${input}" -gt 5 ]; then
+            printf "5"
+          else
+            printf "%d" "${input}"
+          fi
+          ;;
+      esac
       ;;
-    esac
-    ;;
-  *)
-    #{ Return default for any unrecognized input
-    printf "%d" "${default}"
-    ;;
+    *)
+      #{ Return default for any unrecognized input
+      printf "%d" "${default}"
+      ;;
   esac
 }
 
 #{ Show usage information
 show_usage() {
-  cat <<'EOF'
+  cat << 'EOF'
 Usage: verbosity [OPTIONS] [LEVEL] [DEFAULT_LEVEL]
 
 Parse and normalize verbosity levels to numeric values (0-5).

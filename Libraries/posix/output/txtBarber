@@ -21,4 +21,4 @@ text_to_trim="$(
       '{$0=substr($0, tabs+1)}1'
 )"
 
-printf "%s" "$text_to_trim"
+printf "%s" "${text_to_trim}"

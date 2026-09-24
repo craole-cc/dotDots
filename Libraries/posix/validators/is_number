@@ -6,8 +6,8 @@
 
 __info__() {
   _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Check if the value is a valid number"
   _cmd_DEPENDENCIES="ripgrep, weHave"
@@ -15,9 +15,9 @@ __info__() {
     cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
-              $_cmd_NAME <[options]> <[arguments]>
+              ${_cmd_NAME} <[options]> <[arguments]>
 #>----------------------------------------------------<#
-  $_cmd_DESCRIPTION
+  ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version
@@ -33,10 +33,10 @@ USAGE_GUIDE
   )"
 
   #{ Usage display
-  __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
+  __help__() { printf "%s\n" "${_cmd_USAGEGUIDE}"; }
 
   #{ Version display
-  __version__() { printf "%s\n" "$_cmd_VERSION"; }
+  __version__() { printf "%s\n" "${_cmd_VERSION}"; }
 
 }
 
@@ -65,7 +65,7 @@ __opts__() {
 
     #{ Declare user options
     for arg in "$@"; do
-      case "$arg" in
+      case "${arg}" in
       -h | --help) __help__ ;;
       -v | --version) __version__ ;;
       -d | --verbose) verbose=true ;;
@@ -107,11 +107,11 @@ __defaults__() {
 }
 
 __msg__() {
-  [ "$verbose" ] || return
+  [ -n "${verbose}" ] || return
   case "$1" in
-  --integer) printf "%s is an integer\n" "$num" ;;
-  --float) printf "%s is a floating-point number\n" "$num" ;;
-  --invalid) printf "%s is not a valid number\n" "$num" ;;
+  --integer) printf "%s is an integer\n" "${num}" ;;
+  --float) printf "%s is a floating-point number\n" "${num}" ;;
+  --invalid) printf "%s is not a valid number\n" "${num}" ;;
   esac
 
 }
@@ -119,12 +119,12 @@ __msg__() {
 __process__() {
 
   #{ Float
-  if [ "$allow_floats" ] &&
-    echo "$num" | regrep "$regex_float"; then
+  if [ -n "${allow_floats}" ] &&
+    echo "${num}" | regrep "${regex_float}"; then
     __msg__ --float
 
   #{ Integer
-  elif echo "$num" | regrep "$regex_integer"; then
+  elif echo "${num}" | regrep "${regex_integer}"; then
     __msg__ --integer
 
   #{ Invalid
@@ -138,7 +138,7 @@ __process__() {
 __cleanup__() {
   unset menu type style theme
 
-  if [ "$invalid" ]; then
+  if [ -n "${invalid}" ]; then
     exit 1
   else
     exit 0

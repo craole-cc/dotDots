@@ -3,7 +3,7 @@
 
 #| Declare Bar to use
 __opts__() {
-  if [ "$1" ]; then
+  if [ -n "$1" ]; then
     bar_to_use="$1"
   else
     # bar_to_use="waybar"
@@ -14,8 +14,8 @@ __opts__() {
 
 __env__() {
   case "${bar_to_use}" in
-    waybar) bar_rc="/storage/DOTS/Config/tools/widgets/waybar/config" ;;
-    *) ;;
+  waybar) bar_rc="/storage/DOTS/Config/tools/widgets/waybar/config" ;;
+  *) ;;
   esac
   # . "${DOTS_ENV_CTX}/${bar_to_use}" &&
   #     [ -f "$BAR_CONF" ] && bar_rc="$BAR_CONF"
@@ -26,7 +26,7 @@ __env__() {
 __kill__() { pkill "${bar_to_use}"; }
 
 __launch__() {
-  [ "${bar_rc}" ] && bar_conf_arg="-c ${bar_rc}"
+  [ -n "${bar_rc}" ] && bar_conf_arg="-c ${bar_rc}"
   bar_cmd="${bar_to_use} ${bar_conf_arg} -l info"
   eval "${bar_cmd}"
 }

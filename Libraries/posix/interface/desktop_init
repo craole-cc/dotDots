@@ -6,8 +6,8 @@
 
 __info__() {
   _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Allow the use of decimals in arithmetic equations"
   _cmd_DEPENDENCIES="(python or bc), printf, echo, __cmd_exists__"
@@ -15,12 +15,12 @@ __info__() {
     cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
-                      USAGE: $_cmd_NAME
+                      USAGE: ${_cmd_NAME}
 #>----------------------------------------------------<#
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
             command <[options]> <[arguments]>
-      $_cmd_NAME --desktop "desktop to initialize"
+      ${_cmd_NAME} --desktop "desktop to initialize"
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version
@@ -40,13 +40,13 @@ USAGE_GUIDE
 
 #{ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
+  printf "%s\n" "${_cmd_USAGEGUIDE}"
   exit 0
 }
 
 #{ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
+  printf "%s\n" "${_cmd_VERSION}"
   exit 0
 }
 
@@ -82,11 +82,11 @@ __opts__() {
 # ===================================================================
 
 __defaults__() {
-  [ "$DESKTOP" ] || DESKTOP="$1"
+  [ -n "${DESKTOP}" ] || DESKTOP="$1"
 
-  case "$DESKTOP" in
-  sway | wayfire | river) [ "$PROTOCOL" ] || PROTOCOL=wayland ;;
-  qtile) [ "$PROTOCOL" ] || PROTOCOL=X11 ;;
+  case "${DESKTOP}" in
+  sway | wayfire | river) [ -n "${PROTOCOL}" ] || PROTOCOL=wayland ;;
+  qtile) [ -n "${PROTOCOL}" ] || PROTOCOL=X11 ;;
   *) printf "Unknown desktop: %s" "${DESKTOP}" ;;
   esac
 }
@@ -98,7 +98,7 @@ __defaults__() {
 __process__() {
 
   #| Calculate based on app selection
-  case "$DESKTOP" in
+  case "${DESKTOP}" in
   fend) _fend_ "$*" ;;
   qalc) _qalc_ "$*" ;;
   python_math) _pc_ "$*" ;;
@@ -116,7 +116,7 @@ __error__() {
   case $* in
   -s | --string)
     msg="🟥 Please ensure that a valid equation is entered."
-    printf "\n%s\n" "$msg"
+    printf "\n%s\n" "${msg}"
     __help__
     exit 1
     ;;
@@ -162,9 +162,9 @@ __opts__ "$@"
 #{ Establish defaults
 __defaults__ "$@"
 
-echo "DESKTOP: $DESKTOP"
-echo "PROTOCOL: $PROTOCOL"
-echo "TEST: $TEST"
+echo "DESKTOP: ${DESKTOP}"
+echo "PROTOCOL: ${PROTOCOL}"
+echo "TEST: ${TEST:?}"
 echo "ALL: $*"
 
 #{ Allow verbose option if requested

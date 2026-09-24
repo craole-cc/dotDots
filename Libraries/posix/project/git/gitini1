@@ -11,9 +11,9 @@ main() {
   validate_dependencies
 
   #| Execute Process
-  if [ "$debug" ]; then
+  if [ -n "${debug}" ]; then
     execute_tests
-  elif [ "$info" ]; then
+  elif [ -n "${info}" ]; then
     get_platform
     execute_info
   else
@@ -27,8 +27,8 @@ main() {
 
 define_metadata() {
   _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
   _cmd_DEPENDENCIES="git, bat"
@@ -45,19 +45,19 @@ define_defaults() {
   icon_for_init="🆕"
   exit_code=0
 
-  [ "$GEET_DIR" ] || GEET_DIR="$(get_dir)"
-  [ "$GEET_DIR" ] || GEET_PLATFORM="$(get_platform)"
-  [ "$GEET_OWNER" ] || GEET_OWNER="$(get_owner)"
-  [ "$GEET_NAME" ] || GEET_NAME="$(get_repo_name)"
-  [ "$GEET_USER" ] || GEET_USER="$(get_user_name)"
-  [ "$GEET_EMAIL" ] || GEET_EMAIL="$(get_user_email)"
-  [ "$GEET_URL" ] || GEET_URL="$(get_remote_url)"
-  [ "$GEET_PAT" ] || GEET_PAT="$(get_pat)"
-  [ "$GEET_BRANCH" ] || GEET_BRANCH="$(get_branch)"
-  [ "$GEET_MESSAGE" ] || GEET_MESSAGE="$(get_commit_message)"
-  [ "$GEET_STORE_CREDENTIALS" ] || GEET_STORE_CREDENTIALS=true
-  [ "$GEET_INCLUDE_SUBMODULES" ] || GEET_INCLUDE_SUBMODULES=true
-  [ "$GEET_SCOPE" ] || GEET_SCOPE="local"
+  [ -n "${GEET_DIR}" ] || GEET_DIR="$(get_dir)"
+  [ -n "${GEET_DIR}" ] || GEET_PLATFORM="$(get_platform)"
+  [ -n "${GEET_OWNER}" ] || GEET_OWNER="$(get_owner)"
+  [ -n "${GEET_NAME}" ] || GEET_NAME="$(get_repo_name)"
+  [ -n "${GEET_USER}" ] || GEET_USER="$(get_user_name)"
+  [ -n "${GEET_EMAIL}" ] || GEET_EMAIL="$(get_user_email)"
+  [ -n "${GEET_URL}" ] || GEET_URL="$(get_remote_url)"
+  [ -n "${GEET_PAT}" ] || GEET_PAT="$(get_pat)"
+  [ -n "${GEET_BRANCH}" ] || GEET_BRANCH="$(get_branch)"
+  [ -n "${GEET_MESSAGE}" ] || GEET_MESSAGE="$(get_commit_message)"
+  [ -n "${GEET_STORE_CREDENTIALS}" ] || GEET_STORE_CREDENTIALS=true
+  [ -n "${GEET_INCLUDE_SUBMODULES}" ] || GEET_INCLUDE_SUBMODULES=true
+  [ -n "${GEET_SCOPE}" ] || GEET_SCOPE="local"
 }
 
 get_dir() {
@@ -74,7 +74,7 @@ get_dir() {
 }
 
 get_config() {
-  git config --list --"${scope}" 2> /dev/null
+  git config --list --"${scope:?}" 2> /dev/null
 }
 
 get_remote_url() {
@@ -97,19 +97,19 @@ get_user_name() {
   )"
   from_config="$(git config --get user.name)"
   from_owner="$(get_owner)"
-  from_system="${USER:-"$USERNAME"}"
+  from_system="${USER:-"${USERNAME}"}"
 
-  if [ "$from_url" ]; then
-    result="$from_url"
-  elif [ "$from_config" ]; then
-    result="$from_config"
-  elif [ "$from_owner" ]; then
-    result="$from_owner"
-  elif [ "$from_system" ]; then
-    result="$from_system"
+  if [ -n "${from_url}" ]; then
+    result="${from_url}"
+  elif [ -n "${from_config}" ]; then
+    result="${from_config}"
+  elif [ -n "${from_owner}" ]; then
+    result="${from_owner}"
+  elif [ -n "${from_system}" ]; then
+    result="${from_system}"
   fi
 
-  printf "%s" "$result"
+  printf "%s" "${result}"
 }
 
 get_user_email() {
@@ -123,7 +123,7 @@ get_repo_name() {
 
 get_pat() {
   result="$(get_remote_url | sed "s#https://[^:]\+:\([^@]\+\)@.*#\1#")"
-  [ "$(get_remote_url)" != "$result" ] && printf "%s" "$result"
+  [ "$(get_remote_url)" != "${result}" ] && printf "%s" "${result}"
 }
 
 get_branch() {
@@ -131,7 +131,7 @@ get_branch() {
     || git describe --exact-match HEAD 2> /dev/null \
     || git branch --show-current 2> /dev/null \
     || git branch 2> /dev/null | sed --quiet 's/^\* //p' 2> /dev/null \
-    || printf "%s" "$default_branch"
+    || printf "%s" "${default_branch}"
 }
 
 get_commit_message() {
@@ -139,13 +139,13 @@ get_commit_message() {
     previous_message="$(git log -1 --pretty=%B)"
 
     [ "$(git log --oneline | wc -l)" -eq 1 ] \
-      && [ "$previous_message" = "$icon_for_init" ] \
-      && previous_message="$icon_for_update"
+      && [ "${previous_message}" = "${icon_for_init}" ] \
+      && previous_message="${icon_for_update}"
   else
-    previous_message="$icon_for_init"
+    previous_message="${icon_for_init}"
   fi
 
-  printf "%s" "$previous_message"
+  printf "%s" "${previous_message}"
 }
 
 # @ ============================================================= @ #
@@ -166,7 +166,7 @@ parse_arguments() {
         exit 0
         ;;
       -v | --version)
-        console_log "$_cmd_VERSION" --ll
+        console_log "${_cmd_VERSION}" --ll
         exit 0
         ;;
       -d | --verbose | --debug) verbose=true ;;
@@ -196,7 +196,7 @@ parse_arguments() {
         console_log "Use -h or --help to display the usage guide." --ll
         exit 1
         ;;
-      *) message="$message $1" ;;
+      *) message="${message} $1" ;;
     esac
     shift
   done
@@ -214,46 +214,46 @@ validate_dependencies() {
   missing_deps_count=0
 
   # | Validate dependencies as executable files
-  for dependency in $(parse_list "$_cmd_DEPENDENCIES"); do
-    pathof "$dependency" --is-executable \
-      || if [ -n "$missing_deps" ]; then
-        missing_deps="$missing_deps, $dependency"
+  for dependency in $(parse_list "${_cmd_DEPENDENCIES}"); do
+    pathof "${dependency}" --is-executable \
+      || if [ -n "${missing_deps}" ]; then
+        missing_deps="${missing_deps}, ${dependency}"
       else
-        missing_deps="$dependency"
+        missing_deps="${dependency}"
       fi
   done
 
   # | Continue the program if dependency paths are validated
-  [ "$missing_deps" ] || return
+  [ -n "${missing_deps}" ] || return
 
   # | Count the number of missing dependencies
   missing_deps_count="$(
-    console_log "$missing_deps" \
+    console_log "${missing_deps}" \
       | tr ',' '\n' | wc -l
   )"
 
   # | Update the error message based on the count
   msg="Missing dependency"
-  [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
+  [ "${missing_deps_count}" -gt 1 ] && msg="Missing dependencies"
 
   # | Halt the program and report missing dependencies
   # TODO: Fix console_log to print each dependency on a new line
-  console_log --error "$msg" "$missing_deps"
+  console_log --error "${msg}" "${missing_deps}"
   exit_code=2
-  exit "$exit_code"
+  exit "${exit_code}"
 }
 
 validate_message() {
   # Strip the name and email from the message
-  if [ -n "$name" ]; then
-    message=$(printf "%s" "$message" | sed "s/$name //g")
+  if [ -n "${name}" ]; then
+    message=$(printf "%s" "${message}" | sed "s/${name} //g")
   fi
 
-  if [ -n "$email" ]; then
-    message=$(printf "%s" "$message" | sed "s/$email //g")
+  if [ -n "${email}" ]; then
+    message=$(printf "%s" "${message}" | sed "s/${email} //g")
   fi
 
-  case "$message" in "$name" | "$email" | "$branch")
+  case "${message}" in "${name}" | "${email}" | "${branch}")
     unset message
     ;;
   esac
@@ -282,7 +282,7 @@ validate_message() {
 # @ ============================================================= @ #
 
 updates_pending() {
-  [ "$(git status --porcelain)" ]
+  [ -n "$(git status --porcelain)" ]
 }
 
 set_config() {
@@ -294,13 +294,13 @@ set_config() {
     shift
   done
 
-  [ "$key" ] && [ "$val" ] \
-    && eval "git config --${scope}" "$key" "$val"
+  [ -n "${key}" ] && [ -n "${val}" ] \
+    && eval "git config --${scope:?}" "${key}" "${val}"
 }
 
 set_dir() {
-  if git init --initial-branch="$branch" > /dev/null 2>&1; then
-    [ "$verbose" ] && console_log --info "GIT_DIR" "$(get_dir)"
+  if git init --initial-branch="${branch}" > /dev/null 2>&1; then
+    [ -n "${verbose}" ] && console_log --info "GIT_DIR" "$(get_dir)"
   else
     console_log --error "Failed to rename branch."
     return 2
@@ -308,8 +308,8 @@ set_dir() {
 }
 
 set_branch() {
-  if git branch --move --force "$branch" > /dev/null 2>&1; then
-    [ "$verbose" ] && console_log --info "Branch" "$(get_branch)"
+  if git branch --move --force "${branch}" > /dev/null 2>&1; then
+    [ -n "${verbose}" ] && console_log --info "Branch" "$(get_branch)"
   else
     console_log --error "Failed to initialize the repository."
     return 2
@@ -317,8 +317,8 @@ set_branch() {
 }
 
 set_credential_store() {
-  [ "$store_creds" ] \
-    && eval "git config --${scope} credential.helper store" 2> /dev/null
+  [ -n "${store_creds}" ] \
+    && eval "git config --${scope:?} credential.helper store" 2> /dev/null
 }
 
 # set_remote_origin() {
@@ -329,16 +329,16 @@ set_credential_store() {
 set_message() {
   validate_message
   get_message
-  message="${message:-$previous_message}"
-  [ "$verbose" ] && console_log --info "Message" "$previous_message"
+  message="${message:-${previous_message}}"
+  [ -n "${verbose}" ] && console_log --info "Message" "${previous_message}"
 }
 
 set_email() {
-  [ "$email" ] && set_config --key "user.email" --val "$email"
+  [ -n "${email}" ] && set_config --key "user.email" --val "${email}"
 }
 
 set_name() {
-  [ "$name" ] && set_config --key "user.name" --val "$name"
+  [ -n "${name}" ] && set_config --key "user.name" --val "${name}"
 }
 
 # @ ============================================================= @ #
@@ -346,21 +346,21 @@ set_name() {
 # @ ============================================================= @ #
 
 execute_info() {
-  if [ "$GEET_DIR" ]; then
+  if [ -n "${GEET_DIR}" ]; then
     # TODO: Improve output
-    console_log --info "DIR           " "$GEET_DIR"
-    console_log --info "PLATFORM      " "$GEET_PLATFORM"
-    console_log --info "OWNER         " "$GEET_OWNER"
-    console_log --info "NAME          " "$GEET_NAME"
-    console_log --info "USER          " "$GEET_USER"
-    console_log --info "EMAIL         " "$GEET_EMAIL"
-    console_log --info "BRANCH        " "$GEET_BRANCH"
-    console_log --info "URL           " "$GEET_URL"
-    [ "$GEET_PAT" ] \
-      && console_log --info "PAT           " "$GEET_PAT"
+    console_log --info "DIR           " "${GEET_DIR}"
+    console_log --info "PLATFORM      " "${GEET_PLATFORM}"
+    console_log --info "OWNER         " "${GEET_OWNER}"
+    console_log --info "NAME          " "${GEET_NAME}"
+    console_log --info "USER          " "${GEET_USER}"
+    console_log --info "EMAIL         " "${GEET_EMAIL}"
+    console_log --info "BRANCH        " "${GEET_BRANCH}"
+    console_log --info "URL           " "${GEET_URL}"
+    [ -n "${GEET_PAT}" ] \
+      && console_log --info "PAT           " "${GEET_PAT}"
     # console_log --info "SUBMODULES    " "$(get_submodules)"
     # set_message
-    console_log --info "MESSAGE       " "$GEET_MESSAGE" --ll
+    console_log --info "MESSAGE       " "${GEET_MESSAGE}" --ll
   else
     console_log "This directory has not been initialized for git"
   fi
@@ -368,10 +368,10 @@ execute_info() {
 
 execute_process() {
   if get_dir --quiet; then
-    [ "$branch" ] && [ "$(get_branch)" = "$branch" ] \
+    [ -n "${branch}" ] && [ "$(get_branch)" = "${branch}" ] \
       && set_branch
   else
-    branch="${branch:-"$default_branch"}"
+    branch="${branch:-"${default_branch}"}"
     set_dir
   fi
 
@@ -388,8 +388,8 @@ execute_process() {
   then
     updates_pending && {
       git add --all
-      git commit --quiet --message="$message"
-      [ "$verbose" ] && console_log "$message"
+      git commit --quiet --message="${message}"
+      [ -n "${verbose}" ] && console_log "${message}"
     }
   else
     exit_code="$?"
@@ -397,15 +397,15 @@ execute_process() {
 
   execute_info
 
-  exit "$exit_code"
+  exit "${exit_code}"
 }
 
 define_usage() {
 
-  title="$_cmd_NAME ($_cmd_VERSION)"
+  title="${_cmd_NAME} (${_cmd_VERSION})"
   border="::-----------------------------------------------------------------::"
   padding=$(((${#border} - ${#title}) / 2))
-  heading="$(printf "%*s\n" $((padding + ${#title})) "$title")"
+  heading="$(printf "%*s\n" $((padding + ${#title})) "${title}")"
   note="$(
     fold -s -w $((${#border} - 6)) << 'NOTE' | sed 's/^/    /'
  can be run with or without options. If options are not provided, it will attempt to perform a commit with the current repository state and default configurations.
@@ -417,17 +417,17 @@ NOTE
   )"
 
   cat << USAGE_GUIDE
-$border
-$heading
-$border
+${border}
+${heading}
+${border}
   Usage:
-    $_cmd_NAME [OPTIONS] <COMMIT_MESSAGE>
+    ${_cmd_NAME} [OPTIONS] <COMMIT_MESSAGE>
 
   Description:
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 
   Dependencies:
-    $_cmd_DEPENDENCIES
+    ${_cmd_DEPENDENCIES}
 
   Options:
     [General]
@@ -446,10 +446,10 @@ $border
     -U, --url         Repository URL
     -r, --repo        Repository name
     -o, --owner       Repo owner
-    -P, --platform    Git platform [Default: github, ENV: ${_cmd_ENV}PLATFORM]
-    -R, --recursive   Handle submodules recursively [ENV: ${_cmd_ENV}RECURSIVE, Default: false]
-    -s, --scope       Configuration scope [ENV: ${_cmd_ENV}CONFIG_SCOPE, Default: local ]
-    -m, --message     Commit message [ENV: ${_cmd_ENV}COMMIT_MESSAGE, Default: {last commit message}]
+    -P, --platform    Git platform [Default: github, ENV: ${_cmd_ENV:?}PLATFORM]
+    -R, --recursive   Handle submodules recursively [ENV: ${_cmd_ENV:?}RECURSIVE, Default: false]
+    -s, --scope       Configuration scope [ENV: ${_cmd_ENV:?}CONFIG_SCOPE, Default: local ]
+    -m, --message     Commit message [ENV: ${_cmd_ENV:?}COMMIT_MESSAGE, Default: {last commit message}]
 
     [Status]
     -s, --status      Display status
@@ -464,69 +464,69 @@ $border
 
   Examples:
     # Set user name, email, and branch
-    $_cmd_NAME -n 'John Doe' -e 'john.doe@example.com' -b 'torch'
+    ${_cmd_NAME} -n 'John Doe' -e 'john.doe@example.com' -b 'torch'
 
     # Display information about the current Git repository
-    $_cmd_NAME -i
+    ${_cmd_NAME} -i
 
   Environment Variables:
     The options can also be set using defaults.
 
     GEET_DIR
       Description: Git directory
-      Default: $GEET_DIR
+      Default: ${GEET_DIR}
 
     GEET_PLATFORM
       Description: Git username
-      Default: $GEET_PLATFORM
+      Default: ${GEET_PLATFORM}
 
     GEET_OWNER
       Description: The owner of the Git repository.
-      Default: $GEET_OWNER
+      Default: ${GEET_OWNER}
 
     GEET_NAME
       Description: The name of the Git repository.
-      Default: $GEET_NAME
+      Default: ${GEET_NAME}
 
     GEET_USER
       Description: The user.name Git configuration if set, otherwise, the owner or current user.
-      Default: $GEET_USER
+      Default: ${GEET_USER}
 
     GEET_EMAIL
       Description: The user.email Git configuration if set.
-      Default: $GEET_EMAIL
+      Default: ${GEET_EMAIL}
 
     GEET_URL
       Description: The url [HTTPS|SSH] of the Git repository.
-      Default: $GEET_URL
+      Default: ${GEET_URL}
 
     GEET_PAT
       Description: The Personal Access Token for the Git repository.
-      Default: $GEET_PAT
+      Default: ${GEET_PAT}
 
     GEET_BRANCH
       Description: The name of the branch to be used for the Git repository.
-      Default: $GEET_BRANCH
+      Default: ${GEET_BRANCH}
 
     GEET_MESSAGE
       Description: The commit message for the current changes.
-      Default: $GEET_MESSAGE
+      Default: ${GEET_MESSAGE}
 
     GEET_STORE_CREDENTIALS
       Description: Store credentials for the Git repository, particularly the PAT.
-      Default: $GEET_STORE_CREDENTIALS
+      Default: ${GEET_STORE_CREDENTIALS}
 
     GEET_INCLUDE_SUBMODULES
       Description: Include submodules of the repository.
-      Default: $GEET_INCLUDE_SUBMODULES
+      Default: ${GEET_INCLUDE_SUBMODULES}
 
     GEET_SCOPE
       Description: The default configuration scope.
-      Default: $GEET_SCOPE
+      Default: ${GEET_SCOPE}
 
   Note:
-$note
-$border
+${note}
+${border}
 USAGE_GUIDE
 }
 

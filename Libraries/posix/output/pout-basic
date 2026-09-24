@@ -59,7 +59,7 @@ while [ "$#" -gt 0 ]; do
   --print) unset hide_output ;;
   --no-log | --console-only) unset log ;;
   -L | --log)
-    [ "$2" ] && {
+    [ -n "$2" ] && {
       validate_file --parent "$2" || return 1
       log="$2"
       shift
@@ -82,7 +82,7 @@ while [ "$#" -gt 0 ]; do
     fi
     ;;
   --key)
-    if [ "$2" ]; then
+    if [ -n "$2" ]; then
       key="$2"
       shift
     else
@@ -91,16 +91,16 @@ while [ "$#" -gt 0 ]; do
     fi
     ;;
   --val)
-    if [ "$2" ]; then
+    if [ -n "$2" ]; then
       val="$2"
       shift
     else
       val="{ Missing Value }"
-      val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
+      val_fmt="${FMT_RED:?}${val}${FMT_NORMAL:?}"
     fi
     ;;
   --sep*)
-    if [ "$2" ]; then
+    if [ -n "$2" ]; then
       sep="$2"
       shift
     else
@@ -128,15 +128,15 @@ while [ "$#" -gt 0 ]; do
   --pad)
     pad=true
     unset log
-    [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+    [ -n "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
       pad="$2"
       shift
     }
     ;;
   -m | --msg | --message)
-    [ "$2" ] && {
-      if [ "$msg" ]; then
-        msg="$msg $2"
+    [ -n "$2" ] && {
+      if [ -n "${msg}" ]; then
+        msg="${msg} $2"
       else
         msg="$2"
       fi
@@ -144,8 +144,8 @@ while [ "$#" -gt 0 ]; do
     }
     ;;
   *)
-    if [ "$msg" ]; then
-      msg="$msg $1"
+    if [ -n "${msg}" ]; then
+      msg="${msg} $1"
     else
       msg="$1"
     fi
@@ -156,41 +156,41 @@ done
 
 set_pair() {
   #{ Update message with key-value pair
-  [ "$key" ] && [ "$val" ] && {
+  [ -n "${key}" ] && [ -n "${val}" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
 
     #| Formatted key-value pair
-    pair_fmt="${key}${sep}${val_fmt:-$val}"
+    pair_fmt="${key}${sep}${val_fmt:-${val}}"
   }
 }
 
 set_level() {
   #{ Append the level to the message.
-  case "$level" in
+  case "${level}" in
   0 | "error")
     level_log="[ERROR] "
-    level_fmt="${FMT_ERROR}${level_log}${FMT_NORMAL}"
+    level_fmt="${FMT_ERROR:?}${level_log}${FMT_NORMAL:?}"
     ;;
   1 | "warn")
     level_log="[ WARN] "
-    level_fmt="${FMT_WARN}${level_log}${FMT_NORMAL}"
+    level_fmt="${FMT_WARN:?}${level_log}${FMT_NORMAL:?}"
     ;;
   2 | "info")
     level_log="[ INFO] "
-    level_fmt="${FMT_INFO}${level_log}${FMT_NORMAL}"
+    level_fmt="${FMT_INFO:?}${level_log}${FMT_NORMAL:?}"
     ;;
   3 | "debug")
     level_log="[DEBUG] "
-    level_fmt="${FMT_DEBUG}${level_log}${FMT_NORMAL}"
+    level_fmt="${FMT_DEBUG:?}${level_log}${FMT_NORMAL:?}"
     ;;
   4 | "trace")
     level_log="[TRACE] "
-    level_fmt="${FMT_TRACE}${level_log}${FMT_NORMAL}"
+    level_fmt="${FMT_TRACE:?}${level_log}${FMT_NORMAL:?}"
     ;;
   *) unset level ;;
   esac
-  [ -n "$hide_level" ] && unset level
+  [ -n "${hide_level}" ] && unset level
 }
 
 #{ Get thetimestamp
@@ -223,7 +223,7 @@ set_level() {
 # esac
 
 pout-repeat --line "${leading_lines:-0}"
-printf "%s" "$msg"
+printf "%s" "${msg}"
 # if [ "$pad" ]; then
 # 	printf "%${padding}s%s%s" "${key_fmt:-"$key"}" "$sep" "${val_fmt:-"$val"}"
 # else

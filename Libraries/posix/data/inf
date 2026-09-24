@@ -39,7 +39,7 @@ prepare_environment() {
 
   get_os_type() {
     #{ Fetch the system type from the first available tool
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave uname; then
       info="$(uname --kernel-name)"
@@ -47,14 +47,14 @@ prepare_environment() {
       info="$(
         python -c 'import platform; print(platform.system())'
       )"
-    elif [ -n "$OSTYPE" ]; then
-      info="$OSTYPE"
+    elif [ -n "${OSTYPE}" ]; then
+      info="${OSTYPE}"
     else
       return 1
     fi
 
     case "$(
-      printf "%s" "$info" | tr '[:upper:]' '[:lower:]'
+      printf "%s" "${info}" | tr '[:upper:]' '[:lower:]'
     )" in
     *linux* | *gnu*) info="GNU/Linux" ;;
     *darwin*) info="Mac" ;;
@@ -70,12 +70,12 @@ prepare_environment() {
     esac
 
     #{ Update type for WSL Systems
-    [ -n "$WSL_DISTRO_NAME" ] &&
+    [ -n "${WSL_DISTRO_NAME}" ] &&
       info="Windows Subsystem for Linux [WSL]"
   }
 
   get_os_name() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif [ -f "/etc/debian_version" ]; then
       info="Debian"
@@ -91,7 +91,7 @@ prepare_environment() {
       after_welcome="${welcome_line#*Welcome to }"
 
       #{ Extract the first 2 columns
-      info="$(printf "%s\n" "$after_welcome" | awk '{print $1 " " $2}')"
+      info="$(printf "%s\n" "${after_welcome}" | awk '{print $1 " " $2}')"
     elif weHave hostnamectl; then
       info="$(hostnamectl | awk -F ': ' '/Operating System/ {print $2}')"
     elif weHave uname; then
@@ -103,7 +103,7 @@ prepare_environment() {
       info="$(python -mplatform)" # Windows-10-10.0.22621-SP0
 
       #{ Extract everything after the OS type
-      case "$info" in
+      case "${info}" in
       Windows*)
         # eg. 'Windows-10-10.0.22621-SP0' ->'10.0.22621-SP0'
         info="${info#*-*-}"
@@ -124,7 +124,7 @@ prepare_environment() {
   }
 
   get_os_kernel() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave uname; then
       info="$(uname --kernel-release)"
@@ -134,7 +134,7 @@ prepare_environment() {
   }
 
   get_os_architecture() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave arch; then
       info="$(arch)"
@@ -146,7 +146,7 @@ prepare_environment() {
   }
 
   get_hostname() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave uname; then
       info="$(uname --nodename)"
@@ -156,9 +156,9 @@ prepare_environment() {
   }
 
   get_username() {
-    [ -n "${user+x}" ] && info="$user"
-    [ -n "${USER+x}" ] && info="$USER"
-    [ -n "${USERNAME+x}" ] && info="$USERNAME"
+    [ -n "${user+x}" ] && info="${user}"
+    [ -n "${USER+x}" ] && info="${USER}"
+    [ -n "${USERNAME+x}" ] && info="${USERNAME}"
   }
 
   get_git() {
@@ -169,13 +169,13 @@ prepare_environment() {
     platform)
       regex="s#https://[^@]\+@##; s#git@\([^:]\+\):.*#\1#; s#https\?://##; s#/.*##"
       info="$(
-        process_info --git-url | sed "$regex"
+        process_info --git-url | sed "${regex}"
       )"
       ;;
     # owner)
     #   info
     user)
-      echo "$regex"
+      echo "${regex}"
       from_url="$(
         get_remote_url | sed --quiet 's#https://\([^:]\+\):.*@.*#\1#p'
       )"
@@ -183,16 +183,16 @@ prepare_environment() {
       from_owner="$(process_info --git-owner)"
       from_system="$(process_info --user)"
 
-      if [ "$info" ]; then
+      if [ -n "${info}" ]; then
         :
-      elif [ "$from_url" ]; then
-        info="$from_url"
-      elif [ "$from_config" ]; then
-        info="$from_config"
-      elif [ "$from_owner" ]; then
-        info="$from_owner"
-      elif [ "$from_system" ]; then
-        info="$from_system"
+      elif [ -n "${from_url}" ]; then
+        info="${from_url}"
+      elif [ -n "${from_config}" ]; then
+        info="${from_config}"
+      elif [ -n "${from_owner}" ]; then
+        info="${from_owner}"
+      elif [ -n "${from_system}" ]; then
+        info="${from_system}"
       fi
       ;;
     email)
@@ -219,7 +219,7 @@ prepare_environment() {
   }
 
   get_shell() {
-    case $SHELL in
+    case ${SHELL} in
     *bash*) info="Bourne Again SHell ${BASH_VERSION}" ;;
     *zsh*) info="Z SHell" ;;
     *dash*) info="Debian Almquist SHell" ;;
@@ -228,22 +228,22 @@ prepare_environment() {
     *) ;;
     esac
 
-    [ "$info" ] && info="$info | $SHELL"
+    [ -n "${info}" ] && info="${info} | ${SHELL}"
   }
 
   get_hardware_model() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave powershell; then
       #{ Create a helper script to store the hardware info
       hardware_info_script="/tmp/hardware_info_script.ps1"
-      [ -f "$hardware_info_script" ] || {
+      [ -f "${hardware_info_script}" ] || {
         line1='$hwInfo = Get-WmiObject -Class Win32_ComputerSystem'
         line2='Write-Host $hwInfo.Manufacturer $hwInfo.Model'
-        printf "%s\n%s\n" "$line1" "$line2" >"$hardware_info_script"
+        printf "%s\n%s\n" "${line1}" "${line2}" >"${hardware_info_script}"
       }
       info="$(
-        powershell -ExecutionPolicy Bypass -File "$hardware_info_script"
+        powershell -ExecutionPolicy Bypass -File "${hardware_info_script}"
       )"
     fi
   }
@@ -269,21 +269,21 @@ prepare_environment() {
       pipx
     "
 
-    for package_manager in $known_package_managers; do
-      if weHave "$package_manager" in; then
+    for package_manager in ${known_package_managers}; do
+      if weHave "${package_manager}" in; then
         break
       fi
     done
 
     #{ Throw an error if the package manager is not found
-    [ "$package_manager" ] || return 1
+    [ -n "${package_manager}" ] || return 1
 
     #{ Return the package manager
-    printf "%s\n" "$package_manager"
+    printf "%s\n" "${package_manager}"
   }
 
   get_window_manager() {
-    if [ "$info" ]; then
+    if [ -n "${info}" ]; then
       :
     elif weHave plasmashell; then
       info="KDE Plasma $(plasmashell --version | cut -d ' ' -f 2)"
@@ -301,13 +301,13 @@ prepare_environment() {
       info="$(wmctrl --mutter | awk -F ':\\s*' '/Name/ {print $2}')"
     elif weHave xprop; then
       info=$(xprop -root _NET_WM_NAME | awk -F '"' '{print $2}')
-    elif [ "$XDG_CURRENT_DESKTOP" ] || [ "$DESKTOP_SESSION" ]; then
+    elif [ -n "${XDG_CURRENT_DESKTOP}" ] || [ -n "${DESKTOP_SESSION}" ]; then
       de="$(
-        printf "%s" "${XDG_CURRENT_DESKTOP:-$DESKTOP_SESSION}" |
+        printf "%s" "${XDG_CURRENT_DESKTOP:-${DESKTOP_SESSION}}" |
           tr '[:upper:]' '[:lower:]'
       )"
 
-      case "$de" in
+      case "${de}" in
       *kde* | *plasma*) info="KDE Plasma" ;;
       *xfce*) info="Xfce" ;;
       *mate*) info="MATE" ;;
@@ -404,20 +404,20 @@ prepare_tests() {
 
     IFS='
     '
-    label_lines="$info_labels"
-    option_lines="$info_options"
+    label_lines="${info_labels}"
+    option_lines="${info_options}"
 
-    while [ -n "$label_lines" ]; do
+    while [ -n "${label_lines}" ]; do
       label="${label_lines%%"${IFS}"*}"
       label_lines="${label_lines#*"${IFS}"}"
 
       option="${option_lines%%"${IFS}"*}"
       option_lines="${option_lines#*"${IFS}"}"
 
-      [ "$label" ] && [ "$option" ] &&
+      [ -n "${label}" ] && [ -n "${option}" ] &&
         printf "%s: %s\n" \
-          "$label" \
-          "$(eval process_info "$option")"
+          "${label}" \
+          "$(eval process_info "${option}")"
     done
   }
 }
@@ -450,13 +450,13 @@ process_info() {
   -i | --info | *) get_sys_info ;;
   esac
 
-  if [ "$info" ]; then
+  if [ -n "${info}" ]; then
     #{ Sent the information to the printer
-    process_output "$info"
+    process_output "${info}"
   else
     #{ Failure to fill the variable should result in an error code
     exit_code=1
-    return "$exit_code"
+    return "${exit_code}"
   fi
 }
 
@@ -471,15 +471,15 @@ process_output() {
 
 process_tests() {
   # echo Testing
-  for test in $tests; do
-    printf "Test: %s\n" "$test"
-    time eval "$test"
+  for test in ${tests}; do
+    printf "Test: %s\n" "${test}"
+    time eval "${test}"
     printf "\n"
   done
 }
 
 point_of_exit() {
-  exit "$exit_code"
+  exit "${exit_code}"
 }
 
 point_of_entry "$@"

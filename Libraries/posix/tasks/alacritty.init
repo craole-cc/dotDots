@@ -5,7 +5,7 @@
 weHave alacritty || exit
 
 #| Load Environment Variables
-. "$DOTS_ENV_CTX/alacritty"
+. "${DOTS_ENV_CTX:?}/alacritty"
 
 #| Deploy Link
-symbiolink --src "$src" --lnk "$lnk" --force --verbose
+symbiolink --src "${src:?}" --lnk "${lnk:?}" --force --verbose

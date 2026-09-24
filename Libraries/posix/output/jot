@@ -18,13 +18,13 @@ jot_init() {
     case "$1" in
     --backup=*)
       backup_type="${1#*=}"
-      case "$backup_type" in
+      case "${backup_type}" in
       none | off | numbered | t | exiting | nil | simple | never) ;;
       *)
         pout \
           --lbl "Invalid Backup Type" \
-          --var "$backup_type" \
-          --usage "$func_usage" \
+          --var "${backup_type}" \
+          --usage "${func_usage}" \
           --fatal
         ;;
       esac
@@ -36,7 +36,7 @@ jot_init() {
           backup_type="$2"
           ;;
         *)
-          if [ ! "$2" ] || [ "$2" = "-*" ]; then
+          if [ ! -n "$2" ] || [ "$2" = "-*" ]; then
             pout "Backup file name is missing after '--backup' option."
           else
             backup_file_path="$2"
@@ -48,13 +48,13 @@ jot_init() {
       done
       ;;
     -f | --file)
-      [ "$2" ] && {
+      [ -n "$2" ] && {
         target_file_path="$2"
         shift
       }
       ;;
     -c | --contents)
-      [ "$2" ] && {
+      [ -n "$2" ] && {
         txt_to_jot="$(__txtBarber "$2")"
         shift
       }
@@ -63,7 +63,7 @@ jot_init() {
       pout \
         --lbl "Invalid Option" \
         --var "$1" \
-        --usage "$func_usage" \
+        --usage "${func_usage}" \
         --fatal
       ;;
     *)
@@ -80,22 +80,22 @@ jot_init() {
 
 backup_file() {
   #{ Set backup command
-  if [ "$backup_type" ]; then
-    backup_cmd="cp --backup=$backup_type"
+  if [ -n "${backup_type}" ]; then
+    backup_cmd="cp --backup=${backup_type}"
   else
     backup_cmd="cp"
   fi
 
   #{ All elevation if necessary
-  [ -w "$(dirname -- "$backup_file_path")" ] || {
-    backup_cmd="sudo $backup_cmd"
+  [ -w "$(dirname -- "${backup_file_path}")" ] || {
+    backup_cmd="sudo ${backup_cmd}"
   }
 
   #{ Update the backup command
-  backup_cmd="$backup_cmd $target_file_path $backup_file_path"
+  backup_cmd="${backup_cmd} ${target_file_path} ${backup_file_path}"
 
   #{ Generate the backup file
-  echo "$backup_cmd"
+  echo "${backup_cmd}"
   # eval "$backup_cmd"
 
   #{ Cleanup
@@ -103,15 +103,15 @@ backup_file() {
 }
 
 prep_writer() {
-  if [ -w "$(dirname -- "$target_file_path")" ]; then
+  if [ -w "$(dirname -- "${target_file_path}")" ]; then
     writer="tee"
   else
     writer="sudo tee"
   fi
 
-  [ "$backup_file_path" ] || arg="--append"
+  [ -n "${backup_file_path}" ] || arg="--append"
 
-  printf "%s %s %s" "$writer" "$arg" "$target_file_path"
+  printf "%s %s %s" "${writer}" "${arg}" "${target_file_path}"
 }
 
 #{ Backup the target file

@@ -10,21 +10,21 @@ _APP=herbstluftwm
 # }
 
 #{ Load Environment Variables
-. "$DOTS_ENV_CTX/herbstluftwm"
+. "${DOTS_ENV_CTX:?}/herbstluftwm"
 
 #{ Initialize alias
 hc() { herbstclient "$@"; }
 
 #{ Initialize modules
-for module in "${_MODS}"/*; do
-  case "$(basename "$module")" in
+for module in "${_MODS:?}"/*; do
+  case "$(basename "${module}")" in
   panel*) #| Panels for each monitor
     for monitor in $(hc list_monitors | cut -d: -f1); do
-      "$panel" "$monitor" &
+      "${panel:?}" "${monitor}" &
     done
     ;;
   *) #| Other modules
-    . "$module"
+    . "${module}"
     ;;
   esac
 done

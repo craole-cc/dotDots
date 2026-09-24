@@ -4,7 +4,7 @@ parse_arguments() {
   verbosity=0
 
   for arg in "$@"; do
-    case $arg in
+    case ${arg} in
     -d | --verbose) verbosity=1 ;;
     -h | --help) printf "%s" "USAGE" ;;
     -v | --version) printf "%s" "VERSION" ;;
@@ -111,9 +111,9 @@ parse_arguments() {
       attribute="position"
       attribute_cmd='printf " '\"
       ;;
-    -*) [ "$2" ] && shift ;;
+    -*) [ -n "$2" ] && shift ;;
     *)
-      [ "$1" ] && {
+      [ -n "$1" ] && {
         attribute="text"
         attribute_cmd="printf \"$1\""
       }
@@ -148,11 +148,11 @@ align() {
   done
 
   text_length="$(
-    text_with_escapes="$text"
+    text_with_escapes="${text}"
     escape_sequence_pattern='\x1B\[[0-9;]*[mGKHf]'
 
     visible_text="$(
-      printf "%s" "$text_with_escapes" | sed "s/$escape_sequence_pattern//g"
+      printf "%s" "${text_with_escapes}" | sed "s/${escape_sequence_pattern}//g"
     )"
 
     printf "%s" "${#visible_text}"
@@ -161,48 +161,48 @@ align() {
   space_buffer="$(((term_width - text_length - 2) / 2))"
 
   i=0
-  while [ "$i" -lt "$space_buffer" ]; do
-    buffer="$buffer$spacer"
+  while [ "${i}" -lt "${space_buffer}" ]; do
+    buffer="${buffer}${spacer}"
     i=$((i + 1))
   done
 
-  echo "text: $text"
-  echo "term_width: $term_width"
-  echo "text_length: $text_length"
-  echo "space_buffer: $space_buffer"
-  echo "spacer: $spacer"
+  echo "text: ${text}"
+  echo "term_width: ${term_width}"
+  echo "text_length: ${text_length}"
+  echo "space_buffer: ${space_buffer}"
+  echo "spacer: ${spacer}"
 
-  if [ "$space_buffer" -gt 0 ]; then
-    printf "%s %s %s\n" "$buffer" "$text" "$buffer"
+  if [ "${space_buffer}" -gt 0 ]; then
+    printf "%s %s %s\n" "${buffer}" "${text}" "${buffer}"
   else
-    printf "%s\n" "$text"
+    printf "%s\n" "${text}"
   fi
 }
 
 stylize() {
   #{ Set the styling system [TPUT vs ANSI]
-  if type tput >/dev/null 2>&1 && [ "$tput_code" ]; then
+  if type tput >/dev/null 2>&1 && [ -n "${tput_code}" ]; then
     attribute_cmd="tput ${tput_code}"
   else
-    [ "$attribute_cmd" ] ||
+    [ -n "${attribute_cmd}" ] ||
       attribute_cmd="printf \"\033[${ansi_code}m\""
   fi
 
-  if [ "$verbosity" -gt 0 ]; then
+  if [ "${verbosity}" -gt 0 ]; then
     #{ Print a line of repeated characters
     terminal_width=$(tput cols)
     line_character="~"
     printf "%-${terminal_width}s\n" |
-      tr ' ' "$line_character"
+      tr ' ' "${line_character}"
 
     #{ Print the attribute information
-    case "$attribute" in '') ;; *)
+    case "${attribute}" in '') ;; *)
       printf "Attribute: %s \nCode: %s\n" \
-        "$attribute" "$attribute_cmd"
+        "${attribute}" "${attribute_cmd}"
       ;;
     esac
   else
-    eval "$attribute_cmd"
+    eval "${attribute_cmd}"
   fi
 }
 

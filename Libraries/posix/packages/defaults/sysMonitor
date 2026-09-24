@@ -21,7 +21,7 @@ get_app() {
     app=top
   fi
 
-  printf "%s" "$app"
+  printf "%s" "${app}"
 }
 
 process_core() {

@@ -8,8 +8,8 @@ if [ -n "${DOTS:-}" ] && [ ! -d "${DOTS}" ]; then
 fi
 
 #? 1. Attempt git resolution if inside a working tree
-if [ -z "${DOTS:-}" ] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  DOTS=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [ -z "${DOTS:-}" ] && git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  DOTS=$(git rev-parse --show-toplevel 2> /dev/null || true)
   [ -n "${DOTS}" ] && printf "binit: WARNING - \$DOTS was unset; resolved via git to '%s'\n" "${DOTS}" >&2
 fi
 
@@ -31,12 +31,12 @@ fi
 #? Final sanity check: Abort cleanly if root discovery failed
 if [ -z "${DOTS:-}" ] || [ ! -d "${DOTS}" ]; then
   printf "binit: FATAL - Could not resolve \$DOTS via git or strict root anchors (.git AND flake.nix AND .dotsrc).\n" >&2
-  if (return 0) 2>/dev/null; then return 1; else exit 1; fi
+  if (return 0) 2> /dev/null; then return 1; else exit 1; fi
 fi
 
 # ── Bootstrap Assign Helpers ──────────────────────────────────────────────
 #? Minimal fallback for assign_var: binds value if variable is currently unset.
-if ! command -v assign_var >/dev/null 2>&1; then
+if ! command -v assign_var > /dev/null 2>&1; then
   assign_var() {
     eval "_av_val=\${$1:-}"
     [ -n "${_av_val}" ] && return 0
@@ -45,7 +45,7 @@ if ! command -v assign_var >/dev/null 2>&1; then
 fi
 
 #? Minimal fallback for assign_path: joins atomic segments into a normalized path string.
-if ! command -v assign_path >/dev/null 2>&1; then
+if ! command -v assign_path > /dev/null 2>&1; then
   assign_path() {
     _ap_target="$1"
     eval "_ap_val=\${${_ap_target}:-}"
@@ -55,9 +55,9 @@ if ! command -v assign_path >/dev/null 2>&1; then
     for _ap_seg in "$@"; do
       [ -z "${_ap_seg}" ] && continue
       case "${_ap_res}" in
-      "") _ap_res="${_ap_seg}" ;;
-      */) _ap_res="${_ap_res}${_ap_seg#/}" ;;
-      *) _ap_res="${_ap_res}/${_ap_seg#/}" ;;
+        "") _ap_res="${_ap_seg}" ;;
+        */) _ap_res="${_ap_res}${_ap_seg#/}" ;;
+        *) _ap_res="${_ap_res}/${_ap_seg#/}" ;;
       esac
     done
     eval "${_ap_target}=\"\${_ap_res}\""
@@ -89,7 +89,7 @@ require_lib_root() {
 list_shebang_candidates() {
   out="$1"
 
-  if command -v rg >/dev/null 2>&1; then
+  if command -v rg > /dev/null 2>&1; then
     _rg_glob=""
     # shellcheck disable=SC2154
     for dir in ${BIN_IGNORE}; do
@@ -97,18 +97,18 @@ list_shebang_candidates() {
     done
     #shellcheck disable=SC2086
     rg --files-with-matches --no-messages --hidden --no-ignore \
-      --multiline --pcre2 ${_rg_glob} '\A#!' "${DOTS_LIB_SH}" >"${out}" 2>/dev/null
+      --multiline --pcre2 ${_rg_glob} '\A#!' "${DOTS_LIB_SH}" > "${out}" 2> /dev/null
     printf "rg"
     return 0
   fi
 
-  if command -v fd >/dev/null 2>&1; then
+  if command -v fd > /dev/null 2>&1; then
     _fd_exclude=""
     for dir in ${BIN_IGNORE}; do
       _fd_exclude="${_fd_exclude} --exclude ${dir}"
     done
     #shellcheck disable=SC2086
-    fd --type f --hidden --no-ignore ${_fd_exclude} . "${DOTS_LIB_SH}" >"${out}" 2>/dev/null
+    fd --type f --hidden --no-ignore ${_fd_exclude} . "${DOTS_LIB_SH}" > "${out}" 2> /dev/null
     printf "fd"
     return 0
   fi
@@ -119,9 +119,9 @@ list_shebang_candidates() {
   done
   if [ -n "${_prune}" ]; then
     #shellcheck disable=SC2086
-    find "${DOTS_LIB_SH}" \( -type d \( ${_prune} \) -prune \) -o -type f -print >"${out}" 2>/dev/null
+    find "${DOTS_LIB_SH}" \( -type d \( ${_prune} \) -prune \) -o -type f -print > "${out}" 2> /dev/null
   else
-    find "${DOTS_LIB_SH}" -type f >"${out}" 2>/dev/null
+    find "${DOTS_LIB_SH}" -type f > "${out}" 2> /dev/null
   fi
   printf "find"
 }
@@ -139,27 +139,27 @@ make_executable() {
     ext="${file##*.}"
     # shellcheck disable=SC2154
     case " ${BLACKLIST_EXT} " in
-    *" ${ext} "*) continue ;;
-    *) ;;
+      *" ${ext} "*) continue ;;
+      *) ;;
     esac
 
     if [ "${_tier}" = "rg" ]; then
-      chmod +x "${file}" 2>/dev/null && changed_count=$((changed_count + 1))
+      chmod +x "${file}" 2> /dev/null && changed_count=$((changed_count + 1))
     else
-      IFS= read -r first_line <"${file}" 2>/dev/null
+      IFS= read -r first_line < "${file}" 2> /dev/null
       case "${first_line}" in
-      "#!"*)
-        chmod +x "${file}" 2>/dev/null && changed_count=$((changed_count + 1))
-        ;;
-      *) ;;
+        "#!"*)
+          chmod +x "${file}" 2> /dev/null && changed_count=$((changed_count + 1))
+          ;;
+        *) ;;
       esac
     fi
-  done <"${_file_list}"
+  done < "${_file_list}"
 
   rm -f "${_file_list}"
 
-  [ "${changed_count}" -gt 0 ] &&
-    printf "Made %s scripts executable\n" "${changed_count}" >&2
+  [ "${changed_count}" -gt 0 ] \
+    && printf "Made %s scripts executable\n" "${changed_count}" >&2
 }
 
 #> Add Libraries directories to PATH safely (eval-free & subshell-safe)
@@ -168,13 +168,13 @@ add_to_path() {
   dir_count=0
   _dir_list="$(mktemp)"
 
-  if command -v fd >/dev/null 2>&1; then
+  if command -v fd > /dev/null 2>&1; then
     _fd_exclude=""
     for dir in ${BIN_IGNORE}; do
       _fd_exclude="${_fd_exclude} --exclude ${dir}"
     done
     #shellcheck disable=SC2086,SC2154
-    fd --type d --max-depth $((BIN_DEPTH * 2)) ${_fd_exclude} . "${DOTS_LIB_SH}" >"${_dir_list}" 2>/dev/null
+    fd --type d --max-depth $((BIN_DEPTH * 2)) ${_fd_exclude} . "${DOTS_LIB_SH}" > "${_dir_list}" 2> /dev/null
   else
     _prune=""
     for dir in ${BIN_IGNORE}; do
@@ -182,9 +182,9 @@ add_to_path() {
     done
     if [ -n "${_prune}" ]; then
       #shellcheck disable=SC2086
-      find "${DOTS_LIB_SH}" -maxdepth "${BIN_DEPTH}" \( -type d \( ${_prune} \) -prune \) -o -type d -print >"${_dir_list}" 2>/dev/null
+      find "${DOTS_LIB_SH}" -maxdepth "${BIN_DEPTH}" \( -type d \( ${_prune} \) -prune \) -o -type d -print > "${_dir_list}" 2> /dev/null
     else
-      find "${DOTS_LIB_SH}" -maxdepth "${BIN_DEPTH}" -type d >"${_dir_list}" 2>/dev/null
+      find "${DOTS_LIB_SH}" -maxdepth "${BIN_DEPTH}" -type d > "${_dir_list}" 2> /dev/null
     fi
   fi
 
@@ -192,13 +192,13 @@ add_to_path() {
     [ -n "${dir}" ] && [ -d "${dir}" ] || continue
 
     case ":${PATH}:${DOTS_PATH}:" in
-    *:"${dir}":*) ;;
-    *)
-      DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
-      dir_count=$((dir_count + 1))
-      ;;
+      *:"${dir}":*) ;;
+      *)
+        DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
+        dir_count=$((dir_count + 1))
+        ;;
     esac
-  done <"${_dir_list}"
+  done < "${_dir_list}"
 
   rm -f "${_dir_list}"
 
@@ -206,8 +206,8 @@ add_to_path() {
     PATH="${DOTS_PATH}:${PATH}"
     export PATH
     case "${BINIT_VERBOSITY:-}" in
-    quiet) ;;
-    *) printf "Added %s directories to PATH\n" "${dir_count}" >&2 ;;
+      quiet) ;;
+      *) printf "Added %s directories to PATH\n" "${dir_count}" >&2 ;;
     esac
   fi
 }
@@ -222,20 +222,20 @@ binit() {
 #> Execute based on BINIT_ACTION
 dispatch() {
   case "${1:-${BINIT_ACTION}}" in
-  run | --run | "")
-    binit
-    ;;
-  executable | --executable)
-    require_lib_root || return 1
-    make_executable
-    ;;
-  path | --path)
-    require_lib_root || return 1
-    add_to_path
-    ;;
-  *)
-    printf "Usage: Set BINIT_ACTION to run, executable, or path\n" >&2
-    ;;
+    run | --run | "")
+      binit
+      ;;
+    executable | --executable)
+      require_lib_root || return 1
+      make_executable
+      ;;
+    path | --path)
+      require_lib_root || return 1
+      add_to_path
+      ;;
+    *)
+      printf "Usage: Set BINIT_ACTION to run, executable, or path\n" >&2
+      ;;
   esac
 }
 

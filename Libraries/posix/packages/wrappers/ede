@@ -21,27 +21,27 @@ set_defaults() {
 
   #| TUI Editors
   tuis="hx nvim vim nano vi"
-  default_tui="$(weHave --first "$tuis")"
-  default_tuis="$(printf %s "$tuis" | tr ' ' "$DELIMITER")"
+  default_tui="$(weHave --first "${tuis}")"
+  default_tuis="$(printf %s "${tuis}" | tr ' ' "${DELIMITER}")"
 
   #| GUI Editors
   guis="code-insiders code codium zeditor"
-  default_gui="$(weHave --first "$guis")"
+  default_gui="$(weHave --first "${guis}")"
   default_guis="$(
-    printf %s "$guis" | tr ' ' "$DELIMITER"
+    printf %s "${guis}" | tr ' ' "${DELIMITER}"
   )"
 
-  default_args="$PWD"
+  default_args="${PWD}"
 
-  [ -n "$debug" ] && {
+  [ -n "${debug}" ] && {
     printf "DEBUG:   Default TUI Editors |> %s\n" \
-      "$(pout-highlight "$DELIMITER" ", " "$default_gui" "$default_guis" "$FMT_HIGHLIGHT" "$FMT_NORMAL")"
+      "$(pout-highlight "${DELIMITER}" ", " "${default_gui}" "${default_guis}" "${FMT_HIGHLIGHT}" "${FMT_NORMAL}")"
     printf "DEBUG:   Default GUI Editors |> %s\n" \
-      "$(pout-highlight "$DELIMITER" ", " "$default_gui" "$default_guis" "$FMT_HIGHLIGHT" "$FMT_NORMAL")"
+      "$(pout-highlight "${DELIMITER}" ", " "${default_gui}" "${default_guis}" "${FMT_HIGHLIGHT}" "${FMT_NORMAL}")"
     printf "DEBUG:   Default GUI Editors |> %s [default: %s]\n" \
-      "$(pout_split "$DELIMITER" ", " "$default_guis")" "$default_gui"
+      "$(pout_split "${DELIMITER}" ", " "${default_guis}")" "${default_gui}"
     printf "DEBUG:     Default Arguments |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$default_args")"
+      "$(pout_split "${DELIMITER}" ", " "${default_args}")"
   }
 
 }
@@ -50,67 +50,67 @@ parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -h | --help)
-      printf "%s\n" "$scr_HELP"
+      printf "%s\n" "${scr_HELP:?}"
       exit 0
       ;;
     -v | --version)
-      printf "%s\n" "$scr_VERSION"
+      printf "%s\n" "${scr_VERSION:?}"
       exit 0
       ;;
     -q | --quiet) unset debug ;;
     -d | --debug) debug=1 ;;
     -t | --tui)
-      [ "$2" ] || {
+      [ -n "$2" ] || {
         printf "Error: '%s' requires an argument\n" "$1"
         exit 2
       }
       while [ "$#" -ge 2 ]; do
         case "$2" in
         --*) break ;;
-        *) preferred_tui="${preferred_tui:+$preferred_tui${DELIMITER}}$2" ;;
+        *) preferred_tui="${preferred_tui:+${preferred_tui}${DELIMITER}}$2" ;;
         esac
         shift
       done
       ;;
     -g | --gui)
-      [ "$2" ] || {
+      [ -n "$2" ] || {
         printf "Error: '%s' requires an argument\n" "$1"
         exit 2
       }
       while [ "$#" -ge 2 ]; do
         case "$2" in
         --*) break ;;
-        *) preferred_gui="${preferred_gui:+$preferred_gui${DELIMITER}}$2" ;;
+        *) preferred_gui="${preferred_gui:+${preferred_gui}${DELIMITER}}$2" ;;
         esac
         shift
       done
       ;;
     -e | --editor | --ede)
-      [ "$2" ] || {
+      [ -n "$2" ] || {
         printf "Error: '%s' requires an argument\n" "$1"
         exit 2
       }
       while [ "$#" -ge 2 ]; do
         case "$2" in
         --*) break ;;
-        *) preferred_ede="${preferred_ede:+$preferred_ede${DELIMITER}}$2" ;;
+        *) preferred_ede="${preferred_ede:+${preferred_ede}${DELIMITER}}$2" ;;
         esac
         shift
       done
       ;;
     --) ;;
-    *) args="${args:+$args${DELIMITER}}$2" ;;
+    *) args="${args:+${args}${DELIMITER}}$2" ;;
     esac
     shift
   done
 
-  [ -n "$debug" ] && {
+  [ -n "${debug}" ] && {
     printf "DEBUG: Preferred TUI Editors |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$preferred_tui")"
+      "$(pout_split "${DELIMITER}" ", " "${preferred_tui}")"
     printf "DEBUG: Preferred GUI Editors |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$preferred_gui")"
+      "$(pout_split "${DELIMITER}" ", " "${preferred_gui}")"
     printf "DEBUG:     Preferred Editors |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$preferred_ede")"
+      "$(pout_split "${DELIMITER}" ", " "${preferred_ede}")"
   }
 }
 
@@ -142,8 +142,8 @@ initialize_utilities() {
     output_delimiter="$2"
     shift 2
     printf "%s" "$*" |
-      sed "s/^$input_delimiter//" |
-      sed "s/$input_delimiter/$output_delimiter/g"
+      sed "s/^${input_delimiter}//" |
+      sed "s/${input_delimiter}/${output_delimiter}/g"
   }
 
   pout_highlight() {
@@ -174,8 +174,8 @@ initialize_utilities() {
     highlight_item="$3"
     input_list="$4"
 
-    pout_split "$input_delimiter" "$output_delimiter" "$input_list" |
-      sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${FMT_HIGHLIGHT}${highlight_item}${FMT_NORMAL}\3/"
+    pout_split "${input_delimiter}" "${output_delimiter}" "${input_list}" |
+      sed "s/\(^\|${output_delimiter}\)\(${highlight_item}\)\(,\|$\)/\1${FMT_HIGHLIGHT}${highlight_item}${FMT_NORMAL}\3/"
   }
 
   weHave() {
@@ -190,15 +190,15 @@ initialize_utilities() {
       shift
 
       for i in $(printf "%s" "$@" | tr " " "\n"); do
-        command -v "$i" >/dev/null 2>&1 && {
-          printf "%s" "$i"
+        command -v "${i}" >/dev/null 2>&1 && {
+          printf "%s" "${i}"
           return 0
         }
       done
 
       return 1
       ;;
-    *) command -v "$i" >/dev/null 2>&1 ;;
+    *) command -v "${i}" >/dev/null 2>&1 ;;
     esac
   }
 }
@@ -206,8 +206,8 @@ initialize_utilities() {
 initialize_environment() {
 
   #{ Define the preferred GUI and TUI editors
-  tui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_tui:-$default_tuis}")")"
-  gui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_gui:-$default_guis}")")"
+  tui="$(weHave --first "$(pout-split "${DELIMITER}" " " "${preferred_tui:-${default_tuis}}")")"
+  gui="$(weHave --first "$(pout-split "${DELIMITER}" " " "${preferred_gui:-${default_guis}}")")"
 
   # #{ Check if we are in a graphical environment
   # if [ -n "$DISPLAY" ]; then
@@ -218,16 +218,16 @@ initialize_environment() {
   # 	ede="${ede:-"$tui"}"
   # fi
 
-  case "$preferred_ede" in tty | tui) editor="$tui" ;; *) ;; esac
-  editor="${editor:-"$ede"}"
+  case "${preferred_ede}" in tty | tui) editor="${tui}" ;; *) ;; esac
+  editor="${editor:-"${ede}"}"
 
-  [ -n "$debug" ] && {
+  [ -n "${debug}" ] && {
     printf "DEBUG:  Available TUI Editor |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$tui")"
+      "$(pout_split "${DELIMITER}" ", " "${tui}")"
     printf "DEBUG:  Available GUI Editor |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$gui")"
+      "$(pout_split "${DELIMITER}" ", " "${gui}")"
     printf "DEBUG:       Selected Editor |> %s\n" \
-      "$(pout_split "$DELIMITER" ", " "$editor")"
+      "$(pout_split "${DELIMITER}" ", " "${editor}")"
   }
 
   # [ -n "$debug" ] && {
@@ -242,7 +242,7 @@ initialize_environment() {
 }
 
 execute_process() {
-  [ -n "$debug" ] || "$editor" "${@:-$PWD}"
+  [ -n "${debug}" ] || "${editor}" "${@:-${PWD}}"
 }
 
 # main "$@"

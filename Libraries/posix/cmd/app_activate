@@ -10,11 +10,11 @@ __valid__() {
 
 __msg_active__() {
   INSTANCES=$(__instances__ "$@")
-  if [ "$INSTANCES" -gt 1 ]; then
+  if [ "${INSTANCES}" -gt 1 ]; then
     printf \
       "\`%s\` has %s active instances.\n" \
       "$@" \
-      "$INSTANCES"
+      "${INSTANCES}"
   else
     printf "\`%s\` is active.\n" "$@"
   fi
@@ -44,7 +44,7 @@ __run__() {
 }
 
 for app in "$@"; do
-  __run__ "$app"
+  __run__ "${app}"
   # echo $?
 done
 

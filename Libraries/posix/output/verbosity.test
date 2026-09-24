@@ -51,7 +51,7 @@ run_test() {
   unset verbose VERBOSE trace TRACE high HIGH
 
   #{ Run the command and capture output
-  actual=$(eval "${cmd}" 2>/dev/null)
+  actual=$(eval "${cmd}" 2> /dev/null)
   exit_code=${?}
 
   #{ Check if test passed

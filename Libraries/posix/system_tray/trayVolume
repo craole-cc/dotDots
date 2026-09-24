@@ -11,11 +11,11 @@ else
 fi
 
 #{ Kill all active instances of the app
-murda "$_APP"
+murda "${_APP}"
 
 #{ Launch with or without arguments
-if [ "$_ARGS" ]; then
-  eval "$_APP" "$_ARGS" &
+if [ -n "${_ARGS}" ]; then
+  eval "${_APP}" "${_ARGS}" &
 else
-  eval "$_APP" &
+  eval "${_APP}" &
 fi

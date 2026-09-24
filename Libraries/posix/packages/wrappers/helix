@@ -51,15 +51,15 @@ parse_arguments() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-    --dry-run) dry_run=true ;;
-    --) shift ;;
-    -*)
-      printf "Error: Unknown option: %s\n" "$1" >&2
-      printf "Available options:\n" >&2
-      printf "  --dry-run     Show what would be done without making changes\n" >&2
-      return 1
-      ;;
-    *) args="${args}${args:+${DELIMITER}}${1}" ;;
+      --dry-run) dry_run=true ;;
+      --) shift ;;
+      -*)
+        printf "Error: Unknown option: %s\n" "$1" >&2
+        printf "Available options:\n" >&2
+        printf "  --dry-run     Show what would be done without making changes\n" >&2
+        return 1
+        ;;
+      *) args="${args}${args:+${DELIMITER}}${1}" ;;
     esac
     shift
   done
@@ -74,16 +74,17 @@ is_newer_file() {
 
   # Get modification times in seconds since epoch
   # Try stat first (GNU/BSD), fall back to find
-  if command -v stat >/dev/null 2>&1; then
+  if command -v stat > /dev/null 2>&1; then
     # Try GNU stat format first
-    time1=$(stat -c %Y "${file1}" 2>/dev/null) ||
+    time1=$(stat -c %Y "${file1}" 2> /dev/null) \
+      ||
       # Try BSD stat format
-      time1=$(stat -f %m "${file1}" 2>/dev/null) ||
-      time1=0
+      time1=$(stat -f %m "${file1}" 2> /dev/null) \
+      || time1=0
 
-    time2=$(stat -c %Y "${file2}" 2>/dev/null) ||
-      time2=$(stat -f %m "${file2}" 2>/dev/null) ||
-      time2=0
+    time2=$(stat -c %Y "${file2}" 2> /dev/null) \
+      || time2=$(stat -f %m "${file2}" 2> /dev/null) \
+      || time2=0
   else
     # Fallback: use find with -newer (POSIX compliant)
     # If file1 is newer than file2, find will return file1
@@ -215,7 +216,7 @@ execute_process() {
   fi
 
   #{ Check if helix is available
-  if ! command -v hx >/dev/null 2>&1; then
+  if ! command -v hx > /dev/null 2>&1; then
     printf "Error: helix (hx) not found in PATH\n" >&2
     return 1
   fi

@@ -7,4 +7,4 @@ case "$1" in
   *) ;;
 esac
 
-eval "git add --all . $opt"
+eval "git add --all . ${opt}"

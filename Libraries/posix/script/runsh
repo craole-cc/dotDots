@@ -3,7 +3,7 @@
 scr_NAME="runsh"
 
 display_usage_guide() {
-  printf "Usage: %s [options] [script]\n" "$scr_NAME"
+  printf "Usage: %s [options] [script]\n" "${scr_NAME}"
   printf "Options:\n"
   printf "  --help\tDisplay this usage guide\n"
 }
@@ -21,7 +21,7 @@ access_directory() {
     #{ Change to the target directory
     cd "$1" &&
       #{ verify the current directory is the same as the target
-      [ "$PWD" = "$1" ]
+      [ "${PWD}" = "$1" ]
   } || {
     printf "Failed to access target: %s\n" "$1"
     exit 1
@@ -38,7 +38,7 @@ execute_script() {
   #{ Execute the script
   script_name=$(basename -- "$1")
   shift
-  sh "$script_name" "$@"
+  sh "${script_name}" "$@"
 }
 
 main() {

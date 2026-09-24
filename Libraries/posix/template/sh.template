@@ -6,11 +6,11 @@ scr_DEPENDENCIES="unalias, command, printf, getoptions"
 scr_USAGE="$(
   cat <<USAGE_GUIDE
     ::----------------------------------------------------::
-                        USAGE: $scr_NAME
-        $scr_DESCRIPTION
+                        USAGE: ${scr_NAME}
+        ${scr_DESCRIPTION}
     ::----------------------------------------------------::
                 command <[options]> <[cmd]>
-                >>> $scr_NAME --verbosity cmd <<<
+                >>> ${scr_NAME} --verbosity cmd <<<
     ::----------------------------------------------------::
         -h --help      |>   Usage guide
         -v --version   |>   Version
@@ -36,14 +36,14 @@ parse_arguments() { #{ Declare user options (One flag per command)
 
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -h | --help) punctuate_exit "$scr_USAGE" ;;
-    -v | --version) punctuate_exit "$scr_VERSION" ;;
+    -h | --help) punctuate_exit "${scr_USAGE}" ;;
+    -v | --version) punctuate_exit "${scr_VERSION}" ;;
     -q | --quiet | -c | --check) unset verbosity ;;
     -d | --verbose) verbosity=true ;;
     -V | --ver3n) report="version" ;;
     -l | --location | -p | --path) report="location" ;;
     -r | --report) report="$2" ;;
-    *) commands="$(are --save "$commands" "$1")" ;;
+    *) commands="$(are --save "${commands}" "$1")" ;;
     esac
     shift
   done
@@ -111,41 +111,41 @@ parse_location_info() { #{ Return the location of command
 
 process_core() {
   #{ Process all the commands given via a loop
-  for command in $(are --expand "$commands"); do
+  for command in $(are --expand "${commands}"); do
 
     #{ Reset output message
     unset icon msg
 
-    if probe_for_binary "$command"; then
-      if [ "$verbosity" ]; then
-        msg="$command [$(parse_version "$command")] found at $(parse_location "$command")"
+    if probe_for_binary "${command}"; then
+      if [ -n "${verbosity}" ]; then
+        msg="${command} [$(parse_version "${command}")] found at $(parse_location "${command}")"
         icon="✅"
-      elif [ "$report" = "version" ]; then
-        msg="$(parse_version "$command")"
-      elif [ "$report" = "location" ]; then
-        msg="$(parse_location "$command")"
+      elif [ "${report}" = "version" ]; then
+        msg="$(parse_version "${command}")"
+      elif [ "${report}" = "location" ]; then
+        msg="$(parse_location "${command}")"
       fi
     else
-      if [ "$verbosity" ]; then
-        msg="Unable to locate '$command' in PATH"
+      if [ -n "${verbosity}" ]; then
+        msg="Unable to locate '${command}' in PATH"
         icon="🟥"
       fi
       punctuate_exit --error
     fi
 
     #{ Display information about the command
-    [ "$msg" ] &&
-      if [ "$icon" ]; then
-        present_info "$icon $msg"
+    [ -n "${msg}" ] &&
+      if [ -n "${icon}" ]; then
+        present_info "${icon} ${msg}"
       else
-        present_info "$msg"
+        present_info "${msg}"
       fi
   done
 }
 
 present_info() {
   #{ Enable printing only there is something to print
-  [ "$*" ] || return
+  [ -n "$*" ] || return
 
   #{ Send output to Stdout
   printf "%s\n" "$*"
@@ -185,7 +185,7 @@ purge_leftovers() { #{ Remove variables
       failure
   }
 
-  if [ "$failure" ]; then
+  if [ -n "${failure}" ]; then
     purge_variables
     exit 1
   else

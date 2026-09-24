@@ -1,7 +1,7 @@
 #!/bin/sh
 
 weHave() { # Check if the command exists
-  command -v "$1" >/dev/null 2>&1
+  command -v "$1" > /dev/null 2>&1
 }
 
 if weHave microsoft-edge-dev; then
@@ -29,6 +29,6 @@ else
 fi
 
 case $1 in
---set) printf "%s" "${browser}" ;;
-*) exec "${browser}" "$@" ;;
+  --set) printf "%s" "${browser}" ;;
+  *) exec "${browser}" "$@" ;;
 esac

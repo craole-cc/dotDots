@@ -32,7 +32,7 @@ assert_eq() {
 
 # ── Environment Setup ───────────────────────────────────────────────────
 # ── Locate Repository Root Safely ─────────────────────────────────────────
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
   REPO_ROOT="$(git rev-parse --show-toplevel)"
 else
   # Fallback: assume relative location if git is unavailable
@@ -89,18 +89,18 @@ parse_arguments --path TEST_PATH_3 "usr" "local" "bin"
 assert_eq "parse_arguments --path assigns correct path" "usr/local/bin" "${TEST_PATH_3}"
 
 # 5. Standalone Execution Guard (Subshell Execution)
-SUB_OUT=$(TEST_VAR_SUB="" "${ASSIGN_SCRIPT}" --var TEST_VAR_SUB "subshell_value" 2>/dev/null || true)
+SUB_OUT=$(TEST_VAR_SUB="" "${ASSIGN_SCRIPT}" --var TEST_VAR_SUB "subshell_value" 2> /dev/null || true)
 assert_eq "Standalone script execution returns 0 status" "" "${SUB_OUT}"
 
 # 6. Error Handling
 ERR_OUT=$(parse_arguments --invalid-flag 2>&1 || true)
 case "${ERR_OUT}" in
-*"assign: expected --var or --path"*)
-  pass "parse_arguments catches invalid flags correctly"
-  ;;
-*)
-  fail "parse_arguments catches invalid flags correctly" "error message" "${ERR_OUT}"
-  ;;
+  *"assign: expected --var or --path"*)
+    pass "parse_arguments catches invalid flags correctly"
+    ;;
+  *)
+    fail "parse_arguments catches invalid flags correctly" "error message" "${ERR_OUT}"
+    ;;
 esac
 
 # ── Test Summary ────────────────────────────────────────────────────────

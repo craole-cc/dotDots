@@ -6,16 +6,16 @@ we_have() { #{ Check if the command exists
 
 process_core() {
   # [ "$content" ]; || return 1
-  case "$action" in
-  -p | --paste) paste "$content" ;;
-  *) copy "$content" ;;
+  case "${action}" in
+  -p | --paste) paste "${content}" ;;
+  *) copy "${content}" ;;
   esac
   #     shift
   #     if we_have copyq; then
   #       launch copyq
   #       copyq copy $*
   #       paste() { copyq paste; }
-  #     elif [ "$XDG_SESSION_TYPE" = "wayland" ] && we_have wl-clipboard; then
+  #     elif [ "${XDG_SESSION_TYPE:?}" = "wayland" ] && we_have wl-clipboard; then
   #       copy() { wl-copy; }
   #       paste() { wl-paste; }
   #     fi
@@ -25,7 +25,7 @@ process_core() {
 }
 
 copy_to_clipboard() {
-  if [ "$XDG_SESSION_TYPE" = "wayland" ] && we_have wl-copy; then
+  if [ "${XDG_SESSION_TYPE:?}" = "wayland" ] && we_have wl-copy; then
     wl-copy "$*"
   # elif we_have copyq; then
   #   launch copyq
@@ -46,7 +46,7 @@ copy_to_clipboard() {
 }
 
 paste_from_clipboard() {
-  if [ "$XDG_SESSION_TYPE" = "wayland" ] && we_have wl-copy; then
+  if [ "${XDG_SESSION_TYPE:?}" = "wayland" ] && we_have wl-copy; then
     wl-copy "$*"
   elif we_have copyq; then
     CMDman %start copyq
@@ -86,5 +86,5 @@ parse_arguments() {
 
 parse_arguments "$@"
 
-echo "OPTION: $action"
-echo "CONTENT: $content"
+echo "OPTION: ${action}"
+echo "CONTENT: ${content}"

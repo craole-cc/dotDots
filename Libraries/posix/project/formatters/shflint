@@ -1,7 +1,35 @@
 #!/bin/sh
 
-for file in "$@"; do
-  shellcheck "${file}"
+guard_unassigned_vars() {
+  target="$1"
+
+  # Extract any variable names flagged with SC2154 from ShellCheck output
+  unassigned_vars="$(shellcheck -f gcc "${target}" 2> /dev/null \
+    | grep 'SC2154' \
+    | sed -n 's/.*warning: \([^ ]*\) is referenced.*/\1/p' \
+    | sort -u)"
+
+  for var in ${unassigned_vars}; do
+    [ -z "${var}" ] && continue
+    # Convert ${VAR} -> ${VAR:?}
+    sed "s/\${${var}}/\${${var}:?}/g" "${target}" > "${target}.tmp" && mv "${target}.tmp" "${target}"
+    # Convert $VAR -> ${VAR:?}
+    sed "s/\$${var}\([^a-zA-Z0-9_]\|$\)/\${${var}:?}\1/g" "${target}" > "${target}.tmp" && mv "${target}.tmp" "${target}"
+  done
+}
+
+# Internal dispatch for processing individual files
+if [ "$1" = "--internal-process" ]; then
+  file_path="$2"
+  target_dir="$(dirname "${file_path}")"
+  target_file="$(basename "${file_path}")"
+
+  cd "${target_dir}" || exit 1
+
+  # 1. Dynamically resolve all SC2154 unassigned variables (${VAR} -> ${VAR:?})
+  guard_unassigned_vars "${target_file}"
+
+  # 2. Primary code formatting with shfmt
   shfmt \
     --apply-ignore \
     --binary-next-line \
@@ -9,5 +37,43 @@ for file in "$@"; do
     --case-indent \
     --indent 2 \
     --write \
-    "${file}"
+    "${target_file}"
+
+  # 3. Apply ShellCheck native diff fixes (e.g. SC2250)
+  diff_output="$(shellcheck -f diff "${target_file}" 2> /dev/null | tr '\240' ' ')"
+  if [ -n "${diff_output}" ]; then
+    printf "%s\n" "${diff_output}" | patch -p1 > /dev/null 2>&1
+    shfmt -w "${target_file}"
+  fi
+
+  # 4. Print remaining unfixable logic errors (e.g. SC2034 unused variables)
+  shellcheck --color=always "${target_file}"
+  exit 0
+fi
+
+script_path="$(command -v "$0" || readlink -f "$0")"
+
+run_finder() {
+  dir="$1"
+  if command -v fd > /dev/null 2>&1; then
+    fd . "${dir}" \
+      --type f \
+      --exec "${script_path}" --internal-process
+  elif command -v fdfind > /dev/null 2>&1; then
+    fdfind . "${dir}" \
+      --type f \
+      --exec "${script_path}" --internal-process
+  else
+    shfmt -f "${dir}" | while read -r script_file; do
+      "${script_path}" --internal-process "${script_file}"
+    done
+  fi
+}
+
+for arg in "$@"; do
+  if [ -d "${arg}" ]; then
+    run_finder "${arg}"
+  elif [ -f "${arg}" ]; then
+    "${script_path}" --internal-process "${arg}"
+  fi
 done

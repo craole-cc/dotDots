@@ -8,7 +8,7 @@ scr_DEPENDENCIES="coreutils"
 scr_USAGE="$(
   cat <<USAGE
   $scr_NAME ($scr_VERSION)
-  $scr_AUTHOR
+  ${scr_AUTHOR:?}
 
   Description:
   $scr_NAME $scr_DESCRIPTION

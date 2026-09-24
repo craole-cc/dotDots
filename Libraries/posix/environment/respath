@@ -18,7 +18,7 @@ if [ -L "$1" ]; then
   target_path=$(readlink -f "$1")
 
   # Check for circular symbolic links
-  if [ "$1" = "$target_path" ]; then
+  if [ "$1" = "${target_path}" ]; then
     echo "Error: target path '$1' contains a circular symbolic link" >&2
     exit 1
   fi
@@ -29,19 +29,19 @@ fi
 
 # Normalize target path
 normalized_path=""
-rest_path="$target_path"
-while [ -n "$rest_path" ]; do
+rest_path="${target_path}"
+while [ -n "${rest_path}" ]; do
   # Remove leading slashes
   rest_path="${rest_path#/}"
   # Extract the next path component
   next_path="${rest_path%%/*}"
   # Remove the extracted component from the remaining path
-  rest_path="${rest_path#"$next_path"}"
+  rest_path="${rest_path#"${next_path}"}"
   # Remove trailing slashes
   rest_path="${rest_path#/}"
   # Append the extracted component to the normalized path
-  normalized_path="$normalized_path/$next_path"
+  normalized_path="${normalized_path}/${next_path}"
 done
 
 # Print the absolute path
-printf "%s" "$normalized_path"
+printf "%s" "${normalized_path}"

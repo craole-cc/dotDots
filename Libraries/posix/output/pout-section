@@ -8,7 +8,7 @@ main() {
 }
 
 set_defaults() {
-  scr_path="$(pathof "$0" 2>/dev/null || echo "$0")"
+  scr_path="$(pathof "$0" 2> /dev/null || echo "$0")"
   scr_name="$(basename "${scr_path}")"
   scr_home="$(dirname -- "${scr_path}")"
   scr_version=0.2
@@ -26,11 +26,11 @@ parse_arguments() {
   #{ Script Options
   for arg in "$@"; do
     case "${arg}" in
-    -h) print_usage 0 ;;
-    --help) print_guide ;;
-    *)
-      # Add other options
-      ;;
+      -h) print_usage 0 ;;
+      --help) print_guide ;;
+      *)
+        # Add other options
+        ;;
     esac
   done
 
@@ -40,32 +40,32 @@ parse_arguments() {
   #{ Process Options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --head*)
-      pad=2
-      sep=":-"
-      msg="$(
-        padded_print="$(pout_padded "$2" "${pad}" || true)"
-        printf "\n%s%s" "${padded_print}" "${sep}"
-      )"
-      printf "%s\n" "${msg}"
-      ;;
-    --info*)
-      pad=4
-      msg="$(
-        padded_print="$(pout_padded "$2" "${pad}" || true)"
-        printf "%s" "${padded_print}"
-      )"
-      printf "%s\n" "${msg}"
-      ;;
-    --blank | --new-lines)
-      if is_positive_int "$2" >/dev/null 2>&1; then
-        newline="$2"
-        shift
-      else
-        newline=2
-      fi
-      ;;
-    *) ;;
+      --head*)
+        pad=2
+        sep=":-"
+        msg="$(
+          padded_print="$(pout_padded "$2" "${pad}" || true)"
+          printf "\n%s%s" "${padded_print}" "${sep}"
+        )"
+        printf "%s\n" "${msg}"
+        ;;
+      --info*)
+        pad=4
+        msg="$(
+          padded_print="$(pout_padded "$2" "${pad}" || true)"
+          printf "%s" "${padded_print}"
+        )"
+        printf "%s\n" "${msg}"
+        ;;
+      --blank | --new-lines)
+        if is_positive_int "$2" > /dev/null 2>&1; then
+          newline="$2"
+          shift
+        else
+          newline=2
+        fi
+        ;;
+      *) ;;
     esac
     shift
   done
@@ -104,18 +104,18 @@ init_utilities() {
     else
       while [ "$#" -ge 1 ]; do
         case "$1" in
-        --head*)
-          pad=2
-          sep=":-"
-          msg="$(pout_padded "$2" "${pad}" || printf "%s" "$2")"
-          padded_print="$(pout_padded "$2" "${pad}" || printf "%s" "$2")"
-          printf "\n%s%s\n" "${padded_print}" "${sep}"
-          ;;
-        --info*)
-          pad=4
-          printf "%*s%s\n" "${pad}" "" "$2"
-          ;;
-        *) ;;
+          --head*)
+            pad=2
+            sep=":-"
+            msg="$(pout_padded "$2" "${pad}" || printf "%s" "$2")"
+            padded_print="$(pout_padded "$2" "${pad}" || printf "%s" "$2")"
+            printf "\n%s%s\n" "${padded_print}" "${sep}"
+            ;;
+          --info*)
+            pad=4
+            printf "%*s%s\n" "${pad}" "" "$2"
+            ;;
+          *) ;;
         esac
         shift
       done
@@ -123,7 +123,7 @@ init_utilities() {
   }
 
   pout_padded() {
-    if is_positive_int "$2" >/dev/null 2>&1; then
+    if is_positive_int "$2" > /dev/null 2>&1; then
       pad="$2"
     else
       pad=4
@@ -177,21 +177,21 @@ print_usage() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --args)
-      msg="$(
-        printf "Incorrect number of arguments. " >&2
-        printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
-      )"
-      ;;
-    --pos)
-      msg="$(
-        printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-      )"
-      ;;
-    --reps)
-      msg="$(printf "Number of repetitions not defined\n" >&2)"
-      ;;
-    *) exit_code="$1" ;;
+      --args)
+        msg="$(
+          printf "Incorrect number of arguments. " >&2
+          printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
+        )"
+        ;;
+      --pos)
+        msg="$(
+          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+        )"
+        ;;
+      --reps)
+        msg="$(printf "Number of repetitions not defined\n" >&2)"
+        ;;
+      *) exit_code="$1" ;;
     esac
     shift
   done
@@ -211,17 +211,17 @@ execute_process() {
   # pout_repeat --line "${newline:-1}"
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --head)
-      str="$2"
-      pad=2
-      sep=":-"
-      printf "\n%*s%s%s\n" "${pad}" "" "${str}" "${sep}"
-      ;;
-    --info)
-      pad=4
-      printf "%*s%s\n" "${pad}" "" "$2"
-      ;;
-    *) ;;
+      --head)
+        str="$2"
+        pad=2
+        sep=":-"
+        printf "\n%*s%s%s\n" "${pad}" "" "${str}" "${sep}"
+        ;;
+      --info)
+        pad=4
+        printf "%*s%s\n" "${pad}" "" "$2"
+        ;;
+      *) ;;
     esac
     shift
   done

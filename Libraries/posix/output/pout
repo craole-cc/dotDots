@@ -75,14 +75,14 @@ parse_arguments() {
     --hide-console | --log-only | --no-output | --no-print) target="log" ;;
     --no-log | --print | --console-only) target="console" ;;
     -L | --log)
-      [ "$2" ] && {
+      [ -n "$2" ] && {
         validate_file --parent "$2" || return 1
         log="$2"
         shift
       }
       ;;
     -b | -ll | --line-l* | --lead*l*)
-      if [ "$2" ] && is_number "$2"; then
+      if [ -n "$2" ] && is_number "$2"; then
         ln_lead="$2"
         shift
       else
@@ -98,7 +98,7 @@ parse_arguments() {
       fi
       ;;
     --key)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         key="$2"
         shift
       else
@@ -107,16 +107,16 @@ parse_arguments() {
       fi
       ;;
     --val)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         val="$2"
         shift
       else
         val="{ Missing Value }"
-        val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
+        val_fmt="${FMT_RED:?}${val}${FMT_NORMAL:?}"
       fi
       ;;
     --sep*)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         sep="$2"
         shift
       else
@@ -129,7 +129,7 @@ parse_arguments() {
       ;;
     --pad)
       pad=true
-      [ "$2" ] && valid_number "$2" && {
+      [ -n "$2" ] && valid_number "$2" && {
         pad="$2"
         shift
       }
@@ -139,8 +139,8 @@ parse_arguments() {
       shift
       ;;
     -m | --msg | --message)
-      [ "$2" ] && {
-        if [ "$msg" ]; then
+      [ -n "$2" ] && {
+        if [ -n "${msg}" ]; then
           msg="${msg}${delimiter}${2}"
         else
           msg="$2"
@@ -149,8 +149,8 @@ parse_arguments() {
       }
       ;;
     *)
-      if [ "$msg" ]; then
-        msg="$msg $1"
+      if [ -n "${msg}" ]; then
+        msg="${msg} $1"
       else
         msg="$1"
       fi
@@ -162,37 +162,37 @@ parse_arguments() {
 
 set_pair() {
   #{ Update message with key-value pair
-  [ "$key" ] && [ "$val" ] && {
+  [ -n "${key}" ] && [ -n "${val}" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
 
     #| Formatted key-value pair
-    pair_fmt="${key}${sep}${val_fmt:-$val}"
+    pair_fmt="${key}${sep}${val_fmt:-${val}}"
   }
 }
 
 set_level() {
   #{ Append the level to the message.
-  case "$lvl" in
+  case "${lvl}" in
   error)
     lvl_log="[ERROR] "
-    lvl_fmt="${FMT_ERROR}${lvl_log}${FMT_NORMAL}"
+    lvl_fmt="${FMT_ERROR:?}${lvl_log}${FMT_NORMAL:?}"
     ;;
   warn)
     lvl_log="[ WARN] "
-    lvl_fmt="${FMT_WARN}${lvl_log}${FMT_NORMAL}"
+    lvl_fmt="${FMT_WARN:?}${lvl_log}${FMT_NORMAL:?}"
     ;;
   info)
     lvl_log="[ INFO] "
-    lvl_fmt="${FMT_INFO}${lvl_log}${FMT_NORMAL}"
+    lvl_fmt="${FMT_INFO:?}${lvl_log}${FMT_NORMAL:?}"
     ;;
   debug)
     lvl_log="[DEBUG] "
-    lvl_fmt="${FMT_DEBUG}${lvl_log}${FMT_NORMAL}"
+    lvl_fmt="${FMT_DEBUG:?}${lvl_log}${FMT_NORMAL:?}"
     ;;
   trace)
     lvl_log="[TRACE] "
-    lvl_fmt="${FMT_TRACE}${lvl_log}${FMT_NORMAL}"
+    lvl_fmt="${FMT_TRACE:?}${lvl_log}${FMT_NORMAL:?}"
     ;;
   *) unset lvl ;;
   esac
@@ -226,7 +226,7 @@ pout_repeat() {
   }
 
   pout_repeat__print_guide() {
-    printf "%s [ v.%s]\n" "$scr_name" "$scr_version"
+    printf "%s [ v.%s]\n" "${scr_name}" "${scr_version}"
     # print_section \
     #   --head "Description" \
     #   --info "$src_description"

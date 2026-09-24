@@ -38,11 +38,11 @@ initialize_environment() {
   #? need to re-run this lookup. Missing tools are reported here, up
   #? front, rather than surfacing later as an opaque failure.
   COLORSCHEME_CMD=$(resolve_command "${CMD_COLORSCHEME:-}" "colorscheme")
-  [ -n "${COLORSCHEME_CMD}" ] ||
-    printf "Warning: colorscheme not found (CMD_COLORSCHEME or PATH); theme detection will default to dark.\n" >&2
+  [ -n "${COLORSCHEME_CMD}" ] \
+    || printf "Warning: colorscheme not found (CMD_COLORSCHEME or PATH); theme detection will default to dark.\n" >&2
   VERBOSITY_CMD=$(resolve_command "${CMD_VERBOSITY:-}" "verbosity")
-  [ -n "${VERBOSITY_CMD}" ] ||
-    printf "Warning: verbosity not found (CMD_VERBOSITY or PATH); defaulting to level 3.\n" >&2
+  [ -n "${VERBOSITY_CMD}" ] \
+    || printf "Warning: verbosity not found (CMD_VERBOSITY or PATH); defaulting to level 3.\n" >&2
 
   #> Resolve verbosity ONCE, numerically, via the `verbosity` tool.
   #? Everything else in this script just compares $LEVEL with [ ], via

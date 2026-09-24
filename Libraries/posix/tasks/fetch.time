@@ -20,9 +20,9 @@ main() {
     shift
   done
 
-  case "$fetch" in
+  case "${fetch}" in
   seconds) fetch_seconds ;;
-  duration) fetch_duration --start "$start_time" --stop "$stop_time" ;;
+  duration) fetch_duration --start "${start_time}" --stop "${stop_time}" ;;
   *) fetch_timestamp ;;
   esac
 }
@@ -70,36 +70,36 @@ fetch_timestamp() {
   #{ Attempt to capture the timestamp
   if command -v date >/dev/null 2>&1; then
     timestamp="$(date "+%Y-%m-%d %H:%M:%S")"
-  elif [ "$weHave_date" ]; then
+  elif [ -n "${weHave_date}" ]; then
     timestamp="$(date "+%Y-%m-%d %H:%M:%S")"
-  elif [ "$weHave_gdate" ]; then
+  elif [ -n "${weHave_gdate}" ]; then
     timestamp="$(gdate "+%Y-%m-%d %H:%M:%S")"
-  elif [ "$weHave_perl" ]; then
+  elif [ -n "${weHave_perl}" ]; then
     timestamp="$(perl -e 'use POSIX qw(strftime); print strftime("%Y-%m-%d %H:%M:%S", localtime), "\n"')"
-  elif [ "$weHave_pwsh" ]; then
+  elif [ -n "${weHave_pwsh}" ]; then
     timestamp="$(pwsh -Command '(Get-Date -Format "yyyy-MM-dd HH:mm:ss")')"
-  elif [ "$weHave_powershell" ]; then
+  elif [ -n "${weHave_powershell}" ]; then
     timestamp="$(powershell -Command '(Get-Date -Format "yyyy-MM-dd HH:mm:ss")')"
-  elif [ "$weHave_ruby" ]; then
+  elif [ -n "${weHave_ruby}" ]; then
     timestamp="$(ruby -e 'puts Time.now.strftime("%Y-%m-%d %H:%M:%S")')"
-  elif [ "$weHave_python3" ]; then
+  elif [ -n "${weHave_python3}" ]; then
     timestamp="$(python3 -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))')"
-  elif [ "$weHave_python" ]; then
+  elif [ -n "${weHave_python}" ]; then
     timestamp="$(python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))')"
-  elif [ "$weHave_node" ]; then
+  elif [ -n "${weHave_node}" ]; then
     #? This is in UTC, not local time
     timestamp="$(node -e 'console.log(new Date().toISOString().slice(0, 19).replace("T", " "))')"
-  elif [ "$weHave_php" ]; then
+  elif [ -n "${weHave_php}" ]; then
     #? This is in UTC, not local time
     timestamp="$(php -r 'echo date("Y-m-d H:i:s");')"
   fi
 
   #{ Validate and return the timestamp
   if
-    printf "%s" "$timestamp" |
+    printf "%s" "${timestamp}" |
       grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$'
   then
-    printf "%s" "$timestamp"
+    printf "%s" "${timestamp}"
   else
     printf "Error: Failed to get valid timestamp\n" >&2
     return 1
@@ -116,25 +116,25 @@ fetch_seconds() {
   #DOC Example:
   #DOC   start_time=$(get_time_in_secs)
 
-  if [ "$weHave_date" ]; then
+  if [ -n "${weHave_date}" ]; then
     seconds="$(date +%s.%N)"
-  elif [ "$weHave_gdate" ]; then
+  elif [ -n "${weHave_gdate}" ]; then
     seconds="$(gdate +%s.%N)"
-  elif [ "$weHave_perl" ]; then
+  elif [ -n "${weHave_perl}" ]; then
     seconds="$(perl -e 'use Time::HiRes; print Time::HiRes::time();')"
-  elif [ "$weHave_pwsh" ]; then
+  elif [ -n "${weHave_pwsh}" ]; then
     seconds="$(pwsh -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds')"
-  elif [ "$weHave_powershell" ]; then
+  elif [ -n "${weHave_powershell}" ]; then
     seconds="$(powershell -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds')"
-  elif [ "$weHave_ruby" ]; then
+  elif [ -n "${weHave_ruby}" ]; then
     seconds="$(ruby -e 'puts Time.now.to_f')"
-  elif [ "$weHave_python3" ]; then
+  elif [ -n "${weHave_python3}" ]; then
     seconds="$(python3 -c 'import time; print(time.time())')"
-  elif [ "$weHave_python" ]; then
+  elif [ -n "${weHave_python}" ]; then
     seconds="$(python -c 'import time; print(time.time())')"
-  elif [ "$weHave_php" ]; then
+  elif [ -n "${weHave_php}" ]; then
     seconds="$(php -r 'echo microtime(true);')"
-  elif [ "$weHave_node" ]; then
+  elif [ -n "${weHave_node}" ]; then
     seconds="$(node -e 'console.log(Date.now()/1000)')"
   else
     #{ Fallback to basic second precision BSD/macOS with
@@ -142,13 +142,13 @@ fetch_seconds() {
   fi
 
   #{ Validate output is numeric and non-empty
-  case "$seconds" in
+  case "${seconds}" in
   '' | *[!0-9.]*)
     printf "Error: Failed to get valid timestamp\n" >&2
     return 1
     ;;
   *)
-    printf "%s" "$seconds"
+    printf "%s" "${seconds}"
     ;;
   esac
 
@@ -182,11 +182,11 @@ fetch_duration() {
   #{ Parse arguments for start and stop times
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --start) [ "$2" ] && {
+    --start) [ -n "$2" ] && {
       start="$2"
       shift
     } ;;
-    --stop) [ "$2" ] && {
+    --stop) [ -n "$2" ] && {
       stop="$2"
       shift
     } ;;
@@ -195,31 +195,31 @@ fetch_duration() {
   done
 
   #{ Validate inputs exist
-  if [ -z "$start" ] || [ -z "$stop" ]; then
+  if [ -z "${start}" ] || [ -z "${stop}" ]; then
     printf "ERROR: Both --start and --stop times are required\n" >&2
     return 1
   fi
 
   #{ Calculate the duration
-  duration=$(awk "BEGIN {print $stop - $start}")
+  duration=$(awk "BEGIN {print ${stop} - ${start}}")
 
   #{ Validate duration calculation
-  [ "$duration" ] || {
-    [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+  [ -n "${duration}" ] || {
+    [ "${VERBOSITY_LEVEL:?}" -ge "${VERBOSITY_LEVEL_ERROR:?}" ] &&
       printf "Error: Failed to calculate duration\n" >&2
     return 1
   }
 
   #{ Format the duration using awk for floating point comparisons
-  if [ "$(awk "BEGIN {print ($duration < 1)}")" -eq 1 ]; then
-    milliseconds=$(awk "BEGIN {print $duration * 1000}")
-    printf "%.3f milliseconds\n" "$milliseconds"
-  elif [ "$(awk "BEGIN {print ($duration < 60)}")" -eq 1 ]; then
-    printf "%.3f seconds\n" "$duration"
+  if [ "$(awk "BEGIN {print (${duration} < 1)}")" -eq 1 ]; then
+    milliseconds=$(awk "BEGIN {print ${duration} * 1000}")
+    printf "%.3f milliseconds\n" "${milliseconds}"
+  elif [ "$(awk "BEGIN {print (${duration} < 60)}")" -eq 1 ]; then
+    printf "%.3f seconds\n" "${duration}"
   else
-    minutes=$(awk "BEGIN {print int($duration / 60)}")
-    seconds=$(awk "BEGIN {print $duration % 60}")
-    printf "%d minutes and %.3f seconds\n" "$minutes" "$seconds"
+    minutes=$(awk "BEGIN {print int(${duration} / 60)}")
+    seconds=$(awk "BEGIN {print ${duration} % 60}")
+    printf "%d minutes and %.3f seconds\n" "${minutes}" "${seconds}"
   fi
 }
 

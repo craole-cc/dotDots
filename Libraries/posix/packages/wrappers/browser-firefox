@@ -15,10 +15,10 @@ win_dev="/c/Program Files/Firefox Developer Edition/firefox.exe"
 #   echo "Opening Firefox Developer Edition..."
 # fi
 
-if [ -f "$win_dev" ]; then
-  "$win_dev"
-elif [ -f "$win" ]; then
-  "$win"
+if [ -f "${win_dev}" ]; then
+  "${win_dev}"
+elif [ -f "${win}" ]; then
+  "${win}"
 elif weHave firefox; then
   firefox
 fi

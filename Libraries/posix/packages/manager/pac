@@ -6,8 +6,8 @@
 
 __info__() {
   _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Description"
   _cmd_DEPENDENCIES="printf, echo, command, unalias"
@@ -15,12 +15,12 @@ __info__() {
     cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
-                      USAGE: $_cmd_NAME
+                      USAGE: ${_cmd_NAME}
 #>----------------------------------------------------<#
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
             command <[options]> <[arguments]>
-          $_cmd_NAME --flagb "arg to process"
+          ${_cmd_NAME} --flagb "arg to process"
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version
@@ -41,13 +41,13 @@ USAGE_GUIDE
 
 #{ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
+  printf "%s\n" "${_cmd_USAGEGUIDE}"
   exit 0
 }
 
 #{ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
+  printf "%s\n" "${_cmd_VERSION}"
   exit 0
 }
 
@@ -68,9 +68,9 @@ __os__() {
 }
 
 __command__() {
-  weHave "$CMD" &&
-    if [ "$DOAS" ]; then
-      sudo eval "$CMD" "$OPTS" "$@"
+  weHave "${CMD}" &&
+    if [ -n "${DOAS}" ]; then
+      sudo eval "${CMD}" "${OPTS}" "$@"
     else
       sh -c 'eval "$CMD" "$OPTS" "$@"'
       # "$CMD" "$OPTS" "$@"
@@ -105,7 +105,7 @@ __opts__() {
 
     COUNTER=$((COUNTER + 1))
     ARG="$2"
-    __process__ "$ARG"
+    __process__ "${ARG}"
     shift 2
 
   done
@@ -117,11 +117,11 @@ __opts__() {
 # ===================================================================
 
 __defaults__() {
-  [ "$OPTION" ] || OPTION="Query"
+  [ -n "${OPTION}" ] || OPTION="Query"
 
-  case "$OS" in
+  case "${OS}" in
   void)
-    case "$OPTION" in
+    case "${OPTION}" in
     install)
       CMD="xbps-install"
       OPTS="--sync --update --verbose"
@@ -148,7 +148,7 @@ __defaults__() {
     esac
     ;;
   arch)
-    case "$OPTION" in
+    case "${OPTION}" in
     install)
       true
       ;;
@@ -175,7 +175,7 @@ __error__() {
   case $* in
   --arg)
     msg="🟥 Command missing."
-    printf "\n%s\n" "$msg"
+    printf "\n%s\n" "${msg}"
     __help__
     exit 1
     ;;
@@ -193,11 +193,11 @@ __process__() {
   __defaults__
 
   #{ Display details
-  [ "$VERBOSE" ] &&
-    printf "%s <| %s_%s |> %s\n" "$COUNTER" "$OS" "$OPTION" "$ARG"
+  [ -n "${VERBOSE}" ] &&
+    printf "%s <| %s_%s |> %s\n" "${COUNTER}" "${OS}" "${OPTION}" "${ARG}"
 
   #{ Process
-  case "$OPTION" in
+  case "${OPTION}" in
   local | explicit) __command__ | rg "$@" ;;
   *) __command__ "$@" ;;
   esac

@@ -53,12 +53,12 @@ process_core() {
 present_info() {
   case "$1" in
   --active)
-    [ "$VERBOSITY" -gt 0 ] &&
-      msg="$_APP is already running."
+    [ "${VERBOSITY}" -gt 0 ] &&
+      msg="${_APP:?} is already running."
     ;;
   --launched)
-    [ "$VERBOSITY" -gt 0 ] &&
-      msg="$_APP has been started"
+    [ "${VERBOSITY}" -gt 0 ] &&
+      msg="${_APP:?} has been started"
     ;;
   *) printf "%s\n" "${msg:-$*}" ;;
   esac

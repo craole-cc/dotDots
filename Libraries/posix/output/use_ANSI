@@ -35,7 +35,7 @@ strike="$(printf "\033[9m")"
 #> Colors                                                                     |
 
 #| Declare colors for supported terminals
-case $TERM in
+case ${TERM} in
 *-m) return ;;
 *) ;;
 esac

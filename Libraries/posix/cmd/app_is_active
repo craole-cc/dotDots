@@ -1,11 +1,11 @@
 #!/bin/sh
 
 case $1 in
-  -d | --verbose)
-    VERBOSE=true
-    shift
-    ;;
-  *) ;;
+-d | --verbose)
+  VERBOSE=true
+  shift
+  ;;
+*) ;;
 esac
 
 __instances__() {
@@ -18,11 +18,11 @@ __valid__() {
 
 __msg_active__() {
   INSTANCES=$(__instances__ "$@")
-  if [ "$INSTANCES" -gt 1 ]; then
+  if [ "${INSTANCES}" -gt 1 ]; then
     printf \
       "ℹ️  \`%s\` has %s active instances.\n" \
       "$@" \
-      "$INSTANCES"
+      "${INSTANCES}"
   else
     printf "ℹ️  \`%s\` is active.\n" "$@"
   fi
@@ -41,16 +41,16 @@ __msg_missing__() {
 
 __msg__() {
   case $1 in
-    --missing)
-      printf "ℹ️  \`%s\` is not installed.\n" "$@"
-      return 1
-      ;;
-    *) ;;
+  --missing)
+    printf "ℹ️  \`%s\` is not installed.\n" "$@"
+    return 1
+    ;;
+  *) ;;
   esac
 }
 
 __run__() {
-  [ "$(app_is_installed "$@")" ] || __msg__ --missing "$@"
+  [ -n "$(app_is_installed "$@")" ] || __msg__ --missing "$@"
 
   if __valid__ "$@"; then
     __msg_inactive__ "$@"
@@ -63,7 +63,7 @@ __run__() {
 }
 
 for app in "$@"; do
-  __run__ "$app"
+  __run__ "${app}"
   # echo $?
 done
 

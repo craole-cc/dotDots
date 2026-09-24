@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ "${WAYLAND_DISPLAY}" ] || return 1
+[ -n "${WAYLAND_DISPLAY}" ] || return 1
 
 # <&0 redirects stdin (fd 0) to fuzzel's stdin
 # fuzzel \
@@ -15,4 +15,4 @@
 # 	-r 0 \
 # 	-C 839496ff \
 # 	"$@" <&0
-fuzzel --config "$RC_FUZZEL"
+fuzzel --config "${RC_FUZZEL:?}"

@@ -36,48 +36,48 @@ verbosity() {
   def_lvl=2
 
   case "${1:-normalize}" in
-  priority)
-    case "$(printf '%s' "${2:-}" | tr '[:upper:]' '[:lower:]')" in
-    debug | trace | v | verbose | 3) printf '1' ;;
-    info | notice | i | 2) printf '2' ;;
-    warn | warning | w | 1) printf '3' ;;
-    error | err | e | 0 | fatal) printf '4' ;;
-    quiet | silent | q | none | off) printf '5' ;;
-    *) verbosity priority "${def_lvl}" ;;
-    esac
-    ;;
-  level)
-    case "${2:-${def_lvl}}" in
-    1) printf 'debug' ;;
-    2) printf 'info' ;;
-    3) printf 'warn' ;;
-    4) printf 'error' ;;
-    5) printf 'none' ;;
-    *) verbosity level "${def_lvl}" ;;
-    esac
-    ;;
-  normalize)
-    verbosity_priority="$(verbosity priority "${verbosity}")"
-    verbosity="$(verbosity level "${verbosity_priority}")"
-    export GUM_LOG_LEVEL="${verbosity}"
-    ;;
-  *) ;;
+    priority)
+      case "$(printf '%s' "${2:-}" | tr '[:upper:]' '[:lower:]')" in
+        debug | trace | v | verbose | 3) printf '1' ;;
+        info | notice | i | 2) printf '2' ;;
+        warn | warning | w | 1) printf '3' ;;
+        error | err | e | 0 | fatal) printf '4' ;;
+        quiet | silent | q | none | off) printf '5' ;;
+        *) verbosity priority "${def_lvl}" ;;
+      esac
+      ;;
+    level)
+      case "${2:-${def_lvl}}" in
+        1) printf 'debug' ;;
+        2) printf 'info' ;;
+        3) printf 'warn' ;;
+        4) printf 'error' ;;
+        5) printf 'none' ;;
+        *) verbosity level "${def_lvl}" ;;
+      esac
+      ;;
+    normalize)
+      verbosity_priority="$(verbosity priority "${verbosity}")"
+      verbosity="$(verbosity level "${verbosity_priority}")"
+      export GUM_LOG_LEVEL="${verbosity}"
+      ;;
+    *) ;;
   esac
 }
 
 #~@ Dependency Provisioning & Validation
 ensure_dependencies() {
   # 1. Provision gum (binary in PATH, nix-shell resolution, or printf wrapper fallback)
-  if ! command -v gum >/dev/null 2>&1; then
-    if command -v nix-shell >/dev/null 2>&1; then
-      gum_bin="$(nix-shell -p gum -I "nixpkgs=${rev_core}" --run "command -v gum" 2>/dev/null || true)"
+  if ! command -v gum > /dev/null 2>&1; then
+    if command -v nix-shell > /dev/null 2>&1; then
+      gum_bin="$(nix-shell -p gum -I "nixpkgs=${rev_core}" --run "command -v gum" 2> /dev/null || true)"
       if [ -n "${gum_bin:-}" ] && [ -x "${gum_bin}" ]; then
         PATH="$(dirname "${gum_bin}"):${PATH}"
         export PATH
       fi
     fi
 
-    if ! command -v gum >/dev/null 2>&1; then
+    if ! command -v gum > /dev/null 2>&1; then
       gum() {
         [ "${1:-}" = "log" ] || return 0
         shift
@@ -88,15 +88,15 @@ ensure_dependencies() {
 
         while [ $# -gt 0 ]; do
           case "${1:-}" in
-          --level)
-            level="${2:-}"
-            shift
-            ;;
-          --structured)
-            msg="${2:-}"
-            shift
-            ;;
-          *) extra_args="${extra_args} ${1:-}" ;;
+            --level)
+              level="${2:-}"
+              shift
+              ;;
+            --structured)
+              msg="${2:-}"
+              shift
+              ;;
+            *) extra_args="${extra_args} ${1:-}" ;;
           esac
           shift
         done
@@ -113,7 +113,7 @@ ensure_dependencies() {
 
   # 2. Check essential system dependencies
   for cmd in sudo nixos-rebuild; do
-    if ! command -v "${cmd}" >/dev/null 2>&1; then
+    if ! command -v "${cmd}" > /dev/null 2>&1; then
       gum log \
         --level error \
         --structured "Required command not found" command "${cmd}"
@@ -126,39 +126,39 @@ ensure_dependencies() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "${1:-}" in
-    --dry-run | -n) mode_dry_run=1 ;;
-    --dry-activate) dry_action="dry-activate" ;;
-    --no-flake-check) skip_stale_check=1 ;;
-    --max-age)
-      if [ -n "${2:-}" ]; then
-        max_age_days="${2}"
-        shift
-      else
-        gum log --level error "Argument requires a value" arg "${1:-}"
+      --dry-run | -n) mode_dry_run=1 ;;
+      --dry-activate) dry_action="dry-activate" ;;
+      --no-flake-check) skip_stale_check=1 ;;
+      --max-age)
+        if [ -n "${2:-}" ]; then
+          max_age_days="${2}"
+          shift
+        else
+          gum log --level error "Argument requires a value" arg "${1:-}"
+          exit 1
+        fi
+        ;;
+      --flake) mode="flake" ;;
+      --legacy | --config) mode="config" ;;
+      -v | --verbose) verbosity="debug" ;;
+      -q | --quiet) verbosity="none" ;;
+      -h | --help)
+        show_help
+        exit 0
+        ;;
+      --verbosity | --level | --log-level)
+        if [ -n "${2:-}" ]; then
+          verbosity="${2}"
+          shift
+        else
+          gum log --level error "Argument requires a value" arg "${1:-}"
+          exit 1
+        fi
+        ;;
+      *)
+        gum log --level error "Unknown argument" arg "${1:-}"
         exit 1
-      fi
-      ;;
-    --flake) mode="flake" ;;
-    --legacy | --config) mode="config" ;;
-    -v | --verbose) verbosity="debug" ;;
-    -q | --quiet) verbosity="none" ;;
-    -h | --help)
-      show_help
-      exit 0
-      ;;
-    --verbosity | --level | --log-level)
-      if [ -n "${2:-}" ]; then
-        verbosity="${2}"
-        shift
-      else
-        gum log --level error "Argument requires a value" arg "${1:-}"
-        exit 1
-      fi
-      ;;
-    *)
-      gum log --level error "Unknown argument" arg "${1:-}"
-      exit 1
-      ;;
+        ;;
     esac
     shift
   done
@@ -171,7 +171,7 @@ parse_arguments() {
 #~@ Step 1: Check Flake Staleness & Update if Needed
 check_flake_staleness() {
   [ "${skip_stale_check:-0}" -eq 1 ] && return 0
-  command -v nix >/dev/null 2>&1 || {
+  command -v nix > /dev/null 2>&1 || {
     gum log --level warn --structured "nix not found - skipping flake staleness check"
     return 0
   }
@@ -184,20 +184,20 @@ check_flake_staleness() {
 
   # Prefer git history for the lock's true last-change time; `mtime` lies
   # after a fresh clone/download. Fall back to file `mtime` if not a repo.
-  if command -v git >/dev/null 2>&1 &&
-    git -C "${dots}" rev-parse \
-      --is-inside-work-tree >/dev/null 2>&1; then
+  if command -v git > /dev/null 2>&1 \
+    && git -C "${dots}" rev-parse \
+      --is-inside-work-tree > /dev/null 2>&1; then
     last_change="$(
       git -C "${dots}" log -1 \
         --format=%ct \
-        -- flake.lock 2>/dev/null || true
+        -- flake.lock 2> /dev/null || true
     )"
   fi
-  [ -n "${last_change:-}" ] ||
-    last_change="$(
-      stat -c %Y "${lock}" 2>/dev/null ||
-        stat -f %m "${lock}" 2>/dev/null ||
-        printf 0
+  [ -n "${last_change:-}" ] \
+    || last_change="$(
+      stat -c %Y "${lock}" 2> /dev/null \
+        || stat -f %m "${lock}" 2> /dev/null \
+        || printf 0
     )"
 
   now="$(date +%s)"
@@ -279,19 +279,46 @@ switch_system() {
     # root would fail against a repo root doesn't own (git safe.directory).
     # dry-activate needs root to inspect the live system for the diff.
     case "${dry_action}" in
-    dry-build) rebuild_cmd="nixos-rebuild" ;;
-    *) rebuild_cmd="sudo nixos-rebuild" ;;
+      dry-build) rebuild_cmd="nixos-rebuild" ;;
+      *) rebuild_cmd="sudo nixos-rebuild" ;;
     esac
 
     case "${mode:-}" in
+      flake)
+        ${rebuild_cmd} "${dry_action}" \
+          --flake "${source}#${host}"
+        ;;
+      config)
+        ${rebuild_cmd} "${dry_action}" \
+          --no-flake \
+          -I "nixos-config=${source}/configuration.nix" \
+          -I "nixpkgs=${rev_core}" \
+          -I "home-manager=${rev_home}" \
+          -I "nix-index-database=${rev_apps}"
+        ;;
+      *)
+        gum log \
+          --level error \
+          --structured "Unknown mode" mode "${mode}"
+        exit 1
+        ;;
+    esac
+    return 0
+  fi
+
+  gum log \
+    --level info \
+    --structured "Starting nixos-rebuild" mode "${mode}" host "${host}"
+
+  case "${mode:-}" in
     flake)
-      ${rebuild_cmd} "${dry_action}" \
-        --flake "${source}#${host}"
+      sudo nixos-rebuild switch \
+        --flake "${target}#${host}"
       ;;
     config)
-      ${rebuild_cmd} "${dry_action}" \
+      sudo nixos-rebuild switch \
         --no-flake \
-        -I "nixos-config=${source}/configuration.nix" \
+        -I "nixos-config=${target}/configuration.nix" \
         -I "nixpkgs=${rev_core}" \
         -I "home-manager=${rev_home}" \
         -I "nix-index-database=${rev_apps}"
@@ -302,40 +329,13 @@ switch_system() {
         --structured "Unknown mode" mode "${mode}"
       exit 1
       ;;
-    esac
-    return 0
-  fi
-
-  gum log \
-    --level info \
-    --structured "Starting nixos-rebuild" mode "${mode}" host "${host}"
-
-  case "${mode:-}" in
-  flake)
-    sudo nixos-rebuild switch \
-      --flake "${target}#${host}"
-    ;;
-  config)
-    sudo nixos-rebuild switch \
-      --no-flake \
-      -I "nixos-config=${target}/configuration.nix" \
-      -I "nixpkgs=${rev_core}" \
-      -I "home-manager=${rev_home}" \
-      -I "nix-index-database=${rev_apps}"
-    ;;
-  *)
-    gum log \
-      --level error \
-      --structured "Unknown mode" mode "${mode}"
-    exit 1
-    ;;
   esac
 }
 
 #~@ Help / Usage
 show_help() {
   here="$(basename "$0")"
-  cat <<EOF
+  cat << EOF
 Usage: ${here} [OPTIONS]
 
 Commits dots changes, syncs the host config to /etc/nixos, and runs

@@ -18,7 +18,7 @@ TEST_VERBOSE="${TEST_VERBOSE:-0}"
 TEST_PATTERN="${1:-.*}"
 
 #| Colors for output (if terminal supports it)
-if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
+if [ -t 1 ] && command -v tput > /dev/null 2>&1; then
   RED="$(tput setaf 1)"
   GREEN="$(tput setaf 2)"
   YELLOW="$(tput setaf 3)"
@@ -106,29 +106,29 @@ print_status() {
   message="${3:-}"
 
   case "${status}" in
-  PASS)
-    printf "%s[PASS]%s %s\n" "${GREEN}" "${RESET}" "${test_name}"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    ;;
-  FAIL)
-    printf "%s[FAIL]%s %s" "${RED}" "${RESET}" "${test_name}"
-    if [ -n "${message}" ]; then
-      printf " - %s" "${message}"
-    fi
-    printf "\n"
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    ;;
-  SKIP)
-    printf "%s[SKIP]%s %s" "${YELLOW}" "${RESET}" "${test_name}"
-    if [ -n "${message}" ]; then
-      printf " - %s" "${message}"
-    fi
-    printf "\n"
-    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
-    ;;
-  INFO | *)
-    printf "%s[INFO]%s %s\n" "${BLUE}" "${RESET}" "${test_name}"
-    ;;
+    PASS)
+      printf "%s[PASS]%s %s\n" "${GREEN}" "${RESET}" "${test_name}"
+      TESTS_PASSED=$((TESTS_PASSED + 1))
+      ;;
+    FAIL)
+      printf "%s[FAIL]%s %s" "${RED}" "${RESET}" "${test_name}"
+      if [ -n "${message}" ]; then
+        printf " - %s" "${message}"
+      fi
+      printf "\n"
+      TESTS_FAILED=$((TESTS_FAILED + 1))
+      ;;
+    SKIP)
+      printf "%s[SKIP]%s %s" "${YELLOW}" "${RESET}" "${test_name}"
+      if [ -n "${message}" ]; then
+        printf " - %s" "${message}"
+      fi
+      printf "\n"
+      TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
+      ;;
+    INFO | *)
+      printf "%s[INFO]%s %s\n" "${BLUE}" "${RESET}" "${test_name}"
+      ;;
   esac
 }
 
@@ -137,7 +137,7 @@ run_test() {
   test_func="$2"
 
   #{ Check if test matches pattern
-  if ! printf "%s" "${test_name}" | grep -E "${TEST_PATTERN}" >/dev/null 2>&1; then
+  if ! printf "%s" "${test_name}" | grep -E "${TEST_PATTERN}" > /dev/null 2>&1; then
     print_status "SKIP" "${test_name}" "doesn't match pattern"
     return 0
   fi
@@ -184,19 +184,19 @@ assert_contains() {
   message="${3:-}"
 
   case "${haystack}" in
-  *"${needle}"*)
-    return 0
-    ;;
-  *)
-    if [ "${TEST_VERBOSE}" -eq 1 ]; then
-      printf "  Haystack: '%s'\n" "${haystack}"
-      printf "  Needle:   '%s'\n" "${needle}"
-      if [ -n "${message}" ]; then
-        printf "  Message:  %s\n" "${message}"
+    *"${needle}"*)
+      return 0
+      ;;
+    *)
+      if [ "${TEST_VERBOSE}" -eq 1 ]; then
+        printf "  Haystack: '%s'\n" "${haystack}"
+        printf "  Needle:   '%s'\n" "${needle}"
+        if [ -n "${message}" ]; then
+          printf "  Message:  %s\n" "${message}"
+        fi
       fi
-    fi
-    return 1
-    ;;
+      return 1
+      ;;
   esac
 }
 
@@ -205,7 +205,7 @@ assert_matches() {
   pattern="$2"
   message="${3:-}"
 
-  if printf "%s" "${text}" | grep -E "${pattern}" >/dev/null 2>&1; then
+  if printf "%s" "${text}" | grep -E "${pattern}" > /dev/null 2>&1; then
     return 0
   else
     if [ "${TEST_VERBOSE}" -eq 1 ]; then
@@ -223,7 +223,7 @@ assert_exit_code() {
   expected_code="$1"
   command="$2"
 
-  eval "${command}" >/dev/null 2>&1
+  eval "${command}" > /dev/null 2>&1
   actual_code=$?
 
   if [ "${expected_code}" -eq "${actual_code}" ]; then
@@ -285,19 +285,19 @@ test_help_option() {
   output=$("${TEST_TARGET}" --help 2>&1)
   exit_code=$?
 
-  assert_exit_code 0 "${TEST_TARGET} --help" &&
-    assert_contains "${output}" "Clock - POSIX Duration and Timestamp Utility" &&
-    assert_contains "${output}" "USAGE:" &&
-    assert_contains "${output}" "OPTIONS:" &&
-    assert_contains "${output}" "EXAMPLES:"
+  assert_exit_code 0 "${TEST_TARGET} --help" \
+    && assert_contains "${output}" "Clock - POSIX Duration and Timestamp Utility" \
+    && assert_contains "${output}" "USAGE:" \
+    && assert_contains "${output}" "OPTIONS:" \
+    && assert_contains "${output}" "EXAMPLES:"
 }
 
 test_help_short_option() {
   output=$("${TEST_TARGET}" -h 2>&1)
   exit_code=$?
 
-  assert_exit_code 0 "${TEST_TARGET} -h" &&
-    assert_contains "${output}" "Clock - POSIX Duration and Timestamp Utility"
+  assert_exit_code 0 "${TEST_TARGET} -h" \
+    && assert_contains "${output}" "Clock - POSIX Duration and Timestamp Utility"
 }
 
 test_timestamp_default() {
@@ -343,8 +343,8 @@ test_duration_verbose_format() {
   output=$("${TEST_TARGET}" --duration --verbose sleep 0.1 2>&1)
 
   #{ Should contain "completed in" and words like "milliseconds" or "seconds"
-  assert_contains "${output}" "completed in" &&
-    assert_matches "${output}" '(millisecond|second|minute)'
+  assert_contains "${output}" "completed in" \
+    && assert_matches "${output}" '(millisecond|second|minute)'
 }
 
 test_duration_with_label() {
@@ -355,7 +355,7 @@ test_duration_with_label() {
 
 test_duration_command_exit_code() {
   #{ Test that clock preserves the exit code of the command
-  "${TEST_TARGET}" --duration false >/dev/null 2>&1
+  "${TEST_TARGET}" --duration false > /dev/null 2>&1
   exit_code=$?
 
   #{ 'false' command should return exit code 1
@@ -370,48 +370,48 @@ test_invalid_option() {
   output=$("${TEST_TARGET}" --invalid-option 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: Unknown option" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: Unknown option" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 test_missing_format_value() {
   output=$("${TEST_TARGET}" --format 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: --format requires a value" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: --format requires a value" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 test_missing_label_value() {
   output=$("${TEST_TARGET}" --label 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: --label requires a value" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: --label requires a value" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 test_conflicting_options_compact_verbose() {
   output=$("${TEST_TARGET}" --compact --verbose 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: Cannot use both --compact and --verbose" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: Cannot use both --compact and --verbose" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 test_conflicting_options_timestamp_duration() {
   output=$("${TEST_TARGET}" --timestamp --duration echo test 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: Cannot use both --timestamp and --duration" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: Cannot use both --timestamp and --duration" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 test_duration_without_command() {
   output=$("${TEST_TARGET}" --duration 2>&1)
   exit_code=$?
 
-  assert_contains "${output}" "ERROR: --duration requires a command to execute" &&
-    [ "${exit_code}" -ne 0 ]
+  assert_contains "${output}" "ERROR: --duration requires a command to execute" \
+    && [ "${exit_code}" -ne 0 ]
 }
 
 #endregion
@@ -458,10 +458,10 @@ test_show_icon_env() {
 test_dry_run() {
   output=$("${TEST_TARGET}" --dry-run --duration echo "test" 2>&1)
 
-  assert_contains "${output}" "Would execute: echo test" &&
-    assert_contains "${output}" "Duration format:" &&
-    assert_contains "${output}" "Label:" &&
-    assert_contains "${output}" "Icon:"
+  assert_contains "${output}" "Would execute: echo test" \
+    && assert_contains "${output}" "Duration format:" \
+    && assert_contains "${output}" "Label:" \
+    && assert_contains "${output}" "Icon:"
 }
 
 test_icon_option() {
@@ -478,7 +478,7 @@ test_show_icon_option() {
 }
 
 test_command_with_arguments() {
-  output=$("${TEST_TARGET}" --duration ls /nonexistent 2>/dev/null)
+  output=$("${TEST_TARGET}" --duration ls /nonexistent 2> /dev/null)
   exit_code=$?
 
   #{ Should preserve the exit code from ls (should be non-zero for nonexistent path)
@@ -526,9 +526,9 @@ test_multiple_timestamp_calls() {
   output2=$("${TEST_TARGET}" --timestamp 2>&1)
 
   #{ Both should be valid timestamps and different
-  assert_matches "${output1}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' &&
-    assert_matches "${output2}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' &&
-    [ "${output1}" != "${output2}" ]
+  assert_matches "${output1}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' \
+    && assert_matches "${output2}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' \
+    && [ "${output1}" != "${output2}" ]
 }
 
 #endregion
@@ -539,8 +539,8 @@ test_real_world_scenario_1() {
   #{ Test timing a directory listing with custom label
   output=$("${TEST_TARGET}" --duration --verbose --label "Directory Scan" ls . 2>&1)
 
-  assert_contains "${output}" "Directory Scan completed in" &&
-    assert_matches "${output}" '(millisecond|second)'
+  assert_contains "${output}" "Directory Scan completed in" \
+    && assert_matches "${output}" '(millisecond|second)'
 }
 
 test_real_world_scenario_2() {

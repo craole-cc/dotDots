@@ -15,7 +15,7 @@ initialize_tools() {
   }
 
   four1one() {
-    [ "$verbose" ] || return
+    [ -n "${verbose}" ] || return
     printf "%s" "$*"
   }
 
@@ -78,8 +78,8 @@ parse_proc_arguments() {
     *)
       app_id=$((app_id + 1))
 
-      [ "$verbose" ] && {
-        [ "$app_id" -gt 1 ] && printf "\n"
+      [ -n "${verbose}" ] && {
+        [ "${app_id}" -gt 1 ] && printf "\n"
       }
       app="$1"
       manage_application
@@ -91,44 +91,44 @@ parse_proc_arguments() {
 }
 
 manage_application() {
-  case "$action" in
+  case "${action}" in
   install)
-    if weHave "$app"; then
-      four1one "'$app' is already installed."
+    if weHave "${app}"; then
+      four1one "'${app}' is already installed."
       return 1
     else
-      four1one "'$app' is being installed."
-      [ "$simulate" ] || install_application "$app"
+      four1one "'${app}' is being installed."
+      [ -n "${simulate}" ] || install_application "${app}"
     fi
     ;;
   update)
-    if weHave "$app"; then
+    if weHave "${app}"; then
       four1one "'%s' is being updated."
-      [ "$simulate" ] || update_application "$app"
+      [ -n "${simulate}" ] || update_application "${app}"
     else
-      four1one "'$app' is being installed."
-      [ "$simulate" ] || install_application "$app"
+      four1one "'${app}' is being installed."
+      [ -n "${simulate}" ] || install_application "${app}"
     fi
     ;;
   uninstall)
-    if weHave "$app"; then
-      four1one "'$app' is being uninstalled."
-      [ "$simulate" ] || uninstall_application "$app"
+    if weHave "${app}"; then
+      four1one "'${app}' is being uninstalled."
+      [ -n "${simulate}" ] || uninstall_application "${app}"
     else
-      four1one "'$app' was not found"
+      four1one "'${app}' was not found"
       return 1
     fi
     ;;
   check)
-    if weHave "$app"; then
-      check_application "$app"
+    if weHave "${app}"; then
+      check_application "${app}"
 
-      four1one "We have '$app' [$app_version]" || {
-        [ "$app_id" -gt 1 ] && printf "\n"
-        printf "%s = %s" "$app" "$app_version"
+      four1one "We have '${app}' [${app_version}]" || {
+        [ "${app_id}" -gt 1 ] && printf "\n"
+        printf "%s = %s" "${app}" "${app_version}"
       }
     else
-      four1one "'$app' was not found"
+      four1one "'${app}' was not found"
       return 1
     fi
     ;;
@@ -178,7 +178,7 @@ check_application() {
 
   app_version="$(
     cargo install --list |
-      awk --assign app="$app" '$1 == app {print $2}' |
+      awk --assign app="${app}" '$1 == app {print $2}' |
       sed 's/[:v]//g'
   )"
 }

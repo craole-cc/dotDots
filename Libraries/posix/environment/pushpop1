@@ -2,8 +2,8 @@
 
 __info__() {
   _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
 }
 
@@ -35,23 +35,23 @@ __help__() {
 
 __defaults__() {
   #{ Set the default directories
-  [ "$origDIR" ] || origDIR="$PWD"
-  [ "$workDIR" ] || workDIR="$DOTS"
+  [ -n "${origDIR}" ] || origDIR="${PWD}"
+  [ -n "${workDIR}" ] || workDIR="${DOTS:?}"
 
   #{ Store the absolute paths
-  origDIR="$(pathof "$origDIR")"
-  workDIR="$(pathof "$workDIR")"
+  origDIR="$(pathof "${origDIR}")"
+  workDIR="$(pathof "${workDIR}")"
 
   #{ Declare the default message
   message="${message:-"General Update"}"
 
   #{ Declare the default command
-  [ "$command" ] || command="ls $workDIR"
+  [ -n "${command}" ] || command="ls ${workDIR}"
 }
 
 __validate__() {
-  [ -d "$origDIR" ] || __err__ --dir "$origDIR"
-  [ -d "$workDIR" ] || __err__ --dir "$workDIR"
+  [ -d "${origDIR}" ] || __err__ --dir "${origDIR}"
+  [ -d "${workDIR}" ] || __err__ --dir "${workDIR}"
 }
 
 __err__() {
@@ -70,12 +70,12 @@ __err__() {
 }
 
 __msg__() {
-  [ "$verbose" ] || return
+  [ -n "${verbose}" ] || return
   case "$1" in
   --cd) printf "Current Directory: '%s'\n" "$2" ;;
   --err-dir) printf "%s is not a valid directory" "$2" ;;
   --usage) printf "::USAGE:: %s [directory] [commands...]\n %s %s %s\n" \
-    "$_cmd_NAME" "$_cmd_NAME" "$DOTS" "touch file.test" ;;
+    "${_cmd_NAME}" "${_cmd_NAME}" "${DOTS:?}" "touch file.test" ;;
   *) ;;
   esac
 }
@@ -89,31 +89,31 @@ __cd__() {
 }
 
 __process__() {
-  case "$origDIR" in
-  "$workDIR"/*)
+  case "${origDIR}" in
+  "${workDIR}"/*)
     #{ Execute the command
-    eval "$command"
+    eval "${command}"
     ;;
   *)
     #{ Enter the target/work directory
-    __cd__ "$workDIR"
+    __cd__ "${workDIR}"
 
     #{ Execute the command
-    eval "$command"
+    eval "${command}"
 
     #{ Return to initial directory
-    __cd__ "$origDIR"
+    __cd__ "${origDIR}"
     ;;
   esac
 }
 
 __test__() {
-  echo "ORIG: $origDIR"
-  echo "WORK: $workDIR"
-  echo "MSG: $message"
-  echo "CMD: $command"
+  echo "ORIG: ${origDIR}"
+  echo "WORK: ${workDIR}"
+  echo "MSG: ${message}"
+  echo "CMD: ${command}"
   # __cd__ "$workDIR"
-  eval "$command"
+  eval "${command}"
   # cd "$HOME"
 }
 

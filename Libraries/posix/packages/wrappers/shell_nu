@@ -2,8 +2,8 @@
 
 launch_nu() {
   nu \
-    --config "${NUSHDIR}/config.nu" \
-    --env-config "${NUSHDIR}/env.nu"
+    --config "${NUSHDIR:?}/config.nu" \
+    --env-config "${NUSHDIR:?}/env.nu"
 }
 
 if nu --help > /dev/null 2>&1; then

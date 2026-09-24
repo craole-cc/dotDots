@@ -7,12 +7,12 @@ initialize_script() {
     scr_description="simple STDOUT horizontal line text alignment script."
     scr_usage="$(
       txtBarber "
-        Usage: $scr_name [OPTIONS] [TEXT]
-        Description: $scr_name is a $scr_description
+        Usage: ${scr_name} [OPTIONS] [TEXT]
+        Description: ${scr_name} is a ${scr_description}
 
         Options:
           -h, --help        Display this help message
-          -v, --version     Display the version of $scr_name
+          -v, --version     Display the version of ${scr_name}
           -d, --verbose     Enable verbose mode
           -c, --center      Align the text to the center (default)
           -r, --right       Align the text to the right
@@ -57,7 +57,7 @@ parse_arguments() {
     -r | --right) alignment="right" ;;
     -l | --left) alignment="left" ;;
     -p | --pad | --char)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
 
         validate_var \
           --lbl "Padding Character" \
@@ -74,7 +74,7 @@ parse_arguments() {
       fi
       ;;
     --padl)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         validate_var \
           --lbl "Left Padding Character" \
           --var "$2" &&
@@ -98,7 +98,7 @@ parse_arguments() {
           --var "$2" \
           --type
       )"
-      echo "$pad_char_r"
+      echo "${pad_char_r}"
       exit
       # if [ "$2" ]; then
       #   validate_var "$2"
@@ -114,11 +114,11 @@ parse_arguments() {
       # fi
       ;;
     --width)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         term_width="$2"
         shift
       else
-        [ "$verbose" ] && printf "Error: Missing argument for %s\n" "$1"
+        [ -n "${verbose}" ] && printf "Error: Missing argument for %s\n" "$1"
       fi
       ;;
     *) text="$1" ;;
@@ -131,14 +131,14 @@ set_environment() {
 
   label="Terminal Width"
   term_width="${term_width:-$(get_len --term)}"
-  is_number "$term_width" "$label"
+  is_number "${term_width}" "${label}"
 
   label="Text Length"
-  text_length="$(get_len "$text")"
-  is_number "$text_length" "$label"
+  text_length="$(get_len "${text}")"
+  is_number "${text_length}" "${label}"
 
   label="Buffer Length"
-  if [ "$alignment" = "center" ]; then
+  if [ "${alignment}" = "center" ]; then
     buffer_length=2
   else
     buffer_length=1
@@ -146,38 +146,38 @@ set_environment() {
 
   label="Padding Character"
   default_char=" "
-  pad_char_l="${pad_char_l:-${pad_char:-${pad_char_r:-$default_char}}}"
-  pad_char_r="${pad_char_r:-${pad_char:-${pad_char_l:-$default_char}}}"
+  pad_char_l="${pad_char_l:-${pad_char:-${pad_char_r:-${default_char}}}}"
+  pad_char_r="${pad_char_r:-${pad_char:-${pad_char_l:-${default_char}}}}"
 
   # [ "$pad_char_l" ] && validate_var "$pad_char_l" "Left $label"
   # [ "$pad_char_r" ] && validate_var "$pad_char_r" "Right $label"
 
   label="Padding"
-  [ "$term_width" -gt "$text_length" ] && padding_length=$(((term_width - text_length - buffer_length) / buffer_length))
-  padding_left="$(repeat_char "$pad_char_l" "$padding_length")"
-  padding_right="$(repeat_char "$pad_char_r" "$padding_length")"
+  [ "${term_width}" -gt "${text_length}" ] && padding_length=$(((term_width - text_length - buffer_length) / buffer_length))
+  padding_left="$(repeat_char "${pad_char_l}" "${padding_length}")"
+  padding_right="$(repeat_char "${pad_char_r}" "${padding_length}")"
 }
 
 repeat_char() {
   char="$1"
   reps="$2"
-  printf "%-${reps}s" | tr " " "$char"
+  printf "%-${reps}s" | tr " " "${char}"
 }
 
 is_number() {
   var="$1"
   lbl="$2"
 
-  case $var in
+  case ${var} in
   '' | *[!0-9]*)
     #TODO use pout for error handling to replace printf and exit
     # printf "%s '%s', is not a valid number\n" "$lbl" "$var"
-    [ "$verbose" ] &&
+    [ -n "${verbose}" ] &&
       embellish \
         --reset --underline --bg-red --fg-white \
-        "$lbl Error:" \
+        "${lbl} Error:" \
         --reset --space --bold --red --italic \
-        "$var" \
+        "${var}" \
         --reset --space \
         "is not a valid number." \
         --reset --new-line
@@ -191,17 +191,17 @@ is_single_char() {
   var="$1"
   lbl="$2"
 
-  if [ -z "$var" ]; then
+  if [ -z "${var}" ]; then
     embellish \
       --reset --underline --bg-red --fg-white \
-      "$lbl Error:" \
+      "${lbl} Error:" \
       --reset --space \
       "missing character" \
       --reset --new-line
     exit 1
   fi
 
-  case $var in
+  case ${var} in
   # Printable characters, including whitespace
   [[:print:]]) return 0 ;;
   *)
@@ -210,9 +210,9 @@ is_single_char() {
     embellish \
       The \
       --reset --space --bold --red --italic \
-      "$(printf "%s" "$lbl" | tr '[:upper:]' '[:lower:]')" \
+      "$(printf "%s" "${lbl}" | tr '[:upper:]' '[:lower:]')" \
       --reset --space --underline --bg-red --fg-white \
-      ["$var"] \
+      ["${var}"] \
       --reset --space \
       "is not a single character." \
       --reset --new-line
@@ -224,7 +224,7 @@ is_single_char() {
 
 validate_var() {
   func_name="validate_var"
-  func_usage="$func_name [OPTIONS] <Value>"
+  func_usage="${func_name} [OPTIONS] <Value>"
   while [ $# -gt 0 ]; do
     case $1 in
     --lbl | --opt | --var | --type)
@@ -232,8 +232,8 @@ validate_var() {
       variable_name=${1#--}
 
       #{ Assign the value of $2 to the extracted variable name
-      if [ "$2" ]; then
-        eval "$variable_name=\"\$2\""
+      if [ -n "$2" ]; then
+        eval "${variable_name}=\"\$2\""
         shift
       else
         printf "Error: Missing argument for %s\n" "$1"
@@ -249,7 +249,7 @@ validate_var() {
   done
 
   printf "type %s | opt %s | var %s | lbl %s" \
-    "$type" "$opt" "$var" "$lbl"
+    "${type:?}" "${opt}" "${var}" "${lbl}"
   # [ "$var" ] || show_usage_guide --fatal
 }
 # if [ "$" ];then
@@ -329,24 +329,24 @@ get_len() {
 }
 
 print_padded_text() {
-  if [ "$padding_left" ] || [ "$padding_right" ]; then
-    case "$alignment" in
+  if [ -n "${padding_left}" ] || [ -n "${padding_right}" ]; then
+    case "${alignment}" in
     center)
       printf \
         "%s %s %s\n" \
-        "${padding:-$padding_left}" \
-        "$text" \
-        "${padding:-$padding_right}"
+        "${padding:-${padding_left}}" \
+        "${text}" \
+        "${padding:-${padding_right}}"
       ;;
     right)
-      printf "%s %s\n" "$padding_left" "$text"
+      printf "%s %s\n" "${padding_left}" "${text}"
       ;;
     left | *)
-      printf "%s %s\n" "$text" "$padding_right"
+      printf "%s %s\n" "${text}" "${padding_right}"
       ;;
     esac
   else
-    printf "%s\n" "$text"
+    printf "%s\n" "${text}"
   fi
 }
 
@@ -358,8 +358,8 @@ show_usage_guide() {
       -x | --fatal) exit_code="${2:-1}" ;;
       --*)
         #{ Assign the value of $2 to the extracted variable name
-        if [ "$2" ]; then
-          eval "$variable_name=\"\$2\""
+        if [ -n "$2" ]; then
+          eval "${variable_name}=\"\$2\""
           shift
         else
           #TODO: handle better
@@ -373,17 +373,17 @@ show_usage_guide() {
     #/> Label
     embellish \
       --reset --underline --bg-red --fg-white \
-      --space "${lbl:-$label} Error" --space \
+      --space "${lbl:-${label}} Error" --space \
       --reset --new-line
 
     #/> Message
-    [ "$msg" ] && embellish "$msg" --reset --new-line
+    [ -n "${msg}" ] && embellish "${msg}" --reset --new-line
 
     #/> Usage Guide
-    [ "$var" ] && [ "$opt" ] && embellish \
-      "Usage: $scr_name $opt" \
+    [ -n "${var}" ] && [ -n "${opt}" ] && embellish \
+      "Usage: ${scr_name} ${opt}" \
       --space --red \
-      "$var" \
+      "${var}" \
       --reset --space \
       "[TEXT]" \
       --reset --new-line
@@ -393,34 +393,34 @@ show_usage_guide() {
       --reset --new-line \
       "For more information, run" \
       --reset --space --bold --italic \
-      "$scr_name --help" \
+      "${scr_name} --help" \
       --reset --new-line
     ;;
-  *) printf "%s\n" "$scr_usage" ;;
+  *) printf "%s\n" "${scr_usage}" ;;
   esac
 
-  exit "$exit_code"
+  exit "${exit_code}"
 }
 
 print_version() {
-  printf "%s\n" "$scr_version"
+  printf "%s\n" "${scr_version}"
 }
 
 print_verbose_info() {
-  [ "$verbose" ] || return
+  [ -n "${verbose}" ] || return
   cat <<EOF
-         Alignment: $alignment
-    Terminal Width: $term_width characters
-       Text Length: $text_length character(s)
-            Buffer: $buffer_length space(s)
+         Alignment: ${alignment}
+    Terminal Width: ${term_width} characters
+       Text Length: ${text_length} character(s)
+            Buffer: ${buffer_length} space(s)
 EOF
-  if [ "$padding" ]; then
+  if [ -n "${padding}" ]; then
     cat <<EOF
-         Padding: $padding_length reps of '$pad_char'
+         Padding: ${padding_length} reps of '${pad_char}'
 EOF
   else
     cat <<EOF
-           Padding: $padding_length reps of '$pad_char_r' and '$pad_char_l'
+           Padding: ${padding_length} reps of '${pad_char_r}' and '${pad_char_l}'
 EOF
   fi
 }

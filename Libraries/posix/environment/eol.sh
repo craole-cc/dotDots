@@ -1,13 +1,13 @@
 #!/bin/sh
 #shellcheck enable=all
 scr_PATH="$(pathof "$0")"
-scr_NAME="$(basename "$scr_PATH")"
-scr_DIR="$(dirname "$scr_PATH")"
+scr_NAME="$(basename "${scr_PATH}")"
+scr_DIR="$(dirname "${scr_PATH}")"
 scr_VERSION="1.0"
 scr_DEPENDENCIES="coreutils, perl, dos2unix & unix2dos"
 scr_DESCRIPTION="converts between CRLF (DOS) and LF (*nix) text file formats"
 scr_USAGE="Usage:
-    $scr_NAME [OPTIONS] [VARIABLES]
+    ${scr_NAME} [OPTIONS] [VARIABLES]
 "
 scr_OPTIONS="Options:
     -h, --help             Show detailed help information
@@ -21,26 +21,26 @@ scr_ARGUMENTS="Arguments:
     <LEVEL>    [quiet, info [default], debug, 0, 1, 2]
 "
 scr_DEPS="Dependencies:
-    $scr_DEPENDENCIES
+    ${scr_DEPENDENCIES}
 "
 scr_EXAMPLES="Examples:
-    $scr_NAME HOME XDG_CONFIG
-    $scr_NAME HOME XDG_CONFIG --verbose info
-    $scr_NAME -d=debug HOME
+    ${scr_NAME} HOME XDG_CONFIG
+    ${scr_NAME} HOME XDG_CONFIG --verbose info
+    ${scr_NAME} -d=debug HOME
 "
 scr_AUTHORS="Authors:
     Craole <iamcraole@gmail.com>
 "
 scr_HELP="$(
-  cat << HELP
-  $scr_NAME [v.$scr_VERSION] $scr_DESCRIPTION.
+  cat <<HELP
+  ${scr_NAME} [v.${scr_VERSION}] ${scr_DESCRIPTION}.
 
-  $scr_USAGE
-  $scr_OPTIONS
-  $scr_ARGUMENTS
-  $scr_DEPS
-  $scr_EXAMPLES
-  $scr_AUTHORS
+  ${scr_USAGE}
+  ${scr_OPTIONS}
+  ${scr_ARGUMENTS}
+  ${scr_DEPS}
+  ${scr_EXAMPLES}
+  ${scr_AUTHORS}
 HELP
 )"
 
@@ -78,30 +78,30 @@ parse_arguments() {
   #{ Accept user options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s\n" "$scr_HELP"
-        exit 0
-        ;;
-      -v | --version)
-        printf "%s\n" "$scr_VERSION"
-        exit 0
-        ;;
-      # -d | --verbose) verbose=true ;;e
-      -q | --quiet) unset verbose ;;
-      -c | --cr) target_eol="cr" ;;
-      -l | --lf) target_eol="lf" ;;
+    -h | --help)
+      printf "%s\n" "${scr_HELP}"
+      exit 0
+      ;;
+    -v | --version)
+      printf "%s\n" "${scr_VERSION}"
+      exit 0
+      ;;
+    # -d | --verbose) verbose=true ;;e
+    -q | --quiet) unset verbose ;;
+    -c | --cr) target_eol="cr" ;;
+    -l | --lf) target_eol="lf" ;;
     esac
     shift
   done
 
   #{ If unset, set default eol based on Operating System
-  [ "$target_eol" ] \
-    || case $(os.type.fetch) in
-      Windows) target_eol="cr" ;;
-      *) target_eol="lf" ;;
+  [ -n "${target_eol}" ] ||
+    case $(os.type.fetch) in
+    Windows) target_eol="cr" ;;
+    *) target_eol="lf" ;;
     esac
 
-  echo "$target_eol"
+  echo "${target_eol}"
 }
 
 process_core() {
@@ -110,33 +110,33 @@ process_core() {
 
   while [ "$#" -ge 1 ]; do
     file="$1"
-    if [ -f "$file" ]; then
-      if [ "$table_header_printed" = false ]; then
+    if [ -f "${file}" ]; then
+      if [ "${table_header_printed}" = false ]; then
         printf " | File | Conversion |\n"
         printf "|---|---|\n"
         table_header_printed=true
       fi
 
-      case "$target_eol" in
-        "cr")
-          convert_to_cr "$file"
-          printf "| %s | LF to CRLF |\n" "$file"
-          ;;
-        "lf")
-          convert_to_lf "$file"
-          printf "| %s | CRLF to LF |\n" "$file"
-          ;;
+      case "${target_eol}" in
+      "cr")
+        convert_to_cr "${file}"
+        printf "| %s | LF to CRLF |\n" "${file}"
+        ;;
+      "lf")
+        convert_to_lf "${file}"
+        printf "| %s | CRLF to LF |\n" "${file}"
+        ;;
       esac
 
       files_processed=$((files_processed + 1))
     else
-      echo "File not found: $file"
+      echo "File not found: ${file}"
     fi
 
     shift
   done
 
-  printf "\nConversion of %s file(s) completed.\n" "$files_processed"
+  printf "\nConversion of %s file(s) completed.\n" "${files_processed}"
 }
 
 #{ __________________________________________________ INFO<|
@@ -160,14 +160,14 @@ display_info() { #{ Display information to via Stdout or Notification
   #? USAGE: display_info --noline $arg
 
   #{ Ensure there is something to print
-  [ "$*" ] || return 1
+  [ -n "$*" ] || return 1
 
   case "$1" in
-    -l | -n | --new-line)
-      shift
-      printf '%s\n' "$*"
-      ;;
-    *) printf '%s' "$*" ;;
+  -l | -n | --new-line)
+    shift
+    printf '%s\n' "$*"
+    ;;
+  *) printf '%s' "$*" ;;
   esac
 }
 

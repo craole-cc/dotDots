@@ -3,7 +3,7 @@
 # |> _______________________________________________ <|
 
 __usageUpdate__() {
-  cat << EOF
+  cat <<EOF
             UGAGE:= update <[options]>
 |> ----------------------------------------------- <|
         -A  --all        Update all installed
@@ -25,37 +25,37 @@ EOF
 __mirrorUpdate__() {
   while true; do
     read -p "Should we update the package mirrors, this may take some time? [y/N]?" yn
-    case $yn in
-      [Yy]*)
-        mirror
+    case ${yn} in
+    [Yy]*)
+      mirror
 
-        # >>= Dependencies =<< #
-        # Required: https://xyne.archlinux.ca/projects/reflector
-        # edit /etc/xdg/reflector/reflector.conf
+      # >>= Dependencies =<< #
+      # Required: https://xyne.archlinux.ca/projects/reflector
+      # edit /etc/xdg/reflector/reflector.conf
 
-        # >>= Notification =<<
+      # >>= Notification =<<
 
-        OUTPUT() {
-          echo "${blue}::${reset} $msg"
-          notify-send "$msg"
-        }
-        clear
+      OUTPUT() {
+        echo "${blue}::${reset} ${msg}"
+        notify-send "${msg}"
+      }
+      clear
 
-        # >>= Service =<< #
-        # systemctl enable reflector.timer
-        # systemctl start reflector.timer
-        msg="🕓 Mirrorlist weekly update timer set"
-        OUTPUT "$msg"
+      # >>= Service =<< #
+      # systemctl enable reflector.timer
+      # systemctl start reflector.timer
+      msg="🕓 Mirrorlist weekly update timer set"
+      OUTPUT "${msg}"
 
-        # >>= Update =<<
-        msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)"
-        OUTPUT "$msg"
-        # systemctl start reflector.service # Update mirrors immediately
-        msg="⌛ The package mirrorlist has been updated"
-        OUTPUT "$msg"
-        ;;
-      [Nn]*) break ;;
-      *) break ;;
+      # >>= Update =<<
+      msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)"
+      OUTPUT "${msg}"
+      # systemctl start reflector.service # Update mirrors immediately
+      msg="⌛ The package mirrorlist has been updated"
+      OUTPUT "${msg}"
+      ;;
+    [Nn]*) break ;;
+    *) break ;;
     esac
   done
 }
@@ -65,56 +65,56 @@ __mirrorUpdate__() {
 DiskUsage() {
   # Required: https://aur.archlinux.org/packages/duf
   CMD="duf"
-  if weHave $CMD; then
-    $CMD --only local
+  if weHave "${CMD}"; then
+    ${CMD} --only local
   fi
 }
 
 # >>= Packages Managers =<< #
 
 __pacmanUpdate__() {
-  CMD="pacman" CMDS="sudo $CMD"
-  if weHave $CMD; then
+  CMD="pacman" CMDS="sudo ${CMD}"
+  if weHave "${CMD}"; then
     __mirrorUpdate__
-    $CMDS -Syu
+    ${CMDS} -Syu
   fi
 }
 
 __paruUpdate__() {
   CMD="paru"
-  if weHave $CMD; then
+  if weHave "${CMD}"; then
     __mirrorUpdate__
-    $CMD -Sua
+    ${CMD} -Sua
   fi
 }
 
 __yayUpdate__() {
   CMD="yay"
-  if weHave $CMD; then
+  if weHave "${CMD}"; then
     __mirrorUpdate__
-    $CMD -Sua
+    ${CMD} -Sua
   fi
 }
 
 __gitutilsUpdate__() {
   CMD="git"
-  if weHave $CMD; then
+  if weHave "${CMD}"; then
     __GitUtils__
   fi
 }
 
 __rustupUpdate__() {
   CMD="rustup"
-  if weHave $CMD; then
-    $CMD self update
+  if weHave "${CMD}"; then
+    ${CMD} self update
   fi
 }
 
 __wingetUpdate__() {
   CMD="winget"
-  if weHave $CMD; then
+  if weHave "${CMD}"; then
     if ! [ $# -gt 2 ]; then
-      $CMD upgrade --all
+      ${CMD} upgrade --all
     else
       apps="$*"
       upgrade "${apps##*-- }"
@@ -124,9 +124,9 @@ __wingetUpdate__() {
 
 __chocolateyUpdate__() {
   CMD="cup"
-  if weHave $CMD; then
+  if weHave "${CMD}"; then
     if ! [ $# -gt 2 ]; then
-      echo $CMD all -y
+      echo "${CMD}" all -y
     else
       apps="$*"
       echo cup "${apps##*-- }"
@@ -136,15 +136,15 @@ __chocolateyUpdate__() {
 
 __flatpakUpdate__() {
   CMD="flatpak"
-  if weHave $CMD; then
-    $CMD update
+  if weHave "${CMD}"; then
+    ${CMD} update
   fi
 }
 
 __snapUpdate__() {
   CMD="snap"
-  if weHave $CMD; then
-    $CMDS refresh
+  if weHave "${CMD}"; then
+    ${CMDS} refresh
   fi
 }
 
@@ -165,46 +165,46 @@ __snapUpdate__() {
 options=$(getopt -l \
   "help,add:,path,append:,perpend:,choco,utils,extract:,delete:,fd:" -o "hArPpyfswcg" -a -- "$@")
 
-eval set -- "$options"
+eval set -- "${options}"
 
 while true; do
   case $1 in
-    -A | --all)
-      __rustupUpdate__
-      if [ "$OS" = ArchLinux ]; then
-        __pacmanUpdate__
-        __paruUpdate__
-        __yayUpdate__
-      elif [ "$sys_TYPE" = Windows ]; then
-        __chocolateyUpdate__
-        __wingetUpdate__
-        __gitutilsUpdate__
-      elif [ "$OS" = Ubuntu ]; then
-        __flatpakUpdate__
-        __snapUpdate__
-      fi
-      ;;
-    -r | --rustup) __rustupUpdate__ "$@" ;;
-    -P | --pacman) __pacmanUpdate__ "$@" ;;
-    -p | --paru) __paruUpdate__ "$@" ;;
-    -y | --yay) __yayUpdate__ "$@" ;;
-    -f | --flatpak) __flatpakUpdate__ "$@" ;;
-    -s | --snap) __snapUpdate__ "$@" ;;
-    -w | --winget) __wingetUpdate__ "$@" ;;
-    -c | --choco) __chocolateyUpdate__ "$@" ;;
-    -g | --gits) __gitutilsUpdate__ ;;
-    --)
-      shift
-      break
-      ;;
-    -h | --help)
-      __usage__
-      exit 0
-      ;;
-    *)
-      echo "Internal error!"
-      exit 1
-      ;;
+  -A | --all)
+    __rustupUpdate__
+    if [ "${OS}" = ArchLinux ]; then
+      __pacmanUpdate__
+      __paruUpdate__
+      __yayUpdate__
+    elif [ "${sys_TYPE}" = Windows ]; then
+      __chocolateyUpdate__
+      __wingetUpdate__
+      __gitutilsUpdate__
+    elif [ "${OS}" = Ubuntu ]; then
+      __flatpakUpdate__
+      __snapUpdate__
+    fi
+    ;;
+  -r | --rustup) __rustupUpdate__ "$@" ;;
+  -P | --pacman) __pacmanUpdate__ "$@" ;;
+  -p | --paru) __paruUpdate__ "$@" ;;
+  -y | --yay) __yayUpdate__ "$@" ;;
+  -f | --flatpak) __flatpakUpdate__ "$@" ;;
+  -s | --snap) __snapUpdate__ "$@" ;;
+  -w | --winget) __wingetUpdate__ "$@" ;;
+  -c | --choco) __chocolateyUpdate__ "$@" ;;
+  -g | --gits) __gitutilsUpdate__ ;;
+  --)
+    shift
+    break
+    ;;
+  -h | --help)
+    __usage__
+    exit 0
+    ;;
+  *)
+    echo "Internal error!"
+    exit 1
+    ;;
   esac
   shift
 done

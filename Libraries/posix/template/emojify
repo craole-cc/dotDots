@@ -27,7 +27,7 @@ Consider upgrading it or, if you must use bash ${BASH_VERSION}, download an old 
 emojify from here: https://github.com/mrowa44/emojify/blob/old_bash_support/emojify"
 # Checks the installed bash version to see if it's compatible with emojify
 if ((${BASH_VERSION%%.*} < 4)); then
-  echo -e "$version_error_message"
+  echo -e "${version_error_message}"
   exit 1
 fi
 
@@ -2805,7 +2805,7 @@ declare -A emojis=(
 # Returns raw emoji character or original token
 emojify_token() {
   local value=${emojis[$1]}
-  [[ -n $value ]] && echo -e "$value" || echo "$1"
+  [[ -n ${value} ]] && echo -e "${value}" || echo "$1"
 }
 
 # Function to emojify a line.
@@ -2816,46 +2816,46 @@ emojify_line() {
   for ((i = 0; i < ${#line}; i++)); do
     current_char="${line:i:1}"
 
-    if [[ -z $current_token ]]; then
+    if [[ -z ${current_token} ]]; then
       # starting a new token.
-      if [[ $current_char =~ ^:$ ]]; then
-        current_token+=$current_char
+      if [[ ${current_char} =~ ^:$ ]]; then
+        current_token+=${current_char}
       # not starting a new token.
       else
-        emojified_line+=$current_char
+        emojified_line+=${current_char}
       fi
     else
       # finishing the current token.
-      if [[ $current_char =~ ^:$ ]]; then
-        emojified_token=$(emojify_token "$current_token$current_char")
+      if [[ ${current_char} =~ ^:$ ]]; then
+        emojified_token=$(emojify_token "${current_token}${current_char}")
 
         # nothing changed. we still need the ending ':' as it might
         # serve for an upcoming emoji 😁😁🎉🎉
-        if [[ $emojified_token == "$current_token$current_char" ]]; then
-          emojified_line+=$current_token
-          current_token=$current_char
+        if [[ ${emojified_token} == "${current_token}${current_char}" ]]; then
+          emojified_line+=${current_token}
+          current_token=${current_char}
         else
-          emojified_line+=$emojified_token
+          emojified_line+=${emojified_token}
           current_token=""
         fi
       # continuing the current token.
-      elif [[ $current_char =~ ^[a-zA-Z0-9_+-]$ ]]; then
-        current_token+=$current_char
+      elif [[ ${current_char} =~ ^[a-zA-Z0-9_+-]$ ]]; then
+        current_token+=${current_char}
       # dropping the current token.
       else
-        current_token+=$current_char
-        emojified_line+=$current_token
+        current_token+=${current_char}
+        emojified_line+=${current_token}
         current_token=""
       fi
     fi
   done
-  emojified_line+=$current_token
-  echo "$emojified_line"
+  emojified_line+=${current_token}
+  echo "${emojified_line}"
 }
 
 # Function to print help info.
 help() {
-  cat << EOF
+  cat <<EOF
     emojify - emoji on the command line 😱
 
     USAGE: emojify [-h|--help] [-l|--list] TEXT
@@ -2863,7 +2863,7 @@ EOF
   if [[ 'list' == "$1" ]]; then
     echo 'Supported emojis:'
     for key in "${!emojis[@]}"; do
-      echo -e "$key ${emojis[$key]}"
+      echo -e "${key} ${emojis[${key}]}"
     done
   fi
   exit 0
@@ -2873,27 +2873,27 @@ EOF
 # options or process the arguments as emoji names.
 if [[ -n $1 ]]; then
   case $1 in
-    '-h' | '--help')
-      help
-      ;;
+  '-h' | '--help')
+    help
+    ;;
 
-    '-l' | '--list')
-      help list
-      ;;
+  '-l' | '--list')
+    help list
+    ;;
 
-    '-v' | '--version')
-      echo $emojify_version
-      ;;
+  '-v' | '--version')
+    echo "${emojify_version}"
+    ;;
 
-    *)
-      emojify_line "$*"
-      ;;
+  *)
+    emojify_line "$*"
+    ;;
   esac
 else
   while
     IFS=''
-    read -r line || [ -n "$line" ]
+    read -r line || [[ -n "${line}" ]]
   do
-    emojify_line "$line"
+    emojify_line "${line}"
   done
 fi

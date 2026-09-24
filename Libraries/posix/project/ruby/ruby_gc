@@ -29,24 +29,24 @@ done
 uninstall_gem() {
   gem_to_uninstall="$1"
 
-  if $force; then
-    gem uninstall "$gem_to_uninstall" --all --executables --force
+  if ${force}; then
+    gem uninstall "${gem_to_uninstall}" --all --executables --force
   else
-    gem uninstall "$gem_to_uninstall" --all --executables
+    gem uninstall "${gem_to_uninstall}" --all --executables
   fi
 }
 
 # Example of installing a gem for testing
 gem install a --no-document
-echo "GEM_NAME: $gem_name"
+echo "GEM_NAME: ${gem_name}"
 
 # Uninstall gems based on options
-if $uninstall_all; then
+if ${uninstall_all}; then
   for gem in $(gem list --no-versions | cut -d" " -f1); do
-    uninstall_gem "$gem"
+    uninstall_gem "${gem}"
   done
-elif [ -n "$gem_name" ]; then
-  uninstall_gem "$gem_name"
+elif [ -n "${gem_name}" ]; then
+  uninstall_gem "${gem_name}"
 fi
 
 # Clear gem cache (optional)

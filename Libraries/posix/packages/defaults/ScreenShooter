@@ -21,7 +21,7 @@ get_app() {
     app=top
   fi
 
-  printf "%s" "$app"
+  printf "%s" "${app}"
 }
 
 get_cmd() {
@@ -41,7 +41,7 @@ process_core() {
   get_cmd
 
   #{ Take the screenshot based on the user's option
-  eval "ss_$area"
+  eval "ss_${area}"
 }
 
 parse_arguments() {

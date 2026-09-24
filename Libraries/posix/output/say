@@ -3,12 +3,12 @@
 #/> Utilities                                       <\
 send_stdout() {
   blank_line() { printf "\n"; }
-  [ "$preline" ] && blank_line
+  [ -n "${preline}" ] && blank_line
   printf "%s" "$1"
-  [ "$newline" ] && blank_line
+  [ -n "${newline}" ] && blank_line
 }
 send_notification() {
-  [ "$newline" ] &&
+  [ -n "${newline}" ] &&
     notify-send "$1"
 }
 
@@ -23,8 +23,8 @@ parse_arguments() { #{ Initialize User Options via CLI
   #{ Parse flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
-    -h | --help) end_process "$scr_HELP" ;;
-    -v | --version) end_process "$scr_VERSION" ;;
+    -h | --help) end_process "${scr_HELP:?}" ;;
+    -v | --version) end_process "${scr_VERSION:?}" ;;
     -q | --quiet) verbosity="quiet" ;;
     -d=* | --verbose=*) verbosity="${1#*=}" ;;
     -d | --verbose)
@@ -41,14 +41,14 @@ parse_arguments() { #{ Initialize User Options via CLI
     *)
       #{ Store arguments in an array
       message="$1"
-      args="$(are --save "$args" "$message")"
+      args="$(are --save "${args}" "${message}")"
       ;;
     esac
     shift
   done
 
   #{ Set verbosity level
-  case "$verbosity" in
+  case "${verbosity}" in
   0 | quiet) verbosity=0 ;;
   1 | error | debug) verbosity=1 ;;
   2 | info) verbosity=2 ;;
@@ -56,23 +56,23 @@ parse_arguments() { #{ Initialize User Options via CLI
   esac
 
   #{ Set line break count
-  [ "$line_break" ] && {
+  [ -n "${line_break}" ] && {
     #TODO add an error verbosity level to is_number to allow one run
     #TODO is_number --verbose "$line_break"
     is_number || {
-      is_number --verbose "$line_break"
+      is_number --verbose "${line_break}"
       exit 1
     }
   }
 
   #{ Extract other arguments
-  args="$(are --expand "$args")"
-  total_args="$(are --count "$args")"
-  last_arg="$(are --last "$args")"
+  args="$(are --expand "${args}")"
+  total_args="$(are --count "${args}")"
+  last_arg="$(are --last "${args}")"
 }
 
 run_process() {
-  set -- "$args"
+  set -- "${args}"
 
   echo "$#"
 

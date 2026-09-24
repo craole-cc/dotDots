@@ -6,8 +6,8 @@
 
 __info__() {
   _cmd_PATH="$(PathOf "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_DIR="$(dirname -- "$_cmd_PATH")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_DIR="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Desrription"
   _cmd_DEPENDENCIES="printf, echo, __cmd_exists__"
@@ -15,12 +15,12 @@ __info__() {
     cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
-                      USAGE: $_cmd_NAME
+                      USAGE: ${_cmd_NAME}
 #>----------------------------------------------------<#
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
             command <[options]> <[arguments]>
-          $_cmd_NAME --flagb "arg to process"
+          ${_cmd_NAME} --flagb "arg to process"
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version
@@ -41,13 +41,13 @@ USAGE_GUIDE
 
 #{ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
+  printf "%s\n" "${_cmd_USAGEGUIDE}"
   exit 0
 }
 
 #{ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
+  printf "%s\n" "${_cmd_VERSION}"
   exit 0
 }
 
@@ -110,13 +110,13 @@ fi
 __defaults__() {
 
   #{ Set FLAG as the default
-  OPTION="$FLAG_A"
+  OPTION="${FLAG_A}"
 
   #{ Change calculator to python is requested
-  [ "$FLAG_B" ] && OPTION="$FLAG_B"
+  [ -n "${FLAG_B}" ] && OPTION="${FLAG_B}"
 
   #{ Change calculator to bc is requested
-  [ "$FLAG_C" ] && OPTION="$FLAG_C"
+  [ -n "${FLAG_C}" ] && OPTION="${FLAG_C}"
 
 }
 
@@ -128,7 +128,7 @@ __error__() {
   case $* in
   -s | --arg)
     msg="🟥 Please ensure that a valid equation is entered."
-    printf "\n%s\n" "$msg"
+    printf "\n%s\n" "${msg}"
     __help__
     exit 1
     ;;
@@ -142,7 +142,7 @@ __error__() {
 
 __process__() {
 
-  [ "$VERBOSE" ] && printf "%s\n" "$OPTION"
+  [ -n "${VERBOSE}" ] && printf "%s\n" "${OPTION}"
   # { ... }
 
 }

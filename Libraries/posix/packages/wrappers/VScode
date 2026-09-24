@@ -429,7 +429,7 @@ launch_helix() {
   pout_debug "Trying to launch Helix editor"
   if command -v hx >/dev/null 2>&1; then
     pout_debug "Found local helix installation"
-    eval "hx $args"
+    eval "hx ${args}"
     printf "Launched Helix editor with arguments: %s\n" "$*"
     return 0
   fi
@@ -527,8 +527,8 @@ Usage: $0 [option] [arguments...]
 
 Options:
   -D, --dots     Launch using DOTS configuration (default: ${codeDOTS:-})
-  -R, --rust     Launch using RUST configuration (default: ${codeRUST})
-  -N, --nix      Launch using NIX configuration (default: ${codeNIX})
+  -R, --rust     Launch using RUST configuration (default: ${codeRUST:?})
+  -N, --nix      Launch using NIX configuration (default: ${codeNIX:?})
   -c, --code     Force using VS Code variants
   -z, --zed      Force using Zed editor
   -v, --vim      Force using Neovim

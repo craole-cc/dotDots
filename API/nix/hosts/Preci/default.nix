@@ -2,10 +2,7 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  imports = [
-    ./hardware-configuration
-    # ./configuration/nix
-  ];
+  imports = [./hardware-configuration];
 
   stateVersion = "26.05";
   system = "${arch}-${os}";
@@ -25,7 +22,7 @@ in {
   paths = {
     roots = {
       src = "/home/craole-cc/Projects/dotDots";
-      run = "/etc/nixos/configuration.nix";
+      run = "/etc/nixos";
     };
   };
 
@@ -108,11 +105,8 @@ in {
         };
       };
       icons = {
-        light = "candy-icons";
-        dark = "buuf-nestort";
-
-        #   dark = "candy-icons";
-        #   light = "buuf-nestort";
+        light = "buuf-nestort";
+        dark = "candy-icons";
       };
       cursors = {
         accent = "teal";

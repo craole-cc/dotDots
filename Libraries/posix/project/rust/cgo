@@ -16,8 +16,8 @@ init_variables() {
   scr_description="A Cargo package manager wrapper to simplify common tasks"
   scr_guide="$(
     printf "Usage:\n"
-    printf "  %s [ MODES ] [OPTIONS] [PACKAGE]\n" "$scr_name"
-    printf "  %s\n" "$scr_description"
+    printf "  %s [ MODES ] [OPTIONS] [PACKAGE]\n" "${scr_name}"
+    printf "  %s\n" "${scr_description}"
 
     printf "\nModes:\n"
     printf "  -h, --help      Display this help message\n"
@@ -39,10 +39,10 @@ init_variables() {
     printf "  -3, --tr        Preset: build; test; run\n"
 
     printf "\nExamples:\n"
-    printf "  %s -c -b -r\n" "$scr_name"
-    printf "  %s -c -b -r --watch\n" "$scr_name" # Add --watch flag
-    printf "  %s -X hello_world\n" "$scr_name"
-    printf "  %s -rw\n" "$scr_name"
+    printf "  %s -c -b -r\n" "${scr_name}"
+    printf "  %s -c -b -r --watch\n" "${scr_name}" # Add --watch flag
+    printf "  %s -X hello_world\n" "${scr_name}"
+    printf "  %s -rw\n" "${scr_name}"
   )"
 
   #> Initialize variables
@@ -62,7 +62,7 @@ init_variables() {
 
 display_usage_guide() {
   #> Display usage guide with all available options and examples
-  printf "%s\n\n" "$scr_guide"
+  printf "%s\n\n" "${scr_guide}"
 }
 
 parse_arguments() {
@@ -154,18 +154,18 @@ parse_arguments() {
   #> Set default values, if none specified
   {
     : \
-      && [ "$clean" ] \
-      || [ "$check" ] \
-      || [ "$build" ] \
-      || [ "$run" ] \
-      || [ "$test" ]
+      && [ -n "${clean}" ] \
+      || [ -n "${check}" ] \
+      || [ -n "${build}" ] \
+      || [ -n "${run}" ] \
+      || [ -n "${test}" ]
   } || {
     last_cmd="run"
     watch=true
     # release=true
-    [ "$verbosity" ] || verbosity="verbose"
+    [ -n "${verbosity}" ] || verbosity="verbose"
 
-    case "$last_cmd" in
+    case "${last_cmd}" in
       check) check=true ;;
       test) test=true ;;
       run) run=true ;;
@@ -174,16 +174,16 @@ parse_arguments() {
 }
 
 process_commands() {
-  [ "$clean" ] && execute_command "clean"
-  [ "$build" ] && execute_command "build"
+  [ -n "${clean}" ] && execute_command "clean"
+  [ -n "${build}" ] && execute_command "build"
 
-  [ "$check" ] && [ "$last_cmd" != "check" ] && execute_command "check"
-  [ "$test" ] && [ "$last_cmd" != "test" ] && execute_command "test"
-  [ "$run" ] && [ "$last_cmd" != "run" ] && execute_command "run"
+  [ -n "${check}" ] && [ "${last_cmd}" != "check" ] && execute_command "check"
+  [ -n "${test}" ] && [ "${last_cmd}" != "test" ] && execute_command "test"
+  [ -n "${run}" ] && [ "${last_cmd}" != "run" ] && execute_command "run"
 
-  [ "$check" ] && [ "$last_cmd" = "check" ] && execute_command "check"
-  [ "$test" ] && [ "$last_cmd" = "test" ] && execute_command "test"
-  [ "$run" ] && [ "$last_cmd" = "run" ] && execute_command "run"
+  [ -n "${check}" ] && [ "${last_cmd}" = "check" ] && execute_command "check"
+  [ -n "${test}" ] && [ "${last_cmd}" = "test" ] && execute_command "test"
+  [ -n "${run}" ] && [ "${last_cmd}" = "run" ] && execute_command "run"
 }
 
 execute_command() {
@@ -198,45 +198,45 @@ execute_command() {
   fi
 
   #> Append the verbosity flag, if applicable
-  case "$verbosity" in
-    quiet) cmd="$cmd --quiet" ;;
-    verbose) cmd="$cmd --verbose" ;;
+  case "${verbosity}" in
+    quiet) cmd="${cmd} --quiet" ;;
+    verbose) cmd="${cmd} --verbose" ;;
     *) ;;
   esac
 
   #> Append the release flag, if applicable
-  [ "$release" ] && cmd="$cmd --release"
-  [ "$package" ] && cmd="$cmd --package $package"
+  [ -n "${release}" ] && cmd="${cmd} --release"
+  [ -n "${package}" ] && cmd="${cmd} --package ${package}"
 
   #> Check if the command is 'run' or 'test'
-  case "$cmd" in "test"* | "run"* | "check"*)
+  case "${cmd}" in "test"* | "run"* | "check"*)
     #> Check if the watch flag is set
-    if [ "$watch" ]; then
+    if [ -n "${watch}" ]; then
       #> Perpend the cargo watch command to the designated command
-      case "$cmd" in "$last_cmd"*)
+      case "${cmd}" in "${last_cmd}"*)
         cmd="$(
           printf \
             'cargo watch --quiet --clear --exec "%s"' \
-            "$cmd"
+            "${cmd}"
         )"
         ;;
       esac
     else
       #> Perpend the cargo command to the next command
-      cmd="$(printf "cargo %s" "$cmd")"
+      cmd="$(printf "cargo %s" "${cmd}")"
     fi
     ;;
   *)
     #> Perpend the cargo command all other commands
-    cmd="$(printf "cargo %s" "$cmd")"
+    cmd="$(printf "cargo %s" "${cmd}")"
     ;;
   esac
 
   #> Display the command, if verbosity is not 'quiet'
-  [ "$verbosity" = "quiet" ] || printf "\n/> %s\n" "$cmd"
+  [ "${verbosity}" = "quiet" ] || printf "\n/> %s\n" "${cmd}"
 
   #> Execute the command
-  eval "$cmd"
+  eval "${cmd}"
 }
 
 main "$@"

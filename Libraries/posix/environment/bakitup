@@ -2,7 +2,7 @@
 
 func_name="bakitup"
 func_usage="$(txtBarber "
-      Usage: $func_name [OPTIONS] [CONTENTS]
+      Usage: ${func_name} [OPTIONS] [CONTENTS]
 
       Description:
         A backup utility to create backups of files or directories.
@@ -51,17 +51,17 @@ while [ "$#" -ge 1 ]; do
       backup_opt="--symbolic-link"
       ;;
     *)
-      if [ "$2" ]; then
+      if [ -n "$2" ]; then
         pout \
           --lbl "Invalid Backup Option" \
           --var "$2" \
           --msg "Reverting to normal backup" \
-          --usg "$func_usage"
+          --usg "${func_usage}"
       else
         pout \
           --lbl "Missing Backup Option" \
           --msg "Reverting to normal backup" \
-          --usg "$func_usage"
+          --usg "${func_usage}"
       fi
       return
       ;;
@@ -129,13 +129,13 @@ while [ "$#" -ge 1 ]; do
     pout \
       --lbl "Invalid Option" \
       --var "$1" \
-      --usage "$func_usage" \
+      --usage "${func_usage}" \
       --fatal
     ;;
   *)
-    if [ "$1" ]; then
-      if [ "$backup_src" ]; then
-        [ "$backup_dir" ] || backup_dest="$1"
+    if [ -n "$1" ]; then
+      if [ -n "${backup_src}" ]; then
+        [ -n "${backup_dir}" ] || backup_dest="$1"
       else
         backup_src="$1"
       fi
@@ -248,52 +248,52 @@ done
 # esac
 
 #{ Validate the path of the source file/folder
-if [ ! "$backup_src" ]; then
+if [ ! -n "${backup_src}" ]; then
   pout \
     --lbl "Missing source" \
-    --usage "$func_usage" \
+    --usage "${func_usage}" \
     --fatal
-elif [ ! -e "$backup_src" ]; then
+elif [ ! -e "${backup_src}" ]; then
   pout \
     --lbl "Invalid source" \
-    --var "$backup_src" \
-    --usage "$func_usage" \
+    --var "${backup_src}" \
+    --usage "${func_usage}" \
     --fatal
 fi
 
 #{ Define the backup destination path
-case "$backup_dest" in
+case "${backup_dest}" in
 -*)
   pout \
     --lbl "Missing Backup Destination" \
     --msg "Reverting to default backup destination" \
-    --usg "$func_usage"
+    --usg "${func_usage}"
   ;;
 *)
-  if [ "$backup_dir" ]; then
-    if [ "$backup_dest" ]; then
+  if [ -n "${backup_dir}" ]; then
+    if [ -n "${backup_dest}" ]; then
       backup_dest="${backup_dir}/${backup_dest}"
     else
-      backup_cmd="$backup_cmd --parents"
-      backup_dest="$backup_dir"
+      backup_cmd="${backup_cmd} --parents"
+      backup_dest="${backup_dir}"
       # backup_dest="$backup_dir/$(basename "$backup_src")"
     fi
   else
-    [ "$backup_dest" ] || backup_dest="${backup_src}.bak"
+    [ -n "${backup_dest}" ] || backup_dest="${backup_src}.bak"
   fi
 
   #{ Allow elevation, if necessary
-  [ -w "$(dirname -- "$backup_dest")" ] || {
-    backup_cmd="sudo $backup_cmd"
+  [ -w "$(dirname -- "${backup_dest}")" ] || {
+    backup_cmd="sudo ${backup_cmd}"
   }
   ;;
 esac
 
 #{ Update the backup command
-backup_cmd="$backup_cmd $backup_opt $backup_src $backup_dest"
+backup_cmd="${backup_cmd} ${backup_opt} ${backup_src} ${backup_dest}"
 
 #{ Generate the backup file
-echo "$backup_cmd"
+echo "${backup_cmd}"
 # eval "$backup_cmd"
 
 #{ Cleanup

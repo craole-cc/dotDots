@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CMD_BAT="${CMD_BAT:-$(command -v bat 2>/dev/null)}"
+CMD_BAT="${CMD_BAT:-$(command -v bat 2> /dev/null)}"
 _pager() {
   if [ -x "${CMD_BAT:-}" ]; then
     "${CMD_BAT}" --color=always --style="numbers"

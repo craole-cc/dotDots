@@ -218,10 +218,10 @@ get_absolute_path() {
   #{ Retrieve the absolute path location
   if [ -z "${_path:-}" ]; then
     return 2
-  elif [ -x "${CMD_REALPATH}" ]; then
-    "${CMD_REALPATH}" -- "${_path}"
-  elif [ -x "${CMD_REALPATH}" ]; then
-    "${CMD_REALPATH}" -- "${_path}"
+  elif [ -x "${CMD_REALPATH:?}" ]; then
+    "${CMD_REALPATH:?}" -- "${_path}"
+  elif [ -x "${CMD_REALPATH:?}" ]; then
+    "${CMD_REALPATH:?}" -- "${_path}"
   else
     real_path "${_path}"
   # elif [ -d "${_path}" ]; then
@@ -378,22 +378,22 @@ clean_path() {
 make_exec() {
   _file=$1
   chmod_status=0
-  chmod +x "$_file" >/dev/null 2>&1
+  chmod +x "${_file}" >/dev/null 2>&1
   chmod_status=$?
-  [ "$verbosity" -gt 1 ] && {
-    if [ "$chmod_status" -eq 0 ]; then
+  [ "${verbosity}" -gt 1 ] && {
+    if [ "${chmod_status}" -eq 0 ]; then
       printf "    Script initialized: %s\n" "${_file}"
     else
-      printf "    Failed to make %s executable: %s\n" "${_file}" "$chmod_status"
+      printf "    Failed to make %s executable: %s\n" "${_file}" "${chmod_status}"
     fi
   }
 }
 
 add_to_path_ORIG() {
-  [ "${debug}" ] && {
+  [ -n "${debug}" ] && {
     counter=1
-    recursive_paths "$paths" | while IFS= read -r bin_path; do
-      printf "  %4d %s\n" "$counter" "$bin_path"
+    recursive_paths "${paths}" | while IFS= read -r bin_path; do
+      printf "  %4d %s\n" "${counter}" "${bin_path}"
       #{ Increment the counter
       counter=$((counter + 1))
     done
@@ -418,7 +418,7 @@ add_to_path_ORIG() {
         esac
 
         [ "${verbosity}" -gt 1 ] &&
-          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+          printf "    %s to PATH: %s\n" "${_action}" "${bin_path}"
         ;;
       esac
 
@@ -430,7 +430,7 @@ add_to_path_ORIG() {
         chmod +x "${bin_path}" >/dev/null 2>&1
         chmod_status=$?
 
-        [ "$verbosity" -gt 1 ] && {
+        [ "${verbosity}" -gt 1 ] && {
           if [ "${chmod_status}" -eq 0 ]; then
             printf "    Script initialized: %s\n" "${bin_path}"
           else
@@ -450,7 +450,7 @@ add_to_path() {
   tmp_path=$(mktemp) || return 1 #TODO: Use tempgen
   recursive_paths "${paths}" >"${tmp_path}"
 
-  if [ "${debug}" ]; then
+  if [ -n "${debug}" ]; then
     counter=1
     while IFS= read -r bin_path; do
       printf "  %4d %s\n" "${counter}" "${bin_path}"
@@ -475,7 +475,7 @@ add_to_path() {
           action_str="Perpended"
           ;;
         esac
-        [ -d "$bin_path" ] && umask 022 && chmod 755 "$bin_path" #TODO: This is not working. Files created after running the script are not automatically executable.
+        [ -d "${bin_path}" ] && umask 022 && chmod 755 "${bin_path}" #TODO: This is not working. Files created after running the script are not automatically executable.
         [ "${verbosity}" -gt 1 ] &&
           printf "    %s to PATH: %s\n" "${action_str}" "${bin_path}"
         ;;
@@ -498,24 +498,24 @@ update_path() {
 
   #{ Build updated path
   while IFS= read -r dir; do
-    case "$TMP_PATH" in
-    *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
+    case "${TMP_PATH}" in
+    *":${dir}:"* | *":${dir}:"* | *"${dir}:"* | *"${dir}"*) ;;
     *)
-      case "$action" in
-      prepend) TMP_PATH="${dir}${TMP_PATH:+:$TMP_PATH}" ;;
+      case "${action}" in
+      prepend) TMP_PATH="${dir}${TMP_PATH:+:${TMP_PATH}}" ;;
       append | *) TMP_PATH="${TMP_PATH:+${TMP_PATH}:}${dir}" ;;
       esac
       ;;
     esac
-  done <"$DIRES"
+  done <"${DIRES}"
   unset IFS
 
   #{ Print or export the PATH variable
-  if [ "$print_raw" -eq 1 ]; then
-    printf "%s" "$TMP_PATH"
+  if [ "${print_raw}" -eq 1 ]; then
+    printf "%s" "${TMP_PATH}"
   else
     #{ Update and make the PATH persistent
-    PATH="$TMP_PATH"
+    PATH="${TMP_PATH}"
     export PATH
   fi
 }

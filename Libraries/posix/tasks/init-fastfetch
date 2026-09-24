@@ -11,9 +11,9 @@ pretty_os_print() {
 }
 
 fastfetch_cmd() {
-  if [ -n "$FASTFETCH_CONFIG" ]; then
+  if [ -n "${FASTFETCH_CONFIG}" ]; then
     pretty_os_print
-    fastfetch --config "$FASTFETCH_CONFIG"
+    fastfetch --config "${FASTFETCH_CONFIG}"
   else
     pretty_os_print
     fastfetch

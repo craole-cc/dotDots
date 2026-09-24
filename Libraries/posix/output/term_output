@@ -6,7 +6,7 @@ __tput__() {
   type tput >/dev/null 2>&1 || return
 
   #{ Declare colors for supported terminals
-  case "$TERM" in *-m) return ;; esac
+  case "${TERM}" in *-m) return ;; esac
 
   #| Text Effects
   tfx_reset="$(tput sgr0)"        # Turn off all attributes
@@ -125,11 +125,11 @@ center_with_tput() {
   done
 
   text_length="$(
-    text_with_escapes="$text"
+    text_with_escapes="${text}"
     escape_sequence_pattern='\x1B\[[0-9;]*[mGKHf]'
 
     visible_text="$(
-      printf "%s" "$text_with_escapes" | sed "s/$escape_sequence_pattern//g"
+      printf "%s" "${text_with_escapes}" | sed "s/${escape_sequence_pattern}//g"
     )"
 
     printf "%s" "${#visible_text}"
@@ -138,21 +138,21 @@ center_with_tput() {
   space_buffer="$(((term_width - text_length - 2) / 2))"
 
   i=0
-  while [ "$i" -lt "$space_buffer" ]; do
-    buffer="$buffer$spacer"
+  while [ "${i}" -lt "${space_buffer}" ]; do
+    buffer="${buffer}${spacer}"
     i=$((i + 1))
   done
 
-  echo "text: $text"
-  echo "term_width: $term_width"
-  echo "text_length: $text_length"
-  echo "space_buffer: $space_buffer"
-  echo "spacer: $spacer"
+  echo "text: ${text}"
+  echo "term_width: ${term_width}"
+  echo "text_length: ${text_length}"
+  echo "space_buffer: ${space_buffer}"
+  echo "spacer: ${spacer}"
 
-  if [ "$space_buffer" -gt 0 ]; then
-    printf "%s %s %s\n" "$buffer" "$text" "$buffer"
+  if [ "${space_buffer}" -gt 0 ]; then
+    printf "%s %s %s\n" "${buffer}" "${text}" "${buffer}"
   else
-    printf "%s\n" "$text"
+    printf "%s\n" "${text}"
   fi
 }
 
@@ -187,7 +187,7 @@ print_with_tput() {
       --newline) printf "\n" ;;
       --space) printf " " ;;
       --center)
-        [ "$2" ] && {
+        [ -n "$2" ] && {
           center_with_tput "$2"
           shift
         }
@@ -233,7 +233,7 @@ __ansi__
 #| Preset
 clr_success="${clr_fg_green}${tfx_bold}"
 clr_failure="${clr_fg_red}${tfx_bold}"
-clr_warning="${clr_fg_yellow}${tfx_bold}"
+clr_warning="${clr_fg_yellow:?}${tfx_bold}"
 clr_info="${clr_fg_blue}${tfx_bold}"
 
 __test__() {

@@ -297,6 +297,9 @@
             installPhase = ''
               mkdir -p $out/share/icons/buuf-nestort
               cp -r . $out/share/icons/buuf-nestort
+              chmod -R u+w $out/share/icons/buuf-nestort
+              sed -i 's/^Inherits=.*/Inherits=oxygen,breeze,Adwaita,hicolor/' \
+                $out/share/icons/buuf-nestort/index.theme
             '';
           };
         Papirus-Dark = papirus;
@@ -693,7 +696,8 @@
     };
 
     forInterface =
-      optionals (with interface; isX11 || isWayland) (with pkgs; [
+      (with pkgs; [adwaita-icon-theme])
+      ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
         mpvc
         mpv
         imagemagick
@@ -708,10 +712,11 @@
       ++ optional interface.isHyprland (with pkgs; [kitty])
       ++ optionals interface.isPlasma (with pkgs.kdePackages; [
         kate
-        kio
-        yakuake
         kconfig
+        kio
         plasma-workspace
+        sources.catppuccin-konsole
+        yakuake
       ])
       ++ map
       (name: sources.icons.${name} or pkgs.${name})
@@ -940,7 +945,7 @@ in {
       "flakes"
     ];
     nixPath = [
-      "nixos-config=${variables.DOTS_BUILD}"
+      "nixos-config=${variables.DOTS_BUILD}/configuration.nix"
       "nixpkgs=${sources.nixpkgs.path}"
     ];
   };
@@ -968,6 +973,9 @@ in {
       settings = {};
     };
 
+    dconf = {
+      enable = true;
+    };
     direnv = {
       enable = true;
       silent = true;
@@ -1197,11 +1205,12 @@ in {
             gds = pkgs.gsettings-desktop-schemas;
             konf = "${kconfig}/bin/kwriteconfig6";
             pkill = "${procps}/bin/pkill";
-            jq = "${pkgs.jq}/bin/jq";
+            # jq = "${pkgs.jq}/bin/jq";
             busctl = "${systemd}/bin/busctl";
             sed = "${gnused}/bin/sed";
             pac = "${plasma-workspace}/bin/plasma-apply-colorscheme";
-            gic = "${glib}/bin/gsettings set org.gnome.desktop.interface";
+            # gic = "${glib}/bin/gsettings set org.gnome.desktop.interface";
+            donf = "${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface";
             dbusSend = "${dbus}/bin/dbus-send";
             mkScript = mode: let
               MODE = toUpper mode;
@@ -1210,8 +1219,10 @@ in {
                 gtk = variables."THEME_GTK_${MODE}";
               };
               icon = icons.${mode};
+
               konsole = {
-                profile = "Catppuccin ${capitalize mode}";
+                name = "Catppuccin-${capitalize mode}";
+                file = "Catppuccin-${capitalize mode}.profile";
               };
 
               foot = {
@@ -1239,18 +1250,19 @@ in {
 
               ${pkill} -${foot.signal} -x foot || true
 
-              ${konf} --file konsolerc --group "Desktop Entry" --key DefaultProfile ${konsole.profile}
-              ${konf} --file yakuakerc --group "Desktop Entry" --key DefaultProfile ${konsole.profile}
+              ${konf} --file konsolerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+              ${konf} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+              ${konf} --notify --file kdeglobals --group Icons --key Theme ${icon}
 
               for terminal in $(${busctl} --user call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${sed} 's/^s "//; s/"$//; s/,/ /g'); do
-                ${busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.profile}" >/dev/null 2>&1 || true
+                ${busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
               done
               ${pac} ${theme.kde}
               ${konf} --file kdeglobals --group Icons --key Theme ${icon}
               ${dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0
-              ${gic} color-scheme 'prefer-${mode}'
-              ${gic} gtk-theme '${theme.gtk}'
-              ${gic} icon-theme '${icon}'
+              ${donf}/color-scheme "'prefer-${mode}'"
+              ${donf}/gtk-theme "'${theme.gtk}'"
+              ${donf}/icon-theme "'${icon}'"
               ${procps}/bin/pkill -${foot.signal} -x foot || true
 
               #> Force VS Code's theme directly. Electron on Linux does not
@@ -1261,13 +1273,13 @@ in {
               ${
                 concatMapStringsSep "\n" (dir: ''
                   vscodeSettings="$HOME/${dir}/settings.json"
-                  if [ -d "$(dirname "$vscodeSettings")" ]; then
-                    [ -f "$vscodeSettings" ] || echo '{}' > "$vscodeSettings"
-                    ${jq} \
-                      --arg theme "${vscode.theme}" \
-                      '. + {"workbench.colorTheme": $theme, "window.autoDetectColorScheme": false}' \
-                      "$vscodeSettings" > "$vscodeSettings.tmp" \
-                      && mv "$vscodeSettings.tmp" "$vscodeSettings"
+                  if [ -f "$vscodeSettings" ]; then
+                    if grep -q '"workbench.colorTheme"' "$vscodeSettings"; then
+                      ${sed} -i -E 's|("workbench.colorTheme"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"${vscode.theme}"|' "$vscodeSettings"
+                    else
+                      ${sed} -i '0,/{/s|{|{\n  "workbench.colorTheme": "${vscode.theme}",|' "$vscodeSettings"
+                    fi
+                    ${sed} -i -E 's|("window.autoDetectColorScheme"[[:space:]]*:[[:space:]]*)true|\1false|' "$vscodeSettings"
                   fi
                 '')
                 vscode.configDirs
@@ -1283,6 +1295,20 @@ in {
             lightModeScripts.theme = mkScript "light";
           };
         };
+
+        xdg.dataFile = listToAttrs (map (mode: let
+          flavor = aesthetics.users.${name}.theme.${mode}.flavor;
+        in {
+          name = "konsole/Catppuccin-${capitalize mode}.profile";
+          value.text = ''
+            [Appearance]
+            ColorScheme=Catppuccin-${capitalize flavor}
+
+            [General]
+            Name=Catppuccin-${capitalize mode}
+            Parent=FALLBACK/
+          '';
+        }) ["dark" "light"]);
       })
       users.normal;
   };

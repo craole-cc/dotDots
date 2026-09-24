@@ -43,10 +43,10 @@ rm \
   styles/ \
   test/
 
-templates="$prJS/templates/NEXTts"
+templates="${prJS:?}/templates/NEXTts"
 cp \
   --archive \
-  "$templates/." \
+  "${templates}/." \
   .
 
 #* Develop in VSCode *#

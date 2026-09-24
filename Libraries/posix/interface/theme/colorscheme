@@ -22,11 +22,11 @@ VERSION="2.5.0"
 if [ -n "${CMD_RESOLVE_TOOL_LIB:-}" ] && [ -f "${CMD_RESOLVE_TOOL_LIB}" ]; then
   . "${CMD_RESOLVE_TOOL_LIB}"
 else
-  _rt_self_dir=$(dirname -- "$0" 2>/dev/null) || _rt_self_dir="."
+  _rt_self_dir=$(dirname -- "$0" 2> /dev/null) || _rt_self_dir="."
   _rt_candidate="${_rt_self_dir}/../../lib/resolve-tool.sh"
   if [ -f "${_rt_candidate}" ]; then
     . "${_rt_candidate}"
-  elif command -v resolve-tool.sh >/dev/null 2>&1; then
+  elif command -v resolve-tool.sh > /dev/null 2>&1; then
     . "$(command -v resolve-tool.sh)"
   else
     printf "Error: resolve-tool.sh library not found (CMD_RESOLVE_TOOL_LIB, relative path, or PATH)\n" >&2
@@ -55,8 +55,8 @@ DEFAULT_MODE="${COLORSCHEME_DEFAULT_MODE:-toggle}"
 #? -q/-d fall back to plain arithmetic on LEVEL instead of going
 #? through the tool -- see bump_level().
 init_verbosity() {
-  VERBOSITY_CMD=$(resolve_tool "verbosity" "CMD_VERBOSITY" "$0" "../../output/verbosity") ||
-    printf "Warning: verbosity not found (CMD_VERBOSITY, relative path, or PATH); -q/-d will use plain fallback handling and won't see verbosity's own env vars.\n" >&2
+  VERBOSITY_CMD=$(resolve_tool "verbosity" "CMD_VERBOSITY" "$0" "../../output/verbosity") \
+    || printf "Warning: verbosity not found (CMD_VERBOSITY, relative path, or PATH); -q/-d will use plain fallback handling and won't see verbosity's own env vars.\n" >&2
   LEVEL=$(get_level)
 }
 
@@ -78,11 +78,11 @@ bump_level() {
     LEVEL=$(run_tool "${VERBOSITY_CMD}" --level "${LEVEL:-3}" --default "${LEVEL:-3}" "$@")
   else
     case "$1" in
-    --quiet) LEVEL=0 ;;
-    +1)
-      LEVEL=$((${LEVEL:-3} + 1))
-      [ "${LEVEL}" -gt 5 ] && LEVEL=5
-      ;;
+      --quiet) LEVEL=0 ;;
+      +1)
+        LEVEL=$((${LEVEL:-3} + 1))
+        [ "${LEVEL}" -gt 5 ] && LEVEL=5
+        ;;
     esac
   fi
 }
@@ -151,19 +151,19 @@ get_current_theme() {
   if has_cmd dms; then
     scheme=$(dms ipc call theme getMode)
     case "${scheme}" in
-    *[Ll]ight*)
-      log_verbose "colorscheme: detected light via DMS (${scheme})"
-      printf "light"
-      return 0
-      ;;
-    *[Dd]ark*)
-      log_verbose "colorscheme: detected dark via DMS (${scheme})"
-      printf "dark"
-      return 0
-      ;;
-    *)
-      : # no recognizable scheme name; fall through to next layer
-      ;;
+      *[Ll]ight*)
+        log_verbose "colorscheme: detected light via DMS (${scheme})"
+        printf "light"
+        return 0
+        ;;
+      *[Dd]ark*)
+        log_verbose "colorscheme: detected dark via DMS (${scheme})"
+        printf "dark"
+        return 0
+        ;;
+      *)
+        : # no recognizable scheme name; fall through to next layer
+        ;;
     esac
   fi
 
@@ -171,43 +171,43 @@ get_current_theme() {
   #? reads back the same state it set rather than falling through to
   #? an unrelated layer (e.g. GTK) that darkman doesn't manage.
   if has_cmd darkman; then
-    scheme=$(darkman get 2>/dev/null)
+    scheme=$(darkman get 2> /dev/null)
     case "${scheme}" in
-    light)
-      log_verbose "colorscheme: detected light via darkman"
-      printf "light"
-      return 0
-      ;;
-    dark)
-      log_verbose "colorscheme: detected dark via darkman"
-      printf "dark"
-      return 0
-      ;;
-    *)
-      : # darkman not returning a usable value; fall through to next layer
-      ;;
+      light)
+        log_verbose "colorscheme: detected light via darkman"
+        printf "light"
+        return 0
+        ;;
+      dark)
+        log_verbose "colorscheme: detected dark via darkman"
+        printf "dark"
+        return 0
+        ;;
+      *)
+        : # darkman not returning a usable value; fall through to next layer
+        ;;
     esac
   fi
 
   #> KDE Plasma (CLI)
   if has_cmd plasma-apply-colorscheme; then
-    scheme=$(plasma-apply-colorscheme --list-schemes |
-      grep "(current color scheme)" |
-      sed "s/^ \* //; s/ (current color scheme)//")
+    scheme=$(plasma-apply-colorscheme --list-schemes \
+      | grep "(current color scheme)" \
+      | sed "s/^ \* //; s/ (current color scheme)//")
     case "${scheme}" in
-    *[Ll]ight*)
-      log_verbose "colorscheme: detected light via KDE Plasma CLI (${scheme})"
-      printf "light"
-      return 0
-      ;;
-    *[Dd]ark*)
-      log_verbose "colorscheme: detected dark via KDE Plasma CLI (${scheme})"
-      printf "dark"
-      return 0
-      ;;
-    *)
-      : # no recognizable scheme name; fall through to next layer
-      ;;
+      *[Ll]ight*)
+        log_verbose "colorscheme: detected light via KDE Plasma CLI (${scheme})"
+        printf "light"
+        return 0
+        ;;
+      *[Dd]ark*)
+        log_verbose "colorscheme: detected dark via KDE Plasma CLI (${scheme})"
+        printf "dark"
+        return 0
+        ;;
+      *)
+        : # no recognizable scheme name; fall through to next layer
+        ;;
     esac
   fi
 
@@ -217,28 +217,28 @@ get_current_theme() {
   if [ -f "${kdeglobals}" ]; then
     scheme=$(grep -m1 "^ColorScheme=" "${kdeglobals}" | cut -d= -f2)
     case "${scheme}" in
-    *[Ll]ight*)
-      log_verbose "colorscheme: detected light via kdeglobals ColorScheme (${scheme})"
-      printf "light"
-      return 0
-      ;;
-    *[Dd]ark*)
-      log_verbose "colorscheme: detected dark via kdeglobals ColorScheme (${scheme})"
-      printf "dark"
-      return 0
-      ;;
-    *)
-      : # ColorScheme= absent or unnamed; try the inactive-color heuristic
-      ;;
+      *[Ll]ight*)
+        log_verbose "colorscheme: detected light via kdeglobals ColorScheme (${scheme})"
+        printf "light"
+        return 0
+        ;;
+      *[Dd]ark*)
+        log_verbose "colorscheme: detected dark via kdeglobals ColorScheme (${scheme})"
+        printf "dark"
+        return 0
+        ;;
+      *)
+        : # ColorScheme= absent or unnamed; try the inactive-color heuristic
+        ;;
     esac
 
     #> Older KDE configs don't name the scheme dark/light explicitly;
     #? infer it from the inactive-window text color instead
-    inactive_color=$(grep -A5 "^\[ColorEffects:Inactive\]" "${kdeglobals}" 2>/dev/null |
-      grep -m1 "^Color=" | cut -d= -f2)
+    inactive_color=$(grep -A5 "^\[ColorEffects:Inactive\]" "${kdeglobals}" 2> /dev/null \
+      | grep -m1 "^Color=" | cut -d= -f2)
     if [ -n "${inactive_color}" ]; then
       red=$(printf '%s' "${inactive_color}" | cut -d, -f1)
-      if [ "${red}" -gt 100 ] 2>/dev/null; then
+      if [ "${red}" -gt 100 ] 2> /dev/null; then
         log_verbose "colorscheme: detected light via kdeglobals ColorEffects:Inactive"
         printf "light"
       else
@@ -256,43 +256,43 @@ get_current_theme() {
       --dest=org.freedesktop.portal.Desktop \
       /org/freedesktop/portal/desktop \
       org.freedesktop.portal.Settings.Read \
-      string:'org.freedesktop.appearance' string:'color-scheme' 2>/dev/null |
-      grep -oE 'uint32 [0-9]+' | awk '{print $2}')
+      string:'org.freedesktop.appearance' string:'color-scheme' 2> /dev/null \
+      | grep -oE 'uint32 [0-9]+' | awk '{print $2}')
 
     case "${portal_scheme}" in
-    1)
-      log_verbose "colorscheme: detected dark via xdg-desktop-portal"
-      printf "dark"
-      return 0
-      ;;
-    2)
-      log_verbose "colorscheme: detected light via xdg-desktop-portal"
-      printf "light"
-      return 0
-      ;;
-    *)
-      : # portal returned no usable value; fall through to GNOME layer
-      ;;
+      1)
+        log_verbose "colorscheme: detected dark via xdg-desktop-portal"
+        printf "dark"
+        return 0
+        ;;
+      2)
+        log_verbose "colorscheme: detected light via xdg-desktop-portal"
+        printf "light"
+        return 0
+        ;;
+      *)
+        : # portal returned no usable value; fall through to GNOME layer
+        ;;
     esac
   fi
 
   #> GNOME (gsettings)
   if has_cmd gsettings; then
-    scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || printf "")
+    scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2> /dev/null || printf "")
     case "${scheme}" in
-    *prefer-light*)
-      log_verbose "colorscheme: detected light via gsettings (${scheme})"
-      printf "light"
-      return 0
-      ;;
-    *prefer-dark*)
-      log_verbose "colorscheme: detected dark via gsettings (${scheme})"
-      printf "dark"
-      return 0
-      ;;
-    *)
-      : # gsettings unavailable or unset; fall through to GTK layer
-      ;;
+      *prefer-light*)
+        log_verbose "colorscheme: detected light via gsettings (${scheme})"
+        printf "light"
+        return 0
+        ;;
+      *prefer-dark*)
+        log_verbose "colorscheme: detected dark via gsettings (${scheme})"
+        printf "dark"
+        return 0
+        ;;
+      *)
+        : # gsettings unavailable or unset; fall through to GTK layer
+        ;;
     esac
   fi
 
@@ -301,37 +301,37 @@ get_current_theme() {
     [ -f "${conf}" ] || continue
     gtk=$(grep "^gtk-application-prefer-dark-theme" "${conf}" | cut -d= -f2 | tr -d ' ')
     case "${gtk}" in
-    1 | true)
-      log_verbose "colorscheme: detected dark via GTK settings (${conf})"
-      printf "dark"
-      return 0
-      ;;
-    0 | false)
-      log_verbose "colorscheme: detected light via GTK settings (${conf})"
-      printf "light"
-      return 0
-      ;;
-    *)
-      : # key absent or unrecognized in this config; check next file
-      ;;
+      1 | true)
+        log_verbose "colorscheme: detected dark via GTK settings (${conf})"
+        printf "dark"
+        return 0
+        ;;
+      0 | false)
+        log_verbose "colorscheme: detected light via GTK settings (${conf})"
+        printf "light"
+        return 0
+        ;;
+      *)
+        : # key absent or unrecognized in this config; check next file
+        ;;
     esac
   done
 
   #> QT / GTK environment variable hints
   case "${QT_STYLE_OVERRIDE:-}:${GTK_THEME:-}" in
-  *[Dd]ark*)
-    log_verbose "colorscheme: detected dark via QT_STYLE_OVERRIDE/GTK_THEME"
-    printf "dark"
-    return 0
-    ;;
-  *[Ll]ight*)
-    log_verbose "colorscheme: detected light via QT_STYLE_OVERRIDE/GTK_THEME"
-    printf "light"
-    return 0
-    ;;
-  *)
-    : # no env hint; fall through to time-based fallback
-    ;;
+    *[Dd]ark*)
+      log_verbose "colorscheme: detected dark via QT_STYLE_OVERRIDE/GTK_THEME"
+      printf "dark"
+      return 0
+      ;;
+    *[Ll]ight*)
+      log_verbose "colorscheme: detected light via QT_STYLE_OVERRIDE/GTK_THEME"
+      printf "light"
+      return 0
+      ;;
+    *)
+      : # no env hint; fall through to time-based fallback
+      ;;
   esac
 
   #> Time-based fallback
@@ -361,8 +361,8 @@ apply_plasma() {
   set -- $(resolve_scheme "${mode}")
 
   current_tag=" (current color scheme)"
-  current=$(plasma-apply-colorscheme --list-schemes |
-    grep "${current_tag}" | sed "s/^ \* //; s/${current_tag}//")
+  current=$(plasma-apply-colorscheme --list-schemes \
+    | grep "${current_tag}" | sed "s/^ \* //; s/${current_tag}//")
 
   for candidate in "$@"; do
     [ -n "${candidate}" ] || continue
@@ -375,7 +375,7 @@ apply_plasma() {
     if plasma-apply-colorscheme --list-schemes | grep --quiet "^ \* ${candidate}\$\|^   ${candidate}\$"; then
       log "Plasma: applying '${candidate}'"
       if is_quiet; then
-        if run plasma-apply-colorscheme "${candidate}" >/dev/null; then
+        if run plasma-apply-colorscheme "${candidate}" > /dev/null; then
           return 0
         fi
       else
@@ -422,7 +422,7 @@ apply_portal() {
         export GSETTINGS_SCHEMA_DIR
       fi
     fi
-    if run gsettings set org.gnome.desktop.interface color-scheme "prefer-${target}" 2>/dev/null; then
+    if run gsettings set org.gnome.desktop.interface color-scheme "prefer-${target}" 2> /dev/null; then
       log "gsettings: color-scheme → prefer-${target}"
       return 0
     fi
@@ -440,7 +440,7 @@ apply_portal() {
 append_gtk_key() {
   conf="$1"
   value="$2"
-  printf "gtk-application-prefer-dark-theme=%s\n" "${value}" >>"${conf}"
+  printf "gtk-application-prefer-dark-theme=%s\n" "${value}" >> "${conf}"
 }
 
 apply_gtk() {
@@ -493,24 +493,24 @@ apply_named_scheme() {
   for name in "$@"; do
     [ -n "${name}" ] || continue
     case "${name}" in
-    light | dark)
-      if has_cmd dms; then
-        run dms ipc call theme "${name}"
-        log "dms: → ${name}"
-        any_applied=true
-        [ -z "${applied_name}" ] && applied_name="${name}"
-      fi
-      if has_cmd darkman; then
-        run darkman set "${name}"
-        log "darkman: → ${name}"
-        any_applied=true
-        [ -z "${applied_name}" ] && applied_name="${name}"
-      fi
-      break
-      ;;
-    *)
-      : # not a light/dark literal; DMS/darkman have nothing to try
-      ;;
+      light | dark)
+        if has_cmd dms; then
+          run dms ipc call theme "${name}"
+          log "dms: → ${name}"
+          any_applied=true
+          [ -z "${applied_name}" ] && applied_name="${name}"
+        fi
+        if has_cmd darkman; then
+          run darkman set "${name}"
+          log "darkman: → ${name}"
+          any_applied=true
+          [ -z "${applied_name}" ] && applied_name="${name}"
+        fi
+        break
+        ;;
+      *)
+        : # not a light/dark literal; DMS/darkman have nothing to try
+        ;;
     esac
   done
 
@@ -521,7 +521,7 @@ apply_named_scheme() {
       if plasma-apply-colorscheme --list-schemes | grep --quiet "^ \* ${name}\$\|^   ${name}\$"; then
         log "Plasma: applying scheme '${name}'"
         if is_quiet; then
-          run plasma-apply-colorscheme "${name}" >/dev/null
+          run plasma-apply-colorscheme "${name}" > /dev/null
         else
           run plasma-apply-colorscheme "${name}"
         fi
@@ -540,7 +540,7 @@ apply_named_scheme() {
   if has_cmd gsettings; then
     for name in "$@"; do
       [ -n "${name}" ] || continue
-      if run gsettings set org.gnome.desktop.interface gtk-theme "${name}" 2>/dev/null; then
+      if run gsettings set org.gnome.desktop.interface gtk-theme "${name}" 2> /dev/null; then
         log "gsettings: gtk-theme → ${name}"
         any_applied=true
         [ -z "${applied_name}" ] && applied_name="${name}"
@@ -561,12 +561,12 @@ resolve_scheme() {
   #| Resolves "dark"/"light" → preferred scheme name with fallback
   mode="$1"
   case "${mode}" in
-  light) printf "%s %s" "${LIGHT_SCHEME}" "${LIGHT_FALLBACK}" ;;
-  dark) printf "%s %s" "${DARK_SCHEME}" "${DARK_FALLBACK}" ;;
-  *)
-    log "colorscheme: unrecognized mode '${mode}', defaulting to dark"
-    printf "%s %s" "${DARK_SCHEME}" "${DARK_FALLBACK}"
-    ;;
+    light) printf "%s %s" "${LIGHT_SCHEME}" "${LIGHT_FALLBACK}" ;;
+    dark) printf "%s %s" "${DARK_SCHEME}" "${DARK_FALLBACK}" ;;
+    *)
+      log "colorscheme: unrecognized mode '${mode}', defaulting to dark"
+      printf "%s %s" "${DARK_SCHEME}" "${DARK_FALLBACK}"
+      ;;
   esac
 }
 
@@ -613,9 +613,9 @@ apply_all() {
 do_toggle() {
   current=$(get_current_theme)
   case "${current}" in
-  dark) apply_all "light" ;;
-  light) apply_all "dark" ;;
-  *) apply_all "dark" ;;
+    dark) apply_all "light" ;;
+    light) apply_all "dark" ;;
+    *) apply_all "dark" ;;
   esac
 }
 
@@ -650,69 +650,69 @@ parse_arguments() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help)
-      show_help
-      exit 0
-      ;;
-    -v | --version)
-      show_version
-      exit 0
-      ;;
-    -q | --quiet) bump_level --quiet ;;
-    -d | --debug | --verbose) bump_level +1 ;;
-    -n | --dry-run) dry_run=true ;;
-    -g | --get)
-      get_current_theme
-      printf "\n"
-      exit 0
-      ;;
-    -t | --toggle) mode="toggle" ;;
-    -a | --auto) mode="auto" ;;
-    -s | --set)
-      [ -n "$2" ] && {
-        mode="$2"
-        shift
-      }
-      ;;
-    --theme)
-      #| Accepts variants: repeatable (--theme A --theme B), comma-
-      #? separated (--theme A,B), or a quoted space-separated string
-      #? (--theme "A B") -- all normalize into one space-separated list.
-      [ -n "$2" ] && {
-        mode="theme"
-        theme_names="${theme_names}${theme_names:+ }$(printf '%s' "$2" | tr ',' ' ')"
-        shift
-      }
-      ;;
-    --theme-dark)
-      #| Overrides the dark scheme (and clears its fallback, since the
-      #? override replaces the whole pair) and applies it immediately.
-      #? Any --toggle/--auto/--set later in this same invocation will
-      #? resolve against the overridden pair. If nothing else sets a
-      #? mode, skip the default dispatch -- see theme_pair_only below.
-      [ -n "$2" ] && {
-        DARK_SCHEME="$2"
-        DARK_FALLBACK=""
-        apply_named_scheme "${DARK_SCHEME}"
-        theme_pair_only=true
-        shift
-      }
-      ;;
-    --theme-light)
-      #| Same as --theme-dark, for the light scheme.
-      [ -n "$2" ] && {
-        LIGHT_SCHEME="$2"
-        LIGHT_FALLBACK=""
-        apply_named_scheme "${LIGHT_SCHEME}"
-        theme_pair_only=true
-        shift
-      }
-      ;;
-    light) mode="light" ;;
-    dark) mode="dark" ;;
-    *)
-      : # unrecognized argument; ignored
-      ;;
+      -h | --help)
+        show_help
+        exit 0
+        ;;
+      -v | --version)
+        show_version
+        exit 0
+        ;;
+      -q | --quiet) bump_level --quiet ;;
+      -d | --debug | --verbose) bump_level +1 ;;
+      -n | --dry-run) dry_run=true ;;
+      -g | --get)
+        get_current_theme
+        printf "\n"
+        exit 0
+        ;;
+      -t | --toggle) mode="toggle" ;;
+      -a | --auto) mode="auto" ;;
+      -s | --set)
+        [ -n "$2" ] && {
+          mode="$2"
+          shift
+        }
+        ;;
+      --theme)
+        #| Accepts variants: repeatable (--theme A --theme B), comma-
+        #? separated (--theme A,B), or a quoted space-separated string
+        #? (--theme "A B") -- all normalize into one space-separated list.
+        [ -n "$2" ] && {
+          mode="theme"
+          theme_names="${theme_names}${theme_names:+ }$(printf '%s' "$2" | tr ',' ' ')"
+          shift
+        }
+        ;;
+      --theme-dark)
+        #| Overrides the dark scheme (and clears its fallback, since the
+        #? override replaces the whole pair) and applies it immediately.
+        #? Any --toggle/--auto/--set later in this same invocation will
+        #? resolve against the overridden pair. If nothing else sets a
+        #? mode, skip the default dispatch -- see theme_pair_only below.
+        [ -n "$2" ] && {
+          DARK_SCHEME="$2"
+          DARK_FALLBACK=""
+          apply_named_scheme "${DARK_SCHEME}"
+          theme_pair_only=true
+          shift
+        }
+        ;;
+      --theme-light)
+        #| Same as --theme-dark, for the light scheme.
+        [ -n "$2" ] && {
+          LIGHT_SCHEME="$2"
+          LIGHT_FALLBACK=""
+          apply_named_scheme "${LIGHT_SCHEME}"
+          theme_pair_only=true
+          shift
+        }
+        ;;
+      light) mode="light" ;;
+      dark) mode="dark" ;;
+      *)
+        : # unrecognized argument; ignored
+        ;;
     esac
     #| Any explicit mode-setting flag cancels the "pair-only" skip --
     #? --theme-dark/light combined with --toggle/--auto/--set/etc.
@@ -732,37 +732,37 @@ main() {
   parse_arguments "$@"
 
   case "${mode}" in
-  none) : ;; # --theme-dark/light already applied immediately; nothing further to do
-  toggle) do_toggle ;;
-  auto) do_auto ;;
-  get)
-    get_current_theme
-    printf "\n"
-    ;;
-  light) apply_all "light" ;;
-  dark) apply_all "dark" ;;
-  theme)
-    #shellcheck disable=SC2086
-    #? theme_names is intentionally word-split here; it holds
-    #? space-separated scheme-name variants built by parse_arguments,
-    #? not a single value to be quoted whole.
-    do_theme ${theme_names}
-    ;;
-  *)
-    #| Named scheme passed via --set → detect dark/light → apply
-    case "${mode}" in
-    *[Ll]ight*) apply_all "light" ;;
-    *[Dd]ark*) apply_all "dark" ;;
-    *) do_toggle ;;
-    esac
-    ;;
+    none) : ;; # --theme-dark/light already applied immediately; nothing further to do
+    toggle) do_toggle ;;
+    auto) do_auto ;;
+    get)
+      get_current_theme
+      printf "\n"
+      ;;
+    light) apply_all "light" ;;
+    dark) apply_all "dark" ;;
+    theme)
+      #shellcheck disable=SC2086
+      #? theme_names is intentionally word-split here; it holds
+      #? space-separated scheme-name variants built by parse_arguments,
+      #? not a single value to be quoted whole.
+      do_theme ${theme_names}
+      ;;
+    *)
+      #| Named scheme passed via --set → detect dark/light → apply
+      case "${mode}" in
+        *[Ll]ight*) apply_all "light" ;;
+        *[Dd]ark*) apply_all "dark" ;;
+        *) do_toggle ;;
+      esac
+      ;;
   esac
 }
 
 show_version() { printf "colorscheme %s\n" "${VERSION}"; }
 
 show_help() {
-  cat <<EOF
+  cat << EOF
 colorscheme ${VERSION} - Multi-DE Theme Switcher
 
 USAGE:
