@@ -108,8 +108,11 @@ in {
         };
       };
       icons = {
-        dark = "candy-icons";
-        light = "buuf-nestort";
+        light = "candy-icons";
+        dark = "buuf-nestort";
+
+        #   dark = "candy-icons";
+        #   light = "buuf-nestort";
       };
       cursors = {
         accent = "teal";

@@ -64,7 +64,7 @@
 
         normalized =
           mapAttrs
-          (_: user: normalize user) (
+          (_: normalize) (
             listToAttrs (
               map (value: {
                 inherit value;
@@ -269,9 +269,7 @@
       };
 
       dots =
-        if inputs ? dots
-        then inputs.dots
-        else fetchSrc revision.dots;
+        inputs.dots or (fetchSrc revision.dots);
 
       catppuccin = fetchMod {
         name = "catppuccin";
@@ -506,59 +504,55 @@
     forShells = {
       bash = with pkgs; [bash];
       fish = with pkgs; [fish];
-      nushell = (
-        with pkgs;
-          [
-            nushell
-            nu-lint
-            nufmt
-          ]
-          ++ (with pkgs.nushellPlugins; [
-            polars
-            gstat
-            skim
-            query
-            formats
-            desktop_notifications
-          ])
-      );
-      powershell = (
-        with pkgs; [
-          powershell
-          powershell-editor-services
-
-          (writeShellApplication {
-            name = "pwshfmt";
-            runtimeInputs = [powershell];
-            text = ''
-              export PSModulePath="${let
-                pname = "PSScriptAnalyzer";
-                version = "1.25.0";
-              in
-                stdenvNoCC.mkDerivation {
-                  inherit pname version;
-                  src = fetchurl {
-                    url = "https://www.powershellgallery.com/api/v2/package/${pname}/${version}";
-                    hash = "sha256-FOY0yCjrmO+59AspGLqQ8TntXszfZjoqdHc22ZaZXWA="; #? lib.fakeHash to update
-                  };
-                  nativeBuildInputs = [unzip];
-                  dontUnpack = true;
-                  dontBuild = true;
-                  installPhase = ''
-                    mkdir -p "$out/share/powershell/Modules/${pname}"
-                    unzip -q "$src" -d "$out/share/powershell/Modules/${pname}"
-                  '';
-                }}/share/powershell/Modules''${PSModulePath:+:$PSModulePath}"
-
-              exec pwsh \
-                -NoProfile \
-                -NonInteractive \
-                -File ${sources.dots + "/Libraries/powershell/Admin/pwshfmt.ps1"} \
-                "$@"
-            '';
-          })
+      nushell = with pkgs;
+        [
+          nushell
+          nu-lint
+          nufmt
         ]
-      );
+        ++ (with pkgs.nushellPlugins; [
+          polars
+          gstat
+          skim
+          query
+          formats
+          desktop_notifications
+        ]);
+      powershell = with pkgs; [
+        powershell
+        powershell-editor-services
+
+        (writeShellApplication {
+          name = "pwshfmt";
+          runtimeInputs = [powershell];
+          text = ''
+            export PSModulePath="${let
+              pname = "PSScriptAnalyzer";
+              version = "1.25.0";
+            in
+              stdenvNoCC.mkDerivation {
+                inherit pname version;
+                src = fetchurl {
+                  url = "https://www.powershellgallery.com/api/v2/package/${pname}/${version}";
+                  hash = "sha256-FOY0yCjrmO+59AspGLqQ8TntXszfZjoqdHc22ZaZXWA="; #? lib.fakeHash to update
+                };
+                nativeBuildInputs = [unzip];
+                dontUnpack = true;
+                dontBuild = true;
+                installPhase = ''
+                  mkdir -p "$out/share/powershell/Modules/${pname}"
+                  unzip -q "$src" -d "$out/share/powershell/Modules/${pname}"
+                '';
+              }}/share/powershell/Modules''${PSModulePath:+:$PSModulePath}"
+
+            exec pwsh \
+              -NoProfile \
+              -NonInteractive \
+              -File ${sources.dots + "/Libraries/powershell/Admin/pwshfmt.ps1"} \
+              "$@"
+          '';
+        })
+      ];
       zsh = with pkgs; [zsh zi];
     };
 
@@ -698,8 +692,27 @@
       ];
     };
 
-    forStyle =
-      []
+    forInterface =
+      optionals (with interface; isX11 || isWayland) (with pkgs; [
+        mpvc
+        mpv
+        imagemagick
+        imv
+      ])
+      ++ optionals interface.isWayland (with pkgs; [
+        wl-clipboard
+        xwayland-satellite
+        foot
+      ])
+      ++ optional interface.isNiri (with pkgs; [alacritty])
+      ++ optional interface.isHyprland (with pkgs; [kitty])
+      ++ optionals interface.isPlasma (with pkgs.kdePackages; [
+        kate
+        kio
+        yakuake
+        kconfig
+        plasma-workspace
+      ])
       ++ map
       (name: sources.icons.${name} or pkgs.${name})
       (unique (
@@ -773,95 +786,24 @@
     forSystem = flatten (
       with pkgs;
         [
-          bat
-          btop
           coreutils
           curl
           diffutils
-          dua
-          dust
-          eza
-          fastfetch
-          fd
-          fend
-          figlet
           file
           findutils
-          fzf
           gawk
-          gcc
-          getent
-          gh
-          gitui
+          git
           gnused
-          gum
-          glib
-          procs
-          glib
-          helix
-          imagemagick
-          imv
-          jq
-          jql
-          lolcat
-          lsd
           lshw
-          dbus
-          glib
-          gnused
-          procps
-          systemd
-          onefetch
-          ouch
-          p7zip
           patch
           pciutils
-          pkg-config
-          procs
           procps
-          ripgrep
           rsync
-          sad
-          speedtest-go
-          trashy
-          udiskie
           usbutils
-          uutils-coreutils-noprefix
-          viu
           wget
-          wlr-randr
-          yazi
-          viu
-          imagemagick
         ]
-        ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
-          # brave
-          # freetube
-          # ghostty
-          # imagemagick
-          # imv
-          # qbittorrent-enhanced
-          # qimgv
-          # shortwave
-          # viu
-          # vscode-fhs
-        ])
-        ++ optionals interface.isWayland (with pkgs; [
-          wl-clipboard
-          xwayland-satellite
-          foot
-        ])
         ++ optionals isLinux (with pkgs; [bubblewrap xsel])
         ++ optionals isDarwin (with pkgs; [pngpaste])
-        ++ optional interface.isNiri (with pkgs; [alacritty])
-        ++ optional interface.isHyprland (with pkgs; [kitty])
-        ++ optionals interface.isPlasma (with pkgs.kdePackages; [
-          kate
-          kio
-          yakuake
-          kconfig
-          plasma-workspace
-        ])
         ++ [
           (writeShellApplication {
             name = "nixos-switch";
@@ -881,7 +823,7 @@
           })
         ]
     );
-  in {inherit forShells forCoding forStyle forSystem;};
+  in {inherit forShells forCoding forInterface forSystem;};
 in {
   imports = with sources; [
     ./hardware-configuration.nix
@@ -1232,30 +1174,19 @@ in {
     useUserPackages = true;
     extraSpecialArgs = {host = args;};
     users =
-      mapAttrs (name: user: let
-      in {
+      mapAttrs (name: user: {
         home = {
           inherit stateVersion;
           username = user.name;
           homeDirectory = user.paths.home;
           #~@ Shell/dev tooling lives in the user's own profile, opted into
           #~@ via `shells`/`codes` in default.nix, rather than system-wide.
-          packages = flatten (
-            (map (app: pkgs.${app}) (user.apps or []))
-            ++ (with packages; (
-              forStyle
-              ++ (
-                map
-                (shell: forShells.${shell} or [])
-                user.shells
-              )
-              ++ (
-                map
-                (lang: forCoding.${lang} or [])
-                (user.coding or [])
-              )
-            ))
-          );
+          packages = flatten (with packages; (
+            forInterface
+            ++ (map (app: pkgs.${app}) (user.apps or []))
+            ++ (map (env: forShells.${env} or []) user.shells)
+            ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
+          ));
         };
         services = {
           darkman = let
