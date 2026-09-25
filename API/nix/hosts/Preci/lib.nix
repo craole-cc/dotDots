@@ -235,8 +235,17 @@
     mkHost = args: let
       context = "mkHost";
       derived = deriveHost args;
-      defined = {
-        inherit derived;
+
+      defined = let
+        principals =
+          mkHostUsers context (derived.principals or []);
+
+        desktops = mkMergedList {
+          declared = derived.interface.desktops;
+          requested = principals.interface.desktops;
+        };
+      in {
+        inherit derived principals;
 
         id =
           if isNotEmpty derived.id
@@ -246,14 +255,14 @@
               inherit (derived) name class description stateVersion;
             }));
 
-        interface = let
-          desktops = mkMergedList {
-            declared = derived.interface.desktops;
-            requested = defined.principals.interface.desktops;
-          };
-        in {
-          __meta = {inherit desktops;};
+        interface = {
           desktops = desktops.resolved;
+        };
+
+        __meta = {
+          interface = {
+            inherit desktops;
+          };
         };
 
         paths = let
@@ -261,9 +270,6 @@
           roots = base // {run = base.run or (base.src or null);};
         in
           recursiveUpdate derived.paths {inherit roots;};
-
-        principals =
-          mkHostUsers context (derived.principals or []);
       };
     in
       recursiveUpdate derived defined;
