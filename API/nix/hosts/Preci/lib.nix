@@ -238,11 +238,14 @@
       defined = {
         inherit derived;
 
-        interface = {
+        interface = let
           desktops = mkMergedList {
             declared = derived.interface.desktops;
-            requested = derived.principals.interface.desktops;
+            requested = defined.principals.interface.desktops;
           };
+        in {
+          __meta = {inherit desktops;};
+          desktops = desktops.resolved;
         };
 
         principals =
