@@ -38,16 +38,14 @@ in {
     "audio"
     "battery"
     "bluetooth"
-    "dualboot-windows"
-    "efi"
+    "efi" #? Check
     "gpu"
     "keyboard"
     "network"
-    "nvme"
-    "secureboot"
+    "secureboot" #? No, check
     "storage"
     "touchpad"
-    "tpm"
+    "tpm" #? What's this?
     "video"
     "virtualization"
     "vpn"
@@ -67,19 +65,32 @@ in {
     desktops = ["plasma"];
   };
 
-  packages = {
+  packages = rec {
     kernel = "linuxPackages_latest";
+    shells = ["bash"];
+    coding = ["common"];
+    launchers = ["vicinae"];
+    common =
+      [
+        "helix" #? Editor
+        "brave" #? Browser
+        "freetube" #? YouTube Player
+        "ghostty" #? Terminal Emulator
+        "qimgv" #? Image Viewer
+        "mpv" #? Media Player
+        "yazi" #? File Explorer
+        "starship" #? Shell Prompt
+      ]
+      ++ launchers;
   };
 
   principals = [
-    (
-      {
-        name = "craole-cc";
-        enable = true;
-        autoLogin = true;
+    ({
+        name = "craole";
         role = "administrator";
+        enable = true;
+        autoLogin = false;
       }
-      // (import ./craole.nix)
-    )
+      // import ./craole.nix)
   ];
 }
