@@ -64,13 +64,7 @@ in {
         timeout = 1;
       };
     };
-    desktops = [
-      "plasma"
-      # "hyprland"
-      "niri"
-      # "mango"
-      # "cosmic"
-    ];
+    desktops = ["plasma"];
   };
 
   packages = {
@@ -78,74 +72,14 @@ in {
   };
 
   principals = [
-    {
-      name = "craole-cc";
-      enable = true;
-      autoLogin = true;
-      role = "administrator";
-      email = "134658831+craole-cc@users.noreply.github.com";
-      description = "Craig 'Craole' Cole";
-      defaultLocale = "en_GB.UTF-8";
-      keyboard = {
-        layout = "us";
-        variant = "";
-      };
-      desktop = "plasma";
-      launchers = ["vicinae"];
-      theme = {
-        autoSwitch = true;
-        polarity = "dark";
-        dark = {
-          flavor = "frappe";
-          accent = "teal";
-        };
-        light = {
-          flavor = "latte";
-          accent = "mauve";
-        };
-      };
-      icons = {
-        light = "buuf-nestort";
-        dark = "candy-icons";
-      };
-      cursors = {
-        accent = "teal";
-        dark = "material";
-        light = "material";
-      };
-      fonts = {
-        emoji = "Noto Color Emoji";
-        monospace = "Maple Mono NF";
-        sans = "Monaspace Radon Frozen";
-        serif = "Noto Serif";
-        material = "Material Symbols Sharp";
-        clock = "Rubik";
-      };
-      shells = [
-        "bash"
-        "nushell"
-        "powershell"
-        "zsh"
-      ];
-      coding = [
-        "common"
-        "nix"
-        "markup"
-        "rust"
-        "python"
-        "shellscript"
-        "zig"
-      ];
-      apps = [
-        "brave"
-        "freetube"
-        "ghostty"
-        "imv"
-        "qbittorrent-enhanced"
-        "qimgv"
-        "shortwave"
-        "vscode-fhs"
-      ];
-    }
+    (
+      {
+        name = "craole-cc";
+        enable = true;
+        autoLogin = true;
+        role = "administrator";
+      }
+      // (import ./craole.nix)
+    )
   ];
 }

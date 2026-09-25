@@ -19,10 +19,8 @@
   inherit
     (lib.lists)
     concatMap
-    filter
     flatten
     head
-    imap0
     intersectLists
     isList
     optional
@@ -33,7 +31,6 @@
   inherit
     (lib.strings)
     concatMapStringsSep
-    concatStringsSep
     isString
     readFile
     stringLength
@@ -67,11 +64,12 @@
       users = let
         normalize = user: let
           home = "/home/${user.name}";
-          shells = user.applications.shells or ["bash"];
+          shells = user.applications.shells or (user.shells or ["bash"]);
           apps =
             (user.applications.common or [])
-            ++ (user.applications.launchers or []);
-          coding = user.applications.coding or [];
+            ++ (user.applications.launchers or [])
+            ++ (user.apps or []);
+          coding = user.applications.coding or (user.coding or []);
           role = user.role or "normal";
           isNormalUser = role != "service";
         in
@@ -126,14 +124,7 @@
           (_: user: user.isNormalUser)
           normalized;
 
-        principal =
-          normalized.${
-            (head (
-              filter
-              (user: user.enable or false)
-              (src.principals or [])
-            )).name
-          };
+        principal = normalized.${(head (builtins.filter (p: p.enable or false) (src.principals or []))).name};
 
         core =
           mapAttrs
@@ -144,8 +135,7 @@
                 inherit (user) isNormalUser isSystemUser name;
                 extraGroups =
                   optionals
-                  (user.role == "administrator")
-                  ["networkmanager" "wheel"];
+                  (user.role == "administrator") ["networkmanager" "wheel"];
                 shell = getAttr (head user.shells) pkgs;
               }
               // optionalAttrs (user ? password) {inherit (user) password;}
@@ -167,6 +157,14 @@
             else principal.name;
         };
       in {inherit enabled disabled normal principal core autoLogin;};
+
+      localization = recursiveUpdate {
+        latitude = 18.015;
+        longitude = -77.49;
+        city = "Mandeville, Jamaica";
+        timeZone = "America/Jamaica";
+        defaultLocale = "en_US.UTF-8";
+      } (src.localization or {});
 
       paths = let
         roots = {
@@ -245,11 +243,10 @@
       isPlasma = isRequired "plasma";
       isWayland = isNotEmpty protocols.wayland;
       isX11 = isNotEmpty protocols.x11;
-      #? `desktops` is an ordered preference list on both the host
-      #? (interface.desktops, in default.nix) and the principal
-      #? (craole.nix). The principal's preference wins; the host list and
-      #? "plasma" are the fallback chain if the principal is empty.
-      defaultSession = head (principal.desktops ++ normalized ++ ["plasma"]);
+      #? craole.nix names this `desktops` (plural, a preference-ordered
+      #? list), matching interface.desktops rather than a singular
+      #? `desktop`; take the first entry, guarding against an empty list.
+      defaultSession = head ((principal.desktops or normalized) ++ ["plasma"]);
     };
 
   aesthetics = let
@@ -791,7 +788,7 @@
         #? craole.nix's entries carry no directory, so this is a manual
         #? switch rather than an automatic `includeIf`; add a `path` to an
         #? entry and wire up `programs.git.includes` if you want that later.
-        ++ optionals (isNotEmpty principal.git) (let
+        ++ optionals (isNotEmpty (principal.git or [])) (let
           #? `push.autoSetupRemote = true;` is nested-attrset sugar for
           #? `push = { autoSetupRemote = true; };`, not a flat dotted key,
           #? so flatten to the dotted paths `git config` actually wants.
@@ -1021,19 +1018,20 @@ in {
       };
     };
 
-    git = {
+    git = let
+      #? craole.nix's `git` is a list, ordered by priority: the head is the
+      #? identity actually applied globally. Falls back to the old
+      #? top-level name/email if a principal has no `git` list at all.
+      identities = principal.git or [{inherit (principal) name email;}];
+      primary = head identities;
+    in {
       enable = true;
       lfs = {
         enable = true;
         enablePureSSHTransfer = true;
       };
       prompt.enable = true;
-      config = let
-        #? `git` is always an ordered list of identities; the head is the
-        #? identity applied globally. No principal is expected to fall back
-        # ? to a singular name/email pair anymore.
-        primary = head (principal.git);
-      in
+      config =
         {
           user = {inherit (primary) name email;};
           init.defaultBranch = "main";
@@ -1098,6 +1096,7 @@ in {
 
     nix-index = {
       enable = true;
+      # comma.enable = true;
     };
     nix-index-database = {
       enable = true;
@@ -1227,7 +1226,7 @@ in {
         aes = aesthetics.users.${name};
         modes = ["dark" "light"];
 
-        #? Catppuccin colors for terminals that need an explicit palette (foot).
+        #? Catppuccin colours for terminals that need an explicit palette (foot).
         #? Add macchiato/mocha here if you ever switch to those flavors.
         palette = {
           frappe = {
@@ -1393,173 +1392,6 @@ in {
             #>   systemctl --user try-restart plasma-plasmashell.service
           '';
         };
-
-        #? Wires `user.keyboard.bindings` (craole.nix: an attrset of ordered
-        #? variant-lists per action, e.g. `terminal = [scratchpad primary
-        #? secondary]`) into real KDE global shortcuts.
-        #?
-        #? Mechanism (verified real KDE behaviour, not plasma-manager):
-        #?   1. Each binding gets a `~/.local/share/applications/<id>.desktop`
-        #?      "Exec=" entry -- this is literally what KDE's own System
-        #?      Settings > Shortcuts > "Add Command..." button creates.
-        #?   2. `kglobalshortcutsrc` gets one `[<id>.desktop]` group pointing
-        #?      the key sequence at that .desktop file.
-        #? We write (2) via `kwriteconfig6` in `home.activation` -- the same
-        #? tool already used for the theme scripts above -- rather than
-        #? `xdg.configFile`, because `kglobalshortcutsrc` is mutated live by
-        #? KDE itself; letting home-manager symlink/own the whole file would
-        #? either collide or wipe out shortcuts set outside this config.
-        #?
-        #? Every binding is dispatched through ONE writeShellApplication
-        #? (`dots-keybind`) so the mapping from binding -> real command lives
-        #? in one place and is testable by hand (`dots-keybind <id>`).
-        #?
-        #? ASSUMPTIONS TO VERIFY -- the craole.nix binding data names
-        #? *what* a shortcut is for, but not always *which app/action*:
-        #?   - launcher/terminal/browser/editor variants are guessed from
-        #?     the single matching package in `applications.common`
-        #?     (vicinae, ghostty, brave, vscode-fhs); `foot` and `hx`
-        #?     (helix's binary name) fill the "secondary" slots.
-        #?   - `explorer` and `agent` have no matching package anywhere in
-        #?     this config, so they dispatch to a notify-send placeholder
-        #?     instead of a guessed command.
-        #?   - `close`/`lock`/`window`/`workspaceNext`/`workspacePrev` are
-        #?     wired via `qdbus6 org.kde.kglobalaccel invokeShortcut
-        #?     "<Name>"`, which replays an EXISTING KWin global shortcut by
-        #?     name (see kwinActionNames below) rather than reimplementing
-        #?     it -- safe if the name is wrong (no-op), but the exact names
-        #?     should be checked against `qdbus6 org.kde.kglobalaccel
-        #?     org.kde.kglobalaccel.allActionsForComponent kwin` on the
-        #?     target machine.
-        keybindings = let
-          bindings = user.keyboard.bindings or {};
-
-          flattened =
-            concatMap
-            (action:
-              imap0
-              (index: variant: variant // {inherit action index;})
-              bindings.${action})
-            (attrNames bindings);
-
-          id = b: "dots-${b.action}-${toString b.index}";
-
-          qdbusInvoke = actionName: ''qdbus6 org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut "${actionName}"'';
-
-          #? Best-effort KWin default global-shortcut names; verify on target.
-          kwinActionNames = {
-            "close-0" = "Window Close";
-            "close-1" = "Log Out";
-            "close-2" = "Shut Down";
-            "lock-0" = "Lock Session";
-            "lock-1" = "Lock Session";
-            "window-0" = "Window Fullscreen";
-            "window-1" = "Window Toggle Floating";
-            "workspaceNext-0" = "Switch Window Right";
-            "workspaceNext-2" = "Switch to Next Desktop";
-            "workspacePrev-0" = "Switch Window Left";
-            "workspacePrev-2" = "Switch to Previous Desktop";
-          };
-
-          notConfigured = b: ''${pkgs.libnotify}/bin/notify-send "Keybind not configured" "${b.description}"'';
-
-          #? action-index -> real shell command. Anything not listed here
-          #? falls through to `notConfigured`.
-          commands = {
-            "launcher-0" = "vicinae toggle";
-            "launcher-1" = "vicinae toggle --extension clipboard"; # ASSUMPTION
-            "launcher-2" = "vicinae toggle --extension files"; # ASSUMPTION
-            "terminal-0" = "ghostty --class=scratchpad --title=scratchpad";
-            "terminal-1" = "ghostty";
-            "terminal-2" = "foot";
-            "browser-0" = "brave --new-window";
-            "browser-1" = "brave";
-            "browser-2" = "brave --incognito";
-            "editor-0" = "code --new-window";
-            "editor-1" = "code";
-            "editor-2" = "ghostty -e hx";
-            "volumeUp-0" = "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+";
-            "volumeUp-1" = "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1%+";
-            "volumeUp-2" = "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 15%+";
-            "volumeDown-0" = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
-            "volumeDown-1" = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-";
-            "volumeDown-2" = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 15%-";
-            "volumeMute-0" = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-            "brightnessUp-0" = "brightnessctl set 5%+";
-            "brightnessUp-1" = "brightnessctl set 1%+";
-            "brightnessUp-2" = "brightnessctl set 15%+";
-            "brightnessDown-0" = "brightnessctl set 5%-";
-            "brightnessDown-1" = "brightnessctl set 1%-";
-            "brightnessDown-2" = "brightnessctl set 15%-";
-          };
-
-          commandFor = b: let
-            key = "${b.action}-${toString b.index}";
-          in
-            if commands ? ${key}
-            then commands.${key}
-            else if kwinActionNames ? ${key}
-            then qdbusInvoke kwinActionNames.${key}
-            else notConfigured b;
-
-          keySequence = b:
-            concatStringsSep "+" (
-              (map (m:
-                if m == "SUPER"
-                then "Meta"
-                else m) (b.modifier or []))
-              ++ [b.key]
-            );
-
-          dispatcher = pkgs.writeShellApplication {
-            name = "dots-keybind";
-            runtimeInputs = with pkgs; [
-              brave
-              brightnessctl
-              foot
-              ghostty
-              helix
-              kdePackages.qttools
-              libnotify
-              vicinae
-              vscode-fhs
-              wireplumber
-            ];
-            text = ''
-              case "''${1:-}" in
-              ${concatMapStringsSep "\n" (b: ''
-                  "${id b}")
-                    ${commandFor b}
-                    ;;
-                '')
-                flattened}
-                *)
-                  echo "usage: dots-keybind <id>" >&2
-                  exit 2
-                  ;;
-              esac
-            '';
-          };
-        in {
-          desktopEntries = listToAttrs (map (b: {
-              name = "applications/${id b}.desktop";
-              value.text = ''
-                [Desktop Entry]
-                Type=Application
-                Name=${b.description}
-                Exec=${dispatcher}/bin/dots-keybind ${id b}
-                NoDisplay=true
-              '';
-            })
-            flattened);
-
-          activation =
-            concatMapStringsSep "\n" (b: ''
-              ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kglobalshortcutsrc --group "${id b}.desktop" --key "_k_friendly_name" "${b.description}"
-              ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file kglobalshortcutsrc --group "${id b}.desktop" --key "_launch" "${keySequence b},none,${b.description}"
-            '')
-            flattened;
-        };
       in {
         home = {
           inherit stateVersion;
@@ -1569,21 +1401,11 @@ in {
           #~@ via `shells`/`coding` in default.nix, rather than system-wide.
           packages = flatten (with packages; (
             forInterface
-            ++ (map (app: pkgs.${app}) user.apps)
+            ++ (map (app: pkgs.${app}) (user.apps or []))
             ++ (map (env: forShells.${env} or []) user.shells)
-            ++ (map (dev: forCoding.${dev} or []) user.coding)
+            ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
             ++ [themeApply]
           ));
-
-          #? Guarded rather than unconditional: `mapAttrs ... users.normal`
-          #? runs for every normal user regardless of desktop, so this stays
-          #? a no-op on a host where Plasma (and kglobalshortcutsrc) isn't
-          #? actually in use.
-          activation.dotsKeybindings = lib.hm.dag.entryAfter ["writeBoundary"] (
-            if interface.isPlasma
-            then keybindings.activation
-            else ""
-          );
         };
 
         programs = {
@@ -1638,29 +1460,25 @@ in {
           lightModeScripts.theme = "${themeApply}/bin/theme-apply light";
         };
 
-        #? Keybinding launcher .desktop entries (see `keybindings` above),
-        #? plus one Konsole profile per mode that theme-apply switches
-        #? between.
-        xdg.dataFile =
-          keybindings.desktopEntries
-          // listToAttrs (map (mode: let
-              flavor = aes.theme.${mode}.flavor;
-            in {
-              name = "konsole/Catppuccin-${capitalize mode}.profile";
-              value.text = ''
-                [Appearance]
-                ColorScheme=Catppuccin-${capitalize flavor}
-                Font=Maple Mono NF,18
+        #? Konsole profiles (one per mode) that theme-apply switches between.
+        xdg.dataFile = listToAttrs (map (mode: let
+            flavor = aes.theme.${mode}.flavor;
+          in {
+            name = "konsole/Catppuccin-${capitalize mode}.profile";
+            value.text = ''
+              [Appearance]
+              ColorScheme=Catppuccin-${capitalize flavor}
+              Font=Maple Mono NF,18
 
-                [General]
-                Name=Catppuccin-${capitalize mode}
-                Parent=FALLBACK/
+              [General]
+              Name=Catppuccin-${capitalize mode}
+              Parent=FALLBACK/
 
-                [Interaction Options]
-                AutoCopySelectedText=true
-              '';
-            })
-            modes);
+              [Interaction Options]
+              AutoCopySelectedText=true
+            '';
+          })
+          modes);
 
         #? foot needs explicit palettes; ghostty ships Catppuccin themes.
         #? If you already have these files (e.g. from your dots repo), merge
