@@ -238,6 +238,14 @@
       defined = {
         inherit derived;
 
+        id =
+          if isNotEmpty derived.id
+          then derived.id
+          else
+            substring 0 8 (hashString "sha256" (toJSON {
+              inherit (derived) name class description stateVersion;
+            }));
+
         interface = let
           desktops = mkMergedList {
             declared = derived.interface.desktops;
@@ -248,14 +256,14 @@
           desktops = desktops.resolved;
         };
 
-        principals =
-          mkHostUsers context (derived.principals or []);
-
         paths = let
           base = derived.paths.roots or {};
           roots = base // {run = base.run or (base.src or null);};
         in
           recursiveUpdate derived.paths {inherit roots;};
+
+        principals =
+          mkHostUsers context (derived.principals or []);
       };
     in
       recursiveUpdate derived defined;
@@ -318,21 +326,7 @@
       name = raw.name or "<unnamed host>";
       context = "mkHost \"${toString name}\"";
 
-      id =
-        if isNotEmpty raw.id
-        then raw.id
-        else
-          substring 0 8 (hashString "sha256" (toJSON {
-            inherit (raw) name class description stateVersion;
-          }));
-
-      paths = let
-        base = raw.paths.roots or {};
-        roots = base // {run = base.run or (base.src or null);};
-      in
-        recursiveUpdate raw.paths {inherit roots;};
-
-      set = raw // {inherit id paths;};
+      set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
     in
       assert (requireThat {
