@@ -5,7 +5,6 @@
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
   inherit (trivial) isEmpty isNotEmpty;
-  inherit (schemas) mkMergedList;
   inherit (debug) requireNonEmpty requireThat;
 
   debug = {
