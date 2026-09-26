@@ -1,8 +1,8 @@
-{host, inputs, resolved, ...}: {
+{host, inputs, infrastructure, ...}: {
   networking = {
     hostName = host.name;
     hostId = host.id;
-    networkmanager.enable = resolved.host.resolution.functionalities.network or false;
+    networkmanager.enable = infrastructure.core.functionalities.network or false;
   };
 
   nix = {
