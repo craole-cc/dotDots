@@ -1,6 +1,7 @@
 {
   functionalities = import ./functionalities.nix;
   defaults = {
+    functionalities = [];
     stateVersion = "";
     system = "";
     class = "nixos";
