@@ -1,4 +1,7 @@
 {host, inputs, lix, ...}: let
+  inherit (lix.attrsets) listToAttrs;
+  inherit (lix.lists) map;
+
   capabilities = import ./capabilities.nix {inherit lix;};
   packages = import ./packages.nix {inherit lix;};
   packageResolver = packages // {
@@ -16,8 +19,8 @@
   };
 
   resolvedPrincipals =
-    lix.attrsets.listToAttrs
-    (lix.lists.map
+    listToAttrs
+    (map
       (
         user: {
           name = user.name;
