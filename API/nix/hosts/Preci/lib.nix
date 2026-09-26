@@ -249,7 +249,7 @@
 
     deriveCapabilities = args: let
       names = attrNames args;
-      unknown = builtins.filter (name: !(schema.users.capabilities ? ${name})) names;
+      unknown = builtins.filter (name: !(schema.user.capabilities ? ${name})) names;
       context = "deriveCapabilities";
     in
       assert requireThat {
@@ -273,7 +273,7 @@
         (mapAttrs
           (
             name: value:
-              recursiveUpdate schema.users.capabilities.${name} value
+              recursiveUpdate schema.user.capabilities.${name} value
           )
           requested');
     };
