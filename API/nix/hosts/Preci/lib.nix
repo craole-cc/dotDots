@@ -1,7 +1,6 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) attrByPath isAttrs recursiveUpdate;
-  inherit (builtins) foldl';
-  inherit (lib.lists) any concatMap elemAt head isList length optionals tail unique;
+  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
   inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
@@ -243,7 +242,7 @@
         foldl'
         recursiveUpdate
         declared
-        (builtins.reverseList requested);
+        (reverseList requested);
     };
 
     mkHost = args: let
@@ -284,6 +283,7 @@
             declared = derived.interface.fonts.serif;
             requested = principals.interface.fonts.serif;
           };
+        };
 
         themes = mkMergedAttrs {
           declared = derived.interface.themes;
