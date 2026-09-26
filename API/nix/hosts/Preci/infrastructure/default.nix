@@ -1,38 +1,14 @@
 {host, inputs, lix, ...}: let
-  inherit (lix.attrsets) listToAttrs;
-  inherit (lix.lists) map;
-
-  capabilities = import ./capabilities.nix {inherit lix;};
-  packages = import ./packages.nix {inherit lix;};
-  packageResolver = packages // {
-    pkgs = inputs.nixpkgs;
-  };
-  functionalities = import ./functionalities.nix {inherit lix;};
-  principal = import ./principal.nix {
-    inherit capabilities;
-    packages = packageResolver;
+  common = import ./common.nix {
+    inherit host inputs lix;
   };
 
-  resolved = {
-    host = host // {
-      resolution = {
-        functionalities = functionalities.resolve host.functionalities;
-        packages = packages.resolveHost {
-          inherit host;
-          pkgs = packageResolver.pkgs;
-        };
-      };
-    };
-
-    principals = listToAttrs (map
-      (principal: {
-        name = principal.name;
-        value = principal.resolve {
-          inherit host;
-          user = principal;
-        };
-      })
-      host.principals.all);
+  core = {
+    functionalities = common.functionalities;
+    packages = common.packages;
   };
-in
-  resolved
+
+  home = common.principals;
+in {
+  inherit common core home;
+}
