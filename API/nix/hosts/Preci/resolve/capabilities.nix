@@ -2,14 +2,10 @@
   inherit (lix.attrsets) mapAttrs;
   inherit (lix.lists) elem filter;
 
-  requirements = {
-    conferencing = ["audio" "network" "webcam"];
-    gaming = ["gpu"];
-    multimedia = ["audio" "video"];
-  };
+  requirements = lix.schema.user.capabilityRequirements;
 
   resolveCapability = hostFunctionalities: name: value: let
-    required = requirements.${name} or [];
+    required = (requirements.${name} or {}).functionalities or [];
     missing = filter
       (functionality: !(elem functionality hostFunctionalities))
       required;
@@ -18,8 +14,6 @@
     supported = missing == [];
   };
 in {
-  inherit requirements;
-
   resolve = {
     host,
     user,
