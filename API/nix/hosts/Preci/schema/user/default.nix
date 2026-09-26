@@ -16,5 +16,7 @@
     paths = import ./paths.nix;
     packages = import ./packages.nix;
   };
+
   capabilities = import ./capabilities.nix;
+  capabilityRequirements = import ./capability-requirements.nix;
 }
