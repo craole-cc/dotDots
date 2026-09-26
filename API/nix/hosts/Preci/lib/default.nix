@@ -615,7 +615,6 @@
 
         packages = {
           shells = packages.shells.merged;
-          coding = [];
           common = packages.common.merged;
           launchers = packages.launchers.merged;
         };
