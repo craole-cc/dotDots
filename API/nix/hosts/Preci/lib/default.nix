@@ -1,7 +1,7 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) attrByPath attrNames isAttrs mapAttrs recursiveUpdate;
-  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
-  inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
+  inherit (lib.lists) any concatMap elemAt filter foldl' head isList length optionals reverseList tail unique;
+  inherit (lib.strings) concatStringsSep hashString isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
   inherit (trivial) isEmpty isNotEmpty;
@@ -249,7 +249,7 @@
 
     deriveCapabilities = args: let
       names = attrNames args;
-      unknown = builtins.filter (name: !(schema.user.capabilities ? ${name})) names;
+      unknown = filter (name: !(schema.user.capabilities ? ${name})) names;
       context = "deriveCapabilities";
     in
       assert requireThat {
@@ -364,11 +364,7 @@
           };
         };
 
-        paths = let
-          base = derived.paths.roots or {};
-          roots = base // {run = base.run or (base.src or null);};
-        in
-          recursiveUpdate derived.paths {inherit roots;};
+        paths = derived.paths;
       };
     in
       recursiveUpdate derived defined;
@@ -376,7 +372,7 @@
     deriveFunctionalities = args: let
       names = unique args;
       unknown =
-        builtins.filter
+        filter
         (name: !(schema.host.functionalities ? ${name}))
         names;
       context = "deriveFunctionalities";
@@ -408,6 +404,7 @@
         message = "id must be an 8-character hex string, got '${toString set.id}'";
       });
       assert (isSet ["paths" "roots" "src"]);
+      assert (isSet ["paths" "roots" "run"]);
       assert (isSet ["stateVersion"]);
       assert (isSet ["system"]);
       assert (isSet ["name"]);
@@ -434,7 +431,7 @@
     deriveApplications = args: let
       names = attrNames args;
       unknown =
-        builtins.filter
+        filter
         (name: !(schema.user.applications ? ${name}))
         names;
       context = "deriveApplications";
@@ -693,7 +690,6 @@
   in {inherit deriveApplications deriveCapabilities deriveFunctionalities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
 
   strings = {
-    inherit (builtins) hashString;
 
     #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"
     showPath = path: concatStringsSep "." path;
