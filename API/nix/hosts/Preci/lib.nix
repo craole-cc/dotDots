@@ -409,7 +409,7 @@
       #> Return the validated host
         set;
 
-    mkPrincipal = args: let
+    derivePrincipal = args: let
       default = {
         name = null;
         role = null;
@@ -465,26 +465,27 @@
         };
       };
       defined = recursiveUpdate default args;
-      context = "mkPrincipal \"${toString (defined.name or "<unnamed>")}\"";
-
       description =
         if defined.description != null && defined.description != ""
         then defined.description
         else "${toString defined.name} (${toString defined.role})";
+    in
+      defined // {inherit description;};
 
-      resolved = defined // {inherit description;};
+    mkPrincipal = args: let
+      derived = derivePrincipal args;
+      context = "mkPrincipal \"${toString (derived.name or "<unnamed>")}\"";
       isDefined = path:
         requireNonEmpty {
           inherit context path;
-          set = resolved;
+          set = derived;
         };
     in
       assert (isDefined ["name"]);
       assert (isDefined ["role"]);
       assert (isDefined ["hashedPassword"]);
       #> Return the validated principal (user)
-        resolved;
-
+        derived;
     mkHostUsers = context: args: let
       principals = map mkPrincipal args;
       hasAdmin = any (principal: principal.role == "administrator") principals;
@@ -528,7 +529,7 @@
         all = principals;
         inherit primary secondary tertiary others names count interface;
       };
-  in {inherit deriveHost mkHost mkHostUsers mkPrincipal;};
+  in {inherit deriveHost derivePrincipal mkHost mkHostUsers mkPrincipal;};
 
   strings = {
     inherit (builtins) hashString;
