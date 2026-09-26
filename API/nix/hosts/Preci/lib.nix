@@ -1,11 +1,13 @@
 {lib ? import <nixpkgs/lib>, ...}: let
-  inherit (lib.attrsets) attrByPath isAttrs mapAttrs recursiveUpdate;
-  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
+  inherit (lib.attrsets) attrByPath attrNames isAttrs mapAttrs recursiveUpdate;
+  inherit (lib.lists) all any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
   inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
   inherit (trivial) isEmpty isNotEmpty;
   inherit (debug) requireNonEmpty requireThat;
+
+  schema = import ./schema;
 
   debug = {
     requireNonEmpty = {
@@ -245,64 +247,29 @@
         (reverseList requested);
     };
 
-    capabilityDefaults = {
-      writing = {
-        documents = true;
-        notes = true;
-        content = true;
-      };
-      conferencing = {
-        video = true;
-        screenSharing = true;
-        remoteMeetings = true;
-      };
-      development = {
-        languages = {};
-        tools = {};
-        platforms = {};
-      };
-      creation = {
-        art = true;
-        music = true;
-        video = true;
-      };
-      analysis = {
-        data = true;
-        spreadsheets = true;
-        visualization = true;
-      };
-      management = {
-        projects = true;
-        tasks = true;
-        organization = true;
-      };
-      gaming = {
-        games = true;
-        entertainment = true;
-      };
-      multimedia = {
-        consumption = true;
-        editing = true;
-        audio = true;
-        video = true;
-      };
-    };
-
     mkCapabilities = {
       declared ? {},
       requested ? {},
-    }: {
-      inherit declared requested;
-      resolved =
-        recursiveUpdate
-        declared
-        (mapAttrs
-          (
-            name: value:
-              recursiveUpdate (capabilityDefaults.${name} or {}) value
-          )
-          requested);
-    };
+    }: let
+      names = attrNames requested;
+      unknown = builtins.filter (name: !(schema.users.capabilities ? ${name})) names;
+    in
+      assert requireThat {
+        context = "mkCapabilities";
+        condition = unknown == [];
+        message = "unknown capabilities: ${toString unknown}";
+      }; {
+        inherit declared requested;
+        resolved =
+          recursiveUpdate
+          declared
+          (mapAttrs
+            (
+              name: value:
+                recursiveUpdate schema.users.capabilities.${name} value
+            )
+            requested);
+      };
 
     mkHost = args: let
       context = "mkHost";
@@ -311,11 +278,6 @@
       defined = let
         principals =
           mkHostUsers context (derived.principals or []);
-
-        capabilities = mkMergedAttrs {
-          declared = derived.capabilities or {};
-          requested = [principals.capabilities];
-        };
 
         desktops = mkMergedList {
           declared = derived.interface.desktops;
@@ -369,8 +331,6 @@
               inherit (derived) name class description stateVersion;
             }));
 
-        capabilities = capabilities.resolved;
-
         interface = {
           desktops = desktops.resolved;
           fonts = {
@@ -386,7 +346,6 @@
         };
 
         __meta = {
-          inherit capabilities;
           interface = {
             inherit desktops fonts themes keyboard;
           };
@@ -411,7 +370,6 @@
           id = null;
           description = null;
           functionalities = [];
-          capabilities = {};
           localization = {
             latitude = 18.015;
             longitude = -77.49;
@@ -731,10 +689,6 @@
         else null;
       others = optionals (total > 3) (tail (tail (tail principals)));
       names = map (user: user.name) principals;
-      capabilities = foldl'
-        recursiveUpdate
-        {}
-        (reverseList (map (user: user.capabilities or {}) principals));
       interface = {
         desktops = unique (concatMap (user: user.interface.desktops or []) principals);
         fonts = {
@@ -761,7 +715,7 @@
         condition = hasAdmin;
       }; {
         all = principals;
-        inherit primary secondary tertiary others names count capabilities interface;
+        inherit primary secondary tertiary others names count interface;
       };
   in {inherit deriveHost derivePrincipal mkHost mkHostUsers mkPrincipal;};
 
