@@ -1,12 +1,26 @@
-{lix, ...}: let
-  inherit (lix.attrsets) mapAttrs;
-  inherit (lix.lists) elem filter;
-  requirements = lix.schema.user.capabilityRequirements;
-  resolveCapability = hostFunctionalities: name: value: let
-    required = (requirements.${name} or {}).functionalities or [];
-    missing = filter (functionality: !(elem functionality hostFunctionalities)) required;
-  in { inherit name value required missing; supported = missing == []; };
+{lix, inputs, ...}: let
+  inherit (lix.attrsets) attrByPath;
+
+  resolveRust = user: let
+    rust = attrByPath ["capabilities" "development" "languages" "rust"] null user;
+    channel = if rust == null then null else rust.channel or "stable";
+    extensions = if rust == null then [] else rust.components or [];
+    toolchain =
+      if channel == "nightly"
+      then inputs.nixpkgs.rust-bin.nightly.latest.default
+      else inputs.nixpkgs.rust-bin.stable.latest.default;
+  in
+    if rust == null
+    then []
+    else [
+      (toolchain.override {inherit extensions;})
+    ];
+
+  resolve = {user}: {
+    home = {
+      packages = resolveRust user;
+    };
+  };
 in {
-  resolve = {host, user}: let hostFunctionalities = host.functionalities; in
-    mapAttrs (resolveCapability hostFunctionalities) user.capabilities;
+  inherit resolve;
 }
