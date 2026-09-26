@@ -1,23 +1,21 @@
-{lib, ...}: let
+{...}: let
   args = import ./args.nix;
-  lix = import ./lib {inherit lib;};
+  lix = import ./lib {};
   inputs = import ./inputs {
     inherit lix;
     inherit (args) system;
-    inputs = lib.flake.inputs or {};
   };
-  resolved = lix.mkHost args;
+  host = lix.mkHost args;
 in {
-  imports =
-    [./hardware-configuration]
-    ++ (with inputs; [
-      home-manager
-      nix-index
-      catppuccin
-    ])
-    ++ [./outputs];
+  imports = [
+    ./hardware-configuration
+    inputs.home-manager
+    inputs.nix-index
+    inputs.catppuccin
+    ./outputs
+  ];
 
   _module.args = {
-    inherit args lix inputs resolved;
+    inherit host lix inputs;
   };
 }
