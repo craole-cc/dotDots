@@ -16,6 +16,12 @@
       sha256 = "sha256-B44WL6h0XoLjJ41bUPJk0X5SDinLCII//6EcBLXKiJ0=";
     };
 
+    rust-overlay = mkGitHubSource {
+      owner = "oxalica";
+      repo = "rust-overlay";
+      rev = "master";
+    };
+
     home-manager = mkGitHubSource {
       owner = "nix-community";
       repo = "home-manager";
@@ -58,12 +64,18 @@
   };
 
   resolved = {
+    rust-overlay =
+      if inputs ? rust-overlay
+      then inputs.rust-overlay
+      else fetchSource sources.rust-overlay;
+
     nixpkgs = let
       config.allowUnfree = true;
+      overlays = [(import resolved.rust-overlay)];
     in
       if inputs ? nixpkgs
-      then import inputs.nixpkgs {inherit system config;}
-      else import (fetchSource sources.nixpkgs) {inherit config;};
+      then import inputs.nixpkgs {inherit system config overlays;}
+      else import (fetchSource sources.nixpkgs) {inherit system config overlays;};
 
     home-manager = resolveModule {
       name = "home-manager";
