@@ -1,4 +1,4 @@
-{host, lix, inputs, resolved, ...}: {
+{host, infrastructure, lix, inputs, ...}: {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
@@ -11,7 +11,7 @@
       name = user.name;
       value = {
         _module.args = {
-          user = resolved.principals.${user.name};
+          user = lix.attrsets.getAttr user.name infrastructure.common.principals;
         };
         imports = [./user.nix];
       };
