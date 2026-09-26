@@ -33,7 +33,7 @@
     multimedia = {};
   };
 
-  shells = [
+  packages.shells = [
     "bash"
     "nushell"
     "powershell"
