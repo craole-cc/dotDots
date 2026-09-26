@@ -7,16 +7,15 @@ in {
   resolve = {
     host,
     packages,
-  }: {
-    name = host.name;
-    class = host.class;
-    functionalities = resolveFunctionalities host.functionalities;
-    interface = host.interface;
-    localization = host.localization;
-    paths = host.paths;
-    packages = packages.resolveHost {
-      inherit host;
-      pkgs = packages.pkgs;
+  }:
+    host
+    // {
+      resolution = {
+        functionalities = resolveFunctionalities host.functionalities;
+        packages = packages.resolveHost {
+          inherit host;
+          pkgs = packages.pkgs;
+        };
+      };
     };
-  };
 }
