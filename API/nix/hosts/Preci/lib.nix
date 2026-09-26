@@ -425,7 +425,21 @@
       #> Return the validated principal
         set;
 
-    deriveApplications = args: let\n      names = attrNames args;\n      unknown =\n        builtins.filter\n        (name: !(schema.user.applications ? ${name}))\n        names;\n      context = "deriveApplications";\n    in\n      assert requireThat {\n        inherit context;\n        condition = unknown == [];\n        message = "unknown application roles: ${toString unknown}";\n      };\n      args;\n    mkPrincipal = args: let
+    deriveApplications = args: let
+      names = attrNames args;
+      unknown =
+        builtins.filter
+        (name: !(schema.user.applications ? ${name}))
+        names;
+      context = "deriveApplications";
+    in
+      assert requireThat {
+        inherit context;
+        condition = unknown == [];
+        message = "unknown application roles: ${toString unknown}";
+      };
+      args;
+    mkPrincipal = args: let
       derived = derivePrincipal args;
       context = "mkPrincipal \"${toString derived.name}\"";
       requested = args;
