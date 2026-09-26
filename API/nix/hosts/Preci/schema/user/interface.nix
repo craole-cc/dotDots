@@ -14,16 +14,19 @@
       flavor = null;
       accent = null;
       icons = null;
-      dark = null;
     };
     light = {
       flavor = null;
       accent = null;
       icons = null;
-      dark = null;
     };
     palettes = {};
     polarity = "dark";
+  };
+  cursors = {
+    accent = null;
+    dark = null;
+    light = null;
   };
   keyboard = {
     layout = null;
