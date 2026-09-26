@@ -244,6 +244,33 @@
           declared = derived.interface.desktops;
           requested = principals.interface.desktops;
         };
+
+        fonts = {
+          clock = mkMergedList {
+            declared = derived.interface.fonts.clock;
+            requested = principals.interface.fonts.clock;
+          };
+          emoji = mkMergedList {
+            declared = derived.interface.fonts.emoji;
+            requested = principals.interface.fonts.emoji;
+          };
+          material = mkMergedList {
+            declared = derived.interface.fonts.material;
+            requested = principals.interface.fonts.material;
+          };
+          monospace = mkMergedList {
+            declared = derived.interface.fonts.monospace;
+            requested = principals.interface.fonts.monospace;
+          };
+          sans = mkMergedList {
+            declared = derived.interface.fonts.sans;
+            requested = principals.interface.fonts.sans;
+          };
+          serif = mkMergedList {
+            declared = derived.interface.fonts.serif;
+            requested = principals.interface.fonts.serif;
+          };
+        };
       in {
         inherit derived principals;
 
@@ -257,11 +284,19 @@
 
         interface = {
           desktops = desktops.resolved;
+          fonts = {
+            clock = fonts.clock.resolved;
+            emoji = fonts.emoji.resolved;
+            material = fonts.material.resolved;
+            monospace = fonts.monospace.resolved;
+            sans = fonts.sans.resolved;
+            serif = fonts.serif.resolved;
+          };
         };
 
         __meta = {
           interface = {
-            inherit desktops;
+            inherit desktops fonts;
           };
         };
 
@@ -442,6 +477,14 @@
       names = map (user: user.name) principals;
       interface = {
         desktops = unique (concatMap (user: user.interface.desktops or []) principals);
+        fonts = {
+          clock = unique (concatMap (user: user.interface.fonts.clock or []) principals);
+          emoji = unique (concatMap (user: user.interface.fonts.emoji or []) principals);
+          material = unique (concatMap (user: user.interface.fonts.material or []) principals);
+          monospace = unique (concatMap (user: user.interface.fonts.monospace or []) principals);
+          sans = unique (concatMap (user: user.interface.fonts.sans or []) principals);
+          serif = unique (concatMap (user: user.interface.fonts.serif or []) principals);
+        };
       };
       count = total;
     in
