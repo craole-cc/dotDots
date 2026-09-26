@@ -19,7 +19,8 @@
     rust-overlay = mkGitHubSource {
       owner = "oxalica";
       repo = "rust-overlay";
-      rev = "master";
+      rev = "f60c1b57ff805a46b5175c76fc981fb4f81efbcc";
+      sha256 = "sha256-r4LDUF+zmJnkftvCVkCrUhSJazsf6EVJF+V2l4/MYbI=";
     };
 
     home-manager = mkGitHubSource {
