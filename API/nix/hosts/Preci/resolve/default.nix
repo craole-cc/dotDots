@@ -7,29 +7,31 @@
   packageResolver = packages // {
     pkgs = inputs.nixpkgs;
   };
-  hostResolver = import ./host.nix {inherit lix;};
-  principalResolver = import ./principal.nix {
+  functionalities = import ./functionalities.nix {inherit lix;};
+  user = import ./user.nix {
     inherit capabilities;
     packages = packageResolver;
   };
 
-  resolvedHost = hostResolver.resolve {
-    inherit host;
-    packages = packageResolver;
+  resolvedHost = host // {
+    resolution = {
+      functionalities = functionalities.resolve host.functionalities;
+      packages = packages.resolveHost {
+        inherit host;
+        pkgs = packageResolver.pkgs;
+      };
+    };
   };
 
-  resolvedPrincipals =
-    listToAttrs
-    (map
-      (
-        user: {
-          name = user.name;
-          value = principalResolver.resolve {
-            inherit host user;
-          };
-        }
-      )
-      host.principals.all);
+  resolvedPrincipals = listToAttrs (map
+    (userDeclaration: {
+      name = userDeclaration.name;
+      value = user.resolve {
+        inherit host;
+        user = userDeclaration;
+      };
+    })
+    host.principals.all);
 in {
   host = resolvedHost;
   principals = resolvedPrincipals;
