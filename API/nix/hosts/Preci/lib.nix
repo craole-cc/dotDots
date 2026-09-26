@@ -279,7 +279,7 @@
     };
 
     mkHost = args: let
-      context = "mkHost";
+      context = "mkHost \"${toString name}\"";
       derived = deriveHost args;
 
       defined = let
@@ -373,7 +373,7 @@
         schema.host.defaults
         args;
       name = raw.name or "<unnamed host>";
-      context = "mkHost \\"$\{toString name}\\"";
+      context = "mkHost \"${toString name}\"";
 
       set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
@@ -383,7 +383,7 @@
         condition =
           (isString set.id)
           && (isNotEmpty (match "^([0-9a-fA-F]{8})$" set.id));
-        message = "id must be an 8-character hex string, got '$\{toString set.id}'";
+        message = "id must be an 8-character hex string, got '${toString set.id}'";
       });
       assert (isSet ["paths" "roots" "src"]);
       assert (isSet ["stateVersion"]);
