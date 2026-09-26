@@ -424,7 +424,7 @@
       #> Return the validated principal
         set;
 
-    mkPrincipal = args: let
+    deriveApplications = args: let\n      names = attrNames args;\n      unknown =\n        builtins.filter\n        (name: !(schema.user.applications ? ${name}))\n        names;\n      context = "deriveApplications";\n    in\n      assert requireThat {\n        inherit context;\n        condition = unknown == [];\n        message = "unknown application roles: ${toString unknown}";\n      };\n      args;\n    mkPrincipal = args: let
       derived = derivePrincipal args;
       context = "mkPrincipal \"${toString derived.name}\"";
       requested = args;
@@ -585,7 +585,7 @@
         };
 
         __meta = {
-          inherit name role description enable autoLogin capabilities identities localization;
+          inherit name role description enable autoLogin capabilities git applications identities localization;
           interface = {
             inherit desktops fonts themes keyboard;
           };
@@ -637,7 +637,7 @@
         all = principals;
         inherit primary secondary tertiary others names count interface;
       };
-  in {inherit deriveCapabilities deriveFunctionalities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
+  in {inherit deriveApplications deriveCapabilities deriveFunctionalities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
 
   strings = {
     inherit (builtins) hashString;
