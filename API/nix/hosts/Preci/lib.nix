@@ -327,6 +327,11 @@
           declared = derived.interface.keyboard;
           requested = principals.interface.keyboard;
         };
+
+        cursors = mkMergedAttrs {
+          declared = derived.interface.cursors;
+          requested = principals.interface.cursors;
+        };
       in {
         inherit derived principals;
 
@@ -349,12 +354,13 @@
             serif = fonts.serif.resolved;
           };
           themes = themes.resolved;
+          cursors = cursors.resolved;
           keyboard = keyboard.resolved;
         };
 
         __meta = {
           interface = {
-            inherit desktops fonts themes keyboard;
+            inherit desktops fonts themes cursors keyboard;
           };
         };
 
@@ -541,6 +547,11 @@
           requested = requested.interface.keyboard or {};
         };
 
+        cursors = mkMergedAttrs {
+          declared = derived.interface.cursors;
+          requested = requested.interface.cursors or {};
+        };
+
         paths = let
           requestedPaths = requested.paths or {};
           requestedRoots = requestedPaths.roots or {};
@@ -600,6 +611,7 @@
             serif = fonts.serif.resolved;
           };
           themes = themes.resolved;
+          cursors = cursors.resolved;
           keyboard = keyboard.resolved;
         };
 
@@ -615,7 +627,7 @@
         __meta = {
           inherit name role description enable autoLogin capabilities git applications identities localization;
           interface = {
-            inherit desktops fonts themes keyboard;
+            inherit desktops fonts themes cursors keyboard;
           };
           inherit paths packages;
         };
@@ -647,8 +659,21 @@
           sans = unique (concatMap (user: user.interface.fonts.sans or []) principals);
           serif = unique (concatMap (user: user.interface.fonts.serif or []) principals);
         };
-        themes = map (user: user.interface.themes or {}) principals;
-        keyboard = map (user: user.interface.keyboard or {}) principals;
+        themes =
+          foldl'
+          recursiveUpdate
+          {}
+          (reverseList (map (user: user.interface.themes or {}) principals));
+        cursors =
+          foldl'
+          recursiveUpdate
+          {}
+          (reverseList (map (user: user.interface.cursors or {}) principals));
+        keyboard =
+          foldl'
+          recursiveUpdate
+          {}
+          (reverseList (map (user: user.interface.keyboard or {}) principals));
       };
       count = total;
     in
