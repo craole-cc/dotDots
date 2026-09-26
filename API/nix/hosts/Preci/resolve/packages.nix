@@ -36,24 +36,21 @@
     user,
   }: let
     inherit (user.packages) shells common launchers;
-
-    groups = {
-      inherit shells common launchers;
-    };
-
-    names = unique (
-      common
-      ++ launchers
-      ++ shells
-    );
-
-    expanded = unique (expandNames {inherit groups names;});
+    names = unique (common ++ launchers ++ shells);
+    expanded = unique (expandNames {
+      groups = {
+        inherit shells common launchers;
+      };
+      inherit names;
+    });
   in {
     inherit names expanded;
     packages = resolveNames {
-      inherit pkgs groups;
-      names = expanded;
-      context = "resolve principal '${user.name}'";
+      inherit pkgs names;
+      groups = {
+        inherit shells common launchers;
+      };
+      context = "resolve user '${user.name}'";
     };
   };
 in {
@@ -62,19 +59,13 @@ in {
     pkgs,
   }: let
     inherit (host.packages) shells coding common launchers;
-
-    groups = {
-      inherit shells coding common launchers;
-    };
-
-    names = unique (
-      common
-      ++ coding
-      ++ launchers
-      ++ shells
-    );
-
-    expanded = unique (expandNames {inherit groups names;});
+    names = unique (common ++ coding ++ launchers ++ shells);
+    expanded = unique (expandNames {
+      groups = {
+        inherit shells coding common launchers;
+      };
+      inherit names;
+    });
   in {
     kernel = {
       name = host.packages.kernel;
@@ -85,8 +76,10 @@ in {
     };
 
     common = resolveNames {
-      inherit pkgs groups;
-      names = expanded;
+      inherit pkgs names;
+      groups = {
+        inherit shells coding common launchers;
+      };
       context = "resolve host '${host.name}'";
     };
   };
