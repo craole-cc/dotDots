@@ -289,6 +289,11 @@
           declared = derived.interface.themes;
           requested = principals.interface.themes;
         };
+
+        keyboard = mkMergedAttrs {
+          declared = derived.interface.keyboard;
+          requested = principals.interface.keyboard;
+        };
       in {
         inherit derived principals;
 
@@ -311,11 +316,12 @@
             serif = fonts.serif.resolved;
           };
           themes = themes.resolved;
+          keyboard = keyboard.resolved;
         };
 
         __meta = {
           interface = {
-            inherit desktops fonts themes;
+            inherit desktops fonts themes keyboard;
           };
         };
 
@@ -505,6 +511,7 @@
           serif = unique (concatMap (user: user.interface.fonts.serif or []) principals);
         };
         themes = map (user: user.interface.themes or {}) principals;
+        keyboard = map (user: user.interface.keyboard or {}) principals;
       };
       count = total;
     in
