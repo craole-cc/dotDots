@@ -480,14 +480,170 @@
 
     mkPrincipal = args: let
       derived = derivePrincipal args;
+      context = "mkPrincipal \"${toString derived.name}\"";
+      requested = args;
+
+      mkValue = {
+        declared,
+        requested ? null,
+      }: {
+        inherit declared requested;
+        resolved =
+          if requested == null
+          then declared
+          else requested;
+      };
 
       defined = let
-        description =
-          if derived.description != null && derived.description != ""
-          then derived.description
-          else "${toString derived.name} (${toString derived.role})";
+        name = mkValue {
+          declared = derived.name;
+          requested = if requested ? name then requested.name else null;
+        };
+        role = mkValue {
+          declared = derived.role;
+          requested = if requested ? role then requested.role else null;
+        };
+        description = mkValue {
+          declared = "${toString derived.name} (${toString derived.role})";
+          requested = if requested ? description then requested.description else null;
+        };
+        enable = mkValue {
+          declared = derived.enable;
+          requested = if requested ? enable then requested.enable else null;
+        };
+        autoLogin = mkValue {
+          declared = derived.autoLogin;
+          requested = if requested ? autoLogin then requested.autoLogin else null;
+        };
+        capabilities = mkMergedList {
+          declared = derived.capabilities;
+          requested = requested.capabilities or [];
+        };
+        localization = mkMergedAttrs {
+          declared = derived.localization;
+          requested = requested.localization or {};
+        };
+        identities = mkMergedList {
+          declared = derived.identities;
+          requested = requested.identities or [];
+        };
+
+        desktops = mkMergedList {
+          declared = derived.interface.desktops;
+          requested = requested.interface.desktops or [];
+        };
+
+        fonts = {
+          clock = mkMergedList {
+            declared = derived.interface.fonts.clock;
+            requested = requested.interface.fonts.clock or [];
+          };
+          emoji = mkMergedList {
+            declared = derived.interface.fonts.emoji;
+            requested = requested.interface.fonts.emoji or [];
+          };
+          material = mkMergedList {
+            declared = derived.interface.fonts.material;
+            requested = requested.interface.fonts.material or [];
+          };
+          monospace = mkMergedList {
+            declared = derived.interface.fonts.monospace;
+            requested = requested.interface.fonts.monospace or [];
+          };
+          sans = mkMergedList {
+            declared = derived.interface.fonts.sans;
+            requested = requested.interface.fonts.sans or [];
+          };
+          serif = mkMergedList {
+            declared = derived.interface.fonts.serif;
+            requested = requested.interface.fonts.serif or [];
+          };
+        };
+
+        themes = mkMergedAttrs {
+          declared = derived.interface.themes;
+          requested = requested.interface.themes or {};
+        };
+
+        keyboard = mkMergedAttrs {
+          declared = derived.interface.keyboard;
+          requested = requested.interface.keyboard or {};
+        };
+
+        paths = let
+          requestedPaths = requested.paths or {};
+          requestedRoots = requestedPaths.roots or {};
+          declared = {
+            roots.home = "/home/${toString derived.name}";
+            stems = {};
+          };
+        in
+          assert requireThat {
+            inherit context;
+            condition = !(requestedRoots ? src);
+            message = "paths.roots.src is reserved for the host";
+          };
+          mkMergedAttrs {
+            inherit declared;
+            requested = requestedPaths;
+          };
+
+        packages = {
+          shells = mkMergedList {
+            declared = derived.packages.shells;
+            requested = requested.packages.shells or [];
+          };
+          coding = mkMergedList {
+            declared = derived.packages.coding;
+            requested = requested.packages.coding or [];
+          };
+          common = mkMergedList {
+            declared = derived.packages.common;
+            requested = requested.packages.common or [];
+          };
+          launchers = mkMergedList {
+            declared = derived.packages.launchers;
+            requested = requested.packages.launchers or [];
+          };
+        };
       in {
-        inherit description;
+        name = name.resolved;
+        role = role.resolved;
+        description = description.resolved;
+        enable = enable.resolved;
+        autoLogin = autoLogin.resolved;
+        inherit capabilities identities localization;
+
+        interface = {
+          desktops = desktops.resolved;
+          fonts = {
+            clock = fonts.clock.resolved;
+            emoji = fonts.emoji.resolved;
+            material = fonts.material.resolved;
+            monospace = fonts.monospace.resolved;
+            sans = fonts.sans.resolved;
+            serif = fonts.serif.resolved;
+          };
+          themes = themes.resolved;
+          keyboard = keyboard.resolved;
+        };
+
+        inherit paths;
+
+        packages = {
+          shells = packages.shells.resolved;
+          coding = packages.coding.resolved;
+          common = packages.common.resolved;
+          launchers = packages.launchers.resolved;
+        };
+
+        __meta = {
+          inherit name role description enable autoLogin capabilities identities localization;
+          interface = {
+            inherit desktops fonts themes keyboard;
+          };
+          inherit paths packages;
+        };
       };
     in
       recursiveUpdate derived defined;
