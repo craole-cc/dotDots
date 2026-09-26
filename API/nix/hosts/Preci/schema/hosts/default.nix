@@ -1,0 +1,3 @@
+{
+  functionalities = import ./functionalities.nix;
+}
