@@ -35,18 +35,18 @@
     pkgs,
     user,
   }: let
+    inherit (user.packages) shells common launchers;
+
     groups = {
-      shells = user.packages.shells;
-      coding = user.packages.coding;
-      common = user.packages.common;
-      launchers = user.packages.launchers;
+      inherit shells common launchers;
     };
+
     names = unique (
-      user.packages.common
-      ++ user.packages.coding
-      ++ user.packages.launchers
-      ++ user.packages.shells
+      common
+      ++ launchers
+      ++ shells
     );
+
     expanded = unique (expandNames {inherit groups names;});
   in {
     inherit names expanded;
@@ -61,18 +61,19 @@ in {
     host,
     pkgs,
   }: let
+    inherit (host.packages) shells coding common launchers;
+
     groups = {
-      shells = host.packages.shells;
-      coding = host.packages.coding;
-      common = host.packages.common;
-      launchers = host.packages.launchers;
+      inherit shells coding common launchers;
     };
+
     names = unique (
-      host.packages.common
-      ++ host.packages.coding
-      ++ host.packages.launchers
-      ++ host.packages.shells
+      common
+      ++ coding
+      ++ launchers
+      ++ shells
     );
+
     expanded = unique (expandNames {inherit groups names;});
   in {
     kernel = {
