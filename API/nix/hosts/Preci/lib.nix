@@ -1,6 +1,6 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) attrByPath isAttrs recursiveUpdate;
-  inherit (lib.lists) any concatMap elemAt head isList length optionals tail unique;
+  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals tail unique;
   inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
@@ -232,6 +232,14 @@
       resolved = unique (requested ++ declared);
     };
 
+    mkMergedAttrs = {
+      declared,
+      requested,
+    }: {
+      inherit declared requested;
+      resolved = recursiveUpdate declared requested;
+    };
+
     mkHost = args: let
       context = "mkHost";
       derived = deriveHost args;
@@ -270,6 +278,10 @@
             declared = derived.interface.fonts.serif;
             requested = principals.interface.fonts.serif;
           };
+
+        themes = mkMergedAttrs {
+          declared = derived.interface.themes;
+          requested = principals.interface.themes;
         };
       in {
         inherit derived principals;
@@ -292,11 +304,12 @@
             sans = fonts.sans.resolved;
             serif = fonts.serif.resolved;
           };
+          themes = themes.resolved;
         };
 
         __meta = {
           interface = {
-            inherit desktops fonts;
+            inherit desktops fonts themes;
           };
         };
 
@@ -485,6 +498,11 @@
           sans = unique (concatMap (user: user.interface.fonts.sans or []) principals);
           serif = unique (concatMap (user: user.interface.fonts.serif or []) principals);
         };
+        themes =
+          foldl'
+          recursiveUpdate
+          {}
+          (map (user: user.interface.themes or {}) principals);
       };
       count = total;
     in
