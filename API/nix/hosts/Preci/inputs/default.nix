@@ -1,5 +1,5 @@
 {
-  lix ? import ./lib.nix {},
+  lix ? import ../lib {},
   system ? builtins.currentSystem or null,
   inputs ? lix.flake.inputs or {},
   ...
