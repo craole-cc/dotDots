@@ -1,4 +1,4 @@
-{host, resolved, ...}: {
+{host, infrastructure, ...}: {
   boot = {
     loader = {
       grub = {
@@ -16,6 +16,6 @@
       timeout = host.interface.boot.loader.timeout;
     };
 
-    kernelPackages = resolved.host.resolution.packages.kernel.package;
+    kernelPackages = infrastructure.core.packages.kernel.package;
   };
 }
