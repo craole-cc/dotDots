@@ -8,7 +8,7 @@
     pkgs = inputs.nixpkgs;
   };
   functionalities = import ./functionalities.nix {inherit lix;};
-  user = import ./user.nix {
+  principal = import ./principal.nix {
     inherit capabilities;
     packages = packageResolver;
   };
@@ -26,7 +26,7 @@
   resolvedPrincipals = listToAttrs (map
     (userDeclaration: {
       name = userDeclaration.name;
-      value = user.resolve {
+      value = principal.resolve {
         inherit host;
         user = userDeclaration;
       };
