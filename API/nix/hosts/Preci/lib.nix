@@ -1,6 +1,6 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) attrByPath attrNames isAttrs mapAttrs recursiveUpdate;
-  inherit (lib.lists) all any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
+  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals reverseList tail unique;
   inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
@@ -816,4 +816,4 @@
   };
 in
   recursiveUpdate lib
-  {inherit debug fetchers strings trivial schemas;}
+  {inherit debug fetchers schema strings trivial schemas;}
