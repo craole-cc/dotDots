@@ -1,3 +1,6 @@
 {
-  imports = [./system.nix];
+  imports = [
+    ./core
+    ./home
+  ];
 }
