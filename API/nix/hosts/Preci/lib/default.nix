@@ -7,7 +7,7 @@
   inherit (trivial) isEmpty isNotEmpty;
   inherit (debug) requireNonEmpty requireThat;
 
-  schema = import ./schema;
+  schema = import ../schema;
 
   debug = {
     requireNonEmpty = {
