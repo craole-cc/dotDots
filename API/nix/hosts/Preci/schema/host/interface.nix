@@ -18,6 +18,11 @@
   themes = {
     polarity = "dark";
   };
+  cursors = {
+    accent = null;
+    dark = null;
+    light = null;
+  };
   keyboard = {
     layout = null;
     variant = "";
