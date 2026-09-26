@@ -1,0 +1,3 @@
+{
+  kernel = "linuxPackages_latest";
+}
