@@ -1,12 +1,12 @@
 {lib, ...}: let
-  host = import ./host.nix;
-  lix = import ./lib.nix {inherit lib;};
-  inputs = import ./sources.nix {
+  args = import ./args.nix;
+  lix = import ./lib {inherit lib;};
+  inputs = import ./inputs {
     inherit lix;
-    inherit (host) system;
+    inherit (args) system;
     inputs = lib.flake.inputs or {};
   };
-  resolved = lix.mkHost host;
+  resolved = lix.mkHost args;
 in {
   imports =
     [./hardware-configuration]
@@ -15,9 +15,9 @@ in {
       nix-index
       catppuccin
     ])
-    ++ [./resolve];
+    ++ [./outputs];
 
   _module.args = {
-    inherit host lix inputs resolved;
+    inherit args lix inputs resolved;
   };
 }
