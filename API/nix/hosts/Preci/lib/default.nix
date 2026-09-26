@@ -358,7 +358,7 @@
           keyboard = keyboard.merged;
         };
 
-        __meta = {
+        meta = {
           interface = {
             inherit desktops fonts themes cursors keyboard;
           };
@@ -615,12 +615,12 @@
 
         packages = {
           shells = packages.shells.merged;
-          coding = packages.coding.merged;
+          coding = [];
           common = packages.common.merged;
           launchers = packages.launchers.merged;
         };
 
-        __meta = {
+        meta = {
           inherit name role description enable autoLogin capabilities git applications identities localization;
           interface = {
             inherit desktops fonts themes cursors keyboard;
