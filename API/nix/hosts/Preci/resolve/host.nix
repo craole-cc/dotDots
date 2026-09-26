@@ -1,6 +1,8 @@
 {lix, ...}: let
+  inherit (lix.attrsets) genAttrs;
+
   resolveFunctionalities = functionalities:
-    lix.attrsets.genAttrs
+    genAttrs
     functionalities
     (_: true);
 in {
