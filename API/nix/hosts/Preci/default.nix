@@ -1,19 +1,22 @@
-{...}: let
-  args = import ./args.nix;
-  lix = import ./lib {};
-  inputs = import ./inputs {
-    inherit lix;
-    inherit (args) system;
-  };
-  host = lix.mkHost args;
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  libraries = import ./lib {inherit lib;};
+  inherit (libraries) lix;
+
   infrastructure = import ./infrastructure {
-    inherit host inputs lix;
+    lix = recursiveUpdate lix {
+      host = lix.mkHost (import ./args.nix);
+    };
   };
 in {
   imports =
-    inputs.modules.imports ++ [./outputs];
+    (with lix.modules; [
+      home-manager
+      nix-index
+      catppuccin
+    ])
+    ++ [./outputs];
 
-  _module.args = {
-    inherit host lix inputs infrastructure;
-  };
+  _module.args.lix = recursiveUpdate lix {inherit infrastructure;};
 }

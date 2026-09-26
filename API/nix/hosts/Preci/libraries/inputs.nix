@@ -1,10 +1,10 @@
 {
-  lix,
-  inputs ? lix.flake.inputs or {},
+  lib,
+  inputs,
   ...
 }: let
-  inherit (lix.attrsets) mapAttrs;
-  inherit (lix.fetchers) mkGitHubSource fetchSource;
+  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.fetchers) mkGitHubSource fetchSource;
 
   specs = {
     nixpkgs = mkGitHubSource {
