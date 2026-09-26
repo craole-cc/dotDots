@@ -1,0 +1,3 @@
+{
+  capabilities = import ./capabilities.nix;
+}
