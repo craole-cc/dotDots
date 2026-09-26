@@ -1,9 +1,9 @@
-{host, user, ...}: {
+{host, infrastructure, user, ...}: {
   home.stateVersion = host.stateVersion;
   home.username = user.name;
   home.homeDirectory = user.paths.roots.home;
 
-  home.packages = user.resolution.packages.packages;
+  home.packages = infrastructure.home.${user.name}.packages;
 
   programs.git = {
     enable = true;
