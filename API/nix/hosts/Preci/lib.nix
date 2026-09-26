@@ -410,82 +410,87 @@
         set;
 
     derivePrincipal = args: let
-      default = {
-        name = null;
-        role = null;
-        description = null;
-        password = null;
-        hashedPassword = null;
-        enable = true;
-        autoLogin = false;
-        capabilities = [];
-        localization = {};
-        identities = [];
-        interface = {
-          desktops = [];
-          fonts = {
-            clock = [];
-            emoji = [];
-            material = [];
-            monospace = [];
-            sans = [];
-            serif = [];
-          };
-          themes = {
-            autoSwitch = false;
-            dark = {
-              flavor = null;
-              accent = null;
-              icons = null;
-              dark = null;
+      raw =
+        recursiveUpdate {
+          name = null;
+          role = null;
+          description = null;
+          password = null;
+          hashedPassword = null;
+          enable = true;
+          autoLogin = false;
+          capabilities = [];
+          localization = {};
+          identities = [];
+          interface = {
+            desktops = [];
+            fonts = {
+              clock = [];
+              emoji = [];
+              material = [];
+              monospace = [];
+              sans = [];
+              serif = [];
             };
-            light = {
-              flavor = null;
-              accent = null;
-              icons = null;
-              dark = null;
+            themes = {
+              autoSwitch = false;
+              dark = {
+                flavor = null;
+                accent = null;
+                icons = null;
+                dark = null;
+              };
+              light = {
+                flavor = null;
+                accent = null;
+                icons = null;
+                dark = null;
+              };
+              palettes = {};
+              polarity = "dark";
             };
-            palettes = {};
-            polarity = "dark";
+            keyboard = {
+              layout = "us";
+              variant = "";
+              swapCapsEscape = false;
+              vimKeybinds = false;
+              bindings.modifier = ["SUPER"];
+            };
           };
-          keyboard = {
-            layout = "us";
-            variant = "";
-            swapCapsEscape = false;
-            vimKeybinds = false;
-            bindings.modifier = ["SUPER"];
+          paths = {};
+          packages = {
+            shells = [];
+            coding = [];
+            common = [];
+            launchers = [];
           };
-        };
-        paths = {};
-        packages = {
-          shells = [];
-          coding = [];
-          common = [];
-          launchers = [];
-        };
-      };
-      defined = recursiveUpdate default args;
-      description =
-        if defined.description != null && defined.description != ""
-        then defined.description
-        else "${toString defined.name} (${toString defined.role})";
+        }
+        args;
+      name = raw.name or "<unnamed principal>";
+      context = "mkPrincipal \"${toString name}\"";
+
+      set = raw;
+      isSet = path: requireNonEmpty {inherit context path set;};
     in
-      defined // {inherit description;};
+      assert (isSet ["name"]);
+      assert (isSet ["role"]);
+      assert (isSet ["hashedPassword"]);
+      #> Return the validated principal
+        set;
 
     mkPrincipal = args: let
       derived = derivePrincipal args;
-      context = "mkPrincipal \"${toString (derived.name or "<unnamed>")}\"";
-      isDefined = path:
-        requireNonEmpty {
-          inherit context path;
-          set = derived;
-        };
+
+      defined = let
+        description =
+          if derived.description != null && derived.description != ""
+          then derived.description
+          else "${toString derived.name} (${toString derived.role})";
+      in {
+        inherit description;
+      };
     in
-      assert (isDefined ["name"]);
-      assert (isDefined ["role"]);
-      assert (isDefined ["hashedPassword"]);
-      #> Return the validated principal (user)
-        derived;
+      recursiveUpdate derived defined;
     mkHostUsers = context: args: let
       principals = map mkPrincipal args;
       hasAdmin = any (principal: principal.role == "administrator") principals;
