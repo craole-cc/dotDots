@@ -6,8 +6,8 @@
     name = user.name;
     value = {
       packages = unique (
-        user.packages.packages
-        ++ (user.capabilities.home.packages or [])
+        user.resolved.packages.packages
+        ++ (user.resolved.capabilities.home.packages or [])
       );
     };
   }) (attrValues common.principals));
