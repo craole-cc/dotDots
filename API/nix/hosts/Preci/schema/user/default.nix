@@ -18,5 +18,4 @@
   };
 
   capabilities = import ./capabilities.nix;
-  capabilityRequirements = import ./capability-requirements.nix;
 }
