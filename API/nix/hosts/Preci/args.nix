@@ -15,9 +15,13 @@
   };
 
   paths = {
-    roots = {
-      src = "/home/craole-cc/Projects/dotDots";
-    };
+    roots =
+      let
+        src = "/home/craole-cc/Projects/dotDots";
+      in {
+        inherit src;
+        run = src + "/API/nix/hosts/Preci";
+      };
   };
 
   localization = {
