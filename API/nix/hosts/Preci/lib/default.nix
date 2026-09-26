@@ -231,7 +231,7 @@
       requested,
     }: {
       inherit declared requested;
-      resolved = unique (requested ++ declared);
+      merged = unique (requested ++ declared);
     };
 
     mkMergedAttrs = {
@@ -240,7 +240,7 @@
     }: {
       inherit declared requested;
       #> Principal order is significant: earlier principals have priority.
-      resolved =
+      merged =
         foldl'
         recursiveUpdate
         declared
@@ -267,7 +267,7 @@
     in {
       inherit declared;
       requested = requested';
-      resolved =
+      merged =
         recursiveUpdate
         declared
         (mapAttrs
@@ -344,18 +344,18 @@
             }));
 
         interface = {
-          desktops = desktops.resolved;
+          desktops = desktops.merged;
           fonts = {
-            clock = fonts.clock.resolved;
-            emoji = fonts.emoji.resolved;
-            material = fonts.material.resolved;
-            monospace = fonts.monospace.resolved;
-            sans = fonts.sans.resolved;
-            serif = fonts.serif.resolved;
+            clock = fonts.clock.merged;
+            emoji = fonts.emoji.merged;
+            material = fonts.material.merged;
+            monospace = fonts.monospace.merged;
+            sans = fonts.sans.merged;
+            serif = fonts.serif.merged;
           };
-          themes = themes.resolved;
-          cursors = cursors.resolved;
-          keyboard = keyboard.resolved;
+          themes = themes.merged;
+          cursors = cursors.merged;
+          keyboard = keyboard.merged;
         };
 
         __meta = {
@@ -399,9 +399,12 @@
       assert (requireThat {
         inherit context;
         condition =
-          (isString set.id)
-          && (isNotEmpty (match "^([0-9a-fA-F]{8})$" set.id));
-        message = "id must be an 8-character hex string, got '${toString set.id}'";
+          set.id == null
+          || (
+            (isString set.id)
+            && (isNotEmpty (match "^([0-9a-fA-F]{8})$" set.id))
+          );
+        message = "id must be null or an 8-character hex string, got '${toString set.id}'";
       });
       assert (isSet ["paths" "roots" "src"]);
       assert (isSet ["paths" "roots" "run"]);
@@ -452,7 +455,7 @@
         requested ? null,
       }: {
         inherit declared requested;
-        resolved =
+        merged =
           if requested == null
           then declared
           else requested;
@@ -559,8 +562,8 @@
         in
           assert requireThat {
             inherit context;
-            condition = !(requestedRoots ? src);
-            message = "paths.roots.src is reserved for the host";
+            condition = !(requestedRoots ? src) && !(requestedRoots ? run);
+            message = "paths.roots.src and paths.roots.run are reserved for the host";
           };
           mkMergedAttrs {
             inherit declared;
@@ -586,39 +589,39 @@
           };
         };
       in {
-        name = name.resolved;
-        role = role.resolved;
-        description = description.resolved;
-        enable = enable.resolved;
-        autoLogin = autoLogin.resolved;
-        capabilities = capabilities.resolved;
-        git = git.resolved;
-        applications = applications.resolved;
-        identities = identities.resolved;
-        localization = localization.resolved;
+        name = name.merged;
+        role = role.merged;
+        description = description.merged;
+        enable = enable.merged;
+        autoLogin = autoLogin.merged;
+        capabilities = capabilities.merged;
+        git = git.merged;
+        applications = applications.merged;
+        identities = identities.merged;
+        localization = localization.merged;
 
         interface = {
-          desktops = desktops.resolved;
+          desktops = desktops.merged;
           fonts = {
-            clock = fonts.clock.resolved;
-            emoji = fonts.emoji.resolved;
-            material = fonts.material.resolved;
-            monospace = fonts.monospace.resolved;
-            sans = fonts.sans.resolved;
-            serif = fonts.serif.resolved;
+            clock = fonts.clock.merged;
+            emoji = fonts.emoji.merged;
+            material = fonts.material.merged;
+            monospace = fonts.monospace.merged;
+            sans = fonts.sans.merged;
+            serif = fonts.serif.merged;
           };
-          themes = themes.resolved;
-          cursors = cursors.resolved;
-          keyboard = keyboard.resolved;
+          themes = themes.merged;
+          cursors = cursors.merged;
+          keyboard = keyboard.merged;
         };
 
         inherit paths;
 
         packages = {
-          shells = packages.shells.resolved;
-          coding = packages.coding.resolved;
-          common = packages.common.resolved;
-          launchers = packages.launchers.resolved;
+          shells = packages.shells.merged;
+          coding = packages.coding.merged;
+          common = packages.common.merged;
+          launchers = packages.launchers.merged;
         };
 
         __meta = {
