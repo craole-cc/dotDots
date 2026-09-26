@@ -369,61 +369,11 @@
 
     deriveHost = args: let
       raw =
-        recursiveUpdate {
-          stateVersion = "";
-          system = "";
-          class = "nixos";
-          name = "";
-          id = null;
-          description = null;
-          functionalities = [];
-          localization = {
-            latitude = 18.015;
-            longitude = -77.49;
-            city = "Mandeville, Jamaica";
-            timeZone = "America/Jamaica";
-            defaultLocale = "en_US.UTF-8";
-          };
-          interface = {
-            boot = {
-              loader = {
-                manager = "systemd-boot";
-                device = "nodev";
-                timeout = 5;
-              };
-            };
-            desktops = [];
-            fonts = {
-              clock = [];
-              emoji = [];
-              material = [];
-              monospace = [];
-              sans = [];
-              serif = [];
-            };
-            themes = {
-              polarity = "dark"; #? Base for single mode applications, like bootloader
-            };
-            keyboard = {
-              layout = "us";
-              variant = "";
-              swapCapsEscape = false;
-              vimKeybinds = false;
-              bindings.modifier = ["SUPER"];
-            };
-          };
-          paths = {
-            roots.src = null;
-          };
-          specs = {};
-          packages = {
-            kernel = "linuxPackages_latest";
-          };
-          principals = [];
-        }
+        recursiveUpdate
+        schema.host.defaults
         args;
       name = raw.name or "<unnamed host>";
-      context = "mkHost \"${toString name}\"";
+      context = "mkHost \\"$\{toString name}\\"";
 
       set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
@@ -433,7 +383,7 @@
         condition =
           (isString set.id)
           && (isNotEmpty (match "^([0-9a-fA-F]{8})$" set.id));
-        message = "id must be an 8-character hex string, got '${toString set.id}'";
+        message = "id must be an 8-character hex string, got '$\{toString set.id}'";
       });
       assert (isSet ["paths" "roots" "src"]);
       assert (isSet ["stateVersion"]);
@@ -441,66 +391,13 @@
       assert (isSet ["name"]);
       #> Return the validated host
         set;
-
     derivePrincipal = args: let
       raw =
-        recursiveUpdate {
-          name = null;
-          role = null;
-          description = null;
-          password = null;
-          hashedPassword = null;
-          enable = true;
-          autoLogin = false;
-          capabilities = {};
-          localization = {};
-          identities = [];
-          interface = {
-            desktops = [];
-            fonts = {
-              clock = [];
-              emoji = [];
-              material = [];
-              monospace = [];
-              sans = [];
-              serif = [];
-            };
-            themes = {
-              autoSwitch = false;
-              dark = {
-                flavor = null;
-                accent = null;
-                icons = null;
-                dark = null;
-              };
-              light = {
-                flavor = null;
-                accent = null;
-                icons = null;
-                dark = null;
-              };
-              palettes = {};
-              polarity = "dark";
-            };
-            keyboard = {
-              layout = "us";
-              variant = "";
-              swapCapsEscape = false;
-              vimKeybinds = false;
-              bindings.modifier = ["SUPER"];
-            };
-          };
-          paths = {};
-          packages = {
-            shells = [];
-            coding = [];
-            common = [];
-            launchers = [];
-          };
-        }
+        recursiveUpdate
+        schema.user.defaults
         args;
       name = raw.name or "<unnamed principal>";
-      context = "mkPrincipal \"${toString name}\"";
+      context = "mkPrincipal \\"$\{toString name}\\"";
 
       set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
