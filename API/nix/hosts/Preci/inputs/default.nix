@@ -82,5 +82,11 @@
       path = "nixos-module.nix";
     };
   };
+
+  modules = [
+    resolved.home-manager
+    resolved.nix-index
+    resolved.catppuccin
+  ];
 in
-  resolved // {raw = sources;}
+  resolved // {inherit modules; raw = sources;}
