@@ -1,10 +1,10 @@
 {host, infrastructure, ...}: let 
-inherit (host.interface.boot.loader}device manager timeout;
+inherit (host.interface.boot.loader}device manager timeout; inherit (infrastructure.core.packages)kernel;
 in{
   boot = {
     loader = {
       grub = {
-        enable = host.interface.boot.loader.manager == "grub";
+        enable = manager == "grub";
        inherit device;
         useOSProber = true;
         fsIdentifier = "provided";
@@ -18,6 +18,6 @@ in{
       inherit timeout;
     };
 
-    kernelPackages = infrastructure.core.packages.kernel.package;
+    kernelPackages = kernel.package;
   };
 }
