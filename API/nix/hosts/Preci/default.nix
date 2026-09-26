@@ -6,7 +6,7 @@
     inherit (args) system;
   };
   host = lix.mkHost args;
-  resolved = import ./resolve {
+  resolved = import ./infrastructure {
     inherit host inputs lix;
   };
 in {
