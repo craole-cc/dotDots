@@ -247,29 +247,36 @@
         (reverseList requested);
     };
 
+    deriveCapabilities = args: let
+      names = attrNames args;
+      unknown = builtins.filter (name: !(schema.users.capabilities ? ${name})) names;
+      context = "deriveCapabilities";
+    in
+      assert requireThat {
+        inherit context;
+        condition = unknown == [];
+        message = "unknown capabilities: ${toString unknown}";
+      };
+      args;
+
     mkCapabilities = {
       declared ? {},
       requested ? {},
     }: let
-      names = attrNames requested;
-      unknown = builtins.filter (name: !(schema.users.capabilities ? ${name})) names;
-    in
-      assert requireThat {
-        context = "mkCapabilities";
-        condition = unknown == [];
-        message = "unknown capabilities: ${toString unknown}";
-      }; {
-        inherit declared requested;
-        resolved =
-          recursiveUpdate
-          declared
-          (mapAttrs
-            (
-              name: value:
-                recursiveUpdate schema.users.capabilities.${name} value
-            )
-            requested);
-      };
+      requested' = deriveCapabilities requested;
+    in {
+      inherit declared;
+      requested = requested';
+      resolved =
+        recursiveUpdate
+        declared
+        (mapAttrs
+          (
+            name: value:
+              recursiveUpdate schema.users.capabilities.${name} value
+          )
+          requested');
+    };
 
     mkHost = args: let
       context = "mkHost";
@@ -717,7 +724,7 @@
         all = principals;
         inherit primary secondary tertiary others names count interface;
       };
-  in {inherit deriveHost derivePrincipal mkHost mkHostUsers mkPrincipal;};
+  in {inherit deriveCapabilities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
 
   strings = {
     inherit (builtins) hashString;
