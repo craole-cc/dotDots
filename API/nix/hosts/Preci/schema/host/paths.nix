@@ -1,3 +1,6 @@
 {
-  roots.src = null;
+  roots = {
+    src = null;
+    run = null;
+  };
 }
