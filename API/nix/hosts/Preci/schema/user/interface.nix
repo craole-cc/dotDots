@@ -1,0 +1,35 @@
+{
+  desktops = [];
+  fonts = {
+    clock = [];
+    emoji = [];
+    material = [];
+    monospace = [];
+    sans = [];
+    serif = [];
+  };
+  themes = {
+    autoSwitch = false;
+    dark = {
+      flavor = null;
+      accent = null;
+      icons = null;
+      dark = null;
+    };
+    light = {
+      flavor = null;
+      accent = null;
+      icons = null;
+      dark = null;
+    };
+    palettes = {};
+    polarity = "dark";
+  };
+  keyboard = {
+    layout = "us";
+    variant = "";
+    swapCapsEscape = false;
+    vimKeybinds = false;
+    bindings.modifier = ["SUPER"];
+  };
+}
