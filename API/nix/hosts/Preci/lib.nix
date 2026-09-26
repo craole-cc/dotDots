@@ -1,6 +1,7 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) attrByPath isAttrs recursiveUpdate;
-  inherit (lib.lists) any concatMap elemAt foldl' head isList length optionals tail unique;
+  inherit (builtins) foldl';
+  inherit (lib.lists) any concatMap elemAt head isList length optionals tail unique;
   inherit (lib.strings) concatStringsSep isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
   inherit (strings) hashString showPath;
@@ -237,7 +238,12 @@
       requested,
     }: {
       inherit declared requested;
-      resolved = recursiveUpdate declared requested;
+      #> Principal order is significant: earlier principals have priority.
+      resolved =
+        foldl'
+        recursiveUpdate
+        declared
+        (builtins.reverseList requested);
     };
 
     mkHost = args: let
@@ -498,11 +504,7 @@
           sans = unique (concatMap (user: user.interface.fonts.sans or []) principals);
           serif = unique (concatMap (user: user.interface.fonts.serif or []) principals);
         };
-        themes =
-          foldl'
-          recursiveUpdate
-          {}
-          (map (user: user.interface.themes or {}) principals);
+        themes = map (user: user.interface.themes or {}) principals;
       };
       count = total;
     in
