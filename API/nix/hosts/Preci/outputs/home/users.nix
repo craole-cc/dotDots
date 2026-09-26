@@ -1,4 +1,4 @@
-{host, lix, inputs, ...}: {
+{host, lix, inputs, resolved, ...}: {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
@@ -10,7 +10,9 @@
     users = lix.attrsets.listToAttrs (lix.lists.map (user: {
       name = user.name;
       value = {
-        _module.args = {inherit user;};
+        _module.args = {
+          user = resolved.principals.${user.name};
+        };
         imports = [./user.nix];
       };
     }) host.principals.all);
