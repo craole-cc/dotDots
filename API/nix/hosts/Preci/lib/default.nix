@@ -575,10 +575,6 @@
             declared = derived.packages.shells;
             requested = requested.packages.shells or [];
           };
-          coding = mkMergedList {
-            declared = derived.packages.coding;
-            requested = requested.packages.coding or [];
-          };
           common = mkMergedList {
             declared = derived.packages.common;
             requested = requested.packages.common or [];
