@@ -6,16 +6,16 @@
     email = "134658831+craole-cc@users.noreply.github.com";
   };
 
-  capabilities = [
-    "writing" # Document creation, note-taking, content writing
-    "conferencing" # Video calls, screen sharing, remote meetings
-    "development" # Software development and programming
-    "creation" # Creative work (art, music, video production)
-    "analysis" # Data analysis, spreadsheets, visualization
-    "management" # Project/task management, organization
-    "gaming" # Gaming and entertainment
-    "multimedia" # Media consumption and light editing
-  ];
+  capabilities = {
+    writing = {};
+    conferencing = {};
+    development = {};
+    creation = {};
+    analysis = {};
+    management = {};
+    gaming = {};
+    multimedia = {};
+  };
 
   shells = [
     "nushell"
