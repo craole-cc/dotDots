@@ -7,13 +7,11 @@
   };
   host = lix.mkHost args;
 in {
-  imports = [
-    ./hardware-configuration
-    inputs.home-manager
-    inputs.nix-index
-    inputs.catppuccin
-    ./outputs
-  ];
+  imports =
+    inputs.modules
+    ++ [
+      ./outputs
+    ];
 
   _module.args = {
     inherit host lix inputs;
