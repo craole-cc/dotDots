@@ -1,10 +1,10 @@
-{host, lix, ...}: {
+{host, lix, inputs, ...}: {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
 
     extraSpecialArgs = {
-      inherit host;
+      inherit host lix inputs;
     };
 
     users = lix.attrsets.listToAttrs (lix.lists.map (user: {
