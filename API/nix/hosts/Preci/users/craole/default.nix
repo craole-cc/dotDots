@@ -40,127 +40,39 @@
   ];
 
   interface = {
-    # displayProtocol = "wayland";
-    # desktopEnvironment = "cosmic";
-    # windowManager = "hyprland";
-    # bar = "caelestia";
-    # shell = "bash";
-    # prompt = "starship";
     keyboard = {
-      # modifier = "SUPER";
       swapCapsEscape = false;
       vimKeybinds = false;
-
-      # # AI follows the schema's scratchpad role convention on the A key:
-      # # primary = Super, secondary = Super+Shift, tertiary = Super+Alt.
-      # scratchpads.ai = {
-      #   key = "A";
-      #   primary = {
-      #     mod = ["SUPER"];
-      #     command = "hermes-desktop";
-      #   };
-      #   secondary = {
-      #     mod = ["SUPER" "SHIFT"];
-      #     command = "claude-desktop";
-      #   };
-      #   tertiary = {
-      #     mod = ["SUPER" "ALT"];
-      #     command = "chatgpt";
-      #   };
-      # };
-
-      # Scratchpad keys and role modifiers are schema-owned. Scratchpad
-      # applications follow the normalized application roles below.
-
-      #~@ Keybindings Map
-      #? Define application/action keys agnostic of WM/DE
-      # bindings = {
-      #   #~@ Quick Launch
-      #   launcher = {
-      #     # primary = {
-      #     # bind="Super";
-      #     # command =
-      #     # secondary = "Super+Space";
-      #     # }
-      #   };
-      #   terminal = "Meta+Return";
-      #   fileManager = "Meta+E";
-
-      #   #~@ Quake/Scratchpad Terminals
-      #   quake1 = "Meta+grave"; # Super + `
-      #   quake2 = "Meta+Shift+grave"; # Super + ~
-
-      #   #~@ Applications
-      #   browser = {
-      #     primary = "Meta+B";
-      #     secondary = "Meta+Shift+B";
-      #   };
-
-      #   editor = {
-      #     tty = {
-      #       primary = "Meta+C";
-      #       secondary = "Meta+Shift+C";
-      #     };
-      #     gui = {
-      #       primary = "Meta+V";
-      #       secondary = "Meta+Shift+V";
-      #     };
-      #   };
-
-      #   #~@ Window Management
-      #   closeWindow = "Meta+Q";
-      #   fullscreen = "Meta+F";
-      #   floating = "Meta+Space";
-
-      #   #~@ Workspace Navigation
-      #   workspace = {
-      #     next = "Meta+Right";
-      #     prev = "Meta+Left";
-      #     # Or specific workspaces: "Meta+1" through "Meta+9"
-      #   };
-
-      #   #~@ System
-      #   lock = "Meta+L";
-      #   logout = "Meta+Shift+E";
-      #   screenshot = "Print";
-      #   screenshotArea = "Meta+Shift+S";
-
-      #   #~@ Audio
-      #   volumeUp = "XF86AudioRaiseVolume";
-      #   volumeDown = "XF86AudioLowerVolume";
-      #   volumeMute = "XF86AudioMute";
-
-      #   #~@ Brightness
-      #   brightnessUp = "XF86MonBrightnessUp";
-      #   brightnessDown = "XF86MonBrightnessDown";
-      # };
     };
-  };
 
-  style = {
-    autoSwitch = true;
-    theme = {
+    themes = {
+      autoSwitch = true;
       polarity = "dark";
-      accent = "teal";
-      dark = "Catppuccin Frappé";
-      light = "Catppuccin Latte";
+      dark = {
+        flavor = "Catppuccin Frappé";
+        accent = "teal";
+        icons = "candy-icons";
+      };
+      light = {
+        flavor = "Catppuccin Latte";
+        accent = "teal";
+        icons = "candy-icons";
+      };
     };
-    icons = {
-      dark = "candy-icons";
-      light = "candy-icons";
-    };
+
     cursors = {
       accent = "mauve";
       dark = "material";
       light = "material";
     };
+
     fonts = {
-      emoji = "Noto Color Emoji";
-      monospace = "Maple Mono NF";
-      sans = "Monaspace Radon Frozen";
-      serif = "Noto Serif";
-      material = "Material Symbols Sharp";
-      clock = "Rubik";
+      emoji = ["Noto Color Emoji"];
+      monospace = ["Maple Mono NF"];
+      sans = ["Monaspace Radon Frozen"];
+      serif = ["Noto Serif"];
+      material = ["Material Symbols Sharp"];
+      clock = ["Rubik"];
     };
   };
 
