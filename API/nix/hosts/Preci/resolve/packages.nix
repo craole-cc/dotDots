@@ -1,16 +1,18 @@
 {lix, ...}: let
+  inherit (lix.lists) concatMap elem map unique;
+
   expandName = groups: stack: name:
-    if lix.lists.elem name stack
+    if elem name stack
     then throw "resolve packages: cyclic package group '${name}'"
     else if groups ? ${name}
-    then lix.lists.concatMap (expandName groups (stack ++ [name])) groups.${name}
+    then concatMap (expandName groups (stack ++ [name])) groups.${name}
     else [name];
 
   expandNames = {
     groups,
     names,
   }:
-    lix.lists.concatMap (expandName groups []) names;
+    concatMap (expandName groups []) names;
 
   resolveNames = {
     pkgs,
@@ -18,9 +20,9 @@
     names,
     context,
   }: let
-    expanded = lix.lists.unique (expandNames {inherit groups names;});
+    expanded = unique (expandNames {inherit groups names;});
   in
-    lix.lists.map
+    map
     (
       name:
         if pkgs ? ${name}
@@ -39,13 +41,13 @@
       common = user.packages.common;
       launchers = user.packages.launchers;
     };
-    names = lix.lists.unique (
+    names = unique (
       user.packages.common
       ++ user.packages.coding
       ++ user.packages.launchers
       ++ user.packages.shells
     );
-    expanded = lix.lists.unique (expandNames {inherit groups names;});
+    expanded = unique (expandNames {inherit groups names;});
   in {
     inherit names expanded;
     packages = resolveNames {
@@ -65,13 +67,13 @@ in {
       common = host.packages.common;
       launchers = host.packages.launchers;
     };
-    names = lix.lists.unique (
+    names = unique (
       host.packages.common
       ++ host.packages.coding
       ++ host.packages.launchers
       ++ host.packages.shells
     );
-    expanded = lix.lists.unique (expandNames {inherit groups names;});
+    expanded = unique (expandNames {inherit groups names;});
   in {
     kernel = {
       name = host.packages.kernel;
@@ -87,6 +89,6 @@ in {
       context = "resolve host '${host.name}'";
     };
   };
-  
+
   inherit resolveUser;
 }
