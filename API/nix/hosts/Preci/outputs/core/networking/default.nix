@@ -1,20 +1,26 @@
-{host, inputs, infrastructure, ...}: {
+{
+  host,
+  inputs,
+  infrastructure,
+  ...
+}: let
+  inherit (infrastructure.core.functionalities) network;
+in {
   networking = {
     hostName = host.name;
     hostId = host.id;
-    networkmanager.enable = infrastructure.core.functionalities.network or false;
+    networkmanager.enable = network;
   };
 
   nix = {
     settings.experimental-features = ["nix-command" "flakes"];
     nixPath = [
-      "nixos-config=" + host.paths.roots.run + "/default.nix"
-      "nixpkgs=" + inputs.nixpkgs.path
+      "nixos-config=${host.paths.roots.run}"
+      "nixpkgs=${inputs.nixpkgs.path}"
     ];
   };
 
   nixpkgs = {
-    config.allowUnfree = true;
-    pkgs = inputs.nixpkgs;
+    pkgs = inputs.modules.nixpkgs;
   };
 }

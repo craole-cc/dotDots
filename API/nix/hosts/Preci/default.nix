@@ -11,10 +11,7 @@
   };
 in {
   imports =
-    inputs.modules
-    ++ [
-      ./outputs
-    ];
+    inputs.modules.imports ++ [./outputs];
 
   _module.args = {
     inherit host lix inputs infrastructure;
