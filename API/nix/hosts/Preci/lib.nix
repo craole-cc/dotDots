@@ -279,8 +279,8 @@
     };
 
     mkHost = args: let
-      context = "mkHost \"${toString name}\"";
       derived = deriveHost args;
+      context = "mkHost \"${toString derived.name}\"";
 
       defined = let
         principals =
@@ -367,15 +367,31 @@
     in
       recursiveUpdate derived defined;
 
+    deriveFunctionalities = args: let
+      names = unique args;
+      unknown =
+        builtins.filter
+        (name: !(schema.host.functionalities ? ${name}))
+        names;
+      context = "deriveFunctionalities";
+    in
+      assert requireThat {
+        inherit context;
+        condition = unknown == [];
+        message = "unknown functionalities: ${toString unknown}";
+      };
+      names;
+
     deriveHost = args: let
       raw =
         recursiveUpdate
         schema.host.defaults
         args;
+      functionalities = deriveFunctionalities raw.functionalities;
+      set = raw // {inherit functionalities;};
       name = raw.name or "<unnamed host>";
       context = "mkHost \"${toString name}\"";
 
-      set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
     in
       assert (requireThat {
@@ -397,7 +413,7 @@
         schema.user.defaults
         args;
       name = raw.name or "<unnamed principal>";
-      context = "mkPrincipal \\"$\{toString name}\\"";
+      context = "mkPrincipal \"${toString name}\"";
 
       set = raw;
       isSet = path: requireNonEmpty {inherit context path set;};
@@ -621,7 +637,7 @@
         all = principals;
         inherit primary secondary tertiary others names count interface;
       };
-  in {inherit deriveCapabilities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
+  in {inherit deriveCapabilities deriveFunctionalities deriveHost derivePrincipal mkHost mkHostUsers mkCapabilities mkPrincipal;};
 
   strings = {
     inherit (builtins) hashString;
