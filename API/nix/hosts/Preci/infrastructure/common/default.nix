@@ -2,7 +2,7 @@
   inherit (lix.attrsets) listToAttrs;
   inherit (lix.lists) concatMap elem map unique;
 
-  capabilities = import ./capabilities.nix {inherit lix;};
+  capabilities = import ./capabilities.nix {inherit inputs lix;};
   functionalities = import ./functionalities.nix {inherit lix;};
 
   expandName = groups: stack: name:
@@ -36,29 +36,14 @@
     };
   };
 
-  resolveRust = user: let
-    rust = user.capabilities.development.languages.rust or null;
-    channel = if rust == null then null else rust.channel or "stable";
-    extensions = if rust == null then [] else rust.components or [];
-  in if rust == null then [] else [
-    (if channel == "nightly"
-      then inputs.nixpkgs.rust-bin.nightly.latest.default
-      else inputs.nixpkgs.rust-bin.stable.latest.default
-    ).override {inherit extensions;}
-  ];
-
   principals = listToAttrs (map (declaration: let
+    resolvedCapabilities = capabilities.resolve {user = declaration;};
     resolvedPackages = resolveUserPackages declaration;
   in {
     name = declaration.name;
     value = declaration // {
-      resolution = {
-        capabilities = capabilities.resolve {inherit host; user = declaration;};
-        packages = resolvedPackages;
-      };
-      packages = (declaration.packages or {}) // {
-        packages = resolvedPackages.packages ++ resolveRust declaration;
-      };
+      capabilities = resolvedCapabilities;
+      packages = resolvedPackages;
     };
   }) host.principals.all);
 
