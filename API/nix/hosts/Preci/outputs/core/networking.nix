@@ -1,8 +1,8 @@
-{host, inputs, lix, ...}: {
+{host, inputs, resolved, ...}: {
   networking = {
     hostName = host.name;
     hostId = host.id;
-    networkmanager.enable = lix.lists.elem "network" host.functionalities;
+    networkmanager.enable = resolved.host.resolution.functionalities.network or false;
   };
 
   nix = {
