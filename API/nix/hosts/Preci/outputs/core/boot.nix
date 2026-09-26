@@ -1,19 +1,21 @@
-{host, infrastructure, ...}: {
+{host, infrastructure, ...}: let 
+inherit (host.interface.boot.loader}device manager timeout;
+in{
   boot = {
     loader = {
       grub = {
         enable = host.interface.boot.loader.manager == "grub";
-        device = host.interface.boot.loader.device;
+       inherit device;
         useOSProber = true;
         fsIdentifier = "provided";
       };
 
       systemd-boot = {
-        enable = host.interface.boot.loader.manager == "systemd-boot";
+        enable = manager == "systemd-boot";
         consoleMode = "max";
       };
 
-      timeout = host.interface.boot.loader.timeout;
+      inherit timeout;
     };
 
     kernelPackages = infrastructure.core.packages.kernel.package;
