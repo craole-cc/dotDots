@@ -153,7 +153,7 @@ in {
   nix = {
     settings.experimental-features = ["nix-command" "flakes"];
     nixPath = [
-      "nixos-config=${args.paths.roots.run}/default.nix"
+      "nixos-config=${args.paths.roots.src}/API/nix/hosts/Preci/default.nix"
       "nixpkgs=${inputs.nixpkgs.path}"
     ];
   };
