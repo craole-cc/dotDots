@@ -17,7 +17,6 @@
   paths = {
     roots = {
       src = "/home/craole-cc/Projects/dotDots";
-      run = "/etc/nixos/Preci";
     };
   };
 
