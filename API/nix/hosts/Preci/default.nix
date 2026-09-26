@@ -91,6 +91,6 @@ in {
         enable = true;
         autoLogin = false;
       }
-      // import ./craole.nix)
+      // import ./users/craole)
   ];
 }
