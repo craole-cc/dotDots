@@ -1,4 +1,4 @@
 {
-  hosts = import ./hosts;
-  users = import ./users;
+  host = import ./host;
+  user = import ./user;
 }
