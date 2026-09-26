@@ -1,0 +1,6 @@
+{
+  shells = [];
+  coding = [];
+  common = [];
+  launchers = [];
+}
