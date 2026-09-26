@@ -42,8 +42,10 @@
   in {
     name = declaration.name;
     value = declaration // {
-      capabilities = resolvedCapabilities;
-      packages = resolvedPackages;
+      infrastructure = {
+        capabilities = resolvedCapabilities;
+        packages = resolvedPackages;
+      };
     };
   }) host.principals.all);
 
