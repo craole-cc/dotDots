@@ -3,7 +3,7 @@
   inherit (lib.lists) any concatMap elemAt filter foldl' head isList length optionals reverseList tail unique;
   inherit (lib.strings) concatStringsSep hashString isString match stringLength substring toUpper toJSON trim;
   inherit (fetchers) fetchSource;
-  inherit (strings) hashString showPath;
+  inherit (strings) showPath;
   inherit (trivial) isEmpty isNotEmpty;
   inherit (debug) requireNonEmpty requireThat;
 
