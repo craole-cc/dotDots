@@ -60,7 +60,7 @@
             }
           ];
         };
-        theme = {
+        themes = {
           autoSwitch = true;
           dark = {
             flavor = "frappe";
