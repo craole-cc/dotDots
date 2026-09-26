@@ -19,7 +19,7 @@
     polarity = "dark";
   };
   keyboard = {
-    layout = "us";
+    layout = null;
     variant = "";
     swapCapsEscape = false;
     vimKeybinds = false;
