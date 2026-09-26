@@ -415,7 +415,8 @@
       name = raw.name or "<unnamed principal>";
       context = "mkPrincipal \"${toString name}\"";
 
-      set = raw;
+      applications = deriveApplications raw.applications;
+      set = raw // {inherit applications;};
       isSet = path: requireNonEmpty {inherit context path set;};
     in
       assert (isSet ["name"]);
@@ -464,6 +465,17 @@
         capabilities = mkCapabilities {
           requested = requested.capabilities or {};
         };
+
+        git = mkMergedAttrs {
+          declared = derived.git;
+          requested = requested.git or {};
+        };
+
+        applications = mkMergedAttrs {
+          declared = derived.applications;
+          requested = requested.applications or {};
+        };
+
         localization = mkMergedAttrs {
           declared = derived.localization;
           requested = requested.localization or {};
@@ -558,6 +570,8 @@
         enable = enable.resolved;
         autoLogin = autoLogin.resolved;
         capabilities = capabilities.resolved;
+        git = git.resolved;
+        applications = applications.resolved;
         identities = identities.resolved;
         localization = localization.resolved;
 
