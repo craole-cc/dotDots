@@ -1,10 +1,11 @@
 {
-  lix ? import ../lib {},
-  system ? builtins.currentSystem or null,
+  lix,
+  system,
   inputs ? lix.flake.inputs or {},
   ...
 }: let
   inherit (lix.fetchers) mkGitHubSource fetchSource fetchModule;
+
   resolveModule = args: fetchModule (args // {inherit inputs sources;});
 
   sources = {
@@ -69,8 +70,7 @@
       path = "nixos";
     };
 
-    dots =
-      inputs.dots or (fetchSource sources.dots);
+    dots = inputs.dots or (fetchSource sources.dots);
 
     catppuccin = resolveModule {
       name = "catppuccin";
@@ -84,55 +84,3 @@
   };
 in
   resolved // {raw = sources;}
-# icons = let
-#   papirus = with packages.nixpkgs;
-#     catppuccin-papirus-folders.override {
-#       inherit (aesthetics.primary.theme.dark or {}) flavor accent;
-#     };
-# in {
-#   buuf-nestort = with packages.nixpkgs;
-#     stdenvNoCC.mkDerivation {
-#       pname = "buuf-nestort";
-#       version = "2026-07-29";
-#       src = fetchgit {inherit (sources.buuf-nestort) url rev hash;};
-#       dontBuild = true;
-#       dontFixup = true;
-#       installPhase = ''
-#         mkdir -p $out/share/icons/buuf-nestort
-#         cp -r . $out/share/icons/buuf-nestort
-#         chmod -R u+w $out/share/icons/buuf-nestort
-#         sed -i 's/^Inherits=.*/Inherits=oxygen,breeze,Adwaita,hicolor/' \
-#           $out/share/icons/buuf-nestort/index.theme
-#       '';
-#     };
-#   Papirus-Dark = papirus;
-#   Papirus-Light = papirus;
-# };
-# catppuccin-konsole = let
-#   flavors = unique (
-#     concatMap
-#     (user: with user.theme; [dark.flavor light.flavor])
-#     (attrValues (aesthetics.users or {}))
-#   );
-#   pname = "catppuccin-konsole";
-# in
-#   with packages.nixpkgs;
-#     stdenvNoCC.mkDerivation {
-#       inherit pname;
-#       version = "3b64040";
-#       src = fetchFromGitHub {
-#         inherit (sources.${pname}) owner repo rev hash;
-#       };
-#       dontBuild = true;
-#       dontFixup = true;
-#       installPhase = ''
-#         mkdir -p $out/share/konsole
-#         ${
-#           concatMapStringsSep "\n" (flavor: ''
-#             cp "$(find . -iname '*${flavor}*.colorscheme' | head -n1)" \
-#               $out/share/konsole/Catppuccin-${capitalize flavor}.colorscheme
-#           '')
-#           flavors
-#         }
-#       '';
-#     };
