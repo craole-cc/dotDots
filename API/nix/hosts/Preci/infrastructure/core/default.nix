@@ -1,4 +1,3 @@
-{common, ...}: {
-  functionalities = common.functionalities;
-  packages = common.packages;
+common: {
+  inherit (common) functionalities packages;
 }

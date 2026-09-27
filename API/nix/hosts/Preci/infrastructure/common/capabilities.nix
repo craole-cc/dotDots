@@ -1,10 +1,20 @@
-{lix, inputs, ...}: let
-  inherit (lix.attrsets) attrByPath;
+{
+  lib,
+  inputs,
+  ...
+}: let
+  inherit (lib.attrsets) attrByPath;
 
   resolveRust = user: let
     rust = attrByPath ["capabilities" "development" "languages" "rust"] null user;
-    channel = if rust == null then null else rust.channel or "stable";
-    extensions = if rust == null then [] else rust.components or [];
+    channel =
+      if rust == null
+      then null
+      else rust.channel or "stable";
+    extensions =
+      if rust == null
+      then []
+      else rust.components or [];
     toolchain =
       if channel == "nightly"
       then inputs.nixpkgs.rust-bin.nightly.latest.default

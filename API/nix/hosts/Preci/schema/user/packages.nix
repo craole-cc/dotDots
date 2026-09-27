@@ -1,5 +1,0 @@
-{
-  shells = [];
-  common = [];
-  launchers = [];
-}

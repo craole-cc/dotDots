@@ -1,0 +1,7 @@
+{
+  packages = {
+    shells = [];
+    common = [];
+    launchers = [];
+  };
+}

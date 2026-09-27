@@ -181,8 +181,7 @@ rec {
 
   isHiddenPath = name: match "^\\..*" name != null;
   isNixFile = name: type:
-    type
-    == "regular"
+    (type == "regular")
     && name != "default.nix"
     && match ".*\\.nix$" name != null;
   isNixDirectory = dir: name: type:

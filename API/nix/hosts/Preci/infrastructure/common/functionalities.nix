@@ -1,4 +1,9 @@
-{lix, ...}: let
-  inherit (lix.attrsets) genAttrs;
+{
+  lib,
+  host ? {},
+  ...
+}: let
+  inherit (lib.attrsets) genAttrs;
   resolve = functionalities: genAttrs functionalities (_: true);
-in { inherit resolve; }
+  resolved = resolve (host.functionalities or {});
+in {inherit resolve resolved;}
