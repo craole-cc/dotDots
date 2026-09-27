@@ -1,4 +1,20 @@
 lib: let
+  host =
+    {}
+    // (import ./applications.nix)
+    // (import ./class.nix)
+    // (import ./description.nix)
+    // (import ./functionalities.nix)
+    // (import ./id.nix)
+    // (import ./interface.nix)
+    // (import ./localization.nix)
+    // (import ./name.nix)
+    // (import ./packages.nix)
+    // (import ./paths.nix)
+    // (import ./specs.nix)
+    // (import ./stateVersion.nix)
+    // (import ./system.nix)
+    // {};
   default =
     {
       class = "nixos";

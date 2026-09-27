@@ -3,7 +3,13 @@
   lix,
   ...
 }: let
-  common = import ./lib.nix {inherit lib lix;};
-  user = import ./user ({inherit lib lix;} // common);
-  host = import ./host ({inherit lib lix;} // common // user);
-in {schemas = common // user // host;}
+  schemas = import ./lib.nix {inherit lib lix;};
+  user = import ./user {
+    inherit lib;
+    lix = lix // {inherit schemas;};
+  };
+  host = import ./host {
+    inherit lib;
+    lix = lix // {schemas = schemas // user;};
+  };
+in {schemas = schemas // user // host;}

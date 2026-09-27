@@ -112,6 +112,35 @@
       context = "resolve user '${user.name}'";
     };
   };
+
+    resolvePackages = {
+    pkgs,
+    args,
+  }: let
+    isForHost = args ? packages.kernel;
+    forUsers =
+    context = "resolve packages for '${args.name}'";
+    groups = attrNames args.packages;
+    names = unique (concatLists (attrValues args.packages));
+  in
+    {common = resolvePackageGroups {inherit context groups names pkgs;};}
+    // (
+      optionalAttrs isForHost {
+        kernel = let
+          name = args.packages.kernel;
+          pkg = resolvePackage pkgs name;
+        in {
+          inherit name;
+          package =
+            if isNotEmpty pkg
+            then pkg
+            else
+              throw "resolve host '${
+                args.name
+              }': kernel package '${name}' was not found in nixpkgs";
+        };
+      }
+    );
 in {
   inherit
     deriveApplications

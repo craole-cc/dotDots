@@ -2,11 +2,6 @@
   lib,
   lix,
   default,
-  mkMergedList,
-  mkMergedAttrs,
-  mkUsers,
-  deriveApplications,
-  deriveFunctionalities,
   ...
 }: let
   inherit (lib.attrsets) recursiveUpdate;
