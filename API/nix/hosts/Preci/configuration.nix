@@ -616,9 +616,11 @@
         btop
         coreutils
         curl
+        dbus
         diffutils
         dua
         dust
+        efibootmgr
         eza
         fastfetch
         fd
@@ -631,11 +633,12 @@
         getent
         gh
         gitui
+        glib
+        glib
+        glib
+        gnused
         gnused
         gum
-        glib
-        procs
-        glib
         helix
         imagemagick
         imv
@@ -644,23 +647,21 @@
         lolcat
         lsd
         lshw
-        dbus
-        glib
-        gnused
-        procps
-        systemd
         onefetch
         ouch
         p7zip
         patch
         pciutils
         pkg-config
-        procs
         procps
+        procps
+        procs
+        procs
         ripgrep
         rsync
         sad
         speedtest-go
+        systemd
         trashy
         treefmt
         udiskie
@@ -1015,11 +1016,15 @@ in {
 
   boot = {
     loader = with interface.boot.loader; {
-      grub = {
+      grub = let
+        resolution = "1920x1080";
+      in {
         inherit device;
         enable = manager == "grub";
         useOSProber = true;
         fsIdentifier = "provided";
+        gfxmodeBios = resolution;
+        gfxmodeEfi = resolution; #? This host is Bios, but this is a no-op
       };
       systemd-boot = {
         enable = manager == "systemd-boot";
@@ -1422,15 +1427,6 @@ in {
             (user: map (mode: mkProfile user mode) ["dark" "light"])
             (attrValues args.users.normal)
           );
-      };
-      stdio = {
-        deps = ["specialfs"];
-        text = ''
-          ln -sfn /proc/self/fd /dev/fd
-          ln -sfn /proc/self/fd/0 /dev/stdin
-          ln -sfn /proc/self/fd/1 /dev/stdout
-          ln -sfn /proc/self/fd/2 /dev/stderr
-        '';
       };
     };
   };
