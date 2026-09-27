@@ -3,14 +3,16 @@
 
   hashedPassword = "$6$2o3rjHVZgXEuyZ97$PtmQa1PIOmKb6dAwZ0mZJUulAkJoCfj.qjJHgtusfVnIIsHmENcA7q8PV9I2PveOwdEdFWwMBgLu3a5HZavXC1";
 
-  git = {
-    name = "Craole";
-    email = "32288735+Craole@users.noreply.github.com";
-    settings = {
-      alias.project-summary = "!which onefetch && onefetch";
-      push.autoSetupRemote = true;
-    };
-  };
+  git = [
+    {
+      name = "Craole";
+      email = "32288735+Craole@users.noreply.github.com";
+      settings = {
+        alias.project-summary = "!which onefetch && onefetch";
+        push.autoSetupRemote = true;
+      };
+    }
+  ];
 
   capabilities = {
     writing = {};
@@ -33,11 +35,24 @@
     multimedia = {};
   };
 
-  packages.shells = [
-    "bash"
-    "nushell"
-    "powershell"
-  ];
+  packages = {
+    agent = ["hermes" "chatgpt" "claude-codee" "ollama"];
+    bar = ["dms"];
+    browser = ["brave" "zen-twilight"];
+    editor = ["helix"];
+    explorer = ["yazi" "doublecmd"];
+    extra = [
+      "fastfetch"
+      "jujutsu"
+      "obs-studio"
+    ];
+    player = ["mpv" "freetube" "shortwave"];
+    ide = ["vscode-fhs" "zed-editor-fhs" "vscode-insiders"];
+    launcher = ["vicinae"];
+    prompt = ["starship"];
+    shell = ["bash" "powershell" "nushell" "zsh"];
+    terminal = ["ghostty" "warp-terminal"];
+  };
 
   interface = {
     keyboard = {
@@ -80,7 +95,7 @@
     ai = {
       primary = "hermes-desktop";
       secondary = "chatgpt";
-      tertiary = "claude-desktop";
+      tertiary = "claude-code";
     };
 
     browser = {
@@ -117,6 +132,7 @@
 
     allowed = [
       # "atuin"
+      "vscode-insiders"
       "codex"
       "claude-code"
       "ollama"

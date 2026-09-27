@@ -1,7 +1,16 @@
 {
   packages = {
-    shells = [];
+    agent = [];
+    bar = [];
+    browser = ["brave"];
     common = [];
-    launchers = [];
+    editor = ["helix"]; # TTY editor
+    explorer = [];
+    extra = [];
+    ide = ["vscode-fhs"]; # GUI
+    launcher = ["vicinae"];
+    prompt = ["starship"];
+    shell = ["bash"];
+    terminal = ["ghostty "];
   };
 }

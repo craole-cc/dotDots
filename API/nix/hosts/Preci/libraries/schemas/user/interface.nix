@@ -1,5 +1,7 @@
-{
-  interface = {
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  default = {
     desktops = [];
     fonts = {
       clock = [];
@@ -37,4 +39,10 @@
       bindings.modifier = ["SUPER"];
     };
   };
-}
+
+  resolve = {
+    args ? {},
+    interface ? args.interface or {},
+  }:
+    recursiveUpdate default interface;
+in {inherit default resolve;}

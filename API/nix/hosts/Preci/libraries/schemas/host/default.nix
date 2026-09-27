@@ -1,37 +1,29 @@
-lib: let
-  host =
-    {}
-    // (import ./applications.nix)
-    // (import ./class.nix)
-    // (import ./description.nix)
-    // (import ./functionalities.nix)
-    // (import ./id.nix)
-    // (import ./interface.nix)
-    // (import ./localization.nix)
-    // (import ./name.nix)
-    // (import ./packages.nix)
-    // (import ./paths.nix)
-    // (import ./specs.nix)
-    // (import ./stateVersion.nix)
-    // (import ./system.nix)
-    // {};
-  default =
-    {
-      class = "nixos";
-      stateVersion = null;
-      system = null;
-      name = null;
-      id = null;
-      description = null;
-    }
-    // (import ./applications.nix)
-    // (import ./functionalities.nix)
-    // (import ./interface.nix)
-    // (import ./localization.nix)
-    // (import ./packages.nix)
-    // (import ./paths.nix)
-    // (import ./specs.nix)
-    // {principals = [];};
+{
+  lib,
+  lix,
+  ...
+}: let
+  inherit (lib.attrsets) mapAttrs;
+  libs = {inherit lib lix;};
+  fields = {
+    name = import ./name.nix libs;
+    applications = import ./applications.nix libs;
+    class = import ./class.nix libs;
+    description = import ./description.nix libs;
+    functionalities = import ./functionalities.nix libs;
+    id = import ./id.nix libs;
+    interface = import ./interface.nix libs;
+    localization = import ./localization.nix libs;
+    packages = import ./packages.nix libs;
+    paths = import ./paths.nix libs;
+    principals = import ./principals.nix libs;
+    specs = import ./specs.nix libs;
+    stateVersion = import ./stateVersion.nix libs;
+    system = import ./system.nix libs;
+  };
 in
-  (import ./lib.nix (lib // {inherit default;}))
-  // {host = default;}
+  fields
+  // {
+    default = mapAttrs (_: field: field.default) fields;
+    resolve = mapAttrs (_: field: field.resolve) fields;
+  }

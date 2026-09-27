@@ -1,6 +1,8 @@
 {lib, ...}: let
   inherit (lib.strings) concatStringsSep substring toUpper;
 
+  inherit (builtins) hashString;
+
   #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"
   showPath = path: concatStringsSep "." path;
 
@@ -29,4 +31,4 @@
   */
   capitalize = text:
     toUpper (substring 0 1 text) + substring 1 (-1) text;
-in {inherit capitalize showPath;}
+in {inherit capitalize hashString showPath;}

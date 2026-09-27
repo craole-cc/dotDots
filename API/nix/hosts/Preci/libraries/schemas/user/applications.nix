@@ -2,10 +2,8 @@
   applications = {
     ai = [];
     browser = [];
-    editor = {
-      tty = [];
-      gui = [];
-    };
+    editor = []; # TTY
+    ide = []; # GUI
     terminal = [];
     explorer = [];
     launcher = [];
