@@ -1477,12 +1477,13 @@ in {
         enable = true;
         enablePureSSHTransfer = true;
       };
-      prompt.enable = true;
-      config =
+      prompt = {
+        enable = true;
+      };
+      config = mkIf hasProfile (
         profile.settings
-        // {
-          user = mkIf hasProfile {inherit (profile) user email;};
-        };
+        // {user = {inherit (profile) user email;};}
+      );
     };
 
     hyprland = {
