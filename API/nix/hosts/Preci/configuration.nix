@@ -620,9 +620,11 @@
         coreutils
         curl
         dbus
+        delta
         diffutils
         dua
         dust
+        diff-so-fancy
         efibootmgr
         eza
         fastfetch
@@ -796,15 +798,6 @@
 
         #~@ Darkman
         (let
-          # busctl = "${pkgs.systemd}/bin/busctl";
-          # dbusSend = "${pkgs.dbus}/bin/dbus-send";
-          # donf = "${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface";
-          # grep = "${pkgs.gnugrep}/bin/grep";
-          # bins.kwriteconf = "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6";
-          # pac = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-colorscheme";
-          # pkill = "${pkgs.procps}/bin/pkill";
-          # sed = "${pkgs.gnused}/bin/sed";
-          # systemctl = "${pkgs.systemd}/bin/systemctl";
           mkUserModeScript = user: mode: let
             MODE = toUpper mode;
             inherit (aesthetics.users.${user.name}) icons kdeScheme;
@@ -852,14 +845,14 @@
             for group in 0 1 2 3 4 5; do
               ${bins.dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$group
             done
-            ${bins.donf-gnome}/color-scheme "'prefer-${mode}'"
-            ${bins.donf-gnome}/gtk-theme "'${theme.gtk}'"
-            ${bins.donf-gnome}/icon-theme "'${icon}'"
+            ${bins.dconfGnomeInterface}/color-scheme "'prefer-${mode}'"
+            ${bins.dconfGnomeInterface}/gtk-theme "'${theme.gtk}'"
+            ${bins.dconfGnomeInterface}/icon-theme "'${icon}'"
 
             ${concatMapStringsSep "\n" (dir: ''
                 vscodeSettings="$HOME/${dir}/settings.json"
                 if [ -f "$vscodeSettings" ]; then
-                  if ${bins.grep} -q '"workbench.colorTheme"' "$vscodeSettings"; then
+                  if ${bins.rg} -q '"workbench.colorTheme"' "$vscodeSettings"; then
                     ${bins.sed} -i -E 's|("workbench.colorTheme"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"${vscode.theme}"|' "$vscodeSettings"
                   else
                     ${bins.sed} -i '0,/{/s|{|{\n  "workbench.colorTheme": "${vscode.theme}",|' "$vscodeSettings"
@@ -1039,6 +1032,8 @@
     paths = listToAttrs (map mkBin [
       "darkman"
       "foot"
+      "fd"
+      "sd"
       {
         name = "busctl";
         pkg = "systemd";
@@ -1049,7 +1044,7 @@
         stem = "dbus-send";
       }
       {
-        name = "donf-gnome";
+        name = "dconfGnomeInterface";
         pkg = "dconf";
         arguments = ["write" "/org/gnome/desktop/interface"];
       }
