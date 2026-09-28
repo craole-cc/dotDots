@@ -310,14 +310,10 @@
       defaultLocale = "en_US.UTF-8";
     } (src.localization or {});
 
-    paths = let
-      roots = {
-        src = "/home/${users.principal}/Projects/dotDots";
-        run = "/etc/nixos";
-      };
-      dots = args.paths.roots.src;
-    in
-      recursiveUpdate {inherit roots dots;} (src.paths or {});
+    paths =
+      recursiveUpdate
+      {dots = args.paths.roots.src;}
+      (src.paths or {});
   in
     src // {inherit inputs users paths localization;};
 
