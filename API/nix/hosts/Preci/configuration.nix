@@ -63,7 +63,150 @@
   isNotEmpty = value: !isEmpty value;
 
   args = let
-    src = import ./.;
+    # src = import ./.;
+    src = let
+      arch = "x86_64";
+      os = "linux";
+    in {
+      stateVersion = "26.05";
+      system = "${arch}-${os}";
+      class = "nixos";
+      name = "Preci";
+      id = "91ba73c7";
+      description = "Dell Precision M2800";
+      specs = {
+        machine = "laptop";
+        cpu = {
+          inherit arch;
+          brand = "intel";
+        };
+      };
+      paths = {
+        roots = {
+          src = "/home/craole-cc/Projects/dotDots";
+          run = "/etc/nixos";
+        };
+      };
+      localization = {
+        latitude = 18.015;
+        longitude = -77.49;
+        city = "Mandeville, Jamaica";
+        timeZone = "America/Jamaica";
+        defaultLocale = "en_US.UTF-8";
+      };
+      functionalities = [
+        "audio"
+        "battery"
+        "bluetooth"
+        "dualboot-windows"
+        "efi"
+        "gpu"
+        "keyboard"
+        "network"
+        "nvme"
+        "secureboot"
+        "storage"
+        "touchpad"
+        "tpm"
+        "video"
+        "virtualization"
+        "vpn"
+        "webcam"
+        "wired"
+        "wireless"
+      ];
+      interface = {
+        boot = {
+          loader = {
+            manager = "grub";
+            device = "/dev/sda";
+            timeout = 1;
+          };
+        };
+        desktops = [
+          "plasma"
+          "hyprland"
+          "niri"
+          # "mango"
+          # "cosmic"
+        ];
+      };
+      packages = {
+        kernel = "linuxPackages_latest";
+      };
+
+      principals = [
+        {
+          name = "craole";
+          enable = true;
+          autoLogin = true;
+          role = "administrator";
+          email = "134658831+craole-cc@users.noreply.github.com";
+          description = "Craig 'Craole' Cole";
+          defaultLocale = "en_GB.UTF-8";
+          keyboard = {
+            layout = "us";
+            variant = "";
+          };
+          desktop = "plasma";
+          launchers = ["vicinae"];
+          theme = {
+            autoSwitch = true;
+            polarity = "dark";
+            dark = {
+              flavor = "frappe";
+              accent = "teal";
+            };
+            light = {
+              flavor = "latte";
+              accent = "mauve";
+            };
+          };
+          icons = {
+            light = "buuf-nestort";
+            dark = "candy-icons";
+          };
+          cursors = {
+            accent = "teal";
+            dark = "material";
+            light = "material";
+          };
+          fonts = {
+            emoji = "Noto Color Emoji";
+            monospace = "Maple Mono NF";
+            sans = "Monaspace Radon Frozen";
+            serif = "Noto Serif";
+            material = "Material Symbols Sharp";
+            clock = "Rubik";
+          };
+          shells = [
+            "bash"
+            "nushell"
+            "powershell"
+            "zsh"
+          ];
+          coding = [
+            "common"
+            "nix"
+            "markup"
+            "rust"
+            "python"
+            "shellscript"
+            "zig"
+          ];
+          apps = [
+            "brave"
+            "freetube"
+            "ghostty"
+            "imv"
+            "qbittorrent-enhanced"
+            "qimgv"
+            "shortwave"
+            "vscode-fhs"
+          ];
+        }
+      ];
+    };
   in
     src
     // {
@@ -1512,9 +1655,9 @@ in {
       darkman = {
         description = "Dark/light mode switch daemon";
         wantedBy = ["default.target"];
-        environment = {
-          DARKMAN_LAT = toString args.localization.latitude;
-          DARKMAN_LNG = toString args.localization.longitude;
+        environment = with args.localization; {
+          DARKMAN_LAT = toString latitude;
+          DARKMAN_LNG = toString longitude;
         };
         serviceConfig = {
           ExecStart = "${bins.darkman} run";
