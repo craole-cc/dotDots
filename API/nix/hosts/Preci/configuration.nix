@@ -1008,7 +1008,11 @@
     );
   in {
     inherit forShells forCoding forInterface forSystem;
-    complete = forShells ++ forCoding ++ forInterface ++ forSystem;
+    complete = flatten (
+      [forInterface forSystem]
+      ++ (attrValues forShells)
+      ++ (attrValues forCoding)
+    );
   };
 
   bins = let
