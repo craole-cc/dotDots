@@ -968,9 +968,9 @@
             };
           in ''
             ${bins.pkill} -${foot.signal} -x foot || true
-            ${bins.kwriteconf} --file konsolerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
-            ${bins.kwriteconf} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
-            ${bins.kwriteconf} --notify --file kdeglobals --group Icons --key Theme ${icon}
+            ${bins.kwriteconfig} --file konsolerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+            ${bins.kwriteconfig} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+            ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
 
             for terminal in $(${bins.busctl} --user call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${bins.sed} 's/^s "//; s/"$//; s/,/ /g'); do
               ${bins.busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
@@ -980,7 +980,7 @@
               ${bins.plasma-apply-colorscheme} ${theme.kde}
             fi
 
-            ${bins.kwriteconf} --notify --file kdeglobals --group Icons --key Theme ${icon}
+            ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
             for group in 0 1 2 3 4 5; do
               ${bins.dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$group
             done
