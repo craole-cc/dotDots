@@ -281,7 +281,7 @@
       };
     };
 
-    packages = {
+    modules = {
       nixpkgs = let
         config' = {allowUnfree = true;};
       in
@@ -312,12 +312,12 @@
       };
 
       icons = let
-        papirus = with packages.nixpkgs;
+        papirus = with modules.nixpkgs;
           catppuccin-papirus-folders.override {
             inherit (aesthetics.primary.theme.dark) flavor accent;
           };
       in {
-        buuf-nestort = with packages.nixpkgs;
+        buuf-nestort = with modules.nixpkgs;
           stdenvNoCC.mkDerivation {
             pname = "buuf-nestort";
             version = "2026-07-29";
@@ -344,7 +344,7 @@
         );
         pname = "catppuccin-konsole";
       in
-        with packages.nixpkgs;
+        with modules.nixpkgs;
           stdenvNoCC.mkDerivation {
             inherit pname;
             version = "3b64040";
@@ -366,7 +366,7 @@
           };
     };
   in
-    packages // {inherit revision;};
+    modules // {inherit revision;};
 
   interface = let
     normalized = map toLower (args.interface.desktops or []);
@@ -1005,7 +1005,10 @@
           })
         ]
     );
-  in {inherit forShells forCoding forInterface forSystem;};
+  in {
+    inherit forShells forCoding forInterface forSystem;
+    complete = forShells ++ forCoding ++ forInterface ++ forSystem;
+  };
 in {
   imports = with sources; [
     ./hardware-configuration.nix
@@ -1059,7 +1062,7 @@ in {
       # gwenview
     ];
     sessionVariables = variables;
-    systemPackages = packages.forSystem;
+    systemPackages = packages.complete;
   };
 
   fonts = let
@@ -1429,6 +1432,7 @@ in {
           );
       };
     };
+    copySystemConfiguration = true;
   };
 
   systemd = {
