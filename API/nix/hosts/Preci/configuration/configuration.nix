@@ -1438,12 +1438,28 @@ in {
       };
       prompt.enable = true;
       config = {
-        user = {inherit (args.users.principal) email name;};
-        init.defaultBranch = "main";
-        safe.directory = [args.paths.dots];
-        url."https://github.com/".insteadOf = ["gh:" "github:"];
-        alias.project-summary = "!which onefetch && onefetch";
-        push.autoSetupRemote = true;
+        alias = {
+          project-summary = "!which onefetch && onefetch";
+        };
+        credential = {
+          "https://github.com".helper = "!gh auth git-credential";
+          "https://gist.github.com".helper = "!gh auth git-credential";
+        };
+        init = {
+          defaultBranch = "main";
+        };
+        push = {
+          autoSetupRemote = true;
+        };
+        safe = {
+          directory = [args.paths.dots];
+        };
+        url = {
+          "https://github.com/".insteadOf = ["gh:" "github:"];
+        };
+        user = {
+          inherit (args.users.principal) email name;
+        };
       };
     };
 
