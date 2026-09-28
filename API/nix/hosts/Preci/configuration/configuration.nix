@@ -139,6 +139,7 @@
       principals = [
         {
           name = admin;
+          uid = 1000;
           enable = true;
           autoLogin = true;
           role = "administrator";
