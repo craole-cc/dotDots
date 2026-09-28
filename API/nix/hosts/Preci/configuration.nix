@@ -84,7 +84,7 @@
       };
       paths = {
         roots = {
-          src = "/home/craole-cc/Projects/dotDots";
+          src = "/home/${admin}/Projects/dotDots";
           run = "/etc/nixos";
         };
       };
