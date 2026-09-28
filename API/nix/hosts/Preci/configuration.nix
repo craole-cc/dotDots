@@ -6,6 +6,7 @@
 }: let
   inherit
     (lib.attrsets)
+    attrByPath
     attrNames
     attrValues
     filterAttrs
@@ -26,6 +27,7 @@
     isList
     optional
     optionals
+    toList
     unique
     ;
   inherit (lib.modules) mkForce mkIf;
@@ -36,13 +38,14 @@
     escapeShellArg
     isString
     readFile
+    splitString
     stringLength
     substring
     toLower
     toUpper
     trim
     ;
-  inherit (pkgs) fetchgit runCommand writeShellApplication;
+  inherit (pkgs) fetchgit runCommand writeShellApplication writeShellScript;
   inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
 
   capitalize = str: toUpper (substring 0 1 str) + substring 1 (-1) str;
@@ -793,16 +796,15 @@
 
         #~@ Darkman
         (let
-          busctl = "${pkgs.systemd}/bin/busctl";
-          dbusSend = "${pkgs.dbus}/bin/dbus-send";
-          donf = "${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface";
-          grep = "${pkgs.gnugrep}/bin/grep";
-          konf = "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6";
-          pac = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-colorscheme";
-          pkill = "${pkgs.procps}/bin/pkill";
-          sed = "${pkgs.gnused}/bin/sed";
-          systemctl = "${pkgs.systemd}/bin/systemctl";
-
+          # busctl = "${pkgs.systemd}/bin/busctl";
+          # dbusSend = "${pkgs.dbus}/bin/dbus-send";
+          # donf = "${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface";
+          # grep = "${pkgs.gnugrep}/bin/grep";
+          # bins.kwriteconf = "${pkgs.kdePackages.kconfig}/bin/kwriteconfig6";
+          # pac = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-colorscheme";
+          # pkill = "${pkgs.procps}/bin/pkill";
+          # sed = "${pkgs.gnused}/bin/sed";
+          # systemctl = "${pkgs.systemd}/bin/systemctl";
           mkUserModeScript = user: mode: let
             MODE = toUpper mode;
             inherit (aesthetics.users.${user.name}) icons kdeScheme;
@@ -833,40 +835,40 @@
               ];
             };
           in ''
-            ${pkill} -${foot.signal} -x foot || true
-            ${konf} --file konsolerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
-            ${konf} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
-            ${konf} --notify --file kdeglobals --group Icons --key Theme ${icon}
+            ${bins.pkill} -${foot.signal} -x foot || true
+            ${bins.kwriteconf} --file konsolerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+            ${bins.kwriteconf} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
+            ${bins.kwriteconf} --notify --file kdeglobals --group Icons --key Theme ${icon}
 
-            for terminal in $(${busctl} --user call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${sed} 's/^s "//; s/"$//; s/,/ /g'); do
-              ${busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
+            for terminal in $(${bins.busctl} --user call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${bins.sed} 's/^s "//; s/"$//; s/,/ /g'); do
+              ${bins.busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
             done
 
-            if ${systemctl} --user is-active --quiet plasma-plasmashell.service; then
-              ${pac} ${theme.kde}
+            if ${bins.systemctl} --user is-active --quiet plasma-plasmashell.service; then
+              ${bins.plasma-apply-colorscheme} ${theme.kde}
             fi
 
-            ${konf} --notify --file kdeglobals --group Icons --key Theme ${icon}
+            ${bins.kwriteconf} --notify --file kdeglobals --group Icons --key Theme ${icon}
             for group in 0 1 2 3 4 5; do
-              ${dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$group
+              ${bins.dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$group
             done
-            ${donf}/color-scheme "'prefer-${mode}'"
-            ${donf}/gtk-theme "'${theme.gtk}'"
-            ${donf}/icon-theme "'${icon}'"
+            ${bins.donf-gnome}/color-scheme "'prefer-${mode}'"
+            ${bins.donf-gnome}/gtk-theme "'${theme.gtk}'"
+            ${bins.donf-gnome}/icon-theme "'${icon}'"
 
             ${concatMapStringsSep "\n" (dir: ''
                 vscodeSettings="$HOME/${dir}/settings.json"
                 if [ -f "$vscodeSettings" ]; then
-                  if ${grep} -q '"workbench.colorTheme"' "$vscodeSettings"; then
-                    ${sed} -i -E 's|("workbench.colorTheme"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"${vscode.theme}"|' "$vscodeSettings"
+                  if ${bins.grep} -q '"workbench.colorTheme"' "$vscodeSettings"; then
+                    ${bins.sed} -i -E 's|("workbench.colorTheme"[[:space:]]*:[[:space:]]*)"[^"]*"|\1"${vscode.theme}"|' "$vscodeSettings"
                   else
-                    ${sed} -i '0,/{/s|{|{\n  "workbench.colorTheme": "${vscode.theme}",|' "$vscodeSettings"
+                    ${bins.sed} -i '0,/{/s|{|{\n  "workbench.colorTheme": "${vscode.theme}",|' "$vscodeSettings"
                   fi
-                  ${sed} -i -E 's|("window.autoDetectColorScheme"[[:space:]]*:[[:space:]]*)true|\1false|' "$vscodeSettings"
+                  ${bins.sed} -i -E 's|("window.autoDetectColorScheme"[[:space:]]*:[[:space:]]*)true|\1false|' "$vscodeSettings"
                 fi
               '')
               vscode.configDirs}
-            ${systemctl} --user try-restart plasma-plasmashell.service
+            ${bins.systemctl} --user try-restart plasma-plasmashell.service
           '';
 
           themeHook = let
@@ -1008,6 +1010,78 @@
     inherit forShells forCoding forInterface forSystem;
     complete = forShells ++ forCoding ++ forInterface ++ forSystem;
   };
+
+  bins = let
+    mkBin = value: let
+      spec =
+        if isString value
+        then {name = value;}
+        else value;
+      inherit (spec) name;
+      pkg = spec.pkg or name;
+      stem = spec.stem or name;
+      arguments = spec.arguments or [];
+      executable =
+        mkPath
+        (attrByPath (splitString "." pkg) null pkgs)
+        (["bin"] ++ (toList stem));
+    in {
+      inherit name;
+      value = concatStringsSep " " (
+        [(escapeShellArg executable)]
+        ++ (map escapeShellArg arguments)
+      );
+    };
+    paths = listToAttrs (map mkBin [
+      "darkman"
+      "foot"
+      {
+        name = "busctl";
+        pkg = "systemd";
+      }
+      {
+        name = "dbusSend";
+        pkg = "dbus";
+        stem = "dbus-send";
+      }
+      {
+        name = "donf-gnome";
+        pkg = "dconf";
+        arguments = ["write" "/org/gnome/desktop/interface"];
+      }
+      {
+        name = "grep";
+        pkg = "gnugrep";
+      }
+      {
+        name = "rg";
+        pkg = "ripgrep";
+      }
+      {
+        name = "kwriteconfig";
+        pkg = "kdePackages.kconfig";
+        stem = "kwriteconfig6";
+      }
+      {
+        name = "plasma-apply-colorscheme";
+        pkg = "kdePackages.plasma-workspace";
+        stem = "plasma-apply-colorscheme";
+      }
+      {
+        name = "pkill";
+        pkg = "procps";
+      }
+      {
+        name = "sed";
+        pkg = "gnused";
+      }
+      {
+        name = "systemctl";
+        pkg = "systemd";
+      }
+    ]);
+  in
+    paths;
 in {
   imports = with sources; [
     ./hardware-configuration.nix
@@ -1444,7 +1518,7 @@ in {
           DARKMAN_LNG = toString args.localization.longitude;
         };
         serviceConfig = {
-          ExecStart = "${pkgs.darkman}/bin/darkman run";
+          ExecStart = "${bins.darkman} run";
           Restart = "on-failure";
         };
       };
@@ -1454,10 +1528,11 @@ in {
         wantedBy = ["default.target"];
         after = ["darkman.service"];
         wants = ["darkman.service"];
-        serviceConfig = {
-          ExecStart = "${pkgs.writeShellScript "foot-server-start" ''
-            theme="$(${pkgs.darkman}/bin/darkman get 2>/dev/null || echo dark)"
-            exec ${pkgs.foot}/bin/foot --server -o main.initial-color-theme="$theme"
+        enableDefaultPath = false;
+        serviceConfig = with bins; {
+          ExecStart = "${writeShellScript "foot-server-start" ''
+            theme="$(${darkman} get 2>/dev/null || echo dark)"
+            exec ${foot} --server -o main.initial-color-theme="$theme"
           ''}";
           Restart = "on-failure";
         };
