@@ -143,7 +143,6 @@
           enable = true;
           autoLogin = false;
           role = "administrator";
-          email = "134658831+craole-cc@users.noreply.github.com";
           hashedPassword = "$y$j9T$PJC1IvldG.uplQOvWOf7d.$k9jqsgqFEXJzfc1I4nuvrIOl9z/X3xLBEzvJPExXYoC";
           description = "Craig 'Craole' Cole";
           defaultLocale = "en_GB.UTF-8";
@@ -151,6 +150,41 @@
             layout = "us";
             variant = "";
           };
+
+          git = let
+            settings = {
+              alias = {
+                project-summary = "!which onefetch && onefetch";
+              };
+              credential = {
+                "https://github.com".helper = "!gh auth git-credential";
+                "https://gist.github.com".helper = "!gh auth git-credential";
+              };
+              init = {
+                defaultBranch = "main";
+              };
+              push = {
+                autoSetupRemote = true;
+              };
+              safe = {
+                directory = [args.paths.dots];
+              };
+              url = {
+                "https://github.com/".insteadOf = ["gh:" "github:"];
+              };
+            };
+          in [
+            {
+              name = "craole-cc";
+              email = "134658831+craole-cc@users.noreply.github.com";
+              inherit settings;
+            }
+            {
+              name = "Craole";
+              email = "32288735+Craole@users.noreply.github.com";
+              inherit settings;
+            }
+          ];
           desktop = "plasma";
           launchers = ["vicinae"];
           theme = {
@@ -1430,37 +1464,25 @@ in {
       };
     };
 
-    git = {
-      enable = true;
+    git = let
+      profiles = args.users.principal.git;
+      profile =
+        if isNotEmpty profiles
+        then head profiles
+        else null;
+      hasProfile = profile != null;
+    in {
+      enable = hasProfile;
       lfs = {
         enable = true;
         enablePureSSHTransfer = true;
       };
       prompt.enable = true;
-      config = {
-        alias = {
-          project-summary = "!which onefetch && onefetch";
+      config =
+        profile.settings
+        // {
+          user = mkIf hasProfile {inherit (profile) user email;};
         };
-        credential = {
-          "https://github.com".helper = "!gh auth git-credential";
-          "https://gist.github.com".helper = "!gh auth git-credential";
-        };
-        init = {
-          defaultBranch = "main";
-        };
-        push = {
-          autoSetupRemote = true;
-        };
-        safe = {
-          directory = [args.paths.dots];
-        };
-        url = {
-          "https://github.com/".insteadOf = ["gh:" "github:"];
-        };
-        user = {
-          inherit (args.users.principal) email name;
-        };
-      };
     };
 
     hyprland = {

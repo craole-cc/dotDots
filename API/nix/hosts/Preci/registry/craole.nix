@@ -3,14 +3,21 @@
 
   hashedPassword = "$6$2o3rjHVZgXEuyZ97$PtmQa1PIOmKb6dAwZ0mZJUulAkJoCfj.qjJHgtusfVnIIsHmENcA7q8PV9I2PveOwdEdFWwMBgLu3a5HZavXC1";
 
-  git = [
+  git = let
+    settings = {
+      alias.project-summary = "!which onefetch && onefetch";
+      push.autoSetupRemote = true;
+    };
+  in [
+    {
+      name = "craole-cc";
+      email = "134658831+craole-cc@users.noreply.github.com";
+      inherit settings;
+    }
     {
       name = "Craole";
       email = "32288735+Craole@users.noreply.github.com";
-      settings = {
-        alias.project-summary = "!which onefetch && onefetch";
-        push.autoSetupRemote = true;
-      };
+      inherit settings;
     }
   ];
 
