@@ -141,9 +141,10 @@
           name = admin;
           uid = 1000;
           enable = true;
-          autoLogin = true;
+          autoLogin = false;
           role = "administrator";
           email = "134658831+craole-cc@users.noreply.github.com";
+          hashedPassword = "$y$j9T$PJC1IvldG.uplQOvWOf7d.$k9jqsgqFEXJzfc1I4nuvrIOl9z/X3xLBEzvJPExXYoC";
           description = "Craig 'Craole' Cole";
           defaultLocale = "en_GB.UTF-8";
           keyboard = {
@@ -277,7 +278,7 @@
           _: user:
             {
               description = user.description or user.name;
-              inherit (user) isNormalUser isSystemUser name;
+              inherit (user) hashedPassword isNormalUser isSystemUser name;
               extraGroups =
                 optionals
                 (user.role == "administrator") ["networkmanager" "wheel"];
