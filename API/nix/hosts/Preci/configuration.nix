@@ -654,9 +654,8 @@
         pciutils
         pkg-config
         procps
-        procps
         procs
-        procs
+        pstree
         ripgrep
         rsync
         sad
