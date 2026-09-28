@@ -67,6 +67,7 @@
     src = let
       arch = "x86_64";
       os = "linux";
+      admin = "craole";
     in {
       stateVersion = "26.05";
       system = "${arch}-${os}";
@@ -137,7 +138,7 @@
 
       principals = [
         {
-          name = "craole";
+          name = admin;
           enable = true;
           autoLogin = true;
           role = "administrator";
@@ -207,119 +208,118 @@
         }
       ];
     };
-  in
-    src
-    // {
-      inputs = src.lix.inputs or (src.inputs or (lib.flakes.inputs or null));
-      users = let
-        normalize = user: let
-          home = "/home/${user.name}";
-          shells = user.shells or ["bash"];
-          role = user.role or "normal";
-          isNormalUser = role != "service";
-        in
-          user
-          // {
-            inherit role shells isNormalUser;
-            isSystemUser = !isNormalUser;
-            paths =
-              user.paths or {
-                inherit home;
-                inherit (args.paths.roots) src;
-                cfg = {
-                  source = "${args.paths.roots.src}/Configuration";
-                  target = "${home}/.config";
-                };
-              };
-          }
-          // optionalAttrs isNormalUser {
-            defaultLocale = user.defaultLocale or
-          args.localization.defaultLocale;
-            keyboard =
-              recursiveUpdate {
-                layout = "us";
-                variant = "";
-              }
-              (user.keyboard or {});
-          };
 
-        normalized =
-          mapAttrs
-          (_: normalize) (
-            listToAttrs (
-              map (value: {
-                inherit value;
-                inherit (value) name;
-              })
-              (src.principals or {})
-            )
-          );
-
-        enabled =
-          filterAttrs
-          (_: user: user.enable or false == true)
-          normalized;
-
-        disabled =
-          filterAttrs
-          (_: user: user.enable or false == false)
-          normalized;
-        normal =
-          filterAttrs
-          (_: user: user.isNormalUser)
-          normalized;
-
-        principal = enabled.${head (attrNames enabled)};
-
-        core =
-          mapAttrs
-          (
-            _: user:
-              {
-                description = user.description or user.name;
-                inherit (user) isNormalUser isSystemUser name;
-                extraGroups =
-                  optionals
-                  (user.role == "administrator") ["networkmanager" "wheel"];
-                shell = getAttr (head user.shells) pkgs;
-              }
-              // optionalAttrs (user ? password) {inherit (user) password;}
-              // optionalAttrs (user ? uid) {inherit (user) uid;}
-          )
-          normalized;
-
-        autoLogin = let
-          candidates =
-            filterAttrs
-            (_: user: user.autoLogin or false)
-            normalized;
-          enable = isNotEmpty candidates;
-        in {
-          inherit enable;
-          user =
-            if enable
-            then head (attrNames candidates)
-            else principal.name;
-        };
-      in {inherit enabled disabled normal principal core autoLogin;};
-
-      localization = recursiveUpdate {
-        latitude = 18.015;
-        longitude = -77.49;
-        city = "Mandeville, Jamaica";
-        timeZone = "America/Jamaica";
-        defaultLocale = "en_US.UTF-8";
-      } (src.localization or {});
-
-      paths = let
-        roots = {
-          src = "/home/craole-cc/Projects/dotDots";
-          run = "/etc/nixos";
-        };
-        dots = args.paths.roots.src;
+    inputs = src.lix.inputs or (src.inputs or (lib.flakes.inputs or null));
+    users = let
+      normalize = user: let
+        home = "/home/${user.name}";
+        shells = user.shells or ["bash"];
+        role = user.role or "normal";
+        isNormalUser = role != "service";
       in
-        recursiveUpdate {inherit roots dots;} (src.paths or {});
-    };
+        user
+        // {
+          inherit role shells isNormalUser;
+          isSystemUser = !isNormalUser;
+          paths =
+            user.paths or {
+              inherit home;
+              inherit (args.paths.roots) src;
+              cfg = {
+                source = "${args.paths.roots.src}/Configuration";
+                target = "${home}/.config";
+              };
+            };
+        }
+        // optionalAttrs isNormalUser {
+          defaultLocale = user.defaultLocale or
+          args.localization.defaultLocale;
+          keyboard =
+            recursiveUpdate {
+              layout = "us";
+              variant = "";
+            }
+            (user.keyboard or {});
+        };
+
+      normalized =
+        mapAttrs
+        (_: normalize) (
+          listToAttrs (
+            map (value: {
+              inherit value;
+              inherit (value) name;
+            })
+            (src.principals or {})
+          )
+        );
+
+      enabled =
+        filterAttrs
+        (_: user: user.enable or false == true)
+        normalized;
+
+      disabled =
+        filterAttrs
+        (_: user: user.enable or false == false)
+        normalized;
+      normal =
+        filterAttrs
+        (_: user: user.isNormalUser)
+        normalized;
+
+      principal = enabled.${head (attrNames enabled)};
+
+      core =
+        mapAttrs
+        (
+          _: user:
+            {
+              description = user.description or user.name;
+              inherit (user) isNormalUser isSystemUser name;
+              extraGroups =
+                optionals
+                (user.role == "administrator") ["networkmanager" "wheel"];
+              shell = getAttr (head user.shells) pkgs;
+            }
+            // optionalAttrs (user ? password) {inherit (user) password;}
+            // optionalAttrs (user ? uid) {inherit (user) uid;}
+        )
+        normalized;
+
+      autoLogin = let
+        candidates =
+          filterAttrs
+          (_: user: user.autoLogin or false)
+          normalized;
+        enable = isNotEmpty candidates;
+      in {
+        inherit enable;
+        user =
+          if enable
+          then head (attrNames candidates)
+          else principal.name;
+      };
+    in {inherit enabled disabled normal principal core autoLogin;};
+
+    localization = recursiveUpdate {
+      latitude = 18.015;
+      longitude = -77.49;
+      city = "Mandeville, Jamaica";
+      timeZone = "America/Jamaica";
+      defaultLocale = "en_US.UTF-8";
+    } (src.localization or {});
+
+    paths = let
+      roots = {
+        src = "/home/${users.principal}/Projects/dotDots";
+        run = "/etc/nixos";
+      };
+      dots = args.paths.roots.src;
+    in
+      recursiveUpdate {inherit roots dots;} (src.paths or {});
+  in
+    src // {inherit inputs users paths localization;};
 
   sources = let
     inherit (args) inputs;
