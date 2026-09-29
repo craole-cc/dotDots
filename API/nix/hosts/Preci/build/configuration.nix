@@ -1342,6 +1342,8 @@
                   fi
                 '')
                 vscode.configDirs}
+
+              ${bins.systemctl} --user try-restart --no-block plasma-plasmashell.service || true
             '';
 
             themeHook = let
