@@ -1314,7 +1314,7 @@
               done
 
               if ${bins.systemctl} --user is-active --quiet plasma-plasmashell.service; then
-                ${bins.plasma-apply-colorscheme} ${theme.kde}
+                ${bins.plasma-apply-colorscheme} ${theme.kde} >/dev/null 2>&1 || true
               fi
 
               ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
@@ -1337,13 +1337,15 @@
                   fi
                 '')
                 vscode.configDirs}
-              ${bins.systemctl} --user try-restart plasma-plasmashell.service
             '';
 
             themeHook = let
               name = "darkman-theme-hook";
             in "${writeShellApplication {
               inherit name;
+              # Theme backends are independent: a missing GUI/session backend
+              # must not prevent GTK, VS Code, foot, etc. from updating.
+              bashOptions = [];
               text = ''
                 user="$(whoami)"
                 mode="''${1:-}"
@@ -1970,7 +1972,9 @@ in {
     user.services = {
       darkman = {
         description = "Dark/light mode switch daemon";
-        wantedBy = ["default.target"];
+        wantedBy = ["graphical-session.target"];
+        partOf = ["graphical-session.target"];
+        after = ["graphical-session.target"];
         environment = with host.localization; {
           DARKMAN_LAT = toString latitude;
           DARKMAN_LNG = toString longitude;
@@ -1983,8 +1987,9 @@ in {
 
       foot-server = {
         description = "foot terminal server";
-        wantedBy = ["default.target"];
-        after = ["darkman.service"];
+        wantedBy = ["graphical-session.target"];
+        partOf = ["graphical-session.target"];
+        after = ["graphical-session.target" "darkman.service"];
         wants = ["darkman.service"];
         enableDefaultPath = false;
         serviceConfig = with bins; {
