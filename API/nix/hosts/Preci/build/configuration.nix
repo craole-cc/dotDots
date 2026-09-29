@@ -310,6 +310,10 @@
       name = "systemctl";
       pkg = "systemd";
     }
+    {
+      name = "timeout";
+      pkg = "coreutils";
+    }
   ];
 
   host = let
@@ -1315,7 +1319,7 @@
               done
 
               if ${bins.systemctl} --user is-active --quiet plasma-plasmashell.service; then
-                ${bins.plasma-apply-colorscheme} ${theme.kde} >/dev/null 2>&1 || true
+                ${bins.timeout} 5s ${bins.plasma-apply-colorscheme} ${theme.kde} >/dev/null 2>&1 || true
               fi
 
               ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
