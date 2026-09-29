@@ -1562,6 +1562,10 @@ in {
   };
 
   environment = {
+    etc."xdg/darkman/config.yaml".text = with host.localization; ''
+      lat: ${toString latitude}
+      lng: ${toString longitude}
+    '';
     pathsToLink = mkIf host.interface.isPlasma ["/share/konsole"];
     plasma6.excludePackages = with pkgs.kdePackages; [
       khelpcenter
@@ -1989,10 +1993,6 @@ in {
         wantedBy = ["graphical-session.target"];
         partOf = ["graphical-session.target"];
         after = ["graphical-session.target"];
-        environment = with host.localization; {
-          DARKMAN_LAT = toString latitude;
-          DARKMAN_LNG = toString longitude;
-        };
         serviceConfig = {
           ExecStart = "${bins.darkman} run";
           Restart = "on-failure";
