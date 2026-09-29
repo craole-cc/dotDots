@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate;
+  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate removeAttrs;
   inherit (lib.lists) concatMap flatten head intersectLists isList optional optionals toList unique;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.trivial) div fromHexString;
@@ -534,22 +534,17 @@
           stem = "users";
         };
       };
-      mkPaths = root: let
+      mkPaths = base: let
         paths =
-          {repo = root;}
+          {repo = base;}
           // mapAttrs (
             _: {
-              root ? null,
+              root,
               stem ? [],
             }:
-              mkPath (
-                if isEmpty root
-                then paths.repo
-                else paths.${root}
-              )
-              stem
+              mkPath paths.${root} stem
           )
-          stems;
+          (removeAttrs stems ["repo"]);
       in
         paths;
 
