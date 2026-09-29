@@ -1321,8 +1321,8 @@
               ${bins.kwriteconfig} --file yakuakerc  --group "Desktop Entry" --key DefaultProfile "${konsole.file}"
               ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
 
-              for terminal in $(${bins.busctl} --user call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${bins.sed} 's/^s "//; s/"$//; s/,/ /g'); do
-                ${bins.busctl} --user call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
+              for terminal in $(${bins.busctl} --user --timeout=2s call org.kde.yakuake /yakuake/sessions org.kde.yakuake terminalIdList 2>/dev/null | ${bins.sed} 's/^s "//; s/"$//; s/,/ /g'); do
+                ${bins.busctl} --user --timeout=2s call org.kde.yakuake /Sessions/$((terminal + 1)) org.kde.konsole.Session setProfile s "${konsole.name}" >/dev/null 2>&1 || true
               done
 
               if ${bins.systemctl} --user is-active --quiet plasma-plasmashell.service; then
