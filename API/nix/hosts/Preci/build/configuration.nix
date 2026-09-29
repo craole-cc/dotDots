@@ -194,11 +194,11 @@
       mkNixPkgs = {
         host ? {},
         system ?
-          host.system or (
-            throw "mkNixPkgs: 'system' or 'host.system' must be provided."
+          host.args.system or (
+            throw "mkNixPkgs: 'system' or 'host.args.system' must be provided."
           ),
         extraOverlays ? [],
-        config ? host.config.nixpkgs or {allowUnfree = true;},
+        config ? host.args.config.nixpkgs or {allowUnfree = true;},
       }:
         import inputs.nixpkgs.path {
           inherit system config;
@@ -207,7 +207,7 @@
             (isNotEmpty extraOverlays)
             extraOverlays
             ++ optional
-            (host.functionalities.rust or false)
+            (builtins.elem "rust" (host.args.functionalities or []))
             overlays.rust-overlay;
         };
 
@@ -856,8 +856,8 @@
       };
 
     variables = let
-      inherit (host) name;
-      inherit (host.paths) local store;
+      name = args.name;
+      inherit (paths) local store;
       inherit (users) principal;
       stems = {
         cfg = "/Configuration";
@@ -877,8 +877,8 @@
       DOTS_STORE_HOSTS = store.hosts;
       "DOTS_LOCAL_HOST_${HOST}" = local.host;
       "DOTS_STORE_HOST_${HOST}" = store.host;
-      DOTS_STORE_CFG = env.DOTS_STORE + stems.cfg;
-      DOTS_LOCAL_CFG = env.DOTS_LOCAL + stems.cfg;
+      DOTS_STORE_CFG = store.cfg;
+      DOTS_LOCAL_CFG = local.cfg;
 
       #~@ Inputs
       # REV_URL_CORE = sources.revision.nixpkgs.url;
@@ -998,9 +998,6 @@
           gh
           gitui
           glib
-          glib
-          glib
-          gnused
           gnused
           gum
           helix
@@ -1141,7 +1138,7 @@
               pname = "buuf-nestort";
             in {
               version = "2026-07-29";
-              src = inputs.${pname}or null;
+              src = inputs.${pname}.path or null;
               dontBuild = true;
               dontFixup = true;
               installPhase = ''
@@ -1164,7 +1161,7 @@
               mkDerivation {
                 inherit pname;
                 version = "3b64040";
-                src = inputs.${pname} or null;
+                src = inputs.${pname}.path or null;
                 dontBuild = true;
                 dontFixup = true;
                 installPhase = ''
@@ -1739,7 +1736,7 @@ in {
       enable = true;
       transientPrompt.enable = true;
       settings = fromTOML (readFile (
-        mkPath host.paths.cfg ["starship" "config.toml"]
+        mkPath host.paths.local.cfg ["starship" "config.toml"]
       ));
     };
   };
@@ -1854,7 +1851,7 @@ in {
         text = let
           mkProfile = user: mode: let
             flavor = host.aesthetics.users.${user.name}.theme.${mode}.flavor;
-            destDir = "${user.paths.home}/.local/share/konsole";
+            destDir = "${user.paths.roots.home}/.local/share/konsole";
             destFile = "${destDir}/Catppuccin-${capitalize mode}.profile";
             content = writeText "catppuccin-${mode}-${user.name}.profile" ''
               [Appearance]
@@ -1931,7 +1928,7 @@ in {
         home = {
           inherit (host.args) stateVersion;
           username = name;
-          homeDirectory = user.paths.home;
+          homeDirectory = user.paths.roots.home;
           #~@ Home Manager mirrors the user's selected shell/dev tooling,
           #~@ while the native NixOS profile remains a usable fallback.
           packages = flatten (with host.packages; (
