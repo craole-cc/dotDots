@@ -120,7 +120,7 @@
           if fromFlake
           then flakeInput
           else if source.flake or false
-          then builtins.getFlake (toString path)
+          then builtins.getFlake (builtins.unsafeDiscardStringContext (toString path))
           else path;
       in
         source
