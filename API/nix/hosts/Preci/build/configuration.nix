@@ -1205,19 +1205,21 @@
           icons = {
             buuf-nestort = let
               pname = "buuf-nestort";
-            in {
-              version = "2026-07-29";
-              src = pkgs.fetchgit {inherit (inputs.${pname}) url rev hash;};
-              dontBuild = true;
-              dontFixup = true;
-              installPhase = ''
-                mkdir -p $out/share/icons/${pname}
-                cp -r . $out/share/icons/${pname}
-                chmod -R u+w $out/share/icons/${pname}
-                sed -i 's/^Inherits=.*/Inherits=oxygen,breeze,Adwaita,hicolor/' \
-                  $out/share/icons/${pname}/index.theme
-              '';
-            };
+            in
+              mkDerivation {
+                inherit pname;
+                version = "2026-07-29";
+                src = pkgs.fetchgit {inherit (inputs.${pname}) url rev hash;};
+                dontBuild = true;
+                dontFixup = true;
+                installPhase = ''
+                  mkdir -p $out/share/icons/${pname}
+                  cp -r . $out/share/icons/${pname}
+                  chmod -R u+w $out/share/icons/${pname}
+                  sed -i 's/^Inherits=.*/Inherits=oxygen,breeze,Adwaita,hicolor/' \
+                    $out/share/icons/${pname}/index.theme
+                '';
+              };
 
             "catppuccin-konsole" = let
               pname = "catppuccin-konsole";
