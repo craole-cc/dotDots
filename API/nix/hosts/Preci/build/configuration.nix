@@ -292,7 +292,7 @@
     os = "linux";
     admin = "craole";
 
-    src = {
+    args = {
       stateVersion = "26.05";
       system = "${arch}-${os}";
       class = "nixos";
@@ -475,17 +475,6 @@
     };
 
     paths = let
-      roots = {
-        local =
-          src.paths.repo or (throw ''
-            'paths.roots.repo must be set to the local clone of the dotDots repository'
-          '');
-        store =
-          inputs.dotDots or (throw ''
-            'must be set to the input source of the dotDots repository'
-          '');
-      };
-
       stems = {
         repo = {
           root = null;
@@ -495,12 +484,20 @@
           root = "repo";
           stem = ["API" "nix"];
         };
-        build = {
+        lib = {
+          root = "repo";
+          stem = ["libraries"];
+        };
+        host = {
           root = "hosts";
-          stem = [src.name "build"];
+          stem = args.name;
+        };
+        build = {
+          root = "host";
+          stem = "build";
         };
         cfg = {
-          root = "";
+          root = "repo";
           stem = "Configuration";
         };
         hosts = {
@@ -512,23 +509,34 @@
           stem = "users";
         };
       };
-      #TODO: We need a build paths that create complete local and store paths
-      local = {};
-      store = {};
-      #TODO: define the default based on when we would nee local vs store
-      default = {};
+      mkPaths = root: let
+        paths =
+          {repo = root;}
+          // mapAttrs (
+            _: {
+              root ? null,
+              stem ? [],
+            }:
+              mkPath (
+                if isEmpty root
+                then paths.repo
+                else paths.${root}
+              )
+              stem
+          )
+          stems;
+      in
+        paths;
+
+      local = mkPaths (args.paths.repo or (throw ''
+        'args.paths.repo is required to build local paths; set it to the local dotDots repository checkout.'
+      ''));
+      store = mkPaths (inputs.dotDots or (throw ''
+        'inputs.dotDots is required to build store paths; add the dotDots repository as a flake input.'
+      ''));
+      default = local;
     in
       default // {inherit local store;};
-    # recursiveUpdate (with srcPaths; {
-    #   api = mkPath repo ["API" "nix"];
-    #   base = mkPath path.hosts [src.name "build"];
-    #   build = paths.base;
-    #   cfg = mkPath repo "Configuration";
-    #   dots = repo;
-    #   hosts = mkPath paths.api "hosts";
-    #   users = mkPath paths.api "users";
-    # })
-    # srcPaths;
 
     localization = recursiveUpdate {
       latitude = 18.015;
@@ -536,7 +544,7 @@
       city = "Mandeville, Jamaica";
       timeZone = "America/Jamaica";
       defaultLocale = "en_US.UTF-8";
-    } (src.localization or {});
+    } (args.localization or {});
 
     users = let
       normalize = user: let
@@ -552,7 +560,7 @@
           paths =
             user.paths or {
               inherit home;
-              inherit (src.paths.roots) src;
+              inherit (args.paths.roots) src;
               cfg = {
                 source = paths.roots.cfg;
                 target = "${home}/.config";
@@ -579,7 +587,7 @@
               inherit value;
               inherit (value) name;
             })
-            (src.principals or [])
+            (args.principals or [])
           )
         );
 
@@ -632,7 +640,7 @@
     in {inherit enabled disabled normal principal core autoLogin;};
 
     interface = let
-      normalized = map toLower (src.interface.desktops or []);
+      normalized = map toLower (args.interface.desktops or []);
 
       aliases = {
         plasma = ["plasma" "plasma6" "kde"];
@@ -671,7 +679,7 @@
         isNotEmpty
         (intersectLists aliases.${desktop} normalized);
     in
-      recursiveUpdate (src.interface or {}) {
+      recursiveUpdate (args.interface or {}) {
         inherit protocols;
 
         boot.loader =
@@ -680,7 +688,7 @@
             device = "nodev";
             timeout = 1;
           }
-          (src.interface.boot.loader or {});
+          (args.interface.boot.loader or {});
 
         isBspwm = isRequired "bspwm";
         isCosmic = isRequired "cosmic";
@@ -755,8 +763,8 @@
       };
 
     variables = let
-      inherit (src) name;
-      inherit paths;
+      inherit (host) name;
+      inherit (host.paths) local store;
       inherit (users) principal;
       stems = {
         cfg = "/Configuration";
@@ -767,14 +775,14 @@
       HOST = name;
     in {
       #~@ Paths
-      DOTS_STORE = dotDots;
-      DOTS_LOCAL = paths.roots.src;
-      DOTS_BUILD = paths.roots.build;
-      DOTS = env.DOTS_LOCAL;
+      DOTS = local.repo;
+      DOTS_STORE = store.repo;
+      DOTS_LOCAL = local.repo;
+      DOTS_BUILD = local.build;
       DOTS_HOSTS = env.DOTS_LOCAL_HOSTS;
-      DOTS_LOCAL_HOSTS = env.DOTS_LOCAL + stems.hosts;
-      DOTS_STORE_HOSTS = env.DOTS_STORE + stems.hosts;
-      "DOTS_LOCAL_HOST_${HOST}" = env.DOTS_LOCAL_HOSTS + stems.host;
+      DOTS_LOCAL_HOSTS = local.hosts;
+      DOTS_STORE_HOSTS = store.hosts;
+      "DOTS_LOCAL_HOST_${HOST}" = store.host;
       "DOTS_STORE_HOST_${HOST}" = env.DOTS_STORE_HOSTS + stems.host;
       DOTS_STORE_CFG = env.DOTS_STORE + stems.cfg;
       DOTS_LOCAL_CFG = env.DOTS_LOCAL + stems.cfg;
@@ -826,8 +834,7 @@
           (let
             name = "pwshfmt";
             formatter = let
-              script = mkPath sources.dots [
-                "Libraries"
+              script = mkPath paths.store.lib [
                 "powershell"
                 "Admin"
                 "pwshfmt.ps1"
@@ -995,8 +1002,7 @@
             runtimeInputs = [shellcheck shfmt];
             text = ''
               ${readFile (
-                mkPath sources.dots [
-                  "Libraries"
+                mkPath paths.store.lib [
                   "posix"
                   "project"
                   "formatters"
@@ -1259,8 +1265,7 @@
 
               export ${concatStringsSep " " exported}
 
-              ${readFile (mkPath dotDots [
-                "Libraries"
+              ${readFile (mkPath paths.store.lib [
                 "posix"
                 "interface"
                 "theme"
@@ -1302,8 +1307,7 @@
                     (filterAttrs (_: isString) variables))
                 }
                 ${
-                  readFile (mkPath dotDots [
-                    "Libraries"
+                  readFile (mkPath paths.store.lib [
                     "posix"
                     "packages"
                     "manager"
@@ -1325,7 +1329,7 @@
     };
   in {
     inherit
-      src
+      args
       paths
       localization
       users
@@ -1364,7 +1368,7 @@ in {
     };
 
     kernelPackages =
-      pkgs.${host.src.packages.kernel or "linuxPackages_latest"};
+      pkgs.${host.args.packages.kernel or "linuxPackages_latest"};
   };
 
   catppuccin = {
@@ -1446,8 +1450,8 @@ in {
   };
 
   networking = {
-    hostName = host.src.name;
-    hostId = host.src.id;
+    hostName = host.args.name;
+    hostId = host.args.id;
     networkmanager.enable = true;
   };
 
@@ -1506,16 +1510,14 @@ in {
           term = "xterm-256color";
           include = let
             dirs = {
-              config = let
-                stems = ["Configuration" "foot"];
-              in {
-                local = mkPath host.paths.roots.src stems;
-                store = mkPath dotDots stems;
+              config = with host.paths; {
+                local = mkPath local.cfg "foot";
+                store = mkPath store.cfg "foot";
               };
 
               themes = {
                 pkgs = mkPath pkgs.foot.themes ["share" "foot" "themes"];
-                dots = mkPath dirs.config.local ["themes"];
+                dots = mkPath dirs.config.local "themes";
               };
             };
 
@@ -1535,7 +1537,7 @@ in {
               name = "light.ini";
               from = "dots";
             })
-            (mkPath dirs.config.local ["config.ini"])
+            (mkPath dirs.config.local "config.ini")
           ];
         };
         mouse = {
