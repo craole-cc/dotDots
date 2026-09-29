@@ -1678,7 +1678,7 @@ in {
 
     foot = {
       enable = true;
-      xdg.serverAutostart = false;
+      xdg.serverAutostart = true;
       settings = {
         main = {
           dpi-aware = "yes";
@@ -1999,21 +1999,6 @@ in {
         };
       };
 
-      foot-server = {
-        description = "foot terminal server";
-        wantedBy = ["graphical-session.target"];
-        partOf = ["graphical-session.target"];
-        after = ["graphical-session.target" "darkman.service"];
-        wants = ["darkman.service"];
-        enableDefaultPath = false;
-        serviceConfig = with bins; {
-          ExecStart = "${writeShellScript "foot-server-start" ''
-            theme="$(${darkman} get 2>/dev/null || echo dark)"
-            exec ${foot} --server -o main.initial-color-theme="$theme"
-          ''}";
-          Restart = "on-failure";
-        };
-      };
     };
   };
 
@@ -2038,8 +2023,7 @@ in {
           #~@ Home Manager mirrors the user's selected shell/dev tooling,
           #~@ while the native NixOS profile remains a usable fallback.
           packages = flatten (with host.packages; (
-            forInterface
-            ++ (map (app: pkgs.${app}) (user.apps or []))
+            (map (app: pkgs.${app}) (user.apps or []))
             ++ (map (env: forShells.${env} or []) user.shells)
             ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
           ));
