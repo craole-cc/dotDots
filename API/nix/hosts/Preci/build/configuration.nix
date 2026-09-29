@@ -1141,6 +1141,32 @@
         ];
       };
 
+      catppuccinKonsole = let
+        pname = "catppuccin-konsole";
+        flavors = unique (
+          concatMap
+          (user: with user.theme; [dark.flavor light.flavor])
+          (attrValues aesthetics.users)
+        );
+      in
+        mkDerivation {
+          inherit pname;
+          version = "3b64040";
+          src = pkgs.fetchFromGitHub {inherit (inputs.${pname}) owner repo rev hash;};
+          dontBuild = true;
+          dontFixup = true;
+          installPhase = ''
+            mkdir -p $out/share/konsole
+            ${
+              concatMapStringsSep "\n" (flavor: ''
+                cp "$(find . -iname '*${flavor}*.colorscheme' | head -n1)" \
+                  $out/share/konsole/Catppuccin-${capitalize flavor}.colorscheme
+              '')
+              flavors
+            }
+          '';
+        };
+
       forInterface =
         (with pkgs; [adwaita-icon-theme darkman])
         ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
@@ -1161,7 +1187,7 @@
           kconfig
           koi
           plasma-workspace
-          sources.catppuccin-konsole
+          catppuccinKonsole
           yakuake
         ])
         ++ map
@@ -1171,7 +1197,7 @@
               pname = "buuf-nestort";
             in {
               version = "2026-07-29";
-              src = inputs.${pname}.path or null;
+              src = pkgs.fetchgit {inherit (inputs.${pname}) url rev hash;};
               dontBuild = true;
               dontFixup = true;
               installPhase = ''
@@ -1194,7 +1220,7 @@
               mkDerivation {
                 inherit pname;
                 version = "3b64040";
-                src = inputs.${pname}.path or null;
+                src = pkgs.fetchFromGitHub {inherit (inputs.${pname}) owner repo rev hash;};
                 dontBuild = true;
                 dontFixup = true;
                 installPhase = ''
