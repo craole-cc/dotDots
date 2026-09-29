@@ -7,6 +7,7 @@
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate;
   inherit (lib.lists) concatMap flatten head intersectLists isList optional optionals toList unique;
   inherit (lib.modules) mkForce mkIf;
+  inherit (lib.trivial) div fromHexString;
   inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg isString readFile splitString stringLength substring toLower toUpper trim;
   inherit (lix.fetchers) mkGitHubSource fetchModule fetchSource;
   inherit (lix.attrsets) mkBin mkBins;
@@ -59,7 +60,8 @@
         else if inputs ? ${name}
         then inputs.${name}.nixosModules.${name} or inputs.${name}
         else let
-          fetched = fetchSource sources.${name};
+          fetched =
+            sources.${name}.path or (fetchSource sources.${name});
         in
           if path != null
           then import "${fetched}/${path}"
@@ -104,10 +106,19 @@
 
       `dots` is intentionally unpinned so the local repo can move freely.
       */
-      resolve = name: source:
-        if flakeInputs ? ${name}
-        then flakeInputs.${name} // {fromFlake = true;}
-        else (fetchSource source) // {fromFlake = false;};
+      resolve = name: source: let
+        fromFlake = flakeInputs != null && flakeInputs ? ${name};
+        flakeInput = if fromFlake then flakeInputs.${name} else null;
+        path =
+          if fromFlake
+          then flakeInput.outPath or flakeInput
+          else fetchSource source;
+      in
+        source
+        // {
+          inherit fromFlake path;
+          value = if fromFlake then flakeInput else path;
+        };
     in
       mapAttrs resolve {
         nixpkgs = mkGitHubSource {
@@ -166,7 +177,7 @@
       };
 
     overlays = {
-      inherit (inputs) rust-overlay;
+      rust-overlay = import inputs.rust-overlay.path;
     };
 
     modules = let
@@ -178,7 +189,7 @@
           });
     in {
       inherit fetchModule resolveModule;
-      inherit (inputs) dotDots;
+      dotDots = inputs.dotDots.path;
 
       mkNixPkgs = {
         host ? {},
@@ -189,7 +200,7 @@
         extraOverlays ? [],
         config ? host.config.nixpkgs or {allowUnfree = true;},
       }:
-        import inputs.nixpkgs {
+        import inputs.nixpkgs.path {
           inherit system config;
           overlays =
             optionals
@@ -218,7 +229,14 @@
 
     strings = {
       capitalize = str: toUpper (substring 0 1 str) + substring 1 (-1) str;
-      mkPath = root: stems: root + "/" + (concatStringsSep "/" stems);
+      mkPath = root: stems:
+        concatStringsSep "/" (
+          map toString (
+            builtins.filter isNotEmpty (
+              (toList root) ++ (toList stems)
+            )
+          )
+        );
     };
 
     trivial = {
@@ -291,6 +309,7 @@
     arch = "x86_64";
     os = "linux";
     admin = "craole";
+    repo = "/home/${admin}/Projects/dotDots";
 
     args = {
       stateVersion = "26.05";
@@ -307,11 +326,9 @@
         };
       };
       paths = {
-        roots = let
-          repo = "/home/${admin}/Projects/dotDots";
-        in {
+        roots = {
           inherit repo;
-          build = "/etc/nixos";
+          run = "/etc/nixos";
         };
       };
       localization = {
@@ -365,11 +382,10 @@
       principals = [
         {
           name = admin;
-          uid = 1000; #TODO: Can I change my uid. Remember that we hash the uid in the schema
+          uid = 1000; # Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
           enable = true;
           autoLogin = false;
           role = "administrator";
-          hashedPassword = "$y$j9T$PJC1IvldG.uplQOvWOf7d.$k9jqsgqFEXJzfc1I4nuvrIOl9z/X3xLBEzvJPExXYoC";
           description = "Craig 'Craole' Cole";
           defaultLocale = "en_GB.UTF-8";
           keyboard = {
@@ -393,7 +409,10 @@
                 autoSetupRemote = true;
               };
               safe = {
-                directory = [paths.dots];
+                directory = [repo];
+              };
+              user = {
+                useConfigOnly = true;
               };
               url = {
                 "https://github.com/".insteadOf = ["gh:" "github:"];
@@ -486,7 +505,7 @@
         };
         lib = {
           root = "repo";
-          stem = ["libraries"];
+          stem = ["Libraries"];
         };
         host = {
           root = "hosts";
@@ -528,15 +547,20 @@
       in
         paths;
 
-      local = mkPaths (args.paths.repo or (throw ''
-        'args.paths.repo is required to build local paths; set it to the local dotDots repository checkout.'
+      local = mkPaths (args.paths.roots.repo or (throw ''
+        'args.paths.roots.repo is required to build local paths; set it to the local dotDots repository checkout.'
       ''));
-      store = mkPaths (inputs.dotDots or (throw ''
-        'inputs.dotDots is required to build store paths; add the dotDots repository as a flake input.'
+      store = mkPaths (inputs.dotDots.path or (throw ''
+        'inputs.dotDots.path is required to build store paths.'
       ''));
       default = local;
     in
-      default // {inherit local store;};
+      default
+      // {
+        inherit local store;
+        roots = args.paths.roots;
+        run = args.paths.roots.run;
+      };
 
     localization = recursiveUpdate {
       latitude = 18.015;
@@ -547,36 +571,103 @@
     } (args.localization or {});
 
     users = let
+      #? Explicit UIDs are stable pins; missing UIDs are deterministically
+      #? derived from role + name, matching the developed user schema.
+      uidRanges = {
+        administrator = {min = 1000; max = 59999;};
+        normal = {min = 1000; max = 59999;};
+        user = {min = 1000; max = 59999;};
+        guest = {min = 1000; max = 59999;};
+        service = {min = 400; max = 999;};
+      };
+
+      seedUid = {
+        role,
+        name,
+        range,
+      }: let
+        hash = builtins.hashString "sha256" "${role}:${name}";
+        seed = fromHexString (substring 0 8 hash);
+        span = range.max - range.min + 1;
+        remainder = seed - span * (div seed span);
+      in
+        range.min + remainder;
+
+      resolveUid = {
+        role,
+        name,
+        uid ? null,
+      }: let
+        range = uidRanges.${role} or uidRanges.user;
+      in
+        if uid != null
+        then uid
+        else seedUid {inherit role name range;};
+
       normalize = user: let
-        home = user.paths.roots.home or "/home/${user.name}";
-        shells = user.shells or ["bash"];
         role = user.role or "normal";
         isNormalUser = role != "service";
+        uid = resolveUid {
+          inherit role;
+          inherit (user) name;
+          uid = user.uid or null;
+        };
+
+        requestedPaths = user.paths or {};
+        requestedRoots = requestedPaths.roots or {};
+        home = requestedRoots.home or "/home/${user.name}";
+
+        userLocalization =
+          recursiveUpdate
+          localization
+          (
+            (user.localization or {})
+            // optionalAttrs (user ? defaultLocale) {
+              inherit (user) defaultLocale;
+            }
+          );
+
+        userInterface = user.interface or {};
+        keyboard =
+          recursiveUpdate
+          {
+            layout = "us";
+            variant = "";
+          }
+          (userInterface.keyboard or (user.keyboard or {}));
+
+        userPackages = user.packages or {};
+        shells = userPackages.shells or user.shells or ["bash"];
+        coding = userPackages.common or user.coding or [];
+        launchers = userPackages.launchers or user.launchers or [];
+        apps = (user.applications.allowed or []) ++ (user.apps or []);
+
+        resolvedPaths =
+          recursiveUpdate
+          {
+            roots.home = home;
+            cfg = {
+              source = paths.local.cfg;
+              target = "${home}/.config";
+            };
+          }
+          requestedPaths;
       in
         user
         // {
-          inherit role shells isNormalUser;
+          inherit role uid shells coding launchers apps isNormalUser keyboard;
           isSystemUser = !isNormalUser;
-          paths =
-            user.paths or {
-              inherit home;
-              inherit (args.paths.roots) src;
-              cfg = {
-                source = paths.roots.cfg;
-                target = "${home}/.config";
-              };
+          paths = resolvedPaths;
+          localization = userLocalization;
+          defaultLocale = userLocalization.defaultLocale;
+          interface = recursiveUpdate userInterface {inherit keyboard;};
+          packages =
+            recursiveUpdate
+            userPackages
+            {
+              inherit shells launchers;
+              common = coding;
             };
-        }
-        // optionalAttrs isNormalUser {
-          defaultLocale =
-            user.localization.defaultLocale or
-            localization.defaultLocale;
-          keyboard =
-            recursiveUpdate {
-              layout = "us";
-              variant = "";
-            }
-            (user.keyboard or {});
         };
 
       normalized =
@@ -613,14 +704,16 @@
           _: user:
             {
               description = user.description or user.name;
-              inherit (user) hashedPassword isNormalUser isSystemUser name;
+              inherit (user) isNormalUser isSystemUser name uid;
+              home = user.paths.roots.home;
               extraGroups =
                 optionals
                 (user.role == "administrator") ["networkmanager" "wheel"];
               shell = getAttr (head user.shells) pkgs;
             }
+            // optionalAttrs (user ? hashedPassword) {inherit (user) hashedPassword;}
+            // optionalAttrs (user ? hashedPasswordFile) {inherit (user) hashedPasswordFile;}
             // optionalAttrs (user ? password) {inherit (user) password;}
-            // optionalAttrs (user ? uid) {inherit (user) uid;}
         )
         normalized;
 
@@ -778,12 +871,12 @@
       DOTS = local.repo;
       DOTS_STORE = store.repo;
       DOTS_LOCAL = local.repo;
-      DOTS_BUILD = local.build;
+      DOTS_BUILD = paths.run;
       DOTS_HOSTS = env.DOTS_LOCAL_HOSTS;
       DOTS_LOCAL_HOSTS = local.hosts;
       DOTS_STORE_HOSTS = store.hosts;
-      "DOTS_LOCAL_HOST_${HOST}" = store.host;
-      "DOTS_STORE_HOST_${HOST}" = env.DOTS_STORE_HOSTS + stems.host;
+      "DOTS_LOCAL_HOST_${HOST}" = local.host;
+      "DOTS_STORE_HOST_${HOST}" = store.host;
       DOTS_STORE_CFG = env.DOTS_STORE + stems.cfg;
       DOTS_LOCAL_CFG = env.DOTS_LOCAL + stems.cfg;
 
@@ -807,9 +900,8 @@
     };
 
     packages = let
-      #? Per-shell packages, pulled into a user's own profile (home.packages)
-      #? based on that user's `shells` list in default.nix — never installed
-      #? system-wide.
+      #? Per-shell packages are included in the native system fallback and may
+    #? also be selected into a user's Home Manager profile.
       forShells = {
         bash = with pkgs; [bash];
         fish = with pkgs; [fish];
@@ -878,9 +970,8 @@
         zsh = with pkgs; [zsh zi];
       };
 
-      #? Per-language/tooling packages, pulled into a user's own profile
-      #? (home.packages) based on that user's `coders` list in default.nix —
-      #? never installed system-wide. Add new categories here as needed.
+      #? Per-language/tooling packages are available in the native system
+    #? fallback; Home Manager may additionally select them per user.
       forCoding = {
         common = with pkgs; [
           bat
@@ -1021,7 +1112,7 @@
       };
 
       forInterface =
-        (with pkgs; [adwaita-icon-theme])
+        (with pkgs; [adwaita-icon-theme darkman])
         ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
           mpvc
           mpv
@@ -1517,7 +1608,7 @@ in {
 
               themes = {
                 pkgs = mkPath pkgs.foot.themes ["share" "foot" "themes"];
-                dots = mkPath dirs.config.local "themes";
+                dots = mkPath dirs.config.store "themes";
               };
             };
 
@@ -1537,7 +1628,7 @@ in {
               name = "light.ini";
               from = "dots";
             })
-            (mkPath dirs.config.local "config.ini")
+            (mkPath dirs.config.store "config.ini")
           ];
         };
         mouse = {
@@ -1547,25 +1638,36 @@ in {
     };
 
     git = let
-      profiles = host.users.principal.git;
-      profile =
-        if isNotEmpty profiles
-        then head profiles
-        else null;
-      hasProfile = profile != null;
+      user = host.users.principal;
+      git = user.git or {};
+      profiles = git.profiles or [];
+      profileIncludes =
+        listToAttrs (
+          map
+          (profile: {
+            name = "gitdir:${user.paths.roots.home}/Projects/${profile.root}/";
+            value = {
+              path = writeText "git-profile-${profile.id}.gitconfig" ''
+                [user]
+                  name = ${profile.name}
+                  email = ${profile.email}
+              '';
+            };
+          })
+          profiles
+        );
     in {
-      enable = hasProfile;
+      enable = true;
       lfs = {
         enable = true;
         enablePureSSHTransfer = true;
       };
-      prompt = {
-        enable = true;
-      };
-      config = mkIf hasProfile (
-        profile.settings
-        // {user = {inherit (profile) user email;};}
-      );
+      prompt.enable = true;
+      config =
+        (git.settings or {})
+        // optionalAttrs (isNotEmpty profileIncludes) {
+          includeIf = profileIncludes;
+        };
     };
 
     hyprland = {
@@ -1614,7 +1716,7 @@ in {
         enable = true;
         extraArgs = "--keep-since 7d --keep 3";
       };
-      flake = host.paths.dots;
+      flake = host.paths.local.repo;
     };
 
     niri = {
@@ -1746,7 +1848,7 @@ in {
   };
 
   system = {
-    inherit (host) stateVersion;
+    inherit (host.args) stateVersion;
     activationScripts = {
       konsole = {
         text = let
@@ -1827,32 +1929,17 @@ in {
     users =
       mapAttrs (name: user: {
         home = {
-          inherit (host) stateVersion;
+          inherit (host.args) stateVersion;
           username = name;
           homeDirectory = user.paths.home;
-          #~@ Shell/dev tooling lives in the user's own profile, opted into
-          #~@ via `shells`/`codes` in default.nix, rather than system-wide.
+          #~@ Home Manager mirrors the user's selected shell/dev tooling,
+          #~@ while the native NixOS profile remains a usable fallback.
           packages = flatten (with host.packages; (
             forInterface
             ++ (map (app: pkgs.${app}) (user.apps or []))
             ++ (map (env: forShells.${env} or []) user.shells)
             ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
           ));
-        };
-        programs = {
-          git = {
-            enable = true;
-            settings = user.git.settings;
-            includes =
-              map
-              (profile: {
-                condition = "gitdir:${user.paths.home}/Projects/${profile.root}/";
-                contents.user = {
-                  inherit (profile) name email;
-                };
-              })
-              user.git.profiles;
-          };
         };
       })
       host.users.normal;
