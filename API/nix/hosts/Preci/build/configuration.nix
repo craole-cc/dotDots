@@ -315,7 +315,7 @@
     arch = "x86_64";
     os = "linux";
     admin = "craole";
-    repo = "/home/${admin}/Projects/dotDots";
+    repo = "/home/${admin}/Projects/craole-cc/dotDots";
 
     args = {
       stateVersion = "26.05";
@@ -1450,6 +1450,7 @@
             pciutils
             procps
             rsync
+            sd
             usbutils
             wget
           ]
