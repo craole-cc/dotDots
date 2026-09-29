@@ -57,7 +57,7 @@
       }:
         if !enabled
         then {} #? Returns an empty valid module!
-        else if inputs ? ${name}
+        else if inputs != null && inputs ? ${name}
         then inputs.${name}.nixosModules.${name} or inputs.${name}
         else let
           fetched =
@@ -198,7 +198,7 @@
             throw "mkNixPkgs: 'system' or 'host.args.system' must be provided."
           ),
         extraOverlays ? [],
-        config ? host.args.config.nixpkgs or {allowUnfree = true;},
+        config ? ((host.args.config or {}).nixpkgs or {allowUnfree = true;}),
       }:
         import inputs.nixpkgs.path {
           inherit system config;
