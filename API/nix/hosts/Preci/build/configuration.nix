@@ -108,7 +108,10 @@
       */
       resolve = name: source: let
         fromFlake = flakeInputs != null && flakeInputs ? ${name};
-        flakeInput = if fromFlake then flakeInputs.${name} else null;
+        flakeInput =
+          if fromFlake
+          then flakeInputs.${name}
+          else null;
         path =
           if fromFlake
           then flakeInput.outPath or flakeInput
@@ -117,7 +120,10 @@
         source
         // {
           inherit fromFlake path;
-          value = if fromFlake then flakeInput else path;
+          value =
+            if fromFlake
+            then flakeInput
+            else path;
         };
     in
       mapAttrs resolve {
@@ -575,11 +581,26 @@
       #? Explicit UIDs are stable pins; missing UIDs are deterministically
       #? derived from role + name, matching the developed user schema.
       uidRanges = {
-        administrator = {min = 1000; max = 59999;};
-        normal = {min = 1000; max = 59999;};
-        user = {min = 1000; max = 59999;};
-        guest = {min = 1000; max = 59999;};
-        service = {min = 400; max = 999;};
+        administrator = {
+          min = 1000;
+          max = 59999;
+        };
+        normal = {
+          min = 1000;
+          max = 59999;
+        };
+        user = {
+          min = 1000;
+          max = 59999;
+        };
+        guest = {
+          min = 1000;
+          max = 59999;
+        };
+        service = {
+          min = 400;
+          max = 999;
+        };
       };
 
       seedUid = {
@@ -756,11 +777,10 @@
     in {inherit enabled disabled normal principal core autoLogin;};
 
     interface = let
-      requestedDesktops =
-        unique (
-          (args.interface.desktops or [])
-          ++ concatMap (user: user.interface.desktops or []) (attrValues users.normal)
-        );
+      requestedDesktops = unique (
+        (args.interface.desktops or [])
+        ++ concatMap (user: user.interface.desktops or []) (attrValues users.normal)
+      );
       normalized = map toLower requestedDesktops;
 
       aliases = {
@@ -887,11 +907,6 @@
       name = args.name;
       inherit (paths) local store;
       inherit (users) principal;
-      stems = {
-        cfg = "/Configuration";
-        host = "/${name}";
-        hosts = "/API/nix/hosts";
-      };
       env = variables;
       HOST = name;
     in {
@@ -929,7 +944,7 @@
 
     packages = let
       #? Per-shell packages are included in the native system fallback and may
-    #? also be selected into a user's Home Manager profile.
+      #? also be selected into a user's Home Manager profile.
       forShells = {
         bash = with pkgs; [bash];
         fish = with pkgs; [fish];
@@ -999,7 +1014,7 @@
       };
 
       #? Per-language/tooling packages are available in the native system
-    #? fallback; Home Manager may additionally select them per user.
+      #? fallback; Home Manager may additionally select them per user.
       forCoding = {
         common = with pkgs; [
           bat
@@ -1692,21 +1707,20 @@ in {
       user = host.users.principal;
       git = user.git or {};
       profiles = git.profiles or [];
-      profileIncludes =
-        listToAttrs (
-          map
-          (profile: {
-            name = "gitdir:${user.paths.roots.home}/Projects/${profile.root}/";
-            value = {
-              path = writeText "git-profile-${profile.id}.gitconfig" ''
-                [user]
-                  name = ${profile.name}
-                  email = ${profile.email}
-              '';
-            };
-          })
-          profiles
-        );
+      profileIncludes = listToAttrs (
+        map
+        (profile: {
+          name = "gitdir:${user.paths.roots.home}/Projects/${profile.root}/";
+          value = {
+            path = writeText "git-profile-${profile.id}.gitconfig" ''
+              [user]
+                name = ${profile.name}
+                email = ${profile.email}
+            '';
+          };
+        })
+        profiles
+      );
     in {
       enable = true;
       lfs = {
