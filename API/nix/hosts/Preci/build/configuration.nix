@@ -116,14 +116,16 @@
           if fromFlake
           then flakeInput.outPath or flakeInput
           else fetchSource source;
+        value =
+          if fromFlake
+          then flakeInput
+          else if source.flake or false
+          then builtins.getFlake (toString path)
+          else path;
       in
         source
         // {
-          inherit fromFlake path;
-          value =
-            if fromFlake
-            then flakeInput
-            else path;
+          inherit fromFlake path value;
         };
     in
       mapAttrs resolve {
@@ -147,6 +149,13 @@
           rev = "4900baf1e219645e4a2acba35723852b2091bc20";
           sha256 = "sha256-BOyZoliWfm/beS4m3FxFKlu5at6npZen1PsWtvzzihk=";
         };
+
+        ai = mkGitHubSource {
+          owner = "numtide";
+          repo = "llm-agents.nix";
+          rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
+          sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
+        } // {flake = true;};
 
         dotDots = mkGitHubSource {
           owner = "craole-cc";
@@ -943,6 +952,8 @@
     };
 
     packages = let
+      codex = inputs.ai.value.packages.${args.system}.codex;
+
       #? Per-shell packages are included in the native system fallback and may
       #? also be selected into a user's Home Manager profile.
       forShells = {
@@ -1437,6 +1448,7 @@
       forSystem = flatten (
         with pkgs;
           [
+            codex
             coreutils
             curl
             diffutils
