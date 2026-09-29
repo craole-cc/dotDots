@@ -299,6 +299,11 @@
       stem = "plasma-apply-colorscheme";
     }
     {
+      name = "plasma-apply-lookandfeel";
+      pkg = "kdePackages.plasma-workspace";
+      stem = "plasma-apply-lookandfeel";
+    }
+    {
       name = "pkill";
       pkg = "procps";
     }
@@ -1289,9 +1294,11 @@
             mkUserModeScript = user: mode: let
               MODE = toUpper mode;
               inherit (aesthetics.users.${user.name}) icons kdeScheme;
+              selectedTheme = aesthetics.users.${user.name}.theme.${mode};
               theme = {
                 kde = kdeScheme.${mode};
                 gtk = variables."THEME_GTK_${MODE}";
+                lookAndFeel = "Catppuccin-${capitalize selectedTheme.flavor}-${capitalize selectedTheme.accent}";
               };
               icon = icons.${mode};
               konsole = {
@@ -1326,7 +1333,13 @@
               done
 
               if ${bins.systemctl} --user is-active --quiet plasma-plasmashell.service; then
-                ${bins.timeout} 5s ${bins.plasma-apply-colorscheme} ${theme.kde} >/dev/null 2>&1 || true
+                # Apply Catppuccin's complete Plasma look-and-feel first. Upstream
+                # intentionally uses Plasma's adaptive "default" desktop theme,
+                # then supplies the Catppuccin palette, cursor, decoration and splash.
+                ${bins.timeout} 8s ${bins.plasma-apply-lookandfeel} --apply "${theme.lookAndFeel}" >/dev/null 2>&1 || true
+                # Keep the palette explicit so application colors remain correct
+                # even if Plasma's global-theme application is partially unavailable.
+                ${bins.timeout} 5s ${bins.plasma-apply-colorscheme} "${theme.kde}" >/dev/null 2>&1 || true
               fi
 
               ${bins.kwriteconfig} --notify --file kdeglobals --group Icons --key Theme ${icon}
