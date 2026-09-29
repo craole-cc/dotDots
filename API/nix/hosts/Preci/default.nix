@@ -1,24 +1,21 @@
 {lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) recursiveUpdate;
 
+  args = import ./build;
+
   libraries = import ./libraries {inherit lib;};
   inherit (libraries) lix;
+  inherit (lix.schema) mkHost;
 
-  infrastructure = import ./infrastructure (libraries
-    // {
-      host = lix.schemas.mkHost {
-        args = import ./registry;
-        registry = ./registry;
-      };
-    });
+  host = mkHost {inherit args;};
+  infrastructure = import ./infrastructure (
+    libraries // {inherit host;}
+  );
 in {
-  # imports =
-  #   (with lix.modules; [
-  #     home-manager
-  #     nix-index
-  #     catppuccin
-  #   ])
-  #   ++ [./outputs];
+  imports = [
+    ./build/hardware-configuration.nix
+    ./modules
+  ];
 
   _module.args = {
     lix = recursiveUpdate lix {inherit infrastructure;};

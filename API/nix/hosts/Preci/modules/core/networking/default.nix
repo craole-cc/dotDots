@@ -10,6 +10,7 @@
   inherit (lix.attrsets) recursiveUpdate;
   inherit (registry) inputs overlays;
 in {
+
   networking = {
     hostName = host.name;
     hostId = host.id;
@@ -21,7 +22,7 @@ in {
       experimental-features = ["nix-command" "flakes"];
     };
     nixPath = [
-      "nixos-config=${host.paths.roots.run}"
+      "nixos-config=${host.paths.roots.build}"
       "nixpkgs=${inputs.nixpkgs.path}"
     ];
   };
