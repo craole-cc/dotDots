@@ -33,3 +33,5 @@ __pycache__/
 .pytest_cache/
 
 contextcaddy-config.json
+
+/result
