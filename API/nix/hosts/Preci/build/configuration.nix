@@ -1950,6 +1950,22 @@ in {
   };
 
   systemd = {
+    #? Native project roots for Git identity routing. These are created on
+    #? activation (test/switch), not during the pure build.
+    tmpfiles.rules =
+      unique (
+        concatMap
+        (user:
+          [
+            "d ${user.paths.roots.home}/Projects 0755 ${user.name} users - -"
+          ]
+          ++ map
+          (profile:
+            "d ${user.paths.roots.home}/Projects/${profile.root} 0755 ${user.name} users - -")
+          (user.git.profiles or []))
+        (attrValues host.users.normal)
+      );
+
     user.services = {
       darkman = {
         description = "Dark/light mode switch daemon";
