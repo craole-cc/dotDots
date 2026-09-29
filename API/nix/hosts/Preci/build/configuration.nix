@@ -387,10 +387,42 @@
           autoLogin = false;
           role = "administrator";
           description = "Craig 'Craole' Cole";
-          defaultLocale = "en_GB.UTF-8";
-          keyboard = {
-            layout = "us";
-            variant = "";
+          localization = {
+            defaultLocale = "en_GB.UTF-8";
+          };
+          interface = {
+            desktops = ["plasma"];
+            keyboard = {
+              layout = "us";
+              variant = "";
+            };
+            themes = {
+              autoSwitch = true;
+              polarity = "dark";
+              dark = {
+                flavor = "frappe";
+                accent = "teal";
+                icons = "candy-icons";
+              };
+              light = {
+                flavor = "latte";
+                accent = "mauve";
+                icons = "buuf-nestort";
+              };
+            };
+            cursors = {
+              accent = "teal";
+              dark = "material";
+              light = "material";
+            };
+            fonts = {
+              emoji = ["Noto Color Emoji"];
+              monospace = ["Maple Mono NF"];
+              sans = ["Monaspace Radon Frozen"];
+              serif = ["Noto Serif"];
+              material = ["Material Symbols Sharp"];
+              clock = ["Rubik"];
+            };
           };
 
           git = {
@@ -433,62 +465,36 @@
               }
             ];
           };
-          desktop = "plasma";
-          launchers = ["vicinae"];
-          theme = {
-            autoSwitch = true;
-            polarity = "dark";
-            dark = {
-              flavor = "frappe";
-              accent = "teal";
-            };
-            light = {
-              flavor = "latte";
-              accent = "mauve";
-            };
+          packages = {
+            shells = [
+              "bash"
+              "nushell"
+              "powershell"
+              "zsh"
+            ];
+            common = [
+              "common"
+              "nix"
+              "markup"
+              "rust"
+              "python"
+              "shellscript"
+              "zig"
+            ];
+            launchers = ["vicinae"];
           };
-          icons = {
-            light = "buuf-nestort";
-            dark = "candy-icons";
+          applications = {
+            extra = [
+              "brave"
+              "freetube"
+              "ghostty"
+              "imv"
+              "qbittorrent-enhanced"
+              "qimgv"
+              "shortwave"
+              "vscode-fhs"
+            ];
           };
-          cursors = {
-            accent = "teal";
-            dark = "material";
-            light = "material";
-          };
-          fonts = {
-            emoji = "Noto Color Emoji";
-            monospace = "Maple Mono NF";
-            sans = "Monaspace Radon Frozen";
-            serif = "Noto Serif";
-            material = "Material Symbols Sharp";
-            clock = "Rubik";
-          };
-          shells = [
-            "bash"
-            "nushell"
-            "powershell"
-            "zsh"
-          ];
-          coding = [
-            "common"
-            "nix"
-            "markup"
-            "rust"
-            "python"
-            "shellscript"
-            "zig"
-          ];
-          apps = [
-            "brave"
-            "freetube"
-            "ghostty"
-            "imv"
-            "qbittorrent-enhanced"
-            "qimgv"
-            "shortwave"
-            "vscode-fhs"
-          ];
         }
       ];
     };
@@ -635,12 +641,28 @@
             variant = "";
           }
           (userInterface.keyboard or (user.keyboard or {}));
+        desktops = userInterface.desktops or [];
+        desktop =
+          if isNotEmpty desktops
+          then head desktops
+          else user.desktop or "plasma";
+        themes = userInterface.themes or (user.theme or {});
+        cursors = userInterface.cursors or (user.cursors or {});
+        fonts = userInterface.fonts or (user.fonts or {});
+        icons = {
+          dark = themes.dark.icons or user.icons.dark or "Papirus-Dark";
+          light = themes.light.icons or user.icons.light or "Papirus-Light";
+        };
 
         userPackages = user.packages or {};
-        shells = userPackages.shells or user.shells or ["bash"];
+        shells = userPackages.shells or userPackages.shell or user.shells or ["bash"];
         coding = userPackages.common or user.coding or [];
-        launchers = userPackages.launchers or user.launchers or [];
-        apps = (user.applications.allowed or []) ++ (user.apps or []);
+        launchers = userPackages.launchers or userPackages.launcher or user.launchers or [];
+        applications = user.applications or {};
+        apps =
+          (applications.extra or [])
+          ++ (applications.allowed or [])
+          ++ (user.apps or []);
 
         resolvedPaths =
           recursiveUpdate
@@ -655,12 +677,18 @@
       in
         user
         // {
-          inherit role uid shells coding launchers apps isNormalUser keyboard;
+          inherit role uid shells coding launchers apps isNormalUser keyboard desktop themes cursors fonts icons applications;
           isSystemUser = !isNormalUser;
           paths = resolvedPaths;
           localization = userLocalization;
           defaultLocale = userLocalization.defaultLocale;
-          interface = recursiveUpdate userInterface {inherit keyboard;};
+          theme = themes;
+          interface =
+            recursiveUpdate
+            userInterface
+            {
+              inherit keyboard desktops themes cursors fonts;
+            };
           packages =
             recursiveUpdate
             userPackages
@@ -733,7 +761,12 @@
     in {inherit enabled disabled normal principal core autoLogin;};
 
     interface = let
-      normalized = map toLower (args.interface.desktops or []);
+      requestedDesktops =
+        unique (
+          (args.interface.desktops or [])
+          ++ concatMap (user: user.interface.desktops or []) (attrValues users.normal)
+        );
+      normalized = map toLower requestedDesktops;
 
       aliases = {
         plasma = ["plasma" "plasma6" "kde"];
