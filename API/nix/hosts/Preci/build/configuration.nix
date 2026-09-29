@@ -106,8 +106,18 @@
       */
       resolve = name: source:
         if flakeInputs ? ${name}
-        then flakeInputs.${name} // {fromFlake = true;}
-        else (fetchSource source) // {fromFlake = false;};
+        then {
+          value = flakeInputs.${name};
+          path = flakeInputs.${name}.outPath;
+          fromFlake = true;
+        }
+        else let
+          path = fetchSource source;
+        in {
+          value = path;
+          inherit path;
+          fromFlake = false;
+        };
     in
       mapAttrs resolve {
         nixpkgs = mkGitHubSource {
@@ -218,7 +228,9 @@
 
     strings = {
       capitalize = str: toUpper (substring 0 1 str) + substring 1 (-1) str;
-      mkPath = root: stems: root + "/" + (concatStringsSep "/" stems);
+      mkPath = root: stems:
+      # root + "/" + concatStringsSep "/" (toList stems);
+        concatStringsSep "/" ((toList root) ++ (toList stems));
     };
 
     trivial = {
@@ -371,12 +383,10 @@
           role = "administrator";
           hashedPassword = "$y$j9T$PJC1IvldG.uplQOvWOf7d.$k9jqsgqFEXJzfc1I4nuvrIOl9z/X3xLBEzvJPExXYoC";
           description = "Craig 'Craole' Cole";
-          defaultLocale = "en_GB.UTF-8";
-          keyboard = {
-            layout = "us";
-            variant = "";
-          };
 
+          localization = {
+            defaultLocale = "en_GB.UTF-8";
+          };
           git = {
             settings = {
               alias = {
@@ -414,37 +424,43 @@
               }
             ];
           };
-          desktop = "plasma";
-          launchers = ["vicinae"];
-          theme = {
-            autoSwitch = true;
-            polarity = "dark";
-            dark = {
-              flavor = "frappe";
+          interface = {
+            keyboard = {
+              layout = "us";
+              variant = "";
+            };
+            desktop = "plasma";
+            theme = {
+              autoSwitch = true;
+              polarity = "dark";
+              dark = {
+                flavor = "frappe";
+                accent = "teal";
+              };
+              light = {
+                flavor = "latte";
+                accent = "mauve";
+              };
+            };
+            icons = {
+              light = "buuf-nestort";
+              dark = "candy-icons";
+            };
+            cursors = {
               accent = "teal";
+              dark = "material";
+              light = "material";
             };
-            light = {
-              flavor = "latte";
-              accent = "mauve";
+            fonts = {
+              emoji = "Noto Color Emoji";
+              monospace = "Maple Mono NF";
+              sans = "Monaspace Radon Frozen";
+              serif = "Noto Serif";
+              material = "Material Symbols Sharp";
+              clock = "Rubik";
             };
           };
-          icons = {
-            light = "buuf-nestort";
-            dark = "candy-icons";
-          };
-          cursors = {
-            accent = "teal";
-            dark = "material";
-            light = "material";
-          };
-          fonts = {
-            emoji = "Noto Color Emoji";
-            monospace = "Maple Mono NF";
-            sans = "Monaspace Radon Frozen";
-            serif = "Noto Serif";
-            material = "Material Symbols Sharp";
-            clock = "Rubik";
-          };
+          launchers = ["vicinae"];
           shells = [
             "bash"
             "nushell"
@@ -486,7 +502,7 @@
         };
         lib = {
           root = "repo";
-          stem = ["libraries"];
+          stem = ["Libraries"];
         };
         host = {
           root = "hosts";
@@ -528,8 +544,8 @@
       in
         paths;
 
-      local = mkPaths (args.paths.repo or (throw ''
-        'args.paths.repo is required to build local paths; set it to the local dotDots repository checkout.'
+      local = mkPaths (args.paths.roots.repo or (throw ''
+        'args.paths.roots.repo is required to build local paths; set it to the local dotDots repository checkout.'
       ''));
       store = mkPaths (inputs.dotDots or (throw ''
         'inputs.dotDots is required to build store paths; add the dotDots repository as a flake input.'
@@ -560,9 +576,8 @@
           paths =
             user.paths or {
               inherit home;
-              inherit (args.paths.roots) src;
               cfg = {
-                source = paths.roots.cfg;
+                source = paths.local.cfg;
                 target = "${home}/.config";
               };
             };
@@ -1446,7 +1461,7 @@ in {
   };
 
   i18n = {
-    inherit (host.users.principal) defaultLocale;
+    inherit (host.users.principal.localization) defaultLocale;
   };
 
   networking = {
