@@ -1182,8 +1182,15 @@
           '';
         };
 
+      darkmanCli = writeShellApplication {
+        name = "darkman";
+        text = ''
+          exec ${pkgs.darkman}/bin/darkman "$@"
+        '';
+      };
+
       forInterface =
-        (with pkgs; [adwaita-icon-theme darkman])
+        [pkgs.adwaita-icon-theme darkmanCli]
         ++ optionals (with interface; isX11 || isWayland) (with pkgs; [
           mpvc
           mpv
