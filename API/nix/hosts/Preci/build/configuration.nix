@@ -277,6 +277,7 @@
     {
       name = "dconfGnomeInterface";
       pkg = "dconf";
+      stem = "dconf";
       arguments = ["write" "/org/gnome/desktop/interface"];
     }
     {
