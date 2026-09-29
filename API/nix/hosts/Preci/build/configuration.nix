@@ -1994,8 +1994,12 @@ in {
         partOf = ["graphical-session.target"];
         after = ["graphical-session.target"];
         serviceConfig = {
+          Type = "dbus";
+          BusName = "nl.whynothugo.darkman";
           ExecStart = "${bins.darkman} run";
           Restart = "on-failure";
+          TimeoutStopSec = 15;
+          Slice = "background.slice";
         };
       };
 
