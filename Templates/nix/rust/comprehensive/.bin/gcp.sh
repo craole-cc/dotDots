@@ -2,7 +2,7 @@
 #shellcheck enable=all
 
 require_cmd() {
-  cmd="$(command -v "$1" 2>/dev/null || true)"
+  cmd="$(command -v "$1" 2> /dev/null || true)"
   [ -n "${cmd}" ] || {
     printf 'Error: required command not found: %s\n' "$1" >&2
     exit 1
@@ -32,36 +32,36 @@ parse_args() {
 
   while [ "$#" -gt 0 ]; do
     case "${1}" in
-    --help)
-      usage
-      exit 0
-      ;;
-    --no-push)
-      push=0
-      ;;
-    --message)
-      msg="${2}"
-      shift
-      ;;
-    --)
-      shift
-      break
-      ;;
-    --*)
-      printf 'Unknown option: %s\n' "${1}" >&2
-      usage
-      exit 1
-      ;;
-    *)
-      break
-      ;;
+      --help)
+        usage
+        exit 0
+        ;;
+      --no-push)
+        push=0
+        ;;
+      --message)
+        msg="${2}"
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --*)
+        printf 'Unknown option: %s\n' "${1}" >&2
+        usage
+        exit 1
+        ;;
+      *)
+        break
+        ;;
     esac
     shift
   done
 
   case "${*}" in
-  ?*) msg="${*}" ;;
-  *) ;;
+    ?*) msg="${*}" ;;
+    *) ;;
   esac
 }
 
@@ -69,20 +69,20 @@ execute() {
   "${CMD_GIT}" add --all
 
   case "$("${CMD_GIT}" status --porcelain)" in
-  ?*)
-    case "${msg}" in
-    '') msg="$("${CMD_GIT}" log -1 --pretty=%B 2>/dev/null | head -1)" ;;
-    *) ;;
-    esac
+    ?*)
+      case "${msg}" in
+        '') msg="$("${CMD_GIT}" log -1 --pretty=%B 2> /dev/null | head -1)" ;;
+        *) ;;
+      esac
 
-    "${CMD_GIT}" commit --message "${msg}"
+      "${CMD_GIT}" commit --message "${msg}"
 
-    case "${push}" in
-    1) "${CMD_GIT}" push ;;
+      case "${push}" in
+        1) "${CMD_GIT}" push ;;
+        *) ;;
+      esac
+      ;;
     *) ;;
-    esac
-    ;;
-  *) ;;
   esac
 }
 

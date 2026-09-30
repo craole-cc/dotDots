@@ -1,14 +1,20 @@
-{host, lix, pkgs, ...}: {
+{
+  host,
+  lix,
+  pkgs,
+  ...
+}: {
   catppuccin = {
     enable = true;
     autoEnable = true;
-    flavor =
-      let
-        flavor = host.interface.themes.dark.flavor or "frappe";
-      in
-        if flavor == "Catppuccin Frappé" then "frappe"
-        else if flavor == "Catppuccin Latte" then "latte"
-        else lix.toLower flavor;
+    flavor = let
+      flavor = host.interface.themes.dark.flavor or "frappe";
+    in
+      if flavor == "Catppuccin Frappé"
+      then "frappe"
+      else if flavor == "Catppuccin Latte"
+      then "latte"
+      else lix.toLower flavor;
     accent = host.interface.themes.dark.accent or "mauve";
   };
 

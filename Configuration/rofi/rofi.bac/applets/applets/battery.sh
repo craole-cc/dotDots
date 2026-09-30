@@ -55,9 +55,9 @@ options="$ICON_DISCHRG\n$ICON_CHRG\n$ICON_PMGR"
 ## Main
 chosen="$(echo -e "$options" | $rofi_command -p "$BATTERY%" -dmenu $active $urgent -selected-row 0)"
 case $chosen in
-$ICON_CHRG) ;;
-$ICON_DISCHRG) ;;
-$ICON_PMGR)
-  xfce4-power-manager-settings
-  ;;
+  $ICON_CHRG) ;;
+  $ICON_DISCHRG) ;;
+  $ICON_PMGR)
+    xfce4-power-manager-settings
+    ;;
 esac

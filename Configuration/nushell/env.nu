@@ -4,17 +4,29 @@
 # Note: The conversions happen *after* config.nu is loaded
 $env.ENV_CONVERSIONS = {
     "PATH": {
-        from_string: { |s| $s | split row (char esep) | path expand --no-symlink }
-        to_string: { |v| $v | path expand --no-symlink | str join (char esep) }
+        from_string: {|s|
+            $s | split row (char esep) | path expand --no-symlink
+        }
+        to_string: {|v|
+            $v | path expand --no-symlink | str join (char esep)
+        }
     }
     "Path": {
-        from_string: { |s| $s | split row (char esep) | path expand --no-symlink }
-        to_string: { |v| $v | path expand --no-symlink | str join (char esep) }
+        from_string: {|s|
+            $s | split row (char esep) | path expand --no-symlink
+        }
+        to_string: {|v|
+            $v | path expand --no-symlink | str join (char esep)
+        }
     }
 }
 
-$env.NU_LIB_DIRS = [($nu.config-path | path dirname | path join 'libraries')]
-$env.NU_PLUGIN_DIRS = [ ($nu.config-path | path dirname | path join 'plugins')]
+$env.NU_LIB_DIRS = [
+    ($nu.config-path | path dirname | path join 'libraries')
+]
+$env.NU_PLUGIN_DIRS = [
+    ($nu.config-path | path dirname | path join 'plugins')
+]
 
 $env.SHELL = 'nu'
 $env.EDITOR = 'helix'
@@ -28,8 +40,8 @@ def prompt_by_starship [] {
 }
 
 $env.STARSHIP_SHELL = "nu"
-$env.PROMPT_COMMAND = { || prompt_by_starship }
-$env.PROMPT_INDICATOR = { || "" }
-$env.PROMPT_INDICATOR_VI_NORMAL = { || "" }
-$env.PROMPT_INDICATOR_VI_INSERT = { || ": " }
-$env.PROMPT_MULTILINE_INDICATOR = { || "::: " }
+$env.PROMPT_COMMAND = {|| prompt_by_starship }
+$env.PROMPT_INDICATOR = {|| "" }
+$env.PROMPT_INDICATOR_VI_NORMAL = {|| "" }
+$env.PROMPT_INDICATOR_VI_INSERT = {|| ": " }
+$env.PROMPT_MULTILINE_INDICATOR = {|| "::: " }

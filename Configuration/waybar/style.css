@@ -23,7 +23,8 @@
   padding: 0 4px;
 }
 
-#workspaces button.visible {}
+#workspaces button.visible {
+}
 
 #workspaces button.focused {
   border-radius: 10px;

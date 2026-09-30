@@ -24,27 +24,27 @@ options="$screen\n$area\n$window"
 
 chosen="$(echo -e "$options" | $rofi_command -p '' -dmenu -selected-row 1)"
 case $chosen in
-$screen)
-  if [[ -f /usr/bin/scrot ]]; then
-    sleep 1
-    scrot 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
-  else
-    msg
-  fi
-  ;;
-$area)
-  if [[ -f /usr/bin/scrot ]]; then
-    scrot -s 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
-  else
-    msg
-  fi
-  ;;
-$window)
-  if [[ -f /usr/bin/scrot ]]; then
-    sleep 1
-    scrot -u 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
-  else
-    msg
-  fi
-  ;;
+  $screen)
+    if [[ -f /usr/bin/scrot ]]; then
+      sleep 1
+      scrot 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
+    else
+      msg
+    fi
+    ;;
+  $area)
+    if [[ -f /usr/bin/scrot ]]; then
+      scrot -s 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
+    else
+      msg
+    fi
+    ;;
+  $window)
+    if [[ -f /usr/bin/scrot ]]; then
+      sleep 1
+      scrot -u 'Screenshot_%Y-%m-%d-%S_$wx$h.png' -e 'mv $f $$(xdg-user-dir PICTURES) ; viewnior $$(xdg-user-dir PICTURES)/$f'
+    else
+      msg
+    fi
+    ;;
 esac

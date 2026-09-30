@@ -27,7 +27,7 @@ fi
 required="youtube-dl ffmpeg base64 awk jp2a macchina"
 
 for r in $required; do
-  if ! [ -n "$(which "$r" 2>/dev/null)" ]; then # need the quotes
+  if ! [ -n "$(which "$r" 2> /dev/null)" ]; then # need the quotes
     printf '\x1b[31m%s not found\x1b[0m\n' "$r"
     exit 1
   fi
@@ -45,7 +45,7 @@ trap_ctrlc() {
   fi
 
   if [ -n "$DIR" ] && [ -d "$DIR" ]; then
-    rm -rf "$DIR" 2>/dev/null
+    rm -rf "$DIR" 2> /dev/null
   fi
 
   exit
@@ -54,7 +54,7 @@ trap_ctrlc() {
 mkdir "$DIR"
 
 # youtube-dl -f best $URL -o - | ffmpeg -i pipe: -r 10 -update 1 "$DIR/out_%d.png" > /dev/null 2>&1 &
-youtube-dl -f best "$URL" -o - 2>/dev/null | ffmpeg -i pipe: -r 10 "$DIR/out_%d.png" >/dev/null 2>&1 &
+youtube-dl -f best "$URL" -o - 2> /dev/null | ffmpeg -i pipe: -r 10 "$DIR/out_%d.png" > /dev/null 2>&1 &
 FFMPEG_PID=$!
 
 trap trap_ctrlc INT
@@ -85,7 +85,7 @@ if [ -n "$FFMPEG_PID" ] && [ -d "/proc/$FFMPEG_PID" ]; then
 fi
 
 if [ -n "$DIR" ] && [ -d "$DIR" ]; then
-  rm -rf "$DIR" 2>/dev/null
+  rm -rf "$DIR" 2> /dev/null
 fi
 
 wait "$FFMPEG_PID"

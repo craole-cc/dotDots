@@ -38,12 +38,7 @@
     "quotes": "preferDouble",
     "singleLineTopLevelDeclarations": false
   },
-  "includes": [
-    "**/*.{json,jsonc}",
-    "**/*.md",
-    "**/*.{yml,yaml}",
-    "**/*.{css,scss,sass,less}"
-  ],
+  "includes": ["**/*.{json,jsonc}", "**/*.md", "**/*.{yml,yaml}", "**/*.{css,scss,sass,less}"],
   "excludes": [
     "**/node_modules",
     "**/*-lock.json",

@@ -34,9 +34,7 @@
   in
     map (
       name:
-        if pkgs ? ${name}
-        then pkgs.${name}
-        else throw "${context}: package '${name}' was not found in nixpkgs"
+        pkgs.${name} or (throw "${context}: package '${name}' was not found in nixpkgs")
     )
     expanded;
 
@@ -61,7 +59,7 @@
       resolvedCapabilities = capabilities.resolve {user = declaration;};
       resolvedPackages = resolveUserPackages declaration;
     in {
-      name = declaration.name;
+      inherit (declaration) name;
       value =
         declaration
         // {
@@ -82,12 +80,11 @@
     in {
       inherit name;
       package =
-        if inputs ? nixpkgs.${name}
-        then inputs.nixpkgs.${name}
-        else
-          throw "resolve host '${
-            host.name
-          }': kernel package '${name}' was not found in nixpkgs";
+        inputs.nixpkgs.${
+          name
+        } or (throw "resolve host '${
+          host.name
+        }': kernel package '${name}' was not found in nixpkgs");
     };
 
     common = resolveNames {

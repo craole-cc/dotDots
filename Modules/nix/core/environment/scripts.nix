@@ -125,7 +125,7 @@
         }
         else {
           source = root.store;
-          local = root.local;
+          inherit (root) local;
         }
       )) (
       (map (name: roots.${name}) cfg.priority)

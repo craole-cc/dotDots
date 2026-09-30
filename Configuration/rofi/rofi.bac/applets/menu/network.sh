@@ -21,7 +21,7 @@ STATUS="$(nmcli radio wifi)"
 active=""
 urgent=""
 
-if (ping -c 1 archlinux.org || ping -c 1 google.com || ping -c 1 bitbucket.org || ping -c 1 github.com || ping -c 1 sourceforge.net) &>/dev/null; then
+if (ping -c 1 archlinux.org || ping -c 1 google.com || ping -c 1 bitbucket.org || ping -c 1 github.com || ping -c 1 sourceforge.net) &> /dev/null; then
   if [[ $STATUS == *"enable"* ]]; then
     if [[ $IFACE == e* ]]; then
       connected=""
@@ -49,20 +49,20 @@ options="$connected\n$bmon\n$launch_cli\n$launch"
 ## Main
 chosen="$(echo -e "$options" | $rofi_command -p "$SSID  :  $PIP" -dmenu $active $urgent -selected-row 1)"
 case $chosen in
-$connected)
-  if [[ $STATUS == *"enable"* ]]; then
-    nmcli radio wifi off
-  else
-    nmcli radio wifi on
-  fi
-  ;;
-$bmon)
-  termite -e bmon
-  ;;
-$launch_cli)
-  termite -e nmtui
-  ;;
-$launch)
-  nm-connection-editor
-  ;;
+  $connected)
+    if [[ $STATUS == *"enable"* ]]; then
+      nmcli radio wifi off
+    else
+      nmcli radio wifi on
+    fi
+    ;;
+  $bmon)
+    termite -e bmon
+    ;;
+  $launch_cli)
+    termite -e nmtui
+    ;;
+  $launch)
+    nm-connection-editor
+    ;;
 esac

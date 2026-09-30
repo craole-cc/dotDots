@@ -410,7 +410,7 @@
   #? the configured flavor/accent per user), so it's bound after it.
   sources = import ./sources.nix {
     inherit pkgs inputs aesthetics;
-    system = args.system;
+    inherit (args) system;
     lib = recursiveUpdate lib {strings = {inherit capitalize;};};
   };
 
@@ -1433,7 +1433,7 @@ in {
                   magenta = pink;
                   orange = peach;
                   purple = mauve;
-                  red = red;
+                  inherit red;
                   cyan = teal;
                 };
               };

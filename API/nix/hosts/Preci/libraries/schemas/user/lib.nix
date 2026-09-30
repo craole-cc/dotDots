@@ -100,37 +100,27 @@
       name = mkValue {
         declared = derived.name;
         requested =
-          if requested ? name
-          then requested.name
-          else null;
+          requested.name or null;
       };
       role = mkValue {
         declared = derived.role;
         requested =
-          if requested ? role
-          then requested.role
-          else null;
+          requested.role or null;
       };
       description = mkValue {
         declared = "${toString derived.name} (${toString derived.role})";
         requested =
-          if requested ? description
-          then requested.description
-          else null;
+          requested.description or null;
       };
       enable = mkValue {
         declared = derived.enable;
         requested =
-          if requested ? enable
-          then requested.enable
-          else null;
+          requested.enable or null;
       };
       autoLogin = mkValue {
         declared = derived.autoLogin;
         requested =
-          if requested ? autoLogin
-          then requested.autoLogin
-          else null;
+          requested.autoLogin or null;
       };
       capabilities = mkUserCapabilities {
         requested = requested.capabilities or {};

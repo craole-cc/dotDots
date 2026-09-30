@@ -58,35 +58,37 @@ MODULES (blueprint src = ./modules - all Nix lives here) modules/ devshell.nix #
 numtide/devshell commands list (not inline in flake) treefmt.nix # treefmt-nix
 config for all formatters
 
-    packages/
-      openclaw/
-        default.nix                 # stdenv.mkDerivation - deterministic fetchFromGitHub
-        wrapper.nix                 # makeWrapper: runtime PATH, config flags
-      gh-tools/
-        default.nix                 # pkgs.gh + wrapper reading GITHUB_TOKEN from env
+```text
+packages/
+  openclaw/
+    default.nix                 # stdenv.mkDerivation - deterministic fetchFromGitHub
+    wrapper.nix                 # makeWrapper: runtime PATH, config flags
+  gh-tools/
+    default.nix                 # pkgs.gh + wrapper reading GITHUB_TOKEN from env
 
-      overlays/
-        default.nix                 # Exposes openclaw + gh-tools into nixpkgs
-        shared-nixpkgs.nix          # Cross-system overlay; follows llm-agents pattern
+  overlays/
+    default.nix                 # Exposes openclaw + gh-tools into nixpkgs
+    shared-nixpkgs.nix          # Cross-system overlay; follows llm-agents pattern
 
-    checks/
-      default.nix                   # Aggregates all checks for blueprint discovery
-      openclaw-unit.nix             # nixosTest: boot VM, assert service health
-      format.nix                    # treefmt --fail-on-change
-      secrets-lint.nix              # grep Nix store path for secret patterns
+checks/
+  default.nix                   # Aggregates all checks for blueprint discovery
+  openclaw-unit.nix             # nixosTest: boot VM, assert service health
+  format.nix                    # treefmt --fail-on-change
+  secrets-lint.nix              # grep Nix store path for secret patterns
 
-    openclaw/
-      default.nix                   # Re-exports all sub-modules
-      service.nix                   # systemd unit + full hardening directives
-      config.nix                    # All lib.mkOption declarations
-      security.nix                  # AppArmor/seccomp, capability dropping
-      tls.nix                       # ACME / self-signed, TLS 1.3 preferred
-      networking.nix                # Firewall, nginx + caddy reverse-proxy snippets
-      secrets.nix                   # sops-nix integration; .sops.yaml template
+openclaw/
+  default.nix                   # Re-exports all sub-modules
+  service.nix                   # systemd unit + full hardening directives
+  config.nix                    # All lib.mkOption declarations
+  security.nix                  # AppArmor/seccomp, capability dropping
+  tls.nix                       # ACME / self-signed, TLS 1.3 preferred
+  networking.nix                # Firewall, nginx + caddy reverse-proxy snippets
+  secrets.nix                   # sops-nix integration; .sops.yaml template
 
-    lib/
-      default.nix                   # mkOpenClawConfig, mkSecureService helpers
-      options.nix                   # Shared NixOS option types
+lib/
+  default.nix                   # mkOpenClawConfig, mkSecureService helpers
+  options.nix                   # Shared NixOS option types
+```
 
 .github/ workflows/ ci.yml # nix flake check + treefmt + nixosTest
 security-scan.yml # Trivy/grype + sops lint
@@ -259,11 +261,11 @@ security-scan.yml:
 1. alejandra style throughout: 2-space indent, trailing commas, RFC formatting.
 2. Every module file opens with:
 
-   # Module: <name>
+## Module: <name>
 
-   # Purpose: <one sentence>
+## Purpose: <one sentence>
 
-   # Maintainer: openclaw-flake contributors
+## Maintainer: openclaw-flake contributors
 
 3. lib.mkOption with type + default + description + example on every option.
 4. lib.mkIf config.services.openclaw.enable guards in service/security modules.
@@ -290,7 +292,7 @@ modules/checks/... → modules/openclaw/... → modules/lib/... →
 
 After all files, output:
 
-## Bootstrap Instructions
+### Bootstrap Instructions
 
 Numbered steps from fresh clone through live deployment: 1. nix develop 2.
 age-keygen, sops setup, .sops.yaml config 3. Populate secrets/secrets.yaml +

@@ -230,9 +230,9 @@ if ($Config.includes) {
 
       # Look for local config
       $localConfigPath = @('.dots.toml', '.dots.json', 'dots.json') |
-      ForEach-Object { Join-Path $modulePath $_ } |
-      Where-Object { Test-Path $_ } |
-      Select-Object -First 1
+        ForEach-Object { Join-Path $modulePath $_ } |
+        Where-Object { Test-Path $_ } |
+        Select-Object -First 1
 
       if ($localConfigPath) {
         Write-Debug "$ctx_tag     Config: $localConfigPath"

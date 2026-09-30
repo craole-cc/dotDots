@@ -1,18 +1,9 @@
 {
   // ─── Unstable Features ────────────────────────────────────────────────────
-  "unstable": [
-    "fmt-component",
-    "fmt-sql"
-  ],
+  "unstable": ["fmt-component", "fmt-sql"],
   // ─── Formatter ────────────────────────────────────────────────────────────
   "fmt": {
-    "exclude": [
-      ".git",
-      "node_modules",
-      "dist",
-      "coverage",
-      ".deno"
-    ],
+    "exclude": [".git", "node_modules", "dist", "coverage", ".deno"],
     "indentWidth": 2,
     "useTabs": false,
     "lineWidth": 100,
@@ -22,17 +13,9 @@
   },
   // ─── Linter ───────────────────────────────────────────────────────────────
   "lint": {
-    "exclude": [
-      ".git",
-      "node_modules",
-      "dist",
-      "coverage",
-      ".deno"
-    ],
+    "exclude": [".git", "node_modules", "dist", "coverage", ".deno"],
     "rules": {
-      "tags": [
-        "recommended"
-      ],
+      "tags": ["recommended"],
       "include": [
         "camelcase",
         "default-param-last",
@@ -51,9 +34,7 @@
   // ─── TypeScript Compiler Options ─────────────────────────────────────────
   "compilerOptions": {
     "strict": true,
-    "lib": [
-      "deno.window"
-    ],
+    "lib": ["deno.window"],
     "allowJs": false
   },
   // ─── Task Runner ─────────────────────────────────────────────────────────

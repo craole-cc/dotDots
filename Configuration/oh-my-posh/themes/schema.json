@@ -1358,12 +1358,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if a folder is a Dart workspace",
-                    "default": [
-                      "*.dart",
-                      "pubspec.yaml",
-                      "pubspec.yml",
-                      "pubspec.lock"
-                    ],
+                    "default": ["*.dart", "pubspec.yaml", "pubspec.yml", "pubspec.lock"],
                     "items": {
                       "type": "string"
                     }
@@ -1687,12 +1682,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if a folder is a Flutter workspace",
-                    "default": [
-                      "*.dart",
-                      "pubspec.yaml",
-                      "pubspec.yml",
-                      "pubspec.lock"
-                    ],
+                    "default": ["*.dart", "pubspec.yaml", "pubspec.yml", "pubspec.lock"],
                     "items": {
                       "type": "string"
                     }
@@ -2938,13 +2928,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if the current directory is an OCaml project",
-                    "default": [
-                      "*.ml",
-                      "*.mli",
-                      "dune",
-                      "dune-project",
-                      "dune-workspace"
-                    ],
+                    "default": ["*.ml", "*.mli", "dune", "dune-project", "dune-workspace"],
                     "items": {
                       "type": "string"
                     }
@@ -3419,12 +3403,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if a folder is a PHP workspace",
-                    "default": [
-                      "*.php",
-                      "composer.json",
-                      "composer.lock",
-                      ".php-version"
-                    ],
+                    "default": ["*.php", "composer.json", "composer.lock", ".php-version"],
                     "items": {
                       "type": "string"
                     }
@@ -3674,12 +3653,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if a folder is a Python workspace",
-                    "default": [
-                      "*.py",
-                      "*.ipynb",
-                      "pyproject.toml",
-                      "venv.bak"
-                    ],
+                    "default": ["*.py", "*.ipynb", "pyproject.toml", "venv.bak"],
                     "items": {
                       "type": "string"
                     }
@@ -3688,13 +3662,7 @@
                     "type": "array",
                     "title": "Folders",
                     "description": "The folders to look for when determining if a folder is a Python workspace",
-                    "default": [
-                      ".venv",
-                      "venv",
-                      "virtualenv",
-                      "venv-win",
-                      "pyenv-win"
-                    ],
+                    "default": [".venv", "venv", "virtualenv", "venv-win", "pyenv-win"],
                     "items": {
                       "type": "string"
                     }
@@ -3805,15 +3773,7 @@
                     "type": "array",
                     "title": "Extensions",
                     "description": "The extensions to look for when determining if the current directory is an R project",
-                    "default": [
-                      "*.R",
-                      "*.Rmd",
-                      "*.Rsx",
-                      "*.Rda",
-                      "*.Rd",
-                      "*.Rproj",
-                      ".Rproj.user"
-                    ],
+                    "default": ["*.R", "*.Rmd", "*.Rsx", "*.Rda", "*.Rd", "*.Rproj", ".Rproj.user"],
                     "items": {
                       "type": "string"
                     }

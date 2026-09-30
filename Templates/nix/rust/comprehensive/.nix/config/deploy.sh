@@ -4,7 +4,7 @@
 set -u
 
 usage() {
-  cat <<'EOF'
+  cat << 'EOF'
 Usage: deploy-templates [OPTIONS]
 
 Deploy template files into the current project root.
@@ -17,7 +17,7 @@ Options:
 By default, changed files are left in place and reported as skipped.
 EOF
 }
-find_cmd() { command -v "${1}" 2>/dev/null || true; }
+find_cmd() { command -v "${1}" 2> /dev/null || true; }
 
 CMD_PRINT_ERROR=${CMD_PRINT_ERROR:-}
 CMD_PRINT_SUCCESS=${CMD_PRINT_SUCCESS:-}
@@ -78,17 +78,17 @@ parse_args() {
 
   while [ "${#}" -gt 0 ]; do
     case "${1}" in
-    -f | --force) FORCE=1 ;;
-    -r | --reset) RESET=1 ;;
-    -h | --help)
-      usage
-      exit 0
-      ;;
-    *)
-      print_error "Unknown option: ${1}" >&2
-      usage >&2
-      exit 1
-      ;;
+      -f | --force) FORCE=1 ;;
+      -r | --reset) RESET=1 ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *)
+        print_error "Unknown option: ${1}" >&2
+        usage >&2
+        exit 1
+        ;;
     esac
 
     shift
@@ -109,7 +109,7 @@ reset_before_deploy() {
     return 0
   fi
 
-  if command -v reset-flake >/dev/null 2>&1; then
+  if command -v reset-flake > /dev/null 2>&1; then
     PRJ_ROOT=${ROOT} reset-flake
   else
     print_error "reset-flake command not found on PATH." >&2
@@ -173,7 +173,7 @@ deploy_entry() {
   fi
 
   cp "${full_source}" "${full_preferred}"
-  chmod u+w "${full_preferred}" 2>/dev/null || true
+  chmod u+w "${full_preferred}" 2> /dev/null || true
 }
 
 execute() {

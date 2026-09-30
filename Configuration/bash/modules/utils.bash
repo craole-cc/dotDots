@@ -1,8 +1,8 @@
 #!/bin/sh
 
-command -v weHave >/dev/null 2>&1 ||
-  weHave() {
-    command -v "$1" >/dev/null 2>&1 || return
+command -v weHave > /dev/null 2>&1 \
+  || weHave() {
+    command -v "$1" > /dev/null 2>&1 || return
   }
 
 execute() {
@@ -14,18 +14,18 @@ extract() {
   for archive in "$@"; do
     if [ -f "$archive" ]; then
       case "$archive" in
-      *.tar.bz2) tar xvjf "$archive" ;;
-      *.tar.gz) tar xvzf "$archive" ;;
-      *.bz2) bunzip2 "$archive" ;;
-      *.rar) rar x "$archive" ;;
-      *.gz) gunzip "$archive" ;;
-      *.tar) tar xvf "$archive" ;;
-      *.tbz2) tar xvjf "$archive" ;;
-      *.tgz) tar xvzf "$archive" ;;
-      *.zip) unzip "$archive" ;;
-      *.Z) uncompress "$archive" ;;
-      *.7z) 7z x "$archive" ;;
-      *) printf "Unknown archive type for %s" "$archive" ;;
+        *.tar.bz2) tar xvjf "$archive" ;;
+        *.tar.gz) tar xvzf "$archive" ;;
+        *.bz2) bunzip2 "$archive" ;;
+        *.rar) rar x "$archive" ;;
+        *.gz) gunzip "$archive" ;;
+        *.tar) tar xvf "$archive" ;;
+        *.tbz2) tar xvjf "$archive" ;;
+        *.tgz) tar xvzf "$archive" ;;
+        *.zip) unzip "$archive" ;;
+        *.Z) uncompress "$archive" ;;
+        *.7z) 7z x "$archive" ;;
+        *) printf "Unknown archive type for %s" "$archive" ;;
       esac
     else
       printf "Error: %s is not a valid file!\n" "$archive" >&2
@@ -42,16 +42,16 @@ ftext() {
   # -n causes line number to be printed
   # optional: -F treat search term as a literal, not a regular expression
   # optional: -l only print filenames and not the matching lines ex. grep -irl "$1" *
-  execute rg --hidden --ignore-case --color=always "$1" . ||
-    greps -iIHrn --color=always "$1" .
+  execute rg --hidden --ignore-case --color=always "$1" . \
+    || greps -iIHrn --color=always "$1" .
 
 }
 
 # Copy file with a progress bar
 cpp() {
   set -e
-  strace -q -ewrite cp -- "${1}" "${2}" 2>&1 |
-    awk '{
+  strace -q -ewrite cp -- "${1}" "${2}" 2>&1 \
+    | awk '{
         count += $NF
         if (count % 10 == 0) {
             percent = count / total_size * 100
@@ -118,56 +118,56 @@ cd() {
 distro_base() {
   _distribution="Unknown" # Default to unknown
 
-  if nixos-version >/dev/null 2>&1; then
+  if nixos-version > /dev/null 2>&1; then
     _distribution="nixos"
   elif [ -r /etc/os-release ]; then
     # shellcheck disable=SC1091
     . /etc/os-release
 
     case $ID in
-    fedora | rhel | centos)
-      _distribution="redhat"
-      ;;
-    sles | opensuse*)
-      _distribution="suse"
-      ;;
-    ubuntu | debian)
-      _distribution="debian"
-      ;;
-    gentoo)
-      _distribution="Gentoo"
-      ;;
-    arch | manjaro)
-      _distribution="arch"
-      ;;
-    slackware)
-      _distribution="slackware"
-      ;;
-    *)
-      #{ Check ID_LIKE if the Distribution is still not determined
-      if [ -n "$ID_LIKE" ]; then
-        case $ID_LIKE in
-        *fedora* | *rhel* | *centos*)
-          _distribution="redhat"
-          ;;
-        *sles* | *opensuse*)
-          _distribution="suse"
-          ;;
-        *ubuntu* | *debian*)
-          _distribution="debian"
-          ;;
-        *gentoo*)
-          _distribution="gentoo"
-          ;;
-        *arch*)
-          _distribution="arch"
-          ;;
-        *slackware*)
-          _distribution="slackware"
-          ;;
-        esac
-      fi
-      ;;
+      fedora | rhel | centos)
+        _distribution="redhat"
+        ;;
+      sles | opensuse*)
+        _distribution="suse"
+        ;;
+      ubuntu | debian)
+        _distribution="debian"
+        ;;
+      gentoo)
+        _distribution="Gentoo"
+        ;;
+      arch | manjaro)
+        _distribution="arch"
+        ;;
+      slackware)
+        _distribution="slackware"
+        ;;
+      *)
+        #{ Check ID_LIKE if the Distribution is still not determined
+        if [ -n "$ID_LIKE" ]; then
+          case $ID_LIKE in
+            *fedora* | *rhel* | *centos*)
+              _distribution="redhat"
+              ;;
+            *sles* | *opensuse*)
+              _distribution="suse"
+              ;;
+            *ubuntu* | *debian*)
+              _distribution="debian"
+              ;;
+            *gentoo*)
+              _distribution="gentoo"
+              ;;
+            *arch*)
+              _distribution="arch"
+              ;;
+            *slackware*)
+              _distribution="slackware"
+              ;;
+          esac
+        fi
+        ;;
     esac
   fi
 
@@ -180,37 +180,37 @@ ver() {
   distribution
 
   case "$distribution" in
-  "redhat")
-    if [ -s /etc/redhat-release ]; then
-      cat /etc/redhat-release
-    else
-      cat /etc/issue
-    fi
-    uname -a
-    ;;
-  "suse")
-    cat /etc/SuSE-release
-    ;;
-  "debian")
-    lsb_release -a
-    ;;
-  "gentoo")
-    cat /etc/gentoo-release
-    ;;
-  "arch")
-    cat /etc/os-release
-    ;;
-  "slackware")
-    cat /etc/slackware-version
-    ;;
-  *)
-    if [ -s /etc/issue ]; then
-      cat /etc/issue
-    else
-      echo "Error: Unknown distribution"
-      exit 1
-    fi
-    ;;
+    "redhat")
+      if [ -s /etc/redhat-release ]; then
+        cat /etc/redhat-release
+      else
+        cat /etc/issue
+      fi
+      uname -a
+      ;;
+    "suse")
+      cat /etc/SuSE-release
+      ;;
+    "debian")
+      lsb_release -a
+      ;;
+    "gentoo")
+      cat /etc/gentoo-release
+      ;;
+    "arch")
+      cat /etc/os-release
+      ;;
+    "slackware")
+      cat /etc/slackware-version
+      ;;
+    *)
+      if [ -s /etc/issue ]; then
+        cat /etc/issue
+      else
+        echo "Error: Unknown distribution"
+        exit 1
+      fi
+      ;;
   esac
 
   unset distro
@@ -220,14 +220,14 @@ ver() {
 whatsmyip() {
   #| Internal IP Lookup.
   printf "Internal IP: %s\n" "$(
-    execute ip addr show enp9s0 | grep "inet " | awk '{print $2}' | cut -d/ -f1 ||
-      execute ifconfig enp9s0 | grep "inet " | awk '{print $2}'
+    execute ip addr show enp9s0 | grep "inet " | awk '{print $2}' | cut -d/ -f1 \
+      || execute ifconfig enp9s0 | grep "inet " | awk '{print $2}'
   )"
 
   #| External IP Lookup
   printf "External IP: %s\n" "$(
-    execute hostname -i | cut -d' ' -f1 ||
-      execute curl -s ifconfig.me
+    execute hostname -i | cut -d' ' -f1 \
+      || execute curl -s ifconfig.me
   )"
 }
 
@@ -375,43 +375,43 @@ open() {
   mime_type=$(file -bi "$file" | cut -d';' -f1)
 
   case "$mime_type" in
-  application/pdf | text/html)
-    if weHave firefox; then
-      firefox "$file"
-    elif weHave xdg-open; then
-      xdg-open "$file"
-    else
-      printf 'Error: No application available for %s\n' "$mime_type" >&2
-      return 1
-    fi
-    ;;
-  image/*)
-    if weHave feh; then
-      feh "$file"
-    elif weHave sxiv; then
-      sxiv "$file"
-    elif weHave imv; then
-      imv "$file"
-    elif weHave nomacs; then
-      nomacs "$file"
-    elif weHave eog; then
-      eog "$file"
-    else
-      printf 'Error: No image viewer found!\n' >&2
-      return 1
-    fi
-    ;;
-  text/*)
-    edit "$file"
-    ;;
-  *)
-    if weHave xdg-open; then
-      xdg-open "$file"
-    else
-      printf 'Error: No application found for %s\n' "$mime_type" >&2
-      return 1
-    fi
-    ;;
+    application/pdf | text/html)
+      if weHave firefox; then
+        firefox "$file"
+      elif weHave xdg-open; then
+        xdg-open "$file"
+      else
+        printf 'Error: No application available for %s\n' "$mime_type" >&2
+        return 1
+      fi
+      ;;
+    image/*)
+      if weHave feh; then
+        feh "$file"
+      elif weHave sxiv; then
+        sxiv "$file"
+      elif weHave imv; then
+        imv "$file"
+      elif weHave nomacs; then
+        nomacs "$file"
+      elif weHave eog; then
+        eog "$file"
+      else
+        printf 'Error: No image viewer found!\n' >&2
+        return 1
+      fi
+      ;;
+    text/*)
+      edit "$file"
+      ;;
+    *)
+      if weHave xdg-open; then
+        xdg-open "$file"
+      else
+        printf 'Error: No application found for %s\n' "$mime_type" >&2
+        return 1
+      fi
+      ;;
   esac
 }
 

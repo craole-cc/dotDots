@@ -30,7 +30,7 @@ y() {
       yazi "$@" --cwd-file="${tmp_file}"
       if [ -f "${tmp_file}" ]; then
         #{ Read path preserving whitespace
-        IFS= read -r cwd <"${tmp_file}"
+        IFS= read -r cwd < "${tmp_file}"
 
         #{ If the cwd is a valid directory
         if [ -n "${cwd}" ] && [ -d "${cwd}" ]; then

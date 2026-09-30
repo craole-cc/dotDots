@@ -172,7 +172,7 @@ function Set-Wallpaper {
         $item = Get-Item $p
         if ($item.PSIsContainer) {
           $imagesInFolder = Get-ChildItem -Path $p -Recurse -File -ErrorAction SilentlyContinue |
-          Where-Object { $_.Extension -match $conf.ext.pattern }
+            Where-Object { $_.Extension -match $conf.ext.pattern }
           if ($imagesInFolder) { $allImages.AddRange($imagesInFolder.FullName) }
         }
         else {
@@ -467,15 +467,15 @@ function Get-WallpaperFromJBS {
   if (-not $path -or -not (Test-Path $path)) { return $null }
   try {
     return Get-ChildItem -Path $path -Force -Include $exts -ErrorAction SilentlyContinue |
-    Sort-Object -Property LastWriteTime -Descending |
-    Select-Object -ExpandProperty FullName -First 1
+      Sort-Object -Property LastWriteTime -Descending |
+      Select-Object -ExpandProperty FullName -First 1
   }
   catch { return $null }
 }
 function Get-WallpaperFromRegistry {
   try {
     $regPath = Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper -ErrorAction Stop |
-    Select-Object -ExpandProperty Wallpaper
+      Select-Object -ExpandProperty Wallpaper
     if ($regPath -and (Test-Path $regPath)) { return $regPath }
   }
   catch {}
@@ -488,9 +488,9 @@ function Get-WallpaperFromSpotlight {
   }
 
   $spotlightAsset = Get-ChildItem $assetsPath -File -ErrorAction SilentlyContinue |
-  Where-Object Length -GT 100KB |
-  Sort-Object Length -Descending |
-  Select-Object -First 1
+    Where-Object Length -GT 100KB |
+    Sort-Object Length -Descending |
+    Select-Object -First 1
 
   if (-not $spotlightAsset) {
     return $null
@@ -678,7 +678,7 @@ function Set-WallpaperFromFolders {
   }
 
   $randomImage = Get-ChildItem -Path $validFolders -Recurse -Include '*.jpg', '*.jpeg', '*.png', '*.webp' |
-  Get-Random -ErrorAction SilentlyContinue
+    Get-Random -ErrorAction SilentlyContinue
 
   if ($randomImage) {
     # Use the existing Set-Wallpaper function to apply the change and update the environment.
@@ -886,7 +886,7 @@ function Remove-WallpaperReference {
 
   # Remove any copied files (e.g., wallpaper.jpg, wallpaper.png)
   $copiedFiles = Get-ChildItem -Path $conf.dir.source -Recurse -Filter 'wallpaper.*' |
-  Where-Object { $_.Name -ne 'wallpaper' -and $_.Extension -match $conf.ext.pattern }
+    Where-Object { $_.Name -ne 'wallpaper' -and $_.Extension -match $conf.ext.pattern }
   if ($copiedFiles) {
     Remove-Item -Path $copiedFiles.FullName -Force -ErrorAction SilentlyContinue
   }

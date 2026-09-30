@@ -1,3 +1,3 @@
-{}: {
+_: {
   mounted = true;
 }

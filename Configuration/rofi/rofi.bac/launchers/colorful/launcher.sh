@@ -33,7 +33,7 @@ COLORS=('#EC7875' '#61C766' '#FDD835' '#42A5F5' '#BA68C8' '#4DD0E1' '#00B19F'
 ACCENT="${COLORS[$((RANDOM % 14))]}ff"
 
 # overwrite colors file
-cat >$dir/colors.rasi <<-EOF
+cat > $dir/colors.rasi <<- EOF
 	/* colors */
 
 	* {

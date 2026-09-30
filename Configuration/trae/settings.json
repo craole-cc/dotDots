@@ -62,9 +62,7 @@
   //> TERMINAL FEATURES
   //> ====================================================
   "terminal.integrated.allowMnemonics": true,
-  "terminal.integrated.commandsToSkipShell": [
-    "workbench.action.terminal.copySelection"
-  ],
+  "terminal.integrated.commandsToSkipShell": ["workbench.action.terminal.copySelection"],
   "terminal.integrated.confirmOnExit": "never",
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.cursorBlinking": true,
@@ -89,10 +87,7 @@
       "path": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\nu\\bin\\nu.exe"
     },
     "Command Prompt": {
-      "path": [
-        "${env:windir}\\Sysnative\\cmd.exe",
-        "${env:windir}\\System32\\cmd.exe"
-      ],
+      "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
       "args": [],
       "icon": "terminal-cmd"
     }
@@ -561,13 +556,7 @@
       "base": "ionic",
       "color": "teal-300",
       "lightColor": "teal-600",
-      "fileNames": [
-        ".dotsrc",
-        ".dotsrc.sh",
-        ".dotsrc.ps1",
-        ".dotsrc.nu",
-        ".dotsrc.fish"
-      ]
+      "fileNames": [".dotsrc", ".dotsrc.sh", ".dotsrc.ps1", ".dotsrc.nu", ".dotsrc.fish"]
     },
     {
       "name": "rust-entrypoint",
@@ -581,12 +570,7 @@
       "base": "nix",
       "color": "green-300",
       "lightColor": "green-600",
-      "fileNames": [
-        "default.nix",
-        "flake.nix",
-        "shell.nix",
-        "configuration.nix"
-      ]
+      "fileNames": ["default.nix", "flake.nix", "shell.nix", "configuration.nix"]
     },
     {
       "name": "users",

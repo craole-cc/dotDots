@@ -150,12 +150,14 @@
           sha256 = "sha256-BOyZoliWfm/beS4m3FxFKlu5at6npZen1PsWtvzzihk=";
         };
 
-        ai = mkGitHubSource {
-          owner = "numtide";
-          repo = "llm-agents.nix";
-          rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
-          sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
-        } // {flake = true;};
+        ai =
+          mkGitHubSource {
+            owner = "numtide";
+            repo = "llm-agents.nix";
+            rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
+            sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
+          }
+          // {flake = true;};
 
         dotDots = mkGitHubSource {
           owner = "craole-cc";
@@ -222,7 +224,7 @@
             (isNotEmpty extraOverlays)
             extraOverlays
             ++ optional
-            (builtins.elem "rust" (host.args.functionalities or []))
+            (elem "rust" (host.args.functionalities or []))
             overlays.rust-overlay;
         };
 
@@ -247,7 +249,7 @@
       mkPath = root: stems:
         concatStringsSep "/" (
           map toString (
-            builtins.filter isNotEmpty (
+            filter isNotEmpty (
               (toList root) ++ (toList stems)
             )
           )
@@ -397,7 +399,7 @@
       principals = [
         {
           name = admin;
-          uid = 1000; # Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
+          uid = 1000; #? Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
           enable = true;
           autoLogin = false;
           role = "administrator";
@@ -706,7 +708,7 @@
           isSystemUser = !isNormalUser;
           paths = resolvedPaths;
           localization = userLocalization;
-          defaultLocale = userLocalization.defaultLocale;
+          inherit (userLocalization) defaultLocale;
           theme = themes;
           interface =
             recursiveUpdate
@@ -913,7 +915,7 @@
       };
 
     variables = let
-      name = args.name;
+      inherit (args) name;
       inherit (paths) local store;
       inherit (users) principal;
       env = variables;
@@ -1073,9 +1075,11 @@
           pstree
           ripgrep
           rsync
+          sd
           sad
           speedtest-go
           systemd
+          tmux
           trashy
           treefmt
           udiskie
@@ -1391,10 +1395,10 @@
             text = let
               #? Used unless DMS/Matugen is currently running.
               fallback = {
-                THEME_KDE_LIGHT = variables.THEME_KDE_LIGHT;
-                THEME_KDE_DARK = variables.THEME_KDE_DARK;
-                THEME_GTK_LIGHT = variables.THEME_GTK_LIGHT;
-                THEME_GTK_DARK = variables.THEME_GTK_DARK;
+                inherit (variables) THEME_KDE_LIGHT;
+                inherit (variables) THEME_KDE_DARK;
+                inherit (variables) THEME_GTK_LIGHT;
+                inherit (variables) THEME_GTK_DARK;
               };
               #? Overrides fallback's keys while DMS is active.
               dms = {
@@ -1405,8 +1409,8 @@
               };
               #? Always assigned, regardless of DMS.
               static = {
-                THEME_ICONS_LIGHT = variables.THEME_ICONS_LIGHT;
-                THEME_ICONS_DARK = variables.THEME_ICONS_DARK;
+                inherit (variables) THEME_ICONS_LIGHT;
+                inherit (variables) THEME_ICONS_DARK;
               };
               mkAssigns = vals:
                 concatStringsSep "\n" (
@@ -1806,6 +1810,7 @@ in {
     nix-index = {
       enable = true;
     };
+
     nix-index-database = {
       enable = true;
       comma.enable = true;
@@ -1821,6 +1826,25 @@ in {
       settings = fromTOML (readFile (
         mkPath host.paths.local.cfg ["starship" "config.toml"]
       ));
+    };
+
+    tmux = {
+      enable = true;
+      clock24 = true;
+      historyLimit = 5000;
+      keyMode = "vi";
+      newSession = true;
+      plugins = with pkgs.tmuxPlugins; [
+        catppuccin
+        tmux-sessionx
+        tmux-thumbs
+        tmux-window-name
+        tmux-which-key
+      ];
+      resizeAmount = 6;
+      reverseSplit = false;
+      shortcut = "b";
+      terminal = "screen-256color";
     };
   };
 
@@ -1965,19 +1989,17 @@ in {
   systemd = {
     #? Native project roots for Git identity routing. These are created on
     #? activation (test/switch), not during the pure build.
-    tmpfiles.rules =
-      unique (
-        concatMap
-        (user:
-          [
-            "d ${user.paths.roots.home}/Projects 0755 ${user.name} users - -"
-          ]
-          ++ map
-          (profile:
-            "d ${user.paths.roots.home}/Projects/${profile.root} 0755 ${user.name} users - -")
-          (user.git.profiles or []))
-        (attrValues host.users.normal)
-      );
+    tmpfiles.rules = unique (
+      concatMap
+      (user:
+        [
+          "d ${user.paths.roots.home}/Projects 0755 ${user.name} users - -"
+        ]
+        ++ map
+        (profile: "d ${user.paths.roots.home}/Projects/${profile.root} 0755 ${user.name} users - -")
+        (user.git.profiles or []))
+      (attrValues host.users.normal)
+    );
 
     user.services = {
       darkman = {

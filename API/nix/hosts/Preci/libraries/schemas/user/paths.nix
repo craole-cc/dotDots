@@ -43,11 +43,12 @@
     home =
       if merged.roots.home != null
       then merged.roots.home
-      else assert requireNonEmpty {
-        inherit context;
-        path = ["name"];
-        set = {inherit name;};
-      }; "/home/${toString name}";
+      else
+        assert requireNonEmpty {
+          inherit context;
+          path = ["name"];
+          set = {inherit name;};
+        }; "/home/${toString name}";
 
     roots = merged.roots // {inherit home;};
 

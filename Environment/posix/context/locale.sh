@@ -1,7 +1,7 @@
 #! /bin/sh
 #shellcheck enable=all
 
-LOCALE="$(locale -uU 2>/dev/null || printf 'en_US.UTF-8')"
+LOCALE="$(locale -uU 2> /dev/null || printf 'en_US.UTF-8')"
 LANGUAGE="$(printf "%s" "${LOCALE}" | cut -d. -f1)"
 LC_ADDRESS="${LOCALE}"
 LC_ALL=

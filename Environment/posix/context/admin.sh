@@ -26,50 +26,50 @@ manage_env --set --var SYS_INFO \
 
 #|->  User Directories
 case "${SYS_TYPE:-}" in
-Windows)
-  DATA_HOME="${APPDATA:-"${HOME}/AppData/Roaming"}"     #? powershell \$env:APPDATA
-  CACHE_HOME="${LOCALAPPDATA:-"${HOME}/AppData/Local"}" #? powershell \$env:LOCALAPPDATA
-  CONFIG_HOME="${DATA_HOME}"
-  STATE_HOME="${CACHE_HOME}"
-  RUNTIME_DIR="${TEMP:-"${LOCALAPPDATA}/Temp"}" #? Windows temp directory
-  USER_UID="$(id -u 2>/dev/null)"
+  Windows)
+    DATA_HOME="${APPDATA:-"${HOME}/AppData/Roaming"}"     #? powershell \$env:APPDATA
+    CACHE_HOME="${LOCALAPPDATA:-"${HOME}/AppData/Local"}" #? powershell \$env:LOCALAPPDATA
+    CONFIG_HOME="${DATA_HOME}"
+    STATE_HOME="${CACHE_HOME}"
+    RUNTIME_DIR="${TEMP:-"${LOCALAPPDATA}/Temp"}" #? Windows temp directory
+    USER_UID="$(id -u 2> /dev/null)"
 
-  #{ Ensure SYSTEMDRIVE is set }
-  SYSTEMDRIVE="${SYSTEMDRIVE:-"$(
-    powershell -NoProfile -Command "[System.Environment]::SystemDirectory.Substring(0,2)" 2>/dev/null |
-      tr -d '\r\n'
-  )"}"
-  if [ -z "${SYSTEMDRIVE}" ]; then
-    #{ Try to deduce from SYSTEMROOT if available }
-    if [ -n "${SYSTEMROOT}" ]; then
-      SYSTEMDRIVE="${SYSTEMROOT%%\\*}"
-    else
-      #{ As a last resort, fall back to C: }
-      SYSTEMDRIVE="C:"
+    #{ Ensure SYSTEMDRIVE is set }
+    SYSTEMDRIVE="${SYSTEMDRIVE:-"$(
+      powershell -NoProfile -Command "[System.Environment]::SystemDirectory.Substring(0,2)" 2> /dev/null \
+        | tr -d '\r\n'
+    )"}"
+    if [ -z "${SYSTEMDRIVE}" ]; then
+      #{ Try to deduce from SYSTEMROOT if available }
+      if [ -n "${SYSTEMROOT}" ]; then
+        SYSTEMDRIVE="${SYSTEMROOT%%\\*}"
+      else
+        #{ As a last resort, fall back to C: }
+        SYSTEMDRIVE="C:"
+      fi
     fi
-  fi
 
-  #{ Get user's SID for personal Recycle Bin }
-  USER_SID="$(
-    powershell -NoProfile -Command "[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value" 2>/dev/null |
-      tr -d '\r\n'
-  )"
-  #{ Use the user's SID to get the path for the Recycle Bin }
-  if [ -n "${USER_SID}" ]; then
-    TRASH="${SYSTEMDRIVE}/\$Recycle.Bin/${USER_SID}" #? User's personal Recycle Bin
-  else
-    TRASH=""
-  fi
-  ;;
-*)
-  USER_UID="$(id -u)"
-  DATA_HOME="${XDG_DATA_HOME:-"${HOME}/.local/share"}"
-  CACHE_HOME="${XDG_CACHE_HOME:-"${HOME}/.cache"}"
-  CONFIG_HOME="${XDG_CONFIG_HOME:-"${HOME}/.config"}"
-  STATE_HOME="${XDG_STATE_HOME:-"${HOME}/.local/state"}"
-  RUNTIME_DIR="${XDG_RUNTIME_DIR:-"/run/user/${USER_UID}"}"
-  TRASH="${DATA_HOME}/Trash/files"
-  ;;
+    #{ Get user's SID for personal Recycle Bin }
+    USER_SID="$(
+      powershell -NoProfile -Command "[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value" 2> /dev/null \
+        | tr -d '\r\n'
+    )"
+    #{ Use the user's SID to get the path for the Recycle Bin }
+    if [ -n "${USER_SID}" ]; then
+      TRASH="${SYSTEMDRIVE}/\$Recycle.Bin/${USER_SID}" #? User's personal Recycle Bin
+    else
+      TRASH=""
+    fi
+    ;;
+  *)
+    USER_UID="$(id -u)"
+    DATA_HOME="${XDG_DATA_HOME:-"${HOME}/.local/share"}"
+    CACHE_HOME="${XDG_CACHE_HOME:-"${HOME}/.cache"}"
+    CONFIG_HOME="${XDG_CONFIG_HOME:-"${HOME}/.config"}"
+    STATE_HOME="${XDG_STATE_HOME:-"${HOME}/.local/state"}"
+    RUNTIME_DIR="${XDG_RUNTIME_DIR:-"/run/user/${USER_UID}"}"
+    TRASH="${DATA_HOME}/Trash/files"
+    ;;
 esac
 manage_env --set --var DATA_HOME --val "${DATA_HOME}"
 manage_env --set --var CACHE_HOME --val "${CACHE_HOME}"
@@ -96,18 +96,18 @@ manage_env --set --var WALLPAPERS --val "${WALLPAPERS}"
 
 #|->  Browser
 case "${SYS_TYPE}" in
-Windows)
-  browser_id=$(
-    reg query "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" |
-      awk '/ProgId/ {print $3}'
-  )
-  browser_cmd=$(reg query "HKCR\\${browser_id}\\shell\\open\\command" | awk -F'    ' '/REG_SZ/ {print $4}')
-  browser_path=$(printf "%s" "${browser_cmd}" | sed -n 's/.*"\(.*\)".*/\1/p')
-  browser="${browser_paths:-"$(browser-edge --set 2>/dev/null)"}"
-  ;;
-*)
-  browser_path="xdg-open"
-  ;;
+  Windows)
+    browser_id=$(
+      reg query "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" \
+        | awk '/ProgId/ {print $3}'
+    )
+    browser_cmd=$(reg query "HKCR\\${browser_id}\\shell\\open\\command" | awk -F'    ' '/REG_SZ/ {print $4}')
+    browser_path=$(printf "%s" "${browser_cmd}" | sed -n 's/.*"\(.*\)".*/\1/p')
+    browser="${browser_paths:-"$(browser-edge --set 2> /dev/null)"}"
+    ;;
+  *)
+    browser_path="xdg-open"
+    ;;
 esac
 manage_env --set --var BROWSER --val "${browser_path:-"firefox"}"
 

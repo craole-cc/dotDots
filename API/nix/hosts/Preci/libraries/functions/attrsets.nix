@@ -8,9 +8,7 @@
   inherit (lix.trivial) isNotEmpty;
 
   resolvePackage = pkgs: name:
-    if pkgs ? ${name}
-    then pkgs.${name}
-    else null;
+    pkgs.${name} or null;
 
   expandName = groups: stack: name:
     if elem name stack
@@ -38,9 +36,7 @@
   in
     map (
       name:
-        if pkgs ? ${name}
-        then pkgs.${name}
-        else throw "${context}: package '${name}' was not found in nixpkgs"
+        pkgs.${name} or (throw "${context}: package '${name}' was not found in nixpkgs")
     )
     expanded;
   # resolvePackages = {

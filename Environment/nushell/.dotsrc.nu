@@ -22,12 +22,12 @@ $env.DOTS_ENV_PRJ = ($env.DOTS_ENV_PRJ? | default ($env.DOTS_ENV_EXPORT | path j
 
 #{ Launch shell-specific configuration
 let shell_name = "nushell"
-let shell_rc = ($env.DOTS_CFG | path join "nushell" "config.nu")
+let shell_rc = $env.DOTS_CFG | path join "nushell" "config.nu"
 
 #{ Load shell-specific configuration
 if ($shell_rc | path exists) {
-  # source $shell_rc
-  print $"INFO >>= DOTS Shell =<< Initialized '($shell_name)' using '($shell_rc)'"
+    # source $shell_rc
+    print $"INFO >>= DOTS Shell =<< Initialized '($shell_name)' using '($shell_rc)'"
 } else {
-  print -e $"WARN >>= DOTS Shell =<< Missing configuration file for ($shell_name): '($shell_rc)'"
+    print -e $"WARN >>= DOTS Shell =<< Missing configuration file for ($shell_name): '($shell_rc)'"
 }

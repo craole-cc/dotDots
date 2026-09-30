@@ -1,4 +1,8 @@
-{host, lix, ...}: let
+{
+  host,
+  lix,
+  ...
+}: let
   primary = host.principals.primary;
 in {
   services = {

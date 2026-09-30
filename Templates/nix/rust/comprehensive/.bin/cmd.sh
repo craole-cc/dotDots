@@ -4,7 +4,7 @@
 set -u
 
 usage() {
-  cat <<'EOF'
+  cat << 'EOF'
 Usage: cmd ACTION [OPTIONS] COMMAND...
 
 Inspect commands available on PATH.
@@ -27,7 +27,7 @@ EOF
 }
 
 find_cmd() {
-  command -v "${1}" 2>/dev/null || true
+  command -v "${1}" 2> /dev/null || true
 }
 
 parse_args() {
@@ -35,41 +35,41 @@ parse_args() {
   RAW=0
 
   case "${ACTION}" in
-  '' | -h | --help)
-    usage
-    return 1
-    ;;
-  loc | src | cp)
-    shift
-    ;;
-  *)
-    printf 'Unknown action: %s\n' "${ACTION}" >&2
-    usage >&2
-    return 2
-    ;;
+    '' | -h | --help)
+      usage
+      return 1
+      ;;
+    loc | src | cp)
+      shift
+      ;;
+    *)
+      printf 'Unknown action: %s\n' "${ACTION}" >&2
+      usage >&2
+      return 2
+      ;;
   esac
 
   while [ "${#}" -gt 0 ]; do
     case "${1}" in
-    -x | --raw)
-      RAW=1
-      ;;
-    -h | --help)
-      usage
-      return 1
-      ;;
-    --)
-      shift
-      break
-      ;;
-    -*)
-      printf 'Unknown option: %s\n' "${1}" >&2
-      usage >&2
-      return 2
-      ;;
-    *)
-      break
-      ;;
+      -x | --raw)
+        RAW=1
+        ;;
+      -h | --help)
+        usage
+        return 1
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        printf 'Unknown option: %s\n' "${1}" >&2
+        usage >&2
+        return 2
+        ;;
+      *)
+        break
+        ;;
     esac
 
     shift
@@ -190,7 +190,7 @@ execute_cp() {
   first=1
   tmp=${TMPDIR:-/tmp}/cmd-cp.$$
 
-  : >"${tmp}" || {
+  : > "${tmp}" || {
     printf 'Error: could not create temporary file: %s\n' "${tmp}" >&2
     return 1
   }
@@ -202,16 +202,16 @@ execute_cp() {
     }
 
     if [ "${first}" -eq 0 ]; then
-      printf '\n\n' >>"${tmp}"
+      printf '\n\n' >> "${tmp}"
     fi
     first=0
 
     if [ "${RAW}" -eq 0 ]; then
-      printf '# cmd: %s (%s)\n\n' "${cmd}" "${path}" >>"${tmp}"
+      printf '# cmd: %s (%s)\n\n' "${cmd}" "${path}" >> "${tmp}"
     fi
 
     if [ -n "${CMD_CAT}" ]; then
-      "${CMD_CAT}" "${path}" >>"${tmp}"
+      "${CMD_CAT}" "${path}" >> "${tmp}"
     else
       printf 'Error: cat was not found.\n' >&2
       rm -f "${tmp}"
@@ -219,7 +219,7 @@ execute_cp() {
     fi
   done
 
-  copy_output <"${tmp}" || status=${?}
+  copy_output < "${tmp}" || status=${?}
   rm -f "${tmp}"
 
   return "${status}"
@@ -229,13 +229,13 @@ execute() {
   resolve_tools
 
   case "${ACTION}" in
-  loc) execute_loc ;;
-  src) execute_src ;;
-  cp) execute_cp ;;
-  *)
-    printf 'Unknown action: %s\n' "${ACTION}" >&2
-    return 2
-    ;;
+    loc) execute_loc ;;
+    src) execute_src ;;
+    cp) execute_cp ;;
+    *)
+      printf 'Unknown action: %s\n' "${ACTION}" >&2
+      return 2
+      ;;
   esac
 }
 
@@ -244,15 +244,15 @@ main() {
   status=${?}
 
   case "${status}" in
-  0)
-    execute
-    ;;
-  1)
-    exit 0
-    ;;
-  *)
-    exit "${status}"
-    ;;
+    0)
+      execute
+      ;;
+    1)
+      exit 0
+      ;;
+    *)
+      exit "${status}"
+      ;;
   esac
 }
 

@@ -4,7 +4,7 @@
 set -u
 
 usage() {
-  cat <<'EOF'
+  cat << 'EOF'
 Usage: reset-flake [OPTIONS]
 
 Reset the nearest flake workspace by removing generated configuration files
@@ -25,26 +25,26 @@ parse_args() {
 
   while [ "${#}" -gt 0 ]; do
     case "${1}" in
-    -a | --all)
-      ALL=1
-      ;;
-    --root)
-      [ "${#}" -ge 2 ] || {
-        printf 'Error: --root requires a directory.\n' >&2
+      -a | --all)
+        ALL=1
+        ;;
+      --root)
+        [ "${#}" -ge 2 ] || {
+          printf 'Error: --root requires a directory.\n' >&2
+          return 2
+        }
+        ROOT_INPUT=${2}
+        shift
+        ;;
+      -h | --help)
+        usage
+        return 1
+        ;;
+      *)
+        printf 'Unknown option: %s\n' "${1}" >&2
+        usage >&2
         return 2
-      }
-      ROOT_INPUT=${2}
-      shift
-      ;;
-    -h | --help)
-      usage
-      return 1
-      ;;
-    *)
-      printf 'Unknown option: %s\n' "${1}" >&2
-      usage >&2
-      return 2
-      ;;
+        ;;
     esac
 
     shift
@@ -54,7 +54,7 @@ parse_args() {
 }
 
 physical_path() {
-  cd "${1}" 2>/dev/null && pwd -P
+  cd "${1}" 2> /dev/null && pwd -P
 }
 
 find_nearest_root() {
@@ -108,7 +108,7 @@ remove_path() {
 
 dir_is_empty() {
   path=${1}
-  first_entry=$(find "${path}" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null || true)
+  first_entry=$(find "${path}" -mindepth 1 -maxdepth 1 -print -quit 2> /dev/null || true)
 
   [ -z "${first_entry}" ]
 }
@@ -117,7 +117,7 @@ remove_empty_dir() {
   path=$(printf '%s/%s' "${ROOT}" "${1}")
 
   if [ -d "${path}" ] && dir_is_empty "${path}"; then
-    rmdir "${path}" 2>/dev/null || true
+    rmdir "${path}" 2> /dev/null || true
   fi
 }
 
@@ -194,16 +194,16 @@ main() {
   status=${?}
 
   case "${status}" in
-  0)
-    resolve_root
-    execute
-    ;;
-  1)
-    exit 0
-    ;;
-  *)
-    exit "${status}"
-    ;;
+    0)
+      resolve_root
+      execute
+      ;;
+    1)
+      exit 0
+      ;;
+    *)
+      exit "${status}"
+      ;;
   esac
 }
 

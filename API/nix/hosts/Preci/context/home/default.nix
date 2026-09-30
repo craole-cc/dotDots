@@ -1,9 +1,13 @@
-{common, lix, ...}: let
+{
+  common,
+  lix,
+  ...
+}: let
   inherit (lix.attrsets) listToAttrs attrValues;
   inherit (lix.lists) map unique;
 
   home = listToAttrs (map (user: {
-    name = user.name;
+    inherit (user) name;
     value = {
       packages = unique (
         user.infrastructure.packages.packages

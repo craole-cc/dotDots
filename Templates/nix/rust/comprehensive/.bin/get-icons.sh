@@ -43,11 +43,11 @@ download_icon() {
     printf '%sSKIPPED%s\n' "${YELLOW}" "${NC}"
     return
   fi
-  if curl -fsSL -A "Mozilla/5.0" "${url}" -o "${output}" 2>/dev/null; then
+  if curl -fsSL -A "Mozilla/5.0" "${url}" -o "${output}" 2> /dev/null; then
     printf '%sOK%s\n' "${GREEN}" "${NC}"
   else
     printf '%sFAILED%s\n' "${RED}" "${NC}"
-    rm -f "${output}" 2>/dev/null
+    rm -f "${output}" 2> /dev/null
   fi
 }
 

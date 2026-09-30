@@ -16,11 +16,6 @@
       "**/*.yaml",
       "**/*.yml"
     ],
-    "exclude": [
-      "node_modules",
-      "target",
-      ".git",
-      "**/dist/**"
-    ]
+    "exclude": ["node_modules", "target", ".git", "**/dist/**"]
   }
 }

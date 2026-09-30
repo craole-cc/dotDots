@@ -94,10 +94,10 @@ in {
       description = "Resolved theme attrset ({ light, dark } each with name, scheme, variant, package), derived from active options";
       default = resolveThemes {
         inherit pkgs;
-        accent = cfg.accent;
-        variant = cfg.variant;
-        light = cfg.light;
-        dark = cfg.dark;
+        inherit (cfg) accent;
+        inherit (cfg) variant;
+        inherit (cfg) light;
+        inherit (cfg) dark;
       };
       defaultText = literalExpression "resolveThemes { inherit pkgs accent variant light dark; }";
       type = attrsOf anything;

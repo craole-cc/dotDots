@@ -13,7 +13,7 @@
 # _________________________________________ LOCAL<|
 
 #@ Verify Installation
-command -v starship >/dev/null 2>&1 || return
+command -v starship > /dev/null 2>&1 || return
 
 #@ Set Environment Variables
 STARSHIP_HOME="${DOTS_CFG:?}/starship"
@@ -21,7 +21,7 @@ STARSHIP_CACHE="${CACHE_HOME:?}/starship"
 STARSHIP_CONFIG="${STARSHIP_HOME}/config.toml"
 
 #> THEME
-: <<THEMES
+: << THEMES
   bracketed-segments
   default
   craole
@@ -35,8 +35,8 @@ STARSHIP_THEME="${STARSHIP_HOME}/themes/${starship_theme}.toml"
 
 #{ Update the theme }
 if [ -f "${STARSHIP_THEME}" ]; then
-  cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}" ||
-    symbiolink --force \
+  cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}" \
+    || symbiolink --force \
       --src "${STARSHIP_THEME}" \
       --lnk "${STARSHIP_CONFIG}"
 else

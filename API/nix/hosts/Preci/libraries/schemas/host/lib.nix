@@ -100,7 +100,7 @@
         };
       };
 
-      paths = derived.paths;
+      inherit (derived) paths;
     };
   in
     recursiveUpdate derived defined;

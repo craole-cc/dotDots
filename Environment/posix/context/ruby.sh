@@ -11,7 +11,7 @@
 # _________________________________________ LOCAL<|
 
 #* Verify Installation *#
-if ! command -v ruby >/dev/null 2>&1; then return; fi
+if ! command -v ruby > /dev/null 2>&1; then return; fi
 
 GEM_HOME="$(ruby -e 'puts Gem.user_dir')/bin"
 # PATH_add "$GEM_HOME"
@@ -21,7 +21,7 @@ GEM_HOME="$(ruby -e 'puts Gem.user_dir')/bin"
 case ":${PATH}:" in *:"${GEM_HOME}":*) ;;
 *)
   PATH="${PATH:+${PATH}:}${GEM_HOME}"
-  [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
-    printf "Appended to PATH: %s\n" "${GEM_HOME}"
+  [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-3}" ] \
+    && printf "Appended to PATH: %s\n" "${GEM_HOME}"
   ;;
 esac

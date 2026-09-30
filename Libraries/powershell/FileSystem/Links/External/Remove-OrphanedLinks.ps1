@@ -39,7 +39,7 @@ function Remove-OrphanedLinks {
   Write-Pretty -NoNewLine -Tag 'Info' "Scanning for orphaned links in: $Directory" -ForegroundColor Yellow
 
   $orphanedLinks = Get-ChildItem $Directory -Recurse | Test-Link -Quiet |
-  Where-Object { $_.IsLink -and -not $_.IsValid }
+    Where-Object { $_.IsLink -and -not $_.IsValid }
 
   if ($orphanedLinks.Count -eq 0) {
     Write-Pretty -NoNewLine -Tag 'Info' 'No orphaned links found' -ForegroundColor Green

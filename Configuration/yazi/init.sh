@@ -11,8 +11,8 @@ YAZI_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/yazi"
 mkdir -p "$YAZI_HOME"
 
 # config.toml → yazi.toml (yazi expects this name)
-[ -f "$YAZI_CONF/config.toml" ] &&
-  ln -sf "$YAZI_CONF/config.toml" "$YAZI_HOME/yazi.toml"
+[ -f "$YAZI_CONF/config.toml" ] \
+  && ln -sf "$YAZI_CONF/config.toml" "$YAZI_HOME/yazi.toml"
 
 # Standard named files symlinked as-is
 for f in keymap.toml theme.toml init.lua; do

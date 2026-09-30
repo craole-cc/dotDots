@@ -88,10 +88,10 @@ in {
       description = "Resolved wallpaper attrset ({ light, dark } each with image, file, dirs), derived from active options";
       default = resolveWallpapers {
         inherit (lix) tree;
-        dots = cfg.dots;
-        pics = cfg.pics;
-        light = cfg.light;
-        dark = cfg.dark;
+        inherit (cfg) dots;
+        inherit (cfg) pics;
+        inherit (cfg) light;
+        inherit (cfg) dark;
       };
       defaultText = literalExpression "resolveWallpapers { inherit tree dots pics light dark; }";
       type = attrsOf anything;
