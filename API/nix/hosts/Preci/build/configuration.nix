@@ -224,7 +224,7 @@
             (isNotEmpty extraOverlays)
             extraOverlays
             ++ optional
-            (builtins.elem "rust" (host.args.functionalities or []))
+            (elem "rust" (host.args.functionalities or []))
             overlays.rust-overlay;
         };
 
@@ -249,7 +249,7 @@
       mkPath = root: stems:
         concatStringsSep "/" (
           map toString (
-            builtins.filter isNotEmpty (
+            filter isNotEmpty (
               (toList root) ++ (toList stems)
             )
           )
@@ -399,7 +399,7 @@
       principals = [
         {
           name = admin;
-          uid = 1000; # Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
+          uid = 1000; #? Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
           enable = true;
           autoLogin = true;
           role = "administrator";
@@ -708,7 +708,7 @@
           isSystemUser = !isNormalUser;
           paths = resolvedPaths;
           localization = userLocalization;
-          defaultLocale = userLocalization.defaultLocale;
+          inherit (userLocalization) defaultLocale;
           theme = themes;
           interface =
             recursiveUpdate
@@ -915,7 +915,7 @@
       };
 
     variables = let
-      name = args.name;
+      inherit (args) name;
       inherit (paths) local store;
       inherit (users) principal;
       env = variables;
@@ -1076,6 +1076,7 @@
           pstree
           ripgrep
           rsync
+          sd
           sad
           speedtest-go
           systemd
@@ -1397,10 +1398,10 @@
             text = let
               #? Used unless DMS/Matugen is currently running.
               fallback = {
-                THEME_KDE_LIGHT = variables.THEME_KDE_LIGHT;
-                THEME_KDE_DARK = variables.THEME_KDE_DARK;
-                THEME_GTK_LIGHT = variables.THEME_GTK_LIGHT;
-                THEME_GTK_DARK = variables.THEME_GTK_DARK;
+                inherit (variables) THEME_KDE_LIGHT;
+                inherit (variables) THEME_KDE_DARK;
+                inherit (variables) THEME_GTK_LIGHT;
+                inherit (variables) THEME_GTK_DARK;
               };
               #? Overrides fallback's keys while DMS is active.
               dms = {
@@ -1411,8 +1412,8 @@
               };
               #? Always assigned, regardless of DMS.
               static = {
-                THEME_ICONS_LIGHT = variables.THEME_ICONS_LIGHT;
-                THEME_ICONS_DARK = variables.THEME_ICONS_DARK;
+                inherit (variables) THEME_ICONS_LIGHT;
+                inherit (variables) THEME_ICONS_DARK;
               };
               mkAssigns = vals:
                 concatStringsSep "\n" (
@@ -1823,6 +1824,7 @@ in {
     nix-index = {
       enable = true;
     };
+
     nix-index-database = {
       enable = true;
       comma.enable = true;
@@ -2017,19 +2019,17 @@ in {
 
     #? Native project roots for Git identity routing. These are created on
     #? activation (test/switch), not during the pure build.
-    tmpfiles.rules =
-      unique (
-        concatMap
-        (user:
-          [
-            "d ${user.paths.roots.home}/Projects 0755 ${user.name} users - -"
-          ]
-          ++ map
-          (profile:
-            "d ${user.paths.roots.home}/Projects/${profile.root} 0755 ${user.name} users - -")
-          (user.git.profiles or []))
-        (attrValues host.users.normal)
-      );
+    tmpfiles.rules = unique (
+      concatMap
+      (user:
+        [
+          "d ${user.paths.roots.home}/Projects 0755 ${user.name} users - -"
+        ]
+        ++ map
+        (profile: "d ${user.paths.roots.home}/Projects/${profile.root} 0755 ${user.name} users - -")
+        (user.git.profiles or []))
+      (attrValues host.users.normal)
+    );
 
     user.services = {
       desktop-commander-remote = {

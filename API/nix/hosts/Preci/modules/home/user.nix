@@ -1,4 +1,9 @@
-{host, infrastructure, user, ...}: {
+{
+  host,
+  infrastructure,
+  user,
+  ...
+}: {
   home.stateVersion = host.stateVersion;
   home.username = user.name;
   home.homeDirectory = user.paths.roots.home;
@@ -7,11 +12,13 @@
 
   programs.git = {
     enable = true;
-    settings = {
-      user = {
-        name = user.git.name;
-        email = user.git.email;
-      };
-    } // (user.git.settings or {});
+    settings =
+      {
+        user = {
+          name = user.git.name;
+          email = user.git.email;
+        };
+      }
+      // (user.git.settings or {});
   };
 }

@@ -14,14 +14,14 @@ def prompt_wit_fullline [] {
     } else {
         $" (ansi green_bold)($env.PWD)(ansi reset) "
     }
-    let path_segment_visible_length = ($path_segment | ansi strip | str length)
+    let path_segment_visible_length = $path_segment | ansi strip | str length
     let path_segment_excess_length = ($path_segment | str length) - $path_segment_visible_length
 
     # to disable the right hand segment, change line below to be simply `let time_segment = ''`.
     let time_segment = $"(date now | date format ' %F %r')(ansi reset)"
-    let time_segment_excess_length = ($time_segment | str length) - ($time_segment | ansi strip | str length)
+    let time_segment_excess_length = $time_segment | str length) - ($time_segment | ansi strip | str length
 
-    let path_segment_pad = ((((term size).columns + $path_segment_visible_length) / 2) | into int)
+    let path_segment_pad = (((term size).columns + $path_segment_visible_length) / 2) | into int
     let time_segment_pad = (term size).columns - $path_segment_pad
 
     let pad_char = '-'
@@ -34,8 +34,8 @@ def prompt_wit_fullline [] {
     $segment
 }
 
-export def-env PROMPT_COMMAND = { || print (prompt_wit_fullline); }
-let-env PROMPT_INDICATOR = { ||"〉" }
-let-env PROMPT_INDICATOR_VI_INSERT = { || ": " }
-let-env PROMPT_INDICATOR_VI_NORMAL = { || "〉" }
-let-env PROMPT_MULTILINE_INDICATOR = { || "::: " }
+export def-env PROMPT_COMMAND = {|| print (prompt_wit_fullline); }
+let-env PROMPT_INDICATOR = {|| "〉" }
+let-env PROMPT_INDICATOR_VI_INSERT = {|| ": " }
+let-env PROMPT_INDICATOR_VI_NORMAL = {|| "〉" }
+let-env PROMPT_MULTILINE_INDICATOR = {|| "::: " }

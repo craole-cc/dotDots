@@ -93,16 +93,16 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-$option_1)
-  run_cmd --opt1
-  ;;
-$option_2)
-  run_cmd --opt2
-  ;;
-$option_3)
-  run_cmd --opt3
-  ;;
-$option_4)
-  run_cmd --opt4
-  ;;
+  $option_1)
+    run_cmd --opt1
+    ;;
+  $option_2)
+    run_cmd --opt2
+    ;;
+  $option_3)
+    run_cmd --opt3
+    ;;
+  $option_4)
+    run_cmd --opt4
+    ;;
 esac

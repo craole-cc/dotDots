@@ -170,7 +170,7 @@ The loader searches for local config files using the `OrderFiles` setting:
 
 **Plain Text:**
 
-```
+```text
 skip
 ```
 
@@ -201,7 +201,7 @@ Local excludes are combined with global excludes for comprehensive filtering.
 
 **Plain Text Format:**
 
-```
+```text
 core.ps1
 utils.ps1
 # Comments are supported
@@ -392,7 +392,7 @@ Enable detailed logging by setting debug preferences in your configuration:
 
 ### Debug Output Example
 
-```
+```text
 >>= DOTS =<< Initializing PowerShell environment...
 DEBUG: >>= DOTS =<< Found 3 include configurations
 DEBUG: >>= DOTS =<< Processing path: Core\PowerShell => D:\dots\Core\PowerShell

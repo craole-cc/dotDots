@@ -13,6 +13,5 @@
       inherit context;
       condition = builtins.isBool enable;
       message = "enable must be a boolean, got '${toString enable}'";
-    };
-      enable;
+    }; enable;
 in {inherit default resolve;}

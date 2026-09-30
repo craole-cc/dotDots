@@ -5,7 +5,7 @@
 Toolchain installer for The Rust Programming Language, Rust programs and Cargo
 plugins
 
-```#! /bin/sh
+```text #! /bin/sh
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
 rustup toolchain install nightly --allow-downgrade --profile minimal --component clippy
 rustup default nightly
@@ -18,7 +18,7 @@ rustup update
 
 Pacman wrapping AUR helper written in Rust.
 
-```#! /bin/sh
+```text #! /bin/sh
 sudo pacman -S --needed base-devel
 rm -rf ~/Downloads/Apps/paru
 git clone https://aur.archlinux.org/paru.git ~/Downloads/Apps/paru
@@ -32,7 +32,7 @@ makepkg -si
 
 Widgeting system made in Rust.
 
-```#! /bin/sh
+```text #! /bin/sh
 dir="~/Downloads/Apps/eww"
 git clone https://github.com/elkowar/eww ~/Downloads/Apps/eww
 cd ~/Downloads/Apps/eww
@@ -48,7 +48,7 @@ chmod +x ./eww
 
 Checks presence of various command line tools and their versions on the path.
 
-```#! /bin/sh
+```text #! /bin/sh
 rm -rf ~/Downloads/Apps/has
 git clone https://github.com/kdabir/has.git ~/Downloads/Apps/has
 cd ~/Downloads/Apps/has
@@ -61,7 +61,7 @@ make PREFIX=$HOME/.local install
 
 Improved file lister.
 
-```#! /bin/sh
+```text #! /bin/sh
 sudo pacman -S exa
 ```
 
@@ -82,7 +82,7 @@ sudo pacman -S exa
 
 A better way to navigate directories
 
-```#! /bin/sh
+```text #! /bin/sh
 cargo install broot
 ```
 
@@ -103,7 +103,7 @@ cargo install broot
 
 Finds bugs in your shell scripts.
 
-```#! /bin/sh
+```text #! /bin/sh
 paru shellcheck-bin
 ```
 
@@ -113,7 +113,7 @@ paru shellcheck-bin
 
 Data extraction tool for alpm databases, eg. pacman.
 
-```#! /bin/sh
+```text #! /bin/sh
 sudo pacman -S expac
 ```
 
@@ -123,7 +123,7 @@ sudo pacman -S expac
 
 A fast, cross-platform, OpenGL terminal emulator.
 
-```#! /bin/sh
+```text #! /bin/sh
 paru alacritty-ligatures-git
 ```
 
@@ -133,11 +133,11 @@ paru alacritty-ligatures-git
 
 Line-oriented search tool alternative to grep.
 
-```#! /bin/sh
+```text #! /bin/sh
 sudo pacman -S ripgrep
 ```
 
-```#! /bin/sh
+```text #! /bin/sh
 DIR="~/Downloads/Apps"
 ls $DIR
 git clone https://github.com/elkowar/eww $dir

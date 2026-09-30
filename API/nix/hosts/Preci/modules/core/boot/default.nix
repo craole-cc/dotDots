@@ -1,4 +1,8 @@
-{host, infrastructure, ...}: let
+{
+  host,
+  infrastructure,
+  ...
+}: let
   inherit (host.interface.boot.loader) device manager timeout;
   inherit (infrastructure.core.packages) kernel;
 in {

@@ -51,9 +51,7 @@
     context ? "resolve user uid (user \"${toString name}\")",
   }: let
     range =
-      if ranges ? ${role}
-      then ranges.${role}
-      else ranges.user;
+      ranges.${role} or ranges.user;
     resolved =
       if uid != null
       then uid

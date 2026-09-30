@@ -10,7 +10,6 @@
   inherit (lix.attrsets) recursiveUpdate;
   inherit (registry) inputs overlays;
 in {
-
   networking = {
     hostName = host.name;
     hostId = host.id;

@@ -19,7 +19,7 @@ SCR_NAME="init-db"
 #╔═══════════════════════════════════════════════════════════╗
 #║ Output                                                    ║
 #╚═══════════════════════════════════════════════════════════╝
-_tput() { tput "$@" 2>/dev/null; }
+_tput() { tput "$@" 2> /dev/null; }
 
 if [ -t 1 ]; then
   #? Tier 1: 256-color tput (xterm-256color and equivalents)
@@ -80,8 +80,8 @@ die() {
 FORCE=0
 while [ $# -ge 1 ]; do
   case "${1:-}" in
-  -f | --force | --reset) FORCE=1 ;;
-  *) die "Unknown argument: $1" ;;
+    -f | --force | --reset) FORCE=1 ;;
+    *) die "Unknown argument: $1" ;;
   esac
   shift
 done
@@ -94,14 +94,14 @@ done
 [ -f "Cargo.toml" ] || die "Run this script from the workspace root."
 
 #> Ensure sqlx-cli is available
-command -v sqlx >/dev/null 2>&1 ||
-  die "sqlx-cli not found. Install with: cargo install sqlx-cli --no-default-features --features sqlite"
+command -v sqlx > /dev/null 2>&1 \
+  || die "sqlx-cli not found. Install with: cargo install sqlx-cli --no-default-features --features sqlite"
 
 #> Resolve DATABASE_URL: prefer env var, then .env file, then default
 if [ -z "${DATABASE_URL:-}" ] && [ -f "${ENV_FILE:-}" ]; then
   DATABASE_URL=$(
-    grep -E '^DATABASE_URL=' "${ENV_FILE}" |
-      grep -v '^\s*#' | tail -1 | cut -d'=' -f2-
+    grep -E '^DATABASE_URL=' "${ENV_FILE}" \
+      | grep -v '^\s*#' | tail -1 | cut -d'=' -f2-
   )
 fi
 DATABASE_URL="${DATABASE_URL:-sqlite:./${DB_PATH}}"

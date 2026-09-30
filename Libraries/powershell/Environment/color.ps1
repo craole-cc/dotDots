@@ -20,7 +20,7 @@ function Global:Get-DesktopColorMode {
         # AppsUseLightTheme: 0 = Dark, 1 = Light
         $registryPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize'
         $value = Get-ItemProperty -Path $registryPath -Name 'AppsUseLightTheme' -ErrorAction Stop |
-        Select-Object -ExpandProperty 'AppsUseLightTheme'
+          Select-Object -ExpandProperty 'AppsUseLightTheme'
 
         if ($value -eq 0) {
           return 'Dark'

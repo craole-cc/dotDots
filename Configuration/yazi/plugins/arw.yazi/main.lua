@@ -2,13 +2,8 @@ local M = {}
 
 local function extract(path)
   for _, tag in ipairs({ "-PreviewImage", "-ThumbnailImage" }) do
-    local output = Command("exiftool")
-      :arg("-b")
-      :arg(tag)
-      :arg(tostring(path))
-      :stdout(Command.PIPED)
-      :stderr(Command.NULL)
-      :output()
+    local output =
+      Command("exiftool"):arg("-b"):arg(tag):arg(tostring(path)):stdout(Command.PIPED):stderr(Command.NULL):output()
     if output and output.stdout ~= "" then
       return output.stdout
     end
@@ -18,7 +13,9 @@ end
 
 function M:peek(job)
   local cache = ya.file_cache(job)
-  if not cache then return end
+  if not cache then
+    return
+  end
 
   if fs.cha(cache) then
     return ya.image_show(cache, job.area)

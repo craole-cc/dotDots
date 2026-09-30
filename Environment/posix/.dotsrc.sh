@@ -64,7 +64,7 @@ set_defaults() {
   fi
 
   #|-> Commands
-  CMD_RG="$(command -v rg 2>/dev/null || command -v grep 2>/dev/null)" export CMD_RG
+  CMD_RG="$(command -v rg 2> /dev/null || command -v grep 2> /dev/null)" export CMD_RG
 }
 
 manage_env() {
@@ -144,66 +144,66 @@ manage_env() {
     #{ Parse command-line options
     while [ $# -ge 1 ]; do
       case "$1" in
-      --help | -h)
-        show_usage
-        return 0
-        ;;
-      -[dD] | --debug | --verbose | -V) VERBOSITY="DEBUG" ;;
-      -[fF] | -[yY] | --force | --yes) force=true ;;
-      --ask | --interactive) force=false ;;
-      -[iI] | --init | --initialize) action="init" ;;
-      -R | --register | --set | -s) action="register" ;;
-      -U | --unregister | -unset | -u) action="unregister" ;;
-      -r | --resolve) action="resolve" ;;
-      -e | --edit) action="edit" ;;
-      -a | --action)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        shift
-        if printf "%s" "${actions}" | grep -q "\\b${1}\\b"; then
-          action=$1
-        else
-          show_usage_error "Invalid action '$1'. Must be one of: ${actions}"
-          return 1
-        fi
-        ;;
-      -E | --editor)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        shift
-        EDITOR="$1"
-        ;;
-      --rc | --target)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        shift
-        RC="$1"
-        ;;
-      -k | --key | --var)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        shift
-        var="$1"
-        ;;
-      -p | --path | --val)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        shift
-        val="$1"
-        ;;
-      *)
-        args="${args:+${args}${DELIMITER}}$1"
-        ;;
+        --help | -h)
+          show_usage
+          return 0
+          ;;
+        -[dD] | --debug | --verbose | -V) VERBOSITY="DEBUG" ;;
+        -[fF] | -[yY] | --force | --yes) force=true ;;
+        --ask | --interactive) force=false ;;
+        -[iI] | --init | --initialize) action="init" ;;
+        -R | --register | --set | -s) action="register" ;;
+        -U | --unregister | -unset | -u) action="unregister" ;;
+        -r | --resolve) action="resolve" ;;
+        -e | --edit) action="edit" ;;
+        -a | --action)
+          if [ "$#" -lt 2 ]; then
+            show_usage_error "Missing argument for '$1'"
+            return 1
+          fi
+          shift
+          if printf "%s" "${actions}" | grep -q "\\b${1}\\b"; then
+            action=$1
+          else
+            show_usage_error "Invalid action '$1'. Must be one of: ${actions}"
+            return 1
+          fi
+          ;;
+        -E | --editor)
+          if [ "$#" -lt 2 ]; then
+            show_usage_error "Missing argument for '$1'"
+            return 1
+          fi
+          shift
+          EDITOR="$1"
+          ;;
+        --rc | --target)
+          if [ "$#" -lt 2 ]; then
+            show_usage_error "Missing argument for '$1'"
+            return 1
+          fi
+          shift
+          RC="$1"
+          ;;
+        -k | --key | --var)
+          if [ "$#" -lt 2 ]; then
+            show_usage_error "Missing argument for '$1'"
+            return 1
+          fi
+          shift
+          var="$1"
+          ;;
+        -p | --path | --val)
+          if [ "$#" -lt 2 ]; then
+            show_usage_error "Missing argument for '$1'"
+            return 1
+          fi
+          shift
+          val="$1"
+          ;;
+        *)
+          args="${args:+${args}${DELIMITER}}$1"
+          ;;
       esac
       shift
     done
@@ -224,19 +224,19 @@ manage_env() {
 
     #{ Validate required arguments based on action
     case "${action}" in
-    register | set | init | initialize)
-      # show_usage_error "Variable name is required for action '${action}'"
-      if [ -z "${var:-}" ] && [ -z "${val:-}" ]; then
-        return 1
-      fi
-      ;;
-    unregister | unset | resolve | edit)
-      if [ -z "${var:-}" ]; then
+      register | set | init | initialize)
         # show_usage_error "Variable name is required for action '${action}'"
-        return 1
-      fi
-      ;;
-    *) ;;
+        if [ -z "${var:-}" ] && [ -z "${val:-}" ]; then
+          return 1
+        fi
+        ;;
+      unregister | unset | resolve | edit)
+        if [ -z "${var:-}" ]; then
+          # show_usage_error "Variable name is required for action '${action}'"
+          return 1
+        fi
+        ;;
+      *) ;;
     esac
 
     #{ Print debug information
@@ -252,18 +252,18 @@ manage_env() {
 
   execute_process() {
     case "${action:-}" in
-    init | initialize | register | set)
-      case "${action:-}" in init) init="--init" ;; *) ;; esac
-      case "${force:-}" in 1 | true | yes | on) force="--force" ;; *) ;; esac
-      register_env "${force}" "${init}" --var "${var}" --val "${val}"
-      ;;
-    unregister | unset) unregister_env "${var}" ;;
-    edit) edit "${var}" ;;
-    resolve | env) resolve_env "${var}" ;;
-    *)
-      show_usage_error "Invalid action '${action}'. Must be one of: ${actions}"
-      return 1
-      ;;
+      init | initialize | register | set)
+        case "${action:-}" in init) init="--init" ;; *) ;; esac
+        case "${force:-}" in 1 | true | yes | on) force="--force" ;; *) ;; esac
+        register_env "${force}" "${init}" --var "${var}" --val "${val}"
+        ;;
+      unregister | unset) unregister_env "${var}" ;;
+      edit) edit "${var}" ;;
+      resolve | env) resolve_env "${var}" ;;
+      *)
+        show_usage_error "Invalid action '${action}'. Must be one of: ${actions}"
+        return 1
+        ;;
     esac
   }
 
@@ -327,28 +327,28 @@ resolve_env() {
 
   #{ Convert Windows drive letter paths to Unix-style }
   case "${env}" in
-  [a-zA-Z]:[\\/]*)
-    drive_letter=$(
-      printf '%s\n' "${env%%[\\/:]*}" |
-        tr '[:upper:]' '[:lower:]'
-    )                                                #? C:\path or C:/path to /c/path
-    normalized_path=$(printf '%s\n' "${env#*[\\/]}") #? [\, \\] to  [/]
-    env="/${drive_letter}/${normalized_path}"
-    ;;
-  *) ;;
+    [a-zA-Z]:[\\/]*)
+      drive_letter=$(
+        printf '%s\n' "${env%%[\\/:]*}" \
+          | tr '[:upper:]' '[:lower:]'
+      )                                                #? C:\path or C:/path to /c/path
+      normalized_path=$(printf '%s\n' "${env#*[\\/]}") #? [\, \\] to  [/]
+      env="/${drive_letter}/${normalized_path}"
+      ;;
+    *) ;;
   esac
 
   #{ Process the value }
   if [ -e "${env}" ]; then
     #{ Retrieve the absolute path (if possible)
     if [ -d "${env}" ]; then
-      resolved="$(cd "${env}" 2>/dev/null && pwd)"
+      resolved="$(cd "${env}" 2> /dev/null && pwd)"
     elif [ -f "${env}" ]; then
 
       #{ For files: cd to dirname, then print full path
       dir="$(dirname "${env}")"
       file="$(basename "${env}")"
-      resolved="$(cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")"
+      resolved="$(cd "${dir}" 2> /dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")"
     fi
   else
     #{ Return the value of the variable
@@ -387,34 +387,34 @@ register_env() {
   #{ Parse arguments }
   while [ $# -ge 1 ]; do
     case "$1" in
-    -[iI] | --init | --initialize) _init=1 ;;
-    -[fF] | --force) _force=1 ;;
-    --env-file)
-      _env_file="$2"
-      shift
-      ;;
-    --var)
-      if [ $# -lt 2 ]; then
-        show_usage_error "Missing argument for '$1'"
-        return 1
-      fi
-      _var="$2"
-      shift
-      ;;
-    --val)
-      if [ $# -lt 2 ]; then
-        show_usage_error "Missing argument for '$1'"
-        return 1
-      fi
-      _val="$2"
-      shift
-      ;;
-    --)
-      shift
-      break
-      ;;
-    -*) ;; #? Unknown option, skip
-    *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
+      -[iI] | --init | --initialize) _init=1 ;;
+      -[fF] | --force) _force=1 ;;
+      --env-file)
+        _env_file="$2"
+        shift
+        ;;
+      --var)
+        if [ $# -lt 2 ]; then
+          show_usage_error "Missing argument for '$1'"
+          return 1
+        fi
+        _var="$2"
+        shift
+        ;;
+      --val)
+        if [ $# -lt 2 ]; then
+          show_usage_error "Missing argument for '$1'"
+          return 1
+        fi
+        _val="$2"
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*) ;; #? Unknown option, skip
+      *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
     esac
     shift
   done
@@ -455,69 +455,69 @@ register_env() {
   )"
 
   #{ Handle existing variable values }
-  var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
+  var_val="$(resolve_env "${_var}" 2> /dev/null || true)"
   case "${var_val:-}" in
-  "")
-    #? Variable doesn't exist, use argument value
-    pout-tagged --ctx "register_env" --tag "[INFO]" \
-      "Registering new variable ${_var}=${_val}"
-    ;;
-  "${_val}")
-    #? System value matches argument value - no change needed
-    if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2>/dev/null; then
-      pout-tagged --ctx "register_env" --tag "[TRACE]" \
-        "Variable ${_var} already set to correct value"
-      return 0
-    fi
-    ;;
-  *)
-    #? System value differs from argument value
-    case "${_force}" in 1 | true | yes | on)
-      pout-tagged --ctx "register_env" --tag "[WARN]" \
-        "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+    "")
+      #? Variable doesn't exist, use argument value
+      pout-tagged --ctx "register_env" --tag "[INFO]" \
+        "Registering new variable ${_var}=${_val}"
+      ;;
+    "${_val}")
+      #? System value matches argument value - no change needed
+      if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2> /dev/null; then
+        pout-tagged --ctx "register_env" --tag "[TRACE]" \
+          "Variable ${_var} already set to correct value"
+        return 0
+      fi
       ;;
     *)
-      #? Interactive overwrite
-      #{ Interactive prompt for overwrite }
-      printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
-      printf "New value would be: '%s'\n" "${_val}"
-      printf "Overwrite with new value? [y/N] (default: N): "
-
-      #{ Handle CTRL-C during read }
-      trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
-      read -r response
-      trap - INT
-
-      case "${response}" in
-      [Yy]*)
-        if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
-        fi
+      #? System value differs from argument value
+      case "${_force}" in 1 | true | yes | on)
+        pout-tagged --ctx "register_env" --tag "[WARN]" \
+          "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
         ;;
       *)
-        _val="${var_val}"
-        if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
-        fi
+        #? Interactive overwrite
+        #{ Interactive prompt for overwrite }
+        printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
+        printf "New value would be: '%s'\n" "${_val}"
+        printf "Overwrite with new value? [y/N] (default: N): "
+
+        #{ Handle CTRL-C during read }
+        trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
+        read -r response
+        trap - INT
+
+        case "${response}" in
+          [Yy]*)
+            if [ "${VERBOSITY:-0}" -ge 3 ]; then
+              pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
+            fi
+            ;;
+          *)
+            _val="${var_val}"
+            if [ "${VERBOSITY:-0}" -ge 3 ]; then
+              pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
+            fi
+            ;;
+        esac
         ;;
       esac
       ;;
-    esac
-    ;;
   esac
 
   #{ Escape all $ in _val to ensure literal $ in paths when RC is sourced }
   _escaped_val=$(printf '%s\n' "${_val}" | sed 's/\$/\\\$/g')
 
   #{ Register the variable globally }
-  printf "\nexport %s=\"%s\"" "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+  printf "\nexport %s=\"%s\"" "${_var}" "${_escaped_val}" >> "${DOTS_CACHE_RC}"
   . "${DOTS_CACHE_RC}"
   pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_escaped_val}"
 
   #{ Create helper functions for existing paths }
   if [ -e "${_val}" ]; then
     printf "\ned_%s(){ editor \"%s\" || exit 1 ;}" \
-      "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+      "${_var}" "${_escaped_val}" >> "${DOTS_CACHE_RC}"
     pout-tagged --ctx "register_env" --tag "[DEBUG]" \
       "Created function ed_${_var}"
   fi
@@ -525,7 +525,7 @@ register_env() {
   #{ Handle directory-specific functionality }
   if [ -d "${_val}" ]; then
     printf "\ncd_%s(){ cd \"%s\" || exit 1 ;}" \
-      "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+      "${_var}" "${_escaped_val}" >> "${DOTS_CACHE_RC}"
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function cd_${_var}"
     fi
@@ -582,31 +582,31 @@ register_env_OLD() {
   #{ Parse arguments }
   while [ $# -ge 1 ]; do
     case "$1" in
-    -[iI] | --init | --initialize) _init=1 ;;
-    -[fF] | --force) _force=1 ;;
-    --env-file) _env_file="$2" ;;
-    --var)
-      if [ $# -lt 2 ]; then
-        show_usage_error "Missing argument for '$1'"
-        return 1
-      fi
-      _var="$2"
-      shift
-      ;;
-    --val)
-      if [ $# -lt 2 ]; then
-        show_usage_error "Missing argument for '$1'"
-        return 1
-      fi
-      _val="$2"
-      shift
-      ;;
-    --)
-      shift
-      break
-      ;;
-    -*) ;; #? Unknown option, skip
-    *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
+      -[iI] | --init | --initialize) _init=1 ;;
+      -[fF] | --force) _force=1 ;;
+      --env-file) _env_file="$2" ;;
+      --var)
+        if [ $# -lt 2 ]; then
+          show_usage_error "Missing argument for '$1'"
+          return 1
+        fi
+        _var="$2"
+        shift
+        ;;
+      --val)
+        if [ $# -lt 2 ]; then
+          show_usage_error "Missing argument for '$1'"
+          return 1
+        fi
+        _val="$2"
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*) ;; #? Unknown option, skip
+      *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
     esac
     shift
   done
@@ -658,66 +658,66 @@ register_env_OLD() {
   # esac
 
   #{ Handle existing variable values }
-  var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
+  var_val="$(resolve_env "${_var}" 2> /dev/null || true)"
   case "${var_val:-}" in
-  "")
-    #? Variable doesn't exist, use argument value
-    pout-tagged --ctx "register_env" --tag "[INFO]" \
-      "Registering new variable ${_var}=${_val}"
-    ;;
-  "${_val}")
-    #? System value matches argument value - no change needed
-    if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2>/dev/null; then
-      pout-tagged --ctx "register_env" --tag "[TRACE]" \
-        "Variable ${_var} already set to correct value"
-      return 0
-    fi
-    ;;
-  *)
-    #? System value differs from argument value
-    case "${_force}" in 1 | true | yes | on)
-      pout-tagged --ctx "register_env" --tag "[WARN]" \
-        "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+    "")
+      #? Variable doesn't exist, use argument value
+      pout-tagged --ctx "register_env" --tag "[INFO]" \
+        "Registering new variable ${_var}=${_val}"
+      ;;
+    "${_val}")
+      #? System value matches argument value - no change needed
+      if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2> /dev/null; then
+        pout-tagged --ctx "register_env" --tag "[TRACE]" \
+          "Variable ${_var} already set to correct value"
+        return 0
+      fi
       ;;
     *)
-      #? Interactive overwrite
-      #{ Interactive prompt for overwrite }
-      printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
-      printf "New value would be: '%s'\n" "${_val}"
-      printf "Overwrite with new value? [y/N] (default: N): "
-
-      #{ Handle CTRL-C during read }
-      trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
-      read -r response
-      trap - INT
-
-      case "${response}" in
-      [Yy]*)
-        if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
-        fi
+      #? System value differs from argument value
+      case "${_force}" in 1 | true | yes | on)
+        pout-tagged --ctx "register_env" --tag "[WARN]" \
+          "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
         ;;
       *)
-        _val="${var_val}"
-        if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
-        fi
+        #? Interactive overwrite
+        #{ Interactive prompt for overwrite }
+        printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
+        printf "New value would be: '%s'\n" "${_val}"
+        printf "Overwrite with new value? [y/N] (default: N): "
+
+        #{ Handle CTRL-C during read }
+        trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
+        read -r response
+        trap - INT
+
+        case "${response}" in
+          [Yy]*)
+            if [ "${VERBOSITY:-0}" -ge 3 ]; then
+              pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
+            fi
+            ;;
+          *)
+            _val="${var_val}"
+            if [ "${VERBOSITY:-0}" -ge 3 ]; then
+              pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
+            fi
+            ;;
+        esac
         ;;
       esac
       ;;
-    esac
-    ;;
   esac
 
   #{ Register the variable globally }
-  printf "\nexport %s=\"%s\"" "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
+  printf "\nexport %s=\"%s\"" "${_var}" "${_val}" >> "${DOTS_CACHE_RC}"
   . "${DOTS_CACHE_RC}"
   pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_val}"
 
   #{ Create helper functions for existing paths }
   if [ -e "${_val}" ]; then
     printf "\ned_%s(){ editor \"%s\" || exit 1 ;}" \
-      "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
+      "${_var}" "${_val}" >> "${DOTS_CACHE_RC}"
     pout-tagged --ctx "register_env" --tag "[DEBUG]" \
       "Created function ed_${_var}"
   fi
@@ -725,7 +725,7 @@ register_env_OLD() {
   #{ Handle directory-specific functionality }
   if [ -d "${_val}" ]; then
     printf "\ncd_%s(){ cd \"%s\" || exit 1 ;}" \
-      "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
+      "${_var}" "${_val}" >> "${DOTS_CACHE_RC}"
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function cd_${_var}"
     fi
@@ -784,12 +784,12 @@ unregister_env() {
     "${DOTS_CACHE_RC}"
 
   #{ Remove aliases with the variable name from the current shell }
-  unset "${env}" 2>/dev/null
+  unset "${env}" 2> /dev/null
   for prefix in ed cd ls mv; do #? add more as needed
-    unset -f "${prefix}_${env}" 2>/dev/null
+    unset -f "${prefix}_${env}" 2> /dev/null
   done
-  unalias "${env}" 2>/dev/null
-  unset "${env}" 2>/dev/null
+  unalias "${env}" 2> /dev/null
+  unset "${env}" 2> /dev/null
 }
 
 parse_list() {

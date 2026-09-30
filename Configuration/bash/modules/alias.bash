@@ -87,7 +87,7 @@ alias cpua="ps auxf | sort -nr -k 3"
 
 eo() {
   # if weHave emojify; then
-  if emojify --version type >/dev/null 2>&1; then
+  if emojify --version type > /dev/null 2>&1; then
     emojify "$*"
   else
     printf "%s$*"
@@ -174,22 +174,22 @@ alias yt_mp3="yt-dlp --extract-audio --audio-format mp3 --audio-quality 0"
 # ----------------------------
 
 case $sys_INFO in
-*Windows*)
-  alias copy="clip.exe"
-  alias paste="powershell.exe Get-Clipboard"
-  ;;
-*Mac*)
-  alias copy="pbcopy"
-  alias paste="pbpaste"
-  ;;
-*Linux*)
-  alias copy="xclip -sel clip"
-  alias paste="xclip -sel clip -o"
-  ;;
-*)
-  alias copy="/dev/clipboard"
-  alias paste="cat /dev/clipboard"
-  ;;
+  *Windows*)
+    alias copy="clip.exe"
+    alias paste="powershell.exe Get-Clipboard"
+    ;;
+  *Mac*)
+    alias copy="pbcopy"
+    alias paste="pbpaste"
+    ;;
+  *Linux*)
+    alias copy="xclip -sel clip"
+    alias paste="xclip -sel clip -o"
+    ;;
+  *)
+    alias copy="/dev/clipboard"
+    alias paste="cat /dev/clipboard"
+    ;;
 esac
 
 alias ko='eko -n'

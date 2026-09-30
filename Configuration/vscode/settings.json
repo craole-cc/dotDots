@@ -108,9 +108,7 @@
   // > TERMINAL FEATURES
   //>====================================================
   "terminal.integrated.allowMnemonics": true,
-  "terminal.integrated.commandsToSkipShell": [
-    "workbench.action.terminal.copySelection"
-  ],
+  "terminal.integrated.commandsToSkipShell": ["workbench.action.terminal.copySelection"],
   "terminal.integrated.confirmOnExit": "never",
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.cursorBlinking": true,
@@ -122,10 +120,7 @@
   "terminal.integrated.profiles.windows": {
     "NixOS (WSL)": {
       "path": "${env:windir}\\System32\\wsl.exe",
-      "args": [
-        "-d",
-        "NixOS"
-      ]
+      "args": ["-d", "NixOS"]
     },
     "Git Bash": {
       "source": "Git Bash"
@@ -153,10 +148,7 @@
       "path": "${env:USERPROFILE}\\AppData\\Local\\Programs\\nu\\bin\\nu.exe"
     },
     "Command Prompt": {
-      "path": [
-        "${env:windir}\\Sysnative\\cmd.exe",
-        "${env:windir}\\System32\\cmd.exe"
-      ],
+      "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
       "args": [],
       "icon": "terminal-cmd"
     }
@@ -368,9 +360,7 @@
         ]
       },
       "diagnostic": {
-        "suppress": [
-          "sema-primop-overridden"
-        ]
+        "suppress": ["sema-primop-overridden"]
       }
     }
   },
@@ -499,46 +489,28 @@
       "base": "nix",
       "color": "cyan-300",
       "lightColor": "cyan-600",
-      "fileNames": [
-        "default.nix",
-        "flake.nix",
-        "shell.nix",
-        "configuration.nix"
-      ]
+      "fileNames": ["default.nix", "flake.nix", "shell.nix", "configuration.nix"]
     },
     {
       "name": "dotenv",
       "base": "key",
       "color": "amber-300",
       "lightColor": "amber-600",
-      "fileNames": [
-        "envrc",
-        ".envrc",
-        "env",
-        ".env"
-      ]
+      "fileNames": ["envrc", ".envrc", "env", ".env"]
     },
     {
       "name": "sublime-text",
       "base": "sublime",
       "color": "amber-300",
       "lightColor": "amber-600",
-      "fileNames": [
-        "sublime-settings",
-        "Preferences.sublime-settings",
-        ".sublime",
-        "sublime"
-      ]
+      "fileNames": ["sublime-settings", "Preferences.sublime-settings", ".sublime", "sublime"]
     },
     {
       "name": "markdownlinter",
       "base": "markdownlint",
       "color": "blue-400",
       "lightColor": "blue-500",
-      "fileNames": [
-        ".markdownlint-cli2.yaml",
-        "markdownlint-cli2.yaml"
-      ]
+      "fileNames": [".markdownlint-cli2.yaml", "markdownlint-cli2.yaml"]
     }
   ],
   "material-icon-theme.files.color": "#e8ddd8",
@@ -574,140 +546,84 @@
       "base": "admin",
       "color": "light-green-300",
       "lightColor": "light-green-700",
-      "folderNames": [
-        "users",
-        "user",
-        "people",
-        "roles"
-      ]
+      "folderNames": ["users", "user", "people", "roles"]
     },
     {
       "name": "desktops",
       "base": "desktop",
       "color": "purple-300",
       "lightColor": "orange-700",
-      "folderNames": [
-        "desktops",
-        "desktop",
-        "control"
-      ]
+      "folderNames": ["desktops", "desktop", "control"]
     },
     {
       "name": "editor",
       "base": "skills",
       "color": "blue-gray-600",
       "lightColor": "blue-gray-700",
-      "folderNames": [
-        "nvim",
-        "neovim",
-        "helix",
-        "zed",
-        "editor"
-      ]
+      "folderNames": ["nvim", "neovim", "helix", "zed", "editor"]
     },
     {
       "name": "hosts",
       "base": "client",
       "color": "blue-gray-400",
       "lightColor": "orange-700",
-      "folderNames": [
-        "hosts",
-        "host",
-        "machine",
-        "machines"
-      ]
+      "folderNames": ["hosts", "host", "machine", "machines"]
     },
     {
       "name": "programs",
       "base": "app",
       "color": "cyan-300",
       "lightColor": "green-700",
-      "folderNames": [
-        "program",
-        "programs"
-      ]
+      "folderNames": ["program", "programs"]
     },
     {
       "name": "macros",
       "base": "middleware",
       "color": "blue-400",
       "lightColor": "blue-500",
-      "folderNames": [
-        "constructors",
-        "macros"
-      ]
+      "folderNames": ["constructors", "macros"]
     },
     {
       "name": "shell",
       "base": "scripts",
       "color": "blue-gray-600",
       "lightColor": "blue-gray-500",
-      "folderNames": [
-        "shellscript",
-        "bash",
-        "sh",
-        "posix",
-        "shells",
-        "shell"
-      ]
+      "folderNames": ["shellscript", "bash", "sh", "posix", "shells", "shell"]
     },
     {
       "name": "err",
       "base": "error",
       "color": "purple-400",
       "lightColor": "red-500",
-      "folderNames": [
-        "erks",
-        "error",
-        "err"
-      ]
+      "folderNames": ["erks", "error", "err"]
     },
     {
       "name": "filesystem",
       "base": "resource",
       "color": "deep-purple-400",
       "lightColor": "deep-purple-500",
-      "folderNames": [
-        "file",
-        "files",
-        "system",
-        "io",
-        "filesystem"
-      ]
+      "folderNames": ["file", "files", "system", "io", "filesystem"]
     },
     {
       "name": "folder",
       "base": "archive",
       "color": "deep-purple-300",
       "lightColor": "deep-purple-400",
-      "folderNames": [
-        "folders",
-        "folder"
-      ]
+      "folderNames": ["folders", "folder"]
     },
     {
       "name": "compression",
       "base": "archive",
       "color": "pink-400",
       "lightColor": "pink-600",
-      "folderNames": [
-        "extract",
-        "extractor",
-        "compress",
-        "compression"
-      ]
+      "folderNames": ["extract", "extractor", "compress", "compression"]
     },
     {
       "name": "internal",
       "base": "import",
       "color": "green-300",
       "lightColor": "green-400",
-      "folderNames": [
-        "local",
-        "importer",
-        "importers",
-        "internal"
-      ]
+      "folderNames": ["local", "importer", "importers", "internal"]
     },
     {
       "name": "external",
@@ -734,23 +650,14 @@
       "base": "quasar",
       "color": "cyan-800",
       "lightColor": "cyan-700",
-      "folderNames": [
-        "nixos",
-        "flake",
-        "flakes",
-        ".nix",
-        "nix"
-      ]
+      "folderNames": ["nixos", "flake", "flakes", ".nix", "nix"]
     },
     {
       "name": "movie",
       "base": "video",
       "color": "orange-800",
       "lightColor": "orange-400",
-      "folderNames": [
-        "imdb",
-        "movie"
-      ]
+      "folderNames": ["imdb", "movie"]
     },
     {
       "name": "string",
@@ -772,94 +679,56 @@
       "base": "enum",
       "color": "teal-600",
       "lightColor": "teal-400",
-      "folderNames": [
-        "file",
-        "files",
-        "system",
-        "list",
-        "lists"
-      ]
+      "folderNames": ["file", "files", "system", "list", "lists"]
     },
     {
       "name": "sets",
       "base": "less",
       "color": "teal-600",
       "lightColor": "teal-400",
-      "folderNames": [
-        "attr",
-        "attrsets",
-        "set",
-        "sets"
-      ]
+      "folderNames": ["attr", "attrsets", "set", "sets"]
     },
     {
       "name": "hardware",
       "base": "core",
       "color": "blue-gray-400",
       "lightColor": "blue-gray-700",
-      "folderNames": [
-        "memory",
-        "chip",
-        "hardware"
-      ]
+      "folderNames": ["memory", "chip", "hardware"]
     },
     {
       "name": "format",
       "base": "custom",
       "color": "pink-800",
       "lightColor": "pink-400",
-      "folderNames": [
-        "customize",
-        "art",
-        "fmt",
-        "format"
-      ]
+      "folderNames": ["customize", "art", "fmt", "format"]
     },
     {
       "name": "time",
       "base": "temp",
       "color": "teal-800",
       "lightColor": "teal-400",
-      "folderNames": [
-        "clock",
-        "date",
-        "ephemeral",
-        "time"
-      ]
+      "folderNames": ["clock", "date", "ephemeral", "time"]
     },
     {
       "name": "registry",
       "base": "scons",
       "color": "purple-800",
       "lightColor": "purple-400",
-      "folderNames": [
-        "register",
-        "registry"
-      ]
+      "folderNames": ["register", "registry"]
     },
     {
       "name": "sqlx",
       "base": "database",
       "color": "orange-800",
       "lightColor": "orange-400",
-      "folderNames": [
-        ".sqlx",
-        "sqlx"
-      ]
+      "folderNames": [".sqlx", "sqlx"]
     },
     {
       "name": "unit",
       "base": "interceptor",
       "color": "brown-800",
       "lightColor": "brown-400",
-      "folderNames": [
-        "period",
-        "measure",
-        "persistent",
-        "distance",
-        "range",
-        "span"
-      ]
+      "folderNames": ["period", "measure", "persistent", "distance", "range", "span"]
     },
     {
       "name": "dots",
@@ -887,9 +756,7 @@
       "base": "autohotkey",
       "color": "blue-400",
       "lightColor": "grey-600",
-      "ids": [
-        "ahk2"
-      ]
+      "ids": ["ahk2"]
     }
   ],
   "material-icon-theme.hidesExplorerArrows": true,
@@ -902,12 +769,7 @@
     "style.css"
   ],
   "cssvar.ignore": [],
-  "cssvar.extensions": [
-    "css",
-    "postcss",
-    "jsx",
-    "tsx"
-  ],
+  "cssvar.extensions": ["css", "postcss", "jsx", "tsx"],
   //>====================================================
   // > INTELLISENSE & CODE ASSISTANCE
   //>====================================================
@@ -1144,9 +1006,7 @@
     }
   },
   "bashIde.explainshellEndpoint": "http://localhost:5000",
-  "security.allowedUNCHosts": [
-    "wsl.localhost"
-  ],
+  "security.allowedUNCHosts": ["wsl.localhost"],
   "security.workspace.trust.untrustedFiles": "open",
   //>====================================================
   // > Animation & Color Tokenization

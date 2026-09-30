@@ -3,14 +3,14 @@
 
 #{ Determine shell and set history file }
 SHELL_TYPE="$(
-  basename "${SHELL_TYPE:-"${SHELL:-}"}" |
-    tr '[:upper:]' '[:lower:]'
+  basename "${SHELL_TYPE:-"${SHELL:-}"}" \
+    | tr '[:upper:]' '[:lower:]'
 )"
 case "${SHELL_TYPE:-}" in
-bash) shell_ext=".bash" ;;
-zsh) shell_ext=".zsh" ;;
-sh) shell_ext=".sh" ;;
-*) shell_ext="" ;;
+  bash) shell_ext=".bash" ;;
+  zsh) shell_ext=".zsh" ;;
+  sh) shell_ext=".sh" ;;
+  *) shell_ext="" ;;
 esac
 
 #{ History file location }

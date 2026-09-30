@@ -34,4 +34,4 @@ $1=$1; print }'
 
 echo "$tomcat" | awk -F'[/|=]' -vOFS='\\t' '{print $3, $5, $NF}'
 
-# awk -F'[/=]' '{print $3 "\\t" $5 "\\t" $8}'
+## awk -F'[/=]' '{print $3 "\\t" $5 "\\t" $8}'

@@ -45,7 +45,7 @@
           inherit system;
           config.allowUnfree = true;
         };
-        lib = pkgs.lib;
+        inherit (pkgs) lib;
         inherit (pkgs.stdenv.hostPlatform) isLinux;
         inherit (lib.attrsets) hasAttr;
         inherit (lib.lists) optionals;

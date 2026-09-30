@@ -62,7 +62,7 @@
       resolvedCapabilities = capabilities.resolve {user = declaration;};
       resolvedPackages = resolveUserPackages declaration;
     in {
-      name = declaration.name;
+      inherit (declaration) name;
       value =
         declaration
         // {

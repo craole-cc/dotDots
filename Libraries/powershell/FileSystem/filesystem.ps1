@@ -17,22 +17,22 @@
 
 #{ Default path separators
 $script:PathSeparators = @{
-    Windows = '\'
-    POSIX   = '/'
+  Windows = '\'
+  POSIX   = '/'
 }
 
 #{ Path normalization patterns
 $script:PathPatterns = @{
-    UNCPrefix     = '^//'
-    MultipleSlash = '/+'
-    BackToForward = '\\'
+  UNCPrefix     = '^//'
+  MultipleSlash = '/+'
+  BackToForward = '\\'
 }
 
 #endregion
 #region Methods
 
 function Global:Format-PathPOSIX {
-    <#
+  <#
     .SYNOPSIS
         Normalizes a path by converting it to POSIX format with forward slashes.
     .PARAMETER Path
@@ -40,40 +40,40 @@ function Global:Format-PathPOSIX {
     .OUTPUTS
         [string] The normalized POSIX-style path.
     #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [AllowEmptyString()]
-        [string]$Path
-    )
+  [CmdletBinding()]
+  [OutputType([string])]
+  param(
+    [Parameter(Mandatory, ValueFromPipeline)]
+    [AllowEmptyString()]
+    [string]$Path
+  )
 
-    process {
-        try {
-            #{ Get full path and normalize slashes
-            $fullPath = [System.IO.Path]::GetFullPath($Path)
-            $posixPath = $fullPath.Replace(
-                $script:PathSeparators.Windows,
-                $script:PathSeparators.POSIX
-            )
+  process {
+    try {
+      #{ Get full path and normalize slashes
+      $fullPath = [System.IO.Path]::GetFullPath($Path)
+      $posixPath = $fullPath.Replace(
+        $script:PathSeparators.Windows,
+        $script:PathSeparators.POSIX
+      )
 
-            #{ Handle UNC paths specially
-            if ($posixPath -match $script:PathPatterns.UNCPrefix) {
-                return $posixPath -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX
-            }
+      #{ Handle UNC paths specially
+      if ($posixPath -match $script:PathPatterns.UNCPrefix) {
+        return $posixPath -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX
+      }
 
-            #{ Return normalized path
-            return $posixPath
-        }
-        catch {
-            Write-Error "Failed to normalize path: $_"
-            return $null
-        }
+      #{ Return normalized path
+      return $posixPath
     }
+    catch {
+      Write-Error "Failed to normalize path: $_"
+      return $null
+    }
+  }
 }
 
 function Resolve-PathPOSIX {
-    <#
+  <#
     .SYNOPSIS
         Resolves and normalizes paths to absolute POSIX format.
     .PARAMETER Path
@@ -81,37 +81,37 @@ function Resolve-PathPOSIX {
     .OUTPUTS
         [string] The resolved POSIX-style path.
     #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param(
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string]$Path
-    )
+  [CmdletBinding()]
+  [OutputType([string])]
+  param(
+    [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [string]$Path
+  )
 
-    process {
-        try {
-            $resolved = Resolve-Path -Path $Path -ErrorAction Stop
-            foreach ($item in $resolved) {
-                $posixPath = $item.Path -replace $script:PathPatterns.BackToForward, $script:PathSeparators.POSIX
+  process {
+    try {
+      $resolved = Resolve-Path -Path $Path -ErrorAction Stop
+      foreach ($item in $resolved) {
+        $posixPath = $item.Path -replace $script:PathPatterns.BackToForward, $script:PathSeparators.POSIX
 
-                if ($posixPath -match $script:PathPatterns.UNCPrefix) {
-                    #{ Preserve UNC prefix
-                    $posixPath = ($posixPath.Substring(0, 2)) +
-                    ($posixPath.Substring(2) -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX)
-                }
-                else {
-                    #{ Normalize other paths
-                    $posixPath = $posixPath -replace "([^:]/)/+", '$1'
-                }
-
-                return $posixPath
-            }
+        if ($posixPath -match $script:PathPatterns.UNCPrefix) {
+          #{ Preserve UNC prefix
+          $posixPath = ($posixPath.Substring(0, 2)) +
+          ($posixPath.Substring(2) -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX)
         }
-        catch {
-            Write-Error $_
-            return $null
+        else {
+          #{ Normalize other paths
+          $posixPath = $posixPath -replace "([^:]/)/+", '$1'
         }
+
+        return $posixPath
+      }
     }
+    catch {
+      Write-Error $_
+      return $null
+    }
+  }
 }
 
 #endregion

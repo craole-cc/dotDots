@@ -31,7 +31,7 @@ fi
 
 #> Verify Instalation <#
 if weHave paru; then
-  weHave --report version paru >>"$DOTS_loaded_apps"
+  weHave --report version paru >> "$DOTS_loaded_apps"
 else
   return
 fi
@@ -76,8 +76,8 @@ paru_remote_search() { #| Search remote repositories
   paru "$@" \
     --sync \
     --color always \
-    --search |
-    less
+    --search \
+    | less
 }
 
 paru_local_search() { #| Search installed applications

@@ -3,7 +3,7 @@
 set -eu
 
 has_cmd() {
-  command -v "$1" >/dev/null 2>&1
+  command -v "$1" > /dev/null 2>&1
 }
 
 say_info() {
@@ -51,7 +51,7 @@ print_json_var() {
     return 0
   fi
 
-  if printf '%s\n' "$value" | jq . >/dev/null 2>&1; then
+  if printf '%s\n' "$value" | jq . > /dev/null 2>&1; then
     printf '%s\n' "$value" | jq .
   else
     say_error "$name is not valid JSON"

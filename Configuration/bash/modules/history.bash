@@ -37,7 +37,7 @@ else
 fi
 
 #{ Enable Atuin for history management, if installed }
-if command -v atuin >/dev/null 2>&1; then
+if command -v atuin > /dev/null 2>&1; then
   atuin_cmd="$(atuin init bash --disable-up-arrow --disable-down-arrow)"
   eval "${atuin_cmd}"
 fi

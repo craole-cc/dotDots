@@ -248,7 +248,7 @@
   "remove_trailing_whitespace_on_save": true,
   "ensure_final_newline_on_save": true,
   "format_on_save": "on",
-  "formatter":"auto",
+  "formatter": "auto",
   // "formatter": {
   //   "external": {
   //     "command": "treefmt-stdin",

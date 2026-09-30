@@ -54,7 +54,7 @@ init_env() {
   DOTS_VARS_XDG="USER_ID HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_BIN_HOME XDG_DATA_DIRS XDG_RUNTIME_DIR"
 
   # ── Base System Defaults ──────────────────────────────────────────────
-  if command -v find_nix_profile_dir >/dev/null 2>&1; then
+  if command -v find_nix_profile_dir > /dev/null 2>&1; then
     NIX_PROFILE_DIR=$(find_nix_profile_dir)
     export NIX_PROFILE_DIR
   fi
@@ -99,10 +99,10 @@ init_bin() {
 init_lib() {
   is_truthy() {
     case "${1:-}" in
-    1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | [Ee][Nn][Aa][Bb][Ll][Ee][Dd] | [Yy])
-      return 0
-      ;;
-    *) return 1 ;;
+      1 | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | [Ee][Nn][Aa][Bb][Ll][Ee][Dd] | [Yy])
+        return 0
+        ;;
+      *) return 1 ;;
     esac
   }
 
@@ -150,8 +150,8 @@ init_lib() {
       eval "${_al_var}=\"\$2:\${3}\""
     else
       case "${_al_val}" in
-      "$2:"*) ;; # already present at the front -- nothing to do
-      *) eval "${_al_var}=\"\$2:\${_al_val}\"" ;;
+        "$2:"*) ;; # already present at the front -- nothing to do
+        *) eval "${_al_var}=\"\$2:\${_al_val}\"" ;;
       esac
     fi
     export "${_al_var}"
@@ -160,7 +160,7 @@ init_lib() {
 
   to_posix_path() {
     _tpp_path="$1"
-    if command -v cygpath >/dev/null 2>&1; then
+    if command -v cygpath > /dev/null 2>&1; then
       cygpath -u "${_tpp_path}"
     else
       printf '%s\n' "${_tpp_path}" | sed -e 's/\\/\//g' -e 's/^\([A-Za-z]\):/\/\1/'
@@ -168,19 +168,19 @@ init_lib() {
   }
 
   get_user_id() {
-    if command -v id >/dev/null 2>&1; then
-      id -u 2>/dev/null && return 0
+    if command -v id > /dev/null 2>&1; then
+      id -u 2> /dev/null && return 0
     fi
     [ -n "${UID:-}" ] && {
       printf '%s\n' "${UID}"
       return 0
     }
     _uname="${USER:-${USERNAME:-}}"
-    if command -v getent >/dev/null 2>&1 && [ -n "${_uname}" ]; then
-      getent passwd "${_uname}" | cut -d: -f3 2>/dev/null && return 0
+    if command -v getent > /dev/null 2>&1 && [ -n "${_uname}" ]; then
+      getent passwd "${_uname}" | cut -d: -f3 2> /dev/null && return 0
     fi
     if [ -f /etc/passwd ] && [ -n "${_uname}" ]; then
-      awk -F: -v user="${_uname}" '$1 == user { print $3 }' /etc/passwd 2>/dev/null && return 0
+      awk -F: -v user="${_uname}" '$1 == user { print $3 }' /etc/passwd 2> /dev/null && return 0
     fi
     [ -n "${USERNAME:-}" ] || [ -n "${USERPROFILE:-}" ] && {
       printf '%s\n' "1000"
@@ -212,14 +212,14 @@ init_lib() {
     if [ -n "${USERPROFILE:-}" ]; then
       _res_home=$(to_posix_path "${USERPROFILE}")
     fi
-    if [ -z "${_res_home}" ] && command -v getent >/dev/null 2>&1; then
-      _res_home=$(getent passwd "${USER_ID:-${_uname}}" 2>/dev/null | cut -d: -f6)
+    if [ -z "${_res_home}" ] && command -v getent > /dev/null 2>&1; then
+      _res_home=$(getent passwd "${USER_ID:-${_uname}}" 2> /dev/null | cut -d: -f6)
     fi
     if [ -z "${_res_home}" ] && [ -f /etc/passwd ]; then
       if [ -n "${_uname}" ]; then
-        _res_home=$(awk -F: -v u="${_uname}" '$1 == u { print $6 }' /etc/passwd 2>/dev/null)
+        _res_home=$(awk -F: -v u="${_uname}" '$1 == u { print $6 }' /etc/passwd 2> /dev/null)
       elif [ -n "${USER_ID:-}" ]; then
-        _res_home=$(awk -F: -v uid="${USER_ID}" '$3 == uid { print $6 }' /etc/passwd 2>/dev/null)
+        _res_home=$(awk -F: -v uid="${USER_ID}" '$3 == uid { print $6 }' /etc/passwd 2> /dev/null)
       fi
     fi
     if [ -z "${_res_home}" ]; then
@@ -250,8 +250,8 @@ init_lib() {
       unset DOTS
     fi
 
-    if [ -z "${DOTS:-}" ] && command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-      DOTS=$(git rev-parse --show-toplevel 2>/dev/null || true)
+    if [ -z "${DOTS:-}" ] && command -v git > /dev/null 2>&1 && git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      DOTS=$(git rev-parse --show-toplevel 2> /dev/null || true)
       [ -n "${DOTS}" ] && printf "dots: WARNING - \$DOTS was unset; resolved via git to '%s'\n" "${DOTS}" >&2
     fi
 
@@ -306,35 +306,35 @@ init_lib() {
     out="$1"
     _always_ignore=".git .jj .hg .svn node_modules"
 
-    if command -v rg >/dev/null 2>&1; then
+    if command -v rg > /dev/null 2>&1; then
       _rg_glob=""
       for dir in ${DOTS_BINIT_IGNORE} ${_always_ignore}; do _rg_glob="${_rg_glob} --glob !**/${dir}/**"; done
       # shellcheck disable=SC2086
-      rg --files-with-matches --no-messages --hidden --no-ignore --multiline --pcre2 ${_rg_glob} '\A#!' ${DOTS_BINIT_TARGETS} >"${out}" 2>/dev/null
+      rg --files-with-matches --no-messages --hidden --no-ignore --multiline --pcre2 ${_rg_glob} '\A#!' ${DOTS_BINIT_TARGETS} > "${out}" 2> /dev/null
       printf "rg"
       return 0
     fi
 
-    if command -v fd >/dev/null 2>&1; then
+    if command -v fd > /dev/null 2>&1; then
       _fd_exclude=""
       for dir in ${DOTS_BINIT_IGNORE} ${_always_ignore}; do _fd_exclude="${_fd_exclude} --exclude ${dir}"; done
       # shellcheck disable=SC2086
-      fd --type f --hidden --no-ignore ${_fd_exclude} . ${DOTS_BINIT_TARGETS} >"${out}" 2>/dev/null
+      fd --type f --hidden --no-ignore ${_fd_exclude} . ${DOTS_BINIT_TARGETS} > "${out}" 2> /dev/null
       printf "fd"
       return 0
     fi
 
     _prune=""
     for dir in ${DOTS_BINIT_IGNORE} ${_always_ignore}; do _prune="${_prune}${_prune:+ -o }-name ${dir}"; done
-    : >"${out}"
+    : > "${out}"
     #? shellcheck disable=SC2086 -- DOTS_BINIT_TARGETS is intentionally
     #? word-split, one `find` root per target directory.
     for _target in ${DOTS_BINIT_TARGETS}; do
       if [ -n "${_prune}" ]; then
         # shellcheck disable=SC2086
-        find "${_target}" \( -type d \( ${_prune} \) -prune \) -o -type f -print >>"${out}" 2>/dev/null
+        find "${_target}" \( -type d \( ${_prune} \) -prune \) -o -type f -print >> "${out}" 2> /dev/null
       else
-        find "${_target}" -type f >>"${out}" 2>/dev/null
+        find "${_target}" -type f >> "${out}" 2> /dev/null
       fi
     done
     printf "find"
@@ -374,8 +374,8 @@ init_lib() {
 
       ext="${file##*.}"
       case " ${DOTS_BINIT_BLACKLIST_EXT} " in
-      *" ${ext} "*) continue ;;
-      *) ;;
+        *" ${ext} "*) continue ;;
+        *) ;;
       esac
 
       #- chmod candidacy -----------------------------------------------
@@ -383,23 +383,23 @@ init_lib() {
         if [ "${_tier}" = "rg" ]; then
           #> rg already filtered to files matching ^#! -- no need to
           #? re-read them here.
-          printf '%s\0' "${file}" >>"${GATHER_PENDING}"
+          printf '%s\0' "${file}" >> "${GATHER_PENDING}"
         else
-          IFS= read -r first_line <"${file}" 2>/dev/null
+          IFS= read -r first_line < "${file}" 2> /dev/null
           case "${first_line}" in
-          "#!"*) printf '%s\0' "${file}" >>"${GATHER_PENDING}" ;;
-          *) ;;
+            "#!"*) printf '%s\0' "${file}" >> "${GATHER_PENDING}" ;;
+            *) ;;
           esac
         fi
       fi
 
       #- PATH candidacy --------------------------------------------------
       dir="${file%/*}"
-      [ -n "${dir}" ] && printf '%s\n' "${dir}" >>"${GATHER_DIRS}"
+      [ -n "${dir}" ] && printf '%s\n' "${dir}" >> "${GATHER_DIRS}"
 
       #- collision candidacy ----------------------------------------------
-      printf '%s\t%s\n' "${file##*/}" "${file}" >>"${GATHER_NAMES}"
-    done <"${_file_list}"
+      printf '%s\t%s\n' "${file##*/}" "${file}" >> "${GATHER_NAMES}"
+    done < "${_file_list}"
   }
 
   make_executable() {
@@ -413,10 +413,10 @@ init_lib() {
 
     changed_count=0
     if [ -s "${_pending}" ]; then
-      changed_count=$(tr -cd '\0' <"${_pending}" | wc -c)
+      changed_count=$(tr -cd '\0' < "${_pending}" | wc -c)
       #> NUL-delimited so "path with space" is handled correctly --
       #? xargs' default whitespace splitting would break on it.
-      xargs -0 chmod +x <"${_pending}"
+      xargs -0 chmod +x < "${_pending}"
     fi
 
     [ "${changed_count}" -gt 0 ] && printf "Made %s scripts executable\n" "${changed_count}" >&2
@@ -471,18 +471,18 @@ init_lib() {
     dir_count=0
 
     _sorted_dirs="$(mktemp)"
-    sort -u "${_dirs}" >"${_sorted_dirs}"
+    sort -u "${_dirs}" > "${_sorted_dirs}"
 
     while IFS= read -r dir; do
       [ -n "${dir}" ] || continue
       case ":${PATH}:${DOTS_PATH}:" in
-      *:"${dir}":*) ;;
-      *)
-        DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
-        dir_count=$((dir_count + 1))
-        ;;
+        *:"${dir}":*) ;;
+        *)
+          DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
+          dir_count=$((dir_count + 1))
+          ;;
       esac
-    done <"${_sorted_dirs}"
+    done < "${_sorted_dirs}"
     rm -f "${_sorted_dirs}"
 
     if [ -n "${DOTS_PATH}" ]; then
@@ -514,53 +514,53 @@ init_lib() {
   #?   DOTS_BINIT_SKIP           1 = skip init_bin entirely (see main())
   binit() {
     case "${BINIT_ACTION}" in
-    --run | run)
-      require_binit_targets || return 1
+      --run | run)
+        require_binit_targets || return 1
 
-      _file_list="$(mktemp)"
-      _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
+        _file_list="$(mktemp)"
+        _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
 
-      time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
+        time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
 
-      make_executable "${GATHER_PENDING}"
-      check_bin_collisions "${GATHER_NAMES}" || :
-      add_to_path "${GATHER_DIRS}"
+        make_executable "${GATHER_PENDING}"
+        check_bin_collisions "${GATHER_NAMES}" || :
+        add_to_path "${GATHER_DIRS}"
 
-      cleanup_gather
-      rm -f "${_file_list}"
-      ;;
-    --executable | executable)
-      require_binit_targets || return 1
-      _file_list="$(mktemp)"
-      _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
-      time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
-      make_executable "${GATHER_PENDING}"
-      cleanup_gather
-      rm -f "${_file_list}"
-      ;;
-    --path | path)
-      require_binit_targets || return 1
-      _file_list="$(mktemp)"
-      _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
-      time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
-      add_to_path "${GATHER_DIRS}"
-      cleanup_gather
-      rm -f "${_file_list}"
-      ;;
-    dump-vars)
-      # shellcheck disable=SC2086
-      dump_stage_vars ${BINIT_DUMP_GROUPS:-}
-      ;;
-    dump-bins)
-      require_binit_targets || return 1
-      dump_stage_bins
-      ;;
-    none)
-      # Skip running bin procedures entirely
-      ;;
-    *)
-      printf "dots: BINIT_ACTION must be one of: run, executable, path, dump-vars, dump-bins, none (got: '%s')\n" "${BINIT_ACTION}" >&2
-      ;;
+        cleanup_gather
+        rm -f "${_file_list}"
+        ;;
+      --executable | executable)
+        require_binit_targets || return 1
+        _file_list="$(mktemp)"
+        _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
+        time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
+        make_executable "${GATHER_PENDING}"
+        cleanup_gather
+        rm -f "${_file_list}"
+        ;;
+      --path | path)
+        require_binit_targets || return 1
+        _file_list="$(mktemp)"
+        _tier=$(time_stage "discover" list_shebang_candidates "${_file_list}")
+        time_stage "gather_candidates" gather_candidates "${_file_list}" "${_tier}"
+        add_to_path "${GATHER_DIRS}"
+        cleanup_gather
+        rm -f "${_file_list}"
+        ;;
+      dump-vars)
+        # shellcheck disable=SC2086
+        dump_stage_vars ${BINIT_DUMP_GROUPS:-}
+        ;;
+      dump-bins)
+        require_binit_targets || return 1
+        dump_stage_bins
+        ;;
+      none)
+        # Skip running bin procedures entirely
+        ;;
+      *)
+        printf "dots: BINIT_ACTION must be one of: run, executable, path, dump-vars, dump-bins, none (got: '%s')\n" "${BINIT_ACTION}" >&2
+        ;;
     esac
 
     #? FIX: this used to check DEBUG_STAGE_BIN, a separate flag that
@@ -582,27 +582,27 @@ init_diagnostics() {
     _gtm_out=""
 
     #{ 1. Try date with nanosecond support (%s%N -> ms)
-    _gtm_out=$(date +%s%N 2>/dev/null)
+    _gtm_out=$(date +%s%N 2> /dev/null)
     case "${_gtm_out}" in
-    *[!0-9]*) ;; # Failed or returned literal 'N' (unsupported %N on standard POSIX date)
-    '') ;;
-    *)
-      printf '%s\n' "$((_gtm_out / 1000000))"
-      return 0
-      ;;
+      *[!0-9]*) ;; # Failed or returned literal 'N' (unsupported %N on standard POSIX date)
+      '') ;;
+      *)
+        printf '%s\n' "$((_gtm_out / 1000000))"
+        return 0
+        ;;
     esac
 
     #{ 2. Try Python 3
-    if command -v python3 >/dev/null 2>&1; then
-      _gtm_out=$(python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null) && {
+    if command -v python3 > /dev/null 2>&1; then
+      _gtm_out=$(python3 -c "import time; print(int(time.time() * 1000))" 2> /dev/null) && {
         printf '%s\n' "${_gtm_out}"
         return 0
       }
     fi
 
     #{ 3. Try Perl
-    if command -v perl >/dev/null 2>&1; then
-      _gtm_out=$(perl -MTime::HiRes=time -e 'printf "%d\n", time * 1000' 2>/dev/null) && {
+    if command -v perl > /dev/null 2>&1; then
+      _gtm_out=$(perl -MTime::HiRes=time -e 'printf "%d\n", time * 1000' 2> /dev/null) && {
         printf '%s\n' "${_gtm_out}"
         return 0
       }
@@ -666,15 +666,15 @@ init_diagnostics() {
       IFS="${_plv_old_ifs}"
       _plv_count=$((_plv_count + 1))
       case " ${_plv_seen} " in
-      *" ${_plv_entry} "*)
-        _plv_dupes=$((_plv_dupes + 1))
-        printf '%s\n' "${_plv_entry}" >>"${_plv_dupe_names}"
-        printf "    [%3d] %-60s (duplicate)\n" "${_plv_count}" "${_plv_entry}" >>"${_plv_lines}"
-        ;;
-      *)
-        _plv_seen="${_plv_seen} ${_plv_entry}"
-        printf "    [%3d] %s\n" "${_plv_count}" "${_plv_entry}" >>"${_plv_lines}"
-        ;;
+        *" ${_plv_entry} "*)
+          _plv_dupes=$((_plv_dupes + 1))
+          printf '%s\n' "${_plv_entry}" >> "${_plv_dupe_names}"
+          printf "    [%3d] %-60s (duplicate)\n" "${_plv_count}" "${_plv_entry}" >> "${_plv_lines}"
+          ;;
+        *)
+          _plv_seen="${_plv_seen} ${_plv_entry}"
+          printf "    [%3d] %s\n" "${_plv_count}" "${_plv_entry}" >> "${_plv_lines}"
+          ;;
       esac
       IFS=:
     done
@@ -709,8 +709,8 @@ init_diagnostics() {
     for _var in "$@"; do
       eval "_val=\${${_var}:-<unset>}"
       case "${_var}" in
-      PATH | XDG_DATA_DIRS | DOTS_PATH) print_list_var "${_var}" "${_val}" ;;
-      *) printf "  %-20s : %s\n" "${_var}" "${_val}" >&2 ;;
+        PATH | XDG_DATA_DIRS | DOTS_PATH) print_list_var "${_var}" "${_val}" ;;
+        *) printf "  %-20s : %s\n" "${_var}" "${_val}" >&2 ;;
       esac
     done
     echo "------------------------------------------------------------------------" >&2
@@ -801,12 +801,12 @@ init_diagnostics() {
 
       ext="${file##*.}"
       case " ${DOTS_BINIT_BLACKLIST_EXT} " in
-      *" ${ext} "*)
-        printf "  [skip: .%s]     %s\n" "${ext}" "${file}" >&2
-        _skip_count=$((_skip_count + 1))
-        continue
-        ;;
-      *) ;;
+        *" ${ext} "*)
+          printf "  [skip: .%s]     %s\n" "${ext}" "${file}" >&2
+          _skip_count=$((_skip_count + 1))
+          continue
+          ;;
+        *) ;;
       esac
 
       if [ -x "${file}" ]; then
@@ -816,16 +816,16 @@ init_diagnostics() {
         printf "  [pending chmod] %s\n" "${file}" >&2
         _pending_count=$((_pending_count + 1))
       else
-        IFS= read -r first_line <"${file}" 2>/dev/null
+        IFS= read -r first_line < "${file}" 2> /dev/null
         case "${first_line}" in
-        "#!"*)
-          printf "  [pending chmod] %s\n" "${file}" >&2
-          _pending_count=$((_pending_count + 1))
-          ;;
-        *) ;;
+          "#!"*)
+            printf "  [pending chmod] %s\n" "${file}" >&2
+            _pending_count=$((_pending_count + 1))
+            ;;
+          *) ;;
         esac
       fi
-    done <"${_file_list}"
+    done < "${_file_list}"
 
     printf "\n  Summary: %d executable, %d pending chmod, %d skipped (blacklisted extension)\n\n" \
       "${_exec_count}" "${_pending_count}" "${_skip_count}" >&2
@@ -843,16 +843,16 @@ init_diagnostics() {
       case " ${_dirs_seen} " in *" ${dir} "*) continue ;; *) ;; esac
       _dirs_seen="${_dirs_seen} ${dir}"
       case ":${PATH}:" in
-      *:"${dir}":*)
-        printf "  [on PATH]   %s\n" "${dir}" >&2
-        _existing_count=$((_existing_count + 1))
-        ;;
-      *)
-        printf "  [would add] %s\n" "${dir}" >&2
-        _new_count=$((_new_count + 1))
-        ;;
+        *:"${dir}":*)
+          printf "  [on PATH]   %s\n" "${dir}" >&2
+          _existing_count=$((_existing_count + 1))
+          ;;
+        *)
+          printf "  [would add] %s\n" "${dir}" >&2
+          _new_count=$((_new_count + 1))
+          ;;
       esac
-    done <"${_file_list}"
+    done < "${_file_list}"
     printf "\n  Summary: %d already on PATH, %d would be added\n\n" "${_existing_count}" "${_new_count}" >&2
 
     printf -- "-- Ignore Rules ----------------------------------------------------------\n" >&2
@@ -869,8 +869,8 @@ init_diagnostics() {
       [ -n "${file}" ] || continue
       ext="${file##*.}"
       case " ${DOTS_BINIT_BLACKLIST_EXT} " in *" ${ext} "*) continue ;; *) ;; esac
-      printf "%s\t%s\n" "${file##*/}" "${file}" >>"${_dump_names}"
-    done <"${_file_list}"
+      printf "%s\t%s\n" "${file##*/}" "${file}" >> "${_dump_names}"
+    done < "${_file_list}"
     if check_bin_collisions "${_dump_names}"; then
       printf "  none found\n" >&2
     fi

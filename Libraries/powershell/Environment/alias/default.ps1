@@ -101,24 +101,24 @@ function Update-PathAliases {
 
   @('cd.*', 'edit.*') | ForEach-Object {
     Get-Command -Name $_ -CommandType Function -ErrorAction SilentlyContinue |
-    ForEach-Object { Remove-Item -Path "Function:\$($_.Name)" -Force }
+      ForEach-Object { Remove-Item -Path "Function:\$($_.Name)" -Force }
+    }
+
+    Register-PathAliases
+    Show-PathAliases
   }
 
-  Register-PathAliases
-  Show-PathAliases
-}
+  function Global:Show-PathAliases {
+    [CmdletBinding()]
+    param()
 
-function Global:Show-PathAliases {
-  [CmdletBinding()]
-  param()
-
-  Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Available cd.* aliases:'
-  Get-Command -Name 'cd.*' -CommandType Function |
-  ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
+    Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Available cd.* aliases:'
+    Get-Command -Name 'cd.*' -CommandType Function |
+      ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
 
   Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Available edit.* aliases:'
   Get-Command -Name 'edit.*' -CommandType Function |
-  ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
+    ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
 }
 
 #endregion

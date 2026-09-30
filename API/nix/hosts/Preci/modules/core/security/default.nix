@@ -1,5 +1,10 @@
-{host, lix, ...}: let
-  administrators = lix.lists.filter
+{
+  host,
+  lix,
+  ...
+}: let
+  administrators =
+    lix.lists.filter
     (user: user.role == "administrator")
     host.principals.all;
 in {
@@ -7,10 +12,12 @@ in {
     sudo.extraRules = [
       {
         users = lix.lists.map (user: user.name) administrators;
-        commands = [{
-          command = "ALL";
-          options = ["NOPASSWD"];
-        }];
+        commands = [
+          {
+            command = "ALL";
+            options = ["NOPASSWD"];
+          }
+        ];
       }
     ];
 

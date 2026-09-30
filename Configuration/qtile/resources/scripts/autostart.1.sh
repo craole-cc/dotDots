@@ -3,7 +3,7 @@
 
 function run() {
   first_lines="$(basename "$1" | head -c 15)"
-  if ! pgrep -x "${first_lines}" 1>/dev/null; then
+  if ! pgrep -x "${first_lines}" 1> /dev/null; then
     "$@" &
   fi
 }

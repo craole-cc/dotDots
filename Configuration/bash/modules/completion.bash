@@ -8,8 +8,8 @@ elif [[ -r /etc/bash_completion ]]; then
 fi
 
 #{ Enable rustup completions, if necessary }
-if rustup --version >/dev/null 2>&1; then
-  rustup completions bash >"${SHELL_HOME:?}/scripts/rustup.bash"
+if rustup --version > /dev/null 2>&1; then
+  rustup completions bash > "${SHELL_HOME:?}/scripts/rustup.bash"
 fi
 
 #{ Use bash-completion, if available

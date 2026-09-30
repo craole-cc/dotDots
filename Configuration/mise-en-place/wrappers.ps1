@@ -43,6 +43,6 @@ function Global:Format-Mise {
 }
 
 
-  Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
-  Set-Alias -Name push -Value Push-Mise -Scope Global -Force
-  Set-Alias -Name lint -Value Format-Mise -Scope Global -Force
+Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
+Set-Alias -Name push -Value Push-Mise -Scope Global -Force
+Set-Alias -Name lint -Value Format-Mise -Scope Global -Force

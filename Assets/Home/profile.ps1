@@ -166,7 +166,7 @@ function Global:Set-DOTSPowerShellPath {
 
   if ($native.Count -gt 0) {
     $env:PATH = (@($native) + @($entries | Where-Object { $_ -notin $native }) |
-      Select-Object -Unique) -join $separator
+        Select-Object -Unique) -join $separator
   }
 }
 

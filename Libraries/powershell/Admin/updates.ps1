@@ -16,16 +16,16 @@ function Global:Install-Updates {
 
 
 
-if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-  Write-Warning "PSScriptAnalyzer is not installed. Installing it now..."
+  if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+    Write-Warning "PSScriptAnalyzer is not installed. Installing it now..."
 
-  Install-PSResource `
-    -Name PSScriptAnalyzer `
-    -Repository PSGallery `
-    -Scope CurrentUser `
-    -TrustRepository `
-    -Quiet
-}
+    Install-PSResource `
+      -Name PSScriptAnalyzer `
+      -Repository PSGallery `
+      -Scope CurrentUser `
+      -TrustRepository `
+      -Quiet
+  }
 
 
   Write-Host 'Starting update process...' -ForegroundColor Cyan

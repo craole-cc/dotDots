@@ -19,7 +19,7 @@ active=""
 urgent=""
 
 # Speaker Info
-amixer get Master | grep '\[on\]' &>/dev/null
+amixer get Master | grep '\[on\]' &> /dev/null
 if [[ $? == 0 ]]; then
   active="-a 1"
   stext='Unmute'
@@ -31,7 +31,7 @@ else
 fi
 
 # Microphone Info
-amixer get Capture | grep '\[on\]' &>/dev/null
+amixer get Capture | grep '\[on\]' &> /dev/null
 if [[ $? == 0 ]]; then
   [ -n "$active" ] && active+=",3" || active="-a 3"
   mtext='Unmute'
@@ -116,19 +116,19 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-$option_1)
-  run_cmd --opt1
-  ;;
-$option_2)
-  run_cmd --opt2
-  ;;
-$option_3)
-  run_cmd --opt3
-  ;;
-$option_4)
-  run_cmd --opt4
-  ;;
-$option_5)
-  run_cmd --opt5
-  ;;
+  $option_1)
+    run_cmd --opt1
+    ;;
+  $option_2)
+    run_cmd --opt2
+    ;;
+  $option_3)
+    run_cmd --opt3
+    ;;
+  $option_4)
+    run_cmd --opt4
+    ;;
+  $option_5)
+    run_cmd --opt5
+    ;;
 esac

@@ -271,12 +271,12 @@ alias Gtl='get tag -l'
 
 # shellcheck disable=SC2154
 case "${sys_INFO}" in
-*Mac*)
-  alias gtls="get tag -l | gsort -V"
-  ;;
-*)
-  alias gtls='get tag -l | sort -V'
-  ;;
+  *Mac*)
+    alias gtls="get tag -l | gsort -V"
+    ;;
+  *)
+    alias gtls='get tag -l | sort -V'
+    ;;
 esac
 
 # # functions
@@ -286,11 +286,11 @@ Gdv() {
 
 GUP() {
   case $1 in
-  -r | --reset)
-    Grmc
-    shift
-    ;;
-  *) ;;
+    -r | --reset)
+      Grmc
+      shift
+      ;;
+    *) ;;
   esac
   GetInit
   Gss

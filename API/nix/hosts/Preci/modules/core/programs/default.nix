@@ -12,15 +12,17 @@ in {
       enable = true;
       lfs.enable = true;
       prompt.enable = true;
-      config = {
-        user = {
-          name = primary.git.name;
-          email = primary.git.email;
-        };
-        init.defaultBranch = "main";
-        safe.directory = [host.paths.roots.src];
-        url."https://github.com/".insteadOf = ["gh:" "github:"];
-      } // (primary.git.settings or {});
+      config =
+        {
+          user = {
+            name = primary.git.name;
+            email = primary.git.email;
+          };
+          init.defaultBranch = "main";
+          safe.directory = [host.paths.roots.src];
+          url."https://github.com/".insteadOf = ["gh:" "github:"];
+        }
+        // (primary.git.settings or {});
     };
     nh = {
       enable = true;

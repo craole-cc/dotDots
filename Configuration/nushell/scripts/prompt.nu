@@ -45,7 +45,6 @@ def create_right_prompt [] {
     $time_segment
 }
 
-
 let-env STARSHIP_SHELL = "nu"
 
 # Use nushell functions to define your right and left prompt

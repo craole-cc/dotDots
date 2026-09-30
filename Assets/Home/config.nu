@@ -13,10 +13,10 @@ if "DOTS_RC" in $env and ($env.DOTS_RC | path exists) {
 
     #{ Extract Nushell section (lines starting with #nu)
     let nu_lines = $content
-        | lines
-        | where { |line| $line | str starts-with "#nu " }
-        | each { |line| $line | str substring 4.. }
-        | str join "; "
+    | lines
+    | where {|line| $line | str starts-with "#nu " }
+    | each {|line| $line | str substring 4.. }
+    | str join "; "
 
     if not ($nu_lines | is-empty) {
         print "Executing Nushell configuration..."
@@ -24,9 +24,7 @@ if "DOTS_RC" in $env and ($env.DOTS_RC | path exists) {
         try {
             nu -c $nu_lines
             print "✓ DOTS configuration loaded"
-        } catch { |err|
-            print $"Warning: Failed to execute Nushell section: ($err.msg)"
-        }
+        } catch {|err| print $"Warning: Failed to execute Nushell section: ($err.msg)" }
     } else {
         print "No Nushell section found in .dotsrc"
     }
