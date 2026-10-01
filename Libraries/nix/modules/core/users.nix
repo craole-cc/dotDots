@@ -146,6 +146,7 @@
           inherit pkgs;
           target = head (user.shells or ["bash"]);
         };
+        openssh.authorizedKeys.keys = user.sshKeys or [];
       }) (hostUsers host);
     };
   };

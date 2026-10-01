@@ -229,6 +229,9 @@ in {
       enable = true;
       autoLogin = false;
       role = "administrator";
+      sshKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINID8HtFjIBwVad7rhVzOAyouDQxotr+xsE/4PyhZEqR theoracle"
+      ];
     }
     {
       name = "cc";
