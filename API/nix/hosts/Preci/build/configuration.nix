@@ -1930,6 +1930,15 @@ in {
       };
     };
 
+    logind.settings.Login = {
+      HandleLidSwitch = "ignore";
+      HandleLidSwitchExternalPower = "ignore";
+      HandleLidSwitchDocked = "ignore";
+      HandleSuspendKey = "ignore";
+      HandleHibernateKey = "ignore";
+      IdleAction = "ignore";
+    };
+
     openssh = {
       enable = true;
     };
@@ -1999,6 +2008,13 @@ in {
   };
 
   systemd = {
+    sleep.extraConfig = ''
+      AllowSuspend=no
+      AllowHibernation=no
+      AllowSuspendThenHibernate=no
+      AllowHybridSleep=no
+    '';
+
     #? Native project roots for Git identity routing. These are created on
     #? activation (test/switch), not during the pure build.
     tmpfiles.rules =
