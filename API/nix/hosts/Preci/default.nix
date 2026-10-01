@@ -8,7 +8,7 @@
   inherit (lix.schema) mkHost;
 
   host = mkHost {inherit args;};
-  infrastructure = import ./infrastructure (
+  infrastructure = import ./context (
     libraries // {inherit host;}
   );
 in {

@@ -17,7 +17,7 @@
         inherit (user) name;
         value = {
           _module.args = {
-            user = lix.attrsets.getAttr user.name infrastructure.common.principals;
+            user = lix.attrsets.getAttr user.name infrastructure.data.principals;
           };
           imports = [./user.nix];
         };

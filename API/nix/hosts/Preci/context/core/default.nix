@@ -1,3 +1,3 @@
-common: {
-  inherit (common) functionalities packages;
+data: {
+  inherit (data) functionalities packages;
 }

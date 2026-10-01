@@ -5,7 +5,7 @@
   lix,
   ...
 }: let
-  common = import ./common {inherit lix lib host inputs;};
-  core = import ./core common;
-  home = import ./home common;
-in {inherit common core home;}
+  data = import ./data {inherit lix lib host inputs;};
+  core = import ./core data;
+  home = import ./home data;
+in {inherit data core home;}

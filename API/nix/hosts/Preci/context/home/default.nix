@@ -1,5 +1,5 @@
 {
-  common,
+  data,
   lix,
   ...
 }: let
@@ -14,6 +14,6 @@
         ++ (user.infrastructure.capabilities.home.packages or [])
       );
     };
-  }) (attrValues common.principals));
+  }) (attrValues data.principals));
 in
   home
