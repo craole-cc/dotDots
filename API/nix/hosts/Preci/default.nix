@@ -5,7 +5,7 @@
 
   libraries = import ./libraries {inherit lib;};
   inherit (libraries) lix;
-  inherit (lix.schema) mkHost;
+  inherit (lix.schemas) mkHost;
 
   host = mkHost {inherit args;};
   infrastructure = import ./context (

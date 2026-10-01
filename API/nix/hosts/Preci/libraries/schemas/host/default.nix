@@ -3,7 +3,6 @@
   lix,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs;
   libs = {inherit lib lix;};
   fields = {
     name = import ./name.nix libs;
@@ -21,9 +20,10 @@
     stateVersion = import ./stateVersion.nix libs;
     system = import ./system.nix libs;
   };
+  default = lix.schemas.fields.default fields;
+  resolve = args: lix.schemas.fields.resolve {inherit args fields;};
+  constructors = import ./lib.nix {inherit lib lix resolve;};
 in
   fields
-  // {
-    default = mapAttrs (_: field: field.default) fields;
-    resolve = mapAttrs (_: field: field.resolve) fields;
-  }
+  // {inherit default resolve;}
+  // constructors

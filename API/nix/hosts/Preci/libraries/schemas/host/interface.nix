@@ -1,5 +1,7 @@
-{
-  interface = {
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  default = {
     boot = {
       loader = {
         manager = "systemd-boot";
@@ -32,4 +34,7 @@
       bindings.modifier = ["SUPER"];
     };
   };
-}
+
+  resolve = {args ? {}}:
+    recursiveUpdate default (args.interface or {});
+in {inherit default resolve;}

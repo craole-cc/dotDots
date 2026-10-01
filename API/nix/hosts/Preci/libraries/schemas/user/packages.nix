@@ -1,5 +1,7 @@
-{
-  packages = {
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  default = {
     agent = [];
     bar = [];
     browser = ["brave"];
@@ -13,4 +15,7 @@
     shell = ["bash"];
     terminal = ["ghostty "];
   };
-}
+
+  resolve = {args ? {}}:
+    recursiveUpdate default (args.packages or {});
+in {inherit default resolve;}

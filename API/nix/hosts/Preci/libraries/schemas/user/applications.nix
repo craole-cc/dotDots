@@ -1,5 +1,7 @@
-{
-  applications = {
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  default = {
     ai = [];
     browser = [];
     editor = []; # TTY
@@ -30,4 +32,7 @@
       delta.enable = false;
     };
   };
-}
+
+  resolve = {args ? {}}:
+    recursiveUpdate default (args.applications or {});
+in {inherit default resolve;}

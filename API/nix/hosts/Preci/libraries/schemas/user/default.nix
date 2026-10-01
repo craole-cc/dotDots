@@ -24,7 +24,6 @@
   lix,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs;
   libs = {inherit lib lix;};
   fields = {
     applications = import ./applications.nix libs;
@@ -37,14 +36,15 @@
     localization = import ./localization.nix libs;
     name = import ./name.nix libs;
     packages = import ./packages.nix libs;
-    password = import ./password.nix libs;
+    hashedPassword = import ./hashedPassword.nix libs;
     paths = import ./paths.nix libs;
     role = import ./role.nix libs;
     uid = import ./uid.nix libs;
   };
+  default = lix.schemas.fields.default fields;
+  resolve = args: lix.schemas.fields.resolve {inherit args fields;};
+  constructors = import ./lib.nix {inherit lib lix resolve;};
 in
   fields
-  // {
-    default = mapAttrs (_: field: field.default) fields;
-    resolve = mapAttrs (_: field: field.resolve) fields;
-  }
+  // {inherit default resolve;}
+  // constructors

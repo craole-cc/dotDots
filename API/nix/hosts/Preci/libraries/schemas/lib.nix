@@ -3,7 +3,7 @@
   lix,
   ...
 }: let
-  inherit (lib.attrsets) attrNames recursiveUpdate;
+  inherit (lib.attrsets) attrNames mapAttrs recursiveUpdate;
   inherit (lib.lists) concatMap elem filter foldl' reverseList unique;
   inherit (lix.debug) requireThat;
 
@@ -113,34 +113,10 @@
     };
   };
 
-    resolvePackages = {
-    pkgs,
-    args,
-  }: let
-    isForHost = args ? packages.kernel;
-    forUsers =
-    context = "resolve packages for '${args.name}'";
-    groups = attrNames args.packages;
-    names = unique (concatLists (attrValues args.packages));
-  in
-    {common = resolvePackageGroups {inherit context groups names pkgs;};}
-    // (
-      optionalAttrs isForHost {
-        kernel = let
-          name = args.packages.kernel;
-          pkg = resolvePackage pkgs name;
-        in {
-          inherit name;
-          package =
-            if isNotEmpty pkg
-            then pkg
-            else
-              throw "resolve host '${
-                args.name
-              }': kernel package '${name}' was not found in nixpkgs";
-        };
-      }
-    );
+  fields = {
+    default = fields: mapAttrs (_: field: field.default) fields;
+    resolve = {args, fields}: mapAttrs (_: field: field.resolve {inherit args;}) fields;
+  };
 in {
   inherit
     deriveApplications
@@ -150,5 +126,6 @@ in {
     expandName
     resolveNames
     expandNames
+    fields
     ;
 }

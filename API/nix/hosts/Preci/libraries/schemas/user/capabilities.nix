@@ -1,5 +1,7 @@
-{
-  capabilities = {
+{lib, ...}: let
+  inherit (lib.attrsets) recursiveUpdate;
+
+  default = {
     writing = {};
     conferencing = {};
     development = {
@@ -14,4 +16,7 @@
     gaming = {};
     multimedia = {};
   };
-}
+
+  resolve = {args ? {}}:
+    recursiveUpdate default (args.capabilities or {});
+in {inherit default resolve;}
