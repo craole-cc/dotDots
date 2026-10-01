@@ -1,5 +1,5 @@
 keys:
-  - &admin age1...your-public-key...
+  - &admin age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
 creation_rules:
   - path_regex: secrets/.*\.yaml$
     key_groups:

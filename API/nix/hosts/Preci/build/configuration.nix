@@ -4,20 +4,22 @@
   pkgs,
   ...
 }: let
+  inherit (host.interface) defaultSession isCosmic isGnome isHyprland isNiri isPlasma isX11;
+  inherit (host.users) principal;
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate removeAttrs;
   inherit (lib.lists) concatMap elem filter flatten foldl' head intersectLists isList optional optionals tail toList unique;
   inherit (lib.modules) mkForce mkIf;
-  inherit (lib.trivial) div fromHexString;
   inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg isString readFile splitString stringLength substring toLower toUpper trim;
-  inherit (lix.fetchers) getFlake fetchModule fetchSource materialize mkGitHubSource;
+  inherit (lib.trivial) div fromHexString;
+  inherit (lix) inputs modules overlays;
   inherit (lix.attrsets) mkBin mkBins;
+  inherit (lix.fetchers) getFlake fetchModule fetchSource materialize mkGitHubSource;
   inherit (lix.modules) mkNixPkgs;
   inherit (lix.strings) capitalize hashString mkPath mkPathLiteral;
   inherit (lix.trivial) isEmpty isNotEmpty;
   inherit (pkgs) runCommand writeShellApplication writeShellScript writeText;
-  inherit (pkgs.stdenvNoCC) mkDerivation;
   inherit (pkgs.stdenv.hostPlatform) isLinux isDarwin;
-  inherit (lix) inputs modules overlays;
+  inherit (pkgs.stdenvNoCC) mkDerivation;
   flakeInputs = lib.flakes.inputs or null;
 
   lix = {
@@ -381,6 +383,11 @@
       home = {
         hermes-agent = resolveModule {
           name = "hermes";
+          class = "homeManager";
+        };
+
+        sops = resolveModule {
+          name = "sops";
           class = "homeManager";
         };
       };
@@ -1099,6 +1106,10 @@
       DOTS_STORE_CFG = store.cfg;
       DOTS_LOCAL_CFG = local.cfg;
 
+      #~@ Editor
+      EDITOR = "hx";
+      VISUAL = "code";
+
       #~@ Inputs
       # REV_URL_CORE = sources.revision.nixpkgs.url;
       # REV_URL_HOME = sources.revision.home-manager.url;
@@ -1247,6 +1258,7 @@
           speedtest-go
           systemd
           tmux
+          neovim
           nodejs_22
           trashy
           treefmt
@@ -1270,14 +1282,33 @@
             typos
             typst
             typstyle
-            yamlfmt
           ]
-          ++ (with typstPackages; [typsy]);
+          ++ (with typstPackages; [typsy])
+          ++ [
+            (writeShellApplication {
+              name = "yamlfmt";
+              runtimeInputs = with pkgs; [yamlfmt gnugrep];
+              text = ''
+                content="$(cat)"
+
+                # sops-encrypted files carry a top-level `sops:` metadata block
+                # and/or AES256-GCM ciphertext. Never reformat them -> the MAC
+                # and the `env: |` block scalar are structural, not cosmetic.
+                if printf '%s' "$content" | grep -qE '^sops:|ENC\[AES256_GCM'; then
+                  printf '%s' "$content"
+                  exit 0
+                fi
+
+                printf '%s' "$content" | yamlfmt -
+              '';
+            })
+          ];
 
         nix = with pkgs; [
           alejandra
           cachix
           lorri
+          manix
           nil
           nix-diff
           nix-index
@@ -1736,9 +1767,11 @@ in {
   environment = {
     pathsToLink = mkIf host.interface.isPlasma ["/share/konsole"];
     plasma6.excludePackages = with pkgs.kdePackages; [
+      elisa
+      gwenview
+      kate
       khelpcenter
-      # elisa
-      # gwenview
+      kinfocenter
     ];
     sessionVariables = host.variables;
     systemPackages = host.packages.complete;
@@ -1834,7 +1867,11 @@ in {
   programs = {
     atuin = {
       enable = true;
-      settings = {};
+      settings = {
+        auto_sync = false;
+        update_check = false;
+        style = "compact";
+      };
     };
     bash = {
       enable = true;
@@ -2038,38 +2075,27 @@ in {
   };
 
   security = {
-    sudo.extraRules = [
-      {
-        users = [host.users.principal.name];
-        commands = [
-          {
-            command = "ALL";
-            options = ["NOPASSWD"];
-          }
-        ];
-      }
-    ];
+    sudo = {
+      extraConfig = ''
+        Defaults env_keep += "EDITOR VISUAL"
+      '';
+      extraRules = [
+        {
+          users = [host.users.principal.name];
+          commands = [
+            {
+              command = "ALL";
+              options = ["NOPASSWD"];
+            }
+          ];
+        }
+      ];
+    };
 
     rtkit.enable = true;
   };
 
-  services = let
-    inherit
-      (host.interface)
-      defaultSession
-      isCosmic
-      isGnome
-      isHyprland
-      isNiri
-      isPlasma
-      isX11
-      ;
-    inherit (host.users) principal;
-  in {
-    atuin = {
-      enable = true;
-    };
-
+  services = {
     displayManager = {
       enable = true;
       defaultSession = mkForce (
@@ -2128,6 +2154,7 @@ in {
 
     tailscale = {
       enable = true;
+      authKeyFile = config.sops.secrets."tailscale/authkey".path;
     };
 
     libinput = {
@@ -2146,7 +2173,10 @@ in {
       enable = true;
     };
 
-    pulseaudio.enable = false;
+    pulseaudio = {
+      enable = false;
+    };
+
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -2161,18 +2191,12 @@ in {
       generateKey = true;
     };
     secrets = {
-      # "hermes/env" = {
-      #   sopsFile = mkPathLiteral ./. ["secrets" "hermes.yaml"];
-      #   owner = "craole";
-      #   group = "users";
-      #   mode = "0400";
-      # };
-      # "tailscale/authkey" = {
-      #   sopsFile = mkPathLiteral ./. ["secrets" "tailscale.yaml"];
-      #   owner = "root";
-      #   group = "root";
-      #   mode = "0400";
-      # };
+      "tailscale/authkey" = {
+        sopsFile = mkPathLiteral ./. ["secrets" "tailscale.yaml"];
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
     };
   };
 
@@ -2287,23 +2311,19 @@ in {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = {
-      inherit host;
-      osConfig = config;
-    };
+    extraSpecialArgs = {inherit host;};
     users = mapAttrs (name: user: let
       username = name;
       homeDirectory = user.paths.roots.home;
       inherit (host.args) stateVersion;
     in
-      {osConfig, ...}: {
+      {config, ...}: {
         imports = with modules.home; [
           hermes-agent
+          sops
         ];
         home = {
           inherit username homeDirectory stateVersion;
-          #? Home Manager mirrors the user's selected shell/dev tooling,
-          #? while the native NixOS profile remains a usable fallback.
           packages = flatten (with host.packages; (
             forInterface
             ++ (map (app: pkgs.${app}) (user.apps or []))
@@ -2311,6 +2331,14 @@ in {
             ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
           ));
         };
+
+        programs = {
+          hermes-agent = {
+            enable = true;
+            desktop.enable = true;
+          };
+        };
+
         services = {
           hermes-agent = {
             enable = true;
@@ -2318,6 +2346,11 @@ in {
             settings = {
               model = let
                 models = {
+                  deepseek-openrouter = {
+                    default = "deepseek/deepseek-v4-flash:free";
+                    provider = "openrouter";
+                    base_url = "https://openrouter.ai/api/v1";
+                  };
                   deepseek-nous = {
                     default = "deepseek/deepseek-v4-flash:free";
                     provider = "nous";
@@ -2328,21 +2361,28 @@ in {
                     provider = "ollama";
                     base_url = "http://localhost:11434/v1";
                   };
-                  #     deepseek-chat = "deepseek/deepseek-chat";
-                  #     deepseek-reasoner = "deepseek/deepseek-reasoner";
+                  openrouter-free = {
+                    default = "openrouter/free";
+                    provider = "openrouter";
+                    base_url = "https://openrouter.ai/api/v1";
+                  };
                 };
               in
-                models.deepseek-nous;
+                models.openrouter-free;
             };
             environmentFiles = [
-              # (mkPath homeDirectory [".config" "hermes" "env"])
-              # osConfig.sops.secrets."hermes/env".path
+              config.sops.secrets."hermes/env".path
             ];
           };
         };
 
-        programs = {
-          hermes-agent.enable = true;
+        sops = {
+          age.keyFile = mkPath homeDirectory [".config" "sops" "age" "keys.txt"];
+          secrets = {
+            "hermes/env" = {
+              sopsFile = mkPathLiteral ./secrets ["hermes.yaml"];
+            };
+          };
         };
       })
     host.users.normal;
