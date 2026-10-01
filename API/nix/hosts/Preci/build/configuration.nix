@@ -5,14 +5,14 @@
   ...
 }: let
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate removeAttrs;
-  inherit (lib.lists) concatMap elem filter flatten head intersectLists isList optional optionals toList unique;
+  inherit (lib.lists) concatMap elem filter flatten foldl' head intersectLists isList optional optionals tail toList unique;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.trivial) div fromHexString;
   inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg isString readFile splitString stringLength substring toLower toUpper trim;
-  inherit (lix.fetchers) mkGitHubSource fetchModule fetchSource;
+  inherit (lix.fetchers) getFlake fetchModule fetchSource materialize mkGitHubSource;
   inherit (lix.attrsets) mkBin mkBins;
   inherit (lix.modules) mkNixPkgs;
-  inherit (lix.strings) capitalize mkPath;
+  inherit (lix.strings) capitalize hashString mkPath mkPathLiteral;
   inherit (lix.trivial) isEmpty isNotEmpty;
   inherit (pkgs) runCommand writeShellApplication writeShellScript writeText;
   inherit (pkgs.stdenvNoCC) mkDerivation;
@@ -47,39 +47,154 @@
     };
 
     fetchers = {
+      # Evaluate a fetched tree as a flake. The tree must carry a narHash
+      # (which fetchTree provides) so getFlake can run in pure mode with a
+      # locked reference -> no warning, no --impure.
+      # `builtins.getFlake` is unavailable in older Nix versions, so guard the
+      # lookup and fail with a clear message instead of crashing at parse time.
+      getFlake = tree:
+        if builtins ? getFlake
+        then let
+          inherit (builtins) getFlake unsafeDiscardStringContext;
+          inherit (tree) narHash outPath;
+          path = unsafeDiscardStringContext outPath;
+        in
+          getFlake "path:${path}?narHash=${narHash}"
+        else throw "fetchers.getFlake: builtins.getFlake is unavailable in this Nix build";
+
+      # Fetch a source spec into a { outPath, narHash, ... } tree. Accepts
+      # either `sha256` (canonical) or `hash` (used by fetchFromGitHub-style
+      # specs). Falls back to an unlocked fetch only if neither is set.
+      fetchSource = source: let
+        narHash = source.sha256 or source.hash or null;
+        inherit (source) url;
+        type = "tarball";
+      in
+        if narHash != null
+        then fetchTree {inherit narHash type url;}
+        else fetchTree {inherit type url;};
+
+      # Materialize a source spec into a resolved record. Downstream
+      # consumers rely on:
+      #   .tree  -> the fetchTree result, with narHash
+      #   .path  -> tree.outPath (string), for imports and NIX_PATH
+      #   .value -> the evaluated flake when flake = true, else tree.outPath
+      materialize = source: let
+        tree = fetchSource source;
+        isFlake = source.flake or false;
+      in
+        source
+        // {
+          inherit tree;
+          path = tree.outPath;
+          value =
+            if isFlake
+            then getFlake tree
+            else tree.outPath;
+        };
+
       fetchModule = {
         name,
         path ? null,
+        class ? "nixos",
+        outputs ? null,
         default ? null,
         enabled ? true,
         inputs ? lib.flakes.inputs or null,
         sources ? lix.inputs,
-      }:
-        if !enabled
-        then {} #? Returns an empty valid module!
-        else if inputs != null && inputs ? ${name}
-        then inputs.${name}.nixosModules.${name} or inputs.${name}
-        else let
-          fetched =
-            sources.${name}.path or (fetchSource sources.${name});
-        in
-          if path != null
-          then import "${fetched}/${path}"
-          else default fetched;
+      }: let
+        ctx = "fetchModule";
+        # Resolution order for a flake input:
+        #   1. Explicit `outputs` attr path, if given (throws if missing).
+        #   2. `<namespace>.<name>` — the conventional name-matched export.
+        #   3. `<namespace>.default` — the default-export convention.
+        #   4. The flake itself — for flakes that ARE a module.
+        #
+        # Lazy: `namespace` is only forced when `outputs` is null, so callers
+        # passing an explicit `outputs` never trip the class validation.
+        candidates =
+          if outputs != null
+          then [outputs]
+          else let
+            namespace =
+              {
+                nixos = "nixosModules";
+                homeManager = "homeManagerModules";
+              }.${
+                class
+              } or (throw "${ctx}: unsupported class '${class}'");
+          in [
+            [namespace name]
+            [namespace "default"]
+            []
+          ];
 
-      fetchSource = source:
-        if source ? sha256 && isNotEmpty source.sha256
-        then fetchTarball {inherit (source) url sha256;}
-        else fetchTarball source.url;
+        fromFlake = flake: let
+          try = path: attrByPath path null flake;
+        in
+          if outputs != null
+          then let
+            value = try outputs;
+          in
+            if value != null
+            then value
+            else
+              throw "${ctx}: '${name}' does not export ${
+                concatStringsSep "." outputs
+              }"
+          else let
+            hits = filter (path: (try path) != null) candidates;
+          in
+            if isNotEmpty hits
+            then try (head hits)
+            else null;
+
+        raw = sources.${name} or null;
+        # Accept either a resolved source (from `resolve`) or a bare spec.
+        # Resolved sources carry `.fromFlake`, which is our marker.
+        source =
+          if raw == null
+          then null
+          else if raw ? fromFlake
+          then raw
+          else materialize raw;
+
+        isFlakeInput = inputs != null && inputs ? ${name};
+
+        flake =
+          if source == null || !(source.flake or false)
+          then null
+          else source.value;
+
+        module =
+          if flake != null
+          then fromFlake flake
+          else null;
+      in
+        optionalAttrs enabled (
+          if isFlakeInput
+          then fromFlake inputs.${name}
+          else if source != null
+          then
+            if module != null
+            then module
+            else if path != null
+            then import "${source.path}/${path}"
+            else if default != null
+            then default source.path
+            else throw "${ctx}: no module resolved for '${name}'"
+          else throw "${ctx}: '${name}' is neither a flake input nor a pinned source"
+        );
 
       mkGitHubSource = {
         owner,
         repo,
         rev,
         sha256 ? null,
+        flake ? false,
         type ? "github",
       }: {
-        inherit type owner repo rev sha256;
+        inherit type owner repo rev sha256 flake;
         url = "https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
       };
     };
@@ -112,21 +227,16 @@
           if fromFlake
           then flakeInputs.${name}
           else null;
-        path =
-          if fromFlake
-          then flakeInput.outPath or flakeInput
-          else fetchSource source;
       in
-        source
-        // {
-          inherit fromFlake path;
-          value =
-            if fromFlake
-            then flakeInput
-            else if source.flake or false
-            then builtins.getFlake (builtins.unsafeDiscardStringContext (toString path))
-            else path;
-        };
+        if fromFlake
+        then
+          source
+          // {
+            inherit fromFlake;
+            path = flakeInput.outPath or flakeInput;
+            value = flakeInput;
+          }
+        else (materialize source) // {inherit fromFlake;};
     in
       mapAttrs resolve {
         nixpkgs = mkGitHubSource {
@@ -136,7 +246,7 @@
           sha256 = "sha256-B44WL6h0XoLjJ41bUPJk0X5SDinLCII//6EcBLXKiJ0=";
         };
 
-        rust-overlay = mkGitHubSource {
+        rust = mkGitHubSource {
           owner = "oxalica";
           repo = "rust-overlay";
           rev = "f60c1b57ff805a46b5175c76fc981fb4f81efbcc";
@@ -150,14 +260,29 @@
           sha256 = "sha256-BOyZoliWfm/beS4m3FxFKlu5at6npZen1PsWtvzzihk=";
         };
 
-        ai =
-          mkGitHubSource {
-            owner = "numtide";
-            repo = "llm-agents.nix";
-            rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
-            sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
-          }
-          // {flake = true;};
+        sops = mkGitHubSource {
+          owner = "Mic92";
+          repo = "sops-nix";
+          rev = "5efb5a6f4f5ab192817d28557dd4d650fa14d866";
+          sha256 = "sha256-rs9meAYxW3zzrh43yaW7htrqCD+X9+pupDPHN86fumI=";
+          flake = true;
+        };
+
+        hermes = mkGitHubSource {
+          owner = "NousResearch";
+          repo = "hermes-agent";
+          rev = "e3dd27ee2d8b011737a4eea8e3eb3d711ab78690";
+          sha256 = "sha256-y6NaoG+HCeMPhxRsBXrRFef4hp3FF1svSPNKpI6Xz/E=";
+          flake = true;
+        };
+
+        ai = mkGitHubSource {
+          owner = "numtide";
+          repo = "llm-agents.nix";
+          rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
+          sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
+          flake = true;
+        };
 
         dotDots = mkGitHubSource {
           owner = "craole-cc";
@@ -165,7 +290,7 @@
           rev = "main";
         };
 
-        nix-index = mkGitHubSource {
+        index = mkGitHubSource {
           owner = "nix-community";
           repo = "nix-index-database";
           rev = "9ad722673ab3b3f91f02135e53775825b240b869";
@@ -194,7 +319,7 @@
       };
 
     overlays = {
-      rust-overlay = import inputs.rust-overlay.path;
+      rust-overlay = import inputs.rust.path;
     };
 
     modules = let
@@ -206,8 +331,6 @@
           });
     in {
       inherit fetchModule resolveModule;
-      dotDots = inputs.dotDots.path;
-
       mkNixPkgs = {
         host ? {},
         system ?
@@ -227,24 +350,44 @@
             (elem "rust" (host.args.functionalities or []))
             overlays.rust-overlay;
         };
+      core = {
+        dotDots = inputs.dotDots.path;
 
-      home-manager = resolveModule {
-        name = "home-manager";
-        path = "nixos";
+        home-manager = resolveModule {
+          name = "home-manager";
+          path = "nixos";
+        };
+
+        catppuccin = resolveModule {
+          name = "catppuccin";
+          path = "modules/nixos";
+        };
+
+        nix-index = resolveModule {
+          name = "index";
+          path = "nixos-module.nix";
+        };
+
+        sops = resolveModule {
+          name = "sops";
+          outputs = ["nixosModules" "sops"];
+        };
+
+        hermes-agent = resolveModule {
+          name = "hermes";
+          class = "nixos";
+        };
       };
-
-      catppuccin = resolveModule {
-        name = "catppuccin";
-        path = "modules/nixos";
-      };
-
-      nix-index = resolveModule {
-        name = "nix-index";
-        path = "nixos-module.nix";
+      home = {
+        hermes-agent = resolveModule {
+          name = "hermes";
+          class = "homeManager";
+        };
       };
     };
 
     strings = {
+      inherit (builtins) hashString;
       capitalize = str: toUpper (substring 0 1 str) + substring 1 (-1) str;
       mkPath = root: stems:
         concatStringsSep "/" (
@@ -254,6 +397,16 @@
             )
           )
         );
+      mkPathLiteral = root: stems: let
+        parts = filter isNotEmpty ((toList root) ++ (toList stems));
+      in
+        if parts == []
+        then ""
+        else
+          foldl'
+          (acc: part: acc + "/${toString part}")
+          (head parts)
+          (tail parts);
     };
 
     trivial = {
@@ -619,7 +772,7 @@
         name,
         range,
       }: let
-        hash = builtins.hashString "sha256" "${role}:${name}";
+        hash = hashString "sha256" "${role}:${name}";
         seed = fromHexString (substring 0 8 hash);
         span = range.max - range.min + 1;
         remainder = seed - span * (div seed span);
@@ -690,32 +843,44 @@
           (applications.extra or [])
           ++ (applications.allowed or [])
           ++ (user.apps or []);
-
-        resolvedPaths =
-          recursiveUpdate
-          {
-            roots.home = home;
-            cfg = {
-              source = paths.local.cfg;
-              target = "${home}/.config";
-            };
-          }
-          requestedPaths;
       in
         user
         // {
-          inherit role uid shells coding launchers apps isNormalUser keyboard desktop themes cursors fonts icons applications;
+          inherit
+            role
+            uid
+            shells
+            coding
+            launchers
+            apps
+            isNormalUser
+            keyboard
+            desktop
+            themes
+            cursors
+            fonts
+            icons
+            applications
+            ;
           isSystemUser = !isNormalUser;
-          paths = resolvedPaths;
+          paths =
+            recursiveUpdate
+            {
+              roots.home = home;
+              cfg = {
+                source = paths.local.cfg;
+                target = "${home}/.config";
+              };
+            }
+            requestedPaths;
+          linger = isNormalUser;
           localization = userLocalization;
           inherit (userLocalization) defaultLocale;
           theme = themes;
           interface =
             recursiveUpdate
             userInterface
-            {
-              inherit keyboard desktops themes cursors fonts;
-            };
+            {inherit keyboard desktops themes cursors fonts;};
           packages =
             recursiveUpdate
             userPackages
@@ -759,7 +924,7 @@
           _: user:
             {
               description = user.description or user.name;
-              inherit (user) isNormalUser isSystemUser name uid;
+              inherit (user) isNormalUser isSystemUser name linger uid;
               home = user.paths.roots.home;
               extraGroups =
                 optionals
@@ -954,8 +1119,7 @@
     };
 
     packages = let
-      codex = inputs.ai.value.packages.${args.system}.codex;
-      chatgpt = inputs.ai.value.packages.${args.system}.chatgpt;
+      inherit (inputs.ai.value.packages.${args.system}) codex chatgpt;
 
       #? Per-shell packages are included in the native system fallback and may
       #? also be selected into a user's Home Manager profile.
@@ -1031,6 +1195,7 @@
       #? fallback; Home Manager may additionally select them per user.
       forCoding = {
         common = with pkgs; [
+          age
           bat
           btop
           coreutils
@@ -1078,6 +1243,7 @@
           rsync
           sd
           sad
+          sops
           speedtest-go
           systemd
           tmux
@@ -1522,10 +1688,12 @@
 in {
   imports =
     [./hardware-configuration.nix]
-    ++ (with modules; [
+    ++ (with modules.core; [
       home-manager
       nix-index
       catppuccin
+      sops
+      # hermes-agent
     ]);
 
   boot = {
@@ -1637,6 +1805,9 @@ in {
 
   nix = {
     settings = {
+      access-tokens = [
+        "github.com=$(gh auth token)"
+      ];
       experimental-features = [
         "nix-command"
         "flakes"
@@ -1661,6 +1832,10 @@ in {
   };
 
   programs = {
+    atuin = {
+      enable = true;
+      settings = {};
+    };
     bash = {
       enable = true;
       blesh.enable = true;
@@ -1891,6 +2066,10 @@ in {
       ;
     inherit (host.users) principal;
   in {
+    atuin = {
+      enable = true;
+    };
+
     displayManager = {
       enable = true;
       defaultSession = mkForce (
@@ -1932,13 +2111,15 @@ in {
       };
     };
 
-    logind.settings.Login = {
-      HandleLidSwitch = "ignore";
-      HandleLidSwitchExternalPower = "ignore";
-      HandleLidSwitchDocked = "ignore";
-      HandleSuspendKey = "ignore";
-      HandleHibernateKey = "ignore";
-      IdleAction = "ignore";
+    logind = {
+      settings.Login = {
+        HandleLidSwitch = "ignore";
+        HandleLidSwitchExternalPower = "ignore";
+        HandleLidSwitchDocked = "ignore";
+        HandleSuspendKey = "ignore";
+        HandleHibernateKey = "ignore";
+        IdleAction = "ignore";
+      };
     };
 
     openssh = {
@@ -1971,6 +2152,27 @@ in {
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
+    };
+  };
+
+  sops = {
+    age = {
+      keyFile = mkPathLiteral "/" ["var" "lib" "sops-nix" "key.txt"];
+      generateKey = true;
+    };
+    secrets = {
+      # "hermes/env" = {
+      #   sopsFile = mkPathLiteral ./. ["secrets" "hermes.yaml"];
+      #   owner = "craole";
+      #   group = "users";
+      #   mode = "0400";
+      # };
+      # "tailscale/authkey" = {
+      #   sopsFile = mkPathLiteral ./. ["secrets" "tailscale.yaml"];
+      #   owner = "root";
+      #   group = "root";
+      #   mode = "0400";
+      # };
     };
   };
 
@@ -2085,15 +2287,23 @@ in {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = {inherit host;};
-    users =
-      mapAttrs (name: user: {
+    extraSpecialArgs = {
+      inherit host;
+      osConfig = config;
+    };
+    users = mapAttrs (name: user: let
+      username = name;
+      homeDirectory = user.paths.roots.home;
+      inherit (host.args) stateVersion;
+    in
+      {osConfig, ...}: {
+        imports = with modules.home; [
+          hermes-agent
+        ];
         home = {
-          inherit (host.args) stateVersion;
-          username = name;
-          homeDirectory = user.paths.roots.home;
-          #~@ Home Manager mirrors the user's selected shell/dev tooling,
-          #~@ while the native NixOS profile remains a usable fallback.
+          inherit username homeDirectory stateVersion;
+          #? Home Manager mirrors the user's selected shell/dev tooling,
+          #? while the native NixOS profile remains a usable fallback.
           packages = flatten (with host.packages; (
             forInterface
             ++ (map (app: pkgs.${app}) (user.apps or []))
@@ -2101,7 +2311,40 @@ in {
             ++ (map (dev: forCoding.${dev} or []) (user.coding or []))
           ));
         };
+        services = {
+          hermes-agent = {
+            enable = true;
+            gateway.enable = true;
+            settings = {
+              model = let
+                models = {
+                  deepseek-nous = {
+                    default = "deepseek/deepseek-v4-flash:free";
+                    provider = "nous";
+                    base_url = "https://inference-api.nousresearch.com/v1";
+                  };
+                  deepseek-ollama = {
+                    default = "deepseek-r1:1.5b";
+                    provider = "ollama";
+                    base_url = "http://localhost:11434/v1";
+                  };
+                  #     deepseek-chat = "deepseek/deepseek-chat";
+                  #     deepseek-reasoner = "deepseek/deepseek-reasoner";
+                };
+              in
+                models.deepseek-nous;
+            };
+            environmentFiles = [
+              # (mkPath homeDirectory [".config" "hermes" "env"])
+              # osConfig.sops.secrets."hermes/env".path
+            ];
+          };
+        };
+
+        programs = {
+          hermes-agent.enable = true;
+        };
       })
-      host.users.normal;
+    host.users.normal;
   };
 }
