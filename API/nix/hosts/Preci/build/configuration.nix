@@ -2008,12 +2008,12 @@ in {
   };
 
   systemd = {
-    sleep.extraConfig = ''
-      AllowSuspend=no
-      AllowHibernation=no
-      AllowSuspendThenHibernate=no
-      AllowHybridSleep=no
-    '';
+    sleep.settings.Sleep = {
+      AllowSuspend = false;
+      AllowHibernation = false;
+      AllowSuspendThenHibernate = false;
+      AllowHybridSleep = false;
+    };
 
     #? Native project roots for Git identity routing. These are created on
     #? activation (test/switch), not during the pure build.
