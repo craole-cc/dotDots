@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs getAttr isAttrs listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate removeAttrs;
-  inherit (lib.lists) concatMap flatten head intersectLists isList optional optionals toList unique;
+  inherit (lib.lists) concatMap elem filter flatten head intersectLists isList optional optionals toList unique;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.trivial) div fromHexString;
   inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg isString readFile splitString stringLength substring toLower toUpper trim;
