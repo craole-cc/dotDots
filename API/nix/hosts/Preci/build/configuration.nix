@@ -1086,6 +1086,7 @@
           udiskie
           usbutils
           uutils-coreutils-noprefix
+          wakeonlan
           viu
           wget
           wlr-randr
