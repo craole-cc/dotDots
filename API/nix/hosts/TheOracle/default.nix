@@ -40,6 +40,7 @@ in {
   };
 
   functionalities = [
+    "control-plane"
     "network"
     "storage"
     "virtualization"
