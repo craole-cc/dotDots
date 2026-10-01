@@ -1258,7 +1258,6 @@
           speedtest-go
           systemd
           tmux
-          neovim
           nodejs_22
           trashy
           treefmt
@@ -1841,6 +1840,7 @@ in {
       access-tokens = [
         "github.com=$(gh auth token)"
       ];
+
       experimental-features = [
         "nix-command"
         "flakes"
@@ -1854,6 +1854,7 @@ in {
         "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       ];
     };
+
     nixPath = [
       "nixos-config=${host.variables.DOTS_BUILD}/configuration.nix"
       "nixpkgs=${inputs.nixpkgs.path}"
@@ -2020,6 +2021,14 @@ in {
       enable = host.interface.isMango;
     };
 
+    neovim = {
+      enable = true;
+      viAlias = true;
+      vimAlias = true;
+      withNodeJs = true;
+      withPython3 = true;
+    };
+
     nh = {
       enable = true;
       clean = {
@@ -2129,14 +2138,6 @@ in {
       };
     };
 
-    xserver = {
-      enable = isX11;
-
-      xkb = {
-        inherit (principal.keyboard) layout variant;
-      };
-    };
-
     logind = {
       settings.Login = {
         HandleLidSwitch = "ignore";
@@ -2146,6 +2147,10 @@ in {
         HandleHibernateKey = "ignore";
         IdleAction = "ignore";
       };
+    };
+
+    lorri = {
+      enable = true;
     };
 
     openssh = {
@@ -2182,6 +2187,14 @@ in {
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
+    };
+
+    xserver = {
+      enable = isX11;
+
+      xkb = {
+        inherit (principal.keyboard) layout variant;
+      };
     };
   };
 
