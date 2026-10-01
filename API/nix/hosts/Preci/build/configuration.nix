@@ -123,6 +123,8 @@
           value =
             if fromFlake
             then flakeInput
+            else if source.flake or false
+            then builtins.getFlake (builtins.unsafeDiscardStringContext (toString path))
             else path;
         };
     in
@@ -147,6 +149,15 @@
           rev = "4900baf1e219645e4a2acba35723852b2091bc20";
           sha256 = "sha256-BOyZoliWfm/beS4m3FxFKlu5at6npZen1PsWtvzzihk=";
         };
+
+        ai =
+          mkGitHubSource {
+            owner = "numtide";
+            repo = "llm-agents.nix";
+            rev = "3a78485c5ec8c10ec53915410c724a4492cea4bb";
+            sha256 = "sha256-Ho5xXKbluCp1lmvUkVwrN76fUW1NC3RARdNaFMGpEcY=";
+          }
+          // {flake = true;};
 
         dotDots = mkGitHubSource {
           owner = "craole-cc";
@@ -390,7 +401,7 @@
           name = admin;
           uid = 1000; # Preserve the established on-disk identity; hash-derived UIDs are the fallback for new principals.
           enable = true;
-          autoLogin = false;
+          autoLogin = true;
           role = "administrator";
           description = "Craig 'Craole' Cole";
           localization = {
@@ -943,6 +954,9 @@
     };
 
     packages = let
+      codex = inputs.ai.value.packages.${args.system}.codex;
+      chatgpt = inputs.ai.value.packages.${args.system}.chatgpt;
+
       #? Per-shell packages are included in the native system fallback and may
       #? also be selected into a user's Home Manager profile.
       forShells = {
@@ -1065,6 +1079,7 @@
           sad
           speedtest-go
           systemd
+          tmux
           trashy
           treefmt
           udiskie
@@ -1437,6 +1452,8 @@
       forSystem = flatten (
         with pkgs;
           [
+            codex
+            chatgpt
             coreutils
             curl
             diffutils
@@ -1616,10 +1633,20 @@ in {
   };
 
   nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+
+      extra-substituters = [
+        "https://cache.numtide.com"
+      ];
+
+      extra-trusted-public-keys = [
+        "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      ];
+    };
     nixPath = [
       "nixos-config=${host.variables.DOTS_BUILD}/configuration.nix"
       "nixpkgs=${inputs.nixpkgs.path}"
@@ -1809,6 +1836,25 @@ in {
       settings = fromTOML (readFile (
         mkPath host.paths.local.cfg ["starship" "config.toml"]
       ));
+    };
+
+    tmux = {
+      enable = true;
+      clock24 = true;
+      historyLimit = 5000;
+      keyMode = "vi";
+      newSession = true;
+      plugins = with pkgs.tmuxPlugins; [
+        catppuccin
+        tmux-sessionx
+        tmux-thumbs
+        tmux-window-name
+        tmux-which-key
+      ];
+      resizeAmount = 6;
+      reverseSplit = false;
+      shortcut = "b";
+      terminal = "screen-256color";
     };
   };
 
