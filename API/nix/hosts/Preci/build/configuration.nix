@@ -1080,6 +1080,7 @@
           speedtest-go
           systemd
           tmux
+          nodejs_22
           trashy
           treefmt
           udiskie
@@ -2014,6 +2015,18 @@ in {
       );
 
     user.services = {
+      desktop-commander-remote = {
+        description = "Desktop Commander Remote Device";
+        wantedBy = ["default.target"];
+        after = ["network-online.target"];
+        wants = ["network-online.target"];
+        serviceConfig = {
+          ExecStart = "${pkgs.nodejs_22}/bin/npx -y @wonderwhy-er/desktop-commander@0.2.52 remote";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+      };
+
       darkman = {
         description = "Dark/light mode switch daemon";
         wantedBy = ["default.target"];
