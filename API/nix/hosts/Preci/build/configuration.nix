@@ -1895,6 +1895,7 @@ in {
         style = "compact";
       };
     };
+
     bash = {
       enable = true;
       blesh.enable = true;
@@ -1916,6 +1917,7 @@ in {
     dconf = {
       enable = true;
     };
+
     direnv = {
       enable = true;
       silent = true;

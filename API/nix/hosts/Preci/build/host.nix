@@ -81,10 +81,10 @@
   principals = [
     {
       name = "craole";
+      uid = 1000;
       role = "administrator";
       enable = true;
-      autoLogin = false;
+      autoLogin = true;
     }
-    # // (import ./craole.nix) #TODO: This should not be declared here. We should have search for the name in the API/nix/users/${name} and append those values to this. This is the local
   ];
 }

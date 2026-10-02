@@ -21,11 +21,7 @@
     libraries // {inherit host;}
   );
 in {
-  imports = [
-    ./build/hardware-configuration.nix
-    ./modules
-  ];
-
+  imports = args.imports ++ [./modules];
   _module.args = {
     lix = recursiveUpdate lix {inherit infrastructure;};
     inherit (libraries) lib;
