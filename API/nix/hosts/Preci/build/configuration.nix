@@ -1651,6 +1651,8 @@
       forSystem = flatten (
         with pkgs;
           [
+            bitwarden-cli
+            bitwarden-desktop
             codex
             chatgpt
             coreutils
