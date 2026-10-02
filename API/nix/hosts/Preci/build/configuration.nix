@@ -1697,7 +1697,7 @@
             })
             (writeShellApplication {
               name = "sups";
-              runtimeInputs = with pkgs; [sups gum];
+              runtimeInputs = with pkgs; [sops gum];
               text = ''
                 ${readFile (
                   mkPath paths.store.lib [
