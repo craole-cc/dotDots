@@ -446,7 +446,7 @@
       stem = "dbus-send";
     }
     {
-      name = "dconfGnomeInterface";
+      name = "dconGnome";
       pkg = "dconf";
       arguments = ["write" "/org/gnome/desktop/interface"];
     }
@@ -1535,9 +1535,9 @@
               for group in 0 1 2 3 4 5; do
                 ${bins.dbusSend} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$group
               done
-              ${bins.dconfGnomeInterface}/color-scheme "'prefer-${mode}'"
-              ${bins.dconfGnomeInterface}/gtk-theme "'${theme.gtk}'"
-              ${bins.dconfGnomeInterface}/icon-theme "'${icon}'"
+              ${bins.dconGnome}/color-scheme "'prefer-${mode}'"
+              ${bins.dconGnome}/gtk-theme "'${theme.gtk}'"
+              ${bins.dconGnome}/icon-theme "'${icon}'"
 
               ${concatMapStringsSep "\n" (dir: ''
                   vscodeSettings="$HOME/${dir}/settings.json"
@@ -1693,6 +1693,19 @@
                     "nixos-switch.sh"
                   ])
                 }
+              '';
+            })
+            (writeShellApplication {
+              name = "sups";
+              runtimeInputs = with pkgs; [sups gum];
+              text = ''
+                ${readFile (
+                  mkPath paths.store.lib [
+                    "posix"
+                    "environment"
+                    "sups"
+                  ]
+                )}
               '';
             })
           ]
