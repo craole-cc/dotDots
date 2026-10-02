@@ -95,18 +95,10 @@
     true
   ```
   */
-  capabilities = mkEnum [
-    "writing"
-    "conferencing"
-    "development"
-    "creation"
-    "analysis"
-    "management"
-    "gaming"
-    "multimedia"
-    "administration"
-    "automation"
-  ];
+  #? The names come from the shared data leaf, so this enum and the `Preci`
+  #? user schema validate against one vocabulary. The leaf also carries the
+  #? default detail for each capability, which the enum does not use.
+  capabilities = mkEnum (import ./data/capabilities.nix).names;
 in {
   inherit roles capabilities;
 

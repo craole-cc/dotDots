@@ -37,6 +37,7 @@
     gpu = {};
     keyboard = {};
     network = {};
+    nvme = {};
     secureboot = {};
     storage = {};
     touchpad = {};

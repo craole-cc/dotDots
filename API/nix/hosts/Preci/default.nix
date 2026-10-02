@@ -1,9 +1,18 @@
-{lib ? import <nixpkgs/lib>, ...}: let
+{
+  lib ? import <nixpkgs/lib>,
+  #? The dotDots repository root. The schemas read the shared vocabulary data
+  #? leaves under `Libraries/nix/lists/enums/data/` relative to this, so that
+  #? the host schema and the legacy `_` tree validate against one vocabulary
+  #? rather than two that drift. Overridable so an out-of-tree caller can point
+  #? at a different checkout.
+  sources ? ../../../..,
+  ...
+}: let
   inherit (lib.attrsets) recursiveUpdate;
 
   args = import ./build;
 
-  libraries = import ./libraries {inherit lib;};
+  libraries = import ./libraries {inherit lib sources;};
   inherit (libraries) lix;
   inherit (lix.schemas) mkHost;
 

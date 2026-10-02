@@ -1,0 +1,490 @@
+#!/bin/sh
+# shellcheck enable=all
+set -eu
+
+main() {
+  #DOC main => Entry point: defaults, parse, enter workspace, resolve paths, then run sops
+  initialize_defaults
+  parse_arguments "$@"
+  initialize_workspace
+  determine_secret_type
+  validate_names
+  determine_secret_path
+  determine_sops_file
+  validate_files
+  run_sops
+}
+
+#~@ Configuration
+
+initialize_defaults() {
+  #DOC initialize_defaults => Set every default that print, show_help and parse_arguments rely on
+  #> Nothing here may fail or print: arguments haven't been parsed yet, so
+  #> the log level isn't final.
+  script_name="${0##*/}"
+  script_desc="Interactive sops wrapper for editing secrets across any host/user"
+
+  log_level="info" # debug | info | warn | error | quiet
+  if command -v gum >/dev/null 2>&1; then
+    has_gum=1
+  else
+    has_gum=0
+  fi
+
+  #> Capture SOP_FILE now, before any cd, and make it absolute so it still
+  #> points where the caller meant afterwards.
+  case "${SOP_FILE:-}" in
+  '' | /*) sops_file="${SOP_FILE:-}" ;;
+  *) sops_file="${PWD}/${SOP_FILE}" ;;
+  esac
+
+  #> Script-specific variables take precedence over generic ones.
+  host="${DOTS_HOST:-${HOST:-$(hostname 2>/dev/null || printf 'unknown')}}"
+  user="${DOTS_USER:-${USER:-$(whoami 2>/dev/null || printf 'unknown')}}"
+
+  scope=""
+  wants_host=0
+  wants_user=0
+  wants_global=0
+  workspace=""
+  secret_path=""
+  host_base=""
+}
+
+initialize_workspace() {
+  #DOC initialize_workspace => Enter the workspace root and pin it to an absolute path
+  #> Enter the workspace root; exit if it can't be entered.
+  workspace="${DOTS:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+  cd -- "${workspace}" || {
+    print error "Cannot enter workspace: ${workspace}"
+    exit 1
+  }
+
+  #> Re-read the path from where we actually landed. DOTS may be relative
+  #> (./dots), have a trailing slash, or contain '..'; after the cd, `pwd`
+  #> gives the clean absolute form that every later path is built from.
+  workspace="$(pwd)"
+  print debug "workspace=${workspace}"
+}
+
+parse_arguments() {
+  #DOC parse_arguments => Parse CLI flags and bare words for selectors and logging level (last logging flag wins)
+  #> --host, --user and --global are mutually exclusive selectors.
+  #> Each takes an optional name, as the next argument or as name=value
+  #> (with or without the leading dashes).
+  #> The next argument is NOT taken as a name if it starts with '-' or is a
+  #> reserved keyword (see next_name); use host=name for a name that
+  #> collides with one.
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    #~@ Selectors
+    host | -H | --host)
+      wants_host=1
+      _name=$(next_name "${2:-}")
+      if [ -n "${_name}" ]; then
+        host="${_name}"
+        shift
+      fi
+      ;;
+    host=* | --host=*)
+      wants_host=1
+      host="${1#*=}"
+      ;;
+    user | -U | --user)
+      wants_user=1
+      _name=$(next_name "${2:-}")
+      if [ -n "${_name}" ]; then
+        user="${_name}"
+        shift
+      fi
+      ;;
+    user=* | --user=*)
+      wants_user=1
+      user="${1#*=}"
+      ;;
+    global | -G | --global)
+      wants_global=1
+      _name=$(next_name "${2:-}")
+      if [ -n "${_name}" ]; then
+        user="${_name}"
+        shift
+      fi
+      ;;
+    global=* | --global=*)
+      wants_global=1
+      user="${1#*=}"
+      ;;
+    #~@ Logging
+    debug | verbose | -d | --debug | --verbose) log_level="debug" ;;
+    info | -i | --info) log_level="info" ;;
+    warn | -w | --warn) log_level="warn" ;;
+    error | -x | --error) log_level="error" ;;
+    quiet | -q | --quiet) log_level="quiet" ;;
+    #~@ Help
+    help | -h | --help)
+      show_help
+      exit 0
+      ;;
+    *)
+      print error "Unknown argument: $1"
+      print error "Run '${script_name} --help' for more information"
+      exit 2
+      ;;
+    esac
+    shift
+  done
+
+  #> Resolve scope
+  wanted=$((wants_host + wants_user + wants_global))
+  if [ "${wanted}" -gt 1 ]; then
+    print error "Cannot combine host, user and global: it is ambiguous which secrets to edit."
+    print error "Pass only one, or omit all to choose interactively."
+    exit 2
+  elif [ "${wants_host}" -eq 1 ]; then
+    scope="host"
+  elif [ "${wants_user}" -eq 1 ]; then
+    scope="user"
+  elif [ "${wants_global}" -eq 1 ]; then
+    scope="global"
+  fi
+
+  print debug "log_level=${log_level}"
+}
+
+#~@ Resolution
+
+determine_secret_type() {
+  #DOC determine_secret_type => Settle on a scope (host / user / global), prompting only if no flag was given
+  if [ -z "${scope}" ]; then
+    #> `choose` prints nothing on Esc or an invalid selection, so the
+    #> "No choice made" branch below handles it.
+    scope=$(choose "What would you like to edit?" "host" "user" "global")
+  fi
+
+  case "${scope}" in
+  host | user | global) ;;
+  *)
+    print error "No choice made"
+    exit 1
+    ;;
+  esac
+}
+
+determine_secret_path() {
+  #DOC determine_secret_path => Resolve which secrets.yaml to edit
+  #> Secrets are scoped to the host unless explicitly global.
+  case "${scope}" in
+  host)
+    secret_path="${host_base}/secrets.yaml"
+    print info "Using host: ${host}"
+    ;;
+  user)
+    secret_path="${host_base}/users/${user}/secrets.yaml"
+    print info "Using host: ${host}"
+    print info "Using user: ${user}"
+    ;;
+  global)
+    secret_path="${workspace}/API/nix/users/${user}/secrets.yaml"
+    print info "Using user: ${user}"
+    ;;
+  *) ;;
+  esac
+
+  print info "Editing: ${secret_path}"
+}
+
+determine_sops_file() {
+  #DOC determine_sops_file => Locate the correct .sops.yaml (override -> host -> root)
+  #> NOTE: for an existing file, sops reads recipients from the file's own
+  #> metadata; --config only matters when a file is first created. To change
+  #> recipients later, edit the config and run `sops updatekeys <file>`.
+  guess_host_sops="${host_base}/.sops.yaml"
+  guess_root_sops="${workspace}/.sops.yaml"
+
+  if [ -n "${sops_file}" ]; then
+    if [ ! -f "${sops_file}" ]; then
+      print error "SOP_FILE does not exist: ${sops_file}"
+      exit 1
+    fi
+    print info "Using override SOP_FILE: ${sops_file}"
+  elif [ "${scope}" = "global" ]; then
+    #> Global secrets are encrypted to every host, so only the root config
+    #> (which lists them all) is correct; a host-level config names just one.
+    if [ ! -f "${guess_root_sops}" ]; then
+      print error "Global secrets need the repo-root .sops.yaml, which was not found:"
+      print error "  ${guess_root_sops}"
+      exit 1
+    fi
+    sops_file="${guess_root_sops}"
+    print info "Using root .sops.yaml: ${sops_file}"
+  elif [ -f "${guess_host_sops}" ]; then
+    sops_file="${guess_host_sops}"
+    print info "Guessed host .sops.yaml: ${sops_file}"
+  elif [ -f "${guess_root_sops}" ]; then
+    sops_file="${guess_root_sops}"
+    print info "Falling back to root .sops.yaml: ${sops_file}"
+  else
+    print error "Could not find .sops.yaml for host '${host}' or in repo root"
+    print error "Looked in:"
+    print error "  ${guess_host_sops}"
+    print error "  ${guess_root_sops}"
+    print error "Set SOP_FILE environment variable to override."
+    exit 1
+  fi
+}
+
+validate_names() {
+  #DOC validate_names => Reject host/user names that could escape the expected directories
+  case "${scope}" in
+  host)
+    require_name host "${host}"
+    require_host_dir
+    ;;
+  user)
+    require_name host "${host}"
+    require_name user "${user}"
+    require_host_dir
+    ;;
+  global)
+    require_name user "${user}"
+    ;;
+  *) ;;
+  esac
+}
+
+validate_files() {
+  #DOC validate_files => Confirm before creating a new secrets file (sops writes it, we make the directory)
+  if [ -f "${secret_path}" ]; then
+    return 0
+  fi
+
+  if [ -e "${secret_path}" ]; then
+    print error "Not a regular file: ${secret_path}"
+    exit 1
+  fi
+
+  print warn "File does not exist: ${secret_path}"
+  confirm_or_exit "Create it?"
+  mkdir -p "${secret_path%/*}"
+}
+
+run_sops() {
+  #DOC run_sops => Invoke sops with the resolved config and secret path
+  if ! command -v sops >/dev/null 2>&1; then
+    print error "sops not found in PATH"
+    exit 1
+  fi
+
+  #> secret_path is always absolute, so it can never be mistaken for a flag.
+  print debug "sops --config ${sops_file} ${secret_path}"
+  sops --config "${sops_file}" "${secret_path}"
+  print info "Done."
+}
+
+#~@ Utilities
+
+require_name() {
+  #DOC require_name => Exit unless $2 is a safe name; $1 is the label for the error message
+  case "$2" in
+  '' | .* | *[!A-Za-z0-9._-]*)
+    print error "Invalid $1 name: '$2'"
+    print error "Use only letters, digits, '.', '_' and '-', and don't start with '.'"
+    exit 2
+    ;;
+  *) ;;
+  esac
+}
+
+require_host_dir() {
+  #DOC require_host_dir => Exit unless the host exists; list the valid ones if not
+  host_base="${workspace}/API/nix/hosts/${host}/build"
+  if [ -d "${host_base}" ]; then
+    return 0
+  fi
+
+  print error "Unknown host '${host}': no such directory:"
+  print error "  ${host_base}"
+  print error "Known hosts:"
+  for _dir in "${workspace}/API/nix/hosts"/*/; do
+    if [ -d "${_dir}" ]; then
+      _dir="${_dir%/}"
+      print error "  ${_dir##*/}"
+    fi
+  done
+  exit 1
+}
+
+confirm_or_exit() {
+  #DOC confirm_or_exit => Ask a yes/no question (default no); exit 1 on anything but yes
+  if [ "${has_gum}" -eq 1 ]; then
+    if gum confirm "$1"; then
+      return 0
+    fi
+  else
+    printf '%s [y/N] ' "$1" >&2
+    read -r _answer || _answer=""
+    case "${_answer}" in
+    y | Y | yes | YES) return 0 ;;
+    *) ;;
+    esac
+  fi
+
+  print error "Aborted"
+  exit 1
+}
+
+level_num() {
+  #DOC level_num => Map log level name -> numeric rank (lower = more verbose)
+  case "$1" in
+  debug) printf 0 ;;
+  info) printf 1 ;;
+  warn) printf 2 ;;
+  error) printf 3 ;;
+  quiet) printf 4 ;;
+  *) printf 1 ;; # default to info
+  esac
+}
+
+print() {
+  #DOC print => Display styled output with gum or plain printf as a fallback
+  #DOC Usage:
+  #DOC   print debug  "message"
+  #DOC   print info   "message"
+  #DOC   print warn   "message"
+  #DOC   print error  "message"   # never filtered, goes to stderr
+  #DOC   print style  "message"   # always shown
+  #DOC   print box    "message"   # always shown
+  #DOC   print plain  "message"   # always shown
+  _level="$1"
+  shift
+  _msg="$*"
+
+  #? error / style / box / plain are never filtered
+  case "${_level}" in
+  error | style | box | plain) ;;
+  *)
+    _cur=$(level_num "${log_level}")
+    _msg_n=$(level_num "${_level}")
+    #> skip if message is more verbose than current setting
+    if [ "${_msg_n}" -lt "${_cur}" ]; then
+      return 0
+    fi
+    ;;
+  esac
+
+  if [ "${has_gum}" -eq 1 ]; then
+    case "${_level}" in
+    debug) gum log --level debug "${_msg}" ;;
+    info) gum log --level info "${_msg}" ;;
+    warn) gum log --level warn "${_msg}" ;;
+    error) gum log --level error "${_msg}" >&2 ;;
+    style) gum style --foreground 212 "${_msg}" ;;
+    box)
+      gum style \
+        --border normal \
+        --margin "1" \
+        --padding "1 2" \
+        --border-foreground 212 \
+        --foreground 212 "${_msg}"
+      ;;
+    *) printf '%s\n' "${_msg}" ;;
+    esac
+  else
+    case "${_level}" in
+    debug) printf '[DEBUG] %s\n' "${_msg}" ;;
+    info) printf '[INFO]  %s\n' "${_msg}" ;;
+    warn) printf '[WARN]  %s\n' "${_msg}" ;;
+    error) printf '[ERROR] %s\n' "${_msg}" >&2 ;;
+    *) printf '%s\n' "${_msg}" ;;
+    esac
+  fi
+}
+
+choose() {
+  #DOC choose => Allow user selection via gum or numbered prompt fallback
+  #DOC Prints the selection, or nothing if cancelled or invalid; always returns 0
+  _header="$1"
+  shift
+
+  if [ "${has_gum}" -eq 1 ]; then
+    gum choose --header "${_header}" "$@" || return 0
+  else
+    printf '%s\n' "${_header}" >&2
+    _i=1
+    for _opt in "$@"; do
+      printf '  %d) %s\n' "${_i}" "${_opt}" >&2
+      _i=$((_i + 1))
+    done
+    printf 'Choice: ' >&2
+    read -r _choice || return 0
+    _i=1
+    for _opt in "$@"; do
+      #> Accept either the number or the option name
+      if [ "${_i}" = "${_choice}" ] || [ "${_opt}" = "${_choice}" ]; then
+        printf '%s\n' "${_opt}"
+        return 0
+      fi
+      _i=$((_i + 1))
+    done
+    return 0
+  fi
+}
+
+show_help() {
+  #DOC show_help => Display help information
+  # shellcheck disable=SC2312
+  print box "$(
+    cat <<EOF
+${script_desc}
+
+Usage: ${script_name} [options]
+
+Selectors (mutually exclusive; the name may also be given as --flag=name):
+  host, -H, --host [hostname]       Edit a host's secrets (default: current host)
+  user, -U, --user [username]       Edit a user's secrets scoped to one host (default: current user)
+  global, -G, --global [username]   Edit a user's secrets shared by all hosts
+
+Logging (last one wins):
+  debug, -d, --debug, --verbose     Show everything (debug + info + warn + error)
+  info, -i, --info                  Show info + warn + error          (default)
+  warn, -w, --warn                  Show warn + error
+  quiet, -q, --quiet                Show errors only
+
+Other:
+  help, -h, --help                  Show this help
+
+Only one selector may be given. If none is, it prompts interactively.
+Secrets are scoped to the host unless explicitly global.
+Names may contain only letters, digits, '.', '_' and '-'.
+
+Secret files (you are asked before a missing one is created):
+  host    -> API/nix/hosts/<host>/build/secrets.yaml
+  user    -> API/nix/hosts/<host>/build/users/<user>/secrets.yaml
+  global  -> API/nix/users/<user>/secrets.yaml
+
+The .sops.yaml is the host's own (API/nix/hosts/<host>/build/.sops.yaml),
+falling back to the repo root. Global secrets always use the root one, since
+it lists every host's key. Override either with the SOP_FILE environment
+variable (a relative path is resolved against your current directory).
+
+Environment:
+  DOTS         Workspace root (default: git toplevel, else cwd)
+  DOTS_HOST    Default host (then HOST, then hostname)
+  DOTS_USER    Default user (then USER, then whoami)
+  SOP_FILE     Explicit .sops.yaml to use
+
+Examples:
+  ${script_name} --host                  # current host's secrets
+  ${script_name} --host Preci            # named host's secrets
+  ${script_name} --user                  # current user's secrets on this host
+  ${script_name} --user craole           # named user's secrets on this host
+  ${script_name} --global                # current user's cross-host secrets
+  ${script_name} --global craole         # named user's cross-host secrets
+  ${script_name} -d --host               # host secrets with debug output
+  ${script_name} -q --user               # user secrets, errors only
+  ${script_name}                         # interactive mode
+EOF
+  )"
+}
+
+main "$@"

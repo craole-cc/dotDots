@@ -1,1 +1,1 @@
-{craole = import ./craole.nix;}
+import ./craole

@@ -38,62 +38,11 @@
   _lib.hostFunctionalities.values
   ```
   */
-  functionalities = mkEnum [
-    #~@ Input devices
-    "keyboard"
-    "touchpad"
-    "touchscreen"
-
-    #~@ Storage
-    "storage"
-    "nvme"
-    "ssd"
-    "hdd"
-
-    #~@ Network
-    "network"
-    "wired"
-    "wireless"
-    "vpn"
-    "bluetooth"
-
-    #~@ Display
-    "video"
-    "gpu"
-    "amdgpu"
-    "nvidiagpu"
-    "intelgpu"
-
-    #~@ Audio
-    "audio"
-    "speakers"
-    "microphone"
-
-    #~@ Security
-    "tpm"
-    "fingerprint"
-    "smartcard"
-    "secureboot"
-
-    #~@ Power
-    "battery"
-    "power-management"
-
-    #~@ Virtualization
-    "virtualization"
-    "kvm"
-
-    #~@ Boot
-    "efi"
-    "bios"
-    "dualboot-windows"
-    "dualboot-macos"
-
-    #~@ Peripherals
-    "webcam"
-    "printer"
-    "scanner"
-  ];
+  #? The names come from the shared data leaf, so this enum and the `Preci`
+  #? host schema validate against one vocabulary instead of two that drift.
+  #? This module stays the source of the validator, the alias resolution and
+  #? the case-insensitive lookup; the data leaf holds only the names.
+  functionalities = mkEnum (import ./data/functionalities.nix);
 
   /**
   CPU brands - processor manufacturer identification.

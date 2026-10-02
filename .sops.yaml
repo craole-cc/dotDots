@@ -1,0 +1,18 @@
+# .sops.yaml
+#
+# Repo-root sops creation rules, one per host. First match wins, and there is
+# deliberately no catch-all, so a host without a rule fails instead of being
+# encrypted to the wrong recipients. `(^|/)` makes the segment match whether
+# the path is relative or absolute.
+keys:
+  - &preci age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
+creation_rules:
+  - path_regex: '(^|/)hosts/Preci/build/(.*/)?secrets\.yaml$'
+    key_groups:
+      - age: [*preci]
+  # Shared across hosts: encrypted to every host's key. Must stay below the
+  # per-host rules, since this pattern would also match
+  # hosts/<Host>/build/users/<user>/secrets.yaml and first match wins.
+  - path_regex: '(^|/)users/[^/]+/secrets\.yaml$'
+    key_groups:
+      - age: [*preci]

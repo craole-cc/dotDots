@@ -1723,7 +1723,13 @@ in {
       nix-index
       catppuccin
       sops
-      # hermes-agent
+
+      #? Inert. Imported for its options and assertions only; `enable`
+      #? defaults to false, so no unit, user or group is created and the
+      #? gateway keeps running from the Home Manager module below. Importing
+      #? both without disabling one of them would put two `hermes-backend`
+      #? units on the same port (9119) with separate state directories.
+      hermes-agent
     ]);
 
   boot = {
@@ -2205,7 +2211,7 @@ in {
     };
     secrets = {
       "tailscale/authkey" = {
-        sopsFile = mkPathLiteral ./. ["secrets" "tailscale.yaml"];
+        sopsFile = mkPathLiteral ./. ["secrets.yaml"];
         owner = "root";
         group = "root";
         mode = "0400";
@@ -2393,7 +2399,7 @@ in {
           age.keyFile = mkPath homeDirectory [".config" "sops" "age" "keys.txt"];
           secrets = {
             "hermes/env" = {
-              sopsFile = mkPathLiteral ./secrets ["hermes.yaml"];
+              sopsFile = mkPathLiteral ./. ["users" username "secrets.yaml"];
             };
           };
         };
