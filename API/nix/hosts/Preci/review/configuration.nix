@@ -577,6 +577,22 @@
         wget
         wlr-randr
         yazi
+
+        #? `sups` resolves the repo root itself (`DOTS`, else `git rev-parse
+        #? --show-toplevel`), so it needs no repo path baked in here — only the
+        #? tools it shells out to. gum is already in this list above; sops is
+        #? the tool being wrapped, so both go in runtimeInputs rather than
+        #? being assumed on PATH.
+        (writeShellApplication {
+          name = "sups";
+          runtimeInputs = [
+            gum
+            sops
+          ];
+          text = ''
+            ${readFile (sources.dots + "/Libraries/posix/environment/sups")}
+          '';
+        })
       ];
 
       markup = with pkgs;

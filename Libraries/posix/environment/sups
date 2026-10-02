@@ -283,6 +283,19 @@ run_sops() {
 
 #~@ Utilities
 
+#> Every bare word the argument loop matches on its own, minus the dashed
+#> forms, which the leading '-' test already rejects. A name that collides
+#> with one of these would be parsed as a flag, so `next_name` refuses it and
+#> the caller falls back to the explicit `name=value` form.
+next_name() {
+  #DOC next_name => Print $1 as a selector name, or nothing when it is not one
+  case "$1" in
+  '' | -*) ;;
+  host | user | global | debug | verbose | info | warn | error | quiet | help) ;;
+  *) printf '%s\n' "$1" ;;
+  esac
+}
+
 require_name() {
   #DOC require_name => Exit unless $2 is a safe name; $1 is the label for the error message
   case "$2" in
