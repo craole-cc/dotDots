@@ -1,27 +1,72 @@
 # .sops.yaml
 #
-# Repo-root sops creation rules, one per host. First match wins, and there is
-# deliberately no catch-all, so a host without a rule fails instead of being
-# encrypted to the wrong recipients. `(^|/)` makes the segment match whether
-# the path is relative or absolute.
+# Trust domains for every encrypted file in this repo.
+#
+# The organising idea is *ownership*, not convenience. Two kinds of secret
+# exist, and they are encrypted to different recipients because they mean
+# different things:
+#
+#   machine-owned  Belongs to a computer. A tailscale authkey for Preci is
+#                  meaningless on QBX, and copying it anywhere is a liability.
+#                  Readable by any machine in the fleet, so a machine can be
+#                  rebuilt, replaced or retired without stranding its secrets.
+#
+#   user-owned     Belongs to a person. Their agent credentials should follow
+#                  them to whichever machine they log into, and should not
+#                  depend on any single host's key surviving.
+#
+# A private key never appears here. This file lists only *public* keys, which
+# is what makes it safe to commit. Each private half stays on its own machine.
+#
+# Adding to the fleet: generate a keypair on the new machine
+# (`age-keygen -o ~/.config/sops/age/keys.txt`), add its public key to `keys:`
+# below with an anchor, then run `sops updatekeys` on the machine-owned files.
+# No private key is ever copied to another machine.
+#
+# First match wins, and there is deliberately no catch-all, so an unrecognised
+# path fails loudly instead of being encrypted to the wrong recipients.
+# `(^|/)` makes a segment match whether the path is relative or absolute.
 #
 # A host's own rules live in API/nix/hosts/<host>/.sops.yaml, which `sups`
 # passes explicitly; these are the fallback for hosts without one, and the
 # authority for cross-host ("global") secrets.
 keys:
+  #~@ Machines. One per host; see the note above on adding one.
   - &preci age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
+  - &victus age1nm2k92daeyahrkn64z23k9chxfpz64t609arypfj3vqpej043vlsra07rt
+
+  #~@ People. One per human, so their secrets decrypt on any machine they use.
+  #>  TODO: craole has no keypair yet; see the global rule below, which is
+  #>  currently the only place their secrets are readable.
+  # - &craole age1…
+
+  #~@ Recovery. Offline-only. A machine key can be lost with its disk, which
+  #>  would otherwise strand every machine-owned secret. Keep the private half
+  #>  in a password manager and off this machine; it exists only for restoring
+  #>  secrets when every machine key is unavailable.
+  - &recovery age1055fks2uwfhpc3wnc7d0s2gvne89hh8e0x38c7j65mpzv2s3jc6qngsr0q
+
 creation_rules:
-  # Host-scoped secrets: API/nix/hosts/Preci/secrets/secrets.yaml
+  #~@ Machine-owned: a host's own secrets, at hosts/<host>/secrets/secrets.yaml.
+  #>  Readable by every machine, so replacing or retiring one never locks the
+  #>  fleet out of its own secrets. Recovery is included so a total loss of
+  #>  every machine key is survivable.
   - path_regex: '(^|/)hosts/[^/]+/secrets/secrets\.yaml$'
     key_groups:
-      - age: [*preci]
-  # Principal secrets held on a host: hosts/Preci/specs/users/<user>/secrets.yaml
+      - age: [*preci, *victus, *recovery]
+
+  #~@ Principal secrets held on a host:
+  #>  hosts/<host>/specs/users/<user>/secrets.yaml
+  #>  Ordered before the global rule below, which would otherwise match this
+  #>  path and silently claim it.
+  #>  Once craole has a keypair, these become user-owned: [ *craole, *recovery ].
   - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets\.yaml$'
     key_groups:
-      - age: [*preci]
-  # Shared across hosts: API/nix/users/<user>/secrets.yaml. Encrypted to every
-  # host's key, and matched first here because it is the only path outside a
-  # host directory.
+      - age: [*preci, *victus, *recovery]
+
+  #~@ Cross-host ("global") secrets: API/nix/users/<user>/secrets.yaml.
+  #>  The only path outside a host directory. Reachable from every machine, so
+  #>  it carries the same recipients as the machine-owned rules.
   - path_regex: '(^|/)users/[^/]+/secrets\.yaml$'
     key_groups:
-      - age: [*preci]
+      - age: [*preci, *victus, *recovery]
