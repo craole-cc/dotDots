@@ -7,27 +7,32 @@
 # them separate is what makes per-machine attribution possible without giving
 # every machine every credential.
 #
-#   machine-owned  Belongs to a computer, or to one deployment *on* a computer.
-#                  A tailscale authkey for Preci is meaningless on QBX. An
-#                  OpenRouter key issued per host is the same idea applied to a
-#                  service account: it exists so spend can be attributed to a
-#                  machine. Readable by the machines that need it.
+#   host-scoped   Belongs to a computer, or to one deployment *on* a computer.
+#                 A tailscale authkey for Preci is meaningless on QBX. An
+#                 OpenRouter key issued per host is the same idea applied to a
+#                 service account: it exists so spend can be attributed to a
+#                 machine. Readable only by the host it was issued for.
 #
-#   person-owned   Belongs to a human and follows them. A credential that is
-#                  billed to the *account* rather than issued per machine: the
-#                  same value is correct everywhere that person runs, so
-#                  duplicating it per host buys nothing and multiplies the
-#                  number of keys that must be revoked. Reading one should not
-#                  require access to any particular host.
+#   user-scoped   Belongs to a human and follows them. A credential that is
+#                 billed to the *account* rather than issued per host: the same
+#                 value is correct everywhere that user runs, so duplicating it
+#                 per host buys nothing and multiplies the number of keys that
+#                 must be revoked. Reading one should not require access to any
+#                 particular host.
 #
-#   recovery       Offline only. A machine key dies with its disk; without this,
-#                  every machine-owned secret would be permanently unreadable.
+#   recovery      Offline only. A host key dies with its disk; without this,
+#                 every host-scoped secret would be permanently unreadable.
+#
+# The names are the file basenames: secrets/host.yaml is host-scoped,
+# secrets/user.yaml is user-scoped. They match the vocabulary used everywhere
+# else here -- hosts/<host>/, users/<user>/, `sups --host` / `--user`, and the
+# schema's principals.
 #
 # A private key never appears here. This file lists only *public* keys, which is
-# what makes it safe to commit. Each private half stays on its own machine, and
-# each person's lives in a password manager.
+# what makes it safe to commit. Each private half stays on its own host, and
+# each user's lives in a password manager.
 #
-# Adding a machine: generate a keypair on it
+# Adding a host: generate a keypair on it
 # (`age-keygen -o ~/.config/sops/age/keys.txt`), add its public key under
 # Machines below with an anchor, then run `sops updatekeys` on the files it now
 # needs. No private key is ever copied to another machine.
@@ -44,57 +49,57 @@ keys:
   - &preci age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
   - &victus age1nm2k92daeyahrkn64z23k9chxfpz64t609arypfj3vqpej043vlsra07rt
 
-  #~@ People. One per human. Their person-owned files stay readable to them on
-  #>  any machine they use, which is the whole point of the domain: a
-  #>  person-owned credential must not depend on a host surviving.
+  #~@ Users. One per human. Their user-scoped files stay readable to them on
+  #>  any host they use, which is the whole point of the domain: a
+  #>  user-scoped credential must not depend on a host surviving.
   - &craole age1l0stcgnv9hy8l687399y4x45furspu55fj72vcrqkv39zqxtnq7qfhhevl
 
   #~@ Recovery. Offline-only. Keep the private half in a password manager and
-  #>  off this machine; it exists only for restoring secrets when every other
-  #>  key is unavailable. Present in every group below.
+  #>  off every host; it exists only for restoring secrets when all other keys
+  #>  are unavailable. Present in every group below.
   - &recovery age1055fks2uwfhpc3wnc7d0s2gvne89hh8e0x38c7j65mpzv2s3jc6qngsr0q
 
 creation_rules:
-  #~@ Machine-owned, on a host: hosts/<host>/secrets/secrets.yaml
-  #>  The host's own credentials. Every machine in the fleet reads these, so
+  #~@ Host-owned, on a host: hosts/<host>/secrets/secrets.yaml
+  #>  The host's own credentials. Every host in the fleet reads these, so
   #>  replacing or retiring one never locks the fleet out of its own secrets.
   - path_regex: '(^|/)hosts/[^/]+/secrets/secrets\.yaml$'
     key_groups:
       - age: [*preci, *victus, *recovery]
 
-  #~@ Per-machine service credentials, held on a host:
-  #>  hosts/<host>/specs/users/<user>/secrets/machine.yaml
+  #~@ Host-scoped service credentials, held on a host:
+  #>  hosts/<host>/specs/users/<user>/secrets/host.yaml
   #>  Keys that exist for attribution -- one per host, so spend can be traced to
-  #>  a machine. OpenRouter, NVIDIA and Nous all support multiple keys, so each
-  #>  gets one issued here and named for the host it belongs to. These are
-  #>  machine-scoped on purpose: only the machine the key was issued for should
-  #>  be able to read it, otherwise per-machine attribution records nothing.
-  - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets/machine\.yaml$'
+  #>  a host. OpenRouter, NVIDIA and Nous all support multiple keys, so each gets
+  #>  one issued here and named for the host it belongs to. Scoped this way on
+  #>  purpose: if every host could read every key, per-host attribution would
+  #>  record nothing.
+  - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets/host\.yaml$'
     key_groups:
       - age: [*preci, *recovery]
 
-  #~@ Person-owned, held on a host:
-  #>  hosts/<host>/specs/users/<user>/secrets/person.yaml
-  #>  For credentials that are not per-machine: a personal bot token, a
-  #>  single-key subscription, or anything else billed to the human and valid
-  #>  everywhere. Readable by them wherever they log in, plus recovery --
-  #>  deliberately not by every machine, since a credential that follows a
-  #>  person should not be readable by whichever box they sit at.
-  - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets/person\.yaml$'
+  #~@ User-scoped, held on a host:
+  #>  hosts/<host>/specs/users/<user>/secrets/user.yaml
+  #>  For credentials that are not per-host: a personal bot token, a
+  #>  single-subscription key, or anything else billed to the account and valid
+  #>  everywhere. Readable by that user wherever they log in, plus recovery --
+  #>  deliberately not by every host, since a credential that follows a person
+  #>  should not be readable by whichever box they sit at.
+  - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets/user\.yaml$'
     key_groups:
       - age: [*craole, *recovery]
 
-  #~@ Cross-host ("global") person-owned secrets: API/nix/users/<user>/secrets/person.yaml
-  #>  The canonical home for a credential that belongs to a person rather than
-  #>  a machine.
-  - path_regex: '(^|/)users/[^/]+/secrets/person\.yaml$'
+  #~@ Cross-host ("global") user-scoped secrets: API/nix/users/<user>/secrets/user.yaml
+  #>  The canonical home for a credential that belongs to a user rather than to
+  #>  a host.
+  - path_regex: '(^|/)users/[^/]+/secrets/user\.yaml$'
     key_groups:
       - age: [*craole, *recovery]
 
   #~@ Cross-host secrets at the pre-split path: API/nix/users/<user>/secrets.yaml
   #>  Kept so files written before the ownership split keep working. It is
-  #>  person-owned by nature: it lives outside any host directory, so it is the
-  #>  one cross-host location that cannot be attributed to a machine.
+  #>  user-scoped by nature: it lives outside any host directory, so it is the
+  #>  one cross-host location that cannot be attributed to a host.
   - path_regex: '(^|/)users/[^/]+/secrets\.yaml$'
     key_groups:
       - age: [*craole, *recovery]
