@@ -167,7 +167,15 @@ parse_arguments() {
     print error "Cannot combine global with host or user: global secrets are not per-host."
     print error "Pass only --global, or drop it and name a host and/or user."
     exit 2
-  elif [ "${wants_global}" -eq 1 ]; then
+  elif [ -n "${scope_class}" ] && [ "${wants_user}" -eq 0 ]; then
+    #> An ownership class only exists for a user's files, so --scope implies
+    #> --user. Without this, `sups --scope host` would silently resolve to the
+    #> *host's* own secrets, which is the opposite of what was asked for.
+    wants_user=1
+    print debug "class '${scope_class}' implies --user"
+  fi
+
+  if [ "${wants_global}" -eq 1 ]; then
     scope="global"
   elif [ "${wants_user}" -eq 1 ]; then
     #? A user was named, with or without a host. Without one, `host` has already
