@@ -10,9 +10,5 @@
 {lix, ...}: {
   imports =
     (lix.attrsets.attrValues lix.modules.core)
-    ++ [
-      ./core
-      ./home
-      ../secrets
-    ];
+    ++ [./core ./home ../secrets];
 }

@@ -9,10 +9,7 @@
 #? Per-principal secrets are *not* declared here. They live with their
 #? principal under `specs/users/<name>/` and are provisioned by Home Manager,
 #? so one principal's credentials are never readable by another.
-{
-  config,
-  ...
-}: {
+{config, ...}: {
   sops = {
     age = {
       keyFile = "/var/lib/sops-nix/key.txt";
