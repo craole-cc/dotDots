@@ -1,0 +1,12 @@
+# .sops.yaml
+#
+# Creation rules for this principal's encrypted secrets. SOPS discovers a
+# `.sops.yaml` by walking up from the file being edited or decrypted and stops
+# at the first one it finds, so each principal carries its own rather than
+# relying on a host-level file several directories above.
+keys:
+  - &craole age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
+creation_rules:
+  - path_regex: '(^|/)secrets\.yaml$'
+    key_groups:
+      - age: [*craole]

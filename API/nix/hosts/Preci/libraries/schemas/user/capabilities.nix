@@ -55,7 +55,7 @@
       if pathExists canonical
       then import canonical
       else fallback;
-    names = vocabulary.names;
+    inherit (vocabulary) names;
     values = vocabulary.detail;
   in {inherit names values;};
 
@@ -117,8 +117,4 @@
         else resolvedNames;
       known = registry.names;
     };
-in {
-  inherit default namesOf registry resolve;
-  isList = isList;
-  isAttrs = isAttrs;
-}
+in {inherit default namesOf registry resolve isList isAttrs;}

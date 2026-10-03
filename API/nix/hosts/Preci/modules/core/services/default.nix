@@ -3,19 +3,26 @@
   lix,
   ...
 }: let
+  inherit (lix.lists) elem;
+
   primary = host.principals.primary;
+
+  #? `host.functionalities` is the resolved *record* (`{names, set, values,
+  #? ...}`), not a bare list. Membership is read off its `names` list;
+  #? scanning the record itself would make every test false.
+  has = name: elem name host.functionalities.names;
 in {
   services = {
     openssh.enable = true;
-    tailscale.enable = lix.lists.elem "vpn" host.functionalities;
-    libinput.enable = lix.lists.elem "touchpad" host.functionalities;
+    tailscale.enable = has "vpn";
+    libinput.enable = has "touchpad";
     printing.enable = true;
 
     pipewire = {
-      enable = lix.lists.elem "audio" host.functionalities;
-      alsa.enable = lix.lists.elem "audio" host.functionalities;
-      alsa.support32Bit = lix.lists.elem "audio" host.functionalities;
-      pulse.enable = lix.lists.elem "audio" host.functionalities;
+      enable = has "audio";
+      alsa.enable = has "audio";
+      alsa.support32Bit = has "audio";
+      pulse.enable = has "audio";
     };
 
     displayManager = {
@@ -26,8 +33,21 @@ in {
       };
     };
 
-    desktopManager.plasma6.enable = lix.lists.elem "plasma" host.interface.desktops;
+    desktopManager = {
+      plasma6.enable = elem "plasma" host.interface.desktops;
+    };
 
+    wyoming = {
+      #? `faster-whisper` and `piper` expose `servers`; `openwakeword` is a
+      #? single service with an `enable`. They are not interchangeable.
+      faster-whisper.servers = {
+        enable = true;
+        language = "en";
+      };
+
+      piper.servers.enable = true;
+      openwakeword.enable = true;
+    };
     xserver = {
       enable = false;
       xkb = {

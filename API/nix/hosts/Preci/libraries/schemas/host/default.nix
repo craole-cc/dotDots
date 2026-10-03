@@ -24,7 +24,11 @@
 
   mkHost = args: let
     resolved = resolve args;
-    principals = mkUsers resolved.principals;
+    #? `mkUsers` returns the named views (`primary`, `secondary`, `defined`,
+    #? ...). Modules also need the list of every principal as declared, so
+    #? `all` is bound here rather than at each call site: one shape, two views.
+    users = mkUsers resolved.principals;
+    principals = users // {all = users.defined;};
   in
     resolved // {inherit principals;};
 in

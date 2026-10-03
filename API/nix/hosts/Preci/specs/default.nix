@@ -30,24 +30,24 @@
   };
 
   functionalities = {
-    audio = {};
-    battery = {};
-    bluetooth = {};
-    efi = {};
-    gpu = {};
-    keyboard = {};
-    network = {};
-    nvme = {};
-    secureboot = {};
-    storage = {};
-    touchpad = {};
+    audio = {}; #? yes
+    battery = {}; #? yes
+    bluetooth = {}; #? yes
+    efi = {}; #? no
+    gpu = {}; #? yes internal
+    keyboard = {}; #? Internal broken, using external
+    network = {}; #? yes
+    nvme = {}; #? no
+    secureboot = {}; #?no
+    storage = {}; #? yes
+    touchpad = {}; #? yes
     tpm = {};
-    video = {};
+    video = {}; #? yes
     virtualization = {};
-    vpn = {};
-    webcam = {};
-    wired = {};
-    wireless = {};
+    vpn = {}; #? yes
+    webcam = {}; #? yes
+    wired = {}; #? yes
+    wireless = {}; #? yes
   };
 
   interface = {

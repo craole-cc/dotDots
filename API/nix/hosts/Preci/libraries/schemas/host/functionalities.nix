@@ -7,7 +7,7 @@
   inherit (lix.trivial) pathExists typeOf;
 
   registry = let
-    canonical = mkPath dotDots [
+    canonical = mkPath dotDots.path [
       "Libraries"
       "nix"
       "lists"
@@ -42,7 +42,7 @@
       if pathExists canonical
       then import canonical
       else fallback;
-    values = genAttrs default (_: {});
+    values = genAttrs names (_: {});
   in {inherit names values;};
 
   #? Functionalities are declared either as a list of names or as an attrset of

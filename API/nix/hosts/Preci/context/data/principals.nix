@@ -8,7 +8,7 @@
   inherit (lib.attrsets) listToAttrs;
   inherit (lib.lists) concatMap elem map unique;
 
-  capabilities = import ./capabilities.nix {inherit lix inputs;};
+  capabilities = import ./capabilities.nix {inherit lix lib inputs;};
   functionalities = import ./functionalities.nix {inherit lib host;};
 
   # expandName = groups: stack: name:

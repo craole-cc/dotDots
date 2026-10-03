@@ -1,40 +1,54 @@
+#? Networking, nixpkgs construction and the flake registry wiring.
+#?
+#? `functionalities` is the resolved name list, so membership is tested with
+#? `elem` against that list rather than read as an attribute.
 {
   lix,
   host,
-  registry,
   infrastructure,
   ...
 }: let
-  inherit (infrastructure.core.functionalities) network;
-  inherit (lix.lists) optional;
   inherit (lix.attrsets) recursiveUpdate;
-  inherit (registry) inputs overlays;
+  inherit (lix.lists) elem optional;
+
+  inherit (lix) inputs overlays;
+
+  functionalities = infrastructure.core.functionalities;
 in {
   networking = {
     hostName = host.name;
     hostId = host.id;
-    networkmanager.enable = network;
+    networkmanager.enable = elem "network" functionalities;
   };
 
   nix = {
     settings = {
-      experimental-features = ["nix-command" "flakes"];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
     };
+
     nixPath = [
       "nixos-config=${host.paths.roots.build}"
       "nixpkgs=${inputs.nixpkgs.path}"
     ];
   };
 
-  nixpkgs = {
-    pkgs = import inputs.nixpkgs {
-      inherit (host) system;
-      config =
-        recursiveUpdate {allowUnfree = false;}
-        host.config.nixpkgs;
-      overlays =
-        optional (host.functionalities.rust or false)
-        (import overlays.rust-overlay);
-    };
+  #? `lix.inputs` entries are resolved source records, so nixpkgs is read
+  #? through its `.path` rather than being treated as the path itself.
+  nixpkgs.pkgs = import inputs.nixpkgs.path {
+    inherit (host) system;
+
+    config =
+      recursiveUpdate {allowUnfree = false;}
+      (host.config.nixpkgs or {});
+
+    #? `lix.overlays.rust-overlay` is the overlay itself (a lambda), not a
+    #? path to import. It is pulled in when the host asks for rust support.
+    overlays =
+      optional
+      (elem "rust" functionalities)
+      overlays.rust-overlay;
   };
 }
