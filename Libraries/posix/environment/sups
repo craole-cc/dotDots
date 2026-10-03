@@ -117,11 +117,25 @@ parse_arguments() {
       ;;
     #~@ Ownership class
     #> Only meaningful with --user: picks which of a user's files to edit.
-    host-scope | -S | --host-scope)
-      scope_class="host"
+    #> Takes a value rather than being a bare word, so a third class can be
+    #> added without inventing another flag. `--scope=host` also works.
+    scope | -S | --scope)
+      #> Not next_name: the class values are deliberately the same words as the
+      #> selectors (`host`, `user`), and next_name exists to refuse those.
+      scope_class="${2:-}"
+      case "${scope_class}" in
+      '' | -*)
+        print error "--scope needs a class: host or user"
+        exit 2
+        ;;
+      #> Any other word is accepted here and validated against the files on
+      #> disk when the path is resolved.
+      *) ;;
+      esac
+      shift
       ;;
-    user-scope | --user-scope)
-      scope_class="user"
+    scope=* | --scope=*)
+      scope_class="${1#*=}"
       ;;
     #~@ Logging
     debug | verbose | -d | --debug | --verbose) log_level="debug" ;;
@@ -586,10 +600,11 @@ Selectors:
   cross-host secrets are a different file rather than a narrower scope.
 
 Ownership class (only with --user):
-  -S, --host-scope             Keys issued per host (OpenRouter, NVIDIA, Nous)
-      --user-scope             Credentials billed to your account, valid anywhere
-                               Without either, you are asked which to edit when
-                               a user has more than one file.
+  -S, --scope <class>          host = keys issued per host (OpenRouter, NVIDIA,
+      --scope=<class>          Nous); user = credentials billed to your account,
+                               valid anywhere.
+                               Without it, you are asked which to edit when a
+                               user has more than one file.
 
 Logging (last one wins):
   debug, -d, --debug, --verbose     Show everything (debug + info + warn + error)
