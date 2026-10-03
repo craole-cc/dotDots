@@ -69,11 +69,12 @@ creation_rules:
 
   #~@ Host-scoped service credentials, held on a host:
   #>  hosts/<host>/specs/users/<user>/secrets/host.yaml
-  #>  Keys that exist for attribution -- one per host, so spend can be traced to
-  #>  a host. OpenRouter, NVIDIA and Nous all support multiple keys, so each gets
-  #>  one issued here and named for the host it belongs to. Scoped this way on
-  #>  purpose: if every host could read every key, per-host attribution would
-  #>  record nothing.
+  #>  Credentials the agent consumes on this host: inference-provider keys, one
+  #>  per host, so spend can be traced to the machine that made it. Scoped this
+  #>  way on purpose: if every host could read every key, per-host attribution
+  #>  would record nothing. Whether a provider supports more than one key is
+  #>  the provider's business -- check before assuming it does, and add the
+  #>  provider here only once a key has actually been issued per host.
   - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets/host\.yaml$'
     key_groups:
       - age: [*preci, *recovery]

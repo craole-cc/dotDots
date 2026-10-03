@@ -1,13 +1,15 @@
 #? Per-principal SOPS secrets, split by ownership.
 #?
-#? sops applies recipients per *file*, so keys with different owners have to
-#? live in different files. Putting a per-host OpenRouter key and a user-wide
-#? DeepSeek key in one file would force a single recipient set on both:
+#? sops applies recipients per *file*, so credentials with different owners
+#? have to live in different files. Putting a per-host provider key and a
+#? user-wide bot token in one file would force a single recipient set on both:
 #?
-#?   secrets/host.yaml  Keys issued per host, so spend can be attributed to
-#?                      one. OpenRouter, NVIDIA and Nous all support multiple
-#?                      keys, so each host holds its own. Readable only by the
-#?                      host the key was issued for, plus the recovery key.
+#?   secrets/host.yaml  Credentials the agent consumes on this host: inference-
+#?                      provider keys, one per host, so spend can be traced to
+#?                      the machine that made it. Scoped this way on purpose:
+#?                      if every host could read every key, per-host attribution
+#?                      would record nothing. Readable only by the host the keys
+#?                      were issued for, plus the recovery key.
 #?
 #?   secrets/user.yaml  Credentials that are not per-host: a personal bot token,
 #?                      or anything billed to the account and valid everywhere.
