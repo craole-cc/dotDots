@@ -177,20 +177,20 @@ determine_secret_path() {
   #> blueprint (secrets/secrets.yaml, specs/users/<user>/secrets.yaml) and hosts
   #> that predate it both resolve without editing this script.
   case "${scope}" in
-    host)
+  host)
     secret_path="$(find_host_secret_file "${host_base}/secrets.yaml")"
     print info "Using host: ${host}"
     ;;
-    user)
+  user)
     secret_path="$(find_host_secret_file "${host_base}/users/${user}/secrets.yaml")"
     print info "Using host: ${host}"
     print info "Using user: ${user}"
     ;;
-    global)
+  global)
     secret_path="${workspace}/API/nix/users/${user}/secrets.yaml"
     print info "Using user: ${user}"
     ;;
-    *) ;;
+  *) ;;
   esac
 
   print info "Editing: ${secret_path}"
