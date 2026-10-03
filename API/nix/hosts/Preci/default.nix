@@ -18,11 +18,20 @@
   #? resolved to. The bundle is named for the directory it comes from, so the
   #? argument and its origin agree.
   context ? import ./context {inherit lix host;},
-  #? The NixOS/Home Manager module tree.
-  modules ? (import ./modules {inherit lix;}),
   ...
 }: {
-  imports = [modules];
+  #? The module tree is imported here rather than through an argument default.
+  #?
+  #? An argument default is only evaluated once the module system has decided
+  #? what to pass, and deciding that requires `config` -- the very thing being
+  #? built. So a default that reaches into `imports` makes the evaluator ask
+  #? `_module.args` for an argument nobody supplied, which needs `config`, which
+  #? recurses. Importing in the body avoids that entirely: the body is
+  #? evaluated after the arguments are settled.
+  #?
+  #? `inherit` does not apply here: `imports` is not an alias of an argument
+  #? but the contents of an imported module set.
+  imports = (import ./modules {inherit lix;}).imports;
 
   _module.args = {
     inherit lix host context;
