@@ -86,8 +86,15 @@ creation_rules:
 
   #~@ Cross-host ("global") person-owned secrets: API/nix/users/<user>/secrets/person.yaml
   #>  The canonical home for a credential that belongs to a person rather than
-  #>  a machine. Ordered after the two on-host rules above, which would
-  #>  otherwise match nothing here but are listed first for clarity.
+  #>  a machine.
   - path_regex: '(^|/)users/[^/]+/secrets/person\.yaml$'
+    key_groups:
+      - age: [*craole, *recovery]
+
+  #~@ Cross-host secrets at the pre-split path: API/nix/users/<user>/secrets.yaml
+  #>  Kept so files written before the ownership split keep working. It is
+  #>  person-owned by nature: it lives outside any host directory, so it is the
+  #>  one cross-host location that cannot be attributed to a machine.
+  - path_regex: '(^|/)users/[^/]+/secrets\.yaml$'
     key_groups:
       - age: [*craole, *recovery]
