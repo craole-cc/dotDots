@@ -37,7 +37,10 @@
         isNormalUser = user.role != "service";
         home = user.paths.roots.home;
         extraGroups = extraGroups user;
-        initialPassword = user.hashedPassword;
+        #? Only the hashed form. The spec carries a yescrypt hash, never a
+        #? plaintext password: `initialPassword` is stored unhashed in the Nix
+        #? store and in /etc/shadow, so setting both would be a leak waiting to
+        #? happen and means nothing useful while the value is already a hash.
         initialHashedPassword = user.hashedPassword;
       };
     })
