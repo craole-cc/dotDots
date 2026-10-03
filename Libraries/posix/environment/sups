@@ -43,6 +43,7 @@ initialize_defaults() {
   user="${DOTS_USER:-${USER:-$(whoami 2>/dev/null || printf 'unknown')}}"
 
   scope=""
+  scope_class=""
   wants_host=0
   wants_user=0
   wants_global=0
@@ -114,6 +115,14 @@ parse_arguments() {
       wants_global=1
       user="${1#*=}"
       ;;
+    #~@ Ownership class
+    #> Only meaningful with --user: picks which of a user's files to edit.
+    host-scope | -S | --host-scope)
+      scope_class="host"
+      ;;
+    user-scope | --user-scope)
+      scope_class="user"
+      ;;
     #~@ Logging
     debug | verbose | -d | --debug | --verbose) log_level="debug" ;;
     info | -i | --info) log_level="info" ;;
@@ -177,20 +186,25 @@ determine_secret_type() {
 }
 
 determine_secret_path() {
-  #DOC determine_secret_path => Resolve which secrets.yaml to edit
-  #> Secrets are scoped to the host unless explicitly global. The file is
-  #> located by discovery, not by a hardcoded layout, so hosts laid out like the
-  #> blueprint (secrets/secrets.yaml, specs/users/<user>/secrets.yaml) and hosts
-  #> that predate it both resolve without editing this script.
+  #DOC determine_secret_path => Resolve which secrets file to edit
+  #> Secrets are scoped to the host unless explicitly global. The file is located
+  #> by discovery, not by a hardcoded layout, so hosts laid out like the blueprint
+  #> (secrets/secrets.yaml, specs/users/<user>/secrets/*.yaml) and hosts that
+  #> predate it both resolve without editing this script.
+  #>
+  #> A user may keep several files under specs/users/<user>/secrets/, split by
+  #> ownership: host.yaml holds keys issued per host, user.yaml holds ones billed
+  #> to the account. Which one is meant is taken from --scope; without it, and
+  #> when more than one exists, the choice is offered rather than guessed.
   case "${scope}" in
   host)
     secret_path="$(find_host_secret_file "${host_base}/secrets.yaml")"
     print info "Using host: ${host}"
     ;;
   user)
-    secret_path="$(find_host_secret_file "${host_base}/users/${user}/secrets.yaml")"
     print info "Using host: ${host}"
     print info "Using user: ${user}"
+    secret_path="$(select_user_secret_file "${host_base}/specs/users/${user}/secrets")"
     ;;
   global)
     secret_path="${workspace}/API/nix/users/${user}/secrets.yaml"
@@ -291,6 +305,56 @@ run_sops() {
 }
 
 #~@ Utilities
+
+select_user_secret_file() {
+  #DOC select_user_secret_file => Print the secrets file under $1 that was asked for
+  #> $1 is the user's secrets directory. A user may hold several files there,
+  #> split by ownership -- host.yaml for keys issued per host, user.yaml for ones
+  #> billed to the account. They are separate because sops applies recipients per
+  #> file, and the two classes have different readers.
+  #>
+  #> `--scope` picks one explicitly. Without it: a single file is unambiguous, and
+  #> with several the choice is offered rather than guessed, since writing the
+  #> wrong class would encrypt a per-host key to the wrong readers.
+  _dir="$1"
+  _want="${scope_class}"
+
+  if [ -n "${_want}" ]; then
+    printf '%s\n' "${_dir}/${_want}.yaml"
+    return 0
+  fi
+
+  #> Filenames directly under the directory, in a stable order.
+  _found=$(find "${_dir}" -maxdepth 1 -type f -name '*.yaml' 2>/dev/null | sort)
+
+  case "$(printf '%s\n' "${_found}" | grep -c .)" in
+  0)
+    #> Nothing yet: start with the user-scoped file, the more common of the two.
+    printf '%s\n' "${_dir}/user.yaml"
+    ;;
+  1)
+    printf '%s\n' "${_found}"
+    ;;
+  *)
+    #> Offer the basenames without their extension. Built with a shell loop
+    #> rather than `basename -a`, which is a GNU extension and not in POSIX. The
+    #> extension is stripped per entry, since `${var%.yaml}` would only remove
+    #> the last one.
+    _options=""
+    for _path in ${_found}; do
+      _name="${_path##*/}"
+      _options="${_options} ${_name%.yaml}"
+    done
+    # shellcheck disable=SC2086
+    _pick=$(choose "Which secrets?" ${_options})
+    if [ -z "${_pick}" ]; then
+      print error "No choice made"
+      exit 1
+    fi
+    printf '%s\n' "${_dir}/${_pick}.yaml"
+    ;;
+  esac
+}
 
 find_host_secret_file() {
   #DOC find_host_secret_file => Print the host-scoped secrets.yaml for $1's path, discovering it if needed
@@ -521,6 +585,12 @@ Selectors:
   expressed, which is the usual case. --global conflicts with either, because
   cross-host secrets are a different file rather than a narrower scope.
 
+Ownership class (only with --user):
+  -S, --host-scope             Keys issued per host (OpenRouter, NVIDIA, Nous)
+      --user-scope             Credentials billed to your account, valid anywhere
+                               Without either, you are asked which to edit when
+                               a user has more than one file.
+
 Logging (last one wins):
   debug, -d, --debug, --verbose     Show everything (debug + info + warn + error)
   info, -i, --info                  Show info + warn + error          (default)
@@ -536,12 +606,14 @@ Names may contain only letters, digits, '.', '_' and '-'.
 
 Secret files (discovered under the host directory; you are asked before a
 missing one is created):
-  host    -> API/nix/hosts/<host>/secrets.yaml
-  user    -> API/nix/hosts/<host>/specs/users/<user>/secrets.yaml
+  host    -> API/nix/hosts/<host>/secrets/secrets.yaml
+  user    -> API/nix/hosts/<host>/specs/users/<user>/secrets/<class>.yaml
   global  -> API/nix/users/<user>/secrets.yaml
 
-Host-scoped and user-scoped files are told apart by a users/ path segment, so
-each resolves to its own even though both are called secrets.yaml.
+A host's file holds its own credentials. A user's secrets are split by
+ownership under secrets/: host.yaml holds keys issued per host, user.yaml holds
+ones billed to the account, because sops applies recipients per file and the two
+classes have different readers.
 
 The .sops.yaml is the host's own (API/nix/hosts/<host>/.sops.yaml),
 falling back to the repo root. Global secrets always use the root one, since
