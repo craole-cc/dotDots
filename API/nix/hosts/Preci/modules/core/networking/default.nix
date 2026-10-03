@@ -13,7 +13,7 @@
 
   inherit (lix) inputs overlays;
 
-  functionalities = context.core.functionalities;
+  inherit (context.core) functionalities;
 in {
   networking = {
     hostName = host.name;

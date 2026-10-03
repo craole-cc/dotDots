@@ -16,8 +16,7 @@
   config,
   ...
 }: let
-  homeDirectory = config.home.homeDirectory;
-  username = config.home.username;
+  inherit (config.home) homeDirectory username;
 
   #? `specs/users/<username>/`, resolved from this module's location
   #? (`modules/home/`) up to the host root.

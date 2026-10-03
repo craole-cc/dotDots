@@ -8,9 +8,8 @@
   lix,
   ...
 }: let
+  inherit (context.core) functionalities;
   inherit (lix.lists) elem;
-
-  functionalities = context.core.functionalities;
 in {
   hardware.bluetooth = {
     enable = elem "bluetooth" functionalities;

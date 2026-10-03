@@ -18,7 +18,7 @@
   } @ args: let
     merged = recursiveUpdate default paths;
 
-    src = merged.roots.src;
+    inherit (merged.roots) src;
     build =
       if merged.roots.build != null
       then merged.roots.build

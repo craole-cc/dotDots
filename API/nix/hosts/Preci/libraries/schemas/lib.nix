@@ -124,6 +124,8 @@ in {
     # expandNames
     # fields
     ;
+  #? Re-exported under their own names, since the public spelling
+  #? (`resolveFields`/`declareFields`) differs from the private one.
   resolveFields = fields.resolve;
   declareFields = fields.declare;
 }

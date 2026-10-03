@@ -1,5 +1,15 @@
-{host, ...}: let
-  primary = host.principals.primary;
+{
+  host,
+  lix,
+  ...
+}: let
+  inherit (host.principals) primary;
+  inherit (lix.lists) head;
+
+  #? `git` is a *list* of identity profiles, not an attrset. The first entry is
+  #? the primary identity.
+  gitProfiles = primary.git or [];
+  primaryGit = if gitProfiles == [] then {} else head gitProfiles;
 in {
   programs = {
     bash.enable = true;
@@ -14,15 +24,18 @@ in {
       prompt.enable = true;
       config =
         {
+          #? `programs.git.config` is `either gitini (listOf gitini)`: the
+          #? *whole* config may be a list of ini sets, but `user` itself stays
+          #? an attrset. Wrapping `user` in a list would be read as a second
+          #? ini document, not a second user.
           user = {
-            name = primary.git.name;
-            email = primary.git.email;
+            inherit (primaryGit) name email;
           };
           init.defaultBranch = "main";
           safe.directory = [host.paths.roots.src];
           url."https://github.com/".insteadOf = ["gh:" "github:"];
         }
-        // (primary.git.settings or {});
+        // (primaryGit.settings or {});
     };
     nh = {
       enable = true;

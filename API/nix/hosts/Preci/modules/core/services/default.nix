@@ -5,7 +5,8 @@
 }: let
   inherit (lix.lists) elem;
 
-  primary = host.principals.primary;
+  inherit (host.principals) primary;
+  inherit (host.interface) desktops;
 
   #? `host.functionalities` is the resolved *record* (`{names, set, values,
   #? ...}`), not a bare list. Membership is read off its `names` list;
@@ -34,7 +35,7 @@ in {
     };
 
     desktopManager = {
-      plasma6.enable = elem "plasma" host.interface.desktops;
+      plasma6.enable = elem "plasma" desktops;
     };
 
     wyoming = {

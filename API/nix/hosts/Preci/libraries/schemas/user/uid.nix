@@ -16,6 +16,8 @@
       max = 59999;
     };
   in {
+    #? Every non-service role draws from the same normal-user range; only
+    #? `service` differs from it.
     administrator = normal;
     user = normal;
     guest = normal;
