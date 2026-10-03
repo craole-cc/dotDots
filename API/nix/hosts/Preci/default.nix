@@ -31,7 +31,8 @@
   #?
   #? `inherit` does not apply here: `imports` is not an alias of an argument
   #? but the contents of an imported module set.
-  imports = (import ./modules {inherit lix;}).imports;
+  # imports = (import ./modules {inherit lix;}).imports;
+  inherit (import ./modules {inherit lix;}) imports;
 
   _module.args = {
     inherit lix host context;

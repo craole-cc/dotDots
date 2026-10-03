@@ -11,10 +11,5 @@
 # which the modular tree replaced; the name is kept because it is the
 # conventional entry point.
 #
-#   sudo nixos-rebuild switch \
-#     -I nixos-config=<repo>/API/nix/hosts/Preci/configuration.nix
-{
-  lib ? import <nixpkgs/lib>,
-  ...
-}:
-import ./. {inherit lib;}
+# sudo nixos-rebuild switch -I nixos-config=<repo>/API/nix/hosts/Preci/configuration.nix
+{lib ? import <nixpkgs/lib>, ...}: import ./. {inherit lib;}
