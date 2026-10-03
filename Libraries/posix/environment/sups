@@ -239,10 +239,16 @@ determine_secret_path() {
 }
 
 determine_sops_file() {
-  #DOC determine_sops_file => Locate the correct .sops.yaml (override -> host -> root)
+  #DOC determine_sops_file => Locate the correct .sops.yaml (override -> scope-appropriate -> root)
   #> NOTE: for an existing file, sops reads recipients from the file's own
   #> metadata; --config only matters when a file is first created. To change
   #> recipients later, edit the config and run `sops updatekeys <file>`.
+  #>
+  #> The config must match the file's ownership. A host's own secrets are
+  #> encrypted with the host's key, so the host config is right. A *user's*
+  #> files are encrypted against the root config, which is where the per-user
+  #> anchors live -- passing the host config there fails outright, since a host
+  #> cannot know which users it holds keys for.
   guess_host_sops="${host_base}/.sops.yaml"
   guess_root_sops="${workspace}/.sops.yaml"
 
@@ -252,6 +258,17 @@ determine_sops_file() {
       exit 1
     fi
     print info "Using override SOP_FILE: ${sops_file}"
+  elif [ "${scope}" = "user" ]; then
+    #> A user's files are encrypted against the root config, which carries the
+    #> per-user and recovery anchors. A host config names only that host's key,
+    #> so using one here would fail on any file it does not match.
+    if [ ! -f "${guess_root_sops}" ]; then
+      print error "User secrets need the repo-root .sops.yaml, which was not found:"
+      print error "  ${guess_root_sops}"
+      exit 1
+    fi
+    sops_file="${guess_root_sops}"
+    print info "Using root .sops.yaml: ${sops_file}"
   elif [ "${scope}" = "global" ]; then
     #> Global secrets are encrypted to every host, so only the root config
     #> (which lists them all) is correct; a host-level config names just one.
