@@ -39,14 +39,17 @@ in {
     };
 
     wyoming = {
-      #? `faster-whisper` and `piper` expose `servers`; `openwakeword` is a
-      #? single service with an `enable`. They are not interchangeable.
-      faster-whisper.servers = {
+      #? `faster-whisper` and `piper` declare `servers` as an attribute set of
+      #? named instances -- `attrsOf (submodule ...)`, defaulting to `{}` -- so
+      #? a server is enabled by giving it a name, not by setting `enable` on
+      #? `servers` itself. `openwakeword` is a single service with an `enable`
+      #? directly, so the two shapes are not interchangeable.
+      faster-whisper.servers.voice = {
         enable = true;
         language = "en";
       };
 
-      piper.servers.enable = true;
+      piper.servers.voice.enable = true;
       openwakeword.enable = true;
     };
     xserver = {
