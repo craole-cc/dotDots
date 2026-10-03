@@ -16,7 +16,7 @@
   check-filename = true
   check-file = true
   unicode = true
-  locale = "en-us"
+  locale = "en-gb"
   # Ignore short hex fragments (colours, UUID pieces, etc.)
   extend-ignore-re = ["[0-9a-fA-F]{2,}"]
 
