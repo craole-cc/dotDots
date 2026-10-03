@@ -1,32 +1,28 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames mapAttrs recursiveUpdate;
-  inherit (lib.lists) concatMap elem filter foldl' reverseList unique;
+{lix, ...}: let
+  inherit (lix.attrsets) attrNames mapAttrs;
+  inherit (lix.lists) concatMap elem filter unique;
   inherit (lix.debug) requireThat;
 
-  mkMergedAttrs = {
-    declared,
-    requested,
-  }: {
-    inherit declared requested;
-    #> Principal order is significant: earlier principals have priority.
-    merged =
-      foldl'
-      recursiveUpdate
-      declared
-      (reverseList requested);
-  };
+  # mkMergedAttrs = {
+  #   declared,
+  #   requested,
+  # }: {
+  #   inherit declared requested;
+  #   #> Principal order is significant: earlier principals have priority.
+  #   merged =
+  #     foldl'
+  #     recursiveUpdate
+  #     declared
+  #     (reverseList requested);
+  # };
 
-  mkMergedList = {
-    declared,
-    requested,
-  }: {
-    inherit declared requested;
-    merged = unique (requested ++ declared);
-  };
+  # mkMergedList = {
+  #   declared,
+  #   requested,
+  # }: {
+  #   inherit declared requested;
+  #   merged = unique (requested ++ declared);
+  # };
 
   deriveApplications = {
     default,
@@ -46,86 +42,88 @@
       message = "unknown application roles: ${toString unknown}";
     }; args;
 
-  deriveFunctionalities = {
-    default,
-    defined,
-  }: let
-    args = defined.functionalities or {};
-    names = unique args;
-    unknown =
-      filter
-      (name: !(default.functionalities ? ${name}))
-      names;
-    context = "deriveFunctionalities";
-  in
-    assert requireThat {
-      inherit context;
-      condition = unknown == [];
-      message = "unknown functionalities: ${toString unknown}";
-    }; names;
+  # deriveFunctionalities = {
+  #   default,
+  #   defined,
+  # }: let
+  #   args = defined.functionalities or {};
+  #   names = unique args;
+  #   unknown =
+  #     filter
+  #     (name: !(default.functionalities ? ${name}))
+  #     names;
+  #   context = "deriveFunctionalities";
+  # in
+  #   assert requireThat {
+  #     inherit context;
+  #     condition = unknown == [];
+  #     message = "unknown functionalities: ${toString unknown}";
+  #   }; names;
 
-  expandName = groups: stack: name:
-    if elem name stack
-    then throw "resolve packages: cyclic package group '${name}'"
-    else if groups ? ${name}
-    then concatMap (expandName groups (stack ++ [name])) groups.${name}
-    else [name];
+  # expandName = groups: stack: name:
+  #   if elem name stack
+  #   then throw "resolve packages: cyclic package group '${name}'"
+  #   else if groups ? ${name}
+  #   then concatMap (expandName groups (stack ++ [name])) groups.${name}
+  #   else [name];
 
-  expandNames = {
-    groups,
-    names,
-  }:
-    concatMap (expandName groups []) names;
+  # expandNames = {
+  #   groups,
+  #   names,
+  # }:
+  #   concatMap (expandName groups []) names;
 
-  resolveNames = {
-    pkgs,
-    groups,
-    names,
-    context,
-  }: let
-    expanded = unique (expandNames {inherit groups names;});
-  in
-    map (
-      name:
-        if pkgs ? ${name}
-        then pkgs.${name}
-        else throw "${context}: package '${name}' was not found in nixpkgs"
-    )
-    expanded;
+  # resolveNames = {
+  #   pkgs,
+  #   groups,
+  #   names,
+  #   context,
+  # }: let
+  #   expanded = unique (expandNames {inherit groups names;});
+  # in
+  #   map (
+  #     name:
+  #       if pkgs ? ${name}
+  #       then pkgs.${name}
+  #       else throw "${context}: package '${name}' was not found in nixpkgs"
+  #   )
+  #   expanded;
 
-  resolveUserPackages = {
-    user,
-    pkgs,
-  }: let
-    inherit (user.packages) shells common launchers;
-    names = unique (common ++ launchers ++ shells);
-  in {
-    inherit names;
-    expanded = unique (expandNames {
-      groups = {inherit shells common launchers;};
-      inherit names;
-    });
-    packages = resolveNames {
-      inherit pkgs;
-      groups = {inherit shells common launchers;};
-      inherit names;
-      context = "resolve user '${user.name}'";
-    };
-  };
+  # resolveUserPackages = {
+  #   user,
+  #   pkgs,
+  # }: let
+  #   inherit (user.packages) shells common launchers;
+  #   names = unique (common ++ launchers ++ shells);
+  # in {
+  #   inherit names;
+  #   expanded = unique (expandNames {
+  #     groups = {inherit shells common launchers;};
+  #     inherit names;
+  #   });
+  #   packages = resolveNames {
+  #     inherit pkgs;
+  #     groups = {inherit shells common launchers;};
+  #     inherit names;
+  #     context = "resolve user '${user.name}'";
+  #   };
+  # };
 
   fields = {
-    default = fields: mapAttrs (_: field: field.default) fields;
-    resolve = {args, fields}: mapAttrs (_: field: field.resolve {inherit args;}) fields;
+    declare = fields: mapAttrs (_: field: field.default) fields;
+    resolve = domain: fields:
+      mapAttrs (_: field: field.resolve domain) fields;
   };
 in {
   inherit
     deriveApplications
-    deriveFunctionalities
-    mkMergedAttrs
-    mkMergedList
-    expandName
-    resolveNames
-    expandNames
-    fields
+    # deriveFunctionalities
+    # resolveUserPackages
+    # expandName
+    # resolveNames
+    # expandNames
+    # fields
     ;
+  resolveFields = fields.resolve;
+  declareFields = fields.declare;
 }

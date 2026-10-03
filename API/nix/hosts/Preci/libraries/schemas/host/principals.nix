@@ -1,12 +1,8 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.lists) any elem head filter;
-  inherit (lib.strings) toLower concatStringsSep;
+{lix, ...}: let
+  inherit (lix.attrsets) attrNames;
   inherit (lix.debug) requireThat;
+  inherit (lix.lists) any elem head filter;
+  inherit (lix.strings) toLower concatStringsSep;
   inherit (lix.trivial) isNotEmpty;
 
   default = [];

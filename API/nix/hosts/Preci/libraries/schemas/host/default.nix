@@ -1,36 +1,31 @@
-{
-  lib,
-  lix,
-  #? The dotDots repository root, used to reach the shared vocabulary data
-  #? leaves under `Libraries/nix/lists/enums/data/`. Null when the schemas
-  #? are evaluated outside a checkout, in which case each field falls back to
-  #? its built-in vocabulary.
-  sources ? null,
-  ...
-}: let
-  libs = {
-    inherit lib lix sources;
-  };
+{lix, ...}: let
+  __ = {inherit lix;};
+  inherit (lix.schemas) declareFields resolveFields;
+  inherit (lix.schemas.users) mkUsers;
+
   fields = {
-    name = import ./name.nix libs;
-    applications = import ./applications.nix libs;
-    class = import ./class.nix libs;
-    description = import ./description.nix libs;
-    functionalities = import ./functionalities.nix libs;
-    id = import ./id.nix libs;
-    interface = import ./interface.nix libs;
-    localization = import ./localization.nix libs;
-    packages = import ./packages.nix libs;
-    paths = import ./paths.nix libs;
-    principals = import ./principals.nix libs;
-    specs = import ./specs.nix libs;
-    stateVersion = import ./stateVersion.nix libs;
-    system = import ./system.nix libs;
+    name = import ./name.nix __;
+    applications = import ./applications.nix __;
+    class = import ./class.nix __;
+    description = import ./description.nix __;
+    functionalities = import ./functionalities.nix __;
+    id = import ./id.nix __;
+    interface = import ./interface.nix __;
+    localization = import ./localization.nix __;
+    packages = import ./packages.nix __;
+    paths = import ./paths.nix __;
+    principals = import ./principals.nix __;
+    specs = import ./specs.nix __;
+    stateVersion = import ./stateVersion.nix __;
+    system = import ./system.nix __;
   };
-  default = lix.schemas.fields.default fields;
-  resolve = args: lix.schemas.fields.resolve {inherit args fields;};
-  constructors = import ./lib.nix {inherit lib lix resolve;};
+  default = declareFields fields;
+  resolve = domain: resolveFields domain fields;
+
+  mkHost = args: let
+    resolved = resolve args;
+    principals = mkUsers resolved.principals;
+  in
+    resolved // {inherit principals;};
 in
-  fields
-  // {inherit default resolve;}
-  // constructors
+  fields // {inherit mkHost default;}

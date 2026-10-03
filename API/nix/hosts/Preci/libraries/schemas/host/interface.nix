@@ -1,5 +1,5 @@
-{lib, ...}: let
-  inherit (lib.attrsets) recursiveUpdate;
+{lix, ...}: let
+  inherit (lix.attrsets) recursiveUpdate;
 
   default = {
     boot = {

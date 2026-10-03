@@ -1,57 +1,65 @@
-{
-  lib,
-  lix,
-  sources ? null,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames isAttrs recursiveUpdate;
-  inherit (lib.lists) elem filter isList unique;
+{lix, ...}: let
+  inherit (lix.attrsets) attrNames isAttrs recursiveUpdate;
+  inherit (lix.lists) filter foldl' isList unique;
   inherit (lix.debug) requireThat;
+  inherit (lix.inputs) dotDots;
+  inherit (lix.strings) mkPath;
+  inherit (lix.trivial) pathExists typeOf;
 
-  #? The vocabulary lives in a pure data leaf under `Libraries`, for the same
-  #? reason as `host/functionalities.nix`: the legacy enum is a `{_, ...}`
-  #? module and cannot be read from outside its own tree.
-  vocabulary =
-    if sources == null
-    then null
-    else import (sources + "/Libraries/nix/lists/enums/data/capabilities.nix");
-
-  fallback = {
-    names = [
-      "writing"
-      "conferencing"
-      "development"
-      "creation"
-      "analysis"
-      "management"
-      "gaming"
-      "multimedia"
-      "administration"
-      "automation"
+  registry = let
+    #? The vocabulary lives in a pure data leaf under `Libraries`, for the
+    #? same reason as `host/functionalities.nix`: the legacy enum is a
+    #? `{_, ...}` module and cannot be read from outside its own tree.
+    canonical = mkPath dotDots.path [
+      "Libraries"
+      "nix"
+      "lists"
+      "enums"
+      "data"
+      "capabilities.nix"
     ];
-    detail = {
-      writing = {};
-      conferencing = {};
-      analysis = {};
-      creation = {};
-      management = {};
-      gaming = {};
-      multimedia = {};
-      administration = {};
-      automation = {};
-      development = {
-        languages = {};
-        tools = {};
-        platforms = {};
-        environment = {};
+
+    fallback = {
+      names = [
+        "writing"
+        "conferencing"
+        "development"
+        "creation"
+        "analysis"
+        "management"
+        "gaming"
+        "multimedia"
+        "administration"
+        "automation"
+      ];
+      detail = {
+        writing = {};
+        conferencing = {};
+        analysis = {};
+        creation = {};
+        management = {};
+        gaming = {};
+        multimedia = {};
+        administration = {};
+        automation = {};
+        development = {
+          languages = {};
+          tools = {};
+          platforms = {};
+          environment = {};
+        };
       };
     };
-  };
 
-  canonical = if vocabulary == null then fallback else vocabulary;
-  inherit (canonical) names detail;
+    vocabulary =
+      if pathExists canonical
+      then import canonical
+      else fallback;
+    names = vocabulary.names;
+    values = vocabulary.detail;
+  in {inherit names values;};
 
-  default = detail;
+  default = registry.values;
 
   #? Capabilities are declared either as a list of names or as an attrset of
   #? names to detail. A name-only list resolves against `detail` and gets the
@@ -69,36 +77,34 @@
     then unique value
     else if isAttrs value
     then unique (attrNames value)
-    else
-      throw "resolve user capabilities: expected a list of names or an attrset, but got ${builtins.typeOf value}";
+    else throw "resolve user capabilities: expected a list of names or an attrset, but got ${typeOf value}";
 
   resolve = {args ? {}}: let
     declared = args.capabilities or default;
     resolvedNames = namesOf declared;
-    unknown = filter (name: !(elem name names)) resolvedNames;
+    unknown = filter (name: !(registry.values ? ${name})) resolvedNames;
     context = "resolve user capabilities";
     declaredIsAttrs = isAttrs declared;
     #? The default detail for one name, wrapped so it can be merged in.
     detailFor = name: {
-      ${name} = detail.${name} or {};
+      ${name} = registry.values.${name} or {};
     };
     #? A name-only list contributes the default detail for each name; an
     #? attrset is already detail and is used as written.
     detailFrom = value:
       if isList value
-      then builtins.foldl' (acc: name: recursiveUpdate acc (detailFor name)) {} value
+      then foldl' (acc: name: recursiveUpdate acc (detailFor name)) {} value
       else value;
-    merged = recursiveUpdate detail (detailFrom declared);
+    merged = recursiveUpdate registry.values (detailFrom declared);
   in
     assert requireThat {
       inherit context;
       condition = unknown == [];
       message = ''
         unknown capabilities: ${toString unknown}
-        known: ${toString names}
+        known: ${toString registry.names}
       '';
-    };
-    {
+    }; {
       #? The name list, and the detail attrset. Both are always available, so
       #? a consumer picks the shape it wants rather than inferring it from
       #? what the host happened to write.
@@ -109,10 +115,10 @@
         if declaredIsAttrs
         then merged
         else resolvedNames;
-      known = names;
+      known = registry.names;
     };
 in {
-  inherit default resolve namesOf names detail;
+  inherit default namesOf registry resolve;
   isList = isList;
   isAttrs = isAttrs;
 }

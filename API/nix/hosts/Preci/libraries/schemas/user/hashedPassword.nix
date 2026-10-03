@@ -1,4 +1,4 @@
-{...}: {
+_: {
   default = null;
 
   resolve = {args ? {}}:

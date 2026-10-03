@@ -1,9 +1,5 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.strings) hashString isString match substring toJSON;
+{lix, ...}: let
+  inherit (lix.strings) hashString isString match substring toJSON;
   inherit (lix.trivial) isNotEmpty;
   inherit (lix.debug) requireThat;
 

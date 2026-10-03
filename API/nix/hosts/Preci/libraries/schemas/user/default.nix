@@ -1,57 +1,118 @@
-# lib: let
-#   user = (import ./name.nix)
-#     // (import ./role.nix)
-#     // (import ./uid.nix)
-#     // (import ./autoLogin.nix)
-#     // (import ./description.nix)
-#     // (import ./paths.nix)
-#     // (import ./git.nix)
-#     // (import ./interface.nix)
-#     // (import ./applications.nix)
-#     // (import ./capabilities.nix)
-#     // (import ./password.nix) # Prefer hashedPassword
-#     // {
-#       # password = null;
-#       hashedPassword = null; #? Must be set, encourage howto
-#       localization = {}; #? this is if the user is of a different locale than the host
-#       };
-# in
-#   (import ./lib.nix (lib // {inherit default;})) #TODO: retire this
-#   // {inherit user;}
-# ok. before getting to the more complex nested one. i want to mirror the begavior in users, which actuall will matter to host.
-{
-  lib,
-  lix,
-  #? The dotDots repository root, used to reach the shared vocabulary data
-  #? leaves under `Libraries/nix/lists/enums/data/`. Null when the schemas
-  #? are evaluated outside a checkout, in which case each field falls back to
-  #? its built-in vocabulary.
-  sources ? null,
-  ...
-}: let
-  libs = {
-    inherit lib lix sources;
-  };
+{lix, ...}: let
+  __ = {inherit lix;};
+  inherit (lix.attrsets) recursiveUpdate;
+  inherit (lix.schemas) declareFields resolveFields;
+  inherit (lix.lists) concatMap elemAt foldl' head length optionals reverseList tail unique;
+
   fields = {
-    applications = import ./applications.nix libs;
-    autoLogin = import ./autoLogin.nix libs;
-    capabilities = import ./capabilities.nix libs;
-    description = import ./description.nix libs;
-    enable = import ./enable.nix libs;
-    git = import ./git.nix libs;
-    interface = import ./interface.nix libs;
-    localization = import ./localization.nix libs;
-    name = import ./name.nix libs;
-    packages = import ./packages.nix libs;
-    hashedPassword = import ./hashedPassword.nix libs;
-    paths = import ./paths.nix libs;
-    role = import ./role.nix libs;
-    uid = import ./uid.nix libs;
+    applications = import ./applications.nix __;
+    autoLogin = import ./autoLogin.nix __;
+    capabilities = import ./capabilities.nix __;
+    description = import ./description.nix __;
+    enable = import ./enable.nix __;
+    git = import ./git.nix __;
+    interface = import ./interface.nix __;
+    localization = import ./localization.nix __;
+    name = import ./name.nix __;
+    packages = import ./packages.nix __;
+    hashedPassword = import ./hashedPassword.nix __;
+    paths = import ./paths.nix __;
+    role = import ./role.nix __;
+    uid = import ./uid.nix __;
   };
-  default = lix.schemas.fields.default fields;
-  resolve = args: lix.schemas.fields.resolve {inherit args fields;};
-  constructors = import ./lib.nix {inherit lib lix resolve;};
+  default = declareFields fields;
+  resolve = domain: resolveFields domain fields;
+
+  mkUser = {
+    users,
+    user,
+  }:
+    resolve (recursiveUpdate (users.${user.name} or {}) user);
+
+  mkUsers = users: let
+    defined = map (user: mkUser {inherit user;}) users;
+
+    count = length defined;
+
+    primary =
+      if count > 0
+      then head defined
+      else null;
+
+    secondary =
+      if count > 1
+      then elemAt defined 1
+      else null;
+
+    tertiary =
+      if count > 2
+      then elemAt defined 2
+      else null;
+
+    others = optionals (count > 3) (tail (tail (tail defined)));
+
+    names = map (user: user.name) defined;
+
+    interface = {
+      desktops = unique (
+        concatMap
+        (user: user.interface.desktops or [])
+        defined
+      );
+      fonts = {
+        clock = unique (
+          concatMap
+          (user: user.interface.fonts.clock or [])
+          defined
+        );
+        emoji = unique (
+          concatMap
+          (user: user.interface.fonts.emoji or [])
+          defined
+        );
+        material = unique (
+          concatMap
+          (user: user.interface.fonts.material or [])
+          defined
+        );
+        monospace = unique (
+          concatMap
+          (user: user.interface.fonts.monospace or [])
+          defined
+        );
+        sans = unique (
+          concatMap
+          (user: user.interface.fonts.sans or [])
+          defined
+        );
+        serif = unique (
+          concatMap
+          (user: user.interface.fonts.serif or [])
+          defined
+        );
+      };
+      themes = foldl' recursiveUpdate {} (
+        reverseList (
+          map
+          (user: user.interface.themes or {})
+          defined
+        )
+      );
+      cursors = foldl' recursiveUpdate {} (
+        reverseList (
+          map
+          (user: user.interface.cursors or {})
+          defined
+        )
+      );
+      keyboard = foldl' recursiveUpdate {} (
+        reverseList (
+          map
+          (user: user.interface.keyboard or {})
+          defined
+        )
+      );
+    };
+  in {inherit defined count interface names others primary secondary tertiary;};
 in
-  fields
-  // {inherit default resolve;}
-  // constructors
+  fields // {inherit default mkUsers mkUser;}

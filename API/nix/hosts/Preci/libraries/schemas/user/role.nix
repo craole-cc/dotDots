@@ -1,12 +1,8 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.lists) elem filter head;
-  inherit (lib.strings) toLower concatStringsSep;
+{lix, ...}: let
+  inherit (lix.attrsets) attrNames;
   inherit (lix.debug) requireThat;
+  inherit (lix.lists) elem filter head;
+  inherit (lix.strings) toLower concatStringsSep;
 
   aliases = {
     administrator = ["administrator" "admin" "root" "superuser" "sudo"];

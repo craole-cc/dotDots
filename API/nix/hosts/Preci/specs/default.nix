@@ -78,13 +78,16 @@
       ++ launchers;
   };
 
-  principals = [
-    {
-      name = "craole";
-      uid = 1000;
-      role = "administrator";
-      enable = true;
-      autoLogin = true;
-    }
+  principals = let
+    name = "craole";
+  in [
+    ((import ./users/craole)
+      // {
+        inherit name;
+        uid = 1000;
+        role = "administrator";
+        enable = true;
+        autoLogin = true;
+      })
   ];
 }

@@ -1,12 +1,8 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lix.strings) hashString;
-  inherit (lib.trivial) div fromHexString;
-  inherit (lib.strings) substring;
+{lix, ...}: let
   inherit (lix.debug) requireThat;
+  inherit (lix.strings) hashString;
+  inherit (lix.strings) substring;
+  inherit (lix.trivial) div fromHexString;
 
   default = null;
 

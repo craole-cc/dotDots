@@ -1,10 +1,6 @@
-{
-  lix,
-  lib,
-  ...
-}: let
-  inherit (lib.trivial) isBool;
+{lix, ...}: let
   inherit (lix.debug) requireThat;
+  inherit (lix.trivial) isBool;
 
   default = false;
 

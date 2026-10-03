@@ -1,7 +1,11 @@
-{lib, ...}: let
+{
+  lib,
+  trivial,
+  ...
+}: let
   inherit (lib.strings) concatStringsSep substring toUpper;
-
-  inherit (builtins) hashString;
+  inherit (lib.lists) filter foldl' head tail map toList;
+  inherit (trivial) isNotEmpty;
 
   #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"
   showPath = path: concatStringsSep "." path;
@@ -31,4 +35,31 @@
   */
   capitalize = text:
     toUpper (substring 0 1 text) + substring 1 (-1) text;
-in {inherit capitalize hashString showPath;}
+
+  mkPath = root: stems:
+    concatStringsSep "/" (
+      map toString (
+        filter isNotEmpty (
+          (toList root) ++ (toList stems)
+        )
+      )
+    );
+  mkPathLiteral = root: stems: let
+    parts = filter isNotEmpty ((toList root) ++ (toList stems));
+  in
+    if parts == []
+    then ""
+    else
+      foldl'
+      (acc: part: acc + "/${toString part}")
+      (head parts)
+      (tail parts);
+in {
+  inherit (builtins) hashString;
+  inherit
+    capitalize
+    showPath
+    mkPath
+    mkPathLiteral
+    ;
+}

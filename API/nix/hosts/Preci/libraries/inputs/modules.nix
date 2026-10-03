@@ -2,44 +2,44 @@
   lix,
   inputs,
   sources,
+  overlays,
+  modules,
   ...
 }: let
+  inherit (lix.asserts) assertMsg;
+  inherit (lix.attrsets) mapAttrs;
   inherit (lix.fetchers) fetchModule;
-  resolveModule = args: fetchModule (args // {inherit inputs sources;});
+  inherit (lix.lists) elem optional optionals;
+  inherit (lix.trivial) isNotEmpty;
+
+  resolveModule = arguments: fetchModule (arguments // {inherit inputs sources;});
+
+  # Registry entries say `source`; fetchModule expects `name`.
+  resolveSpec = group: moduleName: spec:
+    assert assertMsg (sources ? ${spec.source})
+    "modules.${group}.${moduleName}: source '${spec.source}' is not defined in registry.sources";
+      resolveModule ((removeAttrs spec ["source"]) // {name = spec.source;});
 in {
-  inherit (sources) dotDots;
+  inherit resolveModule;
 
-  # nixpkgs = let
-  #   args = {
-  #     inherit system;
-  #     config = {allowUnfree = true;};
-  #     overlays = [(import overlays.rust-overlay)];
-  #   };
-  # in
-  #   import sources.nixpkgs (
-  #     if sources.nixpkgs.fromFlake
-  #     then args
-  #     else removeAttrs args ["system"] # TODO: Confirm that system is not required
-  #   );
+  mkNixPkgs = {
+    host ? {},
+    system ?
+      host.args.system or (
+        throw "mkNixPkgs: 'system' or 'host.args.system' must be provided."
+      ),
+    extraOverlays ? [],
+    config ? ((host.args.config or {}).nixpkgs or {allowUnfree = true;}),
+  }:
+    import sources.nixpkgs.path {
+      inherit system config;
+      overlays =
+        optionals (isNotEmpty extraOverlays) extraOverlays
+        ++ optional
+        (elem "rust" (host.args.functionalities or []))
+        overlays.rust-overlay;
+    };
 
-  # nixpkgs = import sources.nixpkgs {
-  #   inherit system;
-  #   config = {allowUnfree = true;};
-  #   overlays = [(import overlays.rust-overlay)];
-  # };
-
-  home-manager = resolveModule {
-    name = "home-manager";
-    path = "nixos";
-  };
-
-  catppuccin = resolveModule {
-    name = "catppuccin";
-    path = "modules/nixos";
-  };
-
-  nix-index = resolveModule {
-    name = "nix-index";
-    path = "nixos-module.nix";
-  };
+  core = mapAttrs (resolveSpec "core") modules.core;
+  home = mapAttrs (resolveSpec "home") modules.home;
 }

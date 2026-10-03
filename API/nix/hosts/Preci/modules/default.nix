@@ -1,6 +1,1 @@
-{
-  imports = [
-    ./core
-    ./home
-  ];
-}
+{lix, ...}: {imports = lix.modules.core ++ [./core ./home];}

@@ -1,11 +1,7 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.attrsets) recursiveUpdate mapAttrs;
-  inherit (lib.strings) concatStringsSep;
+{lix, ...}: let
+  inherit (lix.attrsets) recursiveUpdate mapAttrs;
   inherit (lix.debug) requireNonEmpty;
+  inherit (lix.strings) concatStringsSep;
 
   default = {
     roots = {
