@@ -172,22 +172,25 @@ determine_secret_type() {
 
 determine_secret_path() {
   #DOC determine_secret_path => Resolve which secrets.yaml to edit
-  #> Secrets are scoped to the host unless explicitly global.
+  #> Secrets are scoped to the host unless explicitly global. The file is
+  #> located by discovery, not by a hardcoded layout, so hosts laid out like the
+  #> blueprint (secrets/secrets.yaml, specs/users/<user>/secrets.yaml) and hosts
+  #> that predate it both resolve without editing this script.
   case "${scope}" in
-  host)
-    secret_path="${host_base}/secrets.yaml"
+    host)
+    secret_path="$(find_host_secret_file "${host_base}/secrets.yaml")"
     print info "Using host: ${host}"
     ;;
-  user)
-    secret_path="${host_base}/users/${user}/secrets.yaml"
+    user)
+    secret_path="$(find_host_secret_file "${host_base}/users/${user}/secrets.yaml")"
     print info "Using host: ${host}"
     print info "Using user: ${user}"
     ;;
-  global)
+    global)
     secret_path="${workspace}/API/nix/users/${user}/secrets.yaml"
     print info "Using user: ${user}"
     ;;
-  *) ;;
+    *) ;;
   esac
 
   print info "Editing: ${secret_path}"
@@ -283,12 +286,60 @@ run_sops() {
 
 #~@ Utilities
 
-#> Every bare word the argument loop matches on its own, minus the dashed
-#> forms, which the leading '-' test already rejects. A name that collides
-#> with one of these would be parsed as a flag, so `next_name` refuses it and
-#> the caller falls back to the explicit `name=value` form.
+find_host_secret_file() {
+  #DOC find_host_secret_file => Print the host-scoped secrets.yaml for $1's path, discovering it if needed
+  #> A host and its users each keep a file called secrets.yaml, so discovery is
+  #> scoped by *role*, not by name alone: the host's own secrets live outside
+  #> any users/ or specs/users/ directory, while a user's live under one. This
+  #> keeps a host request from resolving to a user file (or the reverse) while
+  #> still allowing either to sit anywhere beneath the host root.
+  _legacy="$1"
+  _name="${_legacy##*/}"
+
+  _found=$(
+    find "${host_base}" -type f -name "${_name}" 2>/dev/null |
+      while IFS= read -r _candidate; do
+        #> A path containing a users/ segment belongs to a principal. The host
+        #> request skips those; a user request keeps only the one under a
+        #> directory named for that user, so two principals never collide.
+        case "${_candidate}" in
+          */users/*)
+            #> Skip principals other than the requested one.
+            if [ "${scope}" = "user" ]; then
+              case "${_candidate}" in
+                */users/"${user}"/*) printf '%s\n' "${_candidate}" ;;
+                #> Any other principal is skipped, not an error.
+                *) ;;
+              esac
+            fi
+            ;;
+          *)
+            if [ "${scope}" = "host" ]; then
+              printf '%s\n' "${_candidate}"
+            fi
+            ;;
+        esac
+      done |
+      sort |
+      head -n 1
+  )
+
+  if [ -n "${_found}" ]; then
+    printf '%s\n' "${_found}"
+    return 0
+  fi
+
+  #> Nothing found: fall back to the legacy location, so a missing file is
+  #> created where it belongs rather than at an arbitrary discovered path.
+  printf '%s\n' "${_legacy}"
+}
+
 next_name() {
   #DOC next_name => Print $1 as a selector name, or nothing when it is not one
+  #> Every bare word the argument loop matches on its own, minus the dashed
+  #> forms, which the leading '-' test already rejects. A name that collides
+  #> with one of these would be parsed as a flag, so `next_name` refuses it and
+  #> the caller falls back to the explicit `name=value` form.
   case "$1" in
   '' | -*) ;;
   host | user | global | debug | verbose | info | warn | error | quiet | help) ;;
@@ -310,7 +361,10 @@ require_name() {
 
 require_host_dir() {
   #DOC require_host_dir => Exit unless the host exists; list the valid ones if not
-  host_base="${workspace}/API/nix/hosts/${host}/build"
+  #> The host directory itself, not a fixed layout beneath it. Where a host
+  #> keeps its secrets is discovered (see find_secret_file), so a host laid out
+  #> like the blueprint and one that hasn't migrated yet both resolve.
+  host_base="${workspace}/API/nix/hosts/${host}"
   if [ -d "${host_base}" ]; then
     return 0
   fi
@@ -470,12 +524,16 @@ Only one selector may be given. If none is, it prompts interactively.
 Secrets are scoped to the host unless explicitly global.
 Names may contain only letters, digits, '.', '_' and '-'.
 
-Secret files (you are asked before a missing one is created):
-  host    -> API/nix/hosts/<host>/build/secrets.yaml
-  user    -> API/nix/hosts/<host>/build/users/<user>/secrets.yaml
+Secret files (discovered under the host directory; you are asked before a
+missing one is created):
+  host    -> API/nix/hosts/<host>/secrets.yaml
+  user    -> API/nix/hosts/<host>/specs/users/<user>/secrets.yaml
   global  -> API/nix/users/<user>/secrets.yaml
 
-The .sops.yaml is the host's own (API/nix/hosts/<host>/build/.sops.yaml),
+Host-scoped and user-scoped files are told apart by a users/ path segment, so
+each resolves to its own even though both are called secrets.yaml.
+
+The .sops.yaml is the host's own (API/nix/hosts/<host>/.sops.yaml),
 falling back to the repo root. Global secrets always use the root one, since
 it lists every host's key. Override either with the SOP_FILE environment
 variable (a relative path is resolved against your current directory).

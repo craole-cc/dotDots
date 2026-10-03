@@ -1,8 +1,10 @@
 #? Host-level SOPS secrets.
 #?
 #? This directory is self-contained: `secrets.yaml` holds the encrypted values,
-#? `.sops.yaml` scopes their creation to this host's age recipient, and this
-#? module declares how they are decrypted onto the running system.
+#? and this module declares how they are decrypted onto the running system.
+#?
+#? Creation rules live one level up, in the host's own `.sops.yaml`, which is
+#? what `sups` passes explicitly and what sops finds by walking up from here.
 #?
 #? Per-principal secrets are *not* declared here. They live with their
 #? principal under `specs/users/<name>/` and are provisioned by Home Manager,

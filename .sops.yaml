@@ -4,15 +4,24 @@
 # deliberately no catch-all, so a host without a rule fails instead of being
 # encrypted to the wrong recipients. `(^|/)` makes the segment match whether
 # the path is relative or absolute.
+#
+# A host's own rules live in API/nix/hosts/<host>/.sops.yaml, which `sups`
+# passes explicitly; these are the fallback for hosts without one, and the
+# authority for cross-host ("global") secrets.
 keys:
   - &preci age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
 creation_rules:
-  - path_regex: '(^|/)hosts/Preci/build/(.*/)?secrets\.yaml$'
+  # Host-scoped secrets: API/nix/hosts/Preci/secrets/secrets.yaml
+  - path_regex: '(^|/)hosts/[^/]+/secrets/secrets\.yaml$'
     key_groups:
       - age: [*preci]
-  # Shared across hosts: encrypted to every host's key. Must stay below the
-  # per-host rules, since this pattern would also match
-  # hosts/<Host>/build/users/<user>/secrets.yaml and first match wins.
+  # Principal secrets held on a host: hosts/Preci/specs/users/<user>/secrets.yaml
+  - path_regex: '(^|/)hosts/[^/]+/specs/users/[^/]+/secrets\.yaml$'
+    key_groups:
+      - age: [*preci]
+  # Shared across hosts: API/nix/users/<user>/secrets.yaml. Encrypted to every
+  # host's key, and matched first here because it is the only path outside a
+  # host directory.
   - path_regex: '(^|/)users/[^/]+/secrets\.yaml$'
     key_groups:
       - age: [*preci]

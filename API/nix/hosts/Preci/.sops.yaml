@@ -1,0 +1,16 @@
+# .sops.yaml
+#
+# Creation rules for this host's encrypted secrets. `sups` passes this file
+# explicitly with --config, and sops otherwise discovers it by walking up from
+# the file being edited, so it covers everything under the host directory --
+# secrets/secrets.yaml and specs/users/<name>/secrets.yaml alike.
+#
+# Decryption never consults this file: recipients come from the encrypted file's
+# own metadata. It only decides who a newly created or re-encrypted file is
+# encrypted to.
+keys:
+  - &preci age14pc63ggn66ehww7zfll9p4xntfrhx6h520u79svv2l2ua7czmf9sjtzfp5
+creation_rules:
+  - path_regex: '(^|/)secrets\.yaml$'
+    key_groups:
+      - age: [*preci]
