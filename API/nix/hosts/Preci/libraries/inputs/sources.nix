@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (lix.attrsets) mapAttrs;
-  inherit (lix.fetchers) materializeSource mkGitHubSource;
+  inherit (lix.fetchers) materialiseSource mkGitHubSource;
 
   resolveSource = name: spec: let
     type = spec.type or (throw "sources.${name}: missing 'type'");
@@ -22,7 +22,7 @@
         value = flakeInput;
       }
     else if type == "github"
-    then (materializeSource (mkGitHubSource arguments)) // {fromFlake = false;}
+    then (materialiseSource (mkGitHubSource arguments)) // {fromFlake = false;}
     else if type == "pin"
     then arguments // {fromFlake = false;}
     else throw "sources.${name}: unknown type '${type}'";

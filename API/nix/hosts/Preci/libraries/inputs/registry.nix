@@ -96,7 +96,7 @@
         source = "catppuccin";
         path = "modules/nixos";
       };
-      hermes = {
+      herme-agents = {
         source = "hermes-agent";
         class = "nixos";
       };
@@ -114,7 +114,7 @@
       };
     };
     home = {
-      hermes = {
+      hermes-agent = {
         source = "hermes-agent";
         class = "homeManager";
       };

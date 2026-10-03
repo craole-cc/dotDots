@@ -31,3 +31,7 @@
     shotcut = "shotcut"
     nitch = "nitch"
     flavour = "flavour"
+Analyzer = "Analyzer"
+flavor = "flavor"
+color = "color"
+flavors = "flavors"

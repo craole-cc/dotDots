@@ -9,7 +9,7 @@
 
   inherit (host.interface) defaultSession isCosmic isGnome isHyprland isNiri isPlasma isX11;
   inherit (host.users) principal;
-  inherit (lib.attrsets) attrNames attrValues filterAttrs getAttr listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate removeAttrs;
+  inherit (lib.attrsets) attrNames attrValues filterAttrs getAttr listToAttrs mapAttrs mapAttrsToList optionalAttrs recursiveUpdate;
   inherit (lib.lists) concatMap flatten head intersectLists optional optionals unique;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg isString readFile substring toLower toUpper;
@@ -100,7 +100,7 @@
           run = "/etc/nixos";
         };
       };
-      localization = {
+      localisation = {
         latitude = 18.015;
         longitude = -77.49;
         city = "Mandeville, Jamaica";
@@ -156,7 +156,7 @@
           autoLogin = true;
           role = "administrator";
           description = "Craig 'Craole' Cole";
-          localization = {
+          localisation = {
             defaultLocale = "en_GB.UTF-8";
           };
           interface = {
@@ -332,13 +332,13 @@
         run = args.paths.roots.run;
       };
 
-    localization = recursiveUpdate {
+    localisation = recursiveUpdate {
       latitude = 18.015;
       longitude = -77.49;
       city = "Mandeville, Jamaica";
       timeZone = "America/Jamaica";
       defaultLocale = "en_US.UTF-8";
-    } (args.localization or {});
+    } (args.localisation or {});
 
     users = let
       #? Explicit UIDs are stable pins; missing UIDs are deterministically
@@ -389,7 +389,7 @@
         then uid
         else seedUid {inherit role name range;};
 
-      normalize = user: let
+      normalise = user: let
         role = user.role or "normal";
         isNormalUser = role != "service";
         uid = resolveUid {
@@ -402,11 +402,11 @@
         requestedRoots = requestedPaths.roots or {};
         home = requestedRoots.home or "/home/${user.name}";
 
-        userLocalization =
+        userLocalisation =
           recursiveUpdate
-          localization
+          localisation
           (
-            (user.localization or {})
+            (user.localisation or {})
             // optionalAttrs (user ? defaultLocale) {
               inherit (user) defaultLocale;
             }
@@ -473,8 +473,8 @@
             }
             requestedPaths;
           linger = isNormalUser;
-          localization = userLocalization;
-          inherit (userLocalization) defaultLocale;
+          localisation = userLocalisation;
+          inherit (userLocalisation) defaultLocale;
           theme = themes;
           interface =
             recursiveUpdate
@@ -489,9 +489,9 @@
             };
         };
 
-      normalized =
+      normalised =
         mapAttrs
-        (_: normalize) (
+        (_: normalise) (
           listToAttrs (
             map (value: {
               inherit value;
@@ -504,16 +504,16 @@
       enabled =
         filterAttrs
         (_: user: user.enable or false == true)
-        normalized;
+        normalised;
 
       disabled =
         filterAttrs
         (_: user: user.enable or false == false)
-        normalized;
+        normalised;
       normal =
         filterAttrs
         (_: user: user.isNormalUser)
-        normalized;
+        normalised;
 
       principal = enabled.${head (attrNames enabled)};
 
@@ -534,13 +534,13 @@
             // optionalAttrs (user ? hashedPasswordFile) {inherit (user) hashedPasswordFile;}
             // optionalAttrs (user ? password) {inherit (user) password;}
         )
-        normalized;
+        normalised;
 
       autoLogin = let
         candidates =
           filterAttrs
           (_: user: user.autoLogin or false)
-          normalized;
+          normalised;
         enable = isNotEmpty candidates;
       in {
         inherit enable;
@@ -556,7 +556,7 @@
         (args.interface.desktops or [])
         ++ concatMap (user: user.interface.desktops or []) (attrValues users.normal)
       );
-      normalized = map toLower requestedDesktops;
+      normalised = map toLower requestedDesktops;
 
       aliases = {
         plasma = ["plasma" "plasma6" "kde"];
@@ -572,7 +572,7 @@
       };
 
       protocols = let
-        collect = list: intersectLists normalized list;
+        collect = list: intersectLists normalised list;
       in {
         wayland = collect [
           "cosmic"
@@ -593,7 +593,7 @@
 
       isRequired = desktop:
         isNotEmpty
-        (intersectLists aliases.${desktop} normalized);
+        (intersectLists aliases.${desktop} normalised);
     in
       recursiveUpdate (args.interface or {}) {
         inherit protocols;
@@ -1314,7 +1314,7 @@
     inherit
       args
       paths
-      localization
+      localisation
       users
       interface
       aesthetics
@@ -1901,7 +1901,7 @@ in {
       darkman = {
         description = "Dark/light mode switch daemon";
         wantedBy = ["default.target"];
-        environment = with host.localization; {
+        environment = with host.localisation; {
           DARKMAN_LAT = toString latitude;
           DARKMAN_LNG = toString longitude;
         };
@@ -1929,7 +1929,7 @@ in {
   };
 
   time = {
-    timeZone = host.localization.timeZone or "America/Jamaica";
+    timeZone = host.localisation.timeZone or "America/Jamaica";
   };
 
   users = {

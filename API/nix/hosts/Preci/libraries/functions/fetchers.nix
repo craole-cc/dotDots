@@ -56,12 +56,12 @@
     then fetchTree {inherit narHash type url;}
     else fetchTree {inherit type url;};
 
-  # Materialize a source spec into a resolved record. Downstream
+  # Materialise a source spec into a resolved record. Downstream
   # consumers rely on:
   #   .tree  -> the fetchTree result, with narHash
   #   .path  -> tree.outPath (string), for imports and NIX_PATH
   #   .value -> the evaluated flake when flake = true, else tree.outPath
-  materializeSource = source: let
+  materialiseSource = source: let
     tree = fetchSource source;
     isFlake = source.flake or false;
   in
@@ -277,7 +277,7 @@
       then null
       else if raw ? fromFlake
       then raw
-      else materializeSource raw;
+      else materialiseSource raw;
 
     isFlakeInput = inputs != null && inputs ? ${name};
 
@@ -309,7 +309,7 @@ in {
   inherit
     fetchModule
     fetchSource
-    materializeSource
+    materialiseSource
     mkGitHubSource
     ;
 }
