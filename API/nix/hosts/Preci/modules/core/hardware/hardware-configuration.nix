@@ -59,10 +59,6 @@ in {
   };
 
   hardware = {
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-    };
     cpu.intel.updateMicrocode = mkDefault config.hardware.enableRedistributableFirmware;
   };
 }
