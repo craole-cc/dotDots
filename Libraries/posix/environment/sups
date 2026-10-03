@@ -135,17 +135,23 @@ parse_arguments() {
   done
 
   #> Resolve scope
-  wanted=$((wants_host + wants_user + wants_global))
-  if [ "${wanted}" -gt 1 ]; then
-    print error "Cannot combine host, user and global: it is ambiguous which secrets to edit."
-    print error "Pass only one, or omit all to choose interactively."
+  #>
+  #> `--host` and `--user` are not mutually exclusive: naming a host and a user
+  #> together is how "this user's secrets on that host" is expressed, which is
+  #> the common case. Only `--global` conflicts, because it selects a different
+  #> file entirely (the cross-host one) rather than narrowing the host.
+  if [ "${wants_global}" -eq 1 ] && [ "$((wants_host + wants_user))" -gt 0 ]; then
+    print error "Cannot combine global with host or user: global secrets are not per-host."
+    print error "Pass only --global, or drop it and name a host and/or user."
     exit 2
-  elif [ "${wants_host}" -eq 1 ]; then
-    scope="host"
-  elif [ "${wants_user}" -eq 1 ]; then
-    scope="user"
   elif [ "${wants_global}" -eq 1 ]; then
     scope="global"
+  elif [ "${wants_user}" -eq 1 ]; then
+    #? A user was named, with or without a host. Without one, `host` has already
+    #? defaulted to this machine, which is the intent.
+    scope="user"
+  elif [ "${wants_host}" -eq 1 ]; then
+    scope="host"
   fi
 
   print debug "log_level=${log_level}"
@@ -506,10 +512,14 @@ ${script_desc}
 
 Usage: ${script_name} [options]
 
-Selectors (mutually exclusive; the name may also be given as --flag=name):
+Selectors:
   host, -H, --host [hostname]       Edit a host's secrets (default: current host)
   user, -U, --user [username]       Edit a user's secrets scoped to one host (default: current user)
   global, -G, --global [username]   Edit a user's secrets shared by all hosts
+
+  --host and --user combine: naming both is how "this user on that host" is
+  expressed, which is the usual case. --global conflicts with either, because
+  cross-host secrets are a different file rather than a narrower scope.
 
 Logging (last one wins):
   debug, -d, --debug, --verbose     Show everything (debug + info + warn + error)
@@ -518,10 +528,10 @@ Logging (last one wins):
   quiet, -q, --quiet                Show errors only
 
 Other:
-  help, -h, --help                  Show this help
+  help, -h, --help                  Display this help
 
-Only one selector may be given. If none is, it prompts interactively.
-Secrets are scoped to the host unless explicitly global.
+The host defaults to this machine's name, so on a host with no secrets of its
+own, pass --host to edit another machine's. With no selector at all it prompts.
 Names may contain only letters, digits, '.', '_' and '-'.
 
 Secret files (discovered under the host directory; you are asked before a
