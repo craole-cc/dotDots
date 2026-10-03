@@ -3,6 +3,6 @@
 
   default = {};
 
-  resolve = {args ? {}}:
+  resolve = args:
     recursiveUpdate default (args.localization or {});
 in {inherit default resolve;}

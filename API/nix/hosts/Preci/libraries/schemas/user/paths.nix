@@ -29,11 +29,11 @@
   };
 
   resolve = {
-    args ? {},
     paths ? args.paths or {},
     name ? args.name or null,
     context ? "resolve user paths (user \"${toString name}\")",
-  }: let
+    ...
+  } @ args: let
     merged = recursiveUpdate default paths;
 
     home =

@@ -35,6 +35,6 @@
     };
   };
 
-  resolve = {args ? {}}:
+  resolve = args:
     recursiveUpdate default (args.applications or {});
 in {inherit default resolve;}

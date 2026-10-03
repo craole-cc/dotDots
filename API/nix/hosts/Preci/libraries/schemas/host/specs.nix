@@ -9,6 +9,6 @@
     };
   };
 
-  resolve = {args ? {}}:
+  resolve = args:
     recursiveUpdate default (args.specs or {});
 in {inherit default resolve;}

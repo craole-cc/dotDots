@@ -4,11 +4,11 @@
   default = "nixos";
 
   resolve = {
-    args ? {},
     class ? args.class or default,
     name ? args.name or null,
     context ? "resolve host class (host \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireNonEmpty {
       inherit context;
       path = ["class"];

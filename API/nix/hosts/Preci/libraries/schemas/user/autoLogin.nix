@@ -5,11 +5,11 @@
   default = false;
 
   resolve = {
-    args ? {},
     autoLogin ? args.autoLogin or default,
     name ? args.name or null,
     context ? "resolve user autoLogin (user \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireThat {
       inherit context;
       condition = isBool autoLogin;

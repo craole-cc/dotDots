@@ -30,7 +30,7 @@
     resolve (recursiveUpdate (users.${user.name} or {}) user);
 
   mkUsers = users: let
-    defined = map (user: mkUser {inherit user;}) users;
+    defined = map (user: mkUser {inherit users user;}) users;
 
     count = length defined;
 

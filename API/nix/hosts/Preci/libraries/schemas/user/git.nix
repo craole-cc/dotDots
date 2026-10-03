@@ -10,9 +10,6 @@
 
   default = [];
 
-  resolve = {
-    args ? {},
-    git ? args.git or [],
-  }:
+  resolve = {git ? args.git or [], ...} @ args:
     map (entry: recursiveUpdate itemDefault entry) git;
 in {inherit default resolve;}

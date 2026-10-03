@@ -6,14 +6,14 @@
   default = null;
 
   resolve = {
-    args ? {},
     id ? args.id or null,
     name ? args.name or null,
     class ? args.class or null,
     description ? args.description or null,
     stateVersion ? args.stateVersion or null,
     context ? "resolve host id (host \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireThat {
       inherit context;
       condition =

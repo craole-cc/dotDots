@@ -79,7 +79,7 @@
     then unique (attrNames value)
     else throw "resolve user capabilities: expected a list of names or an attrset, but got ${typeOf value}";
 
-  resolve = {args ? {}}: let
+  resolve = args: let
     declared = args.capabilities or default;
     resolvedNames = namesOf declared;
     unknown = filter (name: !(registry.values ? ${name})) resolvedNames;

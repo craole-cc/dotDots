@@ -18,7 +18,7 @@
     terminal = ["ghostty "];
   };
 
-  resolve = {args ? {}}:
+  resolve = args:
     recursiveUpdate default (args.packages or {});
 
   resolveUserPackages = {

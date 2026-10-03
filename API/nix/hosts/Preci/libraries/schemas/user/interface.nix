@@ -40,9 +40,6 @@
     };
   };
 
-  resolve = {
-    args ? {},
-    interface ? args.interface or {},
-  }:
+  resolve = {interface ? args.interface or {}, ...} @ args:
     recursiveUpdate default interface;
 in {inherit default resolve;}

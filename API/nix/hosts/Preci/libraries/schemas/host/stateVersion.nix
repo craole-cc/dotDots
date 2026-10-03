@@ -4,11 +4,11 @@
   default = null;
 
   resolve = {
-    args ? {},
     stateVersion ? args.stateVersion or null,
     name ? args.name or null,
     context ? "resolve host stateVersion (host \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireNonEmpty {
       inherit context;
       path = ["stateVersion"];

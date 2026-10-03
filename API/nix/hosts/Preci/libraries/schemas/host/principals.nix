@@ -48,11 +48,11 @@
     };
 
   resolve = {
-    args ? {},
     principals ? args.principals or [],
     name ? args.name or null,
     context ? "resolve host principals (host \"${toString name}\")",
-  }: let
+    ...
+  } @ args: let
     normalized = map (normalize context) principals;
     hasEnabledAdmin = any (p: p.role == "administrator" && p.enable) normalized;
   in

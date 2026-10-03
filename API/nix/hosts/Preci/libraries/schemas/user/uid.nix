@@ -40,12 +40,12 @@
     range.min + m;
 
   resolve = {
-    args ? {},
     uid ? args.uid or default,
     name ? args.name or null,
     role ? args.role or "user",
     context ? "resolve user uid (user \"${toString name}\")",
-  }: let
+    ...
+  } @ args: let
     range =
       ranges.${role} or ranges.user;
     resolved =

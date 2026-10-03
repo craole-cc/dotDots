@@ -4,11 +4,11 @@
   default = true;
 
   resolve = {
-    args ? {},
     enable ? args.enable or default,
     name ? args.name or null,
     context ? "resolve user enable (user \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireThat {
       inherit context;
       condition = builtins.isBool enable;

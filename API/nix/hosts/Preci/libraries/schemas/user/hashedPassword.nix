@@ -1,6 +1,6 @@
 _: {
   default = null;
 
-  resolve = {args ? {}}:
+  resolve = args:
     args.hashedPassword or null;
 }

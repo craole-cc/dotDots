@@ -14,11 +14,11 @@
   default = "user";
 
   resolve = {
-    args ? {},
     role ? args.role or default,
     name ? args.name or null,
     context ? "resolve user role (user \"${toString name}\")",
-  }: let
+    ...
+  } @ args: let
     roles = attrNames aliases;
     lower = toLower (toString role);
     matches = filter (canonical: elem lower aliases.${canonical}) roles;

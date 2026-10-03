@@ -9,6 +9,6 @@
     launchers = [];
   };
 
-  resolve = {args ? {}}:
+  resolve = args:
     recursiveUpdate default (args.packages or {});
 in {inherit default resolve;}

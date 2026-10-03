@@ -11,11 +11,11 @@
   };
 
   resolve = {
-    args ? {},
     paths ? args.paths or {},
     name ? args.name or null,
     context ? "resolve host paths (host \"${toString name}\")",
-  }: let
+    ...
+  } @ args: let
     merged = recursiveUpdate default paths;
 
     src = merged.roots.src;

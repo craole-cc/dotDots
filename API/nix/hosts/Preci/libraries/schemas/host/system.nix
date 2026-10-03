@@ -4,11 +4,11 @@
   default = null;
 
   resolve = {
-    args ? {},
     system ? args.system or null,
     name ? args.name or null,
     context ? "resolve host system (host \"${toString name}\")",
-  }:
+    ...
+  } @ args:
     assert requireNonEmpty {
       inherit context;
       path = ["system"];
