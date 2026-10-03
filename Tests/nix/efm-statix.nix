@@ -1,1 +1,6 @@
-let x = 1; in {x = x;}
+let
+  x = 1;
+  y = 2;
+in {
+  inherit x y;
+}
