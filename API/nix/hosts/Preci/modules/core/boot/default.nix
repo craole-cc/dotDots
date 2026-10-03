@@ -1,10 +1,10 @@
 {
+  context,
   host,
-  infrastructure,
   ...
 }: let
+  inherit (context.core.packages) kernel;
   inherit (host.interface.boot.loader) device manager timeout;
-  inherit (infrastructure.core.packages) kernel;
 in {
   boot = {
     loader = {

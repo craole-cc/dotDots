@@ -3,9 +3,9 @@
 #? `functionalities` is the resolved name list, so membership is tested with
 #? `elem` against that list rather than read as an attribute.
 {
-  lix,
+  context,
   host,
-  infrastructure,
+  lix,
   ...
 }: let
   inherit (lix.attrsets) recursiveUpdate;
@@ -13,7 +13,7 @@
 
   inherit (lix) inputs overlays;
 
-  functionalities = infrastructure.core.functionalities;
+  functionalities = context.core.functionalities;
 in {
   networking = {
     hostName = host.name;

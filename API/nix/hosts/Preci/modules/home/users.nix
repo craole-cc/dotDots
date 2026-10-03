@@ -13,8 +13,8 @@
 #? under `specs/users/<name>/`, so each principal is wired from its own spec
 #? rather than from a host-level `users/` tree.
 {
+  context,
   host,
-  infrastructure,
   lix,
   inputs,
   ...
@@ -30,7 +30,7 @@
     inherit (user) name;
     value = {
       _module.args = {
-        user = getAttr user.name infrastructure.data.principals;
+        user = getAttr user.name context.data.principals;
       };
 
       imports =
@@ -46,10 +46,10 @@ in {
     useGlobalPkgs = true;
     useUserPackages = true;
 
-    #? `infrastructure` is the resolved host bundle: `user.nix` reads the
-    #? per-user package selection out of it, so it must reach every profile.
+    #? `context` is the resolution bundle: `user.nix` reads the per-user
+    #? package selection out of it, so it must reach every profile.
     extraSpecialArgs = {
-      inherit host lix inputs infrastructure;
+      inherit host context lix inputs;
     };
 
     users = listToAttrs (map mkUser host.principals.all);

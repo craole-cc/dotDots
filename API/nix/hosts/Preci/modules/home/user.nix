@@ -2,8 +2,8 @@
 #?
 #? `user` is the resolved principal for this profile, injected by `users.nix`.
 {
+  context,
   host,
-  infrastructure,
   lix,
   user,
   ...
@@ -20,7 +20,7 @@ in {
     inherit (host) stateVersion;
     username = user.name;
     homeDirectory = user.paths.roots.home;
-    packages = infrastructure.home.${user.name}.packages;
+    packages = context.home.${user.name}.packages;
   };
 
   programs.git = {
