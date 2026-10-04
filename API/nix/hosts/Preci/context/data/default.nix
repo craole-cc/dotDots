@@ -15,7 +15,7 @@
   inherit (lix.packages) resolvePackageGroups;
 
   capabilities = import ./capabilities.nix {inherit lix lib inputs;};
-  functionalities = import ./functionalities.nix {inherit lib host;};
+  functionalities = import ./functionalities.nix {inherit lix host;};
 
   #? `lix.inputs` entries are *source records* (owner/rev/path/...), not
   #? package sets. Reading `inputs.nixpkgs.<pkg>` looks the attribute up on that

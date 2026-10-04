@@ -30,6 +30,7 @@
 #? user's own home directory, so it is already owned by that user.
 {
   config,
+  host,
   lix,
   ...
 }: let
@@ -52,16 +53,15 @@ in {
     #? nesting -- so the two classes are named `hermes/host` and `hermes/user`
     #? rather than nested under a `hermes` parent.
     secrets = let
-      mkSops = scope: let
-        # TODO: I don't like relative paths like this, we should be using paths.* or we should have this already as an attrset
-        # ../../specs/users/${username}/secrets;
-        secrets = mkPath ["specs" "users" username "secrets"];
-      in {
+      #? `host.paths` carries the locations this host is laid out in, so no
+      #? module assembles a path out of `../../` and nothing depends on the
+      #? caller's working directory. `principal` is the user's specification
+      #? directory on this host.
+      mkSops = scope: {
         mode = "0600";
-        # TODO: What do we have defined in paths attrsets it is missing?
-        sopsFile = mkPath paths.users ["users" username "secrets" "${scope}.yaml"];
+        sopsFile = mkPath (host.paths.principal username) ["secrets" "${scope}.yaml"];
       };
-      mkSopsHermes = scope: {"hermes/${scope}" = mkSops "${scope}";};
+      mkSopsHermes = scope: {"hermes/${scope}" = mkSops scope;};
     in
       mkSopsHermes "host" // mkSopsHermes "user";
   };
