@@ -17,8 +17,4 @@
 # takes `lix` alone.
 #
 # sudo nixos-rebuild switch -I nixos-config=<repo>/API/nix/hosts/Preci/configuration.nix
-{
-  lib ? import <nixpkgs/lib>,
-  ...
-}:
-import ./. {inherit lib;}
+{lib ? import <nixpkgs/lib>, ...}: import ./. {inherit lib;}
