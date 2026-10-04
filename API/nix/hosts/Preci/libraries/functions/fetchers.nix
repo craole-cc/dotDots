@@ -2,6 +2,7 @@
   inherit (lix.attrsets) attrByPath optionalAttrs;
   inherit (lix.lists) filter head;
   inherit (lix.strings) concatStringsSep;
+  flakeInputs = lix.flakes.inputs or (lix.flake.inputs or null);
 
   # Evaluate a fetched tree as a flake. The tree must carry a narHash
   # (which fetchTree provides) so getFlake can run in pure mode with a
@@ -220,7 +221,7 @@
     outputs ? null,
     default ? null,
     enabled ? true,
-    inputs ? lix.flakes.inputs or null,
+    inputs ? flakeInputs,
     sources,
   }: let
     ctx = "fetchModule";
