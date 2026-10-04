@@ -12,7 +12,7 @@
     enable = import ./enable.nix __;
     git = import ./git.nix __;
     interface = import ./interface.nix __;
-    localization = import ./localization.nix __;
+    localisation = import ./localisation.nix __;
     name = import ./name.nix __;
     packages = import ./packages.nix __;
     hashedPassword = import ./hashedPassword.nix __;

@@ -9,13 +9,12 @@
   };
   withFunctions = mkLix functions;
 
-  inputs = import ./inputs (withFunctions
-    // {
-      inherit mkLix;
-      lix = recursiveUpdate withFunctions.lix {
-        inputs = lib.flake.inputs or null;
-      };
-    });
+  inputs = import ./inputs {
+    inherit mkLix;
+    lix = recursiveUpdate withFunctions.lix {
+      inputs = lib.flake.inputs or null;
+    };
+  };
   withInputs = mkLix (withFunctions.lix // inputs);
 
   schemas = import ./schemas {

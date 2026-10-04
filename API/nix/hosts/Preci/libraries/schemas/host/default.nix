@@ -11,7 +11,7 @@
     functionalities = import ./functionalities.nix __;
     id = import ./id.nix __;
     interface = import ./interface.nix __;
-    localization = import ./localization.nix __;
+    localisation = import ./localisation.nix __;
     packages = import ./packages.nix __;
     paths = import ./paths.nix __;
     principals = import ./principals.nix __;
