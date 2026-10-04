@@ -22,18 +22,19 @@
   inherit (lix.lists) filter head;
   inherit (lix.strings) mkPath;
 
-  cfg = {
-    git = config.programs.git;
-    jujutsu = config.programs.jujutsu;
-    hasGit = cfg.git.enable;
-    hasJJ = cfg.jujutsu.enable;
-  };
-
   #? ── Shared ──────────────────────────────────────────────────────────────
   #? What both tools read: the principal's profiles, who they are, and where
   #? their repos live. Anything used by only one tool belongs in its own scope
   #? below.
   userGit = user.git or {};
+
+  #? Whether this principal gets the git toolchain at all. Read from the
+  #? principal's data, never from `config.programs.*.enable`: Home Manager's
+  #? tool modules (delta, diff-so-fancy, ...) set `programs.git` themselves, so
+  #? gating one on another's `enable` makes the option system chase its own
+  #? tail and fail with infinite recursion.
+  enable = userGit.enable or true;
+
   profiles = userGit.profiles or [];
   hasProfiles = profiles != [];
 
@@ -83,7 +84,7 @@
   };
 
   #? ── Jujutsu ─────────────────────────────────────────────────────────────
-  jj = let
+  jujutsu = let
     #? A settings scope that applies only to repositories under the given path.
     scopeAt = path: profile:
       {"--when".repositories = [path];}
@@ -101,23 +102,23 @@
 in {
   programs = {
     git = {
-      enable = true;
+      inherit enable;
       lfs.enable = true;
       inherit (git) includes settings;
     };
 
     jujutsu = {
-      enable = cfg.hasGit;
-      inherit (jj) settings;
+      inherit enable;
+      inherit (jujutsu) settings;
     };
 
     #? delta is the pager for both git and jujutsu. diff-so-fancy stays installed
     #? but is not wired into git: both would set `core.pager`, and two definitions
     #? of the same git option fail the build.
     delta = {
-      enable = cfg.hasGit;
-      enableGitIntegration = cfg.hasGit;
-      enableJujutsuIntegration = cfg.hasJJ;
+      inherit enable;
+      enableGitIntegration = enable;
+      enableJujutsuIntegration = enable;
       options = {
         navigate = true;
         line-numbers = true;
@@ -125,22 +126,22 @@ in {
     };
 
     diff-so-fancy = {
-      enable = cfg.hasGit;
+      inherit enable;
       enableGitIntegration = false;
     };
 
     gitui = {
-      enable = cfg.hasGit;
+      inherit enable;
     };
 
     gh = {
-      enable = cfg.hasGit;
+      inherit enable;
       gitCredentialHelper.enable = true;
       settings.git_protocol = "https";
     };
 
     gh-dash = {
-      enable = cfg.hasGit;
+      inherit enable;
     };
   };
 }
