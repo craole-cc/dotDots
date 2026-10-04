@@ -1,7 +1,7 @@
 {lix, ...}: let
   __ = {inherit lix;};
-  inherit (lix.schemas) declareFields resolveFields;
-  inherit (lix.schemas.user) mkUsers;
+  inherit (lix.types) declareFields resolveFields;
+  inherit (lix.types.user) mkUsers;
 
   fields = {
     name = import ./name.nix __;

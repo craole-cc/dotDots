@@ -22,7 +22,7 @@ specific enough to do so safely.
       getCpu :: AttrSet -> AttrSet
   ```
   */
-  getCpu = lix.schemas.host.cpu.resolve;
+  getCpu = lix.types.host.cpu.resolve;
 
   /**
       The resolved record a host with no declared kernel and an unplaceable CPU
@@ -527,9 +527,9 @@ specific enough to do so safely.
   ```
       :::
   */
-  resolve = {host}: let
-    cpu = getCpu host;
-    value = host.kernel or host.packages.kernel or null;
+  resolve = args: let
+    cpu = getCpu args;
+    value = args.kernel or args.packages.kernel or null;
 
     parsed =
       if value == null
