@@ -18,7 +18,7 @@ use std::{
     process,
 };
 use tempfile::NamedTempFile;
-use time::{format_description::FormatItem, macros::format_description, OffsetDateTime};
+use time::{OffsetDateTime, format_description::FormatItem, macros::format_description};
 
 /// EditorConfig file formatter and linter
 ///
