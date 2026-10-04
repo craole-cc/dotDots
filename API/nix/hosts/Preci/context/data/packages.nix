@@ -6,7 +6,7 @@
 }: let
   inherit (lix.attrsets) attrNames attrValues optionalAttrs;
   inherit (lib.lists) concatLists concatMap elem unique;
-  inherit (lix.packages) resolvePackage resolvePackageG;
+  inherit (lix.packages) resolvePackage;
   inherit (lix.trivial) isNotEmpty;
 
   # resolveUserPackages = pkgs: user: let

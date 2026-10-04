@@ -1,36 +1,40 @@
 {
-  lib,
+  lix,
   inputs,
   ...
 }: let
-  inherit (lib.attrsets) attrByPath;
+  inherit (lix.attrsets) attrByPath;
+  inherit (lix.lists) optional optionals;
+  inherit (lix.trivial) isNotEmpty;
 
   resolveRust = user: let
-    rust = attrByPath ["capabilities" "development" "languages" "rust"] null user;
+    rust =
+      attrByPath
+      ["capabilities" "development" "languages" "rust"]
+      null
+      user;
+    isDefined = isNotEmpty rust;
+
     channel =
-      if rust == null
-      then null
-      else rust.channel or "stable";
+      if isDefined
+      then rust.channel or "stable"
+      else null;
+
     extensions =
-      if rust == null
-      then []
-      else rust.components or [];
-    toolchain =
-      if channel == "nightly"
-      then inputs.nixpkgs.rust-bin.nightly.latest.default
-      else inputs.nixpkgs.rust-bin.stable.latest.default;
+      optionals isDefined
+      rust.components or (rust.extensions or []);
   in
-    if rust == null
-    then []
-    else [
-      (toolchain.override {inherit extensions;})
-    ];
+    optional isDefined ((
+      # TODO: Why are we using inputs here, should it rust-bin not already be in pkgs as an overlay?
+      with inputs.nixpkgs.rust-bin;
+        if channel == "nightly"
+        then selectLatestNightlyWith (tc: tc.default)
+        else stable.latest.default
+    ).override {inherit extensions;});
 
   resolve = {user}: {
     home = {
       packages = resolveRust user;
     };
   };
-in {
-  inherit resolve;
-}
+in {inherit resolve;}

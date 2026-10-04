@@ -1,10 +1,10 @@
 {
-  lib,
+  lix,
   trivial,
   ...
 }: let
-  inherit (lib.strings) concatStringsSep substring toUpper;
-  inherit (lib.lists) filter foldl' head tail map toList;
+  inherit (lix.strings) concatStringsSep substring toUpper;
+  inherit (lix.lists) filter foldl' head tail toList;
   inherit (trivial) isNotEmpty;
 
   #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"

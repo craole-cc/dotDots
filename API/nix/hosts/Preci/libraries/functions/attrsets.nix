@@ -1,6 +1,6 @@
-{lib, ...}: let
-  inherit (lib.attrsets) recursiveUpdate;
-  inherit (lib.lists) foldl' reverseList;
+{lix, ...}: let
+  inherit (lix.attrsets) recursiveUpdate;
+  inherit (lix.lists) foldl' reverseList;
 
   mkMergedAttrs = args: let
     defaults = args.declared or args.default;

@@ -1,10 +1,11 @@
 {
-  lib,
+  lix,
   host ? {},
   ...
 }: let
-  inherit (lib.attrsets) genAttrs isAttrs;
-  inherit (lib.lists) isList;
+  inherit (lix.attrsets) genAttrs isAttrs;
+  inherit (lix.lists) isList;
+  inherit (lix.trivial) typeOf;
 
   #? `host.functionalities` is whatever `libraries.schemas.functionalities`
   #? resolved, which is a record carrying both views:
@@ -25,8 +26,7 @@
     then value
     else if isAttrs value
     then builtins.attrNames value
-    else
-      throw "context data functionalities: expected a list, an attrset, or a resolved record, but got ${builtins.typeOf value}";
+    else throw "context data functionalities: expected a list, an attrset, or a resolved record, but got ${typeOf value}";
 
   #? The attrset view, for membership tests that read better against an
   #? attrset than against a list scan.

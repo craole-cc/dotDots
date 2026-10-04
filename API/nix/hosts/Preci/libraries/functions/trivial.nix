@@ -1,8 +1,9 @@
-{lib, ...}: let
-  inherit (lib.attrsets) isAttrs;
-  inherit (lib.lists) isList;
-  inherit (lib.strings) isString stringLength trim;
+{lix, ...}: let
+  inherit (lix.attrsets) isAttrs;
+  inherit (lix.lists) isList;
+  inherit (lix.strings) isString stringLength trim;
   inherit (builtins) pathExists;
+
   /**
   Whether a value is "empty": `null`, an empty/whitespace-only string, an
   empty list, or an empty attrset. Any other value (including `0`,

@@ -1,7 +1,7 @@
-{lib, ...}: let
-  inherit (lib.attrsets) attrByPath optionalAttrs;
-  inherit (lib.lists) filter head;
-  inherit (lib.strings) concatStringsSep;
+{lix, ...}: let
+  inherit (lix.attrsets) attrByPath optionalAttrs;
+  inherit (lix.lists) filter head;
+  inherit (lix.strings) concatStringsSep;
 
   # Evaluate a fetched tree as a flake. The tree must carry a narHash
   # (which fetchTree provides) so getFlake can run in pure mode with a
@@ -220,7 +220,7 @@
     outputs ? null,
     default ? null,
     enabled ? true,
-    inputs ? lib.flakes.inputs or null,
+    inputs ? lix.flakes.inputs or null,
     sources,
   }: let
     ctx = "fetchModule";

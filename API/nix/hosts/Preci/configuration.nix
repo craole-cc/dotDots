@@ -2,7 +2,7 @@
 #
 # `nixos-rebuild -I nixos-config=<path>` hands the path to nix-build, which
 # imports it as a module *set*. `default.nix` is a function of
-# {lib, lix, specs, ...}, so importing it as a set never calls it: Nix looks for
+# {lix, specs, ...}, so importing it as a set never calls it: Nix looks for
 # module attributes on the function and reports "attribute 'lix' missing", or
 # probes the defaulted arguments and reports infinite recursion.
 #
@@ -11,5 +11,14 @@
 # which the modular tree replaced; the name is kept because it is the
 # conventional entry point.
 #
+# Takes `lib` because `lix` is built from it: `lix` is nixpkgs' lib extended
+# with this repository's own functions, and constructing that extension is the
+# one place the un-extended library is still needed. Everything below this file
+# takes `lix` alone.
+#
 # sudo nixos-rebuild switch -I nixos-config=<repo>/API/nix/hosts/Preci/configuration.nix
-{lib, ...}: import ./. {inherit lib;}
+{
+  lib ? import <nixpkgs/lib>,
+  ...
+}:
+import ./. {inherit lib;}

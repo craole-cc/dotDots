@@ -1,5 +1,5 @@
-{lib, ...}: let
-  inherit (lib.lists) unique;
+{lix, ...}: let
+  inherit (lix.lists) unique;
 
   mkMergedList = args: let
     defaults = args.declared or args.default;

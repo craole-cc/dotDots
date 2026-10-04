@@ -1,13 +1,22 @@
 {lib ? import <nixpkgs/lib>, ...}: let
-  __ = {inherit lib;};
-  attrsets = import ./attrsets.nix __;
-  fetchers = import ./fetchers.nix __;
-  lists = import ./lists.nix __;
-  strings = import ./strings.nix (__ // {inherit trivial;});
-  trivial = import ./trivial.nix __;
-  debug = import ./debug.nix (
-    __ // {lix = {inherit trivial strings;};}
-  );
+  inherit (lib.attrsets) recursiveUpdate;
+
+  base = {lix = lib;};
+
+  attrsets = import ./attrsets.nix base;
+  fetchers = import ./fetchers.nix base;
+  lists = import ./lists.nix base;
+
+  trivial = import ./trivial.nix base;
+  withTrivial = recursiveUpdate base {inherit trivial;};
+
+  strings = import ./strings.nix withTrivial;
+  withStrings = recursiveUpdate withTrivial {
+    inherit trivial strings;
+    lix = recursiveUpdate lib {inherit trivial strings;};
+  };
+
+  debug = import ./debug.nix withStrings;
 in {
   inherit
     attrsets

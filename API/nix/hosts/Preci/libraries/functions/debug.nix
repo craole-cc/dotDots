@@ -1,9 +1,5 @@
-{
-  lib,
-  lix,
-  ...
-}: let
-  inherit (lib.attrsets) attrByPath;
+{lix, ...}: let
+  inherit (lix.attrsets) attrByPath;
   inherit (lix.strings) showPath;
   inherit (lix.trivial) isEmpty;
 
