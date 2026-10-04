@@ -1,7 +1,7 @@
 {
   lix,
   sources,
-  inputs,
+  inputs ? lix.inputs or null,
   ...
 }: let
   inherit (lix.attrsets) mapAttrs;

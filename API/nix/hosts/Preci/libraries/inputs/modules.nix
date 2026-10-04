@@ -1,6 +1,6 @@
 {
   lix,
-  inputs,
+  inputs ? lix.inputs or null,
   sources,
   overlays,
   modules,

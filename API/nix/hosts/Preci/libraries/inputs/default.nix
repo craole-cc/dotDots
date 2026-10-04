@@ -1,12 +1,8 @@
-{
-  inputs ? lix.inputs or null,
-  lix,
-  ...
-}: let
+{lix, ...}: let
   registry = import ./registry.nix;
 
   sources = import ./sources.nix {
-    inherit lix inputs;
+    inherit lix;
     inherit (registry) sources;
   };
 
@@ -16,7 +12,7 @@
   };
 
   modules = import ./modules.nix {
-    inherit lix inputs sources overlays;
+    inherit lix sources overlays;
     inherit (registry) modules;
   };
 

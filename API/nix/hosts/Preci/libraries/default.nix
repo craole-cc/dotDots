@@ -1,29 +1,27 @@
-{
-  lib ? import <nixpkgs/lib>,
-  #? The dotDots repository root, forwarded to the schemas so they can read the
-  #? shared vocabulary data leaves under `Libraries/nix/lists/enums/data/`.
-  #? Null when evaluating outside a checkout.
-  sources ? null,
-  ...
-}: let
+{lib ? import <nixpkgs/lib>, ...}: let
   inherit (lib.attrsets) recursiveUpdate;
 
-  functions = import ./functions {inherit lib;};
-  withFunctions = recursiveUpdate lib functions;
+  mkLix = extensions: {lix = recursiveUpdate lib extensions;};
 
-  inputs = import ./inputs {
-    lix = recursiveUpdate withFunctions {
-      inputs = lib.flake.inputs or null;
-    };
+  functions = import ./functions {
+    inherit mkLix;
+    lix = mkLix {};
   };
-  withInputs = recursiveUpdate withFunctions inputs;
+  withFunctions = mkLix functions;
+
+  inputs = import ./inputs (withFunctions
+    // {
+      inherit mkLix;
+      lix = recursiveUpdate withFunctions.lix {
+        inputs = lib.flake.inputs or null;
+      };
+    });
+  withInputs = mkLix (withFunctions.lix // inputs);
 
   schemas = import ./schemas {
-    inherit sources;
-    lix = withInputs;
+    inherit mkLix;
+    inherit (withInputs) lix;
   };
-  withSchemas = recursiveUpdate withInputs {inherit schemas;};
-
-  final = withSchemas;
+  withSchemas = mkLix (withInputs.lix // {inherit schemas;});
 in
-  final
+  withSchemas.lix
