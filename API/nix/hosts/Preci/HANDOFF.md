@@ -89,6 +89,57 @@ Two pre-existing bugs found while migrating, both **unfixed**:
 Both were reverted to leave that tree alone mid-rename. Evaluation currently
 fails on the first of them.
 
+## What capabilities and functionalities mean
+
+This is the purpose of `context/`, and the single most important thing to
+preserve. Stated plainly:
+
+- **capabilities** — what the *user* would like. Expectations, declared in
+  `specs/users/<name>/`: `writing`, `conferencing`, `development.languages.rust`
+  with its channel and components, and so on.
+- **functionalities** — what the *host* can manage. Declared in
+  `specs/default.nix`: `bluetooth`, `gpu`, `efi`, and so on.
+- **choices** are made where the two *reconcile*. That reconciliation is the
+  whole point of `context/`.
+
+The two lists are deliberately not comparable by name, because they answer
+different questions. A user asking for `development.languages.rust` is not
+asking for the same thing a host reporting `efi = false` is reporting. Any
+mapping between them is a judgement, and belongs in `context/` where it can be
+read and changed in one place — not scattered through modules.
+
+### This is not implemented yet
+
+There is no reconciliation anywhere in the tree. Verified by searching
+`context/` and `libraries/schemas/` for any intersect/available/satisfies
+logic — nothing.
+
+What exists instead:
+
+- `context/data/functionalities.nix` normalises the *host's* list into `.names`
+  and `.set`. It only reads; it never compares against a user.
+- `context/data/principals.nix` resolves each user's capabilities
+  (`context/data/capabilities.nix`) and packages, but resolves them
+  **independently** of functionalities.
+
+So today a user can declare a capability on a host that cannot provide it, and
+nothing objects. Modules then read `functionalities` for membership tests —
+`modules/core/hardware/bluetooth.nix` checks whether `bluetooth` is in the
+list — which is a host-only question, correctly answered.
+
+The open design question for a fresh session: **what does a capability that the
+host cannot satisfy do?** Options, none chosen:
+
+1. Drop it silently — least surprising at runtime, worst for the user, who
+   wonders why their editor never appeared.
+2. Warn at build time, naming the capability and what the host lacks.
+3. Fail the build — correct for a capability the user declared as required,
+   wrong for one they merely prefer.
+
+Whatever is chosen needs a way to mark a capability as *required* versus
+*preferred*, since a user asking for nightly Rust on a host without a GPU is
+different from one asking for a second editor.
+
 ## Layout rules, settled
 
 - **Modules live in `modules/`.** A module never sits next to the data it
