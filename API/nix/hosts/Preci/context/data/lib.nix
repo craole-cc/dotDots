@@ -1,5 +1,5 @@
-{lib, ...}: let
-  inherit (lib.lists) concatMap elem map unique;
+{lix, ...}: let
+  inherit (lix.lists) concatMap elem map unique;
 
   expandName = groups: stack: name:
     if elem name stack

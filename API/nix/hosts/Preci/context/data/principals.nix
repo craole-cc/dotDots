@@ -2,13 +2,12 @@
   host ? lix.host or {},
   inputs ? lix.inputs or {},
   lix,
-  lib,
   ...
 }: let
-  inherit (lib.attrsets) listToAttrs;
-  inherit (lib.lists) concatMap elem map unique;
+  inherit (lix.attrsets) listToAttrs;
+  inherit (lix.lists) concatMap elem map unique;
 
-  capabilities = import ./capabilities.nix {inherit lix lib inputs;};
+  capabilities = import ./capabilities.nix {inherit lix inputs;};
   functionalities = import ./functionalities.nix {inherit lix host;};
 
   # expandName = groups: stack: name:

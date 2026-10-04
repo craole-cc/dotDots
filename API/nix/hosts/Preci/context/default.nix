@@ -1,5 +1,4 @@
 {
-  lib ? import <nixpkgs/lib>,
   lix,
   #? The raw host declaration, as produced by `specs/`.
   specs ? null,
@@ -15,7 +14,7 @@
   ...
 }: let
   data = import ./data {
-    inherit lix lib inputs host;
+    inherit lix inputs host;
   };
 
   core = import ./core data;

@@ -1,20 +1,19 @@
 {
-  lib ? import <nixpkgs/lib>,
   lix,
   host,
   inputs ? lix.inputs or {},
   ...
 }: let
-  inherit (lib.attrsets) attrValues listToAttrs removeAttrs;
-  inherit (lib.lists) concatLists map unique;
+  inherit (lix.attrsets) attrValues listToAttrs removeAttrs;
+  inherit (lix.lists) concatLists map unique;
 
   #? One implementation of group expansion, shared by the user and host
   #? resolvers. `data/lib.nix` is the single home for this logic; keeping a
   #? second copy here is how the two drifted apart in the first place.
-  inherit (import ./lib.nix {inherit lib;}) expandNames resolveNames;
+  inherit (import ./lib.nix {inherit lix;}) expandNames resolveNames;
   inherit (lix.packages) resolvePackageGroups;
 
-  capabilities = import ./capabilities.nix {inherit lix lib inputs;};
+  capabilities = import ./capabilities.nix {inherit lix inputs;};
   functionalities = import ./functionalities.nix {inherit lix host;};
 
   #? `lix.inputs` entries are *source records* (owner/rev/path/...), not

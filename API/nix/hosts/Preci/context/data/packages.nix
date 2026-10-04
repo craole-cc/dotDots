@@ -1,11 +1,10 @@
 {
   lix,
   resolveNames,
-  lib,
   ...
 }: let
   inherit (lix.attrsets) attrNames attrValues optionalAttrs;
-  inherit (lib.lists) concatLists concatMap elem unique;
+  inherit (lix.lists) concatLists concatMap elem unique;
   inherit (lix.packages) resolvePackage;
   inherit (lix.trivial) isNotEmpty;
 

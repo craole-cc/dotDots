@@ -1,4 +1,9 @@
 {
+  #? `lib` appears only to build `lix`. It is nixpkgs' library; `lix` is that
+  #? library extended with this repository's own functions, inputs and schemas,
+  #? and everything below takes `lix` alone. Keeping both here would let a
+  #? module reach for the un-extended one by accident, which is how `lib` and
+  #? `lix` drift apart.
   lib ? import <nixpkgs/lib>,
   lix ? import ./libraries {inherit lib;},
   #? The raw host declaration, from `specs/`.
