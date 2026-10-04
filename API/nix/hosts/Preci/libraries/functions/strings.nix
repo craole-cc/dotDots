@@ -4,6 +4,11 @@
   inherit (lix.lists) filter foldl' head tail toList unique;
   inherit (lix.trivial) isNotEmpty;
 
+  showList = names:
+    concatStringsSep ", " (
+      map (name: "'${name}'") names
+    );
+
   #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"
   showPath = path: concatStringsSep "." path;
 
@@ -188,6 +193,22 @@
       name = "python3";
       description = "nixpkgs throws on a bare `python`; the intent is python3";
     };
+
+    #? nixpkgs has a `chatgpt`, but it is `aarch64-darwin` only. On x86_64 the
+    #? attribute exists and evaluating it fails, which a pool search reads as
+    #? *found* -- so the resolver never reaches a source that can actually build
+    #? it. The alias is the only place that judgement can live.
+    chatgpt = {
+      source = "llm-agents";
+      name = "chatgpt";
+      description = "nixpkgs' chatgpt is darwin-only; llm-agents builds it for Linux";
+    };
+
+    codex = {
+      source = "llm-agents";
+      name = "codex";
+      description = "OpenAI Codex CLI, from llm-agents";
+    };
   };
 
   #? The alias for a request, or `null` when the name needs no translation.
@@ -204,6 +225,7 @@ in {
   inherit (builtins) hashString;
   inherit
     capitalize
+    showList
     showPath
     mkPath
     mkPathLiteral

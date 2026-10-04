@@ -5,13 +5,10 @@
   name = "Preci";
   id = "91ba73c7";
   description = "Dell Precision M2800";
-
-  specs = {
-    machine = "laptop";
-    cpu = {
-      arch = "x86_64";
-      brand = "intel";
-    };
+  type = "laptop";
+  cpu = {
+    arch = "x86_64";
+    brand = "intel";
   };
 
   paths = {
@@ -59,10 +56,7 @@
     desktops = ["plasma"];
   };
 
-  packages = rec {
-    kernel = "linuxPackages-cachyos-latest-x86_64-v3";
-    shells = ["bash"];
-    coding = ["common"];
+  packages =  {
     launchers = ["vicinae"];
     common =
       [
@@ -74,8 +68,7 @@
         "mpv"
         "yazi"
         "starship"
-      ]
-      ++ launchers;
+      ];
   };
 
   principals = let

@@ -5,6 +5,7 @@
 
   fields = {
     name = import ./name.nix __;
+    cpu = import ./cpu.nix __;
     applications = import ./applications.nix __;
     class = import ./class.nix __;
     description = import ./description.nix __;
@@ -19,6 +20,7 @@
     specs = import ./specs.nix __;
     stateVersion = import ./stateVersion.nix __;
     system = import ./system.nix __;
+    type = import ./type.nix __;
   };
   default = declareFields fields;
   resolve = domain: resolveFields domain fields;

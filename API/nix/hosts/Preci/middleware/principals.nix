@@ -10,7 +10,7 @@
   sources ? {},
   ...
 }: let
-  inherit (lix.attrsets) attrValues listToAttrs;
+  inherit (lix.attrsets) listToAttrs;
   inherit (lix.schemas.user.packages) resolvePackages;
   inherit (lix.strings) aliasOf;
 in
@@ -21,9 +21,9 @@ in
         capabilities = capabilities.resolve {inherit user;};
         packages = resolvePackages {
           inherit user pkgs aliasOf;
-          #? `sources` is keyed by registry name; the resolver wants them in
-          #? search order, which is that key order.
-          extra = attrValues sources;
+          #? `sources` is keyed by registry name, which is also the search order
+          #? and what an alias names to pin a pool.
+          pools = sources;
         };
       };
       value = user // {inherit context;};

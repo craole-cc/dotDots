@@ -26,11 +26,13 @@
   #? The `home` options sit inside the per-user value because they describe one
   #? user's profile; there is no host-wide `home-manager.home`.
   mkUser = user: let
-    principal = getAttr user.name context.principals;
-  in {
     inherit (user) name;
+    # principal = getAttr user.name context.principals;
+  in {
+    inherit name;
     value = {
-      _module.args.user = principal;
+      # _module.args.user = principal;
+      _module.args = {inherit user;};
 
       imports =
         context.modules.imports.home
@@ -43,13 +45,8 @@
       home = {
         inherit (host) stateVersion;
         username = user.name;
-        homeDirectory = principal.paths.roots.home;
-
-        #? `context.packages.home` is keyed by principal name, each holding that
-        #? user's own resolved packages -- a home profile carries the user's tools,
-        #? never the host's. Host packages are `context.packages.core` and belong in
-        #? `environment.systemPackages`.
-        packages = context.packages.home.${user.name}.packages;
+        homeDirectory = user.paths.roots.home;
+        packages = context.packages.home.${name}.packages;
       };
     };
   };
@@ -58,6 +55,6 @@ in {
     useGlobalPkgs = true;
     useUserPackages = true;
     extraSpecialArgs = {inherit host context lix inputs;};
-    users = listToAttrs (map mkUser host.principals.defined);
+    users = listToAttrs (map mkUser context.principals.defined);
   };
 }

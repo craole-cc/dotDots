@@ -16,4 +16,4 @@
 #? there is no registry entry for them -- they are host-private and must not
 #? come from the shared flake registry. The module that reads them is
 #? `./core/secrets.nix`, alongside every other host module.
-_: {imports = [./core ./home];}
+{imports = [./core ./home];}

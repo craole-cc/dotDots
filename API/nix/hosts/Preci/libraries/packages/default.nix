@@ -12,13 +12,13 @@
   };
 
   modules = import ./modules.nix {
-    inherit lix sources overlays;
+    inherit lix overlays;
     inherit (registry) modules;
   };
 
   packages = import ./packages.nix {
-    inherit lix modules sources;
-    inherit (registry) packageSets packageLoaders packageFlakes;
+    inherit lix sources;
+    inherit (registry) pools;
   };
 in {
   inherit modules overlays packages registry;

@@ -24,12 +24,21 @@
   resolvePackages = {
     user,
     pkgs,
-    #? Forwarded to `resolvePackageGroups`: the fetched package sets and flakes
-    #? a name might live in, and the alias table that maps a requested spelling
-    #? to the name its source actually publishes. Without these, any name outside
-    #? nixpkgs -- `hermes`, `zen-twilight` -- throws even though the source that
-    #? publishes it is already pinned in the registry.
-    extra ? [],
+    #? Forwarded to `resolvePackageGroups`: the fetched package sets and flakes a
+    #? name might live in, keyed by source, and the alias table that maps a
+    #? requested spelling to the pool and name its source actually publishes.
+    #? Without these, any name outside nixpkgs -- `hermes`, `zen-twilight` -- is
+    #? reported absent even though the source publishing it is already pinned in
+    #? the registry.
+    #?
+    #? Keyed, not a list: an alias pins a *pool*, and nixpkgs publishes its own
+    #? `chatgpt`, so renaming alone would still find the darwin-only one.
+    #?
+    #? Named `pools`, not `extra`: `extra` is a package *group* -- craole's spec
+    #? declares one -- and a parameter of that name shadowed the group inside this
+    #? function, so the pools were expanded as though they were package names and
+    #? the pool attrset came back as one of the requested names.
+    pools ? {},
     aliasOf ? name: null,
   }: let
     #? The groups are whatever the user declared, not a fixed three.
@@ -48,7 +57,8 @@
 
     names = unique (concatLists (attrValues groups));
     resolution = resolvePackageGroups {
-      inherit pkgs groups names extra aliasOf;
+      inherit pkgs groups names aliasOf;
+      extra = pools;
       context = "resolve user '${user.name}'";
     };
   in {

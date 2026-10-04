@@ -12,17 +12,19 @@
 #? `let` binding, so reading it there needs nothing from the module system.
 #?
 #? Only this host''s own modules live in this directory.
-{
-  imports = [
-    ./boot
-    ./environment
-    ./hardware
-    ./networking
-    ./programs
-    ./secrets
-    ./security
-    ./services
-    ./users
-    ./warnings.nix
-  ];
+{context, ...}: {
+  imports =
+    context.modules.imports.core
+    ++ [
+      ./boot
+      ./environment
+      ./hardware
+      ./networking
+      ./programs
+      ./secrets
+      ./security
+      ./services
+      ./users
+      ./warnings.nix
+    ];
 }

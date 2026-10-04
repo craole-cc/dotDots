@@ -15,6 +15,7 @@
     prompt = [];
     extra = [];
     utilities = {
+      #TODO: This belongs in middleware/context not here
       atuin.enable = false;
       bat.enable = false;
       btop.enable = false;

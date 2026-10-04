@@ -187,42 +187,39 @@
     "rust-overlay"
   ];
 
-  #? Sources that are *not* overlays, and the shape each one actually has.
-  #? A package name in `specs` names an entry here, and `context/` turns that
-  #? into a derivation: this is where "the spec stays dumb" is paid for.
-  #?
-  #? `zen-browser`: `import path` is a function of `{pkgs, ...}` returning an
-  #? attrset of *derivations* -- `twilight`, `beta`, `default`, each already
-  #? built against the pkgs it was handed. So a user asking for
-  #? `zen-twilight` is resolved by selecting a key from this attrset, not by
-  #? applying an overlay and looking up a name.
-  #?
-  #? `cachyos-kernel`: `import path` is a flake-compat shim that fetches
-  #? flake-compat and reads `flake.lock`, so it is neither an overlay nor a
-  #? package set. `loadPackages.nix` in the same tree takes `(inputs, pkgs)`
-  #? and returns all 96 `linux-cachyos-*` / `linuxPackages-cachyos-*` names.
-  packageSets = [
-    "zen-browser"
-  ];
-
-  #? Entry points that are neither overlays nor package-set functions, given
-  #? as `path` within the fetched tree plus the positional arguments it takes.
-  #? cachyOS is applied to a *pinned* package set (`inputs.nixpkgs`), not to
-  #? the one `mkNixPkgs` builds, because a kernel overlay has to agree with
-  #? the nixpkgs it was built against.
-  packageLoaders = {
-    "cachyos-kernel" = {
-      file = "loadPackages.nix";
-      args = ["inputs" "pkgs"];
+  pools = {
+    zen-browser = {
+      apply = {
+        inputs,
+        pkgs,
+        ...
+      }:
+        (import inputs.zen-browser.path) {inherit pkgs;};
+    };
+    cachyos-kernel = {
+      apply = {
+        inputs,
+        pkgs,
+        mkPath,
+      }:
+        (import (mkPath inputs.cachyos-kernel.path "loadPackages.nix")) inputs pkgs;
+    };
+    hermes-agent = {
+      apply = {
+        inputs,
+        pkgs,
+        ...
+      }:
+        removeAttrs inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}
+        ["configKeys" "node-gyp" "update-npm-lockfile"];
+    };
+    llm-agents = {
+      apply = {
+        inputs,
+        pkgs,
+        ...
+      }:
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
     };
   };
-
-  #? Sources with no `default.nix` at all, whose outputs are only reachable
-  #? through `flake.packages.<system>`. `hermes-agent` is one: importing its path
-  #? fails outright, so a package-set entry could never read it.
-  #?
-  #? Listed separately from `packageSets` because the mechanism differs -- no
-  #? function is called, the flake is read -- and because only a flake has
-  #? per-system outputs to select.
-  packageFlakes = ["hermes-agent"];
 }
