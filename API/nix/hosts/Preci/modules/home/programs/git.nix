@@ -29,8 +29,12 @@
     hasJJ = cfg.jujutsu.enable;
   };
 
-  git = user.git or {};
-  profiles = git.profiles or [];
+  #? ── Shared ──────────────────────────────────────────────────────────────
+  #? What both tools read: the principal's profiles, who they are, and where
+  #? their repos live. Anything used by only one tool belongs in its own scope
+  #? below.
+  userGit = user.git or {};
+  profiles = userGit.profiles or [];
   hasProfiles = profiles != [];
 
   identityOf = profile: {user = {inherit (profile) name email;};};
@@ -50,55 +54,61 @@
     })
     (filter (profile: profile.root == "craole-cc") profiles);
 
-  #? One conditional include per profile: any repo under the profile's root
-  #? commits as that identity.
-  gitIncludeOf = profile: {
-    condition = "gitdir:${projectOf profile}/";
-    contents = identityOf profile;
+  #? ── Git ─────────────────────────────────────────────────────────────────
+  git = let
+    #? One conditional include per profile: any repo under the profile's root
+    #? commits as that identity.
+    includeOf = profile: {
+      condition = "gitdir:${projectOf profile}/";
+      contents = identityOf profile;
+    };
+
+    #? A repo whose remote lives under the profile's GitHub owner commits as that
+    #? identity, wherever it is cloned. Case-sensitive; https remotes only.
+    remoteIncludeOf = profile: {
+      condition = "hasconfig:remote.*.url:https://github.com/${profile.root}/**";
+      contents = identityOf profile;
+    };
+
+    extraIncludeOf = extraRoot: {
+      condition = "gitdir:${extraRoot.path}/";
+      contents = identityOf extraRoot.profile;
+    };
+  in {
+    includes =
+      map includeOf profiles
+      ++ map remoteIncludeOf profiles
+      ++ map extraIncludeOf extraRoots;
+    settings = (userGit.settings or {}) // fallbackIdentity;
   };
 
-  #? A repo whose remote lives under the profile's GitHub owner commits as that
-  #? identity, wherever it is cloned. Case-sensitive; https remotes only.
-  gitRemoteIncludeOf = profile: {
-    condition = "hasconfig:remote.*.url:https://github.com/${profile.root}/**";
-    contents = identityOf profile;
+  #? ── Jujutsu ─────────────────────────────────────────────────────────────
+  jj = let
+    #? A settings scope that applies only to repositories under the given path.
+    scopeAt = path: profile:
+      {"--when".repositories = [path];}
+      // identityOf profile;
+
+    scopeOf = profile: scopeAt (projectOf profile) profile;
+    extraScopeOf = extraRoot: scopeAt extraRoot.path extraRoot.profile;
+  in {
+    settings =
+      fallbackIdentity
+      // optionalAttrs hasProfiles {
+        "--scope" = map scopeOf profiles ++ map extraScopeOf extraRoots;
+      };
   };
-
-  gitExtraIncludeOf = extraRoot: {
-    condition = "gitdir:${extraRoot.path}/";
-    contents = identityOf extraRoot.profile;
-  };
-
-  #? The jujutsu equivalent: a settings scope that applies only to repositories
-  #? under the given path.
-  jujutsuScopeAt = path: profile:
-    {"--when".repositories = [path];}
-    // identityOf profile;
-
-  jujutsuScopeOf = profile: jujutsuScopeAt (projectOf profile) profile;
-  jujutsuExtraScopeOf = extraRoot:
-    jujutsuScopeAt extraRoot.path extraRoot.profile;
 in {
   programs = {
     git = {
       enable = true;
       lfs.enable = true;
-      includes =
-        map gitIncludeOf profiles
-        ++ map gitRemoteIncludeOf profiles
-        ++ map gitExtraIncludeOf extraRoots;
-      settings = (git.settings or {}) // fallbackIdentity;
+      inherit (git) includes settings;
     };
 
     jujutsu = {
       enable = cfg.hasGit;
-      settings =
-        fallbackIdentity
-        // optionalAttrs hasProfiles {
-          "--scope" =
-            map jujutsuScopeOf profiles
-            ++ map jujutsuExtraScopeOf extraRoots;
-        };
+      inherit (jj) settings;
     };
 
     #? delta is the pager for both git and jujutsu. diff-so-fancy stays installed
@@ -119,7 +129,9 @@ in {
       enableGitIntegration = false;
     };
 
-    gitui.enable = cfg.hasGit;
+    gitui = {
+      enable = cfg.hasGit;
+    };
 
     gh = {
       enable = cfg.hasGit;
@@ -127,6 +139,8 @@ in {
       settings.git_protocol = "https";
     };
 
-    gh-dash.enable = cfg.hasGit;
+    gh-dash = {
+      enable = cfg.hasGit;
+    };
   };
 }
