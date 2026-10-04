@@ -684,14 +684,12 @@
 
   packages = {
     ai-agent = [
-      "hermes"
+      "hermes-desktop"
       "chatgpt"
       "claude-code"
       "ollama"
     ];
-    bar = [
-      "dms"
-    ];
+    bar = ["dms"];
     browser = [
       "brave"
       "zen-twilight"
@@ -719,21 +717,13 @@
       "shellscript"
       "zig"
     ];
-    common = [
-      "freetube"
-      "ghostty"
-      "imv"
-      "jujutsu"
-      "obs-studio"
-      "qbittorrent-enhanced"
-      "qimgv"
-      "shortwave"
-      "vscode-fhs"
-    ];
+    common = [];
     extra = [
       "fastfetch"
-      "jujutsu"
+      "imv"
       "obs-studio"
+      "qimgv"
+      "qbittorrent-enhanced"
     ];
     player = [
       "mpv"
@@ -741,8 +731,8 @@
       "shortwave"
     ];
     ide = [
-      "vscode-fhs"
       "zed-editor-fhs"
+      "vscode-fhs"
       "vscode-insiders"
     ];
     launcher = [
