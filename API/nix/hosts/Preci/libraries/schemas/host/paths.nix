@@ -56,10 +56,15 @@
       path = ["roots" "src"];
       set = {roots = {inherit src;};};
     };
+      #? `merged` already carries `roots` from `default`; the only thing added
+      #? here is the derived `build` beside it. So `roots` is re-entered as an
+      #? attribute of itself rather than inherited -- `inherit (roots) roots`
+      #? would splice `src` and `build` to the *top level* and leave no `roots`
+      #? to inherit from, which is what it did.
       merged
       // {
-        inherit (roots) roots;
         inherit
+          roots
           dots
           specs
           modules
