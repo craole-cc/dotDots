@@ -9,7 +9,7 @@
   inherit (lib.lists) concatMap elem map unique;
 
   capabilities = import ./capabilities.nix {inherit lix lib inputs;};
-  functionalities = import ./functionalities.nix {inherit lib host;};
+  functionalities = import ./functionalities.nix {inherit lix host;};
 
   # expandName = groups: stack: name:
   #   if elem name stack
