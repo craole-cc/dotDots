@@ -36,6 +36,16 @@
 }: let
   inherit (config.home) homeDirectory username;
   inherit (lix.strings) mkPath mkPathLiteral;
+  mkSecrets = {
+    __functor = self: scope: {
+      mode = "0600";
+      sopsFile =
+        mkPath
+        (host.paths.principal username)
+        ["secrets" "${scope}.yaml"];
+    };
+    forHermes = scope: {"hermes/${scope}" = mkSecrets scope;};
+  };
 in {
   sops = {
     #? The principal's own age identity. For the user-scoped file this is the
@@ -49,21 +59,12 @@ in {
         "keys.txt"
       ];
     };
+
     #? `sops.secrets` is a flat attrset of secret *names* -- there is no
     #? nesting -- so the two classes are named `hermes/host` and `hermes/user`
     #? rather than nested under a `hermes` parent.
-    secrets = let
-      #? `host.paths` carries the locations this host is laid out in, so no
-      #? module assembles a path out of `../../` and nothing depends on the
-      #? caller's working directory. `principal` is the user's specification
-      #? directory on this host.
-      mkSops = scope: {
-        mode = "0600";
-        sopsFile = mkPath (host.paths.principal username) ["secrets" "${scope}.yaml"];
-      };
-      mkSopsHermes = scope: {"hermes/${scope}" = mkSops scope;};
-    in
-      mkSopsHermes "host" // mkSopsHermes "user";
+    secrets = with mkSecrets;
+      forHermes "host" // forHermes "user";
   };
 
   #? The agent reads its credentials from the decrypted files rather than from

@@ -1,13 +1,9 @@
-#? Privilege and realtime privilege separation.
-#?
-#? Administrators are derived from the host's principals by role, so a new
-#? administrator needs no change here.
 {
   host,
   lix,
   ...
 }: let
-  inherit (lix.lists) elem filter map;
+  inherit (lix.lists) elem filter;
 
   #? `host.functionalities` is the resolved *record* (`{names, set, values,
   #? ...}`), not a bare list. Membership is read off its `names` list;
