@@ -60,10 +60,10 @@ keys:
   - &recovery age1055fks2uwfhpc3wnc7d0s2gvne89hh8e0x38c7j65mpzv2s3jc6qngsr0q
 
 creation_rules:
-  #~@ Host-owned, on a host: hosts/<host>/secrets/secrets.yaml
+  #~@ Host-owned, on a host: hosts/<host>/specs/secrets.yaml
   #>  The host's own credentials. Every host in the fleet reads these, so
   #>  replacing or retiring one never locks the fleet out of its own secrets.
-  - path_regex: '(^|/)hosts/[^/]+/secrets/secrets\.yaml$'
+  - path_regex: '(^|/)hosts/[^/]+/specs/secrets\.yaml$'
     key_groups:
       - age: [*preci, *victus, *recovery]
 

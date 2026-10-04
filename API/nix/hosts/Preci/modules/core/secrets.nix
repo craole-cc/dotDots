@@ -1,15 +1,24 @@
 #? Host-level SOPS secrets.
 #?
-#? This directory is self-contained: `secrets.yaml` holds the encrypted values,
-#? and this module declares how they are decrypted onto the running system.
+#? The encrypted values live with the rest of this host's declarations, in
+#? `specs/secrets.yaml`, so a module never sits next to the data it declares
+#? and every encrypted file for the host is under one root. Per-principal
+#? secrets follow the same rule under `specs/users/<name>/secrets/`.
 #?
-#? Creation rules live one level up, in the host's own `.sops.yaml`, which is
-#? what `sups` passes explicitly and what sops finds by walking up from here.
+#? Creation rules live in the host's own `.sops.yaml`, which is what `sups`
+#? passes explicitly and what sops finds by walking up from the file.
 #?
 #? Per-principal secrets are *not* declared here. They live with their
-#? principal under `specs/users/<name>/` and are provisioned by Home Manager,
-#? so one principal's credentials are never readable by another.
-{config, ...}: {
+#? principal and are provisioned by Home Manager, so one principal's
+#? credentials are never readable by another.
+{
+  config,
+  host,
+  lix,
+  ...
+}: let
+  inherit (lix.strings) mkPath;
+in {
   sops = {
     age = {
       keyFile = "/var/lib/sops-nix/key.txt";
@@ -23,7 +32,7 @@
     #? A tailscale authkey is a bearer credential, so it lands root-owned and
     #? mode 0400 -- never group- or world-readable.
     secrets."tailscale/authkey" = {
-      sopsFile = ./secrets.yaml;
+      sopsFile = mkPath host.paths.specs ["secrets.yaml"];
       owner = "root";
       group = "root";
       mode = "0400";

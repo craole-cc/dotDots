@@ -4,11 +4,12 @@
 #? each an attrset keyed by module name. `attrValues` flattens a group into the
 #? list `imports` expects, preserving the registry's own order.
 #?
-#? `./secrets` is a local domain rather than a registry entry: it holds this
-#? host's encrypted values and their SOPS rules, which are host-private and
-#? must not come from the shared flake registry.
+#? The host's own SOPS rules live in its `.sops.yaml`, not in this tree, so
+#? there is no registry entry for them -- they are host-private and must not
+#? come from the shared flake registry. The module that reads them is
+#? `./core/secrets.nix`, alongside every other host module.
 {lix, ...}: {
   imports =
     (lix.attrsets.attrValues lix.modules.core)
-    ++ [./core ./home ../secrets];
+    ++ [./core ./home];
 }

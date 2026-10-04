@@ -220,6 +220,9 @@ determine_secret_path() {
   #> when more than one exists, the choice is offered rather than guessed.
   case "${scope}" in
   host)
+    #? `secrets/secrets.yaml`, discovered rather than assumed: the encrypted file
+    #? lives with the host's declarations, so this is a starting point for the
+    #? search rather than the expected location.
     secret_path="$(find_host_secret_file "${host_base}/secrets.yaml")"
     print info "Using host: ${host}"
     ;;

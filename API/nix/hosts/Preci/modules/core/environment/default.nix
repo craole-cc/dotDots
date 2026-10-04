@@ -3,7 +3,10 @@
   lix,
   pkgs,
   ...
-}: {
+}: let
+  inherit (host) stateVersion localisation;
+  inherit (lix.strings) toLower;
+in {
   catppuccin = {
     enable = true;
     autoEnable = true;
@@ -14,13 +17,17 @@
       then "frappe"
       else if flavor == "Catppuccin Latte"
       then "latte"
-      else lix.toLower flavor;
+      else toLower flavor;
     accent = host.interface.themes.dark.accent or "mauve";
   };
 
-  console.keyMap = host.principals.primary.interface.keyboard.layout;
+  console = {
+    keyMap = host.principals.primary.interface.keyboard.layout;
+  };
 
-  documentation.nixos.enable = false;
+  documentation = {
+    nixos.enable = false;
+  };
 
   fonts = {
     packages = with pkgs; [
@@ -40,7 +47,7 @@
     };
   };
 
-  i18n.defaultLocale = host.localization.defaultLocale;
-  system.stateVersion = host.stateVersion;
-  time.timeZone = host.localization.timeZone;
+  i18n = {inherit (localisation) defaultLocale;};
+  system = {inherit stateVersion;};
+  time = {inherit (localisation) timeZone;};
 }
