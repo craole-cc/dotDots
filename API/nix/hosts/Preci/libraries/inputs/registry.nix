@@ -139,13 +139,24 @@
         source = "hermes-agent";
         class = "nixos";
       };
+      #? `always`, because `modules/home/users.nix` sets `home-manager.users`,
+      #? `useGlobalPkgs` and friends unconditionally. Without the module that is
+      #? an undefined option, not a missing convenience.
       home-manager = {
         source = "home-manager";
         path = "nixos";
+        always = true;
       };
+      #? `always`, because `modules/core/programs/default.nix` sets
+      #? `nix-index.enable` and `nix-index-database` unconditionally. The
+      #? alternative is to gate those settings on
+      #? `context.modules.enabled.core."nix-index"`, which is truer to the gate
+      #? but means a host without the module silently loses a faster `nix
+      #? shell` -- so it is a real decision, not a mechanical fix.
       nix-index = {
         source = "nix-index";
         path = "nixos-module.nix";
+        always = true;
       };
       sops = {
         source = "sops-nix";

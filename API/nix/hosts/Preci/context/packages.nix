@@ -81,7 +81,15 @@
   kernels =
     optionalAttrs
     (cachy && (requested != [] || !vocabulary.unoptimised kernel))
-    (mkSets {inherit pkgs;}).loaders.cachyos-kernel;
+    (mkSets {
+      inherit pkgs;
+      #? `sources` is the *resolved* source records, where every entry carries a
+      #? `path`. The registry's own `sources` are only fetch specs, so a loader
+      #? reading those would find `path` absent and fail on `null`. This is why
+      #? `libraries/inputs/default.nix` exposes both: one to fetch from, one to
+      #? read from.
+      sources = lix.inputs;
+    }).loaders.cachyos-kernel;
 
   name = if requested == [] then kernel else "${kernel}-${concatStringsSep "-" requested}";
 
