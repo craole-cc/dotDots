@@ -20,38 +20,20 @@
   ...
 }: let
   inherit (lix.attrsets) attrValues getAttr listToAttrs;
-  inherit (lix.lists) map;
-
-  #? The registry's Home Manager module group, flattened to the list a
-#? profile's `imports` expects.
-  homeModules = attrValues lix.modules.home;
+  inherit (lix.modules) home;
 
   mkUser = user: {
     inherit (user) name;
     value = {
-      _module.args = {
-        user = getAttr user.name context.data.principals;
-      };
-
-      imports =
-        [
-          ./user.nix
-          ./secrets.nix
-        ]
-        ++ homeModules;
+      _module.args.user = getAttr user.name context.data.principals;
+      imports = (attrValues home) ++ [./user.nix ./secrets.nix];
     };
   };
 in {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-
-    #? `context` is the resolution bundle: `user.nix` reads the per-user
-    #? package selection out of it, so it must reach every profile.
-    extraSpecialArgs = {
-      inherit host context lix inputs;
-    };
-
+    extraSpecialArgs = {inherit host context lix inputs;};
     users = listToAttrs (map mkUser host.principals.all);
   };
 }

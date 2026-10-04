@@ -8,13 +8,20 @@
   user,
   ...
 }: let
+  # inherit (lix.attrsets) optionalAttrs;
   inherit (lix.lists) head;
 
   #? `git` is a *list* of identity profiles, not an attrset. The first entry is
   #? the primary identity, so its `name`/`email` seed the global git config and
   #? the rest are exposed as conditional includes by the NixOS-side module.
-  gitProfiles = user.git or [];
-  primaryGit = if gitProfiles == [] then {} else head gitProfiles;
+  # TODO: If this is home what were we setting git only to the primary, we should be defining all the profiles
+  git = let
+    profiles = user.git or [];
+  in
+    #TODO: Should we use optionalAttrs here?
+    if profiles != []
+    then head profiles
+    else {};
 in {
   home = {
     inherit (host) stateVersion;
@@ -23,14 +30,13 @@ in {
     packages = context.home.${user.name}.packages;
   };
 
-  programs.git = {
-    enable = true;
-    settings =
-      {
-        user = {
-          inherit (primaryGit) name email;
-        };
-      }
-      // (primaryGit.settings or {});
+  programs = {
+    git = {
+      enable = true;
+      settings =
+        # TODO: We should have a default set of settings, are they defined in the schema or context?
+        (git.settings or {})
+        // {user = {inherit (git) name email;};};
+    };
   };
 }

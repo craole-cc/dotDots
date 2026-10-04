@@ -30,42 +30,47 @@
 #? user's own home directory, so it is already owned by that user.
 {
   config,
+  lix,
   ...
 }: let
   inherit (config.home) homeDirectory username;
-
-  #? `specs/users/<username>/secrets/`, resolved from this module's location
-  #? (`modules/home/`) up to the host root.
-  secretsDir = ../../specs/users/${username}/secrets;
-
-  host = {
-    sopsFile = "${secretsDir}/host.yaml";
-    mode = "0600";
-  };
-
-  user = {
-    sopsFile = "${secretsDir}/user.yaml";
-    mode = "0600";
-  };
+  inherit (lix.strings) mkPath mkPathLiteral;
 in {
   sops = {
     #? The principal's own age identity. For the user-scoped file this is the
     #? keypair `.sops.yaml` lists under that principal's anchor; sops only
     #? ever needs the private half.
-    age.keyFile = "${homeDirectory}/.config/sops/age/keys.txt";
-
+    age = {
+      keyFile = mkPathLiteral homeDirectory [
+        ".config"
+        "sops"
+        "age"
+        "keys.txt"
+      ];
+    };
     #? `sops.secrets` is a flat attrset of secret *names* -- there is no
     #? nesting -- so the two classes are named `hermes/host` and `hermes/user`
     #? rather than nested under a `hermes` parent.
-    secrets."hermes/host" = host;
-    secrets."hermes/user" = user;
+    secrets = let
+      mkSops = scope: let
+        # TODO: I don't like relative paths like this, we should be using paths.* or we should have this already as an attrset
+        # ../../specs/users/${username}/secrets;
+        secrets = mkPath ["specs" "users" username "secrets"];
+      in {
+        mode = "0600";
+        sopsFile = mkPath paths.users ["users" username "secrets" "${scope}.yaml"];
+      };
+      mkSopsHermes = scope: {"hermes/${scope}" = mkSops "${scope}";};
+    in
+      mkSopsHermes "host" // mkSopsHermes "user";
   };
 
   #? The agent reads its credentials from the decrypted files rather than from
   #? its own environment, so the values never land in the world-readable
   #? environment or in a store path.
-  services.hermes-agent.environmentFiles = [
-    config.sops.secrets."hermes/host".path
-    config.sops.secrets."hermes/user".path
-  ];
+  services = {
+    hermes-agent = let
+      mkEnv = scope: [config.sops.secrets."hermes/${scope}".path];
+    in {environmentFiles = (mkEnv "host") ++ (mkEnv "user");};
+  };
 }
