@@ -58,6 +58,7 @@ in {
         secrets = mkPath ["specs" "users" username "secrets"];
       in {
         mode = "0600";
+        # TODO: What do we have defined in paths attrsets it is missing?
         sopsFile = mkPath paths.users ["users" username "secrets" "${scope}.yaml"];
       };
       mkSopsHermes = scope: {"hermes/${scope}" = mkSops "${scope}";};
