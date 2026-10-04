@@ -21,7 +21,7 @@
     in {inherit src run;};
   };
 
-  localization = {
+  localisation = {
     latitude = 18.015;
     longitude = -77.49;
     city = "Mandeville, Jamaica";
@@ -60,7 +60,7 @@
   };
 
   packages = rec {
-    kernel = "linuxPackages_latest";
+    kernel = "linuxPackages-cachyos-latest-x86_64-v3";
     shells = ["bash"];
     coding = ["common"];
     launchers = ["vicinae"];

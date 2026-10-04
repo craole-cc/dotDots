@@ -3,7 +3,7 @@
   host,
   ...
 }: let
-  inherit (context.core.packages) kernel;
+  inherit (context.packages) kernel;
   inherit (host.interface.boot.loader) device manager timeout;
 in {
   boot = {

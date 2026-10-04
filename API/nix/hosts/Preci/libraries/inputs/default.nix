@@ -17,9 +17,10 @@
   };
 
   packages = import ./packages.nix {
-    inherit lix modules;
+    inherit lix modules sources;
+    inherit (registry) packageSets packageLoaders;
   };
 in {
-  inherit modules overlays packages;
+  inherit modules overlays packages registry;
   inputs = sources;
 }

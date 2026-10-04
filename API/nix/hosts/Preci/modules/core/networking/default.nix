@@ -13,7 +13,10 @@
 
   inherit (lix) inputs overlays;
 
-  inherit (context.core) functionalities;
+  #? `context.functionalities` is the module's own record -- `{names, set,
+  #? resolved}` -- where `names` is the *shape-reading function*, not a list.
+  #? `.resolved` is the list of names, so membership is tested against that.
+  functionalities = context.functionalities.resolved;
 in {
   networking = {
     hostName = host.name;

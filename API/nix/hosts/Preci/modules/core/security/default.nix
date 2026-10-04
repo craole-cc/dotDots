@@ -13,7 +13,7 @@
   administrators =
     filter
     (user: user.role == "administrator")
-    host.principals.all;
+    host.principals.defined;
 in {
   security = {
     sudo.extraRules = [

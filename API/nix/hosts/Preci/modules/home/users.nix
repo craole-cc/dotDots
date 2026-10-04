@@ -19,14 +19,23 @@
   inputs,
   ...
 }: let
-  inherit (lix.attrsets) attrValues getAttr listToAttrs;
-  inherit (lix.modules) home;
+  inherit (lix.attrsets) getAttr listToAttrs;
+
+  #? The same gate the NixOS tree gets, applied to the Home Manager group: only
+  #? the registry entries this host asked for. Without it every HM module would
+  #? be pulled into every profile, and a request would be indistinguishable from
+  #? an always-on module.
+  #?
+  #? Taken from `context.modules.imports.home` rather than filtered again here --
+  #? that record is already gated, so re-deriving it would be a second place free
+  #? to disagree with the NixOS side.
+  enabled = context.modules.imports.home;
 
   mkUser = user: {
     inherit (user) name;
     value = {
-      _module.args.user = getAttr user.name context.data.principals;
-      imports = (attrValues home) ++ [./user.nix ./secrets.nix];
+      _module.args.user = getAttr user.name context.principals;
+      imports = enabled ++ [./user.nix ./secrets.nix];
     };
   };
 in {
@@ -34,6 +43,6 @@ in {
     useGlobalPkgs = true;
     useUserPackages = true;
     extraSpecialArgs = {inherit host context lix inputs;};
-    users = listToAttrs (map mkUser host.principals.all);
+    users = listToAttrs (map mkUser host.principals.defined);
   };
 }

@@ -2,7 +2,7 @@
   description = "Craig 'Craole' Cole";
   hashedPassword = "$y$j9T$y5deqkLNKsaNvEx8tQoVf/$yxXthzmEInJv9G4iOYsEI/7KJJRfc2BLasQa5scwkG6";
 
-  localization = {
+  localisation = {
     defaultLocale = "en_GB.UTF-8";
   };
 
@@ -10,14 +10,16 @@
     writing = {};
     conferencing = {};
     development = {
-      languages.rust = {
-        channel = "nightly";
-        components = [
-          "rust-src"
-          "rust-analyzer"
-          "rustfmt"
-          "clippy"
-        ];
+      languages = {
+        rust = {
+          channel = "nightly";
+          components = [
+            "rust-src"
+            "rust-analyzer"
+            "rustfmt"
+            "clippy"
+          ];
+        };
       };
     };
     creation = {};
@@ -219,7 +221,7 @@
           variant = "dark";
           icon = "icons/catppuccin-frappe.png";
 
-          #~@ Core Base Colors
+          #~@ Core Base Colours
           base = "#303446";
           mantle = "#292c3c";
           crust = "#232634";
@@ -258,11 +260,11 @@
           #~@ Metadata
           name = "Catppuccin Latte";
           slug = "catppuccin-latte";
-          description = "Cozy light theme with color-rich accents";
+          description = "Cosy light theme with color-rich accents";
           variant = "light";
           icon = "icons/catppuccin-latte.png";
 
-          #~@ Core Base Colors
+          #~@ Core Base Colours
           base = "#eff1f5";
           mantle = "#e6e9ef";
           crust = "#dce0e8";
@@ -684,7 +686,7 @@
     ai-agent = [
       "hermes"
       "chatgpt"
-      "claude-codee"
+      "claude-code"
       "ollama"
     ];
     bar = [

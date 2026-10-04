@@ -8,7 +8,9 @@
   lix,
   ...
 }: let
-  inherit (context.core) functionalities;
+  #? `names` on this record is a shape-reading function, not a list;
+  #? `.resolved` is the name list membership is tested against.
+  functionalities = context.functionalities.resolved;
   inherit (lix.lists) elem;
 in {
   hardware.bluetooth = {

@@ -27,7 +27,11 @@ in {
     inherit (host) stateVersion;
     username = user.name;
     homeDirectory = user.paths.roots.home;
-    packages = context.home.${user.name}.packages;
+    #? `context.packages.home` is keyed by principal name, each holding that
+    #? user's own resolved packages -- a home profile carries the user's tools,
+    #? never the host's. Host packages are `context.packages.core` and belong in
+    #? `environment.systemPackages`.
+    packages = context.packages.home.${user.name}.packages;
   };
 
   programs = {

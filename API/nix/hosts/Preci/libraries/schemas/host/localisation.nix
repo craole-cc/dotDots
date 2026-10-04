@@ -9,6 +9,6 @@
     defaultLocale = "en_US.UTF-8";
   };
 
-  resolve = {localization ? args.localization or {}, ...} @ args:
-    recursiveUpdate default localization;
+  resolve = {localisation ? args.localisation or {}, ...} @ args:
+    recursiveUpdate default localisation;
 in {inherit default resolve;}

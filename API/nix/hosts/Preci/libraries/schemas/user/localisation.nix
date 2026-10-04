@@ -4,5 +4,5 @@
   default = {};
 
   resolve = args:
-    recursiveUpdate default (args.localization or {});
+    recursiveUpdate default (args.localisation or {});
 in {inherit default resolve;}

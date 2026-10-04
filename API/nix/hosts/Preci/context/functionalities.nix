@@ -3,7 +3,7 @@
   host ? {},
   ...
 }: let
-  inherit (lix.attrsets) genAttrs isAttrs;
+  inherit (lix.attrsets) attrNames genAttrs isAttrs;
   inherit (lix.lists) isList;
   inherit (lix.trivial) typeOf;
 
@@ -25,7 +25,7 @@
     else if isList value
     then value
     else if isAttrs value
-    then builtins.attrNames value
+    then attrNames value
     else throw "context data functionalities: expected a list, an attrset, or a resolved record, but got ${typeOf value}";
 
   #? The attrset view, for membership tests that read better against an

@@ -2,7 +2,15 @@
   inherit (lix.attrsets) attrByPath optionalAttrs;
   inherit (lix.lists) filter head;
   inherit (lix.strings) concatStringsSep;
-  flakeInputs = lix.flakes.inputs or (lix.flake.inputs or null);
+  #? `or` guards a missing attribute only at the level it is written, so
+  #? `lix.flakes.inputs or ...` throws when `flakes` itself is absent rather
+  #? than falling through to the alternative. `attrByPath` walks the path and
+  #? returns the default instead, which is what the nesting needs.
+  flakeInputs =
+    attrByPath
+    ["flakes" "inputs"]
+    (attrByPath ["flake" "inputs"] null lix)
+    lix;
 
   # Evaluate a fetched tree as a flake. The tree must carry a narHash
   # (which fetchTree provides) so getFlake can run in pure mode with a

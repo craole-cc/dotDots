@@ -5,7 +5,7 @@
 
   functions = import ./functions {
     inherit mkLix;
-    lix = mkLix {};
+    inherit (mkLix {}) lix;
   };
   withFunctions = mkLix functions;
 
