@@ -9,7 +9,7 @@
 #? Only the *core* group joins the NixOS tree. The `home` group is Home Manager
 #? modules and the NixOS evaluator rejects them -- importing sops''s HM module
 #? here collides with its own NixOS module on `sops.gnupg.home`. Those go into
-#? each principal''s profile instead, in `modules/home/users.nix`.
+#? each principal's profile instead, in `modules/home/default.nix`.
 {context, ...}: {
   imports =
     context.modules.imports.core

@@ -1,7 +1,7 @@
 {lix, ...}: let
   inherit (lix.attrsets) attrNames;
   inherit (lix.strings) concatStringsSep replaceStrings stringLength substring toLower toUpper;
-  inherit (lix.lists) filter foldl' head map tail toList unique;
+  inherit (lix.lists) filter foldl' head tail toList unique;
   inherit (lix.trivial) isNotEmpty;
 
   #> Render a dotted path list as a string, e.g. ["paths" "roots" "src"] -> "paths.roots.src"
@@ -51,6 +51,7 @@
       (acc: part: acc + "/${toString part}")
       (head parts)
       (tail parts);
+
   #? Reduce a name to comparable form: lowercase, with every run of
   #? separators collapsed to a single `-` and the ends trimmed. So
   #? `Zen_Twilight`, `zen.twilight` and `zen-twilight` all reduce to
@@ -65,45 +66,45 @@
   #? Separator runs are collapsed rather than converted one-for-one, because
   #? `zen--twilight` and `zen-twilight` naming the same thing is far more
   #? likely than a name whose meaning turns on a doubled dash.
-  slugify = text:
-    let
-      lower = toLower text;
-      #? One separator per boundary. Each substitution is its own call:
-      #? `replaceStrings` takes lists of equal length, or a single replacement
-      #? broadcast against many patterns -- and `[4 patterns] -> [1]` is
-      #? neither, so folding per character is the only shape it accepts.
-      spaced = foldl' (
+  slugify = text: let
+    lower = toLower text;
+    #? One separator per boundary. Each substitution is its own call:
+    #? `replaceStrings` takes lists of equal length, or a single replacement
+    #? broadcast against many patterns -- and `[4 patterns] -> [1]` is
+    #? neither, so folding per character is the only shape it accepts.
+    spaced =
+      foldl' (
         previous: separator: replaceStrings [separator] ["-"] previous
-      ) lower ["_" "." " " "+"];
-      #? Runs of dashes are then collapsed. `replaceStrings` is literal, not
-      #? regular, so one pass only ever shortens a run by a single dash --
-      #? hence three passes, enough for any run a name realistically has. An
-      #? over-long run is left partly collapsed rather than rejected: it is
-      #? still a valid name, and capping the passes would make the result
-      #? depend on how many dashes the author happened to type.
-      squashed = foldl' (previous: _: replaceStrings ["--"] ["-"] previous) spaced [1 2 3];
-      #? Leading and trailing separators are noise, so both ends are stripped
-      #? *after* collapsing -- otherwise `-a-` and `a` would not reduce alike.
-      #? Both strips are guarded on emptiness: a name of nothing but
-      #? separators collapses to the empty string, which has no first or last
-      #? character to inspect.
-      dropLeading =
-        if squashed == ""
-        then ""
-        else if substring 0 1 squashed == "-"
-        then substring 1 (stringLength squashed) squashed
-        else squashed;
-      dropTrailing =
-        let
-          last = stringLength dropLeading;
-        in
-          if dropLeading == ""
-          then ""
-          else if substring (last - 1) last dropLeading == "-"
-          then substring 0 (last - 1) dropLeading
-          else dropLeading;
+      )
+      lower ["_" "." " " "+"];
+    #? Runs of dashes are then collapsed. `replaceStrings` is literal, not
+    #? regular, so one pass only ever shortens a run by a single dash --
+    #? hence three passes, enough for any run a name realistically has. An
+    #? over-long run is left partly collapsed rather than rejected: it is
+    #? still a valid name, and capping the passes would make the result
+    #? depend on how many dashes the author happened to type.
+    squashed = foldl' (previous: _: replaceStrings ["--"] ["-"] previous) spaced [1 2 3];
+    #? Leading and trailing separators are noise, so both ends are stripped
+    #? *after* collapsing -- otherwise `-a-` and `a` would not reduce alike.
+    #? Both strips are guarded on emptiness: a name of nothing but
+    #? separators collapses to the empty string, which has no first or last
+    #? character to inspect.
+    dropLeading =
+      if squashed == ""
+      then ""
+      else if substring 0 1 squashed == "-"
+      then substring 1 (stringLength squashed) squashed
+      else squashed;
+    dropTrailing = let
+      last = stringLength dropLeading;
     in
-      dropTrailing;
+      if dropLeading == ""
+      then ""
+      else if substring (last - 1) last dropLeading == "-"
+      then substring 0 (last - 1) dropLeading
+      else dropLeading;
+  in
+    dropTrailing;
 
   #? Whether two names denote the same thing once their shape is normalised.
   sameName = left: right: slugify left == slugify right;
@@ -153,13 +154,12 @@
   #?
   #? Matching is on the slugified form so an alias is found however the user
   #? cased or separated it.
-  aliasOf = name:
-    let
-      found = filter (entry: slugify entry == slugify name) (attrNames aliases);
-    in
-      if found == []
-      then null
-      else aliases.${head found};
+  aliasOf = name: let
+    found = filter (entry: slugify entry == slugify name) (attrNames aliases);
+  in
+    if found == []
+    then null
+    else aliases.${head found};
 in {
   inherit (builtins) hashString;
   inherit

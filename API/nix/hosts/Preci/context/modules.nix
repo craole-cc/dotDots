@@ -161,7 +161,7 @@
     );
 
   #? The modules each group should import, gated. `default.nix` and
-  #? `modules/home/users.nix` consume these.
+  #? `modules/home/default.nix` consume these.
   imports = genAttrs groups filtered;
 
   #? A module that was asked for and is now imported, which is worth saying out

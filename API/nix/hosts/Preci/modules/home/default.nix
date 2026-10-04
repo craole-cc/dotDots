@@ -1,5 +1,63 @@
 #? Home Manager wiring for this host's principals.
 #?
-#? `users.nix` declares the `home-manager.users` entry point; `user.nix` is
-#? imported per-principal from it, so it is deliberately not listed here.
-{imports = [./users.nix];}
+#? Declares the `home-manager.users` entry point. `./programs` and `./secrets`
+#? are imported per-principal from here, so they are deliberately not listed in
+#? any host-level import list.
+#?
+#? `context.modules.imports.home` is the registry's gated Home Manager module
+#? group. Those are imported *per user*, inside each profile, not into the NixOS
+#? module tree: `sops.homeManagerModules` and `hermes.homeManagerModules` are
+#? Home Manager modules and the NixOS evaluator would reject them.
+#?
+#? Per-principal data (profile, theme, keybindings, encrypted secrets) lives
+#? under `specs/users/<name>/`, so each principal is wired from its own spec
+#? rather than from a host-level `users/` tree.
+{
+  context,
+  host,
+  lix,
+  inputs,
+  ...
+}: let
+  inherit (lix.attrsets) getAttr listToAttrs;
+
+  #? One `home-manager.users` entry for a principal declared on this host.
+  #?
+  #? The `home` options sit inside the per-user value because they describe one
+  #? user's profile; there is no host-wide `home-manager.home`.
+  mkUser = user: let
+    principal = getAttr user.name context.principals;
+  in {
+    inherit (user) name;
+    value = {
+      _module.args.user = principal;
+
+      imports =
+        context.modules.imports.home
+        ++ [
+          ./programs
+          ./services
+          ./secrets
+        ];
+
+      home = {
+        inherit (host) stateVersion;
+        username = user.name;
+        homeDirectory = principal.paths.roots.home;
+
+        #? `context.packages.home` is keyed by principal name, each holding that
+        #? user's own resolved packages -- a home profile carries the user's tools,
+        #? never the host's. Host packages are `context.packages.core` and belong in
+        #? `environment.systemPackages`.
+        packages = context.packages.home.${user.name}.packages;
+      };
+    };
+  };
+in {
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    extraSpecialArgs = {inherit host context lix inputs;};
+    users = listToAttrs (map mkUser host.principals.defined);
+  };
+}
