@@ -23,5 +23,6 @@
     ./security
     ./services
     ./users
+    ./warnings.nix
   ];
 }

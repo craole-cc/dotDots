@@ -216,4 +216,13 @@
       args = ["inputs" "pkgs"];
     };
   };
+
+  #? Sources with no `default.nix` at all, whose outputs are only reachable
+  #? through `flake.packages.<system>`. `hermes-agent` is one: importing its path
+  #? fails outright, so a package-set entry could never read it.
+  #?
+  #? Listed separately from `packageSets` because the mechanism differs -- no
+  #? function is called, the flake is read -- and because only a flake has
+  #? per-system outputs to select.
+  packageFlakes = ["hermes-agent"];
 }

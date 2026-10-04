@@ -24,6 +24,13 @@
   resolvePackages = {
     user,
     pkgs,
+    #? Forwarded to `resolvePackageGroups`: the fetched package sets and flakes
+    #? a name might live in, and the alias table that maps a requested spelling
+    #? to the name its source actually publishes. Without these, any name outside
+    #? nixpkgs -- `hermes`, `zen-twilight` -- throws even though the source that
+    #? publishes it is already pinned in the registry.
+    extra ? [],
+    aliasOf ? name: null,
   }: let
     #? The groups are whatever the user declared, not a fixed three.
     #?
@@ -40,13 +47,20 @@
     groups = removeAttrs (user.packages or {}) ["encoding" "meta"];
 
     names = unique (concatLists (attrValues groups));
+    resolution = resolvePackageGroups {
+      inherit pkgs groups names extra aliasOf;
+      context = "resolve user '${user.name}'";
+    };
   in {
     inherit names groups;
     expanded = unique (expandNames {inherit groups names;});
-    packages = resolvePackageGroups {
-      inherit pkgs groups names;
-      context = "resolve user '${user.name}'";
-    };
+
+    #? Names no pool carried, and the warning about them. Dropped rather than
+    #? failing the build -- see the note on `resolvePackageGroups`. A principal
+    #? asking for a tool that does not exist should still get a working profile.
+    inherit (resolution) missing warnings;
+
+    packages = resolution.packages;
   };
 in {
   inherit default resolve resolvePackages;

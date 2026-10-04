@@ -148,6 +148,46 @@
       name = "desktop";
       description = "the desktop application";
     };
+
+    #? A user asking for a *variant* says the product and the channel. Zen
+    #? publishes these as bare keys of its package-set function -- `twilight`,
+    #? `beta` -- not as packages named after themselves, so there is no
+    #? `zen-twilight` to find anywhere. The alias is the only thing that can
+    #? carry "twilight, from zen" into a lookup.
+    #?
+    #? `source` is `zen-browser` to match the registry's package-set entry, which
+    #? is the key `mkSets` files these derivations under.
+    zen-twilight = {
+      source = "zen-browser";
+      name = "twilight";
+      description = "Zen Browser, twilight channel";
+    };
+
+    zen-beta = {
+      source = "zen-browser";
+      name = "beta";
+      description = "Zen Browser, beta channel";
+    };
+
+    zen = {
+      source = "zen-browser";
+      name = "default";
+      description = "Zen Browser, release channel";
+    };
+
+    #? nixpkgs *throws* on `python` rather than omitting it -- an intentional
+    #? error, since it used to mean Python 2 and silently shadowing the
+    #? interpreter is worse than failing. A resolver searching pools cannot
+    #? distinguish "absent" from "present but throwing", so the requested spelling
+    #? is redirected here rather than left to hit the throw.
+    #?
+    #? `source = "pkgs"` because this is a rename within nixpkgs, not a move to
+    #? another source.
+    python = {
+      source = "pkgs";
+      name = "python3";
+      description = "nixpkgs throws on a bare `python`; the intent is python3";
+    };
   };
 
   #? The alias for a request, or `null` when the name needs no translation.

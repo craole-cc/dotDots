@@ -6,7 +6,7 @@
 }: let
   inherit (lix) overlays;
   inherit (lix.attrsets) attrValues mapAttrs optionalAttrs;
-  inherit (lix.lists) optionals;
+  inherit (lix.lists) concatLists optionals;
   inherit (lix.modules) mkNixPkgs;
   inherit (lix.packages) mkSets;
   inherit (lix.schemas.host.packages) resolveHostPackages;
@@ -72,6 +72,18 @@
       (vocabulary.bestFor host.specs.cpu)
     ];
 
+  #? Every non-overlay source, resolved against `pkgs` once.
+  #?
+  #? `sources` here is the *resolved* source records, where every entry carries a
+  #? `path`. The registry's own `sources` are only fetch specs, so a package-set
+  #? or loader reading those would find `path` absent and fail on `null`. This is
+  #? why `libraries/inputs/default.nix` exposes both: one to fetch from, one to
+  #? read from.
+  sets = mkSets {
+    inherit pkgs;
+    sources = lix.inputs;
+  };
+
   #? Resolved only when the host asked for a cachyOS kernel. `null` otherwise,
   #? so the lookup below falls straight through to the package set instead of
   #? forcing the loader and building all 96 kernels.
@@ -81,15 +93,7 @@
   kernels =
     optionalAttrs
     (cachy && (requested != [] || !vocabulary.unoptimised kernel))
-    (mkSets {
-      inherit pkgs;
-      #? `sources` is the *resolved* source records, where every entry carries a
-      #? `path`. The registry's own `sources` are only fetch specs, so a loader
-      #? reading those would find `path` absent and fail on `null`. This is why
-      #? `libraries/inputs/default.nix` exposes both: one to fetch from, one to
-      #? read from.
-      sources = lix.inputs;
-    }).loaders.cachyos-kernel;
+    sets.loaders.cachyos-kernel;
 
   name = if requested == [] then kernel else "${kernel}-${concatStringsSep "-" requested}";
 
@@ -132,6 +136,12 @@ in {
   #? the kernel.
   home = mapAttrs (_: user: user.context.packages) principals;
 
+  #? Every pool a package name may live in, keyed by source. Exported so
+  #? `context/principals.nix` resolves a user's names against the same pools,
+  #? rather than against nixpkgs alone -- which is what made `hermes` throw
+  #? while the source publishing it sat pinned in the registry.
+  sources = sets.packageSets;
+
   #? The imbued kernel record: what the host declared, what it resolved to, and
   #? what the ladder says sits above it.
   kernel = {
@@ -147,7 +157,15 @@ in {
   #? the warning would be a `[lambda, set]` pair instead of a string. The
   #? same split applies to `inherit`: `describe` takes `kernel`, which is the
   #? local string here.
-  warnings = optionals (alternatives != []) [
-    (vocabulary.describe {inherit kernel level alternatives;})
-  ];
+  warnings =
+    optionals (alternatives != []) [
+      (vocabulary.describe {inherit kernel level alternatives;})
+    ]
+    #? Names a principal asked for that no pool carried. Collected from the
+    #? per-user resolutions, so each message names the user who asked.
+    ++ concatLists (
+      lix.map (name: (principals.${name}.context.packages.warnings or [])) (
+        lix.attrNames principals
+      )
+    );
 }

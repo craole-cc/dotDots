@@ -29,7 +29,11 @@
   #? and the split has to become explicit.
   principals = import ./principals.nix {
     inherit lix host capabilities;
-    inherit (packages) pkgs;
+    #? Both are passed as thunks from `packages`, for the reason the note above
+    #? gives: a principal resolves its packages against these, and `packages`
+    #? reads those resolutions back out as its `home` record.
+    pkgs = packages.pkgs;
+    sources = packages.sources;
   };
 
   packages = import ./packages.nix {inherit capabilities functionalities lix host principals inputs;};

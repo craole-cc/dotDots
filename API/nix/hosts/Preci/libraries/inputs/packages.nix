@@ -3,10 +3,11 @@
   modules,
   packageSets ? [],
   packageLoaders ? {},
+  packageFlakes ? [],
   ...
 }: let
   inherit (lix) inputs;
-  inherit (lix.attrsets) attrByPath listToAttrs mapAttrs optionalAttrs;
+  inherit (lix.attrsets) attrByPath attrValues listToAttrs mapAttrs optionalAttrs removeAttrs;
   inherit (lix.lists) concatMap elem foldl' toList unique;
   inherit (lix.strings) concatStringsSep escapeShellArg isString mkPath splitString;
   inherit (lix.trivial) id;
@@ -55,8 +56,12 @@
     sources ? inputs,
     pkgSets ? packageSets,
     pkgLoaders ? packageLoaders,
+    pkgFlakes ? packageFlakes,
   }: let
     resolved = {
+      #? Every pool a name may live in, keyed by the source it came from. `pkgs`
+      #? is folded in under its own name below, so `resolvePackageGroups` can
+      #? search them together in one declared order.
       packageSets =
         listToAttrs (
           map (name: {
@@ -87,9 +92,46 @@
             supplied
         )
         pkgLoaders;
+
+      #? Sources whose packages live in `flake.packages.<system>` rather than
+      #? behind a `default.nix`.
+      #?
+      #? A fourth shape, alongside overlays, package-set functions and loaders.
+      #? `hermes-agent` has no root `default.nix` at all, so `import path` cannot
+      #? read it and the package-set route fails outright -- its outputs are
+      #? only reachable through the flake interface.
+      #?
+      #? `configKeys` and `node-gyp` are internals of the build, not things a
+      #? spec would request, so they are dropped: `resolvePackageGroups` should
+      #? not be able to install a helper by accident. `default` is kept -- that
+      #? is the name the alias table points `hermes` at.
+      flakes =
+        listToAttrs (
+          map (name: {
+            inherit name;
+            value =
+              removeAttrs
+              (
+                (
+                  builtins.getFlake (toString sources.${name}.url)
+                ).packages.${pkgs.stdenv.hostPlatform.system}
+                or {}
+              )
+              ["configKeys" "node-gyp" "update-npm-lockfile"];
+          })
+          pkgFlakes
+        );
     };
   in
-    resolved // {inherit pkgs;};
+    #? `packageSets` is the pool list every consumer searches, so the flake
+    #? outputs join it here rather than staying in their own key -- otherwise a
+    #? caller reading `packageSets` sees zen but not hermes, and the alias table
+    #? points at a pool nobody looked in.
+    resolved
+    // {
+      packageSets = resolved.packageSets // resolved.flakes;
+      inherit pkgs;
+    };
 
   /**
   Build a single shell-ready command string from a package specification.
@@ -219,19 +261,122 @@
   }:
     concatMap (expandName groups []) names;
 
+  #? Where a requested name might actually live.
+  #?
+  #? Not every name is a nixpkgs attribute. Some name a package that only a
+  #? fetched flake publishes (`hermes`), some name a variant inside a package-set
+  #? function rather than a package at all (`zen-twilight`, which is `twilight`
+  #? in zen''s set), and some differ from the package that satisfies them by a
+  #? judgement the user should never have to know about. So resolution is a
+  #? search across pools, in order, rather than one lookup.
+  #?
+  #? `pkgs` first, because an attribute that exists in nixpkgs is the least
+  #? surprising answer and needs no table to justify it. `extra` follows, for
+  #? the fetched package sets and loaders -- `mkSets` already folds them into
+  #? one attrset beside `pkgs`, so this is a second pool rather than N.
+  #?
+  #? `aliasOf` maps a requested name to `{source, name}`: where it lives, and
+  #? what it is called there. `hermes` becomes
+  #? `{source = "hermes-agent", name = "default"}`. The alias is a *judgement*
+  #? about one name and cannot be derived -- `slugify "hermes"` is `"hermes"`,
+  #? not `"hermes-agent"` -- so the table decides and nothing else does.
+  #?
+  #? A name that reaches the end has not been satisfied. That is a warning, not
+  #? a failure: the caller decides, because a principal''s wish-list is
+  #? best-effort and one absent tool should not cost the whole build. The error
+  #? message lists the pools searched, so a name that *is* present somewhere is
+  #? diagnosable from the message alone.
   resolvePackageGroups = {
     pkgs,
     groups,
     names,
     context,
+    #? Additional pools, searched after `pkgs`, each an attrset of
+    #? derivations. A list, not an attrset: order is the search order, and
+    #? `mkSets` returns the pools keyed by source for exactly that reason --
+    #? `attrValues` turns them into the order to try.
+    extra ? [],
+    aliasOf ? name: null,
+    #? Treat an unsatisfiable name as fatal rather than a warning. Off by
+    #? default, because a principal's declarations are wishes.
+    strict ? false,
   }: let
     expanded = unique (expandNames {inherit groups names;});
+
+    pools = [pkgs] ++ extra;
+
+    poolOf = name:
+      let
+        found = builtins.filter (pool: pool ? ${name}) pools;
+      in
+        if found == []
+        then null
+        else builtins.elemAt found 0;
+
+    resolvedName = name: let
+      entry = aliasOf name;
+    in
+      if entry != null
+      then entry.name
+      else name;
+
+    derivationOf = name: let
+      candidate = resolvedName name;
+      pool = poolOf candidate;
+    in
+      if pool == null
+      then
+        throw ''
+          ${context}: package '${name}' was not found.
+          Looked for '${resolvedName name}' in nixpkgs and ${toString (builtins.length extra)} fetched package set(s).
+          Add it to the alias table if it lives under a different name.
+        ''
+      else pool.${candidate};
+
+    #? What could not be found, and what was found anyway.
+    #?
+    #? A principal's declarations are *preferred*, best-effort wishes, not build
+    #? invariants -- so an unsatisfiable request is dropped with a warning, not
+    #? an error. Failing the whole build because one of thirty requested tools
+    #? does not exist in any pool would make the tree unusable for exactly the
+    #? reason it is expressive.
+    #?
+    #? `strict` is the opposite policy, for a name that is genuinely required --
+    #? a kernel, or something the rest of the config dereferences. It is opt-in
+    #? per call so the default stays forgiving.
+    #?
+    #? Reported together rather than one per name: a spec asking for three absent
+    #? tools should say so once, not hide two behind the first failure.
+    quoteAll = names: concatStringsSep ", " (map (n: "'${n}'") names);
+
+    satisfied = builtins.filter (name: poolOf (resolvedName name) != null) expanded;
+
+    missing = builtins.filter (name: poolOf (resolvedName name) == null) expanded;
+
+    missingWarning =
+      if missing == []
+      then null
+      else ''
+        ${context}: wanted ${quoteAll missing}, which is in neither nixpkgs nor
+        ${toString (builtins.length extra)} fetched package set(s). Dropping them.
+      '';
+    #? The result, shared by both policies so the shape cannot differ between
+    #? them -- a caller reads `.packages` either way.
+    result = {
+      inherit satisfied missing;
+      warnings = if missing == [] then [] else [missingWarning];
+      packages = map derivationOf satisfied;
+    };
   in
-    map (
-      name:
-        pkgs.${name} or (throw "${context}: package '${name}' was not found in nixpkgs")
-    )
-    expanded;
+    if missing != [] && strict
+    then
+      throw ''
+        ${context}: no package for ${quoteAll missing}.
+        Looked in nixpkgs and ${toString (builtins.length extra)} fetched package set(s).
+        This name was required, so the build cannot continue -- either drop it
+        from the spec or add it to the alias table.
+      ''
+    else result;
 in {
   inherit
     mkBin
