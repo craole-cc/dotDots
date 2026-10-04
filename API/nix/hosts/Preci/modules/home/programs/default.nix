@@ -5,7 +5,5 @@
 #? principal from `modules/home/default.nix`, so every file here is evaluated
 #? inside `home-manager.users.<name>`.
 {
-  imports = [
-    ./git.nix
-  ];
+  # imports = [./git.nix];
 }

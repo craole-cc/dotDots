@@ -1,27 +1,27 @@
-#? This host''s NixOS modules, plus the registry entries `context.modules`
-#? enabled for it.
+#? This host''s NixOS modules.
 #?
-#? `context` arrives through `_module.args`, which a module does see -- unlike
-#? `modules/default.nix`, which is a plain function called with `{lix}` while
-#? the root file is being evaluated and therefore has no access to it. So the
-#? gate belongs here, in a module, rather than in the root or in the tree root.
+#? The registry entries `context.modules` enabled for this host are *not* listed
+#? here. They are added in the root `default.nix`, because they cannot be a
+#? module argument read from `imports`:
 #?
-#? Only the *core* group joins the NixOS tree. The `home` group is Home Manager
-#? modules and the NixOS evaluator rejects them -- importing sops''s HM module
-#? here collides with its own NixOS module on `sops.gnupg.home`. Those go into
-#? each principal's profile instead, in `modules/home/default.nix`.
-{context, ...}: {
-  imports =
-    context.modules.imports.core
-    ++ [
-      ./boot
-      ./environment
-      ./hardware
-      ./networking
-      ./programs
-      ./secrets
-      ./security
-      ./services
-      ./users
-    ];
+#? `context` reaches modules through `_module.args`, and reading a module
+#? argument inside `imports` forces `_module.args` -- which is declared by the
+#? same root attrset whose `imports` is being evaluated. That is circular, and
+#? NixOS reports it as `infinite recursion encountered` with a note about
+#? referencing `config` in `imports`. The root file has `context` as an ordinary
+#? `let` binding, so reading it there needs nothing from the module system.
+#?
+#? Only this host''s own modules live in this directory.
+{
+  imports = [
+    ./boot
+    ./environment
+    ./hardware
+    ./networking
+    ./programs
+    ./secrets
+    ./security
+    ./services
+    ./users
+  ];
 }
