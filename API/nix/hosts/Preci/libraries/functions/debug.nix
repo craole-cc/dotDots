@@ -26,4 +26,7 @@
     if condition
     then true
     else throw "${context}: ${message}";
-in {inherit requireNonEmpty requireThat;}
+in {
+  inherit requireNonEmpty requireThat;
+  inherit (lix) deepSeq tryEval;
+}

@@ -12,7 +12,7 @@
     functionalities = import ./functionalities.nix __;
     id = import ./id.nix __;
     interface = import ./interface.nix __;
-    kernel = import ./kernel.nix __;
+    kernel = import ./kernel.nix (__ // {inherit (fields) cpu;});
     localisation = import ./localisation.nix __;
     packages = import ./packages.nix __;
     paths = import ./paths.nix __;

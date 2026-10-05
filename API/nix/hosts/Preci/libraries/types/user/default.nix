@@ -1,7 +1,7 @@
 {lix, ...}: let
   __ = {inherit lix;};
   inherit (lix.attrsets) recursiveUpdate;
-  inherit (lix.schemas) declareFields resolveFields;
+  inherit (lix.types) declareFields resolveFields;
   inherit (lix.lists) concatMap elemAt foldl' head length optionals reverseList tail unique;
 
   fields = {

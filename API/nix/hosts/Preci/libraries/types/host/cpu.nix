@@ -1,8 +1,7 @@
 {lix, ...}: let
-  inherit (lix.attrsets) isAttrs recursiveUpdate;
-  inherit (lix.lists) elem elemAt foldl' length isList optional;
-  inherit (lix.trivial) typeOf;
-  inherit (lix.strings) fromJSON isString match showList splitString;
+  inherit (lix.attrsets) filterAttrs isAttrs recursiveUpdate;
+  inherit (lix.lists) elem elemAt filter findFirst foldl' isList length optional;
+  inherit (lix.strings) hasPrefix removePrefix fromJSON isString match showList splitString concatStringsSep typeOf;
 
   default = {
     arch = "x86_64";
@@ -16,10 +15,19 @@
   brands = ["intel" "amd"];
 
   fromString = raw: let
-    parts = splitString "_" raw;
+    knownArch = findFirst (arch: hasPrefix arch raw) null arches;
+    remainder =
+      if knownArch == null
+      then raw
+      else removePrefix knownArch raw;
+    parts = filter (part: part != "") (splitString "_" remainder);
+    fields =
+      if knownArch == null
+      then parts
+      else [knownArch] ++ parts;
     at = item:
-      if item < length parts
-      then elemAt parts item
+      if item < length fields
+      then elemAt fields item
       else null;
     toInt = input:
       if input == null
@@ -35,6 +43,15 @@
       model = toInt (at 3);
     };
 
+  parseRaw = item:
+    if isAttrs item
+    then item
+    else if isString item
+    then filterAttrs (attrName: attrValue: attrValue != null) (fromString item)
+    else throw "cpu: cannot parse ${typeOf item}";
+
+  parse = item: recursiveUpdate default (parseRaw item);
+
   validate = cpu: let
     has = name: cpu.${name} != null;
     flag = cond: msg: optional cond msg;
@@ -48,17 +65,35 @@
     ++ flag (!isList cpu.flags)
     "cpu: flags must be a list; got ${typeOf cpu.flags}";
 
-  resolve = value: let
+  resolve = args: let
+    value =
+      if isAttrs args
+      then args.cpu or (args.specs.cpu or args)
+      else args;
+
     cpu =
       if value == null
       then default
-      else if isAttrs value
-      then recursiveUpdate default value
-      else if isString value
-      then fromString value
       else if isList value
-      then foldl' (acc: item: recursiveUpdate acc (resolve item).cpu) default value
-      else throw "cpu: cannot resolve ${typeOf value}";
+      then
+        recursiveUpdate default (
+          foldl'
+          (acc: item: recursiveUpdate acc (parseRaw item))
+          {}
+          value
+        )
+      else parse value;
+
     warnings = validate cpu;
-  in {inherit cpu warnings;};
-in {inherit default resolve arches brands;}
+  in
+    (
+      if warnings != []
+      then
+        throw ''
+          cpu: invalid configuration
+          ${concatStringsSep "\n" (map (warning: "  - ${warning}") warnings)}
+        ''
+      else cpu
+    )
+    // {inherit warnings;};
+in {inherit default resolve validate arches brands;}

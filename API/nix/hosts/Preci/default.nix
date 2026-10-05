@@ -4,7 +4,11 @@
   host = lix.types.host.mkHost api;
   context = import ./context {inherit lix host;};
   modules = import ./modules;
-in {
-  imports = modules.imports;
-  _module.args = {inherit lix host context api;};
-}
+  tests = import ./tests args;
+  args = {inherit lix host context api tests;};
+in
+  args
+  // {
+    imports = modules.imports;
+    _module = {inherit args;};
+  }

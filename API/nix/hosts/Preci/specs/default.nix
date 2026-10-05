@@ -6,23 +6,9 @@
   id = "91ba73c7";
   description = "Dell Precision M2800";
   type = "laptop";
-
   cpu = {
     arch = "x86_64";
     brand = "intel";
-    family = 6;
-    model = 60;
-    flags = [
-      # only the ones your ladder keys on, or the full set — either works
-      "avx2"
-      "bmi2"
-      "fma"
-      "movbe"
-      "sse4_2"
-      "cx16"
-      "lahf_lm"
-      "popcnt"
-    ];
   };
 
   paths = {
@@ -71,7 +57,6 @@
   };
 
   packages = {
-    # kernel = "cachy";
     launchers = ["vicinae"];
     common = [
       "helix"

@@ -5,24 +5,14 @@ Turns whatever a host declared as its kernel into a canonical record, and
 chooses a cachyOS microarchitecture build when the host's CPU record is
 specific enough to do so safely.
 */
-{lix, ...}: let
-  inherit (lix.lists) elem filter findFirstIndex head length optional take;
-  inherit (lix.strings) concatStringsSep hasInfix isString showList toLower;
-  inherit (lix.trivial) typeOf;
-
-  /**
-      Normalize whatever a host wrote for `cpu` -- a string, an attrset, a
-      list, or null -- into the canonical record `confirms` reads.
-
-      `kernel.nix` never sees the raw field.
-
-      # Type
-
-  ```
-      getCpu :: AttrSet -> AttrSet
-  ```
-  */
-  getCpu = lix.types.host.cpu.resolve;
+{
+  lix,
+  cpu,
+  ...
+}: let
+  inherit (lix.attrsets) isAttrs;
+  inherit (lix.lists) all elem filter findFirstIndex head length optional range take;
+  inherit (lix.strings) concatStringsSep hasInfix isString showList toLower typeOf;
 
   /**
       The resolved record a host with no declared kernel and an unplaceable CPU
@@ -63,15 +53,12 @@ specific enough to do so safely.
     {
       name = "zen4";
       brand = "amd";
-      # Zen 4 proper (family 19) and the Zen 4 refresh (family 25, models
-      # 0x08/0x18/0x20/0x21/0x50/0x51/0x60/0x74/0x7f). Family 25 model 68 --
-      # this host -- is Zen 3 and is deliberately absent, which is why its
-      # ceiling is `x86_64-v3`.
-      #
-      # FIXME(review): several of these models are Zen 3, and 19 is not an
-      # AMD family. See the review notes.
-      families = [19 25];
-      models = [8 24 32 33 80 81 96 116 127];
+      # Zen 4 parts in family 25 (0x19): Genoa 0x10-0x1f, Raphael 0x60-0x6f,
+      # Phoenix 0x70-0x7f, Hawk Point 0xa0-0xaf. Written in decimal. Family 25
+      # model 68 -- this host -- is Zen 3 and is deliberately absent, which is
+      # why its ceiling is `x86_64-v3`.
+      families = [25];
+      models = range 16 31 ++ range 96 127 ++ range 160 175;
     }
 
     {
@@ -331,22 +318,25 @@ specific enough to do so safely.
       model = cpu.model or null;
       brand = cpu.brand or null;
     };
-    requires = {
-      family = entry ? families;
-      brand = (entry.brand or null) != null;
-      flags = (entry.flags or []) != [];
-    };
-  in
-    !requires.flags
-    && (!requires.brand || declared.brand == entry.brand)
-    && (!requires.family || (declared.family != null && declared.model != null))
-    && (
-      if !requires.family
-      then true
-      else
-        elem declared.family entry.families
+    recordedFlags = cpu.flags or [];
+
+    brandMatches =
+      (entry.brand or null) == null || declared.brand == entry.brand;
+
+    flagsPresent =
+      all (flag: elem flag recordedFlags) (entry.flags or []);
+
+    familyMatches =
+      !(entry ? families)
+      || (
+        declared.family
+        != null
+        && declared.model != null
+        && elem declared.family entry.families
         && elem declared.model entry.models
-    );
+      );
+  in
+    brandMatches && flagsPresent && familyMatches;
 
   /**
       The best ladder entry a CPU record confirms, or `null` when nothing
@@ -528,15 +518,17 @@ specific enough to do so safely.
       :::
   */
   resolve = args: let
-    cpu = getCpu args;
-    value = args.kernel or args.packages.kernel or null;
+    cpu' = cpu.resolve args;
+    raw = args.kernel or args.packages.kernel or null;
 
     parsed =
-      if value == null
+      if raw == null
       then null
-      else if isString value
-      then fromString value
-      else throw "kernel: cannot resolve ${typeOf value}";
+      else if isString raw
+      then fromString raw
+      else if isAttrs raw && raw ? name && raw ? vendor && raw ? level
+      then raw # already resolved
+      else throw "kernel: cannot resolve ${typeOf raw}";
 
     # A bare cachyOS request has no level of its own, so the CPU supplies
     # one. A name that already carries a level is left alone.
@@ -550,7 +542,7 @@ specific enough to do so safely.
     # filter over `variants` runs a single time per resolution.
     best =
       if bare || parsed == null
-      then bestFor cpu
+      then bestFor cpu'
       else null;
   in
     (
@@ -567,7 +559,7 @@ specific enough to do so safely.
     // {
       warnings =
         optional (bare && best == null) ''
-          kernel: host declares '${toString value}' but the CPU records no
+          kernel: host declares '${toString raw}' but the CPU records no
           microarchitecture level; using '${default.name}' instead of a cachyOS
           build.
         ''
