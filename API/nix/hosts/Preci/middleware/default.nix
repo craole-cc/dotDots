@@ -12,6 +12,10 @@
   inputs ? lix.inputs or {},
   ...
 }: let
+  inherit (lix.attrsets) attrValues mapAttrs;
+  inherit (lix.lists) concatLists foldl';
+  inherit (lix.types.host.packages) resolvePackages;
+
   capabilities = import ./capabilities.nix {inherit lix inputs;};
   functionalities = import ./functionalities.nix {inherit lix host;};
   interface = import ./interface.nix {inherit lix host;};
@@ -29,14 +33,10 @@
   #? and the split has to become explicit.
   principals = import ./principals.nix {
     inherit lix host capabilities;
-    #? Both are passed as thunks from `packages`, for the reason the note above
-    #? gives: a principal resolves its packages against these, and `packages`
-    #? reads those resolutions back out as its `home` record.
-    pkgs = packages.pkgs;
-    sources = packages.sources;
+    inherit (packages) pkgs pools;
   };
 
-  packages = import ./packages.nix {inherit capabilities functionalities lix host principals inputs;};
+  packages = import ./packages.nix {inherit lix host;};
 
   #? Which registry modules this host imports. `always` entries come along on
   #? every host; everything else is imported only when a principal's
@@ -44,6 +44,54 @@
   #? record is the single answer `modules/` filters imports through and a
   #? service module reads to decide whether to set its own `enable`.
   modules = import ./modules.nix {inherit lix host principals;};
+
+  #? Merge contribution records of shape `{ packages; warnings; missing; }` --
+  #? the shape every package resolver returns -- by concatenating each list
+  #? field. `//` and `recursiveUpdate` would overwrite; only concatenation
+  #? preserves every contributor. Unknown fields are dropped; add them here
+  #? when a resolver grows one.
+  mergeContributions = contributions:
+    foldl'
+    (acc: add: {
+      packages = acc.packages ++ (add.packages or []);
+      warnings = acc.warnings ++ (add.warnings or []);
+      missing = acc.missing ++ (add.missing or []);
+    })
+    {
+      packages = [];
+      warnings = [];
+      missing = [];
+    }
+    contributions;
+
+  #? Host-level system packages: what the host spec declared, plus whatever
+  #? future files contribute. Each contribution is a full resolver result, so
+  #? a contributor only has to produce `{ packages; warnings; missing; }`.
+  core = mergeContributions [
+    (resolvePackages {
+      inherit host;
+      inherit (packages) pkgs pools;
+    })
+    # Future contributions to `core` land here.
+  ];
+
+  #? Per-principal packages, keyed by user name. One contribution per user for
+  #? now; the merge is what lets a second file add to an existing user's list
+  #? without replacing it.
+  home =
+    mapAttrs
+    (_: principal: mergeContributions [principal.context.packages])
+    principals;
+
+  #? Findings as data, for a module to feed into NixOS `warnings`.
+  #?
+  #? Three sources, one list: the kernel's own warnings (from `resolve`), the
+  #? host package resolver's warnings (absent names dropped), and each
+  #? principal's package resolver warnings.
+  warnings =
+    packages.warnings
+    ++ core.warnings
+    ++ concatLists (map (hm: hm.warnings) (attrValues home));
 in {
   inherit
     capabilities
@@ -51,6 +99,7 @@ in {
     interface
     modules
     principals
-    packages
     ;
+  inherit (packages) packages pkgs kernel;
+  inherit core home warnings;
 }

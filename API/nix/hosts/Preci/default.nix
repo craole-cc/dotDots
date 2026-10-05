@@ -1,11 +1,13 @@
 {lib ? import <nixpkgs/lib>, ...}: let
-  lix = import ./libraries {inherit lib;};
-  api = import ./api;
-  host = lix.types.host.mkHost api;
-  context = import ./context {inherit lix host;};
+  args = rec {
+    lix = import ./libraries {inherit lib;};
+    api = import ./api;
+    host = lix.types.host.mkHost api;
+    context = import ./middleware {inherit lix host;};
+    tests = import ./tests args;
+    inherit (context) packages;
+  };
   modules = import ./modules;
-  tests = import ./tests args;
-  args = {inherit lix host context api tests;};
 in
   args
   // {

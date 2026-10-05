@@ -1,7 +1,8 @@
 {lix, ...}: let
-  inherit (lix.attrsets) attrValues recursiveUpdate removeAttrs;
+  inherit (lix.attrsets) attrValues recursiveUpdate;
   inherit (lix.lists) concatLists unique;
   inherit (lix.packages) expandNames resolvePackageGroups;
+  inherit (lix.strings) aliasOf;
 
   default = {
     agent = [];
@@ -39,7 +40,7 @@
     #? function, so the pools were expanded as though they were package names and
     #? the pool attrset came back as one of the requested names.
     pools ? {},
-    aliasOf ? name: null,
+    # aliasOf ? name: null,
   }: let
     #? The groups are whatever the user declared, not a fixed three.
     #?

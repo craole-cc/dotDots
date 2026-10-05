@@ -1,9 +1,9 @@
 {lix, ...}: let
   inherit (lix.attrsets) recursiveUpdate;
-
   inherit (lix.attrsets) attrValues;
-  inherit (lix.lists) concatLists unique;
+  inherit (lix.lists) concatLists filter isList unique;
   inherit (lix.packages) resolvePackageGroups;
+  inherit (lix.strings) aliasOf;
 
   default = {
     allowUnfree = true;
@@ -31,10 +31,10 @@
     #? Named `pools` for the same reason as the user resolver: `extra` is a
     #? package group name, and a parameter of that name shadowed it.
     pools ? {},
-    aliasOf ? name: null,
+    # aliasOf ? name: null,
   }: let
     groups = removeAttrs (host.packages or {}) ["kernel"];
-    names = unique (concatLists (attrValues groups));
+    names = unique (concatLists (filter isList (attrValues groups)));
 
     resolution = resolvePackageGroups {
       inherit pkgs groups names aliasOf;
