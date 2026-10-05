@@ -13,7 +13,6 @@
     family = 6;
     model = 60;
     flags = [
-      # only the ones your ladder keys on, or the full set — either works
       "avx2"
       "bmi2"
       "fma"
