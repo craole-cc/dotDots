@@ -1,7 +1,7 @@
 {
   lix,
   inputs ? lix.inputs or null,
-  sources,
+  # sources,
   modules,
   ...
 }: let
@@ -26,12 +26,13 @@
     assert assertMsg (name != null)
     "${ctx}: missing required field 'source'";
     assert assertMsg (isString name && name != "")
-    "${ctx}: field 'source' must be a non-empty string";
-    assert assertMsg (sources ? name)
-    "${ctx}: source '${name}' is not defined in registry.sources";
+    "${ctx}: field 'input' must be a non-empty string";
+    assert assertMsg (inputs ? name)
+    "${ctx}: input '${name}' is not defined in registry.sources";
       fetchModule (
-        {inherit inputs sources;}
-        // (removeAttrs spec ["source" "always"])
+        # {inherit inputs sources;}
+        {inherit inputs;}
+        // (removeAttrs spec ["input" "sources" "always"])
         // {inherit name;}
       );
 

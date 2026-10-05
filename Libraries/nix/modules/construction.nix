@@ -88,7 +88,7 @@
     filterAttrs (_: host: (host.class or "nixos") == class) hosts;
 
   mkConfigurations = {
-    inputs, # TODO: Maybw this is in defaults as well, check.
+    inputs, # TODO: Maybe this is in defaults as well, check.
     paths ? _default.paths,
     top ? _default.names.top or "_",
     ...

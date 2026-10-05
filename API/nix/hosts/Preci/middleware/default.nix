@@ -98,7 +98,7 @@ in {
     functionalities
     interface
     modules
-    principals
+    # principals
     ;
   inherit (packages) packages pkgs kernel;
   inherit core home warnings;

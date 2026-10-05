@@ -7,10 +7,9 @@
     tests = import ./tests args;
     inherit (context) packages;
   };
-  modules = import ./modules;
 in
   args
   // {
-    imports = modules.imports;
+    inherit (import ./modules) imports;
     _module = {inherit args;};
   }
