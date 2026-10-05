@@ -6,10 +6,22 @@ things to check if every suite starts failing at once.
 */
 args: harness: let
   inherit (harness) makeCase;
-  lix = args.lix;
-  inherit (lix.debug) deepSeq tryEval;
+  inherit (args.lix.debug) deepSeq tryEval;
 in [
-  (makeCase "tryEval" "success" (tryEval 1) {success = true; value = 1;})
-  (makeCase "tryEval" "catches throw" (tryEval (throw "boom")).success false)
-  (makeCase "tryEval" "deepSeq reaches inside lists" (tryEval (deepSeq [(throw "boom")] 1)).success false)
+  (
+    makeCase "tryEval" "success" (tryEval 1) {
+      success = true;
+      value = 1;
+    }
+  )
+  (
+    makeCase "tryEval" "catches throw"
+    (tryEval (throw "boom")).success
+    false
+  )
+  (
+    makeCase "tryEval" "deepSeq reaches inside lists"
+    (tryEval (deepSeq [(throw "boom")] 1)).success
+    false
+  )
 ]
