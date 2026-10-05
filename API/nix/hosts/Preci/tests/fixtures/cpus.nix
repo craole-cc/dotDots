@@ -39,6 +39,4 @@ let
 
     aarch64 = makeCpu "aarch64" null null null [];
   };
-in {
-  inherit makeCpu flagsV2 flagsV3 flagsV4 cpus;
-}
+in {inherit makeCpu flagsV2 flagsV3 flagsV4 cpus;}

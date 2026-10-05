@@ -16,19 +16,29 @@ that directory's own `default.nix`.
 
 A suite is a file that is a function `args: harness: [cases]`. Any other `.nix`
 file, such as a fixture sitting beside the tests that use it, is not run and
-is listed in `tests.skipped` so it is never silently lost. This file and
-`harness.nix` are ignored at the top level.
+is listed in `tests.skipped` so it is never silently lost. This file,
+`harness.nix` and `fixtures/` are ignored at the top level; fixtures reach the
+suites as `harness.fixtures`.
 */
 args: let
-  harness = import ./harness.nix args.lix;
-  ignoredAtTop = ["default.nix" "harness.nix"];
+  inherit (args) lix;
+
+  inherit (lix.attrsets) attrNames;
+  inherit (lix.lists) elem filter foldl' head;
+  inherit (lix.filesystem) readDir;
+  inherit (lix.strings) match;
+  inherit (lix.trivial) isFunction;
+
+  fixtures = import ./fixtures;
+  harness = import ./harness.nix {inherit lix fixtures;};
+  ignoredAtTop = ["default.nix" "harness.nix" "fixtures"];
 
   discover = directory: relative: let
-    entries = builtins.readDir directory;
+    entries = readDir directory;
     names =
-      builtins.filter
-      (name: !(relative == "" && builtins.elem name ignoredAtTop))
-      (builtins.attrNames entries);
+      filter
+      (name: !(relative == "" && elem name ignoredAtTop))
+      (attrNames entries);
 
     visit = found: name: let
       path = directory + "/${name}";
@@ -36,7 +46,7 @@ args: let
         if relative == ""
         then name
         else "${relative}/${name}";
-      stem = builtins.match "(.*)\\.nix" key;
+      stem = match "(.*)\\.nix" key;
       inner = discover path key;
     in
       if entries.${name} == "directory"
@@ -46,15 +56,15 @@ args: let
       }
       else if stem == null
       then found
-      else if builtins.isFunction (import path)
+      else if isFunction (import path)
       then
         found
         // {
-          suites = found.suites // {${builtins.head stem} = import path args harness;};
+          suites = found.suites // {${head stem} = import path args harness;};
         }
       else found // {skipped = found.skipped ++ [key];};
   in
-    builtins.foldl' visit {
+    foldl' visit {
       suites = {};
       skipped = [];
     }
