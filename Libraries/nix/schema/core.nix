@@ -76,14 +76,33 @@
     backend = network.backend or "networkmanager";
   };
 
+  #> A capability is declared either as a bare name in a list (`["development"]`)
+  #> or as a key in a structured capability map (`{development = {...};}`). Both
+  #> shapes are in use - `user.capabilities` is a structured map while
+  #> `host.functionalities` is a list of names - so membership has to be tested
+  #> for both rather than assuming one.
+  hasCapability = declared: name:
+    (
+      declared != null
+      && builtins.isAttrs declared
+      && declared ? ${name}
+    )
+    #> `elem` throws on a non-list, so the list case has to be tested second:
+    #> the structured-map check above must never be preceded by it.
+    || (
+      declared != null
+      && builtins.isList declared
+      && elem name declared
+    );
+
   mkDevelopmentCapability = {
     host,
     interactiveUsers,
   }: let
     explicit = (host.capabilities or {}).development or null;
     hardened = host.hardened or false;
-    hostDeclared = elem "development" (host.functionalities or []);
-    userDeclared = any (user: elem "development" (user.capabilities or [])) (
+    hostDeclared = hasCapability (host.functionalities or []) "development";
+    userDeclared = any (user: hasCapability (user.capabilities or []) "development") (
       attrValues interactiveUsers
     );
   in

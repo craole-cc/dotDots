@@ -35,3 +35,4 @@ __pycache__/
 contextcaddy-config.json
 
 result/
+!API/nix/hosts/review/Preci/

@@ -17,13 +17,77 @@
     external = {inherit mkSchema;};
   };
 
+  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.aggregation) recursiveUpdate;
+  inherit (_.attrsets.construction) listToAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.filesystem.importers) importAttrs;
-  inherit (_.filesystem.predicates) isPathLike;
+  inherit (_.filesystem.predicates) isPathLike pathExists;
   inherit (_.filesystem.resolution) pathAttrs;
+  inherit (_.filesystem.traversal) readDir;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
   inherit (_.schema.settings) mkSettings;
+  inherit (_.types.predicates) isAttrs;
+
+  /**
+  Import one identity domain (`hosts`, `users`) child directory at a time.
+
+  This mirrors `filesystem.importAttrs` - each immediate subdirectory is
+  imported and keyed by its on-disk name, with the domain `default.nix`
+  recursively merged underneath - but decides per child whether it qualifies,
+  instead of importing the whole domain and discovering the problem afterwards.
+
+  A host still on the self-contained host-system contract has a `default.nix`
+  that is a function rather than a data attrset. `importAttrs` cannot skip it:
+  `recursiveUpdate` against a lambda throws while the domain attrset is being
+  built, so the whole schema fails before any caller can filter the result.
+  Qualifying each child first keeps such a host out of the schema entirely -
+  it is simply not a schema host yet - while every host that does declare a
+  data attrset keeps the normal merge semantics.
+
+  # Type
+  ```nix
+  importIdentities :: path -> AttrSet
+  ```
+  */
+  importIdentities = dir: let
+    entries = readDir dir;
+
+    foldersToExclude = [
+      "archives"
+      "review"
+      "temp"
+      "tmp"
+    ];
+
+    domainDefault =
+      if entries ? "default.nix"
+      then import (dir + "/default.nix")
+      else {};
+
+    childNames =
+      builtins.filter (
+        name:
+          entries.${name} == "directory" && !(builtins.elem name foldersToExclude)
+      )
+      (attrNames entries);
+
+    isIdentity = name: let
+      default = dir + "/${name}/default.nix";
+    in
+    pathExists default && isAttrs (import default);
+  in
+  listToAttrs (
+    map (
+      name: {
+        inherit name;
+        value =
+          if isIdentity name
+          then recursiveUpdate domainDefault (import (dir + "/${name}"))
+          else domainDefault;
+      }
+    ) childNames
+  );
 
   /**
   Enrich each declared host and user from the API.
@@ -38,7 +102,7 @@
 
     identities = name: fallback:
       if isPathLike api
-      then importAttrs (api + "/${name}")
+      then importIdentities (api + "/${name}")
       else fallback;
 
     raw =
@@ -70,9 +134,9 @@
       )
       raw.hosts;
   in
-    raw
-    // {
-      inherit hosts users;
-    };
+  raw
+  // {
+    inherit hosts users;
+  };
 in
   __exports.internal // {__rootAliases = __exports.external;}
