@@ -9,7 +9,10 @@
   #? `git` is a *list* of identity profiles, not an attrset. The first entry is
   #? the primary identity.
   gitProfiles = primary.git or [];
-  primaryGit = if gitProfiles == [] then {} else head gitProfiles;
+  primaryGit =
+    if gitProfiles == []
+    then {}
+    else head gitProfiles;
 in {
   programs = {
     bash.enable = true;

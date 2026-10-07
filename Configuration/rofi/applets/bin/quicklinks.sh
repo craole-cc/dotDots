@@ -8,11 +8,11 @@
 
 # Import Current Theme
 source "$HOME"/.config/rofi/applets/shared/theme.bash
-theme="$type/$style"
+theme="${type:?}/${style:?}"
 
 # Theme Elements
 prompt='Quick Links'
-mesg="Using '$BROWSER' as web browser"
+mesg="Using '${BROWSER:?}' as web browser"
 
 if [[ ($theme == *'type-1'*) || ($theme == *'type-3'*) || ($theme == *'type-5'*) ]]; then
   list_col='1'
@@ -48,19 +48,19 @@ fi
 
 # Rofi CMD
 rofi_cmd() {
-  rofi -theme-str "listview {columns: $list_col; lines: $list_row;}" \
+  rofi -theme-str "listview {columns: ${list_col}; lines: ${list_row};}" \
     -theme-str 'textbox-prompt-colon {str: "";}' \
-    -theme-str "element-text {font: \"$efonts\";}" \
+    -theme-str "element-text {font: \"${efonts}\";}" \
     -dmenu \
-    -p "$prompt" \
-    -mesg "$mesg" \
+    -p "${prompt}" \
+    -mesg "${mesg}" \
     -markup-rows \
-    -theme ${theme}
+    -theme "${theme}"
 }
 
 # Pass variables to rofi dmenu
 run_rofi() {
-  echo -e "$option_1\n$option_2\n$option_3\n$option_4\n$option_5\n$option_6" | rofi_cmd
+  echo -e "${option_1}\n${option_2}\n${option_3}\n${option_4}\n${option_5}\n${option_6}" | rofi_cmd
 }
 
 # Execute Command
@@ -83,22 +83,22 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-  $option_1)
-    run_cmd --opt1
-    ;;
-  $option_2)
-    run_cmd --opt2
-    ;;
-  $option_3)
-    run_cmd --opt3
-    ;;
-  $option_4)
-    run_cmd --opt4
-    ;;
-  $option_5)
-    run_cmd --opt5
-    ;;
-  $option_6)
-    run_cmd --opt6
-    ;;
+${option_1})
+  run_cmd --opt1
+  ;;
+${option_2})
+  run_cmd --opt2
+  ;;
+${option_3})
+  run_cmd --opt3
+  ;;
+${option_4})
+  run_cmd --opt4
+  ;;
+${option_5})
+  run_cmd --opt5
+  ;;
+${option_6})
+  run_cmd --opt6
+  ;;
 esac

@@ -34,7 +34,7 @@ in {
     # filesystem or bootloader, that's owned by Ubuntu/cloud-init.
   };
 
-  localisation = {
+  locale = {
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";
   };

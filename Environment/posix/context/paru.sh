@@ -14,8 +14,8 @@
 
 # _________________________________________ LOCAL<|
 
-PARU_CONF="$DOTS/Config/tools/utilities/paru/paru.conf"
-DOTS_loaded_apps="${DOTS_loaded_apps:-$DOTS/Log/loaded_apps}"
+PARU_CONF="${DOTS:?}/Config/tools/utilities/paru/paru.conf"
+DOTS_loaded_apps="${DOTS_loaded_apps:-${DOTS:?}/Log/loaded_apps}"
 
 #* Install *#
 if weHave pacman; then
@@ -31,7 +31,7 @@ fi
 
 #> Verify Instalation <#
 if weHave paru; then
-  weHave --report version paru >> "$DOTS_loaded_apps"
+  weHave --report version paru >>"${DOTS_loaded_apps}"
 else
   return
 fi
@@ -76,14 +76,14 @@ paru_remote_search() { #| Search remote repositories
   paru "$@" \
     --sync \
     --color always \
-    --search \
-    | less
+    --search |
+    less
 }
 
 paru_local_search() { #| Search installed applications
   for app in "$@"; do
-    printf "%s\n {|> $app <|}\n"
-    paru "$app" \
+    printf "%s\n {|> ${app} <|}\n"
+    paru "${app}" \
       --query \
       --color always \
       --search

@@ -100,7 +100,7 @@
           run = "/etc/nixos";
         };
       };
-      localisation = {
+      locale = {
         latitude = 18.015;
         longitude = -77.49;
         city = "Mandeville, Jamaica";
@@ -156,7 +156,7 @@
           autoLogin = true;
           role = "administrator";
           description = "Craig 'Craole' Cole";
-          localisation = {
+          locale = {
             defaultLocale = "en_GB.UTF-8";
           };
           interface = {
@@ -332,13 +332,13 @@
         run = args.paths.roots.run;
       };
 
-    localisation = recursiveUpdate {
+    locale = recursiveUpdate {
       latitude = 18.015;
       longitude = -77.49;
       city = "Mandeville, Jamaica";
       timeZone = "America/Jamaica";
       defaultLocale = "en_US.UTF-8";
-    } (args.localisation or {});
+    } (args.locale or {});
 
     users = let
       #? Explicit UIDs are stable pins; missing UIDs are deterministically
@@ -402,11 +402,11 @@
         requestedRoots = requestedPaths.roots or {};
         home = requestedRoots.home or "/home/${user.name}";
 
-        userLocalisation =
+        userlocale =
           recursiveUpdate
-          localisation
+          locale
           (
-            (user.localisation or {})
+            (user.locale or {})
             // optionalAttrs (user ? defaultLocale) {
               inherit (user) defaultLocale;
             }
@@ -473,8 +473,8 @@
             }
             requestedPaths;
           linger = isNormalUser;
-          localisation = userLocalisation;
-          inherit (userLocalisation) defaultLocale;
+          locale = userlocale;
+          inherit (userlocale) defaultLocale;
           theme = themes;
           interface =
             recursiveUpdate
@@ -1314,7 +1314,7 @@
     inherit
       args
       paths
-      localisation
+      locale
       users
       interface
       aesthetics
@@ -1901,7 +1901,7 @@ in {
       darkman = {
         description = "Dark/light mode switch daemon";
         wantedBy = ["default.target"];
-        environment = with host.localisation; {
+        environment = with host.locale; {
           DARKMAN_LAT = toString latitude;
           DARKMAN_LNG = toString longitude;
         };
@@ -1929,7 +1929,7 @@ in {
   };
 
   time = {
-    timeZone = host.localisation.timeZone or "America/Jamaica";
+    timeZone = host.locale.timeZone or "America/Jamaica";
   };
 
   users = {

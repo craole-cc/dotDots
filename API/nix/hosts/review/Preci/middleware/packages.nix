@@ -65,5 +65,5 @@ in {
   kernel = forKernel;
 
   # Findings as data, for a module to feed into NixOS `warnings`.
-  warnings = forKernel.warnings;
+  inherit (forKernel) warnings;
 }

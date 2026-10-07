@@ -2,11 +2,11 @@
 #shellcheck enable=all
 
 for monitor in $(bspc query -M --names); do
-  monitors+=("$monitor")
+  monitors+=("${monitor}")
 done
 #echo ${#monitors[@]} # Number of coonnected Monitors
 
-if [ ${#monitors[@]} == 1 ]; then
+if [[ ${#monitors[@]} == 1 ]]; then
   # Single Monitor Setup
   #	xrandr --output ${monitors[0]} --primary --mode 1920x1080 --pos 0x0
   bspc monitor "${monitors[0]}" -d 1 2 3 4 5 6 7 8 9 10
@@ -18,6 +18,6 @@ elif xrandr | grep ' connected' | grep -q "DP2-2" && xrandr | grep ' connected' 
   bspc monitor eDP1 -d 9 10
 else
   for monitor in $(bspc query -M); do
-    bspc monitor "$monitor" -d 1 2 3 4 5
+    bspc monitor "${monitor}" -d 1 2 3 4 5
   done
 fi

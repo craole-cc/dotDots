@@ -102,13 +102,13 @@ tag_keys=({1..9} 0)
 
 hc rename default "${tag_names[0]}" || true
 for i in "${!tag_names[@]}"; do
-  hc add "${tag_names[$i]}"
+  hc add "${tag_names[${i}]}"
   hc set_layout horizontal
   hc set default_frame_layout 1
-  key="${tag_keys[$i]}"
-  if ! [ -z "$key" ]; then
-    hc keybind ""${mod}"-$key" use_index "$i"
-    hc keybind ""${mod}"-Shift-$key" move_index "$i"
+  key="${tag_keys[${i}]}"
+  if ! [[ -z "${key}" ]]; then
+    hc keybind """${mod}""-${key}" use_index "${i}"
+    hc keybind """${mod}""-Shift-${key}" move_index "${i}"
   fi
 done
 

@@ -193,7 +193,7 @@
         inherit host;
         inherit (derived) user;
       };
-      localisation = mkLocale {
+      locale = mkLocale {
         inherit host;
         inherit (derived) user;
       };

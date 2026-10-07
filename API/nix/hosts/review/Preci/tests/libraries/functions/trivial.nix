@@ -7,5 +7,6 @@ args: harness: let
 in [
   (
     makeCase "typeOf" "agrees with strings.typeOf"
-    (typeOf null) (typeOf null))
+    (typeOf null) (typeOf null)
+  )
 ]

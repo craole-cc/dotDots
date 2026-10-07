@@ -32,7 +32,7 @@ for x in \
   featherpad \
   notepadqq; do
   #/// shellcheck disable=SC2139
-  alias $x='sudo $x'
+  alias "${x}"='sudo $x'
   # x="sudo $x"
 done
 

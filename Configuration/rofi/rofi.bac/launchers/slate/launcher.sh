@@ -14,15 +14,15 @@
 
 theme="slate_top"
 
-dir="$HOME/.config/rofi/launchers/slate"
-styles=($(ls -p --hide="colors.rasi" $dir/styles))
+dir="${HOME}/.config/rofi/launchers/slate"
+styles=($(ls -p --hide="colors.rasi" "${dir}"/styles))
 color="${styles[$((RANDOM % 20))]}"
 
 # comment this line to disable random colors
-sed -i -e "s/@import .*/@import \"$color\"/g" $dir/styles/colors.rasi
+sed -i -e "s/@import .*/@import \"${color}\"/g" "${dir}"/styles/colors.rasi
 
 # comment these lines to disable random style
-themes=($(ls -p --hide="launcher.sh" --hide="styles" $dir))
+themes=($(ls -p --hide="launcher.sh" --hide="styles" "${dir}"))
 theme="${themes[$((RANDOM % 6))]}"
 
-rofi -no-lazy-grab -show drun -modi drun -theme $dir/"$theme"
+rofi -no-lazy-grab -show drun -modi drun -theme "${dir}"/"${theme}"

@@ -215,7 +215,7 @@
   };
 
   mkLocale = {host, ...}: let
-    loc = host.localisation or {};
+    loc = host.locale or {};
   in {
     #~@ Timezone
     time = {

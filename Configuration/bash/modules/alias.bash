@@ -12,21 +12,21 @@
 
 # >>= Config =<< #
 # Usage: function <command> => cfB vim
-cfBASH() { $1 "$RC_bash"; }
-cfDASH() { $1 "$RC_dash"; }
-cfZSH() { $1 "$RC_zsh"; }
-cfPWSH() { $1 "$RC_pwsh"; }
-cfX11() { $1 "$RC_xinit"; }
-cfGIT() { $1 "$GIT_CONFIG"; }
-cfSSH() { $1 "$RC_ssh"; }
-cfFSH() { $1 "$RC_fish"; }
-cfINI() { $1 "$RC_init"; }
-cfDOT() { ede "$codeDOTS"; }
+cfBASH() { $1 "${RC_bash}"; }
+cfDASH() { $1 "${RC_dash}"; }
+cfZSH() { $1 "${RC_zsh}"; }
+cfPWSH() { $1 "${RC_pwsh}"; }
+cfX11() { $1 "${RC_xinit}"; }
+cfGIT() { $1 "${GIT_CONFIG}"; }
+cfSSH() { $1 "${RC_ssh}"; }
+cfFSH() { $1 "${RC_fish}"; }
+cfINI() { $1 "${RC_init}"; }
+cfDOT() { ede "${codeDOTS}"; }
 
 # --> Change Shell Permanently
-csB() { chsh "$USER" -s /bin/bash; }
-csD() { chsh "$USER" -s /bin/dash; }
-csZ() { chsh "$USER" -s /bin/zsh; }
+csB() { chsh "${USER}" -s /bin/bash; }
+csD() { chsh "${USER}" -s /bin/dash; }
+csZ() { chsh "${USER}" -s /bin/zsh; }
 
 # >>= Shell =<< #
 alias B='clear; bash' b='bash'
@@ -87,7 +87,7 @@ alias cpua="ps auxf | sort -nr -k 3"
 
 eo() {
   # if weHave emojify; then
-  if emojify --version type > /dev/null 2>&1; then
+  if emojify --version type >/dev/null 2>&1; then
     emojify "$*"
   else
     printf "%s$*"
@@ -107,8 +107,8 @@ alias md="mkdir --parents --verbose"
 alias ln='ln -i'
 mcd() {
   newdir="$*"
-  mkdir --parents "$newdir"
-  cd "$newdir" || return
+  mkdir --parents "${newdir}"
+  cd "${newdir}" || return
 }
 alias mkcd='mcd'
 
@@ -173,23 +173,23 @@ alias yt_mp3="yt-dlp --extract-audio --audio-format mp3 --audio-quality 0"
 # --- Clipboard Management ---
 # ----------------------------
 
-case $sys_INFO in
-  *Windows*)
-    alias copy="clip.exe"
-    alias paste="powershell.exe Get-Clipboard"
-    ;;
-  *Mac*)
-    alias copy="pbcopy"
-    alias paste="pbpaste"
-    ;;
-  *Linux*)
-    alias copy="xclip -sel clip"
-    alias paste="xclip -sel clip -o"
-    ;;
-  *)
-    alias copy="/dev/clipboard"
-    alias paste="cat /dev/clipboard"
-    ;;
+case ${sys_INFO} in
+*Windows*)
+  alias copy="clip.exe"
+  alias paste="powershell.exe Get-Clipboard"
+  ;;
+*Mac*)
+  alias copy="pbcopy"
+  alias paste="pbpaste"
+  ;;
+*Linux*)
+  alias copy="xclip -sel clip"
+  alias paste="xclip -sel clip -o"
+  ;;
+*)
+  alias copy="/dev/clipboard"
+  alias paste="cat /dev/clipboard"
+  ;;
 esac
 
 alias ko='eko -n'

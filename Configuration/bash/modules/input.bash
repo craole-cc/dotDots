@@ -20,12 +20,12 @@ home_file="${HOME}/.inputrc"
 }
 
 #{ Compare modification times and update the older of the two files
-if [ "${conf_file}" -nt "${home_file}" ]; then
+if [[ "${conf_file}" -nt "${home_file}" ]]; then
   #{ Config file is newer, copy to home
   printf "Config inputrc is newer. Copying to home..."
   cp -f "${conf_file}" "${home_file}"
   printf "Sync complete."
-elif [ "${home_file}" -ot "${conf_file}" ]; then
+elif [[ "${home_file}" -ot "${conf_file}" ]]; then
   #{ Home file is newer, copy to config
   printf "Home inputrc is newer. Copying to config..."
   cp -f "${home_file}" "${conf_file}"

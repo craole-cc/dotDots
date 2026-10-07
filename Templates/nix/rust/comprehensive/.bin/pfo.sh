@@ -3,7 +3,7 @@
 set -eu
 
 has_cmd() {
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 say_info() {
@@ -47,15 +47,15 @@ print_json_var() {
   value="${2-}"
 
   if [ -z "${value}" ]; then
-    say_warn "$name is unset or empty"
+    say_warn "${name} is unset or empty"
     return 0
   fi
 
-  if printf '%s\n' "$value" | jq . > /dev/null 2>&1; then
-    printf '%s\n' "$value" | jq .
+  if printf '%s\n' "${value}" | jq . >/dev/null 2>&1; then
+    printf '%s\n' "${value}" | jq .
   else
-    say_error "$name is not valid JSON"
-    printf '--- raw %s ---\n%s\n' "$name" "$value" >&2
+    say_error "${name} is not valid JSON"
+    printf '--- raw %s ---\n%s\n' "${name}" "${value}" >&2
     return 1
   fi
 }

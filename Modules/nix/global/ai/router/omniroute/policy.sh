@@ -4,14 +4,14 @@
 # every other channel and connection.
 set -eu
 
-data_dir="${OMNIROUTE_DATA_DIR:-$HOME/.local/share/omniroute}"
-database="$data_dir/storage.sqlite"
+data_dir="${OMNIROUTE_DATA_DIR:-${HOME}/.local/share/omniroute}"
+database="${data_dir}/storage.sqlite"
 
-# OmniRoute initializes the database on first start. Defer reconciliation
+# OmniRoute initialises the database on first start. Defer reconciliation
 # until its schema exists.
-[ -f "$database" ] || exit 0
+[ -f "${database}" ] || exit 0
 
-sqlite3 "$database" << 'SQL'
+sqlite3 "${database}" << 'SQL'
 INSERT INTO auto_candidate_overrides (
   id,
   api_key_id,

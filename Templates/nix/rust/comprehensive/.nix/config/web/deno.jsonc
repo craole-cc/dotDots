@@ -1,21 +1,21 @@
 {
-  "fmt": {
-    "useTabs": false,
-    "lineWidth": 100,
-    "indentWidth": 2,
-    "singleQuote": false,
-    "proseWrap": "always",
-    "include": [
-      "style/**/*.scss",
-      "style/**/*.css",
-      "**/*.md",
-      "**/*.json",
-      "**/*.jsonc",
-      "**/*.ts",
-      "**/*.js",
-      "**/*.yaml",
-      "**/*.yml"
-    ],
-    "exclude": ["node_modules", "target", ".git", "**/dist/**"]
-  }
+	"fmt": {
+		"useTabs": false,
+		"lineWidth": 100,
+		"indentWidth": 2,
+		"singleQuote": false,
+		"proseWrap": "always",
+		"include": [
+			"style/**/*.scss",
+			"style/**/*.css",
+			"**/*.md",
+			"**/*.json",
+			"**/*.jsonc",
+			"**/*.ts",
+			"**/*.js",
+			"**/*.yaml",
+			"**/*.yml"
+		],
+		"exclude": ["node_modules", "target", ".git", "**/dist/**"]
+	}
 }

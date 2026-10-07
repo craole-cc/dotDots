@@ -71,7 +71,7 @@
     #? asking for a tool that does not exist should still get a working profile.
     inherit (resolution) missing warnings;
 
-    packages = resolution.packages;
+    inherit (resolution) packages;
   };
 in {
   inherit default resolve resolvePackages;

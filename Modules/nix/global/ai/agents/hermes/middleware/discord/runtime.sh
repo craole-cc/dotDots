@@ -1,8 +1,8 @@
 # shellcheck shell=sh
 #shellcheck enable=all
-if [ -n "${HERMES_ENV_SH:-}" ] && [ -f "$HERMES_ENV_SH" ]; then
+if [ -n "${HERMES_ENV_SH:-}" ] && [ -f "${HERMES_ENV_SH}" ]; then
   # shellcheck disable=SC1090
-  . "$HERMES_ENV_SH"
+  . "${HERMES_ENV_SH}"
 fi
 
 : "${HERMES_HOME:?HERMES_HOME not set}"

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+HERMES_HOME="${HERMES_HOME:-${HOME}/.hermes}"
 export HERMES_HOME
 
 : "${HINDSIGHT_MODE:?HINDSIGHT_MODE not set}"
@@ -10,11 +10,11 @@ export HERMES_HOME
 : "${HINDSIGHT_RECALL_BUDGET:?HINDSIGHT_RECALL_BUDGET not set}"
 
 case "${1:-}" in
-  "" | --force) ;;
-  *)
-    printf '%s\n' "Usage: configure-hindsight [--force]" >&2
-    exit 64
-    ;;
+"" | --force) ;;
+*)
+  printf '%s\n' "Usage: configure-hindsight [--force]" >&2
+  exit 64
+  ;;
 esac
 
 config_dir="${HERMES_HOME}/hindsight"
@@ -30,7 +30,7 @@ mkdir -p "${config_dir}"
 tmp_file="${config_file}.tmp.$$"
 trap 'rm -f "${tmp_file}"' EXIT HUP INT TERM
 
-cat > "${tmp_file}" << EOF
+cat >"${tmp_file}" <<EOF
 {
   "mode": "${HINDSIGHT_MODE}",
   "api_url": "${HINDSIGHT_API_URL}",
@@ -54,12 +54,12 @@ hermes config set memory.provider hindsight
 # does not consume OPENAI_BASE_URL.  The variables are opt-in so the plain
 # Hindsight preset continues to leave a user's model choice alone.
 if [ -n "${HERMES_MODEL_PROVIDER:-}" ]; then
-  hermes config set model.provider "$HERMES_MODEL_PROVIDER"
+  hermes config set model.provider "${HERMES_MODEL_PROVIDER}"
 fi
 if [ -n "${HERMES_MODEL_BASE_URL:-}" ]; then
-  hermes config set model.base_url "$HERMES_MODEL_BASE_URL"
+  hermes config set model.base_url "${HERMES_MODEL_BASE_URL}"
 fi
 if [ -n "${HERMES_MODEL_DEFAULT:-}" ]; then
-  hermes config set model.default "$HERMES_MODEL_DEFAULT"
+  hermes config set model.default "${HERMES_MODEL_DEFAULT}"
 fi
 printf '%s\n' "Configured Hermes Hindsight external memory at ${HINDSIGHT_API_URL} (bank: ${HINDSIGHT_BANK_ID})."

@@ -2,12 +2,12 @@
 #shellcheck enable=all
 set -eu
 
-bridge_src="${HERMES_WHATSAPP_BRIDGE_SRC}"
-bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR}"
+bridge_src="${HERMES_WHATSAPP_BRIDGE_SRC:?}"
+bridge_dir="${HERMES_WHATSAPP_BRIDGE_DIR:?}"
 bridge_script="${bridge_dir}/bridge.js"
-gateway_json="${HERMES_GATEWAY_CFG}"
+gateway_json="${HERMES_GATEWAY_CFG:?}"
 
-mkdir -p "${bridge_dir}" "${HERMES_HOME}"
+mkdir -p "${bridge_dir}" "${HERMES_HOME:?}"
 
 cp -f \
   "${bridge_src}/allowlist.js" \
@@ -28,4 +28,4 @@ then
   )
 fi
 
-python3 "${HERMES_WHATSAPP_GATEWAY_PY}" "${gateway_json}" "${bridge_script}"
+python3 "${HERMES_WHATSAPP_GATEWAY_PY:?}" "${gateway_json}" "${bridge_script}"

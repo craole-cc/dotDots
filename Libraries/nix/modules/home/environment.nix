@@ -6,8 +6,8 @@
     user ? {},
   }:
     locale.defaults
-    // (host.localisation or {})
-    // (user.localisation or {});
+    // (host.locale or {})
+    // (user.locale or {});
 
   __exports = {
     internal = {inherit mkLocale;};

@@ -6,10 +6,10 @@
 ## Github  : @adi1090x
 ## Twitter : @adi1090x
 
-style="$($HOME/.config/rofi/applets/menu/style.sh)"
+style="$("${HOME}"/.config/rofi/applets/menu/style.sh)"
 
-dir="$HOME/.config/rofi/applets/menu/configs/$style"
-rofi_command="rofi -theme $dir/network.rasi"
+dir="${HOME}/.config/rofi/applets/menu/configs/${style}"
+rofi_command="rofi -theme ${dir}/network.rasi"
 
 ## Get info
 IFACE="$(nmcli | grep -i interface | awk '/interface/ {print $2}')"
@@ -21,9 +21,9 @@ STATUS="$(nmcli radio wifi)"
 active=""
 urgent=""
 
-if (ping -c 1 archlinux.org || ping -c 1 google.com || ping -c 1 bitbucket.org || ping -c 1 github.com || ping -c 1 sourceforge.net) &> /dev/null; then
-  if [[ $STATUS == *"enable"* ]]; then
-    if [[ $IFACE == e* ]]; then
+if (ping -c 1 archlinux.org || ping -c 1 google.com || ping -c 1 bitbucket.org || ping -c 1 github.com || ping -c 1 sourceforge.net) &>/dev/null; then
+  if [[ ${STATUS} == *"enable"* ]]; then
+    if [[ ${IFACE} == e* ]]; then
       connected=""
     else
       connected=""
@@ -44,25 +44,25 @@ bmon=""
 launch_cli=""
 launch=""
 
-options="$connected\n$bmon\n$launch_cli\n$launch"
+options="${connected}\n${bmon}\n${launch_cli}\n${launch}"
 
 ## Main
-chosen="$(echo -e "$options" | $rofi_command -p "$SSID  :  $PIP" -dmenu $active $urgent -selected-row 1)"
-case $chosen in
-  $connected)
-    if [[ $STATUS == *"enable"* ]]; then
-      nmcli radio wifi off
-    else
-      nmcli radio wifi on
-    fi
-    ;;
-  $bmon)
-    termite -e bmon
-    ;;
-  $launch_cli)
-    termite -e nmtui
-    ;;
-  $launch)
-    nm-connection-editor
-    ;;
+chosen="$(echo -e "${options}" | ${rofi_command} -p "${SSID}  :  ${PIP}" -dmenu "${active}" "${urgent}" -selected-row 1)"
+case ${chosen} in
+${connected})
+  if [[ ${STATUS} == *"enable"* ]]; then
+    nmcli radio wifi off
+  else
+    nmcli radio wifi on
+  fi
+  ;;
+${bmon})
+  termite -e bmon
+  ;;
+${launch_cli})
+  termite -e nmtui
+  ;;
+${launch})
+  nm-connection-editor
+  ;;
 esac

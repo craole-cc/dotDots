@@ -1,5 +1,5 @@
 {
-  "harper.dialect": "British",
-  "harper.workspaceDictPath": ".harper-dictionary.txt",
-  "harper.linters.ToDoHyphen": false
+	"harper.dialect": "British",
+	"harper.workspaceDictPath": ".harper-dictionary.txt",
+	"harper.linters.ToDoHyphen": false
 }

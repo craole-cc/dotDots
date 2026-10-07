@@ -35,7 +35,7 @@ printf 'Updating user API...\n'
 #?  dconf directly writes to the same key without requiring GNOME schemas
 printf 'Setting portal color-scheme...\n'
 "${CMD_DCONF}" write /org/gnome/desktop/interface/color-scheme \
-  "'prefer-${CFG_POLARITY}'" 2> /dev/null || {
+  "'prefer-${CFG_POLARITY}'" 2>/dev/null || {
   printf 'Warning: dconf write failed\n'
 }
 
@@ -43,22 +43,22 @@ printf 'Setting portal color-scheme...\n'
 #?  adw-gtk3 light variant has no suffix; dark variant is "adw-gtk3-dark"
 printf 'Setting GTK theme...\n'
 case "${CFG_POLARITY}" in
-  dark) gtk_theme="adw-gtk3-dark" ;;
-  light) gtk_theme="adw-gtk3" ;;
+dark) gtk_theme="adw-gtk3-dark" ;;
+light) gtk_theme="adw-gtk3" ;;
 esac
-if command -v gsettings > /dev/null 2>&1; then
+if command -v gsettings >/dev/null 2>&1; then
   gsettings set org.gnome.desktop.interface color-scheme \
-    "prefer-${CFG_POLARITY}" 2> /dev/null || true
+    "prefer-${CFG_POLARITY}" 2>/dev/null || true
   gsettings set org.gnome.desktop.interface gtk-theme \
-    "${gtk_theme}" 2> /dev/null || true
+    "${gtk_theme}" 2>/dev/null || true
 else
   "${CMD_DCONF}" write /org/gnome/desktop/interface/gtk-theme \
-    "'${gtk_theme}'" 2> /dev/null || true
+    "'${gtk_theme}'" 2>/dev/null || true
 fi
 
 #> Update wallpapers
 printf 'Updating wallpapers...\n'
-"${CMD_WALLMAN}" set --polarity "${CFG_POLARITY}" 2> /dev/null || {
+"${CMD_WALLMAN}" set --polarity "${CFG_POLARITY}" 2>/dev/null || {
   printf 'Warning: Wallpaper update had issues\n'
 }
 
@@ -74,11 +74,11 @@ printf 'Updating wallpapers...\n'
 
 #> Sync caelestia scheme
 printf 'Syncing caelestia scheme...\n'
-if command -v caelestia > /dev/null 2>&1; then
+if command -v caelestia >/dev/null 2>&1; then
   caelestia scheme set \
     -n catppuccin \
     -f "${CFG_CAELESTIA_FLAVOR}" \
-    -m "${CFG_POLARITY}" 2> /dev/null || {
+    -m "${CFG_POLARITY}" 2>/dev/null || {
     printf 'Warning: caelestia scheme change failed\n'
   }
 else
@@ -102,14 +102,14 @@ printf 'Notifying...\n'
 "${CMD_NOTIFY}" \
   --urgency=low \
   --expire-time=2000 \
-  "Theme" "Switched to ${CFG_POLARITY} mode" 2> /dev/null || true
+  "Theme" "Switched to ${CFG_POLARITY} mode" 2>/dev/null || true
 
 #> Update state file
 mkdir -p "$(dirname "${STATE_FILE}")"
-printf '%s\n' "${CFG_POLARITY}" > "$STATE_FILE"
+printf '%s\n' "${CFG_POLARITY}" >"${STATE_FILE}"
 
 #> Notify the shared live theme dispatcher. It owns Foot/GTK/Qt reactions and
 # emits the session polarity event; failure is non-fatal during login races.
-"${CMD_THEME_TOGGLE}" "${CFG_POLARITY}" 2> /dev/null || true
+"${CMD_THEME_TOGGLE}" "${CFG_POLARITY}" 2>/dev/null || true
 
 printf '=== Done ===\n'

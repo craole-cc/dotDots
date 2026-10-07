@@ -11,18 +11,18 @@ case "${BASHOPTS}" in !*i*)
 *) ;; esac
 
 #{ Add the bin directory to the path
-# PATH="$(pathman --append "$SHELL_HOME/bin" --print)" export PATH
+# PATH="$(pathman --append "${SHELL_HOME:?}/bin" --print)" export PATH
 
 #{ Define a list of files to include
 include_files=(
-  "${SHELL_HOME}/modules"
-  # "$SHELL_HOME/modules/**/*.bash"
+  "${SHELL_HOME:?}/modules"
+  # "${SHELL_HOME:?}/modules/**/*.bash"
 )
 
 #{ Define a list of files to exclude
 exclude_files=(
-  "${SHELL_HOME}/scripts/rustup.bash"
-  # "$SHELL_HOME/modules/exclude.bash"
+  "${SHELL_HOME:?}/scripts/rustup.bash"
+  # "${SHELL_HOME:?}/modules/exclude.bash"
 )
 
 #{ Process the list of files to include

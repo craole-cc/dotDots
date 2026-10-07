@@ -16,7 +16,7 @@
   inherit (lix.types.combinators) nullOr;
   inherit (lix.types.primitives) float str;
 
-  loc = host.localisation;
+  loc = host.locale;
 in
   mkConfig {
     inherit context;
@@ -25,37 +25,37 @@ in
       timeZone = mkOption {
         description = "System timezone";
         default = loc.timeZone;
-        defaultText = literalExpression "host.localisation.timeZone";
+        defaultText = literalExpression "host.locale.timeZone";
         type = nullOr str;
       };
       defaultLocale = mkOption {
         description = "Default locale";
         default = loc.defaultLocale;
-        defaultText = literalExpression "host.localisation.defaultLocale";
+        defaultText = literalExpression "host.locale.defaultLocale";
         type = nullOr str;
       };
       latitude = mkOption {
         description = "Geolocation latitude";
         default = loc.latitude;
-        defaultText = literalExpression "host.localisation.latitude";
+        defaultText = literalExpression "host.locale.latitude";
         type = nullOr float;
       };
       longitude = mkOption {
         description = "Geolocation longitude";
         default = loc.longitude;
-        defaultText = literalExpression "host.localisation.longitude";
+        defaultText = literalExpression "host.locale.longitude";
         type = nullOr float;
       };
       locator = mkOption {
         description = "Location provider";
         default = loc.locator;
-        defaultText = literalExpression "host.localisation.locator";
+        defaultText = literalExpression "host.locale.locator";
         type = str;
       };
       dualBootWindows = mkEnable {
         description = "Hardware clock for Windows dual-boot";
         condition = loc.dualBootWindows;
-        defaultText = literalExpression "host.localisation.dualBootWindows";
+        defaultText = literalExpression "host.locale.dualBootWindows";
       };
     };
     outputs = {

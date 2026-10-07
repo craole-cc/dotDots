@@ -3,7 +3,7 @@
 
   hashedPassword = "$y$j9T$y5deqkLNKsaNvEx8tQoVf/$yxXthzmEInJv9G4iOYsEI/7KJJRfc2BLasQa5scwkG6";
 
-  localisation = {
+  locale = {
     defaultLocale = "en_GB.UTF-8";
   };
 

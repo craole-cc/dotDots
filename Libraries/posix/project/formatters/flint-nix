@@ -1,0 +1,308 @@
+#!/bin/sh
+# flint-nix – alejandra + statix in one pass, with real autofix.
+#
+# Each file is processed on a scratch copy that lives next to the original
+# (so relative paths and neighbouring config keep making sense):
+#   1. alejandra        (formatter)
+#   2. statix fix       (every lint statix knows how to rewrite)
+#   3. repeat 1-2 until nothing changes (bounded by MAX_PASSES), because
+#      formatting can expose new lints and fixes can need re-formatting
+#   4. write back only if something changed (--dry-run shows a diff instead)
+#   5. print whatever statix still complains about
+#
+# statix.toml: the nearest one above each file is used (override with --config).
+# Lints statix cannot rewrite (e.g. repeated_keys) stay in the report; silence
+# the ones you don't want via `disabled = [...]` in statix.toml.
+#
+# Exit status: 0 clean | 1 issues remain (or changes pending in --dry-run) | 2 usage error
+
+set -eu
+
+#~@ Global Settings & Defaults
+_scr_name="flint-nix"
+DRY_RUN=0
+INTERNAL_MODE=0
+MAX_PASSES=5
+NPROC=2
+FINDER=""
+SCRIPT_PATH=""
+USER_CONFIG=""
+STATIX_DIR="."
+STATIX_OUT=""
+STATIX_CLEAN=1
+FIX_OK=1
+FIX_ERR=""
+EXIT_CODE=0
+TMP_FILE=""
+TMP_DIR=""
+
+#~@ Helpers
+die() {
+  printf '%s: %s\n' "${_scr_name}" "$*" >&2
+  exit 2
+}
+
+usage() {
+  printf 'Usage: %s [options] <file|dir>...\n\n' "${0##*/}"
+  printf 'Options:\n'
+  printf '  -d, --dry-run      show a diff of the fixes and the issues that would remain\n'
+  printf '  -c, --config PATH  statix.toml (or its directory); default: nearest one above each file\n'
+  printf '  -h, --help         show this help menu\n\n'
+  printf 'Exit status: 0 clean, 1 issues remain (or changes pending with -d), 2 usage error\n'
+}
+
+cleanup() {
+  if [ -n "${TMP_DIR}" ]; then
+    rm -rf "${TMP_DIR}"
+  fi
+  TMP_DIR=""
+  TMP_FILE=""
+}
+
+#~@ Tool Discovery & Parallel Config
+init_bin() {
+  for _tool in alejandra statix; do
+    command -v "${_tool}" >/dev/null 2>&1 || die "required tool not found: ${_tool}"
+  done
+
+  # CPU threads for parallel processing (POSIX fallback to 2)
+  NPROC=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
+
+  # Fast finder with a plain find(1) fallback
+  if command -v fd >/dev/null 2>&1; then
+    FINDER="fd"
+  elif command -v fdfind >/dev/null 2>&1; then
+    FINDER="fdfind"
+  else
+    FINDER="find"
+  fi
+
+  # Absolute path to ourselves, for the parallel workers
+  case $0 in
+  /*) SCRIPT_PATH=$0 ;;
+  */*)
+    _ib_dir=$(dirname -- "$0")
+    _ib_dir=$(cd -- "${_ib_dir}" && pwd)
+    SCRIPT_PATH="${_ib_dir}/${0##*/}"
+    ;;
+  *) SCRIPT_PATH=$(command -v -- "$0" || readlink -f -- "$0") ;;
+  esac
+}
+
+# find_statix_config DIR – walk up from DIR looking for statix.toml.
+# Sets STATIX_DIR to the directory holding it, or "." (statix's own default).
+find_statix_config() {
+  _fc_abs=$(cd -- "$1" && pwd -P)
+  STATIX_DIR="."
+  while :; do
+    if [ -f "${_fc_abs}/statix.toml" ]; then
+      STATIX_DIR=${_fc_abs}
+      return 0
+    fi
+    [ "${_fc_abs}" != "/" ] || break
+    _fc_abs=$(dirname -- "${_fc_abs}")
+  done
+}
+
+# statix_check FILE – sets STATIX_OUT (the report) and STATIX_CLEAN (1/0).
+# Always returns 0 so callers don't have to fight set -e.
+statix_check() {
+  STATIX_CLEAN=1
+  _sc_rc=0
+  STATIX_OUT=$(statix check --config "${STATIX_DIR}" "$1" 2>&1) || _sc_rc=$?
+  if [ "${_sc_rc}" -ne 0 ] && [ -z "${STATIX_OUT}" ]; then
+    STATIX_OUT="statix exited with status ${_sc_rc}"
+  fi
+  if [ "${_sc_rc}" -ne 0 ] || [ -n "${STATIX_OUT}" ]; then
+    STATIX_CLEAN=0
+  fi
+}
+
+# Run every fixer repeatedly until the file stops changing.
+# Sets FIX_OK (0 if alejandra could not parse the file) and FIX_ERR.
+fix_file() {
+  _ff_file=$1
+  _ff_pass=0
+  FIX_OK=1
+  FIX_ERR=""
+
+  while [ "${_ff_pass}" -lt "${MAX_PASSES}" ]; do
+    _ff_before=$(cksum <"${_ff_file}")
+
+    _ff_rc=0
+    FIX_ERR=$(alejandra -q "${_ff_file}" 2>&1) || _ff_rc=$?
+    if [ "${_ff_rc}" -ne 0 ]; then
+      FIX_OK=0
+      return 0
+    fi
+
+    statix fix --config "${STATIX_DIR}" "${_ff_file}" >/dev/null 2>&1 || true
+
+    _ff_after=$(cksum <"${_ff_file}")
+    [ "${_ff_before}" != "${_ff_after}" ] || break
+    _ff_pass=$((_ff_pass + 1))
+  done
+
+  # Final format, in case the last statix rewrite left the file unformatted
+  FIX_ERR=$(alejandra -q "${_ff_file}" 2>&1) || FIX_OK=0
+}
+
+#~@ Per-file driver (records problems in EXIT_CODE)
+process_file() {
+  _pf_orig=$1
+  [ -f "${_pf_orig}" ] || return 0
+  case /${_pf_orig} in */flint-nix-tmp.*/*) return 0 ;; *) ;; esac
+
+  _pf_dir=$(dirname -- "${_pf_orig}")
+  _pf_base=$(basename -- "${_pf_orig}")
+  # The scratch copy keeps the original file NAME, in a sibling directory
+  TMP_DIR="${_pf_dir}/flint-nix-tmp.$$"
+  TMP_FILE="${TMP_DIR}/${_pf_base}"
+
+  if ! mkdir -p -- "${TMP_DIR}" 2>/dev/null || ! cp -p -- "${_pf_orig}" "${TMP_FILE}" 2>/dev/null; then
+    printf '%s: cannot create scratch copy next to %s\n' "${_scr_name}" "${_pf_orig}" >&2
+    EXIT_CODE=1
+    cleanup
+    return 0
+  fi
+
+  if [ -n "${USER_CONFIG}" ]; then
+    STATIX_DIR=${USER_CONFIG}
+  else
+    find_statix_config "${_pf_dir}"
+  fi
+
+  fix_file "${TMP_FILE}"
+  if [ "${FIX_OK}" -eq 0 ]; then
+    printf '%s: %s: could not be parsed, skipped\n' "${_scr_name}" "${_pf_orig}" >&2
+    if [ -n "${FIX_ERR}" ]; then
+      printf '%s\n' "${FIX_ERR}" | sed 's|flint-nix-tmp\.[0-9][0-9]*/||g' >&2
+    fi
+    EXIT_CODE=1
+    cleanup
+    return 0
+  fi
+
+  _pf_changed=0
+  cmp -s "${_pf_orig}" "${TMP_FILE}" || _pf_changed=1
+
+  if [ "${DRY_RUN}" -eq 1 ]; then
+    if [ "${_pf_changed}" -eq 1 ]; then
+      diff -u -L "${_pf_orig}" -L "${_pf_orig} (fixed)" "${_pf_orig}" "${TMP_FILE}" || true
+      EXIT_CODE=1
+    fi
+    statix_check "${TMP_FILE}"
+    if [ "${STATIX_CLEAN}" -eq 0 ]; then
+      printf 'flint-nix [dry-run]: issues that would remain in %s:\n' "${_pf_orig}"
+      printf '%s\n' "${STATIX_OUT}" | sed 's|flint-nix-tmp\.[0-9][0-9]*/||g'
+      EXIT_CODE=1
+    fi
+  else
+    if [ "${_pf_changed}" -eq 1 ]; then
+      cat "${TMP_FILE}" >"${_pf_orig}"
+      printf 'flint-nix: fixed %s\n' "${_pf_orig}"
+    fi
+    statix_check "${_pf_orig}"
+    if [ "${STATIX_CLEAN}" -eq 0 ]; then
+      printf '%s\n' "${STATIX_OUT}"
+      EXIT_CODE=1
+    fi
+  fi
+
+  cleanup
+}
+
+#~@ Directory walking: find -> fan out to workers
+run_finder() {
+  _rf_dir=$1
+
+  set -- xargs -0 -P "${NPROC}" -n 20
+  if [ -x "${SCRIPT_PATH}" ]; then
+    set -- "$@" "${SCRIPT_PATH}"
+  else
+    set -- "$@" sh "${SCRIPT_PATH}"
+  fi
+  if [ "${DRY_RUN}" -eq 1 ]; then set -- "$@" -d; fi
+  if [ -n "${USER_CONFIG}" ]; then set -- "$@" -c "${USER_CONFIG}"; fi
+  set -- "$@" --internal-process
+
+  case ${FINDER} in
+  fd | fdfind)
+    "${FINDER}" --type f --extension nix --print0 . "${_rf_dir}" | "$@" || EXIT_CODE=1
+    ;;
+  *)
+    find "${_rf_dir}" \( -name .git -o -name node_modules \) -prune -o -type f -name '*.nix' -print0 | "$@" || EXIT_CODE=1
+    ;;
+  esac
+}
+
+#~@ Entry Point
+main() {
+  init_bin
+  trap cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM HUP
+
+  while [ $# -gt 0 ]; do
+    case $1 in
+    --internal-process)
+      INTERNAL_MODE=1
+      shift
+      break
+      ;;
+    -d | --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -c | --config)
+      [ $# -ge 2 ] || die "option requires a value: $1"
+      USER_CONFIG=$2
+      shift 2
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -?*) die "unknown option: $1" ;;
+    *) break ;;
+    esac
+  done
+
+  #> Route 1: internal worker – a batch of paths found by run_finder
+  if [ "${INTERNAL_MODE}" -eq 1 ]; then
+    for _file in "$@"; do
+      case /${_file} in
+      # skip our own scratch dirs if the finder raced with a worker
+      */flint-nix-tmp.*/*) continue ;;
+      *.nix) process_file "${_file}" ;;
+      *) ;;
+      esac
+    done
+    exit "${EXIT_CODE}"
+  fi
+
+  [ $# -gt 0 ] || {
+    usage >&2
+    exit 2
+  }
+
+  #> Route 2: public interface – files are always processed, dirs are walked
+  for _arg in "$@"; do
+    if [ -d "${_arg}" ]; then
+      run_finder "${_arg}"
+    elif [ -f "${_arg}" ]; then
+      process_file "${_arg}"
+    else
+      printf '%s: skipping non-existent path: %s\n' "${_scr_name}" "${_arg}" >&2
+      EXIT_CODE=1
+    fi
+  done
+
+  exit "${EXIT_CODE}"
+}
+
+main "$@"

@@ -12,15 +12,15 @@ while true; do
 
   #if [[ $inst -eq " " ]]
   #then
-  if (("$upd" == 0)); then
-    cat ~/.config/herbstluftwm/updateIcons/noupdate.png > ~/.config/herbstluftwm/updateIcons/trayIcon.png
-    yad --text "$upd Updates" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png
-  elif (("$upd" <= 5)); then
-    cat ~/.config/herbstluftwm/updateIcons/modupdate.png > ~/.config/herbstluftwm/updateIcons/trayIcon.png
-    yad --text "$upd Updates: Right click to see all updates, Left click to perform update" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png --menu="$list" --command "alacritty -e sudo xbps-install -Su"
-  elif (("$upd" > 5)); then
-    cat ~/.config/herbstluftwm/updateIcons/lotsupdate.png > ~/.config/herbstluftwm/updateIcons/trayIcon.png
-    yad --text "$upd Updates: Right click to see all updates, Left click to perform update" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png --menu="$list" --command "alacritty -e sudo xbps-install -Su"
+  if (("${upd}" == 0)); then
+    cat ~/.config/herbstluftwm/updateIcons/noupdate.png >~/.config/herbstluftwm/updateIcons/trayIcon.png
+    yad --text "${upd} Updates" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png
+  elif (("${upd}" <= 5)); then
+    cat ~/.config/herbstluftwm/updateIcons/modupdate.png >~/.config/herbstluftwm/updateIcons/trayIcon.png
+    yad --text "${upd} Updates: Right click to see all updates, Left click to perform update" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png --menu="${list}" --command "alacritty -e sudo xbps-install -Su"
+  elif (("${upd}" > 5)); then
+    cat ~/.config/herbstluftwm/updateIcons/lotsupdate.png >~/.config/herbstluftwm/updateIcons/trayIcon.png
+    yad --text "${upd} Updates: Right click to see all updates, Left click to perform update" --notification --image=./.config/herbstluftwm/updateIcons/trayIcon.png --menu="${list}" --command "alacritty -e sudo xbps-install -Su"
   fi
   #elif [[ $inst -gt "1" ]]
   #then

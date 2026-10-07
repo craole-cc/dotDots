@@ -15,37 +15,37 @@ apply_patch() {
   marker="$3"
   patch_file="$4"
 
-  if ! grep -Fq "$marker" "$package_dir/$target"; then
-    patch --batch --forward -p1 -d "$package_dir" < "$patch_file"
+  if ! grep -Fq "${marker}" "${package_dir}/${target}"; then
+    patch --batch --forward -p1 -d "${package_dir}" <"${patch_file}"
   fi
 }
 
 found=0
-for package_dir in "$cache_root"/*/node_modules/omniroute; do
-  [ -f "$package_dir/open-sse/translator/request/openai-responses/toResponses.ts" ] || continue
-  [ -f "$package_dir/open-sse/executors/codex.ts" ] || continue
+for package_dir in "${cache_root}"/*/node_modules/omniroute; do
+  [ -f "${package_dir}/open-sse/translator/request/openai-responses/toResponses.ts" ] || continue
+  [ -f "${package_dir}/open-sse/executors/codex.ts" ] || continue
 
   apply_patch \
-    "$package_dir" \
+    "${package_dir}" \
     "open-sse/translator/request/openai-responses/toResponses.ts" \
     'Hermes can use the generic `{ enabled: boolean }`' \
-    "$translator_patch"
+    "${translator_patch}"
   apply_patch \
-    "$package_dir" \
+    "${package_dir}" \
     "open-sse/executors/codex.ts" \
     'const genericReasoningEnabled = reasoningRecord?.enabled;' \
-    "$executor_patch"
+    "${executor_patch}"
   apply_patch \
-    "$package_dir" \
+    "${package_dir}" \
     "open-sse/services/targetRequestSanitizer.ts" \
     'function normalizeGenericReasoningToggle' \
-    "$target_patch"
+    "${target_patch}"
   apply_patch \
-    "$package_dir" \
+    "${package_dir}" \
     "open-sse/executors/base.ts" \
     'Generic OpenAI clients may send `reasoning.enabled`' \
-    "$serialization_patch"
-  node - "$package_dir/dist/.build/next/server/chunks" << 'NODE'
+    "${serialization_patch}"
+  node - "${package_dir}/dist/.build/next/server/chunks" <<'NODE'
 const fs = require("fs");
 const path = require("path");
 
@@ -89,7 +89,7 @@ if (patchedCopies !== expectedCopies) {
 }
 NODE
 
-  node - "$package_dir/dist/server.js" << 'NODE'
+  node - "${package_dir}/dist/server.js" <<'NODE'
 const fs = require("fs");
 
 const target = process.argv[2];
@@ -146,7 +146,7 @@ NODE
   found=1
 done
 
-[ "$found" -eq 1 ] || {
+[ "${found}" -eq 1 ] || {
   printf '%s\n' 'OmniRoute package was not found in the npx cache after realization.' >&2
   exit 1
 }

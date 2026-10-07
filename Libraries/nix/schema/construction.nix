@@ -68,19 +68,20 @@
     isIdentity = name: let
       default = dir + "/${name}/default.nix";
     in
-    pathExists default && isAttrs (import default);
+      pathExists default && isAttrs (import default);
   in
-  listToAttrs (
-    map (
-      name: {
-        inherit name;
-        value =
-          if isIdentity name
-          then recursiveUpdate domainDefault (import (dir + "/${name}"))
-          else domainDefault;
-      }
-    ) childNames
-  );
+    listToAttrs (
+      map (
+        name: {
+          inherit name;
+          value =
+            if isIdentity name
+            then recursiveUpdate domainDefault (import (dir + "/${name}"))
+            else domainDefault;
+        }
+      )
+      childNames
+    );
 
   /**
   Enrich each declared host and user from the API.
@@ -127,9 +128,9 @@
       )
       raw.hosts;
   in
-  raw
-  // {
-    inherit hosts users;
-  };
+    raw
+    // {
+      inherit hosts users;
+    };
 in
   __exports.internal // {__rootAliases = __exports.external;}

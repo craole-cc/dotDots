@@ -12,10 +12,7 @@
 #? Every context record that reports findings is read, so adding one to
 #? `context/` needs no change here -- the alternative is a list that has to be
 #? kept in step with the modules that produce warnings.
-{
-  context,
-  ...
-}: {
+{context, ...}: {
   warnings =
     (context.packages.warnings or [])
     ++ (context.modules.warnings or [])

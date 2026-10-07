@@ -8,7 +8,7 @@ A failure therefore means "code and intent disagree", not "test is wrong".
 Takes the shared args and the harness positionally; returns a list of cases.
 */
 args: harness: let
-  lix = args.lix;
+  inherit (args) lix;
   kernel = lix.types.host.kernel;
   cpuLib = lix.types.host.cpu;
   inherit (lix.lists) length;

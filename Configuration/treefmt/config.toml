@@ -38,29 +38,9 @@
   includes = ["*.nix"]
 
 # ~@ Shell
-[formatter.shellcheck]
+[formatter.shflint]
   priority = 1
-  command = "shellcheck"
-  includes = [
-    "*.bash*",
-    "*.bats",
-    "*.dotsrc",
-    "*.sh",
-  ]
-
-[formatter.shfmt]
-  priority = 2
-  command = "shfmt"
-  options = [
-    "--apply-ignore",
-    "--binary-next-line",
-    "--space-redirects",
-    "--case-indent",
-    "--indent",
-    "2",
-    # "--posix",
-    "--write",
-  ]
+  command = "shflint"
   includes = [
     "*.bash*",
     "*.bats",
@@ -71,6 +51,39 @@
     "*.sh",
     "*.shellcheckrc",
   ]
+  # [formatter.shellcheck]
+  #   priority = 2
+  #   command = "shellcheck"
+  #   includes = [
+  #     "*.bash*",
+  #     "*.bats",
+  #     "*.dotsrc",
+  #     "*.sh",
+  #   ]
+
+  # [formatter.shfmt]
+  #   priority = 3
+  #   command = "shfmt"
+  #   options = [
+  #     "--apply-ignore",
+  #     "--binary-next-line",
+  #     "--space-redirects",
+  #     "--case-indent",
+  #     "--indent",
+  #     "2",
+  #     # "--posix",
+  #     "--write",
+  #   ]
+  #   includes = [
+  #     "*.bash*",
+  #     "*.bats",
+  #     "*.dotsrc",
+  #     "*.env*",
+  #     "*.gitignore",
+  #     "*.ignore",
+  #     "*.sh",
+  #     "*.shellcheckrc",
+  #   ]
 
 # ~@ Rust
 [formatter.rustfmt]

@@ -10,7 +10,7 @@
 
 # _________________________________________ LOCAL<|
 # --> Hatch
-HATCH_CONFIG="$DOTS_CFG/python/hatch.toml"
+HATCH_CONFIG="${DOTS_CFG}/python/hatch.toml"
 # _HATCH_COMPLETE=bash_source hatch > "$DOTS_CFG/bash/resources/hatch-complete.bash"
 
 # HATCH_DATA_DIR

@@ -13,4 +13,4 @@ style="square"
 #style="${styles[$(( $RANDOM % 3 ))]}"
 
 # print style name
-echo "$style"
+echo "${style}"

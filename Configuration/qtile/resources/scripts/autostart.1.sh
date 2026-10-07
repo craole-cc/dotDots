@@ -3,14 +3,14 @@
 
 function run() {
   first_lines="$(basename "$1" | head -c 15)"
-  if ! pgrep -x "${first_lines}" 1> /dev/null; then
+  if ! pgrep -x "${first_lines}" 1>/dev/null; then
     "$@" &
   fi
 }
 
 Qtile="${HOME}/.config/qtile"
 Qrun="${Qtile}/resourses/scripts"
-Qconf="$Qtile/resourses/config"
+Qconf="${Qtile}/resourses/config"
 # WALLPAPERS="$HOME/Pictures/Wallpapers"
 
 #Set your native resolution IF it does not exist in xrandr
@@ -29,8 +29,8 @@ Qconf="$Qtile/resourses/config"
 
 keybLayout=$(setxkbmap -v | awk -F "+" '/symbols/ {print $2}')
 
-if [ "$keybLayout" = "be" ]; then
-  cp "$Qtile/config-azerty.py" "$Qtile/config.py"
+if [[ "${keybLayout}" = "be" ]]; then
+  cp "${Qtile}/config-azerty.py" "${Qtile}/config.py"
 fi
 
 #autostart ArcoLinux Welcome App
@@ -56,7 +56,7 @@ run pamac-tray &
 run xfce4-power-manager &
 numlockx on &
 blueberry-tray &
-picom --config "$Qrun/picom.conf" &
+picom --config "${Qrun}/picom.conf" &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 /usr/lib/xfce4/notifyd/xfce4-notifyd &
 

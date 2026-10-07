@@ -102,7 +102,7 @@
     size = 24.5
     priority = 2
 
-[localisation]
+[locale]
   latitude = 18.015
   longitude = -77.49
   city = "Mandeville, Jamaica"

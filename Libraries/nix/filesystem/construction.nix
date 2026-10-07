@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList;
+  inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
   inherit (_.filesystem.primitives) construct;
   inherit (_.lists.access) last;
   inherit (_.lists.aggregation) foldl';

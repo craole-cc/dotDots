@@ -35,3 +35,5 @@
     flavor = "flavor"
     color = "color"
     flavors = "flavors"
+    SERIALIZATION = "SERIALIZATION"
+    normalize = "normalize"
