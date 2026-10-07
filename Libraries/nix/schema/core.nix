@@ -95,6 +95,12 @@
       && elem name declared
     );
 
+  #> `roots.repo` and `roots.src` are aliases for the same thing. Both spellings
+  #> are in active use across host data - `QBX`/`TheOracle` declare `repo`,
+  #> `Victus` declares `src` - so the repo root resolves through either, with
+  #> `repo` winning when both are present.
+  repoRoot = roots: (roots.repo or (roots.src or null));
+
   mkDevelopmentCapability = {
     host,
     interactiveUsers,
@@ -191,11 +197,11 @@
       };
 
       home = let
-        src = host.paths.roots.repo;
+        src = repoRoot (host.paths.roots or {});
       in
         if src != null
         then src
-        else throw "Host: '${name}' must explicitly set `paths.roots.repo` to the path of the repo.";
+        else throw "Host: '${name}' must explicitly set `paths.roots.repo` (or its alias `paths.roots.src`) to the path of the repo.";
 
       system = let
         sys = host.system or (host.specs.platform or null);

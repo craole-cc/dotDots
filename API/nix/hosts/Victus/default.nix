@@ -12,9 +12,6 @@ in {
   id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
-    #? `roots.repo` is the schema key the library reads (`host.paths.roots.repo`,
-    #? consumed by `schema.core` and `Modules/nix/core/environment`). `roots.src`
-    #? was renamed here in 898a86f24 and never migrated back.
     roots.repo = "/home/craole/Downloads/public/dotDots";
     stems.repo = {
       # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";

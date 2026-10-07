@@ -23,7 +23,7 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.predicates) isPathLike pathExists;
   inherit (_.filesystem.resolution) pathAttrs;
-  inherit (_.filesystem.traversal) readDir;
+  inherit (_.filesystem.traversal) foldersToExclude readDir;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
   inherit (_.schema.settings) mkSettings;
@@ -52,13 +52,6 @@
   */
   importIdentities = dir: let
     entries = readDir dir;
-
-    foldersToExclude = [
-      "archives"
-      "review"
-      "temp"
-      "tmp"
-    ];
 
     domainDefault =
       if entries ? "default.nix"

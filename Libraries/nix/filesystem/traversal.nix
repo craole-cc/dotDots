@@ -21,8 +21,21 @@
   inherit (_.strings.predicates) hasSuffix hasPrefix;
   inherit (_.types.predicates) isAttrs isPath isString;
 
+  #> Directory names always excluded from every traversal, regardless of any
+  #> `exclude`/`excludePrefixes` passed at the call site. This is the single
+  #> exclusion contract for the filesystem domain - importers and any other
+  #> traversal consumer inherit it rather than redeclaring the list, so a new
+  #> reserved folder name only has to be added here.
+  foldersToExclude = [
+    "archives"
+    "review"
+    "temp"
+    "tmp"
+  ];
+
   exports = {
     inherit
+      foldersToExclude
       importAll
       importAllMerged
       importAllNamed
@@ -35,15 +48,6 @@
       importValues
       ;
   };
-
-  #> Directory names always excluded from every traversal in this file,
-  #> regardless of any `exclude`/`excludePrefixes` passed at the call site.
-  foldersToExclude = [
-    "archives"
-    "review"
-    "temp"
-    "tmp"
-  ];
 
   #> Name prefixes excluded by default from every `importTree`-based walk
   #> (`importAllNamed`, `importAllMerged`). Pass `excludePrefixes = []` at
