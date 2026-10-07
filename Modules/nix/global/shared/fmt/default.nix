@@ -175,9 +175,7 @@
         excludes = spec.excludes or [];
         options = spec.options or [];
       });
-    in {
-      inherit packages formatters dependencies;
-    };
+    in {inherit packages formatters dependencies;};
 
     dprint = let
       stem = ["Configuration" "dprint" "config.jsonc"];
@@ -209,6 +207,7 @@
   in {
     packages = dprint.package // flint.packages;
     formatters = dprint.formatter // flint.formatters;
+    inherit (flint) dependencies;
   };
 
   tool = let
