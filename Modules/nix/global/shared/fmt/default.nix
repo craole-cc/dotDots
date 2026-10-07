@@ -116,24 +116,29 @@
   custom = let
     flint = let
       mkName = type: "flint-${type}";
+
       specs = {
         sh = {
           dependencies = with pkgs; [shellcheck shfmt];
           includes = ["*"];
           options = ["--detect-shell"];
         };
+
         nix = {
           dependencies = with pkgs; [alejandra statix];
           includes = ["*.nix"];
         };
       };
-      names = map mkName (attrNames specs);
+
+      types = attrNames specs;
 
       dependencies = concatLists (
-        map (name: specs.${name}.dependencies) names
+        map (type: specs.${type}.dependencies) types
       );
 
-      packages = genAttrs names (name:
+      packages = genAttrs types (type: let
+        name = mkName type;
+      in
         writeShellApplication {
           inherit name;
           runtimeInputs =
@@ -148,7 +153,8 @@
               ripgrep
               sd
             ])
-            ++ specs.${name}.dependencies;
+            ++ specs.${type}.dependencies;
+
           text =
             readFile
             (mkPath [
@@ -159,15 +165,19 @@
               name
             ]).store;
         });
-      formatters = genAttrs names (name: let
-        spec = specs.${name};
+
+      formatters = genAttrs types (type: let
+        name = mkName type;
+        spec = specs.${type};
       in {
-        command = "${packages.${name}}/bin/${name}";
+        command = "${packages.${type}}/bin/${name}";
         includes = spec.includes or [];
         excludes = spec.excludes or [];
         options = spec.options or [];
       });
-    in {inherit packages formatters dependencies;};
+    in {
+      inherit packages formatters dependencies;
+    };
 
     dprint = let
       stem = ["Configuration" "dprint" "config.jsonc"];
