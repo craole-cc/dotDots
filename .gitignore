@@ -1,38 +1,37 @@
-[Aa]rchive/
-[Aa]rchives/
-# [Dd]ebug/
-[Dd]ownloads/
-# [Ii]mport/
-[Ll]og/
-[Pp]rivate/
-# [Rr]eview/
-[Tt]arget/
-[Tt]emp/
-[Tt]mp/
-[Rr]esult
-
-.cache/
-# .config/
+#~@ Nix & Development Environments
+result*
 .devenv/
 .direnv/
-*.ttf
-*.otf
-*.woff2
 
-.vscode/
-.zed
-.idea/
-
-!.envrc
-!flake.lock
-!.data/
-
-.codex
-
+#~@ Temporary Files, Cache & Logs
+.cache/
+[Tt]emp/
+[Tt]mp/
+[Ll]og/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 
-contextcaddy-config.json
+#~@ Editor & IDE Configs
+.vscode/
+.zed/
+.idea/
+.codex/
 
+#~@ System & Local Directories
+[Aa]rchive/
+[Aa]rchives/
+[Dd]ownloads/
+[Pp]rivate/
+[Tt]arget/
+
+#~@ Media & Fonts
+*.ttf
+*.otf
+*.woff2
+
+#~@ Explicitly Tracked (Un-ignore Rules)
+!.envrc
+!flake.lock
+!.data/
 !API/nix/hosts/review/Preci/

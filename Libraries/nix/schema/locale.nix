@@ -24,7 +24,7 @@
     host,
     user ? {},
   }: let
-    merged = recursiveUpdate (host.localization or {}) (user.localization or {});
+    merged = recursiveUpdate (host.localisation or {}) (user.localisation or {});
     fun = host.functionalities or [];
   in
     defaults // merged // {dualBootWindows = elem "dualboot-windows" fun;};

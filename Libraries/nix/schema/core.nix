@@ -83,14 +83,16 @@
   #> for both rather than assuming one.
   hasCapability = declared: name:
     (
-      declared != null
+      declared
+      != null
       && builtins.isAttrs declared
       && declared ? ${name}
     )
     #> `elem` throws on a non-list, so the list case has to be tested second:
     #> the structured-map check above must never be preceded by it.
     || (
-      declared != null
+      declared
+      != null
       && builtins.isList declared
       && elem name declared
     );
@@ -191,7 +193,7 @@
         inherit host;
         inherit (derived) user;
       };
-      localization = mkLocale {
+      localisation = mkLocale {
         inherit host;
         inherit (derived) user;
       };

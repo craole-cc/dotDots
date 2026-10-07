@@ -49,7 +49,7 @@
 #     network = []; #? Network interface hardware devices
 #     display = {}; #? Display monitors, outputs, and resolutions
 #   };
-#   localization = {
+#   localisation = {
 #     latitude = 18.015; #? Geographic latitude for night light / geolocation
 #     longitude = -77.49; #? Geographic longitude for night light / geolocation
 #     city = "Mandeville, Jamaica"; #? City name identifier
@@ -131,4 +131,3 @@
 #   ];
 #   target = ./.;
 # }
-
