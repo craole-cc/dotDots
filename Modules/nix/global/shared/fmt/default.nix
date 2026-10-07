@@ -58,7 +58,14 @@
   #~@ Nix-side eval: store-path commands, used by `nix fmt`.
   init = let
     module = {
-      _module.args = {inherit lix;} // utils;
+      _module.args =
+        {
+          inherit lix;
+          flake = {
+            path = paths.store.src;
+          };
+        }
+        // utils;
       imports = (importAllPaths ./.).value;
       projectRootFile = "flake.nix";
       programs = {
