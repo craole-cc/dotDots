@@ -177,13 +177,17 @@
           "${g-plane-pretty_yaml}/plugin.wasm"
           "${g-plane-malva}/plugin.wasm"
         ]);
-      formatter.options = mkForce [
-        "fmt"
-        "--allow-no-files"
-        "--config"
-        "${(writeText "dprint.json" (plugins path))}"
-      ];
+
       package = pkgs.dprint;
+      formatter.dprint = {
+        command = "${package}/bin/dprint";
+        options = [
+          "fmt"
+          "--allow-no-files"
+          "--config"
+          "${writeText "dprint.json" (plugins path)}"
+        ];
+      };
     in {inherit package formatter;};
   in {
     packages = dprint.package // flint.packages;
