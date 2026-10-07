@@ -6,7 +6,7 @@
   pkgsFor,
   print,
   ...
-} @ args: let
+}: let
   inherit inputs;
   path = paths.store.src;
   treefmtInput = inputs.treeFormatter or (inputs.treefmtNix or inputs.treefmt);
@@ -161,7 +161,10 @@
               "${dprint-plugin-markdown}/plugin.wasm"
               "${g-plane-pretty_yaml}/plugin.wasm"
               "${g-plane-malva}/plugin.wasm"
-            ]) (readFile (path + "/dprint.json"))))}"
+            ]) (readFile (
+              paths.store.cfg.default
+              + "/Configuration/dprint/config.jsonc"
+            ))))}"
         ];
       };
     };
@@ -173,7 +176,11 @@
   treefmt = let
     eval = mkEval tool.wrappers.exe;
     inherit (eval) build check wrapper;
-    allTools = filter (p: p != null) (map (name: (tool.of name).pkg or null) (filter (name: name != "treefmt") tool.tools));
+    allTools = filter (pkg: pkg != null) (
+      map
+      (name: (tool.of name).pkg or null)
+      (filter (name: name != "treefmt") tool.tools)
+    );
     withTools = drv:
       drv.overrideAttrs (old: {
         nativeBuildInputs = (old.nativeBuildInputs or []) ++ allTools;
