@@ -205,9 +205,9 @@
       };
     in {inherit package formatter;};
   in {
-    packages = dprint.package // flint.packages;
+    # packages = dprint.package // flint.packages;
     formatters = dprint.formatter // flint.formatters;
-    inherit (flint) dependencies;
+    inherit (flint) packages dependencies;
   };
 
   tool = let
