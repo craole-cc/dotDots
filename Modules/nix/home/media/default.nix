@@ -9,7 +9,8 @@
     gImageReader
     # inkscape
     qbittorrent-enhanced
-    # warp-terminal
+    yt-dlp
+    warp-terminal
     # (spacedrive.overrideAttrs (oldAttrs: {
     #   makeWrapperArgs = [
     #     "--set GDK_BACKEND x11"

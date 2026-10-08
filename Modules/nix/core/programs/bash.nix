@@ -9,7 +9,7 @@
     dom = "programs";
     mod = "bash";
   };
-  inherit (context) cfg mod top;
+  inherit (context) cfg mod;
 
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkTrue;

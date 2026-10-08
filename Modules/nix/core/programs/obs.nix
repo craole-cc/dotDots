@@ -2,7 +2,6 @@
   config,
   host,
   lix,
-  pkgs,
   ...
 }: let
   context = mkContext {

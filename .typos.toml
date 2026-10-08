@@ -38,3 +38,4 @@
     SERIALIZATION = "SERIALIZATION"
     normalize = "normalize"
 colors = "colors"
+authorize = "authorize"
