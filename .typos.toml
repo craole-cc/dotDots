@@ -37,5 +37,5 @@
     flavors = "flavors"
     SERIALIZATION = "SERIALIZATION"
     normalize = "normalize"
-colors = "colors"
-authorize = "authorize"
+    colors = "colors"
+    authorize = "authorize"

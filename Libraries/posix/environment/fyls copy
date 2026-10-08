@@ -74,7 +74,7 @@ parse_arguments() {
 }
 
 set_environment() {
-  #{ Initialize the options variable
+  #{ Initialise the options variable
   opts=""
 
   #{ Ensure the tool is installed
@@ -154,7 +154,7 @@ cmd_pls() {
   eval "$cmd" "$opts" "$*"
 }
 
-initialize_options() {
+initialise_options() {
   unset opts
   case "$cmd" in
   lsd)

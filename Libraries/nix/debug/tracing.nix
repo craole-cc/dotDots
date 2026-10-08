@@ -161,11 +161,11 @@
   > traceFn :: { name :: string, fn :: function, result :: any, label :: string? } -> any
 
   # Examples
-  > traceFn { name = "normalize"; fn = normalize; result = normalize input; label = "normalizing"; }
+  > traceFn { name = "normalize"; fn = normalize; result = normalize input; label = "normalising"; }
 
   ```nix
-  trace: normalizing type = function, value = normalize
-  trace: normalizing type = set, value = {...}
+  trace: normalising type = function, value = normalize
+  trace: normalising type = set, value = {...}
   ```
   */
   traceFn = {

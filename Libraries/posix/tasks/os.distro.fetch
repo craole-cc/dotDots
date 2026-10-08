@@ -1,7 +1,7 @@
 #!/bin/sh
 
 main() {
-  #{ Initialize the script environment
+  #{ Initialise the script environment
   establish_environment
 
   #{ Parse the arguments
@@ -34,7 +34,7 @@ establish_environment() {
   unset info_source output
 
   #{ Establish utility functions
-  initialize_utilities
+  initialise_utilities
 }
 
 parse_arguments() {
@@ -56,7 +56,7 @@ parse_arguments() {
   done
 }
 
-initialize_utilities() {
+initialise_utilities() {
   check_cmd() {
     #{ Check if the info_source is available
     info_source="$1"

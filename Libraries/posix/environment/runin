@@ -120,7 +120,7 @@ execute_process() {
 }
 
 pout() {
-  #{ Initialize variables
+  #{ Initialise variables
   tag=""
   msg=""
 

@@ -8,7 +8,7 @@ __init__() {
   #| Load Environment Variables
   . "${DOTS_ENV_CTX:?}/macchina"
 
-  #| Initialize
+  #| Initialise
   macchina.init
 }
 

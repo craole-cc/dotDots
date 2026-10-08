@@ -54,14 +54,14 @@
 #DOC   fmt_editorconfig -s -l -t file.editorconfig
 
 main() {
-  initialize_environment
-  initialize_utilities
+  initialise_environment
+  initialise_utilities
 
   parse_arguments "$@"
   execute_process || return "$?"
 }
 
-initialize_environment() {
+initialise_environment() {
   #| Script Options
   SCR_PATH="$(pathof "$0")"
   SCR_NAME="$(basename "$0")"
@@ -124,7 +124,7 @@ initialize_environment() {
 }
 
 # shellcheck disable=SC2329
-initialize_mod_time_fetcher() {
+initialise_mod_time_fetcher() {
   get_mod_time_bsd() {
     if _epoch=$(stat -f '%m' "${_path}" 2>/dev/null); then
       if _date=$(date -r "${_epoch}" '+%Y-%m-%d %H:%M' 2>/dev/null); then
@@ -187,7 +187,7 @@ initialize_mod_time_fetcher() {
   fi
 }
 
-initialize_utilities() {
+initialise_utilities() {
   make_tempfile() {
     unset tmpfile
     umask "${UMASK_USER}"
@@ -276,7 +276,7 @@ initialize_utilities() {
   }
 
   get_mod_time() {
-    [ -n "${MOD_TIME_FETCHER}" ] || initialize_mod_time_fetcher
+    [ -n "${MOD_TIME_FETCHER}" ] || initialise_mod_time_fetcher
 
     _date="$(printf "%-16.16s" "Unknown")"
 
@@ -372,7 +372,7 @@ parse_arguments() {
 execute_action() {
   execute_action__main() {
     trap execute_action__purge EXIT
-    execute_action__initialize_environment "$@" || return "$?"
+    execute_action__initialise_environment "$@" || return "$?"
     execute_action__prep || return "$?"
     cmp -s "${src}" "${tmp}" && return "${CODE_SUCCESS}"
     execute_action__diff || return "$?"
@@ -380,7 +380,7 @@ execute_action() {
     return "${CODE_FORMAT}"
   }
 
-  execute_action__initialize_environment() {
+  execute_action__initialise_environment() {
     execute_action__purge
     src=$1
     [ -f "${src}" ] || {

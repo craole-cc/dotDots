@@ -5,5 +5,5 @@
 . "${DOTS_ENV_CTX:?}/sway"
 . "${DOTS_ENV_CTX:?}/wayland"
 
-#| Initialize with specific config
+#| Initialise with specific config
 sway --config "${DESKTOP_HOME:?}/${DESKTOP_CONF:?}"

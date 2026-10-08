@@ -36,7 +36,7 @@ in {
 
     # 9Router is the local OpenAI-compatible hop. Its API key must not be
     # confused with an upstream OpenRouter/NVIDIA key; use it only for the
-    # local client authorization header.
+    # local client authorisation header.
     if [ -z "''${OPENAI_API_KEY:-}" ] && [ -n "''${NINE_ROUTER_API_KEY:-}" ]; then
       export OPENAI_API_KEY="$NINE_ROUTER_API_KEY"
     fi

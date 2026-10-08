@@ -10,7 +10,7 @@ main() {
   handle_verbosity_patterns
 }
 
-#{ Set all defaults and initialize variables
+#{ Set all defaults and initialise variables
 set_defaults() {
   #{ Environment variable defaults
   : "${VERBOSITY:="3"}"

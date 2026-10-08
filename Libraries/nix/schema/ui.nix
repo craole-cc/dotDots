@@ -505,7 +505,7 @@
         keybinds.action = "dms ipc call keybinds toggle hyprland";
         close.action = "hyprctl dispatch killactive";
         fullscreen.action = "hyprctl dispatch fullscreen 0";
-        maximize.action = "hyprctl dispatch fullscreen 1";
+        maximise.action = "hyprctl dispatch fullscreen 1";
         float.action = "hyprctl dispatch togglefloating";
         pin.action = "hyprctl dispatch pin";
         split.action = "hyprctl dispatch togglesplit";
@@ -526,7 +526,7 @@
         keybinds.action = "dms ipc call keybinds toggle niri";
         close.action = "niri msg action close-window";
         fullscreen.action = "niri msg action fullscreen-window";
-        maximize.action = "niri msg action maximize-column";
+        maximise.action = "niri msg action maximise-column";
         float.action = "niri msg action toggle-window-floating";
         workspacePrev.action = "niri msg action focus-workspace-previous";
         windowCycle.action = "niri msg action focus-window-previous";
@@ -541,7 +541,7 @@
         keybinds.action = "dms ipc call keybinds toggle sway";
         close.action = "swaymsg kill";
         fullscreen.action = "swaymsg fullscreen toggle";
-        maximize.action = "swaymsg fullscreen toggle";
+        maximise.action = "swaymsg fullscreen toggle";
         float.action = "swaymsg floating toggle";
         pin.action = "swaymsg sticky toggle";
         split.action = "swaymsg split toggle";
@@ -691,7 +691,7 @@
     else throw "Unknown ${key}: ${name}.";
 
   #|------------------------------------------------------|
-  #| Normalization ---------------------------------------|
+  #| Normalisation ---------------------------------------|
   #|------------------------------------------------------|
   resolve = {
     key,

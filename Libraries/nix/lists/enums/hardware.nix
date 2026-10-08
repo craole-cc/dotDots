@@ -47,7 +47,7 @@
   /**
   CPU brands - processor manufacturer identification.
 
-  Identifies the CPU vendor for architecture-specific optimizations
+  Identifies the CPU vendor for architecture-specific optimisations
   and driver selection.
 
   # Supported Brands

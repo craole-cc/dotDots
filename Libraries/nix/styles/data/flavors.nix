@@ -31,7 +31,7 @@ _: {
       "mariacha"
       "mid"
       "medium"
-      "cozy"
+      "cosy"
       "rainy"
     ];
     family = "catppuccin";

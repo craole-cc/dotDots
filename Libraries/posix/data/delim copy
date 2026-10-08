@@ -1,11 +1,11 @@
 #!/bin/sh
 
 #DOC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-
-#DOC delim - Standardize delimiter-separated strings
+#DOC delim - Standardise delimiter-separated strings
 #DOC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-
 #DOC
 #DOC Description:
-#DOC   A POSIX-compliant utility that normalizes strings containing mixed delimiters
+#DOC   A POSIX-compliant utility that normalises strings containing mixed delimiters
 #DOC   into a consistently formatted string with a single delimiter. It handles
 #DOC   various input formats, removes comments, and cleans whitespace.
 #DOC
@@ -149,7 +149,7 @@ execute_process() {
     s/^[[:space:]]*//
     s/[[:space:]]*$//'
 
-  #{ Add space normalization based on delimiter }
+  #{ Add space normalisation based on delimiter }
   case "${in_delimiter}" in
     " ")
       sed_commands="${sed_commands}"'

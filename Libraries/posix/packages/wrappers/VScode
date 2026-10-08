@@ -182,7 +182,7 @@ build_vscode_ext() {
     ;;
   esac
 
-  #{ Initialize empty string for extension arguments
+  #{ Initialise empty string for extension arguments
   ext_string=""
 
   #{ Convert extension list to command arguments

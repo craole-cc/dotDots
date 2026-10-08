@@ -134,7 +134,7 @@ detect_file_manager() {
   #DOC 3. Known file managers list
   #DOC 4. Fallback to opener
 
-  #{ Initialize variables
+  #{ Initialise variables
   file_manager_cmd=
 
   #{ Check user override first

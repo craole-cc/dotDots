@@ -1,5 +1,5 @@
 #!/bin/sh
-#? Initialize Libraries directory structure
+#? Initialise Libraries directory structure
 
 # ── Validate / Correct / Require DOTS ─────────────────────────────────────#? Validate existing DOTS directory; discard if dead.
 if [ -n "${DOTS:-}" ] && [ ! -d "${DOTS}" ]; then
@@ -212,7 +212,7 @@ add_to_path() {
   fi
 }
 
-#> Main initialization
+#> Main initialisation
 binit() {
   require_lib_root || return 1
   make_executable

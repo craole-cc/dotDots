@@ -7,8 +7,8 @@
 main() {
   trap cleanup EXIT INT TERM
   set_defaults
-  initialize_utilities
-  initialize_pout
+  initialise_utilities
+  initialise_pout
   parse_arguments "$@"
   execute_process
 }
@@ -130,7 +130,7 @@ set_editor_cmd() {
   return 1
 }
 
-initialize_utilities() {
+initialise_utilities() {
   nix_check() {
     if
       nix config show \
@@ -172,7 +172,7 @@ initialize_utilities() {
   }
 }
 
-initialize_pout() {
+initialise_pout() {
   pout_usage() {
     printf "Usage: edita [options] [path]\n"
     # TODO: Improve the help message to show everything including description, options, parameters, examples and notes

@@ -12,7 +12,7 @@ send_notification() {
     notify-send "$1"
 }
 
-parse_arguments() { #{ Initialize User Options via CLI
+parse_arguments() { #{ Initialise User Options via CLI
 
   #{ Ensure arguments are supplied
   [ "$#" -ge 1 ] || {

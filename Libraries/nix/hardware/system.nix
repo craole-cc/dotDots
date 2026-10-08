@@ -50,7 +50,7 @@
   systemOf = pkgs: pkgs.stdenv.hostPlatform.system;
 
   /**
-  Resolves and normalizes Nixpkgs package sets.
+  Resolves and normalises Nixpkgs package sets.
 
   Provides a safe fallback mechanism to prevent evaluation errors when
   systems are missing or pure evaluation blocks `builtins.currentSystem`.

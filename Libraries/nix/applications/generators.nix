@@ -29,7 +29,7 @@
       Create an application configuration object with role-based classification,
       environment variable generation, and platform compatibility checks.
 
-      This function analyzes user configuration to determine if an application
+      This function analyses user configuration to determine if an application
       should be enabled, what role it plays (primary, secondary, or explicitly
       requested), and whether the required platform/environment is available.
       It generates appropriate environment variables following Unix conventions

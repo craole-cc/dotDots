@@ -170,7 +170,23 @@ in {
         enable = true;
         keyOnly = true;
       };
-      tailscale.enable = true;
+      tailscale = {
+        enable = true;
+        firewall = {
+          tcp.ranges = [
+            {
+              from = 1714;
+              to = 1764;
+            }
+          ]; #? KDE Connect
+          udp.ranges = [
+            {
+              from = 1714;
+              to = 1764;
+            }
+          ]; #? KDE Connect
+        };
+      };
       guacamole = {
         enable = true;
         desktopUser = "craole";
@@ -182,12 +198,7 @@ in {
     firewall = {
       # enable = true;
       tcp = {
-        ranges = [
-          {
-            from = 49160;
-            to = 65534;
-          }
-        ];
+        ranges = [];
         ports = [
           22
           80
@@ -197,12 +208,7 @@ in {
         ];
       };
       udp = {
-        ranges = [
-          {
-            from = 49160;
-            to = 65534;
-          }
-        ];
+        ranges = [];
         ports = [];
       };
     };

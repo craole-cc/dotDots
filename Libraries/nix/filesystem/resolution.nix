@@ -57,7 +57,7 @@
   Resolves and validates the filesystem path to a flake directory.
 
   Checks if the provided path is either a directory containing a `flake.nix`
-  or a direct path to a `flake.nix` file, normalizing it to the parent
+  or a direct path to a `flake.nix` file, normalising it to the parent
   directory. If an already-evaluated flake (`self`) is provided, it
   bypasses path resolution and returns the flake's `outPath`.
 
@@ -93,7 +93,7 @@
   /**
   Safely evaluates and retrieves a flake from a given path.
 
-  Wraps `builtins.getFlake` with path normalization and detailed error
+  Wraps `builtins.getFlake` with path normalisation and detailed error
   tracing. If an already-evaluated flake (`self`) is provided, it returns
   it immediately without attempting to load the path.
 
@@ -120,7 +120,7 @@
 
     failureReason =
       if normalizedPath == null
-      then "path normalization failed"
+      then "path normalisation failed"
       else if derived == null
       then "getFlake returned null"
       else if (derived._type or null) != "flake"

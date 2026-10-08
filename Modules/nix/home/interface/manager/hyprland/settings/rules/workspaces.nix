@@ -61,7 +61,7 @@
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, match:class ^(${class})$"
-      "suppress_event fullscreen maximize, match:class ^(${class})$"
+      "suppress_event fullscreen maximise, match:class ^(${class})$"
     ];
   };
 

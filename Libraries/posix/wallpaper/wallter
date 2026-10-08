@@ -10,7 +10,7 @@ Documentation
 #/> Main                                            <\
 
 main() {
-  #{ Initialize script
+  #{ Initialise script
   init_metadata
   init_arguments "$@"
   init_defaults
@@ -27,9 +27,9 @@ main() {
 
 }
 
-#/> Initialization                                  <\
+#/> Initialisation                                  <\
 
-init_metadata() { #{ Initialize script metadata
+init_metadata() { #{ Initialise script metadata
   scr_PATH="$(pathof "$0")"
   scr_NAME="$(basename "${scr_PATH}")"
   scr_HOME="$(dirname -- "${scr_PATH}")"
@@ -78,7 +78,7 @@ init_arguments() { #{ Parse command-line arguments
   done
 }
 
-init_defaults() { #{ Initialize default variables
+init_defaults() { #{ Initialise default variables
   unique="${unique:-true}"
   wallpaper_action="${wallpaper_action:-next}"
   wallpaper_log_path="${wallpaper_log_path:-${DOTS_LOG}/wallpapers}"
@@ -239,7 +239,7 @@ log_wallpaper() {
     #{ Skip if wallpaper file given
     [ -f "${wallpaper_src_path}" ] && return
 
-    #{ Initialize wallpaper log if missing
+    #{ Initialise wallpaper log if missing
     [ -f "${wallpaper_log_path}" ] || touch "${wallpaper_log_path}"
 
     #{ Add default wallpaper, if valid but not in the log
@@ -270,7 +270,7 @@ log_wallpaper() {
   log__change() {
     #{ Update log
 
-    #{ Initialize log
+    #{ Initialise log
     init_log
 
     #{ Display info and exit
@@ -419,7 +419,7 @@ dry_run() { #{ Test
   log_wallpaper
 }
 
-#/> Sanitization                                    <\
+#/> Sanitisation                                    <\
 
 end_process() { #{ Exit application gracefully
   #TODO differentiate between main processes and subproceses. exit for main and return for sub
@@ -437,13 +437,13 @@ end_process() { #{ Exit application gracefully
 
   #{ Exit with an error status
   if [ -n "${error_generated}" ]; then
-    sanitize_environment && exit 1
+    sanitise_environment && exit 1
   else
-    sanitize_environment && exit 0
+    sanitise_environment && exit 0
   fi
 }
 
-sanitize_environment() { #{ Remove variables
+sanitise_environment() { #{ Remove variables
   unset \
     verbosity \
     wallpaper_src_path \

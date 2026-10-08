@@ -125,7 +125,7 @@ function Global:Get-OSPlatform {
         Returns the current operating system platform as a string.
     .DESCRIPTION
         Detects the OS platform reliably across different PowerShell and .NET versions.
-        Recognizes Windows, Linux, macOS, and WSL.
+        Recognises Windows, Linux, macOS, and WSL.
     .OUTPUTS
         [string] - 'Windows', 'Linux', 'MacOS', 'WSL', or 'Unknown'
     #>

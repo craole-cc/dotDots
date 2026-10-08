@@ -21,7 +21,7 @@
 	"terminal.integrated.letterSpacing": 0,
 	"terminal.integrated.lineHeight": 1.2,
 	// >====================================================
-	// > THEME & VISUAL CUSTOMIZATION
+	// > THEME & VISUAL CUSTOMISATION
 	// >====================================================
 	"animations.CursorAnimation": true,
 	"animations.Install-Method": "Custom UI Style",
@@ -32,7 +32,7 @@
 	"custom-ui-style.background.position": "center",
 	"custom-ui-style.background.opacity": 0.9,
 	"editor.smoothScrolling": true,
-	"editor.tokenColorCustomizations": {
+	"editor.tokenColorCustomisations": {
 		"textMateRules": [
 			{
 				/* The following will be italicized */
@@ -126,7 +126,7 @@
 	},
 	"window.autoDetectColorScheme": true,
 	"window.titleBarStyle": "custom",
-	"workbench.colorCustomizations": {
+	"workbench.colorCustomisations": {
 		"editorGroupHeader.tabsBackground": "#ffffff00",
 		"statusBar.background": "#ffffff00",
 		"statusBar.border": "#3c69e750"
@@ -183,7 +183,7 @@
 	"editor.renderLineHighlight": "gutter",
 	"editor.selectionHighlight": false,
 	"editor.semanticHighlighting.enabled": true,
-	"editor.semanticTokenColorCustomizations": {
+	"editor.semanticTokenColorCustomisations": {
 		"rules": {
 			"interface": {
 				"italic": true
@@ -648,7 +648,7 @@
 	// >====================================================
 	// > COMMENTS
 	// >====================================================
-	"colorful-comments-refreshed.tags": [
+	"colourful-comments-refreshed.tags": [
 		{
 			"tag": "@",
 			"italic": true,

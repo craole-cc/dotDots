@@ -239,7 +239,7 @@
   }: let
     fn = {
       name = "normalize";
-      context = "normalizing ${polarity} ${group} for catppuccin";
+      context = "normalising ${polarity} ${group} for catppuccin";
     };
     selected = mkPolarity.selection {inherit group value polarity;};
   in

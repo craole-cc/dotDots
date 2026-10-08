@@ -27,7 +27,7 @@ parse_arguments() {
 }
 
 process_core() {
-  #{ Initialize flake and extablish development environment
+  #{ Initialise flake and extablish development environment
   if [ -n "${init_dir}" ]; then
     nix flake init --template "${repository}#${template}"
     # nix develop

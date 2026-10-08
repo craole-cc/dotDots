@@ -5,7 +5,7 @@ set -eu
 no_confirm=0
 for arg in "$@"; do
   case "${arg}" in
-  --no-confirm | -y) no_confirm=1 ;;
+    --no-confirm | -y) no_confirm=1 ;;
   esac
 done
 
@@ -16,7 +16,7 @@ fi
 
 mkdir -p "${HERMES_HOME:?HERMES_HOME not set}"
 
-if ! command -v hermes >/dev/null 2>&1; then
+if ! command -v hermes > /dev/null 2>&1; then
   gum log --level error "hermes not on PATH"
   exit 1
 fi

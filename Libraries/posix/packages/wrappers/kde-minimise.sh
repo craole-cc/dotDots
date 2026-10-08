@@ -2,7 +2,7 @@
 #shellcheck enable=all
 
 QUAKE_ID="foot-quake"
-SHORTCUT_MIN="Window Minimize"
+SHORTCUT_MIN="Window Minimise"
 SHORTCUT_RAISE="Window Raise"
 
 toggle_quake() {
@@ -20,6 +20,6 @@ toggle_quake() {
     sleep 0.5
   fi
 
-  #> Minimize if visible/active
+  #> Minimise if visible/active
   qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut "${SHORTCUT_MIN}"
 }

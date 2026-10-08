@@ -76,7 +76,7 @@ deploy_profile_link() {
     [ -n "${verbose}" ] && printf "Updated DOTS in profile.\n"
   }
 
-  # Initialize DOTS via symlinks
+  # Initialise DOTS via symlinks
   deploy_symlink "${res_HOME}/profile" "${HOME}/.profile"
 }
 

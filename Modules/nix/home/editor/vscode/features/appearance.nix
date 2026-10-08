@@ -288,7 +288,7 @@ in {
             "*.pdf" = "pdf.view";
             "*.db" = "default";
           };
-          "workbench.colorCustomizations" = {
+          "workbench.colorCustomisations" = {
             "editorGroupHeader.tabsBackground" = "#ffffff00";
             "statusBar.background" = "#ffffff00";
             "statusBar.border" = "#3c69e750";

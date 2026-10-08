@@ -8,7 +8,7 @@
   version = cfg.hindsight.version or "0.9.2";
 
   # Upstream publishes the Control Plane as a release tarball containing the
-  # already-built Next.js standalone tree. Package that immutable artifact
+  # already-built Next.js standalone tree. Package that immutable artefact
   # directly instead of re-resolving the monorepo's npm workspaces in Nix.
   controlPlane = stdenvNoCC.mkDerivation {
     pname = "hindsight-control-plane";
@@ -45,7 +45,7 @@
       export HINDSIGHT_CP_DATAPLANE_API_URL="''${HINDSIGHT_API_URL}"
 
       # local_external is unauthenticated unless the API is explicitly given
-      # an auth key. Do not synthesize or require a Hindsight API key.
+      # an auth key. Do not synthesise or require a Hindsight API key.
       if [ -n "''${HINDSIGHT_API_KEY:-}" ]; then
         export HINDSIGHT_CP_DATAPLANE_API_KEY="''${HINDSIGHT_API_KEY}"
       else

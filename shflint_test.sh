@@ -417,7 +417,7 @@ EOF
   assert_no_scratch .
 }
 
-test_unparseable_file_is_reported_and_left_alone() {
+test_unparsable_file_is_reported_and_left_alone() {
   write_rc
   write_file bad.sh << 'EOF'
 #!/bin/sh

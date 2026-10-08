@@ -5,7 +5,7 @@
   Provides functions to detect and manage desktop wallpapers across Windows, Linux, and macOS.
   It sets a persistent WALLPAPER environment variable and creates a stable symlink at
   ~/Pictures/wallpaper for easy access by other applications.
-  The script is highly optimized to run during shell initialization with minimal (<50ms) impact.
+  The script is highly optimized to run during shell initialisation with minimal (<50ms) impact.
 .NOTES
   Author: PowerShell Community
   Version: 4.4

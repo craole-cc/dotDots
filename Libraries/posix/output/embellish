@@ -34,8 +34,8 @@ set_attribute() {
     shift 2
   done
 
-  #{ Stylize per the options
-  stylize
+  #{ Stylise per the options
+  stylise
 }
 
 set_color() {
@@ -55,7 +55,7 @@ set_color() {
     ansi_code="3${color_code}"
     ;;
   esac
-  stylize
+  stylise
 }
 
 init_terminal() {
@@ -74,7 +74,7 @@ init_terminal() {
   fi
 }
 
-stylize() {
+stylise() {
   #{ Return early if no attribute is set
   [ -n "${attribute}" ] || return 0
 

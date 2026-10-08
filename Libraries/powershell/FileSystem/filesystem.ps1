@@ -21,7 +21,7 @@ $script:PathSeparators = @{
   POSIX   = '/'
 }
 
-#{ Path normalization patterns
+#{ Path normalisation patterns
 $script:PathPatterns = @{
   UNCPrefix     = '^//'
   MultipleSlash = '/+'
@@ -34,7 +34,7 @@ $script:PathPatterns = @{
 function Global:Format-PathPOSIX {
   <#
     .SYNOPSIS
-        Normalizes a path by converting it to POSIX format with forward slashes.
+        Normalises a path by converting it to POSIX format with forward slashes.
     .PARAMETER Path
         The path to normalize.
     .OUTPUTS
@@ -75,7 +75,7 @@ function Global:Format-PathPOSIX {
 function Resolve-PathPOSIX {
   <#
     .SYNOPSIS
-        Resolves and normalizes paths to absolute POSIX format.
+        Resolves and normalises paths to absolute POSIX format.
     .PARAMETER Path
         The path(s) to resolve and convert.
     .OUTPUTS

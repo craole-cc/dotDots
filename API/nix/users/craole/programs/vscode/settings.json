@@ -77,7 +77,7 @@
 	"editor.renderLineHighlight": "gutter",
 	"editor.selectionHighlight": false,
 	"editor.semanticHighlighting.enabled": true,
-	"editor.semanticTokenColorCustomizations": {
+	"editor.semanticTokenColorCustomisations": {
 		"rules": {
 			"*.static": {
 				"italic": true
@@ -97,7 +97,7 @@
 	"editor.stickyScroll.enabled": false,
 	"editor.suggestSelection": "recentlyUsedByPrefix",
 	"editor.tabSize": 2,
-	"editor.tokenColorCustomizations": {
+	"editor.tokenColorCustomisations": {
 		"textMateRules": [
 			{
 				"scope": [
@@ -253,7 +253,7 @@
 	"window.autoDetectHighContrast": true,
 	"window.menuBarVisibility": "compact",
 	"window.titleBarStyle": "custom",
-	"workbench.colorCustomizations": {
+	"workbench.colorCustomisations": {
 		"editorGroupHeader.tabsBackground": "#ffffff00",
 		"statusBar.background": "#ffffff00",
 		"statusBar.border": "#3c69e750"

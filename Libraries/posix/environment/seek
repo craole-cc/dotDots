@@ -165,7 +165,7 @@ find_up() {
   #DOC       case-sensitive. If not provided, defaults to the value of the
   #DOC       CASE_SENSITIVE variable.
 
-  #{ Initialize variables }
+  #{ Initialise variables }
   base_dir="${1:-"${ANCHOR:-.}"}"
   pattern="${2:-"${TARGET:-}"}"
   keep_case=${3:-${CASE_SENSITIVE:-1}}
@@ -247,7 +247,7 @@ find_down() {
   #DOC   $3: If set to 0, the search is case-insensitive. Otherwise, it is case-sensitive.
   #DOC       If not provided, defaults to CASE_SENSITIVE.
 
-  #{ Initialize variables }
+  #{ Initialise variables }
   base_dir="${1:-"${ANCHOR:-.}"}"
   pattern="${2:-"${TARGET:-}"}"
   keep_case=${3:-${CASE_SENSITIVE:-1}}
@@ -306,7 +306,7 @@ find_down() {
 }
 
 find_down_old() {
-  #{ Initialize variables }
+  #{ Initialise variables }
   find_cmd="find"
   find_res=""
   find_total=0
@@ -416,7 +416,7 @@ normalize_case() {
   #DOC
   #DOC Arguments:
   #DOC   $1 - The input string to be normalized.
-  #DOC   $2 - An optional flag to disable case normalization.
+  #DOC   $2 - An optional flag to disable case normalisation.
   #DOC
   #DOC Returns:
   #DOC   The normalized string.

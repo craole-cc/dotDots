@@ -1,6 +1,6 @@
 # pathof
 
-The absolute script normalizes a given target path by resolving symbolic links
+The absolute script normalises a given target path by resolving symbolic links
 and removing redundant elements such as '.' and '..'.
 
 ## Usage

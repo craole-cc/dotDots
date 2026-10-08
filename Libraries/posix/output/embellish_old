@@ -120,7 +120,7 @@ parse_arguments() {
       ;;
     esac
 
-    stylize && shift
+    stylise && shift
   done
 }
 
@@ -179,7 +179,7 @@ align() {
   fi
 }
 
-stylize() {
+stylise() {
   #{ Set the styling system [TPUT vs ANSI]
   if type tput >/dev/null 2>&1 && [ -n "${tput_code}" ]; then
     attribute_cmd="tput ${tput_code}"

@@ -20,11 +20,11 @@ establish_environment() {
   unset info_source output
 
   #{ Establish utility functions
-  initialize_utilities
+  initialise_utilities
   get_os_type >/dev/null 2>&1
 }
 
-initialize_utilities() {
+initialise_utilities() {
   weHave() {
     #{ Check if the info_source is available
     info_source="$1"
@@ -150,7 +150,7 @@ process_info() {
 }
 
 main() {
-  #{ Initialize the script environment
+  #{ Initialise the script environment
   establish_environment
 
   #{ Parse the arguments

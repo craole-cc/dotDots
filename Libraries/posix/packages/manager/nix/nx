@@ -24,7 +24,7 @@ establish_metadata() {
   Options:
     -h, --help        Display this usage guide
     -v, --version     Show the current version ${_cmd_NAME}
-    -i, --ignore      Honor .gitignore changes
+    -i, --ignore      Honour .gitignore changes
     -s, --status      Show the git status
     -a, --add         Ensure all files are indexed
     -c, --commit      Record changes to the repository
@@ -149,7 +149,7 @@ establish_environment() {
   # 	bin="$(eval "$binini" --path)"
   # else
   # 	display_info --code 1 --error \
-  # 		"BIN Initialization Failed"
+  # 		"BIN Initialisation Failed"
   # 	return "$code"
   # fi
 
@@ -450,7 +450,7 @@ execute_process() {
 }
 
 main() {
-  #{ Initialize the script
+  #{ Initialise the script
   establish_metadata
 
   {

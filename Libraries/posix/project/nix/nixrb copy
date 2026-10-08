@@ -121,7 +121,7 @@ cache_commands() {
   fn_name="cache_commands"
   #{ Loop through each command
   for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
-    #{ Initialize variables
+    #{ Initialise variables
     cmd_key="" cmd_val="" cmd_env=""
 
     #{ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
@@ -199,7 +199,7 @@ parse_arguments() {
 }
 
 check_flake_status() {
-  #{ Initialize variables
+  #{ Initialise variables
   output=""
   status=0
   _flake="${1:-}"
@@ -236,7 +236,7 @@ check_flake_status() {
 }
 
 check_git_status() {
-  #{ Initialize variables
+  #{ Initialise variables
   if [ -z "${1:-}" ]; then
     pout --error "No directory specified for git status check"
     return 1
@@ -346,7 +346,7 @@ run_process() {
 }
 
 pout() {
-  #{ Initialize variables
+  #{ Initialise variables
   tag=""
   msg=""
   ctx=""
@@ -516,7 +516,7 @@ pout() {
 }
 
 manage_list() {
-  #{ Initialize variables
+  #{ Initialise variables
   list=""
   action="build"
   separator="${delimiter:-" "}"

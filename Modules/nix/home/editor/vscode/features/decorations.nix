@@ -77,10 +77,10 @@
     enabled = false;
     extensions = [
       #? Colored comment annotations
-      "allemandinstable.colorful-comments-refreshed"
+      "allemandinstable.colourful-comments-refreshed"
     ];
     userSettings = {
-      "colorful-comments-refreshed.tags" = [
+      "colourful-comments-refreshed.tags" = [
         {
           "tag" = "@";
           "italic" = true;

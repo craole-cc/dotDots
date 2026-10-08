@@ -40,7 +40,7 @@ scr_USAGE="$(
 USAGE
 )"
 
-#/> Initialization                                  <\
+#/> Initialisation                                  <\
 parse_arguments() {
   #{ Parse command-line arguments
   while [ $# -gt 0 ]; do
@@ -66,7 +66,7 @@ parse_arguments() {
     shift
   done
 
-  #{ Initialize default variables
+  #{ Initialise default variables
   unique="${unique:-true}"
   targetDIR="${targetDIR:-$1}"
   targetCMD="${targetCMD:-$2}"

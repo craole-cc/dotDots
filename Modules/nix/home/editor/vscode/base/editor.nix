@@ -47,7 +47,7 @@
     "editor.suggestSelection" = "recentlyUsedByPrefix";
 
     #~@ Semantic tokens
-    "editor.semanticTokenColorCustomizations"."rules" = {
+    "editor.semanticTokenColorCustomisations"."rules" = {
       "interface"."italic" = true;
       "selfParameter"."italic" = true;
       "keyword"."italic" = true;
@@ -55,7 +55,7 @@
     };
 
     #~@ Token colors
-    "editor.tokenColorCustomizations" = {
+    "editor.tokenColorCustomisations" = {
       "[*Light*]"."textMateRules" = [
         {
           "scope" = "ref.matchtext";

@@ -4,11 +4,11 @@ function Get-LinkReport {
     Generates a comprehensive report of links in a directory.
 
     .DESCRIPTION
-    Analyzes all items in a directory tree and provides statistics about different types of links,
+    Analyses all items in a directory tree and provides statistics about different types of links,
     including broken links and regular files.
 
     .PARAMETER Path
-    The directory path to analyze for links.
+    The directory path to analyse for links.
 
     .EXAMPLE
     Get-LinkReport -Path "C:\MyData"
@@ -26,7 +26,7 @@ function Get-LinkReport {
     return
   }
 
-  Write-Host "Analyzing directory: $Path" -ForegroundColor Yellow
+  Write-Host "Analysing directory: $Path" -ForegroundColor Yellow
 
   $allItems = Get-ChildItem $Path -Recurse -Force
   $linkInfo = $allItems | Test-Link -Quiet

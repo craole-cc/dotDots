@@ -182,12 +182,12 @@ if ($env:usage_force -eq "true") {
 '''
 
 [tasks.jj]
-  description = "Initialize the repository to use jusutsu"
+  description = "Initialise the repository to use jusutsu"
   alias = "jjinit"
   run = ["jj git init --colocate", "jj bookmark track main@origin"]
 
 [tasks.cr]
-  description = "Run a customizable cargo command, defaults to 'cargo run --quiet'"
+  description = "Run a customisable cargo command, defaults to 'cargo run --quiet'"
   shell = "powershell"
   run = '''
 $command = $env:MISE_TASK_ARGS
@@ -198,7 +198,7 @@ cargo $command
 '''
 
 [tasks.cw]
-  description = "Run 'cargo watch' with a customizable command, defaults to 'run --quiet'"
+  description = "Run 'cargo watch' with a customisable command, defaults to 'run --quiet'"
   shell = "powershell"
   run = '''
 $command = $env:MISE_TASK_ARGS
@@ -209,7 +209,7 @@ cargo watch --quiet --clear --exec $command
 '''
 
 [tasks.cwc]
-  description = "Run 'cargo watch' with a customizable command, defaults to 'clippy'"
+  description = "Run 'cargo watch' with a customisable command, defaults to 'clippy'"
   shell = "powershell"
   run = '''
 $command = $env:MISE_TASK_ARGS
@@ -244,7 +244,7 @@ cargo test --features $features
 '''
 
 [tasks.cwt]
-  description = "Run 'cargo watch' with a customizable command, defaults to 'test'"
+  description = "Run 'cargo watch' with a customisable command, defaults to 'test'"
   shell = "powershell"
   run = '''
 $command = $env:MISE_TASK_ARGS
@@ -255,7 +255,7 @@ cargo watch --quiet --clear --exec test $command
 '''
 
 [tasks.cwtq]
-  description = "Run 'cargo watch' with a customizable command, defaults to 'test with quickcheck'"
+  description = "Run 'cargo watch' with a customisable command, defaults to 'test with quickcheck'"
   shell = "powershell"
   run = '''
 $command = $env:MISE_TASK_ARGS

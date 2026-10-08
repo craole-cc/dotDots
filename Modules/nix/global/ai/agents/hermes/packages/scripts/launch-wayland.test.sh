@@ -14,15 +14,15 @@ fail() {
 assert_contains() {
   text="$1"
   expected="$2"
-  printf '%s\n' "${text}" | grep -F -- "${expected}" >/dev/null ||
-    fail "expected output to contain: ${expected}"
+  printf '%s\n' "${text}" | grep -F -- "${expected}" > /dev/null \
+    || fail "expected output to contain: ${expected}"
 }
 
 assert_file_contains() {
   file="$1"
   expected="$2"
-  grep -F -- "${expected}" "${file}" >/dev/null ||
-    fail "expected ${file} to contain: ${expected}"
+  grep -F -- "${expected}" "${file}" > /dev/null \
+    || fail "expected ${file} to contain: ${expected}"
 }
 
 # Both graphical command names must be wrappers; non-GUI tools remain direct.
@@ -35,7 +35,7 @@ socket_pids=""
 foreign_socket_path=""
 cleanup() {
   for pid in ${socket_pids}; do
-    kill "${pid}" 2>/dev/null || true
+    kill "${pid}" 2> /dev/null || true
   done
   [ -z "${foreign_socket_path}" ] || rm -f "${foreign_socket_path}"
   rm -rf "${runtime_dir}"

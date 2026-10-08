@@ -321,7 +321,7 @@
     services = mkAddons "services";
 
     # DMS's compositor setup is intentionally not part of the runtime workflow.
-    # Materialize all dependencies before atomically replacing the active Lua
+    # Materialise all dependencies before atomically replacing the active Lua
     # entrypoint. Hyprland watches this path, so replacing it last avoids a
     # transient reload against a missing or half-written configuration.
     home.activation.materializeDmsHyprlandLua = mkIf dmsEnabled (lib.hm.dag.entryAfter ["writeBoundary"] ''

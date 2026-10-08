@@ -12,12 +12,12 @@ main() {
 }
 
 set_defaults() {
-  #{ Initialize global variables/flags
+  #{ Initialise global variables/flags
   debug=0
   verbose=0
   delimiter="${DELIMITER:-"$(printf '\037')"}"
 
-  #{ Initialize flags
+  #{ Initialise flags
   all=false
   color=true
   depth=0
@@ -212,7 +212,7 @@ set_environment() {
     case "${recursion:-}" in "" | none) recursion="tree" ;; *) ;; esac
   fi
 
-  #TODO: add a way to prioritize command
+  #TODO: add a way to prioritise command
 
   cmd=""
   [ -z "${cmd:-}" ] && use_eza

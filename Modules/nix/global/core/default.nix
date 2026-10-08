@@ -113,7 +113,7 @@
   shellHook =
     runtimeHook
     + ''
-      #> Initialize bin directories with binit if available
+      #> Initialise bin directories with binit if available
       BINIT_PATH="$DOTS_LIB_SH/base/binit"
       if [ -f "''${BINIT_PATH:-}" ]; then
         if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
@@ -133,7 +133,7 @@
         hash -r 2>/dev/null || true
       fi
 
-      #> Initialize yazi from the active DOTS checkout.
+      #> Initialise yazi from the active DOTS checkout.
       YAZI_INIT="$DOTS/Configuration/yazi/init.sh"
       if [ -f "$YAZI_INIT" ]; then
         . "$YAZI_INIT"

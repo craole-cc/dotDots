@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck disable=SC2317,SC2310
-#DOC buildir: Recursively list all directories under a target, honoring .ignore in the target and all parent directories,
+#DOC buildir: Recursively list all directories under a target, honouring .ignore in the target and all parent directories,
 #DOC and output a colon-delimited, Unix-style path list for use in PATH.
 #DOC Uses fd if available, falls back to POSIX find.
 

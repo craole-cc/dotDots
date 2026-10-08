@@ -158,7 +158,7 @@ added in the smallest, cleanest way.
 2. Keep this template readable as a starter project, with straightforward Nix
    and Rust files.
 3. Document how to enter the shell, run the game, and run tests.
-4. Ignore `target/`, `.direnv/`, and generated artifacts.
+4. Ignore `target/`, `.direnv/`, and generated artefacts.
 
 **Verification:**
 

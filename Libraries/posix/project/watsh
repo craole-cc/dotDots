@@ -12,7 +12,7 @@ cleanup() {
 #{ Set initial exit trap
 trap cleanup EXIT HUP INT TERM
 
-#{ Initialize variables
+#{ Initialise variables
 secs=10
 args=""
 opts="--resetTerminal"

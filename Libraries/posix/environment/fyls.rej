@@ -113,7 +113,7 @@
 +  eval "${cmd}" "${opts}" "$*"
  }
  
- initialize_options() {
+ initialise_options() {
    unset opts
 -  case "$cmd" in
 +  case "${cmd}" in

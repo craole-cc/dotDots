@@ -27,18 +27,18 @@ if [ -z "${WAYLAND_DISPLAY:-}" ]; then
   done
 
   case "${socket_count}" in
-  0)
-    printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and no Wayland sockets were found in XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}." >&2
-    exit 1
-    ;;
-  1)
-    WAYLAND_DISPLAY=${wayland_socket##*/}
-    export WAYLAND_DISPLAY
-    ;;
-  *)
-    printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and multiple Wayland sockets were found in XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}." >&2
-    exit 1
-    ;;
+    0)
+      printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and no Wayland sockets were found in XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}." >&2
+      exit 1
+      ;;
+    1)
+      WAYLAND_DISPLAY=${wayland_socket##*/}
+      export WAYLAND_DISPLAY
+      ;;
+    *)
+      printf '%s\n' "Cannot launch graphical Hermes: WAYLAND_DISPLAY is unset and multiple Wayland sockets were found in XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}." >&2
+      exit 1
+      ;;
   esac
 fi
 

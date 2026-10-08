@@ -11,7 +11,7 @@ extern crate prettytable;
 extern crate walkdir;
 
 use clap::{App, Arg};
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};

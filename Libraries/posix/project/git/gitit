@@ -39,7 +39,7 @@ scr_usage="Usage: scr_name [OPTIONS] <URL>
 
   Description:
     This script simplifies the process of cloning or updating GitHub repositories
-    using SSH. It supports various options for customization, such as specifying
+    using SSH. It supports various options for customisation, such as specifying
     the username, repository name, destination directory, and simulation mode.
 
     If the destination directory already exists, the script offers the option
@@ -111,10 +111,10 @@ establish_env() {
 
   git_repo="${git_repo%.git}" # Remove '.git' extension
 
-  #{ Prioritize the user provided destination name
+  #{ Prioritise the user provided destination name
   git_dir="${git_dir:-${git_repo}}"
 
-  #{ Generate the updated URL, prioritizing the user provided host, user and repo
+  #{ Generate the updated URL, prioritising the user provided host, user and repo
   git_url="git@${git_host}:${git_user}/${git_repo}.git"
   [ -n "${git_branch}" ] && git_url="${git_url}#${git_branch}"
 

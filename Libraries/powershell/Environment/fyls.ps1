@@ -206,8 +206,8 @@ function Global:Invoke-Fyls {
   Write-Verbose 'Fyls: Starting directory listing operation'
   Write-Debug "Fyls: Parameters - Tool='$Tool', Pretty=$Pretty, Long=$Long, All=$All"
 
-  #~@ Initialize configuration
-  $config = Initialize-FylsConfig -Parameters $PSBoundParameters
+  #~@ Initialise configuration
+  $config = Initialise-FylsConfig -Parameters $PSBoundParameters
 
   #~@ Resolve sort preferences
   $config = Resolve-SortPreferences -Config $config
@@ -322,10 +322,10 @@ function Global:Invoke-Fylt {
 #endregion
 
 #region Local Functions
-function Global:Initialize-FylsConfig {
+function Global:Initialise-FylsConfig {
   <#
     .SYNOPSIS
-        Initialize the configuration object from parameters.
+        Initialise the configuration object from parameters.
     #>
   [CmdletBinding()]
   param(
@@ -790,7 +790,7 @@ function Global:Test-Fyls {
     All      = $true
   }
 
-  $config = Initialize-FylsConfig -Parameters $testParams
+  $config = Initialise-FylsConfig -Parameters $testParams
   $config = Resolve-SortPreferences -Config $config
   $config = Resolve-DisplayPreferences -Config $config
 

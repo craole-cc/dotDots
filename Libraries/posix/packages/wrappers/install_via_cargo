@@ -1,13 +1,13 @@
 #!/bin/sh
 
 main() {
-  initialize_tools
+  initialise_tools
   parse_core_arguments "$@"
   parse_proc_arguments "$@"
   wrap_up
 }
 
-initialize_tools() {
+initialise_tools() {
   weHave() {
     command -v "$1" >/dev/null 2>&1 ||
       cargo install --list | grep --quiet "$1" ||

@@ -94,7 +94,7 @@
   /**
       Import and normalize registry data from path.
 
-      Combines `importAllMerged` with `mkRegistry` normalization.
+      Combines `importAllMerged` with `mkRegistry` normalisation.
 
       # Type
   ```nix

@@ -169,7 +169,7 @@ function Global:Write-Pretty {
     $durationMs = Get-DurationFromTimes -StartTime $StartTime -EndTime $(if ($EndTime) { $EndTime } else { Get-Date })
 
     if (-not $Messages) {
-      $Messages = Get-DurationMessage -Duration $durationMs -Action 'Initialization'
+      $Messages = Get-DurationMessage -Duration $durationMs -Action 'Initialisation'
       $Duration = ''
       $NoNewLine = $true
     }

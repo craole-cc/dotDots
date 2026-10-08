@@ -9,7 +9,7 @@
 # set -e can cause silent failures with functions that don't explicitly return 0
 
 #==============================================================================
-# Globals & Initialization
+# Globals & Initialisation
 #==============================================================================
 
 _cmd_name="symdoc"

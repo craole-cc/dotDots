@@ -6,7 +6,7 @@ main() {
   set_defaults
   parse_arguments "$@"
   access_workspace
-  initialize_environment
+  initialise_environment
 }
 
 set_defaults() {
@@ -116,7 +116,7 @@ access_workspace() {
   cdto "${workspace}"
 }
 
-initialize_environment() {
+initialise_environment() {
   case "${devnix}" in
     flake)
       [ -f "flake.nix" ] && nix develop
@@ -136,12 +136,12 @@ initialize_environment() {
   esac
 
   if [ "${devnix}" = "flake" ] && [ -f "flake.nix" ]; then
-    pout_debug "Initializing the nix" "${devnix}" "${PWD}"
+    pout_debug "Initialising the nix" "${devnix}" "${PWD}"
     nix develop
   # nix develop --command bash -c "Terminal -- bash -c 'eval $editor $workspace; exec bash'"
   # nix develop --command bash -c "eval $editor $workspace"
   elif [ "${devnix}" = "shell" ] && [ -f "shell.nix" ]; then
-    pout_debug "Initializing the nix" "${devnix}" "${PWD}"
+    pout_debug "Initialising the nix" "${devnix}" "${PWD}"
     nix shell
   else
     pout_debug "${PWD}" "cannot be initialized via nix. Defaulting to the editor."

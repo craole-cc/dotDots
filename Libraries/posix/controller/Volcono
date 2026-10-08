@@ -164,7 +164,7 @@ __test__() {
 }
 
 __main__() {
-  #| Initialize app
+  #| Initialise app
   __info__
 
   #| Accept user arguments

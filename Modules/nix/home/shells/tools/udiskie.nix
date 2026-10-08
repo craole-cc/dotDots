@@ -112,7 +112,7 @@ mount_options:              # [deprecated] do not use
 ignore_device:              # [deprecated] do not use
 
 notifications:
-  # Customize which notifications are shown for how long. Possible
+  # Customise which notifications are shown for how long. Possible
   # values are:
   #   positive number         timeout in seconds
   #   false                   disable
@@ -144,7 +144,7 @@ notification_actions:
   device_added:     [mount]
 
 icon_names:
-  # Customize the icon set used by the tray widget. Each entry
+  # Customise the icon set used by the tray widget. Each entry
   # specifies a list of icon names. The first installed icon from
   # that list will be used.
 

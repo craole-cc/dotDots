@@ -229,7 +229,7 @@ get_base() {
 }
 
 find_path() {
-  #{ Initialize variables
+  #{ Initialise variables
   search_path="${base}"
   search_pattern=""
   search_type=""
@@ -296,7 +296,7 @@ find_path() {
   }
 
   search_upwards() {
-    #{ Initialize variables
+    #{ Initialise variables
     res=""
     found=""
     loop_guard=0
@@ -430,14 +430,14 @@ find_exe() {
 }
 
 execute_process_OLD() {
-  #{ Initialize variables
+  #{ Initialise variables
   process_item=""
   process_results=""
   process_result=""
 
   #{ Define helper functions
   for_exe() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Search for executable in PATH
@@ -448,7 +448,7 @@ execute_process_OLD() {
   }
 
   for_path() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Perform search based on direction
@@ -478,7 +478,7 @@ execute_process_OLD() {
   }
 
   for_all() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Try paths search first
@@ -546,7 +546,7 @@ execute_process_OLD() {
 }
 
 execute_output() {
-  #{ Initialize variables
+  #{ Initialise variables
   results="$1"
   formatted_output=""
 
@@ -651,7 +651,7 @@ execute_output() {
 }
 
 execute_process() {
-  #{ Initialize variables
+  #{ Initialise variables
   process_item=""
   process_results=""
   process_result=""
@@ -659,7 +659,7 @@ execute_process() {
 
   #{ Define helper functions
   for_exe() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Search for executable in PATH
@@ -670,7 +670,7 @@ execute_process() {
   }
 
   for_path() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Perform search based on direction
@@ -700,7 +700,7 @@ execute_process() {
   }
 
   for_all() {
-    #{ Initialize search result
+    #{ Initialise search result
     search_result=""
 
     #{ Try paths search first

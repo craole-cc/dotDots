@@ -24,7 +24,7 @@
 using namespace System.Security.Principal
 using namespace System.Environment
 
-# Module-level cache for performance optimization
+# Module-level cache for performance optimisation
 $script:EnvCache = @{}
 $script:CacheExpiry = @{}
 $script:CacheTTL = 300 # 5 minutes default TTL
@@ -81,7 +81,7 @@ function Global:Get-Env {
         • Type safety for path operations
 
     .PARAMETER Cached
-        Enables intelligent caching for performance optimization:
+        Enables intelligent caching for performance optimisation:
         • Respects TTL settings (default: 300 seconds)
         • Scope-aware cache keys
         • Automatic cache invalidation
@@ -1266,8 +1266,8 @@ function Global:Test-GetEnv {
   }
 
   # Setup test environment variables for testing
-  function Initialize-TestEnvironment {
-    Write-TestSection 'Initializing Test Environment'
+  function Initialise-TestEnvironment {
+    Write-TestSection 'Initialising Test Environment'
 
     # Set test variables
     $env:TEST_STRING = 'Hello World'
@@ -1624,7 +1624,7 @@ function Global:Test-GetEnv {
 
   # Main test execution
   try {
-    Initialize-TestEnvironment
+    Initialise-TestEnvironment
 
     $testResults = @{
       TotalTests  = 0

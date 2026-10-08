@@ -28,7 +28,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialise};
 use std::{
     collections::HashMap,
     env, fs,
@@ -153,7 +153,7 @@ enum Commands {
         dry_run: bool,
     },
 
-    /// Initialize PATH with bin directories
+    /// Initialise PATH with bin directories
     Binit {
         /// Export as shell commands
         #[arg(long)]
@@ -442,7 +442,7 @@ enum CacheAction {
 }
 
 /// Configuration structures
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialise, Clone)]
 struct DotsConfig {
     #[serde(default = "default_name")]
     name: String,
@@ -476,7 +476,7 @@ fn default_name() -> String {
     "dotDots".to_string()
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct GitConfig {
     #[serde(default = "default_git_user")]
     user: String,
@@ -502,7 +502,7 @@ fn default_git_email() -> String {
     "".to_string()
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct Options {
     #[serde(default = "default_tag")]
     tag: String,
@@ -546,7 +546,7 @@ fn default_verbosity() -> String {
     "normal".to_string()
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct ExperimentalFeatures {
     #[serde(default)]
     enabled: Vec<String>,
@@ -558,7 +558,7 @@ struct ExperimentalFeatures {
     flakes: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct Excludes {
     #[serde(default)]
     patterns: Vec<String>,
@@ -570,7 +570,7 @@ struct Excludes {
     files: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct OrderFiles {
     #[serde(default)]
     filenames: Vec<String>,
@@ -579,7 +579,7 @@ struct OrderFiles {
     priority: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialise, Clone)]
 struct Include {
     path: String,
 
@@ -590,7 +590,7 @@ struct Include {
     enabled: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialise, Clone)]
 struct SubmoduleConfig {
     path: String,
 
@@ -610,7 +610,7 @@ struct SubmoduleConfig {
     branch: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialise, Clone, Default)]
 struct Hooks {
     #[serde(default)]
     pre_sync: Vec<String>,
@@ -916,7 +916,7 @@ impl DotDots {
             "dots clean".dimmed()
         );
         println!(
-            "  {} or {}   - Initialize PATH with bin directories",
+            "  {} or {}   - Initialise PATH with bin directories",
             ".binit".cyan(),
             "dots binit".dimmed()
         );
@@ -1512,7 +1512,7 @@ impl DotDots {
             }
         }
 
-        self.log_info("Synchronization initialized", Some(self.icons.sync(None)));
+        self.log_info("Synchronisation initialized", Some(self.icons.sync(None)));
 
         //> Stage all changes
         self.execute("git add --all", "git", Some(&self.root))?;
@@ -1529,7 +1529,7 @@ impl DotDots {
             self.execute("git push", "git", Some(&self.root))?;
         }
 
-        self.log_success("Synchronization complete!", Some(self.icons.sync(None)));
+        self.log_success("Synchronisation complete!", Some(self.icons.sync(None)));
         Ok(())
     }
 
@@ -1933,7 +1933,7 @@ impl DotDots {
             ("dry", "Dry build configuration"),
             ("update", "Update flake inputs"),
             ("clean", "Clean garbage collection"),
-            ("binit", "Initialize PATH with bin directories"),
+            ("binit", "Initialise PATH with bin directories"),
             ("sync", "Commit and push all changes"),
             ("fmt", "Format all files"),
             ("check", "Run checks (format, lint)"),
@@ -2090,7 +2090,7 @@ impl DotDots {
 
     /// Helper: Copy text to clipboard
     fn copy_to_clipboard(&self, text: &str) -> Result<()> {
-        let mut clipboard = Clipboard::new().context("Failed to initialize clipboard")?;
+        let mut clipboard = Clipboard::new().context("Failed to initialise clipboard")?;
         clipboard
             .set_text(text)
             .context("Failed to copy to clipboard")?;

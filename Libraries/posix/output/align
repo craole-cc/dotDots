@@ -1,6 +1,6 @@
 #!/bin/sh
 
-initialize_script() {
+initialise_script() {
   __information() {
     scr_name="align"
     scr_version="0.2"
@@ -426,7 +426,7 @@ EOF
 }
 
 main() {
-  initialize_script
+  initialise_script
   parse_arguments "$@"
   set_environment
   print_verbose_info

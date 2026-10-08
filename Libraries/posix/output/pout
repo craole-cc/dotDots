@@ -362,7 +362,7 @@ pout_repeat() {
 # #{ Write message to the log
 # [ "$log" ] && {
 
-# 	#{ Sanitize the message by removing all terminal formatting codes
+# 	#{ Sanitise the message by removing all terminal formatting codes
 # 	msg_log="$(printf "%s" "${msg:-$pair_log}" |
 # 		sed 's/\x1B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B\[[0-9;]*[mGK]//g' |

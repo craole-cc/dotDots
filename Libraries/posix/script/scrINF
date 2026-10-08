@@ -34,5 +34,5 @@ display_info dir "$(get_directory)"
     -v, --version --  Version information
   2. Add functions for each option
   3. Ensure functionality in other scripts.
-  4. Maintain portability with POSIX standardization
+  4. Maintain portability with POSIX standardisation
 TODO

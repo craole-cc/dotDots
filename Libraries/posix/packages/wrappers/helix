@@ -45,7 +45,7 @@ set_defaults() {
 }
 
 parse_arguments() {
-  #{ Initialize variables
+  #{ Initialise variables
   dry_run=false
   args=""
 

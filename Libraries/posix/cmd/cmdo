@@ -33,7 +33,7 @@ USAGE_GUIDE
 # ================================================================= #
 
 point_of_entry() { #{ Launch the script
-  #{ Initialize application
+  #{ Initialise application
   parse_arguments "$@"
 
   #{ Run main process

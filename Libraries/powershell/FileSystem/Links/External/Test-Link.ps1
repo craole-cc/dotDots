@@ -44,7 +44,7 @@ function Test-Link {
   )
 
   process {
-    # Initialize result object
+    # Initialise result object
     $result = [PSCustomObject]@{
       IsLink       = $false
       LinkType     = 'None'

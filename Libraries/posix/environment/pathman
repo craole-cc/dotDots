@@ -65,7 +65,7 @@ set_modes() {
 
 cache_commands() {
   for cmd in $(list --build "$@"); do
-    #{ Initialize variables
+    #{ Initialise variables
     cmd_key="" cmd_val="" cmd_env=""
 
     #{ Define the key in uppercase, prefixed with "CMD_"
@@ -211,7 +211,7 @@ perform_action() {
 }
 
 get_absolute_path() {
-  #{ Initialize variables
+  #{ Initialise variables
   _path="$1"
   _dir=""
 
@@ -253,7 +253,7 @@ set_paths() {
       #{ Skip non-existent paths
       [ -e "${find_path}" ] || continue
 
-      #{ Define the find command, prioritizing fd
+      #{ Define the find command, prioritising fd
       if [ -z "${CMD_FD}" ]; then #TODO: Testing find. Reset to 1 when fixed
 
         #{ Define the base command
@@ -368,7 +368,7 @@ clean_path() {
   #DOC   - Automatically removes invalid paths
   #DOC
   #DOC 4. paste -s -d ':'
-  #DOC   - -s serializes input into single line
+  #DOC   - -s serialises input into single line
   #DOC   - -d ':' joins with : delimiter
   #DOC   - Reconstructs PATH format
 
@@ -543,7 +543,7 @@ trim() {
 }
 
 pout() {
-  #{ Initialize variables
+  #{ Initialise variables
   key="" val="" tag="" pad="" msg="" trim=true
 
   #{ Parse message type and content

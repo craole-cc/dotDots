@@ -7,7 +7,7 @@
 #TODO: We should cd into the directory before running the script then cd back. pushd/popd can work but arent POSIX-compliant, so we need to use something like "cd $(pwd)"
 
 main() {
-  #| Initialize the script
+  #| Initialise the script
   set_defaults
   parse_arguments "$@"
   set_operation_mode
@@ -25,7 +25,7 @@ main() {
 }
 
 set_defaults() {
-  #{ Initialize defaults variables
+  #{ Initialise defaults variables
   delimiter=" "
   msg=""
   nothing_to_commit=""
@@ -92,7 +92,7 @@ parse_arguments() {
 }
 
 pout() {
-  #{ Initialize the output variables
+  #{ Initialise the output variables
   pout_tag=""
   pout_msg=""
   case_mod=""
@@ -252,7 +252,7 @@ create_cmd_output_file() {
     }
     trap 'cmd__cleanup' EXIT INT TERM HUP
 
-    #{ Initialize the command variables
+    #{ Initialise the command variables
     CMD="" CMD_TAG="true" CMD_MSG="" CMD_STATUS="" CMD_RESULT="" CMD_LABEL="" header_print=""
 
     #{ Parse arguments

@@ -3,13 +3,13 @@
     doc = ''
       Primitive field and value helpers (Layer 1).
 
-      Provides the core operations for normalizing field paths, reading values
-      from nested attribute sets, deriving exported names, normalizing
+      Provides the core operations for normalising field paths, reading values
+      from nested attribute sets, deriving exported names, normalising
       optional and list-valued fields, and extracting canonical key domains
       from application records.
 
       Higher-level selector and query-builder modules should depend on these
-      primitives rather than reimplementing normalization or key discovery.
+      primitives rather than reimplementing normalisation or key discovery.
     '';
     functions = {
       inherit

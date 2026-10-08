@@ -16,7 +16,7 @@
     Cryptomining = true;
     Fingerprinting = true;
   };
-  SanitizeOnShutdown = {
+  SanitiseOnShutdown = {
     FormData = true;
     Cache = true;
   };

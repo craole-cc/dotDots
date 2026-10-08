@@ -64,7 +64,7 @@ test_stuff() {
   # done
 }
 
-parse_arguments() { #{ Initialize
+parse_arguments() { #{ Initialise
 
   #{ Ensure arguments are supplied
   [ "$#" -ge 1 ] || {

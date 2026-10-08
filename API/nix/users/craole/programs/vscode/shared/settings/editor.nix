@@ -43,7 +43,7 @@ in {
     "editor.suggestSelection" = "recentlyUsedByPrefix";
 
     # Semantic Tokens (Italics)
-    "editor.semanticTokenColorCustomizations" = {
+    "editor.semanticTokenColorCustomisations" = {
       "rules" = {
         "interface" = {
           "italic" = true;
@@ -60,8 +60,8 @@ in {
       };
     };
 
-    # Token Color Customizations (Extensive italics from your config)
-    "editor.tokenColorCustomizations" = {
+    # Token Color Customisations (Extensive italics from your config)
+    "editor.tokenColorCustomisations" = {
       "textMateRules" = [
         {
           "scope" = [

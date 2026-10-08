@@ -150,7 +150,7 @@ function Split-EditorString {
 
     .DESCRIPTION
     Converts user-friendly editor preference strings into arrays for processing.
-    Handles multiple common delimiters and normalizes input to ensure consistent
+    Handles multiple common delimiters and normalises input to ensure consistent
     parsing regardless of how users specify their preferences.
 
     Supported input formats:
@@ -824,10 +824,10 @@ function Export-EditorVariables {
   # }
 }
 
-function Initialize-EditorEnvironment {
+function Initialise-EditorEnvironment {
   <#
     .SYNOPSIS
-    Complete editor environment initialization
+    Complete editor environment initialisation
 
     .DESCRIPTION
     Performs full editor environment setup including:
@@ -835,13 +835,13 @@ function Initialize-EditorEnvironment {
     - Standard environment variable export
     - Configuration validation
 
-    This is typically called once during profile/script initialization.
+    This is typically called once during profile/script initialisation.
 
     .PARAMETER ExportScope
     Scope for environment variable export (Process, User, Machine)
 
     .PARAMETER Force
-    Force re-initialization even if already configured
+    Force re-initialisation even if already configured
     #>
   [CmdletBinding()]
   param(
@@ -850,7 +850,7 @@ function Initialize-EditorEnvironment {
     [switch]$Force
   )
 
-  #{ Initialize editor selection
+  #{ Initialise editor selection
   $EditorConfig.CurrentEditor = Get-PreferredEditor -Force $Force
 
   #{ Export standard environment variables
@@ -861,10 +861,10 @@ function Initialize-EditorEnvironment {
 
 #endregion
 
-#region Initialization
+#region Initialisation
 
-# Initialize with intelligent editor selection and export environment variables
-Initialize-EditorEnvironment
+# Initialise with intelligent editor selection and export environment variables
+Initialise-EditorEnvironment
 
 # Create alias for easy editor launching
 Set-Alias -Name 'edit' -Value 'Invoke-Editor' -Scope Global -Description 'Quick editor launcher - opens current directory or specified files/paths'

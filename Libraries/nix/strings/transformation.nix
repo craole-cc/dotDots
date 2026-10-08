@@ -673,7 +673,7 @@
   Convert a single stem segment into its env-var-safe fragment: upper-cased
   and normalized (see `strings.transformation.normalizeString`). The one
   canonical string transform that `mkEnv` and `flattenTree` both fold over
-  to build full env-var names - no caller normalizes by hand.
+  to build full env-var names - no caller normalises by hand.
 
   # Type
   ```

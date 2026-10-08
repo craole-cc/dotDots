@@ -12,7 +12,7 @@ fail() {
   exit 1
 }
 
-# A dangling .env symlink must fail closed without materializing its target.
+# A dangling .env symlink must fail closed without materialising its target.
 mkdir -m 700 "${fixture}/home"
 dangling_target="${fixture}/external-target"
 ln -s "${dangling_target}" "${fixture}/home/.env"

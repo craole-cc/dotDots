@@ -31,5 +31,5 @@ foreach ($Function in $PublicFunctions) {
 $PublicFunctionNames = $PublicFunctions | ForEach-Object { $_.BaseName }
 Export-ModuleMember -Function $PublicFunctionNames
 
-# Module initialization
+# Module initialisation
 Write-Pretty -NoNewLine -Tag 'Trace' 'Links module loaded successfully'

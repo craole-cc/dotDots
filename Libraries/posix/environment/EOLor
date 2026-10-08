@@ -10,7 +10,7 @@ scr_OPTIONAL_DEPENDENCIES="dos2unix, unix2dos"
 
 main() {
   define_defaults
-  initialize_utilities
+  initialise_utilities
   establish_environment "$@"
   execute_core_process
 }
@@ -266,7 +266,7 @@ establish_environment() {
 
 }
 
-initialize_utilities() {
+initialise_utilities() {
   #{ Display script usage and version information
   print_scr_info() {
     case "$1" in

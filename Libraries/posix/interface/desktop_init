@@ -20,7 +20,7 @@ __info__() {
     ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
             command <[options]> <[arguments]>
-      ${_cmd_NAME} --desktop "desktop to initialize"
+      ${_cmd_NAME} --desktop "desktop to initialise"
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version

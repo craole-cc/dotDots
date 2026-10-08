@@ -26,61 +26,61 @@ parse_arguments() {
       attribute="reset"
       tput_code="sgr0"
       ansi_code="0"
-      stylize
+      stylise
       ;;
     --bold)
       attribute="bold"
       tput_code="bold"
       ansi_code="1"
-      stylize
+      stylise
       ;;
     --dim)
       attribute="dim"
       tput_code="dim"
       ansi_code="2"
-      stylize
+      stylise
       ;;
     --italic)
       attribute="italic"
       tput_code="sitm"
       ansi_code="3"
-      stylize
+      stylise
       ;;
     --underline)
       attribute="underline"
       tput_code="smul"
       ansi_code="4"
-      stylize
+      stylise
       ;;
     --blink)
       attribute="blink"
       tput_code="blink"
       ansi_code="5"
-      stylize
+      stylise
       ;;
     --double-underline | --double*)
       attribute="double underline"
       tput_code=""
       ansi_code="6"
-      stylize
+      stylise
       ;;
     --invert | --highlight | --standout)
       attribute="invert"
       tput_code="smso"
       ansi_code="7"
-      stylize
+      stylise
       ;;
     --hidden)
       attribute="hidden"
       tput_code="invis"
       ansi_code="8"
-      stylize
+      stylise
       ;;
     --strikethrough | --strike*)
       attribute="strikethrough"
       tput_code=""
       ansi_code="9"
-      stylize
+      stylise
       ;;
 
     -*black | -*red | -*green | -*yellow | -*blue | -*magenta | -*cyan | -*white)
@@ -112,17 +112,17 @@ parse_arguments() {
         ;;
       esac
 
-      stylize
+      stylise
       ;;
     -l | --new-line)
       attribute="position"
       attribute_cmd="printf \"\n"\"
-      stylize
+      stylise
       ;;
     -s | --space)
       attribute="position"
       attribute_cmd='printf " '\"
-      stylize
+      stylise
       ;;
     --center)
       alignment="center"
@@ -137,14 +137,14 @@ parse_arguments() {
     *)
       attribute="text"
       attribute_cmd="printf \"$1\""
-      stylize
+      stylise
       ;;
     esac
     shift
   done
 }
 
-stylize() {
+stylise() {
   #{ Set the styling system [TPUT vs ANSI]
   if type tput >/dev/null 2>&1 && [ -n "${tput_code}" ]; then
     attribute_cmd="tput ${tput_code}"

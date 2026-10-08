@@ -386,8 +386,8 @@ function Global:Get-DurationMessage {
     .OUTPUTS
         [string] A complete message with duration.
     .EXAMPLE
-        Get-DurationMessage -Duration 1500 -Action "Initialization"
-        # Returns: "Initialization completed in 1 second and 500 milliseconds."
+        Get-DurationMessage -Duration 1500 -Action "Initialisation"
+        # Returns: "Initialisation completed in 1 second and 500 milliseconds."
     #>
   [CmdletBinding()]
   [OutputType([string])]

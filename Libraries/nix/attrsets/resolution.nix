@@ -148,7 +148,7 @@
   normalizePath = path: let
     fn = {
       name = "normalizePath";
-      context = "normalizing attribute path";
+      context = "normalising attribute path";
     };
 
     stems =
@@ -502,7 +502,7 @@
   : Flake resolution context arguments (used to compute `pkgs` if `pkgs` is not explicitly passed).
 
   `priority`
-  : Optional string or list of strings naming input keys (e.g., `["nixPackagesUnstable" "nixPackages"]`) to prioritize when searching for a package set.
+  : Optional string or list of strings naming input keys (e.g., `["nixPackagesUnstable" "nixPackages"]`) to prioritise when searching for a package set.
 
   `default`
   : Fallback value if a target package is not found. Defaults to `null`.
@@ -813,7 +813,7 @@
     );
     failureReason =
       if normalizedPath == null
-      then "path normalization failed"
+      then "path normalisation failed"
       else if derived == null
       then "getFlake returned null"
       else if (derived._type or null) != "flake"

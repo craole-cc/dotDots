@@ -69,10 +69,10 @@
       imports = (importAllPaths ./.).value;
       projectRootFile = "flake.nix";
       programs = {
-        alejandra.enable = mkForce false;
-        statix.enable = mkForce false;
-        shellcheck.enable = mkForce false;
-        shfmt.enable = mkForce false;
+        # alejandra.enable = mkForce false;
+        # statix.enable = mkForce false;
+        # shellcheck.enable = mkForce false;
+        # shfmt.enable = mkForce false;
       };
       settings = {
         global.excludes = [

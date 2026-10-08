@@ -98,7 +98,7 @@
       }
       {
         name = "binit";
-        description = "Initialize bin directories";
+        description = "Initialise bin directories";
       }
     ];
   };
@@ -281,7 +281,7 @@
     esac
     export PATH
 
-    #> Initialize bin directories with binit if available
+    #> Initialise bin directories with binit if available
     BINIT_PATH="$DOTS_LIB_SH/base/binit"
     if [ -f "''${BINIT_PATH:-}" ]; then
       if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi

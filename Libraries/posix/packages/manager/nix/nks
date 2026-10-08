@@ -102,7 +102,7 @@ __init__() {
   # shellcheck disable=SC1091
   # . "$DOTS_ENV_CTX/nixos"
 
-  #{ Prioritize user config
+  #{ Prioritise user config
   [ "$config" ] && NIXOS_CONFIG="$config"
 
   #{ Validate config

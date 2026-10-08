@@ -1,7 +1,7 @@
 #!/bin/sh
 
 main() {
-  #> Initialize variables
+  #> Initialise variables
   init_variables
 
   #> Parse command-line arguments
@@ -45,7 +45,7 @@ init_variables() {
     printf "  %s -rw\n" "${scr_name}"
   )"
 
-  #> Initialize variables
+  #> Initialise variables
   unset \
     clean \
     check \

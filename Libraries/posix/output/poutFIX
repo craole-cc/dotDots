@@ -310,7 +310,7 @@ tests() {
   done
 
   # Test usage and help messages
-  for command in detect_user detect_group validate_arguments initialize_script; do
+  for command in detect_user detect_group validate_arguments initialise_script; do
     printf "Testing help for command: %s\n" "${command}"
     help --tag "${command}"
   done

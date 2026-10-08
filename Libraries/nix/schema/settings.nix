@@ -3,8 +3,8 @@
     doc = ''
       # Settings Schema
 
-      Normalizes and merges global and host-level system settings for `pkg` (nixpkgs) and `lib` (library options).
-      Supports alias normalization (`packages` -> `pkg`, `libraries` -> `lib`) whether declared as `host.packages`,
+      Normalises and merges global and host-level system settings for `pkg` (nixpkgs) and `lib` (library options).
+      Supports alias normalisation (`packages` -> `pkg`, `libraries` -> `lib`) whether declared as `host.packages`,
       `host.settings.pkg`, or globally.
 
       ## Functions
@@ -25,7 +25,7 @@
   inherit (_.attrsets.aggregation) recursiveUpdate;
 
   /**
-  Resolves combined settings by normalizing aliases (`packages` / `pkg`, `libraries` / `lib`),
+  Resolves combined settings by normalising aliases (`packages` / `pkg`, `libraries` / `lib`),
   recursively merging global defaults with host overrides, and strictly mapping options to
   `forNixpkgs` and `forLibraries`.
 

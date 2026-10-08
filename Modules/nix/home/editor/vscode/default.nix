@@ -177,12 +177,12 @@ in
           # caused the DMS seed action to replace the profile materializer.
           activation =
             {
-              # VS Code writes settings/keybindings itself. Materialize the
+              # VS Code writes settings/keybindings itself. Materialise the
               # declarative profile as regular files on activation instead of
               # linking them into the Nix store, so runtime saves do not fail
               # EROFS. A future activation restores the declared baseline.
-              materializeVSCodeInsidersProfile = lib.hm.dag.entryAfter ["linkGeneration"] ''
-                materialize_json() {
+              materialiseVSCodeInsidersProfile = lib.hm.dag.entryAfter ["linkGeneration"] ''
+                materialise_json() {
                   source="$1"
                   target="$2"
 
@@ -191,10 +191,10 @@ in
                   ${pkgs.coreutils}/bin/install -m 0644 "$source" "$target"
                 }
 
-                materialize_json \
+                materialise_json \
                   ${lib.escapeShellArg insidersSettingsFile} \
                   "$HOME/.config/Code - Insiders/User/settings.json"
-                materialize_json \
+                materialise_json \
                   ${lib.escapeShellArg insidersKeybindingsFile} \
                   "$HOME/.config/Code - Insiders/User/keybindings.json"
               '';

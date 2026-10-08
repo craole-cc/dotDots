@@ -15,8 +15,8 @@
     "workbench.preferredDarkColorTheme" = "Monokai";
     "workbench.panel.defaultLocation" = "bottom";
 
-    # Color Customizations
-    "workbench.colorCustomizations" = {
+    # Color Customisations
+    "workbench.colorCustomisations" = {
       "editorGroupHeader.tabsBackground" = "#ffffff00";
       "statusBar.background" = "#ffffff00";
       "statusBar.border" = "#3c69e750";

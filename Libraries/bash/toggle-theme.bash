@@ -20,10 +20,10 @@ printf "Switching to %s mode...\n" "${MODE}"
 
 # 1. Update environment variable (system-wide)
 export _POLARITY="${MODE}"
-printf "_POLARITY=%s" "${MODE}" | sudo tee /etc/environment.d/polarity.conf >/dev/null
+printf "_POLARITY=%s" "${MODE}" | sudo tee /etc/environment.d/polarity.conf > /dev/null
 
 # 2. Update GSettings (if it works on your system)
-if command -v gsettings &>/dev/null; then
+if command -v gsettings &> /dev/null; then
   if [[ ${MODE} == "dark" ]]; then
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     gsettings set org.gnome.desktop.interface gtk-theme 'Catppuccin Frappé'
@@ -34,7 +34,7 @@ if command -v gsettings &>/dev/null; then
 fi
 
 # 3. Update wallpapers using your wallman
-if command -v wallman &>/dev/null; then
+if command -v wallman &> /dev/null; then
   wallman "${MODE}"
 fi
 
@@ -53,7 +53,7 @@ else
 fi
 
 # 6. Create a script to refresh all apps
-cat >/tmp/refresh-theme.sh <<'EOF'
+cat > /tmp/refresh-theme.sh << 'EOF'
 #!/bin/bash
 # Refresh theme for various applications
 

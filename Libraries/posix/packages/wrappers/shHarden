@@ -2,7 +2,7 @@
 
 #/> Script Entry-point                              <\
 main() { #{ Run the application
-  #> Initialization
+  #> Initialisation
   init_metadata
   parse_arguments "$@"
 
@@ -13,8 +13,8 @@ main() { #{ Run the application
   run_process
 }
 
-#/> Initialization                                  <\
-init_metadata() { #{ Initialize bin_name metadata
+#/> Initialisation                                  <\
+init_metadata() { #{ Initialise bin_name metadata
   required_arg="shellscript binary file"
   SCRIPT_NAME="$(basename "$0")"
   SCRIPT_VERSION="1.0.0"

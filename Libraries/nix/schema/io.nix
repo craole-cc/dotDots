@@ -200,7 +200,7 @@
           key = "RETURN";
           action = "";
         };
-        maximize = {
+        maximise = {
           mod = mod ++ ["SHIFT"];
           key = "M";
           action = "";

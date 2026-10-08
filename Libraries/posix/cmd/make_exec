@@ -10,7 +10,7 @@ main() {
   execute_tests
 
   # set_defaults
-  # initialize_script "$@" || return 1
+  # initialise_script "$@" || return 1
 
   # new_targets="$(
   #   parse_targets --target "$targets" --input
@@ -39,7 +39,7 @@ show_usage() {
     shift
   done
 
-  #{ Initialize variables
+  #{ Initialise variables
   tag="${tag:-${scr_name}}"
   usage="$(printf 'Usage: %s' "${tag}")"
 
@@ -84,7 +84,7 @@ show_usage() {
   validate_arguments)
     printf '%s' "${usage}"
     ;;
-  initialize_script | "${scr_name}")
+  initialise_script | "${scr_name}")
     usage="$(printf 'Usage: %s [OPTIONS] TARGET...\n' "${tag}")"
     help="$(
       printf "  Set permissions and ownership for files and directories\n"
@@ -634,7 +634,7 @@ pout() {
       shift
     done
 
-    #{ Initialize variables
+    #{ Initialise variables
     tag="${tag:-${scr_name}}"
     usage="$(printf 'Usage: %s' "${tag}")"
 
@@ -679,7 +679,7 @@ pout() {
     validate_arguments)
       printf '%s' "${usage}"
       ;;
-    initialize_script | "${scr_name}")
+    initialise_script | "${scr_name}")
       usage="$(printf 'Usage: %s [OPTIONS] TARGET...\n' "${tag}")"
       help="$(
         printf "  Set permissions and ownership for files and directories\n"
@@ -807,7 +807,7 @@ pout() {
     done
 
     # Test usage and help messages
-    for command in detect_user detect_group validate_arguments initialize_script; do
+    for command in detect_user detect_group validate_arguments initialise_script; do
       printf "Testing help for command: %s\n" "${command}"
       pout__help --tag "${command}"
     done
@@ -1076,7 +1076,7 @@ paths() {
   }
 
   paths__main() {
-    #DOC A wrapper for fd/find to standardize common path finding operations
+    #DOC A wrapper for fd/find to standardise common path finding operations
     #DOC
     #DOC Globals:
     #DOC   None
@@ -1102,7 +1102,7 @@ paths() {
     #DOC   paths -d -H .              # Find all directories including hidden ones
     #DOC   paths -x -p "*.sh"         # Find executable shell scripts
 
-    #{ Initialize variables
+    #{ Initialise variables
     search_paths=""
     fd_opts=""
     find_opts=""
@@ -1320,7 +1320,7 @@ resolve_targets() {
     unset _all _abs _raw TARGET_PATHS TARGET_COUNT TARGET_DIRES TARGET_FILES _opt _depth
   } && resolve_targets_cleanup
 
-  #{ Initialize variables
+  #{ Initialise variables
   fn_name="resolve_targets"
   OLDIFS="${IFS}"
   IFS="${delimiter}"

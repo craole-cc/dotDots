@@ -6,7 +6,7 @@ mcd "$*"
 #* Create NextJS App with Typescript *#
 yarn create next-app --typescript .
 
-#* Initialize Yarn *#
+#* Initialise Yarn *#
 yarn init -2
 
 #* Add Modules *#

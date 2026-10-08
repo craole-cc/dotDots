@@ -3,13 +3,13 @@
 
 main() {
   trap exit_with_grace EXIT INT TERM
-  initialize_script
+  initialise_script
   parse_arguments "$@"
   # validate_config
   # run_process
   echo "..end_process tested"
 }
-initialize_script() {
+initialise_script() {
   #| Script Metadata
   scr_path="$0"
   scr_name="$(basename -- "${scr_path:-}")"
@@ -58,7 +58,7 @@ get_utilities() {
     esac
   }
   manage_list() {
-    #{ Initialize variables
+    #{ Initialise variables
     list=""
     action="build"
     separator="${delimiter:-" "}"
@@ -195,7 +195,7 @@ set_commands() {
 
   #{ Loop through each command
   for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
-    #{ Initialize variables
+    #{ Initialise variables
     cmd_key="" cmd_val="" cmd_env=""
 
     #{ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
@@ -475,7 +475,7 @@ pout() {
   }
 
   pout_init() {
-    #{ Initialize variables
+    #{ Initialise variables
     tag_sep="${tag_sep:-"-|-"}"
     ctx=""
     fn_ctx="${fn_ctx:-}"
@@ -717,7 +717,7 @@ pout() {
         }
         ;;
       esac
-      #{ Honor tag toggle
+      #{ Honour tag toggle
 
       ;;
     esac
@@ -801,7 +801,7 @@ pout() {
   pout_main "$@"
 }
 end_process() {
-  #{ Initialize variables
+  #{ Initialise variables
   ctx="${ctx:-pout}" #? Function name
   exit_code=         #? [""|0|1-255]
   head_char="\n"     #? Character(s) to be printed repeatedly before the message
@@ -954,7 +954,7 @@ end_process() {
     shift
   done
 
-  #{ Honor overrides
+  #{ Honour overrides
   if [ -n "${no_msg:-}" ]; then
     lvl=""
     ctx=""
@@ -1101,7 +1101,7 @@ end_process() {
   fi
 }
 tag_process() {
-  #{ Initialize variables
+  #{ Initialise variables
   tag_ctx="${tag_ctx:-""}"
   tag_sep="${tag_sep:-"-|-"}"
   tag_code="${tag_code:-0}"
@@ -1127,7 +1127,7 @@ tag_process() {
   return "${tag_code:-0}"
 }
 end_process_CLAUDE() {
-  #{ Initialize variables
+  #{ Initialise variables
   _status=0
   _msg=""
   _fatal=0
@@ -1364,7 +1364,7 @@ end_process_CLAUDE() {
     shift
   done
 
-  #{ Honor overrides
+  #{ Honour overrides
   if [ -n "${no_msg:-}" ]; then
     lvl=""
     ctx=""

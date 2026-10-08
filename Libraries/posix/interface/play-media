@@ -32,7 +32,7 @@
 # =============================================================================
 
 main() {
-  #> Initialize defaults and clear any stale state from the environment
+  #> Initialise defaults and clear any stale state from the environment
   manage_environment --reset
 
   #> Parse CLI flags and positional args into environment variables

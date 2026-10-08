@@ -313,7 +313,7 @@ set_branch() {
   if git branch --move --force "${branch}" > /dev/null 2>&1; then
     [ -n "${verbose}" ] && consolog --info "Branch" "$(get_branch)"
   else
-    consolog --error "Failed to initialize the repository."
+    consolog --error "Failed to initialise the repository."
     return 2
   fi
 }
@@ -414,7 +414,7 @@ define_usage() {
     fold -s -w $((${#border} - 6)) << 'NOTE' | sed 's/^/    /'
  can be run with or without options. If options are not provided, it will attempt to perform a commit with the current repository state and default configurations.
 
-If the repository is not initialized, the script will initialize it with the specified branch. If both local and global configurations exist, the local configurations take precedence.
+If the repository is not initialized, the script will initialise it with the specified branch. If both local and global configurations exist, the local configurations take precedence.
 
 Also, if both an option and its corresponding environment variable are set, the option value takes precedence.
 NOTE
@@ -460,7 +460,7 @@ ${border}
     -D, --diff        Display changes
 
     [Actions]
-    -I, --ignore      Honor .gitignore changes (rebase)
+    -I, --ignore      Honour .gitignore changes (rebase)
     -p, --pull        Pull changes from remote
     -a, --add         Add untracked files
     -c, --commit      Record changes with an accompanying message

@@ -150,7 +150,7 @@ process_info() {
 }
 
 main() {
-  #{ Initialize the script environment
+  #{ Initialise the script environment
   establish_environment
 
   #{ Parse the arguments

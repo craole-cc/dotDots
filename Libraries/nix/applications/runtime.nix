@@ -4,7 +4,7 @@
       Application runtime operations (Layer 5).
 
       Provides execution-oriented helpers that consume normalized registry
-      data and produce runtime-facing artifacts such as wrapped exec strings
+      data and produce runtime-facing artefacts such as wrapped exec strings
       and package-enriched app records.
 
       Depends on: applications.registry applications.primitives.

@@ -54,7 +54,7 @@ parse_arguments() {
 }
 
 display_messaging() {
-  #{ Initialize variables
+  #{ Initialise variables
   msg="$*"
   unset newline trim
 

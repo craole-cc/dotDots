@@ -58,7 +58,7 @@
     "super+ctrl+left_bracket=goto_split:previous"
     "super+ctrl+right_bracket=goto_split:next"
     "super+ctrl+shift+down=resize_split:down,10"
-    "super+ctrl+shift+equal=equalize_splits"
+    "super+ctrl+shift+equal=equalise_splits"
     "super+ctrl+shift+left=resize_split:left,10"
     "super+ctrl+shift+right=resize_split:right,10"
     "super+ctrl+shift+up=resize_split:up,10"

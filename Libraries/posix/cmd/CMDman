@@ -13,7 +13,7 @@ __info__() {
   _cmd_DESCRIPTION="Description"
   _cmd_DEPENDENCIES="printf, echo, command, unalias"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: ${_cmd_NAME}
@@ -80,17 +80,17 @@ __save__() {
 __opts__() {
 
   case "$1" in
-  '-h' | '--help') __help__ ;;
-  '-v' | '--version') __version__ ;;
-  '-d' | '--verbose')
-    VERBOSE=true
-    shift
-    ;;
-  '-t' | '--dry-run')
-    DRYRUN=true
-    shift
-    ;;
-  *) ;;
+    '-h' | '--help') __help__ ;;
+    '-v' | '--version') __version__ ;;
+    '-d' | '--verbose')
+      VERBOSE=true
+      shift
+      ;;
+    '-t' | '--dry-run')
+      DRYRUN=true
+      shift
+      ;;
+    *) ;;
   esac
 
   #{ Declare user options (One flag per command)
@@ -98,38 +98,38 @@ __opts__() {
 
   while [ $# -gt 1 ]; do
     case "$1" in
-    '%a' | '%active')
-      ACTION="active"
-      shift
-      ;;
-    '%i' | '%installed')
-      ACTION="installed"
-      shift
-      ;;
-    '%s' | '%start' | '%run')
-      ACTION="start"
-      shift
-      ;;
-    '%x' | '%stop' | '%kill')
-      ACTION="stop"
-      shift
-      ;;
-    '%r' | '%reload' | '%restart')
-      ACTION="reload"
-      shift
-      ;;
-    *) ;;
+      '%a' | '%active')
+        ACTION="active"
+        shift
+        ;;
+      '%i' | '%installed')
+        ACTION="installed"
+        shift
+        ;;
+      '%s' | '%start' | '%run')
+        ACTION="start"
+        shift
+        ;;
+      '%x' | '%stop' | '%kill')
+        ACTION="stop"
+        shift
+        ;;
+      '%r' | '%reload' | '%restart')
+        ACTION="reload"
+        shift
+        ;;
+      *) ;;
     esac
 
     if [ "${ACTION}" = "start" ] || [ "${ACTION}" = "reload" ]; then
       in_term=
       case $1 in
-      -t | --term | --in-term)
-        shift
-        in_term=true
-        ;;
-      -a | --app) shift ;;
-      *) ;;
+        -t | --term | --in-term)
+          shift
+          in_term=true
+          ;;
+        -a | --app) shift ;;
+        *) ;;
       esac
     fi
 
@@ -141,8 +141,8 @@ __opts__() {
       CMD="$1"
       shift
       OPTS="$(
-        printf "%s" "$*" |
-          cut --delimiter "%" -f 1
+        printf "%s" "$*" \
+          | cut --delimiter "%" -f 1
       )"
       CMD_OPTIONS="$(printf "%s %s" "${CMD}" "${OPTS}")"
     else
@@ -170,8 +170,8 @@ __opts__() {
 # ===================================================================
 
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 __in_term__() {
@@ -194,7 +194,7 @@ __cmd_kill__() {
   pkill -TERM "$@"
 }
 
-__cmd_run__() { ("$@" >/dev/null 2>&1 &) }
+__cmd_run__() { ("$@" > /dev/null 2>&1 &) }
 
 __cmd_reload__() {
   # | Close CMD
@@ -220,42 +220,42 @@ __msg__() {
 
   #| Display information
   case $1 in
-  --input)
-    if [ -n "${MULTIPLE}" ]; then
+    --input)
+      if [ -n "${MULTIPLE}" ]; then
 
-      if [ "${COUNTER}" -eq 1 ]; then
-        printf "%s | " "${COUNTER}"
-      else
-        printf "\n%s | " "${COUNTER}"
-      fi
+        if [ "${COUNTER}" -eq 1 ]; then
+          printf "%s | " "${COUNTER}"
+        else
+          printf "\n%s | " "${COUNTER}"
+        fi
 
-      if
-        [ "${ACTION}" = "installed" ] ||
-          [ "${ACTION}" = "active" ]
-      then
-        printf "Verify if %s is %s\n" \
-          "${fmt_CMD}" "${fmt_ACTION}"
-      else
-        printf "Please, %s %s.\n" \
-          "${fmt_ACTION}" "${fmt_CMD}"
+        if
+          [ "${ACTION}" = "installed" ] \
+            || [ "${ACTION}" = "active" ]
+        then
+          printf "Verify if %s is %s\n" \
+            "${fmt_CMD}" "${fmt_ACTION}"
+        else
+          printf "Please, %s %s.\n" \
+            "${fmt_ACTION}" "${fmt_CMD}"
+        fi
       fi
-    fi
-    ;;
-  --found) printf "✅ %s is installed\n" "${fmt_CMD}" ;;
-  --missing) printf "🟥 %s is not installed.\n" "${fmt_CMD}" ;;
-  --active) printf "👟 %s is running\n" "${fmt_CMD}" ;;
-  --inactive) printf "💤 %s is inactive.\n" "${fmt_CMD}" ;;
-  --stopped) printf "💀 %s\n" "${fmt_CMD}" ;;
-  --started) printf "🚀 %s\n" "${fmt_CMD}" ;;
-  --reloaded) printf "🔃 %s\n" "${fmt_CMD}" ;;
-  --testing)
-    __msg__ --input
-    printf "COMMAND => %s\n" "${COMMAND}"
-    ;;
-  --in-term)
-    printf "WMCLASS => %s\n" "${CLASS}"
-    ;;
-  *) ;;
+      ;;
+    --found) printf "✅ %s is installed\n" "${fmt_CMD}" ;;
+    --missing) printf "🟥 %s is not installed.\n" "${fmt_CMD}" ;;
+    --active) printf "👟 %s is running\n" "${fmt_CMD}" ;;
+    --inactive) printf "💤 %s is inactive.\n" "${fmt_CMD}" ;;
+    --stopped) printf "💀 %s\n" "${fmt_CMD}" ;;
+    --started) printf "🚀 %s\n" "${fmt_CMD}" ;;
+    --reloaded) printf "🔃 %s\n" "${fmt_CMD}" ;;
+    --testing)
+      __msg__ --input
+      printf "COMMAND => %s\n" "${COMMAND}"
+      ;;
+    --in-term)
+      printf "WMCLASS => %s\n" "${CLASS}"
+      ;;
+    *) ;;
   esac
 
 }
@@ -273,65 +273,65 @@ __action__() {
 
   #| Display actions
   case $1 in
-  --availability)
-    if __cmd_exists__ "${CMD}"; then
-      [ -n "${VERBOSE}" ] && __msg__ --found
-      return 0
-    fi
-    ;;
-  --activity)
-    if ! __cmd_active__ "${CMD}"; then
-      [ -n "${VERBOSE}" ] && __msg__ --inactive
-      return 1
-    else
-      [ -n "${VERBOSE}" ] && __msg__ --active
-      return 0
-    fi
-    ;;
-  --stop)
-    if ! __cmd_active__ "${CMD}"; then
-      [ -n "${VERBOSE}" ] && __msg__ --inactive
-      return 1
-    else
-      __cmd_kill__ "${CMD}"
-      [ -n "${VERBOSE}" ] && __msg__ --stopped
-      return 0
-    fi
-    ;;
-  --start)
-    if __cmd_active__ "${CMD}"; then
-      [ -n "${VERBOSE}" ] && __msg__ --active
-      return 1
-    else
-      if [ -n "${in_term}" ]; then
-        __in_term__
-      else
-        __cmd_run__ eval "${COMMAND}"
+    --availability)
+      if __cmd_exists__ "${CMD}"; then
+        [ -n "${VERBOSE}" ] && __msg__ --found
+        return 0
       fi
+      ;;
+    --activity)
+      if ! __cmd_active__ "${CMD}"; then
+        [ -n "${VERBOSE}" ] && __msg__ --inactive
+        return 1
+      else
+        [ -n "${VERBOSE}" ] && __msg__ --active
+        return 0
+      fi
+      ;;
+    --stop)
+      if ! __cmd_active__ "${CMD}"; then
+        [ -n "${VERBOSE}" ] && __msg__ --inactive
+        return 1
+      else
+        __cmd_kill__ "${CMD}"
+        [ -n "${VERBOSE}" ] && __msg__ --stopped
+        return 0
+      fi
+      ;;
+    --start)
+      if __cmd_active__ "${CMD}"; then
+        [ -n "${VERBOSE}" ] && __msg__ --active
+        return 1
+      else
+        if [ -n "${in_term}" ]; then
+          __in_term__
+        else
+          __cmd_run__ eval "${COMMAND}"
+        fi
 
-      [ -n "${VERBOSE}" ] && __msg__ --started
-      return 0
-    fi
-    ;;
-  --reload)
-    if ! __cmd_active__ "${CMD}"; then
-      __action__ --start
-      return 0
-    else
+        [ -n "${VERBOSE}" ] && __msg__ --started
+        return 0
+      fi
+      ;;
+    --reload)
+      if ! __cmd_active__ "${CMD}"; then
+        __action__ --start
+        return 0
+      else
 
-      # | Close CMD
-      __cmd_kill__ "${CMD}"
+        # | Close CMD
+        __cmd_kill__ "${CMD}"
 
-      # | Delay reload by 500 milliseconds
-      sleep 0.5
+        # | Delay reload by 500 milliseconds
+        sleep 0.5
 
-      # |Start CMD
-      __action__ --start
-      [ -n "${VERBOSE}" ] && __msg__ --reloaded
-      return 0
-    fi
-    ;;
-  *) ;;
+        # |Start CMD
+        __action__ --start
+        [ -n "${VERBOSE}" ] && __msg__ --reloaded
+        return 0
+      fi
+      ;;
+    *) ;;
   esac
 }
 

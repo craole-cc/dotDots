@@ -156,7 +156,7 @@ __main__() {
   #{ Accept user options
   eval "$(getoptions __opts__) exit 1"
 
-  #{ Initialize defaults
+  #{ Initialise defaults
   __init__
 
   #{ Process

@@ -74,10 +74,10 @@ assert_eq "assign_path joins path segments correctly" "/tmp/foo/bar" "${TEST_PAT
 assign_path TEST_PATH_1 "/opt" "baz"
 assert_eq "assign_path preserves existing value (idempotent)" "/tmp/foo/bar" "${TEST_PATH_1}"
 
-# 3. Path normalization (slashes & empty segments)
+# 3. Path normalisation (slashes & empty segments)
 TEST_PATH_2=""
 assign_path TEST_PATH_2 "/var/" "/log/" "" "syslog"
-assert_eq "assign_path normalizes redundant slashes and empty segments" "/var/log/syslog" "${TEST_PATH_2}"
+assert_eq "assign_path normalises redundant slashes and empty segments" "/var/log/syslog" "${TEST_PATH_2}"
 
 # 4. CLI Flag Dispatcher: parse_arguments / assign
 TEST_VAR_2=""

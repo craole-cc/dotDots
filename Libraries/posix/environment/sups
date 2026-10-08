@@ -4,9 +4,9 @@ set -eu
 
 main() {
   #DOC main => Entry point: defaults, parse, enter workspace, resolve paths, then run sops
-  initialize_defaults
+  initialise_defaults
   parse_arguments "$@"
-  initialize_workspace
+  initialise_workspace
   determine_secret_type
   validate_names
   determine_secret_path
@@ -17,8 +17,8 @@ main() {
 
 #~@ Configuration
 
-initialize_defaults() {
-  #DOC initialize_defaults => Set every default that print, show_help and parse_arguments rely on
+initialise_defaults() {
+  #DOC initialise_defaults => Set every default that print, show_help and parse_arguments rely on
   #> Nothing here may fail or print: arguments haven't been parsed yet, so
   #> the log level isn't final.
   script_name="${0##*/}"
@@ -52,8 +52,8 @@ initialize_defaults() {
   host_base=""
 }
 
-initialize_workspace() {
-  #DOC initialize_workspace => Enter the workspace root and pin it to an absolute path
+initialise_workspace() {
+  #DOC initialise_workspace => Enter the workspace root and pin it to an absolute path
   #> Enter the workspace root; exit if it can't be entered.
   workspace="${DOTS:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
   cd -- "${workspace}" || {

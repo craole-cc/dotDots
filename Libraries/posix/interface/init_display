@@ -12,7 +12,7 @@ wdme() {
     _cmd_NAME="$(basename "${_cmd_PATH}")"
     _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
     _cmd_VERSION="1.0"
-    _cmd_DESCRIPTION="Initialize a Desktop Environment or Window Manager"
+    _cmd_DESCRIPTION="Initialise a Desktop Environment or Window Manager"
     _cmd_DEPENDENCIES="weHave"
     _cmd_USAGEGUIDE="$(
       cat <<USAGE_GUIDE
@@ -148,7 +148,7 @@ USAGE_GUIDE
         __lower__ "${WMDE_DESKTOP:-"qtile"}"
       )"
 
-      #? Serialize Name
+      #? Serialise Name
       [ -f "${DOTS_ENV_CTX:?}/${WMDE_DESKTOP}" ] &&
         . "${DOTS_ENV_CTX:?}/${WMDE_DESKTOP}"
 
@@ -171,7 +171,7 @@ USAGE_GUIDE
           WMDE_SERVER="${DESKTOP_TYPE}"
       }
 
-      #? Serialize Name
+      #? Serialise Name
       WMDE_SERVER="$(__lower__ "${WMDE_SERVER}")"
 
       #?  Load Variables
@@ -320,7 +320,7 @@ USAGE_GUIDE
 
   #| Main
   __main__() {
-    #? Initialize script info
+    #? Initialise script info
     __info__
 
     #? Reset all variables

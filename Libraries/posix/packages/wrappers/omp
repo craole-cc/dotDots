@@ -109,7 +109,7 @@ parse_arguments() {
 }
 
 pout() {
-  #{ Initialize variables
+  #{ Initialise variables
   tag="" msg=""
 
   #{ Set verbosity
@@ -182,7 +182,7 @@ pout() {
 }
 
 set_dependencies() {
-  #{ Initialize variables
+  #{ Initialise variables
   dependency_type="amenity"
   dependencies=""
   val="" var=""
@@ -340,7 +340,7 @@ set_theme() {
   #{ Build the command
   POSH_INIT="$(oh-my-posh init "${POSH_SHELL}" --config "${POSH_THEME}" || true)"
 
-  #{ Initialize oh-my-posh
+  #{ Initialise oh-my-posh
   if [ "${TERM_PROGRAM:?}" != "Apple_Terminal" ]; then
     printf "%s" "${POSH_INIT:-}"
   else

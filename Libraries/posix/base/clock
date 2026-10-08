@@ -46,7 +46,7 @@ TIMESTAMP_FILENAME="${TIMESTAMP_FILENAME:-%Y-%m-%d_%H-%M-%S}"
 CLOCK_COMMAND_EXPR=""
 CLOCK_COMMAND_LABEL=""
 
-#| Options - Initialize all variables
+#| Options - Initialise all variables
 opt_duration=0
 opt_timestamp=0
 opt_compact=0
@@ -546,7 +546,7 @@ EXAMPLES:
     clock --dry-run --duration ls -la           # Show command without executing
 
 ENVIRONMENT VARIABLES:
-    Duration format customization:
+    Duration format customisation:
         DURATION_COMPACT_MINUTES                # Default: "${DURATION_COMPACT_MINUTES}"
         DURATION_COMPACT_SECONDS                # Default: "${DURATION_COMPACT_SECONDS}"
         DURATION_COMPACT_MILLISECONDS           # Default: "${DURATION_COMPACT_MILLISECONDS}"
@@ -562,7 +562,7 @@ ENVIRONMENT VARIABLES:
         DURATION_VERBOSE_CONNECTOR              # Default: "${DURATION_VERBOSE_CONNECTOR}"
         DURATION_VERBOSE_LIST_SEPARATOR         # Default: "${DURATION_VERBOSE_LIST_SEPARATOR}"
 
-    Timestamp format customization:
+    Timestamp format customisation:
         TIMESTAMP_DEFAULT                       # Default: "${TIMESTAMP_DEFAULT}"
         TIMESTAMP_SHORT                         # Default: "${TIMESTAMP_SHORT}"
         TIMESTAMP_ISO                           # Default: "${TIMESTAMP_ISO}"

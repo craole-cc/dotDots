@@ -1,6 +1,6 @@
 {_, ...}: let
   __doc = ''
-    Hardware capability normalization.
+    Hardware capability normalisation.
     Derives boolean flags from `host.functionalities` and device specs,
     ensuring all hardware-related predicates are computed once in the schema.
   '';

@@ -29,7 +29,7 @@ establish_metadata() {
   Options:
     -h, --help          Display this usage guide
     -v, --version       Show the current version of ${_cmd_NAME}
-    -i, --ignore        Honor .gitignore changes
+    -i, --ignore        Honour .gitignore changes
     -s, --status        Show the git status
     -a, --add           Ensure all files are indexed
     -c, --commit        Record changes to the repository
@@ -47,7 +47,7 @@ establish_metadata() {
     <MESSAGE>  A custom message for the -c/--commit option.
 
   Defaults:
-    repo    |>  $(sanitize_url "${target_repo}")
+    repo    |>  $(sanitise_url "${target_repo}")
     msg     |>  ${default_msg}
     pull    |>  git pull --quiet
     status  |>  git status --short
@@ -112,7 +112,7 @@ establish_defaults() {
 
 establish_environment() {
 
-  #{ Initialize the tools
+  #{ Initialise the tools
   establish_utilities
   establish_defaults
   establish_metadata
@@ -188,7 +188,7 @@ establish_environment() {
         ;;
       --ci) ci=1 ;;
       -*) ;;
-        # TODO: Add support for initialization
+        # TODO: Add support for initialisation
         # --key)
         # 	[ "$2" ] || display_info --error "SSH Key required"
         # 	key="$2"
@@ -592,7 +592,7 @@ establish_utilities() {
     printf "%s" "$1" | tr -s -c '[:alnum:]' ' '
   }
 
-  sanitize_url() {
+  sanitise_url() {
     url="$1"
 
     case "${url}" in
@@ -651,7 +651,7 @@ execute_git_actions() {
   #{ Ensure we are running our commands from the target git_dir
   # work_in "$1"
 
-  #{ Honor changes to gitignore
+  #{ Honour changes to gitignore
   [ -n "${ignore}" ] && git rm -r --force --cached .
 
   #{ Skip if there are no changes
@@ -771,7 +771,7 @@ execute() {
 #@	ENTRY-POINT                               @#
 #{ ============================================= @#
 main() {
-  #{ Initialize the script
+  #{ Initialise the script
   establish_environment "$@"
 
   #{ Run the necessary process

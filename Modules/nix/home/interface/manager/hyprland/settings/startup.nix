@@ -19,7 +19,7 @@
     #? Ensures all applications start with correct cursor
     # "hyprctl setcursor Bibata-Modern-Ice 24"
 
-    #~@ Initialize wallpaper (custom script or use hyprpaper/swaybg)
+    #~@ Initialise wallpaper (custom script or use hyprpaper/swaybg)
     # "init-wallpaper &"
 
     # ============================================

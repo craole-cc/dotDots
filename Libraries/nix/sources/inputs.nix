@@ -167,7 +167,7 @@
 
   # TODO: Add dependencies and Examples to the doc
   /**
-  Normalizes inputs of a flake
+  Normalises inputs of a flake
 
   # Input
   flake: An already evaluated flake. (optional)

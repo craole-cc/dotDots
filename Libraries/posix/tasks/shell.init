@@ -92,7 +92,7 @@ establish_utilities() {
   }
 }
 
-initialize_shell() {
+initialise_shell() {
   #{ Ensure that the shell is available
   weHave "$1" || {
     printf "We don't seem to have %s installed\n" "${SHELL_INTERACTIVE}"

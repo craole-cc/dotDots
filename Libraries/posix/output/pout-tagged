@@ -15,7 +15,7 @@
 #DOC   pout-tagged --ctx "locate_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
 #DOC   pout-tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
 
-#{ Initialize with defaults }
+#{ Initialise with defaults }
 scr_path="$0"                #? Script path
 scr_name="${scr_path##*/}"   #? Filename without path
 delimiter="$(printf "\037")" #? ASCII Unit Separator

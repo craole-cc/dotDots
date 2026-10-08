@@ -162,7 +162,7 @@ get_current_theme() {
         return 0
         ;;
       *)
-        : # no recognizable scheme name; fall through to next layer
+        : # no recognisable scheme name; fall through to next layer
         ;;
     esac
   fi
@@ -206,7 +206,7 @@ get_current_theme() {
         return 0
         ;;
       *)
-        : # no recognizable scheme name; fall through to next layer
+        : # no recognisable scheme name; fall through to next layer
         ;;
     esac
   fi

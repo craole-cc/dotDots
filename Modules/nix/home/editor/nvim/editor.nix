@@ -71,7 +71,7 @@
     features.edit_prediction_provider = "zed";
     edit_predictions.disabled_globs = [".env"];
 
-    #| Gutter & Visualizations
+    #| Gutter & Visualisations
     gutter = {
       line_numbers = true;
       code_actions = true;
@@ -82,8 +82,8 @@
       enabled = true;
       line_width = 1;
       active_line_width = 1;
-      coloring = "indent_aware";
-      background_coloring = "indent_aware";
+      colouring = "indent_aware";
+      background_colouring = "indent_aware";
     };
     scrollbar = {
       show = "auto";

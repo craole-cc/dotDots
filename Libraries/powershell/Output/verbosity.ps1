@@ -78,7 +78,7 @@ $script:NumericToLevelMap = @('Off', 'Error', 'Warning', 'Information', 'Debug',
 function Global:Set-Verbosity {
   <#
     .SYNOPSIS
-        Normalizes a verbosity value to the canonical level name.
+        Normalises a verbosity value to the canonical level name.
     .PARAMETER Value
         The verbosity value to normalize.
     .OUTPUTS
@@ -148,7 +148,7 @@ function Global:Get-Verbosity {
     .SYNOPSIS
     Returns a detailed breakdown of a verbosity value, including canonical level, numeric value, tag, and validation.
     .PARAMETER Value
-    The verbosity value to analyze (can be a string, alias, or number).
+    The verbosity value to analyse (can be a string, alias, or number).
     .EXAMPLE
     Get-Verbosity 'green'
     Get-Verbosity 4

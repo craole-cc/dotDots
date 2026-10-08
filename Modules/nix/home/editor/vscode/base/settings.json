@@ -56,7 +56,7 @@
 	"editor.renderWhitespace": "all",
 	"editor.selectionHighlight": false,
 	"editor.semanticHighlighting.enabled": true,
-	"editor.semanticTokenColorCustomizations": {
+	"editor.semanticTokenColorCustomisations": {
 		"rules": {
 			"interface": {
 				"italic": true
@@ -651,7 +651,7 @@
 			"base": "custom",
 			"color": "pink-800",
 			"lightColor": "pink-400",
-			"folderNames": ["customize", "art", "fmt", "format"]
+			"folderNames": ["customise", "art", "fmt", "format"]
 		},
 		{
 			"name": "time",
@@ -773,7 +773,7 @@
 	"markdown.marp.exportType": "html",
 	"markdown.marp.strictPathResolutionDuringExport": true,
 	"markdown.preview.typographer": true,
-	"colorful-comments-refreshed.tags": [
+	"colourful-comments-refreshed.tags": [
 		{
 			"tag": "@",
 			"italic": true,
@@ -959,8 +959,8 @@
 	],
 	"custom-ui-style.reloadWithoutPrompting": true,
 	"custom-ui-style.watch": true,
-	"workbench.colorCustomizations": {},
-	"editor.tokenColorCustomizations": {
+	"workbench.colorCustomisations": {},
+	"editor.tokenColorCustomisations": {
 		"[*Light*]": {
 			"textMateRules": [
 				{

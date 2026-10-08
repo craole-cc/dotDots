@@ -32,7 +32,7 @@ function Global:Greetings {
     # Output: Hey Sam!
 
     .NOTES
-    Define aliases pointing to this function to customize greeting words conveniently.
+    Define aliases pointing to this function to customise greeting words conveniently.
     Uses $MyInvocation.InvocationName to detect how the function was called.
 
     #>
@@ -59,7 +59,7 @@ function Global:Greetings {
   }
 
   # Convert both Greeting and Name to Title Case for neat output
-  $cultureInfo = [System.Globalization.CultureInfo]::CurrentCulture
+  $cultureInfo = [System.Globalisation.CultureInfo]::CurrentCulture
   $textInfo = $cultureInfo.TextInfo
 
   $greetingCase = $textInfo.ToTitleCase($Greeting)

@@ -619,7 +619,7 @@
         assert withContext {
           name = "mkMembers";
           context = concat " " [
-            "normalizing"
+            "normalising"
             kind
             "members for"
             owner

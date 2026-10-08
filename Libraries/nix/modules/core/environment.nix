@@ -230,7 +230,7 @@
       provider = loc.locator or "geoclue2";
     };
 
-    #~@ Internationalization
+    #~@ Internationalisation
     i18n.defaultLocale = loc.defaultLocale or null;
   };
 in

@@ -111,7 +111,7 @@ parse_arguments() {
       ;;
     -l | --*limit*)
       if [ -n "${2:-}" ]; then
-        #{ Initialize variables
+        #{ Initialise variables
         valid_type=false
 
         #{ Check if the argument is in the predifined list
@@ -383,7 +383,7 @@ sort_results() {
           #{ Calculate directory depth
           depth = NF - 1
 
-          #{ Initialize empty sort key
+          #{ Initialise empty sort key
           sort_key = ""
 
           #{ Process each path component
@@ -482,7 +482,7 @@ sort_results() {
             }
 
             {
-              #{ Initialize empty sort key
+              #{ Initialise empty sort key
               sort_key = ""
 
               #{ Process each path component
@@ -547,7 +547,7 @@ search_exe() {
   #DOC Options:
   #DOC   <executable_pattern>: The pattern or name of the executable to search for.
   #DOC Notes:
-  #DOC   - The function will utilize the `command -v` command to check for the
+  #DOC   - The function will utilise the `command -v` command to check for the
   #DOC     executable in the PATH.
   #DOC   - If 'smart_exec' is enabled, the function will also search for executables
   #DOC     with common extensions.
@@ -595,7 +595,7 @@ search_exe() {
 }
 
 find_path() {
-  #{ Initialize variables
+  #{ Initialise variables
   search_path="${cwd}"
   search_pattern=""
   search_type=""
@@ -662,7 +662,7 @@ find_path() {
   }
 
   search_upwards() {
-    #{ Initialize variables
+    #{ Initialise variables
     res=""
     found=""
     loop_guard=0
@@ -1018,7 +1018,7 @@ trim() {
 }
 
 pout() {
-  #{ Initialize variables
+  #{ Initialise variables
   key="" val="" tag="" pad="" msg="" trim=true
 
   #{ Parse message type and content

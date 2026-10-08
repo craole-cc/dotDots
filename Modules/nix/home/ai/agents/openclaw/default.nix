@@ -119,7 +119,7 @@ in
           # OpenClaw requires its active config path to be a regular file; a
           # Home Manager symlink would let OpenClaw replace the store target.
           home = {
-            activation.materializeOpenClawConfig = entryAfter ["linkGeneration"] ''
+            activation.materialiseOpenClawConfig = entryAfter ["linkGeneration"] ''
               if [ -L "${target}" ]; then
                 ${bin.rm} -f "${target}"
               fi

@@ -28,7 +28,7 @@ establish_metadata() {
   Options:
     -h, --help        Display this usage guide
     -v, --version     Show the current version ${_cmd_NAME}
-    -i, --ignore      Honor .gitignore changes
+    -i, --ignore      Honour .gitignore changes
     -s, --status      Show the git status
     -a, --add         Ensure all files are indexed
     -c, --commit      Record changes to the repository
@@ -174,7 +174,7 @@ establish_environment() {
         ;;
       --ci) ci=true ;;
       -*) ;;
-        # TODO: Add support for initialization
+        # TODO: Add support for initialisation
         # --key)
         # 	[ "$2" ] || display_info --error "SSH Key required"
         # 	key="$2"
@@ -381,7 +381,7 @@ execute_git_actions() {
   # | Ensure we are running our commands from the target git_dir
   work_in "$1"
 
-  # | Honor changes to gitignore
+  # | Honour changes to gitignore
   [ -n "${ignore}" ] && git rm -r --force --cached .
 
   # | Check if there are changes
@@ -495,11 +495,11 @@ execute_tests() {
 # @	ENTRY-POINT                                    @ #
 # @ ============================================== @ #
 main() {
-  # | Initialize the script
+  # | Initialise the script
   establish_defaults
   establish_metadata
 
-  # | Initialize variables
+  # | Initialise variables
   establish_environment "$@"
 
   # | Run the necessary process

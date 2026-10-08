@@ -22,9 +22,9 @@ in {
 
     ## Privacy and Fingerprinting Resistance
     "privacy.resistFingerprinting" = true;
-    "privacy.resistFingerprinting.randomization.canvas.use_siphash" = true;
-    "privacy.resistFingerprinting.randomization.daily_reset.enabled" = true;
-    "privacy.resistFingerprinting.randomization.daily_reset.private.enabled" = true;
+    "privacy.resistFingerprinting.randomisation.canvas.use_siphash" = true;
+    "privacy.resistFingerprinting.randomisation.daily_reset.enabled" = true;
+    "privacy.resistFingerprinting.randomisation.daily_reset.private.enabled" = true;
     "privacy.resistFingerprinting.block_mozAddonManager" = true;
     "privacy.spoof_english" = 1;
     "privacy.firstparty.isolate" = true;

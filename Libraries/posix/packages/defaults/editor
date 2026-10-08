@@ -133,10 +133,10 @@ establish_environment() {
   else
     if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
       pout-tagged --ctx "editor" --tag "[WARN]" \
-        "The 'delim' utility is not available. String normalization may be inconsistent."
+        "The 'delim' utility is not available. String normalisation may be inconsistent."
     fi
 
-    #{ Employ basic fallback normalization }
+    #{ Employ basic fallback normalisation }
     tuis="$(printf '%s' "${tuis}" | tr -s ' ,|:' ' ')" || tuis=""
     guis="$(printf '%s' "${guis}" | tr -s ' ,|:' ' ')" || guis=""
   fi
@@ -299,7 +299,7 @@ normalize_vars() {
   #DOC
   #DOC Description:
   #DOC   Takes a string containing variables separated by various delimiters such as commas, pipes,
-  #DOC   colons, or spaces, and normalizes all delimiters to a single specified delimiter.
+  #DOC   colons, or spaces, and normalises all delimiters to a single specified delimiter.
   #DOC
   #DOC Arguments:
   #DOC   $1 - The input string to normalize.

@@ -20,7 +20,7 @@ if (-not ($allowedExtensions -contains $extension)) {
 
 #{ Define the DllImport method for SystemParametersInfo }
 $code = '[DllImport("user32.dll", CharSet=CharSet.Auto)] public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);'
-$method = Add-Type -MemberDefinition $code -Name Wallpaper -Namespace WinAPI -PassThru
+$method = Add-Type -MemberDefinition $code -Name Wallpaper -Namespace WinAPI -PassThrough
 
 #{ Apply the wallpaper and update settings }
 $result = $method::SystemParametersInfo(0x0014, 0, $path, 0x0001 -bor 0x0002)

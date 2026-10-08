@@ -23,7 +23,7 @@ resolve_command() {
   fi
 }
 
-initialize_environment() {
+initialise_environment() {
   #> Early exit if not on Wayland
   if [ -z "${WAYLAND_DISPLAY:-}" ]; then
     printf "Error: Foot requires Wayland. WAYLAND_DISPLAY is not set.\n" >&2
@@ -217,7 +217,7 @@ launch_with_server() {
 monitor_mode() {
   printf "Starting foot theme monitor...\n" >&2
 
-  # Initialize theme file
+  # Initialise theme file
   CURRENT_THEME=$(detect_scheme)
   printf '%s' "${CURRENT_THEME}" > "${THEME_FILE}"
   printf "Initial theme: %s\n" "${CURRENT_THEME}" >&2
@@ -269,8 +269,8 @@ quake_mode() {
       qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2> /dev/null
     elif printf "%s" "${WINDOW_INFO}" | grep -q "active: true"; then
       #> Window is active and visible, hide it
-      log_debug "Quake window ${WINDOW_ID} is active, minimizing"
-      qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2> /dev/null
+      log_debug "Quake window ${WINDOW_ID} is active, minimising"
+      qdbus org.kde.KWin /KWin org.kde.KWin.minimiseWindow "${WINDOW_ID}" 2> /dev/null
     else
       #> Window exists but not active, activate it
       log_debug "Quake window ${WINDOW_ID} exists but inactive, activating"
@@ -337,5 +337,5 @@ ENVIRONMENT:
 EOF
 }
 
-initialize_environment
+initialise_environment
 parse_arguments "$@"

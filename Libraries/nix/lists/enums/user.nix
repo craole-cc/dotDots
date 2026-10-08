@@ -54,7 +54,7 @@
   User capabilities - primary use cases and workflows.
 
   Defines what the user primarily does with their system.
-  Used to configure appropriate applications and optimizations.
+  Used to configure appropriate applications and optimisations.
 
   # Creative
   - creation: Art, music, video production

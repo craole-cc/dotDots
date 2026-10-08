@@ -23,7 +23,7 @@ Build Commands: Compile a local package and all of its dependencies
   -bw <WORKSPACE...>    Build within a workspace
   -bx <TARGET...>       Exclude specified target
 
-Clean Commands: Remove artifacts that cargo has generated in the past
+Clean Commands: Remove artefacts that cargo has generated in the past
   -c                    Execute the clean command with default options
 
 Install Commands: Install packages to the system

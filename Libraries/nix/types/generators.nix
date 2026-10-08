@@ -182,7 +182,7 @@ in {
           ];
         });
 
-      # Demonstrate alias normalization: desired = "set"
+      # Demonstrate alias normalisation: desired = "set"
       stringExpectedSetAlias =
         mkTest "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")."
         (mkError {

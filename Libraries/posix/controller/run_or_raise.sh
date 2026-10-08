@@ -311,7 +311,7 @@ focus() {
     "Darwin")
       [ -n "${VERBOSE:-}" ] && printf "Trying macOS methods...\n" >&2
       #> Try System Events first, then direct activation
-      osascript -e "tell application \"System Events\" to tell process \"${_app}\" to perform action \"AXRaise\" of window 1" > /dev/null 2>&1 && return 0
+      osascript -e "tell application \"System Events\" to tell process \"${_app}\" to perform action \"AXERaise\" of window 1" > /dev/null 2>&1 && return 0
       osascript -e "tell application \"${_app}\" to activate" > /dev/null 2>&1 && return 0
       ;;
     "Windows")
