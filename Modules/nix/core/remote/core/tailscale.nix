@@ -22,7 +22,7 @@ in
     inherit context;
     options = {
       enable =
-        mkEnableOption "Enable Tailscale remote access"
+        mkEnableOption "Tailscale remote access"
         // {
           default =
             host.access.remote.tailscale.enable or (
