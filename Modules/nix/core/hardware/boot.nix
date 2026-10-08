@@ -11,13 +11,14 @@
     mod = "boot";
   };
   inherit (context) cfg mod;
-
   inherit (lix.attrsets.access) getAttr;
   inherit (lix.attrsets.predicates) hasAttr;
   inherit (lix.debug.tracing) traceIf;
-  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.lists.access) length;
   inherit (lix.lists.enums.gui) bootLoaders;
   inherit (lix.lists.predicates) any;
+  inherit (lix.lists.transformation) filter;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkTrue mkOption;
   inherit (lix.strings.construction) concatStringsSep optionalString;
   inherit (lix.strings.predicates) hasInfix hasPrefix isString;
@@ -32,6 +33,7 @@
     "system"
     "refind"
     "grub"
+    "limine"
   ];
 
   kernel = let
@@ -57,6 +59,14 @@
   isSystemd = hasInfix "system" cfg.loader;
   isRefind = hasInfix "refind" cfg.loader;
   isGrub = hasInfix "grub" cfg.loader;
+  isLimine = hasInfix "limine" cfg.loader;
+
+  selectedCount = length (filter (x: x) [
+    isSystemd
+    isRefind
+    isGrub
+    isLimine
+  ]);
 in
   mkConfig {
     inherit context;
@@ -81,7 +91,7 @@ in
     outputs = {
       assertions = [
         {
-          assertion = any (p: hasInfix p cfg.loader) validPatterns;
+          assertion = any (pattern: hasInfix pattern cfg.loader) validPatterns;
           message = ''
             Invalid bootLoader '${cfg.loader}'.
             Must contain one of: ${concatStringsSep ", " validPatterns}
@@ -100,16 +110,11 @@ in
           message = "efiSysMountPoint must be an absolute path, got: ${toString cfg.efiMount}";
         }
         {
-          assertion = !(isSystemd && isRefind);
-          message = "Cannot enable both systemd-boot and refind simultaneously.";
-        }
-        {
-          assertion = !(isSystemd && isGrub);
-          message = "Cannot enable both systemd-boot and grub simultaneously.";
-        }
-        {
-          assertion = !(isRefind && isGrub);
-          message = "Cannot enable both refind and grub simultaneously.";
+          assertion = selectedCount == 1;
+          message = ''
+            Exactly one boot loader must be selected, but '${cfg.loader}' matches ${toString selectedCount}.
+            Valid loaders: ${concatStringsSep ", " validPatterns}
+          '';
         }
       ];
 
@@ -150,6 +155,20 @@ in
             useOSProber = hw.hasDualBoot;
           };
 
+          limine = mkIf isLimine {
+            enable = true;
+            efiSupport = hw.hasEfi;
+            enableEditor = false;
+            maxGenerations = 20;
+            #? Windows must share this ESP for boot():/ to resolve. If it has its
+            #? own ESP, swap boot() for guid(<partition-guid>) from `blkid`.
+            extraEntries = optionalString hw.hasDualBoot ''
+              /Windows
+                  protocol: efi
+                  path: boot():/EFI/Microsoft/Boot/bootmgfw.efi
+            '';
+          };
+
           efi = {
             canTouchEfiVariables = hw.hasEfi;
             efiSysMountPoint = cfg.efiMount;
@@ -158,7 +177,7 @@ in
           inherit (cfg) timeout;
         };
 
-        initrd.availableKernelModules = host.hardware.kernelModules or host.modules or [];
+        initrd.availableKernelModules = host.hardware.kernelModules or (host.modules or []);
       };
 
       environment.systemPackages = with pkgs; [efibootmgr];

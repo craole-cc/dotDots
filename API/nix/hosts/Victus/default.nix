@@ -248,7 +248,8 @@ in {
   ];
 
   interface = {
-    bootLoader = "systemd-boot";
+    # bootLoader = "systemd-boot";
+    bootLoader = "limine";
     bootLoaderTimeout = 1;
     # desktopEnvironment = "gnome";
     windowManager = "hyprland";

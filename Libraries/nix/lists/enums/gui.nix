@@ -30,9 +30,10 @@
   ```
   */
   bootLoaders = mkEnum [
-    "systemd-boot"
     "grub"
+    "limine"
     "refind"
+    "systemd-boot"
   ];
 
   /**
@@ -73,7 +74,7 @@
   /**
   Display managers - display/session managers.
 
-  Handles user authentication and session initialization.
+  Handles user authentication and session initialisation.
 
   # Modern
   - sddm: Simple Desktop Display Manager (Qt-based, KDE default)
@@ -137,7 +138,7 @@
   # Environments
   - none: No desktop environment (WM only or minimal setup)
   - gnome: GNOME desktop (GTK, modern, touch-friendly, Wayland-first)
-  - plasma: KDE Plasma (Qt, highly customizable, mature Wayland support)
+  - plasma: KDE Plasma (Qt, highly customisable, mature Wayland support)
   - cosmic: System76 Cosmic (Rust-based, modern, native Wayland)
   - xfce: Lightweight desktop (GTK, traditional, X11-focused)
   - budgie: Modern desktop (GNOME-based, clean, elegant)
