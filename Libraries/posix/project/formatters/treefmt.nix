@@ -112,7 +112,8 @@
           ])
           ++ runtimeInputs;
         text =
-          readFile (mkPath [
+          readFile
+          (mkPath [
             "Libraries"
             "posix"
             "project"
