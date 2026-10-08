@@ -222,8 +222,9 @@
 
     network = with pkgs; [
       curl
-      wget
       gh
+      nftables
+      wget
     ];
 
     media = with pkgs; [
