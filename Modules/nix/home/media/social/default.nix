@@ -12,7 +12,7 @@
   context = mkContext {
     inherit config;
     dom = "media";
-    mod = "socila";
+    mod = "social";
   };
   isAllowed = isIn "video" (host.functionalities or []);
 in

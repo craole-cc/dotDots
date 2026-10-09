@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=all
 #shellcheck disable=SC2329
 
 usage() {

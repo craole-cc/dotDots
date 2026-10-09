@@ -178,8 +178,9 @@
     };
 
     browser = {
-      primary = "zen-twilight";
-      secondary = "chromium";
+      primary = "chromium";
+      secondary = "zen-twilight";
+      tertiary = "brave";
     };
     editor = {
       tty = {
