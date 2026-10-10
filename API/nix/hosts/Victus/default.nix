@@ -3,6 +3,7 @@
 let
   arch = "x86_64";
   os = "linux";
+  admin = "craole";
 in {
   imports = [./hardware-configuration.nix];
 
@@ -12,9 +13,9 @@ in {
   id = "d2c1db8e"; # > head -c8 /etc/machine-id'
 
   paths = {
-    roots.repo = "/home/craole/Downloads/public/dotDots";
+    roots.repo = "/home/${admin}/.dots";
     stems.repo = {
-      # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+      # wallpapers = "/home/${admin}/.dots/Assets/Images/wallpaper";
     };
   };
 
@@ -189,8 +190,8 @@ in {
       };
       guacamole = {
         enable = true;
-        desktopUser = "craole";
-        username = "craole";
+        desktopUser = admin;
+        username = admin;
         passwordHash = "6a3ec540d97df7547b694a1d8ec5b332";
       };
       caddy.enable = false;
@@ -231,7 +232,7 @@ in {
 
   principals = [
     {
-      name = "craole";
+      name = admin;
       enable = true;
       autoLogin = false;
       role = "administrator";
