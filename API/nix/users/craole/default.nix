@@ -178,10 +178,11 @@
     };
 
     browser = {
-      primary = "chromium";
+      primary = "brave";
       secondary = "zen-twilight";
-      tertiary = "brave";
+      tertiary = "chromium";
     };
+
     editor = {
       tty = {
         primary = "helix";
@@ -201,6 +202,7 @@
     explorer = {
       primary = "yazi";
       secondary = "doublecmd";
+      tertiary = "dolphin";
     };
     launcher = {
       primary = "vicinae";

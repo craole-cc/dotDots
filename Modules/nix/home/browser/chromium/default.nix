@@ -49,13 +49,12 @@
 
   target = findFirst (candidate: variantFor candidate != null) null targets;
   variant = variantFor target;
+  enable = variant != null;
 
   package =
-    if variant != null
+    if enable
     then pkgs.${variant}
     else null;
-
-  enable = variant != null;
 
   debug = {
     key = "_dbg_${toUpper name}";
@@ -82,19 +81,21 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = enable;
+    options = {
+      enable = mkEnable {
+        inherit context;
+        condition = enable;
+      };
     };
     outputs = {
-      programs.chromium = {
-        enable = true;
-        inherit package;
-        commandLineArgs = [
-          "--ui-toolkit=gtk"
-          "--gtk-version=4"
-        ];
+      programs = {
+        chromium =
+          {inherit enable package;}
+          // (import ./cli.nix)
+          // (import ./extensions.nix);
       };
-      home.sessionVariables.${debug.key} = debug.val;
+      home = {
+        sessionVariables.${debug.key} = debug.val;
+      };
     };
   }

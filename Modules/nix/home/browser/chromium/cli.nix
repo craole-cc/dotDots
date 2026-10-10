@@ -1,1 +1,7 @@
-{programs.chromium.commandLineArgs = ["--disable-features=AutofillSavePaymentMethods"];}
+{
+  commandLineArgs = [
+    "--disable-features=AutofillSavePaymentMethods"
+    "--ui-toolkit=gtk"
+    "--gtk-version=4"
+  ];
+}

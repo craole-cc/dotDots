@@ -175,6 +175,8 @@
     #~@ System & Utilities
     utils = with pkgs; [
       bat
+      bitwarden-cli
+      bitwarden-desktop
       dprint
       gitui
       gum
