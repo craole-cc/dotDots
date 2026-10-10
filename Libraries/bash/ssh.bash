@@ -27,31 +27,6 @@ CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
-#{ Function to display help information
-show_help() {
-  cat << EOF
-${BOLD}${APP_NAME}${RESET} v${APP_VERSION}
-
-Usage: ${APP_NAME} [OPTIONS]
-
-Automatically configures SSH for Git based on your dotfiles.
-
-Options:
-  -h, --help      Show this help message and exit
-  -v, --version   Show version information and exit
-  -d, --dir DIR   Set custom dotfiles directory (default: ${DOTS})
-  -f, --force     Force regeneration of existing keys
-  -l, --list      List available profiles
-  -y, --yes       Non-interactive mode (no prompts)
-
-Examples:
-  ${APP_NAME}
-  ${APP_NAME} --dir ~/my-dotfiles
-  ${APP_NAME} --force
-  ${APP_NAME} --yes
-EOF
-}
-
 #{ Function to display version information
 show_version() {
   printf "%s v%s\n" "${APP_NAME}" "${APP_VERSION}"
@@ -97,7 +72,7 @@ get_system_info() {
   if [[ -f /etc/os-release ]]; then
     #| Linux
     os_info=$(grep -E "^ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
-  elif command -v uname &> /dev/null; then
+  elif command -v uname &>/dev/null; then
     #| macOS or other Unix
     os_info=$(uname -s)
   else
@@ -115,16 +90,16 @@ copy_to_clipboard() {
   local success=false
 
   #{ Try different clipboard commands based on available tools
-  if command -v xclip &> /dev/null; then
+  if command -v xclip &>/dev/null; then
     echo -n "${text}" | xclip -selection clipboard && success=true
-  elif command -v xsel &> /dev/null; then
+  elif command -v xsel &>/dev/null; then
     echo -n "${text}" | xsel --clipboard --input && success=true
-  elif command -v pbcopy &> /dev/null; then
+  elif command -v pbcopy &>/dev/null; then
     echo -n "${text}" | pbcopy && success=true
-  elif command -v clip.exe &> /dev/null; then
+  elif command -v clip.exe &>/dev/null; then
     #{ For Windows/WSL
     echo -n "${text}" | clip.exe && success=true
-  elif [[ -n ${WAYLAND_DISPLAY} ]] && command -v wl-copy &> /dev/null; then
+  elif [[ -n ${WAYLAND_DISPLAY} ]] && command -v wl-copy &>/dev/null; then
     echo -n "${text}" | wl-copy && success=true
   fi
 
@@ -145,7 +120,7 @@ parse_git_config() {
 
   #{ Extract host and username from filename (format: host_username.gitconfig)
   local host username
-  IFS='_' read -r host username <<< "$(basename "${filename}" .gitconfig)"
+  IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
 
   #{ Read git user information from config - avoid command substitution masking
   local git_name git_email ssh_path
@@ -247,18 +222,18 @@ generate_ssh_key() {
 
   #{ Add to SSH config
   printf "\nHost %s\n  User %s\n  HostName %s\n  IdentityFile %s\n" \
-    "${host}" "${username}" "${host}" "${key_path}" >> "${SSH_CONFIG}"
+    "${host}" "${username}" "${host}" "${key_path}" >>"${SSH_CONFIG}"
   show_info "Updated SSH config: ${SSH_CONFIG}"
 
   #{ Add key to SSH agent - handle commands separately
   #{ Start ssh-agent
   local agent_output
   agent_output=$(ssh-agent -s)
-  eval "${agent_output}" > /dev/null
+  eval "${agent_output}" >/dev/null
   show_info "Started SSH agent"
 
   #{ Add key to agent
-  ssh-add "${key_path}" > /dev/null || true
+  ssh-add "${key_path}" >/dev/null || true
   show_info "Added key to SSH agent"
 
   show_success "SSH key generated for ${username}@${host}"
@@ -335,7 +310,7 @@ list_profiles() {
   fi
 
   #{ Read find output into array
-  mapfile -t configs <<< "${find_output}"
+  mapfile -t configs <<<"${find_output}"
 
   for config_file in "${configs[@]}"; do
     local filename
@@ -378,7 +353,7 @@ setup_ssh_for_profiles() {
 
   #{ Read find output into array
   local configs=()
-  mapfile -t configs <<< "${find_output}"
+  mapfile -t configs <<<"${find_output}"
 
   #{ Process each gitconfig file
   for config_file in "${configs[@]}"; do
@@ -387,7 +362,7 @@ setup_ssh_for_profiles() {
     #{ Extract filename info for logging, separate from the parsing function
     local filename host username
     filename="$(basename "${config_file}")"
-    IFS='_' read -r host username <<< "$(basename "${filename}" .gitconfig)"
+    IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
     show_info "Extracted from filename: host='${host}', username='${username}'"
 
     #{ Normalize host for logging
@@ -450,36 +425,36 @@ main() {
   #{ Parse command line arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -h | --help)
-        show_help
-        exit 0
-        ;;
-      -v | --version)
-        show_version
-        exit 0
-        ;;
-      -d | --dir)
-        DOTS="$2"
-        GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
-        shift 2
-        ;;
-      -f | --force)
-        force="true"
-        shift
-        ;;
-      -l | --list)
-        list_profiles
-        exit 0
-        ;;
-      -y | --yes)
-        non_interactive="true"
-        shift
-        ;;
-      *)
-        show_error "Unknown option: $1"
-        show_help
-        exit 1
-        ;;
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    -v | --version)
+      show_version
+      exit 0
+      ;;
+    -d | --dir)
+      DOTS="$2"
+      GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
+      shift 2
+      ;;
+    -f | --force)
+      force="true"
+      shift
+      ;;
+    -l | --list)
+      list_profiles
+      exit 0
+      ;;
+    -y | --yes)
+      non_interactive="true"
+      shift
+      ;;
+    *)
+      show_error "Unknown option: $1"
+      show_help
+      exit 1
+      ;;
     esac
   done
 
@@ -488,6 +463,31 @@ main() {
 
   #{ Setup SSH for profiles
   setup_ssh_for_profiles "${force}" "${non_interactive}"
+}
+
+#{ Function to display help information
+show_help() {
+  cat <<EOF
+${BOLD}${APP_NAME}${RESET} v${APP_VERSION}
+
+Usage: ${APP_NAME} [OPTIONS]
+
+Automatically configures SSH for Git based on your dotfiles.
+
+Options:
+  -h, --help      Show this help message and exit
+  -v, --version   Show version information and exit
+  -d, --dir DIR   Set custom dotfiles directory (default: ${DOTS})
+  -f, --force     Force regeneration of existing keys
+  -l, --list      List available profiles
+  -y, --yes       Non-interactive mode (no prompts)
+
+Examples:
+  ${APP_NAME}
+  ${APP_NAME} --dir ~/my-dotfiles
+  ${APP_NAME} --force
+  ${APP_NAME} --yes
+EOF
 }
 
 #{ Run the script
