@@ -33,6 +33,7 @@
     inherit (binaries) gum jaq sd;
     systemctl = "${tools.systemd.paths.binary}/systemctl";
     cmp = binaries.diffutils;
+    cksum = "${coreutils}/cksum";
     cat = "${coreutils}/cat";
     chmod = "${coreutils}/chmod";
     dirname = "${coreutils}/dirname";

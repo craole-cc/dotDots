@@ -21,6 +21,10 @@
       ${coreutils}/rm -rf "$temporary"
       trap - EXIT
     fi
+    workbench="$target/resources/app/out/vs/code/electron-browser/workbench"
+    appearance="$root/../vscode-wallpaper"
+    ${coreutils}/ln -sfn "$appearance/appearance.json" "$workbench/dotdots-wallpaper.json"
+    ${coreutils}/ln -sfn "$appearance/wallpaper.jpg" "$workbench/dotdots-wallpaper.jpg"
     [ "''${DOTDOTS_VSCODE_PREPARE_ONLY:-0}" = 1 ] && exit 0
     exec "$target/bin/code-insiders" "$@"
   '';
