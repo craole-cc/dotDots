@@ -264,12 +264,14 @@
           icon = "buuf-nestort";
           cursor = "material-cursors";
           opacity.terminal = 0.92;
+          opacity.editor = 0.96;
         };
         light = {
           palette = palettes.catppuccin.latte;
           icon = "candy-icons";
           cursor = "catppuccin-cursors";
           opacity.terminal = 0.88;
+          opacity.editor = 0.96;
         };
         default = dark;
         autoSwitch = true;

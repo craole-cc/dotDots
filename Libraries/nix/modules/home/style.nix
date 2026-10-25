@@ -67,6 +67,20 @@
         or "catppuccin-cursors";
     };
     opacity = {
+      editor = {
+        light =
+          user.theme.modes.light.opacity.editor
+          or user.style.opacity.editor.light
+          or host.theme.modes.light.opacity.editor
+          or host.style.opacity.editor.light
+          or 1.0;
+        dark =
+          user.theme.modes.dark.opacity.editor
+          or user.style.opacity.editor.dark
+          or host.theme.modes.dark.opacity.editor
+          or host.style.opacity.editor.dark
+          or 1.0;
+      };
       terminal = {
         light =
           user.theme.modes.light.opacity.terminal

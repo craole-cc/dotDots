@@ -5,6 +5,7 @@
   lix,
   bins,
   app,
+  pkgs,
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
@@ -12,6 +13,9 @@
   inherit (lix.strings.transformation) escapeShellArg;
 in
   optionalAttrs cfg.features.ui.dms {
+    syncDmsVSCodeWallpaper = entryAfter ["reloadSystemd" "materialiseVSCodeProfile"] ''
+      ${pkgs.systemd}/bin/systemctl --user start dotdots-foot-dms-theme-reload.service
+    '';
     seedDmsVSCodeTheme = entryAfter ["linkGeneration"] ''
       source=${escapeShellArg (concat {
         root = config.programs.dank-material-shell.package.src;
