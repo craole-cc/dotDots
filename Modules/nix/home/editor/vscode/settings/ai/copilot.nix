@@ -53,7 +53,7 @@
             enabled = false;
             maxProbes = 1;
           };
-          modelDetails.enabled = true;
+          # modelDetails.enabled = true; #! Deprecated
           omitFileAttachmentContents = false;
           temperature = 0;
         };
@@ -90,34 +90,34 @@
           model = "";
         };
 
-        backgroundAgent.enabled = true;
+        # backgroundAgent.enabled = true; #! Deprecated
         chatCompletionsTokenParameter = "max_tokens";
         claudeDefaultReasoningEffort = "";
         claudeOpus5Prompt.enabled = false;
         claudeSonnet5Prompt.enabled = false;
 
         cli = {
-          aiGenerateBranchNames.enabled = true;
-          autoCommit.enabled = true;
-          autoModel.enabled = true;
-          branchSupport.enabled = false;
-          forkSessions.enabled = true;
-          isolationOption.enabled = true;
-          lazyLoadSessionItem.enabled = true;
-          mcp.enabled = true;
-          planCommand.enabled = true;
-          planExitMode.enabled = true;
-          remote.enabled = true;
-          sandbox.enabled = "off";
-          sessionController.enabled = false;
-          sessionControllerForSessionsApp.enabled = false;
+          #   aiGenerateBranchNames.enabled = true; #! Deprecated
+          #   autoCommit.enabled = true; #! Deprecated
+          #   autoModel.enabled = true; #! Deprecated
+          #   branchSupport.enabled = false; #! Deprecated
+          #   forkSessions.enabled = true; #! Deprecated
+          #   isolationOption.enabled = true; #! Deprecated
+          #   lazyLoadSessionItem.enabled = true; #! Deprecated
+          #   mcp.enabled = true; #! Deprecated
+          #   planCommand.enabled = true; #! Deprecated
+          #   planExitMode.enabled = true; #! Deprecated
+          #   remote.enabled = true; #! Deprecated
+          #   sandbox.enabled = "off"; #! Deprecated
+          #   sessionController.enabled = false; #! Deprecated
+          #   sessionControllerForSessionsApp.enabled = false; #! Deprecated
           terminalLinks.enabled = true;
         };
 
         cloudAgent.enabled = true;
 
         codeGeneration = {
-          instructions = [];
+          # instructions = []; #! Deprecated
           useInstructionFiles = true;
         };
 
@@ -127,7 +127,7 @@
         };
 
         commitMessageGeneration.instructions = [];
-        completionsFetcher = "";
+        completionsFetcher = "electron-fetch"; #? ["electron-fetch" | "node-fetch"]
         copilotDebugCommand.enabled = true;
         customInstructionsInSystemMessage = true;
 
@@ -213,7 +213,7 @@
         localIndex.enabled = true;
         localWorkspaceRecording.enabled = false;
         modelCapabilityOverrides = {};
-        nesFetcher = "";
+        nesFetcher = "electron-fetch"; #? ["electron-fetch" | "node-fetch"]
 
         newWorkspace.useContext7 = false;
         newWorkspaceCreation.enabled = true;
@@ -289,7 +289,7 @@
         summarizeAgentConversationHistoryThreshold = 0;
         switchAgent.enabled = false;
         terminalChatLocation = "chatView";
-        testGeneration.instructions = [];
+        # testGeneration.instructions = []; #! Deprecated
 
         tools = {
           defaultToolsGrouped = false;

@@ -149,10 +149,10 @@ _: {
       "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.qrc" = "default";
       "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.ui" = "default";
       "*.db" = "default";
-      "*.pdf" = "pdf.view";
-      "*.qrc" = "qt-core.qrcEditor";
-      "*.tsv" = "csvViewer.csvEditor";
-      "*.xlsx" = "csvViewer.csvEditor";
+      # "*.pdf" = "pdf.view";
+      # "*.qrc" = "qt-core.qrcEditor";
+      # "*.tsv" = "csvViewer.csvEditor";
+      # "*.xlsx" = "csvViewer.csvEditor";
     };
   };
 }

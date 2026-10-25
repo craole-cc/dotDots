@@ -43,7 +43,6 @@
       extensions = ["css" "postcss" "jsx" "tsx"];
       ignore = [];
     };
-    typescript.inlayHints.parameterNames.enabled = "all";
 
     vs-browser = {
       favourites.list = {

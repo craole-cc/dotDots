@@ -49,13 +49,13 @@
 
     tombi = {
       #? Arguments to `tombi` command.
-      args = null;
+      # args = null;
 
       #? Environment variables to pass to `tombi` command.
-      env = null;
+      # env = null;
 
       #? Absolute path to tombi executable.
-      path = null;
+      # path = null;
 
       semanticTokens = {
         #? Send semantic tokens for ordinary comments. Set to `false` to let TextMate grammars and other extensions highlight comments. Tombi directive and region keywords are always highlighted. Requires restarting the language server.

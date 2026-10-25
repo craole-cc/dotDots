@@ -297,7 +297,8 @@ _: {
       list = {
         #> Keyboard navigation for lists/trees.
         #?  - simple | highlight | filter
-        keyboardNavigation = "highlight";
+        #! Deprecated
+        # keyboardNavigation = "highlight";
         #> Default find mode for lists/trees.
         #?  - highlight | filter
         defaultFindMode = "highlight";

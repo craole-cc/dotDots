@@ -1,4 +1,5 @@
 {
+  lix,
   context,
   mkEnable,
   requires,
@@ -8,6 +9,8 @@
   condition = requires lang;
   enable = condition;
   options.${lang}.enable = mkEnable {inherit context condition;};
+
+  inherit (lix.applications.editors) mkVSCodeSetting;
 
   defaultFormatter = "rust-lang.rust-analyzer";
   extensions = [
@@ -161,7 +164,7 @@
         #? `"never"` Never show the status bar.
         #? `{ documentSelector: <DocumentSelector>[] }` Show the status bar if the open file matches any of the given document selectors.
         #? See [VS Code -- DocumentSelector](https://code.visualstudio.com/api/references/document-selector) for more information.
-        showStatusBar = {
+        showStatusBar = mkVSCodeSetting {
           documentSelector = [
             {language = "rust";}
             {pattern = "**/Cargo.toml";}
@@ -184,7 +187,8 @@
       trace = {
         #> Log level is now controlled by the [Developer: Set Log Level...](command:workbench.action.setLogLevel) command. You can set the log level for the current session and also the default log level from there. This is also available by clicking the gear icon on the OUTPUT tab when rust-analyzer Extension is visible or by passing the --log rust-lang.rust-analyzer:debug parameter to VS Code.
         #> Enable logging of VS Code extensions itself.
-        extension = false;
+        #! Deprecated
+        # extension = false;
         #> Trace requests to the rust-analyzer (this is usually overly verbose and not recommended for regular users).
         #?  - off: No traces
         #?  - messages: Error only
@@ -203,9 +207,9 @@
         #?  - webfreak.debug: Use [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
         engine = "auto";
         #> Optional settings passed to the debug engine. Example: `{ "lldb": { "terminal":"external"} }`
-        engineSettings = {};
+        engineSettings = mkVSCodeSetting {};
         #> Optional source file mappings passed to the debug engine.
-        sourceFileMap = {
+        sourceFileMap = mkVSCodeSetting {
           "/rustc/<id>" = "\${env:USERPROFILE}/.rustup/toolchains/<toolchain-id>/lib/rustlib/src/rust";
         };
       };
@@ -237,7 +241,7 @@
         #> Whether to show the main part of the rendered rustc output of a diagnostic message.
         previewRustcOutput = false;
         #> Map of prefixes to be substituted when parsing diagnostic file paths. This should be the reverse mapping of what is passed to `rustc` as `--remap-path-prefix`.
-        remapPrefix = {};
+        remapPrefix = mkVSCodeSetting {};
         styleLints = {
           #> Run additional style lints.
           enable = false;
@@ -316,7 +320,7 @@
         #> Extra arguments that are passed to every cargo invocation.
         extraArgs = [];
         #> Extra environment variables that will be set when running cargo, rustc or other commands within the workspace. Useful for setting RUSTFLAGS.
-        extraEnv = {};
+        extraEnv = mkVSCodeSetting {};
         #> List of features to activate.
         #? Set this to `"all"` to pass `--all-features` to cargo.
         features = [];
@@ -354,7 +358,7 @@
         #> Extra arguments for `cargo check`.
         extraArgs = [];
         #> Extra environment variables that will be set when running `cargo check`. Extends `rust-analyzer.cargo.extraEnv`.
-        extraEnv = {};
+        extraEnv = mkVSCodeSetting {};
         #> List of features to activate. Defaults to `rust-analyzer.cargo.features`.
         #? Set to `"all"` to pass `--all-features` to Cargo.
         features = null;
@@ -462,7 +466,7 @@
         };
         snippets = {
           #> Custom completion snippets.
-          custom = {
+          custom = mkVSCodeSetting {
             Ok = {
               postfix = "ok";
               body = "Ok(\${receiver})";
@@ -817,7 +821,7 @@
       };
 
       joinLines = {
-        #> Join lines merges consecutive declaration and initialization of an assignment.
+        #> Join lines merges consecutive declaration and initialisation of an assignment.
         joinAssignments = true;
         #> Join lines inserts else between consecutive ifs.
         joinElseIf = true;
@@ -875,7 +879,7 @@
         capacity = null;
         query = {
           #> The LRU capacity of the specified queries.
-          capacities = {};
+          capacities = mkVSCodeSetting {};
         };
       };
 
@@ -893,7 +897,7 @@
         enable = true;
         #> These proc-macros will be ignored when trying to expand them.
         #? This config takes a map of crate names with the exported proc-macro names to ignore as values.
-        ignored = {};
+        ignored = mkVSCodeSetting {};
         #> Number of proc-macro server processes to spawn.
         #? Controls how many independent `proc-macro-srv` processes rust-analyzer runs in parallel to handle macro expansion.
         processes = 2;

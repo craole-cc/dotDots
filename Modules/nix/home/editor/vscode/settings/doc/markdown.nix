@@ -186,10 +186,10 @@
 
       clip = {
         #> PNG/JPEG clip region.
-        x = "";
-        y = "";
-        width = "";
-        height = "";
+        x = null;
+        y = null;
+        width = null;
+        height = null;
       };
       #> Auto-export on save.
       convertOnSave = false;

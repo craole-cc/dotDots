@@ -135,15 +135,15 @@
       #> Paste script for resources (Typst expression or path pattern).
       onPaste = "$root/assets";
 
-      #> Path pattern for Typst artifacts (`$root`/`$dir`/`$name` supported).
+      #> Path pattern for Typst artefacts (`$root`/`$dir`/`$name` supported).
       outputPath = "";
 
       preview = {
         #> Show cursor indicator in preview.
         cursorIndicator = true;
 
-        #> Deprecated; use `tinymist.fontPaths`.
-        fontPaths = [];
+        #! Deprecated; use `tinymist.fontPaths`.
+        # fontPaths = [];
 
         #> Invert preview colors.
         invertColors = "never";
@@ -162,8 +162,8 @@
         #?  - onSelectionChange: Sync on any selection change
         scrollSync = "onSelectionChangeByMouse";
 
-        #> Ignored; use `tinymist.typstExtraArgs` for `--input`.
-        sysInputs = {};
+        #! Ignored; use `tinymist.typstExtraArgs` for `--input`.
+        # sysInputs = {};
       };
 
       #> Previewer selection.
@@ -196,7 +196,9 @@
       serverPath = null;
 
       #> How to open exported files.
-      showExportFileIn = null;
+      #? - "editorTab"
+      #? - "systemDefault".
+      showExportFileIn = "editorTab";
 
       #> Status bar format string. Placeholders: `{compileStatusIcon}`,
       #> `{wordCount}`, `{charCount}`, `{fileName}`. Empty hides the status bar.
