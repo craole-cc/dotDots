@@ -206,12 +206,10 @@
         #?  - ms-vscode.cpptools: Use [C/C++ for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
         #?  - webfreak.debug: Use [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
         engine = "auto";
-        #> Optional settings passed to the debug engine. Example: `{ "lldb": { "terminal":"external"} }`
-        engineSettings = mkVSCodeSetting {};
+        # #> Optional settings passed to the debug engine. Example: `{ "lldb": { "terminal":"external"} }`
+        # engineSettings = mkVSCodeSetting {};
         #> Optional source file mappings passed to the debug engine.
-        sourceFileMap = mkVSCodeSetting {
-          "/rustc/<id>" = "\${env:USERPROFILE}/.rustup/toolchains/<toolchain-id>/lib/rustlib/src/rust";
-        };
+        sourceFileMap = "auto";
       };
 
       typing = {

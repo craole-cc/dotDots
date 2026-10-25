@@ -261,17 +261,17 @@
       modes = rec {
         dark = {
           palette = palettes.catppuccin.frappe;
-          icon = "buuf-nestort";
-          cursor = "material-cursors";
+          icon = "candy-icons";
+          cursor = "catppuccin-cursors";
           opacity.terminal = 0.92;
-          opacity.editor = 0.96;
+          opacity.editor = 0.92;
         };
         light = {
           palette = palettes.catppuccin.latte;
-          icon = "candy-icons";
-          cursor = "catppuccin-cursors";
+          icon = "buuf-nestort";
+          cursor = "material-cursors";
           opacity.terminal = 0.88;
-          opacity.editor = 0.96;
+          opacity.editor = 0.90;
         };
         default = dark;
         autoSwitch = true;
