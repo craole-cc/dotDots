@@ -132,10 +132,6 @@ in
         };
         insiders = mkTrue "Whether to use Visual Studio Code Insiders instead of the standard release.";
         importJSON = mkFalse "Import fallback VS Code settings and keybindings from the saved JSON configuration.";
-        dms.enable = mkEnable {
-          inherit context;
-          inherit (wantsDmsShell) condition;
-        };
       }
     ];
 

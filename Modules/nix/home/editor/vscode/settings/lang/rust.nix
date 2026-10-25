@@ -207,11 +207,9 @@
         #?  - webfreak.debug: Use [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
         engine = "auto";
         #> Optional settings passed to the debug engine. Example: `{ "lldb": { "terminal":"external"} }`
-        engineSettings = mkVSCodeSetting {};
+        # engineSettings = mkVSCodeSetting {};
         #> Optional source file mappings passed to the debug engine.
-        sourceFileMap = mkVSCodeSetting {
-          "/rustc/<id>" = "\${env:USERPROFILE}/.rustup/toolchains/<toolchain-id>/lib/rustlib/src/rust";
-        };
+        sourceFileMap = "auto";
       };
 
       typing = {

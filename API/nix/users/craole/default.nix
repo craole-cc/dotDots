@@ -106,9 +106,9 @@
       "shortwave"
     ];
     ide = [
-      "vscode-fhs"
-      "zed-editor-fhs"
       "vscode-insiders"
+      "zed-editor-fhs"
+      "vscode-fhs"
     ];
     launcher = [
       "vicinae"

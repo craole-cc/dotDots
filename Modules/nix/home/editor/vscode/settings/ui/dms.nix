@@ -3,14 +3,13 @@
   mkEnable,
   ...
 }: let
-  inherit (context) wantsDmsShell;
-  mod = "dms";
-  inherit (wantsDmsShell) condition;
+  name = "dms";
+  inherit (context.wantsDmsShell) condition;
 in {
-  name = mod;
+  inherit name;
   description = "DankMaterialShell integration";
   enable = condition;
-  options.${mod}.enable = mkEnable {inherit context condition;};
+  options.${name}.enable = mkEnable {inherit context condition;};
   extensions = [];
   settings = {};
 }
