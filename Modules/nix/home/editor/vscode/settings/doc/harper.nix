@@ -1,12 +1,19 @@
-_: {
-  enable = false;
-  extensions = [
-    #? Prose grammar + style linter (Harper `harper-ls`)
-    "elijah-potter.harper"
-  ];
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "harper";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
-  settings = {
-    harper = {
+    #? Prose grammar + style linter (Harper `harper-ls`)
+  defaultFormatter ="elijah-potter.harper";
+  extensions = [defaultFormatter ];
+
+  settings.${lang} = {
       #~@ Top-level Settings
       #> Stable code action positions: puts "always available" actions
       #> (e.g. add-to-dictionary) first.
@@ -1917,5 +1924,5 @@ _: {
         Yourself = true;
       };
     };
-  };
-}
+
+in {inherit enable extensions options settings;}

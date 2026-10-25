@@ -1,10 +1,17 @@
-_: let
-  formatter = "jnoortheen.nix-ide";
-  # formatter = "kamadorueda.alejandra"
+{
+  context,
+  mkEnable,
+  ...
+}: let
+  lang = "markup";
+  condition = true;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+  defaultFormatter = "jnoortheen.nix-ide";
   server = "nixd";
 
   extensions = [
-    formatter
+    defaultFormatter
     "bbenoist.Nix"
     "jeff-hykin.better-nix-syntax"
     "SebastianKarlsen.direnv-trusted"
@@ -12,13 +19,8 @@ _: let
   ];
 
   settings = {
-    "[nix]" = {
-      editor = {
-        defaultFormatter = "jnoortheen.nix-ide";
-      };
-    };
-
-    nix = {
+    "[${lang}]".editor = {inherit defaultFormatter;};
+    "${lang}" = {
       enableLanguageServer = true;
       serverPath = server;
       serverSettings."${server}" = {
@@ -48,16 +50,14 @@ _: let
     };
 
     lintRunner = {
-      tools = {
-        statix = {
-          kind = "diagnostic";
-          command = "statix";
-          args = ["check" "--format" "errfmt" "\${file}"];
-          successExitCodes = [0 1];
-          parser = {
-            flags = "gm";
-            pattern = "^.+?>(?<line>\\\\d+):(?<col>\\\\d+):[WE]:(?<code>\\\\d+):(?<message>.+)$";
-          };
+      tools.statix = {
+        kind = "diagnostic";
+        command = "statix";
+        args = ["check" "--format" "errfmt" "\${file}"];
+        successExitCodes = [0 1];
+        parser = {
+          flags = "gm";
+          pattern = "^.+?>(?<line>\\\\d+):(?<col>\\\\d+):[WE]:(?<code>\\\\d+):(?<message>.+)$";
         };
       };
 
@@ -65,8 +65,8 @@ _: let
         {
           name = "Nix";
           match = {
-            languages = ["nix"];
-            files = ["**/*.nix"];
+            languages = [lang];
+            files = ["**/*.${lang}"];
           };
           onOpen = {
             strategy = "sequence";
@@ -87,4 +87,4 @@ _: let
       ignoredExtensions = removeAttrs extensions ["vix.lint-runner"];
     };
   };
-in {inherit extensions settings;}
+in {inherit enable extensions options settings;}

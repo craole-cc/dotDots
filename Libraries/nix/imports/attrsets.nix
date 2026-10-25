@@ -51,6 +51,7 @@
     inherit
       (attrsets)
       genAttrs
+      genAttrs'
       listToAttrs
       nameValuePair
       optionalAttrs

@@ -1,30 +1,21 @@
 {
-  user,
-  lix,
-  cfg,
   context,
   mkEnable,
   requires,
   ...
 }: let
-  inherit (lix.lists.predicates) isIn;
-
-  mod = "powershell";
-  enable = cfg.powershell.enable;
+  lang = "powershell";
+  condition = requires [lang "pwsh"];
+  options.${lang}.enable = mkEnable {inherit context condition;};
+  enable = condition;
 
   #? PowerShell LSP and debugger
   formatter = "ms-vscode.powershell";
-in {
-  inherit enable;
-  options.powershell.enable = mkEnable {
-    inherit context;
-    condition = requires "powershell";
-  };
 
   extensions = [formatter];
 
   settings = {
-    "[powershell]" = {
+    "[${lang}]" = {
       editor = {
         defaultFormatter = formatter;
         renderControlCharacters = true;
@@ -37,7 +28,7 @@ in {
         trimTrailingWhitespace = true;
       };
     };
-    powershell = {
+    ${lang} = {
       codeFormatting = {
         autoCorrectAliases = true;
         trimWhitespaceAroundPipe = true;
@@ -53,4 +44,4 @@ in {
       };
     };
   };
-}
+in {inherit enable extensions options settings;}

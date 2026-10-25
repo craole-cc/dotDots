@@ -1,4 +1,13 @@
-_: {
+{
+  context,
+  mkEnable,
+  ...
+}: let
+  mod = "context";
+  condition = true;
+  enable = condition;
+  options.${mod}.enable = mkEnable {inherit context condition;};
+
   extensions = [
     #? Cherry-pick workspace files as XML payloads for LLM prompts.
     "airizom.context-craft"
@@ -139,4 +148,4 @@ _: {
       showImportExportToFile = false;
     };
   };
-}
+in {inherit enable extensions keybindings options settings;}

@@ -1,9 +1,20 @@
-_: {
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "markdown";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
+  #? Fast Rust-based markdown linter
+  defaultFormatter = "rvben.rumdl";
   extensions = [
+    defaultFormatter
     #? Markdown slides (Marp)
     "marp-team.marp-vscode"
-    #? Fast Rust-based markdown linter
-    "rvben.rumdl"
     #? Markdown editing helpers (TOC, table formatter, …)
     "yzhang.markdown-all-in-one"
     #? Convert Markdown to PDF
@@ -12,13 +23,8 @@ _: {
 
   settings = {
     #~@ Language-scoped overrides
-    #> Built-in: markdownlint is the formatter for `.md`.
-    #! overridden (default formatter: none)
-    "[markdown]" = {
-      editor.defaultFormatter = "rvben.rumdl";
-    };
-
-    markdown = {
+    "[${lang}]".editor = {inherit defaultFormatter;};
+    "${lang}" = {
       #~@ markdown (built-in)
       #> Typographer-style quotes and dashes in preview.
       #! overridden (default: false)
@@ -325,4 +331,4 @@ _: {
       }
     ];
   };
-}
+in {inherit enable extensions options settings;}

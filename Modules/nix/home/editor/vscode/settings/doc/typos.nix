@@ -1,35 +1,41 @@
-_: {
-  extensions = [
-    #? Typo linter (typos-rs / typos-lsp)
-    "tekumara.typos-vscode"
-  ];
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "typos";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
-  settings = {
-    typos = {
-      #> Path to a custom `typos` config file. Combined with workspace
-      #> config files; this one wins for overlapping keys. Empty = no
-      #> override (workspace `.typos.toml` is still read).
-      config = "";
+  defaultFormatter = "tekumara.typos-vscode";
+  extensions = [defaultFormatter];
 
-      #> Diagnostic severity shown in the editor.
-      #?  - Error:       Red squiggle
-      #?  - Warning:     Yellow squiggle
-      #?  - Information: Blue squiggle
-      #?  - Hint:        Dots
-      diagnosticSeverity = "Information";
+  settings.${lang} = {
+    #> Path to a custom `typos` config file. Combined with workspace
+    #> config files; this one wins for overlapping keys. Empty = no
+    #> override (workspace `.typos.toml` is still read).
+    config = "";
 
-      #> Server log verbosity (Output → Typos pane).
-      #?  - error | warn | info | debug | trace
-      logLevel = "warn";
+    #> Diagnostic severity shown in the editor.
+    #?  - Error:       Red squiggle
+    #?  - Warning:     Yellow squiggle
+    #?  - Information: Blue squiggle
+    #?  - Hint:        Dots
+    diagnosticSeverity = "Information";
 
-      #> Path to the `typos-lsp` binary. Empty = bundled binary.
-      path = "";
+    #> Server log verbosity (Output → Typos pane).
+    #?  - error | warn | info | debug | trace
+    logLevel = "warn";
 
-      #> LSP trace level. Debugging only.
-      #?  - off:      No traces
-      #?  - messages: Trace sent/received
-      #?  - verbose:  Includes message content
-      trace.server = "off";
-    };
+    #> Path to the `typos-lsp` binary. Empty = bundled binary.
+    path = "";
+
+    #> LSP trace level. Debugging only.
+    #?  - off:      No traces
+    #?  - messages: Trace sent/received
+    #?  - verbose:  Includes message content
+    trace.server = "off";
   };
-}
+in {inherit enable extensions options settings;}

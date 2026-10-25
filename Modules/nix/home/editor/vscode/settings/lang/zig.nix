@@ -1,42 +1,29 @@
-{cfg, ...}: let
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "rust";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
   defaultFormatter = "ziglang.vscode-zig";
-  # TODO: Our enable needs to be based on cfg.zig.enable
-in {
   extensions = [
     defaultFormatter
     "formulahendry.code-runner"
     "vadimcn.vscode-lldb"
   ];
+
   settings = {
-    "[zig]" = {
+    "[${lang}]" = {
       editor = {
         inherit defaultFormatter;
         stickyScroll.defaultModel = "foldingProviderModel";
       };
     };
-
-    code-runner = {
-      #> Run in the integrated terminal instead of the read-only Output panel. Required for interactive programs (stdin, TUI, etc.).
-      runInTerminal = true;
-
-      #> Save the file before running, so you never run stale code.
-      saveFileBeforeRun = true;
-
-      #> Keep focus in the editor after running instead of jumping to the terminal.
-      preserveFocus = false;
-
-      #> Clear previous output before each run.
-      clearPreviousOutput = true;
-
-      #> Per-language run commands. Replaces the built-in map for listed languages; unlisted languages keep their built-in defaults.
-      #? For Zig, go through the build system so `@import` and the module graph resolve correctly:
-      #?  - `zig build run` requires a `run` step in `build.zig` (present in `zig init` projects).
-      #?  - Use `zig run $fileName` only for self-contained single-file scripts.
-      executorMap = {
-        zig = "cd $dir && zig build run";
-      };
-    };
-    zig = {
+    ${lang} = {
       #> Control how build errors are printed. Only applies to the `zig build subcommand`.
       #?  - verbose: Report errors with full context.
       #?  - minimal: Report errors after summary, excluding context like command lines.
@@ -182,5 +169,27 @@ in {
         warnStyle = true;
       };
     };
+
+    code-runner = {
+      #> Run in the integrated terminal instead of the read-only Output panel. Required for interactive programs (stdin, TUI, etc.).
+      runInTerminal = true;
+
+      #> Save the file before running, so you never run stale code.
+      saveFileBeforeRun = true;
+
+      #> Keep focus in the editor after running instead of jumping to the terminal.
+      preserveFocus = false;
+
+      #> Clear previous output before each run.
+      clearPreviousOutput = true;
+
+      #> Per-language run commands. Replaces the built-in map for listed languages; unlisted languages keep their built-in defaults.
+      #? For Zig, go through the build system so `@import` and the module graph resolve correctly:
+      #?  - `zig build run` requires a `run` step in `build.zig` (present in `zig init` projects).
+      #?  - Use `zig run $fileName` only for self-contained single-file scripts.
+      executorMap = {
+        zig = "cd $dir && zig build run";
+      };
+    };
   };
-}
+in {inherit enable extensions options settings;}

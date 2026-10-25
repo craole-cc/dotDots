@@ -1,17 +1,22 @@
-{cfg, context, mkEnable, requires, ...}: let
-  formatter = "adpyke.vscode-sql-formatter";
-in {
-  enable = cfg.sql.enable;
-  options.sql.enable = mkEnable {
-    inherit context;
-    condition = requires ["sql" "sqlite"];
-  };
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "sql";
+  condition = requires [lang "sqlite"];
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
+  defaultFormatter = "adpyke.vscode-sql-formatter";
   extensions = [
+    defaultFormatter
     "mtxr.sqltools"
     "mtxr.sqltools-driver-sqlite"
-    formatter
   ];
+
   settings = {
-    "[sql]"."editor.defaultFormatter" = formatter;
+    "[${lang}]".editor = {inherit defaultFormatter;};
   };
-}
+in {inherit enable extensions options settings;}

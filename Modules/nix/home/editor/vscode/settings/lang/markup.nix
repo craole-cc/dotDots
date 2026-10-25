@@ -1,4 +1,12 @@
-{lix, ...}: let
+{
+  lix,
+  context,
+  mkEnable,
+  ...
+}: let
+  condition = true;
+  lang = "markup";
+
   inherit (lix.lists.construction) concatLists;
 
   json = let
@@ -28,6 +36,7 @@
       ];
     };
   };
+
   toml = let
     defaultFormatter = "tombi-toml.tombi";
   in {
@@ -57,12 +66,14 @@
       };
     };
   };
+
   ini = let
     defaultFormatter = "lkrms.inifmt";
   in {
     editor = {inherit defaultFormatter;};
     extensions = [defaultFormatter];
   };
+
   yaml = let
     defaultFormatter = "bluebrown.yamlfmt";
   in {
@@ -70,20 +81,24 @@
     redhat.telemetry.enabled = false;
     extensions = [defaultFormatter "redhat.vscode-yaml"];
   };
-in {
-  enable = true;
+
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
   extensions = concatLists (
     map (language: language.extensions)
     [ini json toml yaml]
   );
-  settings = {
-    "[ini]" = ini;
-    "[json]" = json;
-    "[jsonc]" = json;
-    "[toml]" = toml;
-    "[yaml]" = yaml;
-    json = {inherit (json) schemaDownload;};
-    inherit (toml) tombi;
-    inherit (yaml) redhat;
-  };
-}
+
+  getEd = lang: {inherit (lang) editor;};
+  strip = lang: removeAttrs lang ["editor" "extensions"];
+  settings =
+    {
+      "[ini]" = getEd "ini";
+      "[json]" = getEd "json";
+      "[jsonc]" = getEd "json";
+      "[toml]" = getEd "toml";
+      "[yaml]" = getEd "yaml";
+    }
+    // (strip "toml") // (strip "yaml");
+in {inherit enable extensions options settings;}

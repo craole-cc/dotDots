@@ -1,16 +1,26 @@
-_: {
-  extensions = [
-    "myriad-dreamin.tinymist"
-  ];
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "typst";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
+  defaultFormatter = "myriad-dreamin.tinymist";
+  extensions = [defaultFormatter];
+
+  scoped = {
+    inherit defaultFormatter;
+    # "editor.inlayHints.enabled" = "off";
+    quickSuggestions.strings = true;
+  };
   settings = {
     #> Language-scoped editor defaults for Typst documents.
-    "[typst][typst-code]" = {
-      editor = {
-        defaultFormatter = "myriad-dreamin.tinymist";
-        # "editor.inlayHints.enabled" = "off";
-        quickSuggestions.strings = true;
-      };
-    };
+    "[${lang}]".editor = scoped;
+    "[${lang}-code]".editor = scoped;
 
     #> Italic-bold the semantic scopes tinymist emits for variable references,
     #> function calls, parameters, interpolations, tags, and keywords.
@@ -31,10 +41,9 @@ _: {
       }
     ];
 
-    #> Associate `.typ` files with the `typst` language id.
-    files.associations."*.typ" = "typst";
+    #> Associate `.typ` files with the language id.
+    files.associations."*.typ" = lang;
 
-    #~@ Tinymist LSP
     tinymist = {
       #> Show compile status in the status bar.
       compileStatus = "enable";
@@ -108,14 +117,12 @@ _: {
       #> How the formatter handles prose line wrapping.
       formatterProseWrap = "none";
 
-      inlayHints = {
-        #> Show inline decorations for package version status.
-        packageVersionStatus = true;
-      };
+      #> Show inline decorations for package version status.
+      inlayHints.packageVersionStatus = true;
 
       lint = {
         #> Enable lint checks.
-        enabled = false;
+        enabled = true;
         #> When to run lint checks.
         #?  - onSave: Perform lint checks on save
         #?  - onType: Perform lint checks on type
@@ -133,7 +140,7 @@ _: {
 
       preview = {
         #> Show cursor indicator in preview.
-        cursorIndicator = false;
+        cursorIndicator = true;
 
         #> Deprecated; use `tinymist.fontPaths`.
         fontPaths = [];
@@ -143,9 +150,6 @@ _: {
 
         #> Render only the visible part of the document.
         partialRendering = true;
-
-        #> Deprecated; the previewed file is always pinned as the entrypoint.
-        pinPreviewFile = false;
 
         #> When to refresh the preview.
         #?  - onSave: Refresh preview on save
@@ -160,13 +164,10 @@ _: {
 
         #> Ignored; use `tinymist.typstExtraArgs` for `--input`.
         sysInputs = {};
-
-        #> Deprecated; use `tinymist.systemFonts`.
-        systemFonts = true;
       };
 
       #> Previewer selection.
-      previewer = "myriad-dreamin.tinymist";
+      previewer = defaultFormatter;
 
       #> Enable preview features.
       #?  - enable: Enable preview features.
@@ -211,10 +212,8 @@ _: {
       #> Load system fonts for the shared compiler environment.
       systemFonts = true;
 
-      trace = {
-        #> Trace LSP communication.
-        server = "off";
-      };
+      #> Trace LSP communication.
+      trace.server = "off";
 
       #> Prefix newlines after comments with the corresponding prefix.
       typingContinueCommentsOnNewline = true;
@@ -223,4 +222,4 @@ _: {
       typstExtraArgs = [];
     };
   };
-}
+in {inherit enable extensions options settings;}

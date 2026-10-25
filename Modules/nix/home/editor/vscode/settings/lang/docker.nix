@@ -1,8 +1,15 @@
-{cfg, context, mkEnable, requires, ...}: {
-  enable = cfg.docker.enable;
-  options.docker.enable = mkEnable {
-    inherit context;
-    condition = requires "docker";
-  };
-  extensions = ["ms-azuretools.vscode-docker"];
-}
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "docker";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
+  defaultFormatter = "ms-azuretools.vscode-docker";
+  extensions = [defaultFormatter];
+  settings."[dockerfile]".editor = {inherit defaultFormatter;};
+in {inherit enable extensions options settings;}

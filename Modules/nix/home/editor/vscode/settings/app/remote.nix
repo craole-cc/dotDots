@@ -1,6 +1,7 @@
 {
   cfg,
   context,
+  host,
   lix,
   mkEnable,
   user,
@@ -15,7 +16,7 @@ in {
   description = "Remote";
   options.tailscale.enable = mkEnable {
     inherit context;
-    condition = true;
+    condition = host.access.remote.tailscale.enable;
   };
   extensions = optional cfg.tailscale.enable "tailscale.vscode-tailscale";
   keybindings = [];

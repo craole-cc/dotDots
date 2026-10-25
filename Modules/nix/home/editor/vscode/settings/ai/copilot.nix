@@ -1,10 +1,19 @@
-_: {
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  mod = "copilot";
+  condition = requires [mod "github"];
+  enable = condition;
+  options.${mod}.enable = mkEnable {inherit context condition;};
+
   extensions = [
-    #? AI inline completions
     "github.copilot"
-    #? AI chat assistant
     "github.copilot-chat"
   ];
+
   settings = {
     github.copilot = {
       # Object-valued setting: keep as a real attrset, do not flatten
@@ -323,4 +332,4 @@ _: {
       viewSessions.orientation = "stacked";
     };
   };
-}
+in {inherit enable options extensions settings;}

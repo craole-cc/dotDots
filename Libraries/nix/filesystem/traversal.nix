@@ -26,12 +26,13 @@
   inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs;
   inherit (_.debug.assertions) withContext;
-  inherit (_.lists.construction) toList;
   inherit (_.filesystem.meta) listNixModules;
+  inherit (_.filesystem.predicates) pathExists;
   inherit (_.filesystem.primitives) concatPath;
   inherit (_.filesystem.resolution) mkPath;
   inherit (_.filesystem.traversal) importJSON readDir;
   inherit (_.lists.aggregation) foldl';
+  inherit (_.lists.construction) toList;
   inherit (_.lists.predicates) elem any;
   inherit (_.lists.selection) filter;
   inherit (_.lists.transformation) flatten unique;
@@ -132,22 +133,22 @@
   #> Internal helper feeding importAttrs. "readDir, filter, import, keep
   #> the real on-disk name + accumulated path" computed exactly once.
 
-  walkDirNamed = {
-    dir,
-    stemSoFar ? [],
-    exclude ? [],
-  }: let
-    entries = readDir dir;
-    dirNames = filter (name: entries.${name} == "directory" && !(elem name exclude)) (
-      attrNames entries
-    );
-  in
-    map (name: {
-      inherit name; #! exact on-disk name, never toCamelCase or similar
-      raw = import (dir + "/${name}");
-      stem = stemSoFar ++ [name];
-    })
-    dirNames;
+  # walkDirNamed = {
+  #   dir,
+  #   stemSoFar ? [],
+  #   exclude ? [],
+  # }: let
+  #   entries = readDir dir;
+  #   dirNames = filter (name: entries.${name} == "directory" && !(elem name exclude)) (
+  #     attrNames entries
+  #   );
+  # in
+  #   map (name: {
+  #     inherit name; #! exact on-disk name, never toCamelCase or similar
+  #     raw = import (dir + "/${name}");
+  #     stem = stemSoFar ++ [name];
+  #   })
+  #   dirNames;
 
   # -- importAttrs / importNames / importValues
 
@@ -695,7 +696,15 @@
       else if root != null && stem != null
       then concatPath {inherit root stem;}
       else throw "readJSON: provide `path`, or provide both `root` and `stem`.";
+    optional =
+      if isAttrs args
+      then args.optional or false
+      else false;
   in
-    importJSON file;
+    if pathExists file
+    then importJSON file
+    else if optional
+    then null
+    else throw "readJSON: file does not exist: ${toString file}";
 in
   exports // {__rootAliases = exports;}

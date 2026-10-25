@@ -57,7 +57,7 @@ in {
         colorCustomizations = {};
       }
       // (
-        optionalAttrs cfg.dms.enable {
+        optionalAttrs cfg.features.ui.dms {
           window.autoDetectColorScheme = false;
           workbench.colorTheme = "Dynamic Base16 DankShell";
         }

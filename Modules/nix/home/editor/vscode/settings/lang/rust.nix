@@ -1,29 +1,24 @@
 {
-  user,
-  lix,
-  cfg,
   context,
   mkEnable,
   requires,
   ...
 }: let
-  inherit (lix.lists.predicates) isIn;
+  lang = "rust";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
-  enable = cfg.rust.enable;
-in {
-  inherit enable;
-  options.rust.enable = mkEnable {
-    inherit context;
-    condition = requires "rust";
-  };
+  defaultFormatter = "rust-lang.rust-analyzer";
   extensions = [
-    "rust-lang.rust-analyzer"
+    defaultFormatter
     "fill-labs.dependi"
     "vadimcn.vscode-lldb"
     "hbenl.vscode-test-explorer"
     "ms-vscode.test-adapter-converter"
     "Swellaby.vscode-rust-test-adapter"
   ];
+
   settings = {
     dependi.rust = {
       #> Enable checking for Rust dependencies.
@@ -1111,4 +1106,4 @@ in {
       };
     };
   };
-}
+in {inherit enable extensions options settings;}

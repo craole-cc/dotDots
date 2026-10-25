@@ -1,35 +1,40 @@
-_: {
-  enable = true;
-  extensions = [
-    # "golang.Go"
-  ];
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "go";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
+  defaultFormatter = "golang.Go";
+  extensions = [defaultFormatter];
   settings = {
-    "[go]" = {
-      editor = {
-        insertSpaces = false;
-        codeActionsOnSave.source.organizeImports = "explicit";
-      };
+    "[${lang}]".editor = {
+      inherit defaultFormatter;
+      insertSpaces = false;
+      codeActionsOnSave.source.organizeImports = "explicit";
     };
 
-    #~@ Semantic  Colour and style for TextMate scopes.
     editor.tokenColorCustomizations.textMateRules = [
       {
         scope = [
-          "source.go keyword.package.go"
-          "source.go keyword.import.go"
-          "source.go keyword.function.go"
-          "source.go keyword.type.go"
-          "source.go keyword.struct.go"
-          "source.go keyword.interface.go"
-          "source.go keyword.const.go"
-          "source.go keyword.var.go"
-          "source.go keyword.map.go"
-          "source.go keyword.channel.go"
-          "source.go keyword.control.go"
+          "source.${lang} keyword.package.${lang}"
+          "source.${lang} keyword.import.${lang}"
+          "source.${lang} keyword.function.${lang}"
+          "source.${lang} keyword.type.${lang}"
+          "source.${lang} keyword.struct.${lang}"
+          "source.${lang} keyword.interface.${lang}"
+          "source.${lang} keyword.const.${lang}"
+          "source.${lang} keyword.var.${lang}"
+          "source.${lang} keyword.map.${lang}"
+          "source.${lang} keyword.channel.${lang}"
+          "source.${lang} keyword.control.${lang}"
         ];
         settings.fontStyle = "italic";
       }
     ];
   };
-}
+in {inherit enable extensions options settings;}

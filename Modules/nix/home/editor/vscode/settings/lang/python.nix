@@ -1,26 +1,17 @@
 {
-  user,
-  lix,
-  cfg,
   context,
   mkEnable,
   requires,
   ...
 }: let
-  inherit (lix.lists.predicates) isIn;
+  lang = "python";
+  condition = requires [lang "python3"];
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+  defaultFormatter = "charliermarsh.ruff";
 
-  mod = "python";
-  enable = cfg.python.enable;
-
-  formatter = "charliermarsh.ruff";
-in {
-  inherit enable;
-  options.python.enable = mkEnable {
-    inherit context;
-    condition = requires ["python" "python3"];
-  };
   extensions = [
-    formatter
+    defaultFormatter
     "fill-labs.dependi"
     "ms-python.debugpy"
     "ms-python.python"
@@ -30,14 +21,16 @@ in {
   ];
 
   settings = {
-    "[python]".editor.defaultFormatter = formatter;
-    python.analysis.typeCheckingMode = "basic";
-    #~@ Semantic  Colour and style for TextMate scopes.
+    "[${lang}]".editor = {inherit defaultFormatter;};
+    ${lang} = {
+      analysis.typeCheckingMode = "basic";
+    };
+
     editor.tokenColorCustomizations.textMateRules = [
       {
-        scope = ["keyword.operator.logical.python"];
+        scope = ["keyword.operator.logical.${lang}"];
         settings.fontStyle = "italic";
       }
     ];
   };
-}
+in {inherit enable extensions options settings;}

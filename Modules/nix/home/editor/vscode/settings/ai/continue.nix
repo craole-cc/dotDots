@@ -1,7 +1,17 @@
-_: {
-  enable = false;
-  extensions = [];
-  settings = {
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  mod = "continue";
+  condition = requires mod;
+  enable = condition;
+  options.${mod}.enable = mkEnable {inherit context condition;};
+
+  extensions = ["Continue.continue"];
+
+  settings.${mod} = {
     continue = {
       telemetryEnabled = false;
       disableQuickFix = true;
@@ -9,4 +19,4 @@ _: {
       showInlineTip = false;
     };
   };
-}
+in {inherit enable extensions options settings;}

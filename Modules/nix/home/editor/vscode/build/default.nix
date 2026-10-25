@@ -1,6 +1,9 @@
 args: let
-  dms = import ./dms.nix args;
   inherit (args) profile;
-  app = import ./variant.nix (args // {inherit dms profile;});
-  activation = import ./activation.nix (args // {inherit dms app profile;});
-in {inherit activation dms app profile;}
+  app = import ./variant.nix (args // {inherit profile;});
+  activation = import ./activation.nix (args
+    // {
+      inherit app profile;
+      dms = import ./dms.nix (args // {inherit app;});
+    });
+in {inherit activation app profile;}

@@ -148,17 +148,32 @@
     keybindings ? [],
     ...
   } @ args: let
-    enable = args.enable or (args.enabled or false);
     effectiveSettings = normalizeSettings {
       inherit settings userSettings;
       settingNames = args.settingNames or [];
     };
-  in
-    {
-      extensions = optionals enable extensions;
-      keybindings = optionals enable keybindings;
-    }
-    // optionalAttrs enable {userSettings = effectiveSettings;};
+  in {
+    inherit extensions keybindings;
+    inherit effectiveSettings; # or: userSettings = effectiveSettings;
+  };
+  # mkVSCodeSubFeature = {
+  #   extensions ? [],
+  #   settings ? {},
+  #   userSettings ? {},
+  #   keybindings ? [],
+  #   ...
+  # } @ args: let
+  #   enable = args.enable or (args.enabled or false);
+  #   effectiveSettings = normalizeSettings {
+  #     inherit settings userSettings;
+  #     settingNames = args.settingNames or [];
+  #   };
+  # in
+  #   {
+  #     extensions = optionals enable extensions;
+  #     keybindings = optionals enable keybindings;
+  #   }
+  #   // optionalAttrs enable {userSettings = effectiveSettings;};
 
   mkHelixFeature = {
     enable,

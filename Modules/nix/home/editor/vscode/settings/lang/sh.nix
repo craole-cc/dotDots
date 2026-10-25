@@ -1,23 +1,26 @@
 {
-  user,
-  lix,
+  context,
+  mkEnable,
+  requires,
   ...
 }: let
-  inherit (lix.lists.predicates) isIn;
+  lang = "shellscript";
+  condition = requires [lang "bash" "sh" "shell"];
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
-  mod = "shellscript";
-  enable = isIn [mod "bash" "sh" "shell"] (user.applications.allowed or []);
-in {
-  inherit enable;
+  defaultFormatter = "mkhl.shfmt";
+  editor = {inherit defaultFormatter;};
   extensions = [
+    defaultFormatter
     "mads-hartmann.bash-ide-vscode"
-    "mkhl.shfmt"
     "timonwong.shellcheck"
     "vix.lint-runner"
   ];
+
   settings = {
-    "[shellscript]".editor.defaultFormatter = "mkhl.shfmt";
-    "[dotenv]".editor.defaultFormatter = "mkhl.shfmt";
+    "[${lang}]" = {inherit editor;};
+    "[dotenv]" = {inherit editor;};
 
     bashIde = {
       #~@ Bash IDE
@@ -245,4 +248,4 @@ in {
       ];
     };
   };
-}
+in {inherit enable extensions options settings;}

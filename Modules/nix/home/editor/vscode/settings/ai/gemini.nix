@@ -1,5 +1,14 @@
-_: {
-  enable = false;
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  mod = "gemini";
+  condition = requires [mod "google"];
+  enable = condition;
+  options.${mod}.enable = mkEnable {inherit context condition;};
+
   extensions = [];
   settings = {
     geminicodeassist = {
@@ -8,4 +17,4 @@ _: {
       updateChannel = "Insiders";
     };
   };
-}
+in {inherit enable options extensions settings;}

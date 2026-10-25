@@ -1,63 +1,86 @@
-{lix, ...}: let
+{
+  lix,
+  context,
+  mkEnable,
+  ...
+}: let
+  lang = "web";
+  condition = true;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
+
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.aggregation) mergeSafe;
   inherit (lix.lists.predicates) isIn;
-  formatter = "biomejs.biome";
-  trustFormatter = name: link:
-    optionalAttrs (isIn name formatter)
-    {${link} = true;};
-in {
+
+  defaultFormatter = "biomejs.biome";
+
   extensions = [
-    formatter
+    defaultFormatter
     "bradlc.vscode-tailwindcss"
     "denoland.vscode-deno"
     "esbenp.prettier-vscode"
     "phu1237.vs-browser"
   ];
 
+  editor = {inherit defaultFormatter;};
   settings = {
-    "[javascript]".editor.defaultFormatter = formatter;
-    "[typescript]".editor.defaultFormatter = formatter;
-    "[html]".editor.defaultFormatter = formatter;
-    "[css]".editor.defaultFormatter = formatter;
-    "[scss]".editor.defaultFormatter = formatter;
-    "[json]".editor.defaultFormatter = "vscode.json-language-features";
-    "[jsonc]".editor.defaultFormatter = "vscode.json-language-features";
+    "[javascript]" = {inherit editor;};
+    "[typescript]" = {inherit editor;};
+    "[html]" = {inherit editor;};
+    "[css]" = {inherit editor;};
+    "[scss]" = {inherit editor;};
+    "[json]" = {inherit editor;};
+    "[jsonc]" = {inherit editor;};
 
-    "tailwindCSS.includeLanguages".plaintext = "html";
-    "cssvar.files" = [
-      "./node_modules/open-props/open-props.min.css"
-      "assets/styles/variables.css"
-      "style.css"
-    ];
-    "cssvar.extensions" = ["css" "postcss" "jsx" "tsx"];
-    "cssvar.ignore" = [];
-
-    "typescript.inlayHints.parameterNames.enabled" = "all";
-
-    "vs-browser.favourites.list" = {
-      "http://127.0.0.1:3000" = "http://127.0.0.1:3000";
-      "http://localhost" = "http://localhost";
+    tailwindCSS = {
+      includeLanguages.plaintext = "html";
     };
-    "vs-browser.link.enabled" = true;
-    "vs-browser.link.openWith" = "ask";
-    "vs-browser.localProxyServer.cookieDomainRewrite" = true;
-    "vs-browser.localProxyServer.enabled" = true;
-    "vs-browser.localProxyServer.forceLocation" = true;
-    "vs-browser.reload.autoReloadDurationEnabled" = false;
-    "vs-browser.reload.autoReloadDurationTime" = 15000;
-    "vs-browser.reload.onSave" = false;
-    "vs-browser.url" = "http://127.0.0.1:3000";
+    cssvar = {
+      files = [
+        "./node_modules/open-props/open-props.min.css"
+        "assets/styles/variables.css"
+        "style.css"
+      ];
+      extensions = ["css" "postcss" "jsx" "tsx"];
+      ignore = [];
+    };
+    typescript.inlayHints.parameterNames.enabled = "all";
+
+    vs-browser = {
+      favourites.list = {
+        "http://127.0.0.1:3000" = "http://127.0.0.1:3000";
+        "http://localhost" = "http://localhost";
+      };
+      link = {
+        enabled = true;
+        openWith = "ask";
+      };
+      localProxyServer = {
+        cookieDomainRewrite = true;
+        enabled = true;
+        forceLocation = true;
+      };
+      reload = {
+        autoReloadDurationEnabled = false;
+        autoReloadDurationTime = 15000;
+        onSave = false;
+      };
+      url = "http://127.0.0.1:3000";
+    };
 
     json.schemaDownload = {
       enable = false;
-      trustedDomains = mergeSafe [
-        (trustFormatter "biome" "https://biomejs.dev")
-        (trustFormatter "dprint" "https://dprint.dev")
-      ];
+      trustedDomains = let
+        trustFormatter = name: link:
+          optionalAttrs (isIn name defaultFormatter) {${link} = true;};
+      in
+        mergeSafe [
+          (trustFormatter "biome" "https://biomejs.dev")
+          (trustFormatter "dprint" "https://dprint.dev")
+        ];
     };
 
-    #~@ Semantic  Colour and style for TextMate scopes.
     editor.tokenColorCustomizations.textMateRules = [
       {
         scope = [
@@ -86,4 +109,4 @@ in {
       }
     ];
   };
-}
+in {inherit enable extensions options settings;}

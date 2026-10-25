@@ -1,27 +1,31 @@
-_: {
-  enable = false;
+{
+  context,
+  mkEnable,
+  requires,
+  ...
+}: let
+  lang = "ruby";
+  condition = requires lang;
+  enable = condition;
+  options.${lang}.enable = mkEnable {inherit context condition;};
 
-  extensions = [
-    "LoranKloeze.ruby-rubocop-revived"
-  ];
-
+  defaultFormatter = "LoranKloeze.ruby-rubocop-revived";
+  extensions = [defaultFormatter];
   settings = {
-    "[ruby]" = {
-      editor.defaultFormatter = "LoranKloeze.ruby-rubocop-revived";
-    };
+    "[${lang}]".editor = {inherit defaultFormatter;};
     rubyLsp.enableExperimentalFeatures = true;
 
     #~@ Semantic  Colour and style for TextMate scopes.
     editor.tokenColorCustomizations.textMateRules = [
       {
         scope = [
-          "keyword.control.ruby"
-          "keyword.control.module.ruby"
-          "keyword.control.class.ruby"
-          "keyword.control.def.ruby"
+          "keyword.control.${lang}"
+          "keyword.control.module.${lang}"
+          "keyword.control.class.${lang}"
+          "keyword.control.def.${lang}"
         ];
         settings.fontStyle = "italic";
       }
     ];
   };
-}
+in {inherit enable extensions options settings;}
