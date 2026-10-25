@@ -10,15 +10,13 @@
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.filesystem.construction) concat;
   inherit (lix.strings.transformation) escapeShellArg;
-
-  source = escapeShellArg (concat {
-    root = config.programs.dank-material-shell.package.src;
-    stem = ["quickshell" "matugen" "vsix-build"];
-  });
 in
   optionalAttrs cfg.features.ui.dms {
     seedDmsVSCodeTheme = entryAfter ["linkGeneration"] ''
-      source=${source}
+      source=${escapeShellArg (concat {
+        root = config.programs.dank-material-shell.package.src;
+        stem = ["quickshell" "matugen" "vsix-build"];
+      })}
       theme_version=$(${bins.jaq} -er '.version | strings | select(length > 0)' "$source/package.json")
       theme_dir="danklinux.dms-theme-$theme_version"
 

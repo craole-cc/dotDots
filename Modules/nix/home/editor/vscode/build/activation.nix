@@ -10,7 +10,6 @@
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.filesystem.primitives) concat;
-  inherit (lix.attrsets.construction) optionalAttrs;
 
   extensions = let
     mk = stem:
@@ -57,39 +56,7 @@
       materialise_json ${for "keybindings"} "${mk "keybindings.json"}"
     '';
   };
-
-  theme = optionalAttrs dms.enabled {
-    seedDmsVSCodeTheme = entryAfter ["linkGeneration"] ''
-      source=${escapeShellArg dms.source}
-      theme_version=$(${bins.jaq} -er '.version | strings | select(length > 0)' "$source/package.json")
-      theme_dir="danklinux.dms-theme-$theme_version"
-
-      seed_dms_theme() {
-        root="$1"
-        target="$root/$theme_dir"
-
-        ${bins.mkdir} -p "$root"
-
-        # Keep exactly the DMS extension that matches the pinned shell
-        # input. Other user-installed extensions are untouched.
-        for candidate in "$root"/danklinux.dms-theme-*; do
-          [ -e "$candidate" ] || [ -L "$candidate" ] || continue
-          [ "$candidate" = "$target" ] || ${bins.rmf} "$candidate"
-        done
-
-        # DMS must be able to rewrite themes/*.json, so never leave
-        # this extension as a Nix-store symlink.
-        if [ -L "$target" ] || [ ! -f "$target/package.json" ]; then
-          ${bins.rmf} "$target"
-          ${bins.cp} -RL "$source" "$target"
-        fi
-        ${bins.chmod} -R u+w "$target"
-      }
-
-      seed_dms_theme "${app.directories.extension}"
-    '';
-  };
 in {
   file = app.files.extension // extensions;
-  activation = activation // theme;
+  activation = activation // dms;
 }

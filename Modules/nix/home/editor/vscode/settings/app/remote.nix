@@ -11,6 +11,7 @@
   inherit (lix.lists.construction) optional;
 
   ports = user.firewall.tcp.ports;
+  tailscaleEnabled = context.cfg.features.app.remote.tailscale.enable;
 in {
   name = "remote";
   description = "Remote";
@@ -18,12 +19,12 @@ in {
     inherit context;
     condition = host.access.remote.tailscale.enable;
   };
-  extensions = optional cfg.tailscale.enable "tailscale.vscode-tailscale";
+  extensions = optional tailscaleEnabled "tailscale.vscode-tailscale";
   keybindings = [];
 
   settings = {
     #~@ Tailscale
-    tailscale = optionalAttrs cfg.tailscale.enable {
+    tailscale = optionalAttrs tailscaleEnabled {
       #> Show files and directories with names that start with a period.
       fileExplorer.showDotFiles = true;
 
