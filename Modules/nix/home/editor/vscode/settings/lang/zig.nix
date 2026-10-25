@@ -4,7 +4,7 @@
   requires,
   ...
 }: let
-  lang = "rust";
+  lang = "zig";
   condition = requires lang;
   enable = condition;
   options.${lang}.enable = mkEnable {inherit context condition;};
