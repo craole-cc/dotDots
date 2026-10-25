@@ -20,17 +20,18 @@ in {
     };
     stylesheet = mkVSCodeSetting {
       "body:has(div[role=application])" = {position = "relative";};
-      "body:has(div[role=application])::before" = {
+      ".monaco-workbench::before" = {
         content = "''";
         position = "fixed";
         inset = "0";
         "pointer-events" = "none";
         "background-color" = "var(--vscode-editor-background)";
         opacity = style.opacity.editor.${style.mode};
-        "z-index" = "0";
+        "z-index" = "-1";
       };
       ".monaco-workbench" = {
         position = "relative";
+        isolation = "isolate";
         "z-index" = "1";
       };
       ".monaco-workbench, .monaco-workbench .part, .monaco-editor, .monaco-editor-background, .monaco-editor .margin, .monaco-workbench .editor-container" = {

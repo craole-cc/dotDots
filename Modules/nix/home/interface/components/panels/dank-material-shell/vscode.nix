@@ -32,7 +32,7 @@ in
       tmp="$(${bins.mktemp} "$target.tmp.XXXXXX")" || return 1
       if ${bins.jaq} --arg url "$wallpaper_url" --argjson opacity "$editor_opacity" '
         .["custom-ui-style.background.url"] = $url |
-        .["custom-ui-style.stylesheet"]["body:has(div[role=application])::before"].opacity = $opacity
+      .["custom-ui-style.stylesheet"][".monaco-workbench::before"].opacity = $opacity
       ' "$target" > "$tmp"; then
         ${bins.chmod} --reference="$target" "$tmp"
         if ! ${bins.cmp} -s "$target" "$tmp"; then
