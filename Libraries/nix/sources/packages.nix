@@ -10,18 +10,7 @@
 
     exports = {
       internal = let
-        functions = {
-          inherit
-            fromInputs
-            getVersion
-            mkAll
-            mkCore
-            mkHome
-            mkOne
-            pkgOf
-            pkgsFrom
-            ;
-        };
+        functions = {inherit fromInputs getVersion mkAll mkCore mkHome mkOne pkgOf pkgsFrom mkCommon defaults;};
         aliases = {
           mkPkgs = mkAll;
           mkPackages = mkAll;
@@ -29,6 +18,7 @@
           mkPackageFromInputs = fromInputs;
           mkCorePackages = mkCore;
           mkHomePackages = mkHome;
+          mkCommonPackages = mkCommon;
         };
       in
         {inherit functions aliases;} // functions // aliases;
@@ -45,9 +35,10 @@
   };
 
   inherit (_.attrsets.access) attrNames attrValues;
-  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
+  inherit (_.attrsets.construction) genAttrs nameValuePair listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrs';
+  inherit (_.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystemOrDefault;
@@ -108,6 +99,83 @@
       ];
     };
   };
+
+  mkCommon = {
+    inputs,
+    pkgs ? null,
+    system ? null,
+    ...
+  }: let
+    tools = pkgsFrom {
+      inherit inputs pkgs system;
+      sources = {
+        coreutils = null;
+        diffutils = {exe = "cmp";};
+        dms-shell = null;
+        git = null;
+        glib = null;
+        gum = null;
+        jaq = null;
+        procps = {exe = "pkill";};
+        quickshell = null;
+        ripgrep = null;
+        sd = null;
+        systemd = null;
+        vscode-fhs = null;
+        vscode-insiders = "vscode-insiders";
+      };
+      required = true;
+    };
+
+    # TODO: Not ready for this just yet. We need to fix pkgsFrom.
+    binsExtended = let
+      kits =
+        genAttrs ["coreutils" "glib"]
+        (name: "${tools.${name}.paths.binary}");
+
+      cmds = recursiveUpdate tools.binaries {
+        glib =
+          genAttrs ["gsettings"]
+          (command: "${kits.glib}/${command}");
+        coreutils =
+          genAttrs [
+            # TODO: Add all the common coreutils bins. But doing it like this is too manual maybe
+            "chmod"
+            "cp"
+            "cksum"
+            "cat"
+            "dirname"
+            "install"
+            "mkdir"
+            "rm"
+            "readlink"
+          ]
+          (command: "${kits.coreutils}/${command}");
+      };
+    in
+      mergeSafe [
+        kits
+        cmds
+        (with cmds; {
+          gitCfgFile = "${git} config --file";
+          rmf = "${coreutils.rm} -rf";
+          cpa = "${coreutils.cp} -a --reflink=auto";
+          chmodr = "${coreutils.chmod} -R";
+          mkdirp = "${coreutils.mkdir} -p";
+          mktempd = "${coreutils.mktemp} -d";
+          mvt = "${coreutils.mv} -T";
+          lnsfn = "${coreutils.ln} -sfn";
+          cmp = diffutils;
+          gCall = "${glib.gdbus} call";
+          gSet = "${glib.gsettings} set";
+          gSetDI = "${glib.gsettings} set org.gnome.desktop.interface";
+          pkill = procps;
+          rg = ripgrep;
+        })
+      ];
+  in
+    tools;
+  # in tools // {inherit tools bins;};
 
   mkCore = {
     inputs ? {},
@@ -639,54 +707,53 @@
     aliases ? {},
   }: let
     init = let
-      normalize = value:
-        if value == null
-        then {
-          input = null;
-          versionArgs = null;
-          description = null;
-          exe = null;
-        }
-        else if isString value
-        then {
-          input = value;
-          versionArgs = null;
-          description = null;
-          exe = null;
-        }
-        else {
-          input = value.input or null;
-          versionArgs = value.versionArgs or null;
-          description = value.description or null;
-          exe = value.exe or null;
-        };
-
-      source = target: entry:
+      process = target: value: let
+        source =
+          if value == null
+          then {
+            input = null;
+            versionArgs = null;
+            description = null;
+            exe = null;
+          }
+          else if isString value
+          then {
+            input = value;
+            versionArgs = null;
+            description = null;
+            exe = null;
+          }
+          else {
+            input = value.input or null;
+            versionArgs = value.versionArgs or null;
+            description = value.description or null;
+            exe = value.exe or null;
+          };
+      in
         pkgOf (
           {
-            inherit
-              target
-              inputs
-              pkgs
-              required
-              ;
-            inherit
-              (entry)
-              input
-              versionArgs
-              description
-              exe
-              ;
+            inherit target inputs pkgs required;
+            inherit (source) input versionArgs description exe;
           }
           // optionalAttrs (system != null) {inherit system;}
         );
     in
-      filterAttrs (_: src: src != null) (
-        mapAttrs (name: entry: source name entry) (mapAttrs (_: normalize) sources)
-      );
+      filterAttrs (_: src: src != null)
+      (mapAttrs process sources);
 
-    records =
-      init // filterAttrs (_: v: v != null) (mapAttrs (_: target: init.${target} or null) aliases);
+    records = let
+      #> Keep only aliases where the target actually exists and isn't null
+      valid =
+        filterAttrs
+        (name: target: init ? ${target} && init.${target} != null)
+        aliases;
+
+      #> Rename the keys to the alias names while pulling the values from init
+      resolved =
+        mapAttrs' (name: target: nameValuePair name init.${target})
+        valid;
+    in
+      init // resolved;
 
     eval = {
       binaries = mapAttrs (_: pkg: pkg.exe) records;

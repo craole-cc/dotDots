@@ -11,12 +11,5 @@
   VISUAL_NAME = vars.VISUAL_PRI_NAME or vars.VISUAL_SEC_NAME or EDITOR;
 in {
   imports = (importAllPaths ./.).value;
-  home.sessionVariables = {
-    inherit
-      EDITOR
-      EDITOR_NAME
-      VISUAL
-      VISUAL_NAME
-      ;
-  };
+  home.sessionVariables = {inherit EDITOR EDITOR_NAME VISUAL VISUAL_NAME;};
 }

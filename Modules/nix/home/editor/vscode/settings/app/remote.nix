@@ -30,9 +30,9 @@
     ++ optional tailscale.enable "tailscale.vscode-tailscale"
   );
 
-  settings = {
-    ${name} =
-      {
+  settings =
+    {
+      ${name} = {
         #> Automatically forward ports of newly detected running processes.
         #? Disabling this does not prevent all forwarding: extensions and some opened URLs can still forward ports.
         #? See also remote.autoForwardPortsSource.
@@ -91,31 +91,31 @@
           })
           ports
         );
-      }
-      // optionalAttrs tailscale.enable {
-        tailscale = {
-          #> Show files and directories with names that start with a period.
-          fileExplorer.showDotFiles = true;
+      };
+    }
+    // optionalAttrs tailscale.enable {
+      tailscale = {
+        #> Show files and directories with names that start with a period.
+        fileExplorer.showDotFiles = true;
 
-          #> Time in milliseconds between automatic refreshes of the node explorer.
-          #? 0 disables automatic refreshing.
-          nodeExplorer.refreshInterval = 5000;
+        #> Time in milliseconds between automatic refreshes of the node explorer.
+        #? 0 disables automatic refreshing.
+        nodeExplorer.refreshInterval = 5000;
 
-          #> Notify when new ports can be served over Tailscale Funnel.
-          portDiscovery.enabled = true;
+        #> Notify when new ports can be served over Tailscale Funnel.
+        portDiscovery.enabled = true;
 
-          #> Absolute path to the `tailscaled` unix socket.
-          #? null: the extension looks for the default path based on the platform.
-          socketPath = null;
+        #> Absolute path to the `tailscaled` unix socket.
+        #? null: the extension looks for the default path based on the platform.
+        socketPath = null;
 
-          ssh = {
-            #> Connection timeout for SSH connections in milliseconds.
-            connectionTimeout = 30000;
+        ssh = {
+          #> Connection timeout for SSH connections in milliseconds.
+          connectionTimeout = 30000;
 
-            #> Default username for SSH connections.
-            defaultUsername = null;
-          };
+          #> Default username for SSH connections.
+          defaultUsername = null;
         };
       };
-  };
+    };
 in {inherit name description enable options extensions settings;}

@@ -2,16 +2,15 @@ _: {
   extensions = [
     "bluebrown.yamlfmt"
     "codezombiech.gitignore"
-    "codezombiech.gitignore"
     "donjayamanne.githistory"
     "GitHub.remotehub"
     "github.vscode-github-actions"
-    "jjk.jjk"
     "maciejdems.add-to-gitignore"
     "mhutchie.git-graph"
     "redhat.vscode-yaml"
-    "visualjj.visualjj"
     "yy0931.gitconfig-lsp"
+    # "jjk.jjk"
+    # "visualjj.visualjj"
   ];
   settings = {
     "[github-actions-workflow]".editor.defaultFormatter = "redhat.vscode-yaml";

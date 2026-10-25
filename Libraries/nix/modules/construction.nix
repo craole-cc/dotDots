@@ -63,12 +63,12 @@
   };
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
-  inherit (_.attrsets.construction) genAttrs optionalAttrs;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsRecursiveCond setAttrByPath;
   inherit (_.attrsets.predicates) isDerivation;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystems;
-  inherit (_.lists.construction) optional optionals;
+  inherit (_.lists.construction) concatLists optional optionals;
   inherit (_.lists.predicates) elem;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge mkOverride;
@@ -94,10 +94,10 @@
     paths ? _default.paths,
     top ? _default.names.top or "_",
     ...
-  } @ args: let
+  } @ passthru: let
     mkArgs = host: let
       hostArgs = import paths.repo.src.store (
-        args // {inherit host;} // host
+        passthru // {inherit host;} // host
       );
       specialArgs = removeAttrs hostArgs [
         "config"
@@ -143,13 +143,13 @@
 
     mkSystem = host: let
       class = host.class or "nixos";
-      args' = mkArgs {inherit host top;};
-      inherit (args') specialArgs;
+      args = mkArgs {inherit host top;};
+      inherit (args) specialArgs;
 
       classified = modulesOf class;
       core = optionalAttrs wireHome {
         home-manager = {
-          inherit (args') extraSpecialArgs;
+          inherit (args) extraSpecialArgs;
           backupFileExtension = "hm-backup";
           overwriteBackup = true;
           useGlobalPkgs = true;
@@ -182,7 +182,7 @@
       else evaluated;
 
     mkManager = name: host: let
-      args' = mkArgs host;
+      args = mkArgs host;
       users = let
         specs = mkUsers {
           inherit host inputs;
@@ -206,7 +206,7 @@
     in
       homeManagerConfiguration {
         inherit (users) modules;
-        inherit (args') pkgs extraSpecialArgs;
+        inherit (args) pkgs extraSpecialArgs;
       };
   in
     optionalAttrs (types.nixos != {}) {
@@ -242,7 +242,7 @@
     paths ? _default.paths or {},
     schema ? _default.schema or {},
     ...
-  } @ args: let
+  } @ passthru: let
     systems = getSystems {
       inherit hosts;
       inherit (inputs) nixpkgs;
@@ -256,7 +256,7 @@
       host ? null,
     }:
       import paths.repo.mod.global.store (
-        args
+        passthru
         // {inherit pkgs system;}
         // optionalAttrs (host != null) {
           inherit host;
@@ -272,14 +272,14 @@
       pkgs = pkgsFor system;
       defaultShell = (fn {inherit pkgs system;}).devShells.default;
     in
-      builtins.listToAttrs (
+      listToAttrs (
         [
           {
             name = "default";
             value = defaultShell;
           }
         ]
-        ++ builtins.concatLists (
+        ++ concatLists (
           map (
             hostName: let
               host = matching.${hostName};
@@ -418,20 +418,11 @@
       wantsHyprland = mkWantsDesktop "hyprland" windowManagers;
       wantsNiri = mkWantsDesktop "niri" windowManagers;
       wantsPlasma = mkWantsDesktop "plasma" desktopEnvironments;
+      #TODO: Add wantsCatppuccin (condition is if isIn "catppuccin"theme.mode.<mode>.palette)
     };
 
     ctx = {
-      inherit
-        config
-        derived
-        dom
-        kind
-        mod
-        name
-        resolved
-        sub
-        top
-        ;
+      inherit config derived dom kind mod name resolved sub top;
       inherit (derived) path cfg;
       inherit
         (resolved)

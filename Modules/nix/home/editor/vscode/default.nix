@@ -3,25 +3,19 @@
   lix,
   inputs,
   pkgs,
-  host,
   user,
-  paths,
-  style,
-  entryAfter,
   ...
 }: let
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.attrsets.aggregation) mergeSafe;
   inherit (lix.attrsets.construction) genAttrs;
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault;
+  inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkFalse mkTrue;
-  inherit (lix.lists.construction) optional;
-  inherit (lix.lists.predicates) isIn;
-  inherit (lix.schema.fonts) mkFonts;
+  # inherit (lix.lists.construction) optional;
+  # inherit (lix.lists.predicates) isIn;
+  # inherit (lix.schema.fonts) mkFonts;
   inherit (lix.sources.packages) pkgsFrom;
-  inherit (lix.strings.construction) optionalString;
-
-  requires = applications: isIn applications (user.applications.allowed or []);
+  # inherit (lix.strings.construction) optionalString;
 
   context = mkContext {
     inherit config;
@@ -29,95 +23,62 @@
     mod = "vscode";
     kind = "editor";
   };
-  inherit (context) cfg wantsDmsShell;
+  inherit (context) cfg;
 
-  tools = pkgsFrom {
-    inherit inputs pkgs;
-    sources = {
-      coreutils = null;
-      jaq = null;
-      vscode-fhs = null;
-      vscode-insiders =
-        if cfg.insiders
-        then "vscode-insiders"
-        else null;
+  args = let
+    tools = pkgsFrom {
+      inherit inputs pkgs;
+      sources = {
+        coreutils = null;
+        jaq = null;
+        vscode-fhs = null;
+        vscode-insiders =
+          if cfg.insiders
+          then "vscode-insiders"
+          else null;
+      };
+      required = true;
     };
-    required = true;
-  };
-
-  bins = let
-    coreutils =
-      genAttrs ["chmod" "cp" "dirname" "install" "mkdir" "rm"]
-      (command: "${tools.coreutils.paths.binary}/${command}");
-  in
-    mergeSafe [
-      coreutils
-      tools.binaries
-      {rmf = "${coreutils.rm} -rf";}
-    ];
-
-  args = {
-    inherit
-      bins
-      cfg
-      config
-      context
-      entryAfter
-      requires
-      host
-      inputs
-      lix
-      mkDefault
-      pkgs
-      paths
-      style
-      tools
-      mkMerge
-      mkEnable
-      user
-      ;
-    fonts = mkFonts {inherit host user;};
-    json = pkgs.formats.json {};
+    bins = let
+      coreutils =
+        genAttrs ["chmod" "cp" "dirname" "install" "mkdir" "rm"]
+        (command: "${tools.coreutils.paths.binary}/${command}");
+    in
+      mergeSafe [
+        coreutils
+        tools.binaries
+        {
+          rmf = "${coreutils.rm} -rf";
+          cpa = "${coreutils.cp} -a --reflink=auto";
+          chmodr = "${coreutils.chmod} -R";
+          mkdir = "${coreutils.mkdir} -p";
+          mktempd = "${coreutils.mkdir} -d";
+          mv = "${coreutils.mv} -T";
+          lnsfn = "${coreutils.ln} -sfn";
+        }
+      ];
+  in {
+    inherit (lix.attrsets.resolution) vscodePackage;
+    inherit tools bins;
+    # # inherit bins config context entryAfter host inputs lix mkDefault mkEnable mkMerge paths pkgs style tools user;
+    # fonts = mkFonts {inherit host user;};
+    # requires = app: isIn app (user.applications.allowed or []);
+    json = pkgs.formats.json {}; # Move to an appropriate lib
   };
 
   profile = import ./settings args;
   build = import ./build (args // {profile = profile.output;});
   app = userApplicationConfig {
+    inherit (import ./packages) customPackage extraPackages;
     inherit context user pkgs;
     name = "vscode";
     category = "gui";
-    customPackage = tools.vscode-fhs.package;
     resolutionHints = [
       "code"
       "vscode"
       "vscode-fhs"
       "vscode-insiders"
     ];
-    #? Correct the resolved Insiders package metadata so desktop/icon/CLI
-    #? identity is Insiders rather than stable `code`.
-    extraPackages = optional cfg.insiders (
-      import ./build/writable.nix {
-        inherit pkgs;
-        package = tools.vscode-insiders.package.overrideAttrs (old: {
-          # Restore the original .NET bundle after fixup, as in Nixpkgs' VS Code package.
-          postFixup =
-            (old.postFixup or "")
-            + optionalString pkgs.stdenv.hostPlatform.isLinux ''
-              signer=resources/app/node_modules/@vscode/vsce-sign/bin/vsce-sign
-              cp "./$signer" "$out/lib/vscode/$signer"
-              patchelf --add-needed ${pkgs.openssl.out}/lib/libssl.so.3 "$out/lib/vscode/$signer"
-              chmod +x "$out/lib/vscode/$signer"
-            '';
-          passthru =
-            (old.passthru or {})
-            // {
-              executableName = "code-insiders";
-              longName = "Visual Studio Code - Insiders";
-              iconName = "vscode-insiders";
-            };
-        });
-      }
-    );
     debug = false;
   };
 in

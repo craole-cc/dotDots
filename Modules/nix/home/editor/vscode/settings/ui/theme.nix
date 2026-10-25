@@ -1,23 +1,16 @@
-{
-  cfg,
-  lix,
-  ...
-}: let
-  inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (cfg.features.ui) dms;
-  ifDms = overrides: optionalAttrs dms overrides;
+{cfg, ...}: let
+  inherit (cfg.features.ui) dms catppuccin;
 in {
   extensions = ["Catppuccin.catppuccin-vsc"];
   settings = {
-    json = {
-      schemaDownload = {
-        enable = true;
-        trustedDomains = {
-          "https://raw.githubusercontent.com/catppuccin/vscode/catppuccin-vsc-v3.19.0/packages/catppuccin-vsc/schemas/colorOverrides.schema.json" = true;
-          "https://raw.githubusercontent.com/catppuccin/vscode/catppuccin-vsc-v3.19.0/packages/catppuccin-vsc/schemas/customUIColors.schema.json" = true;
-        };
-      };
-    };
+    # json = {
+    #   schemaDownload = {
+    #     enable = true;
+    #     trustedDomains = {
+    #       "https://raw.githubusercontent.com/catppuccin/vscode/" = true;
+    #     };
+    #   };
+    # };
 
     window = {
       #> Detect the system colour scheme and switch themes.
@@ -32,7 +25,9 @@ in {
       colorTheme =
         if dms
         then "Dynamic Base16 DankShell"
-        else "Catppuccin Frappé";
+        else if catppuccin
+        then "Catppuccin Frappé"
+        else "Dark 2026";
 
       #? Preferred dark theme (used when `autoDetectColorScheme` is on).
       preferredDarkColorTheme = "Catppuccin Frappé";

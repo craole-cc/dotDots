@@ -14,7 +14,7 @@
   in {
     editor = {
       inherit defaultFormatter;
-      codeActionsOnSave.source.fixAll = "always";
+      # codeActionsOnSave.source.fixAll = "always";
     };
     extensions = [defaultFormatter];
     schemaDownload = {

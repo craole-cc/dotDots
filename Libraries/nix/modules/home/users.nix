@@ -3,8 +3,10 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) optionals;
+  inherit (_.lists.predicates) isIn;
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
+  inherit (_.schema.fonts) mkFonts;
   inherit (_.modules.home.paths) mkSessionPaths;
   inherit (_.modules.home.programs) mkApps;
   inherit (_.modules.home.style) mkStyle;
@@ -67,21 +69,25 @@
         ...
       } @ args: let
         nixosConfig = args.nixosConfig or null;
-        user = spec // {inherit name;};
+        user' = spec // {inherit name;};
         inherit (pkgs.stdenv.hostPlatform) system;
 
         # Resolve interface first, then use that normalized protocol to resolve
         # protocol-specific application preferences. Leaf modules receive full
         # package and application lists; `user.applications` is the temporary
         # compatibility view for consumers still using named positions.
-        enrichedInterface = mkUI {inherit host user;};
-        interfaceUser = user // {interface = enrichedInterface;};
+        enrichedInterface = mkUI {
+          inherit host;
+          user = user';
+        };
+        interfaceUser = user' // {interface = enrichedInterface;};
         enrichedApplications = mkApplications {
           inherit host;
           user = interfaceUser;
-          selections = user.packages;
+          selections = user'.packages;
         };
-        moduleUser =
+
+        user =
           interfaceUser
           // {
             inherit (enrichedApplications) packages;
@@ -89,14 +95,13 @@
             applications = enrichedApplications.legacy.raw;
           };
 
-        inputs' = mkApps {
-          inherit inputs modules;
-          user = moduleUser;
-        };
+        inputs' = mkApps {inherit inputs modules user;};
+
         mkInput = name:
           optionalAttrs
           (inputs' ? ${name}.module)
           inputs'.${name};
+
         mkInputModules = names:
           concatMap (name: let
             input = mkInput name;
@@ -105,28 +110,19 @@
             (input != {})
             [inputs'.${name}.module])
           names;
+
         dmsNiriEnabled = enrichedInterface.panel == "dms-shell";
         niriEnabled = (enrichedInterface.windowManager or null) == "niri";
       in {
         _module.args = {
-          style = mkStyle {
-            inherit host;
-            user = moduleUser;
-          };
-          user = moduleUser;
+          style = mkStyle {inherit host user;};
+          inherit user;
           apps = enrichedApplications;
-          keyboard = mkKeyboard {
-            inherit host;
-            user = moduleUser;
-          };
-          locale = mkLocale {
-            inherit host;
-            user = moduleUser;
-          };
-          paths = mkSessionPaths {
-            inherit config host pkgs paths;
-            user = moduleUser;
-          };
+          keyboard = mkKeyboard {inherit host user;};
+          locale = mkLocale {inherit host user;};
+          paths = mkSessionPaths {inherit config host pkgs paths user;};
+          fonts = mkFonts {inherit host user;};
+          requires = app: isIn app (user.applications.allowed or []);
           # `inputs` is the canonical normalized flake-input contract.
           # Keep the per-user app/module selections separate so leaf modules
           # can reliably resolve inputs such as `vscode-insiders`.
@@ -162,7 +158,7 @@
           ++ [(modules.niri.default or {})]
           ++ optionals (niriEnabled && dmsNiriEnabled) [(modules.dms-shell.niri or {})]
           ++ [paths.store.mod.home]
-          ++ (moduleUser.imports or []);
+          ++ (user.imports or []);
       }
     ) (homeUsers host);
 in

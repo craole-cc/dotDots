@@ -1,5 +1,5 @@
 {
-  lix,
+  # lix,
   context,
   mkEnable,
   ...
@@ -9,9 +9,9 @@
   enable = condition;
   options.${lang}.enable = mkEnable {inherit context condition;};
 
-  inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.attrsets.aggregation) mergeSafe;
-  inherit (lix.lists.predicates) isIn;
+  # inherit (lix.attrsets.construction) optionalAttrs;
+  # inherit (lix.attrsets.aggregation) mergeSafe;
+  # inherit (lix.lists.predicates) isIn;
 
   defaultFormatter = "biomejs.biome";
 
@@ -19,6 +19,7 @@
     defaultFormatter
     "bradlc.vscode-tailwindcss"
     "phu1237.vs-browser"
+    "phoenisx.cssvar"
   ];
 
   editor = {inherit defaultFormatter;};
@@ -66,17 +67,17 @@
       url = "http://127.0.0.1:3000";
     };
 
-    json.schemaDownload = {
-      enable = false;
-      trustedDomains = let
-        trustFormatter = name: link:
-          optionalAttrs (isIn name defaultFormatter) {${link} = true;};
-      in
-        mergeSafe [
-          (trustFormatter "biome" "https://biomejs.dev")
-          (trustFormatter "dprint" "https://dprint.dev")
-        ];
-    };
+    # json.schemaDownload = {
+    #   enable = true;
+    #   trustedDomains = let
+    #     trustFormatter = name: link:
+    #       optionalAttrs (isIn name defaultFormatter) {${link} = true;};
+    #   in
+    #     mergeSafe [
+    #       (trustFormatter "biome" "https://biomejs.dev")
+    #       (trustFormatter "dprint" "https://dprint.dev")
+    #     ];
+    # };
 
     editor.tokenColorCustomizations.textMateRules = [
       {

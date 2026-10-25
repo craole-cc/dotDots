@@ -265,12 +265,8 @@
       inherit nixpkgsTag inputs;
       inherit (inputs.${nixpkgsTag}) lib;
     };
+    build = with lib.libraries.default.modules.construction;
+      (mkConfigurations lib) // (mkUtilities lib);
   in
-    {inherit lib;}
-    // (
-      with lib.libraries.default.modules.construction;
-        (mkConfigurations lib)
-        // (mkUtilities lib)
-    )
-    // {};
+    {inherit lib;} // build;
 }

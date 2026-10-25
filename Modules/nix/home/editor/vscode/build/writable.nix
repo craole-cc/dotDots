@@ -1,9 +1,35 @@
 {
+  lix,
   pkgs,
-  package,
+  tools,
+  bins,
+  ...
 }: let
-  coreutils = "${pkgs.coreutils}/bin";
-  launcher = pkgs.writeShellScript "launch-writable-code-insiders" ''
+  inherit (pkgs) writeShellScript;
+  inherit (pkgs.stdenv.hostPlatform) isLinux;
+  inherit (lix.strings.construction) optionalString;
+
+  # coreutils = "${pkgs.coreutils}/bin";
+
+  package = tools.vscode-insiders.package.overrideAttrs (old: {
+    #? Restore the original .NET bundle, as in Nixpkgs' VS Code package.
+    postFixup =
+      (old.postFixup or "")
+      + optionalString isLinux ''
+        signer=resources/app/node_modules/@vscode/vsce-sign/bin/vsce-sign
+        cp "./$signer" "$out/lib/vscode/$signer"
+        patchelf --add-needed ${pkgs.openssl.out}/lib/libssl.so.3 "$out/lib/vscode/$signer"
+        chmod +x "$out/lib/vscode/$signer"
+      '';
+    passthru =
+      (old.passthru or {})
+      // {
+        executableName = "code-insiders";
+        longName = "Visual Studio Code - Insiders";
+        iconName = "vscode-insiders";
+      };
+  });
+  launcher = writeShellScript "launch-writable-code-insiders" ''
     set -eu
     source=${package}/lib/vscode
     root="''${XDG_DATA_HOME:-$HOME/.local/share}/dotdots/vscode-insiders"

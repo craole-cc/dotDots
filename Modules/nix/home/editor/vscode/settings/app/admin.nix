@@ -10,7 +10,7 @@
 in {
   name = "admin";
   description = "Administration & Secuirity";
-  enable = false;
+  enable = true;
   extensions = [
     "jbro.vscode-default-keybindings"
     "ultram4rine.vscode-choosealicense"
@@ -133,6 +133,34 @@ in {
 
       #> Remove OS default VSCode keybindings
       removeOSKeybindings = false;
+    };
+
+    # TODO: Im putting this here temporarily because it's not merging when in multiple files
+    json.schemaDownload = {
+      enable = true;
+      trustedDomains = let
+        mkCatppuccinStr = schema: let
+          version = "3.19.0"; # TODO: Get the from cfg.catppuccin.version
+        in "https://raw.githubusercontent.com/catppuccin/vscode/catppuccin-vsc-v${version}/packages/catppuccin-vsc/schemas/${schema}.schema.json";
+        # "https://raw.githubusercontent.com/catppuccin/vscode/catppuccin-vsc-v3.19.0/packages/catppuccin-vsc/schemas/colorOverrides.schema.json" = true;
+        # "https://raw.githubusercontent.com/catppuccin/vscode/catppuccin-vsc-v3.19.0/packages/catppuccin-vsc/schemas/customUIColors.schema.json" = true;
+      in {
+        "https://developer.microsoft.com/json-schemas/" = true;
+        "https://json-schema.org/" = true;
+        "https://json.schemastore.org/" = true;
+
+        #~@ Formatters
+        "https://biomejs.dev" = true;
+        "https://dprint.dev" = true;
+
+        #~@ Themes
+        "${mkCatppuccinStr "colorOverrides"}" = true;
+        "${mkCatppuccinStr "customUIColors"}" = true;
+        "https://raw.githubusercontent.com/devcontainers/spec/" = true;
+        "https://raw.githubusercontent.com/microsoft/vscode/" = true;
+        "https://schemastore.azurewebsites.net/" = true;
+        "https://www.schemastore.org/" = true;
+      };
     };
   };
 }

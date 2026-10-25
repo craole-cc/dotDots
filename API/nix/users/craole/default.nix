@@ -263,15 +263,15 @@
           palette = palettes.catppuccin.frappe;
           icon = "candy-icons";
           cursor = "catppuccin-cursors";
-          opacity.terminal = 0.92;
-          opacity.editor = 0.92;
+          opacity.terminal = 0.75;
+          opacity.editor = 0.75;
         };
         light = {
           palette = palettes.catppuccin.latte;
           icon = "buuf-nestort";
           cursor = "material-cursors";
-          opacity.terminal = 0.88;
-          opacity.editor = 0.90;
+          opacity.terminal = 0.75;
+          opacity.editor = 0.75;
         };
         default = dark;
         autoSwitch = true;
