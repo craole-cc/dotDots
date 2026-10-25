@@ -88,6 +88,8 @@
       "python"
       "shellscript"
       "zig"
+      "typst"
+      "typos"
     ];
     extra = [
       "fastfetch"

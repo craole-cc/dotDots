@@ -1,11 +1,10 @@
 {
   context,
   mkEnable,
-  requires,
   ...
 }: let
   lang = "markdown";
-  condition = requires lang;
+  condition = true;
   enable = condition;
   options.${lang}.enable = mkEnable {inherit context condition;};
 

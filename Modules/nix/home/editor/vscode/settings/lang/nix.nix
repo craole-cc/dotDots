@@ -13,6 +13,7 @@
   extensions = [
     defaultFormatter
     "bbenoist.Nix"
+    "kamadorueda.alejandra"
     "jeff-hykin.better-nix-syntax"
     "SebastianKarlsen.direnv-trusted"
     "vix.lint-runner"
