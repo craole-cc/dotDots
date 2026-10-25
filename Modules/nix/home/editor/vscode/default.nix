@@ -96,24 +96,27 @@
     #? Correct the resolved Insiders package metadata so desktop/icon/CLI
     #? identity is Insiders rather than stable `code`.
     extraPackages = optional cfg.insiders (
-      tools.vscode-insiders.package.overrideAttrs (old: {
-        # Restore the original .NET bundle after fixup, as in Nixpkgs' VS Code package.
-        postFixup =
-          (old.postFixup or "")
-          + optionalString pkgs.stdenv.hostPlatform.isLinux ''
-            signer=resources/app/node_modules/@vscode/vsce-sign/bin/vsce-sign
-            cp "./$signer" "$out/lib/vscode/$signer"
-            patchelf --add-needed ${pkgs.openssl.out}/lib/libssl.so.3 "$out/lib/vscode/$signer"
-            chmod +x "$out/lib/vscode/$signer"
-          '';
-        passthru =
-          (old.passthru or {})
-          // {
-            executableName = "code-insiders";
-            longName = "Visual Studio Code - Insiders";
-            iconName = "vscode-insiders";
-          };
-      })
+      import ./build/writable.nix {
+        inherit pkgs;
+        package = tools.vscode-insiders.package.overrideAttrs (old: {
+          # Restore the original .NET bundle after fixup, as in Nixpkgs' VS Code package.
+          postFixup =
+            (old.postFixup or "")
+            + optionalString pkgs.stdenv.hostPlatform.isLinux ''
+              signer=resources/app/node_modules/@vscode/vsce-sign/bin/vsce-sign
+              cp "./$signer" "$out/lib/vscode/$signer"
+              patchelf --add-needed ${pkgs.openssl.out}/lib/libssl.so.3 "$out/lib/vscode/$signer"
+              chmod +x "$out/lib/vscode/$signer"
+            '';
+          passthru =
+            (old.passthru or {})
+            // {
+              executableName = "code-insiders";
+              longName = "Visual Studio Code - Insiders";
+              iconName = "vscode-insiders";
+            };
+        });
+      }
     );
     debug = false;
   };
