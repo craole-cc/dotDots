@@ -18,8 +18,6 @@
   extensions = [
     defaultFormatter
     "bradlc.vscode-tailwindcss"
-    "denoland.vscode-deno"
-    "esbenp.prettier-vscode"
     "phu1237.vs-browser"
   ];
 

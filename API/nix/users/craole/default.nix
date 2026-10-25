@@ -82,14 +82,15 @@
     ];
     coding = [
       "common"
-      "nix"
+      "github"
       "markup"
-      "rust"
+      "nix"
       "python"
+      "rust"
       "shellscript"
-      "zig"
-      "typst"
       "typos"
+      "typst"
+      "zig"
     ];
     extra = [
       "fastfetch"
