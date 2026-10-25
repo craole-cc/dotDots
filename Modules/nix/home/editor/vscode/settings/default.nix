@@ -243,7 +243,7 @@
         mkVSCodeFeature {
           inherit pkgs inputs enable;
           extensions = uniqueStrings (concatMap (entry: entry.extensions or []) entries);
-          userSettings = mkMerge (map normalizeSettings entries);
+          userSettings = mkMerge (map (entry: entry.effectiveSettings or {}) entries);
           keybindings = concatMap (entry: entry.keybindings or []) entries;
         };
     };

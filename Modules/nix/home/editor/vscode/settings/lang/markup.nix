@@ -94,11 +94,11 @@
   strip = lang: removeAttrs lang ["editor" "extensions"];
   settings =
     {
-      "[ini]" = getEd "ini";
-      "[json]" = getEd "json";
-      "[jsonc]" = getEd "json";
-      "[toml]" = getEd "toml";
-      "[yaml]" = getEd "yaml";
+      "[ini]" = getEd ini;
+      "[json]" = getEd json;
+      "[jsonc]" = getEd json;
+      "[toml]" = getEd toml;
+      "[yaml]" = getEd yaml;
     }
-    // (strip "toml") // (strip "yaml");
+    // (strip toml) // (strip yaml);
 in {inherit enable extensions options settings;}

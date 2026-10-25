@@ -1,4 +1,5 @@
 {
+  lix,
   context,
   mkEnable,
   ...
@@ -9,7 +10,7 @@
   options.${lang}.enable = mkEnable {inherit context condition;};
   defaultFormatter = "jnoortheen.nix-ide";
   server = "nixd";
-
+  inherit (lix.lists.transformation) filter;
   extensions = [
     defaultFormatter
     "bbenoist.Nix"
@@ -85,7 +86,7 @@
       ];
     };
     settingsSync = {
-      ignoredExtensions = removeAttrs extensions ["vix.lint-runner"];
+      ignoredExtensions = filter (ext: ext != "vix.lint-runner") extensions;
     };
   };
 in {inherit enable extensions options settings;}

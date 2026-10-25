@@ -150,26 +150,6 @@ in {
       #! overridden (default: false)
       bracketPairColorization.independentColorPoolPerBracketType = true;
 
-      guides = {
-        #> Vertical bracket guides.
-        #?  - true | active | false
-        #! overridden (default: false)
-        bracketPairs = "active";
-        #> Horizontal bracket guides.
-        #?  - true | active | false
-        bracketPairsHorizontal = "active";
-        #> Highlight active bracket pair.
-        highlightActiveBracketPair = true;
-        #> Highlight active indent guide.
-        #?  - true | always | false
-        highlightActiveIndentation = true;
-        #> Show indent guides.
-        indentation = true;
-      };
-      #> Highlight matching brackets.
-      #?  - always | near | never
-      #! overridden (default: "always")
-      matchBrackets = "always";
     };
   };
 }
