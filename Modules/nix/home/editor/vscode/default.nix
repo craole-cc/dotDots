@@ -6,6 +6,7 @@
   host,
   user,
   paths,
+  style,
   entryAfter,
   ...
 }: let
@@ -69,6 +70,7 @@
       mkDefault
       pkgs
       paths
+      style
       tools
       mkMerge
       mkEnable
