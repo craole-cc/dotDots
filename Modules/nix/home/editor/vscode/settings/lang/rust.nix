@@ -207,9 +207,11 @@
         #?  - webfreak.debug: Use [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
         engine = "auto";
         #> Optional settings passed to the debug engine. Example: `{ "lldb": { "terminal":"external"} }`
-        # engineSettings = mkVSCodeSetting {};
+        engineSettings = mkVSCodeSetting {};
         #> Optional source file mappings passed to the debug engine.
-        sourceFileMap = "auto";
+        sourceFileMap = mkVSCodeSetting {
+          "/rustc/<id>" = "\${env:USERPROFILE}/.rustup/toolchains/<toolchain-id>/lib/rustlib/src/rust";
+        };
       };
 
       typing = {
@@ -239,7 +241,7 @@
         #> Whether to show the main part of the rendered rustc output of a diagnostic message.
         previewRustcOutput = false;
         #> Map of prefixes to be substituted when parsing diagnostic file paths. This should be the reverse mapping of what is passed to `rustc` as `--remap-path-prefix`.
-        remapPrefix = mkVSCodeSetting {};
+        remapPrefix = {};
         styleLints = {
           #> Run additional style lints.
           enable = false;
@@ -318,7 +320,7 @@
         #> Extra arguments that are passed to every cargo invocation.
         extraArgs = [];
         #> Extra environment variables that will be set when running cargo, rustc or other commands within the workspace. Useful for setting RUSTFLAGS.
-        extraEnv = mkVSCodeSetting {};
+        extraEnv = {};
         #> List of features to activate.
         #? Set this to `"all"` to pass `--all-features` to cargo.
         features = [];
@@ -338,7 +340,7 @@
         #> Compilation target override (target tuple).
         target = null;
         #> Optional path to a rust-analyzer specific target directory.
-        #? This prevents rust-analyzer's `cargo check` and initial build-script and proc-macro building from locking the `Cargo.lock` at the expense of duplicating build artifacts.
+        #? This prevents rust-analyzer's `cargo check` and initial build-script and proc-macro building from locking the `Cargo.lock` at the expense of duplicating build artefacts.
         #? Set to `true` to use a subdirectory of the existing target directory or set to a path relative to the workspace to use that path.
         targetDir = null;
       };
@@ -356,7 +358,7 @@
         #> Extra arguments for `cargo check`.
         extraArgs = [];
         #> Extra environment variables that will be set when running `cargo check`. Extends `rust-analyzer.cargo.extraEnv`.
-        extraEnv = mkVSCodeSetting {};
+        extraEnv = {};
         #> List of features to activate. Defaults to `rust-analyzer.cargo.features`.
         #? Set to `"all"` to pass `--all-features` to Cargo.
         features = null;

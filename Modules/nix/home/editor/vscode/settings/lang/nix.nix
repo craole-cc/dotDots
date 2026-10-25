@@ -4,7 +4,7 @@
   mkEnable,
   ...
 }: let
-  lang = "markup";
+  lang = "nix";
   condition = true;
   enable = condition;
   options.${lang}.enable = mkEnable {inherit context condition;};
