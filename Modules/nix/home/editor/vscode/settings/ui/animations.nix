@@ -1,9 +1,17 @@
 {
   fonts,
   lix,
+  pkgs,
+  inputs,
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeSetting;
+  inherit (lix.attrsets.resolution) vscodePackage;
+  animations = vscodePackage {
+    inherit pkgs inputs;
+    entry = "brandonkirbyson.vscode-animations";
+    default = throw "The VS Code Animations extension is required for animation script injection.";
+  };
 in {
   name = "animations";
   description = "Animations";
@@ -20,6 +28,9 @@ in {
       #> Install method used to inject the animations.
       #? Relies on the Custom UI Style extension, so it needs a writable VS Code install.
       Install-Method = "Custom UI Style";
+      # Nix owns the script import. The installer's versioned-path check does
+      # not recognise Home Manager's extension links and repeatedly prompts.
+      Auto-Install = false;
 
       CursorAnimation = true;
 
@@ -33,6 +44,9 @@ in {
 
     #~@ Custom UI Style
     custom-ui-style = {
+      external.imports = [
+        "file://${animations}/share/vscode/extensions/brandonkirbyson.vscode-animations/dist/updateHandler.js"
+      ];
       font = {inherit (fonts.families) sansSerif monospace;};
 
       reloadWithoutPrompting = true;
