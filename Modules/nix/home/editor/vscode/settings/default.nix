@@ -14,7 +14,7 @@
   inherit (lix.attrsets.resolution) parseVscodeExt vscodePackage;
   inherit (lix.filesystem.access) readFileType;
   inherit (lix.filesystem.traversal) importAllNamed readJSON;
-  inherit (lix.lists.aggregation) concatMap;
+  inherit (lix.lists.aggregation) concatMap foldl';
   inherit (lix.content.fallback) orDefault;
   inherit (lix.lists.construction) optional optionals;
   inherit (lix.lists.predicates) any elem;
@@ -26,6 +26,54 @@
   inherit (lix.types.combinators) listOf submodule;
   inherit (lix.types.predicates) isAttrs isList isPath isString;
   inherit (lix.types.primitives) package;
+
+  # Merge entries in order, keeping every list contribution. Overrides retain
+  # their priority for scalar conflicts, including the saved JSON fallback.
+  deepMergeSettings = let
+    unpack = value:
+      if isAttrs value && (value._type or null) == "override"
+      then {
+        inherit (value) priority;
+        content =
+          if isAttrs value.content
+          then
+            mapAttrs (_: child:
+              if isAttrs child && (child._type or null) == "override"
+              then child
+              else mkOverride value.priority child)
+            value.content
+          else value.content;
+      }
+      else {
+        priority = 100;
+        content = value;
+      };
+    mergeOne = left: right: let
+      previous = unpack left;
+      next = unpack right;
+    in
+      if isAttrs previous.content && isAttrs next.content
+      then
+        previous.content
+        // mapAttrs (name: value:
+          if previous.content ? ${name}
+          then mergeOne previous.content.${name} value
+          else value)
+        next.content
+      else if isList previous.content && isList next.content
+      then
+        mkOverride
+        (
+          if previous.priority < next.priority
+          then previous.priority
+          else next.priority
+        )
+        (previous.content ++ next.content)
+      else if previous.priority < next.priority
+      then left
+      else right;
+  in
+    foldl' mergeOne {};
 
   baseline = let
     level = 1500;
@@ -243,7 +291,7 @@
         mkVSCodeFeature {
           inherit pkgs inputs enable;
           extensions = uniqueStrings (concatMap (entry: entry.extensions or []) entries);
-          userSettings = mkMerge (map (entry: entry.effectiveSettings or {}) entries);
+          userSettings = deepMergeSettings (map (entry: entry.effectiveSettings or {}) entries);
           keybindings = concatMap (entry: entry.keybindings or []) entries;
         };
     };
@@ -328,11 +376,18 @@
     };
 
     config = mkMerge (
-      module.output
+      (map (group: removeAttrs group ["userSettings"]) module.output)
+      ++ [
+        {
+          userSettings = deepMergeSettings (
+            optional (cfg.importJSON or false) (learn "settings")
+            ++ map (group: group.userSettings or {}) module.output
+          );
+        }
+      ]
       ++ optional (cfg.importJSON or false) {
         extensions = learn "extensions";
         keybindings = learn "keybindings";
-        userSettings = learn "settings";
       }
     );
 
