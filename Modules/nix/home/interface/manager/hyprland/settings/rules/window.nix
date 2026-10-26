@@ -7,7 +7,6 @@
     "workspace special silent, match:title ^(Firefox - Sharing Indicator)$"
     "workspace special silent, match:title ^(.*is sharing (your screen|a window).)$"
     "workspace 9 silent, match:title ^(Spotify( Premium)?)$"
-    "opacity 1 override 1 override, match:class ^(code|Code|code-insiders)$"
     "opacity 0.97 override 0.97 override, match:class ^(dev.zed.Zed|zed|Zed)$"
     "idle_inhibit focus, match:class ^(mpv|.+exe|celluloid)$"
     "idle_inhibit focus, match:class ^(firefox)$, match:title ^(.*YouTube.*)$"

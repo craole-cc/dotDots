@@ -14,9 +14,9 @@ in {
   extensions = ["subframe7536.custom-ui-style"];
 
   settings.custom-ui-style = {
-    # Keep the native window and text opaque. The renderer follows DMS's
-    # retained wallpaper snapshot; only the colour overlay has lower opacity.
-    electron = mkVSCodeSetting {transparent = false;};
+    electron = mkVSCodeSetting {
+      transparent = cfg.features.ui.transparency or false;
+    };
     external.imports = optional (!(cfg.features.ui.animations or false)) "file://${wallpaperScript}";
     stylesheet = mkVSCodeSetting {
       "body:has(div[role=application])" = {position = "relative";};
