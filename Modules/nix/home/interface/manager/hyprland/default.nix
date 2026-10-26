@@ -57,6 +57,16 @@
     hl.window_rule({ match = { class = "^kitty$" }, suppress_event = "maximize" })
   '';
 
+  # Editor window opacity lives in a mutable Lua module: the appearance sync
+  # rewrites it with the active mode's value, so light and dark can differ
+  # without a rebuild. Activation seeds the default mode as the baseline.
+  dmsOpacity = pkgs.writeText "dms-hypr-opacity.lua" ''
+    -- Managed by dotDots: editor window opacity for the active theme mode.
+    hl.window_rule({ match = { class = "^(code-insiders)$" }, opacity = ${
+      builtins.toJSON style.opacity.editor.${style.mode}
+    } })
+  '';
+
   dmsWindowLastBind = let
     key = windowLast.key or null;
     mod = windowLast.mod or null;
@@ -201,6 +211,7 @@
             while ((getline line < binds) > 0) print line
             close(binds)
           }
+          /require\("dms.windowrules"\)/ { print "require(\"dms.opacity\")" }
         ' > "$out"
   '';
   dmsBinds = pkgs.runCommand "dms-hypr-binds.lua" {} ''
@@ -305,6 +316,7 @@
       seed ${dmsEmbedded}/hypr-layout.lua "$dms_dir/layout.lua"
       seed ${dmsEmbedded}/hypr-outputs.lua "$dms_dir/outputs.lua"
       seed ${dmsEmbedded}/hypr-windowrules.lua "$dms_dir/windowrules.lua"
+      seed ${dmsOpacity} "$dms_dir/opacity.lua"
 
       # The root Lua requires dms/binds.lua, so install that first and replace
       # hyprland.lua last. Both replacements are same-directory atomic renames.
@@ -321,6 +333,11 @@
           instance=$((instance + 1))
         done
       fi
+
+      # The appearance sync owns dms/opacity.lua. Run it once so the active
+      # mode's editor opacity replaces the freshly seeded default, and a new
+      # schema value lands without waiting for the next theme switch.
+      ${pkgs.systemd}/bin/systemctl --user start dotdots-foot-dms-theme-reload.service >/dev/null 2>&1 || true
     '');
 
     # Old user-local portal descriptors shadow the NixOS-owned descriptors in

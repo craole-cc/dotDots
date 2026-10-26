@@ -22,6 +22,7 @@ in
         cursor_size=${toString cursors.dark.size}
         icons=${icons.dark.name}
         terminal_opacity=${toString style.opacity.terminal.dark}
+        editor_opacity=${toString style.opacity.editor.dark}
         btop_theme=adwaita-dark
         foot_signal=USR1
         ;;
@@ -30,11 +31,30 @@ in
         cursor_size=${toString cursors.light.size}
         icons=${icons.light.name}
         terminal_opacity=${toString style.opacity.terminal.light}
+        editor_opacity=${toString style.opacity.editor.light}
         btop_theme=adwaita
         foot_signal=USR2
         ;;
       *) exit 0 ;;
     esac
+
+    # Hyprland owns editor translucency: a window rule is the only way to make
+    # the editor transparent without patching it, and the active mode supplies
+    # the value. Rewrite the module so light and dark can differ, then reload
+    # so already-open windows follow the switch.
+    hypr_opacity=${escapeShellArg "${config.xdg.configHome}/hypr/dms/opacity.lua"}
+    if [ -d "$(${dirname} "$hypr_opacity")" ]; then
+      wanted='-- Managed by dotDots: editor window opacity for the active theme mode.
+hl.window_rule({ match = { class = "^(code-insiders)$" }, opacity = '"$editor_opacity"' })'
+      if [ "$(${cat} "$hypr_opacity" 2>/dev/null || true)" != "$wanted" ]; then
+        if tmp="$(${mktemp} "$hypr_opacity.tmp.XXXXXX")"; then
+          printf '%s\n' "$wanted" > "$tmp"
+          ${chmod0644} "$tmp"
+          ${mvf} "$tmp" "$hypr_opacity"
+          command -v hyprctl >/dev/null 2>&1 && hyprctl reload >/dev/null 2>&1 || true
+        fi
+      fi
+    fi
 
     xresources="$HOME/.Xresources"
     xresources_writable=false
