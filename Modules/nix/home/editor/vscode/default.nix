@@ -24,7 +24,7 @@
     toolkit
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
-      inherit context fonts toolkit requires paths pkgs;
+      inherit context fonts toolkit requires paths pkgs lix;
       inherit inputs;
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
