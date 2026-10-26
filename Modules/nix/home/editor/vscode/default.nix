@@ -32,7 +32,7 @@
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
       # inherit (lix.attrsets.construction) genAttrs;
-      inherit (lix.options.construction) mkDefault mkEnable mkFalse mkTrue;
+      inherit (lix.options.construction) mkDefault mkEnable mkFalse mkOption mkTrue;
       # inherit (lix.lists.construction) optional;
       # inherit (lix.lists.predicates) isIn;
       # inherit (lix.strings.construction) optionalString;
