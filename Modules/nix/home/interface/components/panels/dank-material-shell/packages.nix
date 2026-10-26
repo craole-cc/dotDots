@@ -1,56 +1,24 @@
-{
-  inputs,
-  lix,
-  pkgs,
-  ...
-}: let
-  inherit (lix.sources.packages) pkgsFrom;
-  tools = pkgsFrom {
-    inherit inputs pkgs;
-    sources = {
-      coreutils = null;
-      dms-shell = null;
-      diffutils = {exe = "cmp";};
-      gum = null;
-      glib = null;
-      jaq = null;
-      procps = {exe = "pkill";};
-      quickshell = null;
-      ripgrep = null;
-      sd = null;
-      systemd = null;
-    };
-    required = true;
-  };
+{toolkit, ...}: let
+  inherit (toolkit.bins) chmodRuw patchd;
+  inherit (toolkit.records.dms-shell.package) overrideAttrs;
 
-  package = import ./package.nix tools.dms-shell.package;
+  package = overrideAttrs (previous: {
+    #> Patch the Go backend and QML before make sync-shell embeds the frontend into the executable.
+    postPatch =
+      (previous.postPatch or "")
+      + ''
+        ${chmodRuw} ../quickshell
+        ${patchd} .. -p1 < ${./patches/theme-control.patch}
+        ${patchd} .. -p1 < ${./patches/catppuccin-matugen.patch}
+      '';
+  });
 
-  bins = let
-    inherit (tools) binaries;
-    coreutils = "${tools.coreutils.paths.binary}";
-    glib = "${tools.glib.paths.binary}";
-  in rec {
-    inherit (binaries) gum jaq sd;
-    systemctl = "${tools.systemd.paths.binary}/systemctl";
-    cmp = binaries.diffutils;
-    cksum = "${coreutils}/cksum";
-    cat = "${coreutils}/cat";
-    chmod = "${coreutils}/chmod";
-    dirname = "${coreutils}/dirname";
+  bins = rec {
     dms = "${package}/bin/dms";
     dmsCall = "${dms} ipc call";
     dmsSet = "${dmsCall} settings set";
-    gCall = "${glib}/gdbus call";
-    gSet = "${gsettings} set";
-    gSetDI = "${gSet} org.gnome.desktop.interface";
-    gsettings = "${glib}/gsettings";
-    install = "${coreutils}/install";
-    mkdir = "${coreutils}/mkdir";
-    mktemp = "${coreutils}/mktemp";
-    mv = "${coreutils}/mv";
-    pkill = binaries.procps;
-    rg = binaries.ripgrep;
-    rm = "${coreutils}/rm";
-    readlink = "${coreutils}/readlink";
   };
-in {inherit tools bins package;}
+in {
+  inherit package;
+  bins = toolkit.bins // bins;
+}

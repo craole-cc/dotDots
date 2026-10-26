@@ -76,6 +76,7 @@
   inherit (_.modules.home.users) mkUsers;
   inherit (_.options.construction) mkOption;
   inherit (_.sources.modules) mkModules;
+  inherit (_.sources.packages) mkToolkit;
   inherit (_.strings.construction) concat;
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
@@ -95,22 +96,29 @@
     top ? _default.names.top or "_",
     ...
   } @ passthru: let
+    # Home is wired again, but Modules/nix/home/default.nix explicitly imports
+    # only modules already migrated to the mkContext/mkConfig contract.
+    wireHome = true; # TODO: This is not something we want to keep
+
+    inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
+    lib = extend (_self: _super: {inherit hm;});
+
     mkArgs = host: let
       hostArgs = import paths.repo.src.store (
         passthru // {inherit host;} // host
       );
-      specialArgs = removeAttrs hostArgs [
-        "config"
-        "lib"
-        "name"
-        "options"
-        "pkgs"
-      ];
-      extraSpecialArgs = let
-        lib = extend (_self: _super: {
-          inherit (inputs.home-manager.lib) hm;
-        });
-      in
+
+      specialArgs =
+        (removeAttrs hostArgs [
+          "config"
+          "lib"
+          "name" # TODO: Check to see if this is needed
+          "options"
+          "pkgs"
+        ])
+        // {toolkit = mkToolkit {inherit inputs host;};};
+
+      extraSpecialArgs =
         specialArgs
         // {
           inherit lib;
@@ -118,10 +126,6 @@
         };
     in
       hostArgs // {inherit hostArgs specialArgs extraSpecialArgs;};
-
-    # Home is wired again, but Modules/nix/home/default.nix explicitly imports
-    # only modules already migrated to the mkContext/mkConfig contract.
-    wireHome = true; # TODO: This is not something we want to keep
 
     types = let
       of = class:
@@ -134,8 +138,6 @@
       darwin = of "darwin";
       home = of "home-manager";
     };
-
-    inherit (inputs.home-manager.lib) homeManagerConfiguration;
 
     #> Per-class module set. `class` is `"nixos"`/`"darwin"` for
     #> `mkSystem`, `"home-manager"` for `mkHomeHost`.

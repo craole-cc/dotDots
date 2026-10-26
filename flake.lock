@@ -966,6 +966,7 @@
         "secretsManager": "secretsManager",
         "shellDankMaterial": "shellDankMaterial",
         "shellDankMaterialPlugins": "shellDankMaterialPlugins",
+        "shellQuick": "shellQuick",
         "styleCatppuccin": "styleCatppuccin",
         "styleManager": "styleManager",
         "terminalWarp": "terminalWarp",
@@ -1051,6 +1052,26 @@
       "original": {
         "owner": "AvengeMedia",
         "repo": "dms-plugin-registry",
+        "type": "github"
+      }
+    },
+    "shellQuick": {
+      "inputs": {
+        "nixpkgs": [
+          "nixPackages"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792651682,
+        "narHash": "sha256-TiCGqLMpNIy7FERewgfKVluPsLVF96uc6x6xwZnMjdQ=",
+        "owner": "outfoxxed",
+        "repo": "quickshell",
+        "rev": "9b0f339b19057f4731bf3b48293307d7ef241671",
+        "type": "github"
+      },
+      "original": {
+        "owner": "outfoxxed",
+        "repo": "quickshell",
         "type": "github"
       }
     },

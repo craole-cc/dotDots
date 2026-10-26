@@ -168,12 +168,12 @@
     #   };
     # };
 
-    # shellQuick = {
-    #   repo = "quickshell";
-    #   owner = "outfoxxed";
-    #   type = "github";
-    #   inputs.nixpkgs.follows = "nixPackages";
-    # };
+    shellQuick = {
+      repo = "quickshell";
+      owner = "outfoxxed";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
 
     styleManager = {
       repo = "stylix";

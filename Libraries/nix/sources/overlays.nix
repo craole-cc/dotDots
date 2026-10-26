@@ -8,7 +8,7 @@
   '';
 
   inherit (_.hardware.system) systemOf;
-  inherit (_.attrsets) removeNulls mapAttrs mapAttrs';
+  inherit (_.attrsets.transformation) mapAttrs mapAttrs' removeNulls;
 
   __exports = {
     internal = {

@@ -8,6 +8,7 @@
   inherit (lib.fixedPoints) makeExtensible;
   inherit (lib.attrsets) recursiveUpdate;
   inherit (settings) allowAliases allowTests exclusions;
+  defaults = args // (args.defaults or {});
 
   handleCollisions = import ./collisions.nix {
     inherit lib;
@@ -34,8 +35,8 @@
           _ = self;
           inherit self;
           name = names.lib;
-          _defaults = args;
-          _default = args;
+          _defaults = defaults;
+          _default = defaults;
           projectPath = args.paths.repo.src.store;
           projectHome = args.paths.repo.src.local;
         };

@@ -70,6 +70,7 @@
       trim
       ;
     inherit (trivial) pipe toHexString;
+    inherit (builtins) unsafeDiscardStringContext;
   };
 
   predicates = {

@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  _default,
+  ...
+}: let
   meta = {
     doc = ''
       Input Packages Resolution
@@ -10,7 +14,7 @@
 
     exports = {
       internal = let
-        functions = {inherit fromInputs getVersion mkAll mkCore mkHome mkOne pkgOf pkgsFrom mkCommon defaults;};
+        functions = {inherit fromInputs getVersion mkAll mkCore mkHome mkOne pkgOf pkgsFrom mkToolkit;};
         aliases = {
           mkPkgs = mkAll;
           mkPackages = mkAll;
@@ -18,7 +22,7 @@
           mkPackageFromInputs = fromInputs;
           mkCorePackages = mkCore;
           mkHomePackages = mkHome;
-          mkCommonPackages = mkCommon;
+          mkCommonPackages = mkToolkit;
         };
       in
         {inherit functions aliases;} // functions // aliases;
@@ -35,167 +39,204 @@
   };
 
   inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs nameValuePair listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrs';
-  inherit (_.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
+  inherit (_.filesystem.access) readDir;
   inherit (_.hardware.system) getSystemOrDefault;
   inherit (_.lists.access) findFirst head;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) asList optionals;
-  inherit (_.lists.selection) filter;
   inherit (_.lists.predicates) elem;
-  inherit (_.lists.transformation) sort unique;
+  inherit (_.lists.selection) filter;
+  inherit (_.lists.transformation) unique;
+  inherit (_.sources.access) getBin getExe';
+  inherit (_.sources.inputs) normalizeInputs mkSource;
+  inherit (_.sources.overlays) mkOverlays;
   inherit (_.strings.access) match;
   inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasPrefix hasSuffix isString;
-  inherit (_.strings.transformation) removePrefix removeSuffix;
-  inherit (_.sources.access) getBin getExe getExe';
-  inherit (_.sources.inputs) normalizeInputs mkSource;
-  inherit (_.sources.overlays) mkOverlays;
+  inherit (_.strings.transformation) removePrefix removeSuffix unsafeDiscardStringContext;
 
-  defaults = {
-    config = {
-      allowUnfree = true;
-      allowBroken = false;
-    };
-    core = {
-      attrs = "legacyPackages";
-      names = [
-        "nixpkgs"
-        "nixpkgs-stable"
-        "nixpkgs-unstable"
-      ];
-    };
-    home = {
-      attrs = "packages";
-      names = [
-        "age"
-        "niri-float-sticky"
-        "caelestia"
-        "catppuccin"
-        "codex"
-        "buuf-icons"
-        "codex-plugins"
-        "codex-skills"
-        "dank-material-shell"
-        "dms-plugin-registry"
-        "fresh-editor"
-        "helix"
-        "hermes-agent"
-        "home-manager"
-        "llm-agents"
-        "noctalia-shell"
-        "nvf"
-        "plasma"
-        "quickshell"
-        "treefmt"
-        "typix"
-        "vscode-insiders"
-        "warp-terminal"
-        "zen-browser"
-      ];
-    };
-  };
-
-  mkCommon = {
+  mkToolkit = {
     inputs,
     pkgs ? null,
-    system ? null,
+    host ? {},
+    sources ? {},
+    prefer ? {},
+    enableShorthand ? false,
     ...
   }: let
-    tools = pkgsFrom {
-      inherit inputs pkgs system;
-      sources = {
-        coreutils = null;
-        diffutils = {exe = "cmp";};
-        dms-shell = null;
-        git = null;
-        glib = null;
-        gum = null;
-        jaq = null;
-        procps = {exe = "pkill";};
-        quickshell = null;
-        ripgrep = null;
-        sd = null;
-        systemd = null;
-        vscode-fhs = null;
-        vscode-insiders = "vscode-insiders";
-      };
+    pkgs' =
+      if pkgs != null
+      then pkgs
+      else (mkAll {inherit inputs host;}).pkgs;
+
+    derived = pkgsFrom {
+      inherit inputs enableShorthand;
+      pkgs = pkgs';
       required = true;
+      prefer = _default.toolkit.prefer // prefer;
+      sources = _default.toolkit.sources // sources;
     };
 
-    # TODO: Not ready for this just yet. We need to fix pkgsFrom.
-    binsExtended = let
-      kits =
-        genAttrs ["coreutils" "glib"]
-        (name: "${tools.${name}.paths.binary}");
+    defined = let
+      bins = derived.binaries;
+      binaries = recursiveUpdate bins {
+        #> coreutils
+        chmodR = "${bins.chmod} -R";
+        chmodRuw = "${bins.chmod} -R u+w";
+        cpa = "${bins.cp} -a --reflink=auto";
+        cpaf = "${bins.cp} -af --reflink=auto"; #? force version of your cpa
+        dateI = "${bins.date} -I"; #? ISO date
+        dateIs = "${bins.date} -Is"; #? ISO date + time
+        headn = "${bins.head} -n";
+        installD = "${bins.install} -D"; #? create parent dirs
+        installDm = "${bins.install} -D -m"; #? include mode (caller supplies the mode)
+        lnSf = "${bins.ln} -Sf"; #? force symlink
+        lnsfn = "${bins.ln} -sfn";
+        mkdirp = "${bins.mkdir} -p";
+        mktempd = "${bins.mktemp} -d";
+        mvt = "${bins.mv} -T";
+        readlinkf = "${bins.readlink} -f";
+        rmf = "${bins.rm} -rf";
+        sortn = "${bins.sort} -n";
+        sortu = "${bins.sort} -u";
+        sortV = "${bins.sort} -V";
+        tailf = "${bins.tail} -f";
+        tailn = "${bins.tail} -n";
+        teea = "${bins.tee} -a";
+        wcc = "${bins.wc} -c";
+        wcl = "${bins.wc} -l";
+        wcw = "${bins.wc} -w";
 
-      cmds = recursiveUpdate tools.binaries {
-        glib =
-          genAttrs ["gsettings"]
-          (command: "${kits.glib}/${command}");
-        coreutils =
-          genAttrs [
-            # TODO: Add all the common coreutils bins. But doing it like this is too manual maybe
-            "chmod"
-            "cp"
-            "cksum"
-            "cat"
-            "dirname"
-            "install"
-            "mkdir"
-            "rm"
-            "readlink"
-          ]
-          (command: "${kits.coreutils}/${command}");
+        #> finders (modern)
+        fdh = "${bins.fd} --hidden --no-ignore";
+        rgi = "${bins.rg} -i";
+        rg0 = "${bins.rg} --null";
+
+        #> findutils
+        find0 = "${bins.find} -print0";
+        grepr = "${bins.grep} -r";
+        grepri = "${bins.grep} -ri";
+        sedi = "${bins.sed} -i";
+        xargs0 = "${bins.xargs} -0";
+        xargsr = "${bins.xargs} -r"; #? don't run if stdin is empty
+        xargsI = "${bins.xargs} -I{}";
+
+        #> git
+        gitCfgFile = "${bins.git} config --file";
+
+        #> glib
+        gCall = "${bins.gdbus} call";
+        gSet = "${bins.gsettings} set";
+        gSetDI = "${bins.gsettings} set org.gnome.desktop.interface";
+
+        #> gnupatch
+        patchd = "${bins.patch} -d";
+
+        #> ouch
+        pack = "${bins.ouch} compress";
+        unpack = "${bins.ouch} decompress";
+
+        #> procps (very common)
+        pgrepf = "${bins.pgrep} -f";
+        pkillf = "${bins.pkill} -f";
+        pgrepa = "${bins.pgrep} -a"; #? show full command line
+
+        #> systemd
+        journalctlUser = "${bins.journalctl} --user";
+        systemctlUser = "${bins.systemctl} --user";
+
+        #> util-linux
+        loggerT = "${bins.logger} -t"; #? with tag (caller supplies the tag)
       };
     in
-      mergeSafe [
-        kits
-        cmds
-        (with cmds; {
-          gitCfgFile = "${git} config --file";
-          rmf = "${coreutils.rm} -rf";
-          cpa = "${coreutils.cp} -a --reflink=auto";
-          chmodr = "${coreutils.chmod} -R";
-          mkdirp = "${coreutils.mkdir} -p";
-          mktempd = "${coreutils.mktemp} -d";
-          mvt = "${coreutils.mv} -T";
-          lnsfn = "${coreutils.ln} -sfn";
-          cmp = diffutils;
-          gCall = "${glib.gdbus} call";
-          gSet = "${glib.gsettings} set";
-          gSetDI = "${glib.gsettings} set org.gnome.desktop.interface";
-          pkill = procps;
-          rg = ripgrep;
-        })
-      ];
+      {inherit binaries;}
+      // optionalAttrs enableShorthand {bins = binaries;};
+
+    helpers = {
+      builders = {
+        inherit
+          (pkgs')
+          buildEnv
+          makeBinaryWrapper
+          makeDesktopItem
+          makeShellWrapper
+          replaceVars
+          runCommand
+          runCommandCC
+          runCommandLocal
+          runCommandNoCC
+          symlinkJoin
+          ;
+      };
+
+      source = {
+        inherit (pkgs'.lib) cleanSource cleanSourceWith fileset;
+      };
+
+      fetch = with pkgs'; {
+        fromGit = fetchgit;
+        fromGitHub = fetchFromGitHub;
+        fromGitLab = fetchFromGitLab;
+        fromUrl = fetchurl;
+        fromZip = fetchzip;
+        patch = fetchpatch;
+        tarball = fetchTarball;
+      };
+
+      platform = {
+        inherit (pkgs'.stdenv.hostPlatform) isAarch64 isLinux isDarwin isx86_64 system;
+        shell = pkgs'.runtimeShell;
+      };
+
+      write = let
+        inherit (pkgs') linkFarm writeShellApplication writeShellScript writeText writeTextFile;
+        inherit (pkgs'.writers) writeDash writeDashBin;
+      in
+        {
+          #? Package with bin/<name>: strict mode and shellcheck, no PATH assumptions
+          bin = name: text:
+            writeShellApplication {
+              inherit name text;
+              runtimeInputs = [];
+            };
+
+          #? Same, with packages added to PATH
+          binWith = name: runtimeInputs: text:
+            writeShellApplication {inherit name runtimeInputs text;};
+
+          link = linkFarm; #? name, [{name; path;}]
+          posix = writeDash; #? POSIX sh file, for ExecStart= and the like
+          posixBin = writeDashBin; #? POSIX sh with bin/<name>
+          script = writeShellScript; #? bash file, for ExecStart= and the like
+          text = writeText;
+          textFile = writeTextFile; #? supports executable, destination, etc.
+        }
+        // #> Expose common serializers as well
+        genAttrs ["json" "toml" "yaml" "ini"]
+        (name: (pkgs'.formats.${name} {}).generate);
+    };
   in
-    tools;
-  # in tools // {inherit tools bins;};
+    derived // defined // helpers;
 
-  mkCore = {
+  _mk = target: {
     inputs ? {},
     names ? [],
-  }:
+  }: let
+    default = _default.inputs.${target};
+  in
     mkOne {
       inherit inputs;
-      inherit (defaults.core) attrs;
-      names = defaults.core.names ++ names;
+      inherit (default) attrs;
+      names = default.names ++ names;
     };
-
-  mkHome = {
-    inputs ? {},
-    names ? [],
-  }:
-    mkOne {
-      inherit (defaults.home) attrs;
-      inherit inputs;
-      names = defaults.home.names ++ names;
-    };
+  mkCore = _mk "core";
+  mkHome = _mk "home";
 
   fromInputs = {
     inputs,
@@ -455,6 +496,7 @@
     target ? null,
     exe ? null,
     alias ? null,
+    discover ? false,
     pkgs ? null,
     description ? null,
     system ?
@@ -471,7 +513,7 @@
 
       system = assert withContext {
         name = _name;
-        context = "resolving system for package from input '${input}' or pkgs";
+        context = "resolving system for package from input '${toString input}' or pkgs";
         assertion = system != null;
         message = "either `pkgs` or `system` must be provided.";
       }; system;
@@ -554,40 +596,57 @@
         package = check.value;
 
         paths = {
-          executable =
+          executable = let
+            mainProgram = package.meta.mainProgram or null;
+          in
             if exe != null
             then getExe' package exe
-            else getExe package;
+            else if mainProgram != null
+            then getExe' package mainProgram
+            else getExe' package (package.pname or check.name);
           binary = "${getBin package}/bin";
           store = package.outPath or "${package}";
         };
 
-        command = baseNameOf paths.executable;
-
-        fromInput = check.source != "nixpkgs";
+        command = unsafeDiscardStringContext (baseNameOf paths.executable);
 
         revision =
-          if fromInput && input != null
+          if check.source != "nixpkgs" && input != null
           then let
             flake = init.inputs.${input};
           in
             flake.shortRev or (flake.rev or null)
           else null;
 
+        #> Lazy: `readDir` only runs if `bins` is forced and `discover` is set.
+        #> Forcing it realises the package at eval time (IFD).
+        discovered = let
+          entries = readDir paths.binary;
+          visible = filter (name: !(hasPrefix "." name)) (attrNames entries);
+        in
+          genAttrs visible (name: "${paths.binary}/${name}");
+      in {
+        inherit (check) name source;
+        inherit command package paths revision;
+
+        exe = paths.executable;
+        exeOf = executable: getExe' package executable;
+
+        bins =
+          if discover
+          then discovered
+          else {${command} = paths.executable;};
+
         version = getVersion {
           inherit package revision;
           exe = paths.executable;
           args = versionArgs;
         };
-      in {
-        inherit (check) name source value;
-        inherit
-          command
-          package
-          paths
-          revision
-          version
-          ;
+
+        description =
+          if description != null && description != ""
+          then description
+          else package.meta.description or null;
 
         alias =
           if alias == null
@@ -599,17 +658,6 @@
                 path = paths.executable;
               }
             ];
-
-        description =
-          if description != null && description != ""
-          then description
-          else package.meta.description or null;
-        bin = paths.binary;
-        cmd = command;
-        exe = paths.executable;
-        pkg = package;
-        vr3n = version;
-        ver = version;
       };
   in
     if required
@@ -627,7 +675,7 @@
   /**
     Resolve multiple named packages via `pkgOf`, one input per name.
 
-    `sources` maps package name -> input name, e.g.
+    `sources` maps null | string | {input, target, exe, alias, description, versionArgs}
     `{codex = "llm-agents"; "hermes-agent" = "llm-agents";}` - this lets
     ambiguous names (present in more than one input) resolve to a specific
     input per-package, rather than relying on a single global priority
@@ -705,41 +753,35 @@
     required ? false,
     exclude ? [],
     aliases ? {},
+    prefer ? {},
+    enableShorthand ? false,
   }: let
     init = let
+      prep = value:
+        if value == null
+        then {}
+        else if isString value
+        then {input = value;}
+        else value;
+
       process = target: value: let
-        source =
-          if value == null
-          then {
-            input = null;
-            versionArgs = null;
-            description = null;
-            exe = null;
-          }
-          else if isString value
-          then {
-            input = value;
-            versionArgs = null;
-            description = null;
-            exe = null;
-          }
-          else {
-            input = value.input or null;
-            versionArgs = value.versionArgs or null;
-            description = value.description or null;
-            exe = value.exe or null;
-          };
+        source = prep value;
       in
         pkgOf (
           {
-            inherit target inputs pkgs required;
-            inherit (source) input versionArgs description exe;
+            inherit inputs pkgs required;
+            alias = source.alias or null;
+            description = source.description or null;
+            discover = source.discover or false;
+            exe = source.exe or null;
+            input = source.input or null;
+            target = source.target or target;
+            versionArgs = source.versionArgs or null;
           }
           // optionalAttrs (system != null) {inherit system;}
         );
     in
-      filterAttrs (_: src: src != null)
-      (mapAttrs process sources);
+      filterAttrs (_: record: record != null) (mapAttrs process sources);
 
     records = let
       #> Keep only aliases where the target actually exists and isn't null
@@ -755,28 +797,32 @@
     in
       init // resolved;
 
-    eval = {
-      binaries = mapAttrs (_: pkg: pkg.exe) records;
-      commands = mapAttrs (_: pkg: pkg.cmd) records;
-      versions = mapAttrs (_: pkg: pkg.ver) records;
-      origins = mapAttrs (_: pkg: pkg.source) records;
-      descriptions = mapAttrs (_: pkg: pkg.description or null) records;
-      packages = filter (pkg: !(elem (pkg.pname or pkg.name or "") exclude)) (
-        map (res: res.value) (attrValues init)
-      );
-      names = let
-        sortByCmd = sort (a: b: (records.${a}.cmd or a) < (records.${b}.cmd or b));
+    groups = {
+      binaries = let
+        merged = mergeSafe (map (record: record.bins) (attrValues init));
+        pick = command: package:
+          init.${package}.bins.${command}
+          or (throw "pkgsFrom: prefer.${command} = \"${package}\", but that package provides no `${command}`");
       in
-        sortByCmd (attrNames records);
+        merged // mapAttrs pick prefer;
+      commands = mapAttrs (_: record: record.command) records;
+      versions = mapAttrs (_: record: record.version) records;
+      origins = mapAttrs (_: record: record.source) records;
+      descriptions = mapAttrs (_: record: record.description) records;
+      packages =
+        filter
+        (package: !(elem (package.pname or package.name or "") exclude))
+        (map (record: record.package) (attrValues init));
+      names = attrNames records;
     };
 
-    aliases' = with eval; {
-      bins = binaries;
-      cmds = commands;
-      vr3n = versions;
+    shorthand = optionalAttrs enableShorthand {
+      bins = groups.binaries;
+      cmds = groups.commands;
+      vr3n = groups.versions;
     };
   in
-    records // eval // aliases' // {inherit sources records;};
+    groups // shorthand // {inherit records;};
 
   bySystem = packages: let
     inputNames = attrNames packages;
@@ -835,12 +881,7 @@
       host.settings.forNixpkgs or host.settings.pkg or host.settings.packages or host.packages or host.pkg
           or {};
 
-    config' =
-      {
-        allowUnfree = pkgSettings.allowUnfree or defaults.config.allowUnfree;
-        allowBroken = pkgSettings.allowBroken or defaults.config.allowBroken;
-      }
-      // config;
+    config' = _default.inputs.config // pkgSettings // config;
 
     # Dynamically pick input based on `unstable = true`
     nixpkgsInput =
