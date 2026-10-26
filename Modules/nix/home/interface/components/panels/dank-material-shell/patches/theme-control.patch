@@ -1,6 +1,9 @@
 --- a/quickshell/Services/ThemeAutoService.qml
 +++ b/quickshell/Services/ThemeAutoService.qml
-@@ -13,0 +14,16 @@
+@@ -11,6 +11,22 @@
+     readonly property var log: Log.scoped("ThemeAutoService")
+ 
+     property bool active: false
 +    property bool manualOverrideActive: false
 +    property var scheduledIsLight: null
 +
@@ -17,49 +20,110 @@
 +        if (Theme.isLightMode !== light)
 +            Theme.setLightMode(light, true, true, true);
 +    }
-@@ -25,0 +42,2 @@
+     readonly property bool backendAvailable: DMSService.isConnected && DMSService.capabilities.includes("theme.auto")
+ 
+     onActiveChanged: {
+@@ -32,6 +48,8 @@
+         target: SessionData
+ 
+         function onThemeModeAutoEnabledChanged() {
 +            root.manualOverrideActive = false;
 +            root.scheduledIsLight = null;
-@@ -33,0 +52,2 @@
+             if (SessionData.themeModeAutoEnabled) {
+                 root.start();
+             } else {
+@@ -45,6 +63,8 @@
+         enabled: root.active
+ 
+         function onThemeModeAutoModeChanged() {
 +            root.manualOverrideActive = false;
 +            root.scheduledIsLight = null;
-@@ -156,3 +176 @@
--            if (Theme.isLightMode !== DisplayService.gammaIsDay) {
--                Theme.setLightMode(DisplayService.gammaIsDay, true, true);
+             root.evaluate();
+             root.syncTimeSchedule();
+             root.syncLocationSchedule();
+@@ -146,9 +166,7 @@
+         enabled: typeof NightModeService !== "undefined" && typeof SessionData !== "undefined" && SessionData.themeModeAutoEnabled && SessionData.themeModeAutoMode === "location" && !root.backendAvailable
+ 
+         function onGammaIsDayChanged() {
+-            if (Theme.isLightMode !== NightModeService.gammaIsDay) {
+-                Theme.setLightMode(NightModeService.gammaIsDay, true, true);
 -            }
-+            root.applyScheduledMode(DisplayService.gammaIsDay);
-@@ -259,2 +277,2 @@
++            root.applyScheduledMode(NightModeService.gammaIsDay);
+         }
+     }
+ 
+@@ -245,8 +263,8 @@
+         if (typeof SessionData !== "undefined" && state.nextTransition !== undefined) {
+             SessionData.themeModeNextTransition = state.nextTransition || "";
+         }
 -        if (state.isLight !== undefined && Theme.isLightMode !== state.isLight) {
 -            Theme.setLightMode(state.isLight, true, true);
 +        if (state.isLight !== undefined) {
 +            root.applyScheduledMode(state.isLight);
-@@ -373,3 +391 @@
+         }
+     }
+ 
+@@ -359,17 +377,13 @@
+     function evaluateLocation() {
+         if (typeof NightModeService !== "undefined") {
+             const shouldBeLight = NightModeService.gammaIsDay;
 -            if (Theme.isLightMode !== shouldBeLight) {
 -                Theme.setLightMode(shouldBeLight, true, true);
 -            }
 +            root.applyScheduledMode(shouldBeLight);
-@@ -381,3 +397 @@
+             return;
+         }
+ 
+         if (!SessionData.nightModeUseIPLocation && SessionData.latitude !== 0.0 && SessionData.longitude !== 0.0) {
+             const shouldBeLight = calculateIsDaytime(SessionData.latitude, SessionData.longitude);
 -            if (Theme.isLightMode !== shouldBeLight) {
 -                Theme.setLightMode(shouldBeLight, true, true);
 -            }
 +            root.applyScheduledMode(shouldBeLight);
-@@ -416,3 +430 @@
+             return;
+         }
+ 
+@@ -402,9 +416,7 @@
+             shouldBeLight = currentMinutes >= endMinutes && currentMinutes < startMinutes;
+         }
+ 
 -        if (Theme.isLightMode !== shouldBeLight) {
 -            Theme.setLightMode(shouldBeLight, true, true);
 -        }
 +        root.applyScheduledMode(shouldBeLight);
+     }
+ 
+     function calculateIsDaytime(lat, lng) {
 --- a/quickshell/Common/Theme.qml
 +++ b/quickshell/Common/Theme.qml
-@@ -1261 +1261,5 @@
+@@ -1433,7 +1433,11 @@
+         }
+     }
+ 
 -    function setLightMode(light, savePrefs = true, enableTransition = false) {
 +    function setLightMode(light, savePrefs = true, enableTransition = false, automatic = false) {
 +        if (!automatic) {
 +            lightModeTransitionTimer.stop();
 +            ThemeAutoService.registerManualOverride();
 +        }
-@@ -1270,0 +1275 @@
+         if (typeof SettingsData !== "undefined" && SettingsData.matugenSmartMode) {
+             SettingsData.matugenSmartMode = false;
+             SettingsData.saveSettings();
+@@ -1443,6 +1447,7 @@
+             screenTransition();
+             lightModeTransitionTimer.lightMode = light;
+             lightModeTransitionTimer.savePrefs = savePrefs;
 +            lightModeTransitionTimer.automatic = automatic;
-@@ -2342 +2347,2 @@
+             lightModeTransitionTimer.restart();
+             return;
+         }
+@@ -2542,7 +2547,8 @@
+         repeat: false
+         property bool lightMode: false
+         property bool savePrefs: true
 -        onTriggered: root.setLightMode(lightMode, savePrefs, false)
 +        property bool automatic: false
 +        onTriggered: root.setLightMode(lightMode, savePrefs, false, automatic)
+     }
+ 
+     Timer {

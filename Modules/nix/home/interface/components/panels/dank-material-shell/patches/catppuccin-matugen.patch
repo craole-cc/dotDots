@@ -1,22 +1,40 @@
 --- a/quickshell/Common/Theme.qml
 +++ b/quickshell/Common/Theme.qml
-@@ -130,0 +131,3 @@
+@@ -128,6 +128,9 @@
+             SessionData.isLightModeChanged.connect(root.onLightModeChanged);
+         }
+ 
 +        if (typeof SettingsData !== "undefined" && SettingsData.customThemeFile) {
 +            loadCustomThemeFromFile(SettingsData.customThemeFile);
 +        }
-@@ -1725 +1725,5 @@
--            setDesiredTheme(kind, rawWallpaperPath, isLight, iconTheme, selectedMatugenType, null);
+         if (typeof SettingsData !== "undefined" && SettingsData.currentThemeName) {
+             switchTheme(SettingsData.currentThemeName, false, false);
+             const currentIsLight = (typeof SessionData !== "undefined") ? SessionData.isLightMode : false;
+@@ -1963,7 +1966,11 @@
+             const selectedMatugenType = SettingsData.matugenScheme || "scheme-tonal-spot";
+             const source = rawWallpaperPath || SettingsData.matugenSeedColor || materialWallpaperSeed;
+             const kind = source.startsWith("#") ? "hex" : "image";
+-            setDesiredTheme(kind, source, isLight, iconTheme, selectedMatugenType, null);
 +            let stockColors = null;
 +            if (customThemeRawData?.matugen_dynamic_accent && customThemeRawData.dark && customThemeRawData.light) {
 +                stockColors = buildMatugenColorsFromTheme(customThemeRawData.dark, customThemeRawData.light);
 +            }
-+            setDesiredTheme(kind, rawWallpaperPath, isLight, iconTheme, selectedMatugenType, stockColors);
-@@ -2372 +2379 @@
++            setDesiredTheme(kind, source, isLight, iconTheme, selectedMatugenType, stockColors);
+             return;
+         }
+ 
+@@ -2374,7 +2381,7 @@
+     FileView {
+         id: customThemeFileView
+         blockLoading: false
 -        watchChanges: currentTheme === "custom"
 +        watchChanges: currentTheme === "custom" || (typeof SettingsData !== "undefined" && !!SettingsData.customThemeFile)
+ 
+         function parseAndLoadTheme() {
+             try {
 --- a/core/internal/matugen/matugen.go
 +++ b/core/internal/matugen/matugen.go
-@@ -369,6 +369,25 @@
+@@ -427,6 +427,25 @@
  		}
  	}
  
@@ -42,12 +60,12 @@
  	if opts.StockColors != "" {
  		log.Info("Using stock/custom theme colors with matugen base")
  		primaryDark = extractNestedColor(opts.StockColors, "primary", "dark")
-@@ -386,7 +405,12 @@
- 		}
+@@ -445,7 +464,12 @@
  
- 		dank16JSON = generateDank16Variants(primaryDark, primaryLight, surfaceDark, surfaceLight, containerDark, containerLight, opts.Mode)
--		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s}`, opts.StockColors, dank16JSON)
-+		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s`, opts.StockColors, dank16JSON)
+ 		dank16JSON = generateDank16Variants(primaryDark, primaryLight, surfaceDark, surfaceLight, containerDark, containerLight, opts.Mode, "")
+ 		dank16TermJSON := generateDank16Variants(primaryDark, primaryLight, surfaceDark, surfaceLight, containerDark, containerLight, opts.Mode, opts.TerminalPalette)
+-		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s, "dank16term": %s}`, opts.StockColors, dank16JSON, dank16TermJSON)
++		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s, "dank16term": %s`, opts.StockColors, dank16JSON, dank16TermJSON)
 +		if hybridImage && sourceImage != "" {
 +			image, _ := json.Marshal(sourceImage)
 +			importData += fmt.Sprintf(`, "image": %s`, image)
@@ -56,7 +74,7 @@
  		importArgs = []string{"--import-json-string", importData}
  
  		log.Info("Running matugen color hex with stock color overrides")
-@@ -1384,6 +1408,58 @@
+@@ -1620,6 +1644,58 @@
  	}
  }
  
