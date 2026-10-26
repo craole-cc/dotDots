@@ -44,7 +44,6 @@ in {
 
     #~@ Custom UI Style
     custom-ui-style = {
-      # The wallpaper driver is injected by the launcher (build/style.nix).
       external.imports = [
         "file://${animations}/share/vscode/extensions/brandonkirbyson.vscode-animations/dist/updateHandler.js"
       ];

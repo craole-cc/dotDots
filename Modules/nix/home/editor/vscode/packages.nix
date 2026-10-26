@@ -2,7 +2,6 @@
   lix,
   cfg,
   pkgs,
-  style,
   toolkit,
   binaries,
   ...
@@ -34,14 +33,6 @@
       };
   });
 
-  # Launcher-owned wallpaper styling: the stylesheet and the periodic driver
-  # are linked into the app copy on every start, so wallpaper and surface
-  # transparency never depend on an extension re-patching itself.
-  styling = {
-    stylesheet = (import ./build/style.nix {inherit pkgs style;}).css;
-    wallpaper = import ./build/wallpaper-script.nix {inherit pkgs lix;};
-  };
-
   launcher = writeShellScript "launch-writable-code-insiders" ''
     set -eu
     source=${unwrapped}/lib/vscode
@@ -68,21 +59,14 @@
       ${pkgs.procps}/bin/pgrep -f -- "$previous/" >/dev/null 2>&1 && continue
       ${binaries.rmf} "$previous"
     done
-    workbench="$target/resources/app/out/vs/code/electron-browser/workbench"
-    appearance="$root/../vscode-wallpaper"
-    ${binaries.lnsfn} "$appearance/appearance.json" "$workbench/dotdots-wallpaper.json"
-    ${binaries.lnsfn} "$appearance/wallpaper.jpg" "$workbench/dotdots-wallpaper.jpg"
-    ${optionalString (cfg.features.ui.transparency or false) ''
-      ${binaries.lnsfn} ${styling.stylesheet} "$workbench/dotdots-workbench.css"
-      ${binaries.lnsfn} ${styling.wallpaper} "$workbench/dotdots-wallpaper.module.js"
-      html="$workbench/workbench.html"
-      if [ -f "$html" ]; then
-        ${binaries.rgFxq} "dotdots-workbench.css" "$html" \
-          || ${binaries.sedi} 's#</head>#<link rel="stylesheet" href="./dotdots-workbench.css"></head>#' "$html"
-        ${binaries.rgFxq} "dotdots-wallpaper.module.js" "$html" \
-          || ${binaries.sedi} 's#</body>#<script src="./dotdots-wallpaper.module.js" type="module"></script></body>#' "$html"
-      fi
-    ''}
+    # Nixpkgs patches files in the shipped app after packaging, so the
+    # integrity checksums recorded in product.json never match and VS Code
+    # claims the installation is corrupt. That list only drives the prompt.
+    product="$target/resources/app/product.json"
+    if [ -f "$product" ]; then
+      ${binaries.jaq} '.checksums = {}' "$product" > "$product.dotdots"
+      ${binaries.mvf} "$product.dotdots" "$product"
+    fi
     [ "''${DOTDOTS_VSCODE_PREPARE_ONLY:-0}" = 1 ] && exit 0
     exec "$target/bin/code-insiders" "$@"
   '';

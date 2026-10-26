@@ -12,7 +12,6 @@
   inherit (themes) icons cursors;
   inherit (binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
   gds = pkgs.gsettings-desktop-schemas;
-  syncVSCode = import ./vscode.nix args;
 in
   writeShellScript "sync-dms-desktop-appearance" ''
     mode="$(${dmsCall} theme getMode 2>/dev/null || true)"
@@ -23,7 +22,6 @@ in
         cursor_size=${toString cursors.dark.size}
         icons=${icons.dark.name}
         terminal_opacity=${toString style.opacity.terminal.dark}
-        editor_opacity=${toString style.opacity.editor.dark}
         btop_theme=adwaita-dark
         foot_signal=USR1
         ;;
@@ -32,7 +30,6 @@ in
         cursor_size=${toString cursors.light.size}
         icons=${icons.light.name}
         terminal_opacity=${toString style.opacity.terminal.light}
-        editor_opacity=${toString style.opacity.editor.light}
         btop_theme=adwaita
         foot_signal=USR2
         ;;
@@ -118,8 +115,6 @@ in
     if write_opacity_file "$kitty_opacity" "background_opacity $terminal_opacity"; then
       ${pkillUSR1x} kitty || true
     fi
-
-    ${syncVSCode}
 
     btop_config=${escapeShellArg "${config.xdg.configHome}/btop/btop.conf"}
     if [ -L "$btop_config" ]; then
