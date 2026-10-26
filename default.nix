@@ -72,6 +72,11 @@ import stores.lib (args
           gawk = {discover = true;};
           tree = null;
 
+          #? Formatters
+          biome = null;
+          dprint = null;
+          alejandra = null;
+
           #> Desktop and session
           dbus = {
             discover = true; #? dbus-send, dbus-monitor, ...

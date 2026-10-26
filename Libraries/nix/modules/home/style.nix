@@ -1,6 +1,7 @@
 {_, ...}: let
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.access) head;
+  inherit (_.lists.predicates) any;
   inherit (_.schema.fonts) mkFonts;
   inherit (_.strings.construction) optionalString;
   inherit (_.strings.predicates) hasInfix;
@@ -32,7 +33,11 @@
       else if mode == "dark"
       then "frappe"
       else "latte";
-    catppuccin = hasInfix "catppuccin" variant;
+    catppuccin = any (polarity:
+      hasInfix "catppuccin" (toLower (
+        user.theme.modes.${polarity}.palette.name
+        or (host.theme.modes.${polarity}.palette.name or "")
+      ))) ["dark" "light"];
 
     fonts = mapAttrs (_: entries:
       optionalString (entries != []) (head entries).family)
