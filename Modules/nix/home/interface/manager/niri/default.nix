@@ -5,6 +5,7 @@
   lib,
   lix,
   pkgs,
+  style,
   apps,
   user,
   inputs,
@@ -108,6 +109,15 @@
   };
   actions = config.lib.niri.actions;
   defaultBinds = import ./default-bindings.nix {inherit actions lix;};
+
+  # Editor translucency comes from the same theme schema Hyprland reads, so
+  # swapping compositors keeps the declared look instead of losing it.
+  editorWindowRules = [
+    {
+      matches = [{app-id = "^code-insiders$";}];
+      opacity = style.opacity.editor.${style.mode};
+    }
+  ];
 in
   mkConfig {
     inherit context;
@@ -126,7 +136,7 @@ in
             })
             // scratchpads.binds;
           inherit (scratchpads) workspaces;
-          inherit (scratchpads) window-rules;
+          window-rules = editorWindowRules ++ scratchpads.window-rules;
         };
       };
       home.packages = scratchpads.packages ++ [niriFloatSticky];
