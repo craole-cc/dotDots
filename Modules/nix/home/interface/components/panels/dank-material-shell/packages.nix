@@ -1,21 +1,29 @@
 {
   toolkit,
   dms-shell,
+  pkgs,
+  inputs,
+  lix,
   ...
 }: let
   inherit (toolkit) binaries;
-  inherit (binaries) chmodRuw patchd;
-  inherit (dms-shell.package) overrideAttrs;
+  inherit (lix.strings.transformation) replaceStrings;
+  source = inputs.dank-material-shell.outPath;
+  patchedSource = pkgs.applyPatches {
+    name = "dms-patched-source";
+    src = source;
+    patches = [./patches/theme-control.patch ./patches/catppuccin-matugen.patch];
+  };
 
-  package = overrideAttrs (previous: {
-    #> Patch the Go backend and QML before make sync-shell embeds the frontend into the executable.
-    postPatch =
-      (previous.postPatch or "")
-      + ''
-        ${chmodRuw} ../quickshell
-        ${patchd} .. -p1 < ${./patches/theme-control.patch}
-        ${patchd} .. -p1 < ${./patches/catppuccin-matugen.patch}
-      '';
+  # Upstream builds the backend from core/ and installs QML from the full tree.
+  package = dms-shell.package.overrideAttrs (previous: {
+    src = "${patchedSource}/core";
+    postInstall = replaceStrings [source] ["${patchedSource}"] previous.postInstall;
+    passthru =
+      (previous.passthru or {})
+      // {
+        shellSource = "${patchedSource}/quickshell";
+      };
   });
 
   bins = rec {

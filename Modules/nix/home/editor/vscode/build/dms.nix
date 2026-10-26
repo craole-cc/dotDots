@@ -18,8 +18,8 @@ in
     '';
     seedDmsVSCodeTheme = entryAfter ["linkGeneration"] ''
       source=${escapeShellArg (concat {
-        root = config.programs.dank-material-shell.package.src;
-        stem = ["quickshell" "matugen" "vsix-build"];
+        root = config.programs.dank-material-shell.package.shellSource;
+        stem = ["matugen" "vsix-build"];
       })}
       theme_version=$(${binaries.jaq} -er '.version | strings | select(length > 0)' "$source/package.json")
       theme_dir="danklinux.dms-theme-$theme_version"
