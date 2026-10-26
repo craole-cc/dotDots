@@ -8,6 +8,9 @@
     "workspace special silent, match:title ^(.*is sharing (your screen|a window).)$"
     "workspace 9 silent, match:title ^(Spotify( Premium)?)$"
     "opacity 0.97 override 0.97 override, match:class ^(dev.zed.Zed|zed|Zed)$"
+    # Compositor-level translucency for VS Code so the editor never has to be
+    # patched (patched files make VS Code report a corrupt installation).
+    "opacity 0.95 override 0.95 override, match:class ^(code-insiders)$"
     "idle_inhibit focus, match:class ^(mpv|.+exe|celluloid)$"
     "idle_inhibit focus, match:class ^(firefox)$, match:title ^(.*YouTube.*)$"
     "idle_inhibit fullscreen, match:class ^(firefox)$"
