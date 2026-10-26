@@ -1,6 +1,7 @@
 {
+  toolkit,
   entryAfter,
-  bins,
+  binaries,
   dms,
   lix,
   app,
@@ -23,7 +24,7 @@
     "${mk ".extensions-immutable.json"}" = {
       text = pkgs.vscode-utils.toExtensionJson profile.extensions;
       onChange = ''
-        ${bins.rm} -f \
+        ${binaries.rm} -f \
           "${mk "extensions.json"}" \
           "${mk ".init-default-profile-extensions"}"
       '';
@@ -47,9 +48,9 @@
         source="$1"
         target="$2"
 
-        ${bins.mkdir} -p "$(${bins.dirname} "$target")"
-        ${bins.rm} -f "$target"
-        ${bins.install} -m 0644 "$source" "$target"
+        ${binaries.mkdir} -p "$(${binaries.dirname} "$target")"
+        ${binaries.rm} -f "$target"
+        ${binaries.install} -m 0644 "$source" "$target"
       }
 
       materialise_json ${for "settings"} "${mk "settings.json"}"

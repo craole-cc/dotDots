@@ -1,5 +1,5 @@
 {toolkit, ...}: let
-  inherit (toolkit.bins) chmodRuw patchd;
+  inherit (toolkit.binaries) chmodRuw patchd;
   inherit (toolkit.records.dms-shell.package) overrideAttrs;
 
   package = overrideAttrs (previous: {
@@ -20,5 +20,5 @@
   };
 in {
   inherit package;
-  bins = toolkit.bins // bins;
+  bins = toolkit.binaries // bins;
 }

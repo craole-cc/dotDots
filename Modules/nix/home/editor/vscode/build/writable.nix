@@ -2,7 +2,6 @@
   lix,
   pkgs,
   tools,
-  bins,
   ...
 }: let
   inherit (pkgs) writeShellScript;
