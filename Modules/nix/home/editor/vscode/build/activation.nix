@@ -23,15 +23,10 @@
         root = app.directories.extension;
       };
   in {
-    # A changing manifest invalidates VS Code's extension cache while
-    # leaving the actual declarative extension directories as links.
+    # Declarative manifest of the profile. Recent VS Code builds do not read
+    # this file, so cache invalidation belongs to the prune hook below.
     "${mk ".extensions-immutable.json"}" = {
       text = pkgs.vscode-utils.toExtensionJson profile.extensions;
-      onChange = ''
-        ${binaries.rm} -f \
-          "${mk "extensions.json"}" \
-          "${mk ".init-default-profile-extensions"}"
-      '';
     };
   };
 
@@ -43,10 +38,18 @@
       };
     for = type: escapeShellArg app.files.${type};
   in {
+    # Everything in the extension directory is owned by this profile. Editor
+    # state (extension cache, update bookkeeping) is removed as well: an
+    # auto-updated `<id>-<version>` directory left behind in extensions.json
+    # is what surfaces as "Unable to read file '<id>-<version>/package.json'".
     pruneUndeclaredVSCodeExtensions = entryAfter ["linkGeneration"] ''
       extension_dir=${escapeShellArg app.directories.extension}
-      for installed in "$extension_dir"/*; do
-        [ -d "$installed" ] || [ -L "$installed" ] || continue
+      for installed in "$extension_dir"/* "$extension_dir"/.??*; do
+        [ -e "$installed" ] || [ -L "$installed" ] || continue
+        case ''${installed##*/} in
+          # Volatile paths owned by the editor or by the DMS theme seed.
+          .extensions-immutable.json|danklinux.dms-theme-*) continue ;;
+        esac
         declared=0
         for expected in ${declaredExtensions}; do
           if [ "$installed" = "$expected" ]; then

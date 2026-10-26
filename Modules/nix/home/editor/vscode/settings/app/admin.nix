@@ -84,6 +84,18 @@ in {
       titleBar = true;
     };
 
+    #~@ Extensions
+    # The extension directory is declared by Nix. Letting the editor update
+    # extensions installs `<id>-<version>` copies that the next activation
+    # prunes, which leaves the editor cache pointing at missing paths.
+    extensions = {
+      #> Disable automatic extension updates.
+      autoUpdate = false;
+
+      #> Disable automatic extension update checks.
+      autoCheckUpdates = false;
+    };
+
     #~@ Security
     security = {
       #> Confirm before a local file or workspace opens through a protocol handler.
