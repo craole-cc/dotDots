@@ -3,7 +3,7 @@
   lix,
   ...
 }: let
-  style = lix.modules.home.style.mkStyle {inherit host; user = {};};
+  style = lix.modules.home.style.mkStyle {inherit host;};
   inherit (style) accent catppuccin flavor;
   enable = catppuccin;
 in {
