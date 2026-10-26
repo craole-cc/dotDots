@@ -105,7 +105,7 @@
 
     mkArgs = host: let
       hostArgs = import paths.repo.src.store (
-        passthru // {inherit host;} // host
+        passthru // {inherit host top;} // host
       );
 
       specialArgs =
@@ -116,7 +116,12 @@
           "options"
           "pkgs"
         ])
-        // {toolkit = mkToolkit {inherit inputs host;};};
+        // {
+          toolkit = mkToolkit {
+            inherit inputs host;
+            inherit (hostArgs) pkgs;
+          };
+        };
 
       extraSpecialArgs =
         specialArgs
@@ -145,7 +150,7 @@
 
     mkSystem = host: let
       class = host.class or "nixos";
-      args = mkArgs {inherit host top;};
+      args = mkArgs host;
       inherit (args) specialArgs;
 
       classified = modulesOf class;
