@@ -39,12 +39,12 @@
     root="''${XDG_DATA_HOME:-$HOME/.local/share}/dotdots/vscode-insiders"
     package_root=${unwrapped}
     target="$root/''${package_root##*/}"
-    ${binaries.mkdir} "$root"
+    ${binaries.mkdirp} "$root"
     if [ ! -f "$target/resources/app/product.json" ]; then
       temporary="$(${binaries.mktempd} "$root/.prepare.XXXXXX")"
       trap '${binaries.rmf} "$temporary"' EXIT
       ${binaries.cpa} "$source/." "$temporary/"
-      ${binaries.chmodr} u+w "$temporary"
+      ${binaries.chmodRuw} "$temporary"
       if ! ${binaries.mvt} "$temporary" "$target"; then
         [ -f "$target/resources/app/product.json" ] || exit 1
       fi

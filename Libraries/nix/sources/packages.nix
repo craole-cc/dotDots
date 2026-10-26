@@ -87,7 +87,9 @@
       bins = derived.binaries;
       binaries = recursiveUpdate bins {
         #> coreutils
+        chmod0644 = "${bins.chmod} 0644";
         chmodR = "${bins.chmod} -R";
+        chmodRef = "${bins.chmod} --reference=";
         chmodRuw = "${bins.chmod} -R u+w";
         cpa = "${bins.cp} -a --reflink=auto";
         cpaf = "${bins.cp} -af --reflink=auto"; #? force version of your cpa
@@ -96,12 +98,15 @@
         headn = "${bins.head} -n";
         installD = "${bins.install} -D"; #? create parent dirs
         installDm = "${bins.install} -D -m"; #? include mode (caller supplies the mode)
+        install0644 = "${bins.install} -D -m 0644"; #? include mode (caller supplies the mode)
+        install0600 = "${bins.install} -D -m 0600"; #? include mode (caller supplies the mode)
         installm = "${bins.install} -m"; #? include mode (caller supplies the mode)
         lnSf = "${bins.ln} -Sf"; #? force symlink
         lnsfn = "${bins.ln} -sfn";
         mkdirp = "${bins.mkdir} -p";
         mktempd = "${bins.mktemp} -d";
         mvt = "${bins.mv} -T";
+        mvf = "${bins.mv} -f";
         readlinkf = "${bins.readlink} -f";
         rmf = "${bins.rm} -rf";
         sortn = "${bins.sort} -n";
@@ -118,6 +123,11 @@
         fdh = "${bins.fd} --hidden --no-ignore";
         rgi = "${bins.rg} -i";
         rg0 = "${bins.rg} --null";
+        rgq = "${bins.rg} -q";
+        rgFxq = "${bins.rg} -Fxq";
+        jaqr = "${bins.jaq} -r";
+        jaqna = "${bins.jaq} -n --arg";
+        jaqRr = "${bins.jaq} -Rr";
 
         #> findutils
         find0 = "${bins.find} -print0";
@@ -127,6 +137,9 @@
         xargs0 = "${bins.xargs} -0";
         xargsr = "${bins.xargs} -r"; #? don't run if stdin is empty
         xargsI = "${bins.xargs} -I{}";
+
+        #> difftools
+        cmps = "${bins.cmp} -s";
 
         #> git
         gitCfgFile = "${bins.git} config --file";
@@ -146,11 +159,16 @@
         #> procps (very common)
         pgrepf = "${bins.pgrep} -f";
         pkillf = "${bins.pkill} -f";
+        pkillUSR1 = "${bins.pkill} -USR1";
+        pkillUSR1x = "${bins.pkill} -USR1 -x";
+        pkillUSR2 = "${bins.pkill} -USR2";
+        pkillUSR2x = "${bins.pkill} -USR2 -x";
         pgrepa = "${bins.pgrep} -a"; #? show full command line
 
         #> systemd
         journalctlUser = "${bins.journalctl} --user";
         systemctlUser = "${bins.systemctl} --user";
+        systemctlUserR = "${bins.systemctl} --user reload";
 
         #> util-linux
         loggerT = "${bins.logger} -t"; #? with tag (caller supplies the tag)
@@ -159,7 +177,15 @@
       {inherit binaries;}
       // optionalAttrs enableShorthand {bins = binaries;};
 
+    formats =
+      genAttrs ["json" "toml" "yaml" "ini"]
+      (name: pkgs'.formats.${name} {});
+
     helpers = {
+      # Keep format writers and option types backed by the same definitions.
+      types = pkgs'.lib.types // mapAttrs (_name: format: format.type) formats;
+      options = _.options.construction;
+
       builders = {
         inherit
           (pkgs')
@@ -219,8 +245,7 @@
           textFile = writeTextFile; #? supports executable, destination, etc.
         }
         // #> Expose common serializers as well
-        genAttrs ["json" "toml" "yaml" "ini"]
-        (name: (pkgs'.formats.${name} {}).generate);
+        mapAttrs (_name: format: format.generate) formats;
     };
   in
     derived // defined // helpers;

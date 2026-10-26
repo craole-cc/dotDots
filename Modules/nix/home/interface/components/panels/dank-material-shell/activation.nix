@@ -1,8 +1,8 @@
 {
-  bins,
   configHome,
   stateHome,
   entryAfter,
+  toolkit,
   lix,
   style,
   themes,
@@ -12,7 +12,7 @@
   inherit (lix.strings.construction) toJSON;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (themes) icons;
-  inherit (bins) chmod cmp dirname install jaq mkdir mktemp mv rm;
+  inherit (toolkit.binaries) chmod cmp dirname install0600 install0644 jaq mkdirp mktemp mvf rmf;
   inherit (themes) catppuccin foot ghostty hermes kitty;
 in
   entryAfter ["writeBoundary"] ''
@@ -25,23 +25,23 @@ in
     if [ -n "$DRY_RUN_CMD" ]; then
       echo "Would seed missing DMS settings and terminal appearance files"
     else
-      ${mkdir} -p "$(${dirname} "$settings")" "$(${dirname} "$session")" \
+      ${mkdirp} "$(${dirname} "$settings")" "$(${dirname} "$session")" \
         "$(${dirname} "$foot_theme")" "$(${dirname} "$ghostty_opacity")" \
         "$(${dirname} "$kitty_opacity")" "$(${dirname} ${escapeShellArg hermes.skinPath})"
       if [ ! -e "$foot_theme" ] && [ ! -L "$foot_theme" ]; then
-        ${install} -m 0644 ${foot.fallback} "$foot_theme"
+        ${install0644} ${foot.fallback} "$foot_theme"
       fi
       if [ ! -e "$ghostty_opacity" ] && [ ! -L "$ghostty_opacity" ]; then
-        ${install} -m 0644 ${ghostty.opacity.fallback} "$ghostty_opacity"
+        ${install0644} ${ghostty.opacity.fallback} "$ghostty_opacity"
       fi
       if [ ! -e "$kitty_opacity" ] && [ ! -L "$kitty_opacity" ]; then
-        ${install} -m 0644 ${kitty.opacity.fallback} "$kitty_opacity"
+        ${install0644} ${kitty.opacity.fallback} "$kitty_opacity"
       fi
 
       # DMS owns its mutable files while running. Seed declarative defaults on
       # first use; activation must preserve the user's saved choices.
       tmp="$(${mktemp})"
-      trap '${rm} -f "$tmp"' EXIT
+      trap '${rmf} "$tmp"' EXIT
       if [ ! -e "$settings" ] && [ ! -L "$settings" ]; then
         ${jaq} -n \
           --arg theme ${escapeShellArg catppuccin.pathStr} \
@@ -64,7 +64,7 @@ in
             iconThemeLight: $lightIcons,
             iconThemePerMode: true
           }' > "$tmp"
-        ${install} -m 0600 "$tmp" "$settings"
+        ${install0600} "$tmp" "$settings"
       fi
       if [ -f "$settings" ] && [ ! -L "$settings" ]; then
         settings_tmp="$(${mktemp} "$settings.tmp.XXXXXX")"
@@ -80,12 +80,12 @@ in
           "$settings" > "$settings_tmp"; then
           if ! ${cmp} -s "$settings_tmp" "$settings"; then
             ${chmod} 0600 "$settings_tmp"
-            ${mv} -f "$settings_tmp" "$settings"
+            ${mvf} "$settings_tmp" "$settings"
           else
-            ${rm} -f "$settings_tmp"
+            ${rmf} "$settings_tmp"
           fi
         else
-          ${rm} -f "$settings_tmp"
+          ${rmf} "$settings_tmp"
           echo "Could not reconcile DMS settings defaults" >&2
         fi
       fi
@@ -94,9 +94,9 @@ in
       isLightMode = style.mode == "light";
       themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
     })} > "$tmp"
-        ${install} -m 0600 "$tmp" "$session"
+        ${install0600} "$tmp" "$session"
       fi
-      ${rm} -f "$tmp"
+      ${rmf} "$tmp"
       trap - EXIT
     fi
   ''

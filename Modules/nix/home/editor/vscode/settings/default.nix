@@ -5,6 +5,7 @@
   cfg,
   context,
   paths,
+  toolkit,
   ...
 } @ args: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature normalizeSettings;
@@ -24,8 +25,9 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.strings.predicates) hasInfix hasPrefix;
   inherit (lix.types.combinators) listOf submodule;
-  inherit (lix.types.predicates) isAttrs isList isPath isString;
+  inherit (lix.types.predicates) isAttrs isDerivation isList isPath isString;
   inherit (lix.types.primitives) package;
+  inherit (lix.lists.transformation) unique;
 
   # Merge entries in order, keeping every list contribution. Overrides retain
   # their priority for scalar conflicts, including the saved JSON fallback.
@@ -141,7 +143,7 @@
   collectEntrySettingNames = tree:
     if !isAttrs tree
     then []
-    else if tree ? settings || tree ? userSettings
+    else if any (name: tree ? ${name}) ["settings" "userSettings" "extensions" "keybindings" "options" "enable"]
     then
       collectSettingNames "" (tree.settings or {})
       ++ collectSettingNames "" (tree.userSettings or {})
@@ -184,12 +186,18 @@
     options ? {},
   }:
     {
-      inherit name description enable options;
+      inherit name description enable;
+      options = options.${name} or options;
       owned = {
         settings = attrNames (normalizeSettings {
           inherit settings userSettings settingNames;
         });
-        inherit keybindings extensions;
+        inherit keybindings;
+        extensions = map (extension:
+          if isDerivation extension
+          then extension.vscodeExtUniqueId
+          else extension)
+        extensions;
       };
     }
     // mkVSCodeSubFeature {
@@ -261,10 +269,28 @@
           listToAttrs (
             map (entry: {
               inherit (entry) name;
-              value = mkEnable {
-                inherit context;
-                condition = entry.enable;
-              };
+              value =
+                if removeAttrs entry.options ["enable"] == {}
+                then
+                  entry.options.enable or (mkEnable {
+                    inherit context;
+                    condition = entry.enable;
+                  })
+                else
+                  mkOption {
+                    type = submodule {
+                      options =
+                        {
+                          enable = mkEnable {
+                            description = entry.description;
+                            condition = entry.enable;
+                          };
+                        }
+                        // entry.options;
+                    };
+                    default = {};
+                    description = entry.description;
+                  };
             })
             resolved.entries
           )
@@ -279,18 +305,31 @@
       config =
         {enable = default;}
         // genAttrs' resolved.entries
-        (entry: nameValuePair entry.name entry.enable);
+        (entry:
+          nameValuePair entry.name (
+            if removeAttrs entry.options ["enable"] == {}
+            then entry.enable
+            else {}
+          ));
 
       feature = config: let
         enable = config.enable or false;
         entries =
           filter
-          (entry: enable && (config.${entry.name} or entry.enable))
+          (entry: let
+            value = config.${entry.name} or entry.enable;
+          in
+            enable
+            && (
+              if isAttrs value
+              then value.enable
+              else value
+            ))
           resolved.entries;
       in
         mkVSCodeFeature {
           inherit pkgs inputs enable;
-          extensions = uniqueStrings (concatMap (entry: entry.extensions or []) entries);
+          extensions = unique (concatMap (entry: entry.extensions or []) entries);
           userSettings = deepMergeSettings (map (entry: entry.effectiveSettings or {}) entries);
           keybindings = concatMap (entry: entry.keybindings or []) entries;
         };
@@ -362,12 +401,12 @@
 
     options = {
       userSettings = mkOption {
-        inherit (args.json) type;
+        type = toolkit.types.json;
         default = {};
       };
       keybindings = mkOption {
         default = [];
-        type = listOf args.json.type;
+        type = listOf toolkit.types.json;
       };
       extensions = mkOption {
         default = [];

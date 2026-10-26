@@ -1,19 +1,20 @@
 # Build the backend hooks unless the user supplies custom executable paths.
 {
   cfg,
-  pkgs,
   lix,
-  tool,
+  toolkit,
+  controller,
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (pkgs) writeShellScript;
+  inherit (lix.sources.access) getExe';
+  inherit (toolkit.write) script;
 
   hook = action:
     if cfg.scripts.${action} != null
     then toString cfg.scripts.${action}
     else
-      writeShellScript "variety-${action}-wallpaper" ''
-        exec ${tool.varietyctl.exe} ${escapeShellArg action} "$@"
+      script "variety-${action}-wallpaper" ''
+        exec ${getExe' controller "varietyctl"} ${escapeShellArg action} "$@"
       '';
 in {
   setWallpaper = hook "set";

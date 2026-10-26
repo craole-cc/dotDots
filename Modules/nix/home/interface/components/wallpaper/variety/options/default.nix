@@ -3,7 +3,7 @@
   context,
   wallpaper,
   paths,
-  tool,
+  pkgs,
   ...
 } @ args: let
   inherit (context) mod;
@@ -20,7 +20,7 @@ in
 
     package = mkOption {
       type = package;
-      default = tool.variety.package;
+      default = pkgs.variety;
       defaultText = literalExpression "pkgs.${mod}";
     };
 

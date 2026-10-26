@@ -91,7 +91,7 @@
       settings = mkMerge [
         (import ./settings.nix {inherit lix;})
         (import ./input.nix)
-        (import ./themes.nix {inherit style;})
+        (import ./themes.nix {inherit style lix;})
       ];
     };
     # inherit (cfg) debug;

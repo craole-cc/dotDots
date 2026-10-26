@@ -4,7 +4,9 @@
   paths,
   entryAfter,
   pkgs,
-  tool,
+  toolkit,
+  controller,
+  hooks,
   ...
 }: let
   inherit (lix.attrsets.aggregation) recursiveUpdate;
@@ -23,13 +25,7 @@
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.types.predicates) isBool isFloat isInt;
   inherit (pkgs) writeText makeWrapper symlinkJoin;
-  inherit
-    (tool.binaries)
-    install
-    rm
-    sd
-    tr
-    ;
+  inherit (toolkit.binaries) install rm sd tr;
 
   api.placeholders = {
     wallhaven = "@WALLHAVEN_API_KEY@";
@@ -113,7 +109,7 @@
           favorites_folder = cfg.folders.preferred;
           favorites_operations = cfg.features.preferred.operations;
           fetched_folder = cfg.folders.fetched;
-          get_wallpaper_script = tool.hooks.getWallpaper;
+          get_wallpaper_script = hooks.getWallpaper;
           internet_enabled = cfg.internet;
           lightness_enabled = cfg.constraints.lightness.enable;
           lightness_mode = cfg.constraints.lightness.mode;
@@ -143,8 +139,8 @@
           quotes_vpos = cfg.quotes.position.vertical;
           quotes_width = cfg.quotes.width;
           safe_mode = cfg.safeMode;
-          set_wallpaper_script = tool.hooks.setWallpaper;
-          set_lock_screen_script = tool.hooks.setLockscreen;
+          set_wallpaper_script = hooks.setWallpaper;
+          set_lock_screen_script = hooks.setLockscreen;
           slideshow_custom_enabled = cfg.slideshow.custom.enable;
           slideshow_custom_folder = cfg.slideshow.custom.folder;
           slideshow_downloads_enabled = cfg.slideshow.downloads.enable;
@@ -199,10 +195,7 @@ in {
           # With a named profile, wrap the binary so every call (keybinds, the
           # varietyctl actions, the desktop entry) hits that profile.
           let
-            binary =
-              if cfg.package == tool.variety.package
-              then tool.variety.exe
-              else getExe' cfg.package tool.variety.cmd;
+            binary = getExe' cfg.package "variety";
           in
             if cfg.profile.name == null
             then cfg.package
@@ -223,7 +216,7 @@ in {
               }
         )
       ]
-      ++ tool.packages;
+      ++ [controller];
 
     sessionVariables = {
       WALLPAPER_VARIETY_PROFILE = cfg.profile.path;

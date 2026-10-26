@@ -7,6 +7,7 @@
   pkgs,
   style,
   user,
+  toolkit,
   ...
 }: let
   context = mkContext {
@@ -49,7 +50,7 @@
   in {inherit (resolved) packages;};
 
   args = {
-    inherit config entryAfter inputs lix pkgs style user;
+    inherit config entryAfter inputs toolkit lix pkgs style user;
     paths = paths';
     wallpaper = context;
   };

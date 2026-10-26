@@ -1,8 +1,9 @@
 {
-  binaries,
+  toolkit,
   dms-shell,
   ...
 }: let
+  inherit (toolkit) binaries;
   inherit (binaries) chmodRuw patchd;
   inherit (dms-shell.package) overrideAttrs;
 
@@ -18,6 +19,22 @@
   });
 
   bins = rec {
+    inherit
+      (toolkit.binaries)
+      chmodRuw
+      patchd
+      chmod
+      cmp
+      dirname
+      install0600
+      install0644
+      jaq
+      mkdirp
+      mktemp
+      mvf
+      rmf
+      ;
+
     dms = "${package}/bin/dms";
     dmsCall = "${dms} ipc call";
     dmsSet = "${dmsCall} settings set";

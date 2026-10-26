@@ -7,7 +7,7 @@
   inherit (_.lists.aggregation) foldl';
   inherit (_.lists.predicates) elem;
   inherit (_.strings.predicates) hasInfix hasPrefix;
-  inherit (_.types.predicates) isAttrs;
+  inherit (_.types.predicates) isAttrs isDerivation;
 
   __exports = {
     internal = {
@@ -126,14 +126,17 @@
     {
       extensions = optionals enable (
         map (
-          extension: let
-            identifier = parseVscodeExt extension;
-          in
-            vscodePackage {
-              inherit pkgs inputs;
-              entry = extension;
-              default = throw "Required VS Code extension '${identifier.publisher}.${identifier.name}' was not found in the configured extension catalogues.";
-            }
+          extension:
+            if isDerivation extension
+            then extension
+            else let
+              identifier = parseVscodeExt extension;
+            in
+              vscodePackage {
+                inherit pkgs inputs;
+                entry = extension;
+                default = throw "Required VS Code extension '${identifier.publisher}.${identifier.name}' was not found in the configured extension catalogues.";
+              }
         )
         extensions
       );

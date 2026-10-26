@@ -1,7 +1,6 @@
 {cfg, ...}: let
   inherit (cfg.features.ui) dms catppuccin;
 in {
-  extensions = ["Catppuccin.catppuccin-vsc"];
   settings = {
     # json = {
     #   schemaDownload = {
@@ -25,7 +24,7 @@ in {
       colorTheme =
         if dms
         then "Dynamic Base16 DankShell"
-        else if catppuccin
+        else if catppuccin.enable
         then "Catppuccin Frappé"
         else "Dark 2026";
 
@@ -33,7 +32,7 @@ in {
       preferredDarkColorTheme =
         if dms
         then "Dynamic Base16 DankShell (Dark)"
-        else if catppuccin
+        else if catppuccin.enable
         then "Catppuccin Frappé"
         else "Dark 2026";
 
@@ -41,7 +40,7 @@ in {
       preferredLightColorTheme =
         if dms
         then "Dynamic Base16 DankShell (Light)"
-        else if catppuccin
+        else if catppuccin.enable
         then "Catppuccin Latte"
         else "Light 2026";
 

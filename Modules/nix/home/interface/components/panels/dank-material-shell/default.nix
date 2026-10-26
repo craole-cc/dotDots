@@ -24,7 +24,7 @@
 
   args = {
     inherit (toolkit.records) quickshell dms-shell;
-    inherit (toolkit) binaries;
+    inherit binaries;
     inherit config inputs lix pkgs style themes user entryAfter toolkit;
     configHome =
       config.xdg.configHome or (concat {

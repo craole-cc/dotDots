@@ -35,7 +35,7 @@
     ];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
-      (import ./theme.nix)
+      (import ./theme.nix {inherit lix;})
       # (import ./editor.nix)
       # (import ./keybindings.nix)
       # (import ./languages.nix)
