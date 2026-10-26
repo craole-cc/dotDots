@@ -1,6 +1,10 @@
-{toolkit, ...}: let
-  inherit (toolkit.binaries) chmodRuw patchd;
-  inherit (toolkit.records.dms-shell.package) overrideAttrs;
+{
+  binaries,
+  dms-shell,
+  ...
+}: let
+  inherit (binaries) chmodRuw patchd;
+  inherit (dms-shell.package) overrideAttrs;
 
   package = overrideAttrs (previous: {
     #> Patch the Go backend and QML before make sync-shell embeds the frontend into the executable.
@@ -20,5 +24,5 @@
   };
 in {
   inherit package;
-  bins = toolkit.binaries // bins;
+  binaries = binaries // bins;
 }

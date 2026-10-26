@@ -174,7 +174,7 @@
       (_: cfg: cfg.enable or false)
       (init.programs or {})
     );
-    packages = map (name: (of name).pkg) (
+    packages = map (name: (of name).package) (
       filter
       (name: !(elem name programs))
       formatters
@@ -190,7 +190,7 @@
       sources = genAttrs tools (_: null) // genAttrs ["ruff"] (_: null) // sources;
     };
 
-    of = name: resolved.${name} or null;
+    of = name: resolved.records.${name} or null;
 
     wrappers = let
       for = field:
@@ -245,7 +245,7 @@
     inherit (eval) build check wrapper;
     allTools = filter (pkg: pkg != null) (
       map
-      (name: (tool.of name).pkg or null)
+      (name: (tool.of name).package or null)
       (filter (name: name != "treefmt") tool.tools)
     );
     withTools = drv:

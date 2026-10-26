@@ -101,7 +101,7 @@ The parent wallpaper component imports this module and controls enablement.
     ];
 
     controller = pkgs.writeShellScriptBin "varietyctl" ''
-      PATH="${concatStringsSep ":" (map (name: defined.${name}.paths.binary) runtimeTools)}:$PATH"
+      PATH="${concatStringsSep ":" (map (name: defined.records.${name}.paths.binary) runtimeTools)}:$PATH"
       VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backend}
       export PATH VARIETYCTL_BACKEND
       ${readFile paths'.variety.scripts.varietyctl}
@@ -115,10 +115,10 @@ The parent wallpaper component imports this module and controls enablement.
     };
 
     custom = let
-      packages = [defined.varietyctl.package];
+      packages = [defined.records.varietyctl.package];
       binaries = genAttrs ["install" "tr" "rm"] (name:
         concat {
-          root = defined.coreutils.paths.binary;
+          root = defined.records.coreutils.paths.binary;
           stem = name;
         });
 

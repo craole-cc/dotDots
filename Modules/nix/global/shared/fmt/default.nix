@@ -172,7 +172,7 @@
       mkName = type: "flint-${type}";
       types = attrNames domains;
 
-      resolve = names: map (name: utils.${name}.pkg) names;
+      resolve = names: map (name: utils.records.${name}.package) names;
       deps = genAttrs types (type: resolve domains.${type}.dependencies);
       dependencies = concatLists (attrValues deps);
       runtimeInputs = resolve runtimeNames;
@@ -221,9 +221,9 @@
           "${g-plane-malva}/plugin.wasm"
         ]);
 
-      package = utils.dprint.pkg;
+      package = utils.records.dprint.package;
       formatter.dprint = {
-        command = utils.dprint.exe;
+        command = utils.records.dprint.exe;
         options = mkForce [
           "fmt"
           "--allow-no-files"
@@ -238,7 +238,7 @@
       flint.formatters
       {
         rumdl = {
-          command = utils.rumdl.exe;
+          command = utils.records.rumdl.exe;
           options = ["fmt"];
           includes = ["*.md" "**/*.md"];
         };
@@ -269,7 +269,7 @@
       (_: cfg: cfg.enable or false)
       (init.programs or {})
     );
-    packages = map (name: (of name).pkg) (
+    packages = map (name: (of name).package) (
       filter
       (name: !(elem name programs))
       formatters
@@ -288,7 +288,7 @@
         // sources;
     };
 
-    of = name: resolved.${name} or null;
+    of = name: resolved.records.${name} or null;
 
     wrappers = let
       for = field:
@@ -325,12 +325,12 @@
     allTools =
       filter (pkg: pkg != null) (
         map
-        (name: (tool.of name).pkg or null)
+        (name: (tool.of name).package or null)
         (filter (name: name != "treefmt") tool.names)
       )
       ++ attrValues custom.packages
       ++ custom.dependencies
-      ++ [utils.rumdl.pkg];
+      ++ [utils.records.rumdl.package];
     withTools = drv:
       drv.overrideAttrs (old: {
         nativeBuildInputs = (old.nativeBuildInputs or []) ++ allTools;

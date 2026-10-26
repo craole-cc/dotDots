@@ -96,6 +96,7 @@
         headn = "${bins.head} -n";
         installD = "${bins.install} -D"; #? create parent dirs
         installDm = "${bins.install} -D -m"; #? include mode (caller supplies the mode)
+        installm = "${bins.install} -m"; #? include mode (caller supplies the mode)
         lnSf = "${bins.ln} -Sf"; #? force symlink
         lnsfn = "${bins.ln} -sfn";
         mkdirp = "${bins.mkdir} -p";
@@ -440,8 +441,8 @@
 
   `exe`
   : optional binary name within the resolved package to expose as `.exe`
-    via `getExe'`; when omitted, `.exe` is `getExe value` (the package's
-    own main binary)
+    via `getExe'`; when omitted, the package's declared main program or
+    package name is used
 
   `alias`
   : optional command name to expose as a symlink package in `.alias`
@@ -460,7 +461,7 @@
     default `false`
 
   # Type
-  > pkgOf :: { inputs :: AttrSet, input :: string, target :: string?, exe :: string?, alias :: string?, pkgs :: AttrSet?, system :: string?, required :: bool? } -> { name :: string, value :: derivation, pkg :: derivation, exe :: string, alias :: derivation?, paths :: { bin :: path, store :: path } } | null
+  > pkgOf :: { inputs :: AttrSet, input :: string, target :: string?, exe :: string?, alias :: string?, pkgs :: AttrSet?, system :: string?, required :: bool? } -> { name :: string, package :: derivation, exe :: string, command :: string, alias :: derivation?, paths :: { executable :: path, binary :: path, store :: path } } | null
 
   # Examples
   > pkgOf { inherit `inputs` `pkgs`; `input` = _"treefmt-nix"_; `target` = _"treefmt"_; }
@@ -468,8 +469,8 @@
   ```nix
   {
     name = "treefmt";
-    value = «derivation treefmt-2.x.x»;
-    pkg = «derivation treefmt-2.x.x»;
+    package = «derivation treefmt-2.x.x»;
+    command = "treefmt";
     exe = "/nix/store/.../bin/treefmt";
     paths = {...};
   }
@@ -478,7 +479,7 @@
   > pkgOf { inherit `inputs` `pkgs`; `input` = _"treefmt-nix"_; }
 
     ```nix
-    { name = "treefmt"; value = «derivation treefmt-2.x.x»; ... }
+    { name = "treefmt"; package = «derivation treefmt-2.x.x»; ... }
     ```
     - (no `target` given - neither `"default"` nor `"treefmt-nix"` itself
     matched, but the `-nix` suffix-strip guess `"treefmt"` did, and `name`
@@ -634,14 +635,6 @@
         inherit (check) name source;
         inherit command package paths revision;
 
-        # Preserve the original pkgOf record names for existing consumers.
-        value = package;
-        pkg = package;
-        bin = paths.binary;
-        cmd = command;
-        ver = version;
-        vr3n = version;
-
         exe = paths.executable;
         exeOf = executable: getExe' package executable;
 
@@ -692,14 +685,11 @@
     resolves exactly that attribute rather than falling back to `"default"`
     or a suffix-stripped guess.
 
-    Returns the resolved attrset (name -> `pkgOf` result) merged with three
-    convenience keys:
-      - `names`    - `attrNames` of the resolved set
-      - `values`   - `attrValues` of the resolved set (the full `pkgOf`
-                      result records, `{name; value; pkg; exe; paths;}`)
-      - `packages` -  just the derivations (`value` from each record),
-                      ready to splice into a flat `packages = [...] ++ ...`
-                      list
+    Returns canonical package records under `records`, alongside grouped
+    outputs: `binaries`, `commands`, `versions`, `origins`, `descriptions`,
+    `packages`, and `names`. Package records are not flattened into the
+    top-level namespace. Set `enableShorthand = true` only when a caller
+    explicitly needs the legacy `bins`, `cmds`, and `vr3n` aliases.
 
     `system` is passed straight through to `pkgOf` only when explicitly
     given; when omitted, each `pkgOf` call derives it from `pkgs` itself,
@@ -734,7 +724,7 @@
     - pkgsFrom { inherit inputs pkgs; sources = { treefmt = "treefmt-nix"; }; }
 
   ```nix
-    { treefmt = {name = "treefmt"; value = «derivation»; ...}; names = ["treefmt"]; values = [{...}]; packages = [«derivation»]; }
+    { records.treefmt = {name = "treefmt"; package = «derivation»; ...}; names = ["treefmt"]; packages = [«derivation»]; binaries = {...}; }
   ```
 
     - pkgsFrom {
@@ -748,7 +738,7 @@
       }
 
   ```nix
-    { codex = {...}; hermes-agent = {...}; openclaw = {...}; opencode = {...}; names = [...]; values = [...]; packages = [«codex» «hermes-agent» «openclaw» «opencode»]; }
+    { records = { codex = {...}; hermes-agent = {...}; openclaw = {...}; opencode = {...}; }; names = [...]; packages = [«codex» «hermes-agent» «openclaw» «opencode»]; binaries = {...}; }
   ```
     (four package names, all resolved from the same `llm-agents` input -
     `sources` repeats the input string per name since there's no
@@ -831,7 +821,7 @@
       vr3n = groups.versions;
     };
   in
-    records // groups // shorthand // {inherit records;};
+    groups // shorthand // {inherit records;};
 
   bySystem = packages: let
     inputNames = attrNames packages;

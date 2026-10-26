@@ -54,7 +54,7 @@
   gateway = writeScriptBin "hermes-gateway" (render {
       "@hermes_env_sh@" = env.HERMES_ENV_SH;
       "@prepare_hermes_gateway@" = prepare-hermes-gateway;
-      "@hermes_exe@" = tools.default.exe;
+      "@hermes_exe@" = tools.records.default.exe;
     }
     ./gateway.sh);
 

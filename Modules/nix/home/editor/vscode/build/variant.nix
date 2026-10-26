@@ -31,7 +31,7 @@
     directories,
     name,
   }: let
-    generate = target: tag: json.generate "${name}-${target}.json" profile.${tag};
+    write = target: tag: json "${name}-${target}.json" profile.${tag};
     files = {
       extension = listToAttrs (
         concatMap (extension:
@@ -44,8 +44,8 @@
           }) (mkExtension extension))
         profile.extensions
       );
-      settings = generate "settings" "userSettings";
-      keybindings = generate "keybindings" "keybindings";
+      settings = write "settings" "userSettings";
+      keybindings = write "keybindings" "keybindings";
     };
   in {inherit directories files;};
 in

@@ -3,8 +3,10 @@
   lix,
   user,
   inputs,
+  toolkit,
   pkgs,
   style,
+  entryAfter,
   ...
 }: let
   context = mkContext {
@@ -21,8 +23,9 @@
   inherit (lix.filesystem.primitives) concat;
 
   args = {
-    inherit bins config inputs lix pkgs style themes user;
-    inherit (inputs.home-manager.lib.hm.dag) entryAfter;
+    inherit (toolkit.records) quickshell dms-shell;
+    inherit (toolkit) binaries;
+    inherit config inputs lix pkgs style themes user entryAfter toolkit;
     configHome =
       config.xdg.configHome or (concat {
         root = user.home;
@@ -36,7 +39,7 @@
       });
   };
 
-  inherit (import ./packages.nix args) tools bins package;
+  inherit (import ./packages.nix args) binaries package;
   themes = import ./themes args;
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
@@ -59,7 +62,7 @@ in
         inherit (cfg) enable;
         inherit (addons) plugins;
         inherit package;
-        quickshell = {inherit (tools.quickshell) package;};
+        quickshell = {inherit (args.quickshell) package;};
         systemd = {
           enable = true;
           target = "graphical-session.target";
@@ -69,11 +72,11 @@ in
       xdg = {
         configFile = mergeSafe (
           [addons.files]
-          ++ (with themes; [
-            catppuccin.configFile
-            foot.configFile
-            hermes.configFile
-            helix.configFile
+          ++ map (theme: theme.configFile) (with themes; [
+            catppuccin
+            foot
+            hermes
+            helix
           ])
         );
         inherit (themes) dataFile;
@@ -94,12 +97,16 @@ in
         sessionVariables = {
           QS_ICON_THEME = themes.icons.dark.theme;
         };
-        activation = {
-          configureDmsTheme = activation;
-          configureDmsHelixTheme = themes.helix.activation;
-          configureDmsPlugins = addons.activation;
-          migrateDmsPlugins = addons.migration;
-        };
+        activation =
+          {
+            configureDmsTheme = activation;
+            configureDmsPlugins = addons.activation;
+            migrateDmsPlugins = addons.migration;
+          }
+          // (with themes; {
+            configureDmsHelixTheme = helix.activation;
+            # configureDmsFootTheme = foot.activation;  # future
+          });
       };
 
       systemd = import ./services.nix {inherit config lix sync;};

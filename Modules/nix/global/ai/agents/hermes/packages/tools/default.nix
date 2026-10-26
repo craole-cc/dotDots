@@ -39,20 +39,20 @@
   # Upstream `packages.default` is the full Hermes build and includes the
   # Hindsight dependency group. Keep the historical `minimal` handle for
   # callers while resolving the actual CLI from the full package.
-  tools = resolvedTools // {minimal = resolvedTools.default;};
+  tools = resolvedTools // {minimal = resolvedTools.records.default;};
 
   graphicalLaunchers = [
     (writeShellScriptBin "hermes-desktop" ''
-      exec ${../scripts/launch-wayland.sh} ${tools.desktop.exe} "$@"
+      exec ${../scripts/launch-wayland.sh} ${tools.records.desktop.exe} "$@"
     '')
     (writeShellScriptBin "hermes-one" ''
-      exec ${../scripts/launch-wayland.sh} ${tools.hermes-one.exe} "$@"
+      exec ${../scripts/launch-wayland.sh} ${tools.records.hermes-one.exe} "$@"
     '')
   ];
 
   packages =
     (builtins.filter
-      (package: package != tools.desktop.package && package != tools.hermes-one.package)
+      (package: package != tools.records.desktop.package && package != tools.records.hermes-one.package)
       tools.packages)
     ++ graphicalLaunchers;
 in {

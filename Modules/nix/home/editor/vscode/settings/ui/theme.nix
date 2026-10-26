@@ -30,10 +30,20 @@ in {
         else "Dark 2026";
 
       #? Preferred dark theme (used when `autoDetectColorScheme` is on).
-      preferredDarkColorTheme = "Catppuccin Frappé";
+      preferredDarkColorTheme =
+        if dms
+        then "Dynamic Base16 DankShell (Dark)"
+        else if catppuccin
+        then "Catppuccin Frappé"
+        else "Dark 2026";
 
       #? Preferred light theme.
-      preferredLightColorTheme = "Catppuccin Latte";
+      preferredLightColorTheme =
+        if dms
+        then "Dynamic Base16 DankShell (Light)"
+        else if catppuccin
+        then "Catppuccin Latte"
+        else "Light 2026";
 
       #? Preferred HC dark theme.
       preferredHighContrastColorTheme = "Default High Contrast";

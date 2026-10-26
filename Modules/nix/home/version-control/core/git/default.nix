@@ -30,7 +30,7 @@
       required = true;
     };
     bins = let
-      coreutils = "${all.coreutils.paths.binary}";
+      coreutils = "${all.records.coreutils.paths.binary}";
       inherit (all.binaries) git;
       rm = "${coreutils}/rm";
     in {

@@ -30,7 +30,7 @@ in {
 
     package = mkOption {
       type = package;
-      default = tools.chatgpt.package;
+      default = tools.records.chatgpt.package;
       description = "Desktop application for ChatGPT and Codex, from the flake inputs.";
     };
   };

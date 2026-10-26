@@ -1,5 +1,5 @@
 {
-  bins,
+  toolkit,
   configHome,
   config,
   inputs,
@@ -11,21 +11,28 @@
   inherit (lix.attrsets.construction) listToAttrs;
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
-  inherit (bins) mkdir mv readlink;
+  inherit (toolkit.binaries) mkdirp mvt readlink;
   enabled = attrNames (filterAttrs (_: plugin: plugin.enable) config.programs.dank-material-shell.plugins);
-  pluginPath = name: "DankMaterialShell/plugins/${name}";
-  managedPluginPath = name: "dms/plugins/${name}";
+
+  pluginPath = let
+    base = "${configHome}DankMaterialShell/plugins";
+  in {
+    targetDir = base;
+    backupDir = "${base}.dms-backup";
+    build = name: "dms/plugins/${name}";
+  };
+
   # Permit the selected paths through collision checking; migrate them only
   # after the write boundary and before Home Manager installs its links.
   files = listToAttrs (map (name: {
-      name = managedPluginPath name;
+      name = pluginPath.build name;
       value.force = true;
     })
     enabled);
 
   activation = entryBetween ["linkGeneration"] ["writeBoundary"] ''
-    plugin_dir=${escapeShellArg "${configHome}/DankMaterialShell/plugins"}
-    backup_dir=${escapeShellArg "${configHome}/DankMaterialShell/plugins.dms-backup"}
+    plugin_dir=${escapeShellArg pluginPath.targetDir}
+    backup_dir=${escapeShellArg pluginPath.backupDir}
     for plugin in ${escapeShellArgs enabled}; do
       target="$plugin_dir/$plugin"
       if [ ! -e "$target" ] && [ ! -L "$target" ]; then
@@ -41,8 +48,8 @@
       else
         # Keep backups outside the scanned plugin directory. Move the original
         # link itself, preserving its target for restoration to the original path.
-        ${mkdir} -p "$backup_dir"
-        ${mv} -T --backup=numbered -- "$target" "$backup_dir/$plugin"
+        ${mkdirp} "$backup_dir"
+        ${mvt} --backup=numbered -- "$target" "$backup_dir/$plugin"
       fi
     done
   '';
