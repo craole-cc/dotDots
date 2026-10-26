@@ -1,42 +1,11 @@
-{
-  style,
-  lix,
-  pkgs,
-  cfg,
-  ...
-}: let
-  inherit (lix.applications.editors) mkVSCodeSetting;
-  inherit (lix.lists.construction) optional;
-  wallpaperScript = import ../../build/wallpaper-script.nix {inherit pkgs lix;};
-in {
+# Surface transparency is owned by the launcher (see build/style.nix), not by
+# an extension: custom-ui-style only re-patches on settings-driven reloads, so
+# its stylesheet went stale after every declarative rebuild.
+_: {
   name = "transparency";
-  description = "Desktop wallpaper behind editor surfaces using the user API opacity";
-  extensions = ["subframe7536.custom-ui-style"];
-
-  settings.custom-ui-style = {
-    electron = mkVSCodeSetting {
-      transparent = cfg.features.ui.transparency or false;
-    };
-    external.imports = optional (!(cfg.features.ui.animations or false)) "file://${wallpaperScript}";
-    stylesheet = mkVSCodeSetting {
-      "body:has(div[role=application])" = {position = "relative";};
-      ".monaco-workbench::before" = {
-        content = "''";
-        position = "fixed";
-        inset = "0";
-        "pointer-events" = "none";
-        "background-color" = "var(--vscode-editor-background)";
-        opacity = "var(--dotdots-editor-opacity, ${toString style.opacity.editor.${style.mode}})";
-        "z-index" = "-1";
-      };
-      ".monaco-workbench" = {
-        position = "relative";
-        isolation = "isolate";
-        "z-index" = "1";
-      };
-      ".monaco-workbench, .monaco-workbench .part, .monaco-editor, .monaco-editor-background, .monaco-editor .margin, .monaco-workbench .editor-container" = {
-        "background-color" = "transparent !important";
-      };
-    };
-  };
+  description = "Wallpaper-backed editor surfaces injected by the launcher";
+  # The feature must still declare a config key: the settings loader only
+  # recognises entries that carry settings/extensions/keybindings, and the
+  # launcher reads this toggle to decide whether to inject the stylesheet.
+  settings = {};
 }

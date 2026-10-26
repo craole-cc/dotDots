@@ -3,13 +3,10 @@
   lix,
   pkgs,
   inputs,
-  cfg,
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeSetting;
   inherit (lix.attrsets.resolution) vscodePackage;
-  inherit (lix.lists.construction) optional;
-  wallpaperScript = import ../../build/wallpaper-script.nix {inherit pkgs lix;};
   animations = vscodePackage {
     inherit pkgs inputs;
     entry = "brandonkirbyson.vscode-animations";
@@ -47,12 +44,10 @@ in {
 
     #~@ Custom UI Style
     custom-ui-style = {
-      # Run our driver before the animation bundle's CommonJS trailer.
-      external.imports =
-        optional (cfg.features.ui.transparency or false) "file://${wallpaperScript}"
-        ++ [
-          "file://${animations}/share/vscode/extensions/brandonkirbyson.vscode-animations/dist/updateHandler.js"
-        ];
+      # The wallpaper driver is injected by the launcher (build/style.nix).
+      external.imports = [
+        "file://${animations}/share/vscode/extensions/brandonkirbyson.vscode-animations/dist/updateHandler.js"
+      ];
       font = {inherit (fonts.families) sansSerif monospace;};
 
       reloadWithoutPrompting = true;
