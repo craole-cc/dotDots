@@ -1,7 +1,7 @@
 {
   config,
   lix,
-  # inputs,
+  inputs,
   pkgs,
   user,
   toolkit,
@@ -24,6 +24,7 @@
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
       inherit context fonts toolkit requires;
+      inherit inputs;
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
       # inherit (lix.attrsets.construction) genAttrs;
