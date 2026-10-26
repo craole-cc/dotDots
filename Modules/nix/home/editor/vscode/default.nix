@@ -7,6 +7,7 @@
   toolkit,
   requires,
   fonts,
+  paths,
   ...
 }: let
   inherit (lix.applications.generators) userApplicationConfig;
@@ -23,7 +24,7 @@
     toolkit
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
-      inherit context fonts toolkit requires;
+      inherit context fonts toolkit requires paths;
       inherit inputs;
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
