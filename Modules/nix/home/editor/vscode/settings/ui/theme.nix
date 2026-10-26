@@ -58,7 +58,7 @@ in {
       productIconTheme = "el-vsc-v1-icons";
 
       #> Overrides for the current colour theme.
-      colorCustomizations = {};
+      # colorCustomizations = {};
     };
 
     editor = {
