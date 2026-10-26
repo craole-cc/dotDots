@@ -43,7 +43,7 @@
   profile = import ./settings args;
   build = import ./build (args // {profile = profile.output;});
   app = userApplicationConfig {
-    inherit (import ./packages) customPackage extraPackages;
+    inherit (import ./packages.nix) customPackage extraPackages;
     inherit context user pkgs;
     name = "vscode";
     category = "gui";
