@@ -26,10 +26,8 @@
     // moduleArgs
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
-      inherit context fonts toolkit requires paths pkgs lix;
-      inherit style;
+      inherit context fonts toolkit requires paths pkgs lix style inputs;
       json = pkgs.formats.json {};
-      inherit inputs;
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
       # inherit (lix.attrsets.construction) genAttrs;
