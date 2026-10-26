@@ -1,16 +1,15 @@
 {
   lix,
   pkgs,
-  tools,
+  toolkit,
   ...
 }: let
   inherit (pkgs) writeShellScript;
   inherit (pkgs.stdenv.hostPlatform) isLinux;
   inherit (lix.strings.construction) optionalString;
+  coreutils = pkgs.coreutils;
 
-  # coreutils = "${pkgs.coreutils}/bin";
-
-  package = tools.vscode-insiders.package.overrideAttrs (old: {
+  package = toolkit.records.vscode-insiders.package.overrideAttrs (old: {
     #? Restore the original .NET bundle, as in Nixpkgs' VS Code package.
     postFixup =
       (old.postFixup or "")

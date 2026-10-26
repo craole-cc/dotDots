@@ -2,7 +2,7 @@
   lix,
   cfg,
   pkgs,
-  tools,
+  toolkit,
   binaries,
   ...
 }: let
@@ -10,7 +10,7 @@
   inherit (pkgs.stdenv.hostPlatform) isLinux;
   inherit (lix.strings.construction) optionalString;
   inherit (lix.lists.construction) optional;
-  inherit (tools) vscode-fhs vscode-insiders;
+  inherit (toolkit.records) vscode-fhs vscode-insiders;
 
   #> Correct the resolved Insiders package metadata so desktop/icon/CLI
   #? identity is Insiders rather than stable `code`.
