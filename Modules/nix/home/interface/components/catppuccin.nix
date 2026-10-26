@@ -6,5 +6,6 @@ in {
     inherit accent enable flavor;
     autoEnable = enable;
     cache = {inherit enable;};
+    helix.enable = false;
   };
 }
