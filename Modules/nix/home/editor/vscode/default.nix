@@ -9,7 +9,7 @@
   fonts,
   paths,
   ...
-}: let
+} @ moduleArgs: let
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.modules.construction) mkConfig mkContext;
 
@@ -22,6 +22,7 @@
 
   args =
     toolkit
+    // moduleArgs
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
       inherit context fonts toolkit requires paths pkgs lix;

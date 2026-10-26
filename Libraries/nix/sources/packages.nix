@@ -625,9 +625,22 @@
           visible = filter (name: !(hasPrefix "." name)) (attrNames entries);
         in
           genAttrs visible (name: "${paths.binary}/${name}");
+        version = getVersion {
+          inherit package revision;
+          exe = paths.executable;
+          args = versionArgs;
+        };
       in {
         inherit (check) name source;
         inherit command package paths revision;
+
+        # Preserve the original pkgOf record names for existing consumers.
+        value = package;
+        pkg = package;
+        bin = paths.binary;
+        cmd = command;
+        ver = version;
+        vr3n = version;
 
         exe = paths.executable;
         exeOf = executable: getExe' package executable;
@@ -637,11 +650,7 @@
           then discovered
           else {${command} = paths.executable;};
 
-        version = getVersion {
-          inherit package revision;
-          exe = paths.executable;
-          args = versionArgs;
-        };
+        inherit version;
 
         description =
           if description != null && description != ""
@@ -822,7 +831,7 @@
       vr3n = groups.versions;
     };
   in
-    groups // shorthand // {inherit records;};
+    records // groups // shorthand // {inherit records;};
 
   bySystem = packages: let
     inputNames = attrNames packages;

@@ -116,7 +116,7 @@
           "options"
           "pkgs"
         ])
-        // {toolkit = mkToolkit {inherit inputs host;};};
+        // {toolkit = mkToolkit {inherit inputs host; enableShorthand = true;};};
 
       extraSpecialArgs =
         specialArgs
