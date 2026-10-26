@@ -1,4 +1,11 @@
 {
+  style,
+  ...
+}: let
+  # Window opacity follows the editor opacity from the active theme schema
+  # (user.theme.modes.<mode>.opacity.editor) instead of a literal.
+  editorOpacity = builtins.toJSON style.opacity.editor.${style.mode};
+in {
   windowrule = [
     "float on, match:title ^(Media viewer)$"
     "immediate on, match:class ^(osu!|cs2)$"
@@ -10,7 +17,7 @@
     "opacity 0.97 override 0.97 override, match:class ^(dev.zed.Zed|zed|Zed)$"
     # Compositor-level translucency for VS Code so the editor never has to be
     # patched (patched files make VS Code report a corrupt installation).
-    "opacity 0.95 override 0.95 override, match:class ^(code-insiders)$"
+    "opacity ${editorOpacity} override ${editorOpacity} override, match:class ^(code-insiders)$"
     "idle_inhibit focus, match:class ^(mpv|.+exe|celluloid)$"
     "idle_inhibit focus, match:class ^(firefox)$, match:title ^(.*YouTube.*)$"
     "idle_inhibit fullscreen, match:class ^(firefox)$"

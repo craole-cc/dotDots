@@ -7,6 +7,7 @@
   user,
   apps,
   keyboard,
+  style,
   ...
 }: let
   legacyApps = apps.legacy;
@@ -243,6 +244,7 @@
           apps
           user
           keyboard
+          style
           mkMerge
           ;
         inherit (cfg) withRules;

@@ -4,6 +4,7 @@
   lib,
   lix,
   keyboard,
+  style,
   mkMerge,
   keys,
   withRules ? true,
@@ -28,6 +29,7 @@ in {
           apps
           keyboard
           lib
+          style
           mkMerge
           ;
       }
