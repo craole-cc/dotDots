@@ -397,8 +397,8 @@
               style = "Bold";
             };
         in [
-          (mk orbitron)
           (mk cinzel)
+          (mk orbitron)
         ];
         material = with material; [
           outlined
