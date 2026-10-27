@@ -88,6 +88,22 @@ in
       };
 
       backends = {
+        /**
+          TODO Fix active
+        nix-repl> config.home-manager.users.craole._.resolved.interface.wallpaper.explicit.backends
+        {
+          active = «error: expected a list but found a set: { _type = "option-type"; check = «thunk»; deprecationMessage = null; description = «thunk»; descriptionClass = «thunk»; emptyValue = «thunk»; functor = «thunk»; getSubModules = null; getSubOptions = «thunk»; merge = «lambda mergeEqualOption @ /nix/store/88r5p1wfmmhapm6cjhi20l7ip3h907kj-source/lib/options.nix:501:5»; «4 attributes elided» }»;
+          dms = { ... };
+          hyprpaper = { ... };
+          swaybg = { ... };
+        }
+
+        nix-repl> config.home-manager.users.craole._.resolved.interface.wallpaper.explicit.backends.dms
+        {
+          enable = true;
+          package = «derivation /nix/store/f17x2cfhksq6ik9v8d9mkadn4z8zjl24-dms-shell-1.7-beta+date=2026-10-20_d04eae4.drv»;
+        }
+        */
         active = mkOption {
           description = ''
             Wallpaper backend, fixed by the controller wrapper. Auto chooses DMS
@@ -109,7 +125,7 @@ in
           };
           package = mkOption {
             description = "Package to use for dms";
-            default = ctx;
+            default = ctx.package;
             # default = toolkit.packages.dms-shell;
             # type = package;
           };

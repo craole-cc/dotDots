@@ -529,7 +529,7 @@
     _name = "pkgOf";
 
     init = {
-      inherit inputs input pkgs;
+      inherit inputs pkgs;
 
       system = assert withContext {
         name = _name;
@@ -544,7 +544,8 @@
           then pkgs
           else import init.inputs.nixpkgs {inherit (init) system;};
         flakes = optionalAttrs (input != null) (fromInputs {
-          inherit (init) inputs input system;
+          inherit (init) system;
+          inherit input inputs;
         });
       };
     };
@@ -562,11 +563,7 @@
       if input == null
       then []
       else let
-        suffixes = [
-          "-nix"
-          ".nix"
-          "-flake"
-        ];
+        suffixes = ["-nix" ".nix" "-flake"];
         strip = suffix:
           if hasSuffix suffix input
           then removeSuffix suffix input
@@ -580,7 +577,8 @@
       then [target]
       else
         unique (
-          (optionals (input != null) ["default"]) ++ suffixStripped ++ (optionals (input != null) [input])
+          (optionals (input != null) ["default" input])
+          ++ suffixStripped
         );
 
     lookup = candidates: let
@@ -615,12 +613,13 @@
       else let
         package = check.value;
 
+        src =
+          if input != null
+          then init.inputs.${input} or null
+          else check;
+
         paths = {
-          input = if input != null then init.inputs.${input} else null;
-          outPath =
-            if input != null
-            then init.inputs.${input}.outPath or null
-            else null;
+          outPath = src.outPath or null;
           executable = let
             mainProgram = package.meta.mainProgram or null;
           in
@@ -657,7 +656,7 @@
         };
       in {
         inherit (check) name source;
-        inherit command package paths revision;
+        inherit command package paths revision src;
 
         exe = paths.executable;
         exeOf = executable: getExe' package executable;

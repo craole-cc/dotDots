@@ -3,9 +3,11 @@
   lix,
   ...
 }: let
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.strings.transformation) replaceStrings;
   inherit (toolkit) records write;
-  inherit (records.dms-shell) package paths;
+  record = records.dms-shell;
+  inherit (record) package paths;
 
   source = paths.outPath;
   patch = write.source {
@@ -25,8 +27,9 @@
     dmsCall = "${dms} ipc call";
     dmsSet = "${dmsCall} settings set";
   };
-in {
-  inherit bins;
-  binaries = bins;
-  package = pkg;
-}
+in
+  recursiveUpdate record {
+    inherit bins;
+    binaries = bins;
+    package = pkg;
+  }

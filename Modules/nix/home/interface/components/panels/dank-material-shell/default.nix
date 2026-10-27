@@ -16,7 +16,7 @@
     mod = "dms-shell";
   };
   inherit (context) cfg ctx;
-  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
+  inherit (lix.attrsets.aggregation) mergeSafe ;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.styles.icons.types) icon;
