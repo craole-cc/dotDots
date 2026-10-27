@@ -96,7 +96,7 @@
           clipboard_enabled = cfg.clipboard.enable;
           clipboard_hosts = concatStringsSep "," cfg.clipboard.hosts;
           clipboard_use_whitelist = cfg.clipboard.useWhitelist;
-          clock_date_font = cfg.clock.dateFont;
+          clock_date_font = cfg.clock.date.font;
           clock_enabled = cfg.clock.enable;
           clock_filter = cfg.clock.filter;
           clock_font = cfg.clock.font;

@@ -4,47 +4,61 @@
   ...
 }: let
   inherit (lix.lists.access) head;
-  inherit (lix.lists.predicates) isList;
-  inherit (lix.options.construction) mkOption;
+  inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.options.construction) mkOption mkStrOption mkTrue;
   inherit (lix.strings.construction) concat;
   inherit (lix.content.emptiness) isNotEmpty;
-  inherit (lix.types.primitives) bool str;
+  inherit (lix.types.primitives) str;
 
   mkFont = {
-    type ? "display",
+    kind ? "display",
     size ? null,
-    fallback ? "sans",
+    fallback ? "sansSerif",
   }: let
-    font =
-      head
-      fonts.${
-        if (isNotEmpty type) && isList type
-        then type
-        else fallback
-      };
+    default = {
+      family = "monospace";
+      size = "28";
+    };
+    category =
+      if (isNotEmpty kind)
+      then kind
+      else fallback;
+    font = head ((fonts.categories.${category} or []) ++ [default]);
   in
     concat " " [
       font.family
-      (
+      (toString (
         if isNotEmpty size
         then size
         else font.size
-      )
+      ))
     ];
+
+  mkFontOption = {
+    name,
+    size ? null,
+    kind ? null,
+    fallback ? null,
+  }:
+    mkStrOption {
+      description = "Font family and size used to display the ${name} on the wallpaper.";
+      default = mkFont (
+        filterAttrs (_: arg: arg != null) {inherit size kind fallback;}
+      );
+    };
 in {
   clock = {
-    enable = mkOption {
-      type = bool;
-      default = true;
+    enable = mkTrue "Display the current time on the wallpaper";
+    font = mkFontOption {name = "time";};
+
+    date = {
+      enable = mkTrue "Display the date alongside the clock on the wallpaper";
+      font = mkFontOption {
+        name = "date";
+        size = 32;
+      };
     };
-    font = mkOption {
-      type = str;
-      default = mkFont {};
-    };
-    dateFont = mkOption {
-      type = str;
-      default = mkFont {size = 48;};
-    };
+
     filter = mkOption {
       type = str;
       description = "ImageMagick arguments that draw the clock.";

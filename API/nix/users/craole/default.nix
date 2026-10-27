@@ -267,22 +267,22 @@
         };
       };
       modes = let
-        dark = {
-          palette = palettes.catppuccin.frappe;
-          icon = "candy-icons";
-          cursor = "catppuccin-cursors";
-          opacity = {
-            terminal = 0.75;
-            editor = 0.85;
-          };
-        };
         light = {
           palette = palettes.catppuccin.latte;
           icon = "buuf-nestort";
           cursor = "material-cursors";
           opacity = {
             terminal = 0.80;
-            editor = 0.88;
+            editor = 0.90;
+          };
+        };
+        dark = {
+          palette = palettes.catppuccin.frappe;
+          icon = "candy-icons";
+          cursor = "catppuccin-cursors";
+          opacity = {
+            terminal = 0.75;
+            editor = 0.90;
           };
         };
         default = dark;
@@ -395,7 +395,7 @@
         display = let
           mk = font:
             mkFont font.display {
-              size = 72;
+              size = 96;
               style = "Bold";
             };
         in [

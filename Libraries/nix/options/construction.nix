@@ -3,6 +3,7 @@
     internal = {
       inherit
         mkEnable
+        mkStrOption
         mkTrue
         mkFalse
         mkEnum
@@ -65,6 +66,8 @@
   # Omits the `description` key entirely when null, so doc generators and
   # `nixos-option` see an absent field rather than an explicit null.
   optionalDesc = description: optionalAttrs (description != null) {inherit description;};
+
+  mkStrOption = passthru: mkOption (passthru // {type = str;});
 
   /**
   Bridges a `_.types.checks` type into a `lib.types`-compatible option type
