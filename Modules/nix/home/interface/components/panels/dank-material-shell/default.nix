@@ -44,6 +44,7 @@
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
   addons = import ./plugins args;
+  pluginSettings = toolkit.write.json "dms-plugin-settings.json" (user.dms.plugins or {});
 in
   mkConfig {
     inherit context;
@@ -60,6 +61,10 @@ in
     outputs = {
       programs.dank-material-shell = {
         inherit (cfg) enable;
+        managePluginSettings = false;
+        settings = (user.dms.settings or {}) // {
+          customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
+        };
         inherit (addons) plugins;
         inherit package;
         quickshell = {inherit (args.quickshell) package;};
@@ -71,7 +76,7 @@ in
 
       xdg = {
         configFile = mergeSafe (
-          [addons.files]
+          [addons.files {"DankMaterialShell/plugin_settings.json".source = pluginSettings;}]
           ++ map (theme: theme.configFile) (with themes; [
             catppuccin
             foot
@@ -100,7 +105,6 @@ in
         activation =
           {
             configureDmsTheme = activation;
-            configureDmsPlugins = addons.activation;
             migrateDmsPlugins = addons.migration;
           }
           // (with themes; {
