@@ -5,49 +5,10 @@
   exclusions,
   allowTests,
 }: let
-  inherit
-    (builtins)
-    readDir
-    pathExists
-    currentTime
-    typeOf
-    ;
-  inherit
-    (lib.attrsets)
-    attrNames
-    attrValues
-    filterAttrs
-    foldlAttrs
-    isAttrs
-    listToAttrs
-    mapAttrs
-    optionalAttrs
-    ;
-  inherit
-    (lib.lists)
-    concatMap
-    elem
-    filter
-    findFirst
-    foldl'
-    length
-    optionals
-    toList
-    uniqueStrings
-    ;
-  inherit
-    (lib.strings)
-    concatStringsSep
-    hasPrefix
-    hasSuffix
-    isStringLike
-    optionalString
-    removePrefix
-    removeSuffix
-    splitString
-    substring
-    toLower
-    ;
+  inherit (builtins) readDir pathExists currentTime typeOf;
+  inherit (lib.attrsets) attrNames attrValues filterAttrs foldlAttrs isAttrs listToAttrs mapAttrs optionalAttrs;
+  inherit (lib.lists) concatMap elem filter findFirst foldl' length optionals toList uniqueStrings;
+  inherit (lib.strings) concatStringsSep hasPrefix hasSuffix isStringLike optionalString removePrefix removeSuffix splitString substring toLower;
   inherit (lib.trivial) isFunction;
   paths' = {
     inherit (paths.store) src;
@@ -103,13 +64,7 @@
     if word == "null"
     then "null"
     else let
-      vowels = [
-        "a"
-        "e"
-        "i"
-        "o"
-        "u"
-      ];
+      vowels = ["a" "e" "i" "o" "u"];
       firstLetter = toLower (substring 0 1 word);
     in
       if elem firstLetter vowels

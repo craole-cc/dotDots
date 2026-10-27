@@ -16,30 +16,34 @@
     mod = "dms-shell";
   };
   inherit (context) cfg ctx;
-  inherit (lix.attrsets.aggregation) mergeSafe;
+  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.styles.icons.types) icon;
   inherit (lix.filesystem.primitives) concat;
+  inherit (lix.types.combinators) attrsOf;
+  inherit (lix.types.primitives) package anything;
 
-  args = {
-    inherit (toolkit.records) quickshell dms-shell;
-    inherit binaries;
-    inherit config inputs lix pkgs style themes user entryAfter toolkit;
-    configHome =
-      config.xdg.configHome or (concat {
-        root = user.home;
-        stem = ".config";
-      });
-
-    stateHome =
-      config.xdg.stateHome or (concat {
-        root = user.home;
-        stem = ".local/state";
-      });
+  record = import ./record.nix {
+    inherit toolkit pkgs inputs lix;
   };
+  args =
+    record
+    // {
+      inherit config inputs lix pkgs style themes user entryAfter toolkit;
+      configHome =
+        config.xdg.configHome or (concat {
+          root = user.home;
+          stem = ".config";
+        });
 
-  inherit (import ./packages.nix args) binaries package;
+      stateHome =
+        config.xdg.stateHome or (concat {
+          root = user.home;
+          stem = ".local/state";
+        });
+    };
+
   themes = import ./themes args;
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
@@ -50,6 +54,17 @@ in
     inherit context;
     options = {
       enable = mkEnable ({inherit context;} // ctx.wantsDmsShell);
+      record = mkOption {
+        description = "Package to use for dms-shell";
+        default = record;
+        type = attrsOf anything;
+        readOnly = true;
+      };
+      package = mkOption {
+        description = "Package to use";
+        default = toolkit.packages.dms-shell;
+        type = package;
+      };
       icons = mkOption {
         description = "Resolved DMS desktop icon contract";
         default = themes.icons.resolved;
@@ -62,12 +77,14 @@ in
       programs.dank-material-shell = {
         inherit (cfg) enable;
         managePluginSettings = false;
-        settings = (user.dms.settings or {}) // {
-          customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
-        };
+        settings =
+          (user.dms.settings or {})
+          // {
+            customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
+          };
         inherit (addons) plugins;
         inherit package;
-        quickshell = {inherit (args.quickshell) package;};
+        quickshell.package = toolkit.packages.quickshell;
         systemd = {
           enable = true;
           target = "graphical-session.target";

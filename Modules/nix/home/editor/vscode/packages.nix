@@ -10,11 +10,11 @@
   inherit (pkgs.stdenv.hostPlatform) isLinux;
   inherit (lix.strings.construction) optionalString;
   inherit (lix.lists.construction) optional;
-  inherit (toolkit.records) vscode-fhs vscode-insiders;
+  inherit (toolkit.packages) vscode-fhs vscode-insiders;
 
   #> Correct the resolved Insiders package metadata so desktop/icon/CLI
   #? identity is Insiders rather than stable `code`.
-  unwrapped = vscode-insiders.package.overrideAttrs (old: {
+  unwrapped = vscode-insiders.overrideAttrs (old: {
     #? Restore the original .NET bundle, as in Nixpkgs' VS Code package.
     postFixup =
       (old.postFixup or "")
@@ -71,7 +71,7 @@
     exec "$target/bin/code-insiders" "$@"
   '';
 in {
-  customPackage = vscode-fhs.package;
+  customPackage = vscode-fhs;
   extraPackages = optional cfg.insiders (pkgs.symlinkJoin {
     name = "${unwrapped.name}-writable";
     paths = [unwrapped];

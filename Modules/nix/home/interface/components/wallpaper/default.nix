@@ -17,13 +17,14 @@
     mod = "wallpaper";
   };
   inherit (context) cfg ctx;
-  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.modules.home.paths) mkUserPath;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.combinators) enum nullOr;
-  inherit (lix.sources.packages) pkgsFrom;
+  inherit (lix.types.primitives) package;
+  # inherit (lix.sources.packages) pkgsFrom;
 
   paths' = let
     wallpapers = {
@@ -41,19 +42,19 @@
   in
     recursiveUpdate {inherit wallpapers;} paths;
 
-  tool = let
-    resolved = pkgsFrom {
-      inherit inputs pkgs;
-      sources =
-        optionalAttrs cfg.hyprpaper.enable {hyprpaper = null;}
-        // optionalAttrs (cfg.enable && (cfg.backend == "auto" || cfg.backend == "swaybg")) {swaybg = null;};
-    };
-  in {inherit (resolved) packages;};
+  # tool = let
+  #   resolved = pkgsFrom {
+  #     inherit inputs pkgs;
+  #     sources =
+  #       optionalAttrs cfg.hyprpaper.enable {hyprpaper = null;}
+  #       // optionalAttrs (cfg.enable && (cfg.backend == "auto" || cfg.backend == "swaybg")) {swaybg = null;};
+  #   };
+  # in {inherit (resolved) packages;};
 
   args =
     passthru
     // {
-      inherit config entryAfter inputs toolkit lix pkgs style user;
+      # inherit config entryAfter inputs toolkit lix pkgs style user;
       paths = paths';
       wallpaper = context;
     };
@@ -85,15 +86,64 @@ in
         condition = with ctx;
           (windowManagers != null) || (desktopEnvironments != null);
       };
-      hyprpaper.enable = mkEnable {
-        inherit context;
-        condition = cfg.enable && ctx.wantsHyprland.condition;
+
+      backends = {
+        active = mkOption {
+          description = ''
+            Wallpaper backend, fixed by the controller wrapper. Auto chooses DMS
+            when reachable, otherwise a backend for the compositor. Once selected,
+            failure is final; the controller never falls through to another backend.
+          '';
+          default = user.interface.wallpaper.backend or "auto";
+          type = enum ["auto" "dms"] ++ (attrNames (removeAttrs cfg.backends ["active"]));
+          # TODO: We should show the complete record of the active. HOW?
+        };
+
+        dms = let
+          ctx = context.resolved.cfg.interface.panels.dms-shell.explicit;
+        in {
+          enable = mkEnable {
+            inherit context;
+            condition = ctx.enable;
+            # condition = false;
+          };
+          package = mkOption {
+            description = "Package to use for dms";
+            default = ctx;
+            # default = toolkit.packages.dms-shell;
+            # type = package;
+          };
+        };
+
+        hyprpaper = {
+          enable = mkEnable {
+            inherit context;
+            condition = cfg.enable && ctx.wantsHyprland.condition;
+          };
+          package = mkOption {
+            description = "Package to use for hyprpaper";
+            default = toolkit.packages.hyprpaper;
+            type = package;
+          };
+        };
+
+        swaybg = {
+          enable = mkEnable {
+            inherit context;
+            condition = cfg.enable && ctx.isWayland;
+          };
+          package = mkOption {
+            description = "Package to use for swaybg";
+            default = toolkit.packages.swaybg;
+            type = package;
+          };
+        };
       };
     };
 
     outputs = {
       home = {
-        inherit (tool) packages;
+        # inherit (tool) packages;
         sessionVariables = {
           WALLPAPER_ENGINE = cfg.engine;
         };

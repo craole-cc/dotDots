@@ -175,7 +175,12 @@
       };
     in
       {inherit binaries;}
-      // optionalAttrs enableShorthand {bins = binaries;};
+      // optionalAttrs enableShorthand {bins = binaries;}
+      // {
+        packages =
+          mapAttrs (_name: record: record.package) derived.records
+          // {all = derived.packages;};
+      };
 
     formats =
       genAttrs ["json" "toml" "yaml" "ini"]
@@ -187,19 +192,7 @@
       options = _.options.construction;
 
       builders = {
-        inherit
-          (pkgs')
-          buildEnv
-          makeBinaryWrapper
-          makeDesktopItem
-          makeShellWrapper
-          replaceVars
-          runCommand
-          runCommandCC
-          runCommandLocal
-          runCommandNoCC
-          symlinkJoin
-          ;
+        inherit (pkgs') applyPatches buildEnv makeBinaryWrapper makeDesktopItem makeShellWrapper replaceVars runCommand runCommandCC runCommandLocal runCommandNoCC symlinkJoin;
       };
 
       source = {
@@ -222,7 +215,7 @@
       };
 
       write = let
-        inherit (pkgs') linkFarm writeShellApplication writeShellScript writeText writeTextFile;
+        inherit (pkgs') applyPatches linkFarm writeShellApplication writeShellScript writeText writeTextFile;
         inherit (pkgs'.writers) writeDash writeDashBin;
       in
         {
@@ -241,6 +234,7 @@
           posix = writeDash; #? POSIX sh file, for ExecStart= and the like
           posixBin = writeDashBin; #? POSIX sh with bin/<name>
           script = writeShellScript; #? bash file, for ExecStart= and the like
+          source = applyPatches;
           text = writeText;
           textFile = writeTextFile; #? supports executable, destination, etc.
         }
@@ -622,6 +616,11 @@
         package = check.value;
 
         paths = {
+          input = if input != null then init.inputs.${input} else null;
+          outPath =
+            if input != null
+            then init.inputs.${input}.outPath or null
+            else null;
           executable = let
             mainProgram = package.meta.mainProgram or null;
           in

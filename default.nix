@@ -99,6 +99,8 @@ import stores.lib (args
           #> Desktop Panels && Styling
           dms-shell = {input = "dank-material-shell";};
           quickshell = {input = "quickshell";};
+          hyprpaper = null;
+          swaybg = null;
 
           #> Editors
           vscode-fhs = null;

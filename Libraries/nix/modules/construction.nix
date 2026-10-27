@@ -415,6 +415,7 @@
 
       hasNiri = (wm == "niri") || config.programs.niri.enable or false;
 
+      isWayland = config._.resolved.interface.displayProtocol == "wayland";
       mkWants = name: value: {condition = value == name;};
       mkWantsDesktop = name: value: {
         condition = elem name desktops || value == name;
@@ -440,6 +441,7 @@
         hasNiri
         ice
         panels
+        isWayland
         wantsCosmic
         wantsDmsShell
         wantsGnome
