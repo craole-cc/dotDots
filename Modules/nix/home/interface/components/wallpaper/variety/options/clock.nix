@@ -7,9 +7,9 @@
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.primitives) bool str;
   display = fonts.categories.display;
-  serif = fonts.categories.serif;
+  monospace = fonts.categories.monospace;
   displayFont = if display == [] then "" else (head display).family;
-  serifFont = if serif == [] then "" else (head serif).family;
+  monospaceFont = if monospace == [] then "" else (head monospace).family;
 in {
   clock = {
     enable = mkOption {
@@ -22,7 +22,7 @@ in {
     };
     dateFont = mkOption {
       type = str;
-      default = "${serifFont} 30";
+      default = "${monospaceFont} 30";
     };
     filter = mkOption {
       type = str;
