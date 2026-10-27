@@ -4,12 +4,33 @@
   ...
 }: let
   inherit (lix.lists.access) head;
+  inherit (lix.lists.predicates) isList;
   inherit (lix.options.construction) mkOption;
+  inherit (lix.strings.construction) concat;
+  inherit (lix.content.emptiness) isNotEmpty;
   inherit (lix.types.primitives) bool str;
-  display = fonts.categories.display;
-  monospace = fonts.categories.monospace;
-  displayFont = if display == [] then "" else (head display).family;
-  monospaceFont = if monospace == [] then "" else (head monospace).family;
+
+  mkFont = {
+    type ? "display",
+    size ? null,
+    fallback ? "sans",
+  }: let
+    font =
+      head
+      fonts.${
+        if (isNotEmpty type) && isList type
+        then type
+        else fallback
+      };
+  in
+    concat " " [
+      font.family
+      (
+        if isNotEmpty size
+        then size
+        else font.size
+      )
+    ];
 in {
   clock = {
     enable = mkOption {
@@ -18,11 +39,11 @@ in {
     };
     font = mkOption {
       type = str;
-      default = "${displayFont} 70";
+      default = mkFont {};
     };
     dateFont = mkOption {
       type = str;
-      default = "${monospaceFont} 30";
+      default = mkFont {size = 48;};
     };
     filter = mkOption {
       type = str;
