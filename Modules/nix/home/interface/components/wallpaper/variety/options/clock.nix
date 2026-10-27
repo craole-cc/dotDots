@@ -1,10 +1,15 @@
 {
   lix,
-  style,
+  fonts,
   ...
 }: let
+  inherit (lix.lists.access) head;
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.primitives) bool str;
+  display = fonts.categories.display;
+  serif = fonts.categories.serif;
+  displayFont = if display == [] then "" else (head display).family;
+  serifFont = if serif == [] then "" else (head serif).family;
 in {
   clock = {
     enable = mkOption {
@@ -13,11 +18,11 @@ in {
     };
     font = mkOption {
       type = str;
-      default = "${style.fonts.display} 70";
+      default = "${displayFont} 70";
     };
     dateFont = mkOption {
       type = str;
-      default = "${style.fonts.display} 30";
+      default = "${serifFont} 30";
     };
     filter = mkOption {
       type = str;

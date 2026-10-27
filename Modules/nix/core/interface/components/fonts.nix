@@ -21,7 +21,7 @@
   context = mkContext {
     inherit config top;
     dom = "interface";
-    sub = "style";
+    # sub = "style";
     mod = "fonts";
   };
   inherit (context) cfg;

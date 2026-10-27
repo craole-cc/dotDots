@@ -148,13 +148,7 @@
     theme = rec {
       palettes = {
         catppuccin = {
-          frappe = rec {
-            name = "Catppuccin Frappé";
-            variant = "dark";
-            description = "Soothing pastel theme, the low-contrast dark flavor.";
-            author = "Catppuccin";
-            license = "MIT";
-            source = "https://github.com/catppuccin/catppuccin";
+          frappe = let
             colors = {
               rosewater = "#f2d5cf";
               flamingo = "#eebebe";
@@ -183,32 +177,35 @@
               mantle = "#292c3c";
               crust = "#232634";
             };
-            accent = colors.mauve;
-            ansi = {
-              regular = {
-                inherit (colors) red green yellow blue;
-                black = colors.surface1;
-                magenta = colors.mauve;
-                cyan = colors.teal;
-                white = colors.subtext1;
+          in
+            with colors; {
+              name = "Catppuccin Frappé";
+              variant = "dark";
+              description = "Soothing pastel theme, the low-contrast dark flavor.";
+              author = "Catppuccin";
+              license = "MIT";
+              source = "https://github.com/catppuccin/catppuccin";
+              accent = mauve;
+              inherit colors;
+              ansi = {
+                regular = {
+                  inherit red green yellow blue;
+                  black = surface1;
+                  magenta = mauve;
+                  cyan = teal;
+                  white = subtext1;
+                };
+                bright = {
+                  black = surface2;
+                  white = text;
+                };
               };
-              bright = {
-                black = colors.surface2;
-                white = colors.text;
-              };
+              background = base;
+              foreground = text;
+              muted = subtext0;
+              surface = surface1;
             };
-            background = colors.base;
-            foreground = colors.text;
-            muted = colors.subtext0;
-            surface = colors.surface1;
-          };
-          latte = rec {
-            name = "Catppuccin Latte";
-            variant = "light";
-            description = "Soothing pastel theme, the light flavor.";
-            author = "Catppuccin";
-            license = "MIT";
-            source = "https://github.com/catppuccin/catppuccin";
+          latte = let
             colors = {
               rosewater = "#dc8a78";
               flamingo = "#dd7878";
@@ -237,45 +234,58 @@
               mantle = "#e6e9ef";
               crust = "#dce0e8";
             };
-            accent = colors.teal;
-            ansi = {
-              regular = {
-                inherit (colors) red green yellow blue;
-                black = colors.surface2;
-                magenta = colors.pink;
-                cyan = colors.teal;
-                white = colors.subtext1;
+          in
+            with colors; {
+              name = "Catppuccin Latte";
+              variant = "light";
+              description = "Soothing pastel theme, the light flavor.";
+              author = "Catppuccin";
+              license = "MIT";
+              source = "https://github.com/catppuccin/catppuccin";
+              inherit colors;
+              accent = teal;
+              ansi = {
+                regular = {
+                  inherit red green yellow blue;
+                  black = surface2;
+                  magenta = pink;
+                  cyan = teal;
+                  white = subtext1;
+                };
+                bright = {
+                  black = overlay0;
+                  white = text;
+                };
               };
-              bright = {
-                black = colors.overlay0;
-                white = colors.text;
-              };
+              background = base;
+              foreground = text;
+              muted = subtext0;
+              surface = surface2;
             };
-            background = colors.base;
-            foreground = colors.text;
-            muted = colors.subtext0;
-            surface = colors.surface2;
-          };
         };
       };
-      modes = rec {
+      modes = let
         dark = {
           palette = palettes.catppuccin.frappe;
           icon = "candy-icons";
           cursor = "catppuccin-cursors";
-          opacity.terminal = 0.75;
-          opacity.editor = 0.75;
+          opacity = {
+            terminal = 0.75;
+            editor = 0.85;
+          };
         };
         light = {
           palette = palettes.catppuccin.latte;
           icon = "buuf-nestort";
           cursor = "material-cursors";
-          opacity.terminal = 0.75;
-          opacity.editor = 0.75;
+          opacity = {
+            terminal = 0.80;
+            editor = 0.88;
+          };
         };
         default = dark;
         autoSwitch = true;
-      };
+      in {inherit dark light default autoSwitch;};
     };
 
     fonts = let
@@ -422,6 +432,7 @@
           (mk cinzel)
         ];
         square = [
+          (mkFont cinzel.display {})
           (mkFont orbitron.display {})
         ];
       };

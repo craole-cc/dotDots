@@ -50,8 +50,8 @@
     ;
   inherit (lib.trivial) isFunction;
   paths' = {
-    src = paths.core.src.store;
-    libraries = paths.core.libraries.default.store;
+    inherit (paths.store) src;
+    libraries = paths.store.lib.default;
   };
 
   typeAliases = {

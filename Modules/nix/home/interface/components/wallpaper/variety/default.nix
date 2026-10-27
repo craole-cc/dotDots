@@ -16,7 +16,7 @@ The parent wallpaper component imports this module and controls enablement.
   wallpaper,
   toolkit,
   ...
-} @ args: let
+} @ passthru: let
   context = mkContext {
     inherit config;
     dom = "interface";
@@ -58,7 +58,7 @@ The parent wallpaper component imports this module and controls enablement.
         };
       scripts = under (concat {
         root = paths.store.lib.sh;
-        stem = "interface/wallpaper";
+        stem = ["interface" "wallpaper"];
       }) {varietyctl = "varietyctl";};
       files = under cfg.profile.path {
         config = "variety.conf";
@@ -105,8 +105,8 @@ The parent wallpaper component imports this module and controls enablement.
     inherit cfg lix toolkit controller;
   };
 
-  args' =
-    args
+  args =
+    passthru
     // {
       inherit cfg context controller hooks;
       paths = paths';
@@ -114,6 +114,6 @@ The parent wallpaper component imports this module and controls enablement.
 in
   mkConfig {
     inherit context;
-    options = import ./options args';
-    outputs = import ./outputs args';
+    options = import ./options args;
+    outputs = import ./outputs args;
   }

@@ -13,7 +13,7 @@
     );
 
   # All 16 ANSI colors in order.
-  ansi = terminal: terminal.regular ++ terminal.bright;
+  ansi = terminal: (terminal.regular or []) ++ (terminal.bright or []);
 
   mkTerminalPalette = input: let
     palette = input.palette or input;

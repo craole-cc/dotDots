@@ -8,8 +8,9 @@
   style,
   user,
   toolkit,
+  fonts,
   ...
-}: let
+} @ passthru: let
   context = mkContext {
     inherit config;
     dom = "interface";
@@ -49,11 +50,13 @@
     };
   in {inherit (resolved) packages;};
 
-  args = {
-    inherit config entryAfter inputs toolkit lix pkgs style user;
-    paths = paths';
-    wallpaper = context;
-  };
+  args =
+    passthru
+    // {
+      inherit config entryAfter inputs toolkit lix pkgs style user;
+      paths = paths';
+      wallpaper = context;
+    };
 in
   {imports = [(import ./variety args)];}
   // mkConfig {

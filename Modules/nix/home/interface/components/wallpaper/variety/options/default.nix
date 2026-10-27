@@ -5,7 +5,7 @@
   paths,
   pkgs,
   ...
-} @ args: let
+} @ passthru: let
   inherit (context) mod;
   inherit (lix.attrsets.aggregation) recursiveMergeAll;
   inherit (lix.options.construction) literalExpression mkOption mkEnable;
@@ -72,7 +72,7 @@ in
     };
   }
   // recursiveMergeAll (
-    map (file: import file args) [
+    map (file: import file passthru) [
       ./scripts.nix
       ./clock.nix
       ./folders.nix
