@@ -23,6 +23,7 @@
     launchers
     bars
     ;
+  inherit (lix.applications.registry) resolve;
 
   inherit (lix.modules.construction) mkConfig mkContext mkDefault;
   inherit (lix.attrsets.construction) optionalAttrs;
@@ -34,6 +35,16 @@
 
   user = host.users.data.primary or {};
   groups = user.packages or (lix.schema.packages.resolve {record = user;});
+  media = map (name: resolve {value = name; category = "media";}) (groups.media or []);
+  mediaAt = index: if index < builtins.length media then builtins.elemAt media index else null;
+  mediaCommand = index: let
+    app = mediaAt index;
+  in
+    if app == null then null else app.exec or null;
+  mediaName = index: let
+    app = mediaAt index;
+  in
+    if app == null then null else app.name or null;
   wallpapers = host.paths.wallpapers or "$HOME/Pictures/Wallpapers";
 
   registry = let
@@ -73,6 +84,25 @@
         TERMINAL = terminal.primary;
         VISUAL = editor.visual;
         WALLPAPERS = wallpapers;
+      }
+      // optionalAttrs (mediaCommand 0 != null) {
+        MEDIA = mediaCommand 0;
+        MEDIA_PRI = mediaCommand 0;
+        MEDIA_PRI_NAME = mediaName 0;
+        MEDIA_1 = mediaCommand 0;
+        MEDIA_1_NAME = mediaName 0;
+      }
+      // optionalAttrs (mediaCommand 1 != null) {
+        MEDIA_SEC = mediaCommand 1;
+        MEDIA_SEC_NAME = mediaName 1;
+        MEDIA_2 = mediaCommand 1;
+        MEDIA_2_NAME = mediaName 1;
+      }
+      // optionalAttrs (mediaCommand 2 != null) {
+        MEDIA_TER = mediaCommand 2;
+        MEDIA_TER_NAME = mediaName 2;
+        MEDIA_3 = mediaCommand 2;
+        MEDIA_3_NAME = mediaName 2;
       }
       // optionalAttrs (browser.primary != null) {BROWSER = mkDefault browser.primary;};
     # TODO: Move to interface/session/protocol

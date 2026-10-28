@@ -103,7 +103,6 @@
       "qimgv"
       "qbittorrent-enhanced"
     ];
-    # TODO: Why are these not auto installing and being set?
     media = [
       "lollypop"
       "freetube"

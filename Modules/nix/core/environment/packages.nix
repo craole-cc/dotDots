@@ -256,7 +256,12 @@
       shortwave
       viu
       yazi
-    ];
+    ] ++ (filter (pkg: pkg != null) (map (name: let
+      resolved = builtins.tryEval (resolve {value = name; category = "media";});
+    in
+      if resolved.success
+      then resolvePackage {app = resolved.value; inherit inputs pkgs system;}
+      else pkgs.${name} or null) (groups.media or [])));
 
     #~@ Platform Helpers
     wayland = optionals (displayProtocol == "wayland") (with pkgs; [
