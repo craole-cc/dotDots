@@ -1,62 +1,49 @@
 {lix, ...}: let
-  inherit (lix.options.construction) mkOption;
+  inherit (lix.options.construction) mkFalse mkIntOption mkTrue mkStrOption;
   inherit (lix.types.primitives) bool int str;
 in {
   constraints = {
-    desiredColor.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety desired color enabled.";
+    desiredColor = {
+      enable = mkFalse "Variety desired color enabled.";
+
+      value = mkStrOption {
+        default = "160 160 160";
+        description = "Variety desired color.";
+      };
     };
-    desiredColor.value = mkOption {
-      type = str;
-      default = "160 160 160";
-      description = "Variety desired color.";
+    minSize = {
+      enable = mkTrue "Variety min size enabled.";
+      value = mkIntOption {
+        default = 100;
+        description = "Variety min size.";
+      };
     };
-    minSize.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety min size enabled.";
+    landscape = {
+      enable = mkTrue "Variety use landscape enabled.";
     };
-    minSize.value = mkOption {
-      type = int;
-      default = 100;
-      description = "Variety min size.";
-    };
-    landscape.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety use landscape enabled.";
-    };
-    lightness.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety lightness enabled.";
-    };
-    lightness.mode = mkOption {
-      type = int;
+  };
+  lightness = {
+    enable = mkFalse "Variety lightness enabled.";
+
+    mode = mkIntOption {
       default = 0;
       description = "Variety lightness mode.";
     };
-    minRating.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety min rating enabled.";
+
+    minRating = {
+      enable = mkFalse "Variety min rating enabled.";
+      value = mkIntOption {
+        default = 4;
+        description = "Variety min rating.";
+      };
     };
-    minRating.value = mkOption {
-      type = int;
-      default = 4;
-      description = "Variety min rating.";
-    };
-    nameRegex.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety name regex enabled.";
-    };
-    nameRegex.value = mkOption {
-      type = str;
-      default = ".*";
-      description = "Variety name regex.";
+
+    nameRegex = {
+      enable = mkFalse "Variety name regex enabled.";
+      value = mkStrOption {
+        default = ".*";
+        description = "Variety name regex.";
+      };
     };
   };
 }

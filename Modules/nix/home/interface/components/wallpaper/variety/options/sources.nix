@@ -3,18 +3,17 @@
   lix,
   ...
 }: let
-  inherit (lix.options.construction) mkOption;
+  inherit (lix.options.construction) mkOption mkStrOption mkTrue;
   inherit (lix.types.combinators) listOf submodule;
-  inherit (lix.types.primitives) bool str;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.lists.aggregation) concatMap;
+  inherit (lix.types.predicates) isString;
+
   sourceType = submodule {
     options = {
-      enable = mkOption {
-        type = bool;
-        default = true;
-        description = "Whether this source is active.";
-      };
-      type = mkOption {
-        type = str;
+      enable = mkTrue "Whether this source is active.";
+
+      type = mkStrOption {
         example = "wallhaven";
         description = ''
           Variety source type: favorites, fetched, folder, bing, apod,
@@ -22,8 +21,7 @@
           flickr, ...
         '';
       };
-      location = mkOption {
-        type = str;
+      location = mkStrOption {
         example = "waterfalls";
         description = ''
           Depends on the type: a path, a URL, a search query, or just a
@@ -32,9 +30,7 @@
       };
     };
   };
-  inherit (lix.attrsets.aggregation) recursiveUpdate;
-  inherit (lix.lists.aggregation) concatMap;
-  inherit (lix.types.predicates) isString;
+
   #? Core defaults for every single wallpaper configuration source
   defaultProperties = {enable = true;};
 
