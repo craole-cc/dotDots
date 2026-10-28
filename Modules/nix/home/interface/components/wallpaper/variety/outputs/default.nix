@@ -31,6 +31,10 @@
     wallhaven = "@WALLHAVEN_API_KEY@";
   };
 
+  package = cfg.package.overrideAttrs (previous: {
+    patches = (previous.patches or []) ++ [./favorites-notification.patch];
+  });
+
   render = {
     settings,
     sources,
@@ -195,21 +199,21 @@ in {
           # With a named profile, wrap the binary so every call (keybinds, the
           # varietyctl actions, the desktop entry) hits that profile.
           let
-            binary = getExe' cfg.package "variety";
+            binary = getExe' package "variety";
           in
             if cfg.profile.name == null
-            then cfg.package
+            then package
             else
               symlinkJoin {
                 name = "variety-profiled";
-                paths = [cfg.package];
+                paths = [package];
                 nativeBuildInputs = [makeWrapper];
                 postBuild = ''
                   ${rm} $out/bin/variety
                   makeWrapper ${binary} $out/bin/variety --add-flags ${escapeShellArg "--profile ${escapeShellArg cfg.profile.path}"}
                 '';
                 meta =
-                  (cfg.package.meta or {})
+                  (package.meta or {})
                   // {
                     mainProgram = "variety";
                   };

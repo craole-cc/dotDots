@@ -87,11 +87,6 @@ run_variety() {
   exec "$tool_variety" "$@"
 }
 
-notify_user() {
-  command -v notify-send >/dev/null 2>&1 || return 0
-  notify-send "$@" >/dev/null 2>&1 || :
-}
-
 # Variety's hook can run with a thin environment. Fill in only what is unset
 # or empty, never overriding, using shell globbing and tests alone.
 ensure_session_env() {
@@ -787,18 +782,8 @@ esac
 case "$action" in
   next) run_variety --next "$@" ;;
   previous) run_variety --previous "$@" ;;
-  love)
-    need "$tool_variety" variety
-    "$tool_variety" --favorite "$@" || exit $?
-    notify_user --app-name=Variety --icon=emblem-favorite "Wallpaper added to favourites"
-    exit 0
-    ;;
-  trash | blacklist)
-    need "$tool_variety" variety
-    "$tool_variety" --trash "$@" || exit $?
-    notify_user --app-name=Variety --icon=user-trash "Wallpaper deleted and blacklisted"
-    exit 0
-    ;;
+  love) run_variety --favorite "$@" ;;
+  trash | blacklist) run_variety --trash "$@" ;;
   preferences) run_variety --show-preferences "$@" ;;
 esac
 
