@@ -16,13 +16,14 @@
     mod = "dms-shell";
   };
   inherit (context) cfg ctx;
-  inherit (lix.attrsets.aggregation) mergeSafe ;
+  inherit (lix.attrsets.aggregation) mergeSafe;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.styles.icons.types) icon;
   inherit (lix.filesystem.primitives) concat;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
+  inherit (toolkit) packages write;
 
   record = import ./record.nix {
     inherit toolkit pkgs inputs lix;
@@ -48,7 +49,7 @@
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
   addons = import ./plugins args;
-  pluginSettings = toolkit.write.json "dms-plugin-settings.json" (user.dms.plugins or {});
+  pluginSettings = write.json "dms-plugin-settings.json" (user.dms.plugins or {});
 in
   mkConfig {
     inherit context;
@@ -62,7 +63,7 @@ in
       };
       package = mkOption {
         description = "Package to use";
-        default = toolkit.packages.dms-shell;
+        default = packages.dms-shell;
         type = package;
       };
       icons = mkOption {
@@ -84,7 +85,7 @@ in
           };
         inherit (addons) plugins;
         inherit package;
-        quickshell.package = toolkit.packages.quickshell;
+        quickshell.package = packages.quickshell;
         systemd = {
           enable = true;
           target = "graphical-session.target";

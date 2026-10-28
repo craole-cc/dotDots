@@ -73,7 +73,7 @@
     session = null;
     wallpaper = {
       engine = "variety";
-      backend = "auto";
+      backends.active = "auto";
     };
     compositor = {
       desktop = null;
@@ -132,9 +132,9 @@
         default = defaults.wallpaper.engine;
         description = "Wallpaper selection engine. An explicit value takes precedence over the first wallpaper package; null disables selection.";
       };
-      backend = mkOption {
+      backends.active = mkOption {
         type = str;
-        default = defaults.wallpaper.backend;
+        default = defaults.wallpaper.backends.active;
         description = "Wallpaper display backend, or auto for automatic selection.";
       };
     };

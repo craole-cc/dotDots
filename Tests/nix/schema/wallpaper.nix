@@ -14,7 +14,7 @@
       expr = resolve {};
       expected = {
         engine = "variety";
-        backend = "auto";
+        backends.active = "auto";
       };
     };
     testFirstWallpaperPackageWins = {
@@ -42,10 +42,10 @@
       expected = null;
     };
     testBackendPreferenceSurvivesNormalisation = {
-      expr = resolve {interface.wallpaper.backend = "dms";};
+      expr = resolve {interface.wallpaper.backends.active = "dms";};
       expected = {
         engine = "variety";
-        backend = "dms";
+        backends.active = "dms";
       };
     };
     testHostWallpaperPackage = {
@@ -73,12 +73,12 @@
         (normalize {
           wallpaper = {
             engine = null;
-            backend = "hyprpaper";
+            backends.active = "hyprpaper";
           };
         }).wallpaper;
       expected = {
         engine = null;
-        backend = "hyprpaper";
+        backends.active = "hyprpaper";
       };
     };
   };

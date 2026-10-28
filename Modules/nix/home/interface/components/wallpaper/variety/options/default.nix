@@ -3,27 +3,28 @@
   context,
   wallpaper,
   paths,
+  toolkit,
   pkgs,
   ...
 } @ passthru: let
   inherit (context) mod;
   inherit (lix.attrsets.aggregation) recursiveMergeAll;
-  inherit (lix.options.construction) literalExpression mkOption mkEnable;
+  inherit (lix.options.construction) mkOption mkEnable;
   inherit (lix.types.combinators) attrsOf enum nullOr oneOf;
   inherit (lix.types.primitives) bool float package int str;
+  inherit (toolkit) packages;
 in
   {
     enable = mkEnable {
       inherit context;
-      condition = wallpaper.cfg.engine == mod;
+      condition = wallpaper.cfg.engines.active == mod;
     };
 
     package = mkOption {
+      description = "Package to use for the Variety wallpaper engine.";
+      default = packages.${mod};
       type = package;
-      default = pkgs.variety;
-      defaultText = literalExpression "pkgs.${mod}";
     };
-
     profile = {
       name = mkOption {
         type = nullOr str;

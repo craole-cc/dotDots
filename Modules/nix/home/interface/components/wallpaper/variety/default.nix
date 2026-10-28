@@ -6,7 +6,7 @@ Layout
   options/     declares typed options, setting defaults and wallpaper sources
   outputs/     renders variety.conf, wraps the package and installs the profile
 
-The parent wallpaper component imports this module and controls enablement.
+The parent wallpaper component composes these options and outputs under its engine configuration.
 */
 {
   config,
@@ -17,15 +17,11 @@ The parent wallpaper component imports this module and controls enablement.
   toolkit,
   ...
 } @ passthru: let
-  context = mkContext {
-    inherit config;
-    dom = "interface";
-    sub = "wallpaper";
-    mod = "variety";
-  };
-  inherit (context) cfg;
+  mod = "variety";
+  sub = "wallpaper";
+  cfg = wallpaper.cfg.engines.${mod};
+  context = wallpaper // {inherit mod sub cfg;};
 
-  inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.strings.predicates) hasPrefix;
@@ -96,7 +92,8 @@ The parent wallpaper component imports this module and controls enablement.
   in
     pkgs.writeShellScriptBin "varietyctl" ''
       PATH="${concatStringsSep ":" (map (name: toolkit.records.${name}.paths.binary) runtimeTools)}:$PATH"
-      VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backend}
+      PATH="${pkgs.libnotify}/bin:$PATH"
+      VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
       export PATH VARIETYCTL_BACKEND
       ${readFile paths'.variety.scripts.varietyctl}
     '';
@@ -105,15 +102,11 @@ The parent wallpaper component imports this module and controls enablement.
     inherit cfg lix toolkit controller;
   };
 
-  args =
-    passthru
-    // {
-      inherit cfg context controller hooks;
-      paths = paths';
-    };
-in
-  mkConfig {
-    inherit context;
-    options = import ./options args;
-    outputs = import ./outputs args;
-  }
+  args = recursiveUpdate passthru {
+    inherit cfg context controller hooks;
+    paths = paths';
+  };
+in {
+  options = import ./options args;
+  outputs = import ./outputs args;
+}
