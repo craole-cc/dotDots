@@ -6,7 +6,6 @@
   allowAliases,
 }: let
   inherit (lib.attrsets) attrNames filterAttrs genAttrs recursiveUpdate;
-  inherit (lib.lists) filter;
   inherit (lib.filesystem) readDir;
   inherit (lib.strings) hasSuffix removeSuffix;
 
@@ -33,31 +32,6 @@
         };
     in
       genAttrs names load;
-    # base = let
-    #   path = paths.repo.lib.default.store + "/imports";
-    #   # TODO: Auto import all files in path, i want the default to be a mere stub {}
-    #   set = import path;
-    #   init = fn:
-    #     fn {
-    #       inherit lib;
-    #       flatten = false;
-    #     };
-    #   names = filter (name: name != "default") (
-    #     map (file: removeSuffix ".nix" file) (
-    #       attrNames (
-    #         filterAttrs
-    #         (
-    #           name: type:
-    #             (type == "regular")
-    #             && (hasSuffix ".nix" name)
-    #             && (name != "default.nix")
-    #         )
-    #         (readDir path)
-    #       )
-    #     )
-    #   );
-    # in
-    #   genAttrs names (name: init set.${name});
   in
     library.extend (_: prev: recursiveUpdate base prev);
 

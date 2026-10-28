@@ -502,7 +502,7 @@
         "all"
       ];
       "showOnLastDisplay" = false;
-      "leftWidgets" = [ ];
+      "leftWidgets" = [];
       "centerWidgets" = [
         {
           "id" = "battery";
@@ -541,7 +541,7 @@
           "enabled" = true;
         }
       ];
-      "rightWidgets" = [ ];
+      "rightWidgets" = [];
       "spacing" = 0;
       "innerPadding" = -8;
       "bottomGap" = 0;
@@ -605,7 +605,7 @@
           "enabled" = true;
         }
       ];
-      "centerWidgets" = [ ];
+      "centerWidgets" = [];
       "rightWidgets" = [
         {
           "id" = "capsLockIndicator";
@@ -701,7 +701,7 @@
         "all"
       ];
       "showOnLastDisplay" = false;
-      "leftWidgets" = [ ];
+      "leftWidgets" = [];
       "centerWidgets" = [
         {
           "id" = "clock";
@@ -907,7 +907,7 @@
       "magnificationScale" = 130;
       "magnificationProfile" = "parabolic";
       "magnificationExpand" = false;
-      "order" = [ ];
+      "order" = [];
       "widgets" = [
         {
           "id" = "dock_launcher";
@@ -940,7 +940,7 @@
   "hyprlandDwindlePreserveSplit" = false;
   "floatingWindowForegroundLayers" = true;
   "wallpaperFillMode" = "Pad";
-  "hyprlandWindowOpacity" = 90;
+  "hyprlandWindowOpacity" = 100;
   "hyprlandGroupbarDisableWhenOnly" = true;
   "hyprlandGroupbarBlur" = true;
   "hyprlandGlowEnabled" = true;

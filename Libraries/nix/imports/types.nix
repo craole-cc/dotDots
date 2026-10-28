@@ -10,16 +10,7 @@
     flattened = {} // access // combinators // predicates // primitives // {};
   };
 
-  inherit
-    (lib)
-    attrsets
-    filesystem
-    lists
-    options
-    strings
-    trivial
-    types
-    ;
+  inherit (lib) attrsets filesystem lists options strings trivial types;
 
   access = {inherit (builtins) typeOf;};
 

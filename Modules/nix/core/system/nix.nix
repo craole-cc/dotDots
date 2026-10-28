@@ -119,7 +119,7 @@ in
         type = either int str;
       };
 
-      #TODO: ensure the schema know about caches
+      #TODO: ensure the schema knows about caches
       caches = mkOption {
         description = ''
           Binary cache overrides merged over auto-detected defaults. Each entry

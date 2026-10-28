@@ -3,68 +3,45 @@
   paths,
   ...
 }: let
-  inherit (lix.options.construction) mkOption;
-  inherit (lix.types.combinators) either;
-  inherit (lix.types.primitives) bool float str;
+  inherit (lix.options.construction) mkFalse mkFloatOrStrOption mkStrOption mkTrue;
 in {
   slideshow = {
-    preferred.enable = mkOption {
-      type = bool;
-      default = true;
-      description = "Whether to include preferred wallpapers in the slideshow.";
+    preferred.enable = mkTrue "Variety slideshow preferred wallpapers enabled";
+    sources.enable = mkTrue "Variety slideshow sources enabled.";
+    downloads.enable = mkFalse "Variety slideshow downloads enabled.";
+
+    custom = {
+      enable = mkFalse "Variety slideshow custom enabled";
+      folder = mkStrOption {
+        default = paths.wallpapers.slideshow;
+        description = "Variety slideshow custom folder.";
+      };
     };
-    sources.enable = mkOption {
-      type = bool;
-      default = true;
-      description = "Variety slideshow sources enabled.";
-    };
-    downloads.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety slideshow downloads enabled.";
-    };
-    custom.enable = mkOption {
-      type = bool;
-      default = false;
-      description = "Variety slideshow custom enabled.";
-    };
-    custom.folder = mkOption {
-      type = str;
-      default = paths.wallpapers.slideshow;
-      description = "Variety slideshow custom folder.";
-    };
-    sortOrder = mkOption {
-      type = str;
+    sortOrder = mkStrOption {
       default = "Random";
       description = "Variety slideshow sort order.";
     };
-    monitor = mkOption {
-      type = str;
+    monitor = mkStrOption {
       default = "All";
       description = "Variety slideshow monitor.";
     };
-    mode = mkOption {
-      type = str;
+    mode = mkStrOption {
       default = "Fullscreen";
       description = "Variety slideshow mode.";
     };
-    seconds = mkOption {
-      type = either float str;
+    seconds = mkFloatOrStrOption {
       default = 6.0;
       description = "Variety slideshow seconds.";
     };
-    fade = mkOption {
-      type = either float str;
+    fade = mkFloatOrStrOption {
       default = 0.4;
       description = "Variety slideshow fade.";
     };
-    zoom = mkOption {
-      type = either float str;
+    zoom = mkFloatOrStrOption {
       default = 0.2;
       description = "Variety slideshow zoom.";
     };
-    pan = mkOption {
-      type = either float str;
+    pan = mkFloatOrStrOption {
       default = 0.05;
       description = "Variety slideshow pan.";
     };

@@ -26,8 +26,8 @@
   };
   "webSearch" = {
     "enabled" = true;
-    "searchEngines" = [ ];
-    "disabledEngines" = [ ];
+    "searchEngines" = [];
+    "disabledEngines" = [];
   };
   "calculator" = {
     "enabled" = true;
@@ -61,7 +61,7 @@
     "enabled" = true;
     "lastWallpaperUsed" = "wallhaven.cc";
     "api_wallhavencc" = "wq5IR3xVW8cpA7QicNfamLf0cSPdVg1P";
-    "downloadLocation" = "~/Pictures/Wallpepers";
+    "downloadLocation" = "~/Pictures/Wallpapers";
   };
   "developerUtilities" = {
     "enabled" = true;

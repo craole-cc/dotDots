@@ -22,7 +22,7 @@ in {
       # Hard problems: the review model at maximum reasoning.
       deep = removeNulls {
         model = cfg.model.review;
-        model_reasoning_effort = "xhigh"; # TODO: Check if this is correct or if it should be `max`.
+        model_reasoning_effort = "xhigh"; 
       };
 
       # Small edits and questions where speed matters more than depth.

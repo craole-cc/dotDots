@@ -1,13 +1,13 @@
 {lix, ...}: let
-  inherit (lix.options.construction) mkFalse mkOption;
+  inherit (lix.options.construction) mkFalse mkOption mkStrOption;
   inherit (lix.types.combinators) listOf submodule;
   inherit (lix.types.primitives) str;
   filterType = submodule {
     options = {
       enable = mkFalse "filters";
       # TODO: I always define options with description and default
-      name = mkOption {type = str;};
-      args = mkOption {
+      name = mkStrOption {type = str;};
+      args = mkStrOption {
         type = str;
         default = "";
         description = "Arguments passed to ImageMagick.";

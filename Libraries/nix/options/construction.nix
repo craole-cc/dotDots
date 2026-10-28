@@ -3,7 +3,14 @@
     internal = {
       inherit
         mkEnable
+        mkIntOption
         mkStrOption
+        mkBoolOption
+        mkPathOption
+        mkFloatOption
+        mkFloatOrStrOption
+        mkListOption
+        mkAttrsOption
         mkTrue
         mkFalse
         mkEnum
@@ -50,15 +57,8 @@
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.options.construction) mkOption mergeUniqueOption mkOptionType;
   inherit (_.strings.construction) concat;
-  inherit (_.types.combinators) enum listOf nullOr;
-  inherit
-    (_.types.primitives)
-    str
-    bool
-    int
-    float
-    path
-    ;
+  inherit (_.types.combinators) attrsOf either enum listOf nullOr;
+  inherit (_.types.primitives) str bool int float path;
   inherit (_.types.predicates) isAttrs isString;
   customTypes = _.types.checks;
   mkEnumData = _.lists.construction.mkEnum;
@@ -67,7 +67,15 @@
   # `nixos-option` see an absent field rather than an explicit null.
   optionalDesc = description: optionalAttrs (description != null) {inherit description;};
 
-  mkStrOption = passthru: mkOption (passthru // {type = str;});
+  mkOptionOf = type: passthru: mkOption (passthru // {type = toOptionType type;});
+  mkStrOption = mkOptionOf "str";
+  mkBoolOption = mkOptionOf "bool";
+  mkIntOption = mkOptionOf "int";
+  mkFloatOption = mkOptionOf "float";
+  mkPathOption = mkOptionOf "path";
+  mkFloatOrStrOption = mkOptionOf (either float str);
+  mkListOption = subtype: mkOptionOf (listOf subtype);
+  mkAttrsOption = subtype: mkOptionOf (attrsOf subtype);
 
   /**
   Bridges a `_.types.checks` type into a `lib.types`-compatible option type

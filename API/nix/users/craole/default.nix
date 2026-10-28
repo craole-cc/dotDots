@@ -1,6 +1,5 @@
 {
   imports = [
-    # ./programs/common/rust.nix #TODO: Capabilities should handle this
     # ./programs
     # ./services
   ];
@@ -112,7 +111,6 @@
       "playerctl"
     ];
     ide = [
-      # TODO: Why did this not update the eval? fhs is still primary
       "vscode-fhs"
       "zed-editor-fhs"
       "vscode-insiders"
@@ -287,7 +285,7 @@
           cursor = "catppuccin-cursors";
           opacity = {
             terminal = 0.75;
-            editor = 0.98;
+            editor = 0.94;
           };
         };
         default = dark;

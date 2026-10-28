@@ -98,7 +98,7 @@
   } @ passthru: let
     # Home is wired again, but Modules/nix/home/default.nix explicitly imports
     # only modules already migrated to the mkContext/mkConfig contract.
-    wireHome = true; # TODO: This is not something we want to keep
+    wireHome = true; # FIXME: This is not something we want to keep
 
     inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
     lib = extend (_self: _super: {inherit hm;});
