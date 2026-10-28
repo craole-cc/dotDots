@@ -104,9 +104,10 @@
       "qbittorrent-enhanced"
     ];
     media = [
-      "celluloid"
+      "lollypop"
       "freetube"
       "shortwave"
+      "celluloid"
       "mpv"
       "playerctl"
     ];
