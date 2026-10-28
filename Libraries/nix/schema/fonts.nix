@@ -172,7 +172,8 @@
     host ? {},
     user ? {},
   }:
-    recursiveUpdate defaults (
+    let
+      resolved = recursiveUpdate defaults (
       recursiveUpdate
       (getFonts (host
         // {
@@ -182,7 +183,9 @@
             );
         }))
       (getFonts user)
-    );
+      );
+    in
+      resolved // {emoji = resolved.emoji ++ resolved.material;};
 
   variables = categories: let
     #? Canonical keys only, so mirrored aliases don't emit duplicates.
