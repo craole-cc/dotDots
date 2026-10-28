@@ -7,20 +7,11 @@
     namespaced = {inherit access predicates transformation;};
     flattened = {} // access // predicates // transformation // {};
   };
-
   inherit (lib) attrsets meta sources strings;
 
   access =
     {
-      inherit
-        (sources)
-        commitIdFromGitRepo
-        repoRevToName
-        revOrTag
-        shortRev
-        trace
-        urlToName
-        ;
+      inherit (sources) commitIdFromGitRepo repoRevToName revOrTag shortRev trace urlToName;
       inherit (meta) getExe getExe';
       inherit (attrsets) getBin;
       inherit (builtins) getEnv;
@@ -50,6 +41,7 @@
       sourceByRegex
       sourceFilesBySuffices
       ;
+    inherit (lib) fileset;
     inherit (strings) makeBinPath;
   };
 in

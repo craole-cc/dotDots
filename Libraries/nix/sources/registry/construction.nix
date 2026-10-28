@@ -68,7 +68,10 @@
 
   This is useful for registry structures grouped by namespace.
   */
-  flatten = registry: foldl' (acc: namespace: acc // registry.${namespace}) {} (attrNames registry);
+  flatten = registry:
+    foldl'
+    (acc: namespace: acc // registry.${namespace}) {}
+    (attrNames registry);
 
   /**
   Produce light-weight analysis groups for a flat registry attrset.

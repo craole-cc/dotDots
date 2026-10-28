@@ -15,14 +15,7 @@
 
     exports = let
       internal = let
-        functions = {
-          inherit
-            byNames
-            lookup
-            mkSource
-            normalize
-            ;
-        };
+        functions = {inherit byNames lookup mkSource normalize;};
         aliases = {
           lookupRegistry = lookup;
           mkRegistrySource = mkSource;

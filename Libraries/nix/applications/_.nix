@@ -16,12 +16,8 @@
       external = {
         registryOfApplications = registry;
       };
-    in {
-      inherit internal external;
-    };
-  in {
-    inherit doc exports;
-  };
+    in {inherit internal external;};
+  in {inherit doc exports;};
 
   registry = _.sources.registry.io.import ./.;
 in

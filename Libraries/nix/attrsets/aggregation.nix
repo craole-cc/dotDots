@@ -399,6 +399,28 @@
       else baseMatcher args;
 
   /**
+  Merge attribute sets, refusing silent overrides between them.
+
+  # Type
+  ```nix
+  mergeDisjoint :: { context :: string, sets :: [AttrSet] } -> AttrSet
+  ```
+  */
+  mergeDisjoint = {
+    context,
+    sets,
+  }:
+    foldl' (
+      merged: current: let
+        overlap = attrNames (intersectAttrs merged current);
+      in
+        assert (overlap == [])
+        || throw "${context}: overlapping keys: ${toString overlap}";
+          mergeSafe [merged current]
+    ) {}
+    sets;
+
+  /**
   Deep-merge a list of attrsets, left-to-right, combining nested attrsets
   recursively instead of the shallow last-wins semantics of `//`/`foldl' (//)`.
 
@@ -521,6 +543,7 @@ in {
     mergeShellFragments
     mkShellFragments
     mergeSafe
+    mergeDisjoint
     ;
 
   __rootAliases = {
