@@ -27,12 +27,14 @@ The parent wallpaper component composes these options and outputs under its engi
   inherit (lix.strings.predicates) hasPrefix;
   inherit (lix.filesystem.construction) concat;
   inherit (lix.filesystem.access) readFile;
-  inherit (lix.strings.construction) concatStringsSep;
   inherit (lix.strings.transformation) escapeShellArg;
+  inherit (toolkit) write packages;
+
   paths' = let
     inherit (config.xdg) configHome;
     inherit (paths'.variety) profiles;
     under = root: mapAttrs (_name: stem: concat {inherit root stem;});
+
     variety = {
       profiles =
         (under configHome {
@@ -51,14 +53,17 @@ The parent wallpaper component composes these options and outputs under its engi
                 stem = cfg.profile.name;
               };
         };
+
       scripts = under (concat {
         root = paths.store.lib.sh;
         stem = ["interface" "wallpaper"];
       }) {varietyctl = "varietyctl";};
+
       files = under cfg.profile.path {
         config = "variety.conf";
         quotes = "favorite_quotes.txt";
       };
+
       wallpapers =
         under profiles.main {
           downloaded = "Downloaded";
@@ -72,28 +77,28 @@ The parent wallpaper component composes these options and outputs under its engi
           };
         };
     };
-    wallpapers.preferred = variety.wallpapers.preferred;
+
+    wallpapers = {inherit (variety.wallpapers) preferred;};
   in
     recursiveUpdate {inherit variety wallpapers;} paths;
 
-  controller = let
-    runtimeTools = [
-      "coreutils"
-      "ripgrep"
-      "jaq"
-      "procps"
-      "findutils"
-      "gnused"
-      "gawk"
-      "bash"
-      "util-linux"
-    ];
-  in
-    pkgs.writeShellScriptBin "varietyctl" ''
-      PATH="${concatStringsSep ":" (map (name: toolkit.records.${name}.paths.binary) runtimeTools)}:$PATH"
-      PATH="${pkgs.libnotify}/bin:$PATH"
+  controller =
+    write.binWith "varietyctl" (
+      map (name: packages.${name}) [
+        "coreutils"
+        "ripgrep"
+        "jaq"
+        "procps"
+        "findutils"
+        "gnused"
+        "gawk"
+        "bash"
+        "util-linux"
+      ]
+      ++ [packages.libnotify]
+    ) ''
       VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
-      export PATH VARIETYCTL_BACKEND
+      export VARIETYCTL_BACKEND
       ${readFile paths'.variety.scripts.varietyctl}
     '';
 
