@@ -1,9 +1,10 @@
 let
-  palettes = import ./palettes;
+  palettes = (import ./styles) palettes;
+  inherit (palettes.catppuccin) frappe latte;
 
   modes = let
     light = {
-      palette = palettes.catppuccin.latte;
+      palette = latte;
       icon = "buuf-nestort";
       cursor = "material-cursors";
       opacity = {
@@ -12,7 +13,7 @@ let
       };
     };
     dark = {
-      palette = palettes.catppuccin.frappe;
+      palette = frappe;
       icon = "candy-icons";
       cursor = "catppuccin-cursors";
       opacity = {
