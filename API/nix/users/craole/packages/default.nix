@@ -52,7 +52,6 @@ let
   extra = [
     "fastfetch"
     "imv"
-    # TODO: Re-add OBS Studio when it is needed again.
     # "obs-studio"
     "qimgv"
     "qbittorrent-enhanced"

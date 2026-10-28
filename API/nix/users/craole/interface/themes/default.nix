@@ -1,5 +1,5 @@
 let
-  palettes = (import ./styles) palettes;
+  inherit (import ./styles) palettes;
   inherit (palettes.catppuccin) frappe latte;
 
   modes = let

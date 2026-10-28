@@ -1,8 +1,7 @@
 {
-  imports = [
-    ./dms
-    ./desktops.nix
-    ./fonts.nix
-    ./themes.nix
-  ];
+  interface =
+    (import ./desktops.nix)
+    // (import ./dms)
+    // (import ./fonts.nix)
+    // (import ./themes);
 }
