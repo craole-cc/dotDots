@@ -103,6 +103,7 @@
       "qimgv"
       "qbittorrent-enhanced"
     ];
+    # TODO: Why are these not auto installing and being set?
     media = [
       "lollypop"
       "freetube"
@@ -112,9 +113,10 @@
       "playerctl"
     ];
     ide = [
-      "vscode-insiders"
-      "zed-editor-fhs"
+      # TODO: Why did this not update the eval? fhs is still primary
       "vscode-fhs"
+      "zed-editor-fhs"
+      "vscode-insiders"
     ];
     launcher = [
       "vicinae"
@@ -277,7 +279,7 @@
           cursor = "material-cursors";
           opacity = {
             terminal = 0.80;
-            editor = 0.10;
+            editor = 0.97;
           };
         };
         dark = {
@@ -286,7 +288,7 @@
           cursor = "catppuccin-cursors";
           opacity = {
             terminal = 0.75;
-            editor = 0.99;
+            editor = 0.98;
           };
         };
         default = dark;
