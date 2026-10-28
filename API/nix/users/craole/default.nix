@@ -282,7 +282,7 @@
           cursor = "catppuccin-cursors";
           opacity = {
             terminal = 0.75;
-            editor = 0.90;
+            editor = 0.98;
           };
         };
         default = dark;
