@@ -86,7 +86,12 @@ The parent wallpaper component composes these options and outputs under its engi
     write.binWith "varietyctl" packages.scripting ''
       VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
       export VARIETYCTL_BACKEND
-      ${readFile paths'.variety.scripts.varietyctl}
+      # Literal help/awk expressions and tool variables assigned by resolve_tools.
+      # Scope the annotation to the embedded script after the wrapper commands.
+      # shellcheck disable=SC2016,SC2154
+      {
+        ${readFile paths'.variety.scripts.varietyctl}
+      }
     '';
 
   hooks = import ./outputs/hooks.nix {
