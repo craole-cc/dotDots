@@ -104,9 +104,11 @@
       "qbittorrent-enhanced"
     ];
     media = [
-      "mpv"
+      "celluloid"
       "freetube"
       "shortwave"
+      "mpv"
+      "playerctl"
     ];
     ide = [
       "vscode-insiders"
