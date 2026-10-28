@@ -127,15 +127,20 @@
       "float" = float;
       "path" = path;
     };
+    isAlreadyOptionType =
+      isAttrs customType && (customType._type or "") == "option-type";
   in
-    primitives.${
-      customType.type
-    } or (mkOptionType {
-      name = customType.type;
-      description = customType.description or customType.type;
-      inherit (customType) check;
-      merge = mergeUniqueOption;
-    });
+    if isAlreadyOptionType
+    then customType
+    else
+      primitives.${
+        customType.type
+      } or (mkOptionType {
+        name = customType._type;
+        description = customType.description or customType._type;
+        inherit (customType) check;
+        merge = mergeUniqueOption;
+      });
 
   /**
   Creates a boolean enable option whose default is derived from a condition.

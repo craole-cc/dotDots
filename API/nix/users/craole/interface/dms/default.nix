@@ -1,4 +1,6 @@
 {
-  settings = import ./settings.nix;
-  plugins = import ./plugins.nix;
+  dms = {
+    settings = import ./settings.nix;
+    plugins = import ./plugins.nix;
+  };
 }

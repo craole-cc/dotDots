@@ -295,9 +295,7 @@
   "powerMenuGridLayout" = true;
   "updaterCheckOnStart" = true;
   "screenPreferences" = {
-    "wallpaper" = [
-      "all"
-    ];
+    "wallpaper" = ["all"];
   };
   "displayProfileAutoSelect" = true;
   "connectedFrameBarStyleBackups" = {
@@ -860,9 +858,7 @@
       "id" = "dock";
       "name" = "Dock";
       "enabled" = true;
-      "screenPreferences" = [
-        "all"
-      ];
+      "screenPreferences" = ["all"];
       "showOnLastDisplay" = true;
       "position" = 1;
       "mode" = "compact";
@@ -873,7 +869,7 @@
       "itemSpacing" = 8;
       "margin" = 0;
       "bottomGap" = 0;
-      "transparency" = 1;
+      "transparency" = 96;
       "followInterfaceStyle" = true;
       "autoHide" = false;
       "smartAutoHide" = true;
@@ -939,8 +935,8 @@
   "hyprlandDwindleSmartSplit" = true;
   "hyprlandDwindlePreserveSplit" = false;
   "floatingWindowForegroundLayers" = true;
-  "wallpaperFillMode" = "Pad";
-  "hyprlandWindowOpacity" = 100;
+  "wallpaperFillMode" = "Fill";
+  "hyprlandWindowOpacity" = 96;
   "hyprlandGroupbarDisableWhenOnly" = true;
   "hyprlandGroupbarBlur" = true;
   "hyprlandGlowEnabled" = true;

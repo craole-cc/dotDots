@@ -1,6 +1,5 @@
 {lix, ...}: let
   inherit (lix.options.construction) mkFalse mkIntOption mkTrue mkStrOption;
-  inherit (lix.types.primitives) bool int str;
 in {
   constraints = {
     desiredColor = {
@@ -11,6 +10,7 @@ in {
         description = "Variety desired color.";
       };
     };
+
     minSize = {
       enable = mkTrue "Variety min size enabled.";
       value = mkIntOption {
@@ -18,16 +18,18 @@ in {
         description = "Variety min size.";
       };
     };
+
     landscape = {
       enable = mkTrue "Variety use landscape enabled.";
     };
-  };
-  lightness = {
-    enable = mkFalse "Variety lightness enabled.";
 
-    mode = mkIntOption {
-      default = 0;
-      description = "Variety lightness mode.";
+    lightness = {
+      enable = mkFalse "Variety lightness enabled.";
+
+      mode = mkIntOption {
+        default = 0;
+        description = "Variety lightness mode.";
+      };
     };
 
     minRating = {

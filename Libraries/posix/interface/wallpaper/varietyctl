@@ -786,13 +786,13 @@ case "$action" in
   love)
     need "$tool_variety" variety
     "$tool_variety" --favorite "$@" || exit $?
-    notify_user --app-name=Variety --icon=emblem-favorite "Wallpaper added to favourites" "${1:-}"
+    notify_user --app-name=Variety --icon=emblem-favorite "Wallpaper added to favourites"
     exit 0
     ;;
   trash | blacklist)
     need "$tool_variety" variety
     "$tool_variety" --trash "$@" || exit $?
-    notify_user --app-name=Variety --icon=user-trash "Wallpaper deleted and blacklisted" "${1:-}"
+    notify_user --app-name=Variety --icon=user-trash "Wallpaper deleted and blacklisted"
     exit 0
     ;;
   preferences) run_variety --show-preferences "$@" ;;
@@ -848,6 +848,5 @@ case "$action" in
   get) get_wallpaper ;;
   set)
     set_wallpaper "$@"
-    notify_user --app-name=Variety --icon="$1" "Wallpaper changed" "${1##*/}"
     ;;
 esac
