@@ -57,10 +57,19 @@
       packageType = nullOr package;
     };
 
-    variety = {
-      condition = true;
-      enable = cfg.engines.active == "variety";
-      options = variety.options;
+    variety = let
+      name = "variety";
+      condition = (ctx.windowManagers != null) || (ctx.desktopEnvironments != null);
+    in {
+      inherit condition;
+      package = packages.${name};
+      enable = condition && cfg.engines.active == name;
+      options = variety.options // {
+        enable = mkEnable {
+          inherit context;
+          condition = engines.${name}.enable;
+        };
+      };
     };
   };
 

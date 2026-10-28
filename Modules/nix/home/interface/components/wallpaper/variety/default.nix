@@ -29,7 +29,6 @@ The parent wallpaper component composes these options and outputs under its engi
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.construction) concatStringsSep;
   inherit (lix.strings.transformation) escapeShellArg;
-
   paths' = let
     inherit (config.xdg) configHome;
     inherit (paths'.variety) profiles;

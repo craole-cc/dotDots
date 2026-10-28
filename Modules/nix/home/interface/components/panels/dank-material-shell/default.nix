@@ -16,7 +16,8 @@
     mod = "dms-shell";
   };
   inherit (context) cfg ctx;
-  inherit (lix.attrsets.aggregation) mergeSafe;
+  quickshell = context.resolved.cfg.interface.panels.quickshell.explicit;
+  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.styles.icons.types) icon;
@@ -25,31 +26,27 @@
   inherit (lix.types.primitives) package anything;
   inherit (toolkit) packages write;
 
-  record = import ./record.nix {
-    inherit toolkit pkgs inputs lix;
-  };
-  args =
-    record
-    // {
-      inherit config inputs lix pkgs style themes user entryAfter toolkit;
-      configHome =
-        config.xdg.configHome or (concat {
-          root = user.home;
-          stem = ".config";
-        });
+  record = import ./record.nix {inherit toolkit pkgs inputs lix;};
+  args = recursiveUpdate record {
+    inherit config inputs lix pkgs style themes user entryAfter toolkit;
+    configHome =
+      config.xdg.configHome or (concat {
+        root = user.home;
+        stem = ".config";
+      });
 
-      stateHome =
-        config.xdg.stateHome or (concat {
-          root = user.home;
-          stem = ".local/state";
-        });
-    };
+    stateHome =
+      config.xdg.stateHome or (concat {
+        root = user.home;
+        stem = ".local/state";
+      });
+  };
 
   themes = import ./themes args;
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
   addons = import ./plugins args;
-  pluginSettings = write.json "dms-plugin-settings.json" (user.dms.plugins or {});
+  # pluginSettings = write.json "dms-plugin-settings.json" (user.dms.plugins or {});
 in
   mkConfig {
     inherit context;
@@ -63,7 +60,7 @@ in
       };
       package = mkOption {
         description = "Package to use";
-        default = packages.dms-shell;
+        default = record.package;
         type = package;
       };
       icons = mkOption {
@@ -84,8 +81,8 @@ in
             customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
           };
         inherit (addons) plugins;
-        package = cfg.package;
-        quickshell.package = packages.quickshell;
+        inherit (cfg) package;
+        quickshell.package = quickshell.package;
         systemd = {
           enable = true;
           target = "graphical-session.target";
@@ -94,7 +91,7 @@ in
 
       xdg = {
         configFile = mergeSafe (
-          [addons.files {"DankMaterialShell/plugin_settings.json".source = pluginSettings;}]
+          [addons.files {"DankMaterialShell/plugin_settings.json".source = write.json "dms-plugin-settings.json" (user.dms.plugins or {});}]
           ++ map (theme: theme.configFile) (with themes; [
             catppuccin
             foot

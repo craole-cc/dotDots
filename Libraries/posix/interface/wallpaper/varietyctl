@@ -5,7 +5,7 @@ set -u
 
 usage() {
   printf '%s\n' \
-    'Usage: varietyctl {next|previous|love|preferences|get|set|set-lockscreen} [arguments...]' \
+    'Usage: varietyctl {next|previous|love|trash|blacklist|preferences|get|set|set-lockscreen} [arguments...]' \
     '  set|set-lockscreen <file> [change-reason [original-file [mode]]]' \
     '    Variety passes change-reason (manual|auto|refresh), original-file and mode.' \
     '    original-file is preferred for the lock link; mode is argument 4.' \
@@ -770,7 +770,7 @@ case "$action" in
     usage
     exit 0
     ;;
-  next | previous | love | preferences | get | set | set-lockscreen) ;;
+  next | previous | love | trash | blacklist | preferences | get | set | set-lockscreen) ;;
   *)
     usage >&2
     exit 2
@@ -778,7 +778,7 @@ case "$action" in
 esac
 
 case "$action" in
-  next | previous | love | preferences) resolve_tools variety ;;
+  next | previous | love | trash | blacklist | preferences) resolve_tools variety ;;
 esac
 case "$action" in
   next) run_variety --next "$@" ;;
@@ -786,7 +786,13 @@ case "$action" in
   love)
     need "$tool_variety" variety
     "$tool_variety" --favorite "$@" || exit $?
-    notify_user --app-name=Variety --icon=emblem-favorite "Wallpaper added to favourites"
+    notify_user --app-name=Variety --icon=emblem-favorite "Wallpaper added to favourites" "${1:-}"
+    exit 0
+    ;;
+  trash | blacklist)
+    need "$tool_variety" variety
+    "$tool_variety" --trash "$@" || exit $?
+    notify_user --app-name=Variety --icon=user-trash "Wallpaper deleted and blacklisted" "${1:-}"
     exit 0
     ;;
   preferences) run_variety --show-preferences "$@" ;;

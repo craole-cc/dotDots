@@ -85,6 +85,22 @@ _: {
     toolkit = "qt6";
   };
 
+  quickshell = {
+    categories = [
+      "panel"
+      "interface"
+    ];
+    independent = true;
+    engine = [
+      "c++"
+      "qml"
+    ];
+    config = ["qml"];
+    maturity = "young";
+    protocol = ["wayland"];
+    toolkit = "qt6";
+  };
+
   eww = {
     categories = [
       "panel"
