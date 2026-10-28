@@ -28,7 +28,7 @@ The parent wallpaper component composes these options and outputs under its engi
   inherit (lix.filesystem.construction) concat;
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (toolkit) write packages;
+  inherit (toolkit) packages write;
 
   paths' = let
     inherit (config.xdg) configHome;
@@ -83,20 +83,7 @@ The parent wallpaper component composes these options and outputs under its engi
     recursiveUpdate {inherit variety wallpapers;} paths;
 
   controller =
-    write.binWith "varietyctl" (
-      map (name: packages.${name}) [
-        "coreutils"
-        "ripgrep"
-        "jaq"
-        "procps"
-        "findutils"
-        "gnused"
-        "gawk"
-        "bash"
-        "util-linux"
-      ]
-      ++ [packages.libnotify]
-    ) ''
+    write.binWith "varietyctl" packages.scripting ''
       VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
       export VARIETYCTL_BACKEND
       ${readFile paths'.variety.scripts.varietyctl}

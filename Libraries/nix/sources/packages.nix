@@ -177,9 +177,14 @@
       {inherit binaries;}
       // optionalAttrs enableShorthand {bins = binaries;}
       // {
-        packages =
-          mapAttrs (_name: record: record.package) derived.records
-          // {all = derived.packages;};
+        packages = let
+          resolved = mapAttrs (_name: record: record.package) derived.records;
+        in
+          resolved
+          // {
+            all = derived.packages;
+            scripting = map (name: resolved.${name}) (attrNames _default.toolkit.groups.scripting);
+          };
       };
 
     formats =

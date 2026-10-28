@@ -171,22 +171,32 @@
 
   # TODO: Add dependencies and Examples to the doc
   /**
-  Normalises inputs of a flake
+  Normalises the inputs of a flake.
+
+  Accepts a raw inputs attrset, an attrset with `flake`, `path` or `inputs`,
+  or a path/string (stored as `path`). Only the `inputs` form is currently
+  read; `flake` and `path` are accepted but not yet resolved.
 
   # Input
-  flake: An already evaluated flake. (optional)
-  path: The filesystem path to the flake (defaults to `src`).
-  inputs: Raw flake inputs. Defaults to `(defaults to current flake inputs)`.
+  value: One of
+    - an inputs attrset
+    - `{ inputs, flake?, path? }`
+    - a path or string
 
   # Returns
   raw: The unmodified `inputs` block from the original flake.
-  core: Nixpkgs channels with built-in fallback chains.
-  home: System builders, themes, editors, and other standard inputs.
-  plus each normalized input at the top level.
+  caches: Binary cache definitions (`sub`, `key`, `when`) for resolved inputs.
+  selection: Which inputs to read packages from.
+    core = { attrs = "legacyPackages"; names = [...]; }
+    home = { attrs = "packages"; names = [...]; }
+  nixpkgs, nixpkgs-stable?, nixpkgs-unstable?: Resolved channels. The stable
+    and unstable entries appear only when their rev differs from `nixpkgs`.
+  Plus each resolved home input at the top level, keyed by its canonical name.
+  Inputs that don't resolve are empty.
 
   # Type
   ```nix
-  tryNames :: { names :: [string], default? :: a } -> a
+  normalize :: AttrSet | Path | String -> AttrSet
   ```
   */
   normalize = value: let
@@ -375,7 +385,6 @@
       dank-greeter = {
         names = [
           "greeterDankMaterial"
-          "shellDank"
           "dank-material-greeter"
           "dms-greeter"
           "greeterDankMaterial"
@@ -584,6 +593,17 @@
 
     home = mapAttrs (_: spec: tryNames spec.names) specs;
 
+    selection = {
+      core = {
+        attrs = "legacyPackages";
+        names = attrNames core;
+      };
+      home = {
+        attrs = "packages";
+        names = attrNames (filterAttrs (_: isNotEmpty) home);
+      };
+    };
+
     caches =
       (pipe specs [
         (filterAttrs (name: spec: spec ? cache && isNotEmpty home.${name}))
@@ -602,7 +622,7 @@
         };
       };
   in
-    {inherit raw caches;} // core // home;
+    {inherit raw caches selection;} // core // home;
 in
   with meta.exports;
     internal

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# shellcheck disable=SC2016,SC2154
+# The help text and awk program intentionally contain literal shell syntax;
+# tool_* variables are assigned indirectly by resolve_tools.
+
 # Minimum hyprpaper version: 0.8.0.
 set -u
 
