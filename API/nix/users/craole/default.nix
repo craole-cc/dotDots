@@ -59,6 +59,7 @@
       "codex"
       "ollama"
     ];
+    # TODO: Change to panel, here and downstream
     bar = [
       "dms"
       # "caelestia"
@@ -273,7 +274,7 @@
           cursor = "material-cursors";
           opacity = {
             terminal = 0.80;
-            editor = 0.90;
+            editor = 0.10;
           };
         };
         dark = {
@@ -282,7 +283,7 @@
           cursor = "catppuccin-cursors";
           opacity = {
             terminal = 0.75;
-            editor = 0.98;
+            editor = 0.99;
           };
         };
         default = dark;
