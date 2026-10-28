@@ -84,7 +84,7 @@ in
             customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
           };
         inherit (addons) plugins;
-        inherit package;
+        package = cfg.package;
         quickshell.package = packages.quickshell;
         systemd = {
           enable = true;
