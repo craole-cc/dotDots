@@ -1,5 +1,5 @@
 # Pure data + group derivation. No nixpkgs needed.
-let
+{}: let
   inherit (builtins) attrNames concatMap filter listToAttrs;
 
   sources = import ./sources.nix;

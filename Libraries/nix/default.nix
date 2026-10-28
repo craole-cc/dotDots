@@ -6,6 +6,7 @@
   allowAliases ? false,
   allowTests ? false,
   paths ? {},
+  host ? {},
   ...
 } @ args: let
   derived = let
@@ -44,7 +45,7 @@
             api.default.store = ../../API/nix;
           };
         }
-        (args.paths or {});
+        paths;
 
       settings = {
         inherit allowAliases allowTests collisionStrategy;
@@ -74,17 +75,24 @@
     # API-owned structural tree used when no physical host is selected.
     # Its repository store projection is sufficient for importing modules,
     # while host-specific local paths are supplied only by explicit hosts.
-    structuralPaths = mkTree {
-      inherit (schema.paths) roots stems;
-    };
+    # structuralPaths = mkTree {
+    #   inherit (schema.paths) roots stems;
+    # };
 
-    selected =
-      if args ? host
-      then {
-        inherit (args) host;
-        inherit (args.host) paths;
-      }
-      else {paths = structuralPaths;};
+    # selected =
+    #   if args ? host
+    #   then {
+    #     inherit (args) host;
+    #     inherit (args.host) paths;
+    #   }
+    #   else {paths = structuralPaths;};
+    selected = {
+      inherit host;
+      paths =
+        host.paths or (mkTree {
+          inherit (schema.paths) roots stems;
+        });
+    };
   in
     recursiveUpdate init ({inherit schema;} // selected);
 

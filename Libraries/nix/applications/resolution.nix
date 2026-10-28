@@ -352,7 +352,7 @@
         inputPath = null;
       };
 
-      "warp-terminal" = {pkgs, ...}: {
+      "warp-terminal" = _: {
         cmd = "warp-terminal";
         # Warp Preview is installed by the Home Manager terminal module.
         # Do not add Nixpkgs' stable Warp package to the system profile.
