@@ -1472,6 +1472,13 @@ in {
     };
   };
 
+  nemo = mkSource {
+    categories = ["desktop-ui"];
+    description = "Nemo file manager with extensions";
+    target = (import ../../applications/data/explorers.nix {}).nemo.names.package;
+    exe = "nemo";
+  };
+
   ouch = mkSource {
     categories = ["archives" "scripting"];
     description = "unified archive compressor and decompressor for tar, zip, 7z, gz, xz, zst, and more";

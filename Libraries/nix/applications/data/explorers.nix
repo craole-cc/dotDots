@@ -86,7 +86,7 @@ _: {
 
   nemo = {
     names = {
-      package = "nemo";
+      package = "nemo-with-extensions";
       command = "nemo";
       class = "nemo";
     };
