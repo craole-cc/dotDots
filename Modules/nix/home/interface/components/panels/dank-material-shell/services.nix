@@ -27,8 +27,8 @@ in {
     paths.dotdots-foot-dms-theme-reload = {
       Unit.Description = "Watch DMS appearance settings and terminal palettes";
       Path.PathChanged = [
-        "${config.xdg.configHome}/DankMaterialShell/settings.json"
-        "${config.xdg.stateHome}/DankMaterialShell/session.json"
+        "${config.xdg.configHome}/dms/settings.json"
+        "${config.xdg.stateHome}/dms/session.json"
         "%h/.config/foot/dank-colors.ini"
       ];
       Install.WantedBy = ["graphical-session.target"];

@@ -11,7 +11,7 @@
   inherit (user.theme.palettes.catppuccin) frappe latte;
 
   configHome = config.xdg.configHome or "${user.home}/.config";
-  relativePath = "DankMaterialShell/themes/catppuccin.json";
+  relativePath = "dms/themes/catppuccin.json";
   name = "catppuccin";
   path = "${configHome}/${relativePath}";
 

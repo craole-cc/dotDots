@@ -18,7 +18,7 @@
   );
 in {
   activation = mkIf (!cfg.managePluginSettings) (entryAfter ["configureDmsTheme" "linkGeneration"] ''
-    settings=${escapeShellArg "${configHome}/DankMaterialShell/plugin_settings.json"}
+    settings=${escapeShellArg "${configHome}/dms/plugin_settings.json"}
     if [ -n "$DRY_RUN_CMD" ]; then
       ${gum} log --level info "Would enable declared DMS plugins in $settings"
     else
@@ -26,7 +26,7 @@ in {
         ${gum} log --level error "Refusing to replace managed DMS plugin settings symlink: $settings" >&2
         exit 1
       fi
-      ${mkdirp} ${escapeShellArg "${configHome}/DankMaterialShell"}
+      ${mkdirp} ${escapeShellArg "${configHome}/dms"}
       tmp="$(${mktemp} "$settings.tmp.XXXXXX")"
       trap '${rmf} "$tmp"' EXIT
       if [ -f "$settings" ]; then

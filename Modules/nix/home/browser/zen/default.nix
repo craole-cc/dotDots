@@ -66,7 +66,7 @@
 
   enable = selectedZen != null;
   dmsEnabled = config.programs.dank-material-shell.enable or false;
-  dmsZenCss = "${config.xdg.configHome}/DankMaterialShell/zen.css";
+  dmsZenCss = "${config.xdg.configHome}/dms/zen.css";
 in
   mkConfig {
     inherit context;

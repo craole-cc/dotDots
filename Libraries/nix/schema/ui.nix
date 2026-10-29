@@ -64,6 +64,7 @@
   #|------------------------------------------------------|
   defaults = {
     inherit (io.defaults) keyboard;
+    dms = {};
     panel = null;
     notifier = null;
     desktopEnvironment = null;
@@ -257,6 +258,11 @@
       default = defaults.keyboard;
       type = io.types.keyboard;
       apply = normalizeKeyboard;
+    };
+    dms = mkOption {
+      description = "Declarative DMS settings, plugin data, clipboard data and session overrides";
+      default = defaults.dms;
+      type = attrsOf anything;
     };
     apps = let
       app = submodule {
@@ -834,6 +840,7 @@
       lineEditor = interface.shell.lineEditor or defaults.shell.lineEditor;
       enhancements = interface.shell.enhancements or defaults.shell.enhancements;
     };
+    dms = interface.dms or {};
 
     keyboard = mergeKeyboards ([
         keyboardDefaults
@@ -863,6 +870,7 @@
       inherit
         enabled
         keyboard
+        dms
         shell
         session
         ;

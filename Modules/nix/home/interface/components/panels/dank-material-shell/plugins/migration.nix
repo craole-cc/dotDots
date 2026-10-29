@@ -15,7 +15,7 @@
   enabled = attrNames (filterAttrs (_: plugin: plugin.enable) config.programs.dank-material-shell.plugins);
 
   pluginPath = let
-    base = "${configHome}DankMaterialShell/plugins";
+    base = "${configHome}dms/plugins";
   in {
     targetDir = base;
     backupDir = "${base}.dms-backup";

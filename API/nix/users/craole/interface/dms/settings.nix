@@ -1,7 +1,6 @@
 {
   "currentThemeName" = "dynamic";
   "currentThemeCategory" = "dynamic";
-  "customThemeFile" = "/home/craole/.config/DankMaterialShell/themes/catppuccin.json";
   "matugenScheme" = "scheme-smart";
   "matugenContrast" = -0.35;
   "popupTransparency" = 0.75;

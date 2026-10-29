@@ -24,7 +24,7 @@
   inherit (lix.filesystem.primitives) concat;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
-  inherit (toolkit) packages write;
+  inherit (toolkit) packages;
 
   record = import ./record.nix {inherit toolkit pkgs inputs lix;};
   args = recursiveUpdate record {
@@ -46,7 +46,6 @@
   sync = import ./sync.nix args;
   activation = import ./activation.nix args;
   addons = import ./plugins args;
-  # pluginSettings = write.json "dms-plugin-settings.json" (user.dms.plugins or {});
 in
   mkConfig {
     inherit context;
@@ -75,11 +74,9 @@ in
       programs.dank-material-shell = {
         inherit (cfg) enable;
         managePluginSettings = false;
-        settings =
-          (user.dms.settings or {})
-          // {
-            customThemeFile = "${args.configHome}/DankMaterialShell/themes/catppuccin.json";
-          };
+        settings = {};
+        clipboardSettings = {};
+        session = {};
         inherit (addons) plugins;
         inherit (cfg) package;
         quickshell.package = quickshell.package;
@@ -91,7 +88,7 @@ in
 
       xdg = {
         configFile = mergeSafe (
-          [addons.files {"DankMaterialShell/plugin_settings.json".source = write.json "dms-plugin-settings.json" (user.dms.plugins or {});}]
+          [addons.files]
           ++ map (theme: theme.configFile) (with themes; [
             catppuccin
             foot

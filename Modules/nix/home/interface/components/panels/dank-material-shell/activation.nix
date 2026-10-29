@@ -9,21 +9,54 @@
   user,
   ...
 }: let
-  inherit (lix.strings.construction) toJSON;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (themes) icons;
-  inherit (toolkit.binaries) chmod cmp dirname install0600 install0644 jaq mkdirp mktemp mvf rmf;
+  inherit (toolkit.binaries) chmod cmp dirname install0644 jaq mkdirp mktemp mvf readlink rmf;
   inherit (themes) catppuccin foot ghostty hermes kitty;
+
+  dms = user.interface.dms;
+  settingsOverrides = dms.settings;
+  settingsDefaults = {
+    currentThemeName = "dynamic";
+    currentThemeCategory = "dynamic";
+    customThemeFile = catppuccin.path;
+    matugenScheme = "scheme-smart";
+    matugenContrast = -0.35;
+    screenPreferences.wallpaper = ["all"];
+    runDmsMatugenTemplates = true;
+    matugenTemplateGtk = true;
+    matugenTemplateGhostty = ghostty.matugenTemplateEnabled;
+    matugenTemplateFoot = foot.matugenTemplateEnabled;
+    matugenTemplateVscode = true;
+    matugenTemplateZed = true;
+    matugenTemplateZenBrowser = true;
+    iconThemeDark = icons.dark.theme;
+    iconThemeLight = icons.light.theme;
+    iconThemePerMode = true;
+  };
+  sessionDefaults = {
+    isLightMode = style.mode == "light";
+    themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
+  };
+
+  settingsOverridesFile = toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
+  settingsDefaultsFile = toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
+  pluginOverridesFile = toolkit.write.json "dms-plugin-settings-overrides.json" dms.plugins;
+  clipboardOverridesFile = toolkit.write.json "dms-clipboard-settings-overrides.json" dms.clipboardSettings;
+  sessionOverridesFile = toolkit.write.json "dms-session-overrides.json" dms.session;
+  sessionDefaultsFile = toolkit.write.json "dms-session-defaults.json" sessionDefaults;
 in
   entryAfter ["writeBoundary"] ''
-    settings=${escapeShellArg "${configHome}/DankMaterialShell/settings.json"}
-    session=${escapeShellArg "${stateHome}/DankMaterialShell/session.json"}
+    settings=${escapeShellArg "${configHome}/dms/settings.json"}
+    plugins=${escapeShellArg "${configHome}/dms/plugin_settings.json"}
+    clipboard=${escapeShellArg "${configHome}/dms/clsettings.json"}
+    session=${escapeShellArg "${stateHome}/dms/session.json"}
     foot_theme=${escapeShellArg foot.path}
     ghostty_opacity=${escapeShellArg ghostty.opacity.path}
     kitty_opacity=${escapeShellArg kitty.opacity.path}
 
     if [ -n "$DRY_RUN_CMD" ]; then
-      echo "Would seed missing DMS settings and terminal appearance files"
+      echo "Would reconcile declared DMS settings and seed missing appearance files"
     else
       ${mkdirp} "$(${dirname} "$settings")" "$(${dirname} "$session")" \
         "$(${dirname} "$foot_theme")" "$(${dirname} "$ghostty_opacity")" \
@@ -38,65 +71,45 @@ in
         ${install0644} ${kitty.opacity.fallback} "$kitty_opacity"
       fi
 
-      # DMS owns its mutable files while running. Seed declarative defaults on
-      # first use; activation must preserve the user's saved choices.
-      tmp="$(${mktemp})"
-      trap '${rmf} "$tmp"' EXIT
-      if [ ! -e "$settings" ] && [ ! -L "$settings" ]; then
-        ${jaq} -n \
-          --arg theme ${escapeShellArg catppuccin.pathStr} \
-          --arg darkIcons ${escapeShellArg icons.dark.name} \
-          --arg lightIcons ${escapeShellArg icons.light.name} '{
-            currentThemeName: "dynamic",
-            currentThemeCategory: "dynamic",
-            customThemeFile: $theme,
-            matugenScheme: "scheme-smart",
-            matugenContrast: -0.35,
-            screenPreferences: {wallpaper: ["all"]},
-            runDmsMatugenTemplates: true,
-            matugenTemplateGtk: true,
-            matugenTemplateGhostty: ${toJSON ghostty.matugenTemplateEnabled},
-            matugenTemplateFoot: ${toJSON foot.matugenTemplateEnabled},
-            matugenTemplateVscode: true,
-            matugenTemplateZed: true,
-            matugenTemplateZenBrowser: true,
-            iconThemeDark: $darkIcons,
-            iconThemeLight: $lightIcons,
-            iconThemePerMode: true
-          }' > "$tmp"
-        ${install0600} "$tmp" "$settings"
-      fi
-      if [ -f "$settings" ] && [ ! -L "$settings" ]; then
-        settings_tmp="$(${mktemp} "$settings.tmp.XXXXXX")"
-        if ${jaq} \
-          --arg theme ${escapeShellArg catppuccin.path} \
-          --argjson ghosttyTemplate ${toJSON ghostty.matugenTemplateEnabled} \
-          --argjson footTemplate ${toJSON foot.matugenTemplateEnabled} \
-          ' .customThemeFile = (if .currentThemeName == "dynamic" then $theme else .customThemeFile end) |
-            .runDmsMatugenTemplates = (.runDmsMatugenTemplates // true) |
-            .matugenTemplateGtk = (.matugenTemplateGtk // true) |
-            .matugenTemplateGhostty = (.matugenTemplateGhostty // $ghosttyTemplate) |
-            .matugenTemplateFoot = (.matugenTemplateFoot // $footTemplate) ' \
-          "$settings" > "$settings_tmp"; then
-          if ! ${cmp} -s "$settings_tmp" "$settings"; then
-            ${chmod} 0600 "$settings_tmp"
-            ${mvf} "$settings_tmp" "$settings"
-          else
-            ${rmf} "$settings_tmp"
+      merge_json() {
+        local target="$1" overrides="$2" defaults="$3" create="$4" target_tmp
+        if [ ! -e "$target" ] && [ ! -L "$target" ] && [ "$create" != "true" ]; then
+          return 0
+        fi
+        if [ -L "$target" ]; then
+          case "$(${readlink} -f "$target")" in
+            /nix/store/*) ;;
+            *) echo "Refusing to replace unmanaged DMS settings symlink: $target" >&2; return 1 ;;
+          esac
+        fi
+        target_tmp="$(${mktemp} "$target.tmp.XXXXXX")" || return 1
+        if [ -f "$target" ]; then
+          if ! ${jaq} --slurpfile overrides "$overrides" --slurpfile defaults "$defaults" \
+            '($defaults[0] * .[0] * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
+            "$target" > "$target_tmp"; then
+            ${rmf} "$target_tmp"
+            return 1
           fi
         else
-          ${rmf} "$settings_tmp"
-          echo "Could not reconcile DMS settings defaults" >&2
+          if ! ${jaq} -n --slurpfile overrides "$overrides" --slurpfile defaults "$defaults" \
+            '($defaults[0] * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
+            > "$target_tmp"; then
+            ${rmf} "$target_tmp"
+            return 1
+          fi
         fi
-      fi
-      if [ ! -e "$session" ] && [ ! -L "$session" ]; then
-        printf '%s\n' ${escapeShellArg (toJSON {
-      isLightMode = style.mode == "light";
-      themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
-    })} > "$tmp"
-        ${install0600} "$tmp" "$session"
-      fi
-      ${rmf} "$tmp"
-      trap - EXIT
+        if ! ${cmp} -s "$target_tmp" "$target"; then
+          ${chmod} 0600 "$target_tmp"
+          ${mvf} -f "$target_tmp" "$target"
+        else
+          ${rmf} "$target_tmp"
+        fi
+      }
+
+      # API overrides win on each activation; unlisted values remain mutable in DMS.
+      merge_json "$settings" ${escapeShellArg settingsOverridesFile} ${escapeShellArg settingsDefaultsFile} true
+      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg (toolkit.write.json "dms-empty-defaults.json" {})} true
+      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg (toolkit.write.json "dms-empty-defaults.json" {})} false
+      merge_json "$session" ${escapeShellArg sessionOverridesFile} ${escapeShellArg sessionDefaultsFile} true
     fi
   ''
