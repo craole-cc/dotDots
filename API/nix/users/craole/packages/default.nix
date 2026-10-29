@@ -67,14 +67,14 @@ let
   ];
 
   media = [
-    "lollypop"
+    "kew"
     "freetube"
     "shortwave"
     "celluloid"
     "mpv"
-    "kew"
-    "playerctl"
     "cmus"
+    "playerctl"
+    # "lollypop"
   ];
 
   launcher = [
