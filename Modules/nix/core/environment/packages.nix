@@ -300,11 +300,6 @@ in
     outputs = mkIf cfg.enable {
       nixpkgs.overlays = [
         inputs."rust-overlay".overlays.default
-        (finalPackages: previousPackages: {
-          khal = previousPackages.khal.overridePythonAttrs (_: {
-            sphinxBuilders = "html man";
-          });
-        })
       ];
       environment.systemPackages = flatten (cfg.default ++ cfg.extra);
     };
