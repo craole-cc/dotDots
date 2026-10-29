@@ -26,6 +26,8 @@ let
 
   explorer = [
     "yazi"
+    "nemo-with-extensions"
+    "thunar"
     "doublecmd"
   ];
 
