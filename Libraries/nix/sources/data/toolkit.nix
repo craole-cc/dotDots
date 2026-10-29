@@ -648,7 +648,8 @@ in {
   dux-calendar = mkSource {
     categories = ["desktop-ui"];
     description = "Dux Calendar";
-    input = "nixPackages";
+    input = "nixpkgs";
+    target = "dankcalendar";
   };
 
   dprint = mkSource {
