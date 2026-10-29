@@ -332,7 +332,6 @@ _: {
       title = "Visual Studio Code";
     };
     exec = "code";
-    launch.scratchpad = "code --new-window";
     categories = [
       "editor"
       "ide"
@@ -348,7 +347,6 @@ _: {
       class = "code-insiders";
     };
     exec = "code-insiders";
-    launch.scratchpad = "code-insiders --new-window";
     categories = [
       "editor"
       "ide"

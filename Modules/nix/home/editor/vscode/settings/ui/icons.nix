@@ -2,8 +2,8 @@ _: {
   extensions = [
     #? Material Design Icons for VS Code
     "PKief.material-icon-theme"
-    #? Element Plus style product icon theme
-    "ElAnandKumar.el-vsc-product-icon-theme"
+    #? Material Product Icons for VS Code
+    "PKief.material-product-icons"
   ];
 
   settings = {
@@ -13,7 +13,7 @@ _: {
       iconTheme = "material-icon-theme";
       #> Active product icon theme.
       #! overridden (default: "Default")
-      productIconTheme = "el-vsc-v1-icons";
+      productIconTheme = "material-product-icons";
     };
 
     material-icon-theme = {
