@@ -12,11 +12,16 @@
                      if not ok:
                          logger.error("Gio.File.trash failed")
                          self.show_notification(
-@@ -2126,11 +2126,12 @@
+@@ -2125,12 +2130,16 @@
+                 file = self.current
              if not file:
                  return
-             if os.access(file, os.R_OK) and not self.is_in_favorites(file):
+-            if os.access(file, os.R_OK) and not self.is_in_favorites(file):
 -                self.move_or_copy_file(
++            if self.is_in_favorites(file):
++                self.show_notification(_("Already in Favs"), os.path.basename(file))
++                return
++            if os.access(file, os.R_OK):
 +                ok = self.move_or_copy_file(
                      file, self.options.favorites_folder, "favorites", shutil.copy
                  )
@@ -28,7 +33,19 @@
          except Exception:
              logger.exception(lambda: "Exception in copy_to_favorites")
  
-@@ -2161,6 +2162,9 @@
+@@ -2140,7 +2149,10 @@
+                 file = self.current
+             if not file:
+                 return
+-            if os.access(file, os.R_OK) and not self.is_in_favorites(file):
++            if self.is_in_favorites(file):
++                self.show_notification(_("Already in Favs"), os.path.basename(file))
++                return
++            if os.access(file, os.R_OK):
+                 operation = shutil.move if os.access(file, os.W_OK) else shutil.copy
+                 ok = self.move_or_copy_file(
+                     file, self.options.favorites_folder, "favorites", operation
+@@ -2161,6 +2173,9 @@
              logger.exception(lambda: "Exception in move_to_favorites")
  
      def report_image_favorited(self, img):
