@@ -1,9 +1,24 @@
-{style, ...}: {
+{
+  pkgs,
+  style,
+  ...
+}: let
+  # Match the FHS profile until the locked catalogues include this release.
+  materialIcons = pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+    mktplcRef = {
+      publisher = "PKief";
+      name = "material-icon-theme";
+      version = "5.40.0";
+      sha256 = "sha256-VbVl8gCIGr/YB7r5vlL85F/VL+8BO6cbD4OUmEzhrgY=";
+    };
+  };
+in {
   extensions = [
     #? Material Design Icons for VS Code
-    "PKief.material-icon-theme"
+    materialIcons
     #? Material Product Icons for VS Code
     "PKief.material-product-icons"
+    "elanandkumar.el-vsc-product-icon-theme"
   ];
 
   settings = {
@@ -13,7 +28,7 @@
       iconTheme = "material-icon-theme";
       #> Active product icon theme.
       #! overridden (default: "Default")
-      productIconTheme = "material-product-icons";
+      productIconTheme = "el-vsc-v1-icons";
     };
 
     material-icon-theme = {

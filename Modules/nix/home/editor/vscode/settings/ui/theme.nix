@@ -50,12 +50,6 @@ in {
       #? Preferred HC light theme.
       preferredHighContrastLightColorTheme = "Default High Contrast Light";
 
-      #? File icon theme.
-      iconTheme = "material-icon-theme";
-
-      #? Product icon theme.
-      productIconTheme = "el-vsc-v1-icons";
-
       #> Overrides for the current colour theme.
       # colorCustomizations = {};
     };
