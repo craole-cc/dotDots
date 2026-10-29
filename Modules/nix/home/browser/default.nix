@@ -4,5 +4,6 @@
     # ./edge
     ./zen
     # ./firefox
+    ./external-handler.nix
   ];
 }

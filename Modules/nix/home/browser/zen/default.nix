@@ -5,14 +5,12 @@
   style,
   user,
   paths,
-  lib,
   ...
 }: let
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.options.construction) mkEnable;
   inherit (lix.applications.registry) resolve;
   inherit (lix.strings.transformation) normalize;
-  inherit (lix.lists.access) elemAt length;
   inherit (lix.schema.packages) selectedPackages;
 
   context = mkContext {
@@ -43,22 +41,12 @@
   isZen = app: app != null && (app.family or "") == "zen";
 
   browsers = map maybeBrowser selections;
-  browserAt = index:
-    if index < length browsers
-    then elemAt browsers index
-    else null;
-  primaryBrowser = browserAt 0;
-  secondaryBrowser = browserAt 1;
-  tertiaryBrowser = browserAt 2;
   allowedZen = builtins.filter isZen (
     builtins.filter
     (app: app != null)
     (map maybeBrowser allowed)
   );
 
-  isPrimary = isZen primaryBrowser;
-  isSecondary = isZen secondaryBrowser;
-  isTertiary = isZen tertiaryBrowser;
   requestedZen = builtins.filter isZen browsers ++ allowedZen;
   selectedZen =
     if requestedZen != []
@@ -78,7 +66,6 @@ in
     outputs = {
       programs.zen-browser = {
         enable = true;
-        setAsDefaultBrowser = isPrimary;
         profiles.${user.name} = mkMerge [
           (
             if dmsEnabled
@@ -103,17 +90,5 @@ in
           (import ./preferences.nix {inherit lix;})
         ];
       };
-
-      home.sessionVariables =
-        if isPrimary
-        then {
-          BROWSER = lib.mkForce selectedZen.exec;
-          BROWSER_PRI = lib.mkForce selectedZen.exec;
-        }
-        else if isSecondary
-        then {BROWSER_SEC = lib.mkForce selectedZen.exec;}
-        else if isTertiary
-        then {BROWSER_TER = lib.mkForce selectedZen.exec;}
-        else {};
     };
   }
