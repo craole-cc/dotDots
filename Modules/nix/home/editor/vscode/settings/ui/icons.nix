@@ -1,4 +1,4 @@
-_: {
+{style, ...}: {
   extensions = [
     #? Material Design Icons for VS Code
     "PKief.material-icon-theme"
@@ -30,7 +30,7 @@ _: {
       files = {
         #> File icon colour.
         #! overridden (default: "#90a4ae")
-        color = "#81c8be"; #TODO: This should be the global accent color
+        color = style.accentColor;
 
         #~@ File Associations
         #! overridden (default: {})
@@ -139,7 +139,7 @@ _: {
       folders = {
         #> Folder icon colour.
         #! overridden (default: "#90a4ae")
-        color = "#81c8be"; #TODO: This should be the global accent color
+        color = style.accentColor;
         #> Folder icon theme.
         #?  - specific | classic | none
         theme = "specific";
@@ -365,7 +365,7 @@ _: {
       #> Custom root-folder associations.
       "rootFolders.associations" = {};
       #> Root-folder icon colour.
-      rootFolders.color = "#90a4ae";
+      rootFolders.color = style.accentColor;
 
       # ── Custom language icon clones ─────────────────────────────────────
       #! overridden (default: [])

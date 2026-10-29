@@ -22,10 +22,19 @@
     palette = user.theme.modes.${mode}.palette or (host.theme.modes.${mode}.palette or {});
     variant = toLower (palette.name or (legacyTheme.${mode} or "Catppuccin Latte"));
     accentValue = palette.accent or (legacyTheme.accent or "rosewater");
-    accentName = findFirstOrNull
+    accentName =
+      findFirstOrNull
       (name: palette.colors.${name} == accentValue)
       (attrNames (palette.colors or {}));
-    accent = toLower (if accentName == null then accentValue else accentName);
+    accent = toLower (
+      if accentName == null
+      then accentValue
+      else accentName
+    );
+    accentColor =
+      if accentName == null
+      then accentValue
+      else palette.colors.${accentName};
     flavor =
       if hasInfix "frappe" variant || hasInfix "frappé" variant
       then "frappe"
@@ -112,6 +121,7 @@
       mode
       variant
       accent
+      accentColor
       flavor
       catppuccin
       icons
