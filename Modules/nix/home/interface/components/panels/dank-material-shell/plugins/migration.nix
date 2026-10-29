@@ -1,5 +1,4 @@
 {
-  toolkit,
   configHome,
   config,
   inputs,
@@ -11,7 +10,7 @@
   inherit (lix.attrsets.construction) listToAttrs;
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
-  inherit (toolkit.binaries) mkdirp mvt readlink;
+  inherit (lix.toolkit.binaries) mkdirp mvt readlink;
   enabled = attrNames (filterAttrs (_: plugin: plugin.enable) config.programs.dank-material-shell.plugins);
 
   pluginPath = let

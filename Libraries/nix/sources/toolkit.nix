@@ -22,22 +22,28 @@
   inherit (_.attrsets.aggregation) intersectAttrs mergeDisjoint recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.filesystem.importers) importAllMerged;
-  inherit (_.lists.access) attrNames;
+  inherit (_.attrsets.access) attrNames;
   inherit (_.lists.access) head tail;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) filter;
+  inherit (_.types.predicates) isList;
   inherit (_.sources.packages) pkgsFrom mkAll;
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) escapeShellArgs;
 
   #~@ Data
   #? Keys that are ours, not `pkgsFrom`'s.
-  ownKeys = ["name" "categories" "description" "prefer"];
+  ownKeys = ["name" "categories" "description" "prefer" "aliases"];
+  normalizeCategories = categories:
+    if isList categories
+    then concatMap normalizeCategories categories
+    else if categories == null
+    then []
+    else [categories];
 
   registry = let
-    load = name: importAllMerged ./data/toolkit/${name} {};
+    toolkit = import ./data/tools.nix;
     describe = entries: {
       inherit entries;
       names = attrNames entries;
@@ -49,7 +55,7 @@
     `prefer` lists the binaries this source wins when several packages ship
     the same one.
     */
-    sources =
+    sources = describe (
       mapAttrs (
         name: source:
           recursiveUpdate {
@@ -57,10 +63,15 @@
             categories = [];
             prefer = [];
           }
-          source
+          (source // {categories = normalizeCategories (source.categories or []);})
       )
-      (load "sources");
-    aliases = describe (load "aliases");
+      toolkit
+    );
+    aliases = describe (mergeDisjoint {
+      context = "toolkit aliases";
+      sets = map (sourceName: toolkit.${sourceName}.aliases or {}) (attrNames toolkit);
+    });
+    prefer = import ./data/prefer.nix;
   };
 
   #? Name lists, not specs.
@@ -106,8 +117,8 @@
     };
 
   /**
-  Render alias specs (`{cmd = [binary arg...]; doc?;}`) against resolved
-  binaries. Arguments are shell-escaped.
+  Render alias specs (`{cmd = [binary arg...]; description?;}`) against
+  resolved binaries. Arguments are shell-escaped.
 
   Throws if an alias name shadows a real binary, or if an alias refers to a
   binary that is not among the sources.
@@ -167,9 +178,6 @@
 
       aliases = defaults.aliases // aliases;
       sources = defaults.sources // sources;
-      docs = {
-        aliases = mapAttrs (_: spec: spec.doc or null) resolved.aliases;
-      };
     };
     pkgs' = resolved.pkgs;
 
@@ -183,31 +191,40 @@
 
     derived = pkgsFrom {
       inherit inputs enableShorthand;
-      inherit (resolved) aliases pkgs;
+      inherit (resolved) pkgs;
       required = true;
-      prefer = defaults.prefer // prefer;
+      prefer = registry.prefer // prefer;
       sources = forPkgsFrom resolved.sources;
     };
 
-    binaries = recursiveUpdate derived.binaries mkAliases {
+    binaries = recursiveUpdate derived.binaries (mkAliases {
       inherit (derived) binaries;
       inherit (resolved) aliases;
-    };
+    });
 
     defined = let
       pkgsByName = mapAttrs (_name: spec: spec.package) derived.records;
     in
       {
         inherit binaries;
-        inherit (resolved) docs;
-        packages = recursiveUpdate pkgsByName {
-          all = derived.packages;
-          group =
+        descriptions =
+          derived.descriptions
+          // mapAttrs (_: spec: let
+            description = spec.description or null;
+          in
+            if description == null
+            then head spec.cmd
+            else "${head spec.cmd} - ${description}")
+          resolved.aliases;
+        packages = recursiveUpdate pkgsByName (recursiveUpdate
+          (
             mapAttrs
             (_groupName: members: map (member: pkgsByName.${member}) members)
-            categories;
-          utils = map (member: pkgsByName.${member}) categories.scripting;
-        };
+            categories
+          ) {
+            all = derived.packages;
+            scripting = map (member: pkgsByName.${member}) categories.scripting;
+          });
       }
       // (optionalAttrs enableShorthand {bins = binaries;});
 
@@ -274,8 +291,8 @@
     mergeDisjoint {
       context = "mkToolkit";
       sets = [
-        # `packages`, `binaries` and `bins` are re-exported via `defined`
-        (removeAttrs derived ["packages" "binaries" "bins"])
+        # These derived values are re-exported via `defined`
+        (removeAttrs derived ["packages" "binaries" "bins" "descriptions"])
         defined
         helpers
       ];
@@ -284,7 +301,7 @@
   defaults = with registry; {
     sources = sources.entries;
     aliases = aliases.entries;
-    prefer = preferFrom sources.entries;
+    inherit prefer;
   };
 in
   meta.exports.local

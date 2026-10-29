@@ -3,7 +3,6 @@
   lix,
   user,
   inputs,
-  toolkit,
   pkgs,
   style,
   entryAfter,
@@ -24,11 +23,11 @@
   inherit (lix.filesystem.primitives) concat;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
-  inherit (toolkit) packages;
+  inherit (lix.toolkit) packages;
 
-  record = import ./record.nix {inherit toolkit pkgs inputs lix;};
+  record = import ./record.nix {inherit pkgs inputs lix;};
   args = recursiveUpdate record {
-    inherit config inputs lix pkgs style themes user entryAfter toolkit;
+    inherit config inputs lix pkgs style themes user entryAfter;
     configHome =
       config.xdg.configHome or (concat {
         root = user.home;

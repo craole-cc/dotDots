@@ -5,7 +5,6 @@
   cfg,
   context,
   paths,
-  toolkit,
   ...
 } @ args: let
   inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature normalizeSettings;
@@ -401,12 +400,12 @@
 
     options = {
       userSettings = mkOption {
-        type = toolkit.types.json;
+        type = lix.toolkit.types.formats.json;
         default = {};
       };
       keybindings = mkOption {
         default = [];
-        type = listOf toolkit.types.json;
+        type = listOf lix.toolkit.types.formats.json;
       };
       extensions = mkOption {
         default = [];

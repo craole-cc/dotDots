@@ -7,7 +7,6 @@
   pkgs,
   style,
   user,
-  toolkit,
   fonts,
   ...
 } @ passthru: let
@@ -27,7 +26,7 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.combinators) enum nullOr;
   inherit (lix.types.primitives) package;
-  inherit (toolkit) packages;
+  inherit (lix.toolkit) packages;
 
   args = recursiveUpdate passthru {
     paths = let

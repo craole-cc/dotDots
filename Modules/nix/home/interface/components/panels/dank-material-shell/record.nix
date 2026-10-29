@@ -1,16 +1,16 @@
 {
-  toolkit,
   lix,
   ...
 }: let
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.strings.transformation) replaceStrings;
-  inherit (toolkit) records write;
+  inherit (lix.toolkit) records;
+  inherit (lix.toolkit.builders) applyPatches;
   record = records.dms-shell;
   inherit (record) package paths;
 
   source = paths.outPath;
-  patch = write.source {
+  patch = applyPatches {
     name = "dms-patched-source";
     src = source;
     patches = [./patches/theme-control.patch ./patches/catppuccin-matugen.patch];

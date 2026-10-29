@@ -1,6 +1,7 @@
 {
   _,
   _default,
+  name,
   ...
 }: let
   meta = let
@@ -63,6 +64,7 @@
   };
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
+  inherit (_.attrsets.aggregation) mergeSafe;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsRecursiveCond setAttrByPath;
   inherit (_.attrsets.predicates) isDerivation;
@@ -76,7 +78,6 @@
   inherit (_.modules.home.users) mkUsers;
   inherit (_.options.construction) mkOption;
   inherit (_.sources.modules) mkModules;
-  inherit (_.sources.packages) mkToolkit;
   inherit (_.strings.construction) concat;
   inherit (_.types.combinators) attrsOf submodule;
   inherit (_.types.primitives) anything;
@@ -102,33 +103,37 @@
 
     inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
     lib = extend (_self: _super: {inherit hm;});
+    inherit (lib.hm.dag) entryAfter;
 
     mkArgs = host: let
       hostArgs = import paths.repo.src.store (
         passthru // {inherit host top;} // host
       );
 
-      specialArgs =
-        (removeAttrs hostArgs [
-          "config"
-          "lib"
-          "name" # TODO: Check to see if this is needed
-          "options"
-          "pkgs"
-        ])
-        // {
-          toolkit = mkToolkit {
-            inherit inputs host;
-            inherit (hostArgs) pkgs;
-          };
-        };
+      toolkit = hostArgs.${name}.sources.toolkit.mkToolkit {
+        inherit inputs host;
+        pkgs = hostArgs.pkgs;
+      };
 
-      extraSpecialArgs =
-        specialArgs
-        // {
-          inherit lib;
-          inherit (lib.hm.dag) entryAfter;
-        };
+      specialArgs = mergeSafe [
+        (removeAttrs hostArgs [
+          # Pass only the host context as extra module arguments. The module
+          # system owns these names; forwarding hostArgs wholesale would
+          # shadow evaluator values, expose incomplete state, or cause cycles.
+          "config" #? Evaluated configuration; passing it back would be recursive.
+          "lib" #? Supplied by the module system and extended separately for Home Manager.
+          name #? Replaced below with the toolkit-augmented library namespace.
+          "name" #? Module identity supplied by the evaluator, not a host special argument.
+          "options" #? Evaluated option declarations; these belong to this module evaluation.
+          "pkgs" #? Package set is supplied by the evaluator and must match its platform/config.
+        ])
+        {
+          inherit toolkit;
+          ${name} = _ // {inherit toolkit;};
+        }
+      ];
+
+      extraSpecialArgs = specialArgs // {inherit lib entryAfter;};
     in
       hostArgs // {inherit hostArgs specialArgs extraSpecialArgs;};
 

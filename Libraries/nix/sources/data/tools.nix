@@ -22,7 +22,7 @@ let
   };
 in {
   alejandra = mkSource {
-    categories = ["formatters"];
+    categories = ["formatters" "scripting"];
     description = "opinionated Nix formatter";
     aliases = let
       mk = mkAlias "alejandra";
@@ -43,7 +43,7 @@ in {
   };
 
   bash = mkSource {
-    categories = ["shells"];
+    categories = ["shells" "scripting"];
     description = "Bourne-again shell";
     aliases = let
       mk = mkAlias "bash";
@@ -68,7 +68,7 @@ in {
   };
 
   bat = mkSource {
-    categories = ["files"];
+    categories = ["files" "scripting"];
     description = "cat with syntax highlighting";
     aliases = let
       mk = mkAlias "bat";
@@ -101,7 +101,7 @@ in {
   };
 
   biome = mkSource {
-    categories = ["formatters"];
+    categories = ["formatters" "scripting"];
     description = "fast formatter and linter for JS, TS, JSON, and CSS";
     aliases = let
       mk = mkAlias "biome";
@@ -130,7 +130,7 @@ in {
   };
 
   coreutils = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "core file, text, and shell utilities";
     discover = true;
     aliases = let
@@ -460,7 +460,7 @@ in {
   };
 
   curl = mkSource {
-    categories = "networking";
+    categories = ["networking" "scripting"];
     description = "transfer data with URLs";
     aliases = let
       mk = mkAlias "curl";
@@ -497,7 +497,7 @@ in {
   };
 
   dash = mkSource {
-    categories = ["shells"];
+    categories = ["shells" "scripting"];
     description = "lightweight POSIX sh for `write.posix` shebangs";
     aliases = let
       mk = mkAlias "dash";
@@ -518,7 +518,7 @@ in {
   };
 
   dbus = mkSource {
-    categories = ["desktop-cli"];
+    categories = ["desktop-cli" "scripting"];
     description = "D-Bus command-line tools, including dbus-send and dbus-monitor";
     discover = true; #? dbus-send, dbus-monitor, ...
     exe = "dbus-send";
@@ -546,7 +546,7 @@ in {
   };
 
   diffutils = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "cmp, diff, diff3, and sdiff";
     discover = true; #? cmp, diff, diff3, sdiff
     exe = "cmp";
@@ -592,7 +592,7 @@ in {
   };
 
   dprint = mkSource {
-    categories = ["formatters"];
+    categories = ["formatters" "scripting"];
     description = "pluggable multi-language code formatter";
     aliases = let
       mk = mkAlias "dprint";
@@ -613,7 +613,7 @@ in {
   };
 
   dust = mkSource {
-    categories = ["files"];
+    categories = ["files" "scripting"];
     description = "intuitive du (disk usage)";
     aliases = let
       mk = mkAlias "dust";
@@ -638,7 +638,7 @@ in {
   };
 
   eza = mkSource {
-    categories = ["files"];
+    categories = ["files" "scripting"];
     description = "modern ls replacement";
     aliases = let
       mk = mkAlias "eza";
@@ -683,7 +683,7 @@ in {
   };
 
   fd = mkSource {
-    categories = ["files"];
+    categories = ["files" "scripting"];
     description = "simple, fast find alternative";
     aliases = let
       mk = mkAlias "fd";
@@ -728,7 +728,7 @@ in {
   };
 
   file = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "determine file type";
     aliases = let
       mk = mkAlias "file";
@@ -749,7 +749,7 @@ in {
   };
 
   findutils = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "xargs (find is covered by fd)";
     discover = true;
     aliases = let
@@ -788,7 +788,7 @@ in {
   };
 
   fzf = mkSource {
-    categories = ["files"];
+    categories = ["files" "scripting"];
     description = "command-line fuzzy finder";
     aliases = let
       mk = mkAlias "fzf";
@@ -829,7 +829,7 @@ in {
   };
 
   gawk = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "GNU awk";
     discover = true;
     aliases = let
@@ -856,7 +856,7 @@ in {
   };
 
   gh = mkSource {
-    categories = ["shells"];
+    categories = ["shells" "scripting"];
     description = "GitHub CLI";
     aliases = let
       mk = mkAlias "gh";
@@ -921,7 +921,7 @@ in {
   };
 
   git = mkSource {
-    categories = ["shells"];
+    categories = ["shells" "scripting"];
     description = "distributed version control";
     aliases = let
       mk = mkAlias "git";
@@ -994,7 +994,7 @@ in {
   };
 
   glib = mkSource {
-    categories = "desktop-cli";
+    categories = ["desktop-cli" "scripting"];
     description = "gdbus, gio, and gsettings";
     discover = true; #? gdbus, gio, gsettings, ...
     exe = "gsettings";
@@ -1055,7 +1055,7 @@ in {
   };
 
   gnugrep = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "GNU grep";
     discover = true;
     aliases = let
@@ -1121,7 +1121,7 @@ in {
   };
 
   gnupatch = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "apply diff patches";
     exe = "patch";
     aliases = let
@@ -1155,7 +1155,7 @@ in {
   };
 
   gnused = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "GNU sed";
     discover = true;
     aliases = let
@@ -1193,7 +1193,7 @@ in {
   };
 
   gum = mkSource {
-    categories = ["shells"];
+    categories = ["shells" "scripting"];
     description = "glamorous shell script helpers";
     aliases = let
       mk = mkAlias "gum";
@@ -1255,7 +1255,7 @@ in {
   };
 
   iproute2 = mkSource {
-    categories = ["networking"];
+    categories = ["networking" "scripting"];
     description = "ip, ss, bridge, and related networking tools";
     discover = true; #? ip, ss, bridge, ...
     exe = "ip";
@@ -1303,7 +1303,7 @@ in {
   };
 
   jaq = mkSource {
-    categories = ["text"];
+    categories = ["text" "scripting"];
     description = "jq-compatible JSON processor (Rust)";
     aliases = let
       mk = mkAlias "jaq";
@@ -1344,7 +1344,7 @@ in {
   };
 
   jq = mkSource {
-    categories = ["text"];
+    categories = ["text" "scripting"];
     description = "command-line JSON processor";
     aliases = let
       mk = mkAlias "jq";
@@ -1401,7 +1401,7 @@ in {
   };
 
   libnotify = mkSource {
-    categories = ["desktop-cli"];
+    categories = ["desktop-cli" "scripting"];
     description = "desktop notifications";
     exe = "notify-send";
     aliases = let
@@ -1431,7 +1431,7 @@ in {
   };
 
   moreutils = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "additional Unix tools, including sponge and parallel";
     discover = true;
     aliases = let
@@ -1473,7 +1473,7 @@ in {
   };
 
   ouch = mkSource {
-    categories = ["archives"];
+    categories = ["archives" "scripting"];
     description = "unified archive compressor and decompressor for tar, zip, 7z, gz, xz, zst, and more";
     aliases = let
       mk = mkAlias "ouch";
@@ -1510,7 +1510,7 @@ in {
   };
 
   procps = mkSource {
-    categories = ["system"];
+    categories = ["system" "scripting"];
     description = "pkill, pgrep, ps, top, and related process tools";
     discover = true; #? pkill, pgrep, ps, top, ...
     exe = "pkill";
@@ -1658,7 +1658,7 @@ in {
   };
 
   ripgrep = mkSource {
-    categories = ["text"];
+    categories = ["text" "scripting"];
     description = "fast recursive grep (rg)";
     aliases = let
       mk = mkAlias "rg";
@@ -1743,7 +1743,7 @@ in {
   };
 
   sd = mkSource {
-    categories = ["text"];
+    categories = ["text" "scripting"];
     description = "intuitive sed alternative";
     aliases = let
       mk = mkAlias "sd";
@@ -1785,7 +1785,7 @@ in {
   };
 
   systemd = mkSource {
-    categories = ["system"];
+    categories = ["system" "scripting"];
     description = "systemctl, journalctl, and related systemd tools";
     discover = true; #? systemctl, journalctl, ...
     exe = "systemctl";
@@ -1915,7 +1915,7 @@ in {
   };
 
   tree = mkSource {
-    categories = ["core"];
+    categories = ["core" "scripting"];
     description = "list directory contents as a tree";
     aliases = let
       mk = mkAlias "tree";
@@ -1956,7 +1956,7 @@ in {
   };
 
   util-linux = mkSource {
-    categories = ["system"];
+    categories = ["system" "scripting"];
     description = "mount, lsblk, flock, logger, and related system utilities";
     discover = true; #? mount, lsblk, flock, logger, ...
     exe = "mount";
@@ -2186,7 +2186,7 @@ in {
   };
 
   wl-clipboard = mkSource {
-    categories = ["desktop-cli"];
+    categories = ["desktop-cli" "scripting"];
     description = "wl-copy, wl-paste, and related Wayland clipboard tools";
     discover = true; #? wl-copy, wl-paste
     exe = "wl-copy";
@@ -2234,7 +2234,7 @@ in {
   };
 
   xdg-utils = mkSource {
-    categories = ["desktop-cli"];
+    categories = ["desktop-cli" "scripting"];
     description = "xdg-open, xdg-mime, and related desktop integration tools";
     discover = true; #? xdg-open, xdg-mime, ...
     exe = "xdg-open";
@@ -2274,7 +2274,7 @@ in {
   };
 
   yq-go = mkSource {
-    categories = ["text"];
+    categories = ["text" "scripting"];
     description = "portable YAML, JSON, and XML processor (Go)";
     aliases = let
       mk = mkAlias "yq";

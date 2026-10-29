@@ -6,13 +6,13 @@
   allowTests,
 }: let
   inherit (builtins) readDir pathExists currentTime typeOf;
-  inherit (lib.attrsets) attrNames attrValues filterAttrs foldlAttrs isAttrs listToAttrs mapAttrs optionalAttrs;
+  inherit (lib.attrsets) attrNames attrValues filterAttrs foldlAttrs intersectAttrs isAttrs listToAttrs mapAttrs optionalAttrs;
   inherit (lib.lists) concatMap elem filter findFirst foldl' length optionals toList uniqueStrings;
   inherit (lib.strings) concatStringsSep hasPrefix hasSuffix isStringLike optionalString removePrefix removeSuffix splitString substring toLower;
-  inherit (lib.trivial) isFunction;
+  inherit (lib.trivial) functionArgs isFunction;
   paths' = {
-    inherit (paths.store) src;
-    libraries = paths.store.lib.default;
+    src = paths.repo.src.store;
+    libraries = paths.repo.lib.default.store;
   };
 
   typeAliases = {
@@ -138,7 +138,7 @@
   };
 
   # -- Exclusion predicates
-  isExcludedDir = dir: elem dir exclusions.dirs || hasPrefix "." dir;
+  isExcludedDir = dir: dir == "data" || elem dir exclusions.dirs || hasPrefix "." dir;
 
   isExcludedFile = file:
     elem file exclusions.files
@@ -235,17 +235,24 @@
         assertType {
           type = "set";
           name = "Module ${name}";
-          value = meta.raw (
-            env
-            // {
-              module = meta;
-              __moduleDirectory = meta.directory;
-              __modulePath = meta.path;
-              __moduleFile = meta.file;
-              __moduleName = meta.name;
-              __moduleRef = meta.ref;
-            }
-          );
+          value = let
+            args =
+              env
+              // {
+                module = meta;
+                __moduleDirectory = meta.directory;
+                __modulePath = meta.path;
+                __moduleFile = meta.file;
+                __moduleName = meta.name;
+                __moduleRef = meta.ref;
+              };
+            declared = functionArgs meta.raw;
+          in
+            meta.raw (
+              if declared == {}
+              then args
+              else intersectAttrs declared args
+            );
         }
       else
         assertType {
@@ -353,7 +360,7 @@
   # -- Recursive directory scanner
   scanDir = dir: prefix: let
     processEntry = name: kind:
-      if kind == "directory" && isExcludedDir name
+      if kind == "directory" && (isExcludedDir name || (prefix == [] && name == "_"))
       then empty
       else if kind == "directory"
       then let
@@ -372,6 +379,7 @@
         (kind == "regular")
         && (hasSuffix ".nix" name)
         && (!isExcludedFile name)
+        && !(prefix == [] && name == "default.nix")
       then processNixFile dir prefix name
       else empty;
 

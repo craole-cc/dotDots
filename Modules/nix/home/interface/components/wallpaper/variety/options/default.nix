@@ -3,7 +3,6 @@
   context,
   wallpaper,
   paths,
-  toolkit,
   pkgs,
   ...
 } @ passthru: let
@@ -12,7 +11,7 @@
   inherit (lix.options.construction) mkOption mkEnable;
   inherit (lix.types.combinators) attrsOf enum nullOr oneOf;
   inherit (lix.types.primitives) bool float package int str;
-  inherit (toolkit) packages;
+  inherit (lix.toolkit) packages;
 in
   {
     enable = mkEnable {

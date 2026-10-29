@@ -14,7 +14,6 @@ The parent wallpaper component composes these options and outputs under its engi
   paths,
   pkgs,
   wallpaper,
-  toolkit,
   ...
 } @ passthru: let
   mod = "variety";
@@ -28,7 +27,7 @@ The parent wallpaper component composes these options and outputs under its engi
   inherit (lix.filesystem.construction) concat;
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (toolkit) packages write;
+  inherit (lix.toolkit) packages write;
 
   paths' = let
     inherit (config.xdg) configHome;
@@ -82,20 +81,19 @@ The parent wallpaper component composes these options and outputs under its engi
   in
     recursiveUpdate {inherit variety wallpapers;} paths;
 
-  controller =
-    write.binWith "varietyctl" packages.scripting ''
-      VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
-      export VARIETYCTL_BACKEND
-      # Literal help/awk expressions and tool variables assigned by resolve_tools.
-      # Scope the annotation to the embedded script after the wrapper commands.
-      # shellcheck disable=SC2016,SC2154
-      {
-        ${readFile paths'.variety.scripts.varietyctl}
-      }
-    '';
+  controller = write.binWith "varietyctl" packages.scripting ''
+    VARIETYCTL_BACKEND=${escapeShellArg wallpaper.cfg.backends.active}
+    export VARIETYCTL_BACKEND
+    # Literal help/awk expressions and tool variables assigned by resolve_tools.
+    # Scope the annotation to the embedded script after the wrapper commands.
+    # shellcheck disable=SC2016,SC2154
+    {
+      ${readFile paths'.variety.scripts.varietyctl}
+    }
+  '';
 
   hooks = import ./outputs/hooks.nix {
-    inherit cfg lix toolkit controller;
+    inherit cfg lix controller;
   };
 
   args = recursiveUpdate passthru {

@@ -14,7 +14,7 @@
 
     exports = {
       internal = let
-        functions = {inherit fromInputs getVersion mkAll mkCore mkHome mkOne pkgOf pkgsFrom mkToolkit;};
+        functions = {inherit fromInputs getVersion mkAll mkCore mkHome mkOne pkgOf pkgsFrom;};
         aliases = {
           mkPkgs = mkAll;
           mkPackages = mkAll;
@@ -22,7 +22,6 @@
           mkPackageFromInputs = fromInputs;
           mkCorePackages = mkCore;
           mkHomePackages = mkHome;
-          mkCommonPackages = mkToolkit;
         };
       in
         {inherit functions aliases;} // functions // aliases;
@@ -39,7 +38,7 @@
   };
 
   inherit (_.attrsets.access) attrNames attrValues;
-  inherit (_.attrsets.aggregation) mergeSafe recursiveUpdate;
+  inherit (_.attrsets.aggregation) mergeSafe;
   inherit (_.attrsets.construction) genAttrs nameValuePair listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrs';
@@ -60,194 +59,6 @@
   inherit (_.strings.construction) concat;
   inherit (_.strings.predicates) hasPrefix hasSuffix isString;
   inherit (_.strings.transformation) removePrefix removeSuffix unsafeDiscardStringContext;
-
-  mkToolkit = {
-    inputs,
-    pkgs ? null,
-    host ? {},
-    sources ? {},
-    prefer ? {},
-    enableShorthand ? false,
-    ...
-  }: let
-    pkgs' =
-      if pkgs != null
-      then pkgs
-      else (mkAll {inherit inputs host;}).pkgs;
-
-    derived = pkgsFrom {
-      inherit inputs enableShorthand;
-      pkgs = pkgs';
-      required = true;
-      prefer = _default.toolkit.prefer // prefer;
-      sources = _default.toolkit.sources // sources;
-    };
-
-    defined = let
-      bins = derived.binaries;
-      binaries = recursiveUpdate bins {
-        #> coreutils
-        chmod0644 = "${bins.chmod} 0644";
-        chmodR = "${bins.chmod} -R";
-        chmodRef = "${bins.chmod} --reference=";
-        chmodRuw = "${bins.chmod} -R u+w";
-        cpa = "${bins.cp} -a --reflink=auto";
-        cpaf = "${bins.cp} -af --reflink=auto"; #? force version of your cpa
-        dateI = "${bins.date} -I"; #? ISO date
-        dateIs = "${bins.date} -Is"; #? ISO date + time
-        headn = "${bins.head} -n";
-        installD = "${bins.install} -D"; #? create parent dirs
-        installDm = "${bins.install} -D -m"; #? include mode (caller supplies the mode)
-        install0644 = "${bins.install} -D -m 0644"; #? include mode (caller supplies the mode)
-        install0600 = "${bins.install} -D -m 0600"; #? include mode (caller supplies the mode)
-        installm = "${bins.install} -m"; #? include mode (caller supplies the mode)
-        lnSf = "${bins.ln} -Sf"; #? force symlink
-        lnsfn = "${bins.ln} -sfn";
-        mkdirp = "${bins.mkdir} -p";
-        mktempd = "${bins.mktemp} -d";
-        mvt = "${bins.mv} -T";
-        mvf = "${bins.mv} -f";
-        readlinkf = "${bins.readlink} -f";
-        rmf = "${bins.rm} -rf";
-        sortn = "${bins.sort} -n";
-        sortu = "${bins.sort} -u";
-        sortV = "${bins.sort} -V";
-        tailf = "${bins.tail} -f";
-        tailn = "${bins.tail} -n";
-        teea = "${bins.tee} -a";
-        wcc = "${bins.wc} -c";
-        wcl = "${bins.wc} -l";
-        wcw = "${bins.wc} -w";
-
-        #> finders (modern)
-        fdh = "${bins.fd} --hidden --no-ignore";
-        rgi = "${bins.rg} -i";
-        rg0 = "${bins.rg} --null";
-        rgq = "${bins.rg} -q";
-        rgFxq = "${bins.rg} -Fxq";
-        jaqr = "${bins.jaq} -r";
-        jaqna = "${bins.jaq} -n --arg";
-        jaqRr = "${bins.jaq} -Rr";
-
-        #> findutils
-        find0 = "${bins.find} -print0";
-        grepr = "${bins.grep} -r";
-        grepri = "${bins.grep} -ri";
-        sedi = "${bins.sed} -i";
-        xargs0 = "${bins.xargs} -0";
-        xargsr = "${bins.xargs} -r"; #? don't run if stdin is empty
-        xargsI = "${bins.xargs} -I{}";
-
-        #> difftools
-        cmps = "${bins.cmp} -s";
-
-        #> git
-        gitCfgFile = "${bins.git} config --file";
-
-        #> glib
-        gCall = "${bins.gdbus} call";
-        gSet = "${bins.gsettings} set";
-        gSetDI = "${bins.gsettings} set org.gnome.desktop.interface";
-
-        #> gnupatch
-        patchd = "${bins.patch} -d";
-
-        #> ouch
-        pack = "${bins.ouch} compress";
-        unpack = "${bins.ouch} decompress";
-
-        #> procps (very common)
-        pgrepf = "${bins.pgrep} -f";
-        pkillf = "${bins.pkill} -f";
-        pkillUSR1 = "${bins.pkill} -USR1";
-        pkillUSR1x = "${bins.pkill} -USR1 -x";
-        pkillUSR2 = "${bins.pkill} -USR2";
-        pkillUSR2x = "${bins.pkill} -USR2 -x";
-        pgrepa = "${bins.pgrep} -a"; #? show full command line
-
-        #> systemd
-        journalctlUser = "${bins.journalctl} --user";
-        systemctlUser = "${bins.systemctl} --user";
-        systemctlUserR = "${bins.systemctl} --user reload";
-
-        #> util-linux
-        loggerT = "${bins.logger} -t"; #? with tag (caller supplies the tag)
-      };
-    in
-      {inherit binaries;}
-      // optionalAttrs enableShorthand {bins = binaries;}
-      // {
-        packages = let
-          resolved = mapAttrs (_name: record: record.package) derived.records;
-        in
-          resolved
-          // {
-            all = derived.packages;
-            scripting = map (name: resolved.${name}) (attrNames _default.toolkit.groups.scripting);
-          };
-      };
-
-    formats =
-      genAttrs ["json" "toml" "yaml" "ini"]
-      (name: pkgs'.formats.${name} {});
-
-    helpers = {
-      # Keep format writers and option types backed by the same definitions.
-      types = pkgs'.lib.types // mapAttrs (_name: format: format.type) formats;
-      options = _.options.construction;
-
-      builders = {
-        inherit (pkgs') applyPatches buildEnv makeBinaryWrapper makeDesktopItem makeShellWrapper replaceVars runCommand runCommandCC runCommandLocal runCommandNoCC symlinkJoin;
-      };
-
-      source = {
-        inherit (pkgs'.lib) cleanSource cleanSourceWith fileset;
-      };
-
-      fetch = with pkgs'; {
-        fromGit = fetchgit;
-        fromGitHub = fetchFromGitHub;
-        fromGitLab = fetchFromGitLab;
-        fromUrl = fetchurl;
-        fromZip = fetchzip;
-        patch = fetchpatch;
-        tarball = fetchTarball;
-      };
-
-      platform = {
-        inherit (pkgs'.stdenv.hostPlatform) isAarch64 isLinux isDarwin isx86_64 system;
-        shell = pkgs'.runtimeShell;
-      };
-
-      write = let
-        inherit (pkgs') applyPatches linkFarm writeShellApplication writeShellScript writeText writeTextFile;
-        inherit (pkgs'.writers) writeDash writeDashBin;
-      in
-        {
-          #? Package with bin/<name>: strict mode and shellcheck, no PATH assumptions
-          bin = name: text:
-            writeShellApplication {
-              inherit name text;
-              runtimeInputs = [];
-            };
-
-          #? Same, with packages added to PATH
-          binWith = name: runtimeInputs: text:
-            writeShellApplication {inherit name runtimeInputs text;};
-
-          link = linkFarm; #? name, [{name; path;}]
-          posix = writeDash; #? POSIX sh file, for ExecStart= and the like
-          posixBin = writeDashBin; #? POSIX sh with bin/<name>
-          script = writeShellScript; #? bash file, for ExecStart= and the like
-          source = applyPatches;
-          text = writeText;
-          textFile = writeTextFile; #? supports executable, destination, etc.
-        }
-        // #> Expose common serializers as well
-        mapAttrs (_name: format: format.generate) formats;
-    };
-  in
-    derived // defined // helpers;
 
   _mk = target: {
     inputs ? {},

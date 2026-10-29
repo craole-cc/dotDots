@@ -1,6 +1,17 @@
 {
   description = "dotDots Flake Configuration";
 
+  outputs = inputs: let
+    nixpkgsTag = "nixPackages";
+    lib = import ./. {
+      inherit nixpkgsTag inputs;
+      inherit (inputs.${nixpkgsTag}) lib;
+    };
+    build = with lib.libraries.default.modules.construction;
+      (mkConfigurations lib) // (mkUtilities lib);
+  in
+    {inherit lib;} // build;
+
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
@@ -258,15 +269,4 @@
   #     "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
   #   ];
   # };
-
-  outputs = inputs: let
-    nixpkgsTag = "nixPackages";
-    lib = import ./. {
-      inherit nixpkgsTag inputs;
-      inherit (inputs.${nixpkgsTag}) lib;
-    };
-    build = with lib.libraries.default.modules.construction;
-      (mkConfigurations lib) // (mkUtilities lib);
-  in
-    {inherit lib;} // build;
 }

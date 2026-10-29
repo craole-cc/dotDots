@@ -1,5 +1,4 @@
 {
-  bins,
   cfg,
   config,
   defined,
@@ -68,7 +67,7 @@ in {
   #? keys that are now represented declaratively, preserving unrelated data.
   home = {
     activation.removeLegacyGitConfig = let
-      inherit (bins) gitCfgFile rmf;
+      inherit (lix.toolkit.binaries) gitCfgFile rmf;
       inherit (conf) managed legacy;
       keys = [
         "user.name"

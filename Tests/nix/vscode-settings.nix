@@ -7,7 +7,8 @@
   inherit (lix.applications.editors) flattenVSCodeSetting mkVSCodeSetting mkVSCodeSubFeature normalizeSettings;
   inherit (lix.modules.construction) mkForce mkIf mkMerge;
   inherit (lix.options.construction) mkEnable;
-  toolkit = lix.sources.packages.mkToolkit {inherit pkgs inputs;};
+  toolkit = lix.sources.toolkit.mkToolkit {inherit pkgs inputs;};
+  lix' = lix // {inherit toolkit;};
   context = {
     dom = "editor";
     sub = null;
@@ -15,7 +16,8 @@
     wantsDmsShell.condition = false;
   };
   entryArgs = {
-    inherit lix context mkEnable;
+    lix = lix';
+    inherit context mkEnable;
     requires = _name: true;
   };
 
@@ -35,7 +37,7 @@
     args =
       entryArgs
       // {
-        inherit pkgs inputs toolkit;
+        inherit pkgs inputs;
         cfg = evaluated.config // {inherit importJSON;};
         requires = names: builtins.any (name: builtins.elem name ["rust" "python" "zig" "nix" "shell"]) (lib.toList names);
         fonts.families = {
@@ -86,7 +88,7 @@
     (lib.evalModules {
       modules = [
         {
-          options.settings = lib.mkOption {type = toolkit.types.json;};
+          options.settings = lib.mkOption {type = lix'.toolkit.types.formats.json;};
           config.settings = value;
         }
       ];
@@ -95,7 +97,7 @@
   checks = {
     toolkitFormatTypesAndWritersAreAvailable = builtins.all (
       name:
-        lib.isFunction toolkit.types.${name}.check && builtins.isFunction toolkit.write.${name}
+        lib.isFunction toolkit.types.formats.${name}.check && builtins.isFunction toolkit.write.${name}
     ) ["json" "toml" "yaml" "ini"];
     toolkitOptionConstructorsAreAvailable = (toolkit.options.mkEnable {condition = false;}).default == false;
     structuredFeatureExposesPackage = enabledProfile.features.ui.catppuccin.package.version != "";

@@ -28,7 +28,8 @@
     internal = functions // aliases;
     external =
       {
-        inherit (functions) getFlakePath getFlake';
+        inherit (functions) getFlakePath;
+        getFlake' = getFlake;
       }
       // aliases;
   };

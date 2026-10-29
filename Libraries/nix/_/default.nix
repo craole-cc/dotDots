@@ -38,6 +38,7 @@
           name = names.lib;
           _defaults = defaults;
           _default = defaults;
+          src = args.paths.repo.src.store;
           projectPath = args.paths.repo.src.store;
           projectHome = args.paths.repo.src.local;
         };

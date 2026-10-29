@@ -2,7 +2,6 @@
   configHome,
   stateHome,
   entryAfter,
-  toolkit,
   lix,
   style,
   themes,
@@ -11,7 +10,7 @@
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (themes) icons;
-  inherit (toolkit.binaries) chmod cmp dirname install0644 jaq mkdirp mktemp mvf readlink rmf;
+  inherit (lix.toolkit.binaries) chmod0600 cmps dirname install0644 jaq jaqn mkdirp mktemp mvf readlinkf rmf;
   inherit (themes) catppuccin foot ghostty hermes kitty;
 
   dms = user.interface.dms;
@@ -39,12 +38,12 @@
     themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
   };
 
-  settingsOverridesFile = toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
-  settingsDefaultsFile = toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
-  pluginOverridesFile = toolkit.write.json "dms-plugin-settings-overrides.json" dms.plugins;
-  clipboardOverridesFile = toolkit.write.json "dms-clipboard-settings-overrides.json" dms.clipboardSettings;
-  sessionOverridesFile = toolkit.write.json "dms-session-overrides.json" dms.session;
-  sessionDefaultsFile = toolkit.write.json "dms-session-defaults.json" sessionDefaults;
+  settingsOverridesFile = lix.toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
+  settingsDefaultsFile = lix.toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
+  pluginOverridesFile = lix.toolkit.write.json "dms-plugin-settings-overrides.json" dms.plugins;
+  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" dms.clipboardSettings;
+  sessionOverridesFile = lix.toolkit.write.json "dms-session-overrides.json" dms.session;
+  sessionDefaultsFile = lix.toolkit.write.json "dms-session-defaults.json" sessionDefaults;
 in
   entryAfter ["writeBoundary"] ''
     settings=${escapeShellArg "${configHome}/dms/settings.json"}
@@ -77,7 +76,7 @@ in
           return 0
         fi
         if [ -L "$target" ]; then
-          case "$(${readlink} -f "$target")" in
+          case "$(${readlinkf} "$target")" in
             /nix/store/*) ;;
             *) echo "Refusing to replace unmanaged DMS settings symlink: $target" >&2; return 1 ;;
           esac
@@ -91,16 +90,16 @@ in
             return 1
           fi
         else
-          if ! ${jaq} -n --slurpfile overrides "$overrides" --slurpfile defaults "$defaults" \
+          if ! ${jaqn} --slurpfile overrides "$overrides" --slurpfile defaults "$defaults" \
             '($defaults[0] * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
             > "$target_tmp"; then
             ${rmf} "$target_tmp"
             return 1
           fi
         fi
-        if ! ${cmp} -s "$target_tmp" "$target"; then
-          ${chmod} 0600 "$target_tmp"
-          ${mvf} -f "$target_tmp" "$target"
+        if ! ${cmps} "$target_tmp" "$target"; then
+          ${chmod0600} "$target_tmp"
+          ${mvf} "$target_tmp" "$target"
         else
           ${rmf} "$target_tmp"
         fi
@@ -108,8 +107,8 @@ in
 
       # API overrides win on each activation; unlisted values remain mutable in DMS.
       merge_json "$settings" ${escapeShellArg settingsOverridesFile} ${escapeShellArg settingsDefaultsFile} true
-      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg (toolkit.write.json "dms-empty-defaults.json" {})} true
-      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg (toolkit.write.json "dms-empty-defaults.json" {})} false
+      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg (lix.toolkit.write.json "dms-empty-defaults.json" {})} true
+      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg (lix.toolkit.write.json "dms-empty-defaults.json" {})} false
       merge_json "$session" ${escapeShellArg sessionOverridesFile} ${escapeShellArg sessionDefaultsFile} true
     fi
   ''

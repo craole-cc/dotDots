@@ -1,5 +1,4 @@
 {
-  toolkit,
   binaries,
   config,
   lix,
@@ -9,12 +8,12 @@
   ...
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (pkgs) writeShellScript;
+  inherit (lix.toolkit.write) script;
   inherit (themes) icons cursors;
-  inherit (toolkit.binaries // binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
+  inherit (lix.toolkit.binaries // binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
   gds = pkgs.gsettings-desktop-schemas;
 in
-  writeShellScript "sync-dms-desktop-appearance" ''
+  script "sync-dms-desktop-appearance" ''
         mode="$(${dmsCall} theme getMode 2>/dev/null || true)"
 
         case "$mode" in
@@ -96,13 +95,13 @@ in
             if [ "$xresources_filtered" = true ]; then
               printf 'Xcursor.theme: %s\nXcursor.size: %s\n' "$cursor" "$cursor_size" >> "$tmp"
               if [ -f "$xresources" ]; then
-                ${chmodRef}"$xresources" "$tmp"
+                ${chmodRef} "$xresources" "$tmp"
               fi
-              ${mvf} -f "$tmp" "$xresources"
+              ${mvf} "$tmp" "$xresources"
               command -v xrdb >/dev/null 2>&1 && xrdb -merge "$xresources" >/dev/null 2>&1 || true
             fi
             trap - EXIT
-            ${rmf} -f "$tmp"
+            ${rmf} "$tmp"
           fi
         fi
 
@@ -154,7 +153,7 @@ in
                   printf 'color_theme = "%s"\n' "$btop_theme" >> "$tmp"
                 ${rgq} '^[[:space:]]*theme_background[[:space:]]*=' "$btop_config" ||
                   printf 'theme_background = false\n' >> "$tmp"
-                ${chmodRef}"$btop_config" "$tmp"
+                ${chmodRef} "$btop_config" "$tmp"
               fi
             else
               printf 'color_theme = "%s"\ntheme_background = false\n' "$btop_theme" > "$tmp"
@@ -162,7 +161,7 @@ in
             fi
             if [ -n "$tmp" ]; then
               if [ ! -f "$btop_config" ] || ! ${cmps} "$tmp" "$btop_config"; then
-                if ${mvf} -f "$tmp" "$btop_config"; then
+                if ${mvf} "$tmp" "$btop_config"; then
                   ${pkillUSR2x} btop || true
                 else
                   ${rmf} "$tmp"

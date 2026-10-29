@@ -1,7 +1,6 @@
 {
   config,
   lix,
-  toolkit,
   ...
 }: let
   context = mkContext {
@@ -14,7 +13,7 @@
   inherit (lix.modules.construction) mkConfig mkContext mkDefault;
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.primitives) package;
-  inherit (toolkit) packages;
+  inherit (lix.toolkit) packages;
 in
   mkConfig {
     inherit context;

@@ -4,7 +4,6 @@
   paths,
   entryAfter,
   pkgs,
-  toolkit,
   controller,
   hooks,
   ...
@@ -25,7 +24,7 @@
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.types.predicates) isBool isFloat isInt;
   inherit (pkgs) writeText makeWrapper symlinkJoin;
-  inherit (toolkit.binaries) install rm sd tr;
+  inherit (lix.toolkit.binaries) install0644 rm sd tr;
 
   api.placeholders = {
     wallhaven = "@WALLHAVEN_API_KEY@";
@@ -176,7 +175,7 @@
     activation = let
       destination = escapeShellArg paths.variety.files.config;
       script = ''
-        run ${install} -Dm644 ${generated} ${destination}
+        run ${install0644} ${generated} ${destination}
         ${optionalString (cfg.wallhaven.apiKeyFile != null) ''
           if [ -z "''${DRY_RUN:-}" ]; then
             key="$(${tr} -d '\n' < ${escapeShellArg cfg.wallhaven.apiKeyFile})"

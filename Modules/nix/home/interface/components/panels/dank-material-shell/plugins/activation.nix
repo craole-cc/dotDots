@@ -1,5 +1,4 @@
 {
-  toolkit,
   config,
   entryAfter,
   lix,
@@ -8,12 +7,12 @@
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.modules.construction) mkIf;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (toolkit.binaries) gum installDm jaq mkdirp mktemp rmf;
+  inherit (lix.toolkit.binaries) gum install0600 jaq mkdirp mktemp rmf;
   inherit (config.xdg) configHome;
 
   cfg = config.programs.dank-material-shell;
   enabled = filterAttrs (_: plugin: plugin.enable) cfg.plugins;
-  flags = toolkit.write.json "dms-enabled-plugins.json" (
+  flags = lix.toolkit.write.json "dms-enabled-plugins.json" (
     mapAttrs (_: _: {enabled = true;}) enabled
   );
 in {
@@ -34,7 +33,7 @@ in {
       else
         ${jaq} '.' ${flags} > "$tmp"
       fi
-      ${installDm} 0600 "$tmp" "$settings"
+      ${install0600} "$tmp" "$settings"
       ${rmf} "$tmp"
       trap - EXIT
     fi

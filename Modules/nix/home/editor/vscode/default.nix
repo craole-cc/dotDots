@@ -4,7 +4,6 @@
   inputs,
   pkgs,
   user,
-  toolkit,
   requires,
   fonts,
   paths,
@@ -22,12 +21,11 @@
   };
 
   args =
-    toolkit
-    // moduleArgs
+    moduleArgs
     // {
       inherit (lix.attrsets.resolution) vscodePackage;
-      inherit context fonts toolkit requires paths pkgs lix style inputs;
-      inherit (toolkit.write) json;
+      inherit context fonts requires paths pkgs lix style inputs;
+      inherit (lix.toolkit.write) json;
       inherit (context) cfg;
       inherit (lix.attrsets.aggregation) mergeSafe;
       # inherit (lix.attrsets.construction) genAttrs;

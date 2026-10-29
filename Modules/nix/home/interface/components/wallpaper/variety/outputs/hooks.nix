@@ -2,12 +2,11 @@
 {
   cfg,
   lix,
-  toolkit,
   controller,
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.sources.access) getExe';
-  inherit (toolkit.write) script;
+  inherit (lix.toolkit.write) script;
 
   hook = action:
     if cfg.scripts.${action} != null

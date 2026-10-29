@@ -1,7 +1,5 @@
 {
-  toolkit,
   entryAfter,
-  binaries,
   dms,
   lix,
   app,
@@ -57,7 +55,7 @@
             break
           fi
         done
-        [ "$declared" = 1 ] || ${binaries.rmf} "$installed"
+        [ "$declared" = 1 ] || ${lix.toolkit.binaries.rmrf} "$installed"
       done
     '';
 
@@ -70,9 +68,9 @@
         source="$1"
         target="$2"
 
-        ${binaries.mkdir} -p "$(${binaries.dirname} "$target")"
-        ${binaries.rm} -f "$target"
-        ${binaries.install} -m 0644 "$source" "$target"
+        ${lix.toolkit.binaries.mkdirp} "$(${lix.toolkit.binaries.dirname} "$target")"
+        ${lix.toolkit.binaries.rmf} "$target"
+        ${lix.toolkit.binaries.install0644} "$source" "$target"
       }
 
       materialise_json ${for "settings"} "${mk "settings.json"}"
