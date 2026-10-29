@@ -1,8 +1,8 @@
 {
+  host,
   lib,
   lix,
   pkgs,
-  user,
   ...
 }: let
   inherit (lix.attrsets.construction) listToAttrs;
@@ -10,6 +10,7 @@
   inherit (lix.lists.access) head;
   inherit (lix.strings.transformation) escapeShellArg;
 
+  user = host.users.data.primary or {};
   selections = user.packages.browser or ((lix.schema.packages.resolve {record = user;}).browser or []);
   selectedBrowser =
     if selections == []
