@@ -16,7 +16,6 @@
   };
   inherit (context) cfg ctx;
   quickshell = context.resolved.cfg.interface.panels.quickshell.explicit;
-  dcalPackage = inputs.nixPackages.legacyPackages.${pkgs.stdenv.hostPlatform.system}.dux-calendar;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -25,6 +24,7 @@
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
   inherit (lix.toolkit) packages;
+  dcalPackage = packages.dux-calendar;
 
   record = import ./record.nix {inherit pkgs inputs lix;};
   args = recursiveUpdate record {

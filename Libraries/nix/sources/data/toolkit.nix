@@ -645,6 +645,12 @@ in {
     input = "dank-material-shell";
   };
 
+  dux-calendar = mkSource {
+    categories = ["desktop-ui"];
+    description = "Dux Calendar";
+    input = "nixPackages";
+  };
+
   dprint = mkSource {
     categories = ["formatters" "scripting"];
     description = "pluggable multi-language code formatter";

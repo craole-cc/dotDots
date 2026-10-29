@@ -81,12 +81,15 @@
   }: let
     packages = {
       sys = inputs.${input}.packages.${system} or null;
+      legacy = inputs.${input}.legacyPackages.${system} or null;
       fmt = inputs.${input}.formatter.${system} or null;
     };
   in
     with packages;
       if isNotEmpty sys
       then sys
+      else if isNotEmpty legacy
+      then legacy
       else optionalAttrs (isNotEmpty fmt) {${input} = fmt;};
 
   /**
