@@ -1,25 +1,29 @@
 --- a/variety/VarietyWindow.py
 +++ b/variety/VarietyWindow.py
-@@ -2083,6 +2083,11 @@
+@@ -2083,6 +2083,13 @@
                          logger.exception("Gio.File.trash failed with exception")
                          ok = False
  
 +                    if ok:
 +                        self.show_notification(
-+                            _("Wallpaper deleted and blacklisted"), os.path.basename(file)
++                            _("Wallpaper deleted and blacklisted"),
++                            os.path.basename(file),
++                            important=True,
 +                        )
 +
                      if not ok:
                          logger.error("Gio.File.trash failed")
                          self.show_notification(
-@@ -2125,12 +2130,16 @@
+@@ -2125,12 +2132,23 @@
                  file = self.current
              if not file:
                  return
 -            if os.access(file, os.R_OK) and not self.is_in_favorites(file):
 -                self.move_or_copy_file(
 +            if self.is_in_favorites(file):
-+                self.show_notification(_("Already in Favs"), os.path.basename(file))
++                self.show_notification(
++                    _("Already in Favs"), os.path.basename(file), important=True
++                )
 +                return
 +            if os.access(file, os.R_OK):
 +                ok = self.move_or_copy_file(
@@ -28,30 +32,37 @@
 -                self.update_indicator(auto_changed=False)
 -                self.report_image_favorited(file)
 +                if ok:
++                    self.show_notification(
++                        _("Wallpaper added to favourites"),
++                        os.path.basename(file),
++                        important=True,
++                    )
 +                    self.update_indicator(auto_changed=False)
 +                    self.report_image_favorited(file)
          except Exception:
              logger.exception(lambda: "Exception in copy_to_favorites")
  
-@@ -2140,7 +2149,10 @@
+@@ -2140,12 +2158,22 @@
                  file = self.current
              if not file:
                  return
 -            if os.access(file, os.R_OK) and not self.is_in_favorites(file):
 +            if self.is_in_favorites(file):
-+                self.show_notification(_("Already in Favs"), os.path.basename(file))
++                self.show_notification(
++                    _("Already in Favs"), os.path.basename(file), important=True
++                )
 +                return
 +            if os.access(file, os.R_OK):
                  operation = shutil.move if os.access(file, os.W_OK) else shutil.copy
                  ok = self.move_or_copy_file(
                      file, self.options.favorites_folder, "favorites", operation
-@@ -2161,6 +2173,9 @@
-             logger.exception(lambda: "Exception in move_to_favorites")
- 
-     def report_image_favorited(self, img):
-+        self.show_notification(
-+            _("Wallpaper added to favourites"), os.path.basename(img)
-+        )
-         meta = Util.read_metadata(img)
-         if meta and "sourceType" in meta:
-             for image_source in Options.IMAGE_SOURCES:
+                 )
+                 if ok:
++                    self.show_notification(
++                        _("Wallpaper added to favourites"),
++                        os.path.basename(file),
++                        important=True,
++                    )
+                     new_file = os.path.join(self.options.favorites_folder, os.path.basename(file))
+                     self.used = [(new_file if f == file else f) for f in self.used]
+                     with self.prepared_lock:
