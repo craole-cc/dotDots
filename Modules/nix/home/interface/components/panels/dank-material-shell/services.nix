@@ -1,5 +1,6 @@
 {
   config,
+  dcalPackage,
   lix,
   pkgs,
   quickshell,
@@ -8,7 +9,7 @@
   inherit (lix.modules.construction) mkForce;
   dcalSession = pkgs.writeShellApplication {
     name = "dcal-session";
-    runtimeInputs = [pkgs.dux-calendar quickshell.package];
+    runtimeInputs = [dcalPackage quickshell.package];
     text = "exec dcal run --session --hidden";
   };
 in {

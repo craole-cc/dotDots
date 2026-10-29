@@ -16,6 +16,7 @@
   };
   inherit (context) cfg ctx;
   quickshell = context.resolved.cfg.interface.panels.quickshell.explicit;
+  dcalPackage = inputs.nixPackages.legacyPackages.${pkgs.stdenv.hostPlatform.system}.dux-calendar;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -111,11 +112,11 @@ in
             light.package
           ])
           ++ addons.packages
-          ++ (with pkgs; [
-            dux-calendar
-            khal
-            vdirsyncer
-          ]);
+          ++ [
+            dcalPackage
+            pkgs.khal
+            pkgs.vdirsyncer
+          ];
         sessionVariables = {
           QS_ICON_THEME = themes.icons.dark.theme;
         };
@@ -130,6 +131,6 @@ in
           });
       };
 
-      systemd = import ./services.nix {inherit config lix pkgs quickshell sync;};
+      systemd = import ./services.nix {inherit config dcalPackage lix pkgs quickshell sync;};
     };
   }
