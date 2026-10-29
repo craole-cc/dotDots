@@ -430,18 +430,56 @@ get_wallpaper() {
   fail 'no readable active wallpaper'
 }
 
+stage_dms_wallpaper() {
+  resolve_tools cp mkdir mktemp
+  need "$tool_cp" cp
+  need "$tool_mkdir" mkdir
+  need "$tool_mktemp" mktemp
+
+  cache_directory=${XDG_CACHE_HOME:-${HOME:-}/.cache}/varietyctl/dms-wallpapers
+  "$tool_mkdir" -p "$cache_directory" || fail 'cannot create DMS wallpaper cache'
+
+  image_name=${1##*/}
+  case "$image_name" in
+    *.*) extension=.${image_name##*.} ;;
+    *) extension= ;;
+  esac
+  staged_image=$("$tool_mktemp" --suffix="$extension" "$cache_directory/wallpaper-XXXXXXXX") \
+    || fail 'cannot allocate a DMS wallpaper cache file'
+  if ! "$tool_cp" -- "$1" "$staged_image"; then
+    resolve_tools rm
+    [ -n "$tool_rm" ] && "$tool_rm" -f -- "$staged_image"
+    fail 'cannot copy wallpaper into the DMS cache'
+  fi
+
+  printf '%s\n' "$staged_image"
+}
+
+prune_dms_wallpapers() (
+  resolve_tools ls awk rm
+  [ -n "$tool_ls" ] && [ -n "$tool_awk" ] && [ -n "$tool_rm" ] || return 0
+  "$tool_ls" -1t -- "$cache_directory" 2>/dev/null \
+    | "$tool_awk" 'NR > 32' \
+    | while IFS= read -r old_image; do
+      "$tool_rm" -f -- "$cache_directory/$old_image"
+    done
+)
+
 set_dms() (
-  dms_call set "$1" && exit 0
+  staged_image=$(stage_dms_wallpaper "$1") || exit $?
+  cache_directory=${XDG_CACHE_HOME:-${HOME:-}/.cache}/varietyctl/dms-wallpapers
+  trap 'prune_dms_wallpapers' 0
+  dms_call set "$staged_image" && exit 0
   connected=$(monitors) || exit 1
   monitor_count=0
   while IFS= read -r monitor; do
     [ -n "$monitor" ] || continue
     monitor_count=$((monitor_count + 1))
-    dms_call setFor "$monitor" "$1" || exit 1
+    dms_call setFor "$monitor" "$staged_image" || exit 1
   done << EOF
 $connected
 EOF
-  [ "$monitor_count" -gt 0 ]
+  [ "$monitor_count" -gt 0 ] || exit 1
 )
 
 dms_call() {
