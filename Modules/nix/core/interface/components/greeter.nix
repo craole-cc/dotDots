@@ -50,5 +50,12 @@ in
       # auth/password/session handling to that stack, so the user's keyring is
       # unlocked by the greeter password without depending on GNOME Keyring.
       services.oo7.enable = lib.mkIf cfg.enable true;
+
+      # Niri enables GNOME Keyring by default in both NixOS and Home Manager.
+      # Keep one Secret Service provider when the greeter selects oo7.
+      services.gnome.gnome-keyring.enable = lib.mkIf cfg.enable (lib.mkForce false);
+      home-manager.sharedModules = lib.mkIf cfg.enable [
+        {services.gnome-keyring.enable = lib.mkForce false;}
+      ];
     };
   }
