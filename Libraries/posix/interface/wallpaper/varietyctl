@@ -9,7 +9,11 @@ set -u
 
 usage() {
   printf '%s\n' \
-    'Usage: varietyctl {next|previous|love|trash|blacklist|preferences|get|set|set-lockscreen} [arguments...]' \
+    'Usage: varietyctl {next|previous|love|trash|blacklist|preferences|view|source|snapshot|toggle-effects|get|set|set-lockscreen} [arguments...]' \
+    '  view: open the original image without effects.' \
+    '  source: open its source website, or its folder for local images.' \
+    '  snapshot: open the processed wallpaper, including clock and quote.' \
+    '  toggle-effects: toggle Variety Show without effects for the current image.' \
     '  set|set-lockscreen <file> [change-reason [original-file [mode]]]' \
     '    Variety passes change-reason (manual|auto|refresh), original-file and mode.' \
     '    original-file is preferred for the lock link; mode is argument 4.' \
@@ -85,6 +89,12 @@ need_uid() {
 run_variety() {
   need "$tool_variety" variety
   exec "$tool_variety" "$@"
+}
+
+open_path() {
+  tool_opener=$(command -v xdg-open 2>/dev/null || :)
+  need "$tool_opener" xdg-open
+  exec "$tool_opener" "$1"
 }
 
 # Variety's hook can run with a thin environment. Fill in only what is unset
@@ -769,7 +779,7 @@ case "$action" in
     usage
     exit 0
     ;;
-  next | previous | love | trash | blacklist | preferences | get | set | set-lockscreen) ;;
+  next | previous | love | trash | blacklist | preferences | view | source | snapshot | toggle-effects | get | set | set-lockscreen) ;;
   *)
     usage >&2
     exit 2
@@ -777,7 +787,7 @@ case "$action" in
 esac
 
 case "$action" in
-  next | previous | love | trash | blacklist | preferences) resolve_tools variety ;;
+  next | previous | love | trash | blacklist | preferences | view | source | toggle-effects) resolve_tools variety ;;
 esac
 case "$action" in
   next) run_variety --next "$@" ;;
@@ -785,14 +795,40 @@ case "$action" in
   love) run_variety --favorite "$@" ;;
   trash | blacklist) run_variety --trash "$@" ;;
   preferences) run_variety --show-preferences "$@" ;;
+  toggle-effects) run_variety --toggle-no-effects "$@" ;;
+  view | source)
+    need "$tool_variety" variety
+    original=$("$tool_variety" --get "$@") || fail 'cannot read the original wallpaper'
+    [ -n "$original" ] && [ -f "$original" ] || fail 'no readable original wallpaper'
+    if [ "$action" = view ]; then
+      open_path "$original"
+    fi
+    resolve_tools jaq jq
+    tool_json=${tool_jaq:-$tool_jq}
+    need "$tool_json" 'jaq or jq'
+    metadata=$("$tool_variety" --meta "$@") || fail 'cannot read wallpaper metadata'
+    source_url=$(printf '%s' "$metadata" | "$tool_json" -r '
+      if type == "object" then .sourceURL // empty else empty end
+      | select(type == "string")
+    ') || fail 'cannot parse wallpaper metadata'
+    case "$source_url" in
+      //*) open_path "https:$source_url" ;;
+      http://* | https://*) open_path "$source_url" ;;
+      *)
+        resolve_tools dirname
+        need "$tool_dirname" dirname
+        open_path "$("$tool_dirname" -- "$original")"
+        ;;
+    esac
+    ;;
 esac
 
-if [ "$action" != get ] && { [ -z "${1:-}" ] || [ ! -f "$1" ]; }; then
+if [ "$action" != get ] && [ "$action" != snapshot ] && { [ -z "${1:-}" ] || [ ! -f "$1" ]; }; then
   printf '%s\n' 'varietyctl: expected an existing wallpaper image path as the first argument' >&2
   exit 2
 fi
 
-if [ "$action" != get ]; then
+if [ "$action" != get ] && [ "$action" != snapshot ]; then
   case "$1" in
     /*) image=$1 ;;
     *)
@@ -835,6 +871,10 @@ esac
 choose_backend
 case "$action" in
   get) get_wallpaper ;;
+  snapshot)
+    snapshot=$(get_wallpaper) || exit $?
+    open_path "$snapshot"
+    ;;
   set)
     set_wallpaper "$@"
     ;;

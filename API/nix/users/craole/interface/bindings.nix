@@ -242,8 +242,13 @@ in {
       in [
         (mkAction (withKey common period) "Next" superShiftAlt)
         (mkAction (withKey common comma) "Previous" superShiftAlt)
-        (mkAction (withKey common "W") "Open" superAlt)
+        (mkAction (withKey common "W") "Preferences" superAlt)
         (mkAction (withKey common "W") "Favourite" superShiftAlt)
+        (mkAction (withKey common "Delete") "Delete to Trash" superAlt)
+        (mkAction (withKey common "I") "View original" superAlt)
+        (mkAction (withKey common "I") "View source" superShiftAlt)
+        (mkAction (withKey common "I") "View snapshot" superCtrlAlt)
+        (mkAction (withKey common "X") "Toggle effects" superAlt)
       ];
     };
   };
