@@ -2,6 +2,7 @@
   config,
   host,
   lix,
+  style,
   user,
   paths,
   lib,
@@ -94,7 +95,7 @@ in
           (import ./bookmarks.nix)
           (import ./containers.nix)
           (import ./search.nix {inherit host;})
-          (import ./settings.nix)
+          (import ./settings.nix {inherit style;})
         ];
         policies = mkMerge [
           (import ./policies.nix {inherit paths;})

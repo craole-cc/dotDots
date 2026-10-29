@@ -31,7 +31,7 @@
       then accentValue
       else accentName
     );
-    accentColor =
+    accentHex =
       if accentName == null
       then accentValue
       else palette.colors.${accentName};
@@ -121,13 +121,13 @@
       mode
       variant
       accent
-      accentColor
       flavor
       catppuccin
       icons
       cursors
       opacity
       ;
+    color = {accent = accentHex;};
   };
 
   exports = {inherit mkStyle;};

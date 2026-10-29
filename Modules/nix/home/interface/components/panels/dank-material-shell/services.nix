@@ -30,6 +30,7 @@ in {
         "${config.xdg.configHome}/dms/settings.json"
         "${config.xdg.stateHome}/dms/session.json"
         "%h/.config/foot/dank-colors.ini"
+        "${config.xdg.configHome}/dms/palette-accent.hex"
       ];
       Install.WantedBy = ["graphical-session.target"];
     };

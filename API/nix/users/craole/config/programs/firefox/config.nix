@@ -6,6 +6,7 @@
   host,
   user,
   config,
+  style,
   ...
 }: let
   inherit (lib.modules) mkIf;
@@ -56,7 +57,7 @@ in {
     profiles.default =
       import ./bookmarks.nix
       // import ./search.nix {inherit icons host;}
-      // import ./settings.nix {inherit program;};
+      // import ./settings.nix {inherit program style;};
 
     policies =
       import ./policies.nix {inherit paths;}

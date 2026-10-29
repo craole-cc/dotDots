@@ -52,6 +52,7 @@
   resolved = {inherit (config.themes) cursors icons;};
 in
   {inherit cursors dataFile icons resolved;}
+  // (import ./accent.nix args)
   // (import ./catppuccin.nix args)
   // (import ./foot.nix args)
   // (import ./ghostty.nix args)

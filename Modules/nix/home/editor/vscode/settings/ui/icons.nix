@@ -30,7 +30,7 @@
       files = {
         #> File icon colour.
         #! overridden (default: "#90a4ae")
-        color = style.accentColor;
+        color = style.color.accent;
 
         #~@ File Associations
         #! overridden (default: {})
@@ -139,7 +139,7 @@
       folders = {
         #> Folder icon colour.
         #! overridden (default: "#90a4ae")
-        color = style.accentColor;
+        color = style.color.accent;
         #> Folder icon theme.
         #?  - specific | classic | none
         theme = "specific";
@@ -365,7 +365,7 @@
       #> Custom root-folder associations.
       "rootFolders.associations" = {};
       #> Root-folder icon colour.
-      rootFolders.color = style.accentColor;
+      rootFolders.color = style.color.accent;
 
       # ── Custom language icon clones ─────────────────────────────────────
       #! overridden (default: [])

@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  lib,
+  style,
+  ...
+}: {
   programs = {
     #~@ Browser
     zen-browser = {
@@ -312,7 +316,7 @@
           "zen.urlbar.behavior" = "float";
 
           #? Zen theme & appearance
-          "zen.theme.accent-color" = "#6366f1";
+          "zen.theme.accent-color" = style.color.accent;
           "zen.theme.gradient" = true;
           "zen.theme.gradient.show-custom-colors" = false;
           "zen.view.gray-out-inactive-windows" = true;

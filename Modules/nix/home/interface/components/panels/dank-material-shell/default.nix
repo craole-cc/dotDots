@@ -90,6 +90,7 @@ in
           [addons.files]
           ++ map (theme: theme.configFile) (with themes; [
             catppuccin
+            accent
             foot
             hermes
             helix

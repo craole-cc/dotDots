@@ -1,4 +1,8 @@
-{program, ...}: let
+{
+  program,
+  style,
+  ...
+}: let
   forAll = {
     #| Common preferences (work in most Gecko browsers)
     "browser.profiles.enabled" = true; # ? Enable profile selector in menu
@@ -54,7 +58,7 @@
       "zen.urlbar.behavior" = "float"; # ? Floating URL bar (float, static, hidden)
 
       #? Zen theme & appearance
-      "zen.theme.accent-color" = "#6366f1"; # ? Main accent color (hex)
+      "zen.theme.accent-color" = style.color.accent; # ? Main accent color (hex)
       "zen.theme.gradient" = true; # ? Enable sidebar gradient
       "zen.theme.gradient.show-custom-colors" = false; # ? Show custom sidebar colors
       "zen.view.gray-out-inactive-windows" = true; # ? Gray out inactive windows

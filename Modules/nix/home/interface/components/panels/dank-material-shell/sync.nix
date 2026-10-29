@@ -173,4 +173,31 @@ in
           fi
         fi
         ${pkill} -"$foot_signal" -x foot || true
+
+        # Update the declarative Insiders icon colours from DMS's live palette.
+        accent_file=${escapeShellArg themes.accent.path}
+        vscode_settings=${escapeShellArg "${config.xdg.configHome}/Code - Insiders/User/settings.json"}
+        if [ -f "$accent_file" ] && [ -f "$vscode_settings" ] && [ ! -L "$vscode_settings" ]; then
+          accent="$( ${cat} "$accent_file" )"
+          if printf '%s\n' "$accent" | ${rgq} '^#[[:xdigit:]]{6}$' &&
+            ${rgq} '"material-icon-theme\.files\.color"[[:space:]]*:' "$vscode_settings" &&
+            ${rgq} '"material-icon-theme\.folders\.color"[[:space:]]*:' "$vscode_settings" &&
+            ${rgq} '"material-icon-theme\.rootFolders\.color"[[:space:]]*:' "$vscode_settings"; then
+            if tmp="$(${mktemp} "$vscode_settings.tmp.XXXXXX")"; then
+              if ${cat} "$vscode_settings" |
+                ${sd} '("material-icon-theme\.files\.color"[[:space:]]*:[[:space:]]*)"[^"]*"' '$1"'"$accent"'"' |
+                ${sd} '("material-icon-theme\.folders\.color"[[:space:]]*:[[:space:]]*)"[^"]*"' '$1"'"$accent"'"' |
+                ${sd} '("material-icon-theme\.rootFolders\.color"[[:space:]]*:[[:space:]]*)"[^"]*"' '$1"'"$accent"'"' > "$tmp"; then
+                ${chmodRef} "$vscode_settings" "$tmp"
+                if ! ${cmps} "$tmp" "$vscode_settings"; then
+                  ${mvf} "$tmp" "$vscode_settings"
+                else
+                  ${rmf} "$tmp"
+                fi
+              else
+                ${rmf} "$tmp"
+              fi
+            fi
+          fi
+        fi
   ''
