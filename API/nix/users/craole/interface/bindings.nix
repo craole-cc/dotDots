@@ -264,7 +264,7 @@ in {
         (mkAction (withKey common "W") "Favourite" superAlt)
         (mkAction (withKey common "W") "Delete to Trash" superShiftAltCtl)
         (mkAction (withKey common "W") "Toggle effects" superCtrlAlt)
-        (mkAction (withKey common "W") "View snapshot" super)
+        (mkAction (withKey common "W") "View snapshot" superCtrl)
         (mkAction (withKey common "S") "View original" superAlt)
         (mkAction (withKey common "S") "View source" superShiftAlt)
       ];
