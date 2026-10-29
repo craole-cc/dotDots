@@ -21,197 +21,137 @@
   "foregroundLayerTransparency" = 1;
   "controlCenterWidgets" = [
     {
+      "col" = 0;
+      "enabled" = true;
+      "h" = 1;
       "id" = "user";
-      "enabled" = true;
+      "row" = 0;
       "w" = 4;
-      "h" = 1;
-      "col" = 0;
-      "row" = 0;
     }
     {
+      "col" = 4;
+      "enabled" = true;
+      "h" = 1;
       "id" = "settings";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "small" = true;
-      "col" = 4;
-      "row" = 2;
-    }
-    {
-      "id" = "lock";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "small" = true;
-      "col" = 4;
       "row" = 0;
+      "small" = true;
+      "w" = 1;
     }
     {
+      "col" = 5;
+      "enabled" = true;
+      "h" = 1;
       "id" = "power";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "small" = true;
-      "col" = 5;
       "row" = 0;
+      "small" = true;
+      "w" = 1;
     }
     {
-      "id" = "brightnessSlider";
+      "col" = 0;
       "enabled" = true;
-      "w" = 2;
       "h" = 1;
-      "col" = 4;
-      "row" = 1;
-    }
-    {
-      "id" = "inputVolumeSlider";
-      "enabled" = true;
-      "w" = 2;
-      "h" = 1;
-      "col" = 2;
-      "row" = 1;
-    }
-    {
       "id" = "wifi";
-      "enabled" = true;
-      "w" = 3;
-      "h" = 1;
-      "col" = 0;
       "row" = 2;
       "small" = true;
+      "w" = 3;
     }
     {
+      "col" = 0;
+      "enabled" = true;
+      "h" = 1;
       "id" = "bluetooth";
-      "enabled" = true;
-      "w" = 3;
-      "h" = 1;
-      "col" = 0;
-      "row" = 3;
-      "small" = true;
-    }
-    {
-      "id" = "darkMode";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 3;
-      "row" = 3;
-      "small" = true;
-    }
-    {
-      "id" = "nightMode";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 3;
-      "row" = 4;
-      "small" = true;
-    }
-    {
-      "id" = "builtin_vpn";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 5;
-      "row" = 3;
-      "small" = true;
-    }
-    {
-      "id" = "idleInhibitor";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 4;
-      "row" = 3;
-      "small" = true;
-    }
-    {
-      "id" = "builtin_tailscale";
-      "enabled" = true;
-      "w" = 3;
-      "h" = 1;
-      "col" = 0;
-      "row" = 4;
-      "small" = true;
-    }
-    {
-      "id" = "plugin_dankKDEConnect";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 5;
-      "row" = 2;
-      "small" = true;
-    }
-    {
-      "id" = "builtin_display_profiles";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 3;
-      "row" = 2;
-      "small" = true;
-    }
-    {
-      "id" = "doNotDisturb";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 5;
-      "row" = 4;
-      "small" = true;
-    }
-    {
-      "id" = "colorPicker";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 4;
-      "row" = 4;
-      "small" = true;
-    }
-    {
-      "id" = "edit";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "small" = true;
-      "col" = 5;
-      "row" = 5;
-    }
-    {
-      "id" = "runningApps";
-      "enabled" = true;
-      "w" = 3;
-      "h" = 1;
-      "small" = true;
-      "col" = 0;
-      "row" = 5;
-    }
-    {
-      "id" = "plugin_dmsScreenshot";
-      "enabled" = true;
-      "w" = 1;
-      "h" = 1;
-      "col" = 4;
-      "row" = 5;
-      "small" = true;
-    }
-    {
-      "id" = "volumeSlider";
-      "enabled" = true;
-      "w" = 2;
-      "h" = 1;
-      "col" = 0;
       "row" = 1;
+      "small" = true;
+      "w" = 3;
     }
     {
-      "id" = "plugin_screenRecorder";
+      "col" = 0;
       "enabled" = true;
+      "h" = 1;
+      "id" = "darkMode";
+      "row" = 3;
+      "small" = true;
       "w" = 1;
+    }
+    {
+      "col" = 1;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "idleInhibitor";
+      "row" = 4;
+      "small" = true;
+      "w" = 1;
+    }
+    {
+      "col" = 3;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "builtin_tailscale";
+      "row" = 3;
+      "small" = true;
+      "w" = 3;
+    }
+    {
+      "col" = 3;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "plugin_dankKDEConnect";
+      "row" = 4;
+      "small" = true;
+      "w" = 3;
+    }
+    {
+      "col" = 2;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "doNotDisturb";
+      "row" = 4;
+      "small" = true;
+      "w" = 1;
+    }
+    {
+      "col" = 0;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "edit";
+      "row" = 4;
+      "small" = true;
+      "w" = 1;
+    }
+    {
+      "col" = 2;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "plugin_dmsScreenshot";
+      "row" = 3;
+      "small" = true;
+      "w" = 1;
+    }
+    {
+      "col" = 1;
+      "enabled" = true;
+      "h" = 1;
+      "id" = "plugin_screenRecorder";
+      "row" = 3;
+      "small" = true;
+      "w" = 1;
+    }
+    {
+      "id" = "audioOutput";
+      "enabled" = true;
+      "w" = 3;
       "h" = 1;
       "col" = 3;
-      "row" = 5;
+      "row" = 1;
+      "small" = true;
+    }
+    {
+      "id" = "audioInput";
+      "enabled" = true;
+      "w" = 3;
+      "h" = 1;
+      "col" = 3;
+      "row" = 2;
       "small" = true;
     }
   ];
@@ -857,7 +797,9 @@
       "id" = "dock";
       "name" = "Dock";
       "enabled" = true;
-      "screenPreferences" = ["all"];
+      "screenPreferences" = [
+        "all"
+      ];
       "showOnLastDisplay" = true;
       "position" = 1;
       "mode" = "compact";
@@ -868,7 +810,7 @@
       "itemSpacing" = 8;
       "margin" = 0;
       "bottomGap" = 0;
-      "transparency" = 96;
+      "transparency" = 1;
       "followInterfaceStyle" = true;
       "autoHide" = false;
       "smartAutoHide" = true;
@@ -905,19 +847,19 @@
       "order" = [];
       "widgets" = [
         {
+          "enabled" = true;
           "id" = "dock_launcher";
           "widgetId" = "dockLauncher";
-          "enabled" = true;
         }
         {
+          "enabled" = true;
           "id" = "dock_apps";
           "widgetId" = "appsDock";
-          "enabled" = true;
         }
         {
+          "enabled" = true;
           "id" = "dock_trash";
           "widgetId" = "dockTrash";
-          "enabled" = true;
         }
       ];
     }
