@@ -110,7 +110,12 @@ in
             dark.package
             light.package
           ])
-          ++ addons.packages;
+          ++ addons.packages
+          ++ (with pkgs; [
+            dux-calendar
+            khal
+            vdirsyncer
+          ]);
         sessionVariables = {
           QS_ICON_THEME = themes.icons.dark.theme;
         };
@@ -125,6 +130,6 @@ in
           });
       };
 
-      systemd = import ./services.nix {inherit config lix sync;};
+      systemd = import ./services.nix {inherit config lix pkgs quickshell sync;};
     };
   }
