@@ -645,6 +645,38 @@ in {
     input = "dank-material-shell";
   };
 
+  khal = mkSource {
+    categories = ["communication"];
+    description = "terminal calendar";
+    input = "nixpkgs";
+    target = "khal";
+    exe = "khal";
+  };
+
+  vdirsyncer = mkSource {
+    categories = ["communication"];
+    description = "CalDAV calendar synchronisation";
+    input = "nixpkgs";
+    target = "vdirsyncer";
+    exe = "vdirsyncer";
+  };
+
+  thunderbird = mkSource {
+    categories = ["communication"];
+    description = "email and calendar client";
+    input = "nixpkgs";
+    target = "thunderbird";
+    exe = "thunderbird";
+  };
+
+  python3 = mkSource {
+    categories = ["communication"];
+    description = "Python runtime";
+    input = "nixpkgs";
+    target = "python3";
+    exe = "python3";
+  };
+
   dux-calendar = mkSource {
     categories = ["desktop-ui"];
     description = "Dux Calendar";

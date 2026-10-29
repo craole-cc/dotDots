@@ -114,8 +114,8 @@ in
           ++ addons.packages
           ++ [
             dcalPackage
-            pkgs.khal
-            pkgs.vdirsyncer
+            packages.khal
+            packages.vdirsyncer
           ];
         sessionVariables = {
           QS_ICON_THEME = themes.icons.dark.theme;
@@ -131,6 +131,6 @@ in
           });
       };
 
-      systemd = import ./services.nix {inherit config dcalPackage lix pkgs quickshell sync;};
+      systemd = import ./services.nix {inherit config lix sync;};
     };
   }

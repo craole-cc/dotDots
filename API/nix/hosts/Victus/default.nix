@@ -259,6 +259,8 @@ in {
       enable = true;
       autoLogin = true;
       role = "administrator";
+      packages.communication = ["thunderbird"];
+      interface.dms.settings.calendarBackend = "khal";
       sshKeys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINID8HtFjIBwVad7rhVzOAyouDQxotr+xsE/4PyhZEqR theoracle"
       ];
