@@ -36,6 +36,7 @@
     requiresWayland = true;
     extraProgramConfig = mkMerge [
       (import ./theme.nix {inherit lix;})
+      {userSettings.restore_on_startup = lib.mkDefault "last_workspace";}
       # (import ./editor.nix)
       # (import ./keybindings.nix)
       # (import ./languages.nix)

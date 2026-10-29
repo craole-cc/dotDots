@@ -201,13 +201,9 @@
   in
     meta.names.class or (legacyClass command);
 
-  scratchpadCommand = category: meta: command:
+  scratchpadCommand = category: command:
     if category == "browser"
     then "${command} --new-window about:blank"
-    else if category == "editor" && (meta.family or null) == "vscode"
-    then "${command} --new-window"
-    else if category == "editor" && (meta.name or null) == "zed"
-    then "${command} --new"
     else command;
 
   mkEntry = category: name: let
@@ -219,7 +215,7 @@
     class = getClass category name;
     needsTerminal = meta.needsTerminal or false;
     wrap = meta.wrap or {};
-    launch.scratchpad = meta.launch.scratchpad or (scratchpadCommand category meta command);
+    launch.scratchpad = meta.launch.scratchpad or (scratchpadCommand category command);
   };
 
   # ── Resolution ───────────────────────────────────────────────────────────────

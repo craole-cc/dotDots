@@ -96,6 +96,8 @@ _: {
       #> Restore to fullscreen if exited in fullscreen.
       #! overridden (default: false)
       restoreFullscreen = true;
+      #> Reopen the last active project when starting without a path.
+      restoreWindows = "one";
       #> Zoom per window vs global.
       #! overridden (default: false)
       zoomPerWindow = true;

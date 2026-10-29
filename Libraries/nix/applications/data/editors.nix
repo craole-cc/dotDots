@@ -245,6 +245,7 @@ _: {
       title = "nvim";
     };
     exec = "nvim";
+    launch.scratchpad = "neovim-session";
     needsTerminal = true;
     categories = ["editor"];
     family = "vim";

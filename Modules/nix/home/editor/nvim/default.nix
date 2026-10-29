@@ -18,10 +18,18 @@
     kind = "editor";
   };
 
+  session = import ../helix/session {
+    inherit config lix pkgs;
+    editor = "neovim";
+    command = "nvim";
+    name = (lix.applications.registry.resolve {value = "neovim";}).launch.scratchpad;
+  };
+
   resolved = userApplicationConfig {
     inherit context user pkgs;
     name = "nvf";
     category = "tty";
+    extraPackages = [session];
     resolutionHints = [
       "neovim"
       "nvim"
