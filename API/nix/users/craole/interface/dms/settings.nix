@@ -35,7 +35,7 @@
       "h" = 1;
       "small" = true;
       "col" = 4;
-      "row" = 4;
+      "row" = 2;
     }
     {
       "id" = "lock";
@@ -74,7 +74,7 @@
     {
       "id" = "wifi";
       "enabled" = true;
-      "w" = 1;
+      "w" = 3;
       "h" = 1;
       "col" = 0;
       "row" = 2;
@@ -83,10 +83,10 @@
     {
       "id" = "bluetooth";
       "enabled" = true;
-      "w" = 1;
+      "w" = 3;
       "h" = 1;
-      "col" = 1;
-      "row" = 2;
+      "col" = 0;
+      "row" = 3;
       "small" = true;
     }
     {
@@ -94,7 +94,7 @@
       "enabled" = true;
       "w" = 1;
       "h" = 1;
-      "col" = 0;
+      "col" = 3;
       "row" = 3;
       "small" = true;
     }
@@ -103,8 +103,8 @@
       "enabled" = true;
       "w" = 1;
       "h" = 1;
-      "col" = 2;
-      "row" = 2;
+      "col" = 3;
+      "row" = 4;
       "small" = true;
     }
     {
@@ -112,7 +112,7 @@
       "enabled" = true;
       "w" = 1;
       "h" = 1;
-      "col" = 3;
+      "col" = 5;
       "row" = 3;
       "small" = true;
     }
@@ -122,13 +122,13 @@
       "w" = 1;
       "h" = 1;
       "col" = 4;
-      "row" = 2;
+      "row" = 3;
       "small" = true;
     }
     {
       "id" = "builtin_tailscale";
       "enabled" = true;
-      "w" = 4;
+      "w" = 3;
       "h" = 1;
       "col" = 0;
       "row" = 4;
@@ -158,7 +158,7 @@
       "w" = 1;
       "h" = 1;
       "col" = 5;
-      "row" = 3;
+      "row" = 4;
       "small" = true;
     }
     {
@@ -167,7 +167,7 @@
       "w" = 1;
       "h" = 1;
       "col" = 4;
-      "row" = 3;
+      "row" = 4;
       "small" = true;
     }
     {
@@ -177,12 +177,12 @@
       "h" = 1;
       "small" = true;
       "col" = 5;
-      "row" = 4;
+      "row" = 5;
     }
     {
       "id" = "runningApps";
       "enabled" = true;
-      "w" = 6;
+      "w" = 3;
       "h" = 1;
       "small" = true;
       "col" = 0;
@@ -193,8 +193,8 @@
       "enabled" = true;
       "w" = 1;
       "h" = 1;
-      "col" = 2;
-      "row" = 3;
+      "col" = 4;
+      "row" = 5;
       "small" = true;
     }
     {
@@ -210,8 +210,8 @@
       "enabled" = true;
       "w" = 1;
       "h" = 1;
-      "col" = 1;
-      "row" = 3;
+      "col" = 3;
+      "row" = 5;
       "small" = true;
     }
   ];
