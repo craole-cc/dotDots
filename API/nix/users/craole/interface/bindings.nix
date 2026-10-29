@@ -26,7 +26,7 @@ let
   superShiftCtrl = super ++ shift ++ ctrl;
   superShiftAlt = super ++ shift ++ alt;
   superCtrlAlt = super ++ ctrl ++ alt;
-  # superShiftAltCtl = super ++ shift ++ alt ++ ctrl;
+  superShiftAltCtl = super ++ shift ++ alt ++ ctrl;
 
   mkBinding = common: overrides:
     common
@@ -242,13 +242,13 @@ in {
       in [
         (mkAction (withKey common period) "Next" superShiftAlt)
         (mkAction (withKey common comma) "Previous" superShiftAlt)
-        (mkAction (withKey common "W") "Preferences" superAlt)
-        (mkAction (withKey common "W") "Favourite" superShiftAlt)
-        (mkAction (withKey common "Delete") "Delete to Trash" superAlt)
-        (mkAction (withKey common "I") "View original" superAlt)
-        (mkAction (withKey common "I") "View source" superShiftAlt)
-        (mkAction (withKey common "I") "View snapshot" superCtrlAlt)
-        (mkAction (withKey common "X") "Toggle effects" superAlt)
+        (mkAction (withKey common "W") "Preferences" superCtrl)
+        (mkAction (withKey common "W") "Favourite" superAlt)
+        (mkAction (withKey common "W") "Delete to Trash" superShiftAltCtl)
+        (mkAction (withKey common "W") "Toggle effects" superCtrlAlt)
+        (mkAction (withKey common "W") "View snapshot" super)
+        (mkAction (withKey common "S") "View original" superAlt)
+        (mkAction (withKey common "S") "View source" superShiftAlt)
       ];
     };
   };
