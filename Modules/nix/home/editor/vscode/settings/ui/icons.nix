@@ -389,7 +389,7 @@ in {
           name = "ahk-clone";
           base = "autohotkey";
           color = "blue-400";
-          lightColor = "grey-600";
+          lightColor = "gray-600";
           ids = ["ahk2"];
         }
       ];
