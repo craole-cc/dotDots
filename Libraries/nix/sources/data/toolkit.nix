@@ -1692,7 +1692,6 @@ in {
     description = "pkill, pgrep, ps, top, and related process tools";
     discover = true; #? pkill, pgrep, ps, top, ...
     exe = "pkill";
-    prefer = ["kill" "uptime"];
     aliases = let
       mkFree = mkAlias "free";
       mkPgrep = mkAlias "pgrep";
@@ -2472,6 +2471,7 @@ in {
       };
     };
   };
+
   yq-go = mkSource {
     categories = ["text" "scripting"];
     description = "portable YAML, JSON, and XML processor (Go)";

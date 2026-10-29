@@ -41,8 +41,17 @@
     then concatMap mkCategories categories
     else optional (categories != null) categories;
 
+  defaults = with registry; {
+    sources = sources.entries;
+    aliases = aliases.entries;
+    prefer = recursiveUpdate prefer {
+      kill = "procps";
+      uptime = "procps";
+    };
+  };
+
   registry = let
-    toolkit = import ./data/toolkit.nix;
+    tools = import ./data/toolkit.nix;
     describe = entries: {
       inherit entries;
       names = attrNames entries;
@@ -57,7 +66,7 @@
           }
           (source // {categories = mkCategories (source.categories or []);})
       )
-      toolkit
+      tools
     );
   in {
     /**
@@ -69,7 +78,7 @@
     inherit sources;
     aliases = describe (mergeDisjoint {
       context = "toolkit aliases";
-      sets = map (sourceName: toolkit.${sourceName}.aliases or {}) (attrNames toolkit);
+      sets = map (sourceName: tools.${sourceName}.aliases or {}) (attrNames tools);
     });
     prefer = preferFrom sources.entries;
   };
@@ -87,7 +96,8 @@
   in
     assert !(elem "all" names)
     || throw "toolkit: 'all' is reserved, it cannot be a category";
-      listToAttrs (
+      {all = reg.names;}
+      // listToAttrs (
         map (name: {
           inherit name;
           value =
@@ -96,24 +106,23 @@
             reg.names;
         })
         names
-      )
-      // {all = reg.names;};
+      );
 
   #~@ Functions
   # binary -> source that wins it. Two sources claiming one binary is an error.
   preferFrom = set:
     mergeDisjoint {
       context = "toolkit prefer";
-      sets =
-        map (
-          name:
-            listToAttrs (map (binary: {
-                name = binary;
-                value = name;
-              })
-              set.${name}.prefer)
-        )
-        (attrNames set);
+      sets = map (
+        name:
+          listToAttrs (
+            map (binary: {
+              name = binary;
+              value = name;
+            })
+            set.${name}.prefer
+          )
+      ) (attrNames set);
     };
 
   /**
@@ -134,10 +143,12 @@
   }: let
     shadowed = attrNames (intersectAttrs binaries aliases);
   in
-    assert shadowed == [] || throw "toolkit: alias names shadow real binaries: ${toString shadowed}";
+    assert (shadowed == [])
+    || throw "toolkit: alias names shadow real binaries: ${toString shadowed}";
       mapAttrs (aliasName: spec: let
         binary = head spec.cmd;
-        path = binaries.${binary} or (throw "toolkit alias '${aliasName}': '${binary}' is not in sources");
+        path = binaries.${binary} or
+          (throw "toolkit alias '${aliasName}': '${binary}' is not in sources");
       in "${path} ${escapeShellArgs (tail spec.cmd)}")
       aliases;
 
@@ -193,7 +204,7 @@
       inherit inputs enableShorthand;
       inherit (resolved) pkgs;
       required = true;
-      prefer = registry.prefer // prefer;
+      prefer = defaults.prefer // prefer;
       sources = forPkgsFrom resolved.sources;
     };
 
@@ -297,12 +308,6 @@
         helpers
       ];
     };
-
-  defaults = with registry; {
-    sources = sources.entries;
-    aliases = aliases.entries;
-    inherit prefer;
-  };
 in
   meta.exports.local
   // {
