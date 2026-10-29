@@ -81,7 +81,10 @@
     else recursiveUpdate previous declared;
 
   indexed = bindings:
-    listToAttrs (imap0 (index: binding: {
+    listToAttrs (filter (entry: entry != null) (imap0 (index: binding:
+      if !(binding.enable or true) || (binding.kind or "exec") != "scratchpad"
+      then null
+      else {
         name = toString (index + 1);
         value = {
           key = binding.key or null;
@@ -94,7 +97,7 @@
             else index + 1;
         };
       })
-      bindings);
+    bindings));
 
   legacyScratchpad = spec: let
     ranked = listToAttrs (map (entry: {
@@ -115,9 +118,35 @@
   applyScope = previous: requested: let
     scope = normalizeValue requested;
     declarations = mapAttrs (
-      _: value:
+      group: value:
         if isList value
-        then map normalizeBinding value
+        then
+          imap0 (index: binding: let
+            normalized = normalizeBinding binding;
+            previousBindings = previous.bindings.${group} or [];
+            inheritedBinding =
+              if isList previousBindings && index < length previousBindings
+              then elemAt previousBindings index
+              else {};
+            applicationBinding =
+              {
+                kind = "scratchpad";
+                action = null;
+              }
+              // inheritedBinding
+              // normalized;
+          in
+            if categories ? ${group}
+            then
+              applicationBinding
+              // {
+                application =
+                  if (applicationBinding.application or null) != null
+                  then applicationBinding.application
+                  else index + 1;
+              }
+            else normalized)
+          value
         else normalizeBinding value
     ) (scope.bindings or {});
     replacedAliases = concatMap (
@@ -131,23 +160,7 @@
     inherited = removeAttrs (previous.bindings or {}) replacedAliases;
     bindings =
       inherited
-      // mapAttrs (group: value: let
-        merged = mergeBindings (inherited.${group} or {}) value;
-      in
-        if categories ? ${group} && isList merged
-        then
-          imap0 (index: binding:
-            binding
-            // {
-              kind = "scratchpad";
-              action = null;
-              application =
-                if (binding.application or null) != null
-                then binding.application
-                else index + 1;
-            })
-          merged
-        else merged)
+      // mapAttrs (group: value: mergeBindings (inherited.${group} or {}) value)
       declarations;
     scratchpadLists = listToAttrs (concatMap (
       group:

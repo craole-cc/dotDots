@@ -98,30 +98,19 @@ in {
         (mkAction common "Search files" superAlt)
       ];
 
-      terminal = let
+      terminalOpen = let
         common = {
-          description = "Terminal";
+          description = "Terminal: Open";
           category = "application";
+          key = enter;
           inherit modifier;
         };
-        open =
-          common
-          // {
-            description = "Terminal: Open";
-            key = enter;
-          };
-        scratchpad =
-          common
-          // {
-            description = "Terminal: Scratchpad";
-            key = grave;
-          };
-      in
-        [
-          (mkAction open "Primary" modifier)
-          (mkAction open "Secondary" superShift)
-        ]
-        ++ mkTiers scratchpad;
+      in [
+        (mkAction common "Primary" modifier)
+        (mkAction common "Secondary" superShift)
+      ];
+
+      terminal = mkApplication "Terminal: Scratchpad" grave;
 
       browser = mkApplication "Browser" "B";
       explorer = mkApplication "File Manager" "E";

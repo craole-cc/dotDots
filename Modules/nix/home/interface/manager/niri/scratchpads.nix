@@ -77,7 +77,9 @@
       then null
       else (entry.class or null);
     launch =
-      if entry == null
+      if (binding.command or null) != null
+      then binding.command
+      else if entry == null
       then null
       else if entry.needsTerminal or false
       then
@@ -128,6 +130,11 @@
   in
     if
       ! (binding.enable or true)
+      || ! (
+        (binding.kind or "exec")
+        == "scratchpad"
+        || (group == "ghosttyQuickTerminal" && (binding.kind or "exec") == "global")
+      )
       || (binding.key or null) == null
       || (binding.mod or null) == null
       || entry == null
@@ -144,7 +151,7 @@
           {
             action = actions.spawn-sh "${script}/bin/${script.name}";
             hotkey-overlay.title = binding.description or "Toggle ${category} ${toString application}";
-            repeat = false;
+            repeat = binding.repeating or false;
           }
           // (
             if binding.locked or false

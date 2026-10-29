@@ -1,6 +1,7 @@
 {
   interface =
-    (import ./desktops.nix)
+    (import ./bindings.nix)
+    // (import ./desktops.nix)
     // (import ./dms)
     // (import ./fonts.nix)
     // (import ./themes);

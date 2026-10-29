@@ -51,12 +51,12 @@
         != null
         && isList projected
         && index < length projected
-        && ((elemAt projected index).kind or "exec") == "exec"
+        && lib.lists.elem ((elemAt projected index).kind or "exec") ["exec" "scratchpad" "global"]
       then elemAt projected index
+      else if projected != null && !isList projected && lib.lists.elem (projected.kind or "exec") ["exec" "scratchpad" "global"]
+      then projected
       else if isList fallback && index < length fallback
       then elemAt fallback index
-      else if projected != null && !isList projected && (projected.kind or "exec") == "exec"
-      then projected
       else fallback;
   in
     if isList base
