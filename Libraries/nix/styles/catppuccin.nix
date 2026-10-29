@@ -11,13 +11,11 @@
     '';
     exports = {
       local = {
-        inherit
-          data
-          normalize
-          themes
-          cursors
-          mkFamily
-          ;
+        inherit data normalize themes cursors mkFamily;
+        mkTheme = themes.mkOne;
+        mkThemes = themes.mkPair;
+        mkCursor = cursors.mkOne;
+        mkCursors = cursors.mkPair;
       };
       alias = {
         mkCatppuccinTheme = themes.mkOne;
@@ -27,12 +25,10 @@
         mkCatppuccin = mkFamily;
       };
     };
-  in {
-    inherit doc exports;
-  };
+  in {inherit doc exports;};
 
   inherit (_.attrsets.access) attrNames getAttr;
-  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
+  inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.attrsets.resolution) getPackage;
@@ -45,13 +41,7 @@
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) toLowerCase toTitleCase;
   inherit (_.types.access) typeOf;
-  inherit
-    (_.types.predicates)
-    isAttrs
-    isFunction
-    isList
-    isString
-    ;
+  inherit (_.types.predicates) isAttrs isFunction isList isString;
   catppuccin =
     mapAttrs (_: filterAttrs (_: entry: (entry.family or null) == "catppuccin"))
     _.styles.registry.data.source.value;
@@ -92,15 +82,7 @@
         assertion = isIn resolved names;
         message = "invalid ${group} `${input}` - valid: ${toString names}";
       }; resolved;
-  in {
-    inherit
-      registry
-      names
-      aliases
-      has
-      lookup
-      ;
-  };
+  in {inherit registry names aliases has lookup;};
 
   data = let
     raw = catppuccin;
@@ -129,7 +111,10 @@
           registry = raw.flavors;
         };
 
-        byPolarity = polarity: filter (name: raw.flavors.${name}.polarity == polarity) base.names;
+        byPolarity = polarity:
+          filter
+          (name: raw.flavors.${name}.polarity == polarity)
+          base.names;
 
         polarized = {
           dark = byPolarity "dark";
@@ -138,9 +123,7 @@
       in
         base // polarized;
     };
-  in {
-    inherit raw seed registry;
-  };
+  in {inherit raw seed registry;};
   inherit (data) raw seed registry;
 
   mkPolarity = {
@@ -174,15 +157,15 @@
           name = "mkPolarity.pair";
           context = "validating polarity pair arguments";
           assertion = invalid == [];
-          message = "unexpected arguments `${toString invalid}` - allowed: ${toString (spec.args or [])}";
+          message = "unexpected arguments `${
+            toString invalid
+          }` - allowed: ${toString (spec.args or [])}";
         }; args;
     in
-      args: let
-        checked = validate args;
-      in {
-        light = fn (checked // {polarity = "light";});
-        dark = fn (checked // {polarity = "dark";});
-      };
+      args:
+        genAttrs ["dark" "light"] (
+          polarity: fn ((validate args) // {inherit polarity;})
+        );
 
     selection = {
       group,
@@ -248,10 +231,7 @@
   in
     assert withContext {
       inherit (fn) name context;
-      assertion = isIn group [
-        "accent"
-        "flavor"
-      ];
+      assertion = isIn group ["accent" "flavor"];
       message = "unsupported group `${group}`";
     };
     with registry;
@@ -358,9 +338,7 @@
         "size"
       ];
     };
-  in {
-    inherit mkOne mkPair;
-  };
+  in {inherit mkOne mkPair;};
 
   themes = let
     resolve = {
@@ -434,9 +412,7 @@
         "flavor"
       ];
     };
-  in {
-    inherit mkOne mkPair;
-  };
+  in {inherit mkOne mkPair;};
 
   mkFamily = {
     accent ? seed.accent,
