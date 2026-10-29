@@ -328,6 +328,7 @@
         {
           "id" = "systemTray";
           "enabled" = true;
+          "trayAutoOverflow" = false;
           "trayIconSpacing" = 2;
           "trayUseInlineExpansion" = false;
           "trayMaxVisibleItems" = 0;
@@ -559,6 +560,7 @@
         {
           "id" = "systemTray";
           "enabled" = false;
+          "trayAutoOverflow" = false;
         }
         {
           "id" = "notepadButton";
