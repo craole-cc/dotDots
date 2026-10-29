@@ -129,6 +129,60 @@ in {
     };
   };
 
+  cmus = mkSource {
+    categories = ["media" "audio"];
+    description = "console-based music player";
+    aliases = let
+      mk = mkAlias "cmus";
+      mkRemote = mkAlias "cmus-remote";
+    in {
+      cmusHelp = mk {
+        args = ["-h"];
+        description = "show command-line help";
+      };
+      cmusVersion = mk {
+        args = ["-v"];
+        description = "show the installed version";
+      };
+      cmusNext = mkRemote {
+        args = ["-n"];
+        description = "skip to the next track";
+      };
+      cmusPause = mkRemote {
+        args = ["-u"];
+        description = "toggle playback pause";
+      };
+      cmusPlay = mkRemote {
+        args = ["-p"];
+        description = "start or resume playback";
+      };
+      cmusPrevious = mkRemote {
+        args = ["-r"];
+        description = "return to the previous track";
+      };
+      cmusQuit = mkRemote {
+        args = ["-q"];
+        description = "quit the running cmus instance";
+      };
+      cmusRepeat = mkRemote {
+        args = ["-R"];
+        description = "toggle repeat mode";
+      };
+      cmusShuffle = mkRemote {
+        args = ["-S"];
+        description = "toggle shuffle mode";
+      };
+      cmusStatus = mkRemote {
+        args = ["-Q"];
+        description = "print the current player status and track metadata";
+      };
+      cmusStop = mkRemote {
+        args = ["-s"];
+        description = "stop playback";
+      };
+    };
+  };
+
   coreutils = mkSource {
     categories = ["core" "scripting"];
     description = "core file, text, and shell utilities";
@@ -1302,6 +1356,83 @@ in {
     };
   };
 
+  kew = mkSource {
+    categories = ["media" "audio"];
+    description = "terminal music player and library browser";
+    aliases = let
+      mk = mkAlias "kew";
+    in {
+      kewAlbums = mk {
+        args = ["albums"];
+        description = "play albums from the music library in random order";
+      };
+      kewAll = mk {
+        args = ["all"];
+        description = "play all songs in the music library shuffled";
+      };
+      kewDir = mk {
+        args = ["dir"];
+        description = "find and play a directory by name";
+      };
+      kewExact = mk {
+        args = ["--exact"];
+        description = "match a song, album, or artist name exactly";
+      };
+      kewFavorites = mk {
+        args = ["."];
+        description = "play the favourites playlist";
+      };
+      kewHelp = mk {
+        args = ["--help"];
+        description = "show command-line help";
+      };
+      kewList = mk {
+        args = ["list"];
+        description = "play a named playlist";
+      };
+      kewNoCover = mk {
+        args = ["--nocover"];
+        description = "start without displaying cover art";
+      };
+      kewNoUi = mk {
+        args = ["--noui"];
+        description = "play without displaying the user interface";
+      };
+      kewPath = mk {
+        args = ["path"];
+        description = "set the music library path";
+      };
+      kewPlay = mk {
+        args = ["play"];
+        description = "play one or more file or directory paths";
+      };
+      kewQuitOnStop = mk {
+        args = ["--quitonstop"];
+        description = "exit after the playlist finishes";
+      };
+      kewShuffle = mk {
+        args = ["shuffle"];
+        description = "shuffle a matching song or album playlist";
+      };
+      kewSong = mk {
+        args = ["song"];
+        description = "find and play a song by name";
+      };
+      kewTheme = mk {
+        args = ["theme"];
+        description = "set the interface theme";
+      };
+      kewVerbose = mk {
+        args = ["--verbose"];
+        description = "log additional diagnostic information";
+      };
+      kewVersion = mk {
+        args = ["--version"];
+        description = "show the installed version";
+      };
+    };
+  };
+
   jaq = mkSource {
     categories = ["text" "scripting"];
     description = "jq-compatible JSON processor (Rust)";
@@ -1472,10 +1603,43 @@ in {
     };
   };
 
+  mpv = mkSource {
+    categories = ["media" "video"];
+    description = "versatile command-line media player";
+    aliases = let
+      mk = mkAlias "mpv";
+    in {
+      mpvAudio = mk {
+        args = ["--no-video"];
+        description = "play media as audio without displaying video";
+      };
+      mpvFullscreen = mk {
+        args = ["--fullscreen"];
+        description = "start playback in fullscreen mode";
+      };
+      mpvHelp = mk {
+        args = ["--help"];
+        description = "show command-line help";
+      };
+      mpvLoop = mk {
+        args = ["--loop-file=inf"];
+        description = "repeat each played file indefinitely";
+      };
+      mpvPlaylist = mk {
+        args = ["--playlist"];
+        description = "play entries from a playlist file";
+      };
+      mpvVersion = mk {
+        args = ["--version"];
+        description = "show the installed version";
+      };
+    };
+  };
+
   nemo = mkSource {
     categories = ["desktop-ui"];
     description = "Nemo file manager with extensions";
-    target = (import ../../applications/data/explorers.nix {}).nemo.names.package;
+    target = "nemo-with-extensions";
     exe = "nemo";
   };
 
@@ -1521,6 +1685,7 @@ in {
     description = "pkill, pgrep, ps, top, and related process tools";
     discover = true; #? pkill, pgrep, ps, top, ...
     exe = "pkill";
+    prefer = ["kill" "uptime"];
     aliases = let
       mkFree = mkAlias "free";
       mkPgrep = mkAlias "pgrep";
@@ -2280,6 +2445,26 @@ in {
     };
   };
 
+  yazi = mkSource {
+    categories = ["files" "scripting"];
+    description = "terminal file manager";
+    aliases = let
+      mk = mkAlias "yazi";
+    in {
+      yaziChooserFile = mk {
+        args = ["--chooser-file"];
+        description = "write the selected file path to a caller-supplied file";
+      };
+      yaziCwdFile = mk {
+        args = ["--cwd-file"];
+        description = "write the final working directory to a caller-supplied file";
+      };
+      yaziSelect = mk {
+        args = ["--select"];
+        description = "select a caller-supplied file on startup";
+      };
+    };
+  };
   yq-go = mkSource {
     categories = ["text" "scripting"];
     description = "portable YAML, JSON, and XML processor (Go)";

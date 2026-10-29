@@ -24,6 +24,7 @@
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.attrsets.access) attrNames;
   inherit (_.lists.access) head tail;
+  inherit (_.lists.construction) optional;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) filter;
@@ -35,26 +36,17 @@
   #~@ Data
   #? Keys that are ours, not `pkgsFrom`'s.
   ownKeys = ["name" "categories" "description" "prefer" "aliases"];
-  normalizeCategories = categories:
+  mkCategories = categories:
     if isList categories
-    then concatMap normalizeCategories categories
-    else if categories == null
-    then []
-    else [categories];
+    then concatMap mkCategories categories
+    else optional (categories != null) categories;
 
   registry = let
-    toolkit = import ./data/tools.nix;
+    toolkit = import ./data/toolkit.nix;
     describe = entries: {
       inherit entries;
       names = attrNames entries;
     };
-  in {
-    /**
-    Sources are tagged with `categories`; every category is a group, so there
-    are no separate composites (`scripting` and `desktop` are just categories).
-    `prefer` lists the binaries this source wins when several packages ship
-    the same one.
-    */
     sources = describe (
       mapAttrs (
         name: source:
@@ -63,15 +55,23 @@
             categories = [];
             prefer = [];
           }
-          (source // {categories = normalizeCategories (source.categories or []);})
+          (source // {categories = mkCategories (source.categories or []);})
       )
       toolkit
     );
+  in {
+    /**
+    Sources are tagged with `categories`; every category is a group, so there
+    are no separate composites (`scripting` and `desktop` are just categories).
+    `prefer` lists the binaries this source wins when several packages ship
+    the same one.
+    */
+    inherit sources;
     aliases = describe (mergeDisjoint {
       context = "toolkit aliases";
       sets = map (sourceName: toolkit.${sourceName}.aliases or {}) (attrNames toolkit);
     });
-    prefer = import ./data/prefer.nix;
+    prefer = preferFrom sources.entries;
   };
 
   #? Name lists, not specs.

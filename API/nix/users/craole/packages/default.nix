@@ -72,7 +72,9 @@ let
     "shortwave"
     "celluloid"
     "mpv"
+    "kew"
     "playerctl"
+    "cmus"
   ];
 
   launcher = [

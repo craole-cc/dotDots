@@ -7,6 +7,7 @@
   ...
 } @ args: let
   defaults = {
+    # TODO:  Is it still being used? Why is this still being used? I'm pretty sure I updated Libraries/sources/inputs.nix so this could be removed.
     inputs = {
       config = {
         allowUnfree = true;
