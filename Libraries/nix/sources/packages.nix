@@ -282,6 +282,10 @@
     via `getExe'`; when omitted, the package's declared main program or
     package name is used
 
+  `transform`
+  : optional function applied to the resolved package before deriving records,
+    executable paths and metadata; defaults to the identity function
+
   `alias`
   : optional command name to expose as a symlink package in `.alias`
 
@@ -344,6 +348,7 @@
       else null,
     required ? false,
     versionArgs ? null,
+    transform ? package: package,
   }: let
     _name = "pkgOf";
 
@@ -430,7 +435,7 @@
       if check == null || check.value == null
       then null
       else let
-        package = check.value;
+        package = transform check.value;
 
         src =
           if input != null
@@ -618,6 +623,7 @@
             input = source.input or null;
             target = source.target or target;
             versionArgs = source.versionArgs or null;
+            transform = source.transform or (package: package);
           }
           // optionalAttrs (system != null) {inherit system;}
         );

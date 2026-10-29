@@ -74,6 +74,8 @@ in
       programs.dank-material-shell = {
         inherit (cfg) enable;
         managePluginSettings = false;
+        # Supply Khal through the toolkit instead of the upstream package set.
+        enableCalendarEvents = false;
         settings = {};
         clipboardSettings = {};
         session = {};
