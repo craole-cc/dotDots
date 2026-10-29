@@ -16,12 +16,19 @@ let
   browser = [
     "chromium"
     "zen-twilight"
-    # "brave"
+    "brave"
   ];
 
   editor = [
     "helix"
     "neovim"
+    (builtins.head ide)
+  ];
+
+  ide = [
+    "vscode-fhs"
+    "zed-editor-fhs"
+    "vscode-insiders"
   ];
 
   explorer = [
@@ -66,12 +73,6 @@ let
     "celluloid"
     "mpv"
     "playerctl"
-  ];
-
-  ide = [
-    "vscode-fhs"
-    "zed-editor-fhs"
-    "vscode-insiders"
   ];
 
   launcher = [
