@@ -85,7 +85,7 @@ in
         target_tmp="$(${mktemp} "$target.tmp.XXXXXX")" || return 1
         if [ -f "$target" ]; then
           if ! ${jaq} --slurpfile overrides "$overrides" --slurpfile defaults "$defaults" \
-            '($defaults[0] * .[0] * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
+            '($defaults[0] * . * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
             "$target" > "$target_tmp"; then
             ${rmf} "$target_tmp"
             return 1
