@@ -1,4 +1,35 @@
 _: {
+  kew = {
+    names = {
+      package = "kew";
+      command = "kew";
+      title = "kew";
+    };
+    exec = "kew";
+    needsTerminal = true;
+    categories = ["media"];
+  };
+
+  cmus = {
+    names = {
+      package = "cmus";
+      command = "cmus";
+      title = "cmus";
+    };
+    exec = "cmus";
+    needsTerminal = true;
+    categories = ["media"];
+  };
+
+  playerctl = {
+    names = {
+      package = "playerctl";
+      command = "playerctl";
+    };
+    exec = "playerctl";
+    categories = ["media"];
+  };
+
   mpv = {
     names = {
       package = "mpv";
