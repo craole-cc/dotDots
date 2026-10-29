@@ -31,7 +31,7 @@
   in "${category}-${suffix}";
 
   scratchpadBind = category: scratchpad: binding: let
-    entries = apps.${packageGroup category} or [];
+    entries = apps.scratchpads.${packageGroup category} or [];
     inherit (binding) application;
     entry =
       if application > 0 && application <= length entries
@@ -49,7 +49,11 @@
       else if entry != null
       then wrapCommand entry (entry.launch.scratchpad or entry.command)
       else null;
-    workspace = workspaceName category application;
+    workspace = workspaceName category (
+      if entry != null
+      then entry.scratchpadSlot
+      else application
+    );
     description = binding.description or "Toggle ${category} ${toString application}";
     chord = concatStringsSep " + " ((filter (part: part != "") (splitString " " mod)) ++ [key]);
   in

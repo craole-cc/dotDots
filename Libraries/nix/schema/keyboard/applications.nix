@@ -2,6 +2,7 @@
   categories = {
     terminal = "terminal";
     browser = "browser";
+    browserPrivate = "browserPrivate";
     editor = "editor";
     ide = "ide";
     explorer = "explorer";

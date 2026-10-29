@@ -8,7 +8,7 @@
 }: let
   inherit (lib.attrsets) listToAttrs mapAttrsToList;
   inherit (lib.lists) elemAt toList;
-  inherit (lib.strings) escapeRegex escapeShellArgs replaceStrings;
+  inherit (lib.strings) escapeShellArgs replaceStrings;
   inherit (lib) filterAttrs;
 
   packageGroup = category:
@@ -67,7 +67,7 @@
       if group == "ghosttyQuickTerminal"
       then 1
       else (binding.application or 1);
-    entries = apps.${packageGroup category} or [];
+    entries = apps.scratchpads.${packageGroup category} or [];
     entry =
       if application > 0 && application <= builtins.length entries
       then elemAt entries (application - 1)
@@ -75,6 +75,8 @@
     appId =
       if entry == null
       then null
+      else if (entry.needsTerminal or false) && primaryTerminal != null
+      then primaryTerminal.class or null
       else (entry.class or null);
     launch =
       if (binding.command or null) != null
@@ -87,44 +89,51 @@
         then null
         else "${primaryTerminal.command} ${primaryTerminal.wrap.execFlag or "-e"} ${entry.launch.scratchpad or entry.command}"
       else entry.launch.scratchpad or entry.command;
-    workspace = mkWorkspace category application;
+    workspace = mkWorkspace category (
+      if entry != null
+      then entry.scratchpadSlot
+      else application
+    );
     script = pkgs.writeShellApplication {
       name = "dotdots-niri-scratchpad-${category}-${toString application}";
       runtimeInputs = [pkgs.bash pkgs.coreutils pkgs.jq niriPackage];
       text = ''
         app_id=${escapeShell appId}
         launch=${escapeShell launch}
+        workspace=${escapeShell workspace}
         windows=$(niri msg --json windows)
-        window_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" '[.[] | select(.app_id == $app_id)][0].id // empty')
+        workspaces=$(niri msg --json workspaces)
+        target_workspace_id=$(printf '%s' "$workspaces" | jq -r --arg name "$workspace" '[.[] | select(.name == $name)][0].id // empty')
+        window_id=$(printf '%s' "$windows" | jq -r --arg workspace_id "$target_workspace_id" '[.[] | select((.workspace_id | tostring) == $workspace_id)][0].id // empty')
 
         if [ -n "$window_id" ]; then
-          window_workspace_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" '[.[] | select(.app_id == $app_id)][0].workspace_id // empty')
-          workspaces=$(niri msg --json workspaces)
           active_workspace_id=$(printf '%s' "$workspaces" | jq -r '[.[] | select(.is_active)][0].id // empty')
-          if [ "$active_workspace_id" = "$window_workspace_id" ]; then
+          if [ "$active_workspace_id" = "$target_workspace_id" ]; then
             niri msg action focus-workspace-previous
           else
-            target_workspace=$(printf '%s' "$workspaces" | jq -r --argjson id "$window_workspace_id" '[.[] | select(.id == $id)][0].idx // empty')
-            [ -n "$target_workspace" ] && niri msg action focus-workspace "$target_workspace"
+            niri msg action focus-workspace "$workspace"
+            niri msg action focus-window --id "$window_id"
           fi
-          exit
+          exit 0
         fi
 
+        previous_ids=$(printf '%s' "$windows" | jq '[.[].id]')
         bash -lc "$launch" &
         attempts_remaining=50
         while [ "$attempts_remaining" -gt 0 ]; do
           windows=$(niri msg --json windows)
-          window_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" '[.[] | select(.app_id == $app_id)][0].id // empty')
+          window_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" --argjson previous "$previous_ids" '[.[] | select(.app_id == $app_id) | select(.id as $id | $previous | index($id) == null)][0].id // empty')
           if [ -n "$window_id" ]; then
-            window_workspace_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" '[.[] | select(.app_id == $app_id)][0].workspace_id // empty')
-            workspaces=$(niri msg --json workspaces)
-            target_workspace=$(printf '%s' "$workspaces" | jq -r --argjson id "$window_workspace_id" '[.[] | select(.id == $id)][0].idx // empty')
-            [ -n "$target_workspace" ] && niri msg action focus-workspace "$target_workspace"
-            exit
+            niri msg action move-window-to-workspace --window-id "$window_id" "$workspace"
+            niri msg action focus-workspace "$workspace"
+            niri msg action focus-window --id "$window_id"
+            exit 0
           fi
           attempts_remaining=$((attempts_remaining - 1))
           sleep 0.1
         done
+        printf 'Scratchpad: no new window appeared for %s (%s)\n' "$workspace" "$app_id" >&2
+        exit 1
       '';
     };
   in
@@ -170,13 +179,10 @@
     name = record.workspace;
     value = {};
   };
-  mkWindowRule = record: {
-    matches = [{app-id = "^${escapeRegex record.appId}$";}];
-    open-on-workspace = record.workspace;
-  };
 in {
   binds = listToAttrs (map (record: record.bind) validRecords);
   workspaces = listToAttrs (map mkWorkspaceEntry validRecords);
-  window-rules = map mkWindowRule validRecords;
+  # Placement belongs to the launch script; one app can occupy several slots.
+  window-rules = [];
   packages = map (record: record.script) validRecords;
 }

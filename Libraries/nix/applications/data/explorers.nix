@@ -76,7 +76,7 @@ _: {
 
   thunar = {
     names = {
-      package = "xfce.thunar";
+      package = "thunar";
       command = "thunar";
       class = "Thunar";
     };

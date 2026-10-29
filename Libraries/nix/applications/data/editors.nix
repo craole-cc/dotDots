@@ -332,6 +332,7 @@ _: {
       title = "Visual Studio Code";
     };
     exec = "code";
+    launch.scratchpad = "code --new-window";
     categories = [
       "editor"
       "ide"
@@ -344,9 +345,10 @@ _: {
     names = {
       package = "vscode-insiders";
       command = "code-insiders";
-      class = "code - Insiders";
+      class = "code-insiders";
     };
     exec = "code-insiders";
+    launch.scratchpad = "code-insiders --new-window";
     categories = [
       "editor"
       "ide"
@@ -409,6 +411,7 @@ _: {
       class = "dev.zed.Zed";
     };
     exec = "zeditor";
+    launch.scratchpad = "zeditor --new";
     categories = [
       "editor"
       "ide"

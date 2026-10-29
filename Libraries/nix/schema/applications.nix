@@ -1,13 +1,15 @@
 {_, ...}: let
   inherit (_.applications.registry) resolve;
   inherit (_.attrsets.access) attrByPath attrValues;
-  inherit (_.lists.construction) concatLists;
+  inherit (_.lists.construction) concatLists genList;
+  inherit (_.attrsets.construction) genAttrs;
   inherit (_.lists.transformation) unique;
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.strings.predicates) hasInfix;
   inherit (_.strings.transformation) toLower;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.lists.access) head;
+  inherit (_.lists.access) head length;
+  inherit (_.lists.transformation) imap0;
   inherit (_.schema.packages) merge policyFields roleView toApplications;
 
   __exports = {
@@ -215,7 +217,21 @@
     class = getClass category name;
     needsTerminal = meta.needsTerminal or false;
     wrap = meta.wrap or {};
-    launch.scratchpad = meta.launch.scratchpad or (scratchpadCommand category command);
+    launch =
+      (meta.launch or {})
+      // {
+        scratchpad = meta.launch.scratchpad or (scratchpadCommand category command);
+        private =
+          meta.launch.private or (
+            if category != "browser"
+            then null
+            else if (meta.family or "") == "chromium"
+            then "${command} --incognito --new-window about:blank"
+            else if (meta.family or "") == "firefox" || (meta.family or "") == "zen"
+            then "${command} --private-window about:blank"
+            else null
+          );
+      };
   };
 
   # ── Resolution ───────────────────────────────────────────────────────────────
@@ -257,6 +273,33 @@
         else group;
     in
       map (mkEntry category) names) (removeAttrs packages policyFields);
+    # Missing positions reuse the first entry and its workspace identity.
+    # Package selections stay unpadded; both compositors consume this view.
+    scratchpadSlots = selected: let
+      indexed = imap0 (index: entry: entry // {scratchpadSlot = index + 1;}) selected;
+    in
+      if indexed == []
+      then []
+      else
+        indexed
+        ++ genList (_index: head indexed) (
+          if length indexed < 3
+          then 3 - length indexed
+          else 0
+        );
+    normalScratchpads = genAttrs ["terminal" "browser" "explorer" "editor" "ide" "ai-agent" "media"] (
+      group: scratchpadSlots (entries.${group} or [])
+    );
+    scratchpads =
+      normalScratchpads
+      // {
+        browserPrivate = map (entry:
+          entry
+          // {
+            launch = entry.launch // {scratchpad = entry.launch.private;};
+          })
+        normalScratchpads.browser;
+      };
     legacyGroup = name: roleView (entries.${name} or []);
     # Host requirements remain installed even when a user's ordered preference
     # replaces the host group. Coding selects toolchains in its own module.
@@ -269,7 +312,7 @@
   in
     entries
     // {
-      inherit packages requiredPackages;
+      inherit packages requiredPackages scratchpads;
       # Named positions are a compatibility view for existing shortcuts. The
       # application contract above retains every entry of every group.
       legacy = {

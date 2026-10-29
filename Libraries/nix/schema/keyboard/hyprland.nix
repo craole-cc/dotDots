@@ -84,10 +84,10 @@ in {
       (command "varietyctl preferences")
       (command "varietyctl love")
       (command "varietyctl trash")
+      (command "varietyctl toggle-effects")
+      (command "varietyctl snapshot")
       (command "varietyctl view")
       (command "varietyctl source")
-      (command "varietyctl snapshot")
-      (command "varietyctl toggle-effects")
     ];
     volume =
       scale (step: "wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ ${toString step}%+")

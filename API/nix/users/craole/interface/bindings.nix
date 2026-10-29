@@ -113,6 +113,17 @@ in {
       terminal = mkApplication "Terminal: Scratchpad" grave;
 
       browser = mkApplication "Browser" "B";
+      browserPrivate = let
+        common = {
+          description = "Browser: Private";
+          category = "application";
+          key = "B";
+        };
+      in [
+        (mkAction common "Primary" superCtrl)
+        (mkAction common "Secondary" superShiftCtrl)
+        (mkAction common "Tertiary" superCtrlAlt)
+      ];
       explorer = mkApplication "File Manager" "E";
       editor = mkApplication "Code Editor" "C";
       ide = mkApplication "Integrated Development Environment" "V";

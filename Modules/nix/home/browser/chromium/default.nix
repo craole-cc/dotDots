@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   lix,
   user,
   pkgs,
@@ -8,8 +7,12 @@
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
-  inherit (lib.lists) findFirst;
-  inherit (lib.strings) match toJSON toUpper;
+  inherit (lix.applications.registry) resolve;
+  inherit (lix.applications.runtime) resolvePackage;
+  inherit (lix.attrsets.construction) listToAttrs;
+  inherit (lix.lists.predicates) elem;
+  inherit (lix.lists.selection) filter;
+  inherit (lix.strings.construction) toJSON;
 
   context = mkContext {
     inherit config;
@@ -17,67 +20,27 @@
     mod = "chromium";
   };
 
-  name = "chromium";
-  browser = user.applications.browser or {};
+  selections = user.packages.browser or ((lix.schema.packages.resolve {record = user;}).browser or []);
+  supported = ["chromium" "brave" "google-chrome" "google-chrome-beta" "google-chrome-dev" "vivaldi" "microsoft-edge"];
+  browsers = filter (app: elem app.names.package supported) (map (value:
+    resolve {
+      inherit value;
+      category = "browser";
+    })
+  selections);
+  enable = browsers != [];
 
-  matches = pred: str: str != null && match pred str != null;
-
-  variantFor = target:
-    if target == null
-    then null
-    #| Brave
-    else if matches "brave" target
-    then "brave"
-    #| Chrome
-    else if matches "chrome" target
-    then "google-chrome"
-    #| Chromium
-    else if target == "default" || matches "chromium" target || matches "ungoogled" target
-    then "chromium"
-    #| Vivaldi
-    else if matches "viv" target
-    then "vivaldi"
-    else null;
-
-  targets =
-    [
-      (browser.primary or null)
-      (browser.secondary or null)
-      (browser.tertiary or null)
-    ]
-    ++ (user.applications.allowed or []);
-
-  target = findFirst (candidate: variantFor candidate != null) null targets;
-  variant = variantFor target;
-  enable = variant != null;
-
-  package =
-    if enable
-    then pkgs.${variant}
-    else null;
-
-  debug = {
-    key = "_dbg_${toUpper name}";
-    val = toJSON {
-      criteria = {
-        targetRequested =
-          if target == null
-          then "undefined"
-          else target;
-        valid = enable;
-      };
-      resolved = {
-        variant =
-          if variant != null
-          then variant
-          else "none";
-        packageName =
-          if package != null
-          then package.name
-          else "none";
-      };
-    };
-  };
+  common = (import ./cli.nix) // (import ./extensions.nix);
+  programs = listToAttrs (map (app: {
+      name = app.names.package;
+      value =
+        common
+        // {
+          enable = true;
+          package = resolvePackage {inherit app pkgs;};
+        };
+    })
+    browsers);
 in
   mkConfig {
     inherit context;
@@ -88,14 +51,7 @@ in
       };
     };
     outputs = {
-      programs = {
-        chromium =
-          {inherit enable package;}
-          // (import ./cli.nix)
-          // (import ./extensions.nix);
-      };
-      home = {
-        sessionVariables.${debug.key} = debug.val;
-      };
+      inherit programs;
+      home.sessionVariables._dbg_CHROMIUM = toJSON (map (app: app.name) browsers);
     };
   }
