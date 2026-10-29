@@ -8,6 +8,7 @@
   inherit (lix.lists.selection) filter;
   inherit (lix.strings.construction) concatStringsSep splitString toJSON;
   inherit (lix.types.predicates) isAttrs;
+  inherit (lix.filesystem.access) readFile;
 
   # The keyboard AI alias selects the canonical ai-agent package group.
   # Editor and IDE shortcuts use their own declared package groups.
@@ -60,12 +61,22 @@
     if key == null || mod == null || command == null || command == ""
     then ""
     else ''
-      hl.workspace_rule({ workspace = ${toJSON "special:${workspace}"}, on_created_empty = ${toJSON command} })
+      dotdots_scratchpads.register(${toJSON workspace}, ${toJSON command})
       hl.unbind(${toJSON chord})
-      hl.bind(${toJSON chord}, hl.dsp.workspace.toggle_special(${toJSON workspace}), { description = ${toJSON description} })
+      hl.bind(${toJSON chord}, function()
+        dotdots_scratchpads.toggle(${toJSON workspace})
+      end, { description = ${toJSON description} })
     '';
 in
-  concatStringsSep "" (mapAttrsToList (
+  ''
+    if dotdots_scratchpads and dotdots_scratchpads.stop then
+      dotdots_scratchpads.stop()
+    end
+    dotdots_scratchpads = (function()
+      ${readFile ./scratchpads.lua}
+    end)()
+  ''
+  + concatStringsSep "" (mapAttrsToList (
       category: scratchpad:
         concatStringsSep "" (mapAttrsToList (_: scratchpadBind category scratchpad) (scratchpad.entries or {}))
     )

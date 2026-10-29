@@ -113,6 +113,13 @@ in {
       terminal = mkApplication "Terminal: Scratchpad" grave;
 
       browser = mkApplication "Browser" "B";
+      browserSend =
+        mkAction {
+          description = "Browser";
+          category = "controller";
+          key = "B";
+        } "Send focused window to primary scratchpad"
+        superShiftAlt;
       browserPrivate = let
         common = {
           description = "Browser: Private";

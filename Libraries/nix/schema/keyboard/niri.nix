@@ -19,6 +19,7 @@
   ];
 in {
   legacy = {
+    browserSend = native "move-window-to-workspace dotdots-browser-1";
     close = native "close-window";
     fullscreen = native "fullscreen-window";
     maximise = native "maximize-window-to-edges";

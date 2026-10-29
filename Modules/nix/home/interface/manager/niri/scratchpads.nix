@@ -26,6 +26,7 @@
         || (group
           == "ghosttyQuickTerminal"
           && lib.lists.any (binding: (binding.kind or "exec") == "global") (toList bindings))
+        || group == "browserSend"
     )
     keyboard.bindings;
 
@@ -60,7 +61,9 @@
 
   mkRecord = group: binding: let
     category =
-      if group == "ghosttyQuickTerminal"
+      if group == "browserSend"
+      then "browser"
+      else if group == "ghosttyQuickTerminal"
       then "terminal"
       else group;
     application =
@@ -96,17 +99,40 @@
     );
     script = pkgs.writeShellApplication {
       name = "dotdots-niri-scratchpad-${category}-${toString application}";
-      runtimeInputs = [pkgs.bash pkgs.coreutils pkgs.jq niriPackage];
+      runtimeInputs = [pkgs.bash pkgs.coreutils pkgs.jq pkgs.util-linux niriPackage];
       text = ''
         app_id=${escapeShell appId}
         launch=${escapeShell launch}
         workspace=${escapeShell workspace}
+        session=''${NIRI_SOCKET:?NIRI_SOCKET is required}
+        state_dir="''${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR is required}/dotdots-niri-scratchpads/''${session##*/}"
+        mkdir -p "$state_dir"
+        state_file="$state_dir/$workspace.window"
+        exec 9>"$state_file.lock"
+        flock -n 9 || exit 0
+        remember_window() {
+          for saved in "$state_dir"/*.window; do
+            [ -f "$saved" ] || continue
+            if [ "$saved" != "$state_file" ] && [ "$(cat "$saved")" = "$window_id" ]; then
+              rm -f -- "$saved"
+            fi
+          done
+          printf '%s\n' "$window_id" > "$state_file"
+        }
         windows=$(niri msg --json windows)
+        if [ "''${1:-}" = "--send" ]; then
+          window_id=$(printf '%s' "$windows" | jq -r '[.[] | select(.is_focused)][0].id // empty')
+          [ -n "$window_id" ] || exit 0
+          remember_window
+          niri msg action move-window-to-workspace --window-id "$window_id" --focus false "$workspace"
+          exit 0
+        fi
         workspaces=$(niri msg --json workspaces)
         target_workspace_id=$(printf '%s' "$workspaces" | jq -r --arg name "$workspace" '[.[] | select(.name == $name)][0].id // empty')
         window_id=$(printf '%s' "$windows" | jq -r --arg workspace_id "$target_workspace_id" '[.[] | select((.workspace_id | tostring) == $workspace_id)][0].id // empty')
 
         if [ -n "$window_id" ]; then
+          remember_window
           active_workspace_id=$(printf '%s' "$workspaces" | jq -r '[.[] | select(.is_active)][0].id // empty')
           if [ "$active_workspace_id" = "$target_workspace_id" ]; then
             niri msg action focus-workspace-previous
@@ -117,13 +143,31 @@
           exit 0
         fi
 
+        if [ -f "$state_file" ]; then
+          owned_id=$(cat "$state_file")
+          window_id=$(printf '%s' "$windows" | jq -r --arg id "$owned_id" '[.[] | select((.id | tostring) == $id)][0].id // empty')
+          if [ -n "$window_id" ]; then
+            niri msg action move-window-to-workspace --window-id "$window_id" "$workspace"
+            niri msg action focus-workspace "$workspace"
+            niri msg action focus-window --id "$window_id"
+            exit 0
+          fi
+          rm -f -- "$state_file"
+        fi
+
+        # Serialise launches so normal/private windows with one app ID cannot
+        # be claimed by two scratchpads at once.
+        exec 8>"$state_dir/launch.lock"
+        flock -w 15 8 || exit 1
+        windows=$(niri msg --json windows)
         previous_ids=$(printf '%s' "$windows" | jq '[.[].id]')
-        bash -lc "$launch" &
+        bash -lc "$launch" 8>&- 9>&- &
         attempts_remaining=50
         while [ "$attempts_remaining" -gt 0 ]; do
           windows=$(niri msg --json windows)
           window_id=$(printf '%s' "$windows" | jq -r --arg app_id "$app_id" --argjson previous "$previous_ids" '[.[] | select(.app_id == $app_id) | select(.id as $id | $previous | index($id) == null)][0].id // empty')
           if [ -n "$window_id" ]; then
+            remember_window
             niri msg action move-window-to-workspace --window-id "$window_id" "$workspace"
             niri msg action focus-workspace "$workspace"
             niri msg action focus-window --id "$window_id"
@@ -142,6 +186,7 @@
       || ! (
         (binding.kind or "exec")
         == "scratchpad"
+        || group == "browserSend"
         || (group == "ghosttyQuickTerminal" && (binding.kind or "exec") == "global")
       )
       || (binding.key or null) == null
@@ -158,7 +203,12 @@
         name = mkChord binding;
         value =
           {
-            action = actions.spawn-sh "${script}/bin/${script.name}";
+            action = actions.spawn-sh ("${script}/bin/${script.name}"
+              + (
+                if group == "browserSend"
+                then " --send"
+                else ""
+              ));
             hotkey-overlay.title = binding.description or "Toggle ${category} ${toString application}";
             repeat = binding.repeating or false;
           }

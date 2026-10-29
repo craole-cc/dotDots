@@ -31,6 +31,7 @@
 in {
   # Hyprland-native actions do not depend on DMS being installed.
   legacy = {
+    browserSend = callback ''function() dotdots_scratchpads.send("browser-primary") end'';
     close = native "window.close()";
     inherit fullscreen;
     maximise = native ''window.fullscreen({ mode = "maximized", action = "toggle" })'';
