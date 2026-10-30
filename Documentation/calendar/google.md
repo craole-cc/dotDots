@@ -56,20 +56,32 @@ when selected as the DMS calendar backend or as a communication package;
 Thunderbird is enabled by its communication package selection.
 
 After activation, open Thunderbird's `google` profile once, then close Thunderbird.
-Create your private environment file from the installed template:
+Create the shared private config if needed, then set its permissions before editing:
 
 ```sh
-install -d -m 700 ~/.config/thunderbird
-install -m 600 ~/.config/thunderbird/google.env.example ~/.config/thunderbird/google.env
+install -d -m 700 ~/Private
+touch ~/Private/config.toml
+chmod 600 ~/Private/config.toml
 ```
 
-Edit `~/.config/thunderbird/google.env` and set `GOOGLE_EMAIL` for one account,
-or `GOOGLE_EMAILS` to a comma-separated list of accounts, plus `GOOGLE_REAL_NAME`.
-If the config file is absent, `thunderbird-google-setup` checks `~/.env` instead.
-Optionally set `GOOGLE_CALENDAR_IDS` to extra comma-separated calendar IDs for
-the first account; each additional account subscribes to its own primary calendar.
-Values are literal text, optionally quoted; shell commands and variable expansion
-are not supported.
+Add the following to the shared `~/Private/config.toml`, using one
+`[[thunderbird.accounts]]` section per account:
+
+```toml
+[[thunderbird.accounts]]
+email = "main@gmail.com"
+real_name = "Main Name"
+calendar_ids = ["shared@group.calendar.google.com"] # Optional extra calendars
+
+[[thunderbird.accounts]]
+email = "other@gmail.com"
+real_name = "Other Name"
+```
+
+Each account's primary calendar is included automatically. Keep the shared file
+at mode 0600. If `~/Private/config.toml` is absent, the helper checks
+`~/.config/thunderbird/google.toml`, then the older `google.env` and `~/.env`
+formats. The installed `google.toml.example` shows the standalone TOML format.
 Do not put passwords or OAuth tokens in this file.
 
 With Thunderbird closed, run:

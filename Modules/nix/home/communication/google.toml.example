@@ -1,0 +1,11 @@
+# Copy to ~/.config/thunderbird/google.toml and chmod 600 before editing.
+
+[[accounts]]
+email = "primary@gmail.com"
+real_name = "Primary Name"
+# Optional extra calendars for this account; its primary calendar is included automatically.
+calendar_ids = ["shared-calendar@group.calendar.google.com"]
+
+[[accounts]]
+email = "secondary@gmail.com"
+real_name = "Secondary Name"

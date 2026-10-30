@@ -27,6 +27,7 @@ in
     outputs = {
       home.packages = [setup];
       xdg.configFile."thunderbird/google.env.example".source = ./google.env.example;
+      xdg.configFile."thunderbird/google.toml.example".source = ./google.toml.example;
       programs.thunderbird = {
         enable = true;
         package = packages.thunderbird;
