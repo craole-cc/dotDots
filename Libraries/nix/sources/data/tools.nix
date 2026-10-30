@@ -808,8 +808,8 @@ in {
           description = "with sane defaults";
         };
         plain = {
-          args = ["--icons=never" "--color=never"];
-          description = "with plain output";
+          args = ["--icons=never" "--color=never" "--oneline"];
+          description = "with plain output, one entry per line";
         };
         all = {
           args = ["--almost-all"];
@@ -858,11 +858,16 @@ in {
           );
         };
 
-      #? name / namea / namep: the view with metadata, hidden files, and plain output.
-      mkViewAlias = name: view: {
+      #? name / namea / namep / namepa / nameap: the view with metadata, hidden files,
+      #? plain output, or plain output including hidden files.
+      mkViewAlias = name: view: let
+        mkPlain = extraLayers: mkLayered ([view cfg.plain] ++ extraLayers);
+      in {
         ${name} = mkLayered [view cfg.info];
         "${name}a" = mkLayered [view cfg.all];
-        "${name}p" = mkLayered [view cfg.plain];
+        "${name}p" = mkPlain [];
+        "${name}pa" = mkPlain [cfg.all];
+        "${name}ap" = mkPlain [cfg.all];
       };
 
       #? Like mkViewAlias, but the caller must supply a depth (e.g. `et 2`).
