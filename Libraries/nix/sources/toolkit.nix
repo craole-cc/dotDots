@@ -52,7 +52,7 @@
   };
 
   registry = let
-    tools = import ./data/toolkit.nix;
+    tools = import ./data/tools.nix;
     describe = entries: {
       inherit entries;
       names = attrNames entries;

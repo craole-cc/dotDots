@@ -1146,6 +1146,22 @@ in {
     };
   };
 
+# TODO: Ensure its wired, commited and pushed
+  git-filter-repo = mkSource {
+    categories = ["version-control" "scripting"];
+    description = "rewrite Git repository history safely and efficiently";
+    aliases = let
+      mk = mkAlias "git-filter-repo";
+      alias = mk {
+        args = [];
+        description = "rewrite Git repository history";
+      };
+    in {
+      gitFilter = alias;
+      gitf = alias;
+    };
+  };
+
   glib = mkSource {
     categories = ["desktop-cli" "scripting"];
     description = "gdbus, gio, and gsettings";
