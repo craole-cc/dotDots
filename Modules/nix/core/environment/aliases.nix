@@ -14,7 +14,7 @@
   inherit (lix.strings.transformation) replaceStrings;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) str;
-  inherit (lix.toolkit) binaries;
+  inherit (lix.toolkit) binaries binariesFor;
   join = concat ".";
 
   context = mkContext {
@@ -132,7 +132,7 @@ in
     };
     outputs = {
       environment.shellAliases =
-        (lix.toolkit.binariesFor installedPackages)
+        (binariesFor installedPackages)
         // cfg.default
         // cfg.extra;
     };

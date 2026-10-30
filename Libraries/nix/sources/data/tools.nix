@@ -2653,6 +2653,7 @@ in {
       };
     };
   };
+
   yazi = let
     #? Expanded by the shell at run time, so they follow the current user/host.
     #? `\${` stops Nix from interpolating.
