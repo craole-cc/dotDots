@@ -2,6 +2,7 @@
   config,
   host,
   lix,
+  top,
   ...
 }: let
   inherit (lix.modules.construction) mkContext mkConfig;
@@ -22,44 +23,63 @@
   inherit (context) cfg;
   inherit (context.resolved.cfg.system.nix.explicit) repo;
 
+  current = {
+    host = "$(hostname)";
+    user = "$USER";
+  };
+
   repl = let
     inherit (host) class;
-
-    is.home = class == "home-manager";
     type = "${replaceStrings ["-manager"] [""] class}Configurations";
+
+    #~@ The `_` namespace of a config: target, resolved, outputs
+    mkTop = config: let
+      target = join [config top];
+    in {
+      inherit target;
+      resolved = join [target "resolved"];
+      outputs = join [target "outputs"];
+    };
 
     #~@ A flake output entry, where _module, config, and options all live
     mkRoot = name: let
-      root = join [type name];
+      target = join [type name];
+      config = join [target "config"];
+      module = [target "_module"];
     in {
-      inherit root;
-      target = root;
-      config = join [root "config"];
-      pkgs = join [root "_module" "args" "pkgs"];
-      specialArgs = join [root "_module" "specialArgs"];
+      inherit target config;
+      top = mkTop config;
+      pkgs = join (module ++ ["args" "pkgs"]);
+      specialArgs = join (module ++ ["specialArgs"]);
     };
 
     #~@ A home-manager user submodule: no _module is reachable from the system root
     mkNested = parent: user: let
       config = join [parent.config "home-manager" "users" user];
     in {
-      root = null;
-      target = config;
       inherit config;
-      pkgs = null;
-      specialArgs = null;
+      target = config;
+      top = mkTop config;
     };
 
-    root = mkRoot "$(hostname)";
-    core =
-      if is.home
-      then null
-      else root;
-    home =
-      if is.home
-      then root
-      else mkNested root "$USER";
-  in {inherit core home;};
+    core = mkRoot current.host;
+  in
+    if class == "home-manager"
+    then {home = core;}
+    else {
+      inherit core;
+      home = mkNested core current.user;
+    };
+
+  #~@ Open a repl scoped to a flake attribute path
+  mkRepl = scope: "nix repl --show-trace ${repo.home}#${scope}";
+
+  #~@ repl-<name>, repl-<name>-resolved, repl-<name>-outputs
+  mkReplAliases = name: scope: {
+    "repl-${name}" = mkRepl scope.target;
+    "repl-${name}-resolved" = mkRepl scope.top.resolved;
+    "repl-${name}-outputs" = mkRepl scope.top.outputs;
+  };
 in
   mkConfig {
     inherit context;
@@ -70,6 +90,9 @@ in
         type = attrsOf str;
         default =
           {
+            which-host = "echo ${current.host}";
+            which-user = "echo ${current.user}";
+
             #~@ File listing
             ll = "lsd --long --git --almost-all";
             lt = "lsd --tree";
@@ -81,21 +104,18 @@ in
             "push-${repo.name}" = "gitui --directory ${repo.home}";
 
             #~@ Nix REPL
-            repl-home = "nix repl --show-trace ${repo.home}#${repl.home.target}";
-            "repl-${repo.name}" = "nix repl ${repo.home}#repl";
+            "repl-${repo.name}" = mkRepl "repl";
 
             #~@ Nix helper shortcuts
             inherit (binaries) nhs nhr nhc;
 
             #~@ Rebuild shortcuts
-            "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}";
+            "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}; date";
             nxs = "push-${repo.name}; switch-${repo.name}";
             nxu = "push-${repo.name}; switch-${repo.name}; topgrade";
           }
-          // (
-            optionalAttrs (repl.core != null)
-            {repl-core = "nix repl --show-trace ${repo.home}#${repl.core.target}";}
-          );
+          // mkReplAliases "home" repl.home
+          // optionalAttrs (repl ? core) (mkReplAliases "core" repl.core);
       };
       extra = mkOption {
         description = "Additional shell aliases";
