@@ -867,10 +867,10 @@ in {
           description = "${mode.description}, ${cfg.level.description}";
         };
 
-      mkSortAlias = name: sortKey:
+      mkSortAlias = name: by:
         mkViewAlias name {
-          args = ["--sort=${sortKey}"];
-          description = "list sorted by ${sortKey}";
+          args = ["--sort=${by}"];
+          description = "list sorted by ${by}";
         };
     in
       {ez = mkLayered [];}
