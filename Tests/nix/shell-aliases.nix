@@ -4,6 +4,7 @@
     dots-fetch = "/generated/bin/dots-fetch";
     discovered = "/generated/bin/discovered";
     local = "/generated/bin/local";
+    ls = "/generated/bin/ls";
   };
   aliasesModule = import ../../Modules/nix/core/environment/aliases.nix {
     config.environment.systemPackages = [];
@@ -14,7 +15,13 @@
       // {
         toolkit = {
           binaries = {};
-          binariesFor = _packages: generated;
+          commandsFor = _packages: {
+            binaries = generated;
+            aliases = {
+              shortcut = "canonical-shortcut";
+              local = "canonical-local";
+            };
+          };
         };
         modules =
           lix.modules
@@ -39,11 +46,15 @@
       {options.environment.shellAliases = lib.mkOption {type = lib.types.attrsOf lib.types.str;};}
       aliasesModule
       {environment.shellAliases.dots-fetch = "fetch /home/craole/.dots";}
+      {environment.shellAliases.ls = lib.mkDefault "ls --color=tty";}
+      {environment.shellAliases.shortcut = "competing-shortcut";}
     ];
   };
   aliases = evaluated.config.environment.shellAliases;
 in {
-  explicitDefinitionWins = aliases.dots-fetch == "fetch /home/craole/.dots";
+  explicitDefinitionWinsOverDiscoveredBinary = aliases.dots-fetch == "fetch /home/craole/.dots";
+  nixOSDefaultWinsOverDiscoveredBinary = aliases.ls == "ls --color=tty";
+  toolkitShortcutIsAuthoritative = aliases.shortcut == "canonical-shortcut";
   discoveredAliasRemains = aliases.discovered == generated.discovered;
   localExtraWins = aliases.local == "local-extra";
 }

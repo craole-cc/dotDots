@@ -222,7 +222,7 @@
     });
 
     #~@ Use installed package objects without resolving unused registry sources.
-    binariesFor = packages: let
+    commandsFor = packages: let
       installed = listToAttrs (map (package: {
           name = package.pname or (_.lib.getName package);
           value = package;
@@ -264,18 +264,24 @@
       aliases = filterAttrs (name: spec:
         !(selected ? ${name}) && all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.after or [])))
       resolved.aliases;
-    in
-      selected
-      // mkAliases {
+    in {
+      binaries = selected;
+      aliases = mkAliases {
         binaries = selected;
         inherit aliases;
       };
+    };
+
+    binariesFor = packages: let
+      commands = commandsFor packages;
+    in
+      commands.binaries // commands.aliases;
 
     defined = let
       pkgsByName = mapAttrs (_name: spec: spec.package) derived.records;
     in
       {
-        inherit binaries binariesFor;
+        inherit binaries binariesFor commandsFor;
         descriptions =
           derived.descriptions
           // mapAttrs (_: spec: let

@@ -3,6 +3,14 @@
   moduleLix =
     lix
     // {
+      toolkit.commandsFor = _packages: {
+        binaries = {};
+        aliases = {
+          lsdLong = "lsd --long --git --almost-all";
+          lsdTree = "lsd --tree";
+          lsdRecursive = "lsd --long --git --recursive";
+        };
+      };
       toolkit.binaries = {
         nhs = "nh os switch";
         nhr = "nh os repl";

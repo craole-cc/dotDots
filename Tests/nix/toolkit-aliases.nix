@@ -18,6 +18,7 @@
   };
   selected = toolkit.binariesFor [pkgs.yazi];
   withDate = toolkit.binariesFor [pkgs.yazi pkgs.coreutils];
+  listing = toolkit.commandsFor [pkgs.lsd pkgs.eza pkgs.coreutils];
   unregistered = {
     name = "unregistered-test-package";
     outPath = ./fixtures/toolkit-package;
@@ -35,4 +36,7 @@ in {
   unregisteredPackage = unregisteredBinaries.fixture-command == "${unregistered}/bin/fixture-command";
   unregisteredDoesNotSelectOtherTools = builtins.attrNames unregisteredBinaries == ["fixture-command"];
   allCoreutils = withDate ? cat && withDate ? cp && withDate ? sort && withDate ? uniq;
+  listingShortcuts = listing.aliases ? lsdLong && listing.aliases ? lsdTree && listing.aliases ? lsdRecursive && listing.aliases ? ezaLong && listing.aliases ? ezaTree && listing.aliases ? ezaRecursive;
+  binariesSeparateFromShortcuts = listing.binaries ? ls && !(listing.aliases ? ls);
+  inactiveListingShortcuts = !(selected ? lsdLong || selected ? ezaLong);
 }

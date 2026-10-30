@@ -3,14 +3,15 @@
   lix,
   ...
 }: let
-  inherit (lix.modules.construction) mkContext mkConfig mkDefault;
+  inherit (lix.modules.construction) mkContext mkConfig mkForce mkOverride;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) str;
-  inherit (lix.toolkit) binariesFor;
+  inherit (lix.toolkit) commandsFor;
 
   context = mkContext {
     inherit config;
@@ -24,6 +25,8 @@
     ++ concatMap (user: user.packages or []) (attrValues (config.users.users or {}))
     ++ concatMap (user: user.home.packages) (attrValues (config.home-manager.users or {}));
 
+  commands = commandsFor installedPackages;
+
   current = {
     host = "$(hostname)";
     user = "$USER";
@@ -36,15 +39,17 @@ in
       default = mkOption {
         description = "Default shell aliases";
         type = attrsOf str;
-        default = {
-          which-host = "echo ${current.host}";
-          which-user = "echo ${current.user}";
-
-          #~@ File listing
-          ll = "lsd --long --git --almost-all";
-          lt = "lsd --tree";
-          lr = "lsd --long --git --recursive";
-        };
+        default =
+          {
+            which-host = "echo ${current.host}";
+            which-user = "echo ${current.user}";
+          }
+          // optionalAttrs (commands.aliases ? lsdLong) {
+            #~@ File listing overrides
+            ll = commands.aliases.lsdLong;
+            lt = commands.aliases.lsdTree;
+            lr = commands.aliases.lsdRecursive;
+          };
       };
       extra = mkOption {
         description = "Additional shell aliases";
@@ -54,8 +59,11 @@ in
     };
     outputs = {
       environment.shellAliases =
-        (mapAttrs (_name: command: mkDefault command) (binariesFor installedPackages))
-        // cfg.default
-        // cfg.extra;
+        (mapAttrs (_name: command: mkOverride 1400 command) commands.binaries)
+        // (mapAttrs (_name: command: mkForce command) (
+          commands.aliases
+          // cfg.default
+          // cfg.extra
+        ));
     };
   }

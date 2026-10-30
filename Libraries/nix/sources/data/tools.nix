@@ -803,6 +803,10 @@ in {
     description = "modern ls replacement";
     aliases = let
       mk = mkAlias "eza";
+      tree = mk {
+        args = ["--tree"];
+        description = "list as a tree";
+      };
     in {
       ezaa = mk {
         args = ["--all"];
@@ -824,6 +828,14 @@ in {
         args = ["--long" "--git"];
         description = "list in long format with git status";
       };
+      ezaLong = mk {
+        args = ["--long" "--git" "--almost-all"];
+        description = "list hidden entries in long format with git status";
+      };
+      ezaRecursive = mk {
+        args = ["--long" "--git" "--recurse"];
+        description = "list recursively in long format with git status";
+      };
       ezam = mk {
         args = ["--long" "--sort=modified"];
         description = "list in long format, oldest first";
@@ -832,10 +844,8 @@ in {
         args = ["--long" "--sort=size"];
         description = "list in long format, smallest first";
       };
-      ezat = mk {
-        args = ["--tree"];
-        description = "list as a tree";
-      };
+      ezaTree = tree;
+      ezat = tree;
       ezatl = mk {
         args = ["--tree" "--level"];
         description = "list as a tree limited to a caller-specified depth";
@@ -2341,6 +2351,27 @@ in {
     input = "treefmt";
     target = "treefmt";
     exe = "treefmt";
+  };
+
+  lsd = mkSource {
+    categories = ["files" "scripting"];
+    description = "file listing with colours and icons";
+    aliases = let
+      mk = mkAlias "lsd";
+    in {
+      lsdLong = mk {
+        args = ["--long" "--git" "--almost-all"];
+        description = "list hidden entries in long format with git status";
+      };
+      lsdTree = mk {
+        args = ["--tree"];
+        description = "list entries as a tree";
+      };
+      lsdRecursive = mk {
+        args = ["--long" "--git" "--recursive"];
+        description = "list recursively in long format with git status";
+      };
+    };
   };
 
   util-linux = mkSource {
