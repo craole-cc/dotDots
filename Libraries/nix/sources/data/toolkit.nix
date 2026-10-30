@@ -669,6 +669,29 @@ in {
       });
   };
 
+  nh = mkSource {
+    categories = ["system" "scripting"];
+    description = "Nix helper";
+    aliases = let
+      mk = mkAlias "nh";
+    in {
+      nhs =
+        (mk {
+          args = ["os" "switch" "--show-trace"];
+          description = "switch NixOS configuration and print the completion time";
+        })
+        // {after = [["date"]];};
+      nhr = mk {
+        args = ["os" "repl"];
+        description = "open the NixOS configuration REPL";
+      };
+      nhc = mk {
+        args = ["clean" "all"];
+        description = "clean all Nix profiles and store paths";
+      };
+    };
+  };
+
   khal = mkSource {
     categories = ["communication"];
     description = "terminal calendar";

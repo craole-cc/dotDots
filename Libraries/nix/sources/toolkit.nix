@@ -126,8 +126,9 @@
     };
 
   /**
-  Render alias specs (`{cmd = [binary arg...]; description?;}`) against
-  resolved binaries. Arguments are shell-escaped.
+  Render alias specs (`{cmd = [binary arg...]; after? = [[binary arg...]]; description?;}`) against
+  resolved binaries. Arguments are shell-escaped. Commands in `after` run
+  sequentially after the main command, including when it fails.
 
   Throws if an alias name shadows a real binary, or if an alias refers to a
   binary that is not among the sources.
@@ -146,10 +147,13 @@
     assert (shadowed == [])
     || throw "toolkit: alias names shadow real binaries: ${toString shadowed}";
       mapAttrs (aliasName: spec: let
-        binary = head spec.cmd;
-        path = binaries.${binary} or
-          (throw "toolkit alias '${aliasName}': '${binary}' is not in sources");
-      in "${path} ${escapeShellArgs (tail spec.cmd)}")
+        renderCommand = command: let
+          binary = head command;
+          path = binaries.${binary} or
+            (throw "toolkit alias '${aliasName}': '${binary}' is not in sources");
+        in "${path} ${escapeShellArgs (tail command)}";
+      in
+        concat "; " (map renderCommand ([spec.cmd] ++ (spec.after or []))))
       aliases;
 
   /**

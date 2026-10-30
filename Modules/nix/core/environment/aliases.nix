@@ -33,6 +33,9 @@
       repl-host = "nix repl ${repo.home}#nixosConfigurations.$(hostname)";
       "repl-${repo.name}" = "nix repl ${repo.home}#repl";
 
+      #~@ Nix helper shortcuts
+      inherit (lix.toolkit.binaries) nhs nhr nhc;
+
       #~@ Rebuild shortcuts
       "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}";
       nxs = "push-${repo.name}; switch-${repo.name}";
