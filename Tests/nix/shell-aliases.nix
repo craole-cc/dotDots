@@ -5,6 +5,11 @@
     discovered = "/generated/bin/discovered";
     local = "/generated/bin/local";
     ls = "/generated/bin/ls";
+    time = "/generated/bin/time";
+    printf = "/generated/bin/printf";
+    test = "/generated/bin/test";
+    "[" = "/generated/bin/[";
+    echo = "/generated/bin/echo";
   };
   aliasesModule = import ../../Modules/nix/core/environment/aliases.nix {
     config.environment.systemPackages = [];
@@ -33,6 +38,7 @@
                   cfg = {
                     default.local = "local-default";
                     extra.local = "local-extra";
+                    extra.echo = "explicit-echo";
                   };
                   resolved.cfg.system.nix.explicit.repo = {};
                 };
@@ -57,4 +63,6 @@ in {
   toolkitShortcutIsAuthoritative = aliases.shortcut == "canonical-shortcut";
   discoveredAliasRemains = aliases.discovered == generated.discovered;
   localExtraWins = aliases.local == "local-extra";
+  shellKeywordsAndBuiltinsPreserved = !(aliases ? time || aliases ? printf || aliases ? test || aliases ? "[");
+  explicitBuiltinOverrideAllowed = aliases.echo == "explicit-echo";
 }
