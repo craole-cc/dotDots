@@ -1146,10 +1146,10 @@ in {
     };
   };
 
-# TODO: Ensure its wired, commited and pushed
   git-filter-repo = mkSource {
     categories = ["version-control" "scripting"];
     description = "rewrite Git repository history safely and efficiently";
+    exe = "git-filter-repo";
     aliases = let
       mk = mkAlias "git-filter-repo";
       alias = mk {
