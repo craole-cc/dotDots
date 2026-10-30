@@ -106,7 +106,12 @@ in
             lr = "lsd --long --git --recursive";
 
             #~@ Dotfiles management
-            dotsCheck = ''nix flake check --show-trace "''${DOTS:-${repo.home}}"'';
+            dotsStatus = concat " && " [
+              ''git -C "''${DOTS:-${repo.home}}" fetch origin''
+              ''git -C "''${DOTS:-${repo.home}}" status --short --branch''
+              ''git -C "''${DOTS:-${repo.home}}" log --oneline -5''
+              ''git -C "''${DOTS:-${repo.home}}" log --oneline "@{upstream}..HEAD"''
+            ];
             "edit-${repo.name}" = "$EDITOR ${repo.home}";
             "ide-${repo.name}" = "$VISUAL ${repo.home}";
             "push-${repo.name}" = "gitui --directory ${repo.home}";
