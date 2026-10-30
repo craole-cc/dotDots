@@ -367,11 +367,45 @@ fn receive_code(listener: &TcpListener, state: &str) -> Result<String, String> {
 }
 
 fn google_json(agent: &ureq::Agent, endpoint: &str, token: &str) -> Result<Value, String> {
-    agent.get(endpoint).set("Authorization", &format!("Bearer {token}"))
-        .call().map_err(|error| match error {
-            ureq::Error::Status(status, _) => format!("Google calendar discovery returned HTTP {status}. Enable Google Calendar API for the OAuth project and grant calendar-list access."),
-            _ => "Cannot connect to Google calendar discovery.".to_owned(),
-        })?
+    let response = match agent
+        .get(endpoint)
+        .set("Authorization", &format!("Bearer {token}"))
+        .call()
+    {
+        Ok(response) => response,
+        Err(ureq::Error::Status(status, response)) => {
+            let detail = response
+                .into_json::<Value>()
+                .ok()
+                .and_then(|body| {
+                    body.get("error")
+                        .and_then(|error| error.get("errors"))
+                        .and_then(Value::as_array)
+                        .and_then(|errors| errors.first())
+                        .and_then(|error| error.get("reason"))
+                        .and_then(Value::as_str)
+                        .map(str::to_owned)
+                        .or_else(|| {
+                            body.get("error")
+                                .and_then(|error| error.get("message"))
+                                .and_then(Value::as_str)
+                                .map(str::to_owned)
+                        })
+                });
+            let context = if endpoint.contains("userinfo") {
+                "Google account verification"
+            } else {
+                "Google calendar discovery"
+            };
+            let reason = detail
+                .filter(|detail| !detail.is_empty())
+                .map(|detail| format!(" {detail}"))
+                .unwrap_or_default();
+            return Err(format!("{context} returned HTTP {status}.{reason}"));
+        }
+        Err(_) => return Err("Cannot connect to Google calendar discovery.".to_owned()),
+    };
+    response
         .into_json().map_err(|_| "Google returned an invalid discovery response.".to_owned())
 }
 

@@ -831,20 +831,24 @@ in {
           args = ["--only-dirs"];
           description = "listing only directories";
         };
+        #? Must stay last so the caller's next argument becomes its value.
         level = {
-          args = ["--level"];
-          description = "limited to a caller-specified depth";
+          trailing = ["--level"];
+          description = "limited to a required depth";
         };
       };
 
       #> Builds one alias from cfg.default plus any number of cfg layers.
       #? Args are concatenated in order (later flags win in eza);
+      #? trailing args from every layer are appended last;
       #? descriptions are joined with ", ".
       mkLayered = layers: let
         inherit (builtins) concatMap concatStringsSep filter;
       in
         mkAlias "eza" {
-          args = concatMap (layer: layer.args or []) ([cfg.default] ++ layers);
+          args =
+            concatMap (layer: layer.args or []) ([cfg.default] ++ layers)
+            ++ concatMap (layer: layer.trailing or []) layers;
           description = concatStringsSep ", " (
             if layers == []
             then [cfg.default.description]
@@ -861,9 +865,11 @@ in {
         "${name}p" = mkLayered [view cfg.plain];
       };
 
+      #? Like mkViewAlias, but the caller must supply a depth (e.g. `et 2`).
       mkRecursiveAlias = name: mode:
         mkViewAlias name {
-          args = mode.args ++ cfg.level.args;
+          inherit (mode) args;
+          inherit (cfg.level) trailing;
           description = "${mode.description}, ${cfg.level.description}";
         };
 
@@ -875,13 +881,13 @@ in {
     in
       {ez = mkLayered [];}
       // (mkViewAlias "ee" {})
-      // (mkViewAlias "et" cfg.tree)
       // (mkViewAlias "ed" cfg.dirs)
-      // (mkViewAlias "er" cfg.recursive)
       // (mkViewAlias "ezal" {})
-      // (mkRecursiveAlias "ezar" cfg.recursive)
-      // (mkRecursiveAlias "ezat" cfg.tree)
       // (mkViewAlias "ezad" cfg.dirs)
+      // (mkViewAlias "ezat" cfg.tree)
+      // (mkViewAlias "ezar" cfg.recursive)
+      // (mkRecursiveAlias "et" cfg.tree)
+      // (mkRecursiveAlias "er" cfg.recursive)
       // (mkSortAlias "ezan" "name")
       // (mkSortAlias "ezaN" "Name")
       // (mkSortAlias "ezanDot" ".name")
@@ -896,7 +902,6 @@ in {
       // (mkSortAlias "ezaType" "type")
       // (mkSortAlias "ezaNone" "none");
   };
-
   fd = mkSource {
     categories = ["files" "scripting"];
     description = "simple, fast find alternative";
