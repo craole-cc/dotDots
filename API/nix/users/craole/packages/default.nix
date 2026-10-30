@@ -16,6 +16,7 @@ let
   browser = [
     "chromium"
     "zen-twilight"
+    "thunderbird"
     "brave"
   ];
 

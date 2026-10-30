@@ -41,7 +41,7 @@
   inherit (_.attrsets.aggregation) mergeSafe;
   inherit (_.attrsets.construction) genAttrs nameValuePair listToAttrs optionalAttrs;
   inherit (_.attrsets.predicates) hasAttr;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrs';
+  inherit (_.attrsets.transformation) filterAttrs functionArgs mapAttrs mapAttrs';
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.debug.assertions) withContext;
   inherit (_.filesystem.access) readDir;
@@ -284,7 +284,9 @@
 
   `transform`
   : optional function applied to the resolved package before deriving records,
-    executable paths and metadata; defaults to the identity function
+    executable paths and metadata; defaults to the identity function. A named
+    argument function receives `package`, `source`, `builders` and `lix` for builds
+    that need source patches or builders.
 
   `alias`
   : optional command name to expose as a symlink package in `.alias`
@@ -435,7 +437,16 @@
       if check == null || check.value == null
       then null
       else let
-        package = transform check.value;
+        package =
+          if functionArgs transform == {}
+          then transform check.value
+          else
+            transform {
+              package = check.value;
+              source = src.outPath or null;
+              builders = {inherit (init.source.legacy) applyPatches;};
+              lix = _;
+            };
 
         src =
           if input != null

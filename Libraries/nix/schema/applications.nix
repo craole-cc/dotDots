@@ -9,6 +9,7 @@
   inherit (_.strings.transformation) toLower;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.access) head length;
+  inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) imap0;
   inherit (_.schema.packages) merge policyFields roleView toApplications;
 
@@ -203,14 +204,15 @@
   in
     meta.names.class or (legacyClass command);
 
-  scratchpadCommand = category: command:
-    if category == "browser"
+  scratchpadCommand = isBrowser: command:
+    if isBrowser
     then "${command} --new-window about:blank"
     else command;
 
   mkEntry = category: name: let
     meta = getMeta category name;
     command = getCommand category name;
+    isBrowser = category == "browser" && elem "browser" (meta.categories or []);
   in {
     name = meta.name or name;
     inherit command;
@@ -220,10 +222,10 @@
     launch =
       (meta.launch or {})
       // {
-        scratchpad = meta.launch.scratchpad or (scratchpadCommand category command);
+        scratchpad = meta.launch.scratchpad or (scratchpadCommand isBrowser command);
         private =
           meta.launch.private or (
-            if category != "browser"
+            if !isBrowser
             then null
             else if (meta.family or "") == "chromium"
             then "${command} --incognito --new-window about:blank"

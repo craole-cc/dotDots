@@ -25,7 +25,6 @@
   browsers = filter (app: elem app.names.package supported) (map (value:
     resolve {
       inherit value;
-      category = "browser";
     })
   selections);
   enable = browsers != [];

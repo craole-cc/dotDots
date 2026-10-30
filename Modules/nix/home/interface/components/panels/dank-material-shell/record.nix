@@ -1,29 +1,8 @@
-{
-  lix,
-  ...
-}: let
+{lix, ...}: let
   inherit (lix.attrsets.aggregation) recursiveUpdate;
-  inherit (lix.strings.transformation) replaceStrings;
-  inherit (lix.toolkit) records;
-  inherit (lix.toolkit.builders) applyPatches;
-  record = records.dms-shell;
-  inherit (record) package paths;
-
-  source = paths.outPath;
-  patch = applyPatches {
-    name = "dms-patched-source";
-    src = source;
-    patches = [./patches/theme-control.patch ./patches/catppuccin-matugen.patch];
-  };
-
-  #? Upstream builds the backend from core/ and installs QML from the full tree.
-  pkg = package.overrideAttrs (previous: {
-    src = "${patch}/core";
-    postInstall = replaceStrings [source] ["${patch}"] previous.postInstall;
-    passthru = (previous.passthru or {}) // {shellSource = "${patch}/quickshell";};
-  });
+  record = lix.toolkit.records.dms-shell;
   bins = rec {
-    dms = "${package}/bin/dms";
+    dms = record.paths.executable;
     dmsCall = "${dms} ipc call";
     dmsSet = "${dmsCall} settings set";
   };
@@ -31,5 +10,4 @@ in
   recursiveUpdate record {
     inherit bins;
     binaries = bins;
-    package = pkg;
   }

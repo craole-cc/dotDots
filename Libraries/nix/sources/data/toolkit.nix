@@ -643,6 +643,24 @@ in {
     categories = ["desktop-ui"];
     description = "Dank Material Shell";
     input = "dank-material-shell";
+    transform = {
+      package,
+      source,
+      builders,
+      lix,
+    }: let
+      inherit (lix.strings.transformation) replaceStrings;
+      patchedSource = builders.applyPatches {
+        name = "dms-patched-source";
+        src = source;
+        patches = [../patches/dms/theme-control.patch ../patches/dms/catppuccin-matugen.patch];
+      };
+    in
+      package.overrideAttrs (previous: {
+        src = "${patchedSource}/core";
+        postInstall = replaceStrings [source] ["${patchedSource}"] previous.postInstall;
+        passthru = (previous.passthru or {}) // {shellSource = "${patchedSource}/quickshell";};
+      });
   };
 
   khal = mkSource {

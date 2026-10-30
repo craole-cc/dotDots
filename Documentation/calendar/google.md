@@ -73,10 +73,8 @@ and consent, run the checks above together to establish runtime success.
 References: [vdirsyncer Google setup](https://vdirsyncer.pimutils.org/en/stable/tutorials/google.html)
 and [Google CalDAV guide](https://developers.google.com/workspace/calendar/caldav/v2/guide).
 
-## Next Follow-Up
+## DMS Toolkit Transform
 
-Move the DMS package override from
-`Modules/nix/home/interface/components/panels/dank-material-shell/record.nix`
-to the central toolkit source entry using `transform`. Preserve the existing
-override behaviour and verify the resolved package and executable paths. Do this
-after Google account setup and Khal, DMS and Thunderbird runtime verification.
+The central `dms-shell` toolkit source now applies the theme-control and
+Catppuccin patches through `transform`. The DMS component consumes the resulting
+record, package and executable paths without a separate package override.
