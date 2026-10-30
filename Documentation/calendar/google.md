@@ -86,8 +86,16 @@ at mode 0600. If `~/Private/config.toml` is absent, the helper checks
 formats. The installed `google.toml.example` shows the standalone TOML format.
 Do not put passwords or OAuth tokens in this file.
 
-In the Google Cloud project used for Khal, enable **Google Calendar API** as well
-as CalDAV API. The helper reuses the Desktop OAuth client JSON at
+In the Google Cloud project that owns the Desktop OAuth client used for Khal,
+enable **Google Calendar API** as well as **CalDAV API**. Check the selected
+project in the Console before enabling either API; enabling an API in a different
+project does not grant this client access. Open **APIs & Services → Credentials**
+to find the existing Desktop client, then use the
+[Calendar API page](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+to check its status. An **Enable** button means that API is currently disabled.
+You can reuse the existing client; you do not need to create another one.
+
+The helper reuses the Desktop OAuth client JSON at
 `~/.config/vdirsyncer/google-client.json`, which must have mode 0600. To use a
 different client file, set `oauth_client = "~/Private/google-client.json"` under
 `[thunderbird]` in the shared TOML config. If the OAuth app is in testing, add
@@ -106,6 +114,23 @@ event synchronisation through its own Google sign-in. Private refresh tokens are
 stored under `~/.local/state/thunderbird-google/oauth` with mode 0600, so later
 runs normally discover calendars without another consent prompt.
 
+Keep the setup command running while completing each account's browser consent.
+A line such as `Discovered 13 calendars for main@gmail.com.` confirms discovery
+for that account only. Setup is complete only when every account has finished
+and the command prints:
+
+```text
+Google mail and calendars configured. Open Thunderbird and complete Google sign-in.
+```
+
+If setup reports `HTTP 403. accessNotConfigured`, check that **Google Calendar
+API** is enabled in the OAuth client's project. This error alone does not mean
+the client was deleted. After enabling the API, allow a few minutes for the change
+to propagate, then rerun `thunderbird-google-setup`. No Nix rebuild or switch is
+needed for this Google Cloud change. The helper normally reuses consent already
+saved for earlier accounts. If another error appears, use its returned reason
+to diagnose it rather than repeatedly rebuilding.
+
 The helper reads the private file at runtime, discovers every calendar using
 Google's [CalendarList API](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/list),
 and configures Gmail IMAP/SMTP with OAuth2 and those CalDAV calendars in the
@@ -119,7 +144,10 @@ Existing subscriptions are preserved; remove unwanted ones in Thunderbird.
 
 Open Thunderbird and complete Google's sign-in prompts for mail and calendars.
 Enable the calendars in the calendar sidebar and compare a known event with
-the Google web calendar. Khal's synchronisation does not populate Thunderbird;
+the Google web calendar for each account. Confirm that mail folders load and
+that calendars finish synchronising without an error. Successful setup writes
+the profile; these checks in Thunderbird establish that mail and event access
+also work. Khal's synchronisation does not populate Thunderbird;
 the two applications authorise and synchronise separately.
 
 For manual discovery within Thunderbird, select calendars at
