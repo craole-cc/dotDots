@@ -18,7 +18,12 @@
   };
   selected = toolkit.binariesFor [pkgs.yazi];
   withDate = toolkit.binariesFor [pkgs.yazi pkgs.coreutils];
-  overridden = pkgs.yazi.overrideAttrs {version = "alias-selection-test";};
+  unregistered = {
+    name = "unregistered-test-package";
+    outPath = ./fixtures/toolkit-package;
+  };
+  unregisteredBinaries = toolkit.binariesFor [unregistered];
+  overridden = unregistered // {pname = "yazi";};
 in {
   emptySelection = toolkit.binariesFor [] == {};
   activeBinary = selected.yazi == "${pkgs.yazi}/bin/yazi";
@@ -26,5 +31,8 @@ in {
   inactiveBinary = !(selected ? git);
   inactiveDependency = !(selected ? yaziThenDate);
   activeDependency = withDate ? yaziThenDate;
-  installedOverride = (toolkit.binariesFor [overridden]).yazi == "${overridden}/bin/yazi";
+  installedOverride = (toolkit.binariesFor [overridden]).fixture-command == "${overridden}/bin/fixture-command";
+  unregisteredPackage = unregisteredBinaries.fixture-command == "${unregistered}/bin/fixture-command";
+  unregisteredDoesNotSelectOtherTools = builtins.attrNames unregisteredBinaries == ["fixture-command"];
+  allCoreutils = withDate ? cat && withDate ? cp && withDate ? sort && withDate ? uniq;
 }

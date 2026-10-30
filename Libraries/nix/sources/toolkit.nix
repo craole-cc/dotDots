@@ -19,7 +19,7 @@
       alias = {};
     };
   in {inherit doc exports;};
-  inherit (_.attrsets.access) attrNames attrValues;
+  inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.aggregation) intersectAttrs mergeDisjoint recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) filterAttrs mapAttrs;
@@ -29,6 +29,9 @@
   inherit (_.lists.predicates) all elem;
   inherit (_.lists.transformation) filter;
   inherit (_.sources.packages) pkgsFrom mkAll;
+  inherit (_.sources.access) getBin;
+  inherit (_.filesystem.access) readDir;
+  inherit (_.filesystem.predicates) pathExists;
   inherit (_.sources.transformation) cleanSource cleanSourceWith fileset;
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) escapeShellArgs;
@@ -246,11 +249,20 @@
             })
             activeSources;
         }).records;
-      available = _.attrsets.aggregation.mergeSafe (map (record: record.bins) (attrValues records));
+      packageBinaries = package: let
+        directory = "${getBin package}/bin";
+        entries =
+          if pathExists directory
+          then readDir directory
+          else {};
+        commands = filterAttrs (name: type: type != "directory" && !(_.strings.predicates.hasPrefix "." name)) entries;
+      in
+        mapAttrs (name: _type: "${directory}/${name}") commands;
+      available = _.attrsets.aggregation.mergeSafe (map packageBinaries packages);
       preferred = filterAttrs (command: source: records ? ${source} && records.${source}.bins ? ${command}) (defaults.prefer // prefer);
       selected = available // mapAttrs (command: source: records.${source}.bins.${command}) preferred;
-      aliases = filterAttrs (_name: spec:
-        all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.after or [])))
+      aliases = filterAttrs (name: spec:
+        !(selected ? ${name}) && all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.after or [])))
       resolved.aliases;
     in
       selected
