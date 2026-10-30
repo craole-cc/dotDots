@@ -4,7 +4,7 @@
   user,
   ...
 }: let
-  inherit (lix.toolkit) write binaries packages;
+  inherit (lix.toolkit) write packages;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
   inherit (lix.lists.predicates) elem;
@@ -13,9 +13,13 @@
     dom = "communication";
     mod = "thunderbird";
   };
-  setup = write.bin "thunderbird-google-setup" ''
-    exec ${binaries.python3} ${./thunderbird-google.py} "$@"
-  '';
+  setup = write.script {
+    name = "thunderbird-google-setup";
+    inputs = with packages; [rust-script];
+    command = ''
+      exec rust-script ${./thunderbird-google.rs} "$@"
+    '';
+  };
 in
   mkConfig {
     inherit context;
