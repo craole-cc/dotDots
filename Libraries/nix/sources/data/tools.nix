@@ -825,10 +825,6 @@ in {
         description = "list all files in long format";
       };
       ezalg = mk {
-        args = ["--long" "--git"];
-        description = "list in long format with git status";
-      };
-      ezaLong = mk {
         args = ["--long" "--git" "--almost-all"];
         description = "list hidden entries in long format with git status";
       };
