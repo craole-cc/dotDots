@@ -16,6 +16,7 @@
   setup = write.rust {
     name = "thunderbird-google-setup";
     src = ./thunderbird-google.rs;
+    inputs = [packages.xdg-utils];
   };
 in
   mkConfig {

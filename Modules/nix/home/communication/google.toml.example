@@ -3,8 +3,7 @@
 [[accounts]]
 email = "primary@gmail.com"
 real_name = "Primary Name"
-# Optional extra calendars for this account; its primary calendar is included automatically.
-calendar_ids = ["shared-calendar@group.calendar.google.com"]
+# All calendars are discovered automatically after Google authorisation.
 
 [[accounts]]
 email = "secondary@gmail.com"

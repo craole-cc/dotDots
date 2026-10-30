@@ -71,18 +71,27 @@ Add the following to the shared `~/Private/config.toml`, using one
 [[thunderbird.accounts]]
 email = "main@gmail.com"
 real_name = "Main Name"
-calendar_ids = ["shared@group.calendar.google.com"] # Optional extra calendars
 
 [[thunderbird.accounts]]
 email = "other@gmail.com"
 real_name = "Other Name"
 ```
 
-Each account's primary calendar is included automatically. Keep the shared file
+The helper discovers every calendar on each account's Google calendar list,
+including shared and hidden calendars. You do not need to set `calendar_ids`.
+It uses Google's calendar names and marks calendars with read access as read-only.
+Keep the shared file
 at mode 0600. If `~/Private/config.toml` is absent, the helper checks
 `~/.config/thunderbird/google.toml`, then the older `google.env` and `~/.env`
 formats. The installed `google.toml.example` shows the standalone TOML format.
 Do not put passwords or OAuth tokens in this file.
+
+In the Google Cloud project used for Khal, enable **Google Calendar API** as well
+as CalDAV API. The helper reuses the Desktop OAuth client JSON at
+`~/.config/vdirsyncer/google-client.json`, which must have mode 0600. To use a
+different client file, set `oauth_client = "~/Private/google-client.json"` under
+`[thunderbird]` in the shared TOML config. If the OAuth app is in testing, add
+each Gmail account as a test user.
 
 With Thunderbird closed, run:
 
@@ -90,21 +99,30 @@ With Thunderbird closed, run:
 thunderbird-google-setup
 ```
 
-The helper reads the private file at runtime and configures Gmail IMAP/SMTP
-with OAuth2 and the selected Google CalDAV calendars in the writable profile.
+On the first run, the helper opens Google sign-in for each configured account.
+Grant access to that account's calendar list and use the matching email address.
+It requests calendar-list metadata and email identity access; Thunderbird handles
+event synchronisation through its own Google sign-in. Private refresh tokens are
+stored under `~/.local/state/thunderbird-google/oauth` with mode 0600, so later
+runs normally discover calendars without another consent prompt.
+
+The helper reads the private file at runtime, discovers every calendar using
+Google's [CalendarList API](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/list),
+and configures Gmail IMAP/SMTP with OAuth2 and those CalDAV calendars in the
+writable profile. It finishes discovery for every account before writing the profile.
 It preserves unrelated preferences, reuses a matching mail identity and keeps
 an original `prefs.js.before-google-setup` backup. It refuses to run while the
 profile is locked. For a different profile, pass `--profile /path/to/profile`;
-for a different environment file, pass `--env /path/to/private.env`.
-Rerun after changing the file; removing a calendar ID does not unsubscribe an
-existing calendar. Remove unwanted subscriptions in Thunderbird.
+for a different config file, pass `--config /path/to/config.toml`.
+Rerun after adding accounts or calendars to discover the new subscriptions.
+Existing subscriptions are preserved; remove unwanted ones in Thunderbird.
 
 Open Thunderbird and complete Google's sign-in prompts for mail and calendars.
 Enable the calendars in the calendar sidebar and compare a known event with
 the Google web calendar. Khal's synchronisation does not populate Thunderbird;
 the two applications authorise and synchronise separately.
 
-If you prefer calendar discovery, select calendars at
+For manual discovery within Thunderbird, select calendars at
 [Google's sync selection page](https://calendar.google.com/calendar/syncselect),
 then choose **New Account → Calendar → On the Network** in Thunderbird, enter
 your Google email address and choose **Find Calendars**. Complete sign-in and

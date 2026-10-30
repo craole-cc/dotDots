@@ -348,7 +348,7 @@
         }:
           writeShellApplication {
             inherit name;
-            runtimeInputs = (with pkgs'; [rust-script gcc]) ++ inputs;
+            runtimeInputs = (with pkgs'; [rust-script cargo rustc gcc]) ++ inputs;
             text = ''
               exec rust-script ${src} ${concat " " arguments} "$@"
             '';
