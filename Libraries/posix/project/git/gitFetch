@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  printf '%s\n' 'gitFetch: not inside a Git working tree.' >&2
+  exit 1
+fi
+
+if [ -n "$(git remote)" ]; then
+  git fetch --all
+else
+  printf '%s\n' 'gitFetch: no remotes configured.'
+fi

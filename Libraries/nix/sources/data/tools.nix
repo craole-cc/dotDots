@@ -1086,6 +1086,15 @@ in {
     description = "distributed version control";
     aliases = let
       mk = mkAlias "git";
+      mkHelper = name: description:
+        mk {
+          args = [
+            "-c"
+            "alias.project-${name}=!helper() {\n${builtins.readFile (../../../posix/project/git + "/${name}")}\n}; helper"
+            "project-${name}"
+          ];
+          inherit description;
+        };
     in {
       gitAddAll = mk {
         args = ["add" "--all"];
@@ -1119,30 +1128,7 @@ in {
         args = ["diff" "--staged"];
         description = "show staged changes";
       };
-      gitFetch = mk {
-        args = [
-          "-c"
-          ''
-            alias.fetch-status=!if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
-              printf '%s\n' 'gitFetch: not inside a Git working tree.' >&2
-              exit 1
-            fi
-            if [ -n "$(git remote)" ]; then
-              git fetch --all || exit $?
-            else
-              printf '%s\n' 'gitFetch: no remotes configured; showing local status.'
-            fi
-            git status --short --branch || exit $?
-            if git rev-parse --verify HEAD >/dev/null 2>&1; then
-              git --no-pager log --oneline -5
-            else
-              printf '%s\n' 'gitFetch: no commits yet.'
-            fi
-          ''
-          "fetch-status"
-        ];
-        description = "fetch remotes and show status and recent commits in the current repository";
-      };
+      gitFetch = mkHelper "gitFetch" "fetch remotes in the current repository";
       gitFetchPrune = mk {
         args = ["fetch" "--all" "--prune"];
         description = "fetch every remote and prune deleted branches";
@@ -1163,10 +1149,7 @@ in {
         args = ["restore" "--staged"];
         description = "unstage files while keeping their changes";
       };
-      gitStatus = mk {
-        args = ["status" "--short" "--branch"];
-        description = "show a compact status with branch information";
-      };
+      gitStatus = mkHelper "gitStatus" "fetch remotes and show status and recent commits in the current repository";
       gitSwitchCreate = mk {
         args = ["switch" "--create"];
         description = "create and switch to a new branch";

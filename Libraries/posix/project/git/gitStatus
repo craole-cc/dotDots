@@ -1,6 +1,23 @@
 #!/bin/sh
 
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  printf '%s\n' 'gitStatus: not inside a Git working tree.' >&2
+  exit 1
+fi
+
+if [ -n "$(git remote)" ]; then
+  git fetch --all || exit $?
+else
+  printf '%s\n' 'gitStatus: no remotes configured; showing local status.'
+fi
+
 case "$1" in
-  -u | --untracked) git status --short --untracked-files=all ;;
-  *) git status --short ;;
-esac
+  -u | --untracked) git status --short --branch --untracked-files=all ;;
+  *) git status --short --branch ;;
+esac || exit $?
+
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  git --no-pager log --oneline -5
+else
+  printf '%s\n' 'gitStatus: no commits yet.'
+fi
