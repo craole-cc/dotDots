@@ -290,9 +290,10 @@
         rust = {name, src, inputs ? [], arguments ? []}:
           writeShellApplication {
             inherit name;
+            # TODO: pretty sure rustscript needs gcc and others.
             runtimeInputs = [pkgs'.rust-script] ++ inputs;
             text = ''
-              exec rust-script ${src} ${builtins.concatStringsSep " " arguments} "$@"
+              exec rust-script ${src} ${concat " " arguments} "$@"
             '';
           };
       in
