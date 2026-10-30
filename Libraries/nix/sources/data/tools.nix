@@ -1152,13 +1152,92 @@ in {
     exe = "git-filter-repo";
     aliases = let
       mk = mkAlias "git-filter-repo";
-      alias = mk {
-        args = [];
-        description = "rewrite Git repository history";
-      };
     in {
-      gitFilter = alias;
-      gitf = alias;
+      gitFilterAnalyze = mk {
+        args = ["--analyze"];
+        description = "analyse repository history without rewriting it";
+      };
+      gitFilterPath = mk {
+        args = ["--path"];
+        description = "keep a caller-specified path in history";
+      };
+      gitFilterRemovePath = mk {
+        args = ["--invert-paths" "--path"];
+        description = "remove a caller-specified path from history";
+      };
+      gitFilterPathGlob = mk {
+        args = ["--path-glob"];
+        description = "keep paths matching a caller-specified glob";
+      };
+      gitFilterPathRename = mk {
+        args = ["--path-rename"];
+        description = "rename paths using a caller-specified old:new mapping";
+      };
+      gitFilterPathsFile = mk {
+        args = ["--paths-from-file"];
+        description = "read path filters and renames from a caller-specified file";
+      };
+      gitFilterSubdirectory = mk {
+        args = ["--subdirectory-filter"];
+        description = "extract a caller-specified subdirectory as the repository root";
+      };
+      gitFilterToSubdirectory = mk {
+        args = ["--to-subdirectory-filter"];
+        description = "move repository history under a caller-specified subdirectory";
+      };
+      gitFilterReplaceText = mk {
+        args = ["--replace-text"];
+        description = "replace file contents using a caller-specified expressions file";
+      };
+      gitFilterStripLargeBlobs = mk {
+        args = ["--strip-blobs-bigger-than"];
+        description = "remove blobs larger than a caller-specified size";
+      };
+      gitFilterMailmap = mk {
+        args = ["--mailmap"];
+        description = "rewrite author identities using a caller-specified mailmap";
+      };
+      gitFilterTagRename = mk {
+        args = ["--tag-rename"];
+        description = "rename tag prefixes using a caller-specified old:new mapping";
+      };
+    };
+  };
+
+  gitui = mkSource {
+    categories = ["version-control"];
+    description = "terminal user interface for Git";
+    aliases = let
+      mk = mkAlias "gitui";
+    in {
+      gituiDirectory = mk {
+        args = ["--directory"];
+        description = "open a caller-specified Git directory";
+      };
+      gituiFile = mk {
+        args = ["--file"];
+        description = "select a caller-specified file in the file tab";
+      };
+      gituiKeyBindings = mk {
+        args = ["--key-bindings"];
+        description = "use a caller-specified keybindings file";
+      };
+      gituiLogFile = mk {
+        args = ["--logfile"];
+        description = "write logs to a caller-specified file";
+      };
+      gituiTheme = mk {
+        args = ["--theme"];
+        description = "load a caller-specified theme from the config directory";
+      };
+      gituiWatcher = mk {
+        args = ["--watcher"];
+        description = "update using file system notifications";
+      };
+      gituiWorkdir = mk {
+        args = ["--workdir"];
+        description = "use a caller-specified working directory";
+      };
     };
   };
 

@@ -287,10 +287,15 @@
         binWith = name: runtimeInputs: text:
           writeShellApplication {inherit name runtimeInputs text;};
 
-        rust = {name, src, inputs ? [], arguments ? []}:
+        rust = {
+          name,
+          src,
+          inputs ? [],
+          arguments ? [],
+        }:
           writeShellApplication {
             inherit name;
-            # TODO: pretty sure rustscript needs gcc and others.
+            # TODO: pretty sure rustscript needs gcc and others. Hos do i know this is working. I see no change in the thunderbird or khal setup which actually should be using this
             runtimeInputs = [pkgs'.rust-script] ++ inputs;
             text = ''
               exec rust-script ${src} ${concat " " arguments} "$@"
