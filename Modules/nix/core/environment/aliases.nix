@@ -8,6 +8,8 @@
   inherit (lix.modules.construction) mkContext mkConfig;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.access) attrValues;
+  inherit (lix.lists.aggregation) concatMap;
   inherit (lix.strings.construction) concat;
   inherit (lix.strings.transformation) replaceStrings;
   inherit (lix.types.combinators) attrsOf;
@@ -22,6 +24,11 @@
   };
   inherit (context) cfg;
   inherit (context.resolved.cfg.system.nix.explicit) repo;
+
+  installedPackages =
+    config.environment.systemPackages
+    ++ concatMap (user: user.packages or []) (attrValues (config.users.users or {}))
+    ++ concatMap (user: user.home.packages) (attrValues (config.home-manager.users or {}));
 
   current = {
     host = "$(hostname)";
@@ -124,6 +131,9 @@ in
       };
     };
     outputs = {
-      environment.shellAliases = cfg.default // cfg.extra;
+      environment.shellAliases =
+        (lix.toolkit.binariesFor installedPackages)
+        // cfg.default
+        // cfg.extra;
     };
   }

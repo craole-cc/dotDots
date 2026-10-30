@@ -19,14 +19,14 @@
       alias = {};
     };
   in {inherit doc exports;};
-  inherit (_.attrsets.access) attrNames;
+  inherit (_.attrsets.access) attrNames attrValues;
   inherit (_.attrsets.aggregation) intersectAttrs mergeDisjoint recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs;
   inherit (_.lists.access) head tail;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) optional;
-  inherit (_.lists.predicates) elem;
+  inherit (_.lists.predicates) all elem;
   inherit (_.lists.transformation) filter;
   inherit (_.sources.packages) pkgsFrom mkAll;
   inherit (_.sources.transformation) cleanSource cleanSourceWith fileset;
@@ -218,11 +218,52 @@
       inherit (resolved) aliases;
     });
 
+    #~@ Use installed package objects without resolving unused registry sources.
+    binariesFor = packages: let
+      installed = listToAttrs (map (package: {
+          name = package.pname or (_.lib.getName package);
+          value = package;
+        })
+        packages);
+      activeSources = filterAttrs (name: source:
+        installed ? ${name}
+        || installed ? ${source.target or name}
+        || (source ? input && installed ? ${source.input}))
+      resolved.sources;
+      selectedPackages = mapAttrs (name: source:
+        installed.${name} or installed.${source.target or name} or installed.${source.input})
+      activeSources;
+      records =
+        (pkgsFrom {
+          inputs = {};
+          pkgs = selectedPackages // {inherit (pkgs') stdenv;};
+          required = true;
+          sources =
+            mapAttrs (name: source: {
+              target = name;
+              discover = source.discover or false;
+              exe = source.exe or null;
+            })
+            activeSources;
+        }).records;
+      available = _.attrsets.aggregation.mergeSafe (map (record: record.bins) (attrValues records));
+      preferred = filterAttrs (command: source: records ? ${source} && records.${source}.bins ? ${command}) (defaults.prefer // prefer);
+      selected = available // mapAttrs (command: source: records.${source}.bins.${command}) preferred;
+      aliases = filterAttrs (_name: spec:
+        all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.after or [])))
+      resolved.aliases;
+    in
+      selected
+      // mkAliases {
+        binaries = selected;
+        inherit aliases;
+      };
+
     defined = let
       pkgsByName = mapAttrs (_name: spec: spec.package) derived.records;
     in
       {
-        inherit binaries;
+        inherit binaries binariesFor;
         descriptions =
           derived.descriptions
           // mapAttrs (_: spec: let

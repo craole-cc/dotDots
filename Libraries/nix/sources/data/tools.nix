@@ -14,7 +14,7 @@ let
   #   batn = bat {args = ["--number"]; description = "show line numbers";};
   # The result is still {cmd, description} with cmd = [command] ++ args.
   mkAlias = command: {
-    args,
+    args ? [],
     description ? null,
   }: {
     cmd = [command] ++ args;
