@@ -63,11 +63,13 @@ install -d -m 700 ~/.config/thunderbird
 install -m 600 ~/.config/thunderbird/google.env.example ~/.config/thunderbird/google.env
 ```
 
-Edit `~/.config/thunderbird/google.env` and set `GOOGLE_EMAIL` and
-`GOOGLE_REAL_NAME`. Optionally set `GOOGLE_CALENDAR_IDS` to a comma-separated
-list of calendar IDs from Google Calendar's settings. If omitted, the helper
-uses your email address as the primary calendar ID. Values are literal text,
-optionally quoted; shell commands and variable expansion are not supported.
+Edit `~/.config/thunderbird/google.env` and set `GOOGLE_EMAIL` for one account,
+or `GOOGLE_EMAILS` to a comma-separated list of accounts, plus `GOOGLE_REAL_NAME`.
+If the config file is absent, `thunderbird-google-setup` checks `~/.env` instead.
+Optionally set `GOOGLE_CALENDAR_IDS` to extra comma-separated calendar IDs for
+the first account; each additional account subscribes to its own primary calendar.
+Values are literal text, optionally quoted; shell commands and variable expansion
+are not supported.
 Do not put passwords or OAuth tokens in this file.
 
 With Thunderbird closed, run:

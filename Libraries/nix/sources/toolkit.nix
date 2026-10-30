@@ -295,8 +295,7 @@
         }:
           writeShellApplication {
             inherit name;
-            # TODO: pretty sure rustscript needs gcc and others. Hos do i know this is working. I see no change in the thunderbird or khal setup which actually should be using this
-            runtimeInputs = [pkgs'.rust-script] ++ inputs;
+            runtimeInputs = (with pkgs'; [rust-script gcc]) ++ inputs;
             text = ''
               exec rust-script ${src} ${concat " " arguments} "$@"
             '';

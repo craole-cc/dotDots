@@ -713,6 +713,14 @@ in {
       });
   };
 
+  rust-script = mkSource {
+    categories = ["scripting"];
+    description = "run Rust files and expressions as scripts";
+    input = "nixpkgs";
+    target = "rust-script";
+    exe = "rust-script";
+  };
+
   vdirsyncer = mkSource {
     categories = ["communication"];
     description = "CalDAV calendar synchronisation";
@@ -2637,27 +2645,69 @@ in {
       };
     };
   };
+  yazi = let
+    #? Expanded by the shell at run time, so they follow the current user/host.
+    #? `\${` stops Nix from interpolating.
+    roots = {
+      projects = "\${PROJECTS:-$HOME/Projects}";
+      cc = "\${PRJ_CC:-$HOME/Projects/craole-cc}";
+      dots = "\${DOTS:-$HOME/.dots}";
+      yazi = "\${XDG_CONFIG_HOME:-$HOME/.config}/yazi";
+    };
+  in
+    mkSource {
+      categories = ["files" "scripting"];
+      description = "terminal file manager";
+      aliases = let
+        mk = mkAlias "yazi";
+        alias = mk {};
+        projects = mk {
+          args = [roots.projects];
+          description = "open yazi in the projects root";
+        };
+        cc = mk {
+          args = [roots.cc];
+          description = "open yazi in the craole-cc projects";
+        };
+        dots = mk {
+          args = [roots.dots];
+          description = "open yazi in the dotfiles";
+        };
+        yazi = mk {
+          args = [roots.yazi];
+          description = "open yazi in its own config directory";
+        };
+      in {
+        f = alias;
+        y = alias;
+        yz = alias;
 
-  yazi = mkSource {
-    categories = ["files" "scripting"];
-    description = "terminal file manager";
-    aliases = let
-      mk = mkAlias "yazi";
-    in {
-      yaziChooserFile = mk {
-        args = ["--chooser-file"];
-        description = "write the selected file path to a caller-supplied file";
-      };
-      yaziCwdFile = mk {
-        args = ["--cwd-file"];
-        description = "write the final working directory to a caller-supplied file";
-      };
-      yaziSelect = mk {
-        args = ["--select"];
-        description = "select a caller-supplied file on startup";
+        yaziProjects = projects;
+        yp = projects;
+
+        yaziCC = cc;
+        yc = cc;
+
+        yaziDots = dots;
+        yd = dots;
+
+        yaziYazi = yazi;
+        yy = yazi;
+
+        yaziChooserFile = mk {
+          args = ["--chooser-file"];
+          description = "write the selected file path to a caller-supplied file";
+        };
+        yaziCwdFile = mk {
+          args = ["--cwd-file"];
+          description = "write the final working directory to a caller-supplied file";
+        };
+        yaziSelect = mk {
+          args = ["--select"];
+          description = "select a caller-supplied file on startup";
+        };
       };
     };
-  };
 
   yq-go = mkSource {
     categories = ["text" "scripting"];

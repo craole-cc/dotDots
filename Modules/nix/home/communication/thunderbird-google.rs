@@ -24,7 +24,12 @@ use uuid::Uuid;
 
 const DEFAULT_ID: &str = "dotdotsGoogle";
 const CALDAV_ROOT: &str = "https://apidata.googleusercontent.com/caldav/v2/";
-const ENVIRONMENT_KEYS: [&str; 3] = ["GOOGLE_EMAIL", "GOOGLE_REAL_NAME", "GOOGLE_CALENDAR_IDS"];
+const ENVIRONMENT_KEYS: [&str; 4] = [
+    "GOOGLE_EMAIL",
+    "GOOGLE_EMAILS",
+    "GOOGLE_REAL_NAME",
+    "GOOGLE_CALENDAR_IDS",
+];
 const USAGE: &str = "Usage: thunderbird-google.rs [--env PATH] [--profile PATH]";
 
 /// Preferences we generate, sorted by key like the Python version.
@@ -100,9 +105,18 @@ fn read_environment(path: &Path) -> Result<HashMap<String, String>, String> {
         }
         values.insert(key.to_owned(), value.to_owned());
     }
-    let email = values.get("GOOGLE_EMAIL").map_or("", String::as_str);
-    if !valid_email(email) {
-        return Err("Set GOOGLE_EMAIL to your Google account address.".to_owned());
+    let emails = values
+        .get("GOOGLE_EMAILS")
+        .map(String::as_str)
+        .or_else(|| values.get("GOOGLE_EMAIL").map(String::as_str))
+        .unwrap_or("");
+    let emails: Vec<_> = emails
+        .split(',')
+        .map(str::trim)
+        .filter(|email| !email.is_empty())
+        .collect();
+    if emails.is_empty() || emails.iter().any(|email| !valid_email(email)) {
+        return Err("Set GOOGLE_EMAIL or a comma-separated GOOGLE_EMAILS list to valid Google account addresses.".to_owned());
     }
     Ok(values)
 }
@@ -227,6 +241,7 @@ fn first_id(
     existing: &Existing,
     prefix: &str,
     suffix: &str,
+    fallback: &str,
     matches: impl Fn(&Value) -> bool,
 ) -> String {
     existing
@@ -237,7 +252,7 @@ fn first_id(
                 .then(|| key.split('.').nth(2).map(str::to_owned))
                 .flatten()
         })
-        .unwrap_or_else(|| DEFAULT_ID.to_owned())
+        .unwrap_or_else(|| fallback.to_owned())
 }
 
 fn append_item(prefs: &mut Prefs, existing: &Existing, key: &str, item: &str, separator: char) {
@@ -315,24 +330,40 @@ fn add_calendars(
     }
 }
 
-fn build_prefs(existing: &Existing, values: &HashMap<String, String>) -> Prefs {
+fn build_account_prefs(
+    existing: &Existing,
+    values: &HashMap<String, String>,
+    fallback_id: &str,
+) -> Prefs {
     let email = &values["GOOGLE_EMAIL"];
+    let identity_default = fallback_id.to_owned();
+    let account_default = fallback_id.to_owned();
+    let server_default = fallback_id.to_owned();
+    let smtp_default = fallback_id.to_owned();
     // Reuse a matching account left by Home Manager or manual setup.
-    let identity = first_id(existing, "mail.identity.", ".useremail", |value| {
-        value.as_str() == Some(email.as_str())
-    });
-    let account = first_id(existing, "mail.account.", ".identities", |value| {
-        text_of(value).split(',').any(|item| item == identity)
-    });
+    let identity = first_id(
+        existing,
+        "mail.identity.",
+        ".useremail",
+        &identity_default,
+        |value| value.as_str() == Some(email.as_str()),
+    );
+    let account = first_id(
+        existing,
+        "mail.account.",
+        ".identities",
+        &account_default,
+        |value| text_of(value).split(',').any(|item| item == identity),
+    );
     let server = existing_or(
         existing,
         &format!("mail.account.{account}.server"),
-        DEFAULT_ID,
+        &server_default,
     );
     let smtp = existing_or(
         existing,
         &format!("mail.identity.{identity}.smtpServer"),
-        DEFAULT_ID,
+        &smtp_default,
     );
     let identities_key = format!("mail.account.{account}.identities");
     let real_name = values
@@ -398,6 +429,42 @@ fn build_prefs(existing: &Existing, values: &HashMap<String, String>) -> Prefs {
         json!(existing_or(existing, "mail.smtp.defaultserver", &smtp)),
     );
     add_calendars(&mut prefs, existing, values, &identity);
+    prefs
+}
+
+fn build_prefs(existing: &Existing, values: &HashMap<String, String>) -> Prefs {
+    let emails = values
+        .get("GOOGLE_EMAILS")
+        .map(String::as_str)
+        .or_else(|| values.get("GOOGLE_EMAIL").map(String::as_str))
+        .unwrap_or_default();
+    let mut prefs = Prefs::new();
+    let mut current = existing.clone();
+    for (index, email) in emails
+        .split(',')
+        .map(str::trim)
+        .filter(|email| !email.is_empty())
+        .enumerate()
+    {
+        let mut account = values.clone();
+        account.insert("GOOGLE_EMAIL".to_owned(), email.to_owned());
+        // Additional account calendars default to that account's primary calendar.
+        if index > 0 {
+            account.remove("GOOGLE_CALENDAR_IDS");
+        }
+        let fallback_id = if index == 0 {
+            DEFAULT_ID.to_owned()
+        } else {
+            format!(
+                "dotdotsGoogle{}",
+                Uuid::new_v5(&Uuid::NAMESPACE_URL, email.as_bytes()).simple()
+            )
+        };
+        for (key, value) in build_account_prefs(&current, &account, &fallback_id) {
+            current.insert(key.clone(), value.clone());
+            prefs.insert(key, value);
+        }
+    }
     prefs
 }
 
@@ -547,7 +614,14 @@ fn main() -> ExitCode {
         eprintln!("HOME is not set.");
         return ExitCode::FAILURE;
     };
-    let default_env = xdg("XDG_CONFIG_HOME", home.join(".config")).join("thunderbird/google.env");
+    let configured_env =
+        xdg("XDG_CONFIG_HOME", home.join(".config")).join("thunderbird/google.env");
+    let default_env = home.join(".env");
+    let default_env = if configured_env.exists() {
+        configured_env
+    } else {
+        default_env
+    };
     let default_profile = home.join(".thunderbird/google");
     let outcome = parse_arguments(default_env, default_profile).and_then(|parsed| match parsed {
         None => Ok(false),

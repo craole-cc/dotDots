@@ -1,0 +1,47 @@
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+
+# Custom binds only. `prepend_keymap` is checked before the defaults, so
+# anything here wins on a clash and everything else stays stock.
+# Press `~` or `?` in Yazi to see the merged list (type to filter).
+#
+# Key families
+#   e <x>  edit something in $EDITOR
+#   g <x>  go (navigate Yazi) somewhere
+#
+# Env vars are read from the environment Yazi was launched in. They only
+# work if exported, so each one has a fallback.
+
+[mgr]
+  prepend_keymap = [
+    # ~@ Help
+    # ? `~` and <F1> open the bind list by default; no entry needed here.
+
+    # ~@ Go (navigate Yazi)
+    { on = ["g", "y"], run = "cd ~/.config/yazi", desc = "Go to Yazi config dir" },
+    { on = ["g", "p"], run = "cd ~/Projects", desc = "Go to projects" },
+
+    # ~@ Edit: Yazi's own config
+    { on = ["e", "y"], run = "shell --block -- $EDITOR ~/.config/yazi/yazi.toml", desc = "Edit yazi.toml" },
+    { on = ["e", "k"], run = "shell --block -- $EDITOR ~/.config/yazi/keymap.toml", desc = "Edit keymap.toml" },
+
+    # ~@ Edit: fixed locations
+    { on = ["e", "d"], run = 'shell --block -- cd "${DOTS:-$HOME/.dots}" && $EDITOR .', desc = "Edit dotfiles dir" },
+
+    # ? Edit whatever folder is under the cursor.
+    { on = ["e", "e"], run = "shell --block -- cd %s1 && $EDITOR .", desc = "Edit hovered dir" },
+
+    # ~@ Edit: fzf pickers (esc in fzf returns to Yazi)
+    # ? Any git repo up to 3 levels under $PROJECTS (org/project or loose).
+    { on = ["e", "p"], run = 'shell --block -- root="${PROJECTS:-$HOME/Projects}"; project=$(find "$root" -maxdepth 3 -name .git -prune | sed "s|/\.git$||; s|^$root/||" | sort | fzf --prompt="project> ") && cd "$root/$project" && $EDITOR .', desc = "Pick any git project and edit it" },
+
+    # ~@ Every direct subfolder of $PROJECTS, git or not (mostly the orgs).
+    # TODO: Not much value, it should allow me to go to a folder then set that as home
+    { on = ["e", "w"], run = 'shell --block -- root="${PROJECTS:-$HOME/Projects}"; project=$(find "$root" -mindepth 1 -maxdepth 1 -type d | sort | fzf --prompt="projects> ") && cd "$project" && $EDITOR .', desc = "Pick a Projects subfolder and edit it" },
+
+    # ~@ Direct subfolders of $PRJ_CC (craole-cc), where most work happens.
+    { on = ["e", "c"], run = 'shell --block -- root="${PRJ_CC:-$HOME/Projects/craole-cc}"; project=$(find "$root" -mindepth 1 -maxdepth 1 -type d | sort | fzf --prompt="craole-cc> ") && cd "$project" && $EDITOR .', desc = "Pick a craole-cc project and edit it" },
+
+    # ~@ Anything directly in ~/.config: folders open rooted, files open alone.
+    # ? Home Manager entries may be read-only store symlinks; edit $DOTS instead.
+    { on = ["e", "C"], run = 'shell --block -- root="${XDG_CONFIG_HOME:-$HOME/.config}"; target=$(find "$root" -mindepth 1 -maxdepth 1 -not -name ".*" -printf "%f\n" | sort | fzf --prompt="config> ") && if [ -d "$root/$target" ]; then cd "$root/$target" && $EDITOR .; else $EDITOR "$root/$target"; fi', desc = "Pick a ~/.config target and edit it" },
+  ]
