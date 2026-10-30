@@ -1,5 +1,4 @@
 {
-  binaries,
   config,
   lix,
   pkgs,
@@ -10,7 +9,7 @@
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.toolkit.write) script;
   inherit (themes) icons cursors;
-  inherit (lix.toolkit.binaries // binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
+  inherit (lix.toolkit.binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
   gds = pkgs.gsettings-desktop-schemas;
 in
   script "sync-dms-desktop-appearance" ''

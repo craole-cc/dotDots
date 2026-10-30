@@ -26,7 +26,7 @@
   inherit (lix.toolkit) packages;
   dcalPackage = packages.dux-calendar;
 
-  record = import ./record.nix {inherit pkgs inputs lix;};
+  record = lix.toolkit.records.dms-shell;
   args = recursiveUpdate record {
     inherit config inputs lix pkgs style themes user entryAfter;
     configHome =

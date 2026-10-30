@@ -643,6 +643,12 @@ in {
     categories = ["desktop-ui"];
     description = "Dank Material Shell";
     input = "dank-material-shell";
+    aliases = let
+      mk = mkAlias "dms";
+    in {
+      dmsCall = mk {args = ["ipc" "call"];};
+      dmsSet = mk {args = ["ipc" "call" "settings" "set"];};
+    };
     transform = {
       package,
       source,
