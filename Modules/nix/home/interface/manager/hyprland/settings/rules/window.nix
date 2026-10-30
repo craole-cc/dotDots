@@ -1,7 +1,4 @@
-{
-  style,
-  ...
-}: let
+{style, ...}: let
   # Window opacity follows the editor opacity from the active theme schema
   # (user.theme.modes.<mode>.opacity.editor) instead of a literal.
   editorOpacity = builtins.toJSON style.opacity.editor.${style.mode};

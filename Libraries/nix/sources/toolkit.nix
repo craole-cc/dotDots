@@ -19,19 +19,20 @@
       alias = {};
     };
   in {inherit doc exports;};
+  inherit (_.attrsets.access) attrNames;
   inherit (_.attrsets.aggregation) intersectAttrs mergeDisjoint recursiveUpdate;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
-  inherit (_.attrsets.access) attrNames;
   inherit (_.lists.access) head tail;
-  inherit (_.lists.construction) optional;
   inherit (_.lists.aggregation) concatMap;
+  inherit (_.lists.construction) optional;
   inherit (_.lists.predicates) elem;
   inherit (_.lists.transformation) filter;
-  inherit (_.types.predicates) isList;
   inherit (_.sources.packages) pkgsFrom mkAll;
+  inherit (_.sources.transformation) cleanSource cleanSourceWith fileset;
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) escapeShellArgs;
+  inherit (_.types.predicates) isList;
 
   #~@ Data
   #? Keys that are ours, not `pkgsFrom`'s.
@@ -261,7 +262,7 @@
       };
 
       source = {
-        inherit (_.sources.transformation) cleanSource cleanSourceWith fileset;
+        inherit cleanSource cleanSourceWith fileset;
       };
 
       fetch = with pkgs'; {

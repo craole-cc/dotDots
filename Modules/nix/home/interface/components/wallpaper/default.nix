@@ -63,12 +63,14 @@
       inherit condition;
       package = packages.${name};
       enable = condition && cfg.engines.active == name;
-      options = variety.options // {
-        enable = mkEnable {
-          inherit context;
-          condition = engines.${name}.enable;
+      options =
+        variety.options
+        // {
+          enable = mkEnable {
+            inherit context;
+            condition = engines.${name}.enable;
+          };
         };
-      };
     };
   };
 

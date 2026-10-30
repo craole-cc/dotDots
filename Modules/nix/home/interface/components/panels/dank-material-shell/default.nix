@@ -24,9 +24,8 @@
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
   inherit (lix.toolkit) packages;
-  dcalPackage = packages.dux-calendar;
-
   record = lix.toolkit.records.dms-shell;
+
   args = recursiveUpdate record {
     inherit config inputs lix pkgs style themes user entryAfter;
     configHome =
@@ -114,11 +113,11 @@ in
             light.package
           ])
           ++ addons.packages
-          ++ [
-            dcalPackage
-            packages.khal
-            packages.vdirsyncer
-          ];
+          ++ (with packages; [
+            dux-calendar
+            khal
+            vdirsyncer
+          ]);
         sessionVariables = {
           QS_ICON_THEME = themes.icons.dark.theme;
         };

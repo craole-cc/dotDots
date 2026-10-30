@@ -15,10 +15,11 @@
   selectedBrowser =
     if selections == []
     then null
-    else resolve {
-      value = head selections;
-      category = "browser";
-    };
+    else
+      resolve {
+        value = head selections;
+        category = "browser";
+      };
   command =
     if selectedBrowser == null
     then null

@@ -653,9 +653,10 @@ in {
       package,
       source,
       builders,
-      lix,
+      libraries,
     }: let
-      inherit (lix.strings.transformation) replaceStrings;
+      inherit (libraries.strings.transformation) replaceStrings;
+
       patchedSource = builders.applyPatches {
         name = "dms-patched-source";
         src = source;
@@ -668,8 +669,14 @@ in {
     in
       package.overrideAttrs (previous: {
         src = "${patchedSource}/core";
-        postInstall = replaceStrings [source] ["${patchedSource}"] previous.postInstall;
-        passthru = (previous.passthru or {}) // {shellSource = "${patchedSource}/quickshell";};
+        postInstall =
+          replaceStrings
+          [source]
+          ["${patchedSource}"]
+          previous.postInstall;
+        passthru =
+          (previous.passthru or {})
+          // {shellSource = "${patchedSource}/quickshell";};
       });
   };
 

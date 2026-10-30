@@ -31,7 +31,7 @@
 
       env = let
         extraArgs = {
-          inherit safe ;
+          inherit safe;
           _ = self;
           inherit self;
           library = names.lib;

@@ -83,7 +83,6 @@ _: {
       ];
     };
 
-
     #~@ Office
     spreadjs = {
       ribbonMode = "toolbar";

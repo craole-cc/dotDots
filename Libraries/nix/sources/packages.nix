@@ -445,7 +445,7 @@
               package = check.value;
               source = src.outPath or null;
               builders = {inherit (init.source.legacy) applyPatches;};
-              lix = _;
+              libraries = _;
             };
 
         src =
