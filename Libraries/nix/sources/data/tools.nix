@@ -802,60 +802,86 @@ in {
     categories = ["files" "scripting"];
     description = "modern ls replacement";
     aliases = let
-      args = [
-        "--almost-all"
-        "--icons=auto"
-        "--color=auto"
-      ];
-      mk = extra: mkAlias "eza" ({inherit args;} // extra);
-
-      mkViewAlias = name: args: desc: {
-        ${name} = mk {
-          args = ["--long" "--git"] ++ args;
-          description = "${desc}, with metadata columns";
+      cfg = {
+        default = {
+          args = ["--icons=auto" "--color=auto"];
+          description = "with sane defaults";
         };
-        "${name}p" = mk {
-          args = ["--icons=never" "--color=never"] ++ args;
-          description = "${desc}, with plain output and no metadata columns";
+        plain = {
+          args = ["--icons=never" "--color=never"];
+          description = "with plain output";
+        };
+        all = {
+          args = ["--almost-all"];
+          description = "with hidden files";
+        };
+        info = {
+          args = ["--long" "--git"];
+          description = "with metadata columns";
+        };
+        tree = {
+          args = ["--tree"];
+          description = "with tree output";
+        };
+        recursive = {
+          args = ["--recurse"];
+          description = "with recursive output";
+        };
+        dirs = {
+          args = ["--only-dirs"];
+          description = "listing only directories";
+        };
+        level = {
+          args = ["--level"];
+          description = "limited to a caller-specified depth";
         };
       };
 
-      mkRecursiveAlias = type:
-        mkViewAlias (
-          if type == "tree"
-          then "ezat"
-          else "ezar"
-        ) {
-          args = ["--${type}" "--level"];
-          description = "list ${
-            if type == "tree"
-            then "as a tree"
-            else "recursively"
-          } limited to a caller-specified depth";
+      #> Builds one alias from cfg.default plus any number of cfg layers.
+      #? Args are concatenated in order (later flags win in eza);
+      #? descriptions are joined with ", ".
+      mkLayered = layers: let
+        inherit (builtins) concatMap concatStringsSep filter;
+      in
+        mkAlias "eza" {
+          args = concatMap (layer: layer.args or []) ([cfg.default] ++ layers);
+          description = concatStringsSep ", " (
+            if layers == []
+            then [cfg.default.description]
+            else
+              filter (text: text != null)
+              (map (layer: layer.description or null) layers)
+          );
         };
 
-      mkSortAlias = name: type:
+      #? name / namea / namep: the view with metadata, hidden files, and plain output.
+      mkViewAlias = name: view: {
+        ${name} = mkLayered [view cfg.info];
+        "${name}a" = mkLayered [view cfg.all];
+        "${name}p" = mkLayered [view cfg.plain];
+      };
+
+      mkRecursiveAlias = name: mode:
         mkViewAlias name {
-          args = ["--sort=${type}"];
-          description = "list sorted by ${type}";
+          args = mode.args ++ cfg.level.args;
+          description = "${mode.description}, ${cfg.level.description}";
         };
 
-      views = {
-        default = [] "sane defaults";
-        tree = ["--tree"] "tree";
-        recursive = ["--recurse"] "recursive";
-        dirs = ["--only-dirs"] "list only directories";
-      };
+      mkSortAlias = name: sortKey:
+        mkViewAlias name {
+          args = ["--sort=${sortKey}"];
+          description = "list sorted by ${sortKey}";
+        };
     in
-      {ez = mk {};}
-      // (mkViewAlias "ezal" views.default)
-      // (mkViewAlias "ee" views.default)
-      // (mkViewAlias "et" views.tree)
-      // (mkViewAlias "er" views.recurse)
-      // (mkViewAlias "ed" views.dirs)
-      // (mkViewAlias "ezad" views.dirs)
-      // (mkRecursiveAlias "tree")
-      // (mkRecursiveAlias "recurse")
+      {ez = mkLayered [];}
+      // (mkViewAlias "ee" {})
+      // (mkViewAlias "et" cfg.tree)
+      // (mkViewAlias "ed" cfg.dirs)
+      // (mkViewAlias "er" cfg.recursive)
+      // (mkViewAlias "ezal" {})
+      // (mkRecursiveAlias "ezar" cfg.recursive)
+      // (mkRecursiveAlias "ezat" cfg.tree)
+      // (mkViewAlias "ezad" cfg.dirs)
       // (mkSortAlias "ezan" "name")
       // (mkSortAlias "ezaN" "Name")
       // (mkSortAlias "ezanDot" ".name")
