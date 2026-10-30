@@ -23,7 +23,8 @@ After the committed configuration has been built and explicitly activated:
    ```
 
 3. Follow the browser authorisation using `iamcraole@gmail.com`. Confirm discovery
-   when prompted. Setup discovers calendars, copies metadata and synchronises.
+   when prompted. Setup discovers calendars and synchronises events. Google virtual
+   calendars do not reliably expose metadata, so setup does not run metasync.
    Only successful completion creates the readiness marker used by the timer.
 4. Verify the mirror, then check the DMS calendar card for a known event:
 
@@ -71,3 +72,11 @@ and consent, run the checks above together to establish runtime success.
 
 References: [vdirsyncer Google setup](https://vdirsyncer.pimutils.org/en/stable/tutorials/google.html)
 and [Google CalDAV guide](https://developers.google.com/workspace/calendar/caldav/v2/guide).
+
+## Next Follow-Up
+
+Move the DMS package override from
+`Modules/nix/home/interface/components/panels/dank-material-shell/record.nix`
+to the central toolkit source entry using `transform`. Preserve the existing
+override behaviour and verify the resolved package and executable paths. Do this
+after Google account setup and Khal, DMS and Thunderbird runtime verification.

@@ -26,7 +26,6 @@ status_path = {quote(str(state / "status"))}
 a = "google_remote"
 b = "google_local"
 collections = ["from a"]
-metadata = ["displayname", "color"]
 [storage google_remote]
 type = "google_calendar"
 read_only = true
@@ -42,7 +41,7 @@ runtime_config.chmod(0o600)
 command = sys.argv[2:] or ["sync"]
 base = [sys.argv[1], "--config", str(runtime_config)]
 if command == ["setup"]:
-    for args in (["discover", "google"], ["metasync", "google"], ["sync", "google"]):
+    for args in (["discover", "google"], ["sync", "google"]):
         subprocess.run(base + args, check=True)
     (state / "google.ready").touch(mode=0o600)
 else:
