@@ -286,6 +286,15 @@
 
         binWith = name: runtimeInputs: text:
           writeShellApplication {inherit name runtimeInputs text;};
+
+        rust = {name, src, inputs ? [], arguments ? []}:
+          writeShellApplication {
+            inherit name;
+            runtimeInputs = [pkgs'.rust-script] ++ inputs;
+            text = ''
+              exec rust-script ${src} ${builtins.concatStringsSep " " arguments} "$@"
+            '';
+          };
       in
         {
           #? Package with bin/<name>: strict mode and shellcheck, no PATH assumptions
@@ -297,6 +306,7 @@
           posix = writeDash; #? POSIX sh file, for ExecStart= and the like
           posixBin = writeDashBin; #? POSIX sh with bin/<name>
           script = writeShellScript; #? bash file, for ExecStart= and the like
+          inherit rust;
           text = writeText;
           textFile = writeTextFile; #? supports executable, destination, etc.
         }

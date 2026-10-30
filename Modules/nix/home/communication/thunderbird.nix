@@ -13,12 +13,9 @@
     dom = "communication";
     mod = "thunderbird";
   };
-  setup = write.script {
+  setup = write.rust {
     name = "thunderbird-google-setup";
-    inputs = with packages; [rust-script];
-    command = ''
-      exec rust-script ${./thunderbird-google.rs} "$@"
-    '';
+    src = ./thunderbird-google.rs;
   };
 in
   mkConfig {

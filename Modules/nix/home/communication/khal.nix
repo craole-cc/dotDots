@@ -13,9 +13,12 @@
     dom = "communication";
     mod = "khal";
   };
-  sync = write.bin "google-calendar" (with binaries; ''
-    exec ${python3} ${./google-calendar.py} ${vdirsyncer} "$@"
-  '');
+  sync = write.rust {
+    name = "google-calendar";
+    src = ./google-calendar.rs;
+    inputs = with packages; [vdirsyncer];
+    arguments = ["${binaries.vdirsyncer}/bin/vdirsyncer"];
+  };
 in
   mkConfig {
     inherit context;
