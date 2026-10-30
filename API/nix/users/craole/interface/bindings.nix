@@ -11,8 +11,7 @@ let
   space = "Space";
   period = "Period";
   comma = "Comma";
-  print = "Print";
-  pause = "Pause";
+  print = "Pause";
   volumeUp = "XF86AudioRaiseVolume";
   volumeDown = "XF86AudioLowerVolume";
   mute = "XF86AudioMute";
@@ -197,7 +196,7 @@ in {
         mk right "right" "next" ++ mk left "left" "previous";
 
       #~@ Capture
-      #? Letter keys work on every board; Print (Cidoo) and Pause (RK71) are bare-key shortcuts
+      #? Pause provides the screenshot key on the RK71.
       screenshot = let
         common = {
           description = "Screenshot";
@@ -220,12 +219,9 @@ in {
           category = "capture";
         };
         letterKey = withKey common "R";
-        pauseKey = withKey common pause;
       in [
         (mkAction letterKey "Section" modifier)
         (mkAction letterKey "Screen" superShift)
-        (mkBinding pauseKey {description = "Screen record: Section";})
-        (mkAction pauseKey "Screen" shift)
       ];
 
       #~@ Audio

@@ -41,6 +41,11 @@ in {
   };
 
   ordered = {
+    screenshot = let
+      region = command "dms screenshot";
+      screen = command "dms screenshot full";
+      window = command "dms screenshot window";
+    in [region screen window region screen window];
     close = [
       (native "window.close()")
       (native "exit()")
