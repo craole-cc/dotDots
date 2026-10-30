@@ -672,9 +672,6 @@ in {
   khal = mkSource {
     categories = ["communication"];
     description = "terminal calendar";
-    input = "nixpkgs";
-    target = "khal";
-    exe = "khal";
     # The locked Sphinx hook reads a scalar even with structured attributes.
     transform = package:
       package.overridePythonAttrs (_previous: {
