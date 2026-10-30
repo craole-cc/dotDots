@@ -2328,6 +2328,14 @@ in {
     };
   };
 
+  treefmt = mkSource {
+    categories = ["formatters" "scripting"];
+    description = "multi-language code formatter";
+    input = "treefmt";
+    target = "treefmt";
+    exe = "treefmt";
+  };
+
   util-linux = mkSource {
     categories = ["system" "scripting"];
     description = "mount, lsblk, flock, logger, and related system utilities";
