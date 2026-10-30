@@ -2,6 +2,10 @@
 result*
 .devenv/
 .direnv/
+.env
+.env.*
+*.env
+!*.env.example
 
 #~@ Temporary Files, Cache & Logs
 .cache/

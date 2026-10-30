@@ -11,7 +11,7 @@
   context = mkContext {
     inherit config;
     dom = "communication";
-    mod = "google";
+    mod = "khal";
   };
   sync = write.bin "google-calendar" (with binaries; ''
     exec ${python3} ${./google-calendar.py} ${vdirsyncer} "$@"
@@ -21,7 +21,9 @@ in
     inherit context;
     options.enable = mkEnable {
       inherit context;
-      condition = elem "thunderbird" (user.packages.communication or []);
+      condition =
+        elem "khal" (user.packages.communication or [])
+        || (user.interface.dms.settings.calendarBackend or "") == "khal";
     };
     outputs = {
       home.packages = with packages; [khal vdirsyncer sync];
@@ -40,31 +42,6 @@ in
         [default]
         timedelta = 30d
       '';
-
-      programs = {
-        thunderbird = {
-          enable = true;
-          package = packages.thunderbird;
-          profiles.google = {
-            isDefault = true;
-            settings."calendar.timezone.local" = "America/Jamaica";
-          };
-        };
-      };
-
-      # TODO: Why on earth are we exposing this raw and hardcoded? in the very least it should be in the API, but even that is leakage. encourage creation of a .env, until I set up sops
-      accounts = {
-        email.accounts.google = {
-          primary = true;
-          address = "FIXME@gmail.com";
-          realName = user.description;
-          userName = "FIXME@gmail.com";
-          flavor = "gmail.com";
-          imap.authentication = "xoauth2";
-          smtp.authentication = "xoauth2";
-          thunderbird.enable = true;
-        };
-      };
 
       systemd.user = {
         services.google-calendar = {
