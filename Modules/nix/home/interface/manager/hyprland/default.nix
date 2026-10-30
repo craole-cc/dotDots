@@ -29,7 +29,7 @@
   inherit (lix.strings.construction) concatStringsSep splitString toJSON;
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
-  dmsEmbedded = "${pkgs.dms-shell.src}/core/internal/config/embedded";
+  dmsEmbedded = "${config.programs.dank-material-shell.package.src}/internal/config/embedded";
 
   firstBinding = name: let
     bindings = toList (keyboard.bindings.${name} or []);

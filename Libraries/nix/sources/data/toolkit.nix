@@ -659,7 +659,11 @@ in {
       patchedSource = builders.applyPatches {
         name = "dms-patched-source";
         src = source;
-        patches = [../patches/dms/theme-control.patch ../patches/dms/catppuccin-matugen.patch];
+        patches = [
+          ../patches/dms/theme-control.patch
+          ../patches/dms/catppuccin-matugen.patch
+          ../patches/dms/notification-scratchpad-activation.patch
+        ];
       };
     in
       package.overrideAttrs (previous: {
