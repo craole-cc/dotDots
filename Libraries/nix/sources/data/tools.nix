@@ -802,34 +802,30 @@ in {
     categories = ["files" "scripting"];
     description = "modern ls replacement";
     aliases = let
-      mk = extra: mkAlias "eza" ({args = ["--icons"];} // extra);
+      args = [
+        "--almost-all"
+        "--icons=auto"
+        "--color=auto"
+      ];
+      mk = extra: mkAlias "eza" ({inherit args;} // extra);
 
-      plain = {
-        args = ["--icons=never" "--color=never"];
-        description = "plain output, suitable for scripts";
-      };
-
-      info = {
-        args = ["--long" "--git" "--almost-all"];
-        description = "list hidden entries in long format with git status";
-      };
-
-      mkViewAlias = name: {
-        args ? [],
-        description,
-      }: {
+      mkViewAlias = name: args: desc: {
         ${name} = mk {
-          args = info.args ++ args;
-          inherit description;
+          args = ["--long" "--git"] ++ args;
+          description = "${desc}, with metadata columns";
         };
         "${name}p" = mk {
-          args = plain.args ++ ["--almost-all"] ++ args;
-          description = "${description}, with plain output and no metadata columns";
+          args = ["--icons=never" "--color=never"] ++ args;
+          description = "${desc}, with plain output and no metadata columns";
         };
       };
 
       mkRecursiveAlias = type:
-        mkViewAlias (if type == "tree" then "ezat" else "ezar") {
+        mkViewAlias (
+          if type == "tree"
+          then "ezat"
+          else "ezar"
+        ) {
           args = ["--${type}" "--level"];
           description = "list ${
             if type == "tree"
@@ -838,22 +834,26 @@ in {
           } limited to a caller-specified depth";
         };
 
-      mkSortAlias = name: type: mkViewAlias name {
-        args = ["--sort=${type}"];
-        description = "list sorted by ${type}";
+      mkSortAlias = name: type:
+        mkViewAlias name {
+          args = ["--sort=${type}"];
+          description = "list sorted by ${type}";
+        };
+
+      views = {
+        default = [] "sane defaults";
+        tree = ["--tree"] "tree";
+        recursive = ["--recurse"] "recursive";
+        dirs = ["--only-dirs"] "list only directories";
       };
     in
-      {
-        ez = mk {};
-        ezap = mk plain;
-      }
-      // (mkViewAlias "ezad" {
-        args = ["--only-dirs"];
-        description = "list only directories";
-      })
-      // (mkViewAlias "ezal" {
-        description = "list hidden entries";
-      })
+      {ez = mk {};}
+      // (mkViewAlias "ezal" views.default)
+      // (mkViewAlias "ee" views.default)
+      // (mkViewAlias "et" views.tree)
+      // (mkViewAlias "er" views.recurse)
+      // (mkViewAlias "ed" views.dirs)
+      // (mkViewAlias "ezad" views.dirs)
       // (mkRecursiveAlias "tree")
       // (mkRecursiveAlias "recurse")
       // (mkSortAlias "ezan" "name")
