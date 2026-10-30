@@ -5,10 +5,11 @@
   top,
   ...
 }: let
-  inherit (lix.modules.construction) mkContext mkConfig;
+  inherit (lix.modules.construction) mkContext mkConfig mkDefault;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.strings.construction) concat;
   inherit (lix.strings.transformation) replaceStrings;
@@ -138,7 +139,7 @@ in
     };
     outputs = {
       environment.shellAliases =
-        (binariesFor installedPackages)
+        (mapAttrs (_name: command: mkDefault command) (binariesFor installedPackages))
         // cfg.default
         // cfg.extra;
     };
