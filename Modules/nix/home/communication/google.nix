@@ -4,7 +4,7 @@
   user,
   ...
 }: let
-  inherit (lix) toolkit;
+  inherit (lix.toolkit) write binaries packages;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
   inherit (lix.lists.predicates) elem;
@@ -13,9 +13,9 @@
     dom = "communication";
     mod = "google";
   };
-  sync = toolkit.write.bin "google-calendar" ''
-    exec ${toolkit.binaries.python3} ${./google-calendar.py} ${toolkit.binaries.vdirsyncer} "$@"
-  '';
+  sync = write.bin "google-calendar" (with binaries; ''
+    exec ${python3} ${./google-calendar.py} ${vdirsyncer} "$@"
+  '');
 in
   mkConfig {
     inherit context;
@@ -24,7 +24,7 @@ in
       condition = elem "thunderbird" (user.packages.communication or []);
     };
     outputs = {
-      home.packages = [toolkit.packages.khal toolkit.packages.vdirsyncer sync];
+      home.packages = with packages; [khal vdirsyncer sync];
       xdg.configFile."khal/config".text = ''
         [calendars]
         [[google]]
@@ -40,24 +40,32 @@ in
         [default]
         timedelta = 30d
       '';
-      programs.thunderbird = {
-        enable = true;
-        package = toolkit.packages.thunderbird;
-        profiles.google = {
-          isDefault = true;
-          settings."calendar.timezone.local" = "America/Jamaica";
+
+      programs = {
+        thunderbird = {
+          enable = true;
+          package = packages.thunderbird;
+          profiles.google = {
+            isDefault = true;
+            settings."calendar.timezone.local" = "America/Jamaica";
+          };
         };
       };
-      accounts.email.accounts.google = {
-        primary = true;
-        address = "iamcraole@gmail.com";
-        realName = user.description;
-        userName = "iamcraole@gmail.com";
-        flavor = "gmail.com";
-        imap.authentication = "xoauth2";
-        smtp.authentication = "xoauth2";
-        thunderbird.enable = true;
+
+      # TODO: Why on earth are we exposing this raw and hardcoded? in the very least it should be in the API, but even that is leakage. encourage creation of a .env, until I set up sops
+      accounts = {
+        email.accounts.google = {
+          primary = true;
+          address = "FIXME@gmail.com";
+          realName = user.description;
+          userName = "FIXME@gmail.com";
+          flavor = "gmail.com";
+          imap.authentication = "xoauth2";
+          smtp.authentication = "xoauth2";
+          thunderbird.enable = true;
+        };
       };
+
       systemd.user = {
         services.google-calendar = {
           Unit = {

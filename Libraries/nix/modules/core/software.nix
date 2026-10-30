@@ -49,9 +49,7 @@
         mkNixMaintenance = mkMaintenance;
       };
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrValues;
   inherit (_.attrsets.aggregation) recursiveUpdate;

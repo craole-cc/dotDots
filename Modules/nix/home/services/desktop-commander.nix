@@ -1,10 +1,12 @@
 {
   host,
-  lib,
+  lix,
   pkgs,
   ...
 }: let
-  enable = builtins.elem "control-plane" (host.functionalities or []);
+  inherit (lix.modules.construction) mkIf;
+  inherit (lix.lists.predicates) isIn;
+  enable = isIn "control-plane" (host.functionalities or []);
 
   launcher = pkgs.writeShellApplication {
     name = "desktop-commander-remote";
@@ -14,7 +16,7 @@
     '';
   };
 in
-  lib.mkIf enable {
+  mkIf enable {
     home.packages = [pkgs.tmux];
 
     systemd.user.services.desktop-commander-remote = {

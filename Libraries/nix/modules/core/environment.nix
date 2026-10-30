@@ -41,16 +41,6 @@
     #~@ System
     inherit (pkgs.stdenv.hostPlatform) system;
 
-    # mkApp = set: kind: {
-    #   packages = set.packages {
-    #     inherit pkgs system inputs;
-    #     cfg = apps.${kind} or {};
-    #   };
-    #   commands = set.commands {
-    #     inherit pkgs system inputs;
-    #     cfg = apps.${kind} or {};
-    #   };
-    # };
     mkApp = set: kind:
       set {
         inherit pkgs system inputs;

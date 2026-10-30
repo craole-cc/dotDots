@@ -1,7 +1,43 @@
 {_, ...}: let
   meta = {
-    # TODO: Add the correct doc
-    doc = "";
+    doc = ''
+      # Core Hardware [Layer 3]
+
+      NixOS system configuration builders for host hardware concerns.
+
+      Provides `mkBoot`, `mkAudio`, `mkFileSystems`, and `mkNetwork` to
+      translate the normalized host hardware and device records into NixOS
+      boot, audio, filesystem, swap, and network configuration.
+
+      ## Boot
+
+      `mkBoot` selects the configured systemd-boot, rEFInd, or GRUB loader,
+      configures EFI mounting and boot timeouts, and resolves kernel packages
+      from the host and primary user settings. It validates the boot loader,
+      EFI functionality, mount point, timeout, and mutually exclusive loader
+      choices. Dual-boot functionality enables Windows detection in GRUB or
+      adds a Windows entry to rEFInd.
+
+      ## Audio
+
+      `mkAudio` enables PipeWire with ALSA, PulseAudio, JACK, and WirePlumber
+      support, disables PulseAudio, and enables rtkit when the host declares
+      the `audio` functionality.
+
+      ## Filesystems
+
+      `mkFileSystems` maps `host.devices.file` to NixOS `fileSystems`,
+      preserving each device and filesystem type and including mount options
+      when provided. It maps `host.devices.swap` to `swapDevices`.
+
+      ## Network
+
+      `mkNetwork` derives the hostname, host ID, NetworkManager and DHCP
+      interface configuration, nameservers, and firewall rules from the host
+      record. Network utilities are installed when network devices are
+      declared. GnuPG agent support is enabled by default and can be disabled
+      with `gnupgSupported = false`.
+    '';
 
     exports = {
       internal = let
@@ -42,8 +78,7 @@
 
   mkFileSystem = _: fs: let
     base = {
-      inherit (fs) device;
-      inherit (fs) fsType;
+      inherit (fs) device fsType;
     };
     opts = fs.options or [];
   in
