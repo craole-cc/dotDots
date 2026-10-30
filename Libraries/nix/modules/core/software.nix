@@ -60,6 +60,8 @@
   inherit (_.lists.transformation) uniqueStrings;
   inherit (_.modules.construction) mkForce;
   inherit (_.strings.construction) concat;
+  inherit (_.strings.transformation) escapeShellArg;
+  inherit (_.sources.access) getExe';
   /**
     Build a NixOS configuration fragment for the Nix daemon and system state.
 
@@ -139,12 +141,11 @@
   };
 
   mkFetch = {
-    name,
     pkgs,
     paths,
   }:
     pkgs.writeShellApplication {
-      name = "${name}-fetch";
+      name = "fetch";
       runtimeInputs = with pkgs; [
         fastfetch
         nitch
@@ -190,7 +191,8 @@
   }: let
     inherit (repo) name home;
     keepArgs = concat " " keep.args;
-    fetch = mkFetch {inherit name pkgs paths;};
+    fetch = mkFetch {inherit pkgs paths;};
+    fetchCommand = getExe' fetch "fetch";
   in {
     programs = {
       nh = {
@@ -227,8 +229,8 @@
         "${name}-dev-minimal" = "nix develop ${home}#minimal";
         "${name}-repl" = "nix repl ${home}#repl";
         "${name}-cd" = "cd ${home}";
-        "${name}-fetch" = "fetch ${home}";
-        "${name}-fetch-full" = "fetch --full ${home}";
+        "${name}-fetch" = "${fetchCommand} ${escapeShellArg home}";
+        "${name}-fetch-full" = "${fetchCommand} --full ${escapeShellArg home}";
       };
     };
   };
