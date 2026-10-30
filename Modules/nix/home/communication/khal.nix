@@ -17,7 +17,7 @@
     name = "google-calendar";
     src = ./google-calendar.rs;
     inputs = with packages; [vdirsyncer];
-    arguments = ["${binaries.vdirsyncer}/bin/vdirsyncer"];
+    arguments = [binaries.vdirsyncer];
   };
 in
   mkConfig {
