@@ -19,16 +19,24 @@
   repo = context.resolved.cfg.system.nix.explicit.repo;
   isStandaloneHome = host.class == "home-manager";
   output = rec {
-    core =
-      if host.class == "darwin"
-      then "darwinConfigurations.$(hostname).config"
-      else if isStandaloneHome
-      then null
-      else "nixosConfigurations.$(hostname).config";
-    home =
-      if isStandaloneHome
-      then "homeConfigurations.$(hostname).config"
-      else "${core}.home-manager.users.$USER";
+    hostName = "$(hostname)";
+    core = rec {
+      system =
+        if host.class == "darwin"
+        then "darwinConfigurations"
+        else "nixosConfigurations";
+      config =
+        if isStandaloneHome
+        then null
+        else "${system}.${hostName}.config";
+    };
+    home = rec {
+      system = "homeConfigurations";
+      config =
+        if isStandaloneHome
+        then "${system}.${hostName}.config"
+        else "${output.core.config}.home-manager.users.$USER";
+    };
   };
 
   registry = {
@@ -45,7 +53,7 @@
         "push-${repo.name}" = "gitui --directory ${repo.home}";
 
         #~@ Nix REPL
-        repl-home = "nix repl --show-trace ${repo.home}#${output.home}";
+        repl-home = "nix repl --show-trace ${repo.home}#${output.home.config}";
         "repl-${repo.name}" = "nix repl ${repo.home}#repl";
 
         #~@ Nix helper shortcuts
@@ -57,10 +65,10 @@
         nxu = "push-${repo.name}; switch-${repo.name}; topgrade";
       }
       // (
-        if output.core == null
+        if output.core.config == null
         then {}
         else {
-          repl-core = "nix repl --show-trace ${repo.home}#${output.core}";
+          repl-core = "nix repl --show-trace ${repo.home}#${output.core.config}";
         }
       );
   };
