@@ -1119,6 +1119,35 @@ in {
         args = ["diff" "--staged"];
         description = "show staged changes";
       };
+      gitFetch = mk {
+        args = [
+          "-c"
+          ''
+            alias.dotdots-fetch=!if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+              printf '%s\n' 'gitFetch: not inside a Git working tree.' >&2
+              exit 1
+            fi
+            if git remote get-url origin >/dev/null 2>&1; then
+              git fetch origin || exit $?
+            else
+              printf '%s\n' 'gitFetch: no origin remote; showing local status.'
+            fi
+            git status --short --branch || exit $?
+            if git rev-parse --verify HEAD >/dev/null 2>&1; then
+              git --no-pager log --oneline -5 || exit $?
+              if git rev-parse --verify '@{upstream}' >/dev/null 2>&1; then
+                git --no-pager log --oneline '@{upstream}..HEAD'
+              else
+                printf '%s\n' 'gitFetch: no upstream configured for this branch.'
+              fi
+            else
+              printf '%s\n' 'gitFetch: no commits yet.'
+            fi
+          ''
+          "dotdots-fetch"
+        ];
+        description = "fetch origin and show status, recent commits, and unpushed commits";
+      };
       gitFetchPrune = mk {
         args = ["fetch" "--all" "--prune"];
         description = "fetch every remote and prune deleted branches";
