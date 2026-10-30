@@ -12,7 +12,7 @@ in {
     model = {
       main = mkOption {
         type = nullOr str;
-        default = "gpt-6-luna";
+        default = "gpt-6.1-sol";
         description = ''
           Model for normal Codex work (`model`). Null leaves the choice to Codex.
         '';
@@ -24,6 +24,24 @@ in {
           Model for the `/review` command (`review_model`).
           Does not affect auto-review approval decisions.
         '';
+      };
+    };
+
+    reasoning = {
+      main = mkEnum {
+        input = ["low" "medium" "high"];
+        default = "low";
+        description = ''Reasoning effort for normal work (`model_reasoning_effort`).'';
+      };
+      review = mkEnum {
+        input = ["low" "medium" "high"];
+        default = "medium";
+        description = ''Reasoning effort for the review profile.'';
+      };
+      planning = mkEnum {
+        input = ["low" "medium" "high"];
+        default = "high";
+        description = ''Reasoning effort in Plan mode (`plan_mode_reasoning_effort`).'';
       };
     };
 
@@ -82,6 +100,8 @@ in {
   settings = removeNulls {
     model = cfg.model.main;
     review_model = cfg.model.review;
+    model_reasoning_effort = cfg.reasoning.main;
+    plan_mode_reasoning_effort = cfg.reasoning.planning;
     approval_policy = cfg.approval.policy;
     approvals_reviewer = cfg.approval.reviewer;
     sandbox_mode = cfg.sandbox.mode;

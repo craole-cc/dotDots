@@ -802,51 +802,73 @@ in {
     categories = ["files" "scripting"];
     description = "modern ls replacement";
     aliases = let
-      mk = mkAlias "eza";
-      tree = mk {
-        args = ["--tree"];
-        description = "list as a tree";
+      mk = extra: mkAlias "eza" ({args = ["--icons"];} // extra);
+
+      plain = {
+        args = ["--icons=never" "--color=never"];
+        description = "plain output, suitable for scripts";
       };
-    in {
-      ezaa = mk {
-        args = ["--all"];
-        description = "list all files including hidden ones";
-      };
-      ezaDirs = mk {
-        args = ["--only-dirs"];
-        description = "list only directories";
-      };
-      ezal = mk {
-        args = ["--long"];
-        description = "list in long format";
-      };
-      ezala = mk {
-        args = ["--long" "--all"];
-        description = "list all files in long format";
-      };
-      ezalg = mk {
+
+      info = {
         args = ["--long" "--git" "--almost-all"];
         description = "list hidden entries in long format with git status";
       };
-      ezaRecursive = mk {
-        args = ["--long" "--git" "--recurse"];
-        description = "list recursively in long format with git status";
+
+      mkViewAlias = name: {
+        args ? [],
+        description,
+      }: {
+        ${name} = mk {
+          args = info.args ++ args;
+          inherit description;
+        };
+        "${name}p" = mk {
+          args = plain.args ++ ["--almost-all"] ++ args;
+          description = "${description}, with plain output and no metadata columns";
+        };
       };
-      ezam = mk {
-        args = ["--long" "--sort=modified"];
-        description = "list in long format, oldest first";
+
+      mkRecursiveAlias = type:
+        mkViewAlias (if type == "tree" then "ezat" else "ezar") {
+          args = ["--${type}" "--level"];
+          description = "list ${
+            if type == "tree"
+            then "as a tree"
+            else "recursively"
+          } limited to a caller-specified depth";
+        };
+
+      mkSortAlias = name: type: mkViewAlias name {
+        args = ["--sort=${type}"];
+        description = "list sorted by ${type}";
       };
-      ezas = mk {
-        args = ["--long" "--sort=size"];
-        description = "list in long format, smallest first";
-      };
-      ezaTree = tree;
-      ezat = tree;
-      ezatl = mk {
-        args = ["--tree" "--level"];
-        description = "list as a tree limited to a caller-specified depth";
-      };
-    };
+    in
+      {
+        ez = mk {};
+        ezap = mk plain;
+      }
+      // (mkViewAlias "ezad" {
+        args = ["--only-dirs"];
+        description = "list only directories";
+      })
+      // (mkViewAlias "ezal" {
+        description = "list hidden entries";
+      })
+      // (mkRecursiveAlias "tree")
+      // (mkRecursiveAlias "recurse")
+      // (mkSortAlias "ezan" "name")
+      // (mkSortAlias "ezaN" "Name")
+      // (mkSortAlias "ezanDot" ".name")
+      // (mkSortAlias "ezaNDot" ".Name")
+      // (mkSortAlias "ezae" "ext")
+      // (mkSortAlias "ezam" "modified")
+      // (mkSortAlias "ezac" "created")
+      // (mkSortAlias "ezaa" "accessed")
+      // (mkSortAlias "ezaChanged" "changed")
+      // (mkSortAlias "ezas" "size")
+      // (mkSortAlias "ezai" "inode")
+      // (mkSortAlias "ezaType" "type")
+      // (mkSortAlias "ezaNone" "none");
   };
 
   fd = mkSource {
