@@ -6,6 +6,7 @@
   names,
   paths,
   pkgs,
+  top,
   ...
 }: let
   context = mkContext {
@@ -14,6 +15,7 @@
     mod = "nix";
   };
   inherit (context) cfg;
+  inherit (cfg) repo;
 
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
   inherit (lix.attrsets.transformation) removeAttrs;
@@ -22,6 +24,69 @@
   inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
   inherit (lix.types.primitives) anything bool int ints path str;
   inherit (lix.modules.core.software) mkNix mkMaintenance;
+
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.strings.construction) concat;
+  inherit (lix.strings.transformation) replaceStrings;
+  inherit (lix.toolkit) binaries;
+  join = concat ".";
+  current = {
+    host = "$(hostname)";
+    user = "$USER";
+  };
+
+  repl = let
+    inherit (host) class;
+    type = "${replaceStrings ["-manager"] [""] class}Configurations";
+
+    #~@ The `_` namespace of a config: target, resolved, outputs
+    mkTop = config: let
+      target = join [config top];
+    in {
+      inherit target;
+      resolved = join [target "resolved"];
+      outputs = join [target "outputs"];
+    };
+
+    #~@ A flake output entry, where _module, config, and options all live
+    mkRoot = name: let
+      target = join [type name];
+      config = join [target "config"];
+      module = [target "_module"];
+    in {
+      inherit target config;
+      top = mkTop config;
+      pkgs = join (module ++ ["args" "pkgs"]);
+      specialArgs = join (module ++ ["specialArgs"]);
+    };
+
+    #~@ A home-manager user submodule: no _module is reachable from the system root
+    mkNested = parent: user: let
+      config = join [parent.config "home-manager" "users" user];
+    in {
+      inherit config;
+      target = config;
+      top = mkTop config;
+    };
+
+    core = mkRoot current.host;
+  in
+    if class == "home-manager"
+    then {home = core;}
+    else {
+      inherit core;
+      home = mkNested core current.user;
+    };
+
+  #~@ Open a repl scoped to a flake attribute path
+  mkRepl = scope: "nix repl --show-trace ${repo.home}#${scope}";
+
+  #~@ repl-<name>, repl-<name>-resolved, repl-<name>-outputs
+  mkReplAliases = name: scope: {
+    "repl-${name}" = mkRepl scope.target;
+    "repl-${name}-resolved" = mkRepl scope.top.resolved;
+    "repl-${name}-outputs" = mkRepl scope.top.outputs;
+  };
 
   packagePolicy = host.settings.forNixpkgs or {};
 in
@@ -227,6 +292,34 @@ in
     };
 
     outputs = mkMerge [
+      {
+        environment.shellAliases =
+          {
+            #~@ Dotfiles management
+            dotsStatus = concat " && " [
+              ''git -C "''${DOTS:-${repo.home}}" fetch origin''
+              ''git -C "''${DOTS:-${repo.home}}" status --short --branch''
+              ''git -C "''${DOTS:-${repo.home}}" log --oneline -5''
+              ''git -C "''${DOTS:-${repo.home}}" log --oneline "@{upstream}..HEAD"''
+            ];
+            "edit-${repo.name}" = "$EDITOR ${repo.home}";
+            "ide-${repo.name}" = "$VISUAL ${repo.home}";
+            "push-${repo.name}" = "gitui --directory ${repo.home}";
+
+            #~@ Nix REPL
+            "repl-${repo.name}" = mkRepl "repl";
+
+            #~@ Nix helper shortcuts
+            inherit (binaries) nhs nhr nhc;
+
+            #~@ Rebuild shortcuts
+            "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}; date";
+            nxs = "push-${repo.name}; switch-${repo.name}";
+            nxu = "push-${repo.name}; switch-${repo.name}; topgrade";
+          }
+          // mkReplAliases "home" repl.home
+          // optionalAttrs (repl ? core) (mkReplAliases "core" repl.core);
+      }
       {
         # The normalized host package policy also governs packages evaluated
         # by NixOS modules, including QBX's NVIDIA driver. Environment
