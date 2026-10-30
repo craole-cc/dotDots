@@ -16,6 +16,7 @@
   inherit (context) cfg;
 
   inherit (lix.modules.construction) mkConfig mkContext mkMerge;
+  inherit (lix.attrsets.transformation) removeAttrs;
   inherit (lix.lists.construction) optionals;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
   inherit (lix.types.combinators) attrsOf either listOf nullOr submodule;
@@ -90,7 +91,7 @@ in
                 {
                   inherit names;
                 }
-                // cfg;
+                // (cfg // {repo = removeAttrs cfg.repo ["args"];});
               type = attrsOf anything;
             };
           };

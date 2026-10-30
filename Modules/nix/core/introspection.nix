@@ -13,7 +13,7 @@
   inherit (lix.lists.predicates) all;
   inherit (lix.options.construction) mkOption mkOptionType;
   inherit (lix.types.primitives) anything;
-  inherit (lix.types.predicates) isAttrs isList isOption;
+  inherit (lix.types.predicates) isAttrs isDerivation isList isOption;
 
   mergeOutput = values:
     if all isAttrs values
@@ -57,7 +57,12 @@
     else mapAttrs (_: optionDefaults) node;
 
   diff = defaults: values:
-    if isAttrs values && isAttrs defaults
+    if isDerivation defaults || isDerivation values
+    then
+      if isDerivation defaults && isDerivation values && defaults.drvPath == values.drvPath
+      then {}
+      else values
+    else if isAttrs values && isAttrs defaults
     then
       foldlAttrs (
         result: name: value:
