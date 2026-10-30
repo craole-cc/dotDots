@@ -1123,30 +1123,25 @@ in {
         args = [
           "-c"
           ''
-            alias.dotdots-fetch=!if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+            alias.fetch-status=!if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
               printf '%s\n' 'gitFetch: not inside a Git working tree.' >&2
               exit 1
             fi
-            if git remote get-url origin >/dev/null 2>&1; then
-              git fetch origin || exit $?
+            if [ -n "$(git remote)" ]; then
+              git fetch --all || exit $?
             else
-              printf '%s\n' 'gitFetch: no origin remote; showing local status.'
+              printf '%s\n' 'gitFetch: no remotes configured; showing local status.'
             fi
             git status --short --branch || exit $?
             if git rev-parse --verify HEAD >/dev/null 2>&1; then
-              git --no-pager log --oneline -5 || exit $?
-              if git rev-parse --verify '@{upstream}' >/dev/null 2>&1; then
-                git --no-pager log --oneline '@{upstream}..HEAD'
-              else
-                printf '%s\n' 'gitFetch: no upstream configured for this branch.'
-              fi
+              git --no-pager log --oneline -5
             else
               printf '%s\n' 'gitFetch: no commits yet.'
             fi
           ''
-          "dotdots-fetch"
+          "fetch-status"
         ];
-        description = "fetch origin and show status, recent commits, and unpushed commits";
+        description = "fetch remotes and show status and recent commits in the current repository";
       };
       gitFetchPrune = mk {
         args = ["fetch" "--all" "--prune"];
