@@ -325,19 +325,17 @@
     in
       walk node;
 
-    variables = let
-      walk = node:
-        if isAttrs node && node ? env && node ? local
-        then {${node.env} = node.local;}
-        else if isAttrs node
-        then foldl' (acc: key: acc // walk node.${key}) {} (attrNames node)
-        else {};
-    in
-      walk full;
+    pathVariables = node:
+      if isAttrs node && node ? env && node ? local
+      then {${node.env} = node.local;}
+      else if isAttrs node
+      then foldl' (acc: key: acc // pathVariables node.${key}) {} (attrNames node)
+      else {};
   in
     full
     // {
-      inherit variables;
+      variables = pathVariables full;
+      variablesByRoot = mapAttrs (_group: pathVariables) full;
       store = project "store" full.repo;
       local = project "local";
       inherit src;

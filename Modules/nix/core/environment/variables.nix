@@ -56,7 +56,6 @@
     if app == null
     then null
     else app.name or null;
-  wallpapers = host.paths.wallpapers or "$HOME/Pictures/Wallpapers";
 
   registry = let
     editor = editors.commands {
@@ -94,8 +93,8 @@
         LAUNCHER = launcher.primary;
         TERMINAL = terminal.primary;
         VISUAL = editor.visual;
-        WALLPAPERS = wallpapers;
       }
+      // paths.variablesByRoot.home
       // optionalAttrs (mediaCommand 0 != null) {
         MEDIA = mediaCommand 0;
         MEDIA_PRI = mediaCommand 0;
