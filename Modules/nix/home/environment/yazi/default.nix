@@ -7,7 +7,6 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) fromTOML;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption mkTrue;
   inherit (lix.attrsets.construction) genAttrs;
@@ -17,6 +16,7 @@
   inherit (lix.strings.predicates) hasSuffix;
   inherit (lix.strings.transformation) removeSuffix;
   inherit (lix.lists.construction) optionals;
+  inherit (lix.toolkit.platform) isDarwin;
 
   dom = "environment";
   mod = "yazi";
@@ -80,7 +80,7 @@ in
         });
 
     outputs = {
-      home.packages = optionals pkgs.stdenv.hostPlatform.isDarwin [pkgs.yaziPlugins.mactag];
+      home.packages = optionals isDarwin [pkgs.yaziPlugins.mactag];
       programs.yazi =
         {inherit (cfg) enable;}
         // genAttrs names (name: cfg.${name});
