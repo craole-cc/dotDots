@@ -35,8 +35,6 @@ let
   explorer = [
     "yazi"
     "doublecmd"
-    "nemo"
-    "thunar"
   ];
 
   shell = [

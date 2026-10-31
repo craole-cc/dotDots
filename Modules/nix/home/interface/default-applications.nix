@@ -1,11 +1,23 @@
 {
   apps,
+  config,
   lix,
   pkgs,
   ...
 }: let
   inherit (lix.attrsets.construction) listToAttrs;
+  inherit (lix.lists.access) head;
   inherit (lix.modules.construction) mkIf mkMerge;
+  inherit (lix.strings.transformation) escapeShellArg;
+
+  terminal = head apps.terminal;
+  terminalCommand = "${escapeShellArg terminal.command} ${escapeShellArg terminal.wrap.execFlag}";
+  directoryHandler = pkgs.writeShellApplication {
+    name = "dotdots-open-directory";
+    text = ''
+      exec ${terminalCommand} ${config.programs.yazi.package}/bin/yazi "$@"
+    '';
+  };
 
   archiveMimeTypes = [
     "application/zip"
@@ -65,9 +77,9 @@ in
       xdg.mimeApps.enable = true;
       xdg.desktopEntries.dotdots-archive = {
         name = "Ouch Archive Viewer";
-        exec = "${archiveHandler}/bin/dotdots-open-archive %F";
+        exec = "${terminal.command} ${terminal.wrap.execFlag} ${archiveHandler}/bin/dotdots-open-archive %F";
         icon = "package-x-generic";
-        terminal = true;
+        terminal = false;
         categories = ["Utility" "Archiving"];
         mimeType = archiveMimeTypes;
       };
@@ -76,6 +88,18 @@ in
           value = "dotdots-archive.desktop";
         })
         archiveMimeTypes);
+    })
+    (mkIf (apps.terminal != [] && apps.explorer != [] && (head apps.explorer).name == "yazi") {
+      home.packages = [directoryHandler];
+      xdg.desktopEntries.dotdots-yazi = {
+        name = "Yazi";
+        exec = "${directoryHandler}/bin/dotdots-open-directory %F";
+        icon = "utilities-terminal";
+        terminal = false;
+        categories = ["System" "FileTools" "FileManager"];
+        mimeType = ["inode/directory"];
+      };
+      xdg.mimeApps.defaultApplications."inode/directory" = "dotdots-yazi.desktop";
     })
     (mkIf (apps.browser != []) {
       home.packages = [mapHandler];
