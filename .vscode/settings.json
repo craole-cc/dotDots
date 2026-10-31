@@ -1,5 +1,6 @@
 {
 	"harper.dialect": "British",
 	"harper.workspaceDictPath": ".harper-dictionary.txt",
-	"harper.linters.ToDoHyphen": false
+	"harper.linters.ToDoHyphen": false,
+	"stylua.targetReleaseVersion": "latest"
 }

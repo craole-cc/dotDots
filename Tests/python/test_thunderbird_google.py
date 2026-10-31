@@ -2,15 +2,17 @@
 
 import fcntl
 import json
-from pathlib import Path
+import os
 import re
 import subprocess
-import sys
 import tempfile
 import unittest
+from pathlib import Path
 
-
-HELPER = Path(__file__).resolve().parents[2] / "Modules/nix/home/communication/thunderbird-google.py"
+HELPER = (
+    Path(__file__).resolve().parents[2]
+    / "Modules/nix/home/communication/thunderbird-google.rs"
+)
 
 
 class GoogleSetupTest(unittest.TestCase):
@@ -21,19 +23,37 @@ class GoogleSetupTest(unittest.TestCase):
         self.profile = self.root / "profile"
         self.profile.mkdir()
         self.env = self.root / "google.env"
-        self.env.write_text('GOOGLE_EMAIL=test@example.com\nGOOGLE_REAL_NAME="Test User"\n')
+        self.env.write_text(
+            'GOOGLE_EMAIL=test@example.com\nGOOGLE_REAL_NAME="Test User"\n'
+            "GOOGLE_CALENDAR_IDS=test@example.com\n"
+        )
         self.env.chmod(0o600)
         self.prefs = self.profile / "prefs.js"
         self.prefs.write_text('user_pref("unrelated.setting", true);\n')
 
     def run_setup(self):
-        return subprocess.run([sys.executable, str(HELPER), "--env", str(self.env),
-                               "--profile", str(self.profile)], capture_output=True, text=True)
+        return subprocess.run(
+            [
+                "rust-script",
+                str(HELPER),
+                "--env",
+                str(self.env),
+                "--profile",
+                str(self.profile),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+            env={**os.environ, "XDG_STATE_HOME": str(self.root / "state")},
+        )
 
     def read_prefs(self):
-        return {json.loads(match[1]): json.loads(match[2])
-                for match in re.finditer(r'^user_pref\((".*?"), (.*)\);$',
-                                         self.prefs.read_text(), re.MULTILINE)}
+        return {
+            json.loads(match[1]): json.loads(match[2])
+            for match in re.finditer(
+                r'^user_pref\((".*?"), (.*)\);$', self.prefs.read_text(), re.MULTILINE
+            )
+        }
 
     def test_setup_preserves_settings_and_is_repeatable(self):
         original = self.prefs.read_text()
@@ -41,9 +61,18 @@ class GoogleSetupTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         prefs = self.read_prefs()
         self.assertTrue(prefs["unrelated.setting"])
-        self.assertEqual(prefs["mail.server.dotdotsGoogle.authMethod"], 10)
-        self.assertIn("https://apidata.googleusercontent.com/caldav/v2/test%40example.com/events/",
-                      prefs.values())
+        server = next(
+            key
+            for key, value in prefs.items()
+            if key.startswith("mail.server.")
+            and key.endswith(".hostname")
+            and value == "imap.gmail.com"
+        )
+        self.assertEqual(prefs[server.removesuffix(".hostname") + ".authMethod"], 10)
+        self.assertIn(
+            "https://apidata.googleusercontent.com/caldav/v2/test%40example.com/events/",
+            prefs.values(),
+        )
         first = self.prefs.read_text()
         self.assertEqual(self.run_setup().returncode, 0)
         self.assertEqual(self.prefs.read_text(), first)
@@ -53,14 +82,15 @@ class GoogleSetupTest(unittest.TestCase):
         self.assertEqual(self.prefs.stat().st_mode & 0o777, 0o600)
 
     def test_existing_mail_and_calendar_are_reused(self):
-        self.prefs.write_text('''user_pref("mail.identity.id1.useremail", "test@example.com");
+        self.prefs.write_text("""user_pref("mail.identity.id1.useremail", "test@example.com");
 user_pref("mail.identity.id1.smtpServer", "smtp1");
 user_pref("mail.account.account1.identities", "id1,id2");
 user_pref("mail.account.account1.server", "server1");
 user_pref("mail.accountmanager.accounts", "account1,account2");
 user_pref("calendar.registry.existing.uri", "https://apidata.googleusercontent.com/caldav/v2/test@example.com/events");
+user_pref("calendar.registry.existing.username", "test@example.com");
 user_pref("calendar.list.sortOrder", "local existing");
-''')
+""")
         result = self.run_setup()
         self.assertEqual(result.returncode, 0, result.stderr)
         prefs = self.read_prefs()
@@ -72,7 +102,9 @@ user_pref("calendar.list.sortOrder", "local existing");
 
     def test_multiple_calendars(self):
         with self.env.open("a") as stream:
-            stream.write("GOOGLE_CALENDAR_IDS=test@example.com,shared@group.calendar.google.com\n")
+            stream.write(
+                "GOOGLE_CALENDAR_IDS=test@example.com,shared@group.calendar.google.com\n"
+            )
         self.assertEqual(self.run_setup().returncode, 0)
         prefs = self.read_prefs()
         self.assertEqual(len([key for key in prefs if key.endswith(".uri")]), 2)
@@ -83,11 +115,15 @@ user_pref("calendar.list.sortOrder", "local existing");
         self.assertNotEqual(self.run_setup().returncode, 0)
         self.assertEqual(self.prefs.read_text(), original)
 
-    def test_rejects_locked_profile(self):
-        original = self.prefs.read_text()
+    def test_stale_legacy_lock_marker_does_not_block_setup(self):
         (self.profile / "lock").symlink_to("missing-lock-target")
-        self.assertNotEqual(self.run_setup().returncode, 0)
-        self.assertEqual(self.prefs.read_text(), original)
+        self.assertEqual(self.run_setup().returncode, 0)
+        self.assertTrue(self.read_prefs()["unrelated.setting"])
+
+    def test_no_calendar_is_invented_without_discovery_or_explicit_ids(self):
+        self.env.write_text("GOOGLE_EMAIL=test@example.com\n")
+        self.assertEqual(self.run_setup().returncode, 0)
+        self.assertFalse(any(key.endswith(".uri") for key in self.read_prefs()))
 
     def test_rejects_invalid_email_without_echoing_it(self):
         self.env.write_text("GOOGLE_EMAIL=private-invalid-value\n")

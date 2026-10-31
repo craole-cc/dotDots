@@ -39,6 +39,7 @@
       config = {};
       host = {};
       paths = {};
+      style = {};
     };
   chatgptModule = user:
     import ../../../Modules/nix/home/ai/agents/codex/packages/app {
@@ -422,6 +423,10 @@
           inputs = {};
           names.src = "dots";
           pkgs.stdenv.hostPlatform.system = "x86_64-linux";
+          paths = {
+            roots.repo = "/tmp/package-schema";
+            variablesByRoot.home.WALLPAPERS = "$HOME/Pictures/Wallpapers";
+          };
           host = {
             paths.roots.repo = "/tmp/package-schema";
             users.data.primary.packages = {
@@ -601,6 +606,31 @@
           user.packages.terminal = ["foot"];
         }).requiredPackages;
       expected = ["nano" "ghostty"];
+    };
+    testApplicationNeededAcrossGroups = {
+      expr = map (group:
+        (lix.schema.applications.mkApplications {
+          host = {};
+          user.packages = {
+            explorer = [];
+            ${group} = ["yazi"];
+          };
+        }).needs "yazi") ["extra" "utilities" "custom"];
+      expected = [true true true];
+    };
+    testApplicationNotSelected = {
+      expr = (lix.schema.applications.mkApplications {
+        host = {};
+        user.packages.explorer = [];
+      }).needs "yazi";
+      expected = false;
+    };
+    testApplicationNeededByHost = {
+      expr = (lix.schema.applications.mkApplications {
+        host.packages.explorer = ["yazi"];
+        user.packages.explorer = [];
+      }).needs "yazi";
+      expected = true;
     };
     testInvalidElement = {
       expr = rejects {packages.browser = ["brave" 1];};

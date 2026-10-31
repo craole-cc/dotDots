@@ -1,12 +1,7 @@
 {_, ...}: let
   meta = let
     doc = "";
-    functions = {
-      inherit
-        optionalAttr
-        asAttrs
-        ;
-    };
+    functions = {inherit optionalAttr asAttrs;};
     exports = {
       local = functions;
       store = functions;
@@ -20,9 +15,44 @@
   inherit (_.lists.access) elemAt length;
   inherit (_.types.predicates) isBool isList;
 
-  # Curried helper for conditional attribute pairs
+  /**
+  Construct a single named attribute when the predicate is true and the value
+  is not null; otherwise return `{}`. Arguments are curried as
+  `optionalAttr predicate name value`.
+
+  Boolean predicates are used directly. For other predicates, null and `{}`
+  are false; all other values, including `[]`, `""` and `0`, are true.
+  Empty lists and strings are also retained as values. To omit an empty list,
+  use an explicit predicate such as `after != []`.
+
+  # Examples
+
+  ```nix
+  optionalAttr true "port" 8080
+  # => { port = 8080; }
+
+  optionalAttr false "port" 8080
+  # => {}
+
+  optionalAttr true "port" null
+  # => {}
+
+  optionalAttr {} "enabled" true
+  # => {}
+
+  optionalAttr [] "after" []
+  # => { after = []; }
+
+  let after = [ "network.target" ]; in
+  optionalAttr (after != []) "after" after
+  # => { after = [ "network.target" ]; }
+
+  optionalAttr ([] != []) "after" []
+  # => {}
+  ```
+  */
   optionalAttr = predicate: name: value: let
-    # Auto-coerce non-booleans: non-null and non-empty attrsets evaluate to true
+    #? Auto-coerce non-booleans: non-null and non-empty attrsets evaluate to true
     condition =
       if isBool predicate
       then predicate
@@ -32,7 +62,45 @@
       "${name}" = value;
     };
 
-  # Single-argument constructor
+  /**
+  Construct an optional attribute set from a single argument.
+
+  A plain attribute set passes through unchanged. Use `__condition`, `__name`
+  and `__value` to control inclusion, wrap a value under a name, or supply an
+  explicit value. These reserved keys are removed from the returned attributes.
+  The condition defaults to true; null and an empty attribute set are false,
+  while other non-Boolean conditions are true.
+
+  With `__name`, the value defaults to the remaining attributes, or true when
+  none remain. A null named value is omitted. Without `__name`, the remaining
+  attributes are returned only when the resolved value is a non-empty attribute
+  set; `__value` controls that check but does not replace those attributes.
+
+  Positional lists use `[ condition name value ]`, with the value defaulting to
+  true.
+
+  # Examples
+
+  ```nix
+  asAttrs { enabled = true; }
+  # => { enabled = true; }
+
+  asAttrs { __condition = false; enabled = true; }
+  # => {}
+
+  asAttrs { __name = "enabled"; }
+  # => { enabled = true; }
+
+  asAttrs { __name = "service"; port = 8080; }
+  # => { service = { port = 8080; }; }
+
+  asAttrs { __name = "port"; __value = 8080; }
+  # => { port = 8080; }
+
+  asAttrs { __name = "port"; __value = null; }
+  # => {}
+  ```
+  */
   asAttrs = arg: let
     isListArg = isList arg;
     isKwargs =
@@ -74,7 +142,7 @@
 
       name =
         if isListArg
-        then positional.Name
+        then positional.name
         else
           (
             if isKwargs

@@ -1,7 +1,7 @@
 {
+  apps,
   config,
   lix,
-  user,
   ...
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
@@ -9,7 +9,7 @@
 
   context = mkContext {
     inherit config;
-    dom = "info";
+    dom = "environment";
     mod = "btop";
   };
 in
@@ -17,7 +17,7 @@ in
     inherit context;
     options.enable = mkEnable {
       inherit context;
-      condition = user.applications.utilities.btop.enable or false;
+      condition = apps.needs "btop";
     };
     outputs.programs.btop.enable = true;
   }

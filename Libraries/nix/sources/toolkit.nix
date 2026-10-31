@@ -40,6 +40,7 @@
   #~@ Data
   #? Keys that are ours, not `pkgsFrom`'s.
   ownKeys = ["name" "categories" "description" "prefer" "aliases"];
+
   mkCategories = categories:
     if isList categories
     then concatMap mkCategories categories
@@ -55,7 +56,7 @@
   };
 
   registry = let
-    tools = import ./data/tools.nix;
+    tools = import ./data/tools.nix {inherit _;};
     describe = entries: {
       inherit entries;
       names = attrNames entries;
@@ -236,7 +237,8 @@
       selectedPackages = mapAttrs (name: source:
         installed.${name} or installed.${source.target or name} or installed.${source.input})
       activeSources;
-      records =
+
+      inherit
         (pkgsFrom {
           inputs = {};
           pkgs = selectedPackages // {inherit (pkgs') stdenv;};
@@ -248,7 +250,9 @@
               exe = source.exe or null;
             })
             activeSources;
-        }).records;
+        })
+        records
+        ;
       packageBinaries = package: let
         directory = "${getBin package}/bin";
         entries =

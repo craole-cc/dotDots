@@ -9,7 +9,7 @@
   inherit (_.strings.transformation) toLower;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.access) head length;
-  inherit (_.lists.predicates) elem;
+  inherit (_.lists.predicates) any elem;
   inherit (_.lists.transformation) imap0;
   inherit (_.schema.packages) merge policyFields roleView toApplications;
 
@@ -315,6 +315,11 @@
     entries
     // {
       inherit packages requiredPackages scratchpads;
+      # Module activation follows selections across every package group,
+      # including host requirements retained after user overrides.
+      needs = name:
+        any (entry: entry.name == name) (concatLists (attrValues entries))
+        || any (required: (mkEntry "" required).name == name) requiredPackages;
       # Named positions are a compatibility view for existing shortcuts. The
       # application contract above retains every entry of every group.
       legacy = {

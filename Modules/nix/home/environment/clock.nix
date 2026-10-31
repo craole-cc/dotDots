@@ -1,7 +1,7 @@
 {
+  apps,
   config,
   lix,
-  user,
   ...
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
@@ -9,7 +9,7 @@
 
   context = mkContext {
     inherit config;
-    dom = "info";
+    dom = "environment";
     mod = "clock";
   };
 in
@@ -17,7 +17,7 @@ in
     inherit context;
     options.enable = mkEnable {
       inherit context;
-      condition = user.applications.utilities.clock.enable or false;
+      condition = apps.needs "clock-rs";
     };
     outputs.programs.clock-rs = {
       enable = true;

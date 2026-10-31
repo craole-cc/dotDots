@@ -1,25 +1,24 @@
 {
+  apps,
   config,
   lix,
   pkgs,
-  user,
   ...
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
-  inherit (lix.lists.predicates) isIn;
 
   context = mkContext {
     inherit config;
-    dom = "info";
-    mod = "fastfetch";
+    dom = "environment";
+    mod = "sysinfo";
   };
 in
   mkConfig {
     inherit context;
     options.enable = mkEnable {
       inherit context;
-      condition = isIn "fastfetch" (user.applications.allowed or []);
+      condition = apps.needs "fastfetch";
     };
     outputs = {
       home.packages = with pkgs; [
