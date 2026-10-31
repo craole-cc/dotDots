@@ -1,17 +1,17 @@
 {
   config,
   lix,
-  osConfig,
+  host,
+  osConfig ? {},
   ...
 }: let
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
-  inherit (lix.lists.access) head;
 
   localModel = {
     provider = "ollama";
-    default = head osConfig._.resolved.ai.agents.ollama.explicit.models.chat;
+    default = osConfig._.resolved.ai.agents.ollama.explicit.chat.active or host.ai.ollama.models.chat.active;
     base_url = "http://127.0.0.1:11434/v1";
   };
   memory = {

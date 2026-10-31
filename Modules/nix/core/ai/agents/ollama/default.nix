@@ -11,14 +11,12 @@
   inherit (context) cfg;
 
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.lists.access) head;
   inherit (lix.lists.transformation) unique;
-  inherit (lix.lists.construction) optional toList;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.types.primitives) anything package str;
-  inherit (lix.types.combinators) either listOf;
+  inherit (lix.types.primitives) anything bool package str;
+  inherit (lix.types.combinators) listOf nullOr;
   inherit (lix.toolkit.packages) ollama;
   models = host.ai.${mod}.models or {};
 in
@@ -39,51 +37,39 @@ in
 
       autocomplete = {
         models = mkOption {
-          type = either str (listOf str);
-          default = models.autocomplete.models or (models.autocomplete or []);
-          apply = value:
-            unique (toList value
-              ++ optional (!cfg.disableDefaults) (
-                if (host.hardware.cpu.cores or 0) >= 4
-                then "qwen2.5-coder:1.5b-base-q4_K_M"
-                else "qwen2.5-coder:0.5b-base-q4_K_M"
-              ));
-          description = "Code completion model or ordered list of models. The first is preferred; all are installed.";
-        };
-
-        active = mkOption {
-          type = str;
+          type = listOf str;
           readOnly = true;
-          default = head cfg.autocomplete.models;
-          description = "The primary active code completion model.";
+          default = models.autocomplete.models;
+          description = "Ordered code completion models from the host schema.";
+        };
+        active = mkOption {
+          type = nullOr str;
+          readOnly = true;
+          default = models.autocomplete.active;
+          description = "The preferred code completion model, or null when none is configured.";
         };
       };
 
       chat = {
         models = mkOption {
-          type = either str (listOf str);
-          default = models.chat.models or (models.chat or []);
-          apply = value:
-            unique (toList value
-              ++ optional (!cfg.disableDefaults) (
-                if (host.hardware.cpu.cores or 0) >= 4
-                then "qwen3:4b-instruct"
-                else "qwen3:0.6b"
-              ));
-          description = "Chat model or ordered list of models. The first is preferred; all are installed.";
-        };
-
-        active = mkOption {
-          type = str;
+          type = listOf str;
           readOnly = true;
-          default = head cfg.chat.models;
-          description = "The primary active chat model.";
+          default = models.chat.models;
+          description = "Ordered chat models from the host schema.";
+        };
+        active = mkOption {
+          type = nullOr str;
+          readOnly = true;
+          default = models.chat.active;
+          description = "The preferred chat model, or null when none is configured.";
         };
       };
 
-      disableDefaults = mkEnable {
-        condition = host.ai.ollama.disableDefaults or false;
-        description = "Disable hardware-derived models. Otherwise they are appended after explicitly configured models, preserving priority and removing duplicates.";
+      disableDefaults = mkOption {
+        type = bool;
+        readOnly = true;
+        default = host.ai.ollama.disableDefaults;
+        description = "Whether hardware-derived models are disabled in the host schema.";
       };
 
       service = mkOption {

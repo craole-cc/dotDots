@@ -1,6 +1,6 @@
 {_, ...}: let
   __exports = {
-    internal = {inherit mkHost mkCore hostOrDefault;};
+    internal = {inherit mkHost mkCore mkAi hostOrDefault;};
     external = {
       mkCoreSchema = mkCore;
     };
@@ -10,8 +10,11 @@
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.lists.access) head;
+  inherit (_.lists.construction) optional toList;
+  inherit (_.lists.transformation) unique;
+  inherit (_.types.predicates) isAttrs;
   inherit (_.lists.predicates) any elem;
-  inherit (_.schema.hardware) mkHardware;
+  inherit (_.schema.hardware) mkHardware normalizeCpu;
   inherit (_.schema.home) mkHome;
   inherit (_.schema.locale) mkLocale;
   inherit (_.schema.packages) normalize;
@@ -34,6 +37,36 @@
     else if hosts != {}
     then head (attrValues hosts)
     else throw "No hosts available";
+
+  mkAi = host: let
+    ai = host.ai or {};
+    ollama = ai.ollama or {};
+    disableDefaults = ollama.disableDefaults or false;
+    cores = (normalizeCpu {inherit host;}).cores or 0;
+    role = name: fallback: let
+      declared = ollama.models.${name} or [];
+      models = unique (
+        toList (if isAttrs declared then declared.models or [] else declared)
+        ++ optional (!disableDefaults) fallback
+      );
+    in {
+      inherit models;
+      active = if models == [] then null else head models;
+    };
+  in
+    ai // {
+      ollama = ollama // {
+        inherit disableDefaults;
+        models = (ollama.models or {}) // {
+          autocomplete = role "autocomplete" (
+            if cores >= 4 then "qwen2.5-coder:1.5b-base-q4_K_M" else "qwen2.5-coder:0.5b-base-q4_K_M"
+          );
+          chat = role "chat" (
+            if cores >= 4 then "qwen3:4b-instruct" else "qwen3:0.6b"
+          );
+        };
+      };
+    };
 
   mkAccess = host: let
     raw = host.access or {};
@@ -226,6 +259,7 @@
         else throw "Host '${name}' must explicitly set 'system' or 'specs.platform'.";
 
       hardware = mkHardware {inherit host;};
+      ai = mkAi host;
       access = mkAccess host;
       network = mkNetwork host;
 
