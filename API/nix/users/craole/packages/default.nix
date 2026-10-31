@@ -21,9 +21,9 @@ let
   ];
 
   editor = [
-    "helix"
-    "neovim"
     (builtins.head ide)
+    "helix"
+    # "neovim"
   ];
 
   ide = [
@@ -34,9 +34,9 @@ let
 
   explorer = [
     "yazi"
+    "doublecmd"
     "nemo"
     "thunar"
-    "doublecmd"
   ];
 
   shell = [

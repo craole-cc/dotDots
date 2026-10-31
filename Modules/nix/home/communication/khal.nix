@@ -35,7 +35,7 @@ in
         [[google]]
         path = ${config.xdg.dataHome}/calendars/google/*
         type = discover
-        readonly = True
+        readonly = False
         [locale]
         timeformat = %H:%M
         dateformat = %Y-%m-%d

@@ -109,7 +109,7 @@ fn render_config(client: &serde_json::Map<String, Value>, state: &Path, data: &P
             "collections = [\"from a\"]\n",
             "[storage google_remote]\n",
             "type = \"google_calendar\"\n",
-            "read_only = true\n",
+            "read_only = false\n",
             "token_file = {token}\n",
             "client_id = {client_id}\n",
             "client_secret = {client_secret}\n",

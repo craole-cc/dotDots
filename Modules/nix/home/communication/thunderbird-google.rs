@@ -6,29 +6,19 @@
 //! ```cargo
 //! [dependencies]
 //! libc = "0.2"
-//! oauth2 = { version = "4.4", default-features = false }
 //! serde_json = { version = "1", features = ["preserve_order"] }
 //! toml = "0.8"
-//! ureq = { version = "2", features = ["json"] }
-//! url = "2"
 //! uuid = { version = "1", features = ["v5"] }
 //! ```
 
 use std::collections::{BTreeMap, HashMap};
 use std::env;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
-use std::net::TcpListener;
+use std::io::{ErrorKind, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode};
-use std::time::{Duration, Instant};
-
-use oauth2::{
-    basic::BasicClient, AuthType, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-    PkceCodeChallenge, RedirectUrl, RefreshToken, Scope, TokenResponse, TokenUrl,
-};
+use std::process::ExitCode;
 
 use serde_json::{json, Map, Value};
 use uuid::Uuid;
@@ -65,7 +55,6 @@ struct Calendar {
 
 struct SetupConfig {
     accounts: Vec<Account>,
-    oauth_client: PathBuf,
 }
 
 /// Resolve an XDG directory, treating an empty variable as unset.
@@ -271,435 +260,71 @@ fn read_config(path: &Path) -> Result<SetupConfig, String> {
     }
     let text = fs::read_to_string(path)
         .map_err(|error| format!("Cannot read {}: {error}", path.display()))?;
-    let home = PathBuf::from(env::var_os("HOME").ok_or("HOME is not set.")?);
-    let default_client =
-        xdg("XDG_CONFIG_HOME", home.join(".config")).join("vdirsyncer/google-client.json");
-    let (accounts, oauth_client) =
-        if path.extension().and_then(|extension| extension.to_str()) == Some("toml") {
-            let document: toml::Value = toml::from_str(&text)
-                .map_err(|_| "Cannot parse the private TOML config.".to_owned())?;
-            let section = document.get("thunderbird").unwrap_or(&document);
-            let client = section
-                .get("oauth_client")
-                .map(|value| {
-                    let value = value
-                        .as_str()
-                        .ok_or("oauth_client must be a file path string.")?;
-                    Ok::<PathBuf, String>(if let Some(relative) = value.strip_prefix("~/") {
-                        home.join(relative)
-                    } else {
-                        PathBuf::from(value)
-                    })
-                })
-                .transpose()?
-                .unwrap_or(default_client);
-            (read_toml(path, &text)?, client)
-        } else {
-            (read_legacy_environment(path)?, default_client)
-        };
-    Ok(SetupConfig {
-        accounts,
-        oauth_client,
-    })
+    let accounts = if path.extension().and_then(|extension| extension.to_str()) == Some("toml") {
+        read_toml(path, &text)?
+    } else {
+        read_legacy_environment(path)?
+    };
+    Ok(SetupConfig { accounts })
 }
 
-fn private_json(path: &Path) -> Result<Value, String> {
-    let mode = fs::metadata(path)
-        .map_err(|_| {
-            format!(
-                "Cannot read {}. Save a Google Desktop OAuth client JSON there first.",
-                path.display()
-            )
-        })?
-        .permissions()
-        .mode();
-    if mode & 0o077 != 0 {
-        return Err(format!(
-            "Run chmod 600 {} before continuing.",
-            path.display()
-        ));
-    }
-    let text = fs::read_to_string(path).map_err(|_| format!("Cannot read {}.", path.display()))?;
-    serde_json::from_str(&text).map_err(|_| format!("Invalid JSON in {}.", path.display()))
-}
-
-/// Accept only the callback matching this authorisation's state on our loopback listener.
-fn receive_code(listener: &TcpListener, state: &str) -> Result<String, String> {
-    listener
-        .set_nonblocking(true)
-        .map_err(|_| "Cannot configure OAuth callback listener.")?;
-    let deadline = Instant::now() + Duration::from_secs(600);
-    while Instant::now() < deadline {
-        let (mut stream, _) = match listener.accept() {
-            Ok(connection) => connection,
-            Err(error) if error.kind() == ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(100));
-                continue;
-            }
-            Err(_) => return Err("Cannot accept OAuth callback.".to_owned()),
-        };
-        stream
-            .set_read_timeout(Some(Duration::from_secs(5)))
-            .map_err(|_| "Cannot set callback timeout.")?;
-        let mut request = String::new();
-        BufReader::new(&stream)
-            .take(8192)
-            .read_line(&mut request)
-            .map_err(|_| "Cannot read OAuth callback.")?;
-        let target = request.split_whitespace().nth(1).unwrap_or("");
-        let callback = url::Url::parse(&format!("http://127.0.0.1{target}"))
-            .map_err(|_| "Invalid OAuth callback.")?;
-        let mut parameters: HashMap<_, _> = callback.query_pairs().into_owned().collect();
-        if parameters.get("state").map(String::as_str) != Some(state) {
-            let _ = stream
-                .write_all(b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nInvalid state.");
+/// Reuse vdirsyncer's discovery only when it contains this account's primary calendar.
+/// Thunderbird authenticates and synchronises directly with Google, independently of Khal.
+fn reuse_calendars(accounts: &mut [Account], document: &Value) {
+    let Some(collections) = document.get("collections").and_then(Value::as_array) else {
+        return;
+    };
+    let ids: Vec<&str> = collections
+        .iter()
+        .filter_map(|entry| entry.as_array()?.first()?.as_str())
+        .filter(|id| !id.is_empty())
+        .collect();
+    for account in accounts {
+        if !ids.iter().any(|id| id.eq_ignore_ascii_case(&account.email)) {
             continue;
         }
-        let _ = stream.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nReturn to the terminal to finish calendar setup.");
-        if parameters.contains_key("error") {
-            return Err("Google calendar discovery authorisation was declined.".to_owned());
-        }
-        return parameters
-            .remove("code")
-            .ok_or_else(|| "Google returned no authorisation code.".to_owned());
-    }
-    Err("Timed out waiting for Google sign-in; run setup again.".to_owned())
-}
-
-fn google_json(agent: &ureq::Agent, endpoint: &str, token: &str) -> Result<Value, String> {
-    let response = match agent
-        .get(endpoint)
-        .set("Authorization", &format!("Bearer {token}"))
-        .call()
-    {
-        Ok(response) => response,
-        Err(ureq::Error::Status(status, response)) => {
-            let detail = response
-                .into_json::<Value>()
-                .ok()
-                .and_then(|body| {
-                    body.get("error")
-                        .and_then(|error| error.get("errors"))
-                        .and_then(Value::as_array)
-                        .and_then(|errors| errors.first())
-                        .and_then(|error| error.get("reason"))
-                        .and_then(Value::as_str)
-                        .map(str::to_owned)
-                        .or_else(|| {
-                            body.get("error")
-                                .and_then(|error| error.get("message"))
-                                .and_then(Value::as_str)
-                                .map(str::to_owned)
-                        })
-                });
-            let context = if endpoint.contains("userinfo") {
-                "Google account verification"
-            } else {
-                "Google calendar discovery"
-            };
-            let reason = detail
-                .filter(|detail| !detail.is_empty())
-                .map(|detail| format!(" {detail}"))
-                .unwrap_or_default();
-            return Err(format!("{context} returned HTTP {status}.{reason}"));
-        }
-        Err(_) => return Err("Cannot connect to Google calendar discovery.".to_owned()),
-    };
-    response
-        .into_json().map_err(|_| "Google returned an invalid discovery response.".to_owned())
-}
-
-fn token_http_client(request: oauth2::HttpRequest) -> Result<oauth2::HttpResponse, std::io::Error> {
-    token_http_response(request).map_err(std::io::Error::other)
-}
-
-fn token_http_response(request: oauth2::HttpRequest) -> Result<oauth2::HttpResponse, String> {
-    let agent = ureq::AgentBuilder::new()
-        .redirects(0)
-        .timeout(Duration::from_secs(30))
-        .build();
-    let mut outgoing = agent.request(request.method.as_str(), request.url.as_str());
-    for (name, value) in &request.headers {
-        outgoing = outgoing.set(
-            name.as_str(),
-            value
-                .to_str()
-                .map_err(|_| "Invalid OAuth request header.")?,
-        );
-    }
-    let response = match outgoing.send_bytes(&request.body) {
-        Ok(response) | Err(ureq::Error::Status(_, response)) => response,
-        Err(_) => return Err("Cannot connect to Google's authorisation server.".to_owned()),
-    };
-    let status_code = oauth2::http::StatusCode::from_u16(response.status())
-        .map_err(|_| "Invalid OAuth response status.")?;
-    let mut headers = oauth2::http::HeaderMap::new();
-    if let Some(content_type) = response.header("Content-Type") {
-        headers.insert(
-            oauth2::http::header::CONTENT_TYPE,
-            oauth2::http::HeaderValue::from_str(content_type)
-                .map_err(|_| "Invalid OAuth response type.")?,
-        );
-    }
-    let mut body = Vec::new();
-    response
-        .into_reader()
-        .take(1024 * 1024)
-        .read_to_end(&mut body)
-        .map_err(|_| "Cannot read OAuth response.")?;
-    Ok(oauth2::HttpResponse {
-        status_code,
-        headers,
-        body,
-    })
-}
-
-fn verify_account(agent: &ureq::Agent, token: &str, email: &str) -> Result<(), String> {
-    let profile = google_json(
-        agent,
-        "https://openidconnect.googleapis.com/v1/userinfo",
-        token,
-    )?;
-    check_account_email(&profile, email)
-}
-
-fn check_account_email(profile: &Value, email: &str) -> Result<(), String> {
-    if !profile
-        .get("email")
-        .and_then(Value::as_str)
-        .is_some_and(|actual| actual.eq_ignore_ascii_case(email))
-    {
-        return Err(format!("Sign in with {email} when authorising this account; Google returned a different account."));
-    }
-    Ok(())
-}
-
-fn save_refresh_token(path: &Path, client_id: &str, refresh_token: &str) -> Result<(), String> {
-    let temporary = path.with_extension(format!(
-        "{}.tmp",
-        Uuid::new_v5(
-            &Uuid::NAMESPACE_URL,
-            format!("{}:{:?}", std::process::id(), Instant::now()).as_bytes()
-        )
-    ));
-    let result = (|| -> std::io::Result<()> {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o600)
-            .open(&temporary)?;
-        file.write_all(
-            json!({"client_id": client_id, "refresh_token": refresh_token})
-                .to_string()
-                .as_bytes(),
-        )?;
-        file.sync_all()?;
-        fs::rename(&temporary, path)
-    })();
-    if result.is_err() {
-        let _ = fs::remove_file(&temporary);
-    }
-    result.map_err(|_| "Cannot save private OAuth authorisation.".to_owned())
-}
-
-fn discover_calendars(config: &mut SetupConfig) -> Result<(), String> {
-    let credentials = private_json(&config.oauth_client)?;
-    let installed = credentials
-        .get("installed")
-        .ok_or("OAuth client JSON must contain an 'installed' Desktop app client.")?;
-    let client_id = installed
-        .get("client_id")
-        .and_then(Value::as_str)
-        .filter(|value| !value.is_empty())
-        .ok_or("OAuth client JSON has no client_id.")?;
-    let secret = installed
-        .get("client_secret")
-        .and_then(Value::as_str)
-        .ok_or("OAuth client JSON has no client_secret.")?;
-    let home = PathBuf::from(env::var_os("HOME").ok_or("HOME is not set.")?);
-    let tokens_dir =
-        xdg("XDG_STATE_HOME", home.join(".local/state")).join("thunderbird-google/oauth");
-    fs::create_dir_all(&tokens_dir).map_err(|_| "Cannot create private OAuth token directory.")?;
-    fs::set_permissions(&tokens_dir, fs::Permissions::from_mode(0o700))
-        .map_err(|_| "Cannot protect OAuth token directory.")?;
-    let agent = ureq::AgentBuilder::new()
-        .redirects(0)
-        .timeout(Duration::from_secs(30))
-        .build();
-    for account in &mut config.accounts {
-        let cache_path = tokens_dir.join(format!(
-            "{}.json",
-            Uuid::new_v5(
-                &Uuid::NAMESPACE_URL,
-                account.email.to_lowercase().as_bytes()
-            )
-        ));
-        let client = BasicClient::new(
-            ClientId::new(client_id.to_owned()),
-            Some(ClientSecret::new(secret.to_owned())),
-            AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_owned()).unwrap(),
-            Some(TokenUrl::new("https://oauth2.googleapis.com/token".to_owned()).unwrap()),
-        )
-        .set_auth_type(AuthType::RequestBody);
-        let cached = if cache_path.exists() {
-            Some(private_json(&cache_path)?)
-        } else {
-            None
-        };
-        let refresh = cached
-            .as_ref()
-            .filter(|cache| cache.get("client_id").and_then(Value::as_str) == Some(client_id))
-            .and_then(|cache| cache.get("refresh_token"))
-            .and_then(Value::as_str);
-        let renewed = if let Some(refresh) = refresh {
-            match client
-                .exchange_refresh_token(&RefreshToken::new(refresh.to_owned()))
-                .request(token_http_client) {
-                    Ok(token) => Some(token),
-                    Err(oauth2::RequestTokenError::ServerResponse(response))
-                        if response.error() == &oauth2::basic::BasicErrorResponseType::InvalidGrant => None,
-                    Err(_) => return Err("Cannot renew Google calendar discovery access; check your connection and OAuth client, then run setup again.".to_owned()),
-                }
-        } else {
-            None
-        };
-        let (token, refresh_token) = if let Some(token) = renewed {
-            let refresh_token = token
-                .refresh_token()
-                .map(|value| value.secret().clone())
-                .or_else(|| refresh.map(str::to_owned))
-                .ok_or("Google returned no refresh token.")?;
-            (token.access_token().secret().clone(), refresh_token)
-        } else {
-            let listener = TcpListener::bind("127.0.0.1:0")
-                .map_err(|_| "Cannot open local OAuth callback listener.")?;
-            let port = listener
-                .local_addr()
-                .map_err(|_| "Cannot read local callback port.")?
-                .port();
-            let client = client
-                .set_redirect_uri(RedirectUrl::new(format!("http://127.0.0.1:{port}/")).unwrap());
-            let (challenge, verifier) = PkceCodeChallenge::new_random_sha256();
-            let (auth_url, state) = client
-                .authorize_url(CsrfToken::new_random)
-                .add_scope(Scope::new("openid".to_owned()))
-                .add_scope(Scope::new("email".to_owned()))
-                .add_scope(Scope::new(
-                    "https://www.googleapis.com/auth/calendar.calendarlist.readonly".to_owned(),
-                ))
-                .set_pkce_challenge(challenge)
-                .add_extra_param("access_type", "offline")
-                .add_extra_param("prompt", "consent")
-                .add_extra_param("login_hint", account.email.as_str())
-                .url();
-            println!(
-                "Authorise calendar discovery for {} in your browser.",
-                account.email
-            );
-            if Command::new("xdg-open")
-                .arg(auth_url.as_str())
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null())
-                .status()
-                .map_or(true, |status| !status.success())
-            {
-                println!("Open this sign-in URL: {auth_url}");
+        for id in &ids {
+            if account.calendars.iter().any(|calendar| calendar.id == *id) {
+                continue;
             }
-            let code = receive_code(&listener, state.secret())?;
-            let token = client
-                .exchange_code(AuthorizationCode::new(code))
-                .set_pkce_verifier(verifier)
-                .request(token_http_client)
-                .map_err(|_| {
-                    "Google could not complete calendar discovery authorisation.".to_owned()
-                })?;
-            let refresh = token.refresh_token().ok_or(
-                "Google returned no offline authorisation; run setup again and grant access.",
-            )?;
-            (
-                token.access_token().secret().clone(),
-                refresh.secret().clone(),
-            )
-        };
-        verify_account(&agent, &token, &account.email)?;
-        save_refresh_token(&cache_path, client_id, &refresh_token)?;
-        account.calendars = fetch_calendars(|endpoint| google_json(&agent, endpoint, &token))?;
-        if account.calendars.is_empty() {
-            return Err(format!(
-                "Google returned no calendars for {}.",
-                account.email
-            ));
+            account.calendars.push(Calendar {
+                id: (*id).to_owned(),
+                name: (*id).to_owned(),
+                // Google enforces the actual calendar permissions during native sync.
+                read_only: false,
+            });
         }
         println!(
-            "Discovered {} calendars for {}.",
+            "Reused {} calendars from Khal discovery for {}.",
             account.calendars.len(),
             account.email
         );
     }
-    Ok(())
 }
 
-fn fetch_calendars(
-    mut fetch: impl FnMut(&str) -> Result<Value, String>,
-) -> Result<Vec<Calendar>, String> {
-    let mut page_token: Option<String> = None;
-    let mut calendars = Vec::new();
-    let mut seen_pages = Vec::new();
-    loop {
-        let mut endpoint =
-            url::Url::parse("https://www.googleapis.com/calendar/v3/users/me/calendarList")
-                .unwrap();
-        endpoint
-            .query_pairs_mut()
-            .append_pair("maxResults", "250")
-            .append_pair("showHidden", "true");
-        if let Some(page) = &page_token {
-            endpoint.query_pairs_mut().append_pair("pageToken", page);
-        }
-        let document = fetch(endpoint.as_str())?;
-        let items = document
-            .get("items")
-            .and_then(Value::as_array)
-            .ok_or("Google returned no calendar list.")?;
-        for item in items {
-            if item.get("deleted").and_then(Value::as_bool) == Some(true) {
-                continue;
+fn discover_calendars(config: &mut SetupConfig) -> Result<(), String> {
+    let home = PathBuf::from(env::var_os("HOME").ok_or("HOME is not set.")?);
+    let path = xdg("XDG_STATE_HOME", home.join(".local/state"))
+        .join("vdirsyncer/status/google.collections");
+    match fs::read_to_string(&path) {
+        Ok(text) => match serde_json::from_str(&text) {
+            Ok(document) => reuse_calendars(&mut config.accounts, &document),
+            Err(_) => {
+                eprintln!("Cannot parse saved Khal discovery; use Thunderbird's Find Calendars.")
             }
-            let id = item
-                .get("id")
-                .and_then(Value::as_str)
-                .ok_or("Google returned a calendar without an ID.")?;
-            let name = item
-                .get("summaryOverride")
-                .or_else(|| item.get("summary"))
-                .and_then(Value::as_str)
-                .unwrap_or(id);
-            let role = item
-                .get("accessRole")
-                .and_then(Value::as_str)
-                .unwrap_or("reader");
-            if id.is_empty() {
-                return Err("Google returned an empty calendar ID.".to_owned());
-            }
-            calendars.push(Calendar {
-                id: id.to_owned(),
-                name: name.to_owned(),
-                read_only: !matches!(role, "owner" | "writer" | "writerWithoutPrivateAccess"),
-            });
-        }
-        page_token = document
-            .get("nextPageToken")
-            .and_then(Value::as_str)
-            .map(str::to_owned);
-        if page_token.is_none() {
-            break;
-        }
-        if seen_pages.contains(&page_token) {
-            return Err("Google repeated a calendar-list page token.".to_owned());
-        }
-        seen_pages.push(page_token.clone());
+        },
+        Err(error) if error.kind() == ErrorKind::NotFound => {}
+        Err(_) => eprintln!("Cannot read saved Khal discovery; use Thunderbird's Find Calendars."),
     }
-    Ok(calendars)
+    for account in &config.accounts {
+        if account.calendars.is_empty() && account.calendar_ids.is_empty() {
+            println!(
+                "Use Thunderbird's Find Calendars if you want calendars for {}.",
+                account.email
+            );
+        }
+    }
+    Ok(())
 }
 
 /// Return (key, raw_value) for a `user_pref("key", value);` line, or None for any other line.
@@ -898,7 +523,13 @@ fn add_calendars(prefs: &mut Prefs, existing: &Existing, account: &Account, iden
         let entries = [
             ("type", json!("caldav")),
             ("uri", json!(uri)),
-            ("name", json!(discovered.name)),
+            (
+                "name",
+                existing
+                    .get(&format!("{prefix}name"))
+                    .cloned()
+                    .unwrap_or_else(|| json!(discovered.name)),
+            ),
             ("username", json!(account.email)),
             ("imip.identity.key", json!(identity)),
             ("disabled", json!(false)),
@@ -1235,35 +866,23 @@ mod tests {
     }
 
     #[test]
-    fn discovery_follows_pages_and_includes_hidden_names_and_permissions() {
-        let mut calls = 0;
-        let calendars = fetch_calendars(|endpoint| {
-            let url = url::Url::parse(endpoint).unwrap();
-            let query: HashMap<_, _> = url.query_pairs().into_owned().collect();
-            assert_eq!(query.get("showHidden").map(String::as_str), Some("true"));
-            calls += 1;
-            Ok(if calls == 1 {
-                assert!(!query.contains_key("pageToken"));
-                json!({"items": [{"id": "main@example.com", "summary": "Main", "accessRole": "owner"}], "nextPageToken": "next+/="})
-            } else {
-                assert_eq!(query.get("pageToken").map(String::as_str), Some("next+/="));
-                json!({"items": [
-                    {"id": "shared@example.com", "summary": "Shared", "summaryOverride": "My Shared", "hidden": true, "accessRole": "reader"},
-                    {"id": "gone@example.com", "deleted": true}
-                ]})
-            })
-        }).unwrap();
-        assert_eq!(calls, 2);
-        assert_eq!(calendars.len(), 2);
-        assert!(!calendars[0].read_only);
-        assert_eq!(calendars[1].name, "My Shared");
-        assert!(calendars[1].read_only);
-    }
-
-    #[test]
-    fn discovery_rejects_incomplete_data_and_repeated_pages() {
-        assert!(fetch_calendars(|_| Ok(json!({"items": [{"summary": "No ID"}]}))).is_err());
-        assert!(fetch_calendars(|_| Ok(json!({"items": [], "nextPageToken": "repeat"}))).is_err());
+    fn cached_discovery_only_applies_to_the_matching_account() {
+        let mut accounts = accounts();
+        reuse_calendars(
+            &mut accounts,
+            &json!({"collections": [
+                ["one@example.com", [{}, {}]],
+                ["shared@example.com", [{}, {}]]
+            ]}),
+        );
+        assert_eq!(accounts[0].calendars.len(), 2);
+        assert!(!accounts[0].calendars[0].read_only);
+        assert!(accounts[1].calendars.is_empty());
+        reuse_calendars(
+            &mut accounts,
+            &json!({"collections": [["one@example.com", []]]}),
+        );
+        assert_eq!(accounts[0].calendars.len(), 2);
     }
 
     #[test]
@@ -1298,112 +917,5 @@ mod tests {
         accounts.reverse();
         assert_eq!(build_prefs(&updated, &accounts), prefs);
         assert_eq!(updated["unrelated.preference"], json!(true));
-    }
-
-    #[test]
-    fn discovery_rejects_a_different_google_account() {
-        assert!(
-            check_account_email(&json!({"email": "other@example.com"}), "wanted@example.com")
-                .is_err()
-        );
-        assert!(check_account_email(
-            &json!({"email": "Wanted@example.com"}),
-            "wanted@example.com"
-        )
-        .is_ok());
-    }
-
-    #[test]
-    fn refresh_cache_is_private_and_replaced_atomically() {
-        let directory =
-            env::temp_dir().join(format!("thunderbird-oauth-test-{}", std::process::id()));
-        fs::create_dir(&directory).unwrap();
-        let path = directory.join("token.json");
-        save_refresh_token(&path, "client", "old-test-refresh").unwrap();
-        save_refresh_token(&path, "client", "new-test-refresh").unwrap();
-        assert_eq!(
-            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
-            0o600
-        );
-        assert_eq!(
-            private_json(&path).unwrap()["refresh_token"],
-            json!("new-test-refresh")
-        );
-        assert_eq!(fs::read_dir(&directory).unwrap().count(), 1);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn token_transport_preserves_oauth_errors_for_reauthorisation() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-        let server = std::thread::spawn(move || {
-            let (mut stream, _) = listener.accept().unwrap();
-            stream
-                .set_read_timeout(Some(Duration::from_secs(5)))
-                .unwrap();
-            let mut reader = BufReader::new(&stream);
-            let mut first = String::new();
-            reader.read_line(&mut first).unwrap();
-            assert!(first.starts_with("POST /token "));
-            let mut length = 0;
-            loop {
-                let mut header = String::new();
-                reader.read_line(&mut header).unwrap();
-                if header == "\r\n" {
-                    break;
-                }
-                if let Some(value) = header.to_lowercase().strip_prefix("content-length:") {
-                    length = value.trim().parse().unwrap();
-                }
-            }
-            let mut body = vec![0; length];
-            reader.read_exact(&mut body).unwrap();
-            let body = String::from_utf8(body).unwrap();
-            assert!(body.contains("grant_type=refresh_token"));
-            assert!(body.contains("client_secret=test-secret"));
-            let reply = r#"{"error":"invalid_grant"}"#;
-            write!(stream, "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{reply}", reply.len()).unwrap();
-        });
-        let client = BasicClient::new(
-            ClientId::new("test-client".to_owned()),
-            Some(ClientSecret::new("test-secret".to_owned())),
-            AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_owned()).unwrap(),
-            Some(TokenUrl::new(format!("http://{address}/token")).unwrap()),
-        )
-        .set_auth_type(AuthType::RequestBody);
-        let result = client
-            .exchange_refresh_token(&RefreshToken::new("test-refresh".to_owned()))
-            .request(token_http_client);
-        assert!(
-            matches!(result, Err(oauth2::RequestTokenError::ServerResponse(response))
-            if response.error() == &oauth2::basic::BasicErrorResponseType::InvalidGrant)
-        );
-        server.join().unwrap();
-    }
-
-    #[test]
-    fn oauth_callback_ignores_wrong_state_and_returns_matching_code() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-        let client = std::thread::spawn(move || {
-            for state in ["wrong", "expected"] {
-                let mut stream = std::net::TcpStream::connect(address).unwrap();
-                write!(
-                    stream,
-                    "GET /?state={state}&code=valid-code HTTP/1.1\r\nHost: localhost\r\n\r\n"
-                )
-                .unwrap();
-                let mut reply = String::new();
-                stream.read_to_string(&mut reply).unwrap();
-                assert!(reply.contains(if state == "wrong" {
-                    "400 Bad Request"
-                } else {
-                    "200 OK"
-                }));
-            }
-        });
-        assert_eq!(receive_code(&listener, "expected").unwrap(), "valid-code");
-        client.join().unwrap();
     }
 }

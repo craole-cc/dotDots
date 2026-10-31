@@ -1,9 +1,11 @@
 # Google Calendar And Mail On Victus
 
-Victus selects Khal for DMS and Thunderbird for communication. Dux Calendar's
-background unit is removed; the application remains installed for comparison.
-The Google calendar mirror is read-only at the remote storage and in Khal.
-Use Google Calendar or Thunderbird to edit events.
+Victus selects Dux Calendar (`dankcal`) as the DMS calendar backend, with
+Thunderbird for mail and direct Google calendar access. Khal and vdirsyncer
+remain enabled as a separate terminal calendar and synchronisation service.
+Khal and vdirsyncer allow two-way synchronisation. You can edit events in Khal,
+Thunderbird or Google Calendar where your Google account has write permission.
+Shared calendars, holidays and other subscriptions may still be read-only.
 
 ## Authorise Calendar Synchronisation
 
@@ -26,7 +28,7 @@ After the committed configuration has been built and explicitly activated:
    when prompted. Setup discovers calendars and synchronises events. Google virtual
    calendars do not reliably expose metadata, so setup does not run metasync.
    Only successful completion creates the readiness marker used by the timer.
-4. Verify the mirror, then check the DMS calendar card for a known event:
+4. Verify the local calendars against a known Google event:
 
    ```sh
    google-calendar sync
@@ -36,10 +38,10 @@ After the committed configuration has been built and explicitly activated:
    journalctl --user -u google-calendar.service -n 30
    ```
 
-The timer runs every five minutes. DMS queries Khal when it loads the calendar
-range; reopen the calendar card after a sync. An empty agenda alone does not
-prove synchronisation: compare a known Google event's date and title with both
-Khal and DMS. Never add a synthetic test event to the remote account implicitly.
+The timer runs every five minutes. Compare a known Google event's date and title
+with Khal. DMS now uses Dux Calendar's own account configuration and connection;
+Khal's timer does not populate that backend. Open Dux Calendar and check that
+your Google account is connected, then compare the event with the DMS calendar card. Never add a synthetic test event to the remote account implicitly.
 
 Client credentials, refresh tokens, discovery status and generated configuration
 live under the user's XDG config/state directories. Calendar files live under
@@ -52,7 +54,7 @@ its runtime configuration with mode 0600 and umask 0077.
 
 Khal and Thunderbird are configured independently in
 `Modules/nix/home/communication/khal.nix` and `thunderbird.nix`. Khal is enabled
-when selected as the DMS calendar backend or as a communication package;
+as a communication package on Victus, or when selected as the DMS backend;
 Thunderbird is enabled by its communication package selection.
 
 After activation, open Thunderbird's `google` profile once, then close Thunderbird.
@@ -77,29 +79,18 @@ email = "other@gmail.com"
 real_name = "Other Name"
 ```
 
-The helper discovers every calendar on each account's Google calendar list,
-including shared and hidden calendars. You do not need to set `calendar_ids`.
-It uses Google's calendar names and marks calendars with read access as read-only.
-Keep the shared file
-at mode 0600. If `~/Private/config.toml` is absent, the helper checks
-`~/.config/thunderbird/google.toml`, then the older `google.env` and `~/.env`
+The helper configures mail for every listed account. If saved Khal/vdirsyncer
+calendar discovery exists at `~/.local/state/vdirsyncer/status/google.collections`
+(or the equivalent under `XDG_STATE_HOME`), it reuses those calendar IDs only for
+an account whose primary email appears in that discovery. It does not read or
+share Khal's OAuth tokens. Without a matching cache, use Thunderbird's native
+calendar discovery as described below. Optional `calendar_ids` in an account's
+TOML entry can also register specific calendars without an extra OAuth flow.
+
+Keep the shared file at mode 0600. If `~/Private/config.toml` is absent, the helper
+checks `~/.config/thunderbird/google.toml`, then the older `google.env` and `~/.env`
 formats. The installed `google.toml.example` shows the standalone TOML format.
 Do not put passwords or OAuth tokens in this file.
-
-In the Google Cloud project that owns the Desktop OAuth client used for Khal,
-enable **Google Calendar API** as well as **CalDAV API**. Check the selected
-project in the Console before enabling either API; enabling an API in a different
-project does not grant this client access. Open **APIs & Services → Credentials**
-to find the existing Desktop client, then use the
-[Calendar API page](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
-to check its status. An **Enable** button means that API is currently disabled.
-You can reuse the existing client; you do not need to create another one.
-
-The helper reuses the Desktop OAuth client JSON at
-`~/.config/vdirsyncer/google-client.json`, which must have mode 0600. To use a
-different client file, set `oauth_client = "~/Private/google-client.json"` under
-`[thunderbird]` in the shared TOML config. If the OAuth app is in testing, add
-each Gmail account as a test user.
 
 With Thunderbird closed, run:
 
@@ -107,39 +98,27 @@ With Thunderbird closed, run:
 thunderbird-google-setup
 ```
 
-On the first run, the helper opens Google sign-in for each configured account.
-Grant access to that account's calendar list and use the matching email address.
-It requests calendar-list metadata and email identity access; Thunderbird handles
-event synchronisation through its own Google sign-in. Private refresh tokens are
-stored under `~/.local/state/thunderbird-google/oauth` with mode 0600, so later
-runs normally discover calendars without another consent prompt.
+The helper does not open a Google consent screen. It reuses available local
+calendar discovery and configures mail without requiring Khal, a custom OAuth
+client, CalendarList API access or test-user registration for other accounts.
+An old `oauth_client` setting is no longer used. Existing discovery tokens under
+`~/.local/state/thunderbird-google/oauth` are also no longer used.
 
-Keep the setup command running while completing each account's browser consent.
-A line such as `Discovered 13 calendars for main@gmail.com.` confirms discovery
-for that account only. Setup is complete only when every account has finished
-and the command prints:
+Setup is complete when the command prints:
 
 ```text
 Google mail and calendars configured. Open Thunderbird and complete Google sign-in.
 ```
 
-If setup reports `HTTP 403. accessNotConfigured`, check that **Google Calendar
-API** is enabled in the OAuth client's project. This error alone does not mean
-the client was deleted. After enabling the API, allow a few minutes for the change
-to propagate, then rerun `thunderbird-google-setup`. No Nix rebuild or switch is
-needed for this Google Cloud change. The helper normally reuses consent already
-saved for earlier accounts. If another error appears, use its returned reason
-to diagnose it rather than repeatedly rebuilding.
-
-The helper reads the private file at runtime, discovers every calendar using
-Google's [CalendarList API](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/list),
-and configures Gmail IMAP/SMTP with OAuth2 and those CalDAV calendars in the
-writable profile. It finishes discovery for every account before writing the profile.
+The helper reads the private file at runtime and configures Gmail IMAP/SMTP
+with OAuth2 and the reused or explicitly listed CalDAV calendars in the writable
+profile. Thunderbird connects directly to Google for mail and calendar access;
+it does not synchronise events through Khal's local files.
 It preserves unrelated preferences, reuses a matching mail identity and keeps
 an original `prefs.js.before-google-setup` backup. It refuses to run while the
 profile is locked. For a different profile, pass `--profile /path/to/profile`;
 for a different config file, pass `--config /path/to/config.toml`.
-Rerun after adding accounts or calendars to discover the new subscriptions.
+Rerun after adding mail accounts or updating Khal discovery to register new subscriptions.
 Existing subscriptions are preserved; remove unwanted ones in Thunderbird.
 
 Open Thunderbird and complete Google's sign-in prompts for mail and calendars.
@@ -150,16 +129,52 @@ the profile; these checks in Thunderbird establish that mail and event access
 also work. Khal's synchronisation does not populate Thunderbird;
 the two applications authorise and synchronise separately.
 
-For manual discovery within Thunderbird, select calendars at
+To add calendars for any account natively in Thunderbird, select calendars at
 [Google's sync selection page](https://calendar.google.com/calendar/syncselect),
 then choose **New Account → Calendar → On the Network** in Thunderbird, enter
 your Google email address and choose **Find Calendars**. Complete sign-in and
 choose **Subscribe**. See [Mozilla's instructions](https://support.mozilla.org/en-US/kb/using-lightning-google-calendar).
 
-The real environment file and generated preferences stay outside the repository
+The private configuration and generated preferences stay outside the repository
 and Nix store. The Nix configuration installs only the helper and an empty
 example. This is the interim setup until SOPS integration is available; protect
-the environment file and Thunderbird profile as private user data.
+the configuration file and Thunderbird profile as private user data.
+
+## Editing And Synchronisation
+
+Khal's generated configuration uses `readonly = False` and vdirsyncer's Google
+storage uses `read_only = false`, allowing local edits to upload to Google.
+After activating this configuration, refresh discovery before synchronising:
+
+```sh
+google-calendar discover google
+google-calendar sync
+```
+
+Changing storage settings, including `read_only`, invalidates vdirsyncer's saved
+discovery. If it reports a detected configuration change, repeat these commands.
+Use the `google-calendar` wrapper for discovery and sync: it passes the generated
+private configuration at `~/.local/state/vdirsyncer/google.config` (or the
+equivalent under `XDG_STATE_HOME`). Bare `vdirsyncer discover google` looks for
+its default config instead and can fail with a missing-file error.
+The timer regenerates the runtime config and synchronises on subsequent runs.
+Khal edits are uploaded on the next sync; Thunderbird edits reach Khal after
+Google accepts them and vdirsyncer downloads them. Neither client can override
+Google's calendar permissions. Do not use a holiday or other subscribed calendar
+as the target for a new event.
+
+Thunderbird subscriptions created by the helper are enabled for editing and use
+Thunderbird's Google authorisation. Google still enforces each calendar's actual
+permissions. Previously registered calendar names are preserved when available;
+saved vdirsyncer discovery may provide only IDs for newly registered calendars.
+
+Victus selects `calendarBackend = "dankcal"` for the DMS calendar card. In
+DMS Settings → Time & Weather → Calendar backend, this is labelled **Dux Calendar**.
+DMS supports event creation through this backend when Dux Calendar is connected;
+its Khal backend only displays events. Open Dux Calendar if DMS reports that the
+backend needs launching, then confirm a known event appears and the event
+creation control is available. Backend selection does not grant Google write
+permissions; check the selected account and calendar in Dux Calendar too.
 
 ## Deployment And Evidence
 

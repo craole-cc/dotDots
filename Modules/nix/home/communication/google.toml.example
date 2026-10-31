@@ -3,7 +3,8 @@
 [[accounts]]
 email = "primary@gmail.com"
 real_name = "Primary Name"
-# All calendars are discovered automatically after Google authorisation.
+# Reuses saved Khal discovery for a matching account, when available.
+# Otherwise add calendars using Thunderbird's native Find Calendars.
 
 [[accounts]]
 email = "secondary@gmail.com"
