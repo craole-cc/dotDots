@@ -16,9 +16,13 @@
   inherit (lix.strings.construction) toJSON;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.styles.palettes) mkTerminalPalette;
+  inherit (lix.toolkit) write;
 
   enabled = any (entry: entry.name == "doublecmd") apps.explorer;
-  python = pkgs.python3.withPackages (packages: [packages.json5]);
+  appearance = write.rust {
+    name = "dotdots-doublecmd-appearance";
+    src = ./appearance.rs;
+  };
   configHome = config.xdg.configHome;
   directory = "${configHome}/doublecmd";
   palettePath = "${config.xdg.cacheHome}/dms/dms-colors.json";
@@ -51,7 +55,7 @@
       link = elemAt palette.regular 4;
     }) {inherit (user.theme.modes) dark light;};
   });
-  appearanceCommand = "${python}/bin/python3 ${./appearance.py} --config ${escapeShellArg directory} --defaults ${fallback} --palette ${escapeShellArg palettePath}";
+  appearanceCommand = "${appearance}/bin/dotdots-doublecmd-appearance --config ${escapeShellArg directory} --defaults ${fallback} --palette ${escapeShellArg palettePath}";
   launcher = pkgs.writeShellApplication {
     name = "doublecmd";
     text = ''
