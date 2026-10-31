@@ -10,89 +10,131 @@
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
 
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.lists.access) head tail;
+  inherit (lix.lists.construction) optional asList;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.lists.transformation) unique;
-  inherit (lix.schema.packages) selectedPackages;
+  inherit (lix.lists.transformation) filter unique;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.types.primitives) anything bool package str;
-  inherit (lix.types.combinators) listOf nullOr;
+  inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit.packages) ollama;
-  models = host.ai.${mod}.models or {};
+  inherit (lix.types.combinators) attrsOf listOf nullOr;
+  inherit (lix.types.primitives) port package str;
+
+  defaults = {
+    cfg = host.ai.${mod};
+    cores = 4;
+    completion = [
+      "qwen2.5-coder:1.5b-base-q4_K_M"
+      "qwen2.5-coder:0.5b-base-q4_K_M"
+    ];
+    chat = [
+      "qwen3:4b-instruct"
+      "qwen3:0.6b"
+    ];
+    variables = recursiveUpdate {
+      OLLAMA_CONTEXT_LENGTH = "8192";
+      OLLAMA_MAX_LOADED_MODELS = "1";
+      OLLAMA_NUM_PARALLEL = "1";
+    } (defaults.cfg.sessionVariables or (defaults.cfg.variables or {}));
+  };
+
+  mkModelType = role: {
+    ${role} = {
+      models = mkOption {
+        description = "Ordered ${role} models.";
+        default = unique (
+          defaults.cfg.${role}.models or (asList (defaults.cfg.${role} or []))
+          ++ optional (!cfg.disableDefaults) (
+            if (host.hardware.cpu.cores or 0) >= defaults.cores
+            then head defaults.${role}
+            else head (tail defaults.${role})
+          )
+        );
+        apply = filter (model: model != "");
+        type = listOf str;
+      };
+      active = mkOption {
+        description = "The preferred model for ${role}, or null when none is configured.";
+        default =
+          if cfg.${role}.models != []
+          then head cfg.${role}.models
+          else null;
+        type = nullOr str;
+        readOnly = true;
+      };
+    };
+  };
 in
   mkConfig {
     inherit context;
-    options = {
-      enable = mkEnable {
-        inherit context;
-        condition = isIn ["ollama"] (
-          selectedPackages (host.users.data.primary or {})
-        );
-      };
-
-      package = mkOption {
-        type = package;
-        default = ollama;
-      };
-
-      autocomplete = {
-        models = mkOption {
-          type = listOf str;
-          readOnly = true;
-          default = models.autocomplete.models;
-          description = "Ordered code completion models from the host schema.";
+    options =
+      {
+        enable = mkEnable {
+          inherit context;
+          condition = isIn ["ollama"] (
+            selectedPackages (host.users.data.primary or {})
+          );
         };
-        active = mkOption {
-          type = nullOr str;
-          readOnly = true;
-          default = models.autocomplete.active;
-          description = "The preferred code completion model, or null when none is configured.";
-        };
-      };
 
-      chat = {
-        models = mkOption {
-          type = listOf str;
-          readOnly = true;
-          default = models.chat.models;
-          description = "Ordered chat models from the host schema.";
+        package = mkOption {
+          type = package;
+          default = ollama;
         };
-        active = mkOption {
-          type = nullOr str;
-          readOnly = true;
-          default = models.chat.active;
-          description = "The preferred chat model, or null when none is configured.";
-        };
-      };
 
-      disableDefaults = mkOption {
-        type = bool;
-        readOnly = true;
-        default = host.ai.ollama.disableDefaults;
-        description = "Whether hardware-derived models are disabled in the host schema.";
-      };
-
-      service = mkOption {
-        type = anything;
-        default = {
-          host = "127.0.0.1";
-          loadModels = [];
+        disableDefaults = mkEnable {
+          condition = host.ai.ollama.disableDefaults or false;
+          description = "Whether hardware-derived models are disabled in the host schema.";
         };
-      };
-    };
+
+        host = mkOption {
+          type = str;
+          default = "127.0.0.1";
+          example = "[::]";
+          description = ''
+            The host address which the ollama server HTTP interface listens to.
+          '';
+        };
+
+        port = mkOption {
+          type = port;
+          default = 11434;
+          example = 11111;
+          description = ''
+            Which port the ollama server listens to.
+          '';
+        };
+
+        sessionVariables = mkOption {
+          description = ''
+            Set arbitrary environment variables for the ollama service.
+
+            Be aware that these are only seen by the ollama server (systemd service),
+            not normal invocations like `ollama run`.
+            Since `ollama run` is mostly a shell around the ollama server, this is usually sufficient.
+          '';
+          example = {
+            OLLAMA_LLM_LIBRARY = "cpu";
+            HIP_VISIBLE_DEVICES = "0,1";
+          };
+          default = defaults.variables;
+          type = attrsOf str;
+        };
+      }
+      // (mkModelType "chat")
+      // (mkModelType "completion");
 
     outputs = {
-      services.ollama =
-        cfg.service
-        // {
-          inherit (cfg) enable package;
-          loadModels = with cfg;
-            unique (
-              (service.loadModels or [])
-              ++ autocomplete.models ++ chat.models
-            );
-        };
+      services.ollama = {
+        inherit (cfg) enable package host port;
+        environmentVariables = cfg.sessionVariables;
+        loadModels = unique (with cfg; (completion.models ++ chat.models));
+      };
 
-      environment.systemPackages = [cfg.package];
+      environment = {
+        inherit (cfg) sessionVariables;
+        # systemPackages = [cfg.package];
+      };
     };
   }

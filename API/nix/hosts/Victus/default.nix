@@ -39,8 +39,8 @@ in {
   # ai.ollama.disableDefaults = true;
   # All listed models are installed. The first is preferred; consumers must
   # implement fallback themselves. Hermes currently selects the first chat model.
-  ai.ollama.models = {
-    autocomplete = "qwen2.5-coder:0.5b-base-q4_K_M";
+  ai.ollama = {
+    completion = "qwen2.5-coder:0.5b-base-q4_K_M";
     chat = "qwen3:0.6b";
   };
 

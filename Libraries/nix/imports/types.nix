@@ -45,6 +45,7 @@
       lines
       number
       package
+      port
       path
       pathInStore
       raw
