@@ -11,6 +11,7 @@
   inherit (context) cfg;
 
   inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.lists.access) head tail;
   inherit (lix.lists.construction) optional asList;
@@ -125,7 +126,7 @@ in
           type = attrsOf str;
         };
       }
-      // (genAttrs defaults.models mkModelType);
+      // (genAttrs (attrNames defaults.models) mkModelType);
 
     outputs = {
       services.ollama = {
