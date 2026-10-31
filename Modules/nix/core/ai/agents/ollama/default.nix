@@ -11,6 +11,7 @@
   inherit (context) cfg;
 
   inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.lists.access) head tail;
   inherit (lix.lists.construction) optional asList;
   inherit (lix.lists.predicates) isIn;
@@ -25,14 +26,16 @@
   defaults = {
     cfg = host.ai.${mod};
     cores = 4;
-    completion = [
-      "qwen2.5-coder:1.5b-base-q4_K_M"
-      "qwen2.5-coder:0.5b-base-q4_K_M"
-    ];
-    chat = [
-      "qwen3:4b-instruct"
-      "qwen3:0.6b"
-    ];
+    models = {
+      completion = [
+        "qwen2.5-coder:1.5b-base-q4_K_M"
+        "qwen2.5-coder:0.5b-base-q4_K_M"
+      ];
+      chat = [
+        "qwen3:4b-instruct"
+        "qwen3:0.6b"
+      ];
+    };
     variables = recursiveUpdate {
       OLLAMA_CONTEXT_LENGTH = "8192";
       OLLAMA_MAX_LOADED_MODELS = "1";
@@ -122,8 +125,7 @@ in
           type = attrsOf str;
         };
       }
-      // (mkModelType "chat")
-      // (mkModelType "completion");
+      // (genAttrs defaults.models mkModelType);
 
     outputs = {
       services.ollama = {
