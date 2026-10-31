@@ -1,4 +1,4 @@
-"""Apply dotDots appearance before Double Commander starts."""
+"""Apply dotDots appearance at startup and refresh the live Qt palette."""
 
 import argparse
 import configparser
@@ -13,11 +13,11 @@ from pathlib import Path
 import json5
 
 
-def write_file(path, content, backup=False):
+def write_file(path, content, backup=False, force=False):
     if path.is_symlink():
         raise RuntimeError(f"Refusing to replace managed symlink: {path}")
-    if path.exists() and path.read_text() == content:
-        return
+    if not force and path.exists() and path.read_text() == content:
+        return False
     path.parent.mkdir(parents=True, exist_ok=True)
     saved = path.with_name(path.name + ".before-dotdots")
     if backup and path.exists() and not saved.exists():
@@ -29,6 +29,7 @@ def write_file(path, content, backup=False):
         os.replace(temporary, path)
     finally:
         Path(temporary).unlink(missing_ok=True)
+    return True
 
 
 def dc_colour(value):
@@ -169,7 +170,7 @@ def apply_qt(directory, settings):
     disabled = ", ".join(
         palette["outline"] if role == "foreground" else palette[role] for role in roles
     )
-    write_file(
+    palette_changed = write_file(
         colour_path,
         f"[ColorScheme]\nactive_colors={active}\ninactive_colors={active}\ndisabled_colors={disabled}\n",
     )
@@ -196,7 +197,11 @@ def apply_qt(directory, settings):
     )
     output = io.StringIO()
     config.write(output, space_around_delimiters=False)
-    write_file(profile / "qt5ct.conf", output.getvalue(), backup=True)
+    # Qt5ct watches this directory, not the nested colour-scheme directory.
+    # Replacing its config also notifies it when only the palette has changed.
+    write_file(
+        profile / "qt5ct.conf", output.getvalue(), backup=True, force=palette_changed
+    )
 
 
 def main():
@@ -204,6 +209,7 @@ def main():
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--defaults", type=Path, required=True)
     parser.add_argument("--palette", type=Path, required=True)
+    parser.add_argument("--live", action="store_true")
     arguments = parser.parse_args()
     settings = json.loads(arguments.defaults.read_text())
     if arguments.palette.exists():
@@ -231,8 +237,9 @@ def main():
             }
             for mode in ("light", "dark")
         }
-    apply_colours(arguments.config, settings["palettes"])
-    apply_fonts(arguments.config, settings["fonts"])
+    if not arguments.live:
+        apply_colours(arguments.config, settings["palettes"])
+        apply_fonts(arguments.config, settings["fonts"])
     apply_qt(arguments.config, settings)
 
 

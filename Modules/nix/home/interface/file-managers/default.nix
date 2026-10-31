@@ -51,16 +51,13 @@
       link = elemAt palette.regular 4;
     }) {inherit (user.theme.modes) dark light;};
   });
+  appearanceCommand = "${python}/bin/python3 ${./appearance.py} --config ${escapeShellArg directory} --defaults ${fallback} --palette ${escapeShellArg palettePath}";
   launcher = pkgs.writeShellApplication {
     name = "doublecmd";
-    # Read DMS at launch so existing windows are never restarted for a theme change.
     text = ''
-      ${python}/bin/python3 ${./appearance.py} \
-        --config ${escapeShellArg directory} \
-        --defaults ${fallback} \
-        --palette ${escapeShellArg palettePath}
+      ${appearanceCommand}
       export QT_QPA_PLATFORMTHEME=qt5ct
-      export QT_STYLE_OVERRIDE=Fusion
+      unset QT_STYLE_OVERRIDE
       export QT_PLUGIN_PATH="${pkgs.libsForQt5.qt5ct}/${pkgs.qt5.qtbase.qtPluginPrefix}''${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
       exec ${pkgs.doublecmd}/bin/doublecmd --config-dir=${escapeShellArg directory} "$@"
     '';
@@ -68,6 +65,27 @@
 in {
   config = mkIf enabled {
     home.packages = [(lib.hiPrio launcher) pkgs.libsForQt5.qt5ct];
+    systemd.user = {
+      services.dotdots-doublecmd-appearance = {
+        Unit = {
+          Description = "Apply DMS palette changes to running Qt5 applications";
+          PartOf = ["graphical-session.target"];
+        };
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${appearanceCommand} --live";
+        };
+        Install.WantedBy = ["graphical-session.target"];
+      };
+      paths.dotdots-doublecmd-appearance = {
+        Unit = {
+          Description = "Watch the DMS palette for Double Commander";
+          PartOf = ["graphical-session.target"];
+        };
+        Path.PathChanged = palettePath;
+        Install.WantedBy = ["graphical-session.target"];
+      };
+    };
     xdg.desktopEntries.doublecmd = {
       name = "Double Commander";
       genericName = "File Manager";
