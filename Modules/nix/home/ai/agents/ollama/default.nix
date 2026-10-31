@@ -1,4 +1,6 @@
-{
+{}
+/**
+    {
   config,
   lix,
   user,
@@ -123,3 +125,4 @@ in
       (collect "outputs")
     ];
   }
+*/
