@@ -96,6 +96,7 @@ in
             foot
             hermes
             helix
+            yazi
           ])
         );
         inherit (themes) dataFile;
@@ -105,6 +106,8 @@ in
         enable = mkForce true;
         iconTheme = mkForce {inherit (cfg.icons) package name;};
       };
+
+      catppuccin.yazi.enable = mkForce false;
 
       home = {
         packages =
@@ -128,6 +131,7 @@ in
           }
           // (with themes; {
             configureDmsHelixTheme = helix.activation;
+            configureDmsYaziTheme = yazi.activation;
             # configureDmsFootTheme = foot.activation;  # future
           });
       };

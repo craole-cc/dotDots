@@ -59,3 +59,4 @@ in
   // (import ./helix.nix args)
   // (import ./hermes.nix args)
   // (import ./kitty.nix args)
+  // (import ./yazi.nix args)
