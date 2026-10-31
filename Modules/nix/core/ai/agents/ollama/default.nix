@@ -14,6 +14,7 @@
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.lists.access) head tail;
+  inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.construction) optional asList;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter unique;
@@ -43,6 +44,7 @@
       OLLAMA_NUM_PARALLEL = "1";
     } (defaults.cfg.sessionVariables or (defaults.cfg.variables or {}));
   };
+  models = attrNames defaults.models;
 
   mkModelType = role: {
     ${role} = {
@@ -126,13 +128,15 @@ in
           type = attrsOf str;
         };
       }
-      // (genAttrs (attrNames defaults.models) mkModelType);
+      // (genAttrs models mkModelType);
 
     outputs = {
       services.ollama = {
         inherit (cfg) enable package host port;
         environmentVariables = cfg.sessionVariables;
-        loadModels = unique (with cfg; (completion.models ++ chat.models));
+        loadModels = unique (
+          concatMap (role: cfg.${role}.models) models
+        );
       };
 
       environment = {
