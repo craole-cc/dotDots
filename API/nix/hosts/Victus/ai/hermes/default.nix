@@ -1,3 +1,4 @@
+#TODO: This needs to be reviewed. it seems ad-hoc
 {
   config,
   lix,
@@ -11,7 +12,11 @@
 
   localModel = {
     provider = "ollama";
-    default = osConfig._.resolved.ai.agents.ollama.explicit.chat.active or host.ai.ollama.models.chat.active;
+    default =
+      osConfig._.resolved.ai.agents.ollama.explicit.models.chat.default or (
+        # TODO: This needs to be resolved the same way we did the osConfig one. We need a real ollama home-manager config
+        host.ai.ollama.models.chat.default or null
+      );
     base_url = "http://127.0.0.1:11434/v1";
   };
   memory = {
@@ -118,7 +123,7 @@ in {
         enable = true;
         model = {
           provider = "openai-codex";
-          model = "gpt-5.6-terra";
+          model = "gpt-6.1-sol";
         };
       };
     };

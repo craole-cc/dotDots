@@ -88,7 +88,6 @@ in {
   ollama = mkSource {
     categories = ["scripting"];
     description = "Local language model inference";
-    prefer = ["ollama"];
   };
 
   ollama-cpu = mkSource {

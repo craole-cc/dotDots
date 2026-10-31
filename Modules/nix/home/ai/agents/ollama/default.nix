@@ -1,128 +1,209 @@
-{}
-/**
-    {
+{
   config,
   lix,
+  top,
   user,
-  inputs,
-  pkgs,
   host,
+  osConfig ? {},
+  pkgs,
   ...
 }: let
   dom = "ai";
   sub = "agents";
-  mod = "codex";
-
-  inherit (lix.attrsets.aggregation) recursiveUpdate mergeSafe;
-  inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.filesystem.access) readFile;
-  inherit (lix.lists.aggregation) foldl';
-  inherit (lix.lists.predicates) isIn;
-  inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.modules.construction) mkConfig mkContext mkIf mkMerge mkLayer;
-  inherit (lix.options.construction) mkEnable mkOption mkTrue;
-  inherit (lix.types.combinators) attrsOf either nullOr;
-  inherit (lix.types.primitives) anything lines path;
-
+  mod = "ollama";
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
 
-  collect = field:
-    mergeSafe (map (part: part.${field} or {}) (map
-      (file: import file {inherit cfg dom host lix pkgs inputs user;})
-      [
-        ./hooks
-        ./integrations
-        ./plugins
-        ./profiles
-        ./rules
-        ./settings
-        ./packages
-        ./skills
-      ]));
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.construction) genAttrs;
+  inherit (lix.content.emptiness) isNotEmpty;
+  inherit (lix.lists.access) head tail;
+  inherit (lix.lists.aggregation) concatMap;
+  inherit (lix.lists.construction) optional asList;
+  inherit (lix.lists.predicates) isIn;
+  inherit (lix.lists.transformation) filter unique;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.schema.packages) selectedPackages;
+  inherit (lix.toolkit) packages;
+  inherit (lix.types.combinators) attrsOf enum listOf nullOr;
+  inherit (lix.types.predicates) isString;
+  inherit (lix.types.primitives) port package str;
 
-  settings = let
-    typed = collect "settings";
-    custom =
-      optionalAttrs (cfg.settings != null)
-      (fromTOML (readFile cfg.settings));
-  in {
-    inherit typed custom;
-    generated = foldl' recursiveUpdate {} [typed custom cfg.config];
+  #? Precedence: user schema -> system resolved -> host schema
+  sources = {
+    user = user.ai.${mod} or {};
+    sys = osConfig.${top}.resolved.explicit or {};
+    host = host.ai.${mod} or {};
   };
 
-  options = mergeSafe (collect "options") {
-    enable = mkEnable {
-      inherit context;
-      condition = isIn [mod] (selectedPackages user);
+  defaults = {
+    cfg = recursiveUpdate sources.host (recursiveUpdate sources.sys sources.user);
+    coreThreshold = 4;
+
+    package = let
+      requested = defaults.cfg.package or null;
+    in
+      if isString requested
+      then packages.${requested} or (pkgs.${requested} or null)
+      else if requested != null
+      then requested
+      else if
+        (isNotEmpty (host.hardware.gpu.primary or null))
+        || (isNotEmpty (host.hardware.gpu.secondary or null))
+      then packages.${mod}
+      else packages."${mod}-cpu";
+
+    models = {
+      chat = [
+        "qwen3:4b-instruct"
+        "qwen3:0.6b"
+      ];
+      completion = [
+        "qwen2.5-coder:1.5b-base-q4_K_M"
+        "qwen2.5-coder:0.5b-base-q4_K_M"
+      ];
     };
 
-    context = mkOption {
-      type = nullOr (either lines path);
-      default = null;
+    variables = recursiveUpdate {
+      OLLAMA_CONTEXT_LENGTH = "8192";
+      OLLAMA_MAX_LOADED_MODELS = "1";
+      OLLAMA_NUM_PARALLEL = "1";
+    } (defaults.cfg.sessionVariables or (defaults.cfg.variables or {}));
+  };
+
+  models.names = attrNames defaults.models;
+
+  mkModelType = role: {
+    excludes = mkOption {
       description = ''
-        Global instructions, written to `~/.codex/AGENTS.md` (`programs.codex.context`).
+        Models that should never be used for ${role}, even if they appear
+        in the includes list.
       '';
+      default = [];
+      type = listOf str;
     };
-
-    mutable = mkTrue ''
-      Merge declared settings into a writable config.toml at activation instead of
-      symlinking a read-only file, so settings Codex writes itself survive
-      (`programs.codex.mutableSettings`).
-    '';
-
-    config = mkOption {
-      type = attrsOf anything;
-      default = {};
+    includes = mkOption {
       description = ''
-        Extra config.toml settings with no typed option.
-        Merged last, so it overrides both the typed options and the prewritten file.
-        [WARNING] Do not put credentials here: the generated file lives in the
-        world-readable Nix store. Reference them through a provider `env_key`
-        or auth command instead.
+        Models available for ${role}, ordered by preference.
+        The first model in this list is treated as the preferred one.
       '';
+      default = unique (
+        defaults.cfg.${role}.models or (asList (defaults.cfg.${role} or []))
+        ++ optional cfg.allowDefaults (
+          if (host.hardware.cpu.cores or 0) >= defaults.coreThreshold
+          then head defaults.models.${role}
+          else head (tail defaults.models.${role})
+        )
+      );
+      apply =
+        filter
+        (model: model != "" && !(isIn [model] cfg.models.${role}.excludes));
+      type = listOf str;
     };
-
-    settings = mkOption {
-      type = nullOr path;
-      default = null;
+    default = mkOption {
       description = ''
-        A prewritten public config.toml, merged underneath `config` and over the typed options.
-        [WARNING] Do not put credentials in it: Nix path inputs are copied into the
-        world-readable store. Reference them through a provider `env_key` or auth
-        command instead.
+        The preferred model for ${role}.
+        Automatically set to the first entry in `includes`, or null if none are configured.
       '';
-    };
-
-    generated = mkOption {
-      type = attrsOf anything;
+      default =
+        if cfg.models.${role}.includes != []
+        then head cfg.models.${role}.includes
+        else null;
+      type = nullOr str;
       readOnly = true;
-      default = settings.generated;
-      description = ''
-        Preview of the settings this module contributes to `programs.codex.settings`,
-        layered typed options < prewritten file < `config`.
-        Settings that other modules add to `programs.codex.settings` are not included.
-      '';
     };
-  };
-
-  programs = mergeSafe (collect "program") {
-    enable = true;
-    package = cfg.cli.package;
-    mutableSettings = cfg.mutable;
-    context = mkIf (cfg.context != null) cfg.context;
-    settings = mkMerge (with settings; [
-      (mkLayer 900 typed)
-      (mkLayer 800 custom)
-      cfg.config
-    ]);
   };
 in
   mkConfig {
-    inherit context options;
-    outputs = mkMerge [
-      {programs.${mod} = programs;}
-      (collect "outputs")
-    ];
+    inherit context;
+
+    options = {
+      enable = mkEnable {
+        inherit context;
+        condition = isIn [mod] (selectedPackages user);
+      };
+
+      package = mkOption {
+        type = package;
+        default = defaults.package;
+        description = "The Ollama package to use.";
+      };
+
+      allowDefaults = mkEnable {
+        condition = defaults.cfg.allowDefaults or true;
+        description = ''
+          Whether to automatically include hardware-appropriate default models.
+          When enabled, a sensible model is chosen based on your CPU core count.
+          Disable this to have full control over which models are available.
+        '';
+      };
+
+      host = mkOption {
+        type = str;
+        default = defaults.cfg.host or "127.0.0.1";
+        example = "[::]";
+        description = ''
+          Address the server should listen on.
+          Use "127.0.0.1" (the default) to only allow local connections.
+          Use "0.0.0.0" or "[::]" if you want the server reachable from other machines.
+        '';
+      };
+
+      port = mkOption {
+        type = port;
+        default = defaults.cfg.port or 11434;
+        example = 11111;
+        description = "Port the server listens on.";
+      };
+
+      environmentVariables = mkOption {
+        description = ''
+          Set arbitrary environment variables for the ${mod} service.
+          Be aware that these are only seen by the ${mod} server,
+          not normal invocations like `${mod} run`.
+        '';
+        example = {
+          OLLAMA_LLM_LIBRARY = "cpu";
+          HIP_VISIBLE_DEVICES = "0,1";
+        };
+        default = defaults.variables;
+        type = attrsOf str;
+      };
+
+      # No firewall on home-manager; kept for schema parity / documentation
+      allowRemoteAccess = mkEnable {
+        condition = defaults.cfg.allowRemoteAccess or false;
+        description = ''
+          Whether remote access is intended.
+          On NixOS this opens the firewall; on home-manager only it
+          has no effect beyond documenting the intent (ensure the
+          listen address is not loopback-only).
+        '';
+      };
+
+      acceleration = mkOption {
+        type = nullOr (enum [false "rocm" "cuda" "vulkan"]);
+        default = defaults.cfg.acceleration or null;
+        description = ''
+          Hardware acceleration backend for Ollama.
+
+          - `null`: let the package/nixpkgs defaults decide
+            (ROCm if `rocmSupport`, CUDA if `cudaSupport`, otherwise CPU)
+          - `false`: force CPU only
+          - `"rocm"`: AMD GPUs
+          - `"cuda"`: NVIDIA GPUs
+          - `"vulkan"`: most GPUs via Vulkan
+        '';
+      };
+
+      models = genAttrs models.names mkModelType;
+    };
+
+    outputs = {
+      services.${mod} = {
+        inherit (cfg) enable package host port environmentVariables acceleration;
+      };
+    };
   }
-*/

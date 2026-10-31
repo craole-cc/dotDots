@@ -208,13 +208,13 @@
 
   `include` (attrset / curried)
   : 2. Which delimiter characters to retain at the start of the next chunk. One of:
-       - `false` — discard all delimiters (default; implied by string shorthand)
-       - `true` — retain all delimiters
-       - `string` — retain only this delimiter
-       - `[string]` — retain only these delimiters
-       - `function` — raw `prev: curr: bool` predicate
+        - `false` — discard all delimiters (default; implied by string shorthand)
+        - `true` — retain all delimiters
+        - `string` — retain only this delimiter
+        - `[string]` — retain only these delimiters
+        - `function` — raw `prev: curr: bool` predicate
 
-       When `delimiters` is a function, `include` must be `true`, `false`, or a function.
+        When `delimiters` is a function, `include` must be `true`, `false`, or a function.
 
   `input`
   : 3. String or list of strings. Nested lists throw an error.

@@ -4,18 +4,11 @@
   ...
 }: let
   __exports = {
-    namespaced = {
-      inherit
-        access
-        construction
-        predicates
-        transformation
-        ;
-    };
+    namespaced = {inherit access construction predicates transformation;};
     flattened = {} // access // construction // predicates // transformation // {};
   };
 
-  inherit (lib) strings trivial;
+  inherit (lib) generators strings trivial;
 
   access = {
     inherit
@@ -29,28 +22,30 @@
     inherit (builtins) getEnv;
   };
 
-  construction = {
-    inherit (builtins) hashString;
-    inherit
-      (strings)
-      charToInt
-      concatImapStringsSep
-      concatMapStrings
-      concatMapStringsSep
-      concatStrings
-      concatStringsSep
-      fixedWidthNumber
-      fixedWidthString
-      floatToString
-      fromJSON
-      makeBinPath
-      makeLibraryPath
-      optionalString
-      splitString
-      splitStringBy
-      toJSON
-      ;
-  };
+  construction =
+    generators
+    // {
+      inherit (builtins) hashString;
+      inherit
+        (strings)
+        charToInt
+        concatImapStringsSep
+        concatMapStrings
+        concatMapStringsSep
+        concatStrings
+        concatStringsSep
+        fixedWidthNumber
+        fixedWidthString
+        floatToString
+        fromJSON
+        makeBinPath
+        makeLibraryPath
+        optionalString
+        splitString
+        splitStringBy
+        toJSON
+        ;
+    };
 
   transformation = {
     inherit

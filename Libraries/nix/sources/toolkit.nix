@@ -51,6 +51,7 @@
     aliases = aliases.entries;
     prefer = recursiveUpdate prefer {
       kill = "procps";
+      ollama = "ollama";
       uptime = "procps";
     };
   };
@@ -427,6 +428,7 @@ in
         preferDerivedFromSources = mkTest {
           desired = {
             kill = "procps";
+            ollama = "ollama";
             uptime = "procps";
           };
           outcome = defaults.prefer;
