@@ -85,6 +85,17 @@
     categories;
       source // {inherit categories description;};
 in {
+  ollama = mkSource {
+    categories = ["scripting"];
+    description = "Local language model inference";
+    prefer = ["ollama"];
+  };
+
+  ollama-cpu = mkSource {
+    categories = ["scripting"];
+    description = "Local language model inference on the CPU";
+  };
+
   alejandra = mkSource {
     categories = ["formatters" "scripting"];
     description = "opinionated Nix formatter";

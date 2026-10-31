@@ -33,6 +33,17 @@ in {
     mode = "hybrid"; #? "offload" | "sync" | "reverse-sync" | "primary-nvidia" ...
   };
 
+  # Omitted roles use hardware-derived defaults; no overrides are needed.
+  # Set a role to a string for one model, or a list in priority order.
+  # Hardware-derived models follow your choices. To omit those defaults, set:
+  # ai.ollama.disableDefaults = true;
+  # All listed models are installed. The first is preferred; consumers must
+  # implement fallback themselves. Hermes currently selects the first chat model.
+  ai.ollama.models = {
+    autocomplete = "qwen2.5-coder:0.5b-base-q4_K_M";
+    chat = "qwen3:0.6b";
+  };
+
   paths = {
     roots.repo = "/home/${admin}/.dots";
     stems.repo = {
