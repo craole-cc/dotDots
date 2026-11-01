@@ -15,12 +15,14 @@
     args ? [],
     description ? null,
     after ? [],
+    pipe ? [],
   }:
     {
       cmd = [command] ++ args;
       inherit description;
     }
-    // optionalAttrs (isNotEmpty after) {inherit after;};
+    // optionalAttrs (isNotEmpty after) {inherit after;}
+    // optionalAttrs (isNotEmpty pipe) {inherit pipe;};
 
   #? Layers carry args, an optional trailing list (always placed last), and a description.
   mkLayeredAlias = command: baseLayers: layers: let
@@ -1202,6 +1204,39 @@ in {
         };
       })
     ];
+  };
+
+  ghostty = mkSource {
+    categories = ["desktop-ui"];
+    description = "GPU-accelerated terminal emulator";
+    aliases = mkAliasFamily "ghostty" {
+      ListFonts = {
+        args = ["+list-fonts"];
+        description = "list available fonts";
+      };
+      ListFontsPage = {
+        args = ["+list-fonts"];
+        pipe = [["bat"]];
+        description = "browse available fonts with bat";
+      };
+    };
+  };
+
+  kitty = mkSource {
+    categories = ["desktop-ui"];
+    description = "GPU-accelerated terminal emulator with graphics support";
+  };
+
+  foot = mkSource {
+    categories = ["desktop-ui"];
+    description = "lightweight Wayland terminal emulator";
+  };
+
+  warp-terminal = mkSource {
+    categories = ["desktop-ui"];
+    description = "Warp terminal emulator";
+    input = "warp-terminal";
+    exe = "warp";
   };
 
   gh = mkSource {

@@ -71,6 +71,7 @@
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.construction) concatLists optional optionals;
+  inherit (_.lists.access) tail;
   inherit (_.lists.predicates) elem;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge mkOverride;
@@ -357,10 +358,15 @@
     (value: !(value ? _type) && !(isDerivation value))
     (_path: value: mkOverride priority value);
 
+  # Local baselines and resolutions use the explicit option shape. Baselines
+  # are exported even when disabled; resolutions are applied before gating
+  # outputs so they can determine whether the module is enabled.
   mkConfig = {
     predicate ? null,
     outputs,
     options ? {},
+    defaults ? {},
+    resolutions ? {},
     context,
   }: let
     inherit (context) path cfg top;
@@ -381,6 +387,10 @@
       resolved
       {${top}.outputs = resolved;}
       (setAttrByPath (path ++ ["implicit"]) resolved)
+      (setAttrByPath (path ++ ["explicit"]) resolutions)
+      (optionalAttrs (defaults != {}) (
+        setAttrByPath ([top "defaults"] ++ tail (tail path)) defaults
+      ))
     ];
   };
 

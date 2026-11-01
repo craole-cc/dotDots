@@ -44,6 +44,18 @@ in {
           default = {};
           type = attrsOf anything;
         };
+        license = {
+          author = mkOption {
+            description = "Copyright author for this repository identity";
+            default = null;
+            type = nullOr str;
+          };
+          default = mkOption {
+            description = "Default licence identifier for this repository identity";
+            default = null;
+            type = nullOr str;
+          };
+        };
       };
     });
     default = defined.identities or [];

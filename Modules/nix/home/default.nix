@@ -1,24 +1,78 @@
 {
   top,
   lix,
+  options,
+  config,
   ...
 }: let
   inherit (lix.attrsets.aggregation) mergeSafe;
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.predicates) isDerivation;
+  inherit (lix.attrsets.transformation) concatMapAttrs filterAttrs mapAttrs;
+  inherit (lix.modules.construction) mkLayer;
   inherit (lix.options.construction) mkOption mkOptionType;
   inherit (lix.types.primitives) anything;
+  inherit (lix.types.predicates) isAttrs;
   inherit (lix.filesystem.traversal) importAllPaths;
+
+  declaredDefaults = declarations:
+    if declarations ? explicit
+    then declaredDefaults declarations.explicit
+    else
+      mapAttrs
+      (_name: declaration:
+        if (declaration._type or null) == "option"
+        then declaration.default
+        else declaredDefaults declaration)
+      (filterAttrs
+        (name: declaration:
+          name
+          != "implicit"
+          && ((declaration._type or null) != "option" || declaration ? default))
+        declarations);
+
+  resolvedInputs = declarations: values:
+    if declarations ? explicit
+    then values.explicit
+    else
+      mapAttrs
+      (name: declaration:
+        if (declaration._type or null) == "option"
+        then values.${name}
+        else resolvedInputs declaration values.${name})
+      (filterAttrs (name: _declaration: name != "implicit") declarations);
+
+  isPlainAttrs = value: isAttrs value && !(value ? _type) && !(isDerivation value);
+
+  differingInputs = defaults: values:
+    concatMapAttrs
+    (name: value:
+      if !(defaults ? ${name})
+      then {${name} = value;}
+      else if isPlainAttrs value && isPlainAttrs defaults.${name} && value != {}
+      then let
+        changes = differingInputs defaults.${name} value;
+      in
+        optionalAttrs (changes != {}) {${name} = changes;}
+      else optionalAttrs (value != defaults.${name}) {${name} = value;})
+    values;
 in {
   imports = (importAllPaths ./.).value;
+  config.${top} = {
+    defaults = mkLayer 1000 (declaredDefaults (options.${top}.resolved or {}));
+    updates = differingInputs config.${top}.defaults (
+      resolvedInputs (options.${top}.resolved or {}) (config.${top}.resolved or {})
+    );
+  };
   options.${top} = {
     defaults = mkOption {
-      description = "Schema-derived default dotDots input values";
-      # TODO: I would a complete constructed set of defaults for every declaration. maybe it's best to define locally. So for instance in Modules/nix/home/terminal/core/ghostty/default.nix (just a random one), we should be producing defaults (user-agnostic) alongside the resolutions and outputs
+      description = "Declared dotDots input defaults without explicit or implicit wrappers, with local baselines taking precedence";
       default = {};
       type = anything;
     };
 
     updates = mkOption {
-      description = "Sparse dotDots input values differing from defaults";
+      description = "Sparse resolved dotDots input overrides, using the same paths as defaults";
       default = {};
       type = anything;
     };

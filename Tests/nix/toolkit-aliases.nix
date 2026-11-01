@@ -27,6 +27,10 @@
   unregisteredBinaries = toolkit.binariesFor [unregistered];
   overridden = unregistered // {pname = "yazi";};
 in {
+  ghosttyFontPipeline = (lix.sources.toolkit.mkAliases {
+    binaries = {ghostty = "/bin/ghostty"; bat = "/bin/bat";};
+    aliases = catalogue.ghostty.aliases;
+  }).ghosttyListFontsBat == "/bin/ghostty +list-fonts | /bin/bat ";
   emptySelection = toolkit.binariesFor [] == {};
   activeBinary = selected.yazi == "${pkgs.yazi}/bin/yazi";
   activeShortcuts = selected ? y && selected ? yz && selected ? yp;

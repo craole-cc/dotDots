@@ -57,7 +57,7 @@
   };
 
   registry = let
-    tools = import ./data/tools.nix {inherit _;};
+    tools = import ./data/tools {inherit _;};
     describe = entries: {
       inherit entries;
       names = attrNames entries;
@@ -132,8 +132,9 @@
     };
 
   /**
-  Render alias specs (`{cmd = [binary arg...]; after? = [[binary arg...]]; description?;}`) against
-  resolved binaries. Arguments are shell-escaped. Commands in `after` run
+  Render alias specs (`{cmd = [binary arg...]; pipe? = [[binary arg...]]; after? = [[binary arg...]]; description?;}`) against
+  resolved binaries. Arguments are shell-escaped. Commands in `pipe` form a
+  pipeline with the main command. Commands in `after` run
   sequentially after the main command, including when it fails.
 
   Throws if an alias name shadows a real binary, or if an alias refers to a
@@ -159,7 +160,10 @@
             (throw "toolkit alias '${aliasName}': '${binary}' is not in sources");
         in "${path} ${escapeShellArgs (tail command)}";
       in
-        concat "; " (map renderCommand ([spec.cmd] ++ (spec.after or []))))
+        concat "; " (
+          [(concat " | " (map renderCommand ([spec.cmd] ++ (spec.pipe or []))))]
+          ++ map renderCommand (spec.after or [])
+        ))
       aliases;
 
   /**
@@ -267,7 +271,7 @@
       preferred = filterAttrs (command: source: records ? ${source} && records.${source}.bins ? ${command}) (defaults.prefer // prefer);
       selected = available // mapAttrs (command: source: records.${source}.bins.${command}) preferred;
       aliases = filterAttrs (name: spec:
-        !(selected ? ${name}) && all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.after or [])))
+        !(selected ? ${name}) && all (command: selected ? ${head command}) ([spec.cmd] ++ (spec.pipe or []) ++ (spec.after or [])))
       resolved.aliases;
     in {
       binaries = selected;

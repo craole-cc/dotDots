@@ -54,7 +54,7 @@
           identities = map (identity: let
             licence = identity.license or (identity.licence or {});
           in
-            identity
+            (removeAttrs identity ["licence"])
             // {
               license =
                 optionalAttrs (licence ? author || licence ? name) {

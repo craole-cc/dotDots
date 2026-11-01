@@ -1,21 +1,19 @@
-{style}: {
-  settings = {
-    #| Daemon mode:
-    # -- Single instance across all windows (reduced memory footprint)
-    # -- Stays running when all windows are closed (instant reopening)
-    # -- No initial window (spawn via keybind when needed)
-    gtk-single-instance = true;
-    quit-after-last-window-closed = false;
-    # initial-window = false;
-    copy-on-select = "clipboard";
-    right-click-action = "copy-or-paste";
-    selection-clear-on-copy = true;
-    mouse-hide-while-typing = true;
-    confirm-close-surface = false;
-    window-decoration = "none";
+{opacity ? 1.0}: {
+  #| Daemon mode:
+  # -- Single instance across all windows (reduced memory footprint)
+  # -- Stays running when all windows are closed (instant reopening)
+  # -- No initial window (spawn via keybind when needed)
+  gtk-single-instance = true;
+  quit-after-last-window-closed = false;
+  # initial-window = false;
+  copy-on-select = "clipboard";
+  right-click-action = "copy-or-paste";
+  selection-clear-on-copy = true;
+  mouse-hide-while-typing = true;
+  confirm-close-surface = false;
+  window-decoration = "none";
 
-    background-blur = true;
-    background-opacity = style.opacity.terminal.dark;
-    font-size = 10;
-  };
+  background-blur = true;
+  background-opacity = opacity;
+  font-size = 10;
 }
