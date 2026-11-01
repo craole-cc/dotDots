@@ -1,4 +1,6 @@
 {
+  mergeDisjoint,
+  mkAlias,
   mkAliasFamily,
   mkSource,
   replaceStrings,
@@ -50,17 +52,36 @@
   ghostty = mkSource {
     categories = ["desktop-ui" "terminal"];
     description = "GPU-accelerated terminal emulator";
-    aliases = mkAliasFamily "ghostty" {
-      ListFonts = {
+    aliases = let
+      #? Drops blanks, strips indentation, dedupes in original order.
+      fontFilter = ''NF{sub(/^[[:space:]]+/,"")} NF && !seen[$0]++'';
+
+      cmd = "ghostty";
+      mk = alias: mkAlias cmd alias;
+      FontsList = {
         args = ["+list-fonts"];
-        description = "list available fonts";
+        pipe = [["awk" fontFilter]];
+        description = "print deduplicated fonts";
       };
-      ListFontsPage = {
+      Fonts = {
         args = ["+list-fonts"];
-        pipe = [["bat"]];
-        description = "browse available fonts with bat";
+        pipe = [["awk" fontFilter] ["bat" "--style=numbers"]];
+        description = "browse fonts in the bat pager";
       };
-    };
+      FontsSearch = {
+        args = ["+list-fonts"];
+        pipe = [["awk" fontFilter] ["rg" "-i"]];
+        description = "search fonts, e.g. list-fonts-search orb";
+      };
+    in
+      mergeDisjoint [
+        {
+          list-fonts = mk Fonts;
+          list-fonts-print = mk FontsList;
+          list-fonts-search = mk FontsSearch;
+        }
+        (mkAliasFamily cmd {inherit Fonts FontsList FontsSearch;})
+      ];
   };
 
   kitty = mkSource {
