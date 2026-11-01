@@ -1,3 +1,4 @@
+# TODO: Should this file use mkConfig/mkContract??
 {
   top,
   apps,
@@ -35,12 +36,16 @@
 
   mkDefaultVariable = name: entries:
     optionalAttrs (entries != []) {${name} = mkDefault (elemAt entries 0).command;};
-  primaryVariables =
-    mkDefaultVariable "TERMINAL" apps.terminal
-    // mkDefaultVariable "BROWSER" apps.browser
-    // mkDefaultVariable "EDITOR" apps.editor
-    // mkDefaultVariable "VISUAL" apps.ide
-    // mkDefaultVariable "FILE_MANAGER" apps.explorer;
+
+  primaryVariables = let
+    mk = var: val: mkDefaultVariable var apps.${val};
+  in
+    mk "TERMINAL" "terminal"
+    // mk "BROWSER" "browser"
+    // mk "EDITOR" "editor"
+    // mk "VISUAL" "ide"
+    // mk "EXPLORER" "explorer"
+    // mk "FILE_MANAGER" "explorer";
 
   mergeOutput = values:
     if all isAttrs values
@@ -64,13 +69,6 @@
     else if all isList values
     then concatLists values
     else last values;
-
-  outputType = mkOptionType {
-    name = "home output";
-    description = "recursively merged Home Manager output";
-    check = _: true;
-    merge = _: definitions: mergeOutput (map (definition: definition.value) definitions);
-  };
 in {
   options.${top} = {
     defaults = mkOption {
@@ -86,84 +84,30 @@ in {
     outputs = mkOption {
       description = "Sparse effective Home Manager configuration outputs";
       default = {};
-      type = outputType;
+      type = mkOptionType {
+        name = "home output";
+        description = "recursively merged Home Manager output";
+        check = _: true;
+        merge = _: definitions: mergeOutput (map (definition: definition.value) definitions);
+      };
     };
   };
 
-  # Every selection receives an indexed variable. Named role suffixes remain
-  # aliases for the first three entries during migration.
-  config.home.sessionVariables =
-    primaryVariables
-    // (mkSelectionVariables "TERMINAL" apps.terminal)
-    // (mkSelectionVariables "BROWSER" apps.browser)
-    // (mkSelectionVariables "EDITOR" apps.editor)
-    // (mkSelectionVariables "VISUAL" apps.ide)
-    // (mkSelectionVariables "FILE_MANAGER" apps.explorer);
+  #? Every selection receives an indexed variable. Named role suffixes remain
+  #? aliases for the first three entries during migration (PRI/SEC/TER).
+  #? This supports backward compatibility during a phased migration.
+  config.home = {
+    sessionVariables = let
+      mk = var: val: mkSelectionVariables var apps.${val};
+    in
+      primaryVariables
+      // (mk "TERMINAL" "terminal")
+      // (mk "BROWSER" "browser")
+      // (mk "EDITOR" "editor")
+      // (mk "VISUAL" "ide")
+      // (mk "EXPLORER" "explorer")
+      // (mk "FILE_MANAGER" "explorer");
+  };
 
   imports = (importAllPaths ./.).value;
-
-  # # Home is being migrated incrementally to the same mkContext/mkConfig
-  # # contract as Core. Only migrated modules are wired here; the legacy tree
-  # # remains available for staged conversion without participating in eval.
-  # imports = [
-  #   # ./ai/runtime.nix
-  #   # ./applications
-  #   ./interface/options.nix
-  #   ./interface/catppuccin.nix
-  #   ./interface/dms.nix
-  #   ./interface/manager/hyprland
-
-  #   # Browsers
-  #   ./browser/chromium
-  #   ./browser/zen
-
-  #   # Editors
-  #   ./editor/helix
-  #   ./editor/nvim
-  #   ./editor/vim
-  #   ./editor/vscode
-  #   ./editor/zeditor
-
-  #   # Information utilities
-  #   ./info/btop.nix
-  #   ./info/clock.nix
-  #   ./info/fetchers.nix
-
-  #   # Media
-  #   ./media/editing
-  #   ./media/freetube
-  #   ./media/mpv
-  #   ./media/obs
-
-  #   # Shells
-  #   ./shells/core/bash
-  #   ./shells/core/fish
-  #   ./shells/core/nushell
-  #   ./shells/core/zsh
-  #   ./shells/prompt/starship.nix
-
-  #   # Shell tools
-  #   ./shells/tools/atuin.nix
-  #   ./shells/tools/bat.nix
-  #   ./shells/tools/direnv.nix
-  #   ./shells/tools/grep.nix
-  #   ./shells/tools/home-manager.nix
-  #   ./shells/tools/nh.nix
-  #   ./shells/tools/nix-index.nix
-  #   ./shells/tools/topgrade.nix
-  #   ./shells/tools/yazi.nix
-
-  #   # Terminals
-  #   ./terminal/core/foot
-  #   ./terminal/core/ghostty
-  #   ./terminal/core/kitty
-  #   ./terminal/tools/tmux
-
-  #   # Version control
-  #   ./version-control/core/git
-  #   ./version-control/core/jujutsu.nix
-  #   ./version-control/clients/github.nix
-  #   ./version-control/clients/gitui.nix
-  #   ./version-control/tools/delta.nix
-  # ];
 }
