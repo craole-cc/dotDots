@@ -7,13 +7,12 @@
 }: let
   dom = "ai";
   sub = "providers";
-  mod = "ollama";
+  mod = "llmhop";
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
 
-  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.access) attrNames;
-  inherit (lix.attrsets.construction) genAttrs;
+  inherit (lix.attrsets.construction) genAttrs listToAttrs nameValuePair;
   inherit (lix.lists.access) head tail;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.construction) optional asList;
@@ -22,44 +21,46 @@
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.toolkit) packages;
-  inherit (lix.types.combinators) attrsOf listOf nullOr;
-  inherit (lix.types.primitives) port package str;
-  inherit (lix.types.predicates) isString;
-  inherit (lix.content.emptiness) isNotEmpty;
+  inherit (lix.strings.transformation) replaceStrings;
+  inherit (lix.types.combinators) attrsOf enum listOf nullOr;
+  inherit (lix.types.primitives) anything package port str;
 
   defaults = {
-    cfg = host.ai.${mod};
+    cfg = host.ai.${mod} or {};
     coreThreshold = 4;
-    package = let
-      requested = defaults.cfg.package or null;
-    in
-      if isString requested
-      then packages.${requested} or (pkgs.${requested} or null)
-      else if requested != null
-      then requested
-      else if
-        (isNotEmpty (host.hardware.gpu.primary or null))
-        || (isNotEmpty (host.hardware.gpu.secondary or null))
-      then packages.${mod}
-      else packages."${mod}-cpu";
+
+    #? Hugging Face repos, `repo[:quant]`, ordered large -> small.
+    #? llama-server downloads them on first start.
     models = {
       chat = [
-        "qwen3:4b-instruct"
-        "qwen3:0.6b"
+        "unsloth/Qwen3-4B-Instruct-2507-GGUF:Q4_K_M"
+        "unsloth/Qwen3-0.6B-GGUF:Q8_0"
       ];
       autocomplete = [
-        "qwen2.5-coder:1.5b-base-q4_K_M"
-        "qwen2.5-coder:0.5b-base-q4_K_M"
+        "ggml-org/Qwen2.5-Coder-1.5B-Q8_0-GGUF"
+        "ggml-org/Qwen2.5-Coder-0.5B-Q8_0-GGUF"
       ];
     };
-    variables = recursiveUpdate {
-      OLLAMA_CONTEXT_LENGTH = "8192";
-      OLLAMA_MAX_LOADED_MODELS = "1";
-      OLLAMA_NUM_PARALLEL = "1";
-    } (defaults.cfg.sessionVariables or (defaults.cfg.variables or {}));
+
+    #? Rendered by llmhop as `--<key> <value>` flags on every llama-server
+    settings =
+      {
+        ctx-size = 8192;
+        parallel = 1;
+      }
+      // (defaults.cfg.settings or {});
+
+    package = pkgs.llama-cpp.override {
+      cudaSupport = cfg.acceleration == "cuda";
+      rocmSupport = cfg.acceleration == "rocm";
+      vulkanSupport = cfg.acceleration == "vulkan";
+    };
   };
+
   models.names = attrNames defaults.models;
+
+  #? Route names only allow [[:alnum:].-], so sanitize the repo id
+  mkName = replaceStrings ["/" ":" "_"] ["-" "-" "-"];
 
   mkModelType = role: {
     excludes = mkOption {
@@ -72,8 +73,9 @@
     };
     includes = mkOption {
       description = ''
-        Models available for ${role}, ordered by preference.
-        The first model in this list is treated as the preferred one.
+        Hugging Face repos (`repo[:quant]`) available for ${role}, ordered by preference.
+        Unlike Ollama, every entry becomes a running llama-server that keeps
+        its model in memory, so keep this list short.
       '';
       default = unique (
         defaults.cfg.${role}.models or (asList (defaults.cfg.${role} or []))
@@ -88,14 +90,23 @@
         (model: model != "" && !(isIn [model] cfg.models.${role}.excludes));
       type = listOf str;
     };
+    names = mkOption {
+      description = ''
+        Route names of `includes`: what clients send as the OpenAI `model`
+        field and what llmhop advertises in `GET /v1/models`.
+      '';
+      default = map mkName cfg.models.${role}.includes;
+      type = listOf str;
+      readOnly = true;
+    };
     default = mkOption {
       description = ''
-        The preferred model for ${role}.
-        Automatically set to the first entry in `includes`, or null if none are configured.
+        The route name of the preferred model for ${role}.
+        Automatically set to the first entry in `names`, or null if none are configured.
       '';
       default =
-        if cfg.models.${role}.includes != []
-        then head cfg.models.${role}.includes
+        if cfg.models.${role}.names != []
+        then head cfg.models.${role}.names
         else null;
       type = nullOr str;
       readOnly = true;
@@ -115,6 +126,20 @@ in
       package = mkOption {
         type = package;
         default = defaults.package;
+        description = "The llama.cpp package used by the model workers.";
+      };
+
+      acceleration = mkOption {
+        type = nullOr (enum ["rocm" "cuda" "vulkan"]);
+        default = defaults.cfg.acceleration or null;
+        description = ''
+          Hardware acceleration backend for llama.cpp.
+
+          - `null`: CPU only
+          - `"rocm"`: AMD GPUs
+          - `"cuda"`: NVIDIA GPUs (requires `allowUnfree`)
+          - `"vulkan"`: most GPUs via Vulkan
+        '';
       };
 
       allowDefaults = mkEnable {
@@ -132,7 +157,7 @@ in
         default = "127.0.0.1";
         example = "[::]";
         description = ''
-          Address the server should listen on.
+          Address the router should listen on.
 
           Use "127.0.0.1" (the default) to only allow local connections.
           Use "0.0.0.0" or "[::]" if you want the server reachable from other machines
@@ -142,49 +167,55 @@ in
 
       port = mkOption {
         type = port;
-        default = 11434;
+        default = 8080;
         example = 11111;
-        description = ''
-          Port the server listens on.
-        '';
+        description = "Port the llmhop router listens on.";
       };
 
-      environmentVariables = mkOption {
-        description = ''
-          Set arbitrary environment variables for the ${mod} service.
-
-          Be aware that these are only seen by the ${mod} server (systemd service),
-          not normal invocations like `${mod} run`.
-          Since `${mod} run` is mostly a shell around the ${mod} server, this is usually sufficient.
-        '';
+      settings = mkOption {
+        type = attrsOf anything;
+        default = defaults.settings;
         example = {
-          OLLAMA_LLM_LIBRARY = "cpu";
-          HIP_VISIBLE_DEVICES = "0,1";
+          ctx-size = 16384;
+          flash-attn = "on";
         };
-        default = defaults.variables;
-        type = attrsOf str;
+        description = ''
+          llama-server flags applied to every model, rendered as `--<key> <value>`.
+          `false` becomes `--no-<key>` and a list repeats the flag.
+        '';
       };
 
       allowRemoteAccess = mkEnable {
         condition = false;
         description = ''
-          Whether to allow remote access to the ${mod} service.
+          Whether to allow remote access to the ${mod} router.
 
           Enabling this opens the configured port in the firewall so other
           machines on your network can reach ${mod}. Keep it disabled
           if you only use ${mod} locally.
         '';
       };
+
       models = genAttrs models.names mkModelType;
     };
 
     outputs = {
       services.${mod} = {
-        inherit (cfg) enable environmentVariables package host port;
+        inherit (cfg) enable host port;
         openFirewall = cfg.allowRemoteAccess;
-        loadModels = unique (
-          concatMap (role: cfg.models.${role}.includes) models.names
-        );
+        llama-cpp = {
+          enable = true;
+          inherit (cfg) package;
+          modelSettings = cfg.settings;
+          models = listToAttrs (
+            concatMap
+            (role:
+              map
+              (repo: nameValuePair (mkName repo) {settings.hf-repo = repo;})
+              cfg.models.${role}.includes)
+            models.names
+          );
+        };
       };
     };
   }

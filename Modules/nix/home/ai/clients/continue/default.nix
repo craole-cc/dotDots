@@ -8,20 +8,20 @@
   sub = "clients";
   mod = "continue";
   context = mkContext {inherit config dom sub mod;};
-  inherit (context) cfg;
 
-  inherit (lix.attrsets.construction) genAttrs optionalAttrs;
+  inherit (context) cfg;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
-  inherit (lix.lists.access) elemAt;
+  inherit (lix.lists.construction) concatLists;
+  inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption mkStrOption mkTrue;
-  inherit (lix.strings.access) match;
-  inherit (lix.strings.predicates) hasInfix;
+  inherit (lix.strings.construction) concat;
+  inherit (lix.toolkit) write;
   inherit (lix.types.combinators) attrsOf enum listOf submodule;
   inherit (lix.types.primitives) anything;
-  inherit (lix.toolkit) write;
-  getExtension = file: elemAt (match ".*\\.([^.]+)$" file) 0;
 
+  #? Valid values for a Continue model's `roles` (config.yaml schema v1)
   roleType = listOf (enum [
     "chat"
     "autocomplete"
@@ -31,48 +31,47 @@
     "apply"
     "summarize"
   ]);
-  configTypes = ["yaml" "json"];
 
-  #? Single source of truth: the resolved Ollama provider config
-  ollama = optionalAttrs cfg.useOllama (
-    config.${top}.resolved.${dom}.providers.ollama.explicit or {}
-  );
-
-  defaults = {
-    config = let
-      mk = type: ".continue/config.${type}";
-    in
-      genAttrs configTypes mk
-      // {default = "yaml";};
-    host = ollama.host or "127.0.0.1";
-    port = toString (ollama.port or 11434);
-    apiBase = with defaults; "http://${host}:${port}";
+  #? How each resolved provider is reached from Continue.
+  #? llmhop is a router that speaks the OpenAI API, so it uses the `openai` id.
+  providerFor = {
+    ollama = {
+      id = "ollama";
+      path = "";
+    };
+    llmhop = {
+      id = "openai";
+      path = "/v1";
+    };
   };
 
-  # `role` is an Ollama-module role (same names as Continue's roles).
-  # The table maps it to every Continue role that model should fill.
-  # TODO: This looks weird
-  mkModel = role: model: let
-    roles =
-      {
-        chat = ["chat" "edit" "apply"];
-        autocomplete = ["autocomplete"];
-      }
-      .${
-        role
-      }
-      or (throw "continue: unsupported role '${role}'");
+  #? Providers the user asked for that are also enabled on this host
+  enabled =
+    filterAttrs
+    (name: provider: isIn [name] cfg.providers && (provider.explicit.enable or false))
+    #? Single source of truth: the resolved provider configs
+    config.${top}.resolved.${dom}.providers or {};
+
+  defaults = {
+    conf = concat "/" [".continue" "config.yaml"];
+    providers = attrNames providerFor;
+  };
+
+  #? `role` is a provider-module role, which shares names with Continue's roles.
+  #? `rolesFor` maps it to every Continue role that model should fill.
+  mkModel = name: provider: role: model: let
+    rolesFor = {
+      chat = ["chat" "edit" "apply"];
+      autocomplete = ["autocomplete"];
+    };
+    roles = rolesFor.${role} or (throw "continue: unsupported role '${role}'");
+    inherit (providerFor.${name}) id path;
   in
-    #? Validate values per a Continue model's `roles` (config.yaml schema v1)
-    assert roleType.check
-    roles; {
-      name =
-        if role == "autocomplete"
-        then "${model} (autocomplete)"
-        else model;
-      provider = "ollama";
+    assert roleType.check roles; {
+      name = model;
+      provider = id;
       inherit model roles;
-      inherit (defaults) apiBase;
+      apiBase = "http://${provider.host}:${toString provider.port}${path}";
     };
 
   derived = {
@@ -80,10 +79,16 @@
     version = "0.0.1";
     schema = "v1";
     models =
-      mapAttrsToList (role: model: mkModel role model.default) (
-        filterAttrs
-        (_: model: (model.default or null) != null)
-        (ollama.models or {})
+      concatLists (
+        mapAttrsToList (
+          name: {explicit, ...}:
+            mapAttrsToList (role: model: mkModel name explicit role model.default) (
+              filterAttrs
+              (_: model: (model.default or null) != null)
+              (explicit.models or {})
+            )
+        )
+        enabled
       )
       ++ cfg.extraModels;
   };
@@ -100,8 +105,8 @@ in
 
       extraModels = mkOption {
         description = ''
-          Extra model entries merged after any Ollama-derived models.
-          Use for embeddings, cloud providers, or a pure non-Ollama setup.
+          Extra model entries merged after any provider-derived models.
+          Use for embeddings, cloud providers, or a pure non-local setup.
           `roles` is required and validated against Continue's role list.
         '';
         example = [
@@ -130,58 +135,35 @@ in
       };
 
       writeConfig = mkTrue ''
-        Write config to ${cfg.config.default}
+        Write config to ${cfg.configPath}
       '';
 
-      useOllama = mkTrue ''
-        Include models from the Ollama module in the Continue config.
-        Disable to run Continue with only `extraModels` (cloud-only, etc.).
-      '';
+      providers = mkOption {
+        description = ''
+          Resolved providers whose models are included in the Continue config.
+          A provider is only used when it is also enabled on this host.
+          Set to `[]` to run Continue with only `extraModels` (cloud-only, etc.).
+        '';
+        default = defaults.providers;
+        example = ["ollama"];
+        type = listOf (enum defaults.providers);
+      };
 
-      config = let
-        mk = type:
-          mkStrOption {
-            description = "Path of the generated config.${type}, relative to $HOME.";
-            default = defaults.config.${type};
-          };
-      in
-        {
-          default = mkStrOption {
-            description = "Path of the generated Continue config.yaml, relative to $HOME.";
-            default = defaults.config.default;
-            apply = value:
-              if hasInfix "/" value
-              then value
-              else if value == "yaml" || value == "json"
-              then cfg.config.${value}
-              else throw "continue: unsupported config format '${value}'; expected 'yaml', 'json', or a path";
-          };
-        }
-        // genAttrs configTypes mk;
+      configPath = mkStrOption {
+        description = "Path of the generated Continue config.yaml, relative to $HOME.";
+        default = defaults.conf;
+      };
 
-      generated = let
-        ext = getExtension cfg.config.default;
-        mk = type:
-          mkOption {
-            description = "Preview of the config.${type} this module will write.";
-            readOnly = true;
-            default = write.${type} "continue-config.${type}" derived;
-            # type = attrsOf anything;
-          };
-      in
-        {
-          default = mkOption {
-            description = "Preview of the generated config selected by config.default.";
-            readOnly = true;
-            default = cfg.generated.${ext};
-          };
-        }
-        // genAttrs configTypes mk;
+      generated = mkOption {
+        description = "Preview of the config.yaml this module will write.";
+        readOnly = true;
+        default = write.yaml "continue-config.yaml" derived;
+      };
     };
 
     outputs = {
-      home.file.${cfg.config.default} = mkIf cfg.writeConfig {
-        source = cfg.generated.default;
+      home.file.${cfg.configPath} = mkIf cfg.writeConfig {
+        source = cfg.generated;
       };
     };
   }

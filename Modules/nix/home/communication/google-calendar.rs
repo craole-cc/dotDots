@@ -43,7 +43,10 @@ fn load_client(credentials: &Path) -> Result<serde_json::Map<String, Value>, Str
         .permissions()
         .mode();
     if mode & 0o077 != 0 {
-        return Err(format!("Run chmod 600 {} before continuing.", credentials.display()));
+        return Err(format!(
+            "Run chmod 600 {} before continuing.",
+            credentials.display()
+        ));
     }
     let text = fs::read_to_string(credentials)
         .map_err(|error| format!("Cannot read {}: {error}", credentials.display()))?;
@@ -62,10 +65,19 @@ fn load_client(credentials: &Path) -> Result<serde_json::Map<String, Value>, Str
     let missing: Vec<&str> = REQUIRED_CLIENT_KEYS
         .iter()
         .copied()
-        .filter(|key| client.get(*key).and_then(Value::as_str).map_or(true, str::is_empty))
+        .filter(|key| {
+            client
+                .get(*key)
+                .and_then(Value::as_str)
+                .map_or(true, str::is_empty)
+        })
         .collect();
     if !missing.is_empty() {
-        return Err(format!("{} is missing: {}.", credentials.display(), missing.join(", ")));
+        return Err(format!(
+            "{} is missing: {}.",
+            credentials.display(),
+            missing.join(", ")
+        ));
     }
     Ok(client.clone())
 }
@@ -93,7 +105,8 @@ fn write_private(path: &Path, text: &str) -> Result<(), String> {
         .mode(0o600)
         .open(path)
         .map_err(describe)?;
-    file.set_permissions(fs::Permissions::from_mode(0o600)).map_err(describe)?;
+    file.set_permissions(fs::Permissions::from_mode(0o600))
+        .map_err(describe)?;
     file.write_all(text.as_bytes()).map_err(describe)
 }
 
@@ -136,7 +149,10 @@ fn run(binary: &str, config: &Path, arguments: &[String]) -> Result<(), String> 
     if status.success() {
         Ok(())
     } else {
-        Err(format!("{binary} {} failed with {status}.", arguments.join(" ")))
+        Err(format!(
+            "{binary} {} failed with {status}.",
+            arguments.join(" ")
+        ))
     }
 }
 
@@ -158,8 +174,16 @@ fn run_all(binary: &str) -> Result<(), String> {
         command.push("sync".to_owned());
     }
     if command == ["setup"] {
-        run(binary, &runtime_config, &["discover".to_owned(), "google".to_owned()])?;
-        run(binary, &runtime_config, &["sync".to_owned(), "google".to_owned()])?;
+        run(
+            binary,
+            &runtime_config,
+            &["discover".to_owned(), "google".to_owned()],
+        )?;
+        run(
+            binary,
+            &runtime_config,
+            &["sync".to_owned(), "google".to_owned()],
+        )?;
         write_private(&state.join("google.ready"), "")
     } else {
         run(binary, &runtime_config, &command)

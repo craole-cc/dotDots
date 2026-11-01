@@ -7,6 +7,7 @@
   paths,
   pkgs,
   top,
+  toolkit,
   ...
 }: let
   context = mkContext {
@@ -340,7 +341,7 @@ in
           ;
       })
       (mkMaintenance {
-        inherit pkgs paths;
+        inherit pkgs paths toolkit;
         inherit (cfg) repo keep;
       })
     ];

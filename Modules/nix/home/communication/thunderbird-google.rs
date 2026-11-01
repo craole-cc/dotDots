@@ -20,7 +20,7 @@ use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use uuid::Uuid;
 
 const CALDAV_ROOT: &str = "https://apidata.googleusercontent.com/caldav/v2/";
@@ -825,7 +825,9 @@ fn main() -> ExitCode {
         });
     match outcome {
         Ok(true) => {
-            println!("Google mail and calendars configured. Open Thunderbird and complete Google sign-in.");
+            println!(
+                "Google mail and calendars configured. Open Thunderbird and complete Google sign-in."
+            );
             ExitCode::SUCCESS
         }
         Ok(false) => ExitCode::SUCCESS,
@@ -860,9 +862,11 @@ mod tests {
         let accounts = accounts();
         assert_eq!(accounts[0].real_name.as_deref(), Some("One, Example"));
         assert_eq!(accounts[1].email, "two@example.com");
-        assert!(accounts
-            .iter()
-            .all(|account| account.calendar_ids.is_empty()));
+        assert!(
+            accounts
+                .iter()
+                .all(|account| account.calendar_ids.is_empty())
+        );
     }
 
     #[test]

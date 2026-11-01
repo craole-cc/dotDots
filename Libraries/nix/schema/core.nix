@@ -46,26 +46,42 @@
     role = name: fallback: let
       declared = ollama.models.${name} or [];
       models = unique (
-        toList (if isAttrs declared then declared.models or [] else declared)
+        toList (
+          if isAttrs declared
+          then declared.models or []
+          else declared
+        )
         ++ optional (!disableDefaults) fallback
       );
     in {
       inherit models;
-      active = if models == [] then null else head models;
+      active =
+        if models == []
+        then null
+        else head models;
     };
   in
-    ai // {
-      ollama = ollama // {
-        inherit disableDefaults;
-        models = (ollama.models or {}) // {
-          autocomplete = role "autocomplete" (
-            if cores >= 4 then "qwen2.5-coder:1.5b-base-q4_K_M" else "qwen2.5-coder:0.5b-base-q4_K_M"
-          );
-          chat = role "chat" (
-            if cores >= 4 then "qwen3:4b-instruct" else "qwen3:0.6b"
-          );
+    ai
+    // {
+      ollama =
+        ollama
+        // {
+          inherit disableDefaults;
+          models =
+            (ollama.models or {})
+            // {
+              autocomplete = role "autocomplete" (
+                if cores >= 4
+                then "qwen2.5-coder:1.5b-base-q4_K_M"
+                else "qwen2.5-coder:0.5b-base-q4_K_M"
+              );
+              chat = role "chat" (
+                if cores >= 4
+                then "qwen3:4b-instruct"
+                else "qwen3:0.6b"
+              );
+            };
         };
-      };
     };
 
   mkAccess = host: let

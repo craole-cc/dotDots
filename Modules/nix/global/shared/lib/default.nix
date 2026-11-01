@@ -1,5 +1,5 @@
 args: let
-  inherit (args) pkgs lix inputs names paths;
+  inherit (args) pkgs lix inputs names paths toolkit;
   inherit (lix.sources.packages) pkgOf pkgsFrom;
   inherit (lix.lists.construction) optionals;
   inherit (lix.modules.core.software) mkFetch;
@@ -8,7 +8,7 @@ args: let
   inherit (stdenv.hostPlatform) system isLinux isDarwin;
 
   name = names.src;
-  fetch = mkFetch {inherit name pkgs paths;};
+  fetch = mkFetch {inherit name pkgs paths toolkit;};
 
   cmdExists = writeShellScriptBin "cmd-exists" ''
     command -v "$@" >/dev/null 2>&1

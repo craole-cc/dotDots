@@ -2654,7 +2654,7 @@
       "type": "boolean",
       "default": true,
       "title": "Arrangement",
-      "description": "Dragged displays line up with neighboring edges without overlapping"
+      "description": "Dragged displays line up with neighbouring edges without overlapping"
     },
     "connectedFrameBarStyleBackups": {
       "type": "object",
@@ -2708,8 +2708,8 @@
           "squareCorners": false,
           "noBackground": false,
           "widgetStyle": "pills",
-          "maximizeWidgetIcons": false,
-          "maximizeWidgetText": false,
+          "maximiseWidgetIcons": false,
+          "maximiseWidgetText": false,
           "widgetPadding": 8,
           "batteryColorMode": "theme",
           "gothCornersEnabled": false,
@@ -3373,8 +3373,8 @@
           "squareCorners": false,
           "noBackground": false,
           "widgetStyle": "pills",
-          "maximizeWidgetIcons": false,
-          "maximizeWidgetText": false,
+          "maximiseWidgetIcons": false,
+          "maximiseWidgetText": false,
           "widgetPadding": 8,
           "batteryColorMode": "theme",
           "gothCornersEnabled": false,

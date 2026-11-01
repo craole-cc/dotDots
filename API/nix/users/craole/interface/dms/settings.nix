@@ -384,8 +384,8 @@
       "widgetTransparency" = 1;
       "squareCorners" = false;
       "noBackground" = true;
-      "maximizeWidgetIcons" = true;
-      "maximizeWidgetText" = true;
+      "maximiseWidgetIcons" = true;
+      "maximiseWidgetText" = true;
       "widgetPadding" = 8;
       "gothCornersEnabled" = false;
       "gothCornerRadiusOverride" = true;
@@ -499,8 +499,8 @@
       "widgetOutlineOpacity" = 1;
       "widgetOutlineThickness" = 1;
       "widgetPadding" = 8;
-      "maximizeWidgetIcons" = true;
-      "maximizeWidgetText" = true;
+      "maximiseWidgetIcons" = true;
+      "maximiseWidgetText" = true;
       "fontScale" = 0.75;
       "iconScale" = 1;
       "autoHide" = true;
@@ -602,8 +602,8 @@
       "widgetOutlineOpacity" = 1;
       "widgetOutlineThickness" = 1;
       "widgetPadding" = 8;
-      "maximizeWidgetIcons" = true;
-      "maximizeWidgetText" = true;
+      "maximiseWidgetIcons" = true;
+      "maximiseWidgetText" = true;
       "fontScale" = 0.75;
       "iconScale" = 1;
       "autoHide" = true;
@@ -729,8 +729,8 @@
       "widgetOutlineOpacity" = 1;
       "widgetOutlineThickness" = 1;
       "widgetPadding" = 8;
-      "maximizeWidgetIcons" = true;
-      "maximizeWidgetText" = true;
+      "maximiseWidgetIcons" = true;
+      "maximiseWidgetText" = true;
       "fontScale" = 0.75;
       "iconScale" = 1;
       "autoHide" = false;

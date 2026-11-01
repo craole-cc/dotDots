@@ -92,7 +92,7 @@ run_variety() {
 }
 
 open_path() {
-  tool_opener=$(command -v xdg-open 2>/dev/null || :)
+  tool_opener=$(command -v xdg-open 2> /dev/null || :)
   need "$tool_opener" xdg-open
   exec "$tool_opener" "$1"
 }
@@ -458,7 +458,7 @@ stage_dms_wallpaper() {
 prune_dms_wallpapers() (
   resolve_tools ls awk rm
   [ -n "$tool_ls" ] && [ -n "$tool_awk" ] && [ -n "$tool_rm" ] || return 0
-  "$tool_ls" -1t -- "$cache_directory" 2>/dev/null \
+  "$tool_ls" -1t -- "$cache_directory" 2> /dev/null \
     | "$tool_awk" 'NR > 32' \
     | while IFS= read -r old_image; do
       "$tool_rm" -f -- "$cache_directory/$old_image"

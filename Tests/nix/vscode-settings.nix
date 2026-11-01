@@ -73,7 +73,7 @@
   disabledFeatures = lib.genAttrs ["ai" "app" "dev" "doc" "ui"] (_name: {enable = false;});
   disabledProfile = resolveProfile disabledFeatures;
   importedProfile = resolveProfileWithImports true {};
-  customCatppuccin = (pkgs.vscode-extensions.catppuccin.catppuccin-vsc).overrideAttrs (_previous: {
+  customCatppuccin = pkgs.vscode-extensions.catppuccin.catppuccin-vsc.overrideAttrs (_previous: {
     version = "99.0.0";
     __intentionallyOverridingVersion = true;
   });

@@ -17,7 +17,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use xmltree::{Element, EmitterConfig, XMLNode};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -339,7 +339,9 @@ fn apply_qt(directory: &Path, settings: &Value) -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?
         .join(", ");
-    let colours = format!("[ColorScheme]\nactive_colors={active}\ninactive_colors={active}\ndisabled_colors={disabled}\n");
+    let colours = format!(
+        "[ColorScheme]\nactive_colors={active}\ninactive_colors={active}\ndisabled_colors={disabled}\n"
+    );
     let palette_changed = write_file(&colour_path, colours.as_bytes(), false, false)?;
     let mut font_values = BTreeMap::new();
     for role in ["general", "fixed"] {
@@ -364,7 +366,7 @@ fn apply_qt(directory: &Path, settings: &Value) -> Result<()> {
                     colour_path.to_string_lossy().into_owned(),
                 ),
                 ("icon_theme", text(&settings["icons"][mode])?.to_owned()),
-                ("standard_dialogs", "default".to_owned()),
+                ("standard_dialogues", "default".to_owned()),
             ]),
         ),
         ("Fonts", font_values),

@@ -59,9 +59,9 @@
   inherit (_.lists.predicates) all;
   inherit (_.lists.transformation) uniqueStrings;
   inherit (_.modules.construction) mkForce;
+  inherit (_.sources.access) getExe';
   inherit (_.strings.construction) concat;
   inherit (_.strings.transformation) escapeShellArg;
-  inherit (_.sources.access) getExe';
   /**
     Build a NixOS configuration fragment for the Nix daemon and system state.
 
@@ -141,20 +141,18 @@
   };
 
   mkFetch = {
+    name ? "sysfo",
+    toolkit,
     pkgs,
     paths,
   }:
-    pkgs.writeShellApplication {
-      name = "fetch";
-      runtimeInputs = with pkgs; [
-        fastfetch
-        nitch
-        onefetch
-        tokei
-        git
-      ];
-      text = readFile (paths.store.lib.sh + "/data/fetch");
-    };
+    toolkit.write.binWith name (with pkgs; [
+      fastfetch
+      nitch
+      onefetch
+      tokei
+      git
+    ]) (readFile (paths.store.lib.sh + "/data/fetch"));
 
   /**
   Build a NixOS configuration fragment for automated Nix store maintenance.
@@ -183,6 +181,7 @@
   ```
   */
   mkMaintenance = {
+    toolkit,
     repo,
     pkgs,
     keep,
@@ -191,7 +190,10 @@
   }: let
     inherit (repo) name home;
     keepArgs = concat " " keep.args;
-    fetch = mkFetch {inherit pkgs paths;};
+    fetch = mkFetch {
+      inherit pkgs paths toolkit;
+      name = "fetch";
+    };
     fetchCommand = getExe' fetch "fetch";
   in {
     programs = {

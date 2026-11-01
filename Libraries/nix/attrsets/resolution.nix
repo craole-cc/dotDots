@@ -611,7 +611,7 @@
   Both fields are normalized to lowercase, which is the canonical form the
   extension catalogues (`pkgs.vscode-extensions`, `nix-vscode-extensions`'s
   `vscode-marketplace`) store them under. The marketplace itself is
-  case-insensitive, so this is a normalization step, not a rejection.
+  case-insensitive, so this is a normalisation step, not a rejection.
 
   # Type
   ```nix

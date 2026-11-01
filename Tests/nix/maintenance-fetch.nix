@@ -15,6 +15,8 @@
   paths.store.lib.sh = ../../Libraries/posix;
   maintenance = lix.modules.core.software.mkMaintenance {
     inherit pkgs paths;
+    toolkit.write.binWith = name: runtimeInputs: text:
+      pkgs.writeShellApplication {inherit name runtimeInputs text;};
     repo = {
       name = "dots";
       home = "/tmp/dots checkout";

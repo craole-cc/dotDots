@@ -112,7 +112,7 @@
 
       toolkit = hostArgs.${name}.sources.toolkit.mkToolkit {
         inherit inputs host;
-        pkgs = hostArgs.pkgs;
+        inherit (hostArgs) pkgs;
       };
 
       specialArgs = mergeSafe [
@@ -266,10 +266,21 @@
       system,
       pkgs,
       host ? null,
-    }:
+    }: let
+      toolkit = _.sources.toolkit.mkToolkit {
+        inherit inputs pkgs;
+        host =
+          if host == null
+          then {}
+          else host;
+      };
+    in
       import paths.repo.mod.global.store (
         passthru
-        // {inherit pkgs system;}
+        // {
+          inherit pkgs system toolkit;
+          ${name} = _ // {inherit toolkit;};
+        }
         // optionalAttrs (host != null) {
           inherit host;
           inherit (host) paths;

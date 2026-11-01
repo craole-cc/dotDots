@@ -150,7 +150,7 @@ in
     outputs = {
       environment.shellAliases =
         (mapAttrs (_name: command: mkOverride 1400 command) discovered)
-        // (mapAttrs (_name: command: mkForce command) (
+        // (mapAttrs (_name: mkForce) (
           commands.aliases
           // cfg.default
           // cfg.extra

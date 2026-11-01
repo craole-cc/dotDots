@@ -323,7 +323,7 @@
       BewareOf = true;
       #> Detects `be + verb` where `be + adjective` fits (`be worried`).
       BeWorried = true;
-      #> Normalizes `black list` / `white list` → compound.
+      #> Normalises `black list` / `white list` → compound.
       BlacklistWhitelist = true;
       #> Fixes common errors in `blanket statement`.
       BlanketStatement = true;
@@ -444,7 +444,7 @@
       ConstituteAs = true;
       #> Corrects `convenient store` → `convenience store`.
       ConvenientStore = true;
-      #> Corrects `copywrite` → `copyright`.
+      #> Corrects `copyright` → `copyright`.
       Copyright = true;
       #> Catches mismatched number suffixes (`2st`).
       CorrectNumberSuffix = true;
@@ -646,7 +646,7 @@
       ExpandStandardInputAndOutput = true;
       #> Expands `tho` → `though`.
       ExpandThough = true;
-      #> Expands `thru` → `through`.
+      #> Expands `through` → `through`.
       ExpandThrough = true;
       #> Expands `hr`/`min`/`sec`/etc.
       ExpandTimeShorthands = true;
@@ -806,8 +806,8 @@
       HavePronoun = true;
       #> Corrects `have a look` vs `take a look` by dialect.
       HaveTakeALook = true;
-      #> Hazzle collection.
-      Hazzle = true;
+      #> Hassle collection.
+      Hassle = true;
       #> Corrects `heart`/`herd` → `heard`.
       HeartToHeard = true;
       #> Flags hedging language.
@@ -1139,7 +1139,7 @@
       #> Capitalises month names.
       Months = true;
       #> Advises `momentous`/`monumental`.
-      Monumentous = true;
+      Monuments = true;
       #> Corrects `mute point` → `moot point`.
       MootPoint = true;
       #> Suggests inflected forms over `more + adjective`.
@@ -1336,7 +1336,7 @@
       PaleByComparison = true;
       #> Corrects `part of speeches` → `parts of speech`.
       PartsOfSpeech = true;
-      #> Corrects `passerbys` → `passersby`.
+      #> Corrects `passersby` → `passersby`.
       PassersBy = true;
       #> Corrects `passtionate of` → `passionate about`.
       PassionateAbout = true;
@@ -1789,7 +1789,7 @@
       #> Corrects `underneath of`.
       UnderneathOf = true;
       #> Organisation names must be proper nouns.
-      UnitedOrganizations = true;
+      UnitedOrganisations = true;
       #> Corrects `unless if`.
       Unless = true;
       #> Flags deprecated place names.

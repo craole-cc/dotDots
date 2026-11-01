@@ -53,7 +53,7 @@
       #> Arguments to pass to 'zig' for debugging tests. Supported variables: `${filter}`, `${path}`, `${binaryPath}`.
       #? To debug a test with a build script add a step that installs the test binary at `zig-out/bin/debug-unit-tests`:
       #? ```zig
-      #? b.step("debug-test-unit", "Debug unit tests").dependOn(&b.addInstallArtifact(unit_tests, .{ .dest_sub_path = "debug-unit-tests" }).step);
+      #? b.step("debug-test-unit", "Debug unit tests").dependOn(&b.addInstallArtefact(unit_tests, .{ .dest_sub_path = "debug-unit-tests" }).step);
       #? ```
       debugTestArgs = [
         "test"

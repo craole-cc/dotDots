@@ -281,14 +281,14 @@
                       options =
                         {
                           enable = mkEnable {
-                            description = entry.description;
+                            inherit (entry) description;
                             condition = entry.enable;
                           };
                         }
                         // entry.options;
                     };
                     default = {};
-                    description = entry.description;
+                    inherit (entry) description;
                   };
             })
             resolved.entries
