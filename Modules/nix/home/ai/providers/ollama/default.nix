@@ -19,11 +19,10 @@
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.content.emptiness) isNotEmpty;
   inherit (lix.lists.access) head tail;
-  inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.construction) optional asList;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter unique;
-  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.modules.construction) mkConfig mkContext ;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit) packages;
