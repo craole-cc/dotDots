@@ -348,14 +348,15 @@
 
   /**
   Wrap every leaf of an attrset in `mkOverride priority`, so layers of
-  different priority still merge key by key.
+  different priority still merge key by key. Derivations and string-coercible
+  records remain atomic leaves.
 
   # Type
   mkLayer :: int -> AttrSet -> AttrSet
   */
   mkLayer = priority:
     mapAttrsRecursiveCond
-    (value: !(value ? _type) && !(isDerivation value))
+    (value: !(value ? _type) && !(isDerivation value) && !(value ? outPath) && !(value ? __toString))
     (_path: value: mkOverride priority value);
 
   # Local baselines and resolutions use the explicit option shape. Baselines

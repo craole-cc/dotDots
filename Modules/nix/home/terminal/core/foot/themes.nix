@@ -1,15 +1,15 @@
 {
-  style,
-  lix,
-}: let
-  inherit (lix.modules.construction) mkForce;
-in {
+  opacity ? {
+    dark = 1.0;
+    light = 1.0;
+  },
+}: {
   # DMS writes the active light/dark palette here. The DMS module seeds a
   # Frappé-like fallback before Foot starts, then Matugen owns subsequent
   # updates. Foot always reads the generated palette as its active theme.
-  main.include = mkForce "~/.config/foot/dank-colors.ini";
-  colors-dark.alpha = style.opacity.terminal.dark;
-  colors-light.alpha = style.opacity.terminal.light;
+  main.include = "~/.config/foot/dank-colors.ini";
+  colors-dark.alpha = opacity.dark;
+  colors-light.alpha = opacity.light;
 
   cursor = {
     style = "beam";

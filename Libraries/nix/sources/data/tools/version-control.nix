@@ -4,8 +4,7 @@
   mergeDisjoint,
   mkSource,
   readFile,
-  concatPath,
-  paths,
+  mkPath,
   ...
 }: {
   git = let
@@ -14,11 +13,10 @@
         args = [
           "-c"
           "alias.project-${name}=!helper() {\n${readFile (
-            concatPath {
-              root = paths.lib.sh;
+            mkPath {
+              root = ["lib" "sh"];
               stem = ["project" "git" name];
             }
-            # (paths.lib.sh + "/project/git") + "/${name}"
           )}\n}; helper"
           "project-${name}"
         ];

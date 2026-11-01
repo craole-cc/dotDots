@@ -1,16 +1,20 @@
 {
   config,
+  options,
   lix,
   pkgs,
   style,
   user,
   ...
 }: let
+  inherit (lix.attrsets.aggregation) mergeSafe;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.strings.construction) optionalString;
-  inherit (lix.options.construction) mkEnable;
-  inherit (context) wantsDmsShell;
+  inherit (lix.modules.construction) mkConfig mkContext mkLayer mkMerge;
+  inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.lists.transformation) filter;
+  inherit (lix.toolkit) packages;
+  inherit (context) cfg;
+
   context = mkContext {
     inherit config;
     dom = "terminal";
@@ -18,35 +22,76 @@
     mod = "kitty";
   };
 
+  defaults = {
+    enable = false;
+    package = packages.kitty;
+    settings = mergeSafe [(import ./general.nix {})];
+    extraConfig = "";
+    home = {
+      packages = [];
+      sessionVariables = {};
+      shellAliases = {};
+    };
+  };
+
   resolved = userApplicationConfig {
     inherit context user pkgs;
-    extraProgramConfig = {
-      settings = {
-        background_opacity = style.opacity.terminal.dark;
-        dynamic_background_opacity = true;
-        copy_on_select = "clipboard";
-        confirm_os_window_close = 0;
-        remember_window_size = false;
-      };
-
-      # DMS owns the generated color files. Home Manager only includes them
-      # when DMS is the active shell; without DMS Kitty keeps its own defaults.
-      extraConfig = optionalString wantsDmsShell.condition ''
-        include dank-tabs.conf
-        include dank-theme.conf
-        include dotdots-opacity.conf
-      '';
-    };
   };
 in
   mkConfig {
-    inherit context;
+    inherit context defaults;
     options = {
       enable = mkEnable {
         inherit context;
-        condition = resolved.enable;
-        description = "Kitty Terminal Emulator";
+        condition = defaults.enable;
+      };
+      package = mkOption {
+        description = "Kitty package to install";
+        inherit (options.programs.kitty.package) type;
+        default = defaults.package;
+      };
+      settings = mkOption {
+        description = "Kitty configuration settings";
+        inherit (options.programs.kitty.settings) type;
+        default = defaults.settings;
+      };
+      extraConfig = mkOption {
+        description = "Additional Kitty configuration, including generated theme files";
+        inherit (options.programs.kitty.extraConfig) type;
+        default = defaults.extraConfig;
+      };
+      home = {
+        packages = mkOption {
+          description = "Additional packages installed alongside Kitty";
+          inherit (options.home.packages) type;
+          default = defaults.home.packages;
+        };
+        sessionVariables = mkOption {
+          description = "Session variables provided by Kitty";
+          inherit (options.home.sessionVariables) type;
+          default = defaults.home.sessionVariables;
+        };
+        shellAliases = mkOption {
+          description = "Shell aliases provided by Kitty";
+          inherit (options.home.shellAliases) type;
+          default = defaults.home.shellAliases;
+        };
       };
     };
-    outputs = {inherit (resolved) programs home;};
+    resolutions = mkMerge [
+      (mkLayer 1000 {
+        inherit (resolved) enable package;
+        settings = defaults.settings // {background_opacity = style.opacity.terminal.dark;};
+        home = {
+          packages = filter (package: package != resolved.package) (resolved.home.packages or []);
+          sessionVariables = resolved.home.sessionVariables or {};
+          shellAliases = resolved.home.shellAliases or {};
+        };
+      })
+      (import ./themes.nix {inherit context lix;})
+    ];
+    outputs = {
+      programs.kitty = {inherit (cfg) enable package settings extraConfig;};
+      inherit (cfg) home;
+    };
   }

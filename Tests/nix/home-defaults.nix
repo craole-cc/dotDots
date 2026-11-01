@@ -8,6 +8,7 @@
   testLix =
     lix
     // {
+      toolkit = (lix.toolkit or {}) // {packages.ghostty = package;};
       filesystem =
         lix.filesystem
         // {

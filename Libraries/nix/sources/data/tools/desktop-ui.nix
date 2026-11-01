@@ -48,7 +48,7 @@
   };
 
   ghostty = mkSource {
-    categories = ["desktop-ui"];
+    categories = ["desktop-ui" "terminal"];
     description = "GPU-accelerated terminal emulator";
     aliases = mkAliasFamily "ghostty" {
       ListFonts = {
@@ -64,20 +64,20 @@
   };
 
   kitty = mkSource {
-    categories = ["desktop-ui"];
+    categories = ["desktop-ui" "terminal"];
     description = "GPU-accelerated terminal emulator with graphics support";
   };
 
   foot = mkSource {
-    categories = ["desktop-ui"];
+    categories = ["desktop-ui" "terminal"];
     description = "lightweight Wayland terminal emulator";
   };
 
   warp-terminal = mkSource {
-    categories = ["desktop-ui"];
+    categories = ["desktop-ui" "terminal"];
     description = "Warp terminal emulator";
     input = "warp-terminal";
-    exe = "warp";
+    # exe = "warp";
   };
 
   nemo = mkSource {

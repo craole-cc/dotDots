@@ -1,4 +1,4 @@
-{
+_: {
   key-bindings = {
     #~@ Clipboard Operations
     clipboard-copy = "Control+Shift+c XF86Copy";

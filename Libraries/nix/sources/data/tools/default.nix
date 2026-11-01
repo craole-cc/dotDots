@@ -11,8 +11,18 @@
   inherit (_.attrsets.transformation) mapAttrs';
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.predicates) all elem;
+  inherit (_.filesystem.construction) concatPath;
   inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concat;
+
+  mkPath = {
+    root,
+    stem,
+  }:
+    concatPath {
+      root = foldl' (attrs: segment: attrs.${segment}) paths.store root;
+      inherit stem;
+    };
 
   mkAlias = command: {
     args ? [],
@@ -40,8 +50,8 @@
         (map (layer: layer.description or null) allLayers)
       );
     };
-  #? mkAliasFamily "chmod" {R = {...}; x = {...};} yields chmodR and chmodx.
 
+  #? mkAliasFamily "chmod" {R = {...}; x = {...};} yields chmodR and chmodx.
   mkAliasFamily = command: variants: let
     prefix = variants.aliasPrefix or command;
     specs = removeAttrs variants ["aliasPrefix"];
@@ -84,6 +94,7 @@
         "scripting"
         "shells"
         "system"
+        "terminal"
         "text"
         "version-control"
         "video"
@@ -97,9 +108,7 @@
       inherit (_.attrsets.transformation) mapAttrsToList;
       inherit (_.filesystem.access) readFile;
       inherit (_.strings.transformation) replaceStrings;
-      inherit (_.filesystem.construction) concatPath;
-      inherit mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
-      paths = paths.store;
+      inherit mkPath mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
     };
 in
   mergeDisjoint (map load (importAllPaths ./.).value)

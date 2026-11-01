@@ -1,10 +1,8 @@
-{lix, ...}: let
-  inherit (lix.modules.construction) mkDefault mkForce;
-in {
+_: {
   main = {
     app-id = "foot";
-    dpi-aware = mkForce "yes";
-    font = mkDefault "monospace:size=8";
+    dpi-aware = "yes";
+    font = "monospace:size=8";
     pad = "24x24";
     bold-text-in-bright = "yes";
 
