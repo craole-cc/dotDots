@@ -474,6 +474,211 @@
     };
   };
 
+  tmux = mkSource {
+    categories = ["terminal"];
+    description = "terminal multiplexer";
+    aliases = let
+      cmd = "tmux";
+      mk = alias: mkAlias cmd alias;
+
+      #? Builds the print / pager / search trio for any list-style command.
+      mkListTrio = {
+        args,
+        noun,
+        example,
+        filter ? [],
+      }: {
+        print = {
+          inherit args;
+          pipe = filter;
+          description = "print ${noun}";
+        };
+        page = {
+          inherit args;
+          pipe = filter ++ [["bat" "--style=numbers"]];
+          description = "browse ${noun} in the bat pager";
+        };
+        search = {
+          inherit args;
+          pipe = filter ++ [["rg" "-i"]];
+          description = "search ${noun}, e.g. ${example}";
+        };
+      };
+
+      keys = mkListTrio {
+        args = ["list-keys"];
+        noun = "tmux key bindings";
+        example = "tmux-keys-search split";
+      };
+      keyNotes = mkListTrio {
+        args = ["list-keys" "-N"];
+        noun = "described tmux key bindings";
+        example = "tmux-keynotes-search pane";
+      };
+      commands = mkListTrio {
+        args = ["list-commands"];
+        noun = "tmux commands";
+        example = "tmux-commands-search window";
+      };
+      options = mkListTrio {
+        args = ["show-options" "-g"];
+        noun = "global tmux options";
+        example = "tmux-options-search mouse";
+      };
+      windowOptions = mkListTrio {
+        args = ["show-window-options" "-g"];
+        noun = "global tmux window options";
+        example = "tmux-window-options-search mode";
+      };
+
+      Keys = keys.page;
+      KeysList = keys.print;
+      KeysSearch = keys.search;
+      KeyNotes = keyNotes.page;
+      KeyNotesList = keyNotes.print;
+      KeyNotesSearch = keyNotes.search;
+      Commands = commands.page;
+      CommandsList = commands.print;
+      CommandsSearch = commands.search;
+      Options = options.page;
+      OptionsList = options.print;
+      OptionsSearch = options.search;
+      WindowOptions = windowOptions.page;
+      WindowOptionsList = windowOptions.print;
+      WindowOptionsSearch = windowOptions.search;
+
+      NewSession = {
+        args = ["new-session" "-A" "-s"];
+        description = "attach to a named session, creating it if missing, e.g. tn main";
+      };
+      Attach = {
+        args = ["attach-session"];
+        description = "attach to the last session, or pass -t name";
+      };
+      KillSession = {
+        args = ["kill-session" "-t"];
+        description = "kill a session by name, e.g. tkill scratch";
+      };
+      KillServer = {
+        args = ["kill-server"];
+        description = "kill the tmux server and every session";
+      };
+      Sessions = {
+        args = ["list-sessions"];
+        description = "list sessions";
+      };
+      Windows = {
+        args = ["list-windows" "-a"];
+        description = "list windows across all sessions";
+      };
+      Panes = {
+        args = ["list-panes" "-a"];
+        description = "list panes across all sessions";
+      };
+      Clients = {
+        args = ["list-clients"];
+        description = "list attached clients";
+      };
+      Buffers = {
+        args = ["list-buffers"];
+        description = "list paste buffers";
+      };
+      ShowBuffer = {
+        args = ["show-buffer"];
+        description = "print the most recent paste buffer";
+      };
+      Environment = {
+        args = ["show-environment" "-g"];
+        description = "show the global tmux environment";
+      };
+      Capture = {
+        args = ["capture-pane" "-p" "-S" "-"];
+        description = "print the current pane's full scrollback to stdout";
+      };
+      Info = {
+        args = ["info"];
+        pipe = [["bat" "--style=numbers"]];
+        description = "show tmux server, terminal and feature info in the bat pager";
+      };
+      SourceFile = {
+        args = ["source-file"];
+        description = "load a config file into the running server, e.g. tsource ~/.config/tmux/tmux.conf";
+      };
+      DisplayMessage = {
+        args = ["display-message" "-p"];
+        description = "print a format string, e.g. tmux-fmt '#{session_name}'";
+      };
+    in
+      mergeDisjoint [
+        {
+          tmux-keys = mk Keys;
+          tmux-keys-print = mk KeysList;
+          tmux-keys-search = mk KeysSearch;
+
+          tmux-keynotes = mk KeyNotes;
+          tmux-keynotes-print = mk KeyNotesList;
+          tmux-keynotes-search = mk KeyNotesSearch;
+
+          tmux-commands = mk Commands;
+          tmux-commands-print = mk CommandsList;
+          tmux-commands-search = mk CommandsSearch;
+
+          tmux-options = mk Options;
+          tmux-options-print = mk OptionsList;
+          tmux-options-search = mk OptionsSearch;
+
+          tmux-window-options = mk WindowOptions;
+          tmux-window-options-print = mk WindowOptionsList;
+          tmux-window-options-search = mk WindowOptionsSearch;
+
+          tn = mk NewSession;
+          ta = mk Attach;
+          tkill = mk KillSession;
+          tls = mk Sessions;
+          tmux-windows = mk Windows;
+          tmux-panes = mk Panes;
+          tmux-capture = mk Capture;
+          tmux-info = mk Info;
+          tsource = mk SourceFile;
+          tmux-fmt = mk DisplayMessage;
+        }
+        (mkAliasFamily cmd {
+          inherit
+            Keys
+            KeysList
+            KeysSearch
+            KeyNotes
+            KeyNotesList
+            KeyNotesSearch
+            Commands
+            CommandsList
+            CommandsSearch
+            Options
+            OptionsList
+            OptionsSearch
+            WindowOptions
+            WindowOptionsList
+            WindowOptionsSearch
+            NewSession
+            Attach
+            KillSession
+            KillServer
+            Sessions
+            Windows
+            Panes
+            Clients
+            Buffers
+            ShowBuffer
+            Environment
+            Capture
+            Info
+            SourceFile
+            DisplayMessage
+            ;
+        })
+      ];
+  };
+
   variety = mkSource {
     categories = ["desktop-ui"];
     description = "wallpaper changer with scheduling and effects";

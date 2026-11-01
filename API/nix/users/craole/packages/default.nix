@@ -62,6 +62,7 @@ let
   extra = [
     "fastfetch"
     "imv"
+    "inkscape"
     # "obs-studio"
     "qimgv"
     "qbittorrent-enhanced"
@@ -75,7 +76,6 @@ let
     "mpv"
     "cmus"
     "playerctl"
-    # "lollypop"
   ];
 
   launcher = [
@@ -87,10 +87,10 @@ let
   ];
 
   terminal = [
+    "kitty"
     "ghostty"
     "foot"
     "warp-terminal"
-    "kitty"
   ];
 
   wallpaper = [
