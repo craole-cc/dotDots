@@ -1,14 +1,11 @@
 {
-  _,
-  h,
+  mkLayeredAlias,
+  mkAliasFamily,
+  mergeDisjoint,
+  mkSource,
+  mapAttrsToList,
   ...
-}: let
-  inherit (h) mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
-  inherit (_.attrsets.transformation) mapAttrsToList;
-  inherit (_.strings.construction) concat;
-  inherit (_.lists.transformation) filter;
-  inherit (_.lists.aggregation) concatMap;
-in {
+}: {
   bat = mkSource {
     categories = ["files" "scripting"];
     description = "cat with syntax highlighting";
@@ -104,23 +101,6 @@ in {
       };
 
       mkEza = mkLayeredAlias "eza" [cfg.default];
-      # #> Builds one alias from cfg.default plus any number of cfg layers.
-      # #? Args are concatenated in order (later flags win in eza);
-      # #? trailing args from every layer are appended last;
-      # #? descriptions are joined with ", ".
-      # mkLayered = layers:
-      #   mkAlias "eza" {
-      #     args =
-      #       concatMap (layer: layer.args or []) ([cfg.default] ++ layers)
-      #       ++ concatMap (layer: layer.trailing or []) layers;
-      #     description = concat ", " (
-      #       if layers == []
-      #       then [cfg.default.description]
-      #       else
-      #         filter (text: text != null)
-      #         (map (layer: layer.description or null) layers)
-      #     );
-      #   };
 
       #? name / namea / namep / namepa / nameap: the view with metadata, hidden files,
       #? plain output, or plain output including hidden files.

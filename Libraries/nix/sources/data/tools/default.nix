@@ -1,6 +1,6 @@
 {
   _,
-  src,
+  paths,
   ...
 }: let
   inherit (_.attrsets.access) attrNames;
@@ -93,10 +93,13 @@
 
   load = file:
     import file {
-      inherit _ src;
-      inherit mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
+      inherit _;
+      inherit (_.attrsets.transformation) mapAttrsToList;
       inherit (_.filesystem.access) readFile;
       inherit (_.strings.transformation) replaceStrings;
+      inherit (_.filesystem.construction) concatPath;
+      inherit mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
+      paths = paths.store;
     };
 in
   mergeDisjoint (map load (importAllPaths ./.).value)

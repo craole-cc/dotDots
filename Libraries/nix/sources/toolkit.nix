@@ -1,4 +1,8 @@
-{_, ...}: let
+{
+  _,
+  paths,
+  ...
+}: let
   meta = let
     doc = ''
       # Toolkit Sources
@@ -57,7 +61,7 @@
   };
 
   registry = let
-    tools = import ./data/tools {inherit _;};
+    tools = import ./data/tools {inherit _ paths;};
     describe = entries: {
       inherit entries;
       names = attrNames entries;
