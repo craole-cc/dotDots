@@ -247,12 +247,12 @@
       type = "github";
       flake = false;
     };
-    
+
     llmhop = {
       repo = "llmhop";
       owner = "mirkolenz";
       type = "github";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     rustOverlay = {
