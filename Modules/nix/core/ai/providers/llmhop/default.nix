@@ -167,7 +167,7 @@ in
 
       port = mkOption {
         type = port;
-        default = 8080;
+        default = 11435;
         example = 11111;
         description = "Port the llmhop router listens on.";
       };

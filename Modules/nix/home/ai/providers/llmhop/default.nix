@@ -251,7 +251,7 @@ in
 
       port = mkOption {
         type = port;
-        default = defaults.cfg.port or 8080;
+        default = defaults.cfg.port or 11435;
         example = 11111;
         description = "Port the llmhop router listens on.";
       };

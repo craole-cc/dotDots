@@ -2,6 +2,7 @@
   config,
   lix,
   top,
+  user,
   ...
 }: let
   dom = "ai";
@@ -17,6 +18,7 @@
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption mkStrOption mkTrue;
   inherit (lix.strings.construction) concat;
+  inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit) write;
   inherit (lix.types.combinators) attrsOf enum listOf submodule;
   inherit (lix.types.primitives) anything;
@@ -99,8 +101,7 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = true;
-        # condition = isIn [mod] (selectedPackages user);
+        condition = isIn [mod] (selectedPackages user);
       };
 
       extraModels = mkOption {

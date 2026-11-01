@@ -6,6 +6,8 @@ let
     "claude-code"
     "codex"
     "ollama"
+    "continue"
+    "llmhop"
   ];
 
   panel = [
