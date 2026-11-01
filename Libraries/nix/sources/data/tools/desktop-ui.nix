@@ -58,20 +58,120 @@
 
       cmd = "ghostty";
       mk = alias: mkAlias cmd alias;
-      FontsList = {
-        args = ["+list-fonts"];
-        pipe = [["awk" fontFilter]];
-        description = "print deduplicated ${cmd} fonts";
+
+      #? Builds the print / pager / search trio for any list-style action.
+      mkListTrio = {
+        action,
+        noun,
+        example,
+        filter ? [],
+      }: {
+        print = {
+          args = [action];
+          pipe = filter;
+          description = "print ${noun} known to ${cmd}";
+        };
+        page = {
+          args = [action];
+          pipe = filter ++ [["bat" "--style=numbers"]];
+          description = "browse ${noun} known to ${cmd} in the bat pager";
+        };
+        search = {
+          args = [action];
+          pipe = filter ++ [["rg" "-i"]];
+          description = "search ${noun} known to ${cmd}, e.g. ${example}";
+        };
       };
-      Fonts = {
-        args = ["+list-fonts"];
-        pipe = [["awk" fontFilter] ["bat" "--style=numbers"]];
-        description = "browse fonts available to ${cmd} in the bat pager";
+
+      fonts = mkListTrio {
+        action = "+list-fonts";
+        noun = "fonts";
+        example = "list-fonts-search nerd";
+        filter = [["awk" fontFilter]];
       };
-      FontsSearch = {
-        args = ["+list-fonts"];
-        pipe = [["awk" fontFilter] ["rg" "-i"]];
-        description = "search fonts available to ${cmd}, e.g. list-fonts-search nerd";
+      keybinds = mkListTrio {
+        action = "+list-keybinds";
+        noun = "keybinds";
+        example = "list-keybinds-search split";
+      };
+      themes = mkListTrio {
+        action = "+list-themes";
+        noun = "themes";
+        example = "list-themes-search catppuccin";
+      };
+      colors = mkListTrio {
+        action = "+list-colors";
+        noun = "named colors";
+        example = "list-colors-search blue";
+      };
+      actions = mkListTrio {
+        action = "+list-actions";
+        noun = "keybind actions";
+        example = "list-actions-search tab";
+      };
+
+      Fonts = fonts.page;
+      FontsList = fonts.print;
+      FontsSearch = fonts.search;
+      Keybinds = keybinds.page;
+      KeybindsList = keybinds.print;
+      KeybindsSearch = keybinds.search;
+      Themes = themes.page;
+      ThemesList = themes.print;
+      ThemesSearch = themes.search;
+      Colors = colors.page;
+      ColorsList = colors.print;
+      ColorsSearch = colors.search;
+      Actions = actions.page;
+      ActionsList = actions.print;
+      ActionsSearch = actions.search;
+
+      Version = {
+        args = ["+version"];
+        description = "show ghostty version and build info";
+      };
+      EditConfig = {
+        args = ["+edit-config"];
+        description = "open the ghostty config in $EDITOR";
+      };
+      ShowConfig = {
+        args = ["+show-config"];
+        pipe = [["bat" "--language=ini" "--style=numbers"]];
+        description = "show the effective ghostty config in the bat pager";
+      };
+      ShowConfigDefault = {
+        args = ["+show-config" "--default"];
+        pipe = [["bat" "--language=ini" "--style=numbers"]];
+        description = "show ghostty's default config in the bat pager";
+      };
+      ShowConfigDocs = {
+        args = ["+show-config" "--default" "--docs"];
+        pipe = [["bat" "--language=ini" "--style=numbers"]];
+        description = "show the default config with documentation comments";
+      };
+      ValidateConfig = {
+        args = ["+validate-config"];
+        description = "check the ghostty config for errors";
+      };
+      ShowFace = {
+        args = ["+show-face"];
+        description = "show which font face renders a codepoint";
+      };
+      SshCache = {
+        args = ["+ssh-cache"];
+        description = "manage the ghostty ssh terminfo cache";
+      };
+      CrashReport = {
+        args = ["+crash-report"];
+        description = "list or inspect ghostty crash reports";
+      };
+      NewWindow = {
+        args = ["+new-window"];
+        description = "open a new window in the running ghostty instance";
+      };
+      Boo = {
+        args = ["+boo"];
+        description = "ghostty easter egg animation";
       };
     in
       mergeDisjoint [
@@ -79,8 +179,60 @@
           list-fonts = mk Fonts;
           list-fonts-print = mk FontsList;
           list-fonts-search = mk FontsSearch;
+
+          list-keybinds = mk Keybinds;
+          list-keybinds-print = mk KeybindsList;
+          list-keybinds-search = mk KeybindsSearch;
+
+          list-themes = mk Themes;
+          list-themes-print = mk ThemesList;
+          list-themes-search = mk ThemesSearch;
+
+          list-colors = mk Colors;
+          list-colors-print = mk ColorsList;
+          list-colors-search = mk ColorsSearch;
+
+          list-actions = mk Actions;
+          list-actions-print = mk ActionsList;
+          list-actions-search = mk ActionsSearch;
+
+          ghostty-config = mk ShowConfig;
+          ghostty-config-default = mk ShowConfigDefault;
+          ghostty-config-docs = mk ShowConfigDocs;
+          ghostty-edit = mk EditConfig;
+          ghostty-validate = mk ValidateConfig;
+          ghostty-face = mk ShowFace;
         }
-        (mkAliasFamily cmd {inherit Fonts FontsList FontsSearch;})
+        (mkAliasFamily cmd {
+          inherit
+            Fonts
+            FontsList
+            FontsSearch
+            Keybinds
+            KeybindsList
+            KeybindsSearch
+            Themes
+            ThemesList
+            ThemesSearch
+            Colors
+            ColorsList
+            ColorsSearch
+            Actions
+            ActionsList
+            ActionsSearch
+            Version
+            EditConfig
+            ShowConfig
+            ShowConfigDefault
+            ShowConfigDocs
+            ValidateConfig
+            ShowFace
+            SshCache
+            CrashReport
+            NewWindow
+            Boo
+            ;
+        })
       ];
   };
 
@@ -198,13 +350,13 @@
     in
       mergeDisjoint [
         {
-          copy = mk Clipboard;
-          paste = mk ClipboardPaste;
-          copy-primary = mk ClipboardPrimary;
-          paste-primary = mk ClipboardPastePrimary;
-          clipboard-formats = mk ClipboardFormats;
-          paste-image = mk ClipboardSaveImage;
-          icat = mk Icat;
+          kcopy = mk Clipboard;
+          kpaste = mk ClipboardPaste;
+          kcopy-primary = mk ClipboardPrimary;
+          kpaste-primary = mk ClipboardPastePrimary;
+          kclipboard-formats = mk ClipboardFormats;
+          kpaste-image = mk ClipboardSaveImage;
+          kicat = mk Icat;
           kdiff = mk Diff;
           kssh = mk Ssh;
           kthemes = mk Themes;
