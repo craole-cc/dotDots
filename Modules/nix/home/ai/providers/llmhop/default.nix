@@ -292,7 +292,7 @@ in
     };
 
     outputs = {
-      systemd.user.services = mkIf cfg.enable (
+      systemd.user.services = mkIf (cfg.enable && !(osConfig.services.${mod}.enable or false)) (
         {llmhop = router;}
         // listToAttrs (
           map (name: nameValuePair "llama-cpp-${name}" (mkWorker name)) names
