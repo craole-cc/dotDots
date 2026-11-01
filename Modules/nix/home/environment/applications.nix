@@ -4,10 +4,14 @@
   lix,
   ...
 }: let
-  #! Verify every lix path below; names outside your original inherit list are guesses.
-  inherit (lix.attrsets.construction) optionalAttrs mergeAttrsList;
-  inherit (lix.attrsets.transformation) mapAttrs concatMapAttrs;
-  inherit (lix.filesystem.traversal) importAllPaths;
+  dom = "environment";
+  mod = "applications";
+  context = mkContext {inherit config dom mod;};
+
+  inherit (context) cfg;
+  inherit (lix.attrsets.aggregation) mergeAttrsList;
+  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.transformation) concatMapAttrs mapAttrs;
   inherit (lix.content.emptiness) isNotEmpty;
   inherit (lix.lists.access) elemAt head length;
   inherit (lix.lists.construction) concatLists optional;
@@ -16,11 +20,6 @@
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.combinators) attrsOf listOf nullOr submodule;
   inherit (lix.types.primitives) anything str;
-
-  dom = "environment";
-  mod = "applications";
-  context = mkContext {inherit config dom mod;};
-  inherit (context) cfg;
 
   #? exported variable name -> selection key
   selectionKeys = {
@@ -73,7 +72,7 @@
     };
   };
 in
-  (mkConfig {
+  mkConfig {
     inherit context;
     predicate = true;
     options = {
@@ -101,7 +100,4 @@ in
     outputs = {
       home.sessionVariables = mapAttrs (_name: mkDefault) cfg.variables;
     };
-  })
-  // {
-    imports = (importAllPaths ./.).value;
   }

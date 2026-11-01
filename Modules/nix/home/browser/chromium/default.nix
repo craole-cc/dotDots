@@ -22,11 +22,9 @@
 
   selections = user.packages.browser or ((lix.schema.packages.resolve {record = user;}).browser or []);
   supported = ["chromium" "brave" "google-chrome" "google-chrome-beta" "google-chrome-dev" "vivaldi" "microsoft-edge"];
-  browsers = filter (app: elem app.names.package supported) (map (value:
-    resolve {
-      inherit value;
-    })
-  selections);
+  browsers = filter (app: elem app.names.package supported) (
+    map (value: resolve {inherit value;}) selections
+  );
   enable = browsers != [];
 
   common = (import ./cli.nix) // (import ./extensions.nix);

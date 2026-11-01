@@ -41,10 +41,12 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable {
-      inherit context;
-      condition = resolved.enable;
-      description = "Kitty Terminal Emulator";
+    options = {
+      enable = mkEnable {
+        inherit context;
+        condition = resolved.enable;
+        description = "Kitty Terminal Emulator";
+      };
     };
     outputs = {inherit (resolved) programs home;};
   }
