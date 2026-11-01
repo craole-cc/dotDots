@@ -90,6 +90,30 @@ _: {
     family = "openai";
   };
 
+  continue = {
+    package.attribute = "vscode-extensions.continue.continue";
+    names = {
+      package = "continue";
+      title = "Continue";
+    };
+    categories = ["ai"];
+  };
+
+  llmhop = {
+    package = {
+      source = "llmhop";
+      attribute = "llmhop";
+    };
+    names = {
+      package = "llmhop";
+      command = "llmhop";
+      title = "llmhop";
+    };
+    exec = "llmhop";
+    needsTerminal = true;
+    categories = ["ai"];
+  };
+
   ollama = {
     names = {
       package = "ollama";

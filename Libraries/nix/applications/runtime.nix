@@ -23,6 +23,7 @@
   inherit (_.attrsets.access) attrByPath;
   inherit (_.attrsets.predicates) isAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.strings.construction) tokenize;
 
   /**
   Resolve executable command string for a given TTY wrapper.
@@ -67,14 +68,23 @@
     spec = app.package or {};
     source = spec.source or null;
     attribute = spec.attribute or app.names.package or null;
+    lookupPackage = packages:
+      if attribute == null
+      then null
+      else packages.${attribute} or (attrByPath (tokenize "." attribute) null packages);
     sourcePackages =
       if source != null && isAttrs (inputs.${source} or null)
       then attrByPath ["packages" system] {} inputs.${source}
       else {};
   in
     if sourcePackages != {}
-    then sourcePackages.${attribute} or (pkgs.${attribute} or null)
-    else pkgs.${attribute} or null;
+    then let
+      package = lookupPackage sourcePackages;
+    in
+      if package != null
+      then package
+      else lookupPackage pkgs
+    else lookupPackage pkgs;
 
   mkApps = {
     pkgs,
