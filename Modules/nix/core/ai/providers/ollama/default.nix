@@ -48,7 +48,7 @@
         "qwen3:4b-instruct"
         "qwen3:0.6b"
       ];
-      completion = [
+      autocomplete = [
         "qwen2.5-coder:1.5b-base-q4_K_M"
         "qwen2.5-coder:0.5b-base-q4_K_M"
       ];

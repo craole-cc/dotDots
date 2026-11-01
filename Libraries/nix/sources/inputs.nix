@@ -449,6 +449,14 @@
         ];
       };
 
+      llmhop = {
+        names = [
+          "ollama"
+          "sglang"
+          "llmhop"
+        ];
+      };
+
       hermes-agent = {
         names = [
           "hermes"

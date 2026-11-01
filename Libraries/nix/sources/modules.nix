@@ -17,12 +17,7 @@
 
   __exports = {
     internal = {
-      inherit
-        mkAll
-        mkOne
-        mkCore
-        mkHome
-        ;
+      inherit mkAll mkOne mkCore mkHome;
       mkModules = mkAll;
       mkModule = mkOne;
     };
@@ -84,6 +79,7 @@
           (dms-plugin-registry.nixosModules.default or {})
           (home-manager.nixosModules.home-manager or {})
           (stylix.nixosModules.stylix or {})
+          (llmhop.nixosModules.default or {})
         ]
       )
       ++ optionals (class == "darwin") [

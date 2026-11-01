@@ -1,137 +1,187 @@
 {
   config,
-  inputs,
-  system,
   lix,
-  user,
-  lib,
-  pkgs,
+  top,
   ...
 }: let
   dom = "ai";
   sub = "clients";
   mod = "continue";
-
-  inherit (lix.lists.predicates) isIn;
-  inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.modules.construction) mkConfig mkContext mkIf mkMerge;
-  inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.types.combinators) attrsOf listOf nullOr;
-  inherit (lix.types.primitives) anything package path str;
-  inherit (lib.hm.dag) entryAfter;
-  inherit (lix.strings.transformation) escapeShellArg;
-  inherit (lix.strings.construction) toJSON;
-  inherit (pkgs) writeText;
-  sh = with pkgs; {
-    rm = "${coreutils}/bin/rm";
-    mkdir = "${coreutils}/bin/mkdir";
-    install = "${coreutils}/bin/install";
-    dirname = "${coreutils}/bin/dirname";
-  };
-
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
+
+  inherit (lix.attrsets.construction) genAttrs optionalAttrs;
+  inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
+  inherit (lix.lists.access) elemAt;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.options.construction) mkEnable mkOption mkStrOption mkTrue;
+  inherit (lix.strings.access) match;
+  inherit (lix.strings.predicates) hasInfix;
+  inherit (lix.types.combinators) attrsOf enum listOf submodule;
+  inherit (lix.types.primitives) anything;
+  inherit (lix.toolkit) write;
+  getExtension = file: elemAt (match ".*\\.([^.]+)$" file) 0;
+
+  roleType = listOf (enum [
+    "chat"
+    "autocomplete"
+    "embed"
+    "rerank"
+    "edit"
+    "apply"
+    "summarize"
+  ]);
+  configTypes = ["yaml" "json"];
+
+  #? Single source of truth: the resolved Ollama provider config
+  ollama = optionalAttrs cfg.useOllama (
+    config.${top}.resolved.${dom}.providers.ollama.explicit or {}
+  );
+
+  defaults = {
+    config = let
+      mk = type: ".continue/config.${type}";
+    in
+      genAttrs configTypes mk
+      // {default = "yaml";};
+    host = ollama.host or "127.0.0.1";
+    port = toString (ollama.port or 11434);
+    apiBase = with defaults; "http://${host}:${port}";
+  };
+
+  # `role` is an Ollama-module role (same names as Continue's roles).
+  # The table maps it to every Continue role that model should fill.
+  # TODO: This looks weird
+  mkModel = role: model: let
+    roles =
+      {
+        chat = ["chat" "edit" "apply"];
+        autocomplete = ["autocomplete"];
+      }
+      .${
+        role
+      }
+      or (throw "continue: unsupported role '${role}'");
+  in
+    #? Validate values per a Continue model's `roles` (config.yaml schema v1)
+    assert roleType.check
+    roles; {
+      name =
+        if role == "autocomplete"
+        then "${model} (autocomplete)"
+        else model;
+      provider = "ollama";
+      inherit model roles;
+      inherit (defaults) apiBase;
+    };
+
+  derived = {
+    name = "Local";
+    version = "0.0.1";
+    schema = "v1";
+    models =
+      mapAttrsToList (role: model: mkModel role model.default) (
+        filterAttrs
+        (_: model: (model.default or null) != null)
+        (ollama.models or {})
+      )
+      ++ cfg.extraModels;
+  };
 in
   mkConfig {
     inherit context;
 
-    # Claude Desktop remains an application role. This module configures the
-    # distinct terminal agent, Claude Code, for one Home Manager user.
     options = {
       enable = mkEnable {
         inherit context;
-        condition = isIn ["claude-code" "claude"] (selectedPackages user);
+        condition = true;
+        # condition = isIn [mod] (selectedPackages user);
       };
 
-      package = mkOption {
-        type = package;
-        default = inputs.llm-agents.packages.${system}."claude-code";
-        description = "Claude Code package to expose in this user's profile.";
-      };
-
-      extraPackages = mkOption {
-        type = listOf package;
+      extraModels = mkOption {
+        description = ''
+          Extra model entries merged after any Ollama-derived models.
+          Use for embeddings, cloud providers, or a pure non-Ollama setup.
+          `roles` is required and validated against Continue's role list.
+        '';
+        example = [
+          {
+            name = "Nomic Embed";
+            provider = "ollama";
+            model = "nomic-embed-text";
+            roles = ["embed"];
+          }
+          {
+            name = "Claude Sonnet";
+            provider = "anthropic";
+            model = "claude-sonnet-4";
+            #? Prefer env / secrets. Do not put real keys in the store
+            roles = ["chat" "edit" "apply"];
+          }
+        ];
         default = [];
-        description = "Tools Claude Code should have available in this user's profile.";
+        type = listOf (submodule {
+          freeformType = attrsOf anything;
+          options.roles = mkOption {
+            description = "Roles this model fills in Continue.";
+            type = roleType;
+          };
+        });
       };
 
-      # This maps to ~/.claude/settings.json. It covers permissions, hooks,
-      # model/provider behaviour, and the native Claude Code env block.
-      settings = mkOption {
-        type = attrsOf anything;
-        default = {};
-        description = "Public Claude Code settings rendered as JSON.";
-      };
+      writeConfig = mkTrue ''
+        Write config to ${cfg.config.default}
+      '';
 
-      settingsFile = mkOption {
-        type = nullOr path;
-        default = null;
-        description = "Prewritten public settings.json; takes precedence over settings.";
-      };
+      useOllama = mkTrue ''
+        Include models from the Ollama module in the Continue config.
+        Disable to run Continue with only `extraModels` (cloud-only, etc.).
+      '';
 
-      # This maps to ~/.claude/CLAUDE.md, which Claude Code loads for every
-      # project. Per-project instructions remain owned by each project.
-      instructions = mkOption {
-        type = str;
-        default = "";
-        description = "User-wide Claude Code instructions rendered to ~/.claude/CLAUDE.md.";
-      };
+      config = let
+        mk = type:
+          mkStrOption {
+            description = "Path of the generated config.${type}, relative to $HOME.";
+            default = defaults.config.${type};
+          };
+      in
+        {
+          default = mkStrOption {
+            description = "Path of the generated Continue config.yaml, relative to $HOME.";
+            default = defaults.config.default;
+            apply = value:
+              if hasInfix "/" value
+              then value
+              else if value == "yaml" || value == "json"
+              then cfg.config.${value}
+              else throw "continue: unsupported config format '${value}'; expected 'yaml', 'json', or a path";
+          };
+        }
+        // genAttrs configTypes mk;
 
-      instructionsFile = mkOption {
-        type = nullOr path;
-        default = null;
-        description = "Prewritten user-wide CLAUDE.md; takes precedence over instructions.";
-      };
-
-      # Only non-secret values belong here. Authentication stays in Claude
-      # Code's credential store or an externally managed secret source.
-      environment = mkOption {
-        type = attrsOf str;
-        default = {};
-        description = "Non-secret environment variables for the user's Claude Code sessions.";
-      };
+      generated = let
+        ext = getExtension cfg.config.default;
+        mk = type:
+          mkOption {
+            description = "Preview of the config.${type} this module will write.";
+            readOnly = true;
+            default = write.${type} "continue-config.${type}" derived;
+            # type = attrsOf anything;
+          };
+      in
+        {
+          default = mkOption {
+            description = "Preview of the generated config selected by config.default.";
+            readOnly = true;
+            default = cfg.generated.${ext};
+          };
+        }
+        // genAttrs configTypes mk;
     };
 
-    outputs = mkMerge [
-      {
-        home = {
-          packages = [cfg.package] ++ cfg.extraPackages;
-          sessionVariables = cfg.environment;
-        };
-      }
-      (let
-        inherit (cfg) settingsFile settings;
-        source =
-          if settingsFile != null
-          then settingsFile
-          else writeText "claude-code-settings.json" (toJSON settings);
-        target = "$HOME/.claude/settings.json";
-      in
-        mkIf (settingsFile != null || settings != {}) {
-          home.activation.materializeClaudeCodeSettings = entryAfter ["linkGeneration"] ''
-            if [ -L "${target}" ]; then
-              ${sh.rm} -f "${target}"
-            fi
-            ${sh.mkdir} -p "$( ${sh.dirname} "${target}")"
-            ${sh.install} -m 0600 ${escapeShellArg source} "$target"
-          '';
-        })
-      (let
-        inherit (cfg) instructionsFile instructions;
-        source =
-          if instructionsFile != null
-          then instructionsFile
-          else writeText "claude-code-instructions.md" instructions;
-        target = "$HOME/.claude/CLAUDE.md";
-      in
-        mkIf (instructionsFile != null || instructions != "") {
-          home.activation.materializeClaudeCodeInstructions = entryAfter ["linkGeneration"] ''
-            if [ -L "${target}" ]; then
-              ${sh.rm} -f "${target}"
-            fi
-            ${sh.mkdir} -p "$( ${sh.dirname} "${target}")"
-            ${sh.install} -m 0644 ${escapeShellArg source} "${target}"
-          '';
-        })
-    ];
+    outputs = {
+      home.file.${cfg.config.default} = mkIf cfg.writeConfig {
+        source = cfg.generated.default;
+      };
+    };
   }
