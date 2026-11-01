@@ -61,17 +61,17 @@
       FontsList = {
         args = ["+list-fonts"];
         pipe = [["awk" fontFilter]];
-        description = "print deduplicated fonts";
+        description = "print deduplicated ${cmd} fonts";
       };
       Fonts = {
         args = ["+list-fonts"];
         pipe = [["awk" fontFilter] ["bat" "--style=numbers"]];
-        description = "browse fonts in the bat pager";
+        description = "browse fonts available to ${cmd} in the bat pager";
       };
       FontsSearch = {
         args = ["+list-fonts"];
         pipe = [["awk" fontFilter] ["rg" "-i"]];
-        description = "search fonts, e.g. list-fonts-search orb";
+        description = "search fonts available to ${cmd}, e.g. list-fonts-search nerd";
       };
     in
       mergeDisjoint [
