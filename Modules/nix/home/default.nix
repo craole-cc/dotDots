@@ -14,6 +14,7 @@
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.filesystem.traversal) importAllPaths;
+  inherit (lix.content.emptiness) isNotEmpty;
   inherit (lix.lists.access) elemAt last;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.construction) concatLists;
@@ -75,22 +76,19 @@
         foldl' (acc: entry: acc // entry) {} (
           imap0 (
             index: entry:
-              optionalAttrs ((entry.command or null) != null) (
+              optionalAttrs (isNotEmpty (entry.command or null)) (
                 let
-                  n = toString (index + 1);
+                  id = toString (index + 1);
                   base = {
-                    "${prefix}_${n}" = entry.command;
-                    "${prefix}_${n}_NAME" = entry.name;
+                    "${prefix}_${id}" = entry.command;
+                    "${prefix}_${id}_NAME" = entry.name;
                   };
-                  role =
-                    if index < 3
-                    then let
-                      suffix = elemAt roleSuffixes index;
-                    in {
-                      "${prefix}_${suffix}" = entry.command;
-                      "${prefix}_${suffix}_NAME" = entry.name;
-                    }
-                    else {};
+                  role = optionalAttrs (index < 3) (let
+                    suffix = elemAt roleSuffixes index;
+                  in {
+                    "${prefix}_${suffix}" = entry.command;
+                    "${prefix}_${suffix}_NAME" = entry.name;
+                  });
                 in
                   base // role
               )
