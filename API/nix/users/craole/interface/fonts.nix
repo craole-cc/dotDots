@@ -2,8 +2,8 @@
   fonts = let
     #~@ Constants
     size = {
-      text = 11;
-      symbol = 12;
+      text = 12;
+      symbol = 14;
       display = 96;
     };
 
