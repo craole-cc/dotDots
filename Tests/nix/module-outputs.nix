@@ -69,15 +69,15 @@
       ];
     };
   enabled = (evaluate true).config;
-  implicit = enabled._.resolved.test.merge.implicit;
+  derived = enabled._.resolved.test.merge.derived;
   disabled = (evaluate false).config;
 in
-  assert implicit.assertions == enabled.assertions;
-  assert map (entry: entry.message) implicit.assertions == ["First assertion" "Second assertion"];
-  assert !(elemAt implicit.assertions 1).assertion;
-  assert implicit.home.packages == enabled.home.packages;
-  assert implicit.home.packages == ["before" "first" "last"];
-  assert implicit.settings == enabled.settings;
-  assert implicit.settings.value == 2 && implicit.settings.forced == 42;
-  assert disabled._.resolved.test.merge.implicit == {};
+  assert derived.assertions == enabled.assertions;
+  assert map (entry: entry.message) derived.assertions == ["First assertion" "Second assertion"];
+  assert !(elemAt derived.assertions 1).assertion;
+  assert derived.home.packages == enabled.home.packages;
+  assert derived.home.packages == ["before" "first" "last"];
+  assert derived.settings == enabled.settings;
+  assert derived.settings.value == 2 && derived.settings.forced == 42;
+  assert disabled._.resolved.test.merge.derived == {};
   assert disabled.assertions == [] && disabled.home.packages == []; {passed = true;}

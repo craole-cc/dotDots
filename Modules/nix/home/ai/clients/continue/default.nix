@@ -50,7 +50,7 @@
   #? Providers the user asked for that are also enabled on this host
   enabled =
     filterAttrs
-    (name: provider: isIn [name] cfg.providers && (provider.explicit.enable or false))
+    (name: provider: isIn [name] cfg.providers && (provider.defined.enable or false))
     #? Single source of truth: the resolved provider configs
     config.${top}.resolved.${dom}.providers or {};
 

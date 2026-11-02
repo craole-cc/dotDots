@@ -1,5 +1,5 @@
 {lix, ...}: {
-  # _.resolved.ai.agents.ollama.explicit = {
+  # _.resolved.ai.agents.ollama.defined = {
   #   enable = true;
   #   package = lix.toolkit.packages.ollama-cpu;
   #   host = "127.0.0.1";

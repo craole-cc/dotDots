@@ -84,7 +84,7 @@
 
     dms = let
       name = "dms-shell";
-      ctx = context.resolved.cfg.interface.panels.${name}.explicit;
+      ctx = context.resolved.cfg.interface.panels.${name}.defined;
       condition = ctx.enable;
     in {
       inherit ctx condition;

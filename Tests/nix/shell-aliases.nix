@@ -40,7 +40,7 @@
                     extra.local = "local-extra";
                     extra.echo = "explicit-echo";
                   };
-                  resolved.cfg.system.nix.explicit.repo = {};
+                  resolved.cfg.system.nix.defined.repo = {};
                 };
                 mkConfig = specification: specification.outputs;
               };

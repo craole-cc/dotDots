@@ -83,7 +83,7 @@
                 default = {};
               };
             };
-            options._.resolved.example.explicit = {
+            options._.resolved.example.defined = {
               value = lib.mkOption {
                 type = lib.types.str;
                 default = "baseline";
@@ -103,7 +103,7 @@
                 default = ["one" "two"];
               };
             };
-            config._.resolved.example.explicit = {
+            config._.resolved.example.defined = {
               value = "selected";
               required = "provided";
               settings = {
@@ -117,7 +117,7 @@
           }
         ]
         ++ lib.optional (override != null) {
-          _.resolved.terminal.emulators.ghostty.explicit.enable = override;
+          _.resolved.terminal.emulators.ghostty.defined.enable = override;
         };
     };
   expectedChanges = {
@@ -137,7 +137,7 @@
     ((evaluate true null).extendModules {
       modules = [
         {
-          _.resolved.terminal.emulators.ghostty.explicit = {
+          _.resolved.terminal.emulators.ghostty.defined = {
             settings.font-size = 17;
             settings.keybind = lib.mkForce ["ctrl+q=quit"];
             home.sessionVariables.GHOSTTY_TEST = "configured";
@@ -162,8 +162,8 @@ in
   assert disabled._.defaults == enabled._.defaults;
   assert enabled._.defaults.example.value == "baseline";
   assert enabled._.defaults.example.nested.list == ["one" "two"];
-  assert enabled._.resolved.example.explicit.value == "selected";
-  assert !(enabled._.defaults.terminal.emulators.ghostty ? explicit);
+  assert enabled._.resolved.example.defined.value == "selected";
+  assert !(enabled._.defaults.terminal.emulators.ghostty ? defined);
   assert enabled._.updates
   == {
     example = expectedChanges;
@@ -191,4 +191,4 @@ in
   assert enabled.programs.ghostty.enable;
   assert !disabled.programs.ghostty.enable;
   assert !overridden.programs.ghostty.enable;
-  assert overridden._.resolved.terminal.emulators.ghostty.explicit.enable == false; {passed = true;}
+  assert overridden._.resolved.terminal.emulators.ghostty.defined.enable == false; {passed = true;}

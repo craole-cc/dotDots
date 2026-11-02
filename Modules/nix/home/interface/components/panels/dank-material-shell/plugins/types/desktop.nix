@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  hyprland = config._.resolved.interface.managers.hyprland.explicit.enable or false;
+  hyprland = config._.resolved.interface.managers.hyprland.defined.enable or false;
 in {
   plugins = {
     dankClight.enable = true;

@@ -146,19 +146,19 @@
         {
           _.resolved.interface.panel = "dms-shell";
           _.resolved.terminal.emulators = {
-            kitty.explicit = {
+            kitty.defined = {
               package = fixturePackage "custom-kitty";
               settings.copy_on_select = "primary";
               home.sessionVariables.KITTY_TEST = "configured";
             };
-            foot.explicit = {
+            foot.defined = {
               package = fixturePackage "custom-foot";
               settings.main.font = "custom:size=12";
               server.enable = false;
               extraPackages = [(fixturePackage "foot-extra")];
               home.shellAliases.ft = "feet";
             };
-            warp-terminal.explicit = {
+            warp-terminal.defined = {
               package = fixturePackage "custom-warp";
               enableAlias = false;
             };
@@ -168,7 +168,7 @@
     }).config;
   aliases =
     (enabledEvaluation.extendModules {
-      modules = [{_.resolved.terminal.emulators.warp-terminal.explicit.package = fixturePackage "custom-warp";}];
+      modules = [{_.resolved.terminal.emulators.warp-terminal.defined.package = fixturePackage "custom-warp";}];
     }).config;
 in
   assert enabled._.defaults.terminal == disabled._.defaults.terminal;
@@ -176,7 +176,7 @@ in
   assert !disabled.programs.kitty.enable && !disabled.programs.foot.enable;
   assert disabled.home.packages == [];
   assert enabled.programs.foot.server.enable;
-  assert lib.length enabled._.resolved.terminal.emulators.foot.explicit.home.packages == 5;
+  assert lib.length enabled._.resolved.terminal.emulators.foot.defined.home.packages == 5;
   assert enabled._.defaults.terminal.emulators.foot.settings.main.font == "monospace:size=8";
   assert customised.programs.kitty.package.name == "custom-kitty";
   assert customised.programs.kitty.settings.copy_on_select == "primary";
@@ -191,10 +191,10 @@ in
   assert customised.home.shellAliases.ft == "feet";
   assert lib.elem (fixturePackage "foot-extra") customised.home.packages;
   assert lib.elem (fixturePackage "custom-warp") customised.home.packages;
-  assert customised._.resolved.terminal.emulators.warp-terminal.explicit.alias == null;
-  assert customised._.resolved.terminal.emulators.warp-terminal.implicit.home.packages == [(fixturePackage "custom-warp")];
-  assert aliases._.resolved.terminal.emulators.warp-terminal.explicit.alias.target.name == "custom-warp";
-  assert !(enabled._.resolved.terminal.emulators.warp-terminal.explicit.pkg ? exeOf);
+  assert customised._.resolved.terminal.emulators.warp-terminal.defined.alias == null;
+  assert customised._.resolved.terminal.emulators.warp-terminal.derived.home.packages == [(fixturePackage "custom-warp")];
+  assert aliases._.resolved.terminal.emulators.warp-terminal.defined.alias.target.name == "custom-warp";
+  assert !(enabled._.resolved.terminal.emulators.warp-terminal.defined.pkg ? exeOf);
   assert customised._.updates.terminal.emulators.kitty.settings.copy_on_select == "primary";
   assert customised._.defaults.terminal.emulators.kitty.settings.copy_on_select == "clipboard";
   assert customised._.updates.terminal.emulators.foot.settings.main.font == "custom:size=12"; {passed = true;}

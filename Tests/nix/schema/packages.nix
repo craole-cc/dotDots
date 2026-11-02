@@ -438,7 +438,7 @@
               bar = [];
             };
           };
-        }).options._.resolved.environment.variables.explicit.default.default;
+        }).options._.resolved.environment.variables.defined.default.default;
       expected = {
         DOTS = "/tmp/package-schema";
         VISUAL = "code";
@@ -470,7 +470,7 @@
           config = {};
           pkgs = {};
           host.users.data.primary.packages.ai-agent = agentNames;
-        }).options._.resolved.ai.agents.ollama.explicit.enable.default;
+        }).options._.resolved.ai.agents.ollama.defined.enable.default;
       expected = true;
     };
     testUnselectedOllamaStaysDisabled = {
@@ -480,7 +480,7 @@
           config = {};
           pkgs = {};
           host.users.data.primary.packages.ai-agent = ["codex"];
-        }).options._.resolved.ai.agents.ollama.explicit.enable.default;
+        }).options._.resolved.ai.agents.ollama.defined.enable.default;
       expected = false;
     };
     testHermesEnabledAtFifthPosition = {
@@ -489,7 +489,7 @@
           inherit lix;
           config = {};
           host.users.data.primary.packages.ai-agent = ["one" "two" "three" "four" "hermes-desktop"];
-        }).options._.resolved.ai.agents.hermes-agent.explicit.enable.default;
+        }).options._.resolved.ai.agents.hermes-agent.defined.enable.default;
       expected = true;
     };
     testChatgptEnabledAtSixthPosition = {
@@ -501,7 +501,7 @@
       expected = false;
     };
     testZenEnabledAtSixthPosition = {
-      expr = (zenModule zenUser).options._.resolved.browser.zen.explicit.enable.default;
+      expr = (zenModule zenUser).options._.resolved.browser.zen.defined.enable.default;
       expected = true;
     };
     testEmptyBrowserSelectionDisablesZen = {
@@ -509,7 +509,7 @@
         (zenModule {
           name = "demo";
           packages.browser = [];
-        }).options._.resolved.browser.zen.explicit.enable.default;
+        }).options._.resolved.browser.zen.defined.enable.default;
       expected = false;
     };
     testSixthBrowserImportsZenModule = {

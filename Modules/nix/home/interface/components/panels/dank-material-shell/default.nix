@@ -15,7 +15,7 @@
     mod = "dms-shell";
   };
   inherit (context) cfg ctx;
-  quickshell = context.resolved.cfg.interface.panels.quickshell.explicit;
+  quickshell = context.resolved.cfg.interface.panels.quickshell.defined;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;

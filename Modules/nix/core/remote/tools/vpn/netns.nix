@@ -15,8 +15,8 @@
   };
 
   vpnRoot = config.${context.top}.resolved.remote.tools;
-  openvpnEnabled = vpnRoot.vpn-openvpn.explicit.enable or false;
-  # wireguardEnabled = vpnRoot.vpn-wireguard.explicit.enable or false;
+  openvpnEnabled = vpnRoot.vpn-openvpn.defined.enable or false;
+  # wireguardEnabled = vpnRoot.vpn-wireguard.defined.enable or false;
   anyBackendEnabled = openvpnEnabled; # || wireguardEnabled;
 in
   mkConfig {

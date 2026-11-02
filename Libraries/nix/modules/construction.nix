@@ -84,8 +84,8 @@
   inherit (_.types.predicates) isAttrs isList;
   inherit (_.types.primitives) anything;
 
-  implicitValueType = mkOptionType {
-    name = "implicit module output";
+  derivedValueType = mkOptionType {
+    name = "derived module output";
     description = "recursively merged module output with concatenated lists";
     check = _value: true;
     merge = location: definitions: let
@@ -98,7 +98,7 @@
         && !(value ? __toString);
     in
       if all isPlainAttrs values
-      then (attrsOf implicitValueType).merge location definitions
+      then (attrsOf derivedValueType).merge location definitions
       else if all isList values
       then (listOf anything).merge location definitions
       else anything.merge location definitions;
@@ -380,7 +380,7 @@
     (value: !(value ? _type) && !(isDerivation value) && !(value ? outPath) && !(value ? __toString))
     (_path: value: mkOverride priority value);
 
-  # Local baselines and resolutions use the explicit option shape. Baselines
+  # Local baselines and resolutions use the defined option shape. Baselines
   # are exported even when disabled; resolutions are applied before gating
   # outputs so they can determine whether the module is enabled.
   mkConfig = {
@@ -399,18 +399,18 @@
     resolved = mkIf condition outputs;
   in {
     options = setAttrByPath path {
-      explicit = options;
-      implicit = mkOption {
+      defined = options;
+      derived = mkOption {
         description = "Effective module outputs, preserving list contributions and module priorities";
-        type = attrsOf implicitValueType;
+        type = attrsOf derivedValueType;
         default = {};
       };
     };
     config = mkMerge [
       resolved
       {${top}.outputs = resolved;}
-      (setAttrByPath (path ++ ["implicit"]) resolved)
-      (setAttrByPath (path ++ ["explicit"]) resolutions)
+      (setAttrByPath (path ++ ["derived"]) resolved)
+      (setAttrByPath (path ++ ["defined"]) resolutions)
       (optionalAttrs (defaults != {}) (
         setAttrByPath ([top "defaults"] ++ tail (tail path)) defaults
       ))
@@ -435,7 +435,7 @@
         [top "resolved" dom]
         ++ (optionals (sub != null) [sub])
         ++ [mod];
-      cfg = (getAttrFromPath path config).explicit;
+      cfg = (getAttrFromPath path config).defined;
     };
 
     resolved = rec {

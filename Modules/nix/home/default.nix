@@ -16,8 +16,8 @@
   inherit (lix.filesystem.traversal) importAllPaths;
 
   declaredDefaults = declarations:
-    if declarations ? explicit
-    then declaredDefaults declarations.explicit
+    if declarations ? defined
+    then declaredDefaults declarations.defined
     else
       mapAttrs
       (_name: declaration:
@@ -27,20 +27,20 @@
       (filterAttrs
         (name: declaration:
           name
-          != "implicit"
+          != "derived"
           && ((declaration._type or null) != "option" || declaration ? default))
         declarations);
 
   resolvedInputs = declarations: values:
-    if declarations ? explicit
-    then values.explicit
+    if declarations ? defined
+    then values.defined
     else
       mapAttrs
       (name: declaration:
         if (declaration._type or null) == "option"
         then values.${name}
         else resolvedInputs declaration values.${name})
-      (filterAttrs (name: _declaration: name != "implicit") declarations);
+      (filterAttrs (name: _declaration: name != "derived") declarations);
 
   isPlainAttrs = value: isAttrs value && !(value ? _type) && !(isDerivation value);
 
@@ -66,7 +66,7 @@ in {
   };
   options.${top} = {
     defaults = mkOption {
-      description = "Declared dotDots input defaults without explicit or implicit wrappers, with local baselines taking precedence";
+      description = "Declared dotDots input defaults without defined or derived wrappers, with local baselines taking precedence";
       default = {};
       type = anything;
     };

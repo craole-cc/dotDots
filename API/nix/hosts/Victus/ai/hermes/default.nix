@@ -13,7 +13,7 @@
   localModel = {
     provider = "ollama";
     default =
-      osConfig._.resolved.ai.agents.ollama.explicit.models.chat.default or (
+      osConfig._.resolved.ai.agents.ollama.defined.models.chat.default or (
         # TODO: This needs to be resolved the same way we did the osConfig one. We need a real ollama home-manager config
         host.ai.ollama.models.chat.default or null
       );
@@ -77,7 +77,7 @@
     recursiveUpdate {
       bot.enable = true;
       # Runtime string paths seed writable auth files; credentials never enter Nix.
-      auth.file = "${config._.resolved.ai.agents.hermes-agent.explicit.home.path}/auth.json";
+      auth.file = "${config._.resolved.ai.agents.hermes-agent.defined.home.path}/auth.json";
       settings = {
         inherit memory;
         model = cloudModel;
@@ -86,7 +86,7 @@
     profile)
   team;
 in {
-  _.resolved.ai.agents.hermes-agent.explicit = {
+  _.resolved.ai.agents.hermes-agent.defined = {
     enable = true;
     desktop.enable = true;
     gateway.enable = true;

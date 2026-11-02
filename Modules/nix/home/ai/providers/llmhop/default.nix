@@ -34,7 +34,7 @@
   #? Precedence: user schema -> system resolved -> host schema
   sources = {
     user = user.ai.${mod} or {};
-    sys = osConfig.${top}.resolved.${dom}.${sub}.${mod}.explicit or {};
+    sys = osConfig.${top}.resolved.${dom}.${sub}.${mod}.defined or {};
     host = host.ai.${mod} or {};
   };
 

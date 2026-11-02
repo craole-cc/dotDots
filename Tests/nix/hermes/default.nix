@@ -47,7 +47,7 @@
               homeDirectory = "/tmp/hermes-module-check";
               stateVersion = "26.05";
             };
-            _.resolved.ai.agents.hermes-agent.explicit = extra;
+            _.resolved.ai.agents.hermes-agent.defined = extra;
           };
         })
       ];
@@ -160,7 +160,7 @@
   withChange = change: lix.attrsets.aggregation.recursiveUpdate declaration change;
   bots = import ../../../Modules/nix/home/ai/agents/hermes/bots {
     lix = lix // {toolkit.write.bin = name: text: {inherit name text;};};
-    cfg = team._.resolved.ai.agents.hermes-agent.explicit;
+    cfg = team._.resolved.ai.agents.hermes-agent.defined;
     runtime.binaries.hermesProfile = "/test/hermes --profile";
   };
 in
@@ -177,13 +177,13 @@ in
     profiles = lix.attrsets.transformation.mapAttrs (name: profile: {
       inherit (profile) settings;
       metadata = bots.metadata name profile;
-    }) (lix.attrsets.transformation.filterAttrs (_name: profile: profile.enable) team._.resolved.ai.agents.hermes-agent.explicit.profiles);
+    }) (lix.attrsets.transformation.filterAttrs (_name: profile: profile.enable) team._.resolved.ai.agents.hermes-agent.defined.profiles);
   }
   else {
     flatOptions =
-      !(baseline._.resolved.ai.agents.hermes-agent.explicit ? services)
-      && baseline._.resolved.ai.agents.hermes-agent.explicit.package == toolkit.packages.hermes;
-    flatGateway = baseline._.resolved.ai.agents.hermes-agent.explicit.gateway.enable;
+      !(baseline._.resolved.ai.agents.hermes-agent.defined ? services)
+      && baseline._.resolved.ai.agents.hermes-agent.defined.package == toolkit.packages.hermes;
+    flatGateway = baseline._.resolved.ai.agents.hermes-agent.defined.gateway.enable;
     groupedHome =
       grouped.services.hermes-agent.hermesHome
       == "/tmp/grouped-hermes"
@@ -206,13 +206,13 @@ in
     groupedConfig =
       fileConfigured.services.hermes-agent.configFile
       == configuration
-      && baseline._.resolved.ai.agents.hermes-agent.explicit.config.file == null;
+      && baseline._.resolved.ai.agents.hermes-agent.defined.config.file == null;
     profileEnvironment =
       hasInfix "/run/secrets/worker.env" grouped.home.activation.hermesProfiles.data
-      && !(grouped._.resolved.ai.agents.hermes-agent.explicit.profiles.worker ? environmentFiles);
+      && !(grouped._.resolved.ai.agents.hermes-agent.defined.profiles.worker ? environmentFiles);
     groupedBackend = grouped.services.hermes-agent.backend.extraArgs == ["--no-browser"];
     restartDefaults =
-      baseline._.resolved.ai.agents.hermes-agent.explicit.restart
+      baseline._.resolved.ai.agents.hermes-agent.defined.restart
       == {
         when = "always";
         seconds = 5;
@@ -226,7 +226,7 @@ in
       && hasInfix "/run/secrets/worker-auth.json" grouped.home.activation.hermesProfiles.data
       && failures grouped == [];
     groupedNames = let
-      cfg = grouped._.resolved.ai.agents.hermes-agent.explicit;
+      cfg = grouped._.resolved.ai.agents.hermes-agent.defined;
     in
       !(cfg ? hermesHome)
       && !(cfg ? hermesHomeFiles)
@@ -272,7 +272,7 @@ in
       && serviceOverride.programs.hermes-agent.package == toolkit.hermes.effectivePackage serviceOverride.services.hermes-agent;
     desktopOverride = desktopOverride.programs.hermes-agent.desktop.package == desktopPackage;
     unifiedPrograms = let
-      cfg = baseline._.resolved.ai.agents.hermes-agent.explicit;
+      cfg = baseline._.resolved.ai.agents.hermes-agent.defined;
     in
       !(cfg ? programs)
       && !(baseline._.defaults.ai.agents.hermes-agent ? programs)

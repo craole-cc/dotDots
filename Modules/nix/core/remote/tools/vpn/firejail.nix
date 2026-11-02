@@ -16,7 +16,7 @@
   };
 
   vpnRoot = config.${context.top}.resolved.remote.tools;
-  apps = vpnRoot.vpn-openvpn.explicit.apps or [];
+  apps = vpnRoot.vpn-openvpn.defined.apps or [];
 
   mkWrapped = app: {
     name = app;

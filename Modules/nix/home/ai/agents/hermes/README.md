@@ -53,7 +53,7 @@ using a local model.
 
 ```nix
 {
-  _.resolved.ai.agents.hermes-agent.explicit = {
+  _.resolved.ai.agents.hermes-agent.defined = {
     profiles = {
       receptionist = {
         description = "Collect requirements and hand work to the planner.";
