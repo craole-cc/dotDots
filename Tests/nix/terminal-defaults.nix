@@ -65,7 +65,7 @@
                 exeOf = executable: "${package.outPath}/bin/${executable}";
                 description = "Fixture package";
                 paths = {
-                  outPath = package.outPath;
+                  inherit (package) outPath;
                   executable = "${package.outPath}/bin/warp";
                 };
                 alias =

@@ -10,25 +10,24 @@
   dom = "ai";
   sub = "agents";
   mod = "hermes-agent";
+  context = mkContext {inherit config dom sub mod;};
 
-  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
+  inherit (context) cfg;
   inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.schema.packages) selectedPackages;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkLayer mkDefault;
   inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.schema.packages) selectedPackages;
+  inherit (lix.toolkit) packages;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) anything str;
-  inherit (lix.toolkit) packages;
-
-  context = mkContext {inherit config dom sub mod;};
-  inherit (context) cfg;
 
   common = lix.toolkit.hermes;
   runtime = common.forConfig config.services.hermes-agent;
-  interface = import ./interface.nix {inherit lix;};
+  interface = import ./interface {inherit lix;};
   upstreamOptions = common.sharedOptions {
     defaultPackage = packages.hermes;
     defaultPackageText = "lix.toolkit.packages.hermes";

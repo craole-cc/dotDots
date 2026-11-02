@@ -90,7 +90,7 @@
         quake
       ]
       ++ cfg.extraPackages;
-    debug = cfg.debug;
+    inherit (cfg) debug;
   };
 
   defaults = {

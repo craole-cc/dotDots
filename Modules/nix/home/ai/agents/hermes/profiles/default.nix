@@ -31,20 +31,7 @@
     defaultWorkingDirectory = service.workingDirectory;
     defaultWorkingDirectoryText = "services.hermes-agent.workingDirectory";
   };
-  profileOptions = {
-    inherit
-      (upstreamOptions)
-      settings
-      environment
-      environmentFiles
-      authFile
-      authFileForceOverwrite
-      documents
-      hermesHomeFiles
-      mcpServers
-      extraPlugins
-      ;
-  };
+  profileOptions = {inherit (upstreamOptions) settings environment environmentFiles authFile authFileForceOverwrite documents hermesHomeFiles mcpServers extraPlugins;};
   inherit
     ((common.mkConfigFiles {
       inherit pkgs;

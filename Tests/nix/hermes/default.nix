@@ -13,7 +13,7 @@
   };
   toolkit = lix.sources.toolkit.mkToolkit {
     inherit pkgs;
-    inputs = lix.sources.inputs.normalize {inputs = flake.inputs;};
+    inputs = lix.sources.inputs.normalize {inherit (flake) inputs;};
   };
   toolkitAliases = lix.sources.toolkit.mkAliases {
     binaries.hermes = toolkit.records.hermes.paths.executable;

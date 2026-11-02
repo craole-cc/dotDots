@@ -8,7 +8,7 @@
     package = packages.hermes;
     workingDirectory = config.home.homeDirectory;
     config.file = null;
-    settings = import ./settings.nix {};
+    settings = import ./settings {};
     documents = {};
     mcpServers = {};
     home = {

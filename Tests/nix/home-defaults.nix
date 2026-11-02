@@ -1,5 +1,5 @@
 {lix ? (import ../.. {}).libraries.default}: let
-  lib = lix.lib;
+  inherit (lix) lib;
   package = {
     type = "derivation";
     name = "ghostty-fixture";

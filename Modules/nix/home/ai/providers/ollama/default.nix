@@ -22,7 +22,7 @@
   inherit (lix.lists.construction) optional asList;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) filter unique;
-  inherit (lix.modules.construction) mkConfig mkContext ;
+  inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit) packages;

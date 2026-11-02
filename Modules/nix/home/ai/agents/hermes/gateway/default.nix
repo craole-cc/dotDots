@@ -2,7 +2,6 @@
   cfg,
   config,
   lix,
-  pkgs,
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
@@ -10,7 +9,7 @@
   inherit (lix.lists.predicates) all;
   inherit (lix.modules.construction) mkIf;
   inherit (lix.options.construction) mkOption;
-  inherit (lix.strings.construction) toJSON;
+  inherit (lix.toolkit) platform write;
   inherit (lix.strings.transformation) trim;
   inherit (lix.types.combinators) listOf nullOr submodule;
   inherit (lix.types.primitives) bool str;
@@ -69,12 +68,12 @@ in {
   outputs = {
     systemd.user.services.hermes-agent.Unit.X-Restart-Triggers =
       mkIf
-      (pkgs.stdenv.hostPlatform.isLinux && cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable)
+      (platform.isLinux && cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable)
       [
-        (pkgs.writeText "hermes-team.json" (toJSON {
+        (write.json "hermes-team.json" {
           inherit (cfg) profiles;
           inherit (config.services.hermes-agent) settings;
-        }))
+        })
       ];
 
     assertions = [
@@ -88,9 +87,15 @@ in {
       }
       {
         assertion = all (route:
-          trim route.platform
-          != ""
-          && all (value: value == null || trim value != "") [route.bot_profile route.user_id route.guild_id route.chat_id route.thread_id])
+          (trim route.platform != "")
+          && all (value: value == null || trim value != "")
+          (with route; [
+            bot_profile
+            user_id
+            guild_id
+            chat_id
+            thread_id
+          ]))
         cfg.gateway.routes;
         message = "Hermes gateway route platforms and supplied identifiers must not be empty.";
       }

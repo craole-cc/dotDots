@@ -2,7 +2,7 @@
   inherit (lix.attrsets.access) attrNames getAttrFromPath;
   inherit (lix.attrsets.aggregation) intersectAttrs mergeSafe;
   inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList removeAttrs setAttrByPath;
+  inherit (lix.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList setAttrByPath;
   inherit (lix.strings.transformation) replaceStrings;
 
   names = {
@@ -49,18 +49,26 @@ in {
           else declaration)
         (plain upstream))
       ]
-      ++ mapAttrsToList (name: path: setAttrByPath path (describe upstream.${name})) (selected upstream)
+      ++ mapAttrsToList
+      (name: path: setAttrByPath path (describe upstream.${name}))
+      (selected upstream)
       ++ [
         (optionalAttrs (upstream ? backend) {
-          backend = (removeAttrs upstream.backend ["extraArgs"]) // {extra.args = describe upstream.backend.extraArgs;};
+          backend =
+            (removeAttrs upstream.backend ["extraArgs"])
+            // {extra.args = describe upstream.backend.extraArgs;};
         })
       ]
     );
 
   config = upstream: values:
     (intersectAttrs (plain upstream) values)
-    // mapAttrs (_name: path: getAttrFromPath path values) (selected upstream)
+    // mapAttrs
+    (_name: path: getAttrFromPath path values)
+    (selected upstream)
     // optionalAttrs (upstream ? backend) {
-      backend = (removeAttrs values.backend ["extra"]) // {extraArgs = values.backend.extra.args;};
+      backend =
+        (removeAttrs values.backend ["extra"])
+        // {extraArgs = values.backend.extra.args;};
     };
 }
