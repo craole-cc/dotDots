@@ -1,6 +1,7 @@
 {
   cfg,
   config,
+  defaults,
   lix,
   ...
 }: let
@@ -8,7 +9,7 @@
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.lists.predicates) all;
   inherit (lix.modules.construction) mkIf;
-  inherit (lix.options.construction) mkOption;
+  inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.toolkit) platform write;
   inherit (lix.strings.transformation) trim;
   inherit (lix.types.combinators) listOf nullOr submodule;
@@ -24,6 +25,10 @@
     };
 in {
   options.gateway = {
+    enable = mkEnable {
+      description = "Hermes messaging gateway service";
+      condition = defaults.gateway.enable;
+    };
     multiplex = mkOption {
       type = bool;
       default = active != {};

@@ -40,8 +40,7 @@ The module is split into folders:
 
 | Folder | Responsibility |
 | --- | --- |
-| `profiles/` | Typed profile declarations and writable configuration activation |
-| `bots/` | Desktop Bot metadata and persistent Bot Chat launchers |
+| `bots/` | Typed profile declarations, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
 | `gateway/` | Shared gateway multiplexing and routes using native Hermes keys |
 | `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
 

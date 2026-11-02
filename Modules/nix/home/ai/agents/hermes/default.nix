@@ -1,21 +1,20 @@
 {
   config,
   options,
-  lib,
   lix,
-  pkgs,
-  user,
+  user,pkgs,
   ...
-}: let
+} @ args: let
   dom = "ai";
   sub = "agents";
   mod = "hermes-agent";
   context = mkContext {inherit config dom sub mod;};
 
   inherit (context) cfg;
-  inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.access) attrNames attrValues;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.filesystem.traversal) importAllMerged;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkLayer mkDefault;
@@ -27,24 +26,24 @@
 
   common = lix.toolkit.hermes;
   runtime = common.forConfig config.services.hermes-agent;
+  defaults = import ./defaults.nix {inherit config lix;};
   interface = import ./interface {inherit lix;};
+
   upstreamOptions = common.sharedOptions {
     defaultPackage = packages.hermes;
     defaultPackageText = "lix.toolkit.packages.hermes";
     defaultWorkingDirectory = config.home.homeDirectory;
     defaultWorkingDirectoryText = "config.home.homeDirectory";
   };
-  bots = import ./bots {inherit cfg lix runtime;};
-  parts = [
-    (import ./profiles {inherit bots cfg common config interface lib lix pkgs runtime;})
-    bots
-    (import ./gateway {inherit cfg config lix pkgs;})
-    (import ./kanban {inherit cfg config lix;})
-  ];
+  parts =
+    attrValues
+    (importAllMerged {
+      dir = ./.;
+      args = args // {inherit cfg common defaults interface runtime;};
+      exclude = ["defaults.nix" "interface" "settings"];
+    }).value;
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
-
-  defaults = import ./defaults.nix {inherit config lix;};
   activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
 in
   mkConfig {
@@ -76,10 +75,6 @@ in
           // {
             description = "Workspace files installed relative to an explicitly selected workingDirectory; use home.file for identity and memory files";
           };
-        gateway.enable = mkEnable {
-          description = "Hermes messaging gateway service";
-          condition = defaults.gateway.enable;
-        };
         extra.dependencyGroups = upstreamOptions.extraDependencyGroups // {default = defaults.extra.dependencyGroups;};
         settings =
           upstreamOptions.settings
@@ -106,7 +101,9 @@ in
       (mkLayer 1000 (
         (removeAttrs defaults ["desktop"])
         // {
-          enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
+          enable =
+            isIn ["hermes" "hermes-agent" "hermes-desktop"]
+            (selectedPackages user);
           gateway = removeAttrs defaults.gateway ["multiplex"];
           kanban = removeAttrs defaults.kanban ["profiles"];
         }
