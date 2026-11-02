@@ -66,6 +66,8 @@ let
     # "obs-studio"
     "qimgv"
     "qbittorrent-enhanced"
+    "via"
+    "vial"
   ];
 
   media = [
