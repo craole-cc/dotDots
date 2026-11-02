@@ -6,6 +6,9 @@ description: Styleguide for Nix modules and expressions. Use whenever writing or
 # Nix style
 
 - Include `inherit (lix)` at the top of every file as the primary extended replacement for standard `lib`.
+- Always use scoped inheritance when forwarding an attribute under the same name:
+  - Use `inherit (runtime) package;`.
+  - Do not write `package = runtime.package;`.
 - Prefer `lix.<domain>.<function>` over `builtins.<function>`. Most builtins are wrapped in lix:
 
   | Domain       | Covers                                                              |
