@@ -88,7 +88,7 @@
 in {
   _.resolved.ai.agents.hermes-agent.explicit = {
     enable = true;
-    programs.desktop.enable = true;
+    desktop.enable = true;
     gateway.enable = true;
     extra.dependencyGroups = ["messaging"];
     settings = {

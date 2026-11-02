@@ -60,7 +60,8 @@
   customisedToolkit = toolkit // {packages = toolkit.packages // {hermes = alternatePackage;};};
   toolkitOverride = homeWith customisedToolkit {};
   serviceOverride = home {package = alternatePackage;};
-  programOverride = home {programs.package = alternatePackage;};
+  desktopPackage = toolkit.packages.hermes.hermesDesktop.overrideAttrs (_previous: {pname = "hermes-desktop-test";});
+  desktopOverride = home {desktop.package = desktopPackage;};
   grouped = home {
     home = {
       path = "/tmp/grouped-hermes";
@@ -269,11 +270,22 @@ in
       serviceOverride.services.hermes-agent.package
       == alternatePackage
       && serviceOverride.programs.hermes-agent.package == toolkit.hermes.effectivePackage serviceOverride.services.hermes-agent;
-    programOverride = programOverride.programs.hermes-agent.package == alternatePackage;
+    desktopOverride = desktopOverride.programs.hermes-agent.desktop.package == desktopPackage;
+    unifiedPrograms = let
+      cfg = baseline._.resolved.ai.agents.hermes-agent.explicit;
+    in
+      !(cfg ? programs)
+      && !(baseline._.defaults.ai.agents.hermes-agent ? programs)
+      && cfg.enable == baseline.programs.hermes-agent.enable;
     defaults =
       !baseline._.defaults.ai.agents.hermes-agent.enable
       && baseline._.defaults.ai.agents.hermes-agent.package == toolkit.packages.hermes;
-    disabled = !(home {enable = false;}).services.hermes-agent.enable;
+    disabled = let
+      configured = home {enable = false;};
+    in
+      !configured.services.hermes-agent.enable
+      && !configured.programs.hermes-agent.enable
+      && !configured.programs.hermes-agent.desktop.enable;
     baseline =
       baseline.services.hermes-agent.gateway.enable
       && baseline.services.hermes-agent.settings == (import ../../../Modules/nix/home/ai/agents/hermes/settings.nix {})
@@ -293,16 +305,15 @@ in
       !team._.defaults.ai.agents.hermes-agent.gateway.multiplex
       && team._.defaults.ai.agents.hermes-agent.swarm.profiles == ["default"];
     defaultPrograms =
-      baseline._.defaults.ai.agents.hermes-agent.programs.package
+      baseline._.defaults.ai.agents.hermes-agent.package
       == baseline.programs.hermes-agent.package
-      && baseline._.defaults.ai.agents.hermes-agent.programs.desktop.package == baseline.programs.hermes-agent.desktop.package;
+      && baseline._.defaults.ai.agents.hermes-agent.desktop.package == baseline.programs.hermes-agent.desktop.package;
     headless = let
       configured = home {
-        programs.enable = false;
-        programs.desktop.enable = false;
+        desktop.enable = false;
       };
     in
-      configured.services.hermes-agent.enable && !configured.programs.hermes-agent.enable && !configured.programs.hermes-agent.desktop.enable;
+      configured.services.hermes-agent.enable && configured.programs.hermes-agent.enable && !configured.programs.hermes-agent.desktop.enable;
     memoryDefaults =
       baseline._.defaults.ai.agents.hermes-agent.settings.memory
       == {

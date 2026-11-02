@@ -50,13 +50,9 @@
       routes = [];
     };
     profiles = {};
-    programs = {
+    desktop = {
       enable = true;
-      package = packages.hermes;
-      desktop = {
-        enable = true;
-        package = defaults.programs.package.hermesDesktop;
-      };
+      package = defaults.package.hermesDesktop;
     };
     swarm = {
       enable = false;

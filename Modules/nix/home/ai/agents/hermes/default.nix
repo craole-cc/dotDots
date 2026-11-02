@@ -89,26 +89,15 @@ in
             default = defaults.settings;
           };
 
-        programs = {
+        desktop = {
           enable = mkEnable {
-            description = "Install the Hermes CLI";
-            condition = defaults.programs.enable;
+            description = "Install Hermes Desktop";
+            condition = defaults.desktop.enable;
           };
           package = mkOption {
-            description = "Hermes CLI package, following the effective service package by default";
-            inherit (options.programs.hermes-agent.package) type;
-            default = defaults.programs.package;
-          };
-          desktop = {
-            enable = mkEnable {
-              description = "Install Hermes Desktop";
-              condition = defaults.programs.desktop.enable;
-            };
-            package = mkOption {
-              description = "Hermes Desktop package, following the selected CLI package by default";
-              inherit (options.programs.hermes-agent.desktop.package) type;
-              default = defaults.programs.desktop.package;
-            };
+            description = "Hermes Desktop package, following the effective Hermes package by default";
+            inherit (options.programs.hermes-agent.desktop.package) type;
+            default = defaults.desktop.package;
           };
         };
       }
@@ -116,7 +105,7 @@ in
 
     resolutions = mkMerge [
       (mkLayer 1000 (
-        (removeAttrs defaults ["programs"])
+        (removeAttrs defaults ["desktop"])
         // {
           enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
           gateway = removeAttrs defaults.gateway ["multiplex"];
@@ -126,13 +115,9 @@ in
       {
         gateway.multiplex = mkDefault (activeProfiles != {});
         swarm.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
-        programs = {
-          enable = mkDefault defaults.programs.enable;
-          package = mkDefault runtime.package;
-          desktop = {
-            enable = mkDefault defaults.programs.desktop.enable;
-            package = mkDefault cfg.programs.package.hermesDesktop;
-          };
+        desktop = {
+          enable = mkDefault defaults.desktop.enable;
+          package = mkDefault runtime.package.hermesDesktop;
         };
       }
     ];
@@ -146,7 +131,10 @@ in
             gateway = {inherit (cfg.gateway) enable;};
             settings = recursiveUpdate cfg.settings settings;
           };
-        programs.${mod} = cfg.programs;
+        programs.${mod} = {
+          inherit (cfg) enable desktop;
+          package = runtime.package;
+        };
       }
       (mkMerge (map (part: part.outputs or {}) parts))
     ];

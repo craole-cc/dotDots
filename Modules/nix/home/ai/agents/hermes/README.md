@@ -23,8 +23,9 @@ configured service, including custom dependencies. Bot launchers use its
 
 The service uses the toolkit package by default. The CLI follows the service's
 effective package so its Python dependencies and plugins remain available in
-both. Override `package` or `programs.package` through the explicit
-options when a separate package is required.
+both. The root `enable` controls the service and CLI, and `package` selects their
+shared base package. `desktop.enable` and `desktop.package` configure the desktop
+application independently.
 
 The user-agnostic settings enable built-in memory and user profiles, with
 `memory.provider = ""`. No model provider, model ID or endpoint is pinned by
@@ -133,7 +134,7 @@ Typed gateway and swarm settings take precedence over matching keys in
 options such as `package`, `environment.files`, `backend` and `extra.dependencyGroups`
 are declared directly alongside `profiles`, `gateway` and `swarm`. `gateway.enable`
 controls the messaging service; `gateway.multiplex` and `gateway.routes` extend its
-behaviour. `programs` retains the separate CLI and desktop configuration.
+behaviour. Desktop configuration is exposed directly under `desktop`.
 Gateway routes and multiplexing are emitted as the canonical top-level
 `profile_routes` and `multiplex_profiles` keys. Hermes gives those keys precedence
 over their nested `gateway` spellings in existing runtime files.
