@@ -4,5 +4,5 @@
     systemMonitor.enable = true;
   };
 
-  packages = with pkgs; [dgop];
+  packages = with pkgs; [dux-gop];
 }

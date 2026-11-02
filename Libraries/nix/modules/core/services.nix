@@ -109,7 +109,7 @@
         };
 
         cosmic-greeter.enable = desktopEnvironment == "cosmic";
-        dms-greeter =
+        dux-greeter =
           {
             enable = displayManager == "dms-greeter";
           }

@@ -46,7 +46,7 @@
   dux-calendar = mkSource {
     categories = ["desktop-ui"];
     description = "Dux Calendar";
-    target = "dankcalendar";
+    target = "dux-calendar";
   };
 
   ghostty = mkSource {

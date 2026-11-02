@@ -40,7 +40,7 @@ in
     };
 
     outputs = {
-      services.displayManager.dms-greeter = {
+      services.displayManager.dux-greeter = {
         inherit (cfg) enable;
         compositor.name = cfg.compositor;
       };

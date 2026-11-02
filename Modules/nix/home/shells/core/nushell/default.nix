@@ -112,6 +112,7 @@ in
         inherit (cfg) enable package settings;
         extraEnv = cfg.extra.env;
         extraConfig = cfg.extra.config;
+        loadSessionVariables = true;
       };
       home = {inherit (cfg.extra) packages;};
     };
