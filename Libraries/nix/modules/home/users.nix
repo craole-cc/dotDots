@@ -1,5 +1,6 @@
 {_, ...}: let
   inherit (_.attrsets.construction) optionalAttrs;
+  inherit (_.attrsets.predicates) isDerivation;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.lists.aggregation) concatMap;
   inherit (_.lists.construction) optionals;
@@ -97,6 +98,14 @@
 
         inputs' = mkApps {inherit inputs modules user;};
 
+        extraPackages = map (packageName: let
+          package = pkgs.${packageName} or null;
+        in
+          if isDerivation package
+          then package
+          else throw "users.${name}.packages.extra: unknown package '${packageName}'")
+        (user.packages.extra or []);
+
         mkInput = name:
           optionalAttrs
           (inputs' ? ${name}.module)
@@ -133,6 +142,7 @@
 
         home =
           {
+            packages = extraPackages;
             stateVersion =
               if standalone
               then (host.stateVersion or "26.05")
