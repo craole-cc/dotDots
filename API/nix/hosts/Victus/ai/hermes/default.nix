@@ -32,7 +32,7 @@
     receptionist = {
       description = "Receive requests, clarify requirements and hand tasks to the planner.";
       settings.model = localModel;
-      hermesHomeFiles."SOUL.md" = "Keep replies brief. Record clear Kanban tasks for planner; specialists perform substantive work.";
+      home.file."SOUL.md" = "Keep replies brief. Record clear Kanban tasks for planner; specialists perform substantive work.";
     };
     planner.description = "Plan task graphs, coordinate specialists and synthesise results.";
     coder.description = "Implement scoped changes and record evidence for review.";
@@ -77,7 +77,7 @@
     recursiveUpdate {
       bot.enable = true;
       # Runtime string paths seed writable auth files; credentials never enter Nix.
-      authFile = "${config.services.hermes-agent.hermesHome}/auth.json";
+      auth.file = "${config._.resolved.ai.agents.hermes-agent.explicit.home.path}/auth.json";
       settings = {
         inherit memory;
         model = cloudModel;
@@ -89,13 +89,11 @@ in {
   _.resolved.ai.agents.hermes-agent.explicit = {
     enable = true;
     programs.desktop.enable = true;
-    services = {
-      gateway.enable = true;
-      extraDependencyGroups = ["messaging"];
-      settings = {
-        inherit memory;
-        model = localModel;
-      };
+    gateway.enable = true;
+    extra.dependencyGroups = ["messaging"];
+    settings = {
+      inherit memory;
+      model = localModel;
     };
     profiles =
       adopted

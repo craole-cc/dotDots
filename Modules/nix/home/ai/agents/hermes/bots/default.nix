@@ -1,22 +1,23 @@
 {
   cfg,
-  common,
-  config,
   lix,
-  pkgs,
+  runtime,
   ...
 }: let
   inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
   inherit (lix.options.construction) mkFalse mkOption;
   inherit (lix.strings.transformation) escapeShellArg;
+  inherit (lix.toolkit) write;
   inherit (lix.types.combinators) submodule;
   inherit (lix.types.primitives) str;
+  inherit (runtime) binaries;
 
-  service = config.services.hermes-agent;
   active = filterAttrs (_name: profile: profile.enable && profile.bot.enable) cfg.profiles;
 in {
   profileOptions = name: {
     bot = mkOption {
+      description = "Bot Mode presentation and a launcher for the profile's persistent Bot Chat.";
+      default = {};
       type = submodule {
         options = {
           enable = mkFalse "Present this profile as a named Bot in Hermes Desktop.";
@@ -27,8 +28,6 @@ in {
           };
         };
       };
-      default = {};
-      description = "Bot Mode presentation and a launcher for the profile's persistent Bot Chat.";
     };
   };
 
@@ -39,11 +38,14 @@ in {
       else null;
   };
 
-  outputs.home.packages = mapAttrsToList (name: _profile:
-    pkgs.writeShellScriptBin "hermes-bot-${name}" ''
-      export HERMES_HOME=${escapeShellArg service.hermesHome}
-      exec ${common.effectivePackage service}/bin/hermes --profile ${escapeShellArg name} \
-        chat -c "Bot Chat" --create-if-missing "$@"
-    '')
-  active;
+  outputs = {
+    # TODO: Should this be write.binWith?
+    home.packages = mapAttrsToList (name: _profile:
+      write.bin "hermes-bot-${name}" ''
+        export HERMES_HOME=${escapeShellArg cfg.home.path}
+        exec ${binaries.hermesProfile} ${escapeShellArg name} \
+          chat -c "Bot Chat" --create-if-missing "$@"
+      '')
+    active;
+  };
 }

@@ -3,9 +3,11 @@
   cfg,
   common,
   config,
+  interface,
   lib,
   lix,
   pkgs,
+  runtime,
   ...
 }: let
   inherit (lix.attrsets.access) attrNames;
@@ -29,6 +31,20 @@
     defaultWorkingDirectory = service.workingDirectory;
     defaultWorkingDirectoryText = "services.hermes-agent.workingDirectory";
   };
+  profileOptions = {
+    inherit
+      (upstreamOptions)
+      settings
+      environment
+      environmentFiles
+      authFile
+      authFileForceOverwrite
+      documents
+      hermesHomeFiles
+      mcpServers
+      extraPlugins
+      ;
+  };
   inherit
     ((common.mkConfigFiles {
       inherit pkgs;
@@ -40,7 +56,7 @@
 
   profileConfig = profile:
     service
-    // profile
+    // (interface.config profileOptions profile)
     // {
       configFile = null;
       workingDirectory =
@@ -56,7 +72,7 @@
 
   setup = name: profile: let
     resolved = profileConfig profile;
-    hermesHome = "${service.hermesHome}/profiles/${name}";
+    homePath = "${cfg.home.path}/profiles/${name}";
     metadata = pkgs.writeText "hermes-${name}-metadata.json" (toJSON (
       optionalAttrs (profile.description != null) {
         inherit (profile) description;
@@ -66,7 +82,8 @@
     ));
   in ''
     ${common.mkStateScript {
-      inherit pkgs hermesHome;
+      inherit pkgs;
+      hermesHome = homePath;
       cfg = resolved;
       inherit (resolved) workingDirectory;
       run = "$DRY_RUN_CMD ";
@@ -80,26 +97,25 @@
         document = "0600";
       };
     }}
-    $DRY_RUN_CMD ${mergeScript} ${metadata} ${escapeShellArg "${hermesHome}/profile.yaml"}
-    $DRY_RUN_CMD chmod 0600 ${escapeShellArg "${hermesHome}/profile.yaml"}
+    $DRY_RUN_CMD ${mergeScript} ${metadata} ${escapeShellArg "${homePath}/profile.yaml"}
+    $DRY_RUN_CMD chmod 0600 ${escapeShellArg "${homePath}/profile.yaml"}
   '';
 in {
   options.profiles = mkOption {
     type = attrsOf (submodule ({name, ...}: {
       options =
-        {
-          inherit
-            (upstreamOptions)
-            settings
-            environment
-            environmentFiles
-            authFile
-            authFileForceOverwrite
-            documents
-            hermesHomeFiles
-            mcpServers
-            extraPlugins
-            ;
+        (interface.options profileOptions)
+        // {
+          home.file =
+            upstreamOptions.hermesHomeFiles
+            // {
+              description = "Files installed in this profile's directory beneath home.path/profiles, such as SOUL.md and memories/USER.md";
+            };
+          documents =
+            upstreamOptions.documents
+            // {
+              description = "Workspace files installed relative to this profile's explicit workingDirectory; use home.file for identity and memory files";
+            };
           enable = mkTrue "Manage this named Hermes profile during Home Manager activation.";
           description = mkOption {
             type = nullOr str;
@@ -116,7 +132,7 @@ in {
     }));
     default = {};
     description = ''
-      Named profiles beneath services.hermes-agent.hermesHome/profiles.
+      Named profiles beneath home.path/profiles.
       Settings and metadata merge into writable files using the flake's Hermes helpers.
       Each profile has its own secret sources; credentials are not inherited from the main profile.
       Removing a declaration preserves that profile's runtime directory and history.
@@ -130,7 +146,7 @@ in {
       [
         {
           assertion = name != "default" && match "[a-z0-9][a-z0-9_-]{0,63}" name != null;
-          message = "Hermes profile '${name}' needs a lowercase profile name of at most 64 characters; configure default through services.settings.";
+          message = "Hermes profile '${name}' needs a lowercase profile name of at most 64 characters; configure default through settings.";
         }
         {
           assertion = profile.documents == {} || profile.workingDirectory != null;
@@ -138,14 +154,14 @@ in {
         }
       ]
       ++ common.pluginNameAssertions {
-        cfg = profile;
+        cfg = interface.config profileOptions profile;
         optionPath = "Hermes profiles.${name}";
       }) (attrNames active);
 
     home.activation.hermesProfiles = mkIf (active != {}) (
       lib.hm.dag.entryBetween ["reloadSystemd"] ["hermesAgentSetup"] (
         ''
-          $DRY_RUN_CMD ${(common.effectivePackage service).hermesVenv}/bin/python3 -c \
+          $DRY_RUN_CMD ${runtime.package.hermesVenv}/bin/python3 -c \
             ${escapeShellArg "from hermes_cli.profiles import validate_profile_name; import sys; [validate_profile_name(name) for name in sys.argv[1:]]"} \
             ${escapeShellArgs (attrNames active)}
         ''

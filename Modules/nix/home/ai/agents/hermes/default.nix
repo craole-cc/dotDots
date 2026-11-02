@@ -1,6 +1,6 @@
 {
   config,
-  inputs,
+  options,
   lib,
   lix,
   pkgs,
@@ -12,66 +12,141 @@
   mod = "hermes-agent";
 
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
+  inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.transformation) filterAttrs removeAttrs;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.modules.construction) mkConfig mkContext mkMerge;
+  inherit (lix.modules.construction) mkConfig mkContext mkMerge mkLayer mkDefault;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.types.primitives) anything;
+  inherit (lix.types.combinators) attrsOf;
+  inherit (lix.types.primitives) anything str;
+  inherit (lix.toolkit) packages;
 
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
 
-  # Reuse the renderers from the same flake input that supplies the package.
-  common = import "${inputs.hermes-agent.outPath}/nix/moduleCommon.nix" {inherit lib;};
-  bots = import ./bots {inherit cfg common config lib lix pkgs;};
+  common = lix.toolkit.hermes;
+  runtime = common.forConfig config.services.hermes-agent;
+  interface = import ./interface.nix {inherit lix;};
+  upstreamOptions = common.sharedOptions {
+    defaultPackage = packages.hermes;
+    defaultPackageText = "lix.toolkit.packages.hermes";
+    defaultWorkingDirectory = config.home.homeDirectory;
+    defaultWorkingDirectoryText = "config.home.homeDirectory";
+  };
+  bots = import ./bots {inherit cfg lix runtime;};
   parts = [
-    (import ./profiles {inherit bots cfg common config lib lix pkgs;})
+    (import ./profiles {inherit bots cfg common config interface lib lix pkgs runtime;})
     bots
     (import ./gateway {inherit cfg config lix pkgs;})
     (import ./swarm {inherit cfg config lix;})
   ];
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
+
+  defaults = import ./defaults.nix {inherit config lix;};
+  activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
 in
   mkConfig {
-    inherit context;
+    inherit context defaults;
 
-    options = mergeSafe (collect "options") {
-      enable = mkEnable {
-        inherit context;
-        condition =
-          isIn ["hermes" "hermes-agent" "hermes-desktop"]
-          (selectedPackages user);
-      };
-
-      # These are forwarded without narrowing the upstream Hermes interface.
-      # `services` accepts settings, environmentFiles, mcpServers, backend,
-      # documents, plugins, restart policy, and every future option under
-      # services.hermes-agent.  Keep secrets in environmentFiles, not settings.
-      services = mkOption {
-        type = anything;
-        default = {
-          gateway.enable = true;
-          extraDependencyGroups = ["messaging"];
+    options = interface.declareDefaults defaults (mergeSafe [
+      (interface.options upstreamOptions)
+      (collect "options")
+      {
+        enable = mkEnable {
+          inherit context;
+          condition = defaults.enable;
         };
-      };
 
-      # This is the programs.hermes-agent shape: package and desktop options
-      # may be overridden independently of the user service.
-      programs = mkOption {
-        type = anything;
-        default.desktop.enable = true;
-      };
-    };
+        home = {
+          path = mkOption {
+            description = "State directory containing Hermes configuration, profiles, sessions and memory";
+            type = str;
+            default = defaults.home.path;
+          };
+          file =
+            upstreamOptions.hermesHomeFiles
+            // {
+              description = "Files installed relative to home.path, such as SOUL.md and memories/USER.md; values are strings or paths";
+            };
+        };
+        documents =
+          upstreamOptions.documents
+          // {
+            description = "Workspace files installed relative to an explicitly selected workingDirectory; use home.file for identity and memory files";
+          };
+        gateway.enable = mkEnable {
+          description = "Hermes messaging gateway service";
+          condition = defaults.gateway.enable;
+        };
+        extra.dependencyGroups = upstreamOptions.extraDependencyGroups // {default = defaults.extra.dependencyGroups;};
+        settings =
+          upstreamOptions.settings
+          // {
+            type = attrsOf anything;
+            default = defaults.settings;
+          };
+
+        programs = {
+          enable = mkEnable {
+            description = "Install the Hermes CLI";
+            condition = defaults.programs.enable;
+          };
+          package = mkOption {
+            description = "Hermes CLI package, following the effective service package by default";
+            inherit (options.programs.hermes-agent.package) type;
+            default = defaults.programs.package;
+          };
+          desktop = {
+            enable = mkEnable {
+              description = "Install Hermes Desktop";
+              condition = defaults.programs.desktop.enable;
+            };
+            package = mkOption {
+              description = "Hermes Desktop package, following the selected CLI package by default";
+              inherit (options.programs.hermes-agent.desktop.package) type;
+              default = defaults.programs.desktop.package;
+            };
+          };
+        };
+      }
+    ]);
+
+    resolutions = mkMerge [
+      (mkLayer 1000 (
+        (removeAttrs defaults ["programs"])
+        // {
+          enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
+          gateway = removeAttrs defaults.gateway ["multiplex"];
+          swarm = removeAttrs defaults.swarm ["profiles"];
+        }
+      ))
+      {
+        gateway.multiplex = mkDefault (activeProfiles != {});
+        swarm.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
+        programs = {
+          enable = mkDefault defaults.programs.enable;
+          package = mkDefault runtime.package;
+          desktop = {
+            enable = mkDefault defaults.programs.desktop.enable;
+            package = mkDefault cfg.programs.package.hermesDesktop;
+          };
+        };
+      }
+    ];
 
     outputs = mkMerge [
       {
-        services.${mod} = recursiveUpdate cfg.services {
-          enable = true;
-          inherit settings;
-        };
-        programs.${mod} = cfg.programs // {enable = true;};
+        services.${mod} =
+          (interface.config upstreamOptions cfg)
+          // {
+            hermesHome = cfg.home.path;
+            gateway = {inherit (cfg.gateway) enable;};
+            settings = recursiveUpdate cfg.settings settings;
+          };
+        programs.${mod} = cfg.programs;
       }
       (mkMerge (map (part: part.outputs or {}) parts))
     ];

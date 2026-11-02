@@ -16,6 +16,7 @@
       - `preferFrom` - maps preferred binaries to their source names
       - `registry` - describes toolkit source and alias registries
       - `mergeDisjoint` - merges attribute sets while rejecting duplicate keys
+      - `hermes` - configuration helpers and prepared commands from the resolved Hermes source
 
     '';
     exports = {
@@ -321,6 +322,27 @@
       (formatName: pkgs'.formats.${formatName} {});
 
     helpers = {
+      hermes = let
+        common = import "${derived.records.hermes.paths.outPath}/nix/moduleCommon.nix" {
+          inherit (_) lib; #TODO: Why do we need this?
+        };
+      in
+        common
+        // {
+          forConfig = config: let
+            package = common.effectivePackage config;
+            binaries.hermes = "${getBin package}/bin/hermes";
+          in {
+            inherit package;
+            binaries =
+              binaries
+              // mkAliases {
+                inherit binaries;
+                aliases = resolved.sources.hermes.aliases or {};
+              };
+          };
+        };
+
       types = recursiveUpdate _.types {
         formats =
           mapAttrs

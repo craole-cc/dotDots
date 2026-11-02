@@ -261,7 +261,8 @@
     description = "Hermes tool-calling AI agent";
     input = "hermes-agent";
     target = "default";
-    exec = "hermes";
+    exe = "hermes";
+    transform = package: package.override {extraDependencyGroups = ["messaging"];};
     aliases = let
       cmd = "hermes";
       mk = alias: mkAlias cmd alias;
@@ -368,6 +369,10 @@
           description = "multi-profile collaboration board";
         };
         Profile = {
+          args = ["--profile"];
+          description = "run Hermes with a named profile";
+        };
+        Profiles = {
           args = ["profile"];
           description = "manage profiles";
         };
@@ -385,7 +390,7 @@
         };
         Yolo = {
           args = ["--yolo"];
-          description = "DANGEROUS: bypass all dangerous-command approvals";
+          description = "DANGEROUS: bypass all 'dangerous-command' safeguards";
         };
       };
     in
