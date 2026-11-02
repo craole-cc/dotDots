@@ -202,7 +202,8 @@ in
 
     outputs = {
       services.${mod} = {
-        inherit (cfg) enable package host port environmentVariables acceleration;
+        inherit (cfg) package host port environmentVariables acceleration;
+        enable = cfg.enable && !(osConfig.services.${mod}.enable or false);
       };
     };
   }
