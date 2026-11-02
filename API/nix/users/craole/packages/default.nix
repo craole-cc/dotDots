@@ -59,17 +59,6 @@ let
     "zig"
   ];
 
-  extra = [
-    "fastfetch"
-    "imv"
-    "inkscape"
-    # "obs-studio"
-    "qimgv"
-    "qbittorrent-enhanced"
-    "via"
-    "vial"
-  ];
-
   media = [
     "kew"
     "freetube"
@@ -98,10 +87,36 @@ let
   wallpaper = [
     "variety"
   ];
+
+  extra = [
+    "fastfetch"
+    "imv"
+    "inkscape"
+    # "obs-studio"
+    "qimgv"
+    "qbittorrent-enhanced"
+    "via"
+    "vial"
+  ];
 in {
   packages = {
     ai-agent = ai;
     bar = panel;
-    inherit ai browser coding editor explorer extra ide launcher media panel prompt shell terminal wallpaper;
+    inherit
+      ai
+      browser
+      coding
+      editor
+      explorer
+      extra
+      ide
+      launcher
+      media
+      panel
+      prompt
+      shell
+      terminal
+      wallpaper
+      ;
   };
 }
