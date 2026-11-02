@@ -109,7 +109,7 @@ in {
           };
       };
     gateway.multiplex = true;
-    swarm = {
+    kanban = {
       enable = true;
       orchestrator = "planner";
       defaultAssignee = "planner";

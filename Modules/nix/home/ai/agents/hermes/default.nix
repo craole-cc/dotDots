@@ -40,7 +40,7 @@
     (import ./profiles {inherit bots cfg common config interface lib lix pkgs runtime;})
     bots
     (import ./gateway {inherit cfg config lix pkgs;})
-    (import ./swarm {inherit cfg config lix;})
+    (import ./kanban {inherit cfg config lix;})
   ];
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
@@ -109,12 +109,12 @@ in
         // {
           enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
           gateway = removeAttrs defaults.gateway ["multiplex"];
-          swarm = removeAttrs defaults.swarm ["profiles"];
+          kanban = removeAttrs defaults.kanban ["profiles"];
         }
       ))
       {
         gateway.multiplex = mkDefault (activeProfiles != {});
-        swarm.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
+        kanban.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
         desktop = {
           enable = mkDefault defaults.desktop.enable;
           package = mkDefault runtime.package.hermesDesktop;

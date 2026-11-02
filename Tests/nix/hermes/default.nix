@@ -140,7 +140,7 @@
         chat_id = "123";
       }
     ];
-    swarm = {
+    kanban = {
       enable = true;
       profiles = ["planner" "reviewer"];
       orchestrator = "planner";
@@ -172,7 +172,7 @@ in
     defaultSettings =
       (home {
         profiles.worker = {};
-        swarm.enable = true;
+        kanban.enable = true;
       }).services.hermes-agent.settings;
     profiles = lix.attrsets.transformation.mapAttrs (name: profile: {
       inherit (profile) settings;
@@ -303,7 +303,7 @@ in
       builtins.attrNames (interface.config upstream defaults) == builtins.attrNames upstream;
     neutralProfileDefaults =
       !team._.defaults.ai.agents.hermes-agent.gateway.multiplex
-      && team._.defaults.ai.agents.hermes-agent.swarm.profiles == ["default"];
+      && team._.defaults.ai.agents.hermes-agent.kanban.profiles == ["default"];
     defaultPrograms =
       baseline._.defaults.ai.agents.hermes-agent.package
       == baseline.programs.hermes-agent.package
@@ -341,7 +341,7 @@ in
     defaultAssignee =
       (home {
         profiles.worker = {};
-        swarm.enable = true;
+        kanban.enable = true;
       }).services.hermes-agent.settings.kanban.default_assignee
       == "default";
     dispatch =
@@ -384,13 +384,13 @@ in
     defaultRoster =
       (home {
         profiles.worker = {};
-        swarm.enable = true;
+        kanban.enable = true;
       }).services.hermes-agent.settings.kanban.dispatch_profiles
       == ["default" "worker"];
     pausedDispatch =
-      failures (home (withChange {swarm.profiles = [];}))
+      failures (home (withChange {kanban.profiles = [];}))
       == []
-      && (home (withChange {swarm.profiles = [];})).services.hermes-agent.settings.kanban.dispatch_profiles == [];
+      && (home (withChange {kanban.profiles = [];})).services.hermes-agent.settings.kanban.dispatch_profiles == [];
     unknownRoute = rejects (withChange {gateway.routes = [{profile = "missing";}];});
     disabledRoute = rejects (withChange {gateway.routes = [{profile = "parked";}];});
     emptySender = rejects (withChange {
@@ -402,9 +402,9 @@ in
       ];
     });
     missingMultiplexer = rejects (withChange {gateway.multiplex = false;});
-    invalidWorker = rejects (withChange {swarm.profiles = ["missing"];});
-    excludedAssignee = rejects (withChange {swarm.profiles = ["reviewer"];});
-    invalidConcurrency = rejects (withChange {swarm.concurrency.total = 0;});
+    invalidWorker = rejects (withChange {kanban.profiles = ["missing"];});
+    excludedAssignee = rejects (withChange {kanban.profiles = ["reviewer"];});
+    invalidConcurrency = rejects (withChange {kanban.concurrency.total = 0;});
     missingGateway = rejects (withChange {gateway.enable = false;});
     invalidProfileName = rejects (withChange {profiles."../escape" = {};});
     reservedDefault = rejects (withChange {profiles.default = {};});

@@ -54,7 +54,7 @@
       enable = true;
       package = defaults.package.hermesDesktop;
     };
-    swarm = {
+    kanban = {
       enable = false;
       profiles = ["default"];
       orchestrator = null;

@@ -28,7 +28,7 @@
       inherit description;
     };
 in {
-  options.swarm = {
+  options.kanban = {
     enable = mkFalse "Enable Hermes Kanban task dispatch for the declared team.";
     profiles = mkOption {
       type = listOf str;
@@ -42,7 +42,7 @@ in {
       perProfile = limit "Maximum concurrent Kanban workers for one profile.";
     };
     decomposition = {
-      enable = mkFalse "Automatically decompose triage tasks. Hermes's planner sees all installed profiles, including profiles outside swarm.profiles.";
+      enable = mkFalse "Automatically decompose triage tasks. Hermes's planner sees all installed profiles, including profiles outside kanban.profiles.";
       model = mkOption {
         type = attrsOf anything;
         default = {};
@@ -51,57 +51,57 @@ in {
     };
   };
 
-  settings = optionalAttrs cfg.swarm.enable ({
+  settings = optionalAttrs cfg.kanban.enable ({
       kanban = {
         dispatch_in_gateway = true;
-        dispatch_profiles = cfg.swarm.profiles;
-        max_in_progress = cfg.swarm.concurrency.total;
-        max_in_progress_per_profile = cfg.swarm.concurrency.perProfile;
-        auto_decompose = cfg.swarm.decomposition.enable;
+        dispatch_profiles = cfg.kanban.profiles;
+        max_in_progress = cfg.kanban.concurrency.total;
+        max_in_progress_per_profile = cfg.kanban.concurrency.perProfile;
+        auto_decompose = cfg.kanban.decomposition.enable;
         orchestrator_profile =
-          if cfg.swarm.orchestrator == null
+          if cfg.kanban.orchestrator == null
           then "default"
-          else cfg.swarm.orchestrator;
+          else cfg.kanban.orchestrator;
         default_assignee =
-          if cfg.swarm.defaultAssignee == null
+          if cfg.kanban.defaultAssignee == null
           then "default"
-          else cfg.swarm.defaultAssignee;
+          else cfg.kanban.defaultAssignee;
       };
     }
-    // optionalAttrs (cfg.swarm.decomposition.model != {}) {
-      auxiliary.kanban_decomposer = cfg.swarm.decomposition.model;
+    // optionalAttrs (cfg.kanban.decomposition.model != {}) {
+      auxiliary.kanban_decomposer = cfg.kanban.decomposition.model;
     });
 
   outputs.assertions = [
     {
-      assertion = !cfg.swarm.enable || (cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable);
-      message = "Hermes swarm dispatch requires gateway.multiplex and an enabled gateway service.";
+      assertion = !cfg.kanban.enable || (cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable);
+      message = "Hermes Kanban dispatch requires gateway.multiplex and an enabled gateway service.";
     }
     {
-      assertion = !cfg.swarm.enable || all known (cfg.swarm.profiles ++ (filter (name: name != null) [cfg.swarm.orchestrator cfg.swarm.defaultAssignee]));
-      message = "Hermes swarm workers and assignees must reference default or enabled declared profiles.";
+      assertion = !cfg.kanban.enable || all known (cfg.kanban.profiles ++ (filter (name: name != null) [cfg.kanban.orchestrator cfg.kanban.defaultAssignee]));
+      message = "Hermes Kanban workers and assignees must reference default or enabled declared profiles.";
     }
     {
       assertion =
-        !cfg.swarm.enable
-        || cfg.swarm.profiles == []
-        || all (name: elem name cfg.swarm.profiles) [
+        !cfg.kanban.enable
+        || cfg.kanban.profiles == []
+        || all (name: elem name cfg.kanban.profiles) [
           (
-            if cfg.swarm.orchestrator == null
+            if cfg.kanban.orchestrator == null
             then "default"
-            else cfg.swarm.orchestrator
+            else cfg.kanban.orchestrator
           )
           (
-            if cfg.swarm.defaultAssignee == null
+            if cfg.kanban.defaultAssignee == null
             then "default"
-            else cfg.swarm.defaultAssignee
+            else cfg.kanban.defaultAssignee
           )
         ];
-      message = "Hermes swarm orchestration and fallback assignees must be included in swarm.profiles, or dispatch must be explicitly paused with an empty list.";
+      message = "Hermes Kanban orchestration and fallback assignees must be included in kanban.profiles, or dispatch must be explicitly paused with an empty list.";
     }
     {
-      assertion = cfg.swarm.concurrency.total > 0 && cfg.swarm.concurrency.perProfile > 0;
-      message = "Hermes swarm concurrency limits must be positive integers.";
+      assertion = cfg.kanban.concurrency.total > 0 && cfg.kanban.concurrency.perProfile > 0;
+      message = "Hermes Kanban concurrency limits must be positive integers.";
     }
   ];
 }

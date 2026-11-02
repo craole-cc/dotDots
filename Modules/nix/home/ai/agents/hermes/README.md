@@ -1,4 +1,4 @@
-# Hermes Profiles And Swarms
+# Hermes Profiles And Kanban
 
 Hermes is supplied by `lix.toolkit.packages.hermes`. Configuration renderers live
 under `lix.toolkit.hermes`, loaded from the same resolved toolkit source. The
@@ -43,7 +43,7 @@ The module is split into folders:
 | `profiles/` | Typed profile declarations and writable configuration activation |
 | `bots/` | Desktop Bot metadata and persistent Bot Chat launchers |
 | `gateway/` | Shared gateway multiplexing and routes using native Hermes keys |
-| `swarm/` | Kanban dispatcher, worker selection, planning model and concurrency |
+| `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
 
 ## Declare A Team
 
@@ -100,7 +100,7 @@ using a local model.
       }
     ];
 
-    swarm = {
+    kanban = {
       enable = true;
       profiles = ["planner" "reviewer"];
       orchestrator = "planner";
@@ -129,10 +129,10 @@ separate messaging bot, set that profile's `environment.files` to runtime string
 paths, such as `"/run/secrets/hermes-planner.env"`. Use `auth.file` and
 `auth.overwrite` for explicit authentication provisioning. Secrets belong in those runtime files, not `settings` or documents.
 
-Typed gateway and swarm settings take precedence over matching keys in
+Typed gateway and Kanban settings take precedence over matching keys in
 `settings`; unrelated raw upstream settings are retained. Upstream service
 options such as `package`, `environment.files`, `backend` and `extra.dependencyGroups`
-are declared directly alongside `profiles`, `gateway` and `swarm`. `gateway.enable`
+are declared directly alongside `profiles`, `gateway` and `kanban`. `gateway.enable`
 controls the messaging service; `gateway.multiplex` and `gateway.routes` extend its
 behaviour. Desktop configuration is exposed directly under `desktop`.
 Gateway routes and multiplexing are emitted as the canonical top-level
@@ -141,9 +141,9 @@ over their nested `gateway` spellings in existing runtime files.
 
 ## Runtime Behaviour
 
-With no profile declarations and swarm dispatch disabled, these folders add no
+With no profile declarations and Kanban dispatch disabled, these folders add no
 profiles or routing settings. Declared profiles make gateway multiplexing default
-to enabled. Hermes enumerates existing runtime profiles too; the swarm's explicit
+to enabled. Hermes enumerates existing runtime profiles too; Kanban's explicit
 worker list controls which profiles its dispatcher can claim tasks for.
 Disabling these module contributions leaves existing runtime settings alone;
 it does not undo a previous Hermes gateway migration or stop existing tasks.
@@ -174,8 +174,8 @@ Hermes can still discover that directory. Archive or remove it through Hermes
 when it should leave the runtime roster. Setting `bot.enable = false` on an
 enabled profile clears its Bot metadata on the next activation.
 
-Swarm dispatch defaults to one worker across the host and one per profile.
-`swarm.profiles = []` pauses new claims explicitly. With the default worker list,
+Kanban dispatch defaults to one worker across the host and one per profile.
+`kanban.profiles = []` pauses new claims explicitly. With the default worker list,
 the main `default` profile and all enabled declarations can receive tasks. An
 explicit worker list must include the selected orchestration and fallback
 assignees. These limits govern Kanban workers; interactive chats, Bot DMs and
