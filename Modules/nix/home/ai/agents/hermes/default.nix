@@ -13,7 +13,7 @@
 
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.attrsets.access) attrNames;
-  inherit (lix.attrsets.transformation) filterAttrs removeAttrs;
+  inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.schema.packages) selectedPackages;
@@ -133,7 +133,7 @@ in
           };
         programs.${mod} = {
           inherit (cfg) enable desktop;
-          package = runtime.package;
+          inherit (runtime) package;
         };
       }
       (mkMerge (map (part: part.outputs or {}) parts))
