@@ -171,6 +171,7 @@ in {
     "keyboard"
     "network"
     "nvme"
+    "printer"
     "secureboot"
     "storage"
     # "touchpad" # Currently not functional
