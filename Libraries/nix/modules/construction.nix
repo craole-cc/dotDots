@@ -72,16 +72,37 @@
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.construction) concatLists optional optionals;
   inherit (_.lists.access) tail;
-  inherit (_.lists.predicates) elem;
+  inherit (_.lists.predicates) all elem;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge mkOverride;
   inherit (_.modules.evaluation) evalModules extend;
   inherit (_.modules.home.users) mkUsers;
-  inherit (_.options.construction) mkOption;
+  inherit (_.options.construction) mkOption mkOptionType;
   inherit (_.sources.modules) mkModules;
   inherit (_.strings.construction) concat;
-  inherit (_.types.combinators) attrsOf submodule;
+  inherit (_.types.combinators) attrsOf listOf;
+  inherit (_.types.predicates) isAttrs isList;
   inherit (_.types.primitives) anything;
+
+  implicitValueType = mkOptionType {
+    name = "implicit module output";
+    description = "recursively merged module output with concatenated lists";
+    check = _value: true;
+    merge = location: definitions: let
+      values = map (definition: definition.value) definitions;
+      isPlainAttrs = value:
+        isAttrs value
+        && !(isDerivation value)
+        && !(value ? _type)
+        && !(value ? outPath)
+        && !(value ? __toString);
+    in
+      if all isPlainAttrs values
+      then (attrsOf implicitValueType).merge location definitions
+      else if all isList values
+      then (listOf anything).merge location definitions
+      else anything.merge location definitions;
+  };
 
   mkFlake = lib: {inherit lib;} // (mkConfigurations lib) // (mkUtilities lib);
 
@@ -380,7 +401,8 @@
     options = setAttrByPath path {
       explicit = options;
       implicit = mkOption {
-        type = submodule {freeformType = attrsOf anything;};
+        description = "Effective module outputs, preserving list contributions and module priorities";
+        type = attrsOf implicitValueType;
         default = {};
       };
     };
