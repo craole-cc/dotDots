@@ -41,11 +41,7 @@ in
       enable = mkEnable {
         inherit context;
         condition =
-          isIn [
-            "hermes"
-            "hermes-agent"
-            "hermes-desktop"
-          ]
+          isIn ["hermes" "hermes-agent" "hermes-desktop"]
           (selectedPackages user);
       };
 

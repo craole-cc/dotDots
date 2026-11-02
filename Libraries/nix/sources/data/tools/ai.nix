@@ -140,6 +140,9 @@
   claude = mkSource {
     categories = ["scripting" "ai"];
     description = "Anthropic Claude Code agent";
+    input = "llm-agents";
+    target = "claude-code";
+    exe = "claude";
     aliases = let
       cmd = "claude";
       mk = alias: mkAlias cmd alias;
@@ -256,6 +259,9 @@
   hermes = mkSource {
     categories = ["scripting" "ai"];
     description = "Hermes tool-calling AI agent";
+    input = "hermes-agent";
+    target = "default";
+    exec = "hermes";
     aliases = let
       cmd = "hermes";
       mk = alias: mkAlias cmd alias;
