@@ -26,6 +26,7 @@
       attrValues
       catAttrs
       getAttr
+      getAttrs
       attrByPath
       getAttrFromPath
       collect
