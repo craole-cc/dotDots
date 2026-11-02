@@ -18,23 +18,43 @@ import sys
 from pathlib import Path
 
 GROUPS = {
-    "core": "coreutils diffutils findutils gawk gnugrep gnupatch gnused moreutils file tree".split(),
-    "files": "bat dust eza fd fzf lsd yazi".split(),
-    "text": "jq jaq yq-go ripgrep sd glow".split(),
-    "shells": "bash dash gum gh curl rust-script".split(),
-    "version-control": "git git-filter-repo gitui".split(),
-    "system": "nh procps systemd util-linux iproute2".split(),
-    "formatters": "alejandra biome dprint treefmt".split(),
-    "archives": "ouch".split(),
-    "ai": "ollama ollama-cpu llmhop".split(),
-    "media": "cmus kew mpv".split(),
-    "editors": "vscode-fhs vscode-insiders".split(),
-    "communication": "khal vdirsyncer thunderbird python3".split(),
-    "desktop-cli": "dbus glib libnotify wl-clipboard xdg-utils".split(),
-    "desktop-ui": (
-        "dms-shell dux-calendar ghostty kitty foot warp-terminal nemo "
-        "hyprpaper quickshell swaybg variety"
-    ).split(),
+    "core": [
+        "coreutils",
+        "diffutils",
+        "findutils",
+        "gawk",
+        "gnugrep",
+        "gnupatch",
+        "gnused",
+        "moreutils",
+        "file",
+        "tree",
+    ],
+    "files": ["bat", "dust", "eza", "fd", "fzf", "lsd", "yazi"],
+    "text": ["jq", "jaq", "yq-go", "ripgrep", "sd", "glow"],
+    "shells": ["bash", "dash", "gum", "gh", "curl", "rust-script"],
+    "version-control": ["git", "git-filter-repo", "gitui"],
+    "system": ["nh", "procps", "systemd", "util-linux", "iproute2"],
+    "formatters": ["alejandra", "biome", "dprint", "treefmt"],
+    "archives": ["ouch"],
+    "ai": ["ollama", "ollama-cpu", "llmhop"],
+    "media": ["cmus", "kew", "mpv"],
+    "editors": ["vscode-fhs", "vscode-insiders"],
+    "communication": ["khal", "vdirsyncer", "thunderbird", "python3"],
+    "desktop-cli": ["dbus", "glib", "libnotify", "wl-clipboard", "xdg-utils"],
+    "desktop-ui": [
+        "dms-shell",
+        "dux-calendar",
+        "ghostty",
+        "kitty",
+        "foot",
+        "warp-terminal",
+        "nemo",
+        "hyprpaper",
+        "quickshell",
+        "swaybg",
+        "variety",
+    ],
 }
 
 # let-bound names from the original header that entries may use
@@ -115,7 +135,7 @@ def main():
         pre = "{_, h, ...}: let\n" + "\n".join(inh) + "\nin {\n"
         (out / f"{group}.nix").write_text(pre + text + "\n}\n")
 
-    files = " ".join(f"      ./{g}.nix\n" for g, n in groups.items() if n)
+    " ".join(f"      ./{g}.nix\n" for g, n in groups.items() if n)
     (out / "default.nix").write_text(
         "{_, ...}: let\n"
         "  h = import ./helpers.nix {inherit _;};\n"
