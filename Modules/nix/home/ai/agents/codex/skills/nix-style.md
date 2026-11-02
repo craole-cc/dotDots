@@ -9,7 +9,10 @@ description: Styleguide for Nix modules and expressions. Use whenever writing or
 - Always use scoped inheritance when forwarding an attribute under the same name:
   - Use `inherit (runtime) package;`.
   - Do not write `package = runtime.package;`.
-- Prefer `lix.<domain>.<function>` over `builtins.<function>`. Most builtins are wrapped in lix:
+- Use these global built-ins directly, without a `builtins.` prefix or an `inherit` binding:
+  `removeAttrs`, `toString`, `import`, `abort`, `throw`, `baseNameOf`, `dirOf`, and `derivation`.
+  - Write `removeAttrs set ["foo"]`; never inherit `removeAttrs` from `lix` or `builtins`.
+- For other built-ins, prefer `lix.<domain>.<function>` over `builtins.<function>`. Most builtins are wrapped in lix:
 
   | Domain       | Covers                                                              |
   | ------------ | ------------------------------------------------------------------- |
