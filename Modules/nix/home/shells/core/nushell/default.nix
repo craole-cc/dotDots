@@ -32,7 +32,8 @@
     stem = ".dotsrc";
   };
 
-  nuSection = concat "\n" (map
+  nuSection = concat "\n" (
+    map
     (line: removePrefix "#nu " line)
     (
       filter (line: hasPrefix "#nu " line) (
@@ -54,17 +55,17 @@
         nuSection
         (
           concat "\n" (map (name: ''
-            def ${name} [...args] { ^${concatPath {
-              root = paths.repo.lib.nu.local;
-              stem = "${name}.nu";
-            }} ...$args }
-          '') (
-            map (name: removeSuffix ".nu" name) (
-              filter (name: hasSuffix ".nu" name) (
-                attrNames (readDir paths.repo.lib.nu.store)
+              def ${name} [...args] { ^${concatPath {
+                root = paths.repo.lib.nu.local;
+                stem = "${name}.nu";
+              }} ...$args }
+            '') (
+              map (name: removeSuffix ".nu" name) (
+                filter (name: hasSuffix ".nu" name) (
+                  attrNames (readDir paths.repo.lib.nu.store)
+                )
               )
-            )
-          ))
+            ))
         )
       ];
       packages = with pkgs; [nufmt nu_scripts];

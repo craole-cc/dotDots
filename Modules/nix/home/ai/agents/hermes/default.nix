@@ -2,7 +2,8 @@
   config,
   options,
   lix,
-  user,pkgs,
+  user,
+  pkgs,
   ...
 } @ args: let
   dom = "ai";

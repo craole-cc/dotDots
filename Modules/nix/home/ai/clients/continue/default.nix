@@ -83,11 +83,11 @@
     models =
       concatLists (
         mapAttrsToList (
-          name: {explicit, ...}:
-            mapAttrsToList (role: model: mkModel name explicit role model.default) (
+          name: {defined, ...}:
+            mapAttrsToList (role: model: mkModel name defined role model.default) (
               filterAttrs
               (_: model: (model.default or null) != null)
-              (explicit.models or {})
+              (defined.models or {})
             )
         )
         enabled
