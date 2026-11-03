@@ -9,9 +9,10 @@
   user,
   ...
 }: let
-  inherit (lix.strings.transformation) escapeShellArg;
+  inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (themes) icons;
+  inherit (lix.toolkit.write) json;
   inherit (lix.toolkit.binaries) chmod0600 cmps dirname install0644 jaq jaqn mkdirp mktemp mvf readlinkf rmf;
   inherit (themes) catppuccin foot ghostty hermes kitty;
 
@@ -43,14 +44,26 @@
     themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
   };
 
-  settingsOverridesFile = lix.toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
-  settingsDefaultsFile = lix.toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
-  pluginOverridesFile = lix.toolkit.write.json "dms-plugin-settings-overrides.json" (dms.plugins or {});
-  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" settingsOutput.clipboardSettings;
-  sessionOverridesFile = lix.toolkit.write.json "dms-session-overrides.json" (dms.session or {});
-  pluginDefaultsFile = lix.toolkit.write.json "dms-plugin-settings-defaults.json" defaults.plugins;
-  clipboardDefaultsFile = lix.toolkit.write.json "dms-clipboard-settings-defaults.json" defaultsOutput.clipboardSettings;
-  sessionDefaultsFile = lix.toolkit.write.json "dms-session-defaults.json" sessionDefaults;
+  settingsOverridesFile = json "dms-settings-overrides.json" settingsOverrides;
+  settingsDefaultsFile = json "dms-settings-defaults.json" settingsDefaults;
+  pluginOverridesFile = json "dms-plugin-settings-overrides.json" (dms.plugins or {});
+  clipboardOverridesFile = json "dms-clipboard-settings-overrides.json" settingsOutput.clipboardSettings;
+  sessionOverridesFile = json "dms-session-overrides.json" (dms.session or {});
+  pluginDefaultsFile = json "dms-plugin-settings-defaults.json" defaults.plugins;
+  clipboardDefaultsFile = json "dms-clipboard-settings-defaults.json" defaultsOutput.clipboardSettings;
+  sessionDefaultsFile = json "dms-session-defaults.json" sessionDefaults;
+
+  mergeJson = target: overrides: defaults: create: ''
+    merge_json "$${target}" ${escapeShellArgs [
+      overrides
+      defaults
+      (
+        if create
+        then "true"
+        else "false"
+      )
+    ]}
+  '';
 in
   entryAfter ["writeBoundary"] ''
     settings=${escapeShellArg "${configHome}/dms/settings.json"}
@@ -113,9 +126,9 @@ in
       }
 
       # API overrides win on each activation; unlisted values remain mutable in DMS.
-      merge_json "$settings" ${escapeShellArg settingsOverridesFile} ${escapeShellArg settingsDefaultsFile} true
-      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg pluginDefaultsFile} true
-      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg clipboardDefaultsFile} false
-      merge_json "$session" ${escapeShellArg sessionOverridesFile} ${escapeShellArg sessionDefaultsFile} true
+      ${mergeJson "settings" settingsOverridesFile settingsDefaultsFile true}
+      ${mergeJson "plugins" pluginOverridesFile pluginDefaultsFile true}
+      ${mergeJson "clipboard" clipboardOverridesFile clipboardDefaultsFile false}
+      ${mergeJson "session" sessionOverridesFile sessionDefaultsFile true}
     fi
   ''

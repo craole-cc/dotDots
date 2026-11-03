@@ -125,8 +125,8 @@
           //> Prefer an explicit non-empty `q=` parameter; otherwise use lat,lon from the path.
           let query = geo_url
             .query_pairs()
-            .find(|(name, value)| name == "q" && !value.is_empty())
-            .map(|(_, value)| value.into_owned())
+            .find(|(key, val)| key == "q" && !val.is_empty())
+            .map(|(_, val)| val.into_owned())
             .unwrap_or_else(|| coordinates_from_path(geo_url.path()));
 
           if query.is_empty() {
@@ -147,7 +147,7 @@
     };
   in
     write.bin "dotdots-open-map" ''
-      url=$(${mapUrl}/bin/dotdots-map-url "$@")
+      url=$(${mapUrl}/bin/dotdots-map-url "$@") || exit $?
       exec ${binaries.xdg-open} "$url"
     '';
 in
