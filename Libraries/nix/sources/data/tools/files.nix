@@ -42,24 +42,142 @@
     description = "intuitive du (disk usage)";
     aliases = mkAliasFamily "dust" {
       d = {
-        args = ["-d"];
-        description = "limit the directory depth shown";
-      };
-      Dirs = {
-        args = ["-D"];
-        description = "show only directories";
+        args = ["--depth"];
+        description = "limit the directory depth shown, e.g. dustd 2 ~/src";
       };
       n = {
-        args = ["-n"];
-        description = "show a caller-specified number of entries";
+        args = ["--number-of-lines"];
+        description = "show a caller-specified number of entries, e.g. dustn 100";
       };
       r = {
-        args = ["-r"];
-        description = "show the largest entries at the bottom";
+        args = ["--reverse"];
+        description = "show the largest entries at the top";
+      };
+      All = {
+        args = ["--number-of-lines" "1000000"];
+        description = "show every entry instead of fitting the terminal height";
+      };
+      Apparent = {
+        args = ["--apparent-size"];
+        description = "rank by file length instead of disk blocks";
+      };
+      BigFiles = {
+        args = ["--only-file" "--reverse" "--number-of-lines" "50"];
+        description = "find the 50 largest files, biggest first";
+      };
+      Bytes = {
+        args = ["--output-format" "b"];
+        description = "show every size in bytes";
+      };
+      Collapse = {
+        args = ["--collapse"];
+        description = "keep a caller-specified directory collapsed, e.g. dustCollapse node_modules";
+      };
+      Count = {
+        args = ["--filecount"];
+        description = "rank directories by number of files instead of size";
+      };
+      Dirs = {
+        args = ["--only-dir"];
+        description = "show only directories";
+      };
+      Errors = {
+        args = ["--print-errors"];
+        description = "print the paths that could not be read";
+      };
+      Exclude = {
+        args = ["--invert-filter"];
+        description = "exclude paths matching a regex, e.g. dustExclude '\\.log$'";
+      };
+      Files = {
+        args = ["--only-file"];
+        description = "show only files (finds your largest files)";
+      };
+      Filter = {
+        args = ["--filter"];
+        description = "include only paths matching a regex, e.g. dustFilter '\\.mp4$'";
+      };
+      Gigs = {
+        args = ["--output-format" "g"];
+        description = "show every size in GiB";
+      };
+      Json = {
+        args = ["--output-json"];
+        description = "write the directory tree as JSON to the current directory";
+      };
+      Links = {
+        args = ["--dereference-links"];
+        description = "follow symlinks into directories";
+      };
+      Many = {
+        args = ["--number-of-lines" "200"];
+        description = "show the 200 largest entries";
+      };
+      Megs = {
+        args = ["--output-format" "m"];
+        description = "show every size in MiB";
+      };
+      Min = {
+        args = ["--min-size"];
+        description = "hide entries below a minimum size, e.g. dustMin 100M";
+      };
+      More = {
+        args = ["--number-of-lines" "50"];
+        description = "show the 50 largest entries";
+      };
+      Mtime = {
+        args = ["--mtime"];
+        description = "filter by modified days, e.g. dustMtime +30 for older than 30 days";
+      };
+      NoBars = {
+        args = ["--no-percent-bars"];
+        description = "hide percent bars and percentages";
+      };
+      NoHidden = {
+        args = ["--ignore-hidden"];
+        description = "skip hidden files";
+      };
+      Page = {
+        args = ["--force-colors" "--number-of-lines" "500"];
+        pipe = [["less" "--RAW-CONTROL-CHARS"]];
+        description = "browse the 500 largest entries in a pager, keeping colors";
+      };
+      Paths = {
+        args = ["--full-paths"];
+        description = "show full paths instead of shortened subdirectories";
+      };
+      Plain = {
+        args = [
+          "--no-colors"
+          "--no-percent-bars"
+          "--no-progress"
+          "--number-of-lines"
+          "1000000"
+        ];
+        description = "uncolored list with no bars or progress, for piping";
+      };
+      Recent = {
+        args = ["--mtime" "-7"];
+        description = "only files modified in the last 7 days";
+      };
+      SameFs = {
+        args = ["--limit-filesystem"];
+        description = "stay on the starting filesystem";
+      };
+      Shallow = {
+        args = ["--depth" "1"];
+        description = "show only the top level";
+      };
+      Si = {
+        args = ["--output-format" "si"];
+        description = "show sizes in powers of 1000";
+      };
+      Stale = {
+        args = ["--mtime" "+365"];
+        description = "only files untouched for over a year";
       };
     };
   };
-
   eza = mkSource {
     categories = ["files" "scripting"];
     description = "modern ls replacement";

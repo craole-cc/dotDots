@@ -1,3 +1,4 @@
+#TODO: All this we have defined here should be moved to the dms module as default values. Remember this is just API, not the actual implementation of the module. The actual implementation should be in the dms module.
 {
   dms = {
     settings = import ./settings.nix;
