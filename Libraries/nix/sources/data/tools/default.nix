@@ -15,6 +15,15 @@
   inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concat;
 
+  load = file:
+    import file {
+      inherit _;
+      inherit (_.attrsets.transformation) mapAttrs mapAttrsToList;
+      inherit (_.filesystem.access) readFile;
+      inherit (_.strings.transformation) replaceStrings;
+      inherit mkPath mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
+    };
+
   mkPath = {
     root,
     stem,
@@ -101,14 +110,5 @@
       ])
     categories;
       source // {inherit categories description;};
-
-  load = file:
-    import file {
-      inherit _;
-      inherit (_.attrsets.transformation) mapAttrsToList;
-      inherit (_.filesystem.access) readFile;
-      inherit (_.strings.transformation) replaceStrings;
-      inherit mkPath mkAlias mkLayeredAlias mkAliasFamily mergeDisjoint mkSource;
-    };
 in
   mergeDisjoint (map load (importAllPaths ./.).value)
