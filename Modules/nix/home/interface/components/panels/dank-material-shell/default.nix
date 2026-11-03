@@ -78,11 +78,6 @@ in
         default = defaults.plugins;
         type = attrsOf anything;
       };
-      clipboardSettings = mkOption {
-        description = "DMS clipboard settings";
-        default = defaults.clipboardSettings;
-        type = attrsOf anything;
-      };
       session = mkOption {
         description = "DMS session settings";
         default = defaults.session;
