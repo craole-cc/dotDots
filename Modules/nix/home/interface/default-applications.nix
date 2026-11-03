@@ -19,9 +19,9 @@
   inherit (lix.strings.construction) optionalString splitString;
   inherit (lix.strings.transformation) escapeShellArgs;
   inherit (lix.toolkit) binaries binariesFor write;
-  inherit (lix.types.combinators) listOf;
+  inherit (lix.types.combinators) attrsOf listOf;
   inherit (lix.types.predicates) isString;
-  inherit (lix.types.primitives) str;
+  inherit (lix.types.primitives) anything str;
 
   hasApp = category: isNotEmpty apps.${category};
   appFor = category: optionalAttrs (hasApp category) (head apps.${category});
@@ -172,7 +172,7 @@ in
         desktopEntries = mkOption {
           description = "Desktop entries for default application handlers";
           default = defaults.xdg.desktopEntries;
-          inherit (options.xdg.desktopEntries) type;
+          type = attrsOf (attrsOf anything);
         };
         mimeApps = {
           enable = mkEnable {
