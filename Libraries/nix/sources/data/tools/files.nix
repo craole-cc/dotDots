@@ -178,6 +178,7 @@
       };
     };
   };
+  
   eza = mkSource {
     categories = ["files" "scripting"];
     description = "modern ls replacement";
