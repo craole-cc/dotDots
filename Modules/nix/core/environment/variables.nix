@@ -87,7 +87,7 @@
         # The active interface panel is authoritative. The application registry
         # remains only as a fallback for hosts without an interface panel value.
         # TODO: move to interface/panels
-        # BAR = ice.panel or bar.primary;
+        # BAR = ice.panels.active or bar.primary;
         "${toUpper names.src}" = paths.roots.repo;
         EDITOR = editor.editor;
         LAUNCHER = launcher.primary;

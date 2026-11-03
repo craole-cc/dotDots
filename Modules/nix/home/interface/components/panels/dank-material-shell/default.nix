@@ -25,9 +25,11 @@
   inherit (lix.types.primitives) package anything;
   inherit (lix.toolkit) packages;
   record = lix.toolkit.records.dms-shell;
+  defaults = import ./defaults {inherit lix;};
 
   args = recursiveUpdate record {
     inherit config inputs lix pkgs style themes user entryAfter;
+    dms = recursiveUpdate cfg (user.interface.dms or {});
     configHome =
       config.xdg.configHome or (concat {
         root = user.home;
@@ -60,6 +62,31 @@ in
         description = "Package to use";
         default = record.package;
         type = package;
+      };
+      settings = mkOption {
+        description = "DMS shell settings";
+        default = defaults.settings;
+        type = attrsOf anything;
+      };
+      schema = mkOption {
+        description = "Reference schema for DMS settings and plugin data";
+        default = defaults.schema;
+        type = attrsOf anything;
+      };
+      plugins = mkOption {
+        description = "DMS plugin settings";
+        default = defaults.plugins;
+        type = attrsOf anything;
+      };
+      clipboardSettings = mkOption {
+        description = "DMS clipboard settings";
+        default = defaults.clipboardSettings;
+        type = attrsOf anything;
+      };
+      session = mkOption {
+        description = "DMS session settings";
+        default = defaults.session;
+        type = attrsOf anything;
       };
       icons = mkOption {
         description = "Resolved DMS desktop icon contract";

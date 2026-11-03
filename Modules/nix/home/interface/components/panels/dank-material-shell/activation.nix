@@ -1,5 +1,6 @@
 {
   configHome,
+  dms,
   stateHome,
   entryAfter,
   lix,
@@ -9,13 +10,14 @@
   ...
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (themes) icons;
   inherit (lix.toolkit.binaries) chmod0600 cmps dirname install0644 jaq jaqn mkdirp mktemp mvf readlinkf rmf;
   inherit (themes) catppuccin foot ghostty hermes kitty;
 
-  dms = user.interface.dms;
-  settingsOverrides = dms.settings;
-  settingsDefaults = {
+  defaults = import ./defaults {inherit lix;};
+  settingsOverrides = dms.settings or {};
+  settingsDefaults = recursiveUpdate defaults.settings {
     currentThemeName = "dynamic";
     currentThemeCategory = "dynamic";
     customThemeFile = catppuccin.path;
@@ -33,16 +35,18 @@
     iconThemeLight = icons.light.theme;
     iconThemePerMode = true;
   };
-  sessionDefaults = {
+  sessionDefaults = recursiveUpdate defaults.session {
     isLightMode = style.mode == "light";
     themeModeAutoEnabled = user.theme.modes.autoSwitch or false;
   };
 
   settingsOverridesFile = lix.toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
   settingsDefaultsFile = lix.toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
-  pluginOverridesFile = lix.toolkit.write.json "dms-plugin-settings-overrides.json" dms.plugins;
-  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" dms.clipboardSettings;
-  sessionOverridesFile = lix.toolkit.write.json "dms-session-overrides.json" dms.session;
+  pluginOverridesFile = lix.toolkit.write.json "dms-plugin-settings-overrides.json" (dms.plugins or {});
+  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" (dms.clipboardSettings or {});
+  sessionOverridesFile = lix.toolkit.write.json "dms-session-overrides.json" (dms.session or {});
+  pluginDefaultsFile = lix.toolkit.write.json "dms-plugin-settings-defaults.json" defaults.plugins;
+  clipboardDefaultsFile = lix.toolkit.write.json "dms-clipboard-settings-defaults.json" defaults.clipboardSettings;
   sessionDefaultsFile = lix.toolkit.write.json "dms-session-defaults.json" sessionDefaults;
 in
   entryAfter ["writeBoundary"] ''
@@ -107,8 +111,8 @@ in
 
       # API overrides win on each activation; unlisted values remain mutable in DMS.
       merge_json "$settings" ${escapeShellArg settingsOverridesFile} ${escapeShellArg settingsDefaultsFile} true
-      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg (lix.toolkit.write.json "dms-empty-defaults.json" {})} true
-      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg (lix.toolkit.write.json "dms-empty-defaults.json" {})} false
+      merge_json "$plugins" ${escapeShellArg pluginOverridesFile} ${escapeShellArg pluginDefaultsFile} true
+      merge_json "$clipboard" ${escapeShellArg clipboardOverridesFile} ${escapeShellArg clipboardDefaultsFile} false
       merge_json "$session" ${escapeShellArg sessionOverridesFile} ${escapeShellArg sessionDefaultsFile} true
     fi
   ''

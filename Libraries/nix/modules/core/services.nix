@@ -29,7 +29,6 @@
       displayProtocol    :: String,
       displayManager     :: String | null,
       defaultSession     :: String | null,
-      panel              :: String | null,
       compositor         :: AttrSet,
       autoLogin          :: Bool,
       autoLoginUser      :: String | null,
@@ -44,7 +43,6 @@
       displayManager = "sddm";
       displayProtocol = "wayland";
       defaultSession = null;
-      panel = null;
       autoLogin = false;
       autoLoginUser = null;
       desktopEnvironment = null;

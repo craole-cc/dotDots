@@ -65,7 +65,7 @@
   defaults = {
     inherit (io.defaults) keyboard;
     dms = {};
-    panel = null;
+    panels.active = null;
     notifier = null;
     desktopEnvironment = null;
     windowManager = null;
@@ -200,9 +200,9 @@
       type = nullOr str;
     };
 
-    panel = mkOptionEnum {
-      description = "Desktop panel/bar";
-      default = defaults.panel;
+    panels.active = mkOptionEnum {
+      description = "Active desktop panel or bar";
+      default = defaults.panels.active;
       input = enums.panels.values;
     };
 
@@ -349,7 +349,7 @@
         desktop = "gnome-shell";
         window = "mutter";
       };
-      panel = "gnome-shell";
+      panels.active = "gnome-shell";
       notifier = "gnome-shell";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "gnome-shell-overview";
@@ -376,7 +376,7 @@
         window = "kwin";
       };
       greeter = "plasma-login-shell";
-      panel = "plasmashell";
+      panels.active = "plasmashell";
       notifier = "plasmashell";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "krunner";
@@ -400,7 +400,7 @@
         desktop = "gnome-shell";
         window = "cosmic-comp";
       };
-      panel = "cosmic-panel";
+      panels.active = "cosmic-panel";
       notifier = "cosmic-notifications";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "cosmic-launcher";
@@ -421,7 +421,7 @@
         desktop = "gala";
         window = "gala";
       };
-      panel = "wingpanel";
+      panels.active = "wingpanel";
       notifier = "notification-daemon";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "slingshot";
@@ -440,7 +440,7 @@
         desktop = "cinnamon";
         window = "muffin";
       };
-      panel = "cinnamon";
+      panels.active = "cinnamon";
       notifier = "cinnamon";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "cinnamon-menu";
@@ -461,7 +461,7 @@
         desktop = "xfce4-panel";
         window = "xfwm4";
       };
-      panel = "xfce4-panel";
+      panels.active = "xfce4-panel";
       notifier = "xfce4-notifyd";
       apps = recursiveUpdate defaults.apps {
         launcher.pri = "xfce4-appfinder";
@@ -484,7 +484,7 @@
           desktop = name;
           window = name;
         };
-        panel = "dms-shell";
+        panels.active = "dms-shell";
         notifier = null;
         apps = recursiveUpdate defaults.apps {
           launcher.sec = "dms-shell";
@@ -515,7 +515,7 @@
           desktop = name;
           window = name;
         };
-        panel = "polybar";
+        panels.active = "polybar";
         notifier = "dunst";
         apps = recursiveUpdate defaults.apps {
           launcher.sec = "rofi";
@@ -604,7 +604,7 @@
       };
     };
     qtile = recursiveUpdate (mkXorg "qtile") {
-      panel = "qtile";
+      panels.active = "qtile";
       keyboard.bindings = {
         close.action = "qtile-cmd -o window -f kill";
         fullscreen.action = "qtile-cmd -o window -f toggle_fullscreen";
@@ -617,7 +617,7 @@
       };
     };
     awesome = recursiveUpdate (mkXorg "awesome") {
-      panel = "awesome";
+      panels.active = "awesome";
       keyboard.bindings = {
         close.action = "awesome-client 'client.focus:kill()'";
         fullscreen.action = "awesome-client 'client.focus.fullscreen = not client.focus.fullscreen; client.focus:raise()'";
@@ -629,7 +629,7 @@
       };
     };
     xmonad = recursiveUpdate (mkXorg "xmonad") {
-      panel = "xmobar";
+      panels.active = "xmobar";
       keyboard.bindings = {
         close.action = "xmonadctl kill";
         fullscreen.action = "xmonadctl full";
@@ -639,7 +639,7 @@
       };
     };
     openbox = recursiveUpdate (mkXorg "openbox") {
-      panel = "tint2";
+      panels.active = "tint2";
       notifier = "xfce4-notifyd";
       apps = {
         launcher.pri = "rofi";
@@ -671,7 +671,6 @@
       "apps"
       "compositor"
       "notifier"
-      "panel"
     ];
   };
   select = {
@@ -741,9 +740,12 @@
       wm = windowManager.config;
     };
 
-    dmsPanel =
-      (interface.panel or environment.config.panel or null)
-      == "dms-shell";
+    panels = recursiveUpdate defaults.panels (
+      recursiveUpdate (configs.de.panels or {}) (
+        recursiveUpdate (configs.wm.panels or {}) (interface.panels or {})
+      )
+    );
+    dmsPanel = panels.active == "dms-shell";
     hyprlandKeyboard = import ./keyboard/hyprland.nix {
       inherit _ terminals;
     };
@@ -871,6 +873,7 @@
         enabled
         keyboard
         dms
+        panels
         shell
         session
         ;

@@ -47,7 +47,7 @@
           ../../Modules/nix/home/default.nix
           ../../Modules/nix/home/terminal/core/ghostty/default.nix
           {
-            options._.resolved.interface.panel = lib.mkOption {
+            options._.resolved.interface.panels.active = lib.mkOption {
               type = lib.types.str;
               default = "none";
             };
@@ -155,7 +155,7 @@
   themed =
     ((evaluate true null).extendModules {
       specialArgs.style.opacity.terminal.dark = 0.75;
-      modules = [{_.resolved.interface.panel = "dms-shell";}];
+      modules = [{_.resolved.interface.panels.active = "dms-shell";}];
     }).config;
 in
   assert enabled._.defaults.terminal.emulators.ghostty.enable == false;

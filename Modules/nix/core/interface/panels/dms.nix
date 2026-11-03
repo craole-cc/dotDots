@@ -15,7 +15,7 @@
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
 
-  panel = config.${context.top}.resolved.interface.panel or null;
+  activePanel = config.${context.top}.resolved.interface.panels.active or null;
   dmsUsers = builtins.mapAttrs (_: _: {extraGroups = ["input"];}) (host.users.interactive or {});
 in
   mkConfig {
@@ -23,7 +23,7 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = panel == "dms-shell";
+        condition = activePanel == "dms-shell";
       };
     };
     outputs = {

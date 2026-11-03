@@ -449,7 +449,7 @@
       desktopEnvironments = ice.desktopEnvironment or null;
       de = desktopEnvironments;
 
-      panels = ice.panel or null;
+      panels = ice.panels.active or null;
       bar = panels;
 
       desktops =

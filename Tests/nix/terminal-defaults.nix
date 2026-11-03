@@ -109,7 +109,7 @@
         ../../Modules/nix/home/terminal/core/warp/default.nix
         {
           options = {
-            _.resolved.interface.panel = option lib.types.str "none";
+            _.resolved.interface.panels.active = option lib.types.str "none";
             home = {
               packages = option (lib.types.listOf lib.types.package) [];
               sessionVariables = option (lib.types.attrsOf lib.types.str) {};
@@ -144,7 +144,7 @@
       };
       modules = [
         {
-          _.resolved.interface.panel = "dms-shell";
+          _.resolved.interface.panels.active = "dms-shell";
           _.resolved.terminal.emulators = {
             kitty.defined = {
               package = fixturePackage "custom-kitty";

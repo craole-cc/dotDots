@@ -120,7 +120,7 @@
             [inputs'.${name}.module])
           names;
 
-        dmsNiriEnabled = enrichedInterface.panel == "dms-shell";
+        dmsNiriEnabled = enrichedInterface.panels.active == "dms-shell";
         niriEnabled = (enrichedInterface.windowManager or null) == "niri";
       in {
         _module.args = {
