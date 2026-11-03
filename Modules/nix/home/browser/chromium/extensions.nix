@@ -13,5 +13,6 @@
     {id = "hipekcciheckooncpjeljhnekcoolahp";} #? Tabliss
     {id = "giljefjcheohhamkjphiebfjnlphnokk";} #? Gitako - GitHub file tree
     {id = "ddkjiahejlhfcafbddmgiahcphecmpfh";} #? uBlock Origin Lite
+    {id = "cppdeppdfkcdmmhnocldacomdeilfbei";} #? All-in-One Cambridge Dictionary
   ];
 }

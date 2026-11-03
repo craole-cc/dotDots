@@ -8,12 +8,10 @@
   entryAfter,
   ...
 }: let
-  context = mkContext {
-    inherit config;
-    dom = "interface";
-    sub = "panels";
-    mod = "dms-shell";
-  };
+  dom = "interface";
+  sub = "panels";
+  mod = "dms-shell";
+  context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg ctx;
   quickshell = context.resolved.cfg.interface.panels.quickshell.defined;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;

@@ -4,15 +4,17 @@
   lix,
   ...
 }: let
+  # TODO: Why are we not using the contract?
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.modules.construction) mkIf;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.toolkit.binaries) gum install0600 jaq mkdirp mktemp rmf;
+  inherit (lix.toolkit.write) json;
   inherit (config.xdg) configHome;
 
   cfg = config.programs.dank-material-shell;
   enabled = filterAttrs (_: plugin: plugin.enable) cfg.plugins;
-  flags = lix.toolkit.write.json "dms-enabled-plugins.json" (
+  flags = json "dms-enabled-plugins.json" (
     mapAttrs (_: _: {enabled = true;}) enabled
   );
 in {

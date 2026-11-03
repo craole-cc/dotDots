@@ -1,3 +1,4 @@
+# TODO: Bunch of repeated keys in here and non-normalized attrsets of the defaults
 {
   theme.name = "dynamic";
   theme.category = "dynamic";
