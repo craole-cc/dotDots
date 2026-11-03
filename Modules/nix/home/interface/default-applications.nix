@@ -1,11 +1,11 @@
-#TODO: This while file needs to make metter use of all lix.toolkit has to offer;
 {
   apps,
   config,
   lix,
-  pkgs,
   ...
 }: let
+  inherit (lix) toolkit;
+  inherit (toolkit) binaries write;
   inherit (lix.attrsets.construction) listToAttrs;
   inherit (lix.lists.access) head;
   inherit (lix.modules.construction) mkIf mkMerge;
@@ -13,12 +13,10 @@
 
   terminal = head apps.terminal;
   terminalCommand = "${escapeShellArg terminal.command} ${escapeShellArg terminal.wrap.execFlag}";
-  directoryHandler = pkgs.writeShellApplication {
-    name = "dotdots-open-directory";
-    text = ''
-      exec ${terminalCommand} ${config.programs.yazi.package}/bin/yazi "$@"
-    '';
-  };
+  yazi = (toolkit.binariesFor [config.programs.yazi.package]).yazi;
+  directoryHandler = write.bin "dotdots-open-directory" ''
+    exec ${terminalCommand} ${yazi} "$@"
+  '';
 
   archiveMimeTypes = [
     "application/zip"
@@ -37,40 +35,21 @@
     "application/x-xz-compressed-tar"
     "application/x-zstd-compressed-tar"
   ];
-  archiveHandler = pkgs.writeShellApplication {
-    name = "dotdots-open-archive";
-    runtimeInputs = [pkgs.ouch];
-    text = ''
-      status=0
-      ouch list --tree -- "$@" || status=$?
-      printf '\nPress Enter to close.'
-      read -r _ || true
-      exit "$status"
-    '';
-  };
-  mapUrl = pkgs.writeText "dotdots-map-url.py" ''
-    import sys
-    from urllib.parse import parse_qs, unquote, urlencode, urlsplit
 
-    if len(sys.argv) == 1:
-        print("https://www.google.com/maps/")
-    else:
-        location = urlsplit(sys.argv[1])
-        if location.scheme != "geo":
-            sys.exit("Expected a geo: location")
-        query = parse_qs(location.query).get("q", [None])[0]
-        if not query:
-            query = ",".join(unquote(location.path).split(";", 1)[0].split(",")[:2])
-        print("https://www.google.com/maps/search/?" + urlencode({"api": "1", "query": query}))
+  archiveHandler = write.bin "dotdots-open-archive" ''
+    status=0
+    ${binaries.lsarTree} -- "$@" || status=$?
+    printf '\nPress Enter to close.'
+    read -r _ || true
+    exit "$status"
   '';
-  mapHandler = pkgs.writeShellApplication {
-    name = "dotdots-open-map";
-    runtimeInputs = [pkgs.python3 pkgs.xdg-utils];
-    text = ''
-      url=$(python3 ${mapUrl} "$@")
-      exec xdg-open "$url"
-    '';
-  };
+
+
+
+  mapHandler = write.bin "dotdots-open-map" ''
+    url=$(${binaries.python3} ${mapUrl} "$@")
+    exec ${binaries.xdg-open} "$url"
+  '';
 in
   mkMerge [
     (mkIf (apps.terminal != []) {
