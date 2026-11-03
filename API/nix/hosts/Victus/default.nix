@@ -272,7 +272,7 @@ in {
       autoLogin = true;
       role = "administrator";
       packages.communication = ["thunderbird" "khal"];
-      interface.dms.settings.calendarBackend = "dankcal";
+      interface.dms.settings.calendar.backend = "dankcal";
       sshKeys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINID8HtFjIBwVad7rhVzOAyouDQxotr+xsE/4PyhZEqR theoracle"
       ];

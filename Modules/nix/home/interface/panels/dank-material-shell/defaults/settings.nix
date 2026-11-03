@@ -1,25 +1,25 @@
 {
-  "currentThemeName" = "dynamic";
-  "currentThemeCategory" = "dynamic";
-  "matugenScheme" = "scheme-smart";
-  "matugenContrast" = -0.35;
-  "popupTransparency" = 0.75;
-  "floatingWindowSyncGlobal" = false;
-  "floatingWindowTransparency" = 0.75;
-  "floatingWindowForegroundTransparency" = 0.85;
-  "widgetBackgroundColor" = "sc";
-  "widgetColorMode" = "colorful";
-  "controlCenterTileColorMode" = "primary";
-  "buttonColorMode" = "primary";
-  "hyprlandLayoutBorderSize" = -1;
-  "hyprlandResizeOnBorder" = false;
-  "showWeekNumber" = true;
-  "clockFormat" = "24h";
-  "showSeconds" = true;
-  "motionEffect" = 2;
-  "blurEnabled" = true;
-  "foregroundLayerTransparency" = 1;
-  "controlCenterWidgets" = [
+  theme.name = "dynamic";
+  theme.category = "dynamic";
+  theme.matugen.scheme = "scheme-smart";
+  theme.matugen.contrast = -0.35;
+  opacity.popup = 0.75;
+  opacity.floating.sync = false;
+  opacity.floating.background = 0.75;
+  opacity.floating.foreground = 0.85;
+  widgets.background.color = "sc";
+  widgets.color.mode = "colorful";
+  controls.tiles.color.mode = "primary";
+  buttons.color.mode = "primary";
+  hyprland.layout.border.size = -1;
+  hyprland.resize.border = false;
+  clock.week.number = true;
+  clock.format = "24h";
+  clock.seconds = true;
+  animation.motion = 2;
+  blur.enable = true;
+  opacity.foreground = 1;
+  controls.widgets = [
     {
       "col" = 0;
       "enabled" = true;
@@ -155,33 +155,33 @@
       "small" = true;
     }
   ];
-  "appIdSubstitutions" = [
+  applications.substitutions = [
     {
       "pattern" = "zen-";
       "replacement" = "zen";
       "type" = "contains";
     }
   ];
-  "centeringMode" = "geometric";
-  "greeterAutoLogin" = true;
-  "greeterPamExternallyManaged" = true;
-  "appLauncherGridColumns" = 3;
-  "spotlightSectionViewModes" = {
+  windows.centering = "geometric";
+  greeter.login.auto = true;
+  greeter.pam.external = true;
+  launcher.grid.columns = 3;
+  launcher.spotlight.sections = {
     "apps" = "tile";
   };
-  "appDrawerSectionViewModes" = {
+  launcher.drawer.sections = {
     "apps" = "tile";
   };
-  "dankLauncherV2BorderEnabled" = true;
-  "dankLauncherV2UnloadOnClose" = true;
-  "dankLauncherV2IncludeFilesInAll" = true;
-  "dankLauncherV2IncludeFoldersInAll" = true;
-  "launcherUseOverlayLayer" = true;
-  "networkPreference" = "wifi";
-  "iconThemeDark" = "System Default";
-  "iconThemeLight" = "System Default";
-  "iconThemePerMode" = true;
-  "cursorSettings" = {
+  launcher.border.enable = true;
+  launcher.unload.close = true;
+  launcher.include.files = true;
+  launcher.include.folders = true;
+  launcher.layer.overlay = true;
+  network.preferred = "wifi";
+  icons.theme.dark = "System Default";
+  icons.theme.light = "System Default";
+  icons.theme.adaptive = true;
+  cursor = {
     "theme" = "material_dark_cursors";
     "size" = 24;
     "niri" = {
@@ -197,30 +197,30 @@
       "cursorHideTimeout" = 0;
     };
   };
-  "fontFamily" = "Sans Serif";
-  "monoFontFamily" = "Monospace";
-  "textRenderType" = 1;
-  "textRenderQuality" = 4;
-  "notificationSummaryFontSize" = 12;
-  "notificationBodyFontSize" = 10;
-  "soundsEnabled" = false;
-  "acLockTimeout" = 1800;
-  "batterySuspendTimeout" = 900;
-  "batteryProfileName" = "0";
-  "batteryChargeLimit" = 90;
-  "batteryNotifyChargeLimit" = true;
-  "batteryNotifyLow" = true;
-  "batteryAutoPowerSaver" = true;
-  "lockBeforeSuspend" = true;
-  "notificationOverlayEnabled" = true;
-  "lockPamExternallyManaged" = true;
-  "notificationCompactMode" = true;
-  "notificationShowTimeoutBar" = true;
-  "notificationFocusedMonitor" = true;
-  "osdAlwaysShowValue" = true;
-  "osdMediaPlaybackEnabled" = true;
-  "osdPowerProfileEnabled" = true;
-  "powerMenuActions" = [
+  fonts.sans.family = "Sans Serif";
+  fonts.mono.family = "Monospace";
+  fonts.render.type = 1;
+  fonts.render.quality = 4;
+  notifications.fonts.summary.size = 12;
+  notifications.fonts.body.size = 10;
+  sounds.enable = false;
+  power.ac.lock.timeout = 1800;
+  power.battery.suspend.timeout = 900;
+  battery.profile = "0";
+  battery.charge.limit = 90;
+  battery.notify.charge.limit = true;
+  battery.notify.low = true;
+  battery.saver.auto = true;
+  lock.suspend = true;
+  notifications.overlay.enable = true;
+  lock.pam.external = true;
+  notifications.compact = true;
+  notifications.timeout.bar = true;
+  notifications.monitor.focused = true;
+  osd.value.always = true;
+  osd.media.enable = true;
+  osd.power.profile.enable = true;
+  power.menu.actions = [
     "reboot"
     "logout"
     "poweroff"
@@ -231,13 +231,13 @@
     "switchuser"
     "hibernate"
   ];
-  "powerMenuGridLayout" = true;
-  "updaterCheckOnStart" = true;
-  "screenPreferences" = {
+  power.menu.grid = true;
+  updates.check.start = true;
+  displays.preferred = {
     "wallpaper" = ["all"];
   };
-  "displayProfileAutoSelect" = true;
-  "connectedFrameBarStyleBackups" = {
+  displays.profile.auto = true;
+  bars.backups = {
     "default" = {
       "shadowIntensity" = 0;
       "squareCorners" = true;
@@ -267,7 +267,7 @@
       "borderEnabled" = false;
     };
   };
-  "barConfigs" = [
+  bars.configs = [
     {
       "id" = "default";
       "name" = "Main Bar";
@@ -760,7 +760,7 @@
       "widgetFollowInterfaceStyle" = false;
     }
   ];
-  "builtInPluginSettings" = {
+  plugins.builtin = {
     "dms_settings_search" = {
       "trigger" = "?";
     };
@@ -774,27 +774,27 @@
       "trigger" = "qrg";
     };
   };
-  "clipboardClickToPaste" = true;
-  "clipboardEnterToPaste" = true;
-  "clipboardRememberTypeFilter" = true;
-  "frameEnabled" = true;
-  "frameThickness" = 2;
-  "frameRounding" = 0;
-  "frameBarSize" = 24;
-  "frameLauncherArcExtender" = true;
-  "frameLauncherEdgeHover" = true;
-  "barInsetPaddingShared" = 0;
-  "barInsetPaddingSyncAll" = true;
-  "frameBarInsetPadding" = 2;
-  "configVersion" = 42;
-  "runDmsMatugenTemplates" = true;
-  "matugenTemplateGtk" = true;
-  "matugenTemplateGhostty" = true;
-  "matugenTemplateFoot" = true;
-  "radiusStrength" = 0;
-  "animationDuration" = 200;
-  "blurBorderEnabled" = false;
-  "dockConfigs" = [
+  clipboard.paste.click = true;
+  clipboard.paste.enter = true;
+  clipboard.filter.remember = true;
+  frame.enable = true;
+  frame.thickness = 2;
+  frame.rounding = 0;
+  frame.bar.size = 24;
+  frame.launcher.arc.extend = true;
+  frame.launcher.edge.hover = true;
+  bars.padding.shared = 0;
+  bars.padding.sync = true;
+  frame.bar.padding = 2;
+  config.version = 42;
+  theme.matugen.templates.enable = true;
+  theme.matugen.templates.gtk = true;
+  theme.matugen.templates.ghostty = true;
+  theme.matugen.templates.foot = true;
+  corners.radius = 0;
+  animation.duration = 200;
+  blur.border.enable = false;
+  dock.configs = [
     {
       "id" = "dock";
       "name" = "Dock";
@@ -866,28 +866,29 @@
       ];
     }
   ];
-  "blurBorderSeeded" = true;
-  "dmsWindowsFloatingSeeded" = [
+  blur.border.seeded = true;
+  windows.floating.seeded = [
     "hyprland"
   ];
-  "blurForegroundLayers" = false;
-  "focusRingEnabled" = false;
-  "focusRingWidth" = 1.5;
-  "scrollbarsEnabled" = false;
-  "hyprlandTilingLayout" = "dwindle";
-  "hyprlandDwindleSmartSplit" = true;
-  "hyprlandDwindlePreserveSplit" = false;
-  "floatingWindowForegroundLayers" = true;
-  "wallpaperFillMode" = "Fill";
-  "hyprlandWindowOpacity" = 96;
-  "hyprlandGroupbarDisableWhenOnly" = true;
-  "hyprlandGroupbarBlur" = true;
-  "hyprlandGlowEnabled" = true;
-  "hyprlandGlowRange" = 4;
-  "hyprlandGlowRenderPower" = 3;
-  "hyprlandGroupbarTextPadding" = 0;
-  "avatarRing" = "primary";
-  "controlCenterColumns" = 6;
-  "osdPosition" = 6;
-  "osdWorkspaceEnabled" = true;
+  blur.foreground.layers = false;
+  focus.ring.enable = false;
+  focus.ring.width = 1.5;
+  scrolling.bars.enable = false;
+  hyprland.layout.name = "dwindle";
+  hyprland.layout.dwindle.split.smart = true;
+  hyprland.layout.dwindle.split.preserve = false;
+  opacity.floating.layers = true;
+  wallpaper.fill = "Fill";
+  hyprland.windows.opacity = 96;
+  hyprland.groups.bar.hide.single = true;
+  hyprland.groups.bar.blur = true;
+  hyprland.glow.enable = true;
+  hyprland.glow.range = 4;
+  hyprland.glow.power = 3;
+  hyprland.groups.bar.text.padding = 0;
+  avatar.ring = "primary";
+  controls.columns = 6;
+  osd.position = 6;
+  osd.workspace.enable = true;
+  clipboard.history = import ./clipboard.nix;
 }

@@ -16,8 +16,11 @@
   inherit (themes) catppuccin foot ghostty hermes kitty;
 
   defaults = import ./defaults {inherit lix;};
-  settingsOverrides = removeAttrs (dms.settings or {}) ["clipboard"];
-  settingsDefaults = recursiveUpdate (removeAttrs defaults.settings ["clipboard"]) {
+  toOutput = import ./settings-output.nix {inherit lix;};
+  settingsOutput = toOutput (dms.settings or {});
+  defaultsOutput = toOutput defaults.settings;
+  settingsOverrides = settingsOutput.settings;
+  settingsDefaults = recursiveUpdate defaultsOutput.settings {
     currentThemeName = "dynamic";
     currentThemeCategory = "dynamic";
     customThemeFile = catppuccin.path;
@@ -43,10 +46,10 @@
   settingsOverridesFile = lix.toolkit.write.json "dms-settings-overrides.json" settingsOverrides;
   settingsDefaultsFile = lix.toolkit.write.json "dms-settings-defaults.json" settingsDefaults;
   pluginOverridesFile = lix.toolkit.write.json "dms-plugin-settings-overrides.json" (dms.plugins or {});
-  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" (dms.settings.clipboard or {});
+  clipboardOverridesFile = lix.toolkit.write.json "dms-clipboard-settings-overrides.json" settingsOutput.clipboardSettings;
   sessionOverridesFile = lix.toolkit.write.json "dms-session-overrides.json" (dms.session or {});
   pluginDefaultsFile = lix.toolkit.write.json "dms-plugin-settings-defaults.json" defaults.plugins;
-  clipboardDefaultsFile = lix.toolkit.write.json "dms-clipboard-settings-defaults.json" defaults.settings.clipboard;
+  clipboardDefaultsFile = lix.toolkit.write.json "dms-clipboard-settings-defaults.json" defaultsOutput.clipboardSettings;
   sessionDefaultsFile = lix.toolkit.write.json "dms-session-defaults.json" sessionDefaults;
 in
   entryAfter ["writeBoundary"] ''
