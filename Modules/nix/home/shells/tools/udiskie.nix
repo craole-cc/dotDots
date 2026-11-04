@@ -1,6 +1,9 @@
-{
+{osConfig ? {}, ...}: {
   services.udiskie = {
-    enable = false; # TODO: Enable this
+    enable = osConfig.services.udisks2.enable or false;
+    automount = true;
+    notify = true;
+    tray = "auto";
     settings = {
       program_options = {
         udisks_version = 2;

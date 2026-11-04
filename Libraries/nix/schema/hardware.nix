@@ -16,7 +16,7 @@
   inherit (_.attrsets.aggregation) recursiveUpdate;
   inherit (_.attrsets.transformation) filterAttrs;
   inherit (_.lists.access) elemAt head length;
-  inherit (_.lists.predicates) elem isIn;
+  inherit (_.lists.predicates) any elem isIn;
   inherit (_.lists.selection) filter;
   inherit (_.types.predicates) isAttrs isList isString;
   inherit (_.strings.construction) splitString;
@@ -256,7 +256,8 @@
       hasNetwork = host.devices.network or [] != [];
       hasFilesystems = mounts != {};
       hasGui =
-        (de != null && de != "none" && isIn de desktopEnvironments.values)
+        any (desktop: desktop != "none" && isIn desktop (desktopEnvironments.values ++ windowManagers.values)) (iface.desktops or [])
+        || (de != null && de != "none" && isIn de desktopEnvironments.values)
         || (wm != null && wm != "none" && isIn wm windowManagers.values);
       inherit cpu gpu;
       boot = {
