@@ -5,7 +5,7 @@
 }: let
   inherit (lix.modules.construction) mkContext mkConfig mkForce mkOverride;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.attrsets.access) attrValues;
+  inherit (lix.attrsets.access) attrNames attrValues;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.lists.aggregation) concatMap;
@@ -115,7 +115,9 @@
     "}"
   ];
 
-  discovered = filterAttrs (name: _command: !(elem name shellCommands)) commands.binaries;
+  # Privileged commands must resolve through the host's security wrappers.
+  wrapperCommands = attrNames config.security.wrappers;
+  discovered = filterAttrs (name: _command: !(elem name (shellCommands ++ wrapperCommands))) commands.binaries;
 
   current = {
     host = "$(hostname)";
