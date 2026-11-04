@@ -205,6 +205,7 @@ in
     outputs = mkMerge [
       (mkIf cfg.engines.variety.enable {
         home = removeAttrs variety.outputs.home ["packages"];
+        inherit (variety.outputs) systemd;
       })
       {
         home = {

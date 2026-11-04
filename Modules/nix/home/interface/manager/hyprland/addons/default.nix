@@ -13,7 +13,7 @@
   ];
 
   services = mkMerge [
-    (import ./idle.nix)
+    (lib.mkIf (!dmsEnabled) (import ./idle.nix))
     (import ./paper.nix {})
     (lib.mkIf (!dmsEnabled) (import ./polkit.nix))
     # // (import ./shell.nix)

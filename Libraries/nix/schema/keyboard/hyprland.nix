@@ -18,7 +18,7 @@
   };
   fullscreen = native ''window.fullscreen({ mode = "fullscreen", action = "toggle" })'';
   floating = native ''window.float({ action = "toggle" })'';
-  groupLock = native ''group.lock_active({ action = "toggle" })'';
+  groupLock = native ''group.lock({ action = "toggle" })'';
   media = action: (command action) // {locked = true;};
   scale = action:
     map (step: (media (action step)) // {repeating = true;}) [5 1 10];

@@ -191,6 +191,20 @@
     inherit generated activation;
   };
 in {
+  systemd.user.services.variety = {
+    Unit = {
+      Description = "Variety wallpaper manager";
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
+    };
+    Service = {
+      ExecStart = "${getExe' package "variety"}${optionalString (cfg.profile.name != null) " --profile ${escapeShellArg cfg.profile.path}"}";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install.WantedBy = ["graphical-session.target"];
+  };
+
   home = {
     packages =
       [

@@ -54,7 +54,7 @@ in {
     lock = [
       (command "dms ipc call lock lock")
       (command "loginctl lock-session")
-      (native ''group.lock_active({ action = "toggle" })'')
+      (native ''group.lock({ action = "toggle" })'')
     ];
     launcher = [
       (command "dms ipc call spotlight toggle")

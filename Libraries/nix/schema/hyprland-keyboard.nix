@@ -10,7 +10,7 @@ _: let
   fullscreen = native ''window.fullscreen({ mode = "fullscreen", action = "toggle" })'';
   floating = native ''window.float({ action = "toggle" })'';
   lock = command "dms ipc call lock lock";
-  groupLock = native ''group.lock_active({ action = "toggle" })'';
+  groupLock = native ''group.lock({ action = "toggle" })'';
 
   media = action: (command action) // {locked = true;};
 

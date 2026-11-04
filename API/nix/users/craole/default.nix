@@ -9,7 +9,7 @@ in
       stems.home.prj.cc = projects ++ ["craole-cc"];
       pics = "home:Pictures";
       dlds = "home:Downloads";
-      avatars.session = pics + "/avatar.jpg";
+      avatars.session = "home:.face";
       wallpapers = "home:Pictures/Wallpapers";
     };
   }
