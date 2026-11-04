@@ -14,6 +14,7 @@
   inherit (context) cfg;
 
   inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
   inherit (lix.options.construction) literalExpression mkEnable mkOption;
   inherit (lix.types.combinators) nullOr;
   inherit (lix.types.primitives) str;
@@ -21,6 +22,12 @@
   interface = host.interface or {};
   selected = interface.displayManager or null;
   compositor = interface.compositor.window or (interface.compositor.desktop or null);
+  profileUsers = filterAttrs (_: home:
+    (home.home.file.".face".enable or false)
+    && (home.home.file.".face".source or null) != null)
+  (config.home-manager.users or {});
+  greeterUser = config.services.greetd.settings.default_session.user;
+  greeterGroup = config.users.users.${greeterUser}.group;
 in
   mkConfig {
     inherit context;
@@ -40,6 +47,16 @@ in
     };
 
     outputs = {
+      # Use the managed source directly: the greeter must not need access to
+      # a user's home directory before login to display their avatar.
+      systemd.tmpfiles.rules = lib.mkIf cfg.enable (
+        ["d /var/lib/dms-greeter/users 0750 ${greeterUser} ${greeterGroup} -"]
+        ++ mapAttrsToList (username: home: "d /var/lib/dms-greeter/users/${username} 0750 ${greeterUser} ${greeterGroup} -")
+        profileUsers
+        ++ mapAttrsToList (username: home: "L+ /var/lib/dms-greeter/users/${username}/profile.jpg - - - - ${home.home.file.".face".source}")
+        profileUsers
+      );
+
       services.displayManager.dux-greeter = {
         inherit (cfg) enable;
         compositor.name = cfg.compositor;
