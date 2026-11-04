@@ -14,7 +14,7 @@ in {
   foot = let
     path = concat {
       root = configHome;
-      stem = ["foot" "dank-colors.ini"];
+      stem = ["foot" "dotdots-colors.ini"];
     };
     tag = "foot-matugen-theme";
     file = "${tag}.toml";
@@ -25,7 +25,7 @@ in {
     source = writeText file ''
       [templates.${tag}]
       input_path = '${./foot.ini}'
-      output_path = '${path}'
+      output_path = '${configHome}/foot/dank-colors.ini'
     '';
     fallback = writeText "foot-fallback-theme.ini" (
       concatStringsSep "\n" (map mkFootPalette (with modes; [dark light]))

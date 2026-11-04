@@ -12,6 +12,9 @@ in {
   # `dankcolors` Ghostty theme from its active Material/Matugen palette.
   settings = mkIf wantsDmsShell.condition (mkLayer 1000 {
     theme = "dankcolors";
-    config-file = "?${config.xdg.configHome}/ghostty/dotdots-opacity";
+    config-file = [
+      "?${config.xdg.configHome}/ghostty/dotdots-opacity"
+      "?${config.xdg.configHome}/ghostty/dotdots-contrast"
+    ];
   });
 }

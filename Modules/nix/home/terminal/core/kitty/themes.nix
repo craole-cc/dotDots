@@ -10,5 +10,6 @@ in {
     include dank-tabs.conf
     include dank-theme.conf
     include dotdots-opacity.conf
+    include dotdots-contrast.conf
   '');
 }

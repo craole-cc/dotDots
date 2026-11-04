@@ -1,3 +1,4 @@
+# Move to Modules as default keybindings for the user interface.
 let
   super = ["SUPER"];
   shift = ["Shift"];

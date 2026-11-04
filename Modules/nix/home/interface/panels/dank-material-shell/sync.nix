@@ -135,6 +135,25 @@ in
           ${pkillUSR1x} kitty || true
         fi
 
+        # Separate overrides keep DMS's generated files intact. The shared
+        # renderer corrects both modes using their existing opacity values.
+        if contrast_changed="$(${pkgs.python3}/bin/python3 ${./themes/terminal-contrast.py} \
+          --source ${escapeShellArg "${config.xdg.cacheHome}/dms/dms-colors.json"} \
+          --config-home ${escapeShellArg config.xdg.configHome} \
+          --mode "$mode" \
+          --dark-opacity ${toString style.opacity.terminal.dark} \
+          --light-opacity ${toString style.opacity.terminal.light})"; then
+          if printf '%s\n' "$contrast_changed" | ${rgq} '^kitty/'; then
+            ${pkillUSR1x} kitty || true
+          fi
+          if printf '%s\n' "$contrast_changed" | ${rgq} '^ghostty/'; then
+            ${systemctlUserR} app-com.mitchellh.ghostty.service >/dev/null 2>&1 || true
+          fi
+        else
+          echo "Failed to generate contrast-corrected terminal palettes" >&2
+          exit 1
+        fi
+
         btop_config=${escapeShellArg "${config.xdg.configHome}/btop/btop.conf"}
         if [ -L "$btop_config" ]; then
           echo "Refusing to replace managed btop config symlink: $btop_config" >&2
@@ -143,8 +162,8 @@ in
           if tmp="$(${mktemp} "$btop_config.tmp.XXXXXX")"; then
             if [ -f "$btop_config" ]; then
               if ! ${cat} "$btop_config" |
-                ${sd} '^\\s*color_theme\\s*=.*' "color_theme = \"$btop_theme\"" |
-                ${sd} '^\\s*theme_background\\s*=.*' 'theme_background = false' > "$tmp"; then
+                ${sd} '^\s*color_theme\s*=.*' "color_theme = \"$btop_theme\"" |
+                ${sd} '^\s*theme_background\s*=.*' 'theme_background = false' > "$tmp"; then
                 ${rmf} "$tmp"
                 tmp=
               else
