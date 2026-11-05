@@ -170,22 +170,21 @@
   mkEnable = {
     description ? null,
     condition ? true,
+    default ? condition,
+    type ? bool,
     context ? null,
+    readOnly ? false,
     defaultText ? null,
     example ? null,
-  }: let
-    desc =
-      if context == null
-      then description
-      else concat "." (with context; [dom sub mod]);
-  in
-    mkOption {
-      default = condition;
-      type = bool;
-    }
+  }:
+    mkOption {inherit default type readOnly;}
     // optionalAttrs (defaultText != null) {inherit defaultText;}
     // optionalAttrs (example != null) {inherit example;}
-    // optionalDesc desc;
+    // optionalDesc (
+      if context == null
+      then description
+      else concat "." (with context; [dom sub mod])
+    );
 
   /**
   Creates a boolean enable option that defaults to `true`.

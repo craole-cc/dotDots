@@ -202,6 +202,26 @@
         args = ["log"];
         description = "print a structured log message";
       };
+      LogDebug = {
+        args = ["log" "--level" "debug"];
+        description = "print a debug-level log message";
+      };
+      LogInfo = {
+        args = ["log" "--level" "info"];
+        description = "print an info-level log message";
+      };
+      LogWarn = {
+        args = ["log" "--level" "warn"];
+        description = "print a warning-level log message";
+      };
+      LogError = {
+        args = ["log" "--level" "error"];
+        description = "print an error-level log message";
+      };
+      LogFatal = {
+        args = ["log" "--level" "fatal"];
+        description = "print a fatal-level log message";
+      };
       Pager = {
         args = ["pager"];
         description = "scroll through text in a pager";

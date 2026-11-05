@@ -34,8 +34,8 @@
   wrappers = mkScriptWrappers {
     inherit pkgs;
     scripts = let
-      colorscheme = sh + "/interface/theme/colorscheme";
-      verbosity = sh + "/output/verbosity";
+      # colorscheme = sh + "/interface/theme/colorscheme";
+      # verbosity = sh + "/output/verbosity";
       feet = sh + "/packages/wrappers/foot.sh";
       script = feet;
     in {
@@ -59,10 +59,7 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = [
-      "System"
-      "TerminalEmulator"
-    ];
+    categories = ["System" "TerminalEmulator"];
   };
 
   quake = makeDesktopItem {
@@ -73,10 +70,7 @@
     icon = "foot";
     terminal = false;
     type = "Application";
-    categories = [
-      "System"
-      "TerminalEmulator"
-    ];
+    categories = ["System" "TerminalEmulator"];
     noDisplay = true;
   };
 
@@ -85,10 +79,7 @@
     inherit (cfg) customCommand resolutionHints requiresWayland;
     extraPackages =
       wrappers
-      ++ [
-        desktop
-        quake
-      ]
+      ++ [desktop quake]
       ++ cfg.extraPackages;
     inherit (cfg) debug;
   };
@@ -121,7 +112,7 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = defaults.enable;
+        default = defaults.enable;
       };
       customCommand = mkOption {
         description = "Command name to run, overriding the resolved package binary.";
@@ -133,31 +124,27 @@ in
         default = defaults.resolutionHints;
         type = listOf str;
       };
-      requiresWayland = mkOption {
+      requiresWayland = mkEnable {
         description = "Whether this application requires Wayland to be enabled.";
         default = defaults.requiresWayland;
-        type = bool;
       };
       extraPackages = mkOption {
         description = "Additional packages to install alongside the resolved application.";
         default = defaults.extraPackages;
         type = listOf package;
       };
-      debug = mkOption {
+      debug = mkEnable {
         description = "Trace the application resolution process during evaluation.";
         default = defaults.debug;
-        type = bool;
       };
-      isPrimary = mkOption {
+      isPrimary = mkEnable {
         description = "Whether `foot` is the user's primary terminal choice.";
         default = resolved.isPrimary;
-        type = bool;
         readOnly = true;
       };
-      isPlatformCompatible = mkOption {
+      isPlatformCompatible = mkEnable {
         description = "Whether platform requirements (Wayland) are satisfied.";
         default = resolved.isPlatformCompatible;
-        type = bool;
         readOnly = true;
       };
       package = mkOption {
@@ -167,52 +154,56 @@ in
       };
       settings = mkOption {
         description = "Foot INI configuration settings";
-        type = attrsOf (attrsOf (either settingValue (listOf settingValue)));
         default = defaults.settings;
+        type = attrsOf (attrsOf (either settingValue (listOf settingValue)));
       };
       server.enable = mkEnable {
         description = "Foot terminal server";
-        condition = defaults.server.enable;
+        default = defaults.server.enable;
       };
       home = {
         packages = mkOption {
           description = "Additional packages installed alongside Foot, including wrappers and launchers";
           inherit (options.home.packages) type;
-          default = defaults.home.packages;
+          default = defaults.home.packages or {};
         };
         sessionVariables = mkOption {
           description = "Session variables provided by Foot";
           inherit (options.home.sessionVariables) type;
-          default = defaults.home.sessionVariables;
+          default = defaults.home.sessionVariables or {};
         };
         shellAliases = mkOption {
           description = "Shell aliases provided by Foot";
           inherit (options.home.shellAliases) type;
-          default = defaults.home.shellAliases;
+          default = defaults.home.shellAliases or {};
         };
       };
     };
+
     resolutions = mkLayer 1000 {
       inherit (resolved) enable package;
       settings = mergeSafe [
         defaults.settings
+        {key-bindings.color-theme-toggle = "Control+Alt+0";}
         (import ./themes.nix {opacity = style.opacity.terminal;})
       ];
       home = {
-        packages = filter (package: package != resolved.package) (resolved.home.packages or []);
-        sessionVariables = resolved.home.sessionVariables or {};
-        shellAliases = resolved.home.shellAliases or {};
+        packages =
+          filter (package: package != resolved.package)
+          (resolved.home.packages or []);
+        inherit (resolved.home) sessionVariables shellAliases;
       };
     };
+
     outputs = {
       programs.foot = {
         inherit (cfg) enable package server;
         settings = mergeSafe [
           cfg.settings
           {
-            main = {
-              include = mkForce cfg.settings.main.include;
-              dpi-aware = mkForce cfg.settings.main.dpi-aware;
+            main = with cfg.settings.main; {
+              include = mkForce include;
+              dpi-aware = mkForce dpi-aware;
             };
           }
         ];

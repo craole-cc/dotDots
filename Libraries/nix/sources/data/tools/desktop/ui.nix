@@ -24,9 +24,9 @@
         name = "dms-patched-source";
         src = source;
         patches = [
-          ../../patches/dms/theme-control.patch
-          ../../patches/dms/catppuccin-matugen.patch
-          ../../patches/dms/notification-scratchpad-activation.patch
+          ./patches/dms/theme-control.patch
+          ./patches/dms/catppuccin-matugen.patch
+          ./patches/dms/notification-scratchpad-activation.patch
         ];
       };
     in
