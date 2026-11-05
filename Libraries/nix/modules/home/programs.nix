@@ -1,14 +1,18 @@
 {_, ...}: let
-  inherit (_.sources.modules) mkModule;
   inherit (_.applications.registry) resolve;
-  inherit (_.lists.predicates) isIn;
-  inherit (_.schema.packages) selectedPackages;
   inherit (_.attrsets.access) attrByPath;
-  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.attrsets.construction) genAttrs;
   inherit (_.attrsets.predicates) isAttrs;
+  inherit (_.attrsets.transformation) mapAttrs;
+  inherit (_.debug.tracing) tryEval;
+  inherit (_.lists.access) head;
+  inherit (_.lists.predicates) any isIn;
+  inherit (_.lists.transformation) filter;
+  inherit (_.schema.packages) selectedPackages;
+  inherit (_.sources.modules) mkModule;
   inherit (_.strings.construction) splitString;
-  inherit (_.strings.transformation) replaceStrings toLower;
   inherit (_.strings.predicates) hasInfix;
+  inherit (_.strings.transformation) replaceStrings toLower;
 
   __exports = rec {
     internal = {
@@ -29,37 +33,25 @@
 
   defaults = {
     apps = {
-      plasma.aliases = normalizeNames [
-        "kde"
-        "kde-plasma"
-        "plasma6"
-      ];
+      plasma.aliases = normalizeNames ["kde" "kde-plasma" "plasma6"];
 
       catppuccin = {
-        aliases = normalizeNames [
-          "catppuccin-theme"
-          "catpp"
-        ];
-        flavors = normalizeNames [
-          "latte"
-          "frappe"
-          "macchiato"
-          "mocha"
-        ];
+        aliases = normalizeNames ["catppuccin-theme" "catpp"];
+        flavors = normalizeNames ["latte" "frappe" "macchiato" "mocha"];
       };
 
-      caelestia.aliases = normalizeNames [
-        "caelestia-shell"
-        "cls"
-      ];
-      "dms-shell".aliases = normalizeNames [
+      caelestia.aliases = normalizeNames ["caelestia-shell" "cls"];
+      "dux-shell".aliases = normalizeNames [
         "dank"
         "dms"
         "dank-material-shell"
+        "dux"
+        "dux-shell"
       ];
       "dms-plugin-registry".aliases = normalizeNames [
         "dmsp"
         "dank-plugins"
+        "dux-plugins"
       ];
       "hermes-agent".aliases = normalizeNames [
         "hermes"
@@ -72,6 +64,11 @@
       nvf.aliases = normalizeNames [
         "nvim"
         "neovim"
+      ];
+      niri.aliases = normalizeNames [
+        "wmNiri"
+        "niri-nix"
+        "niri"
       ];
     };
 
@@ -130,12 +127,7 @@
         primary = "vicinae";
         secondary = "fuzzel";
       };
-      tui = normalizeNames [
-        "yazi"
-        "btop"
-        "htop"
-        "fend"
-      ];
+      tui = normalizeNames ["yazi" "btop" "htop" "fend"];
     };
   };
 
@@ -151,29 +143,9 @@
     names = normalizeNames ([name] ++ (cfg.aliases or []));
     flavors = normalizeNames (cfg.flavors or []);
     variants = mapAttrs (_: normalizeNames) (cfg.variants or {});
-    isAllowed = condition (
-      {
-        inherit
-          cfg
-          name
-          names
-          flavors
-          variants
-          ;
-      }
-      // context
-    );
-    module = mkModule {
-      inherit
-        inputs
-        modules
-        name
-        variant
-        ;
-    };
-  in {
-    inherit isAllowed module;
-  };
+    isAllowed = condition ({inherit cfg name names flavors variants;} // context);
+    module = mkModule {inherit inputs modules name variant;};
+  in {inherit isAllowed module;};
 
   mkApps = {
     user,
@@ -187,20 +159,17 @@
     ui = user.interface or {};
     de = normalizeName (attrByPath ["desktopEnvironment"] "" ui);
 
-    theme = let
-      t = attrByPath ["style" "theme"] {} ui;
-    in {
-      light = normalizeName (t.light or "");
-      dark = normalizeName (t.dark or "");
-    };
+    theme = genAttrs ["light" "dark"] (
+      mode: normalizeName ((attrByPath ["style" "theme"] {} ui).${mode} or "")
+    );
 
     panels = groups.bar or [];
     bar =
       if panels == []
       then null
-      else normalizeName (builtins.head panels);
-    selectedPanels = builtins.filter (panel: panel != null) (map (value: let
-      result = builtins.tryEval (resolve {
+      else normalizeName (head panels);
+    selectedPanels = filter (panel: panel != null) (map (value: let
+      result = tryEval (resolve {
         inherit value;
         category = "panel";
       });
@@ -214,7 +183,7 @@
       if value == null || value == ""
       then null
       else let
-        result = builtins.tryEval (resolve {
+        result = tryEval (resolve {
           value = normalizeName value;
           category = "browser";
         });
@@ -224,20 +193,20 @@
         else null;
 
     browserCandidates =
-      builtins.filter
+      filter
       (app: app != null)
       (map resolveBrowser (
         (groups.browser or [])
         ++ appsAllowed
       ));
     zenBrowsers =
-      builtins.filter
+      filter
       (app: (app.family or "") == "zen")
       browserCandidates;
     selectedZenBrowser =
       if zenBrowsers == []
       then null
-      else builtins.head zenBrowsers;
+      else head zenBrowsers;
 
     tty = groups.editor or [];
     hasAnyApp = names: extras: isIn names (appsAllowed ++ normalizeNames extras);
@@ -256,7 +225,7 @@
     };
 
     isDmsShellAllowed = {selectedPanels, ...}:
-      builtins.any (panel: panel.name == "dms-shell") selectedPanels;
+      any (panel: panel.name == "dms-shell") selectedPanels;
 
     appSpecs = {
       plasma.condition = {

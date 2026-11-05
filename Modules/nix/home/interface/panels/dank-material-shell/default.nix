@@ -10,7 +10,7 @@
 }: let
   dom = "interface";
   sub = "panels";
-  mod = "dms-shell";
+  mod = "dux-shell";
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg ctx;
   quickshell = context.resolved.cfg.interface.panels.quickshell.defined;
@@ -22,7 +22,7 @@
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) package anything;
   inherit (lix.toolkit) packages;
-  record = lix.toolkit.records.dms-shell;
+  record = lix.toolkit.records.dux-shell;
   defaults = import ./defaults {inherit lix;};
 
   args = recursiveUpdate record {
@@ -51,7 +51,7 @@ in
     options = {
       enable = mkEnable ({inherit context;} // ctx.wantsDmsShell);
       record = mkOption {
-        description = "Package to use for dms-shell";
+        description = "Package to use for dux-shell";
         default = record;
         type = attrsOf anything;
         readOnly = true;

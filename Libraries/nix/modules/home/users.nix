@@ -71,6 +71,7 @@
       } @ args: let
         nixosConfig = args.nixosConfig or null;
         user' = spec // {inherit name;};
+        # TODO: Use toolkit
         inherit (pkgs.stdenv.hostPlatform) system;
 
         # Resolve interface first, then use that normalized protocol to resolve
@@ -112,15 +113,14 @@
           inputs'.${name};
 
         mkInputModules = names:
-          concatMap (name: let
-            input = mkInput name;
-          in
-            optionals
-            (input != {})
-            [inputs'.${name}.module])
+          concatMap (
+            name:
+              optionals ((mkInput name) != {})
+              [inputs'.${name}.module]
+          )
           names;
 
-        dmsNiriEnabled = enrichedInterface.panels.active == "dms-shell";
+        dmsNiriEnabled = enrichedInterface.panels.active == "dux-shell";
         niriEnabled = (enrichedInterface.windowManager or null) == "niri";
       in {
         _module.args = {

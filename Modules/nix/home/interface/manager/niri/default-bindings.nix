@@ -5,18 +5,18 @@
   inherit (lix.attrsets.construction) listToAttrs;
   inherit (lix.lists.construction) genList;
   bind = title: action: {
-    action = actions.${action};
+    action = actions action [];
     hotkey-overlay.title = title;
   };
   parameterisedBind = title: action: value: {
-    action = actions.${action} value;
+    action = actions action [value];
     hotkey-overlay.title = title;
   };
   indexed = prefix: suffix: action: title: first: last:
-    listToAttrs (builtins.map (index: {
+    listToAttrs (map (index: {
       name = "${prefix}${toString index}${suffix}";
       value = {
-        action = actions.spawn "niri" "msg" "action" action (toString index);
+        action = actions "spawn" ["niri" "msg" "action" action (toString index)];
         hotkey-overlay.title = "${title} ${toString index}";
       };
     }) (genList (offset: first + offset) (last - first + 1)));
@@ -25,15 +25,15 @@ in
     "Mod+Shift+Slash" = bind "Show Hotkey Overlay" "show-hotkey-overlay";
     "Mod+O" = bind "Toggle Overview" "toggle-overview";
     "Mod+Comma" = {
-      action = actions.spawn "dms" "ipc" "settings" "toggle";
+      action = actions "spawn" ["dms" "ipc" "settings" "toggle"];
       hotkey-overlay.title = "Toggle Settings";
     };
     "Mod+N" = {
-      action = actions.spawn "dms" "ipc" "notifications" "toggle";
+      action = actions "spawn" ["dms" "ipc" "notifications" "toggle"];
       hotkey-overlay.title = "Toggle Notifications";
     };
     "Mod+X" = {
-      action = actions.spawn "dms" "ipc" "powermenu" "toggle";
+      action = actions "spawn" ["dms" "ipc" "powermenu" "toggle"];
       hotkey-overlay.title = "Toggle Power Menu";
     };
 
@@ -114,11 +114,11 @@ in
     "Mod+Shift+V" = bind "Switch Focus Between Floating And Tiling" "switch-focus-between-floating-and-tiling";
 
     "Ctrl+Print" = {
-      action = actions.spawn-sh "dms screenshot screen";
+      action = actions "spawn-sh" ["dms screenshot screen"];
       hotkey-overlay.title = "Screenshot Screen";
     };
     "Alt+Print" = {
-      action = actions.spawn-sh "dms screenshot window";
+      action = actions "spawn-sh" ["dms screenshot window"];
       hotkey-overlay.title = "Screenshot Window";
     };
     "Mod+Escape" = (bind "Toggle Keyboard Shortcuts Inhibit" "toggle-keyboard-shortcuts-inhibit") // {allow-inhibiting = false;};

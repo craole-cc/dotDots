@@ -24,16 +24,6 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
-    niri = {
-      url = "github:sodiboo/niri-flake";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
-
-    niriFloatSticky = {
-      url = "github:probeldev/niri-float-sticky/v0.0.9";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
-
     nixDarwin = {
       repo = "nix-darwin";
       owner = "LnL7";
@@ -52,6 +42,22 @@
     nixIndex = {
       repo = "nix-index-database";
       owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
+    wmNiri = {
+      # repo = "niri-flake";
+      # owner = "sodiboo";
+      # type = "github";
+      url = "git+https://codeberg.org/BANanaD3V/niri-nix";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
+    wmNiriFloatSticky = {
+      ref = "v0.0.9";
+      repo = "niri-float-sticky";
+      owner = "probeldev";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
@@ -127,13 +133,13 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
-    shellDankMaterial = {
-      # ref = "stable";
-      repo = "DankMaterialShell";
-      owner = "AvengeMedia";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # shellDankMaterial = {
+    #   # ref = "stable";
+    #   repo = "DankMaterialShell";
+    #   owner = "AvengeMedia";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     greeterDankMaterial = {
       repo = "dank-greeter";
@@ -142,16 +148,46 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
-    shellDankMaterialPlugins = {
-      repo = "dms-plugin-registry";
-      owner = "AvengeMedia";
-      type = "github";
-      inputs.nixpkgs.follows = "nixPackages";
-    };
+    # shellDankMaterialPlugins = {
+    #   repo = "dms-plugin-registry";
+    #   owner = "AvengeMedia";
+    #   type = "github";
+    #   inputs.nixpkgs.follows = "nixPackages";
+    # };
 
     shellDUX = {
       ref = "stable";
       repo = "dux-shell";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXCalendar = {
+      repo = "dux-calendar";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXFiles = {
+      repo = "dux-files";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXGop = {
+      repo = "dux-gop";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXGreeter = {
+      repo = "dux-greeter";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXSearch = {
+      repo = "dux-search";
       owner = "duxlabs-dev";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";

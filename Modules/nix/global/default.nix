@@ -1,5 +1,8 @@
-global: let
-  inherit (global) lix pkgs;
+{
+  lix,
+  pkgs,
+  ...
+} @ global: let
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
@@ -9,15 +12,13 @@ global: let
   inherit (lix.lists.transformation) reverseList;
   inherit (pkgs) mkShell;
 
-  local = import ./shared global;
-  args = recursiveUpdate global local;
+  args = recursiveUpdate global (import ./shared global);
 
-  shells =
-    (importAllNamed {
-      inherit args;
-      dir = ./.;
-      exclude = ["shared" "fmt" "ai"];
-    }).value;
+  shells = let
+    dir = ./.;
+    exclude = ["shared" "fmt" "ai"];
+  in
+    (importAllNamed {inherit args dir exclude;}).value;
 
   inherit (args) fetch mkName print;
   inherit (shells) core;

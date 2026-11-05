@@ -6,10 +6,10 @@
   replaceStrings,
   ...
 }: {
-  dms-shell = mkSource {
+  dux-shell = mkSource {
     categories = ["desktop-ui"];
-    description = "Dank Material Shell";
-    input = "dank-material-shell";
+    description = "Dux Modular Shell";
+    input = "dux-shell";
     aliases = mkAliasFamily "dms" {
       Call = {args = ["ipc" "call"];};
       Set = {args = ["ipc" "call" "settings" "set"];};
@@ -24,9 +24,9 @@
         name = "dms-patched-source";
         src = source;
         patches = [
-          ./patches/dms/theme-control.patch
-          ./patches/dms/catppuccin-matugen.patch
-          ./patches/dms/notification-scratchpad-activation.patch
+          ./patches/dux/theme-control.patch
+          ./patches/dux/catppuccin-matugen.patch
+          ./patches/dux/notification-scratchpad-activation.patch
         ];
       };
     in
@@ -42,11 +42,26 @@
           // {shellSource = "${patchedSource}/quickshell";};
       });
   };
-
   dux-calendar = mkSource {
     categories = ["desktop-ui"];
     description = "Dux Calendar";
     target = "dux-calendar";
+  };
+  dux-files = mkSource {
+    categories = ["desktop-ui"];
+    description = "Dux Files";
+    target = "dux-files";
+  };
+  dux-gop = mkSource {
+    categories = ["desktop-ui"];
+    description = "Dux Go Process Status";
+    target = "dux-gop";
+  };
+
+  dux-search = mkSource {
+    categories = ["desktop-ui"];
+    description = "Dux Search";
+    target = "dux-search";
   };
 
   ghostty = mkSource {

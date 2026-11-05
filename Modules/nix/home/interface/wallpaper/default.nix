@@ -83,7 +83,7 @@
     };
 
     dms = let
-      name = "dms-shell";
+      name = "dux-shell";
       ctx = context.resolved.cfg.interface.panels.${name}.defined;
       condition = ctx.enable;
     in {

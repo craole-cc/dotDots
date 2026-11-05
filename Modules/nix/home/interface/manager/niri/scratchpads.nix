@@ -2,14 +2,19 @@
   actions,
   apps,
   keyboard,
-  lib,
+  lix,
   pkgs,
-  niriPackage,
+  package,
 }: let
-  inherit (lib.attrsets) listToAttrs mapAttrsToList;
-  inherit (lib.lists) elemAt toList;
-  inherit (lib.strings) escapeShellArgs replaceStrings;
-  inherit (lib) filterAttrs;
+  inherit (lix.attrsets.construction) listToAttrs;
+  inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.lists.access) elemAt;
+  inherit (lix.lists.aggregation) concatMap;
+  inherit (lix.lists.construction) toList;
+  inherit (lix.lists.predicates) any;
+  inherit (lix.lists.transformation) filter;
+  inherit (lix.strings.construction) concat tokenize;
+  inherit (lix.strings.transformation) escapeShellArgs replaceStrings;
 
   packageGroup = category:
     {
@@ -22,10 +27,10 @@
   scratchpadBindings =
     filterAttrs (
       group: bindings:
-        (lib.lists.any (binding: (binding.kind or "exec") == "scratchpad") (toList bindings))
+        (any (binding: (binding.kind or "exec") == "scratchpad") (toList bindings))
         || (group
           == "ghosttyQuickTerminal"
-          && lib.lists.any (binding: (binding.kind or "exec") == "global") (toList bindings))
+          && any (binding: (binding.kind or "exec") == "global") (toList bindings))
         || group == "browserSend"
     )
     keyboard.bindings;
@@ -40,7 +45,7 @@
         ["SUPER" "SHIFT" "CTRL" "CONTROL" "ALT"]
         ["Mod" "Shift" "Ctrl" "Ctrl" "Alt"]
         modifier)
-      (lib.strings.splitString " " (binding.mod or ""));
+      (tokenize " " (binding.mod or ""));
     key =
       {
         RETURN = "Return";
@@ -57,7 +62,7 @@
         binding.key
       } or binding.key;
   in
-    lib.strings.concatStringsSep "+" (lib.lists.filter (part: part != "") (modifiers ++ [key]));
+    concat "+" (filter (part: part != "") (modifiers ++ [key]));
 
   mkRecord = group: binding: let
     category =
@@ -99,7 +104,7 @@
     );
     script = pkgs.writeShellApplication {
       name = "dotdots-niri-scratchpad-${category}-${toString application}";
-      runtimeInputs = [pkgs.bash pkgs.coreutils pkgs.jq pkgs.util-linux niriPackage];
+      runtimeInputs = (with pkgs; [bash coreutils jq util-linux]) ++ [package];
       text = ''
         app_id=${escapeShell appId}
         launch=${escapeShell launch}
@@ -203,12 +208,14 @@
         name = mkChord binding;
         value =
           {
-            action = actions.spawn-sh ("${script}/bin/${script.name}"
-              + (
-                if group == "browserSend"
-                then " --send"
-                else ""
-              ));
+            action = actions "spawn-sh" [
+              ("${script}/bin/${script.name}"
+                + (
+                  if group == "browserSend"
+                  then " --send"
+                  else ""
+                ))
+            ];
             hotkey-overlay.title = binding.description or "Toggle ${category} ${toString application}";
             repeat = binding.repeating or false;
           }
@@ -220,11 +227,11 @@
       };
     };
 
-  records = lib.lists.concatMap (
+  records = concatMap (
     group:
       map (binding: mkRecord group binding) (toList scratchpadBindings.${group})
   ) (builtins.attrNames scratchpadBindings);
-  validRecords = lib.lists.filter (record: record != null) records;
+  validRecords = filter (record: record != null) records;
   mkWorkspaceEntry = record: {
     name = record.workspace;
     value = {};

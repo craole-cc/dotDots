@@ -2,7 +2,6 @@
   config,
   host,
   keyboard,
-  lib,
   lix,
   pkgs,
   style,
@@ -11,49 +10,52 @@
   inputs,
   ...
 }: let
-  context = mkContext {
-    inherit config host;
-    dom = "interface";
-    sub = "managers";
-    mod = "niri";
-  };
-  inherit (context) cfg ctx;
+  dom = "interface";
+  sub = "managers";
+  mod = "niri";
+  context = mkContext {inherit config host dom sub mod;};
+  out = config.programs.${mod};
 
-  inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.options.construction) mkEnable;
-  inherit (lix.schema.io) mkNiriKeybindings;
+  inherit (context) cfg ctx;
   inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.access) elemAt length;
-  inherit (lix.types.predicates) isList;
+  inherit (lix.lists.aggregation) foldl';
+  inherit (lix.lists.predicates) isIn;
   inherit (lix.lists.transformation) imap0;
-  inherit (lib.modules) mkIf;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.options.construction) mkEnable;
+  inherit (lix.schema.io) mkNiriKeybindings;
+  inherit (lix.types.predicates) isList;
   niriInterface =
     (lix.schema.ui.mkUI {
       inherit host;
-      user =
-        user
-        // {
-          interface = (user.interface or {}) // {desktops = ["niri"];};
-        };
+      # TODO: Use recursiveUpdate here
+      user = user // {interface = (user.interface or {}) // {desktops = ["niri"];};};
     }).keyboard;
+
+  # TODO: This is SO wrong. I never want to load files like this. This should come from the schema keyboard/actions, not a file stored in the schema
   niriActions = import ../../../../../../Libraries/nix/schema/keyboard/niri.nix {
     _ = lix;
     terminals = apps.terminal or [];
   };
+
   actionBindings = niriActions.legacy // niriActions.ordered;
+
   overlayActions = base: projected: fallback: let
     project = binding:
       removeAttrs binding ["key" "mod" "modifier" "category" "description" "application"];
-    actionAt = index:
+    actionAt = index: let
+      kinds = ["exec" "scratchpad" "global"];
+    in
       if
-        projected
-        != null
+        (projected != null)
         && isList projected
         && index < length projected
-        && lib.lists.elem ((elemAt projected index).kind or "exec") ["exec" "scratchpad" "global"]
+        && isIn ((elemAt projected index).kind or "exec") kinds
       then elemAt projected index
-      else if projected != null && !isList projected && lib.lists.elem (projected.kind or "exec") ["exec" "scratchpad" "global"]
+      else if projected != null && !isList projected && isIn (projected.kind or "exec") kinds
       then projected
       else if isList fallback && index < length fallback
       then elemAt fallback index
@@ -62,29 +64,21 @@
     if isList base
     then
       imap0 (
-        index: binding:
-          binding
-          // (let
-            selected = actionAt index;
-          in
-            if selected == null
-            then {}
-            else project selected)
+        index: binding: let
+          selected = actionAt index;
+        in
+          binding // optionalAttrs (selected != null) (project selected)
       )
       base
     else if !isList base
     then let
       selected = actionAt 0;
     in
-      base
-      // (
-        if selected == null
-        then {}
-        else project selected
-      )
+      base // optionalAttrs (selected != null) (project selected)
     else base;
   baseBindings = keyboard.bindings or {};
   projectedBindings = niriInterface.bindings or {};
+
   niriBindings =
     mapAttrs (
       group: bindings:
@@ -93,22 +87,21 @@
         else bindings
     )
     baseBindings;
-  niriKeyboard =
+
+  keys =
     keyboard
     // niriInterface
-    // {
-      bindings = niriBindings // removeAttrs projectedBindings (attrNames baseBindings);
-    };
-  niriPackage = config.programs.niri.package;
+    // {bindings = niriBindings // removeAttrs projectedBindings (attrNames baseBindings);};
+  # # TODO:
+
   niriFloatSticky = inputs."niri-float-sticky".packages.${pkgs.stdenv.hostPlatform.system}.default;
+
   scratchpads = import ./scratchpads.nix {
-    inherit actions;
-    inherit apps;
-    keyboard = niriKeyboard;
-    inherit lib niriPackage pkgs;
+    inherit actions apps pkgs lix;
+    inherit (out) package;
+    keyboard = keys;
   };
-  actions = config.lib.niri.actions;
-  defaultBinds = import ./default-bindings.nix {inherit actions lix;};
+  actions = name: arguments: {${name} = arguments;};
 
   # Editor translucency comes from the same theme schema Hyprland reads, so
   # swapping compositors keeps the declared look instead of losing it.
@@ -128,13 +121,14 @@ in
         package = pkgs.niri;
         settings = {
           prefer-no-csd = true;
-          binds =
-            defaultBinds
-            // (mkNiriKeybindings {
-              keyboard = niriKeyboard;
+          binds = foldl' (merged: bindings: merged // bindings) {} [
+            (import ./default-bindings.nix {inherit actions lix;})
+            (mkNiriKeybindings {
+              keyboard = keys;
               inherit actions;
             })
-            // scratchpads.binds;
+            scratchpads.binds
+          ];
           inherit (scratchpads) workspaces;
           window-rules = editorWindowRules ++ scratchpads.window-rules;
         };

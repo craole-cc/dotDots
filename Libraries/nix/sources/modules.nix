@@ -74,12 +74,15 @@
           (age.nixosModules.age or {})
           (catppuccin.nixosModules.default or {})
           (chaotic.nixosModules.default or {})
-          (dank-material-shell.nixosModules.default or {})
-          (dank-greeter.nixosModules.default or {})
-          (dms-plugin-registry.nixosModules.default or {})
+          (dux-shell.nixosModules.default or {})
+          (dux-calendar.nixosModules.default or {})
+          (dux-files.nixosModules.default or {})
+          (dux-greeter.nixosModules.default or {})
+          (dux-plugins.nixosModules.default or {})
           (home-manager.nixosModules.home-manager or {})
-          (stylix.nixosModules.stylix or {})
           (llmhop.nixosModules.default or {})
+          (niri.nixosModules.default or {})
+          (stylix.nixosModules.stylix or {})
         ]
       )
       ++ optionals (class == "darwin") [
@@ -97,38 +100,29 @@
   /**
   Attrset of all home-manager modules provided by flake inputs.
   */
-  mkHome = {inputs ? _default.inputs}: {
-    dms-shell = {
-      default = inputs.dank-material-shell.homeModules.default or {};
-      niri = inputs.dank-material-shell.homeModules.niri or {};
+  mkHome = {inputs ? _default.inputs}:
+    with inputs; {
+      dms-shell = dux-shell.homeModules or {};
+      dsearch = dux-search.homeModules or {};
+      dank-calendar = dux-calendar.homeModules or {};
+      dux-files = dux-files.homeModules or {};
+      dms-plugin-registry = dux-plugins.homeModules or {};
+      niri = {
+        default = niri.homeModules.default or {};
+        stylix = niri.homeModules.stylix or {};
+      };
+      hermes-agent = hermes-agent.homeManagerModules or {};
+      noctalia-shell = noctalia-shell.homeModules or {};
+      caelestia = caelestia.homeManagerModules or {};
+      catppuccin = catppuccin.homeModules or {};
+      nvf = nvf.homeManagerModules or {};
+      plasma.default = plasma.homeModules.plasma-manager or {};
+      zen-browser = let
+        default = zen-browser.homeModules.default or {};
+        twilight = zen-browser.homeModules.twilight or default;
+        beta = zen-browser.homeModules.beta or default;
+      in {inherit default beta twilight;};
     };
-    # Compatibility key for consumers not yet migrated.
-    dank-material-shell = {
-      default = inputs.dank-material-shell.homeModules.default or {};
-      niri = inputs.dank-material-shell.homeModules.niri or {};
-    };
-    dms-plugin-registry =
-      (inputs.dms-plugin-registry.homeModules or {})
-      // (inputs.dms-plugin-registry.nixosModules or {});
-    niri = {
-      default = inputs.niri.homeModules.niri or {};
-    };
-    hermes-agent = inputs.hermes-agent.homeManagerModules or {};
-    noctalia-shell = inputs.noctalia-shell.homeModules or {};
-    caelestia = inputs.caelestia.homeManagerModules or {};
-    catppuccin = inputs.catppuccin.homeModules or {};
-    nvf = {
-      default = inputs.nvf.homeManagerModules.default or {};
-    };
-    plasma = {
-      default = inputs.plasma.homeModules.plasma-manager or {};
-    };
-    zen-browser = {
-      twilight = inputs.zen-browser.homeModules.twilight or {};
-      default = inputs.zen-browser.homeModules.default or {};
-      beta = inputs.zen-browser.homeModules.beta or {};
-    };
-  };
 
   /**
   Build the full module attrset for a host.

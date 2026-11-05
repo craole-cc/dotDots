@@ -6,8 +6,8 @@
 }: let
   dom = "interface";
   sub = "panels";
-  mod = "dms-shell";
-  context = mkContext {    inherit config dom sub mod;  };
+  mod = "dux-shell";
+  context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg top;
 
   inherit (lix.attrsets.transformation) mapAttrs;
@@ -22,12 +22,12 @@ in
     options = {
       enable = mkEnable {
         inherit context;
-        condition = activePanel == "dms-shell";
+        condition = activePanel == "dux-shell";
       };
     };
     outputs = {
       programs = {
-        dms-shell.enable = cfg.enable;
+        dux-shell.enable = cfg.enable;
 
         # DMS' screen-recording plugin invokes the native CLI directly. Use
         # the NixOS module rather than only adding the package so its privileged

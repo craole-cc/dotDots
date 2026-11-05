@@ -288,11 +288,21 @@
       };
 
       niri = {
-        names = ["niri"];
+        names = [
+          "wmNiri"
+          "niri-flake"
+          "niri-nix"
+          "niri"
+        ];
       };
 
       niri-float-sticky = {
-        names = ["niriFloatSticky" "niri-float-sticky"];
+        names = [
+          "wmNiriFloat"
+          "wmNiriSticky"
+          "niriFloatSticky"
+          "niri-float-sticky"
+        ];
       };
 
       home-manager = {
@@ -382,29 +392,7 @@
         ];
       };
 
-      dank-greeter = {
-        names = [
-          "greeterDankMaterial"
-          "dank-material-greeter"
-          "dms-greeter"
-          "greeterDankMaterial"
-          "dank-greeter"
-        ];
-      };
-
-      # dank-material-shell = {
-      #   names = [
-      #     "shellDankMaterial"
-      #     "dankMaterialShell"
-      #     "shellDank"
-      #     "dank-material"
-      #     "dank-material-shell"
-      #     "dank"
-      #     "dms"
-      #   ];
-      # };
-
-      dank-material-shell = {
+      dux-shell = {
         names = [
           "shellDUX"
           "shellDankMaterial"
@@ -415,11 +403,72 @@
           "dank"
           "dms"
           "dux"
+          "dux-shell"
           "dms-shell"
         ];
       };
-
-      dms-plugin-registry = {
+      dux-calendar = {
+        names = [
+          "shellDUXCalendar"
+          "calendarDankMaterial"
+          "dank-material-calendar"
+          "dms-calendar"
+          "calendarDankMaterial"
+          "dank-calendar"
+          "dms-calendar"
+          "dux-calendar"
+        ];
+      };
+      dux-files = {
+        names = [
+          "shellDUXFiles"
+          "filesDankMaterial"
+          "dank-material-files"
+          "dms-files"
+          "filesDankMaterial"
+          "dank-files"
+          "dms-files"
+          "dux-files"
+        ];
+      };
+      dux-gop = {
+        names = [
+          "shellDUXGop"
+          "gopDankMaterial"
+          "dank-material-gop"
+          "dms-gop"
+          "gopDankMaterial"
+          "dank-gop"
+          "dgop"
+          "dms-gop"
+          "dux-gop"
+        ];
+      };
+      dux-greeter = {
+        names = [
+          "shellDUXGreeter"
+          "greeterDankMaterial"
+          "dank-material-greeter"
+          "dms-greeter"
+          "greeterDankMaterial"
+          "dank-greeter"
+          "dms-greeter"
+          "dux-greeter"
+        ];
+      };
+      dux-search = {
+        names = [
+          "shellDUXSearch"
+          "searchDankMaterial"
+          "dank-material-search"
+          "dms-search"
+          "searchDankMaterial"
+          "dank-search"
+          "dms-search"
+          "dux-search"
+        ];
+      };
+      dux-plugins = {
         names = [
           "shellDUXPlugins"
           "shellDankMaterialPlugins"
@@ -635,6 +684,16 @@
         (mapAttrs (_: spec: spec.cache))
       ])
       // {
+        niri = {
+          when = {path ? null, ...}:
+            lockFileHas {
+              inherit path;
+              field = "url";
+              value = "https://codeberg.org/BANanaD3V/niri-nix";
+            };
+          sub = "https://niri-nix.cachix.org";
+          key = "niri-nix.cachix.org-1:SvFtqpDcf7Sm1SMJdby1/+Y+6f3Yt3/3PMcSTKPJNJ0=";
+        };
         numtide = {
           when = {path ? null, ...}:
             lockFileHas {

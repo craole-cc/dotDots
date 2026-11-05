@@ -582,8 +582,8 @@
             {
               action =
                 if nativeAction == null
-                then actions.spawn-sh action
-                else actions.${nativeAction};
+                then actions "spawn-sh" [action]
+                else actions nativeAction [];
               hotkey-overlay.title = binding.description or group;
               repeat = binding.repeating or false;
             }
