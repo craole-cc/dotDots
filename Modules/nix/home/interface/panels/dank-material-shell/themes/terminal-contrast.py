@@ -3,12 +3,14 @@
 import argparse
 import json
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 def rgb(color):
-    return tuple(int(color.removeprefix("#")[index:index + 2], 16) for index in (0, 2, 4))
+    return tuple(
+        int(color.removeprefix("#")[index : index + 2], 16) for index in (0, 2, 4)
+    )
 
 
 def hex_color(color):
@@ -17,9 +19,13 @@ def hex_color(color):
 
 def luminance(color):
     channels = [channel / 255 for channel in color]
-    linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
-              for channel in channels]
-    return sum(channel * weight for channel, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+    linear = [
+        channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+        for channel in channels
+    ]
+    return sum(
+        channel * weight for channel, weight in zip(linear, (0.2126, 0.7152, 0.0722))
+    )
 
 
 def contrast(first, second):
@@ -29,8 +35,12 @@ def contrast(first, second):
 
 def backgrounds(background, opacity):
     # Bound sRGB background compositing over any wallpaper, including blur.
-    return [tuple(opacity * channel + (1 - opacity) * wallpaper for channel in rgb(background))
-            for wallpaper in (0, 255)]
+    return [
+        tuple(
+            opacity * channel + (1 - opacity) * wallpaper for channel in rgb(background)
+        )
+        for wallpaper in (0, 255)
+    ]
 
 
 def readable(color, surfaces, mode):
@@ -42,18 +52,25 @@ def readable(color, surfaces, mode):
         values = [luminance(surface) for surface in surfaces]
         value = luminance(candidate)
         polarity = value <= min(values) if mode == "light" else value >= max(values)
-        return polarity and min(contrast(candidate, surface) for surface in surfaces) >= 4.5
+        return (
+            polarity
+            and min(contrast(candidate, surface) for surface in surfaces) >= 4.5
+        )
 
     if passes(original):
         return hex_color(original)
     if not passes(target):
-        raise ValueError(f"Cannot achieve 4.5:1 in {mode} mode at this background opacity")
+        raise ValueError(
+            f"Cannot achieve 4.5:1 in {mode} mode at this background opacity"
+        )
     lower, upper = 0.0, 1.0
     result = target
     for _ in range(32):
         amount = (lower + upper) / 2
-        candidate = tuple(round(channel + amount * (end - channel))
-                          for channel, end in zip(original, target))
+        candidate = tuple(
+            round(channel + amount * (end - channel))
+            for channel, end in zip(original, target)
+        )
         if passes(candidate):
             upper, result = amount, candidate
         else:
@@ -68,34 +85,65 @@ def palette(data, mode, opacity):
     cursor = readable(colors["primary"], surfaces, mode)
     selection = colors["primary_container"]
     selection_fg = readable(foreground, [rgb(selection)], mode)
-    ansi = [readable(data["dank16"][f"color{index}"][mode], surfaces, mode)
-            for index in range(16)]
-    return dict(background=colors["background"], foreground=foreground, cursor=cursor,
-                selection=selection, selection_fg=selection_fg, ansi=ansi)
+    ansi = [
+        readable(data["dank16"][f"color{index}"][mode], surfaces, mode)
+        for index in range(16)
+    ]
+    return dict(
+        background=colors["background"],
+        foreground=foreground,
+        cursor=cursor,
+        selection=selection,
+        selection_fg=selection_fg,
+        ansi=ansi,
+    )
 
 
 def render(data, mode, opacities):
-    palettes = {variant: palette(data, variant, opacities[variant]) for variant in ("dark", "light")}
+    palettes = {
+        variant: palette(data, variant, opacities[variant])
+        for variant in ("dark", "light")
+    }
     active = palettes[mode]
-    kitty = [f"foreground {active['foreground']}", f"background {active['background']}",
-             f"cursor {active['cursor']}", f"cursor_text_color {active['background']}",
-             f"selection_background {active['selection']}", f"selection_foreground {active['selection_fg']}"]
+    kitty = [
+        f"foreground {active['foreground']}",
+        f"background {active['background']}",
+        f"cursor {active['cursor']}",
+        f"cursor_text_color {active['background']}",
+        f"selection_background {active['selection']}",
+        f"selection_foreground {active['selection_fg']}",
+    ]
     kitty += [f"color{index} {color}" for index, color in enumerate(active["ansi"])]
-    ghostty = [f"foreground = {active['foreground']}", f"background = {active['background']}",
-               f"cursor-color = {active['cursor']}", f"cursor-text = {active['background']}",
-               f"selection-background = {active['selection']}", f"selection-foreground = {active['selection_fg']}"]
-    ghostty += [f"palette = {index}={color}" for index, color in enumerate(active["ansi"])]
+    ghostty = [
+        f"foreground = {active['foreground']}",
+        f"background = {active['background']}",
+        f"cursor-color = {active['cursor']}",
+        f"cursor-text = {active['background']}",
+        f"selection-background = {active['selection']}",
+        f"selection-foreground = {active['selection_fg']}",
+    ]
+    ghostty += [
+        f"palette = {index}={color}" for index, color in enumerate(active["ansi"])
+    ]
     foot = []
     for variant, colors in palettes.items():
-        foot += [f"[colors-{variant}]", f"foreground={colors['foreground'][1:]}",
-                 f"background={colors['background'][1:]}",
-                 f"selection-foreground={colors['selection_fg'][1:]}",
-                 f"selection-background={colors['selection'][1:]}",
-                 f"cursor={colors['background'][1:]} {colors['cursor'][1:]}"]
-        foot += [f"{'regular' if index < 8 else 'bright'}{index % 8}={color[1:]}"
-                 for index, color in enumerate(colors["ansi"])]
-    return {"kitty/dotdots-contrast.conf": kitty, "ghostty/dotdots-contrast": ghostty,
-            "foot/dotdots-colors.ini": foot}
+        foot += [
+            f"[colors-{variant}]",
+            f"foreground={colors['foreground'][1:]}",
+            f"background={colors['background'][1:]}",
+            f"selection-foreground={colors['selection_fg'][1:]}",
+            f"selection-background={colors['selection'][1:]}",
+            f"cursor={colors['background'][1:]} {colors['cursor'][1:]}",
+        ]
+        foot += [
+            f"{'regular' if index < 8 else 'bright'}{index % 8}={color[1:]}"
+            for index, color in enumerate(colors["ansi"])
+        ]
+    return {
+        "kitty/dotdots-contrast.conf": kitty,
+        "ghostty/dotdots-contrast": ghostty,
+        "foot/dotdots-colors.ini": foot,
+    }
 
 
 def write_changed(path, content):
@@ -106,7 +154,9 @@ def write_changed(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as output:
+        with tempfile.NamedTemporaryFile(
+            mode="w", dir=path.parent, delete=False
+        ) as output:
             temporary = Path(output.name)
             output.write(content)
         temporary.chmod(0o644)

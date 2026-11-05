@@ -13,11 +13,11 @@
 # Optional: dry_run_cmd
 
 case "${dry_run_cmd}" in
-"") ;;
-*)
-  ${gum_log_info} "Would reconcile declared DMS settings and seed missing appearance files"
-  exit 0
-  ;;
+  "") ;;
+  *)
+    ${gum_log_info} "Would reconcile declared DMS settings and seed missing appearance files"
+    exit 0
+    ;;
 esac
 
 for file in "${settings}" "${session}" "${foot_theme}" "${ghostty_opacity}" \
@@ -48,18 +48,18 @@ merge_json() (
 
   if [ -e "${target}" ] || [ -L "${target}" ]; then :; else
     case "${create}" in
-    true) ;;
-    *) exit 0 ;;
+      true) ;;
+      *) exit 0 ;;
     esac
   fi
 
   if [ -L "${target}" ]; then
     case "$(${readlinkf} "${target}")" in
-    /nix/store/*) ;;
-    *)
-      ${gum_log_error} "Refusing to replace unmanaged DMS settings symlink: ${target}" >&2
-      exit 1
-      ;;
+      /nix/store/*) ;;
+      *)
+        ${gum_log_error} "Refusing to replace unmanaged DMS settings symlink: ${target}" >&2
+        exit 1
+        ;;
     esac
   fi
 
@@ -71,7 +71,7 @@ merge_json() (
   if [ -f "${target}" ]; then
     if ! ${jaq} --slurpfile overrides "${overrides}" --slurpfile defaults "${defaults}" \
       '($defaults[0] * . * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
-      "${target}" >"${target_tmp}"; then
+      "${target}" > "${target_tmp}"; then
       ${rmf} "${target_tmp}"
       ${gum_log_error} "Failed to merge DMS settings: ${target}" >&2
       exit 1
@@ -79,7 +79,7 @@ merge_json() (
   else
     if ! ${jaqn} --slurpfile overrides "${overrides}" --slurpfile defaults "${defaults}" \
       '($defaults[0] * $overrides[0]) | if .currentThemeName == "dynamic" and ($overrides[0] | has("customThemeFile") | not) then .customThemeFile = $defaults[0].customThemeFile else . end' \
-      >"${target_tmp}"; then
+      > "${target_tmp}"; then
       ${rmf} "${target_tmp}"
       ${gum_log_error} "Failed to generate DMS settings: ${target}" >&2
       exit 1

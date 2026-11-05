@@ -4,7 +4,7 @@
     light = 1.0;
   },
 }: {
-  # DMS seeds the fallback; the appearance synchronizer maintains both modes
+  # DMS seeds the fallback; the appearance synchroniser maintains both modes
   # with contrast correction for the configured background opacity.
   main.include = "~/.config/foot/dotdots-colors.ini";
   colors-dark.alpha = opacity.dark;

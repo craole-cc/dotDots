@@ -1,1 +1,1 @@
-args: (import ./cli args) // (import ./ui args)
+args: (import ./cli.nix args) // (import ./ui.nix args)
