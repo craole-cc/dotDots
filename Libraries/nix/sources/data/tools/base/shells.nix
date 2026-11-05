@@ -26,41 +26,6 @@
     };
   };
 
-  curl = mkSource {
-    categories = ["networking" "scripting"];
-    description = "transfer data with URLs";
-    aliases = mkAliasFamily "curl" {
-      fsSL = {
-        args = ["-fsSL"];
-        description = "fetch quietly, follow redirects, and fail on HTTP errors";
-      };
-      I = {
-        args = ["--head"];
-        description = "fetch response headers only";
-      };
-      Json = {
-        args = ["-fsSL" "-H" "Accept: application/json"];
-        description = "fetch quietly while requesting a JSON response";
-      };
-      L = {
-        args = ["--location"];
-        description = "follow redirects";
-      };
-      O = {
-        args = ["--remote-name"];
-        description = "save the download using its remote file name";
-      };
-      Output = {
-        args = ["--output"];
-        description = "save the download to a caller-specified path";
-      };
-      Retry = {
-        args = ["-fsSL" "--retry" "3" "--retry-delay" "2"];
-        description = "fetch quietly and retry transient failures up to three times";
-      };
-    };
-  };
-
   dash = mkSource {
     categories = ["shells" "scripting"];
     description = "lightweight POSIX sh for `write.posix` shebangs";
@@ -103,69 +68,6 @@
       Private = {
         args = ["--private"];
         description = "start a session that does not record history";
-      };
-    };
-  };
-
-  gh = mkSource {
-    categories = ["shells" "scripting"];
-    description = "GitHub CLI";
-    aliases = mkAliasFamily "gh" {
-      Api = {
-        args = ["api"];
-        description = "call a GitHub API endpoint";
-      };
-      AuthStatus = {
-        args = ["auth" "status"];
-        description = "show authentication status";
-      };
-      IssueCreate = {
-        args = ["issue" "create"];
-        description = "create an issue";
-      };
-      IssueList = {
-        args = ["issue" "list"];
-        description = "list issues";
-      };
-      PrCheckout = {
-        args = ["pr" "checkout"];
-        description = "check out a pull request locally";
-      };
-      PrCreate = {
-        args = ["pr" "create"];
-        description = "create a pull request";
-      };
-      PrList = {
-        args = ["pr" "list"];
-        description = "list pull requests";
-      };
-      PrStatus = {
-        args = ["pr" "status"];
-        description = "show the status of relevant pull requests";
-      };
-      PrView = {
-        args = ["pr" "view"];
-        description = "view a pull request";
-      };
-      RepoClone = {
-        args = ["repo" "clone"];
-        description = "clone a repository";
-      };
-      RepoView = {
-        args = ["repo" "view"];
-        description = "view a repository summary";
-      };
-      RepoViewWeb = {
-        args = ["repo" "view" "--web"];
-        description = "open a repository in the browser";
-      };
-      RunList = {
-        args = ["run" "list"];
-        description = "list recent workflow runs";
-      };
-      RunWatch = {
-        args = ["run" "watch"];
-        description = "watch a workflow run until it finishes";
       };
     };
   };

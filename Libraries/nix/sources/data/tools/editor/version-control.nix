@@ -7,6 +7,69 @@
   mkPath,
   ...
 }: {
+  gh = mkSource {
+    categories = ["shells" "scripting"];
+    description = "GitHub CLI";
+    aliases = mkAliasFamily "gh" {
+      Api = {
+        args = ["api"];
+        description = "call a GitHub API endpoint";
+      };
+      AuthStatus = {
+        args = ["auth" "status"];
+        description = "show authentication status";
+      };
+      IssueCreate = {
+        args = ["issue" "create"];
+        description = "create an issue";
+      };
+      IssueList = {
+        args = ["issue" "list"];
+        description = "list issues";
+      };
+      PrCheckout = {
+        args = ["pr" "checkout"];
+        description = "check out a pull request locally";
+      };
+      PrCreate = {
+        args = ["pr" "create"];
+        description = "create a pull request";
+      };
+      PrList = {
+        args = ["pr" "list"];
+        description = "list pull requests";
+      };
+      PrStatus = {
+        args = ["pr" "status"];
+        description = "show the status of relevant pull requests";
+      };
+      PrView = {
+        args = ["pr" "view"];
+        description = "view a pull request";
+      };
+      RepoClone = {
+        args = ["repo" "clone"];
+        description = "clone a repository";
+      };
+      RepoView = {
+        args = ["repo" "view"];
+        description = "view a repository summary";
+      };
+      RepoViewWeb = {
+        args = ["repo" "view" "--web"];
+        description = "open a repository in the browser";
+      };
+      RunList = {
+        args = ["run" "list"];
+        description = "list recent workflow runs";
+      };
+      RunWatch = {
+        args = ["run" "watch"];
+        description = "watch a workflow run until it finishes";
+      };
+    };
+  };
+
   git = let
     mkHelper = name: description:
       mkAlias "git" {

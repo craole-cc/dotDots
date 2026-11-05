@@ -4,6 +4,446 @@
   mkSource,
   ...
 }: {
+  coreutils = mkSource {
+    categories = ["core" "scripting"];
+    description = "core file, text, and shell utilities";
+    discover = true;
+    aliases = mergeDisjoint [
+      (mkAliasFamily "base64" {
+        d = {
+          args = ["--decode"];
+          description = "decode base64 input";
+        };
+        w0 = {
+          args = ["--wrap=0"];
+          description = "encode base64 without line wrapping";
+        };
+      })
+      (mkAliasFamily "chmod" {
+        "0600" = {
+          args = ["0600"];
+          description = "set permissions to 0600";
+        };
+        "0644" = {
+          args = ["0644"];
+          description = "set permissions to 0644";
+        };
+        "0755" = {
+          args = ["0755"];
+          description = "set permissions to 0755";
+        };
+        R = {
+          args = ["-R"];
+          description = "change permissions recursively";
+        };
+        Ref = {
+          args = ["--reference"];
+          description = "copy permissions from a reference file (caller supplies it)";
+        };
+        Ruw = {
+          args = ["-R" "u+w"];
+          description = "recursively add owner write permission";
+        };
+        x = {
+          args = ["+x"];
+          description = "make files executable";
+        };
+      })
+      (mkAliasFamily "chown" {
+        R = {
+          args = ["-R"];
+          description = "change ownership recursively";
+        };
+      })
+      (mkAliasFamily "cp" {
+        a = {
+          args = ["-a" "--reflink=auto"];
+          description = "copy recursively, preserving attributes and using reflinks when possible";
+        };
+        af = {
+          args = ["-af" "--reflink=auto"];
+          description = "force-copy recursively, preserving attributes and using reflinks when possible";
+        };
+      })
+      (mkAliasFamily "cut" {
+        d = {
+          args = ["-d"];
+          description = "cut using a caller-specified delimiter";
+        };
+        f = {
+          args = ["-f"];
+          description = "select caller-specified fields";
+        };
+      })
+      (mkAliasFamily "date" {
+        Epoch = {
+          args = ["+%s"];
+          description = "print the current Unix timestamp in seconds";
+        };
+        I = {
+          args = ["-I"];
+          description = "print the date in ISO format";
+        };
+        Is = {
+          args = ["-Is"];
+          description = "print the date and time in ISO format";
+        };
+        u = {
+          args = ["-u"];
+          description = "print the date and time in UTC";
+        };
+      })
+      (mkAliasFamily "df" {
+        h = {
+          args = ["-h"];
+          description = "show filesystem usage in human-readable sizes";
+        };
+      })
+      (mkAliasFamily "du" {
+        sh = {
+          args = ["-sh"];
+          description = "show the total human-readable size of each argument";
+        };
+      })
+      (mkAliasFamily "echo" {
+        n = {
+          args = ["-n"];
+          description = "print without a trailing newline";
+        };
+      })
+      (mkAliasFamily "env" {
+        i = {
+          args = ["-i"];
+          description = "run a command with an empty environment";
+        };
+        u = {
+          args = ["-u"];
+          description = "run a command with a caller-specified variable unset";
+        };
+      })
+      (mkAliasFamily "head" {
+        c = {
+          args = ["-c"];
+          description = "print the first caller-specified number of bytes";
+        };
+        n = {
+          args = ["-n"];
+          description = "print the first caller-specified number of lines";
+        };
+      })
+      (mkAliasFamily "install" {
+        D = {
+          args = ["-D"];
+          description = "install a file and create missing parent directories";
+        };
+        Dm = {
+          args = ["-D" "-m"];
+          description = "install with caller-specified permissions and create parent directories";
+        };
+        "0644" = {
+          args = ["-D" "-m" "0644"];
+          description = "install with 0644 permissions and create parent directories";
+        };
+        "0600" = {
+          args = ["-D" "-m" "0600"];
+          description = "install with 0600 permissions and create parent directories";
+        };
+        "0755" = {
+          args = ["-D" "-m" "0755"];
+          description = "install with 0755 permissions and create parent directories";
+        };
+        m = {
+          args = ["-m"];
+          description = "install with caller-specified permissions";
+        };
+      })
+      (mkAliasFamily "ln" {
+        sf = {
+          args = ["-sf"];
+          description = "create or replace a symbolic link";
+        };
+        sfn = {
+          args = ["-sfn"];
+          description = "create or replace a symbolic link, treating the destination as a file";
+        };
+        sr = {
+          args = ["-sr"];
+          description = "create a symbolic link with a path relative to the link location";
+        };
+      })
+      (mkAliasFamily "mkdir" {
+        p = {
+          args = ["-p"];
+          description = "create directories and any missing parents";
+        };
+        pv = {
+          args = ["-pv"];
+          description = "create directories and any missing parents, printing each one";
+        };
+      })
+      (mkAliasFamily "mktemp" {
+        d = {
+          args = ["-d"];
+          description = "create a temporary directory";
+        };
+      })
+      (mkAliasFamily "mv" {
+        t = {
+          args = ["-T"];
+          description = "move without treating the destination as a directory";
+        };
+        f = {
+          args = ["-f"];
+          description = "move files, replacing existing destinations without prompting";
+        };
+        n = {
+          args = ["--no-clobber"];
+          description = "move files without overwriting existing destinations";
+        };
+      })
+      (mkAliasFamily "numfmt" {
+        Iec = {
+          args = ["--to=iec"];
+          description = "convert byte counts to human-readable IEC sizes";
+        };
+      })
+      (mkAliasFamily "paste" {
+        d = {
+          args = ["-d"];
+          description = "merge lines using a caller-specified delimiter";
+        };
+      })
+      (mkAliasFamily "readlink" {
+        f = {
+          args = ["-f"];
+          description = "print the canonical absolute path of a file";
+        };
+        m = {
+          args = ["-m"];
+          description = "print the canonical path without requiring components to exist";
+        };
+      })
+      (mkAliasFamily "realpath" {
+        Rel = {
+          args = ["--relative-to"];
+          description = "print a path relative to a caller-specified base";
+        };
+      })
+      (mkAliasFamily "rm" {
+        f = {
+          args = ["-f"];
+          description = "remove files without prompting or failing on missing ones";
+        };
+        r = {
+          args = ["-r"];
+          description = "remove directories recursively";
+        };
+        rf = {
+          args = ["-rf"];
+          description = "remove files and directories recursively without prompting";
+        };
+      })
+      (mkAliasFamily "rmdir" {
+        p = {
+          args = ["-p"];
+          description = "remove a directory and its empty parents";
+        };
+      })
+      (mkAliasFamily "seq" {
+        w = {
+          args = ["-w"];
+          description = "print a number sequence padded with leading zeros";
+        };
+      })
+      (mkAliasFamily "sha256sum" {
+        c = {
+          args = ["--check"];
+          description = "verify SHA-256 checksums from a file";
+        };
+      })
+      (mkAliasFamily "sort" {
+        n = {
+          args = ["-n"];
+          description = "sort lines by numeric value";
+        };
+        nr = {
+          args = ["-nr"];
+          description = "sort lines by numeric value, largest first";
+        };
+        k = {
+          args = ["-k"];
+          description = "sort by a caller-specified key";
+        };
+        r = {
+          args = ["-r"];
+          description = "sort lines in reverse order";
+        };
+        u = {
+          args = ["-u"];
+          description = "sort lines and remove duplicates";
+        };
+        V = {
+          args = ["-V"];
+          description = "sort lines by version number";
+        };
+      })
+      (mkAliasFamily "stat" {
+        c = {
+          args = ["-c"];
+          description = "print file status using a caller-specified format";
+        };
+      })
+      (mkAliasFamily "tail" {
+        c = {
+          args = ["-c"];
+          description = "print the caller-specified number of trailing bytes";
+        };
+        F = {
+          args = ["-F"];
+          description = "follow a file by name and continue after log rotation";
+        };
+        n = {
+          args = ["-n"];
+          description = "print the caller-specified number of trailing lines";
+        };
+      })
+      (mkAliasFamily "tee" {
+        a = {
+          args = ["-a"];
+          description = "append standard input to files and pass it to standard output";
+        };
+      })
+      (mkAliasFamily "touch" {
+        d = {
+          args = ["-d"];
+          description = "set file times to a caller-specified date";
+        };
+        r = {
+          args = ["-r"];
+          description = "copy file times from a reference file";
+        };
+      })
+      (mkAliasFamily "tr" {
+        d = {
+          args = ["-d"];
+          description = "delete caller-specified characters";
+        };
+        s = {
+          args = ["-s"];
+          description = "squeeze repeated characters into one";
+        };
+      })
+      (mkAliasFamily "truncate" {
+        S = {
+          args = ["-s"];
+          description = "set a file to a caller-specified size";
+        };
+      })
+      (mkAliasFamily "uniq" {
+        c = {
+          args = ["-c"];
+          description = "count adjacent duplicate lines";
+        };
+        d = {
+          args = ["-d"];
+          description = "print only duplicated lines";
+        };
+      })
+      (mkAliasFamily "wc" {
+        c = {
+          args = ["-c"];
+          description = "count bytes";
+        };
+        l = {
+          args = ["-l"];
+          description = "count lines";
+        };
+        w = {
+          args = ["-w"];
+          description = "count words";
+        };
+      })
+    ];
+  };
+
+  gnupatch = mkSource {
+    categories = ["core" "scripting"];
+    description = "apply diff patches";
+    exe = "patch";
+    aliases = mkAliasFamily "patch" {
+      d = {
+        args = ["-d"];
+        description = "apply a patch from a caller-specified directory";
+      };
+      Dry = {
+        args = ["--dry-run"];
+        description = "test whether a patch applies without changing files";
+      };
+      i = {
+        args = ["-i"];
+        description = "read the patch from a caller-specified file";
+      };
+      p0 = {
+        args = ["-p0"];
+        description = "apply a patch without stripping path components";
+      };
+      p1 = {
+        args = ["-p1"];
+        description = "apply a patch stripping one leading path component";
+      };
+      R = {
+        args = ["-R"];
+        description = "reverse a previously applied patch";
+      };
+    };
+  };
+
+  moreutils = mkSource {
+    categories = ["core" "scripting"];
+    description = "additional Unix tools, including sponge and parallel";
+    discover = true;
+    aliases = mergeDisjoint [
+      (mkAliasFamily "ifne" {
+        n = {
+          args = ["-n"];
+          description = "run the command only when standard input is empty";
+        };
+      })
+      (mkAliasFamily "parallel" {
+        j = {
+          args = ["-j"];
+          description = "run a caller-specified number of jobs at once";
+        };
+      })
+      (mkAliasFamily "sponge" {
+        a = {
+          args = ["-a"];
+          description = "append buffered standard input to a file";
+        };
+      })
+      (mkAliasFamily "chronic" {
+        E = {
+          args = ["-e"];
+          description = "treat any standard error output as a failure and show the output";
+        };
+        v = {
+          args = ["-v"];
+          description = "run quietly unless the command fails, with verbose failure output";
+        };
+      })
+      (mkAliasFamily "ts" {
+        Elapsed = {
+          args = ["-s"];
+          description = "prefix each line with the time elapsed since start";
+        };
+        Incremental = {
+          args = ["-i"];
+          description = "prefix each line with the time since the previous line";
+        };
+      })
+    ];
+  };
+  
   nh = mkSource {
     categories = ["system" "scripting"];
     description = "Nix helper";
@@ -406,55 +846,6 @@
         R = {
           args = ["--recursive"];
           description = "unmount a filesystem and everything mounted beneath it";
-        };
-      })
-    ];
-  };
-
-  iproute2 = mkSource {
-    categories = ["networking" "scripting"];
-    description = "ip, ss, bridge, and related networking tools";
-    discover = true; #? ip, ss, bridge, ...
-    exe = "ip";
-    aliases = mergeDisjoint [
-      (mkAliasFamily "ip" {
-        "4" = {
-          args = ["-4"];
-          description = "limit output to IPv4";
-        };
-        "6" = {
-          args = ["-6"];
-          description = "limit output to IPv6";
-        };
-        BrAddr = {
-          args = ["-brief" "address"];
-          description = "show a compact table of interface addresses";
-        };
-        BrLink = {
-          args = ["-brief" "link"];
-          description = "show a compact table of interface link states";
-        };
-        Json = {
-          args = ["-json"];
-          description = "output JSON";
-        };
-        Neigh = {
-          args = ["neighbour" "show"];
-          description = "show the neighbour (ARP/NDP) table";
-        };
-        Route = {
-          args = ["route" "show"];
-          description = "show the routing table";
-        };
-      })
-      (mkAliasFamily "ss" {
-        Listen = {
-          args = ["-tulpn"];
-          description = "show listening TCP and UDP sockets with processes and numeric ports";
-        };
-        Summary = {
-          args = ["--summary"];
-          description = "show socket statistics";
         };
       })
     ];

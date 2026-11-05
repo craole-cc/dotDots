@@ -1,10 +1,11 @@
 {
-  mkLayeredAlias,
-  mkAliasFamily,
-  mergeDisjoint,
-  mkSource,
   mapAttrs,
   mapAttrsToList,
+  mergeDisjoint,
+  mkAlias,
+  mkAliasFamily,
+  mkLayeredAlias,
+  mkSource,
   ...
 }: {
   bat = mkSource {
@@ -36,6 +37,47 @@
         description = "print only a caller-specified line range";
       };
     };
+  };
+
+  diffutils = mkSource {
+    categories = ["core" "scripting"];
+    description = "cmp, diff, diff3, and sdiff";
+    discover = true; #? cmp, diff, diff3, sdiff
+    exe = "cmp";
+    aliases = mergeDisjoint [
+      (mkAliasFamily "cmp" {
+        l = {
+          args = ["-l"];
+          description = "list every differing byte";
+        };
+        s = {
+          args = ["-s"];
+          description = "compare files without printing differences";
+        };
+      })
+      (mkAliasFamily "diff" {
+        q = {
+          args = ["-q"];
+          description = "report only whether files differ";
+        };
+        u = {
+          args = ["-u"];
+          description = "show differences in unified format";
+        };
+        ur = {
+          args = ["-ur"];
+          description = "show recursive differences in unified format";
+        };
+        urN = {
+          args = ["-urN"];
+          description = "show recursive unified differences, treating absent files as empty";
+        };
+        y = {
+          args = ["--side-by-side"];
+          description = "show differences side by side";
+        };
+      })
+    ];
   };
 
   dust = mkSource {
@@ -320,6 +362,65 @@
     };
   };
 
+  file = mkSource {
+    categories = ["core" "scripting"];
+    description = "determine file type";
+    aliases = mkAliasFamily "file" {
+      b = {
+        args = ["--brief"];
+        description = "print the file type without the file name";
+      };
+      L = {
+        args = ["--dereference"];
+        description = "follow symbolic links";
+      };
+      Mime = {
+        args = ["--mime-type"];
+        description = "print the MIME type";
+      };
+    };
+  };
+
+  findutils = mkSource {
+    categories = ["core" "scripting"];
+    description = "xargs (find is covered by fd)";
+    discover = true;
+    aliases = mergeDisjoint [
+      {
+        find0 = (mkAlias "find") {
+          args = ["-print0"];
+          description = "find paths and separate results with NUL bytes";
+        };
+      }
+      (mkAliasFamily "xargs" {
+        "0" = {
+          args = ["-0"];
+          description = "read NUL-separated arguments from standard input";
+        };
+        "0r" = {
+          args = ["-0" "-r"];
+          description = "read NUL-separated arguments and skip the command when there are none";
+        };
+        n = {
+          args = ["-n"];
+          description = "pass a caller-specified number of arguments per command";
+        };
+        P = {
+          args = ["-P"];
+          description = "run a caller-specified number of commands in parallel";
+        };
+        r = {
+          args = ["-r"];
+          description = "run the command only when standard input contains arguments";
+        };
+        I = {
+          args = ["-I" "{}"];
+          description = "replace each {} in the command with an input line";
+        };
+      })
+    ];
+  };
+
   fzf = mkSource {
     categories = ["files" "scripting"];
     description = "command-line fuzzy finder";
@@ -444,6 +545,83 @@
           lsdNone = "none";
         }
       );
+  };
+
+  ouch = mkSource {
+    categories = ["archives" "scripting"];
+    description = "unified archive compressor and decompressor for tar, zip, 7z, gz, xz, zst, and more";
+    aliases = mergeDisjoint [
+      (mkAliasFamily "ouch" {
+        aliasPrefix = "";
+        lsar = {
+          args = ["list"];
+          description = "list archive contents";
+        };
+        lsarTree = {
+          args = ["list" "--tree"];
+          description = "list archive contents as a tree";
+        };
+        pack = {
+          args = ["compress"];
+          description = "compress files into an archive";
+        };
+        packYes = {
+          args = ["compress" "--yes"];
+          description = "compress files, overwriting existing output without asking";
+        };
+        unpack = {
+          args = ["decompress"];
+          description = "decompress an archive";
+        };
+        unpackTo = {
+          args = ["decompress" "--dir"];
+          description = "decompress into a caller-specified directory";
+        };
+        unpackYes = {
+          args = ["decompress" "--yes"];
+          description = "decompress, overwriting existing files without asking";
+        };
+      })
+    ];
+  };
+
+  tree = mkSource {
+    categories = ["core" "scripting"];
+    description = "list directory contents as a tree";
+    aliases = mkAliasFamily "tree" {
+      a = {
+        args = ["-a"];
+        description = "include hidden files";
+      };
+      d = {
+        args = ["-d"];
+        description = "list directories only";
+      };
+      f = {
+        args = ["-f"];
+        description = "print the full path prefix for each entry";
+      };
+      h = {
+        args = ["-h"];
+        description = "show human-readable sizes";
+      };
+      I = {
+        args = ["-I"];
+        description = "exclude entries matching a caller-specified pattern";
+      };
+      J = {
+        args = ["-J"];
+        description = "output the tree as JSON";
+      };
+      L = {
+        args = ["-L"];
+        description = "limit the display depth";
+      };
+      p = {
+        args = ["--prune"];
+        description = "omit empty directories";
+      };
+    };
   };
 
   yazi = let
