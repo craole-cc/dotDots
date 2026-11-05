@@ -4,19 +4,18 @@
   lix,
   ...
 }: let
-  context = mkContext {
-    inherit config;
-    dom = "interface";
-    sub = "panels";
-    mod = "dms-shell";
-  };
-  inherit (context) cfg;
+  dom = "interface";
+  sub = "panels";
+  mod = "dms-shell";
+  context = mkContext {    inherit config dom sub mod;  };
+  inherit (context) cfg top;
 
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
 
-  activePanel = config.${context.top}.resolved.interface.panels.active or null;
-  dmsUsers = builtins.mapAttrs (_: _: {extraGroups = ["input"];}) (host.users.interactive or {});
+  activePanel = config.${top}.resolved.interface.panels.active;
+  dmsUsers = mapAttrs (_: _: {extraGroups = ["input"];}) (host.users.interactive or {});
 in
   mkConfig {
     inherit context;
