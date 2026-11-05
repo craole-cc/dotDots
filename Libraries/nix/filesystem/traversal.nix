@@ -56,10 +56,7 @@
   #> Name prefixes excluded by default from every `importTree`-based walk
   #> (`importAllNamed`, `importAllMerged`). Pass `excludePrefixes = []` at
   #> the call site to disable, or a different list to use another convention.
-  defaultExcludePrefixes = [
-    "archive"
-    "review"
-  ];
+  defaultExcludePrefixes = ["archive" "review"];
 
   # -- helpers, shared by the non-importTree functions below
 
@@ -84,9 +81,9 @@
   excluding `default.nix`.
   */
   nixFilesIn = entries:
-    filter (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix") (
-      attrNames entries
-    );
+    filter
+    (name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix")
+    (attrNames entries);
 
   /**
   Names of subdirectories in `entries` (a `readDir` result) not listed in
@@ -329,21 +326,20 @@
   */
   traverseDir = collect: recurse: dir: stemSoFar: let
     entries = readDir dir;
-
     fileNamesList = nixFilesIn entries;
     fileResults = map (name: collect (dir + "/${name}")) fileNamesList;
     fileStems = map (name: stemSoFar ++ [name]) fileNamesList;
 
+    #> subDirsIn already drops every name in `foldersToExclude`, so excluded
+    #> folders (review/, tmp/, ...) are never entered or collected.
     dirNamesList = subDirsIn entries;
 
-    #> Each dir contributes both a value-chunk and a stems-chunk together,
-    #> from the same branch (leaf vs recurse), so they can never desync.
     dirWalks =
       map (
         name: let
           subPath = dir + "/${name}";
           subEntries = readDir subPath;
-          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+          hasDefault = subEntries ? "default.nix" && (subEntries."default.nix" == "regular");
           childStem = stemSoFar ++ [name];
         in
           if hasDefault
@@ -351,7 +347,7 @@
             value = [(collect (subPath + "/default.nix"))];
             stems = [childStem];
           }
-          else recurse subPath childStem #! recurse already returns { value; stems; } - same shape
+          else recurse subPath childStem
       )
       dirNamesList;
   in {
@@ -386,8 +382,10 @@
   # Type
   > importAllPaths :: path -> { value :: [path], stems :: [[string]] }
   */
-  importAllPaths = dir: traverseDir (p: p) importAllPathsRecurse dir [];
-  importAllPathsRecurse = dir: stemSoFar: traverseDir (p: p) importAllPathsRecurse dir stemSoFar;
+  # importAllPaths = dir: traverseDir (p: p) importAllPathsRecurse dir [];
+  # importAllPathsRecurse = dir: stemSoFar: traverseDir (p: p) importAllPathsRecurse dir stemSoFar;
+  importAllPaths = dir: traverseDir (p: builtins.trace "importAllPaths: ${toString p}" p) importAllPathsRecurse dir [];
+  importAllPathsRecurse = dir: stemSoFar: traverseDir (p: builtins.trace "importAllPaths: ${toString p}" p) importAllPathsRecurse dir stemSoFar;
 
   # -- importTree (shared recursive named-traversal core)
 
