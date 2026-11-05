@@ -149,6 +149,20 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
+    shellDUX = {
+      ref = "stable";
+      repo = "dux-shell";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    shellDUXPlugins = {
+      repo = "dux-plugin-registry";
+      owner = "duxlabs-dev";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
     # shellCaelestia = {
     #   repo = "shell";
     #   owner = "caelestia-dots";

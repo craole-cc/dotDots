@@ -131,19 +131,10 @@ in
 
       home = {
         packages =
-          (with themes.resolved.cursors; [
-            dark.package
-            light.package
-          ])
+          (with themes.resolved.cursors; [dark.package light.package])
           ++ addons.packages
-          ++ (with packages; [
-            dux-calendar
-            khal
-            vdirsyncer
-          ]);
-        sessionVariables = {
-          QS_ICON_THEME = themes.icons.dark.theme;
-        };
+          ++ (with packages; [dux-calendar khal vdirsyncer]);
+        sessionVariables = {QS_ICON_THEME = themes.icons.dark.theme;};
         activation =
           {
             configureDmsTheme = activation;

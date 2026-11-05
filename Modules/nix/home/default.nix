@@ -26,8 +26,7 @@
         else declaredDefaults declaration)
       (filterAttrs
         (name: declaration:
-          name
-          != "derived"
+          (name != "derived")
           && ((declaration._type or null) != "option" || declaration ? default))
         declarations);
 

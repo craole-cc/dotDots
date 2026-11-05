@@ -6,124 +6,216 @@
   inherit (lix.types.predicates) isAttrs isString;
 
   fields = {
-    animation.duration = "animationDuration";
-    animation.motion = "motionEffect";
-    applications.substitutions = "appIdSubstitutions";
-    avatar.ring = "avatarRing";
-    bars.backups = "connectedFrameBarStyleBackups";
-    bars.configs = "barConfigs";
-    bars.padding.shared = "barInsetPaddingShared";
-    bars.padding.sync = "barInsetPaddingSyncAll";
-    battery.charge.limit = "batteryChargeLimit";
-    battery.notify.charge.limit = "batteryNotifyChargeLimit";
-    battery.notify.low = "batteryNotifyLow";
-    battery.profile = "batteryProfileName";
-    battery.saver.auto = "batteryAutoPowerSaver";
-    blur.border.enable = "blurBorderEnabled";
-    blur.border.seeded = "blurBorderSeeded";
-    blur.enable = "blurEnabled";
-    blur.foreground.layers = "blurForegroundLayers";
+    animation = {
+      duration = "animationDuration";
+      motion = "motionEffect";
+    };
+    applications = {
+      substitutions = "appIdSubstitutions";
+    };
+    avatar = {
+      ring = "avatarRing";
+    };
+    bars = {
+      backups = "connectedFrameBarStyleBackups";
+      configs = "barConfigs";
+      padding = {
+        shared = "barInsetPaddingShared";
+        sync = "barInsetPaddingSyncAll";
+      };
+    };
+    battery = {
+      charge.limit = "batteryChargeLimit";
+      notify = {
+        charge.limit = "batteryNotifyChargeLimit";
+        low = "batteryNotifyLow";
+      };
+      profile = "batteryProfileName";
+      saver.auto = "batteryAutoPowerSaver";
+    };
+    blur = {
+      border = {
+        enable = "blurBorderEnabled";
+        seeded = "blurBorderSeeded";
+      };
+      enable = "blurEnabled";
+      foreground.layers = "blurForegroundLayers";
+    };
     buttons.color.mode = "buttonColorMode";
     calendar.backend = "calendarBackend";
-    clipboard.filter.remember = "clipboardRememberTypeFilter";
-    clipboard.paste.click = "clipboardClickToPaste";
-    clipboard.paste.enter = "clipboardEnterToPaste";
-    clock.format = "clockFormat";
-    clock.seconds = "showSeconds";
-    clock.week.number = "showWeekNumber";
+    clipboard = {
+      filter.remember = "clipboardRememberTypeFilter";
+      history = null;
+      paste = {
+        click = "clipboardClickToPaste";
+        enter = "clipboardEnterToPaste";
+      };
+    };
+    clock = {
+      format = "clockFormat";
+      seconds = "showSeconds";
+      week.number = "showWeekNumber";
+    };
     config.version = "configVersion";
-    controls.columns = "controlCenterColumns";
-    controls.tiles.color.mode = "controlCenterTileColorMode";
-    controls.widgets = "controlCenterWidgets";
+    controls = {
+      columns = "controlCenterColumns";
+      tiles.color.mode = "controlCenterTileColorMode";
+      widgets = "controlCenterWidgets";
+    };
     corners.radius = "radiusStrength";
     cursor = "cursorSettings";
-    displays.preferred = "screenPreferences";
-    displays.profile.auto = "displayProfileAutoSelect";
+    displays = {
+      preferred = "screenPreferences";
+      profile.auto = "displayProfileAutoSelect";
+    };
     dock.configs = "dockConfigs";
-    focus.ring.enable = "focusRingEnabled";
-    focus.ring.width = "focusRingWidth";
-    fonts.mono.family = "monoFontFamily";
-    fonts.render.quality = "textRenderQuality";
-    fonts.render.type = "textRenderType";
-    fonts.sans.family = "fontFamily";
-    frame.bar.padding = "frameBarInsetPadding";
-    frame.bar.size = "frameBarSize";
-    frame.enable = "frameEnabled";
-    frame.launcher.arc.extend = "frameLauncherArcExtender";
-    frame.launcher.edge.hover = "frameLauncherEdgeHover";
-    frame.rounding = "frameRounding";
-    frame.thickness = "frameThickness";
-    greeter.login.auto = "greeterAutoLogin";
-    greeter.pam.external = "greeterPamExternallyManaged";
-    hyprland.glow.enable = "hyprlandGlowEnabled";
-    hyprland.glow.power = "hyprlandGlowRenderPower";
-    hyprland.glow.range = "hyprlandGlowRange";
-    hyprland.groups.bar.blur = "hyprlandGroupbarBlur";
-    hyprland.groups.bar.hide.single = "hyprlandGroupbarDisableWhenOnly";
-    hyprland.groups.bar.text.padding = "hyprlandGroupbarTextPadding";
-    hyprland.layout.border.size = "hyprlandLayoutBorderSize";
-    hyprland.layout.dwindle.split.preserve = "hyprlandDwindlePreserveSplit";
-    hyprland.layout.dwindle.split.smart = "hyprlandDwindleSmartSplit";
-    hyprland.layout.name = "hyprlandTilingLayout";
-    hyprland.resize.border = "hyprlandResizeOnBorder";
-    hyprland.windows.opacity = "hyprlandWindowOpacity";
-    icons.theme.adaptive = "iconThemePerMode";
-    icons.theme.dark = "iconThemeDark";
-    icons.theme.light = "iconThemeLight";
-    launcher.border.enable = "dankLauncherV2BorderEnabled";
-    launcher.drawer.sections = "appDrawerSectionViewModes";
-    launcher.grid.columns = "appLauncherGridColumns";
-    launcher.include.files = "dankLauncherV2IncludeFilesInAll";
-    launcher.include.folders = "dankLauncherV2IncludeFoldersInAll";
-    launcher.layer.overlay = "launcherUseOverlayLayer";
-    launcher.spotlight.sections = "spotlightSectionViewModes";
-    launcher.unload.close = "dankLauncherV2UnloadOnClose";
-    lock.pam.external = "lockPamExternallyManaged";
-    lock.suspend = "lockBeforeSuspend";
+    focus = {
+      ring = {
+        enable = "focusRingEnabled";
+        width = "focusRingWidth";
+      };
+    };
+    fonts = {
+      mono.family = "monoFontFamily";
+      render = {
+        quality = "textRenderQuality";
+        type = "textRenderType";
+      };
+      sans.family = "fontFamily";
+    };
+    frame = {
+      bar = {
+        padding = "frameBarInsetPadding";
+        size = "frameBarSize";
+      };
+      enable = "frameEnabled";
+      launcher = {
+        arc.extend = "frameLauncherArcExtender";
+        edge.hover = "frameLauncherEdgeHover";
+      };
+      rounding = "frameRounding";
+      thickness = "frameThickness";
+    };
+    greeter = {
+      login.auto = "greeterAutoLogin";
+      pam.external = "greeterPamExternallyManaged";
+    };
+    hyprland = {
+      glow = {
+        enable = "hyprlandGlowEnabled";
+        power = "hyprlandGlowRenderPower";
+        range = "hyprlandGlowRange";
+      };
+      groups.bar = {
+        blur = "hyprlandGroupbarBlur";
+        hide.single = "hyprlandGroupbarDisableWhenOnly";
+        text.padding = "hyprlandGroupbarTextPadding";
+      };
+      layout = {
+        border.size = "hyprlandLayoutBorderSize";
+        dwindle.split = {
+          preserve = "hyprlandDwindlePreserveSplit";
+          smart = "hyprlandDwindleSmartSplit";
+        };
+        name = "hyprlandTilingLayout";
+      };
+      resize.border = "hyprlandResizeOnBorder";
+      windows.opacity = "hyprlandWindowOpacity";
+    };
+    icons.theme = {
+      adaptive = "iconThemePerMode";
+      dark = "iconThemeDark";
+      light = "iconThemeLight";
+    };
+    launcher = {
+      border.enable = "dankLauncherV2BorderEnabled";
+      drawer.sections = "appDrawerSectionViewModes";
+      grid.columns = "appLauncherGridColumns";
+      include = {
+        files = "dankLauncherV2IncludeFilesInAll";
+        folders = "dankLauncherV2IncludeFoldersInAll";
+      };
+      layer.overlay = "launcherUseOverlayLayer";
+      spotlight.sections = "spotlightSectionViewModes";
+      unload.close = "dankLauncherV2UnloadOnClose";
+    };
+    lock = {
+      pam.external = "lockPamExternallyManaged";
+      suspend = "lockBeforeSuspend";
+    };
     network.preferred = "networkPreference";
-    notifications.compact = "notificationCompactMode";
-    notifications.fonts.body.size = "notificationBodyFontSize";
-    notifications.fonts.summary.size = "notificationSummaryFontSize";
-    notifications.monitor.focused = "notificationFocusedMonitor";
-    notifications.overlay.enable = "notificationOverlayEnabled";
-    notifications.timeout.bar = "notificationShowTimeoutBar";
-    opacity.floating.background = "floatingWindowTransparency";
-    opacity.floating.foreground = "floatingWindowForegroundTransparency";
-    opacity.floating.layers = "floatingWindowForegroundLayers";
-    opacity.floating.sync = "floatingWindowSyncGlobal";
-    opacity.foreground = "foregroundLayerTransparency";
-    opacity.popup = "popupTransparency";
-    osd.media.enable = "osdMediaPlaybackEnabled";
-    osd.position = "osdPosition";
-    osd.power.profile.enable = "osdPowerProfileEnabled";
-    osd.value.always = "osdAlwaysShowValue";
-    osd.workspace.enable = "osdWorkspaceEnabled";
-    plugins.builtin = "builtInPluginSettings";
-    power.ac.lock.timeout = "acLockTimeout";
-    power.battery.suspend.timeout = "batterySuspendTimeout";
-    power.menu.actions = "powerMenuActions";
-    power.menu.grid = "powerMenuGridLayout";
-    scrolling.bars.enable = "scrollbarsEnabled";
-    sounds.enable = "soundsEnabled";
-    theme.category = "currentThemeCategory";
-    theme.file = "customThemeFile";
-    theme.matugen.contrast = "matugenContrast";
-    theme.matugen.scheme = "matugenScheme";
-    theme.matugen.templates.enable = "runDmsMatugenTemplates";
-    theme.matugen.templates.foot = "matugenTemplateFoot";
-    theme.matugen.templates.ghostty = "matugenTemplateGhostty";
-    theme.matugen.templates.gtk = "matugenTemplateGtk";
-    theme.matugen.templates.vscode = "matugenTemplateVscode";
-    theme.matugen.templates.zed = "matugenTemplateZed";
-    theme.matugen.templates.zen = "matugenTemplateZenBrowser";
-    theme.name = "currentThemeName";
+    notifications = {
+      compact = "notificationCompactMode";
+      fonts = {
+        body.size = "notificationBodyFontSize";
+        summary.size = "notificationSummaryFontSize";
+      };
+      monitor.focused = "notificationFocusedMonitor";
+      overlay.enable = "notificationOverlayEnabled";
+      timeout.bar = "notificationShowTimeoutBar";
+    };
+    opacity = {
+      floating = {
+        background = "floatingWindowTransparency";
+        foreground = "floatingWindowForegroundTransparency";
+        layers = "floatingWindowForegroundLayers";
+        sync = "floatingWindowSyncGlobal";
+      };
+      foreground = "foregroundLayerTransparency";
+      popup = "popupTransparency";
+    };
+    osd = {
+      media.enable = "osdMediaPlaybackEnabled";
+      position = "osdPosition";
+      power.profile.enable = "osdPowerProfileEnabled";
+      value.always = "osdAlwaysShowValue";
+      workspace.enable = "osdWorkspaceEnabled";
+    };
+    plugins = {
+      builtin = "builtInPluginSettings";
+    };
+    power = {
+      ac.lock.timeout = "acLockTimeout";
+      battery.suspend.timeout = "batterySuspendTimeout";
+      menu = {
+        actions = "powerMenuActions";
+        grid = "powerMenuGridLayout";
+      };
+    };
+    scrolling = {
+      bars.enable = "scrollbarsEnabled";
+    };
+    sounds = {
+      enable = "soundsEnabled";
+    };
+    theme = {
+      category = "currentThemeCategory";
+      file = "customThemeFile";
+      matugen = {
+        contrast = "matugenContrast";
+        scheme = "matugenScheme";
+        templates = {
+          enable = "runDmsMatugenTemplates";
+          foot = "matugenTemplateFoot";
+          ghostty = "matugenTemplateGhostty";
+          gtk = "matugenTemplateGtk";
+          vscode = "matugenTemplateVscode";
+          zed = "matugenTemplateZed";
+          zen = "matugenTemplateZenBrowser";
+        };
+      };
+      name = "currentThemeName";
+    };
     updates.check.start = "updaterCheckOnStart";
     wallpaper.fill = "wallpaperFillMode";
-    widgets.background.color = "widgetBackgroundColor";
-    widgets.color.mode = "widgetColorMode";
-    windows.centering = "centeringMode";
-    windows.floating.seeded = "dmsWindowsFloatingSeeded";
-    clipboard.history = null;
+    widgets = {
+      background.color = "widgetBackgroundColor";
+      color.mode = "widgetColorMode";
+    };
+    windows = {
+      centering = "centeringMode";
+      floating.seeded = "dmsWindowsFloatingSeeded";
+    };
   };
 
   encode = path: fields: values:

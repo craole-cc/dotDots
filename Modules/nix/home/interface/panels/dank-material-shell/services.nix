@@ -4,9 +4,15 @@
   sync,
 }: let
   inherit (lix.modules.construction) mkForce;
+  inherit (lix.filesystem.construction) concatPath;
+
+  mkPath = root: stem:
+    concatPath {
+      root = config.xdg.${root};
+      stem = ["dms" stem];
+    };
 in {
   user = {
-    # DMS 1.6.3 does not emit the readiness notification newer modules expect.
     services.dms.Service = {
       Type = mkForce "simple";
       NotifyAccess = mkForce "none";
@@ -27,11 +33,11 @@ in {
     paths.dotdots-foot-dms-theme-reload = {
       Unit.Description = "Watch DMS appearance settings and terminal palettes";
       Path.PathChanged = [
-        "${config.xdg.configHome}/dms/settings.json"
-        "${config.xdg.stateHome}/dms/session.json"
+        (mkPath "configHome" "settings.json")
+        (mkPath "stateHome" "session.json")
         "%h/.config/foot/dank-colors.ini"
-        "${config.xdg.cacheHome}/dms/dms-colors.json"
-        "${config.xdg.configHome}/dms/palette-accent.hex"
+        (mkPath "cacheHome" "dms-colors.json")
+        (mkPath "configHome" "palette-accent.hex")
       ];
       Install.WantedBy = ["graphical-session.target"];
     };

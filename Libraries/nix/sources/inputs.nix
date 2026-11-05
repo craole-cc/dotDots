@@ -392,8 +392,21 @@
         ];
       };
 
+      # dank-material-shell = {
+      #   names = [
+      #     "shellDankMaterial"
+      #     "dankMaterialShell"
+      #     "shellDank"
+      #     "dank-material"
+      #     "dank-material-shell"
+      #     "dank"
+      #     "dms"
+      #   ];
+      # };
+
       dank-material-shell = {
         names = [
+          "shellDUX"
           "shellDankMaterial"
           "dankMaterialShell"
           "shellDank"
@@ -401,12 +414,14 @@
           "dank-material-shell"
           "dank"
           "dms"
+          "dux"
+          "dms-shell"
         ];
       };
 
       dms-plugin-registry = {
         names = [
-          "dms-plugin-registry"
+          "shellDUXPlugins"
           "shellDankMaterialPlugins"
           "dankMaterialShellPlugins"
           "shellDankPlugins"
@@ -415,6 +430,8 @@
           "dank-plugin-registry"
           "dms-plugins"
           "dmsp"
+          "dux-plugins"
+          "dms-plugin-registry"
         ];
       };
 
