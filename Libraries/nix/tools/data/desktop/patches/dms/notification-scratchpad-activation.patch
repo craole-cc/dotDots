@@ -1,0 +1,62 @@
+--- a/quickshell/Services/CompositorService.qml
++++ b/quickshell/Services/CompositorService.qml
+@@ -1302,0 +1303,38 @@
++    }
++
++    function activateNotificationScratchpad(notification) {
++        if (!isHyprland || !notification)
++            return false;
++
++        const normalizeDesktopId = value => String(value ?? "").trim().toLowerCase().replace(/\.desktop$/, "");
++        const notificationDesktopId = normalizeDesktopId(notification.desktopEntry);
++        if (!notificationDesktopId)
++            return false;
++
++        const notificationEntry = DesktopEntries.heuristicLookup(notification.desktopEntry);
++        const notificationEntryId = normalizeDesktopId(notificationEntry?.id);
++        const notificationIds = [notificationDesktopId, notificationEntryId].filter(Boolean);
++
++        for (const toplevel of ToplevelManager.toplevels?.values || []) {
++            const appId = Paths.moddedAppId(String(toplevel?.appId || "").trim());
++            if (!appId)
++                continue;
++
++            const appEntry = DesktopEntries.heuristicLookup(appId);
++            const appIds = [normalizeDesktopId(appId), normalizeDesktopId(appEntry?.id)].filter(Boolean);
++            if (!notificationIds.some(id => appIds.includes(id)))
++                continue;
++
++            const specialName = specialWorkspaceName(toplevel);
++            if (!specialName)
++                continue;
++
++            const alreadyVisible = (Hyprland.monitors?.values || []).some(monitor => hyprlandVisibleSpecialWorkspaceOnScreen(monitor.name) === specialName);
++            if (!alreadyVisible)
++                HyprlandService.toggleSpecial(specialName);
++
++            Qt.callLater(() => activateToplevel(toplevel));
++            return true;
++        }
++
++        return false;
+--- a/quickshell/Modules/Notifications/NotificationActions.qml
++++ b/quickshell/Modules/Notifications/NotificationActions.qml
+@@ -84 +84,10 @@
+-        return actions.find(action => action.identifier === "default") || actions[0] || null;
++        const action = actions.find(action => action.identifier === "default") || actions[0] || null;
++        if (!action?.invoke)
++            return action;
++        return {
++            invoke: () => {
++                if (CompositorService.activateNotificationScratchpad(notification))
++                    return;
++                action.invoke();
++            }
++        };
+--- a/quickshell/Modules/Notifications/Popup/NotificationPopup.qml
++++ b/quickshell/Modules/Notifications/Popup/NotificationPopup.qml
+@@ -756,0 +757,4 @@
++                                if (CompositorService.activateNotificationScratchpad(win.notificationData)) {
++                                    win.dismissPopupReliably();
++                                    return;
++                                }

@@ -1,0 +1,135 @@
+--- a/quickshell/Common/Theme.qml
++++ b/quickshell/Common/Theme.qml
+@@ -128,6 +128,9 @@
+             SessionData.isLightModeChanged.connect(root.onLightModeChanged);
+         }
+ 
++        if (typeof SettingsData !== "undefined" && SettingsData.customThemeFile) {
++            loadCustomThemeFromFile(SettingsData.customThemeFile);
++        }
+         if (typeof SettingsData !== "undefined" && SettingsData.currentThemeName) {
+             switchTheme(SettingsData.currentThemeName, false, false);
+             const currentIsLight = (typeof SessionData !== "undefined") ? SessionData.isLightMode : false;
+@@ -1963,7 +1966,11 @@
+             const selectedMatugenType = SettingsData.matugenScheme || "scheme-tonal-spot";
+             const source = rawWallpaperPath || SettingsData.matugenSeedColor || materialWallpaperSeed;
+             const kind = source.startsWith("#") ? "hex" : "image";
+-            setDesiredTheme(kind, source, isLight, iconTheme, selectedMatugenType, null);
++            let stockColors = null;
++            if (customThemeRawData?.matugen_dynamic_accent && customThemeRawData.dark && customThemeRawData.light) {
++                stockColors = buildMatugenColorsFromTheme(customThemeRawData.dark, customThemeRawData.light);
++            }
++            setDesiredTheme(kind, source, isLight, iconTheme, selectedMatugenType, stockColors);
+             return;
+         }
+ 
+@@ -2374,7 +2381,7 @@
+     FileView {
+         id: customThemeFileView
+         blockLoading: false
+-        watchChanges: currentTheme === "custom"
++        watchChanges: currentTheme === "custom" || (typeof SettingsData !== "undefined" && !!SettingsData.customThemeFile)
+ 
+         function parseAndLoadTheme() {
+             try {
+--- a/core/internal/matugen/matugen.go
++++ b/core/internal/matugen/matugen.go
+@@ -427,6 +427,25 @@
+ 		}
+ 	}
+ 
++	hybridImage := opts.Kind == "image" && opts.StockColors != ""
++	if hybridImage {
++		sourceImage = opts.Value
++		if abs, err := filepath.Abs(sourceImage); err == nil {
++			sourceImage = abs
++		}
++		dynamicColors, err := runMatugenDryRun(opts)
++		if err != nil {
++			return false, fmt.Errorf("matugen accent generation failed: %w", err)
++		}
++		if extractMatugenColor(dynamicColors, "source_color", "dark") == "" {
++			return false, fmt.Errorf("matugen accent palette has no source_color")
++		}
++		opts.StockColors, err = mergeDynamicAccentColors(opts.StockColors, dynamicColors, opts.Mode)
++		if err != nil {
++			return false, fmt.Errorf("failed to combine Catppuccin and Matugen colors: %w", err)
++		}
++	}
++
+ 	if opts.StockColors != "" {
+ 		log.Info("Using stock/custom theme colors with matugen base")
+ 		primaryDark = extractNestedColor(opts.StockColors, "primary", "dark")
+@@ -445,7 +464,12 @@
+ 
+ 		dank16JSON = generateDank16Variants(primaryDark, primaryLight, surfaceDark, surfaceLight, containerDark, containerLight, opts.Mode, "")
+ 		dank16TermJSON := generateDank16Variants(primaryDark, primaryLight, surfaceDark, surfaceLight, containerDark, containerLight, opts.Mode, opts.TerminalPalette)
+-		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s, "dank16term": %s}`, opts.StockColors, dank16JSON, dank16TermJSON)
++		importData := fmt.Sprintf(`{"colors": %s, "dank16": %s, "dank16term": %s`, opts.StockColors, dank16JSON, dank16TermJSON)
++		if hybridImage && sourceImage != "" {
++			image, _ := json.Marshal(sourceImage)
++			importData += fmt.Sprintf(`, "image": %s`, image)
++		}
++		importData += "}"
+ 		importArgs = []string{"--import-json-string", importData}
+ 
+ 		log.Info("Running matugen color hex with stock color overrides")
+@@ -1620,6 +1644,58 @@
+ 	}
+ }
+ 
++func mergeDynamicAccentColors(stockJSON, dynamicJSON string, mode ColorMode) (string, error) {
++	var stock map[string]map[string]any
++	if err := json.Unmarshal([]byte(stockJSON), &stock); err != nil {
++		return "", fmt.Errorf("parse fixed palette: %w", err)
++	}
++
++	var dynamic ColorsOutput
++	if err := json.Unmarshal([]byte(dynamicJSON), &dynamic); err != nil {
++		return "", fmt.Errorf("parse Matugen palette: %w", err)
++	}
++
++	roles := []string{
++		"primary", "on_primary", "primary_container", "on_primary_container",
++		"secondary", "on_secondary", "secondary_container", "on_secondary_container",
++		"tertiary", "on_tertiary", "tertiary_container", "on_tertiary_container",
++		"inverse_primary", "primary_fixed", "primary_fixed_dim", "on_primary_fixed",
++		"on_primary_fixed_variant", "secondary_fixed", "secondary_fixed_dim",
++		"on_secondary_fixed", "on_secondary_fixed_variant", "tertiary_fixed",
++		"tertiary_fixed_dim", "on_tertiary_fixed", "on_tertiary_fixed_variant",
++		"source_color",
++	}
++	for _, role := range roles {
++		dark, hasDark := dynamic.Colors.Dark[role]
++		light, hasLight := dynamic.Colors.Light[role]
++		if !hasDark && !hasLight {
++			continue
++		}
++		if !hasDark {
++			dark = light
++		}
++		if !hasLight {
++			light = dark
++		}
++		if stock[role] == nil {
++			stock[role] = make(map[string]any)
++		}
++		stock[role]["dark"] = map[string]string{"color": dark}
++		stock[role]["light"] = map[string]string{"color": light}
++		selected := dark
++		if mode == ColorModeLight {
++			selected = light
++		}
++		stock[role]["default"] = map[string]string{"color": selected}
++	}
++
++	merged, err := json.Marshal(stock)
++	if err != nil {
++		return "", fmt.Errorf("encode combined palette: %w", err)
++	}
++	return string(merged), nil
++}
++
+ type TemplateCheck struct {
+ 	ID       string `json:"id"`
+ 	Detected bool   `json:"detected"`
