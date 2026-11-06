@@ -33,7 +33,7 @@
     stem,
   }:
     concatPath {
-      root = foldl' (attrs: segment: attrs.${segment}) paths.store root;
+      root = (foldl' (attrs: segment: attrs.${segment}) paths.repo root).store;
       inherit stem;
     };
 
