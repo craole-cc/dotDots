@@ -57,20 +57,21 @@
   inherit (_.attrsets.access) attrNames getAttrFromPath;
   inherit (_.attrsets.aggregation) mergeSafe;
   inherit (_.attrsets.construction) genAttrs listToAttrs optionalAttrs;
-  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsRecursiveCond setAttrByPath;
   inherit (_.attrsets.predicates) isDerivation;
+  inherit (_.attrsets.transformation) filterAttrs mapAttrs mapAttrsRecursiveCond setAttrByPath;
   inherit (_.debug.assertions) withContext;
   inherit (_.hardware.system) getSystems;
-  inherit (_.lists.construction) concatLists optional optionals;
   inherit (_.lists.access) tail;
+  inherit (_.lists.construction) concatLists optional optionals;
   inherit (_.lists.predicates) all elem isIn;
-  inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge mkOverride;
   inherit (_.modules.evaluation) evalModules extend;
   inherit (_.modules.home.users) mkUsers;
   inherit (_.options.construction) mkOption mkOptionType;
+  inherit (_.schema.construction) mkSchema;
   inherit (_.sources.modules) mkModules;
   inherit (_.strings.construction) concat;
+  inherit (_.tools.construction) mkToolkit;
   inherit (_.types.combinators) attrsOf listOf;
   inherit (_.types.predicates) isAttrs isList;
   inherit (_.types.primitives) anything;
@@ -122,7 +123,7 @@
         passthru // {inherit host top;} // host
       );
 
-      toolkit = hostArgs.${name}.tools.construction.mkToolkit {
+      toolkit = mkToolkit {
         inherit inputs host;
         inherit (hostArgs) pkgs;
       };
@@ -284,7 +285,7 @@
       pkgs,
       host ? null,
     }: let
-      toolkit = _.sources.toolkit.mkToolkit {
+      toolkit = mkToolkit {
         inherit inputs pkgs;
         host =
           if host == null

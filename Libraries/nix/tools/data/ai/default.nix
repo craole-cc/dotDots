@@ -1,1 +1,1 @@
-{importMerged,...}: importMerged ./.
+{importMerged, ...}: importMerged ./.

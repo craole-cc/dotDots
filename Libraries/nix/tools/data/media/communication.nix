@@ -23,7 +23,7 @@
     exe = "thunderbird";
   };
 
-# TODO: WHY, I dont think i want this
+  # TODO: WHY, I dont think i want this
   python3 = mkSource {
     categories = ["communication"];
     description = "Python runtime";

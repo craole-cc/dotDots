@@ -8,6 +8,10 @@
 }: let
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.toolkit.write) script;
+  terminalContrast = lix.toolkit.write.rust {
+    name = "dms-terminal-contrast";
+    src = ./themes/terminal-contrast.rs;
+  };
   inherit (themes) icons cursors;
   inherit (lix.toolkit.binaries) cat chmod0644 chmodRef cmps dirname dmsCall gSetDI jaqRr mkdirp mktemp mvf pkill pkillUSR1x pkillUSR2x rgFxq rgq rmf sd systemctlUserR;
   gds = pkgs.gsettings-desktop-schemas;
@@ -137,7 +141,7 @@ in
 
         # Separate overrides keep DMS's generated files intact. The shared
         # renderer corrects both modes using their existing opacity values.
-        if contrast_changed="$(${pkgs.python3}/bin/python3 ${./themes/terminal-contrast.py} \
+        if contrast_changed="$(${terminalContrast}/bin/dms-terminal-contrast \
           --source ${escapeShellArg "${config.xdg.cacheHome}/dms/dms-colors.json"} \
           --config-home ${escapeShellArg config.xdg.configHome} \
           --mode "$mode" \

@@ -1,4 +1,5 @@
-{mergeDisjoint,
+{
+  mergeDisjoint,
   mkAliasFamily,
   mkSource,
   ...

@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (lix.modules.construction) mkForce;
-# TODO: Use toolkit for everything possible, packages binaries writer, etc
+  # TODO: Use toolkit for everything possible, packages binaries writer, etc
   registry = inputs.dux-plugins.packages.${pkgs.stdenv.hostPlatform.system};
   mkChatPlugin = {
     name,

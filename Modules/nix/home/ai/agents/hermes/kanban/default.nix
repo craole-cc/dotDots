@@ -4,7 +4,7 @@
   lix,
   ...
 }: let
-  inherit (lix.attrsets.access) attrNames;
+  inherit (lix.attrsets.access) attrByPath attrNames;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.lists.predicates) all elem;
@@ -36,9 +36,9 @@
   #? Extracted here because the `or` operator only catches missing attrs on
   #? the immediate lhs, so `gp.auth.file or null` fails when gp is `{}`.
   hasCreds = profile:
-    (profile.auth.file or null)
+    attrByPath ["auth" "file"] null profile
     != null
-    || (profile.environment.files or []) != [];
+    || attrByPath ["environment" "files"] [] profile != [];
 in {
   options.kanban = {
     enable = mkFalse "Enable Hermes Kanban task dispatch for the declared team.";

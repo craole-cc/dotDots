@@ -443,7 +443,7 @@
       })
     ];
   };
-  
+
   nh = mkSource {
     categories = ["system" "scripting"];
     description = "Nix helper";

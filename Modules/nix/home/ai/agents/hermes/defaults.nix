@@ -50,6 +50,7 @@
       routes = [];
     };
     profiles = {};
+    strictProfileValidation = false;
     desktop = {
       enable = true;
       package = defaults.package.hermesDesktop;

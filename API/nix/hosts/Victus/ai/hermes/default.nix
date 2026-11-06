@@ -118,7 +118,7 @@ in {
         perProfile = 1;
       };
       decomposition = {
-        enable = true;
+        enable = false;
         model = {
           provider = "openai-codex";
           model = "gpt-6.1-sol";

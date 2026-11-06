@@ -24,7 +24,7 @@
       #? `core/Makefile`'s sync-shell target requires quickshell/DCommon.
       patchedSource = builders.applyPatches {
         name = "dms-patched-source";
-        src = package.src;
+        inherit (package) src;
         patches = [
           ./patches/dux/theme-control.patch
           ./patches/dux/catppuccin-matugen.patch
@@ -34,10 +34,12 @@
     in
       package.overrideAttrs (previous: {
         src = patchedSource;
-        passthru = (previous.passthru or {}) // {
-          shellSource = "${patchedSource}/quickshell";
-          coreSource = "${patchedSource}/core";
-        };
+        passthru =
+          (previous.passthru or {})
+          // {
+            shellSource = "${patchedSource}/quickshell";
+            coreSource = "${patchedSource}/core";
+          };
       });
   };
   dux-calendar = mkSource {
