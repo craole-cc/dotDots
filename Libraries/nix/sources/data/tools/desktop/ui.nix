@@ -31,7 +31,7 @@
       };
     in
       package.overrideAttrs (previous: {
-        src = "${patchedSource}/core";
+        src = patchedSource;
         postInstall =
           replaceStrings
           [source]
