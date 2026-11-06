@@ -207,7 +207,7 @@ in {
         printKey = withKey common print;
       in [
         (mkAction letterKey "Section" modifier)
-        (mkAction letterKey "Screen" superShift)
+        (mkAction letterKey "Screen" superShiftCtrl)
         (mkAction letterKey "Window" superAlt)
         (mkBinding printKey {description = "Screenshot: Section";})
         (mkAction printKey "Screen" shift)

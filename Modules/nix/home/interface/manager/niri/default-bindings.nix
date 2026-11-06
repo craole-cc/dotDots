@@ -113,8 +113,16 @@ in
     "Mod+Shift+Equal" = parameterisedBind "Increase Window Height" "set-window-height" "+10%";
     "Mod+Shift+V" = bind "Switch Focus Between Floating And Tiling" "switch-focus-between-floating-and-tiling";
 
+    "Mod+Alt+Q" = {
+      action = actions "spawn-sh" ["variety --quotes-next"];
+      hotkey-overlay.title = "Wallpaper: Next Quote";
+    };
+    "Mod+Shift+S" = {
+      action = actions "spawn-sh" ["dms screenshot region --no-confirm"];
+      hotkey-overlay.title = "Screenshot Region";
+    };
     "Ctrl+Print" = {
-      action = actions "spawn-sh" ["dms screenshot screen"];
+      action = actions "spawn-sh" ["dms screenshot full"];
       hotkey-overlay.title = "Screenshot Screen";
     };
     "Alt+Print" = {
