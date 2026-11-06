@@ -449,8 +449,9 @@
 
       maybeWaylandWM = wm:
         (windowManagers == wm)
-        || config.programs.hyprland.enable or false
-        || config.wayland.windowManager.hyprland.enable or false;
+        || config.programs.${wm}.enable or false
+        || config.wayland.windowManager.${wm}.enable or false;
+        
       desktops = optionals (host != null) (host.interface.desktops or []);
       mkWantsDesktop = name: value: {condition = isIn name desktops || value == name;};
       mkWants = name: value: {condition = isIn name value;};

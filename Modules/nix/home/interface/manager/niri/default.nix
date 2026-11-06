@@ -14,7 +14,10 @@
   sub = "managers";
   mod = "niri";
   context = mkContext {inherit config host dom sub mod;};
-  out = config.programs.${mod};
+
+  #> The home-manager module declares `wayland.windowManager.niri`, not
+  #> `programs.niri` (that one is NixOS-only).
+  package = pkgs.niri;
 
   inherit (context) cfg ctx;
   inherit (lix.attrsets.access) attrNames;
@@ -27,9 +30,11 @@
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable;
   inherit (lix.schema.io) mkNiriKeybindings;
+  inherit (lix.schema.ui) mkUI;
   inherit (lix.types.predicates) isList;
+
   niriInterface =
-    (lix.schema.ui.mkUI {
+    (mkUI {
       inherit host;
       # TODO: Use recursiveUpdate here
       user = user // {interface = (user.interface or {}) // {desktops = ["niri"];};};
@@ -70,12 +75,11 @@
           binding // optionalAttrs (selected != null) (project selected)
       )
       base
-    else if !isList base
-    then let
+    else let
       selected = actionAt 0;
     in
-      base // optionalAttrs (selected != null) (project selected)
-    else base;
+      base // optionalAttrs (selected != null) (project selected);
+
   baseBindings = keyboard.bindings or {};
   projectedBindings = niriInterface.bindings or {};
 
@@ -92,13 +96,11 @@
     keyboard
     // niriInterface
     // {bindings = niriBindings // removeAttrs projectedBindings (attrNames baseBindings);};
-  # # TODO:
 
   niriFloatSticky = inputs."niri-float-sticky".packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   scratchpads = import ./scratchpads.nix {
-    inherit actions apps pkgs lix;
-    inherit (out) package;
+    inherit actions apps pkgs lix package;
     keyboard = keys;
   };
   actions = name: arguments: {${name} = arguments;};
@@ -114,11 +116,13 @@
 in
   mkConfig {
     inherit context;
-    options.enable = mkEnable ({inherit context;} // ctx.wantsNiri);
+    options = {
+      enable = mkEnable ({inherit context;} // ctx.wantsNiri);
+    };
     outputs = mkIf cfg.enable {
-      programs.niri = {
+      wayland.windowManager.niri = {
         enable = true;
-        package = pkgs.niri;
+        inherit package;
         settings = {
           prefer-no-csd = true;
           binds = foldl' (merged: bindings: merged // bindings) {} [
@@ -133,9 +137,11 @@ in
           window-rules = editorWindowRules ++ scratchpads.window-rules;
         };
       };
+
       home = {
         packages = scratchpads.packages ++ [niriFloatSticky];
       };
+
       systemd = {
         user.services.niri-float-sticky = {
           Unit = {
