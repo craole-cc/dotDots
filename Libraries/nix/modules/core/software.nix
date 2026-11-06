@@ -139,7 +139,7 @@
   mkFetch = {
     name ? "sysfo",
     toolkit ? _.tools.construction.mkToolkit {inherit inputs pkgs;},
-    inputs,
+    inputs ? {},
     pkgs,
     paths,
   }:

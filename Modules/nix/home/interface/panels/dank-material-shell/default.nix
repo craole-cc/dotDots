@@ -13,7 +13,7 @@
   mod = "dux-shell";
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg ctx;
-  quickshell = context.resolved.cfg.interface.panels.quickshell.defined;
+  quickshell = config.${context.top}.resolved.interface.panels.quickshell.defined;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.modules.construction) mkConfig mkContext mkForce;
   inherit (lix.options.construction) mkEnable mkOption;

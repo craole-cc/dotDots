@@ -84,7 +84,7 @@
 
     dms = let
       name = "dux-shell";
-      ctx = context.resolved.cfg.interface.panels.${name}.defined;
+      ctx = config.${context.top}.resolved.interface.panels.${name}.defined;
       condition = ctx.enable;
     in {
       inherit ctx condition;

@@ -16,13 +16,15 @@
     };
     transform = {
       package,
-      source,
       builders,
       ...
     }: let
+      #? Patch the resolved package's own source, not the flake input tree:
+      #? fetchFromGitHub with submodules keeps dux-qml-common populated, and
+      #? `core/Makefile`'s sync-shell target requires quickshell/DCommon.
       patchedSource = builders.applyPatches {
         name = "dms-patched-source";
-        src = source;
+        src = package.src;
         patches = [
           ./patches/dux/theme-control.patch
           ./patches/dux/catppuccin-matugen.patch
@@ -32,7 +34,6 @@
     in
       package.overrideAttrs (previous: {
         src = patchedSource;
-        postInstall = replaceStrings [source] ["${patchedSource}"] previous.postInstall;
         passthru = (previous.passthru or {}) // {shellSource = "${patchedSource}/quickshell";};
       });
   };

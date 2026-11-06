@@ -6,7 +6,7 @@
 }: let
   inherit (lix.modules.construction) mkForce;
 # TODO: Use toolkit for everything possible, packages binaries writer, etc
-  registry = inputs.dms-plugin-registry.packages.${pkgs.stdenv.hostPlatform.system};
+  registry = inputs.dux-plugins.packages.${pkgs.stdenv.hostPlatform.system};
   mkChatPlugin = {
     name,
     binary,

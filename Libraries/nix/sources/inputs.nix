@@ -298,6 +298,7 @@
 
       niri-float-sticky = {
         names = [
+          "wmNiriFloatSticky"
           "wmNiriFloat"
           "wmNiriSticky"
           "niriFloatSticky"
