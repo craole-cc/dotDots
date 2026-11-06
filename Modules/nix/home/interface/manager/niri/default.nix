@@ -22,6 +22,7 @@
   inherit (context) cfg ctx;
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.access) elemAt length;
   inherit (lix.lists.aggregation) foldl';
@@ -36,8 +37,7 @@
   niriInterface =
     (mkUI {
       inherit host;
-      # TODO: Use recursiveUpdate here
-      user = user // {interface = (user.interface or {}) // {desktops = ["niri"];};};
+      user = recursiveUpdate user {interface.desktops = ["niri"];};
     }).keyboard;
 
   # TODO: This is SO wrong. I never want to load files like this. This should come from the schema keyboard/actions, not a file stored in the schema
@@ -50,19 +50,22 @@
 
   overlayActions = base: projected: fallback: let
     project = binding:
-      removeAttrs binding ["key" "mod" "modifier" "category" "description" "application"];
-    actionAt = index: let
-      kinds = ["exec" "scratchpad" "global"];
-    in
+      removeAttrs binding
+      ["key" "mod" "modifier" "category" "description" "application"];
+    kinds = ["exec" "scratchpad" "global"];
+    actionAt = index:
       if
         (projected != null)
         && isList projected
         && index < length projected
         && isIn ((elemAt projected index).kind or "exec") kinds
       then elemAt projected index
-      else if projected != null && !isList projected && isIn (projected.kind or "exec") kinds
+      else if
+        (projected != null)
+        && !isList projected
+        && isIn (projected.kind or "exec") kinds
       then projected
-      else if isList fallback && index < length fallback
+      else if isList fallback && (index < length fallback)
       then elemAt fallback index
       else fallback;
   in
@@ -87,7 +90,10 @@
     mapAttrs (
       group: bindings:
         if projectedBindings ? ${group} || actionBindings ? ${group}
-        then overlayActions bindings (projectedBindings.${group} or null) (actionBindings.${group} or null)
+        then
+          overlayActions bindings
+          (projectedBindings.${group} or null)
+          (actionBindings.${group} or null)
         else bindings
     )
     baseBindings;
@@ -95,7 +101,12 @@
   keys =
     keyboard
     // niriInterface
-    // {bindings = niriBindings // removeAttrs projectedBindings (attrNames baseBindings);};
+    // {
+      bindings =
+        niriBindings
+        // removeAttrs projectedBindings
+        (attrNames baseBindings);
+    };
 
   niriFloatSticky = inputs."niri-float-sticky".packages.${pkgs.stdenv.hostPlatform.system}.default;
 
