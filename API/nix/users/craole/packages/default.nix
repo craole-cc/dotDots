@@ -90,6 +90,7 @@ let
   ];
 
   extra = [
+    "fromStable.onlyoffice-desktopeditors"
     "fastfetch"
     "imv"
     "inkscape"

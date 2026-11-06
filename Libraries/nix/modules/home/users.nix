@@ -1,4 +1,6 @@
 {_, ...}: let
+  inherit (_.attrsets.access) attrByPath;
+  inherit (_.strings.construction) splitString;
   inherit (_.attrsets.construction) optionalAttrs;
   inherit (_.attrsets.predicates) isDerivation;
   inherit (_.attrsets.transformation) mapAttrs;
@@ -100,7 +102,7 @@
         inputs' = mkApps {inherit inputs modules user;};
 
         extraPackages = map (packageName: let
-          package = pkgs.${packageName} or null;
+          package = pkgs.${packageName} or (attrByPath (splitString "." packageName) null pkgs);
         in
           if isDerivation package
           then package

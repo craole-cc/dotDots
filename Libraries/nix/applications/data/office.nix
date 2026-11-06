@@ -44,7 +44,7 @@ _: {
 
   onlyoffice = {
     names = {
-      package = "onlyoffice-bin";
+      package = "onlyoffice-desktopeditors";
       command = "onlyoffice-desktopeditors";
       class = "onlyoffice-desktopeditors";
     };
