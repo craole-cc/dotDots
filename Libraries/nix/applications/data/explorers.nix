@@ -1,4 +1,14 @@
 _: {
+  dux-files = {
+    names = {
+      package = "dux-files";
+      command = "dfiles";
+      class = "dev.duxlabs.files";
+    };
+    exec = "dfiles open";
+    categories = ["explorer"];
+  };
+
   yazi = {
     names = {
       package = "yazi";

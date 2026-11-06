@@ -188,6 +188,12 @@ in
       };
     };
     resolutions = mkMerge (map (mkLayer 1000) [
+      (optionalAttrs ((explorer.name or null) == "dux-files") {
+        xdg.mimeApps = {
+          enable = true;
+          defaultApplications."inode/directory" = "dev.duxlabs.files.desktop";
+        };
+      })
       (
         optionalAttrs (hasApp "terminal") {
           home.packages = [archiveHandler];

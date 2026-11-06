@@ -35,6 +35,7 @@ let
   ];
 
   explorer = [
+    "dux-files"
     "yazi"
     "doublecmd"
   ];
