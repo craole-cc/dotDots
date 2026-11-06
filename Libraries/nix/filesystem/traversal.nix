@@ -382,10 +382,15 @@
   # Type
   > importAllPaths :: path -> { value :: [path], stems :: [[string]] }
   */
-  # importAllPaths = dir: traverseDir (p: p) importAllPathsRecurse dir [];
-  # importAllPathsRecurse = dir: stemSoFar: traverseDir (p: p) importAllPathsRecurse dir stemSoFar;
-  importAllPaths = dir: traverseDir (p: builtins.trace "importAllPaths: ${toString p}" p) importAllPathsRecurse dir [];
-  importAllPathsRecurse = dir: stemSoFar: traverseDir (p: builtins.trace "importAllPaths: ${toString p}" p) importAllPathsRecurse dir stemSoFar;
+  importAllPaths = dir:
+    traverseDir (path: path)
+    importAllPathsRecurse
+    dir [];
+  importAllPathsRecurse = dir: stemSoFar:
+    traverseDir (path: path)
+    importAllPathsRecurse
+    dir
+    stemSoFar;
 
   # -- importTree (shared recursive named-traversal core)
 

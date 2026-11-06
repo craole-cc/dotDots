@@ -133,19 +133,23 @@ in
           window-rules = editorWindowRules ++ scratchpads.window-rules;
         };
       };
-      home.packages = scratchpads.packages ++ [niriFloatSticky];
-      systemd.user.services.niri-float-sticky = {
-        Unit = {
-          Description = "Niri floating-window pinning helper";
-          After = ["graphical-session.target"];
-          PartOf = ["graphical-session.target"];
+      home = {
+        packages = scratchpads.packages ++ [niriFloatSticky];
+      };
+      systemd = {
+        user.services.niri-float-sticky = {
+          Unit = {
+            Description = "Niri floating-window pinning helper";
+            After = ["graphical-session.target"];
+            PartOf = ["graphical-session.target"];
+          };
+          Service = {
+            ExecStart = "${niriFloatSticky}/bin/niri-float-sticky --disable-auto-stick --allow-moving-to-foreign-monitors";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+          Install.WantedBy = ["graphical-session.target"];
         };
-        Service = {
-          ExecStart = "${niriFloatSticky}/bin/niri-float-sticky --disable-auto-stick --allow-moving-to-foreign-monitors";
-          Restart = "on-failure";
-          RestartSec = 2;
-        };
-        Install.WantedBy = ["graphical-session.target"];
       };
     };
   }

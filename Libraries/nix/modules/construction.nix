@@ -72,7 +72,7 @@
   inherit (_.hardware.system) getSystems;
   inherit (_.lists.construction) concatLists optional optionals;
   inherit (_.lists.access) tail;
-  inherit (_.lists.predicates) all elem;
+  inherit (_.lists.predicates) all elem isIn;
   inherit (_.schema.construction) mkSchema;
   inherit (_.modules.construction) mkIf mkMerge mkOverride;
   inherit (_.modules.evaluation) evalModules extend;
@@ -438,39 +438,36 @@
       cfg = (getAttrFromPath path config).defined;
     };
 
-    resolved = rec {
+    resolved = let
       cfg = getAttrFromPath [top "resolved"] config;
       dom = cfg.${dom} or {};
       ice = cfg.interface or {};
 
       windowManagers = ice.windowManager or null;
-      wm = windowManagers;
-
       desktopEnvironments = ice.desktopEnvironment or null;
-      de = desktopEnvironments;
-
       panels = ice.panels.active or null;
-      bar = panels;
 
-      desktops =
-        if host == null
-        then []
-        else host.interface.desktops or [];
-
-      hasHyprland =
-        (wm == "hyprland")
+      maybeWaylandWM = wm:
+        (windowManagers == wm)
         || config.programs.hyprland.enable or false
         || config.wayland.windowManager.hyprland.enable or false;
+      desktops = optionals (host != null) (host.interface.desktops or []);
+      mkWantsDesktop = name: value: {condition = isIn name desktops || value == name;};
+      mkWants = name: value: {condition = isIn name value;};
+    in {
+      inherit desktopEnvironments ice panels windowManagers;
+      wm = windowManagers;
+      de = desktopEnvironments;
+      bar = panels;
 
-      hasNiri = (wm == "niri") || config.programs.niri.enable or false;
+      hasHyprland = maybeWaylandWM "hyprland";
+      hasNiri = maybeWaylandWM "niri";
+      hasLabwc = maybeWaylandWM "labwc";
+      hasMango = maybeWaylandWM "mango";
 
       isWayland = config._.resolved.interface.displayProtocol == "wayland";
-      mkWants = name: value: {condition = value == name;};
-      mkWantsDesktop = name: value: {
-        condition = elem name desktops || value == name;
-      };
       wantsCosmic = mkWantsDesktop "cosmic" desktopEnvironments;
-      wantsDmsShell = mkWants "dms-shell" panels;
+      wantsDmsShell = mkWants ["dms-shell" "dux-shell"] panels;
       wantsGnome = mkWantsDesktop "gnome" desktopEnvironments;
       wantsHyprland = mkWantsDesktop "hyprland" windowManagers;
       wantsNiri = mkWantsDesktop "niri" windowManagers;
