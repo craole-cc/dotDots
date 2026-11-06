@@ -31,15 +31,9 @@
       };
     in
       package.overrideAttrs (previous: {
-        src = "${patchedSource}/core";
-        postInstall =
-          replaceStrings
-          [source]
-          ["${patchedSource}"]
-          previous.postInstall;
-        passthru =
-          (previous.passthru or {})
-          // {shellSource = "${patchedSource}/quickshell";};
+        src = patchedSource;
+        postInstall = replaceStrings [source] ["${patchedSource}"] previous.postInstall;
+        passthru = (previous.passthru or {}) // {shellSource = "${patchedSource}/quickshell";};
       });
   };
   dux-calendar = mkSource {
