@@ -133,7 +133,7 @@ in
         packages =
           (with themes.resolved.cursors; [dark.package light.package])
           ++ addons.packages
-          ++ (with packages; [dux-calendar khal vdirsyncer]);
+          ++ (with packages; [dux-calendar dux-files khal vdirsyncer]);
         sessionVariables = {QS_ICON_THEME = themes.icons.dark.theme;};
         activation =
           {
