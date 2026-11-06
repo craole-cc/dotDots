@@ -23,7 +23,7 @@
   inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
-  inherit (lix.attrsets.transformation) mapAttrs;
+  inherit (lix.attrsets.transformation) mapAttrs removeAttrs;
   inherit (lix.lists.access) elemAt length;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
@@ -32,7 +32,7 @@
   inherit (lix.options.construction) mkEnable;
   inherit (lix.schema.io) mkNiriKeybindings;
   inherit (lix.schema.ui) mkUI;
-  inherit (lix.types.predicates) isList;
+  inherit (lix.types.predicates) isAttrs isList;
 
   niriInterface =
     (mkUI {
@@ -116,11 +116,25 @@
   };
   actions = name: arguments: {${name} = arguments;};
 
+  #? niri expects exactly one action as a bind's child node and every
+  #? bind-level option as a property on the bind node itself. hotkey-overlay
+  #? titles are a property too (hotkey-overlay-title), not a child node.
+  bindToKdl = bind: let
+    action = bind.action or {};
+    title = bind."hotkey-overlay".title or null;
+    props =
+      optionalAttrs (title != null) {"hotkey-overlay-title" = title;}
+      // optionalAttrs (bind ? repeat) {inherit (bind) repeat;}
+      // optionalAttrs (bind ? allow-when-locked) {allow-inhibiting = bind.allow-when-locked;};
+  in
+    {_children = [action];}
+    // optionalAttrs (props != {}) {_props = props;};
+
   # Editor translucency comes from the same theme schema Hyprland reads, so
   # swapping compositors keeps the declared look instead of losing it.
   editorWindowRules = [
     {
-      matches = [{app-id = "^code-insiders$";}];
+      match._props.app-id = "^code-insiders$";
       opacity = style.opacity.editor.${style.mode};
     }
   ];
@@ -136,16 +150,17 @@ in
         inherit package;
         settings = {
           prefer-no-csd = true;
-          binds = foldl' (merged: bindings: merged // bindings) {} [
+          binds = mapAttrs (_: bindToKdl) (foldl' (merged: bindings: merged // bindings) {} [
             (import ./default-bindings.nix {inherit actions lix;})
             (mkNiriKeybindings {
               keyboard = keys;
               inherit actions;
             })
             scratchpads.binds
-          ];
-          inherit (scratchpads) workspaces;
-          window-rules = editorWindowRules ++ scratchpads.window-rules;
+          ]);
+          #? niri >= 26 declares each startup workspace as its own node.
+          workspace = map (name: {_args = [name];}) (attrNames scratchpads.workspaces);
+          window-rule = editorWindowRules ++ scratchpads.window-rules;
         };
       };
 

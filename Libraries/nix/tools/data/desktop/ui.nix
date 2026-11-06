@@ -34,7 +34,10 @@
     in
       package.overrideAttrs (previous: {
         src = patchedSource;
-        passthru = (previous.passthru or {}) // {shellSource = "${patchedSource}/quickshell";};
+        passthru = (previous.passthru or {}) // {
+          shellSource = "${patchedSource}/quickshell";
+          coreSource = "${patchedSource}/core";
+        };
       });
   };
   dux-calendar = mkSource {

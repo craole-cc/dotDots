@@ -29,7 +29,11 @@
   inherit (lix.strings.construction) concatStringsSep splitString toJSON;
 
   dmsEnabled = config.programs.dank-material-shell.enable or false;
-  dmsEmbedded = "${config.programs.dank-material-shell.package.src}/internal/config/embedded";
+  #? Source layout differs by provider: nixpkgs keeps the repo root in `src`
+  #? (core/ nested), while upstream's flake points `src` at core directly.
+  dmsPackage = config.programs.dank-material-shell.package;
+  dmsCore = dmsPackage.passthru.coreSource or dmsPackage.src;
+  dmsEmbedded = "${dmsCore}/internal/config/embedded";
 
   firstBinding = name: let
     bindings = toList (keyboard.bindings.${name} or []);
