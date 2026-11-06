@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.lists.predicates) all;
   inherit (lix.modules.construction) mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -23,6 +23,19 @@
       default = null;
       inherit description;
     };
+
+  #? Only fields that actually affect the gateway process belong in the
+  #? restart trigger. Profile descriptions, bot titles, SOUL.md, and other
+  #? home.file contents do NOT require a gateway restart; they are read at
+  #? chat time or written by the profile activation script.
+  gatewayTriggerPayload = {
+    profiles =
+      mapAttrs
+      (_name: profile: {inherit (profile) enable settings bot;})
+      cfg.profiles;
+    inherit (config.services.hermes-agent) settings;
+    inherit (cfg.gateway) multiplex routes;
+  };
 in {
   options.gateway = {
     enable = mkEnable {
@@ -60,14 +73,25 @@ in {
         };
       });
       default = [];
-      description = "Shared-bot routes, using Hermes's native route keys. Matching follows Hermes specificity rules.";
+      description = ''
+        Shared-bot routes, using Hermes's native route keys.
+        Specificity follows Hermes's rule: the most-specific matching route wins.
+        Precedence, most specific first:
+          thread_id > chat_id > guild_id > user_id > platform-only.
+        Ties between routes with the same specificity are rejected by Hermes at
+        startup. Use bot_profile to pin the receiving credential independently
+        of the handling profile.
+      '';
     };
   };
 
   settings = optionalAttrs cfg.gateway.multiplex {
     # Hermes gives these canonical keys precedence over older nested settings.
     multiplex_profiles = true;
-    profile_routes = map (filterAttrs (_key: value: value != null && value != "")) cfg.gateway.routes;
+    profile_routes =
+      map
+      (filterAttrs (_key: value: value != null && value != ""))
+      cfg.gateway.routes;
   };
 
   outputs = {
@@ -75,10 +99,7 @@ in {
       mkIf
       (platform.isLinux && cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable)
       [
-        (write.json "hermes-team.json" {
-          inherit (cfg) profiles;
-          inherit (config.services.hermes-agent) settings;
-        })
+        (write.json "hermes-team.json" gatewayTriggerPayload)
       ];
 
     assertions = [
@@ -94,13 +115,7 @@ in {
         assertion = all (route:
           (trim route.platform != "")
           && all (value: value == null || trim value != "")
-          (with route; [
-            bot_profile
-            user_id
-            guild_id
-            chat_id
-            thread_id
-          ]))
+          (with route; [bot_profile user_id guild_id chat_id thread_id]))
         cfg.gateway.routes;
         message = "Hermes gateway route platforms and supplied identifiers must not be empty.";
       }

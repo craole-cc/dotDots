@@ -3,7 +3,7 @@
   common,
   config,
   interface,
-  lib,
+  entryBetween,
   lix,
   pkgs,
   runtime,
@@ -15,15 +15,32 @@
   inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
   inherit (lix.filesystem.construction) concatPath;
   inherit (lix.lists.aggregation) concatMap;
+  inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkIf;
   inherit (lix.options.construction) mkFalse mkOption mkTrue;
-  inherit (lix.strings.construction) concatStringsSep toJSON;
+  inherit (lix.strings.construction) concat optionalString toJSON;
   inherit (lix.strings.access) match;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
   inherit (lix.types.combinators) attrsOf nullOr submodule;
   inherit (lix.types.primitives) str;
   inherit (lix.toolkit) write;
   inherit (runtime) binaries;
+
+  #? Compiled Rust validator; no Python, no venv import.
+  #? Renamed from `profile` to `validator` to avoid shadowing the profile
+  #? declaration parameter used throughout this file.
+  inherit (import ../lib {inherit pkgs;}) validator;
+
+  #~@ Providers that require an explicit auth.file or environment.files entry.
+  #? Profiles do not inherit the main profile's credentials.
+  cloudProviders = [
+    "anthropic"
+    "openai"
+    "openai-codex"
+    "openrouter"
+    "google"
+    "mistral"
+  ];
 
   botOptions = name: {
     bot = mkOption {
@@ -121,6 +138,16 @@
     $DRY_RUN_CMD chmod 0600 ${profileFile}
   '';
 in {
+  #? The runtime validator is a ~2 ms compiled binary, so the reason to disable
+  #? it (Python spawn cost) no longer applies. Left default = false to preserve
+  #? existing activation timing; flip to mkTrue if you want it every rebuild.
+  options.strictProfileValidation = mkFalse ''
+    Run the compiled Hermes profile-name validator during activation.
+    The validator is a ~2ms Rust binary with no Python dependency, so
+    enabling this is cheap. The Nix-side regex assertion still runs
+    regardless and catches malformed names at eval time.
+  '';
+
   options.profiles = mkOption {
     type = attrsOf (submodule ({name, ...}: {
       options =
@@ -164,12 +191,13 @@ in {
       write.binWith "hermes-bot-${name}" [runtime.package] ''
         export HERMES_HOME=${escapeShellArg cfg.home.path}
         exec ${binaries.hermesProfile} ${escapeShellArg name} \
-          chat -c "Bot Chat" --create-if-missing "$@"
+          chat -c ${escapeShellArg "Bot Chat: ${name}"} --create-if-missing "$@"
       '')
     (filterAttrs (_name: profile: profile.bot.enable) active);
 
     assertions = concatMap (name: let
       profile = active.${name};
+      provider = profile.settings.model.provider or "";
     in
       [
         {
@@ -180,6 +208,25 @@ in {
           assertion = profile.documents == {} || profile.workingDirectory != null;
           message = "Hermes profile '${name}' documents require an explicit workingDirectory.";
         }
+        {
+          assertion =
+            profile.documents
+            == {}
+            || profile.workingDirectory == null
+            || profile.workingDirectory
+            != concatPath {
+              root = cfg.home.path;
+              stem = ["profiles" name];
+            };
+          message = "Hermes profile '${name}' cannot use its home.path as workingDirectory while declaring documents; paths would collide.";
+        }
+        {
+          assertion =
+            !(isIn provider cloudProviders)
+            || profile.auth.file != null
+            || profile.environment.files != [];
+          message = "Hermes profile '${name}' uses provider '${provider}' but declares neither auth.file nor environment.files. Profiles do not inherit the main profile's credentials.";
+        }
       ]
       ++ common.pluginNameAssertions {
         cfg = interface.config profileOptions profile;
@@ -187,13 +234,13 @@ in {
       }) (attrNames active);
 
     home.activation.hermesProfiles = mkIf (active != {}) (
-      lib.hm.dag.entryBetween ["reloadSystemd"] ["hermesAgentSetup"] (
-        ''
-          $DRY_RUN_CMD ${runtime.package.hermesVenv}/bin/python3 -c \
-            ${escapeShellArg "from hermes_cli.profiles import validate_profile_name; import sys; [validate_profile_name(name) for name in sys.argv[1:]]"} \
-            ${escapeShellArgs (attrNames active)}
-        ''
-        + concatStringsSep "\n" (mapAttrsToList setup active)
+      entryBetween ["reloadSystemd"] ["hermesAgentSetup"] (
+        (optionalString cfg.strictProfileValidation ''
+          $DRY_RUN_CMD ${validator.nameValidateBin} ${
+            escapeShellArgs (attrNames active)
+          }
+        '')
+        + concat "\n" (mapAttrsToList setup active)
       )
     );
   };

@@ -44,14 +44,7 @@
       that composes them, and `flake.nix` never sees the split at all.
     '';
     functions = {
-      inherit
-        mkConfig
-        mkConfigurations
-        mkUtilities
-        mkContext
-        mkFlake
-        mkLayer
-        ;
+      inherit mkConfig mkConfigurations mkUtilities mkContext mkFlake mkLayer;
       inherit (_.modules.core.construction) mkCore;
       inherit (_.modules.home.construction) mkHome;
     };
@@ -59,9 +52,7 @@
       local = functions;
       store = functions;
     };
-  in {
-    inherit doc exports functions;
-  };
+  in {inherit doc exports functions;};
 
   inherit (_.attrsets.access) attrNames getAttrFromPath;
   inherit (_.attrsets.aggregation) mergeSafe;
@@ -125,7 +116,6 @@
 
     inherit (inputs.home-manager.lib) hm homeManagerConfiguration;
     lib = extend (_self: _super: {inherit hm;});
-    inherit (lib.hm.dag) entryAfter;
 
     mkArgs = host: let
       hostArgs = import paths.repo.src.store (
@@ -155,7 +145,12 @@
         }
       ];
 
-      extraSpecialArgs = specialArgs // {inherit lib entryAfter;};
+      extraSpecialArgs =
+        specialArgs
+        // {
+          inherit lib;
+          inherit (lib.hm.dag) entryBefore entryBetween entryAfter;
+        };
     in
       hostArgs // {inherit hostArgs specialArgs extraSpecialArgs;};
 

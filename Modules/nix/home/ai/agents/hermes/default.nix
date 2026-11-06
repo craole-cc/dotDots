@@ -46,6 +46,18 @@
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
   activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
+  #? updates diffs against the pre-resolution baseline. Any option that
+  #? participates in resolutions (enable, gateway.multiplex, kanban.profiles,
+  #? desktop.*) must NOT be given a concrete default here unless it is also
+  #? overridden in a mkDefault layer below. Otherwise updates reports spurious
+  #? diffs on every rebuild.
+  #
+  #? Optional derived concurrency. Uncomment to give multi-profile teams
+  #? total = length kanban.profiles (capped at 4) instead of static 1.
+  # kanbanConcurrency = {
+  #   total = builtins.min 4 (builtins.length (["default"] ++ attrNames activeProfiles));
+  #   perProfile = 1;
+  # };
 in
   mkConfig {
     inherit context defaults;
@@ -112,6 +124,7 @@ in
       {
         gateway.multiplex = mkDefault (activeProfiles != {});
         kanban.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
+        # kanban.concurrency = mkDefault kanbanConcurrency;
         desktop = {
           enable = mkDefault defaults.desktop.enable;
           package = mkDefault runtime.package.hermesDesktop;

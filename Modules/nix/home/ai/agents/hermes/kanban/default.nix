@@ -27,6 +27,18 @@
       default = 1;
       inherit description;
     };
+
+  #? The gateway profile whose credentials the auxiliary decomposer actually
+  #? uses. Upstream does not load the orchestrator's creds for decomposition.
+  gatewayProfile = "default";
+
+  #? Helper: does a profile have a credential source declared?
+  #? Extracted here because the `or` operator only catches missing attrs on
+  #? the immediate lhs, so `gp.auth.file or null` fails when gp is `{}`.
+  hasCreds = profile:
+    (profile.auth.file or null)
+    != null
+    || (profile.environment.files or []) != [];
 in {
   options.kanban = {
     enable = mkFalse "Enable Hermes Kanban task dispatch for the declared team.";
@@ -102,6 +114,24 @@ in {
     {
       assertion = cfg.kanban.concurrency.total > 0 && cfg.kanban.concurrency.perProfile > 0;
       message = "Hermes Kanban concurrency limits must be positive integers.";
+    }
+    #? Decomposition uses the gateway profile's credentials, not the orchestrator's.
+    #? Fail at eval time rather than at first plan.
+    {
+      assertion =
+        !cfg.kanban.enable
+        || !cfg.kanban.decomposition.enable
+        || cfg.kanban.decomposition.model == {}
+        || hasCreds (active.${gatewayProfile} or {});
+      message = "Hermes Kanban decomposition is enabled, but the gateway profile ('${gatewayProfile}') has no auth.file or environment.files. The auxiliary decomposer uses the gateway profile's credentials, not the orchestrator's.";
+    }
+    #? Orchestration requires the orchestrator to be reachable as a Bot.
+    {
+      assertion =
+        !cfg.kanban.enable
+        || cfg.kanban.orchestrator == null
+        || (active ? ${cfg.kanban.orchestrator} && active.${cfg.kanban.orchestrator}.bot.enable);
+      message = "Hermes Kanban orchestrator '${cfg.kanban.orchestrator}' must be an enabled declared profile with bot.enable = true.";
     }
   ];
 }
