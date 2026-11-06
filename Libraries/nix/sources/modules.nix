@@ -76,7 +76,6 @@
           (chaotic.nixosModules.default or {})
           (dux-shell.nixosModules.default or {})
           (dux-calendar.nixosModules.default or {})
-          (dux-files.nixosModules.default or {})
           (dux-greeter.nixosModules.default or {})
           (dux-plugins.nixosModules.default or {})
           (home-manager.nixosModules.home-manager or {})

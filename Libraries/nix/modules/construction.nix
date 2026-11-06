@@ -132,7 +132,7 @@
         passthru // {inherit host top;} // host
       );
 
-      toolkit = hostArgs.${name}.sources.toolkit.mkToolkit {
+      toolkit = hostArgs.${name}.tools.construction.mkToolkit {
         inherit inputs host;
         inherit (hostArgs) pkgs;
       };
@@ -451,7 +451,7 @@
         (windowManagers == wm)
         || config.programs.${wm}.enable or false
         || config.wayland.windowManager.${wm}.enable or false;
-        
+
       desktops = optionals (host != null) (host.interface.desktops or []);
       mkWantsDesktop = name: value: {condition = isIn name desktops || value == name;};
       mkWants = name: value: {condition = isIn name value;};
