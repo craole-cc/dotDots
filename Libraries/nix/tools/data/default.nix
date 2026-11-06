@@ -4,16 +4,22 @@
   ...
 }: let
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.aggregation) intersectAttrs;
+  inherit (_.attrsets.aggregation) intersectAttrs recursiveUpdate;
   inherit (_.content.emptiness) isNotEmpty;
   inherit (_.filesystem.traversal) importAllPaths;
   inherit (_.attrsets.construction) optionalAttrs nameValuePair;
   inherit (_.attrsets.transformation) mapAttrs';
   inherit (_.lists.aggregation) concatMap foldl';
   inherit (_.lists.predicates) all elem;
-  inherit (_.filesystem.construction) concatPath;
+  inherit (_.filesystem.construction) concatPath mkTree;
+  inherit (_.schema.construction) mkSchema;
   inherit (_.lists.transformation) filter;
   inherit (_.strings.construction) concat;
+
+  schema = mkSchema {api = paths.repo.api.default.store;};
+  repositoryPaths = recursiveUpdate (mkTree {
+    inherit (schema.paths) roots stems;
+  }) paths;
 
   args = {
     inherit _;
@@ -33,7 +39,7 @@
     stem,
   }:
     concatPath {
-      root = (foldl' (attrs: segment: attrs.${segment}) paths.repo root).store;
+      root = (foldl' (attrs: segment: attrs.${segment}) repositoryPaths.repo root).store;
       inherit stem;
     };
 
