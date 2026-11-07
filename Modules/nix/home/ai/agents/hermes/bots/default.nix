@@ -17,7 +17,7 @@
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkIf;
-  inherit (lix.options.construction) mkFalse mkOption mkTrue;
+  inherit (lix.options.construction) mkEnum mkFalse mkOption mkTrue;
   inherit (lix.strings.construction) concat optionalString toJSON;
   inherit (lix.strings.access) match;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
@@ -41,6 +41,51 @@
     "google"
     "mistral"
   ];
+
+  #~@ Terse output directives
+  #? Prepended to SOUL.md so they sit at the stable top of the prompt, which
+  #? keeps provider prompt caching effective. Output tokens shrink; the
+  #? directive itself costs a few input tokens per turn, so keep it short.
+  terseDirectives = {
+    off = "";
+    lite = "Be concise. No filler, no pleasantries, no restating the question.";
+    full = ''
+      Respond terse. Drop articles, filler and hedging. Fragments are fine.
+      Keep code, paths, commands and error text exact.
+      Use normal prose for security warnings and destructive-action confirmations.
+    '';
+  };
+
+  terseOptions = {
+    terse.level = mkEnum ["off" "lite" "full"] "off" "Output terseness directive prepended to this profile's SOUL.md.";
+  };
+
+  #? SOUL.md may be declared as a string or a path; normalise to text before
+  #? prepending. The directive is a no-op when the level is "off", so profiles
+  #? that do not opt in keep their declared SOUL.md untouched.
+  withTerseSoul = profile: let
+    directive = terseDirectives.${profile.terse.level};
+    declaredSoul = profile.home.file."SOUL.md" or "";
+    soulText =
+      if builtins.isPath declaredSoul
+      then builtins.readFile declaredSoul
+      else declaredSoul;
+  in
+    if directive == ""
+    then profile
+    else
+      profile
+      // {
+        home =
+          profile.home
+          // {
+            file =
+              profile.home.file
+              // {
+                "SOUL.md" = concat "\n\n" [directive soulText];
+              };
+          };
+      };
 
   botOptions = name: {
     bot = mkOption {
@@ -100,7 +145,9 @@
       );
     };
 
-  setup = name: profile: let
+  setup = name: declaredProfile: let
+    #? Apply the terse directive before any renderer reads home.file.
+    profile = withTerseSoul declaredProfile;
     resolved = profileConfig profile;
     homePath = concatPath {
       root = cfg.home.path;
@@ -175,7 +222,8 @@ in {
             description = "Tool working directory. Null uses the main Hermes working directory; documents need an explicit path.";
           };
         }
-        // botOptions name;
+        // botOptions name
+        // terseOptions;
     }));
     default = {};
     description = ''
