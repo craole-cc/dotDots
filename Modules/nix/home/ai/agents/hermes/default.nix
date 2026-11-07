@@ -15,6 +15,7 @@
 
   inherit (context) cfg;
   inherit (lix.attrsets.aggregation) intersectAttrs mergeSafe;
+  inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault mkLayer;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -26,7 +27,14 @@
   common = lix.toolkit.hermes;
   inherit (common) validator;
   runtime = common.forConfig config.services.hermes-agent;
-  defaults = import ./defaults.nix {inherit lix;};
+  # Export the baseline from the declarations so each default has one owner.
+  declaredDefaults = declarations:
+    mapAttrs (_name: declaration:
+      if (declaration._type or null) == "option"
+      then declaration.default
+      else declaredDefaults declaration)
+    declarations;
+  defaults = declaredDefaults core.options;
   interface = import ./interface {inherit lix;};
 
   resolve = defaults:
@@ -44,7 +52,7 @@
   upstreamOptions = common.sharedOptions {
     defaultPackage = packages.hermes;
     defaultPackageText = "lix.toolkit.packages.hermes";
-    defaultWorkingDirectory = defaults.workingDirectory;
+    defaultWorkingDirectory = ".";
     defaultWorkingDirectoryText = "\".\" (resolved to the Home Manager home directory)";
   };
   featureArgs = passthru // {inherit cfg common context interface runtime entryBetween resolve validator isValidProfileName;};
@@ -55,21 +63,29 @@
     options = mergeSafe [
       (interface.options (upstreamOptions
         // {
-          settings = upstreamOptions.settings // {default = defaults.settings;};
-          restart = upstreamOptions.restart // {default = defaults.restart.when;};
-          restartSec = upstreamOptions.restartSec // {default = defaults.restart.seconds;};
+          settings =
+            upstreamOptions.settings
+            // {
+              default.memory = {
+                memory_enabled = true;
+                user_profile_enabled = true;
+                provider = "";
+              };
+            };
+          restart = upstreamOptions.restart // {default = "always";};
+          restartSec = upstreamOptions.restartSec // {default = 5;};
         }))
       {
         enable = mkEnable {
           inherit context;
-          condition = defaults.enable;
+          condition = false;
         };
 
         home = {
           path = mkOption {
             description = "State directory containing Hermes configuration, profiles, sessions and memory";
             type = str;
-            default = defaults.home.path;
+            default = ".hermes";
           };
           file =
             upstreamOptions.hermesHomeFiles
@@ -82,17 +98,17 @@
           // {
             description = "Workspace files installed relative to an explicitly selected workingDirectory; use home.file for identity and memory files";
           };
-        extra.dependencyGroups = upstreamOptions.extraDependencyGroups // {default = defaults.extra.dependencyGroups;};
+        extra.dependencyGroups = upstreamOptions.extraDependencyGroups // {default = ["messaging"];};
 
         desktop = {
           enable = mkEnable {
             description = "Install Hermes Desktop";
-            condition = defaults.desktop.enable;
+            condition = true;
           };
           package = mkOption {
             description = "Hermes Desktop package, following the effective Hermes package by default";
             inherit (options.programs.hermes-agent.desktop.package) type;
-            default = defaults.desktop.package;
+            default = packages.hermes.hermesDesktop;
           };
         };
       }

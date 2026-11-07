@@ -29,8 +29,8 @@ application independently.
 
 ## Defaults
 
-The parent calls `mkConfig` once. Core configuration lives in `default.nix`
-and `defaults.nix`; each feature returns its own `defaults`, `options`,
+The parent calls `mkConfig` once. Core configuration and its option defaults live in `default.nix`. The core
+baseline is derived from those declarations; each feature returns its own `defaults`, `options`,
 `resolutions` and `outputs` for that call. The report helper has no configurable
 inputs and contributes only its package output. All contributions share the
 Hermes context and its root enable gate.
