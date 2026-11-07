@@ -79,7 +79,29 @@
           (dux-greeter.nixosModules.default or {})
           (dux-plugins.nixosModules.default or {})
           (home-manager.nixosModules.home-manager or {})
-          (llmhop.nixosModules.default or {})
+          (
+            if llmhop ? nixosModules.default
+            then let
+              core = "${llmhop}/nix/modules/core.nix";
+            in {
+              imports = [
+                llmhop.nixosModules.default
+                ({
+                    config,
+                    lib,
+                    pkgs,
+                    ...
+                  } @ args: let
+                    module = import core args;
+                  in
+                    module // {meta = removeAttrs module.meta ["doc"];})
+              ];
+              # llmhop's internal guide lacks the heading IDs required by
+              # nixos-render-docs. Keep its options, but omit that chapter.
+              disabledModules = [core];
+            }
+            else {}
+          )
           (niri.nixosModules.default or {})
           (stylix.nixosModules.stylix or {})
         ]
