@@ -93,6 +93,23 @@
   homeWith = toolkit: evaluate toolkit true;
   home = homeWith toolkit;
   production = evaluate toolkit false {};
+  botFiles = schemaHome {
+    user.ai.hermes = {
+      lix,
+      homeDirectory,
+      ...
+    }:
+      import ../../../API/nix/users/craole/ai/bots {
+        inherit lix homeDirectory;
+        homePath = "${homeDirectory}/Projects/hermes";
+        definitions = {
+          hermes = ../../../API/nix/users/craole/ai/bots/hermes;
+          worker = ./fixtures/worker.nix;
+          disabled = throw "Disabled bot must not be loaded";
+        };
+        enabled = ["hermes" "worker"];
+      };
+  };
   failures = evaluated: map (entry: entry.message) (filter (entry: !entry.assertion) evaluated.assertions);
   rejects = extra: let
     result = builtins.tryEval (builtins.deepSeq (home extra).assertions (failures (home extra) != []));
@@ -305,18 +322,37 @@ in
       && any (package: package.name == "hermes-team-report") team._.resolved.ai.agents.hermes-agent.derived.home.packages
       && team._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.settings.kanban.dispatch_in_gateway
       && team._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.settings.multiplex_profiles;
+    botFiles =
+      failures botFiles
+      == []
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.settings.model.default == "fixture-model"
+      && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? hermes)
+      && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? disabled)
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.bot.enable
+      && hasInfix "You are the test worker." botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."SOUL.md"
+      && hasInfix "/profiles/worker/skills/example/SKILL.md" botFiles.home.activation.hermesProfiles.data;
+    freshHome =
+      production.services.hermes-agent.hermesHome
+      == "${production.home.homeDirectory}/Projects/hermes"
+      && production.home.sessionVariables.HERMES_HOME == production.services.hermes-agent.hermesHome
+      && production.services.hermes-agent.workingDirectory == production.services.hermes-agent.hermesHome;
+    rootIdentity =
+      hasInfix "You are Hermes," production.services.hermes-agent.hermesHomeFiles."SOUL.md"
+      && !(production.services.hermes-agent.settings.model ? base_url)
+      && production.services.hermes-agent.authFile == null
+      && production.services.hermes-agent.environmentFiles == [];
     productionRoster =
       failures production
       == []
-      && production._.resolved.ai.agents.hermes-agent.defined.profiles ? planner
-      && production.services.hermes-agent.settings.kanban.orchestrator_profile == "planner";
+      && production._.resolved.ai.agents.hermes-agent.defined.profiles == {}
+      && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
+      && !production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
     partialRosterOverride = let
       configured = evaluate toolkit false {profiles.planner.settings.memory.memory_enabled = false;};
       profiles = configured._.resolved.ai.agents.hermes-agent.defined.profiles;
     in
-      profiles ? researcher
-      && !profiles.planner.settings.memory.memory_enabled
-      && profiles.planner.settings.memory.user_profile_enabled;
+      !(profiles ? researcher)
+      && !profiles.planner.settings.memory.memory_enabled;
     normalizedBaseline = !(baseline._.updates.ai.agents.hermes-agent or {} ? profiles);
     resolvedOutputs =
       production._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.hermesHome
@@ -324,7 +360,7 @@ in
     aggregateOutputs = production._.outputs.programs.hermes-agent.enable == production.programs.hermes-agent.enable;
     computedUpdates =
       production._.updates.ai.agents.hermes-agent.enable
-      && production._.updates.ai.agents.hermes-agent.gateway.multiplex;
+      && production._.updates.ai.agents.hermes-agent.home.path == "${production.home.homeDirectory}/Projects/hermes";
     explicitUpdates =
       (home {
         gateway.multiplex = false;
@@ -478,7 +514,7 @@ in
     in
       !configured.services.hermes-agent.settings.memory.memory_enabled
       && configured.services.hermes-agent.settings.memory.user_profile_enabled;
-    defaultModel = !(baseline.services.hermes-agent.settings ? model) && production.services.hermes-agent.settings.model.default == "gpt-6.1-sol";
+    defaultModel = !(baseline.services.hermes-agent.settings ? model) && production.services.hermes-agent.settings.model.default == "gpt-6-luna";
     team = failures team == [];
     routes =
       settings.multiplex_profiles

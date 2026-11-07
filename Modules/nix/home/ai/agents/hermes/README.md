@@ -60,15 +60,42 @@ Preference resolutions use module priority 1000; explicit definitions under the 
 Generated gateway and Kanban settings use priority 90 to preserve the existing
 precedence of typed controls over conflicting raw `settings` keys.
 
-Craig's existing team and model policy now live in
-`API/nix/users/craole/ai/default.nix` and its `roster.nix`. That record retains all
-26 adopted profiles, the five named team members, GPT and DeepSeek model choices,
-Kanban roles, and credential discovery. Other users no longer inherit this team.
-Main credentials are discovered from `~/Private/hermes.env` and regular `*.env`
-files in `~/Private/hermes/`. The existing profile lookup remains
-`~/hermes/<provider>.env`; profiles also explicitly seed auth from
-`~/.hermes/auth.json`. Discovery happens during evaluation and requires impure
-evaluation when reading files outside the repository.
+Craig's setup starts with one default agent, Hermes, in `~/Projects/hermes`.
+The CLI, Desktop and service share `home.path`. The old `~/.hermes` is retained
+until the replacement has passed live checks; no old profiles, credentials,
+skills or endpoint settings are imported. Authentication must be established
+for the new home. Kanban and gateway multiplexing are disabled.
+
+User bot definitions live in `API/nix/users/craole/ai/bots/<name>/default.nix`.
+The parent declares a `definitions` path map and an explicit `enabled` list.
+The `hermes` entry configures the root agent; other enabled entries configure
+named profiles and receive `bot.enable = true` unless overridden. Disabled
+entries are not loaded. No installed runtime roster is automatically adopted.
+Each definition is a function accepting `lix`, `homeDirectory` and `homePath`.
+Use the existing Hermes option shape for model, files and credentials:
+
+```nix
+{lix, ...}: let
+  inherit (lix.filesystem.access) readFile;
+in {
+  description = "Research questions and report sources.";
+  settings.model = {
+    provider = "openai-codex";
+    default = "gpt-6-luna";
+  };
+  home.file = {
+    "SOUL.md" = readFile ./SOUL.md;
+    "skills/research/SKILL.md" = readFile ./skills/research/SKILL.md;
+  };
+}
+```
+
+The owner adds the bot path to `definitions` and its name to `enabled` to
+activate it. Supporting skill files use additional `home.file` entries beneath
+the same skill directory. Keep credentials in runtime files referenced through
+`auth.file` or `environment.files`; do not embed secrets in Nix. Named bots do
+not inherit the root agent's credentials. Root Hermes uses `gpt-6-luna` with
+provider-managed endpoint resolution and its own adjacent `SOUL.md`.
 
 Profile-name rules live in `lix.schema.hermes`; the compiled validator is
 provided by `lix.toolkit.hermes.validator`. The parent passes both to `bots/`.
