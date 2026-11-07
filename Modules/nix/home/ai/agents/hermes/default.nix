@@ -26,9 +26,7 @@
   common = lix.toolkit.hermes;
   inherit (common) validator;
   runtime = common.forConfig config.services.hermes-agent;
-  defaults = import ./defaults.nix {
-    inherit lix;
-  };
+  defaults = import ./defaults.nix {inherit lix;};
   interface = import ./interface {inherit lix;};
 
   resolve = defaults:
