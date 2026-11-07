@@ -3,6 +3,14 @@ let
   arch = "x86_64"; #> uname -m
   os = "linux"; #> uname -s | tr A-Z a-z
   admin = "craole"; #? Primary admin user
+  cloudAi = [
+    "hermes-desktop"
+    "chatgpt"
+    "claude-desktop"
+    "claude-code"
+    "codex"
+    "continue"
+  ];
 in {
   imports = [./hardware-configuration.nix ./ai];
 
@@ -33,16 +41,13 @@ in {
     mode = "hybrid"; #? "offload" | "sync" | "reverse-sync" | "primary-nvidia" ...
   };
 
-  # Omitted roles use hardware-derived defaults; no overrides are needed.
-  # Set a role to a string for one model, or a list in priority order.
-  # Hardware-derived models follow your choices. To omit those defaults, set:
-  # ai.ollama.enableDefaults = true;
-  # All listed models are installed. The first is preferred; consumers must
-  # implement fallback themselves. Hermes currently selects the first chat model.
+  # Victus uses cloud inference; do not select or download local model weights.
   ai.ollama = {
-    completion = "qwen2.5-coder:0.5b-base-q4_K_M";
-    chat = "qwen3:0.6b";
+    allowDefaults = false;
+    autocomplete = [];
+    chat = [];
   };
+  ai.llmhop.allowDefaults = false;
 
   paths = {
     roots.repo = "/home/${admin}/.dots";
@@ -271,7 +276,11 @@ in {
       enable = true;
       autoLogin = true;
       role = "administrator";
-      packages.communication = ["thunderbird" "khal"];
+      packages = {
+        communication = ["thunderbird" "khal"];
+        ai = cloudAi;
+        ai-agent = cloudAi;
+      };
       interface.dms.settings.calendar.backend = "dankcal";
       sshKeys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINID8HtFjIBwVad7rhVzOAyouDQxotr+xsE/4PyhZEqR theoracle"
@@ -292,7 +301,7 @@ in {
   ];
 
   packages = {
-    ai-agent = ["codex" "ollama"];
+    ai-agent = ["codex"];
     bar = [];
     browser = [];
     editor = ["nano"];

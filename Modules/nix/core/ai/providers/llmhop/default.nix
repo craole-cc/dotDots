@@ -201,8 +201,13 @@ in
 
     outputs = {
       services.${mod} = {
-        inherit (cfg) enable host port;
-        openFirewall = cfg.allowRemoteAccess;
+        gateway = {
+          type = "llmhop";
+          llmhop.listen.default = {
+            inherit (cfg) host port;
+            openFirewall = cfg.allowRemoteAccess;
+          };
+        };
         llama-cpp = {
           enable = true;
           inherit (cfg) package;
@@ -211,7 +216,7 @@ in
             concatMap
             (role:
               map
-              (repo: nameValuePair (mkName repo) {settings.hf-repo = repo;})
+              (repo: nameValuePair (mkName repo) {model = repo;})
               cfg.models.${role}.includes)
             models.names
           );
