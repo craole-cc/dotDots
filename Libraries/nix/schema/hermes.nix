@@ -1,4 +1,9 @@
 {_, ...}: let
+  __exports = {
+    internal = {inherit mkHermes profileNames isValidProfileName;};
+    external = {};
+  };
+
   inherit (_.attrsets.aggregation) recursiveUpdateUntil;
   inherit (_.attrsets.predicates) isDerivation;
   inherit (_.types.predicates) isAttrs isFunction;
@@ -17,11 +22,19 @@
     if override == {}
     then base
     else
-      recursiveUpdateUntil (_path: previous: value:
-        !isAttrs previous || !isAttrs value || isDerivation value || value == {})
+      recursiveUpdateUntil (
+        _path: previous: value:
+          !isAttrs previous || !isAttrs value || isDerivation value || value == {}
+      )
       base
       override;
 
+  /**
+  Normalises Hermes settings from defaults, host and user selections.
+
+  Function-valued selections receive the library and home directory before
+  merging. User settings take precedence over host settings and defaults.
+  */
   mkHermes = {
     defaults ? {},
     host ? {},
@@ -37,4 +50,6 @@
     userSettings = materialize (user.ai.hermes or {});
   in
     merge (merge defaults hostSettings) userSettings;
-in {inherit mkHermes profileNames isValidProfileName;}
+in
+  __exports.internal
+  // {__rootAliases = __exports.external;}

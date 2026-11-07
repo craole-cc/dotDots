@@ -292,7 +292,7 @@ in {
     home.activation.hermesProfiles = mkIf (active != {}) (
       entryBetween ["reloadSystemd"] ["hermesAgentSetup"] (
         (optionalString cfg.strictProfileValidation ''
-          $DRY_RUN_CMD ${validator.nameValidateBin} ${
+          $DRY_RUN_CMD ${validator.command} ${
             escapeShellArgs (attrNames active)
           }
         '')

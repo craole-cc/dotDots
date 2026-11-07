@@ -329,9 +329,10 @@
       in
         common
         // {
-          validator = _.tools.hermes.mkProfileValidator pkgs';
+          validator = _.tools.hermes.mkProfileValidator toolkit;
           forConfig = config: let
             package = common.effectivePackage config;
+            # TODO: THIS LOOKS WRONG. Is hermes not already defined in Libraries/nix/tools/data/ai/agents.nix
             binaries.hermes = "${getBin package}/bin/hermes";
           in {
             inherit package;
@@ -368,6 +369,10 @@
         fromZip = fetchzip;
         patch = fetchpatch;
         tarball = fetchTarball;
+      };
+
+      platforms = {
+        inherit (pkgs') rustPlatform;
       };
 
       platform = {
@@ -413,8 +418,7 @@
         // #> Expose common serializers as well
         mapAttrs (_formatName: format: format.generate) formats;
     };
-  in
-    mergeDisjoint {
+    toolkit = mergeDisjoint {
       context = "mkToolkit";
       sets = [
         # These derived values are re-exported via `defined`
@@ -423,6 +427,8 @@
         helpers
       ];
     };
+  in
+    toolkit;
 in
   meta.exports.local
   // {
