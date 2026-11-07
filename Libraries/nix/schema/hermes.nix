@@ -42,12 +42,12 @@
     lix,
     homeDirectory,
   }: let
-    materialize = value:
+    materialise = value:
       if isFunction value
       then value {inherit lix homeDirectory;}
       else value;
-    hostSettings = materialize (host.ai.hermes or (host.defaults.ai.hermes or {}));
-    userSettings = materialize (user.ai.hermes or {});
+    hostSettings = materialise (host.ai.hermes or (host.defaults.ai.hermes or {}));
+    userSettings = materialise (user.ai.hermes or {});
   in
     merge (merge defaults hostSettings) userSettings;
 in
