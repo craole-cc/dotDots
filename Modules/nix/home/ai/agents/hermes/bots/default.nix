@@ -57,7 +57,11 @@
   };
 
   terseOptions = {
-    terse.level = mkEnum ["off" "lite" "full"] "off" "Output terseness directive prepended to this profile's SOUL.md.";
+    terse.level = mkEnum {
+      input = ["off" "lite" "full"];
+      default = "off";
+      description = "Output terseness directive prepended to this profile's SOUL.md.";
+    };
   };
 
   #? SOUL.md may be declared as a string or a path; normalise to text before
