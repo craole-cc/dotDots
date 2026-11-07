@@ -40,8 +40,9 @@ value has a matching declared option default. The baseline has no named team,
 model preference or credential files, and Kanban dispatch is disabled. Built-in
 memory and user memory remain enabled with `memory.provider = ""`.
 The baseline paths are `home.path = ".hermes"` and `workingDirectory = "."`;
-environment-derived resolutions use the Home Manager home directory to choose
-absolute effective paths. The toolkit supplies the baseline package.
+environment-derived resolutions anchor the configured projects stem to
+`config.home.homeDirectory` and append `hermes`. The working directory follows
+the effective `home.path` unless explicitly overridden. The toolkit supplies the baseline package.
 
 `_.resolved.ai.agents.hermes-agent.defined` holds typed effective inputs.
 `derived` holds the emitted Home Manager outputs, which also enter `_.outputs`.
@@ -61,7 +62,20 @@ Generated gateway and Kanban settings use priority 90 to preserve the existing
 precedence of typed controls over conflicting raw `settings` keys.
 
 Craig's setup starts with one default agent, Hermes, in `~/Projects/hermes`.
-The CLI, Desktop and service share `home.path`. The old `~/.hermes` is retained
+The CLI, Desktop and service share `home.path`. This is a module fallback,
+not a fixed user setting. Projects stems come from the central paths contract,
+with user overrides over host overrides. `host.ai.hermes.home.path` and
+`user.ai.hermes.home.path` can select a different Hermes home directly; user
+preferences take precedence. For example:
+
+```nix
+ai.hermes.home.path = "/srv/hermes";
+# Or relocate all projects through the existing paths contract:
+paths.stems.home.projects = ["Work"];
+```
+
+Bot definitions receive `homePath` from the effective typed `home.path`, so their
+file and credential references follow overrides too. The old `~/.hermes` is retained
 until the replacement has passed live checks; no old profiles, credentials,
 skills or endpoint settings are imported. Authentication must be established
 for the new home. Kanban and gateway multiplexing are disabled.

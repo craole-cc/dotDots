@@ -32,8 +32,8 @@
   /**
   Normalises Hermes settings from defaults, host and user selections.
 
-  Function-valued selections receive the library and home directory before
-  merging. User settings take precedence over host settings and defaults.
+  Function-valued selections receive the library, Home Manager home directory
+  and effective Hermes home path before merging. User settings take precedence over host settings and defaults.
   */
   mkHermes = {
     defaults ? {},
@@ -41,10 +41,11 @@
     user ? {},
     lix,
     homeDirectory,
+    homePath ? null,
   }: let
     materialise = value:
       if isFunction value
-      then value {inherit lix homeDirectory;}
+      then value {inherit lix homeDirectory homePath;}
       else value;
     hostSettings = materialise (host.ai.hermes or (host.defaults.ai.hermes or {}));
     userSettings = materialise (user.ai.hermes or {});

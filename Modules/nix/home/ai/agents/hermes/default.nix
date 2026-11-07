@@ -17,6 +17,8 @@
   inherit (lix.attrsets.aggregation) intersectAttrs mergeSafe;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.predicates) isIn;
+  inherit (lix.filesystem.construction) concatPath;
+  inherit (lix.schema.construction) mkSchema;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault mkLayer;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
@@ -37,16 +39,26 @@
   defaults = declaredDefaults core.options;
   interface = import ./interface {inherit lix;};
 
+  projects =
+    user.paths.home.projects.stem or user.paths.stems.home.projects
+    or host.paths.home.projects.stem or host.paths.stems.home.projects
+    or (mkSchema {}).paths.stems.home.projects;
+  homePath = concatPath {
+    root = config.home.homeDirectory;
+    stem = projects ++ ["hermes"];
+  };
+
   resolve = defaults:
     mkHermes {
       inherit defaults host user lix;
       inherit (config.home) homeDirectory;
+      homePath = cfg.home.path;
     };
   resolved = resolve (defaults
     // {
       enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
-      home = defaults.home // {path = "${config.home.homeDirectory}/.hermes";};
-      workingDirectory = config.home.homeDirectory;
+      home = defaults.home // {path = homePath;};
+      workingDirectory = cfg.home.path;
       desktop = defaults.desktop // {package = runtime.package.hermesDesktop;};
     });
   upstreamOptions = common.sharedOptions {

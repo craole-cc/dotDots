@@ -94,14 +94,15 @@
   home = homeWith toolkit;
   production = evaluate toolkit false {};
   botFiles = schemaHome {
+    host.ai.hermes.home.path = "/tmp/bot-home";
     user.ai.hermes = {
       lix,
       homeDirectory,
+      homePath,
       ...
     }:
       import ../../../API/nix/users/craole/ai/bots {
-        inherit lix homeDirectory;
-        homePath = "${homeDirectory}/Projects/hermes";
+        inherit lix homeDirectory homePath;
         definitions = {
           hermes = ../../../API/nix/users/craole/ai/bots/hermes;
           worker = ./fixtures/worker.nix;
@@ -329,8 +330,43 @@ in
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? hermes)
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? disabled)
       && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.bot.enable
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."home-path.txt" == "/tmp/bot-home"
       && hasInfix "You are the test worker." botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."SOUL.md"
       && hasInfix "/profiles/worker/skills/example/SKILL.md" botFiles.home.activation.hermesProfiles.data;
+    hostHomeOverride = let
+      configured = schemaHome {
+        host.ai.hermes.home.path = "/tmp/host-hermes";
+        user.ai.hermes = (lix.schema.construction.mkSchema {}).users.craole.ai.hermes;
+      };
+    in
+      configured.services.hermes-agent.hermesHome
+      == "/tmp/host-hermes"
+      && configured.services.hermes-agent.workingDirectory == "/tmp/host-hermes"
+      && configured.home.sessionVariables.HERMES_HOME == "/tmp/host-hermes";
+    userHomeOverride = let
+      configured = schemaHome {
+        host.ai.hermes.home.path = "/tmp/host-hermes";
+        user.ai.hermes.home.path = "/tmp/user-hermes";
+      };
+    in
+      configured.services.hermes-agent.hermesHome
+      == "/tmp/user-hermes"
+      && configured.services.hermes-agent.workingDirectory == "/tmp/user-hermes";
+    hostProjectsOverride = let
+      configured = schemaHome {host.paths.stems.home.projects = ["Work"];};
+    in
+      configured.services.hermes-agent.hermesHome == "${configured.home.homeDirectory}/Work/hermes";
+    userProjectsOverride = let
+      configured = schemaHome {
+        host.paths.stems.home.projects = ["HostWork"];
+        user.paths.stems.home.projects = ["UserWork"];
+      };
+    in
+      configured.services.hermes-agent.hermesHome == "${configured.home.homeDirectory}/UserWork/hermes";
+    enrichedProjectsOverride = let
+      configured = schemaHome {user.paths.home.projects.stem = ["ResolvedWork"];};
+    in
+      configured.services.hermes-agent.hermesHome == "${configured.home.homeDirectory}/ResolvedWork/hermes";
     freshHome =
       production.services.hermes-agent.hermesHome
       == "${production.home.homeDirectory}/Projects/hermes"

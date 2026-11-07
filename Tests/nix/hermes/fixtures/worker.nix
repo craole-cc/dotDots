@@ -1,8 +1,13 @@
-{lix, ...}: let
+{
+  lix,
+  homePath,
+  ...
+}: let
   inherit (lix.filesystem.access) readFile;
 in {
   description = "Bot wiring fixture";
   home.file = {
+    "home-path.txt" = homePath;
     "SOUL.md" = readFile ./worker-soul.md;
     "skills/example/SKILL.md" = readFile ./worker-skill.md;
   };
