@@ -8,10 +8,12 @@
     gpt = {
       flash = {
         provider = "openai-codex";
+        base_url = "https://chatgpt.com/backend-api/codex";
         default = "gpt-6-luna";
       };
       smart = {
         provider = "openai-codex";
+        base_url = "https://chatgpt.com/backend-api/codex";
         default = "gpt-6.1-sol";
       };
     };
