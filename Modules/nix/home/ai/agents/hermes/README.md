@@ -27,29 +27,55 @@ both. The root `enable` controls the service and CLI, and `package` selects thei
 shared base package. `desktop.enable` and `desktop.package` configure the desktop
 application independently.
 
-The user-agnostic settings enable built-in memory and user profiles, with
-`memory.provider = ""`. No model provider, model ID or endpoint is pinned by
-default; those selections belong in user settings or provider resolutions.
+## Defaults
 
-The complete module baseline is declared locally in `defaults.nix`; application
-settings are defined in `settings.nix`. Edit these files to change our defaults.
-Enabled profiles and effective package selections are applied as resolutions,
-so they do not change the baseline used by `updates`.
+The complete module baseline lives in `defaults.nix`, including the team. Edit
+that file to change our defaults. Enabled profiles and effective package
+selections are applied as resolutions, so they do not change the baseline used
+by `updates`.
+
+The baseline enables built-in memory and user profiles with `memory.provider = ""`
+and pins two model tiers on the `openai-codex` provider: `models.gpt.flash`
+(luna) for routing and gathering, and `models.gpt.smart` (sol) where mistakes
+are expensive. DeepSeek tiers are defined but only used where a profile selects
+them. The default tier is `models.default`.
+
+The roster has two parts. `roster` holds the named team (receptionist,
+researcher, planner, coder, reviewer), which falls back to `models.default`.
+`installed` adopts existing runtime profiles so Kanban's planner, which sees
+every installed profile, only finds admitted workers.
+
+Keys are discovered, not listed. The main service receives
+`~/Private/hermes.env` and every `*.env` file in `~/Private/hermes/`. A profile
+receives only `~/Private/hermes/<provider>.env` for its own model provider, and
+only when that file exists. `openai-codex` authenticates through `auth.json`.
+Discovery runs at evaluation time, so adding a key file needs a rebuild, and it
+requires impure evaluation.
 
 The module is split into folders:
 
 | Folder | Responsibility |
 | --- | --- |
-| `bots/` | Typed profile declarations, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
+| `profiles/` | Typed profile declarations, terse output option, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
 | `gateway/` | Shared gateway multiplexing and routes using native Hermes keys |
 | `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
+| `report/` | Team report helper that checks declared profiles against the runtime roster |
+| `lib/` | Compiled profile-name validator |
+
+## Terse Output
+
+`terse.level` is a per-profile option: `"off"` (default), `"lite"` or `"full"`.
+Activation prepends the matching directive to the profile's `SOUL.md`, so it sits
+at the stable top of the prompt. It reduces output tokens only. Leave it off for
+profiles whose reasoning or findings must stay unambiguous, such as the planner
+and reviewer. Existing sessions keep their history, so test with a new chat.
 
 ## Declare A Team
 
-Add a declaration to a Home Manager module imported for the user. Hermes must
-also be selected through the user package API. Declaring profiles does not select
-Ollama or download models; configure the host's Ollama module separately when
-using a local model.
+Add a declaration to a Home Manager module imported for the user only when you
+need to override the baseline. Hermes must also be selected through the user
+package API. Declaring profiles does not select Ollama or download models;
+configure the host's Ollama module separately when using a local model.
 
 ```nix
 {
@@ -62,10 +88,10 @@ using a local model.
           title = "Receptionist";
         };
         settings.model = {
-          provider = "ollama";
-          default = "qwen3:4b-instruct";
-          base_url = "http://127.0.0.1:11434/v1";
+          provider = "openai-codex";
+          default = "gpt-6-luna";
         };
+        terse.level = "full";
         home.file."SOUL.md" = ''
           Keep replies brief. Clarify the request and record a task for the planner.
         '';
@@ -76,7 +102,7 @@ using a local model.
         bot.enable = true;
         settings.model = {
           provider = "openai-codex";
-          default = "gpt-5.6-terra";
+          default = "gpt-6.1-sol";
         };
       };
 
@@ -85,7 +111,7 @@ using a local model.
         bot.enable = true;
         settings.model = {
           provider = "openai-codex";
-          default = "gpt-5.6-terra";
+          default = "gpt-6.1-sol";
         };
       };
     };
@@ -114,7 +140,7 @@ using a local model.
         enable = false;
         model = {
           provider = "openai-codex";
-          model = "gpt-5.6-terra";
+          model = "gpt-6.1-sol";
         };
       };
     };
@@ -150,7 +176,9 @@ it does not undo a previous Hermes gateway migration or stop existing tasks.
 Each enabled profile gets a writable `config.yaml`, `profile.yaml` and managed
 marker under `home.path/profiles/<name>`. Activation uses
 the same upstream renderers as the main profile, preserving undeclared runtime
-settings. It also provisions declared documents, plugins and secret files.
+settings. Merging is per key and never deletes: removing a key from Nix leaves
+the old value in the runtime file until you delete it by hand. Activation also
+provisions declared documents, plugins and secret files.
 Session databases, learned memory and task data are never supplied as Nix files.
 Documents in a tool workspace require an explicit `workingDirectory`.
 Profiles use the main Hermes package and Python dependencies. Supply any plugin
@@ -160,6 +188,8 @@ On Linux, profile activation runs before Home Manager reloads systemd services.
 The gateway unit tracks declared team changes so Home Manager can restart it
 after writing the updated configuration. Runtime secret contents are not part of
 that trigger; rotate and restart those credentials through their secret manager.
+A package bump alone does not restart the unit either, so restart it after
+rebuilding when the Hermes revision changes.
 
 An enabled Bot gets a `hermes-bot-<name>` command. Opening that command creates or
 resumes its canonical **Bot Chat** through Hermes, which enables the Bot Mode
@@ -180,7 +210,7 @@ explicit worker list must include the selected orchestration and fallback
 assignees. These limits govern Kanban workers; interactive chats, Bot DMs and
 other inference requests need their own runtime limits.
 
-Automatic decomposition is off in the starter declaration. In this Hermes
+Automatic decomposition is off in the baseline. In this Hermes
 revision, the decomposer sees every installed profile; `dispatch_profiles` only
 limits which assignments the dispatcher claims. An automatic plan can therefore
 assign work outside the worker list and leave it waiting. Use explicit task

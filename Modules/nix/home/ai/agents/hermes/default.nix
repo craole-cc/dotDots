@@ -41,7 +41,7 @@
     (importAllMerged {
       dir = ./.;
       args = args // {inherit cfg common defaults interface runtime;};
-      exclude = ["defaults.nix" "interface" "settings" "lib"];
+      exclude = ["defaults.nix" "interface" "lib"];
     }).value;
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);

@@ -10,5 +10,5 @@
   #   };
   # };
 
-  home-manager.users.craole = import ./hermes;
+  # home-manager.users.craole = import ./hermes;
 }
