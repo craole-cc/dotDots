@@ -35,6 +35,7 @@
     defaultWorkingDirectory = config.home.homeDirectory;
     defaultWorkingDirectoryText = "config.home.homeDirectory";
   };
+  #: TODO: Don't we have domething from filesystem.traversal that can do this?
   parts =
     map
     (file:
@@ -43,7 +44,7 @@
           inherit cfg common defaults interface runtime;
           inherit (lib.hm.dag) entryBetween;
         }))
-    [./bots ./gateway ./kanban ./report];
+    [./bots ./connection ./kanban ./report];
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
   activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
