@@ -2,6 +2,15 @@
   inherit (_.attrsets.aggregation) recursiveUpdateUntil;
   inherit (_.attrsets.predicates) isDerivation;
   inherit (_.types.predicates) isAttrs isFunction;
+  inherit (_.strings.access) match;
+  inherit (_.lists.predicates) elem;
+
+  profileNames = {
+    pattern = "[a-z0-9][a-z0-9_-]{0,63}";
+    reserved = ["default"];
+  };
+  isValidProfileName = name:
+    !(elem name profileNames.reserved) && match profileNames.pattern name != null;
 
   # Empty attrsets are explicit selections; nonempty records merge by key.
   merge = base: override:
@@ -28,4 +37,4 @@
     userSettings = materialize (user.ai.hermes or {});
   in
     merge (merge defaults hostSettings) userSettings;
-in {inherit mkHermes;}
+in {inherit mkHermes profileNames isValidProfileName;}

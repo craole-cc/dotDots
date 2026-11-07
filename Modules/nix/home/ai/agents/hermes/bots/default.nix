@@ -8,6 +8,8 @@
   pkgs,
   runtime,
   resolve,
+  validator,
+  isValidProfileName,
   ...
 }: let
   inherit (lix.attrsets.access) attrNames;
@@ -20,17 +22,11 @@
   inherit (lix.modules.construction) mkIf mkLayer;
   inherit (lix.options.construction) mkEnum mkFalse mkOption mkTrue;
   inherit (lix.strings.construction) concat optionalString toJSON;
-  inherit (lix.strings.access) match;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
   inherit (lix.types.combinators) attrsOf nullOr submodule;
   inherit (lix.types.primitives) str;
   inherit (lix.toolkit) write;
   inherit (runtime) binaries;
-
-  #? Compiled Rust validator; no Python, no venv import.
-  #? Renamed from `profile` to `validator` to avoid shadowing the profile
-  #? declaration parameter used throughout this file.
-  inherit (import ../lib {inherit pkgs;}) validator;
 
   #~@ Providers that require an explicit auth.file or environment.files entry.
   #? Profiles do not inherit the main profile's credentials.
@@ -261,7 +257,7 @@ in {
     in
       [
         {
-          assertion = name != "default" && match "[a-z0-9][a-z0-9_-]{0,63}" name != null;
+          assertion = isValidProfileName name;
           message = "Hermes profile '${name}' needs a lowercase profile name of at most 64 characters; configure default through settings.";
         }
         {

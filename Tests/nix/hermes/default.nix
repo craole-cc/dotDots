@@ -262,6 +262,9 @@ in
     }) (lix.attrsets.transformation.filterAttrs (_name: profile: profile.enable) team._.resolved.ai.agents.hermes-agent.defined.profiles);
   }
   else {
+    profileNameRules =
+      all lix.schema.hermes.isValidProfileName ["planner" "reviewer-2" "agent_1" "a" "0"]
+      && all (name: !lix.schema.hermes.isValidProfileName name) ["" "default" "Default" "Planner" "-planner" "_planner" "with space" "with/slash" "é"];
     baselineDeclarations = baseline.declaredHermesDefaults == baseline._.defaults.ai.agents.hermes-agent;
     independentDefaults =
       hostConfigured._.defaults.ai.agents.hermes-agent

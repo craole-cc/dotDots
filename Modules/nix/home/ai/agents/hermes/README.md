@@ -70,6 +70,9 @@ files in `~/Private/hermes/`. The existing profile lookup remains
 `~/.hermes/auth.json`. Discovery happens during evaluation and requires impure
 evaluation when reading files outside the repository.
 
+Profile-name rules live in `lix.schema.hermes`; the compiled validator is
+provided by `lix.toolkit.hermes.validator`. The parent passes both to `bots/`.
+
 The module is split into folders:
 
 | Folder | Responsibility |
@@ -78,7 +81,7 @@ The module is split into folders:
 | `connection/` | Shared gateway multiplexing and routes using native Hermes keys |
 | `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
 | `report/` | Team report helper that checks declared profiles against the runtime roster |
-| `lib/` | Compiled profile-name validator |
+
 
 ## Terse Output
 

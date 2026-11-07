@@ -329,6 +329,7 @@
       in
         common
         // {
+          validator = _.tools.hermes.mkProfileValidator pkgs';
           forConfig = config: let
             package = common.effectivePackage config;
             binaries.hermes = "${getBin package}/bin/hermes";

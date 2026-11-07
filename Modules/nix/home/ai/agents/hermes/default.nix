@@ -20,10 +20,11 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit) packages;
-  inherit (lix.schema.hermes) mkHermes;
+  inherit (lix.schema.hermes) mkHermes isValidProfileName;
   inherit (lix.types.primitives) str;
 
   common = lix.toolkit.hermes;
+  inherit (common) validator;
   runtime = common.forConfig config.services.hermes-agent;
   defaults = import ./defaults.nix {
     inherit lix;
@@ -48,7 +49,7 @@
     defaultWorkingDirectory = defaults.workingDirectory;
     defaultWorkingDirectoryText = "\".\" (resolved to the Home Manager home directory)";
   };
-  featureArgs = passthru // {inherit cfg common context interface runtime entryBetween resolve;};
+  featureArgs = passthru // {inherit cfg common context interface runtime entryBetween resolve validator isValidProfileName;};
   features = map (feature: import feature featureArgs) [./bots ./connection ./kanban ./report];
   core = {
     inherit defaults;
