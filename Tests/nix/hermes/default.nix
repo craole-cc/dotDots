@@ -11,15 +11,15 @@
     system = "x86_64-linux";
     config.allowUnfree = true;
   };
-  toolkit = lix.sources.toolkit.mkToolkit {
+  toolkit = lix.tools.construction.mkToolkit {
     inherit pkgs;
     inputs = lix.sources.inputs.normalize {inherit (flake) inputs;};
   };
-  toolkitAliases = lix.sources.toolkit.mkAliases {
+  toolkitAliases = lix.tools.construction.mkAliases {
     binaries.hermes = toolkit.records.hermes.paths.executable;
-    aliases = lix.sources.toolkit.registry.sources.entries.hermes.aliases;
+    aliases = lix.tools.construction.registry.sources.entries.hermes.aliases;
   };
-  homeWith = toolkit: extra:
+  evaluate = toolkit: isolated: extra:
     (flake.inputs.nixHomeManager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = {
@@ -30,31 +30,51 @@
       modules = [
         flake.inputs.hermes.homeManagerModules.default
         ../../../Modules/nix/home/ai/agents/hermes
+        ({
+          config,
+          options,
+          ...
+        }:
+          removeAttrs (import ../../../Modules/nix/home/default.nix {
+            inherit config options;
+            lix = lix // {inherit toolkit;};
+            top = "_";
+          }) ["imports"])
         ({lib, ...}: {
-          options._ = {
-            outputs = lib.mkOption {
-              type = lib.types.attrsOf lib.types.anything;
-              default = {};
-            };
-            defaults = lib.mkOption {
-              type = lib.types.attrsOf lib.types.anything;
-              default = {};
-            };
-          };
           config = {
             home = {
               username = "hermes-test";
               homeDirectory = "/tmp/hermes-module-check";
               stateVersion = "26.05";
             };
-            _.resolved.ai.agents.hermes-agent.defined = extra;
+            _.resolved.ai.agents.hermes-agent.defined = lib.mkMerge [
+              (lib.mkIf isolated {
+                profiles = lib.mkForce (extra.profiles or {});
+                kanban = {
+                  enable = extra.kanban.enable or false;
+                  orchestrator = extra.kanban.orchestrator or null;
+                  defaultAssignee = extra.kanban.defaultAssignee or null;
+                  decomposition.model = lib.mkForce (extra.kanban.decomposition.model or {});
+                };
+              })
+              (
+                if isolated
+                then removeAttrs extra ["profiles"]
+                else extra
+              )
+            ];
           };
         })
       ];
     }).config;
+  homeWith = toolkit: evaluate toolkit true;
   home = homeWith toolkit;
+  production = evaluate toolkit false {};
   failures = evaluated: map (entry: entry.message) (filter (entry: !entry.assertion) evaluated.assertions);
-  rejects = extra: !(builtins.tryEval (builtins.deepSeq (home extra).assertions true)).success;
+  rejects = extra: let
+    result = builtins.tryEval (builtins.deepSeq (home extra).assertions (failures (home extra) != []));
+  in
+    !result.success || result.value;
   baseline = home {};
   alternatePackage = toolkit.packages.hermes.overrideAttrs (_previous: {pname = "hermes-toolkit-test";});
   customisedToolkit = toolkit // {packages = toolkit.packages // {hermes = alternatePackage;};};
@@ -120,6 +140,7 @@
         environment.files = ["/run/secrets/intake.env"];
       };
       planner = {
+        bot.enable = true;
         settings.model = {
           provider = "custom";
           default = "planner-model";
@@ -158,11 +179,6 @@
   activation = team.home.activation.hermesProfiles;
   settings = team.services.hermes-agent.settings;
   withChange = change: lix.attrsets.aggregation.recursiveUpdate declaration change;
-  bots = import ../../../Modules/nix/home/ai/agents/hermes/bots {
-    lix = lix // {toolkit.write.bin = name: text: {inherit name text;};};
-    cfg = team._.resolved.ai.agents.hermes-agent.defined;
-    runtime.binaries.hermesProfile = "/test/hermes --profile";
-  };
 in
   if exportFixture
   then {
@@ -176,10 +192,42 @@ in
       }).services.hermes-agent.settings;
     profiles = lix.attrsets.transformation.mapAttrs (name: profile: {
       inherit (profile) settings;
-      metadata = bots.metadata name profile;
+      metadata = {
+        ui_meta.hermes-bots =
+          if profile.bot.enable
+          then {inherit (profile.bot) title;}
+          else null;
+      };
     }) (lix.attrsets.transformation.filterAttrs (_name: profile: profile.enable) team._.resolved.ai.agents.hermes-agent.defined.profiles);
   }
   else {
+    productionRoster =
+      failures production
+      == []
+      && production._.resolved.ai.agents.hermes-agent.defined.profiles ? planner
+      && production.services.hermes-agent.settings.kanban.orchestrator_profile == "planner";
+    partialRosterOverride = let
+      configured = evaluate toolkit false {profiles.planner.settings.memory.memory_enabled = false;};
+      profiles = configured._.resolved.ai.agents.hermes-agent.defined.profiles;
+    in
+      profiles ? researcher
+      && !profiles.planner.settings.memory.memory_enabled
+      && profiles.planner.settings.memory.user_profile_enabled;
+    normalizedBaseline = !(production._.updates.ai.agents.hermes-agent or {} ? profiles);
+    resolvedOutputs =
+      production._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.hermesHome
+      == production.services.hermes-agent.hermesHome;
+    aggregateOutputs = production._.outputs.programs.hermes-agent.enable == production.programs.hermes-agent.enable;
+    computedUpdates =
+      production._.updates.ai.agents.hermes-agent.enable
+      && production._.updates.ai.agents.hermes-agent.gateway.multiplex;
+    explicitUpdates =
+      (home {
+        gateway.multiplex = false;
+        restart.seconds = 9;
+      })._.updates.ai.agents.hermes-agent.restart.seconds
+      == 9;
+    disabledOutputs = (home {enable = false;})._.resolved.ai.agents.hermes-agent.derived == {};
     flatOptions =
       !(baseline._.resolved.ai.agents.hermes-agent.defined ? services)
       && baseline._.resolved.ai.agents.hermes-agent.defined.package == toolkit.packages.hermes;
@@ -247,7 +295,7 @@ in
     toolkitPackage = baseline.services.hermes-agent.package == toolkit.packages.hermes;
     toolkitSource = toolkit.records.hermes.paths.outPath == flake.inputs.hermes.outPath;
     toolkitExecutable =
-      lix.sources.toolkit.registry.sources.entries.hermes.exe
+      lix.tools.construction.registry.sources.entries.hermes.exe
       == "hermes"
       && toolkit.records.hermes.command == "hermes";
     toolkitAlias = hasInfix "/bin/hermes --tui" toolkitAliases.hermes-tui;
@@ -288,7 +336,7 @@ in
       && !configured.programs.hermes-agent.desktop.enable;
     baseline =
       baseline.services.hermes-agent.gateway.enable
-      && baseline.services.hermes-agent.settings == (import ../../../Modules/nix/home/ai/agents/hermes/settings.nix {})
+      && baseline.services.hermes-agent.settings == baseline._.defaults.ai.agents.hermes-agent.settings
       && !(baseline.home.activation ? hermesProfiles);
     completeModuleDefaults = let
       defaults = baseline._.defaults.ai.agents.hermes-agent;
@@ -298,7 +346,7 @@ in
         defaultWorkingDirectory = baseline.home.homeDirectory;
         defaultWorkingDirectoryText = "home.homeDirectory";
       };
-      interface = import ../../../Modules/nix/home/ai/agents/hermes/interface.nix {inherit lix;};
+      interface = import ../../../Modules/nix/home/ai/agents/hermes/interface {inherit lix;};
     in
       builtins.attrNames (interface.config upstream defaults) == builtins.attrNames upstream;
     neutralProfileDefaults =
@@ -326,7 +374,7 @@ in
     in
       !configured.services.hermes-agent.settings.memory.memory_enabled
       && configured.services.hermes-agent.settings.memory.user_profile_enabled;
-    noDefaultModel = !(baseline.services.hermes-agent.settings ? model);
+    defaultModel = baseline.services.hermes-agent.settings.model.default == "gpt-6.1-sol";
     team = failures team == [];
     routes =
       settings.multiplex_profiles
@@ -363,13 +411,7 @@ in
     credentialIsolation =
       hasInfix "/run/secrets/intake.env" activation.data
       && !(hasInfix "/run/secrets/main.env" activation.data);
-    botLauncher = any (package:
-      package.name
-      == "hermes-bot-intake"
-      && hasInfix "--profile" package.text
-      && hasInfix "intake" package.text
-      && hasInfix ''chat -c "Bot Chat" --create-if-missing "$@"'' package.text)
-    bots.outputs.home.packages;
+    botLauncher = any (package: package.name == "hermes-bot-intake") team.home.packages;
     gatewayReload =
       all (trigger: trigger.drvPath != "") team.systemd.user.services.hermes-agent.Unit.X-Restart-Triggers
       && team.systemd.user.services.hermes-agent.Unit.X-Restart-Triggers != [];
@@ -379,8 +421,6 @@ in
       (home (withChange {
         home.path = "/tmp/custom-hermes";
       })).home.activation.hermesProfiles.data;
-    botMetadata = bots.metadata "intake" declaration.profiles.intake == {ui_meta.hermes-bots.title = "Reception";};
-    disabledBot = bots.metadata "plain" {bot.enable = false;} == {ui_meta.hermes-bots = null;};
     defaultRoster =
       (home {
         profiles.worker = {};

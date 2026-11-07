@@ -28,13 +28,7 @@
       inherit description;
     };
 
-  #? The gateway profile whose credentials the auxiliary decomposer actually
-  #? uses. Upstream does not load the orchestrator's creds for decomposition.
-  gatewayProfile = "default";
-
-  #? Helper: does a profile have a credential source declared?
-  #? Extracted here because the `or` operator only catches missing attrs on
-  #? the immediate lhs, so `gp.auth.file or null` fails when gp is `{}`.
+  # The decomposer uses the main gateway's credentials, not a named profile.
   hasCreds = profile:
     attrByPath ["auth" "file"] null profile
     != null
@@ -122,8 +116,8 @@ in {
         !cfg.kanban.enable
         || !cfg.kanban.decomposition.enable
         || cfg.kanban.decomposition.model == {}
-        || hasCreds (active.${gatewayProfile} or {});
-      message = "Hermes Kanban decomposition is enabled, but the gateway profile ('${gatewayProfile}') has no auth.file or environment.files. The auxiliary decomposer uses the gateway profile's credentials, not the orchestrator's.";
+        || hasCreds cfg;
+      message = "Hermes Kanban decomposition is enabled, but the gateway profile ('default') has no auth.file or environment.files. The auxiliary decomposer uses the gateway profile's credentials, not the orchestrator's.";
     }
     #? Orchestration requires the orchestrator to be reachable as a Bot.
     {

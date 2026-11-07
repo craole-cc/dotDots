@@ -1,54 +1,18 @@
 {
   config,
   lix,
+  models,
+  memory,
   homePath,
 }: let
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
-
-  #? Single source of truth for memory settings.
-  inherit (import ../settings {}) memory;
-
-  keys = rec {
-    home = "${config.home.homeDirectory}/Private/hermes";
-    files = {
-      deepseek = ["${home}/deepseek.env"];
-      nvidia = ["${home}/nvidia.env"];
-      openrouter = ["${home}/openrouter.env"];
-      huggingface = ["${home}/huggingface.env"];
-      ninerouter = ["${home}/ninerouter.env"];
-    };
-    #? openai-codex authenticates through auth.json, so it has no entry here.
-    for = provider: files.${provider} or [];
-  };
-
-  models = {
-    default = models.gpt.flash;
-    gpt = {
-      flash = {
-        provider = "openai-codex";
-        default = "gpt-6-luna";
-      };
-      smart = {
-        provider = "openai-codex";
-        default = "gpt-6.1-sol";
-      };
-    };
-    deepseek = {
-      flash = {
-        provider = "deepseek";
-        default = "deepseek-flash";
-      };
-      smart = {
-        provider = "deepseek";
-        default = "deepseek-v4-pro";
-      };
-    };
-  };
-
+  inherit (lix.filesystem.predicates) pathExists;
+  inherit (lix.lists.transformation) filter;
+  keysFor = provider: filter pathExists ["${config.home.homeDirectory}/Private/hermes/${provider}.env"];
   #? Luna for routing and gathering, sol where mistakes are expensive.
-  team = {
+  roster = {
     receptionist = {
       description = "Receive requests, clarify requirements and hand tasks to the planner.";
       settings.model = models.gpt.flash;
@@ -57,11 +21,11 @@
     };
     researcher = {
       description = "Research questions and provide source-backed findings.";
-      settings.model = models.gpt.flash;
+      settings.model = models.default.flash;
     };
     planner = {
       description = "Plan task graphs, coordinate specialists and synthesise results.";
-      settings.model = models.gpt.smart;
+      settings.model = models.default.smart;
     };
     coder = {
       description = "Implement scoped changes and record evidence for review.";
@@ -69,13 +33,13 @@
     };
     reviewer = {
       description = "Review changes for correctness and report actionable findings.";
-      settings.model = models.gpt.smart;
+      settings.model = models.deepseek.smart;
     };
   };
 
   # Adopt the installed roster as well: upstream automatic planning sees every
   # installed profile, so every current candidate must be an admitted worker.
-  existing = [
+  installed = [
     "accessibility-auditor"
     "api-designer"
     "architect"
@@ -104,28 +68,23 @@
     "writing"
   ];
 
-  adopted = genAttrs existing (_: {
+  adopted = genAttrs installed (_: {
     bot.enable = true;
     settings = {inherit memory;};
   });
 
-  starters =
-    mapAttrs (
-      _: profile:
-        recursiveUpdate {
-          bot.enable = true;
-          #? Runtime string paths seed writable auth files; credentials never enter Nix.
-          auth.file = "${homePath}/auth.json";
-          environment.files = keys.for (profile.settings.model.provider or models.default.provider);
-          settings = {
-            inherit memory;
-            model = models.default;
-          };
-        }
-        profile
-    )
-    team;
-in {
-  inherit models;
-  profiles = adopted // starters;
-}
+  starters = mapAttrs (_: profile:
+    recursiveUpdate {
+      bot.enable = true;
+      #? Runtime string paths seed writable auth files; credentials never enter Nix.
+      auth.file = "${homePath}/auth.json";
+      environment.files = keysFor (profile.settings.model.provider or models.default.flash.provider);
+      settings = {
+        inherit memory;
+        model = models.default.flash;
+      };
+    }
+    profile)
+  roster;
+in
+  adopted // starters

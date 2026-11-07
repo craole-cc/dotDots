@@ -4,6 +4,8 @@
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs mapAttrsToList setAttrByPath;
   inherit (lix.strings.transformation) replaceStrings;
+  inherit (lix.types.combinators) attrsOf;
+  inherit (lix.types.primitives) anything;
 
   names = {
     environment = ["environment" "variables"];
@@ -43,10 +45,14 @@ in {
   options = upstream:
     mergeSafe (
       [
-        (mapAttrs (_name: declaration:
-          if (declaration._type or null) == "option"
-          then describe declaration
-          else declaration)
+        (mapAttrs (name: declaration:
+          # Upstream deepConfigType merges raw values, leaving nested priority
+          # markers untouched. Use a module-aware type for every profile.
+            if name == "settings"
+            then describe (declaration // {type = attrsOf anything;})
+            else if (declaration._type or null) == "option"
+            then describe declaration
+            else declaration)
         (plain upstream))
       ]
       ++ mapAttrsToList

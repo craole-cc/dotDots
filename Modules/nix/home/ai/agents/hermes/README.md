@@ -29,21 +29,32 @@ application independently.
 
 ## Defaults
 
-The complete module baseline lives in `defaults.nix`, including the team. Edit
-that file to change our defaults. Enabled profiles and effective package
-selections are applied as resolutions, so they do not change the baseline used
-by `updates`.
+The module baseline lives in `defaults.nix`; its named team comes from
+`bots/roster.nix`. Edit those files to change the baseline. Models and memory
+settings have one definition in `defaults.nix`, shared by the main profile and
+roster. The reviewer uses the DeepSeek smart tier; the planner uses GPT smart.
+
+`_.defaults.ai.agents.hermes-agent` exposes the baseline without wrappers.
+`_.resolved.ai.agents.hermes-agent.defined` holds typed effective inputs,
+including explicit overrides and computed enablement, gateway multiplexing,
+worker selection and desktop package defaults. `resolved.derived` holds the
+emitted Home Manager outputs; the same contributions enter `_.outputs`.
+`_.updates` compares effective inputs against the baseline, so computed changes
+such as package selection and enabled worker lists appear there too. Explicit
+values take precedence over computed defaults. Profile baselines are normalised
+through their option type so filled submodule defaults do not become updates.
 
 The baseline enables built-in memory and user profiles with `memory.provider = ""`
 and pins two model tiers on the `openai-codex` provider: `models.gpt.flash`
 (luna) for routing and gathering, and `models.gpt.smart` (sol) where mistakes
 are expensive. DeepSeek tiers are defined but only used where a profile selects
-them. The default tier is `models.default`.
+them. `models.default` selects the GPT tier family.
 
 The roster has two parts. `roster` holds the named team (receptionist,
 researcher, planner, coder, reviewer), which falls back to `models.default`.
-`installed` adopts existing runtime profiles so Kanban's planner, which sees
-every installed profile, only finds admitted workers.
+`installed` lists runtime profiles adopted by the baseline so Kanban's planner
+can assign work to them. The baseline manages this roster and enables Kanban;
+automatic decomposition remains disabled.
 
 Keys are discovered, not listed. The main service receives
 `~/Private/hermes.env` and every `*.env` file in `~/Private/hermes/`. A profile
@@ -56,7 +67,7 @@ The module is split into folders:
 
 | Folder | Responsibility |
 | --- | --- |
-| `profiles/` | Typed profile declarations, terse output option, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
+| `bots/` | Team roster, typed profile declarations, terse output option, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
 | `gateway/` | Shared gateway multiplexing and routes using native Hermes keys |
 | `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
 | `report/` | Team report helper that checks declared profiles against the runtime roster |

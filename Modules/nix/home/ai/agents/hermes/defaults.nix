@@ -48,12 +48,14 @@
   };
 
   defaults = {
-    inherit models;
     enable = false;
     package = packages.hermes;
-    workingDirectory = config.home.homeDirectory;
+    workingDirectory = dirs.user;
     config.file = null;
-    settings = import ./settings {};
+    settings = {
+      inherit memory;
+      model = models.default.smart;
+    };
     documents = {};
     mcpServers = {};
 
@@ -72,9 +74,9 @@
       files = let
         inherit (dirs) keys;
         mk = {root ? keys}: stem: concat {inherit root stem;};
-        entries = optionalAttrs (pathExists keys) readDir keys;
+        entries = optionalAttrs (pathExists keys) (readDir keys);
       in
-        [(mk {root = dirOf keys;} "hermes.env")]
+        (filter pathExists [(mk {root = dirOf keys;} "hermes.env")])
         ++ map (mk {}) (filter (
           name: entries.${name} == "regular" && hasSuffix ".env" name
         ) (attrNames entries));
@@ -110,7 +112,10 @@
       routes = [];
     };
 
-    profiles = {};
+    profiles = import ./bots/roster.nix {
+      inherit config lix models memory;
+      homePath = dirs.home;
+    };
     strictProfileValidation = false;
     desktop = {
       enable = true;
@@ -118,24 +123,27 @@
     };
 
     kanban = {
-      enable = false;
+      enable = true;
       profiles = ["default"];
-      orchestrator = null;
-      defaultAssignee = null;
+      orchestrator = "planner";
+      defaultAssignee = "planner";
       concurrency = {
         total = 1;
         perProfile = 1;
       };
       decomposition = {
         enable = false;
-        model = {};
+        model = {
+          inherit (models.default.smart) provider;
+          model = models.default.smart.default;
+        };
       };
     };
-    memory = {
-      memory_enabled = true;
-      user_profile_enabled = true;
-      provider = "";
-    };
+  };
+  memory = {
+    memory_enabled = true;
+    user_profile_enabled = true;
+    provider = "";
   };
 in
   defaults
