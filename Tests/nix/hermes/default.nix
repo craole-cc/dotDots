@@ -19,13 +19,18 @@
     binaries.hermes = toolkit.records.hermes.paths.executable;
     aliases = lix.tools.construction.registry.sources.entries.hermes.aliases;
   };
-  evaluate = toolkit: isolated: extra:
-    (flake.inputs.nixHomeManager.lib.homeManagerConfiguration {
+  evaluateSchema = schema: toolkit: isolated: extra: let
+    evaluated = flake.inputs.nixHomeManager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = {
         lix = lix // {inherit toolkit;};
-        user.packages.ai-agent = ["hermes"];
-        user.applications.allowed = ["hermes"];
+        host = schema.host or {};
+        user =
+          {
+            packages.ai-agent = ["hermes"];
+            applications.allowed = ["hermes"];
+          }
+          // (schema.user or {});
       };
       modules = [
         flake.inputs.hermes.homeManagerModules.default
@@ -67,7 +72,24 @@
           };
         })
       ];
-    }).config;
+    };
+    declared = declarations:
+      lix.attrsets.transformation.mapAttrs (_name: declaration:
+        if (declaration._type or null) == "option"
+        then declaration.default
+        else declared declaration)
+      declarations;
+  in
+    evaluated.config // {declaredHermesDefaults = declared evaluated.options._.resolved.ai.agents.hermes-agent.defined;};
+  evaluate = toolkit: isolated:
+    evaluateSchema {
+      user =
+        if isolated
+        then {}
+        else {inherit ((lix.schema.construction.mkSchema {}).users.craole) ai;};
+    }
+    toolkit
+    isolated;
   homeWith = toolkit: evaluate toolkit true;
   home = homeWith toolkit;
   production = evaluate toolkit false {};
@@ -77,6 +99,44 @@
   in
     !result.success || result.value;
   baseline = home {};
+  schemaHome = schema: evaluateSchema schema toolkit false {};
+  hostPreferences.ai.hermes = {
+    restart.seconds = 12;
+    settings = {
+      model = {
+        provider = "custom";
+        default = "host-model";
+      };
+      memory.memory_enabled = false;
+    };
+    gateway.enable = false;
+    kanban.enable = false;
+    auth.file = "/run/secrets/host.json";
+    environment.files = ["/run/secrets/host.env"];
+    profiles.worker = {
+      description = "Host worker";
+      bot.enable = true;
+    };
+  };
+  hostConfigured = schemaHome {host = hostPreferences;};
+  userConfigured = schemaHome {
+    host = hostPreferences;
+    user.ai.hermes = {
+      restart.seconds = 8;
+      settings.model.default = "user-model";
+      profiles.worker.enable = false;
+      auth.file = null;
+      environment.files = [];
+      kanban.profiles = [];
+    };
+  };
+  emptyConfigured = schemaHome {
+    host = hostPreferences;
+    user.ai.hermes = {
+      profiles = {};
+      settings = {};
+    };
+  };
   alternatePackage = toolkit.packages.hermes.overrideAttrs (_previous: {pname = "hermes-toolkit-test";});
   customisedToolkit = toolkit // {packages = toolkit.packages // {hermes = alternatePackage;};};
   toolkitOverride = homeWith customisedToolkit {};
@@ -202,6 +262,46 @@ in
     }) (lix.attrsets.transformation.filterAttrs (_name: profile: profile.enable) team._.resolved.ai.agents.hermes-agent.defined.profiles);
   }
   else {
+    baselineDeclarations = baseline.declaredHermesDefaults == baseline._.defaults.ai.agents.hermes-agent;
+    independentDefaults =
+      hostConfigured._.defaults.ai.agents.hermes-agent
+      == baseline._.defaults.ai.agents.hermes-agent
+      && userConfigured._.defaults.ai.agents.hermes-agent == baseline._.defaults.ai.agents.hermes-agent;
+    hostPrecedence =
+      hostConfigured._.resolved.ai.agents.hermes-agent.defined.restart.seconds
+      == 12
+      && !hostConfigured._.resolved.ai.agents.hermes-agent.defined.gateway.enable;
+    userPrecedence =
+      userConfigured._.resolved.ai.agents.hermes-agent.defined.restart.seconds
+      == 8
+      && userConfigured.services.hermes-agent.settings.model.default == "user-model"
+      && userConfigured.services.hermes-agent.settings.model.provider == "custom";
+    schemaSiblings =
+      !userConfigured.services.hermes-agent.settings.memory.memory_enabled
+      && userConfigured.services.hermes-agent.settings.memory.user_profile_enabled
+      && userConfigured._.resolved.ai.agents.hermes-agent.defined.profiles.worker.description == "Host worker";
+    schemaExplicitValues = let
+      cfg = userConfigured._.resolved.ai.agents.hermes-agent.defined;
+    in
+      !cfg.profiles.worker.enable && cfg.auth.file == null && cfg.environment.files == [] && cfg.kanban.profiles == [];
+    schemaPackageOverrides = let
+      configured = schemaHome {
+        host.ai.hermes.package = alternatePackage;
+        user.ai.hermes.desktop.package = desktopPackage;
+      };
+    in
+      configured.services.hermes-agent.package
+      == alternatePackage
+      && configured.programs.hermes-agent.desktop.package == desktopPackage;
+    schemaEmptySelections =
+      emptyConfigured._.resolved.ai.agents.hermes-agent.defined.profiles
+      == {}
+      && emptyConfigured._.resolved.ai.agents.hermes-agent.defined.settings == {};
+    featureComposition =
+      team._.resolved.ai.agents.hermes-agent.derived.home.activation ? hermesProfiles
+      && any (package: package.name == "hermes-team-report") team._.resolved.ai.agents.hermes-agent.derived.home.packages
+      && team._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.settings.kanban.dispatch_in_gateway
+      && team._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.settings.multiplex_profiles;
     productionRoster =
       failures production
       == []
@@ -214,7 +314,7 @@ in
       profiles ? researcher
       && !profiles.planner.settings.memory.memory_enabled
       && profiles.planner.settings.memory.user_profile_enabled;
-    normalizedBaseline = !(production._.updates.ai.agents.hermes-agent or {} ? profiles);
+    normalizedBaseline = !(baseline._.updates.ai.agents.hermes-agent or {} ? profiles);
     resolvedOutputs =
       production._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.hermesHome
       == production.services.hermes-agent.hermesHome;
@@ -375,7 +475,7 @@ in
     in
       !configured.services.hermes-agent.settings.memory.memory_enabled
       && configured.services.hermes-agent.settings.memory.user_profile_enabled;
-    defaultModel = baseline.services.hermes-agent.settings.model.default == "gpt-6.1-sol";
+    defaultModel = !(baseline.services.hermes-agent.settings ? model) && production.services.hermes-agent.settings.model.default == "gpt-6.1-sol";
     team = failures team == [];
     routes =
       settings.multiplex_profiles
@@ -402,6 +502,19 @@ in
       && settings.kanban.max_in_progress_per_profile == 1
       && settings.kanban.auto_decompose
       && settings.auxiliary.kanban_decomposer.model == "planner-model";
+    typedSettingsPrecedence = let
+      configured = home (withChange {
+        settings = {
+          multiplex_profiles = false;
+          profile_routes = [];
+          kanban.dispatch_profiles = ["missing"];
+        };
+      });
+    in
+      configured.services.hermes-agent.settings.multiplex_profiles
+      && configured.services.hermes-agent.settings.profile_routes == settings.profile_routes
+      && configured.services.hermes-agent.settings.kanban.dispatch_profiles == settings.kanban.dispatch_profiles
+      && configured._.resolved.ai.agents.hermes-agent.derived.services.hermes-agent.settings.multiplex_profiles;
     rawSettings = settings.example.preserved;
     profileActivation =
       activation.after

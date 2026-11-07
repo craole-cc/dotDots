@@ -1,14 +1,14 @@
 {
   cfg,
   config,
-  defaults,
+  resolve,
   lix,
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.lists.predicates) all;
-  inherit (lix.modules.construction) mkIf;
+  inherit (lix.modules.construction) mkIf mkLayer;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.toolkit) platform write;
   inherit (lix.strings.transformation) trim;
@@ -36,7 +36,15 @@
     inherit (config.services.hermes-agent) settings;
     inherit (cfg.gateway) multiplex routes;
   };
+  defaults.gateway = {
+    enable = true;
+    multiplex = false;
+    routes = [];
+  };
+  resolved = resolve {gateway = defaults.gateway // {multiplex = active != {};};};
 in {
+  inherit defaults;
+  resolutions.gateway = mkLayer 1000 resolved.gateway;
   options.gateway = {
     enable = mkEnable {
       description = "Hermes messaging gateway service";
@@ -44,7 +52,7 @@ in {
     };
     multiplex = mkOption {
       type = bool;
-      default = active != {};
+      default = defaults.gateway.multiplex;
       description = "Serve named profiles in the existing gateway. Defaults on when profiles are declared.";
     };
     routes = mkOption {
@@ -85,16 +93,18 @@ in {
     };
   };
 
-  settings = optionalAttrs cfg.gateway.multiplex {
+  resolutions.settings = mkLayer 90 (optionalAttrs cfg.gateway.multiplex {
     # Hermes gives these canonical keys precedence over older nested settings.
     multiplex_profiles = true;
     profile_routes =
       map
       (filterAttrs (_key: value: value != null && value != ""))
       cfg.gateway.routes;
-  };
+  });
 
   outputs = {
+    services.hermes-agent.gateway = {inherit (cfg.gateway) enable;};
+
     systemd.user.services.hermes-agent.Unit.X-Restart-Triggers =
       mkIf
       (platform.isLinux && cfg.gateway.multiplex && config.services.hermes-agent.gateway.enable)

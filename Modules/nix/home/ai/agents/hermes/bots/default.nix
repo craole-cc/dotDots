@@ -1,8 +1,5 @@
 {
   cfg,
-  context,
-  defaults,
-  options,
   common,
   config,
   interface,
@@ -10,16 +7,17 @@
   lix,
   pkgs,
   runtime,
+  resolve,
   ...
 }: let
-  inherit (lix.attrsets.access) attrNames getAttrFromPath;
+  inherit (lix.attrsets.access) attrNames;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
   inherit (lix.filesystem.construction) concatPath;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.modules.construction) mkIf;
+  inherit (lix.modules.construction) mkIf mkLayer;
   inherit (lix.options.construction) mkEnum mkFalse mkOption mkTrue;
   inherit (lix.strings.construction) concat optionalString toJSON;
   inherit (lix.strings.access) match;
@@ -28,40 +26,6 @@
   inherit (lix.types.primitives) str;
   inherit (lix.toolkit) write;
   inherit (runtime) binaries;
-
-  models = rec {
-    default = gpt;
-    gpt = {
-      flash = {
-        provider = "openai-codex";
-        default = "gpt-6-luna";
-      };
-      smart = {
-        provider = "openai-codex";
-        default = "gpt-6.1-sol";
-      };
-    };
-    deepseek = {
-      flash = {
-        provider = "deepseek";
-        default = "deepseek-flash";
-      };
-      smart = {
-        provider = "deepseek";
-        default = "deepseek-v4-pro";
-      };
-    };
-  };
-
-  memory = {
-    memory_enabled = true;
-    user_profile_enabled = true;
-    provider = "";
-  };
-  roster = import ./roster.nix {
-    inherit config lix models memory;
-    homePath = defaults.home.path;
-  };
 
   #? Compiled Rust validator; no Python, no venv import.
   #? Renamed from `profile` to `validator` to avoid shadowing the profile
@@ -225,19 +189,14 @@
     $DRY_RUN_CMD ${mergeScript} ${metadata} ${profileFile}
     $DRY_RUN_CMD chmod 0600 ${profileFile}
   '';
+  defaults = {
+    profiles = {};
+    strictProfileValidation = false;
+  };
+  resolved = resolve defaults;
 in {
-  inherit models memory;
-  defaults.profiles = roster;
-  baseline.profiles =
-    (getAttrFromPath context.path options).defined.profiles.type.merge
-    (context.path ++ ["defined" "profiles"])
-    [
-      {
-        file = toString ./default.nix;
-        value = defaults.profiles;
-      }
-    ];
-
+  inherit defaults;
+  resolutions = mkLayer 1000 {inherit (resolved) profiles strictProfileValidation;};
   #? The runtime validator is a ~2 ms compiled binary, so the reason to disable
   #? it (Python spawn cost) no longer applies. Left default = false to preserve
   #? existing activation timing; flip to mkTrue if you want it every rebuild.

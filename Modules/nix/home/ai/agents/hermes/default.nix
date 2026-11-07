@@ -4,6 +4,7 @@
   options,
   lix,
   user,
+  host ? {},
   entryBetween,
   ...
 } @ passthru: let
@@ -13,51 +14,52 @@
   context = mkContext {inherit config dom sub mod;};
 
   inherit (context) cfg;
-  inherit (lix.attrsets.access) attrNames attrValues;
-  inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
-  inherit (lix.attrsets.transformation) filterAttrs;
-  inherit (lix.filesystem.traversal) importAllMerged;
-  inherit (lix.lists.aggregation) foldl';
+  inherit (lix.attrsets.aggregation) intersectAttrs mergeSafe;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault mkLayer;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.toolkit) packages;
+  inherit (lix.schema.hermes) mkHermes;
   inherit (lix.types.primitives) str;
 
   common = lix.toolkit.hermes;
   runtime = common.forConfig config.services.hermes-agent;
   defaults = import ./defaults.nix {
-    inherit config lix;
-    inherit (modules) bots;
+    inherit lix;
   };
   interface = import ./interface {inherit lix;};
 
+  resolve = defaults:
+    mkHermes {
+      inherit defaults host user lix;
+      inherit (config.home) homeDirectory;
+    };
+  resolved = resolve (defaults
+    // {
+      enable = isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user);
+      home = defaults.home // {path = "${config.home.homeDirectory}/.hermes";};
+      workingDirectory = config.home.homeDirectory;
+      desktop = defaults.desktop // {package = runtime.package.hermesDesktop;};
+    });
   upstreamOptions = common.sharedOptions {
     defaultPackage = packages.hermes;
     defaultPackageText = "lix.toolkit.packages.hermes";
-    defaultWorkingDirectory = config.home.homeDirectory;
-    defaultWorkingDirectoryText = "config.home.homeDirectory";
+    defaultWorkingDirectory = defaults.workingDirectory;
+    defaultWorkingDirectoryText = "\".\" (resolved to the Home Manager home directory)";
   };
-  args = passthru // {inherit cfg common context defaults interface runtime entryBetween;};
-  modules =
-    (importAllMerged {
-      dir = ./.;
-      inherit args;
-      exclude = ["defaults.nix" "interface" "lib"];
-    }).value;
-  parts = attrValues modules;
-  collect = field: mergeSafe (map (part: part.${field} or {}) parts);
-  settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
-  activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
-in
-  mkConfig {
-    inherit context;
-    defaults = defaults // collect "baseline";
+  featureArgs = passthru // {inherit cfg common context interface runtime entryBetween resolve;};
+  features = map (feature: import feature featureArgs) [./bots ./connection ./kanban ./report];
+  core = {
+    inherit defaults;
 
-    options = interface.declareDefaults defaults (mergeSafe [
-      (interface.options upstreamOptions)
-      (collect "options")
+    options = mergeSafe [
+      (interface.options (upstreamOptions
+        // {
+          settings = upstreamOptions.settings // {default = defaults.settings;};
+          restart = upstreamOptions.restart // {default = defaults.restart.when;};
+          restartSec = upstreamOptions.restartSec // {default = defaults.restart.seconds;};
+        }))
       {
         enable = mkEnable {
           inherit context;
@@ -95,21 +97,18 @@ in
           };
         };
       }
-    ]);
+    ];
 
     # Per-key baseline definitions preserve siblings when an attrs option is
     # partially overridden. Option defaults alone replace the whole attrset.
     resolutions = mkMerge [
-      (mkLayer 1000 ((removeAttrs defaults ["enable" "desktop"])
-        // {
-          gateway = removeAttrs defaults.gateway ["multiplex"];
-          kanban = removeAttrs defaults.kanban ["profiles"];
-        }))
+      (mkLayer 1000 (removeAttrs (intersectAttrs defaults resolved) ["desktop" "settings"]))
       {
-        enable = mkDefault (isIn ["hermes" "hermes-agent" "hermes-desktop"] (selectedPackages user));
-        gateway.multiplex = mkDefault (activeProfiles != {});
-        kanban.profiles = mkDefault (["default"] ++ attrNames activeProfiles);
-        desktop.package = mkDefault runtime.package.hermesDesktop;
+        settings =
+          if resolved.settings == {}
+          then mkDefault {}
+          else mkLayer 1000 resolved.settings;
+        desktop = mkLayer 1000 resolved.desktop;
       }
     ];
 
@@ -119,14 +118,20 @@ in
           (interface.config upstreamOptions cfg)
           // {
             hermesHome = cfg.home.path;
-            gateway = {inherit (cfg.gateway) enable;};
-            settings = recursiveUpdate cfg.settings settings;
           };
         programs.${mod} = {
           inherit (cfg) enable desktop;
           inherit (runtime) package;
         };
       }
-      (mkMerge (map (part: part.outputs or {}) parts))
     ];
+  };
+  contracts = [core] ++ features;
+in
+  mkConfig {
+    inherit context;
+    defaults = mergeSafe (map (contract: contract.defaults or {}) contracts);
+    options = mergeSafe (map (contract: contract.options or {}) contracts);
+    resolutions = mkMerge (map (contract: contract.resolutions or {}) contracts);
+    outputs = mkMerge (map (contract: contract.outputs or {}) contracts);
   }

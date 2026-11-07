@@ -16,7 +16,7 @@
   #? --check exits non-zero if any declared profile is missing profile.yaml.
   reportRs = ./report.rs;
 
-  declaredNames = concatStringsSep " " (mapAttrsToList (n: _: n) active);
+  declaredNames = concatStringsSep " " (mapAttrsToList (name: _profile: name) active);
 in {
   outputs.home.packages = [
     (write.binWith "hermes-team-report" [pkgs.rust-script] ''

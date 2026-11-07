@@ -29,46 +29,53 @@ application independently.
 
 ## Defaults
 
-The module baseline lives in `defaults.nix`. `bots/default.nix` owns and imports
-its named team from `bots/roster.nix`. Edit the roster file to change the team. Models and memory
-settings have one definition in `bots/default.nix`, shared by the main profile and
-roster. The reviewer uses the DeepSeek smart tier; the planner uses GPT smart.
+The parent calls `mkConfig` once. Core configuration lives in `default.nix`
+and `defaults.nix`; each feature returns its own `defaults`, `options`,
+`resolutions` and `outputs` for that call. The report helper has no configurable
+inputs and contributes only its package output. All contributions share the
+Hermes context and its root enable gate.
 
-`_.defaults.ai.agents.hermes-agent` exposes the baseline without wrappers.
-`_.resolved.ai.agents.hermes-agent.defined` holds typed effective inputs,
-including explicit overrides and computed enablement, gateway multiplexing,
-worker selection and desktop package defaults. `resolved.derived` holds the
-emitted Home Manager outputs; the same contributions enter `_.outputs`.
-`_.updates` compares effective inputs against the baseline, so computed changes
-such as package selection and enabled worker lists appear there too. Explicit
-values take precedence over computed defaults. Profile baselines are normalised
-through their option type so filled submodule defaults do not become updates.
+`_.defaults.ai.agents.hermes-agent` exports the neutral baseline. Every baseline
+value has a matching declared option default. The baseline has no named team,
+model preference or credential files, and Kanban dispatch is disabled. Built-in
+memory and user memory remain enabled with `memory.provider = ""`.
+The baseline paths are `home.path = ".hermes"` and `workingDirectory = "."`;
+environment-derived resolutions use the Home Manager home directory to choose
+absolute effective paths. The toolkit supplies the baseline package.
 
-The baseline enables built-in memory and user profiles with `memory.provider = ""`
-and pins two model tiers on the `openai-codex` provider: `models.gpt.flash`
-(luna) for routing and gathering, and `models.gpt.smart` (sol) where mistakes
-are expensive. DeepSeek tiers are defined but only used where a profile selects
-them. `models.default` selects the GPT tier family.
+`_.resolved.ai.agents.hermes-agent.defined` holds typed effective inputs.
+`derived` holds the emitted Home Manager outputs, which also enter `_.outputs`.
+The Home contract calculates `_.updates` automatically. Schema preferences,
+computed enablement and environment-derived paths are real differences from the
+baseline; an empty, unchanged profile roster contributes no profile update.
 
-The roster has two parts. `roster` holds the named team (receptionist,
-researcher, planner, coder, reviewer), which falls back to `models.default`.
-`installed` lists runtime profiles adopted by the baseline so Kanban's planner
-can assign work to them. The baseline manages this roster and enables Kanban;
-automatic decomposition remains disabled.
+`lix.schema.hermes.mkHermes` resolves `user.ai.hermes` over `host.ai.hermes`
+(or `host.defaults.ai.hermes`) over the feature defaults and computed fallbacks.
+Nonempty records merge by key, lists replace lists, and explicit `false`, `null`,
+empty lists and empty option attrsets are retained. An absent settings record is
+an empty sparse overlay. Records can be plain attrsets or functions accepting
+`lix` and `homeDirectory`, so environment discovery stays outside the baseline.
+Preference resolutions use module priority 1000; explicit definitions under the existing
+`defined` namespace can override them while preserving sibling defaults.
+Generated gateway and Kanban settings use priority 90 to preserve the existing
+precedence of typed controls over conflicting raw `settings` keys.
 
-Keys are discovered, not listed. The main service receives
-`~/Private/hermes.env` and every `*.env` file in `~/Private/hermes/`. A profile
-receives only `~/Private/hermes/<provider>.env` for its own model provider, and
-only when that file exists. `openai-codex` authenticates through `auth.json`.
-Discovery runs at evaluation time, so adding a key file needs a rebuild, and it
-requires impure evaluation.
+Craig's existing team and model policy now live in
+`API/nix/users/craole/ai/default.nix` and its `roster.nix`. That record retains all
+26 adopted profiles, the five named team members, GPT and DeepSeek model choices,
+Kanban roles, and credential discovery. Other users no longer inherit this team.
+Main credentials are discovered from `~/Private/hermes.env` and regular `*.env`
+files in `~/Private/hermes/`. The existing profile lookup remains
+`~/hermes/<provider>.env`; profiles also explicitly seed auth from
+`~/.hermes/auth.json`. Discovery happens during evaluation and requires impure
+evaluation when reading files outside the repository.
 
 The module is split into folders:
 
 | Folder | Responsibility |
 | --- | --- |
 | `bots/` | Team roster, typed profile declarations, terse output option, writable configuration activation, Desktop Bot metadata and persistent Bot Chat launchers |
-| `gateway/` | Shared gateway multiplexing and routes using native Hermes keys |
+| `connection/` | Shared gateway multiplexing and routes using native Hermes keys |
 | `kanban/` | Kanban dispatcher, worker selection, planning model and concurrency |
 | `report/` | Team report helper that checks declared profiles against the runtime roster |
 | `lib/` | Compiled profile-name validator |
@@ -83,8 +90,9 @@ and reviewer. Existing sessions keep their history, so test with a new chat.
 
 ## Declare A Team
 
-Add a declaration to a Home Manager module imported for the user only when you
-need to override the baseline. Hermes must also be selected through the user
+Add a declaration to a Home Manager module imported for the user when you
+need an explicit override. Alternatively, supply the same values through
+`ai.hermes` in a user or host schema record. Hermes must also be selected through the user
 package API. Declaring profiles does not select Ollama or download models;
 configure the host's Ollama module separately when using a local model.
 

@@ -1,45 +1,22 @@
-{
-  config,
-  lix,
-  bots,
-}: let
+{lix}: let
   inherit (lix.toolkit) packages;
-  inherit (lix.filesystem.construction) concat;
-  inherit (lix.filesystem.access) readDir;
-  inherit (lix.filesystem.predicates) pathExists;
-  inherit (lix.attrsets.access) attrNames;
-  inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.lists.transformation) filter;
-  inherit (lix.strings.predicates) hasSuffix;
-
-  dirs = {
-    user = config.home.homeDirectory;
-    home = concat {
-      root = dirs.user;
-      stem = ".hermes";
-    };
-    keys = concat {
-      root = dirs.user;
-      stem = ["Private" "hermes"];
-    };
-  };
-
-  inherit (bots) models memory;
-
   defaults = {
     enable = false;
     package = packages.hermes;
-    workingDirectory = dirs.user;
+    workingDirectory = ".";
     config.file = null;
     settings = {
-      inherit memory;
-      model = models.default.smart;
+      memory = {
+        memory_enabled = true;
+        user_profile_enabled = true;
+        provider = "";
+      };
     };
     documents = {};
     mcpServers = {};
 
     home = {
-      path = dirs.home;
+      path = ".hermes";
       file = {};
     };
 
@@ -50,15 +27,7 @@
 
     environment = {
       variables = {};
-      files = let
-        inherit (dirs) keys;
-        mk = {root ? keys}: stem: concat {inherit root stem;};
-        entries = optionalAttrs (pathExists keys) (readDir keys);
-      in
-        (filter pathExists [(mk {root = dirOf keys;} "hermes.env")])
-        ++ map (mk {}) (filter (
-          name: entries.${name} == "regular" && hasSuffix ".env" name
-        ) (attrNames entries));
+      files = [];
     };
 
     extra = {
@@ -85,35 +54,9 @@
       extra.args = [];
     };
 
-    gateway = {
-      enable = true;
-      multiplex = false;
-      routes = [];
-    };
-
-    inherit (bots.defaults) profiles;
-    strictProfileValidation = false;
     desktop = {
       enable = true;
       package = defaults.package.hermesDesktop;
-    };
-
-    kanban = {
-      enable = true;
-      profiles = ["default"];
-      orchestrator = "planner";
-      defaultAssignee = "planner";
-      concurrency = {
-        total = 1;
-        perProfile = 1;
-      };
-      decomposition = {
-        enable = false;
-        model = {
-          inherit (models.default.smart) provider;
-          model = models.default.smart.default;
-        };
-      };
     };
   };
 in

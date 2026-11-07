@@ -24,12 +24,6 @@
   };
   selected = upstream: filterAttrs (name: _path: upstream ? ${name}) names;
   plain = upstream: removeAttrs upstream ((attrNames names) ++ ["backend"]);
-  declareDefaults = defaults: declarations:
-    mapAttrs (name: declaration:
-      if (declaration._type or null) == "option"
-      then declaration // {default = defaults.${name};}
-      else declareDefaults defaults.${name} declaration)
-    declarations;
   describe = declaration:
     declaration
     // optionalAttrs (declaration ? description) {
@@ -40,8 +34,6 @@
         declaration.description;
     };
 in {
-  inherit declareDefaults;
-
   options = upstream:
     mergeSafe (
       [

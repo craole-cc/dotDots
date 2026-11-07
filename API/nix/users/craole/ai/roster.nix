@@ -1,5 +1,5 @@
 {
-  config,
+  homeDirectory,
   lix,
   models,
   memory,
@@ -14,7 +14,7 @@
   keysFor = provider:
     filter pathExists [
       (concat {
-        root = config.home.homeDirectory;
+        root = homeDirectory;
         stem = ["hermes" "${provider}.env"];
       })
     ];

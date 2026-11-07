@@ -1,5 +1,6 @@
 {
   cfg,
+  resolve,
   config,
   lix,
   ...
@@ -9,6 +10,7 @@
   inherit (lix.attrsets.transformation) filterAttrs;
   inherit (lix.lists.predicates) all elem;
   inherit (lix.lists.selection) filter;
+  inherit (lix.modules.construction) mkLayer;
   inherit (lix.options.construction) mkFalse mkOption;
   inherit (lix.types.combinators) attrsOf listOf nullOr;
   inherit (lix.types.primitives) anything int str;
@@ -33,12 +35,29 @@
     attrByPath ["auth" "file"] null profile
     != null
     || attrByPath ["environment" "files"] [] profile != [];
+  defaults.kanban = {
+    enable = false;
+    profiles = ["default"];
+    orchestrator = null;
+    defaultAssignee = null;
+    concurrency = {
+      total = 1;
+      perProfile = 1;
+    };
+    decomposition = {
+      enable = false;
+      model = {};
+    };
+  };
+  resolved = resolve {kanban = defaults.kanban // {profiles = ["default"] ++ attrNames active;};};
 in {
+  inherit defaults;
+  resolutions.kanban = mkLayer 1000 resolved.kanban;
   options.kanban = {
     enable = mkFalse "Enable Hermes Kanban task dispatch for the declared team.";
     profiles = mkOption {
       type = listOf str;
-      default = ["default"] ++ attrNames active;
+      default = defaults.kanban.profiles;
       description = "Profiles the dispatcher may assign work to. An empty list explicitly admits no workers.";
     };
     orchestrator = assignee "Profile owning orchestration tasks. Null uses the default profile.";
@@ -57,7 +76,7 @@ in {
     };
   };
 
-  settings = optionalAttrs cfg.kanban.enable ({
+  resolutions.settings = mkLayer 90 (optionalAttrs cfg.kanban.enable ({
       kanban = {
         dispatch_in_gateway = true;
         dispatch_profiles = cfg.kanban.profiles;
@@ -76,7 +95,7 @@ in {
     }
     // optionalAttrs (cfg.kanban.decomposition.model != {}) {
       auxiliary.kanban_decomposer = cfg.kanban.decomposition.model;
-    });
+    }));
 
   outputs.assertions = [
     {
