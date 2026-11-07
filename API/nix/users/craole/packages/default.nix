@@ -19,7 +19,6 @@ let
     "chromium"
     "zen-twilight"
     "thunderbird"
-    "brave"
   ];
 
   editor = [
