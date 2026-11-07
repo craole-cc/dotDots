@@ -101,16 +101,19 @@
 
         inputs' = mkApps {inherit inputs modules user;};
 
-        extraPackageSet = pkgs // {
-          fromStable = pkgs.fromStable or (import inputs.nixpkgs-stable {
-            inherit system;
-            config = {
-              allowUnfree = pkgs.config.allowUnfree or false;
-              allowBroken = pkgs.config.allowBroken or false;
-              allowUnsupportedSystem = pkgs.config.allowUnsupportedSystem or false;
-            };
-          });
-        };
+        extraPackageSet =
+          pkgs
+          // {
+            fromStable =
+              pkgs.fromStable or (import inputs.nixpkgs-stable {
+                inherit system;
+                config = {
+                  allowUnfree = pkgs.config.allowUnfree or false;
+                  allowBroken = pkgs.config.allowBroken or false;
+                  allowUnsupportedSystem = pkgs.config.allowUnsupportedSystem or false;
+                };
+              });
+          };
 
         extraPackages = map (packageName: let
           package = extraPackageSet.${packageName} or (attrByPath (splitString "." packageName) null extraPackageSet);

@@ -17,9 +17,11 @@
   inherit (_.strings.construction) concat;
 
   schema = mkSchema {api = paths.repo.api.default.store;};
-  repositoryPaths = recursiveUpdate (mkTree {
-    inherit (schema.paths) roots stems;
-  }) paths;
+  repositoryPaths =
+    recursiveUpdate (mkTree {
+      inherit (schema.paths) roots stems;
+    })
+    paths;
 
   args = {
     inherit _;

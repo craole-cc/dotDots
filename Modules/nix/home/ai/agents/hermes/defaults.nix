@@ -1,6 +1,7 @@
 {
   config,
   lix,
+  bots,
 }: let
   inherit (lix.toolkit) packages;
   inherit (lix.filesystem.construction) concat;
@@ -23,29 +24,7 @@
     };
   };
 
-  models = rec {
-    default = gpt;
-    gpt = {
-      flash = {
-        provider = "openai-codex";
-        default = "gpt-6-luna";
-      };
-      smart = {
-        provider = "openai-codex";
-        default = "gpt-6.1-sol";
-      };
-    };
-    deepseek = {
-      flash = {
-        provider = "deepseek";
-        default = "deepseek-flash";
-      };
-      smart = {
-        provider = "deepseek";
-        default = "deepseek-v4-pro";
-      };
-    };
-  };
+  inherit (bots) models memory;
 
   defaults = {
     enable = false;
@@ -112,10 +91,7 @@
       routes = [];
     };
 
-    profiles = import ./bots/roster.nix {
-      inherit config lix models memory;
-      homePath = dirs.home;
-    };
+    inherit (bots.defaults) profiles;
     strictProfileValidation = false;
     desktop = {
       enable = true;
@@ -139,11 +115,6 @@
         };
       };
     };
-  };
-  memory = {
-    memory_enabled = true;
-    user_profile_enabled = true;
-    provider = "";
   };
 in
   defaults

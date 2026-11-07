@@ -29,9 +29,9 @@ application independently.
 
 ## Defaults
 
-The module baseline lives in `defaults.nix`; its named team comes from
-`bots/roster.nix`. Edit those files to change the baseline. Models and memory
-settings have one definition in `defaults.nix`, shared by the main profile and
+The module baseline lives in `defaults.nix`. `bots/default.nix` owns and imports
+its named team from `bots/roster.nix`. Edit the roster file to change the team. Models and memory
+settings have one definition in `bots/default.nix`, shared by the main profile and
 roster. The reviewer uses the DeepSeek smart tier; the planner uses GPT smart.
 
 `_.defaults.ai.agents.hermes-agent` exposes the baseline without wrappers.

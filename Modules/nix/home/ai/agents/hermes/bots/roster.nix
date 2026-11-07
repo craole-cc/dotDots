@@ -5,12 +5,19 @@
   memory,
   homePath,
 }: let
-  inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
+  inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.filesystem.predicates) pathExists;
+  inherit (lix.filesystem.construction) concat;
   inherit (lix.lists.transformation) filter;
-  keysFor = provider: filter pathExists ["${config.home.homeDirectory}/Private/hermes/${provider}.env"];
+  keysFor = provider:
+    filter pathExists [
+      (concat {
+        root = config.home.homeDirectory;
+        stem = ["hermes" "${provider}.env"];
+      })
+    ];
   #? Luna for routing and gathering, sol where mistakes are expensive.
   roster = {
     receptionist = {

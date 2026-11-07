@@ -42,6 +42,7 @@
           }) ["imports"])
         ({lib, ...}: {
           config = {
+            _module.args.entryBetween = lib.hm.dag.entryBetween;
             home = {
               username = "hermes-test";
               homeDirectory = "/tmp/hermes-module-check";

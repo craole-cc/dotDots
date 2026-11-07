@@ -1,21 +1,22 @@
 {
   config,
-  lib,
+  pkgs,
   options,
   lix,
   user,
-  pkgs,
+  entryBetween,
   ...
-} @ args: let
+} @ passthru: let
   dom = "ai";
   sub = "agents";
   mod = "hermes-agent";
   context = mkContext {inherit config dom sub mod;};
 
   inherit (context) cfg;
-  inherit (lix.attrsets.access) attrNames getAttrFromPath;
+  inherit (lix.attrsets.access) attrNames attrValues;
   inherit (lix.attrsets.aggregation) mergeSafe recursiveUpdate;
   inherit (lix.attrsets.transformation) filterAttrs;
+  inherit (lix.filesystem.traversal) importAllMerged;
   inherit (lix.lists.aggregation) foldl';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault mkLayer;
@@ -26,7 +27,10 @@
 
   common = lix.toolkit.hermes;
   runtime = common.forConfig config.services.hermes-agent;
-  defaults = import ./defaults.nix {inherit config lix;};
+  defaults = import ./defaults.nix {
+    inherit config lix;
+    inherit (modules) bots;
+  };
   interface = import ./interface {inherit lix;};
 
   upstreamOptions = common.sharedOptions {
@@ -35,36 +39,21 @@
     defaultWorkingDirectory = config.home.homeDirectory;
     defaultWorkingDirectoryText = "config.home.homeDirectory";
   };
-  #: TODO: Don't we have domething from filesystem.traversal that can do this?
-  parts =
-    map
-    (file:
-      import file (args
-        // {
-          inherit cfg common defaults interface runtime;
-          inherit (lib.hm.dag) entryBetween;
-        }))
-    [./bots ./connection ./kanban ./report];
+  args = passthru // {inherit cfg common context defaults interface runtime entryBetween;};
+  modules =
+    (importAllMerged {
+      dir = ./.;
+      inherit args;
+      exclude = ["defaults.nix" "interface" "lib"];
+    }).value;
+  parts = attrValues modules;
   collect = field: mergeSafe (map (part: part.${field} or {}) parts);
   settings = foldl' recursiveUpdate {} (map (part: part.settings or {}) parts);
   activeProfiles = filterAttrs (_name: profile: profile.enable) cfg.profiles;
 in
   mkConfig {
     inherit context;
-    # Submodules fill profile defaults before updates compares them with defined.
-    defaults =
-      defaults
-      // {
-        profiles =
-          (getAttrFromPath context.path options).defined.profiles.type.merge
-          [context.top "defaults" dom sub mod "profiles"]
-          [
-            {
-              file = toString ./bots/roster.nix;
-              value = defaults.profiles;
-            }
-          ];
-      };
+    defaults = defaults // collect "baseline";
 
     options = interface.declareDefaults defaults (mergeSafe [
       (interface.options upstreamOptions)
