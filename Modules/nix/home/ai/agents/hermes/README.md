@@ -411,3 +411,54 @@ Home Manager may restart the gateway when the owner later runs `nhs`.
 After activation, the owner verifies a reply in the existing Telegram chat and
 checks the available profile commands before relying on multi-profile delivery.
 No Telegram API call or live message exchange was performed during this change.
+
+## Named-team handoff from Telegram
+
+Craole enables `handoff.enable`. The pinned Hermes Python source is patched at
+the existing Bot Mode tool and prompt gates; it reuses native `message_agent`,
+local canonical Bot Chat delivery, process tracking, cancellation, and completion
+handling. Telegram remains its original gateway session, not a renamed Bot Chat.
+The agent's actual platform and session-database home establish access, never
+origin JSON or role names supplied in message text.
+
+The root runtime `team-handoff.json` contract is written even when disabled, so
+a later activation revokes the gateway extension instead of leaving a stale
+enabled file. The enabled contract permits exactly one local recipient
+per call. Telegram root/default Hermes may contact Coordinator only. Coordinator
+may commission domain owners, Architect, Auditor, Scribe and Intern. Domain
+owners may commission Scribe and Intern. Architect, Auditor and contributors
+return results through the native final-response transport without initiating
+further commissions. Only enabled configured profiles appear in these routes.
+Peer gateways, remote Desktop connections and generic fan-out are excluded by
+this team policy. Generic delegation and automatic Kanban dispatch stay disabled.
+The policy enforces named routing, not the semantic scope of a work assignment;
+role instructions and repository approvals still govern what a worker may do.
+
+Hermes gets a queued acknowledgement with delivery/process IDs, then receives
+the native completion in the originating Telegram session. Commissioned owners
+use the poll return path for their own nested calls, including when Desktop is
+open, so they can collect specialist outcomes before returning the package.
+They must use process wait/log as instructed by the acknowledgement. A dispatch
+is never a completed audit. Approval requirements remain active; a worker that
+cannot obtain approval reports that blocker rather than bypassing the gate.
+Delivery failures and ambiguous outcomes retain native semantics: inspect them
+before retrying. This transport is not an unattended durable Kanban worker queue,
+and a restart during delivery can interrupt it.
+
+After the owner runs `nhs`, first use `/new` in Telegram and send this bounded
+acceptance request before commissioning application work:
+
+```text
+Verify the named-team round trip. Ask Coordinator to commission Auditor to
+return the literal phrase TEAM-HANDOFF-OK and its profile identity. No file
+writes, repository inspection, implementation, external messages, or other
+work. Coordinator must collect Auditor's result before returning it. Hermes
+should return that attributed result and the observed dispatch IDs here.
+```
+
+Acceptance requires actual Coordinator and Auditor delivery receipts, Auditor's
+returned result, and its return to the originating Telegram chat. This change
+builds and tests the runtime offline using temporary homes and stubbed delivery
+endpoints, including native local-process completion persistence. It does not
+claim a live provider/Telegram round trip, start the Lignum assignment, or restart
+services. The owner performs activation and the bounded live acceptance above.

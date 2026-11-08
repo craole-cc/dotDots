@@ -29,8 +29,10 @@ the effective root's skills and explicitly seeds its writable authentication
 from the local root auth.json, without forcing later credential replacement.
 No remote auth files, histories, mail records or broker state were copied.
 
-TheOracle's contributor broker and Telegram delivery are not installed by this
-profile port. CCKI is installed separately when `knowledge.enable` is selected;
+TheOracle's contributor broker is not installed by this profile port. Restricted
+native named-team handoff and return from Telegram are selected separately by
+`handoff.enable`; see the Hermes module README for activation and acceptance.
+CCKI is installed separately when `knowledge.enable` is selected;
 see the Hermes module README for checkout setup and verification. The scheduled
 selector is installed through the Nix package adapter; see ../routing/README.md. Native
 handoff and return behavior must be verified before commissioning team work;

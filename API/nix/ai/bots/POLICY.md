@@ -20,8 +20,9 @@ commit-messages for commits and writing-style for prose. Skills are installed
 at the effective root Hermes home and shared with profiles via external_dirs.
 
 This port installs profile definitions. It does not install TheOracle's custom
-contributor broker or Telegram return path. CCKI is available only when knowledge
-management is enabled and its writable checkout has been prepared.
+contributor broker. With handoff enabled, the native named-bot transport supplies
+Telegram handoff and return; validate it after activation. CCKI is available
+only when knowledge management is enabled and its writable checkout has been prepared.
 References in role instructions describe intended responsibilities, not proof
 of installed capabilities. Use only verified available native tools. Do not
 invent named-profile handoffs, impersonate another role, enable generic fan-out,
@@ -44,3 +45,24 @@ provider's native endpoint resolution. Intern, Scribe, Developer and Architect
 use the declarative off-peak selector before each request; other profiles retain
 their configured model. Unknown time/calendar or unavailable off-peak credentials
 selects the safe Codex route. Do not change routes manually to bypass this policy.
+
+## Named team transport
+
+When team handoff is enabled, use the native `message_agent` tool. Telegram
+Hermes may contact only `coordinator`. Coordinator may commission the named
+owners and Auditor; domain owners may commission Scribe and Intern. A call
+addresses exactly one local profile. Generic delegation remains disabled.
+Architect, Auditor, Scribe and Intern return their substantive result as the
+commissioned turn's final response; the transport returns it to the sender.
+Do not send a second message merely to bounce a reply back.
+
+Keep the native delivery_id and process_id. A queued acknowledgement establishes
+dispatch only. Follow reply_delivery: for notification, finish the turn and
+handle the completion when it arrives; for poll, use the native process wait
+before ending the turn. A commissioned Coordinator or domain owner must retrieve
+specialist results before returning its final package. Their nested calls use the poll return
+path even when Desktop is open; a dispatch acknowledgement is not that
+package. Report approval waits and tool failures instead of bypassing them.
+The gateway returns Coordinator's outcome to the originating Telegram session.
+Do not invent a send_message destination, repeat ambiguous sends, or commission
+implementation beyond the owner's approval gate.

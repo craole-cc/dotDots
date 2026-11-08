@@ -15,10 +15,11 @@ in
           pythonSrc = builders.applyPatches {
             name = "hermes-scheduled-routes-source";
             src = overrides.pythonSrc;
-            patches = [./scheduled-routes.patch];
+            patches = [./scheduled-routes.patch ../handoff/named-team.patch];
             patchFlags = ["-p1" "--fuzz=0"];
             postPatch = ''
               cp ${./scheduled_routes.py} agent/scheduled_routes.py
+              cp ${../handoff/team_handoff.py} tools/team_handoff.py
             '';
           };
         });

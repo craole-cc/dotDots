@@ -1,0 +1,64 @@
+--- a/tools/bot_mode_dm.py
++++ b/tools/bot_mode_dm.py
+@@ -135,7 +135,8 @@
+
+         # Managed-install check, NOT section non-emptiness: a SOUL.md carrying the
+         # legacy protocol text gets an empty section but must still get the tool.
+-        return _session_title(agent) == BOT_CHAT_TITLE and is_bot_mode_managed(_agent_home(agent))
++        from tools.team_handoff import gateway_authorized
++        return (_session_title(agent) == BOT_CHAT_TITLE or gateway_authorized(agent)) and is_bot_mode_managed(_agent_home(agent))
+     except Exception:  # pragma: no cover — must never break a turn
+         logger.debug("message_agent_authorized failed", exc_info=True)
+         return False
+@@ -248,7 +249,7 @@
+             _profile_name as _self_profile_name, _roster, is_bot_mode_managed,
+         )
+
+-        if _session_title(agent) != BOT_CHAT_TITLE:
++        if not message_agent_authorized(agent):
+             return _err("message_agent is only available in a Bot Mode 'Bot Chat' session. "
+                         "This session is not one; do not retry.")
+         if not is_bot_mode_managed(home):
+@@ -283,6 +284,10 @@
+         return sender.roster_err("target is required.")
+     if len(targets) > FAN_OUT_MAX:
+         return _err(f"Too many targets ({len(targets)} > {FAN_OUT_MAX}); message the ones the task needs.")
++    from tools.team_handoff import target_error
++    restriction = target_error(agent, targets, sender)
++    if restriction:
++        return _err(restriction)
+     reply = _wants_reply(expects_reply)
+     # Sender signature: the friendly name when the bot has one (#89720); the @handle stays the routing alias.
+     signature = f"Message from 🤖 {_display_name(me, roster_homes.get(me, Path(home)), list(roster_homes))} (@{_handle(me, list(roster_homes))}): "
+@@ -842,7 +847,8 @@
+     try:
+         from tools.terminal_tool import terminal_tool
+
+-        raw = terminal_tool(command, background=True, notify_on_complete=wake != "none", task_id=task_id,
++        from tools.team_handoff import requires_poll
++        raw = terminal_tool(command, background=True, notify_on_complete=wake != "none" and not requires_poll(agent), task_id=task_id,
+                             workdir=str(Path(__file__).resolve().parent.parent), _host_local=True,
+                             _completion_output_chars=completion_chars)
+         try:
+--- a/agent/system_prompt.py
++++ b/agent/system_prompt.py
+@@ -359,13 +359,17 @@
+             _sdb = getattr(agent, "_session_db", None)
+             _sid = getattr(agent, "session_id", None)
+             _title = str((_sdb.get_session_title(_sid) if (_sdb and _sid) else None) or "").strip()
+-        _bot_section = get_bot_mode_protocol_section(_agent_home(agent)) if _title == BOT_CHAT_TITLE else None
++        from tools.team_handoff import gateway_authorized, gateway_prompt
++        _gateway_handoff = gateway_authorized(agent)
++        _bot_section = (gateway_prompt(agent) if _gateway_handoff else
++                        get_bot_mode_protocol_section(_agent_home(agent)) if _title == BOT_CHAT_TITLE else None)
+         if _bot_section:
+             parts.append(_bot_section)
+             # Capability epoch lets the restore path rebuild ONCE per
+             # user-initiated capability change in an eternal session.
+             parts.append(epoch_line(_agent_home(agent)))
+-            agent._bot_chat_timeless_prompt = True
++            if not _gateway_handoff:
++                agent._bot_chat_timeless_prompt = True
+     except Exception:
+         pass
+     return parts

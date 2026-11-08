@@ -68,7 +68,7 @@
     defaultWorkingDirectoryText = "\".\" (resolved to the Home Manager home directory)";
   };
   featureArgs = passthru // {inherit cfg common context interface runtime entryBetween resolve validator isValidProfileName;};
-  features = map (feature: import feature featureArgs) [./bots ./connection ./kanban ./knowledge ./report ./shared];
+  features = map (feature: import feature featureArgs) [./bots ./connection ./handoff ./kanban ./knowledge ./report ./shared];
   core = {
     inherit defaults;
 

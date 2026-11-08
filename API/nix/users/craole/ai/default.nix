@@ -23,6 +23,7 @@ in
       multiplex = true;
       telegram.source = "${homeDirectory}/.hermes/.env";
     };
+    handoff.enable = true;
     kanban.enable = false;
     knowledge = {
       enable = true;
