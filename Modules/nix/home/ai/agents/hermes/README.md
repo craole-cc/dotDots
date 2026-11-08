@@ -349,3 +349,39 @@ hermes_check_python=$(jq -r '.python' /tmp/hermes-settings-contract.json)
 
 These checks also record the upstream planner/dispatcher roster mismatch, so a
 passing suite does not claim automatic planning is restricted to the worker list.
+
+## CCKI knowledge management
+
+The `knowledge` feature packages the upstream CCKI command at revision
+`b64cb6448bb5b0a71e16d89860f14b554ac988bb`, including its runtime dependencies. Only `run.sh` and the knowledge skill are
+snapshotted in dotfiles; the private repository needs authenticated access and
+cannot be fetched by an unauthenticated Nix builder.
+Craole enables it through `API/nix/users/craole/ai/default.nix`. Host/user
+`ai.hermes.knowledge` selections can override `enable`, `root`, and `repository`.
+The root defaults to a `ccki` checkout beside the effective Hermes home, using
+the existing projects path contract. The command, shared knowledge skill, gateway
+environment, and named-profile environments use that root. Profile tool
+restrictions still apply; installing a command does not authorise filing.
+
+After activating the Home Manager generation, the owner runs `ccki-setup` once
+to clone `git@github.com:craole-cc/ccki.git`. It refuses an existing destination;
+inspect an existing checkout rather than replacing it. Git identity and SSH
+authentication must already work. No checkout or knowledge data is fetched
+during activation or copied into the Nix store. The immutable command is pinned;
+the writable checkout follows its own Git history and contains the live rulebook.
+The copied knowledge skill matches the command revision.
+
+Verify `ccki rules`, `ccki index --full`, and a known-page `ccki read SLUG`
+before commissioning Librarian work. Read the live shared profile policy too;
+legacy Receptionist references in knowledge records need owner-reviewed
+reconciliation with the local Hermes policy before coordinated work. Durable
+mutations automatically commit and push all changes in this dedicated repository.
+Keep unrelated work and secrets out of the checkout. A failed push is incomplete;
+retain the local commit and retry `ccki sync`, without repeating the page update.
+
+Hash-checked filing, logging, reindexing, quarantine deletion, explicit-revision
+restore and sync retain upstream behaviour. Raw-page creation and concept-folder
+lookup/indexing remain unsupported. The dashboard, inbox drop service and ingest
+workers are separate port work; this feature does not start them. Activation,
+live GitHub publication from CCKI, and a real Hermes filing session require
+verification after the owner activates the generation.

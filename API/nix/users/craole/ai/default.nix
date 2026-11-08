@@ -21,4 +21,5 @@ in
   // {
     gateway.multiplex = true;
     kanban.enable = false;
+    knowledge.enable = true;
   }

@@ -20,7 +20,8 @@ commit-messages for commits and writing-style for prose. Skills are installed
 at the effective root Hermes home and shared with profiles via external_dirs.
 
 This port installs profile definitions. It does not install TheOracle's custom
-contributor broker, CCKI or Telegram return path.
+contributor broker or Telegram return path. CCKI is available only when knowledge
+management is enabled and its writable checkout has been prepared.
 References in role instructions describe intended responsibilities, not proof
 of installed capabilities. Use only verified available native tools. Do not
 invent named-profile handoffs, impersonate another role, enable generic fan-out,

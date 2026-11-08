@@ -135,6 +135,12 @@
     // (interface.config profileOptions profile)
     // {
       configFile = null;
+      environment =
+        profile.environment.variables
+        // optionalAttrs cfg.knowledge.enable {
+          CCKI = cfg.knowledge.root;
+          CCKI_COMMAND = "ccki";
+        };
       workingDirectory =
         if profile.workingDirectory == null
         then service.workingDirectory
