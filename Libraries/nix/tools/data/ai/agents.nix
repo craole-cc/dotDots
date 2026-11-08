@@ -262,7 +262,7 @@
     input = "hermes-agent";
     target = "default";
     exe = "hermes";
-    transform = package: package.override {extraDependencyGroups = ["messaging"];};
+    transform = import ../../../../../Modules/nix/home/ai/agents/hermes/routing/package.nix;
     aliases = let
       cmd = "hermes";
       mk = alias: mkAlias cmd alias;

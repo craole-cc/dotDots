@@ -16,10 +16,12 @@ reusable skills remain in the shared catalog.
 
 Source: read-only inspection of TheOracle's `/home/craole-cc/.hermes` root and
 named profile definitions. Role ownership and tool restrictions were retained;
-Receptionist references were renamed Hermes. Models match the inspected static
-configuration: Architect, Anthropologist and Auditor use gpt-6.1-sol; the other
-roles use gpt-6-luna through openai-codex. Intern's stale local-Qwen description
-was corrected. Endpoint overrides and scheduled provider selection were omitted.
+Receptionist references were renamed Hermes. Initial models came from the inspected configuration; local model policy is now: Architect, Anthropologist, Auditor and Developer normally use gpt-6.1-sol; the
+other roles normally use gpt-6-luna through openai-codex. Developer uses low
+reasoning effort and default Hermes medium effort. Intern's stale local-Qwen description
+was corrected. Endpoint overrides were omitted. Scheduled routing is configured separately in
+`API/nix/ai/routing`: Intern, Scribe and Developer use DeepSeek Flash off-peak;
+Architect uses DeepSeek V4 Pro.
 
 Host/user selection explicitly enables these central definitions. Multiplexing exposes named
 profiles; automatic Kanban dispatch remains disabled. Each profile references
@@ -28,7 +30,8 @@ from the local root auth.json, without forcing later credential replacement.
 No remote auth files, histories, mail records or broker state were copied.
 
 This is the profile-definition port. TheOracle's contributor broker, CCKI,
-Telegram delivery and scheduled model selector are not installed by it. Native
+Telegram delivery are not installed by it. The scheduled selector is installed
+through the Nix package adapter; see ../routing/README.md. Native
 handoff and return behavior must be verified before commissioning team work;
 a visible profile is not evidence of a working coordinated workflow. Keep role
 restrictions intact and report missing capabilities instead of impersonating

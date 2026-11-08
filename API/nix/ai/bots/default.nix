@@ -15,6 +15,7 @@
     auditor = ./auditor;
   },
   enabled,
+  environmentFiles ? [],
   default ? "receptionist",
 }: let
   inherit (lix.attrsets.construction) genAttrs;
@@ -34,7 +35,7 @@
       if pathExists (definition + "/default.nix")
       then definition
       else dirOf definition;
-    bot = import definition {inherit lix homeDirectory homePath;};
+    bot = import definition {inherit lix homeDirectory homePath environmentFiles;};
     skills =
       if pathExists (directory + "/skills")
       then files "skills" (directory + "/skills")

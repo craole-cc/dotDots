@@ -425,6 +425,19 @@ in
       == ["anthropologist" "architect" "assistant" "auditor" "coordinator" "developer" "intern" "librarian" "scribe"]
       && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
       && production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
+    scheduledProfiles = let
+      profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
+      scheduled = lix.attrsets.transformation.filterAttrs (_name: profile: profile.settings.scheduled_routes.enabled or false) profiles;
+    in
+      lix.attrsets.access.attrNames scheduled
+      == ["architect" "developer" "intern" "scribe"]
+      && production.services.hermes-agent.settings.agent.reasoning_effort == "medium"
+      && profiles.developer.settings.model.default == "gpt-6.1-sol"
+      && profiles.developer.settings.agent.reasoning_effort == "low"
+      && all (name:
+        profiles.${name}.settings.scheduled_routes.policy_file
+        == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
+        && hasInfix "deepseek" profiles.${name}.home.file."routing-policy.json") (lix.attrsets.access.attrNames scheduled);
     portedProfileContracts = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
     in
@@ -533,10 +546,7 @@ in
       && toolkit.records.hermes.command == "hermes";
     toolkitAlias = hasInfix "/bin/hermes --tui" toolkitAliases.hermes-tui;
     preparedToolkitPackage =
-      toolkit.packages.hermes
-      == flake.inputs.hermes.packages.x86_64-linux.default.override {
-        extraDependencyGroups = ["messaging"];
-      };
+      toolkit.packages.hermes.hermesVenv != flake.inputs.hermes.packages.x86_64-linux.default.hermesVenv;
     profileAlias = toolkitAliases.hermesProfile == "${toolkit.packages.hermes}/bin/hermes --profile";
     profilesAlias = toolkitAliases.hermesProfiles == "${toolkit.packages.hermes}/bin/hermes profile";
     configuredAliases = let

@@ -20,7 +20,7 @@ commit-messages for commits and writing-style for prose. Skills are installed
 at the effective root Hermes home and shared with profiles via external_dirs.
 
 This port installs profile definitions. It does not install TheOracle's custom
-contributor broker, CCKI, Telegram return path, or scheduled model selector.
+contributor broker, CCKI or Telegram return path.
 References in role instructions describe intended responsibilities, not proof
 of installed capabilities. Use only verified available native tools. Do not
 invent named-profile handoffs, impersonate another role, enable generic fan-out,
@@ -39,5 +39,7 @@ Kanban automatic dispatch/decomposition remains disabled. Credentials are runtim
 files, never Nix values. Named profiles explicitly seed their own writable auth
 from the local root auth.json without overwriting later profile-specific logins.
 No remote credentials or private histories are imported. Use each configured
-provider's native endpoint resolution; no remote endpoint or routing calendar
-is imported.
+provider's native endpoint resolution. Intern, Scribe, Developer and Architect
+use the declarative off-peak selector before each request; other profiles retain
+their configured model. Unknown time/calendar or unavailable off-peak credentials
+selects the safe Codex route. Do not change routes manually to bypass this policy.

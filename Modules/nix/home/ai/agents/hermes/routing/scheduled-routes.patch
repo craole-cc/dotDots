@@ -1,0 +1,14 @@
+--- a/agent/agent_init.py
++++ b/agent/agent_init.py
+@@ -2208,1 +2208,3 @@
+-    _snapshot_primary_runtime(agent)
++    _snapshot_primary_runtime(agent)
++    from agent.scheduled_routes import initialise
++    initialise(agent, _agent_cfg)
+--- a/agent/turn_api_request.py
++++ b/agent/turn_api_request.py
+@@ -120,1 +120,3 @@
+-    agent._reset_stream_delivery_tracking()
++    from agent.scheduled_routes import ensure_route
++    ensure_route(agent)
++    agent._reset_stream_delivery_tracking()

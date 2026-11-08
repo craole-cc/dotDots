@@ -8,6 +8,7 @@ an active host or user.
 - `bots/<name>/` owns default.nix, SOUL.md, AGENTS.md and optional local skills.
 - `skills/` owns reusable skill sources and curated references.
 - `rules/` owns reusable structured command policy.
+- `routing/` owns the off-peak schedule/calendar constructor; each bot owns its model choices.
 
 `mkSchema` exposes the explicit `ai/default.nix` catalog without passing its
 functions and rule lists through the generic identity-record walker. The Hermes

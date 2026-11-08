@@ -11,7 +11,7 @@ in {
   home.file."SOUL.md" = readFile ./SOUL.md;
   settings = {
     agent = {
-      reasoning_effort = "low";
+      reasoning_effort = "medium";
       max_turns = 100;
       disabled_toolsets = ["delegation"];
     };
