@@ -11,13 +11,13 @@
   inherit (context) cfg mod;
 
   inherit (lix.modules.construction) mkConfig mkContext;
-  inherit (lix.options.construction) mkOption mkTrue mkType;
+  inherit (lix.options.construction) mkFalse mkOption  mkTrue mkType;
 in
   mkConfig {
     inherit context;
     options = {
       enable = mkTrue mod;
-      silent = mkTrue "silent mode";
+      silent = mkFalse "silent mode";
       dotenv = mkTrue "load .env files";
       format = mkOption {
         description = "log format string";
