@@ -61,7 +61,9 @@ Preference resolutions use module priority 1000; explicit definitions under the 
 Generated gateway and Kanban settings use priority 90 to preserve the existing
 precedence of typed controls over conflicting raw `settings` keys.
 
-Craig's setup starts with one default agent, Hermes, in `~/Projects/hermes`.
+Craig's setup uses root Hermes Gateway and nine named role profiles ported from
+TheOracle, in `~/Projects/hermes`. See `API/nix/users/craole/ai/bots/README.md`
+for the port's ownership, model choices and runtime integration limits.
 The CLI, Desktop and service share `home.path`. This is a module fallback,
 not a fixed user setting. Projects stems come from the central paths contract,
 with user overrides over host overrides. `host.ai.hermes.home.path` and
@@ -78,7 +80,7 @@ Bot definitions receive `homePath` from the effective typed `home.path`, so thei
 file and credential references follow overrides too. The old `~/.hermes` is retained
 until the replacement has passed live checks; no old profiles, credentials,
 skills or endpoint settings are imported. Authentication must be established
-for the new home. Kanban and gateway multiplexing are disabled.
+for the new home. Automatic Kanban dispatch is disabled; gateway multiplexing is enabled.
 
 User bot definitions live in `API/nix/users/craole/ai/bots/<name>/default.nix`.
 The parent declares a `definitions` path map and an explicit `enabled` list.

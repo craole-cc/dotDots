@@ -19,7 +19,8 @@ a claim of Codex-equivalent enforcement. No global approval bypass is enabled.
 For Hermes, opt in with `shared.skills.enable` and `shared.rules.enable` in the
 bot definition. `shared.skills.curated` overrides the curated selection. These
 settings follow host/user schema resolution and are disabled by default.
-Craig's root Hermes opts in; no additional profiles are enabled.
+Craig's root Hermes opts in. Named profiles can reference its installed skills
+through `skills.external_dirs`; the user's bot roster owns profile selection.
 
 The AI parent excludes this catalog from automatic Home Manager imports.
 Maintainers should run `Tests/nix/ai-shared` and `Tests/nix/hermes` through the

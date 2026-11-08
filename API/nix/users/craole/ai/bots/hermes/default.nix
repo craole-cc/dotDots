@@ -5,8 +5,13 @@ in {
     skills.enable = true;
     rules.enable = true;
   };
-  home.file."SOUL.md" = readFile ./SOUL.md;
+  home.file."SOUL.md" = (readFile ./SOUL.md) + "\n" + (readFile ../POLICY.md);
   settings = {
+    agent = {
+      reasoning_effort = "low";
+      max_turns = 100;
+      disabled_toolsets = ["delegation"];
+    };
     model = {
       provider = "openai-codex";
       default = "gpt-6-luna";

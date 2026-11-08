@@ -403,16 +403,32 @@ in
       && !(lix.lists.predicates.elem "git reset --hard *" production.services.hermes-agent.settings.command_allowlist)
       && hasInfix "Ask for approval before running `git reset --hard`" production.services.hermes-agent.hermesHomeFiles."AGENTS.md";
     rootIdentity =
-      hasInfix "You are Hermes," production.services.hermes-agent.hermesHomeFiles."SOUL.md"
+      hasInfix "You are Hermes, the gateway" production.services.hermes-agent.hermesHomeFiles."SOUL.md"
       && !(production.services.hermes-agent.settings.model ? base_url)
       && production.services.hermes-agent.authFile == null
       && production.services.hermes-agent.environmentFiles == [];
     productionRoster =
       failures production
       == []
-      && production._.resolved.ai.agents.hermes-agent.defined.profiles == {}
+      && lix.attrsets.access.attrNames production._.resolved.ai.agents.hermes-agent.defined.profiles
+      == ["anthropologist" "architect" "assistant" "auditor" "coordinator" "developer" "intern" "librarian" "scribe"]
       && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
-      && !production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
+      && production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
+    portedProfileContracts = let
+      profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
+    in
+      all (name:
+        profiles.${name}.bot.enable
+        && profiles.${name}.auth.file == "${production.services.hermes-agent.hermesHome}/auth.json"
+        && !profiles.${name}.auth.overwrite
+        && profiles.${name}.settings.skills.external_dirs == ["${production.services.hermes-agent.hermesHome}/skills"]
+        && !(profiles.${name}.settings.model ? base_url)
+        && profiles.${name}.home.file ? "AGENTS.md") (lix.attrsets.access.attrNames profiles)
+      && profiles.architect.settings.model.default == "gpt-6.1-sol"
+      && profiles.intern.settings.model.default == "gpt-6-luna"
+      && lix.lists.predicates.elem "terminal" profiles.architect.settings.agent.disabled_toolsets
+      && hasInfix "This port installs profile definitions" profiles.coordinator.home.file."AGENTS.md"
+      && hasInfix "/profiles/coordinator/config.yaml" production.home.activation.hermesProfiles.data;
     partialRosterOverride = let
       configured = evaluate toolkit false {profiles.planner.settings.memory.memory_enabled = false;};
       profiles = configured._.resolved.ai.agents.hermes-agent.defined.profiles;
