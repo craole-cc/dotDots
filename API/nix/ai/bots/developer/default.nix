@@ -28,7 +28,7 @@ in
       inherit model;
       agent = {
         max_turns = 90;
-        reasoning_effort = "low";
+        reasoning_effort = "medium";
         disabled_toolsets = ["delegation"];
       };
       skills.external_dirs = ["${homePath}/skills"];

@@ -142,7 +142,7 @@ instruction guidance. Profiles and gateway identity remain agent-specific.
 The Nix package adapter installs an opt-in selector into the built Python runtime.
 Intern, Scribe and Developer select DeepSeek Flash off-peak; Architect selects
 DeepSeek V4 Pro. Their normal routes remain Codex; Developer normally uses Sol
-with low effort, and root Hermes uses Luna with medium effort. Other profiles
+with medium effort, and root Hermes uses Luna with medium effort. Other profiles
 are not opted in. API/nix/ai/routing owns the schedule and calendar constructor.
 
 The selector checks before each request and uses the native binder rather than

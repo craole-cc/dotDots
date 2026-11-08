@@ -17,7 +17,7 @@ reusable skills remain in the shared catalog.
 Source: read-only inspection of TheOracle's `/home/craole-cc/.hermes` root and
 named profile definitions. Role ownership and tool restrictions were retained;
 Receptionist references were renamed Hermes. Initial models came from the inspected configuration; local model policy is now: Architect, Anthropologist, Auditor and Developer normally use gpt-6.1-sol; the
-other roles normally use gpt-6-luna through openai-codex. Developer uses low
+other roles normally use gpt-6-luna through openai-codex. Developer uses medium
 reasoning effort and default Hermes medium effort. Intern's stale local-Qwen description
 was corrected. Endpoint overrides were omitted. Scheduled routing is configured separately in
 `API/nix/ai/routing`: Intern, Scribe and Developer use DeepSeek Flash off-peak;

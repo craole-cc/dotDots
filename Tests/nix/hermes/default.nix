@@ -438,7 +438,7 @@ in
       == ["architect" "developer" "intern" "scribe"]
       && production.services.hermes-agent.settings.agent.reasoning_effort == "medium"
       && profiles.developer.settings.model.default == "gpt-6.1-sol"
-      && profiles.developer.settings.agent.reasoning_effort == "low"
+      && profiles.developer.settings.agent.reasoning_effort == "medium"
       && all (name:
         profiles.${name}.settings.scheduled_routes.policy_file
         == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
