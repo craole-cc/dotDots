@@ -15,6 +15,7 @@ result*
 __pycache__/
 *.py[cod]
 .pytest_cache/
+zig-out/
 
 #~@ Editor & IDE Configs
 .vscode/

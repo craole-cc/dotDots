@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+
+[package]
+name = "dotdots-scripts"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "hermes-team-report"
+path = "Modules/nix/home/ai/agents/hermes/report/report.rs"

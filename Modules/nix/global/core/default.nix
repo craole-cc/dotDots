@@ -16,10 +16,8 @@
   #| Packages -----------------------------------------------|
   #|---------------------------------------------------------|
   packages =
-    [
-      cmdExists
-      fetch
-    ]
+    [cmdExists fetch]
+    ++ formatters # ? Formatter packages plus the wrapper
     ++ (
       with pkgs;
         [
@@ -52,7 +50,6 @@
           pbcopy # ? Command line interface to the macOS clipboard
           pbpaste # ? Command line interface to the macOS clipboard
         ]
-        ++ formatters # ? Formatter packages plus the wrapper
     );
 
   #|---------------------------------------------------------|
@@ -153,12 +150,4 @@
         ${fetch.name}
       fi
     '';
-in {
-  inherit
-    description
-    packages
-    env
-    runtimeHook
-    shellHook
-    ;
-}
+in {inherit description packages env runtimeHook shellHook;}

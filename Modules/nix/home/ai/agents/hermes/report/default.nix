@@ -1,28 +1,50 @@
+/**
+Install `hermes-team-report` for the configured Hermes home.
+
+Run without arguments to print a JSON object whose `profiles` array contains
+the sorted directory names under `${HERMES_HOME}/profiles`. A missing profiles
+directory produces an empty array; the listing is independent of `cfg.profiles`.
+
+Run with `--check` to also require `profiles/<name>/profile.yaml` for each
+enabled profile in `cfg.profiles`. The helper prints the same listing, reports
+missing files on stderr, and exits with status 1 if any are missing. Unknown
+arguments exit with status 2.
+*/
 {
   cfg,
   lix,
-  pkgs,
   ...
 }: let
   inherit (lix.attrsets.transformation) filterAttrs mapAttrsToList;
   inherit (lix.strings.construction) concatStringsSep;
   inherit (lix.strings.transformation) escapeShellArg;
-  inherit (lix.toolkit) write;
+  inherit (lix.toolkit.write) bin;
+  inherit (lix.toolkit.binaries) rust-script;
 
-  active = filterAttrs (_name: profile: profile.enable) cfg.profiles;
+  #> Quote each environment value as one shell argument, including paths with spaces.
+  mkVar = key: value: "export ${key}=${escapeShellArg value}";
 
-  #? rust-script source for the report helper. Reads the on-disk profile roster
-  #? (the source of truth the gateway uses) and prints a compact JSON summary.
-  #? --check exits non-zero if any declared profile is missing profile.yaml.
-  reportRs = ./report.rs;
+  #> Replace the wrapper with the toolkit's Rust runner and forward all CLI arguments.
+  mkExec = cmd: script: ''
+    exec ${
+      escapeShellArg (toString cmd)
+    } ${
+      escapeShellArg (toString script)
+    } "$@"
+  '';
 
-  declaredNames = concatStringsSep " " (mapAttrsToList (name: _profile: name) active);
+  #? The Rust helper splits this enabled-profile roster on whitespace for --check.
+  #? Disabled declarations are excluded; the on-disk listing may contain other names.
+  declaredNames = concatStringsSep " " (
+    mapAttrsToList (name: _profile: name)
+    (filterAttrs (_name: profile: profile.enable) cfg.profiles)
+  );
 in {
   outputs.home.packages = [
-    (write.binWith "hermes-team-report" [pkgs.rust-script] ''
-      export HERMES_HOME=${escapeShellArg cfg.home.path}
-      export HERMES_DECLARED_PROFILES=${escapeShellArg declaredNames}
-      exec ${pkgs.rust-script}/bin/rust-script ${reportRs} "$@"
+    (bin "hermes-team-report" ''
+      ${mkVar "HERMES_HOME" cfg.home.path}
+      ${mkVar "HERMES_DECLARED_PROFILES" declaredNames}
+      ${mkExec rust-script ./report.rs}
     '')
   ];
 }
