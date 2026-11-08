@@ -82,9 +82,11 @@ def ensure_route(agent, now: datetime | None = None) -> bool:
         return False
     try:
         if bind_route_entry(agent, desired, provider, model) is not None:
+            logger.info("Scheduled route active: profile=%s provider=%s model=%s", agent._scheduled_home.name, provider, model)
             return True
     except Exception:  # health: allow BLE001 -- safe primary restored if provider binding fails
         logger.warning("Scheduled provider binding failed; restoring Codex")
+    logger.warning("Scheduled route could not bind; restoring Codex for profile=%s", agent._scheduled_home.name)
     if bind_route_entry(agent, safe, safe["provider"], safe["model"]) is None:
         raise RuntimeError("Safe scheduled fallback unavailable; request stopped")
     agent._provider_fallback_active = True

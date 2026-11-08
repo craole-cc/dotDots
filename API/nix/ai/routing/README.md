@@ -16,8 +16,11 @@ with invalid policy, the selector chooses Codex, never guesses a discount.
 The user selection references the existing private/hermes/deepseek.env using
 the central private stem, anchored to the Home Manager home directory. It passes
 only the runtime path to opted-in bots. Secret contents never enter the store.
-If this file is absent, existing native authentication may still resolve the
-provider; otherwise binding returns to Codex. Explicit profile environment.files
+The runtime path is declared unconditionally: pure Nix evaluation cannot see
+private files and must not decide whether to install credentials. Activation
+reads the declared file at runtime. Ensure it exists before activation; its
+contents remain outside the store. If native credentials cannot be resolved,
+binding returns to Codex. Explicit profile environment.files
 overrides remain available for other credential sources.
 
 The Nix Hermes package adapter patches the filtered Python source used to build

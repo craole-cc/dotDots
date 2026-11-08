@@ -437,6 +437,7 @@ in
       && all (name:
         profiles.${name}.settings.scheduled_routes.policy_file
         == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
+        && profiles.${name}.environment.files == ["${production.home.homeDirectory}/Private/hermes/deepseek.env"]
         && hasInfix "deepseek" profiles.${name}.home.file."routing-policy.json") (lix.attrsets.access.attrNames scheduled);
     portedProfileContracts = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
