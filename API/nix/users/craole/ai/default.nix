@@ -24,5 +24,8 @@ in
       telegram.source = "${homeDirectory}/.hermes/.env";
     };
     kanban.enable = false;
-    knowledge.enable = true;
+    knowledge = {
+      enable = true;
+      root = "${homeDirectory}/Projects/craole-cc/ccki";
+    };
   }

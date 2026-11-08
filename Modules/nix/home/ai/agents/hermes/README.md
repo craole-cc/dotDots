@@ -363,13 +363,17 @@ the existing projects path contract. The command, shared knowledge skill, gatewa
 environment, and named-profile environments use that root. Profile tool
 restrictions still apply; installing a command does not authorise filing.
 
-After activating the Home Manager generation, the owner runs `ccki-setup` once
-to clone `git@github.com:craole-cc/ccki.git`. It refuses an existing destination;
-inspect an existing checkout rather than replacing it. Git identity and SSH
-authentication must already work. No checkout or knowledge data is fetched
+Craole selects the existing checkout at `~/Projects/craole-cc/ccki`. After
+activating the Home Manager generation, the owner runs `ccki-setup` to validate
+that checkout or clone `https://github.com/craole-cc/ccki.git` if missing. Existing
+directories must be Git roots with the configured origin; mismatches are refused.
+For GitHub HTTPS, setup uses the existing `gh` login and configures a credential
+helper in that repository only, so later CCKI pushes use it too. Git identity and
+`gh auth status` must already work. No checkout or knowledge data is fetched
 during activation or copied into the Nix store. The immutable command is pinned;
 the writable checkout follows its own Git history and contains the live rulebook.
-The copied knowledge skill matches the command revision.
+The copied knowledge skill matches the command revision. CCKI augments the
+Hermes dependency list at its baseline priority, preserving desktop tools.
 
 Verify `ccki rules`, `ccki index --full`, and a known-page `ccki read SLUG`
 before commissioning Librarian work. Read the live shared profile policy too;

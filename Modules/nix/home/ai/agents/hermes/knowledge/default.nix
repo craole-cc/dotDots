@@ -6,7 +6,7 @@
   resolve,
   ...
 }: let
-  inherit (lix.modules.construction) mkIf mkLayer mkMerge;
+  inherit (lix.modules.construction) mkIf mkLayer mkMerge mkOverride;
   inherit (lix.options.construction) mkFalse mkOption;
   inherit (lix.types.primitives) str;
   inherit (lix.strings.transformation) escapeShellArg;
@@ -36,15 +36,32 @@
   };
   setup = pkgs.writeShellApplication {
     name = "ccki-setup";
-    runtimeInputs = with pkgs; [coreutils git openssh];
+    runtimeInputs = with pkgs; [coreutils git openssh gh];
     text = ''
       root=${escapeShellArg cfg.knowledge.root}
+      repository=${escapeShellArg cfg.knowledge.repository}
       if [[ -e "$root" ]]; then
-        printf 'CCKI destination already exists: %s\nInspect it before using ccki.\n' "$root" >&2
-        exit 1
+        actual_root="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" || {
+          printf 'CCKI destination exists but is not a Git checkout.\n' >&2
+          exit 1
+        }
+        if [[ "$(realpath "$actual_root")" != "$(realpath "$root")" ]] ||
+          [[ "$(git -C "$root" remote get-url origin)" != "$repository" ]]; then
+          printf 'CCKI checkout root or origin does not match configuration.\n' >&2
+          exit 1
+        fi
+      else
+        mkdir -p "$(dirname "$root")"
+        if [[ "$repository" == https://github.com/* ]]; then
+          gh repo clone "$repository" "$root"
+        else
+          git clone -- "$repository" "$root"
+        fi
       fi
-      mkdir -p "$(dirname "$root")"
-      git clone -- ${escapeShellArg cfg.knowledge.repository} "$root"
+      if [[ "$repository" == https://github.com/* ]]; then
+        git -C "$root" config --local --replace-all credential.https://github.com.helper ""
+        git -C "$root" config --local --add credential.https://github.com.helper '!${pkgs.gh}/bin/gh auth git-credential'
+      fi
       printf 'CCKI checkout ready: %s\nRun ccki rules and ccki index --full.\n' "$root"
     '';
   };
@@ -59,7 +76,7 @@ in {
     };
     repository = mkOption {
       type = str;
-      default = "git@github.com:craole-cc/ccki.git";
+      default = "https://github.com/craole-cc/ccki.git";
       description = "Knowledge repository cloned by the explicitly invoked ccki-setup helper.";
     };
   };
@@ -67,7 +84,7 @@ in {
     {knowledge = mkLayer 1000 (resolved.knowledge or {});}
     (mkIf cfg.knowledge.enable {
       environment.variables = environment;
-      extra.packages = [command];
+      extra.packages = mkOverride 1000 [command];
       shared.skills.enable = true;
     })
   ];
