@@ -5,6 +5,7 @@
 }: let
   inherit (lix.filesystem.access) readFile;
 in {
+  bot.title = "Fixture Worker";
   home.file = {
     "SOUL.md" = readFile ../worker-soul.md;
     "home-path.txt" = homePath;

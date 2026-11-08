@@ -54,7 +54,11 @@ in
   assert elem default enabled;
     root
     // {
-      profiles =
-        genAttrs (filter (name: name != default) enabled) (name:
-          {bot.enable = true;} // load name);
+      profiles = genAttrs (filter (name: name != default) enabled) (name: let
+        profile = load name;
+      in
+        profile
+        // {
+          bot = {enable = true;} // (profile.bot or {});
+        });
     }
