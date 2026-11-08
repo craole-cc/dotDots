@@ -3,7 +3,7 @@
   homeDirectory,
   homePath,
   definitions ? {
-    hermes = ./hermes;
+    receptionist = ./receptionist;
     coordinator = ./coordinator;
     developer = ./developer;
     librarian = ./librarian;
@@ -15,6 +15,7 @@
     auditor = ./auditor;
   },
   enabled,
+  default ? "receptionist",
 }: let
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) concatMapAttrs;
@@ -47,12 +48,12 @@
           file = skills // (bot.home.file or {});
         };
     };
-  root = load "hermes";
+  root = load default;
 in
-  assert elem "hermes" enabled;
+  assert elem default enabled;
     root
     // {
       profiles =
-        genAttrs (filter (name: name != "hermes") enabled) (name:
+        genAttrs (filter (name: name != default) enabled) (name:
           {bot.enable = true;} // load name);
     }

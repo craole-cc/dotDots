@@ -85,7 +85,7 @@ for the new home. Automatic Kanban dispatch is disabled; gateway multiplexing is
 Central bot definitions live in `API/nix/ai/bots/<name>/default.nix`.
 Host/user selection supplies an explicit `enabled` list and optional `definitions`
 overrides to the API bot catalog.
-The `hermes` entry configures the root agent; other enabled entries configure
+The selected `default` entry (`receptionist` in Craig's configuration) configures the root agent; other enabled entries configure
 named profiles and receive `bot.enable = true` unless overridden. Disabled
 entries are not loaded. No installed runtime roster is automatically adopted.
 Each definition is a function accepting `lix`, `homeDirectory` and `homePath`.

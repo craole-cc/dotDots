@@ -7,7 +7,8 @@
   inherit (lix.schema.construction) mkSchema;
   bots = (mkSchema {}).ai.bots {
     inherit lix homeDirectory homePath;
-    enabled = ["hermes" "coordinator" "developer" "librarian" "anthropologist" "assistant" "architect" "scribe" "intern" "auditor"];
+    default = "receptionist";
+    enabled = ["receptionist" "coordinator" "developer" "librarian" "anthropologist" "assistant" "architect" "scribe" "intern" "auditor"];
   };
 in
   bots

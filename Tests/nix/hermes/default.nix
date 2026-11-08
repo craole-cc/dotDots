@@ -105,11 +105,11 @@
       import ../../../API/nix/ai/bots {
         inherit lix homeDirectory homePath;
         definitions = {
-          hermes = ../../../API/nix/ai/bots/hermes;
+          receptionist = ../../../API/nix/ai/bots/receptionist;
           worker = ./fixtures/local-bot;
           disabled = throw "Disabled bot must not be loaded";
         };
-        enabled = ["hermes" "worker"];
+        enabled = ["receptionist" "worker"];
       };
   };
   failures = evaluated: map (entry: entry.message) (filter (entry: !entry.assertion) evaluated.assertions);
@@ -329,6 +329,7 @@ in
       == []
       && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.settings.model.default == "local-skill-model"
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? hermes)
+      && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? receptionist)
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? disabled)
       && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.bot.enable
       && hasInfix "You are the test worker." botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."SOUL.md"

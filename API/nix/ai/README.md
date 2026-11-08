@@ -12,7 +12,8 @@ an active host or user.
 `mkSchema` exposes the explicit `ai/default.nix` catalog without passing its
 functions and rule lists through the generic identity-record walker. The Hermes
 bot loader takes an explicit enabled list and optional definition overrides.
-The `hermes` definition configures root/default, never a named profile.
+The `receptionist` catalog definition is selected as `default` downstream.
+Hermes maps it to root/default, never a named `receptionist` profile.
 
 A bot's `skills/<skill>/` tree is installed only into that bot's runtime skills
 directory, including scripts, references and other supporting files. Explicit

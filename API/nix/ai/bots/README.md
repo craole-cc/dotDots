@@ -1,11 +1,13 @@
 # Hermes team
 
-The root `hermes` bot ports TheOracle's Receptionist role as Hermes Gateway.
+The `receptionist` catalog bot ports TheOracle's conversational gateway role.
+Downstream Hermes selection maps it to root/default with runtime identity Hermes;
+no named `receptionist` or `hermes` profile is created.
 Nine named profiles port Coordinator, Developer, Librarian, Anthropologist,
 Assistant, Architect, Scribe, Intern and Auditor. Each owns a `default.nix`
 and SOUL.md plus a local AGENTS.md for operating instructions. POLICY.md holds
 the team operating contract once. Named profiles compose that contract with their
-local AGENTS.md; root Hermes appends both through shared.rules.instructions,
+local AGENTS.md; the default Hermes adapter appends both through shared.rules.instructions,
 preserving the generated shared command policy. SOUL.md contains identity and
 role responsibilities. A bot-local skills/ tree is discovered and installed recursively, including
 scripts and references. Explicit home.file entries take precedence. Add such
