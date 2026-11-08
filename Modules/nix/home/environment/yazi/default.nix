@@ -5,6 +5,7 @@
   options,
   paths,
   pkgs,
+  entryBefore,
   ...
 }: let
   inherit (lix.modules.construction) mkConfig mkContext;
@@ -14,7 +15,7 @@
   inherit (lix.filesystem.access) readDir readFile;
   inherit (lix.filesystem.primitives) concat;
   inherit (lix.strings.predicates) hasSuffix;
-  inherit (lix.strings.transformation) removeSuffix;
+  inherit (lix.strings.transformation) removeSuffix escapeShellArg;
   inherit (lix.lists.construction) optionals;
   inherit (lix.toolkit.platform) isDarwin;
 
@@ -58,6 +59,14 @@
       // {inherit (pkgs.yaziPlugins) ouch;};
     flavors = {};
   };
+  configDirectory = concat {
+    root = config.xdg.configHome;
+    stem = mod;
+  };
+  legacyDirectory = concat {
+    root = paths.repo.cfg.default.local;
+    stem = mod;
+  };
   names = ["settings" "keymap" "theme" "initLua" "plugins" "flavors" "shellWrapperName"];
 in
   mkConfig {
@@ -80,6 +89,13 @@ in
         });
 
     outputs = {
+      home.activation.migrateLegacyYaziLinks = entryBefore ["checkLinkTargets"] ''
+        ${pkgs.bash}/bin/bash ${./migrate-legacy-links.sh} \
+          ${escapeShellArg configDirectory} \
+          ${escapeShellArg legacyDirectory} \
+          "''${DRY_RUN_CMD:-}"
+      '';
+
       home.packages = optionals isDarwin [pkgs.yaziPlugins.mactag];
       programs.yazi =
         {inherit (cfg) enable;}
