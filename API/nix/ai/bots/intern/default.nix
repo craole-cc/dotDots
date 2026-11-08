@@ -17,6 +17,7 @@
   };
 in
   recursiveUpdate routing {
+    bot.title = "Intern";
     description = "Gather bounded evidence, inventories and assigned checks for a responsible owner.";
     auth.file = "${homePath}/auth.json";
     home.file = {

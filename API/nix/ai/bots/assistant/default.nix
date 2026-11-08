@@ -5,6 +5,7 @@
 }: let
   inherit (lix.filesystem.access) readFile;
 in {
+  bot.title = "Assistant";
   description = "Own authorized personal operations, correspondence and commitments.";
   auth.file = "${homePath}/auth.json";
   home.file = {

@@ -5,6 +5,7 @@
 }: let
   inherit (lix.filesystem.access) readFile;
 in {
+  bot.title = "Anthropologist";
   description = "Own research methods, source quality, evidence and attributed conclusions.";
   auth.file = "${homePath}/auth.json";
   home.file = {

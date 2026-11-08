@@ -17,6 +17,7 @@
   };
 in
   recursiveUpdate routing {
+    bot.title = "Developer";
     description = "Own technical decisions, integration, validation and defect resolution.";
     auth.file = "${homePath}/auth.json";
     home.file = {
