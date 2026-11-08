@@ -19,7 +19,10 @@
 in
   bots
   // {
-    gateway.multiplex = true;
+    gateway = {
+      multiplex = true;
+      telegram.source = "${homeDirectory}/.hermes/.env";
+    };
     kanban.enable = false;
     knowledge.enable = true;
   }

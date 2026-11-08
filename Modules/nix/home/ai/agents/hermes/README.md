@@ -385,3 +385,25 @@ lookup/indexing remain unsupported. The dashboard, inbox drop service and ingest
 workers are separate port work; this feature does not start them. Activation,
 live GitHub publication from CCKI, and a real Hermes filing session require
 verification after the owner activates the generation.
+
+## Reuse the legacy Telegram bot
+
+Craole's gateway selects `gateway.telegram.source = "${homeDirectory}/.hermes/.env"`.
+At the next owner-run `nhs`, activation extracts only `TELEGRAM_` variables into
+`${home.path}/telegram.env` with mode 0600, before Hermes merges runtime
+environment files. The token, user allowlist and home-channel settings stay out
+of Nix values and the store; the legacy file is unchanged. Missing token or
+allowed users, or unrestricted Telegram access, refuses preparation. Existing
+provider credential sources remain configured separately.
+
+Only the root gateway receives this Telegram credential file. Named profiles
+share that receiving bot through the existing multiplexed gateway; they do not
+start independent pollers with the same token. Native profile routing remains
+available. This does not install the legacy contributor broker or Telegram
+return transport. The legacy gateway must stay stopped while this gateway owns
+the bot. Configuration preparation does not stop, start or restart services;
+Home Manager may restart the gateway when the owner later runs `nhs`.
+
+After activation, the owner verifies a reply in the existing Telegram chat and
+checks the available profile commands before relying on multi-profile delivery.
+No Telegram API call or live message exchange was performed during this change.

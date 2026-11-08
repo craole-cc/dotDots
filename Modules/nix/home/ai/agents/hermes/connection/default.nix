@@ -2,6 +2,8 @@
   cfg,
   config,
   resolve,
+  pkgs,
+  entryBetween,
   lix,
   ...
 }: let
@@ -9,6 +11,7 @@
   inherit (lix.attrsets.transformation) filterAttrs mapAttrs;
   inherit (lix.lists.predicates) all;
   inherit (lix.modules.construction) mkIf mkLayer;
+  inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.toolkit) platform write;
   inherit (lix.strings.transformation) trim;
@@ -36,16 +39,29 @@
     inherit (config.services.hermes-agent) settings;
     inherit (cfg.gateway) multiplex routes;
   };
+  telegramPython = pkgs.python3.withPackages (python: [python.python-dotenv]);
   defaults.gateway = {
     enable = true;
     multiplex = false;
     routes = [];
+    telegram = {
+      source = null;
+      destination = "${cfg.home.path}/telegram.env";
+    };
   };
   resolved = resolve {gateway = defaults.gateway // {multiplex = active != {};};};
 in {
   inherit defaults;
   resolutions.gateway = mkLayer 1000 resolved.gateway;
   options.gateway = {
+    telegram = {
+      source = optionalId "Legacy runtime dotenv file from which activation extracts only TELEGRAM_ settings. Null disables extraction.";
+      destination = mkOption {
+        type = str;
+        default = defaults.gateway.telegram.destination;
+        description = "Private runtime Telegram environment file prepared before Hermes setup.";
+      };
+    };
     enable = mkEnable {
       description = "Hermes messaging gateway service";
       condition = defaults.gateway.enable;
@@ -102,7 +118,17 @@ in {
       cfg.gateway.routes;
   });
 
+  resolutions.environment.files = mkIf (cfg.gateway.telegram.source != null) [cfg.gateway.telegram.destination];
+
   outputs = {
+    home.activation.hermesTelegramEnvironment = mkIf (cfg.gateway.telegram.source != null) (
+      entryBetween ["hermesAgentSetup"] ["writeBoundary" "linkGeneration"] ''
+        $DRY_RUN_CMD ${telegramPython}/bin/python ${./telegram_environment.py} \
+          ${escapeShellArg cfg.gateway.telegram.source} \
+          ${escapeShellArg cfg.gateway.telegram.destination}
+      ''
+    );
+
     services.hermes-agent.gateway = {inherit (cfg.gateway) enable;};
 
     systemd.user.services.hermes-agent.Unit.X-Restart-Triggers =
@@ -113,6 +139,17 @@ in {
       ];
 
     assertions = [
+      {
+        assertion =
+          cfg.gateway.telegram.source
+          == null
+          || (
+            lix.strings.predicates.hasPrefix "/" cfg.gateway.telegram.source
+            && lix.strings.predicates.hasPrefix "/" cfg.gateway.telegram.destination
+            && cfg.gateway.telegram.source != cfg.gateway.telegram.destination
+          );
+        message = "Telegram migration requires distinct absolute runtime source and destination paths.";
+      }
       {
         assertion = cfg.gateway.routes == [] || cfg.gateway.multiplex;
         message = "Hermes gateway.routes requires gateway.multiplex.";
