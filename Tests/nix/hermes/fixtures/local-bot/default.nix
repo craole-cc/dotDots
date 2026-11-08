@@ -5,14 +5,13 @@
 }: let
   inherit (lix.filesystem.access) readFile;
 in {
-  description = "Bot wiring fixture";
   home.file = {
+    "SOUL.md" = readFile ../worker-soul.md;
     "home-path.txt" = homePath;
-    "SOUL.md" = readFile ./worker-soul.md;
-    "skills/example/SKILL.md" = readFile ./worker-skill.md;
+    "skills/example/references/evidence.md" = "Explicit bot override";
   };
   settings.model = {
     provider = "custom";
-    default = "fixture-model";
+    default = "local-skill-model";
   };
 }

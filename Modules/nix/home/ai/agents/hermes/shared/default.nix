@@ -17,7 +17,12 @@
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) lines str;
 
-  shared = import ../../../shared {inherit lix pkgs inputs;};
+  inherit (lix.schema.construction) mkSchema;
+  catalog = (mkSchema {}).ai;
+  shared = {
+    skills = catalog.skills {inherit lix pkgs inputs;};
+    inherit (catalog) rules;
+  };
   resolved = resolve {};
   files = prefix: directory:
     concatMapAttrs (name: kind:

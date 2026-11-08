@@ -18,11 +18,11 @@
   };
 
   inherit (_.attrsets.access) attrNames;
-  inherit (_.attrsets.construction) listToAttrs;
+  inherit (_.attrsets.construction) listToAttrs optionalAttrs;
   inherit (_.attrsets.transformation) mapAttrs;
   inherit (_.filesystem.predicates) isPathLike pathExists;
   inherit (_.filesystem.resolution) pathAttrs;
-  inherit (_.filesystem.traversal) foldersToExclude readDir;
+  inherit (_.filesystem.traversal) foldersToExclude readDir importAttrs;
   inherit (_.schema.core) mkCore;
   inherit (_.schema.home) mkUsers;
   inherit (_.schema.packages) merge;
@@ -92,7 +92,16 @@
   No active host is inferred here.
   */
   mkSchema = {api ? _defaults.paths.repo.api.default.store, ...}: let
-    api' = pathAttrs api;
+    # AI catalogs contain functions and lists, rather than identity records.
+    api' =
+      if isPathLike api
+      then
+        (importAttrs {
+          path = api;
+          exclude = ["ai"];
+        }).value
+        // optionalAttrs (pathExists (api + "/ai/default.nix")) {ai = import (api + "/ai");}
+      else pathAttrs api;
 
     identities = name: fallback:
       if isPathLike api

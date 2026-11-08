@@ -3,7 +3,8 @@
   cfg,
   ...
 }: let
-  shared = import ../../../shared/rules;
+  inherit (lix.schema.construction) mkSchema;
+  shared = (mkSchema {}).ai.rules;
   inherit (lix.strings.construction) concatStringsSep toJSON;
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.combinators) attrsOf either;

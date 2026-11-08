@@ -102,11 +102,11 @@
       homePath,
       ...
     }:
-      import ../../../API/nix/users/craole/ai/bots {
+      import ../../../API/nix/ai/bots {
         inherit lix homeDirectory homePath;
         definitions = {
-          hermes = ../../../API/nix/users/craole/ai/bots/hermes;
-          worker = ./fixtures/worker.nix;
+          hermes = ../../../API/nix/ai/bots/hermes;
+          worker = ./fixtures/local-bot;
           disabled = throw "Disabled bot must not be loaded";
         };
         enabled = ["hermes" "worker"];
@@ -327,11 +327,10 @@ in
     botFiles =
       failures botFiles
       == []
-      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.settings.model.default == "fixture-model"
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.settings.model.default == "local-skill-model"
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? hermes)
       && !(botFiles._.resolved.ai.agents.hermes-agent.defined.profiles ? disabled)
       && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.bot.enable
-      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."home-path.txt" == "/tmp/bot-home"
       && hasInfix "You are the test worker." botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."SOUL.md"
       && hasInfix "/profiles/worker/skills/example/SKILL.md" botFiles.home.activation.hermesProfiles.data;
     hostHomeOverride = let
@@ -368,6 +367,12 @@ in
       configured = schemaHome {user.paths.home.projects.stem = ["ResolvedWork"];};
     in
       configured.services.hermes-agent.hermesHome == "${configured.home.homeDirectory}/ResolvedWork/hermes";
+    botLocalSkillAssets =
+      botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file ? "skills/example/SKILL.md"
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file ? "skills/example/references/evidence.md"
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."skills/example/references/evidence.md" == "Explicit bot override"
+      && botFiles._.resolved.ai.agents.hermes-agent.defined.profiles.worker.home.file."home-path.txt" == "/tmp/bot-home"
+      && !(botFiles.services.hermes-agent.hermesHomeFiles ? "skills/example/SKILL.md");
     freshHome =
       production.services.hermes-agent.hermesHome
       == "${production.home.homeDirectory}/Projects/hermes"

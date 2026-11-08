@@ -5,11 +5,12 @@
   cfg,
   ...
 }: let
+  inherit (lix.schema.construction) mkSchema;
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.combinators) attrsOf either listOf;
   inherit (lix.types.primitives) lines path str;
-  shared = import ../../../shared/skills {inherit lix pkgs inputs;};
+  shared = (mkSchema {}).ai.skills {inherit lix pkgs inputs;};
 in {
   options = {
     curated.skills = mkOption {

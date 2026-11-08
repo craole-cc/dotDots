@@ -1,8 +1,23 @@
-# Shared AI skills and rules
+# AI catalog
 
-This directory owns reusable skill sources and command policy. Agent modules
-adapt them to their supported formats. Profiles, models and identity remain
-with the agent or user bot definitions.
+This directory owns bot definitions, shared skills and shared command policy.
+Agent modules adapt the selected definitions to their runtime formats. Host and
+user records select bots and override configuration; the catalog never selects
+an active host or user.
+
+- `bots/<name>/` owns default.nix, SOUL.md, AGENTS.md and optional local skills.
+- `skills/` owns reusable skill sources and curated references.
+- `rules/` owns reusable structured command policy.
+
+`mkSchema` exposes the explicit `ai/default.nix` catalog without passing its
+functions and rule lists through the generic identity-record walker. The Hermes
+bot loader takes an explicit enabled list and optional definition overrides.
+The `hermes` definition configures root/default, never a named profile.
+
+A bot's `skills/<skill>/` tree is installed only into that bot's runtime skills
+directory, including scripts, references and other supporting files. Explicit
+home.file entries override discovered local skill files. Named Hermes profiles
+also discover the root shared skills through external_dirs.
 
 Add custom skill Markdown files under `skills/`; both adapters discover them.
 The curated source and default selection are defined in `skills/default.nix`.
@@ -22,7 +37,7 @@ settings follow host/user schema resolution and are disabled by default.
 Craig's root Hermes opts in. Named profiles can reference its installed skills
 through `skills.external_dirs`; the user's bot roster owns profile selection.
 
-The AI parent excludes this catalog from automatic Home Manager imports.
+The catalog is API data, not a Home Manager module.
 Maintainers should run `Tests/nix/ai-shared` and `Tests/nix/hermes` through the
 flake before publishing changes. Activation and live agent behavior require
 separate verification; no action is taken on runtime homes by these checks.

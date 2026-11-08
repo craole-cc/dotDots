@@ -62,7 +62,7 @@ Generated gateway and Kanban settings use priority 90 to preserve the existing
 precedence of typed controls over conflicting raw `settings` keys.
 
 Craig's setup uses root Hermes Gateway and nine named role profiles ported from
-TheOracle, in `~/Projects/hermes`. See `API/nix/users/craole/ai/bots/README.md`
+TheOracle, in `~/Projects/hermes`. See `API/nix/ai/bots/README.md`
 for the port's ownership, model choices and runtime integration limits.
 The CLI, Desktop and service share `home.path`. This is a module fallback,
 not a fixed user setting. Projects stems come from the central paths contract,
@@ -82,8 +82,9 @@ until the replacement has passed live checks; no old profiles, credentials,
 skills or endpoint settings are imported. Authentication must be established
 for the new home. Automatic Kanban dispatch is disabled; gateway multiplexing is enabled.
 
-User bot definitions live in `API/nix/users/craole/ai/bots/<name>/default.nix`.
-The parent declares a `definitions` path map and an explicit `enabled` list.
+Central bot definitions live in `API/nix/ai/bots/<name>/default.nix`.
+Host/user selection supplies an explicit `enabled` list and optional `definitions`
+overrides to the API bot catalog.
 The `hermes` entry configures the root agent; other enabled entries configure
 named profiles and receive `bot.enable = true` unless overridden. Disabled
 entries are not loaded. No installed runtime roster is automatically adopted.
@@ -106,9 +107,10 @@ in {
 }
 ```
 
-The owner adds the bot path to `definitions` and its name to `enabled` to
-activate it. Supporting skill files use additional `home.file` entries beneath
-the same skill directory. Keep credentials in runtime files referenced through
+The owner adds its name to `enabled` to activate a catalog bot. Additional
+definitions can be supplied explicitly. Bot-local `skills/` trees are installed
+recursively, including supporting files; `home.file` can override individual
+files. Keep credentials in runtime files referenced through
 `auth.file` or `environment.files`; do not embed secrets in Nix. Named bots do
 not inherit the root agent's credentials. Root Hermes uses `gpt-6-luna` with
 provider-managed endpoint resolution and its own adjacent `SOUL.md`.
@@ -128,10 +130,10 @@ The module is split into folders:
 
 ## Shared Skills And Rules
 
-Reusable sources live in `Modules/nix/home/ai/shared`, consumed by both Codex
+Reusable sources live in `API/nix/ai`, consumed by both Codex
 and Hermes. Craig's root bot enables `shared.skills.enable` and
 `shared.rules.enable`; the module defaults leave both disabled for other bots.
-See [the shared catalog](../../../shared/README.md) for source ownership,
+See [the shared catalog](../../../../../../API/nix/ai/README.md) for source ownership,
 curated selection and the differences between native command enforcement and
 instruction guidance. Profiles and gateway identity remain agent-specific.
 

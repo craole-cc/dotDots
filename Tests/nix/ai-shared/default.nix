@@ -5,7 +5,11 @@
   inherit (lix.lists.predicates) elem all;
   inherit (lix.strings.predicates) hasInfix;
   pkgs = import inputs.nixPackages {system = "x86_64-linux";};
-  shared = import ../../../Modules/nix/home/ai/shared {inherit lix pkgs inputs;};
+  catalog = (lix.schema.construction.mkSchema {}).ai;
+  shared = {
+    skills = catalog.skills {inherit lix pkgs inputs;};
+    inherit (catalog) rules;
+  };
   codexSkills = import ../../../Modules/nix/home/ai/agents/codex/skills {
     inherit lix pkgs inputs;
     cfg = {
@@ -19,6 +23,10 @@
   };
   imports = (import ../../../Modules/nix/home/ai {inherit lix;}).imports;
 in {
+  apiCatalog =
+    lix.types.predicates.isFunction catalog.bots
+    && lix.types.predicates.isFunction catalog.skills
+    && catalog.rules == import ../../../API/nix/ai/rules;
   customSkills = attrNames shared.skills.custom == ["commit-messages" "nix-inspect" "nix-style" "plan-first" "sh-utils" "writing-style"];
   codexCustomSkills = all (name: codexSkills.program.skills ? ${name}) (attrNames shared.skills.custom);
   codexSkillOverride = codexSkills.program.skills.nix-style == "User override";
@@ -27,5 +35,5 @@ in {
     hasInfix ''decision = "prompt")'' codexRules.options.rules.default.common
     && hasInfix ''["git","reset","--hard"]'' codexRules.options.rules.default.common;
   codexRuleOverride = codexRules.program.rules.custom == "User rules";
-  sharedNotImportedAsModule = !(elem ../../../Modules/nix/home/ai/shared/default.nix imports);
+  sharedNotImportedAsModule = !(elem ../../../API/nix/ai/default.nix imports);
 }
