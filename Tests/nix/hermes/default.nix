@@ -402,6 +402,11 @@ in
       lix.lists.predicates.elem "git push *" production.services.hermes-agent.settings.command_allowlist
       && !(lix.lists.predicates.elem "git reset --hard *" production.services.hermes-agent.settings.command_allowlist)
       && hasInfix "Ask for approval before running `git reset --hard`" production.services.hermes-agent.hermesHomeFiles."AGENTS.md";
+    botLocalInstructions =
+      hasInfix "Receptionist is an alias" production.services.hermes-agent.hermesHomeFiles."AGENTS.md"
+      && !(hasInfix "# Local Team Operating Policy" production.services.hermes-agent.hermesHomeFiles."SOUL.md")
+      && hasInfix "# Developer Operations" production._.resolved.ai.agents.hermes-agent.defined.profiles.developer.home.file."AGENTS.md"
+      && hasInfix "# Local Team Operating Policy" production._.resolved.ai.agents.hermes-agent.defined.profiles.developer.home.file."AGENTS.md";
     rootIdentity =
       hasInfix "You are Hermes, the gateway" production.services.hermes-agent.hermesHomeFiles."SOUL.md"
       && !(production.services.hermes-agent.settings.model ? base_url)

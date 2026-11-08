@@ -15,7 +15,7 @@
   inherit (lix.options.construction) mkFalse mkOption;
   inherit (lix.strings.construction) concatStringsSep;
   inherit (lix.types.combinators) listOf;
-  inherit (lix.types.primitives) str;
+  inherit (lix.types.primitives) lines str;
 
   shared = import ../../../shared {inherit lix pkgs inputs;};
   resolved = resolve {};
@@ -63,13 +63,20 @@ in {
         description = "Skills selected from the shared pinned curated source.";
       };
     };
-    rules.enable = mkFalse "Apply shared command policy using Hermes's allowlist and AGENTS.md instructions.";
+    rules = {
+      enable = mkFalse "Apply shared command policy using Hermes's allowlist and AGENTS.md instructions.";
+      instructions = mkOption {
+        type = lines;
+        default = "";
+        description = "Bot-specific instructions appended to the shared command policy in AGENTS.md.";
+      };
+    };
   };
   resolutions = mkMerge [
     {shared = mkLayer 1000 (resolved.shared or {});}
     (mkIf cfg.shared.skills.enable {home.file = mkLayer 1500 (curated // custom);})
     (mkIf cfg.shared.rules.enable {
-      home.file."AGENTS.md" = mkOverride 1500 instructions;
+      home.file."AGENTS.md" = mkOverride 1500 (instructions + "\n" + cfg.shared.rules.instructions);
       settings.command_allowlist = mkOverride 1500 (concatMap (rule: [(command rule) "${command rule} *"]) allowed);
     })
   ];

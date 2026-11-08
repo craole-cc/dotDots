@@ -3,9 +3,12 @@
 in {
   shared = {
     skills.enable = true;
-    rules.enable = true;
+    rules = {
+      enable = true;
+      instructions = (readFile ../POLICY.md) + "\n" + (readFile ./AGENTS.md);
+    };
   };
-  home.file."SOUL.md" = (readFile ./SOUL.md) + "\n" + (readFile ../POLICY.md);
+  home.file."SOUL.md" = readFile ./SOUL.md;
   settings = {
     agent = {
       reasoning_effort = "low";

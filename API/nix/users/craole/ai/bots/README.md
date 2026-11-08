@@ -3,7 +3,12 @@
 The root `hermes` bot ports TheOracle's Receptionist role as Hermes Gateway.
 Nine named profiles port Coordinator, Developer, Librarian, Anthropologist,
 Assistant, Architect, Scribe, Intern and Auditor. Each owns a `default.nix`
-and SOUL.md. POLICY.md holds the local operating contract once.
+and SOUL.md plus a local AGENTS.md for operating instructions. POLICY.md holds
+the team operating contract once. Named profiles compose that contract with their
+local AGENTS.md; root Hermes appends both through shared.rules.instructions,
+preserving the generated shared command policy. SOUL.md contains identity and
+role responsibilities. Add a skills/ folder only for actual bot-specific skills;
+reusable skills remain in the shared catalog.
 
 Source: read-only inspection of TheOracle's `/home/craole-cc/.hermes` root and
 named profile definitions. Role ownership and tool restrictions were retained;
