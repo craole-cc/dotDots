@@ -404,6 +404,11 @@ in
       == "User skill"
       && configured.services.hermes-agent.hermesHomeFiles."AGENTS.md" == "User policy"
       && configured.services.hermes-agent.settings.command_allowlist == ["custom command"];
+    offlineDocumentation =
+      production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/SKILL.md"
+      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/upstream/user-guide/features/kanban.md"
+      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/UPSTREAM-LICENSE"
+      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/SOURCE.json";
     sharedRules =
       lix.lists.predicates.elem "git push *" production.services.hermes-agent.settings.command_allowlist
       && !(lix.lists.predicates.elem "git reset --hard *" production.services.hermes-agent.settings.command_allowlist)

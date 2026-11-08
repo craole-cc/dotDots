@@ -37,7 +37,7 @@
 
   #> Dynamically collect all custom `.md` skills in this directory.
   entries = readDir ./.;
-  custom = listToAttrs (
+  local = listToAttrs (
     map (file: {
       name = substring 0 (stringLength file - 3) file;
       value = readFile (./. + "/${file}");
@@ -48,8 +48,24 @@
       (attrNames entries)
     )
   );
+  hermesSource = (inputs.hermes or inputs.hermes-agent).outPath;
+  provenance = pkgs.writeText "hermes-documentation-source.json" (lix.strings.construction.toJSON {
+    repository = "https://github.com/NousResearch/hermes-agent";
+    revision = (inputs.hermes or inputs.hermes-agent).rev or null;
+    source = toString hermesSource;
+    documentation = "website/docs";
+    officialIndex = "https://hermes-agent.nousresearch.com/docs/llms.txt";
+    scope = "Complete pinned documentation tree; no runtime data or credentials.";
+  });
+  documentation = pkgs.runCommand "hermes-agent-docs-skill" {} ''
+    mkdir -p "$out/references"
+    cp -R ${./hermes-agent-docs}/. "$out/"
+    cp -R ${hermesSource}/website/docs "$out/references/upstream"
+    cp ${hermesSource}/LICENSE "$out/references/UPSTREAM-LICENSE"
+    cp ${provenance} "$out/references/SOURCE.json"
+  '';
 in {
-  inherit custom;
+  custom = local // {hermes-agent-docs = toString documentation;};
   curated = {
     default = ["gh-fix-ci" "gh-address-comments"];
     inherit (openai) source target;

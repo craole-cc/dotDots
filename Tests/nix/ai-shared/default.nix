@@ -27,7 +27,7 @@ in {
     lix.types.predicates.isFunction catalog.bots
     && lix.types.predicates.isFunction catalog.skills
     && catalog.rules == import ../../../API/nix/ai/rules;
-  customSkills = attrNames shared.skills.custom == ["commit-messages" "nix-inspect" "nix-style" "plan-first" "sh-utils" "writing-style"];
+  customSkills = attrNames shared.skills.custom == ["commit-messages" "hermes-agent-docs" "nix-inspect" "nix-style" "plan-first" "sh-utils" "writing-style"];
   codexCustomSkills = all (name: codexSkills.program.skills ? ${name}) (attrNames shared.skills.custom);
   codexSkillOverride = codexSkills.program.skills.nix-style == "User override";
   codexCuratedSource = codexSkills.program.skills.gh-fix-ci == shared.skills.curated.target "gh-fix-ci";

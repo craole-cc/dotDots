@@ -1,0 +1,542 @@
+{
+  "observed_date": "2026-11-08",
+  "scope": "Skill files in the root Hermes home; not proof of dependency or account readiness.",
+  "count": 52,
+  "skills": [
+    {
+      "path": "apple/apple-notes/SKILL.md",
+      "name": "apple-notes",
+      "description": "Manage Apple Notes via memo CLI: create, search, edit.",
+      "platforms": [
+        "macos"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "apple/apple-reminders/SKILL.md",
+      "name": "apple-reminders",
+      "description": "Apple Reminders via remindctl: add, list, complete.",
+      "platforms": [
+        "macos"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "apple/findmy/SKILL.md",
+      "name": "findmy",
+      "description": "Track Apple devices/AirTags via FindMy.app on macOS.",
+      "platforms": [
+        "macos"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "apple/imessage/SKILL.md",
+      "name": "imessage",
+      "description": "Send and receive iMessages/SMS via the imsg CLI on macOS.",
+      "platforms": [
+        "macos"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "autonomous-ai-agents/claude-code/SKILL.md",
+      "name": "claude-code",
+      "description": "Delegate coding to Claude Code CLI (features, PRs).",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "autonomous-ai-agents/codex/SKILL.md",
+      "name": "codex",
+      "description": "Delegate coding to OpenAI Codex CLI (features, PRs).",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "autonomous-ai-agents/computer-use/SKILL.md",
+      "name": "computer-use",
+      "description": "Drive the desktop background-first; escalate on signal.",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "autonomous-ai-agents/hermes-agent/SKILL.md",
+      "name": "hermes-agent",
+      "description": "Use, configure, theme, extend, and orchestrate Hermes Agent.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "commit-messages/SKILL.md",
+      "name": "commit-messages",
+      "description": "Conventions for git commit messages. Use when creating or amending commits.",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/architecture-diagram/SKILL.md",
+      "name": "architecture-diagram",
+      "description": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/ascii-video/SKILL.md",
+      "name": "ascii-video",
+      "description": "ASCII video: convert video/audio to colored ASCII MP4/GIF.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/baoyu-infographic/SKILL.md",
+      "name": "baoyu-infographic",
+      "description": "Infographics: 21 layouts x 21 styles (\u4fe1\u606f\u56fe, \u53ef\u89c6\u5316).",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/claude-design/SKILL.md",
+      "name": "claude-design",
+      "description": "Design one-off HTML artifacts (landing, deck, prototype).",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/humanizer/SKILL.md",
+      "name": "humanizer",
+      "description": "Humanize text: strip AI-isms and add real voice.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/manim-video/SKILL.md",
+      "name": "manim-video",
+      "description": "Manim CE animations: 3Blue1Brown math/algo videos.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/p5js/SKILL.md",
+      "name": "p5js",
+      "description": "p5.js sketches: gen art, shaders, interactive, 3D.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/popular-web-designs/SKILL.md",
+      "name": "popular-web-designs",
+      "description": "54 real design systems (Stripe, Linear, Vercel) as HTML/CSS.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "creative/songwriting-and-ai-music/SKILL.md",
+      "name": "songwriting-and-ai-music",
+      "description": "Songwriting craft and Suno AI music prompts.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "devops/sdlc-review/SKILL.md",
+      "name": "sdlc-review",
+      "description": "Review Kanban handoffs and route verified outcomes.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": [
+        "kanban"
+      ]
+    },
+    {
+      "path": "email/email-inbox-triage/SKILL.md",
+      "name": "email-inbox-triage",
+      "description": "Triage an inbox: prioritize threads, draft replies safely.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "email/himalaya/SKILL.md",
+      "name": "himalaya",
+      "description": "Himalaya CLI: IMAP/SMTP email from terminal.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "gh-address-comments/SKILL.md",
+      "name": "gh-address-comments",
+      "description": "",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "gh-fix-ci/SKILL.md",
+      "name": "gh-fix-ci",
+      "description": "",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "media/youtube-content/SKILL.md",
+      "name": "youtube-content",
+      "description": "YouTube transcripts to summaries, threads, blogs.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "nix-inspect/SKILL.md",
+      "name": "nix-inspect",
+      "description": "Inspect evaluated Nix and Home Manager configuration without building or deploying. Use when debugging option values, merges, or generated files.",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "nix-style/SKILL.md",
+      "name": "nix-style",
+      "description": "Styleguide for Nix modules and expressions. Use whenever writing or editing .nix files.",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "note-taking/obsidian/SKILL.md",
+      "name": "obsidian",
+      "description": "Read, search, create, and edit notes in the Obsidian vault.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "plan-first/SKILL.md",
+      "name": "plan-first",
+      "description": "Review repository state, agree on an explicit execution and Git publication plan before editing files. Use before repository changes.",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/document-to-action-items/SKILL.md",
+      "name": "document-to-action-items",
+      "description": "Extract cited obligations, deadlines, tasks from documents.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/google-workspace/SKILL.md",
+      "name": "google-workspace",
+      "description": "Gmail, Calendar, Drive, Docs, Sheets via gws CLI or Python.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/maps/SKILL.md",
+      "name": "maps",
+      "description": "Geocode, POIs, routes, timezones via OpenStreetMap/OSRM.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": [
+        "terminal"
+      ]
+    },
+    {
+      "path": "productivity/meeting-action-items/SKILL.md",
+      "name": "meeting-action-items",
+      "description": "Turn meeting notes into cited decisions, owners, tickets.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/microsoft-office/SKILL.md",
+      "name": "microsoft-office",
+      "description": "Create, read, and edit Word, PowerPoint, and Excel files.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/pdf/SKILL.md",
+      "name": "pdf",
+      "description": "PDF files: create, read, merge, fill, OCR, edit text.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/product-price-monitor/SKILL.md",
+      "name": "product-price-monitor",
+      "description": "Watch product, flight, or listing prices; alert on target.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/teams-meeting-pipeline/SKILL.md",
+      "name": "teams-meeting-pipeline",
+      "description": "Teams meeting summaries, job replay, Graph subscriptions.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "productivity/weekly-review-planning/SKILL.md",
+      "name": "weekly-review-planning",
+      "description": "Weekly reset: commitments, stalled work, next-week plan.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "research/arxiv/SKILL.md",
+      "name": "arxiv",
+      "description": "Search arXiv papers by keyword, author, category, or ID.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "research/competitor-news-monitor/SKILL.md",
+      "name": "competitor-news-monitor",
+      "description": "Watch named companies for material news; cited digests.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "research/grounded-citations/SKILL.md",
+      "name": "grounded-citations",
+      "description": "Ground answers and documents in cited, verifiable sources.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "sh-utils/SKILL.md",
+      "name": "sh-utils",
+      "description": "Prefer modern CLI utilities (fd, rg, sd, bat, eza, dust, procs, tokei) over find, grep, sed, cat, ls, du and ps. Use whenever searching, listing, replacing text or inspecting files from the shell.",
+      "platforms": [],
+      "required_toolsets": []
+    },
+    {
+      "path": "social-media/xurl/SKILL.md",
+      "name": "xurl",
+      "description": "X/Twitter via xurl CLI: raw post search, posting, DM, media.",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/codebase-inspection/SKILL.md",
+      "name": "codebase-inspection",
+      "description": "Inspect codebases w/ pygount: LOC, languages, ratios.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/dogfood/SKILL.md",
+      "name": "dogfood",
+      "description": "Exploratory QA of web apps: find bugs, evidence, reports.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/github/SKILL.md",
+      "name": "github",
+      "description": "GitHub via gh CLI: PRs, issues, reviews, repos, auth.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/requesting-code-review/SKILL.md",
+      "name": "requesting-code-review",
+      "description": "Pre-commit review: security scan, quality gates, auto-fix.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/simplify-code/SKILL.md",
+      "name": "simplify-code",
+      "description": "Parallel 4-agent cleanup of recent code changes.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/spike/SKILL.md",
+      "name": "spike",
+      "description": "Throwaway experiments to validate an idea before build.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/systematic-debugging/SKILL.md",
+      "name": "systematic-debugging",
+      "description": "4-phase root cause debugging: understand bugs before fixing.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "software-development/test-driven-development/SKILL.md",
+      "name": "test-driven-development",
+      "description": "TDD: enforce RED-GREEN-REFACTOR, tests before code.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "web/blocked-page-recovery/SKILL.md",
+      "name": "blocked-page-recovery",
+      "description": "Use when a fetch fails: 403/429, paywall, WAF, bot wall.",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_toolsets": []
+    },
+    {
+      "path": "writing-style/SKILL.md",
+      "name": "writing-style",
+      "description": "Voice and punctuation for prose, READMEs, docs, comments and commit messages. Use whenever writing text for humans.",
+      "platforms": [],
+      "required_toolsets": []
+    }
+  ]
+}

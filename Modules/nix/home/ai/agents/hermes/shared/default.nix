@@ -9,6 +9,9 @@
   inherit (lix.attrsets.construction) genAttrs;
   inherit (lix.attrsets.transformation) concatMapAttrs;
   inherit (lix.filesystem.access) readDir;
+  inherit (lix.filesystem.predicates) pathExists;
+  inherit (lix.strings.predicates) hasPrefix;
+  inherit (lix.types.predicates) isPath isString;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.transformation) filter;
   inherit (lix.modules.construction) mkIf mkLayer mkMerge mkOverride;
@@ -30,7 +33,11 @@
       then files "${prefix}/${name}" (directory + "/${name}")
       else {"${prefix}/${name}" = directory + "/${name}";})
     (readDir directory);
-  custom = concatMapAttrs (name: text: {"skills/${name}/SKILL.md" = text;}) shared.skills.custom;
+  custom = concatMapAttrs (name: value:
+    if (isPath value || (isString value && hasPrefix "/" value)) && pathExists (toString value + "/SKILL.md")
+    then files "skills/${name}" (toString value)
+    else {"skills/${name}/SKILL.md" = value;})
+  shared.skills.custom;
   curated =
     concatMapAttrs (name: directory: files "skills/${name}" directory)
     (genAttrs cfg.shared.skills.curated shared.skills.curated.target);
