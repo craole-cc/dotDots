@@ -23,6 +23,7 @@
     evaluated = flake.inputs.nixHomeManager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs = {
+        inherit (flake) inputs;
         lix = lix // {inherit toolkit;};
         host = schema.host or {};
         user =
@@ -372,6 +373,35 @@ in
       == "${production.home.homeDirectory}/Projects/hermes"
       && production.home.sessionVariables.HERMES_HOME == production.services.hermes-agent.hermesHome
       && production.services.hermes-agent.workingDirectory == production.services.hermes-agent.hermesHome;
+    sharedSkills =
+      hasInfix "# Plan first" production.services.hermes-agent.hermesHomeFiles."skills/plan-first/SKILL.md"
+      && hasInfix "# Nix style" production.services.hermes-agent.hermesHomeFiles."skills/nix-style/SKILL.md"
+      && production.services.hermes-agent.hermesHomeFiles ? "skills/gh-address-comments/SKILL.md"
+      && production.services.hermes-agent.hermesHomeFiles ? "skills/gh-fix-ci/SKILL.md";
+    sharedOverrides = let
+      configured = schemaHome {
+        user.ai.hermes = {
+          shared.skills = {
+            enable = true;
+            curated = [];
+          };
+          shared.rules.enable = true;
+          home.file = {
+            "skills/nix-style/SKILL.md" = "User skill";
+            "AGENTS.md" = "User policy";
+          };
+          settings.command_allowlist = ["custom command"];
+        };
+      };
+    in
+      configured.services.hermes-agent.hermesHomeFiles."skills/nix-style/SKILL.md"
+      == "User skill"
+      && configured.services.hermes-agent.hermesHomeFiles."AGENTS.md" == "User policy"
+      && configured.services.hermes-agent.settings.command_allowlist == ["custom command"];
+    sharedRules =
+      lix.lists.predicates.elem "git push *" production.services.hermes-agent.settings.command_allowlist
+      && !(lix.lists.predicates.elem "git reset --hard *" production.services.hermes-agent.settings.command_allowlist)
+      && hasInfix "Ask for approval before running `git reset --hard`" production.services.hermes-agent.hermesHomeFiles."AGENTS.md";
     rootIdentity =
       hasInfix "You are Hermes," production.services.hermes-agent.hermesHomeFiles."SOUL.md"
       && !(production.services.hermes-agent.settings.model ? base_url)

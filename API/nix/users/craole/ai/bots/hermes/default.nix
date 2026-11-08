@@ -1,6 +1,10 @@
 {lix, ...}: let
   inherit (lix.filesystem.access) readFile;
 in {
+  shared = {
+    skills.enable = true;
+    rules.enable = true;
+  };
   home.file."SOUL.md" = readFile ./SOUL.md;
   settings = {
     model = {

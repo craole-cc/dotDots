@@ -124,6 +124,15 @@ The module is split into folders:
 | `report/` | Team report helper that checks declared profiles against the runtime roster |
 
 
+## Shared Skills And Rules
+
+Reusable sources live in `Modules/nix/home/ai/shared`, consumed by both Codex
+and Hermes. Craig's root bot enables `shared.skills.enable` and
+`shared.rules.enable`; the module defaults leave both disabled for other bots.
+See [the shared catalog](../../../shared/README.md) for source ownership,
+curated selection and the differences between native command enforcement and
+instruction guidance. Profiles and gateway identity remain agent-specific.
+
 ## Terse Output
 
 `terse.level` is a per-profile option: `"off"` (default), `"lite"` or `"full"`.
