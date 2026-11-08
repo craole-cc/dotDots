@@ -2,17 +2,16 @@
   lix,
   pkgs,
   ...
-} @ global: let
+} @ passthru: let
   inherit (lix.attrsets.access) attrValues;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.filesystem.traversal) importAllNamed;
   inherit (lix.lists.aggregation) concatMap foldl';
-  inherit (lix.lists.construction) optionals;
   inherit (lix.lists.transformation) reverseList;
   inherit (pkgs) mkShell;
 
-  args = recursiveUpdate global (import ./shared global);
+  args = recursiveUpdate passthru (import ./shared passthru);
 
   shells = let
     dir = ./.;
@@ -36,17 +35,13 @@
         mkShell {
           name = mkName name;
           env = core.env // (cfg.env or {});
+          #? Core is the base layer. Every other shell runs core's whole
+          #? shellHook (runtime, binit, yazi, starship, fetch) before its own.
           shellHook =
             if name == "core"
             then cfg.shellHook or ""
-            else core.runtimeHook + (cfg.shellHook or "");
-          packages =
-            (cfg.packages or [])
-            ++ (
-              optionals
-              ((name != "minimal") && (name != "media"))
-              core.packages
-            );
+            else core.shellHook + (cfg.shellHook or "");
+          packages = (cfg.packages or []) ++ core.packages;
         }
     )
     shells;
@@ -81,10 +76,7 @@
         env =
           foldl' (acc: name: acc // (shellsWithAi.${name}.env or {}))
           (foldl' (acc: cfg: acc // (cfg.env or {})) {} (attrValues shellsWithAi))
-          (reverseList [
-            "core"
-            # "ai"
-          ]);
+          (reverseList ["core"]);
 
         shellHook =
           core.runtimeHook
