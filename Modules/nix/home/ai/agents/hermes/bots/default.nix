@@ -40,7 +40,7 @@
   ];
 
   #~@ Terse output directives
-  #? Prepended to SOUL.md so they sit at the stable top of the prompt, which
+  #? Prepended to SOUL.md so they sit at the stable top of the prompt,/*  */ which
   #? keeps provider prompt caching effective. Output tokens shrink; the
   #? directive itself costs a few input tokens per turn, so keep it short.
   terseDirectives = {
