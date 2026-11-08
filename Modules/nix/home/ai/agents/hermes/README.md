@@ -462,3 +462,23 @@ builds and tests the runtime offline using temporary homes and stubbed delivery
 endpoints, including native local-process completion persistence. It does not
 claim a live provider/Telegram round trip, start the Lignum assignment, or restart
 services. The owner performs activation and the bounded live acceptance above.
+
+### Bounded multi-stage exchanges
+
+`handoff.limits.hops` defaults to 16. When handoff is enabled, root and every
+managed named profile receive `gateway.bot_loop_guard` with `enabled = true`,
+that `max_hops`, and `bot_replies_expect_reply = false`. A root-only setting is
+insufficient: each worker reads its own config. This permits the nested
+Developer-to-Scribe stage and leaves headroom for review/correction exchanges
+while retaining a finite bound, duplicate-send checks and reply-loop protection.
+A hop measures bot exchange activity, not simply the number of named profiles.
+Do not disable the guard or automatically reset a chain to evade its budget.
+
+Nested team delivery requests polling deliberately. The terminal launcher may
+omit `notify_on_complete` when false; the adapter uses the explicit team policy
+as well as the result field to select polling, avoiding a false promise of a
+notification. Root Telegram delivery still uses the native notification path.
+After activation, verify the actual owning gateway and any Desktop-owned Bot
+Chat runtime use the rebuilt package; rebuilding files alone does not replace
+an already-running process. Reconcile saved outcomes before resuming a blocked
+commission, and retry only an operation confirmed not to have been sent.

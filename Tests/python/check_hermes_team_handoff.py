@@ -175,6 +175,32 @@ class Handoff(unittest.TestCase):
         self.assertEqual(result["reply_delivery"], "poll")
         self.assertIn("wait", result["detail"])
 
+    def test_nested_poll_survives_launcher_omitting_false_notification_flag(self):
+        agent = self.agent(profile="coordinator", platform="cli", title="Bot Chat")
+        with patch("tools.terminal_tool.terminal_tool", return_value='{"session_id":"silent-child"}') as terminal:
+            result = json.loads(dm._spawn_delivery("fixture", "@developer", delivery_id="child-id",
+                                                  task_id=None, agent=agent))
+        self.assertFalse(terminal.call_args.kwargs["notify_on_complete"])
+        self.assertEqual(result["reply_delivery"], "poll")
+        self.assertIn("wait", result["detail"])
+
+    def test_extended_hop_budget_admits_scribe_but_still_caps_the_chain(self):
+        from agent import bot_chain
+        from gateway.bot_loop_guard import settings_from_config
+
+        settings = settings_from_config({"gateway": {"bot_loop_guard": {"enabled": True, "max_hops": 16}}})
+        agent = self.agent(profile="developer", platform="cli", title="Bot Chat")
+        with patch.object(bot_chain, "_settings", return_value=settings):
+            bot_chain.on_turn_start(agent, None, None, "fresh task")
+            bot_chain.on_turn_start(agent, {"id": "bot:coordinator", "is_bot": True, "hops": 4}, None)
+            admission = bot_chain.admit_send(agent, ["bot:scribe"], "bounded document brief")
+            self.assertFalse(admission.refusal)
+            self.assertEqual(admission.hop, 5)
+            bot_chain.on_turn_start(agent, {"id": "bot:coordinator", "is_bot": True, "hops": 16}, None)
+            refused = bot_chain.admit_send(agent, ["bot:scribe"], "another brief")
+            self.assertIn("limit of 16", refused.refusal)
+            bot_chain.on_turn_start(agent, None, None, "new human task")
+
     def test_native_completion_persists_reply_only_to_owning_session(self):
         from tools.process_registry import process_registry
 

@@ -40,6 +40,25 @@
                              workdir=str(Path(__file__).resolve().parent.parent), _host_local=True,
                              _completion_output_chars=completion_chars)
          try:
+@@ -865,7 +871,8 @@
+         if wake == "none":
+             return json.dumps({"status": "queued", "delivery_id": delivery_id or (_dm_delivery_id(dm_file) if dm_file
+                                else ""), "to": label, "expects_reply": False, "detail": _NOTIFY_ONLY_DETAIL})
+-        if parsed.get("notify_on_complete") is False:
++        poll_reply = requires_poll(agent) or parsed.get("notify_on_complete") is False
++        if poll_reply:
+             # terminal_tool refused the completion promise: this session (api_server, one-shot
+             # runner) cannot receive an async completion, so the recipient's reply would never
+             # be injected here (#101142). Say so and name the return path the surface supports.
+@@ -888,7 +895,7 @@
+             "status": "queued",
+             "delivery_id": delivery_id or (_dm_delivery_id(dm_file) if dm_file else ""),
+             "to": label,
+-            "reply_delivery": "poll" if parsed.get("notify_on_complete") is False else "notification",
++            "reply_delivery": "poll" if poll_reply else "notification",
+             "detail": detail,
+             "process_id": proc_id,
+             "queued_at": int(time.time()),
 --- a/agent/system_prompt.py
 +++ b/agent/system_prompt.py
 @@ -359,13 +359,17 @@

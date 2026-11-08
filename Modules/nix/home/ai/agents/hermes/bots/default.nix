@@ -146,8 +146,15 @@
         then service.workingDirectory
         else profile.workingDirectory;
       settings = recursiveUpdate profile.settings (
-        optionalAttrs (profile.mcpServers != {}) {
+        (optionalAttrs (profile.mcpServers != {}) {
           mcp_servers = common.mcpServersToConfig profile.mcpServers;
+        })
+        // optionalAttrs cfg.handoff.enable {
+          gateway.bot_loop_guard = {
+            enabled = true;
+            max_hops = cfg.handoff.limits.hops;
+            bot_replies_expect_reply = false;
+          };
         }
       );
     };
