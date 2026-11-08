@@ -29,6 +29,10 @@ in
       agent = {
         max_turns = 90;
         reasoning_effort = "medium";
+        reasoning_overrides = {
+          "deepseek-flash" = "medium";
+          "gpt-6.1-sol" = "medium";
+        };
         disabled_toolsets = ["delegation"];
       };
       skills.external_dirs = ["${homePath}/skills"];

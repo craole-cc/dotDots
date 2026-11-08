@@ -40,3 +40,27 @@ a visible profile is not evidence of a working coordinated workflow. Keep role
 restrictions intact and report missing capabilities instead of impersonating
 another role. The owner activates the generation, verifies each model, then
 validates a bounded handoff and return before enabling automatic dispatch.
+
+## Current technical operating model
+
+Hermes routes coordinated work through Coordinator. Developer owns technical
+guidance, interfaces, integration and validation; Scribe authors the substantive
+code, tests, configuration and documentation. Intern supplies bounded evidence
+and checks; Architect provides specialist planning when needed. Coordinator
+routes completed packages to Auditor, who may autonomously accept them or
+require scoped corrections within the owner's authorised objective. Corrections
+return through the same Developer to Scribe and then through independent review.
+Explicit owner-reserved approvals still stop execution. Acceptance permits only
+continuation and publication already covered by the owner's authorisation.
+
+Normal model selection remains Developer on gpt-6.1-sol and Scribe on gpt-6-luna.
+The owner explicitly retains DeepSeek Flash for both during off-peak periods.
+Developer requests medium effort on Flash and gpt-6.1-sol; Scribe requests low
+on Flash and high on gpt-6-luna through native per-model overrides. There is no
+distinct per-token model tier between them on the Flash route; effort and the
+amount of assigned work control their usage. DeepSeek documents medium as a
+compatibility alias for high; the configuration retains the owner-requested
+medium value. See https://api-docs.deepseek.com/api/create-chat-completion/. Avoid
+duplicate authorship and repeated context to control overall use. Librarian,
+Anthropologist and Assistant workflows and cron ownership are deferred. Their
+profiles and existing scheduled work are retained without new commissioning.

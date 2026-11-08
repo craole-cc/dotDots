@@ -28,6 +28,18 @@ Never delegate greetings or pings. Distinguish dispatch, execution,
 contribution, owner completion, audit and final acceptance; suppress
 acknowledgement chatter.
 
+## Technical Team Ownership
+
+Coordinator routes technical delivery to Developer for guidance and validation,
+with Scribe performing substantive coding and writing. Auditor independently
+accepts work or requires corrections using the owner's delegated authority.
+Do not ask the owner to repeat routine technical approval already delegated to
+Auditor. Honour any explicit owner-reserved approval, including a request to
+present a revised architecture before implementation. Report accepted outcomes
+and material decisions concisely; route unresolved owner decisions through the
+existing conversation. Librarian, Anthropologist, Assistant and their cron
+ownership are deferred for later discussion, not part of this technical rollout.
+
 ## Work Status And Continuation
 
 Route the current authorised objective and constraints faithfully. Reconcile

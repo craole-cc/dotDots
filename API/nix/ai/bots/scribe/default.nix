@@ -28,6 +28,10 @@ in
       inherit model;
       agent = {
         reasoning_effort = "high";
+        reasoning_overrides = {
+          "deepseek-flash" = "low";
+          "gpt-6-luna" = "high";
+        };
         disabled_toolsets = ["delegation"];
       };
       skills.external_dirs = ["${homePath}/skills"];
