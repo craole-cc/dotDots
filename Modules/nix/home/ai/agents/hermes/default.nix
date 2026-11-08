@@ -110,7 +110,30 @@
           // {
             description = "Workspace files installed relative to an explicitly selected workingDirectory; use home.file for identity and memory files";
           };
-        extra.dependencyGroups = upstreamOptions.extraDependencyGroups // {default = ["messaging"];};
+        extra = {
+          dependencyGroups = upstreamOptions.extraDependencyGroups // {default = ["messaging"];};
+          # Bot screens run on the gateway; NixOS cannot use the in-app installer.
+          packages =
+            upstreamOptions.extraPackages
+            // {
+              default = with pkgs; [
+                tigervnc
+                xfwm4
+                xfce4-panel
+                xfdesktop
+                xfce4-settings
+                xfce4-terminal
+                dbus
+                xauth
+                xdpyinfo
+                setxkbmap
+                xprop
+                xset
+                xsetroot
+                dejavu_fonts
+              ];
+            };
+        };
 
         desktop = {
           enable = mkEnable {
