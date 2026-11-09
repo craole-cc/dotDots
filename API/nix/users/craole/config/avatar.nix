@@ -9,12 +9,12 @@
   avatar = "${config.home.homeDirectory}/.face";
   dms = getExe' config.programs.dank-material-shell.package "dms";
   setProfile = pkgs.writeShellScript "set-dms-profile" ''
-    for attempt in $(${pkgs.coreutils}/bin/seq 1 30); do
+    for attempt in $(${pkgs.coreutils}/bin/seq 1 5); do
       # DMS can return "Target not found." with exit status zero during startup.
-      if response="$(${dms} ipc call profile setImage ${escapeShellArg avatar})"; then
+      if response="$(${pkgs.coreutils}/bin/timeout 2 ${dms} ipc call profile setImage ${escapeShellArg avatar})"; then
         case "$response" in
           "SUCCESS: Profile image set to "*)
-            if current="$(${dms} ipc call profile getImage)" && [ "$current" = ${escapeShellArg avatar} ]; then
+            if current="$(${pkgs.coreutils}/bin/timeout 2 ${dms} ipc call profile getImage)" && [ "$current" = ${escapeShellArg avatar} ]; then
               exit 0
             fi
             ;;
@@ -22,8 +22,8 @@
       fi
       ${pkgs.coreutils}/bin/sleep 1
     done
-    echo "DMS did not confirm the configured profile image" >&2
-    exit 1
+    echo "DMS is not ready; leaving the profile image unchanged" >&2
+    exit 0
   '';
 in {
   home.file.".face".source = ./avatar.jpg;
@@ -36,6 +36,7 @@ in {
     Service = {
       Type = "oneshot";
       RemainAfterExit = true;
+      TimeoutStartSec = "30s";
       ExecStart = setProfile;
     };
     Install.WantedBy = ["dms.service"];

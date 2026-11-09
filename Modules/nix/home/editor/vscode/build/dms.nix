@@ -13,7 +13,12 @@
 in
   optionalAttrs cfg.features.ui.dms {
     syncDmsVSCodeWallpaper = entryAfter ["reloadSystemd" "materialiseVSCodeProfile"] ''
-      ${pkgs.systemd}/bin/systemctl --user start dotdots-foot-dms-theme-reload.service
+      runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+      if [ -S "$runtime_dir/bus" ]; then
+        XDG_RUNTIME_DIR="$runtime_dir" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime_dir/bus" \
+          ${pkgs.systemd}/bin/systemctl --user --no-block start dotdots-foot-dms-theme-reload.service \
+          || echo "DMS appearance reload deferred until the user session is ready" >&2
+      fi
     '';
     seedDmsVSCodeTheme = entryAfter ["linkGeneration"] ''
       source=${escapeShellArg (concat {
