@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rust-script
+#!/usr/bin/env rust-script
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
