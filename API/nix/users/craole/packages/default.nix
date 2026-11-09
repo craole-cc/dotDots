@@ -41,7 +41,7 @@ let
 
   shell = [
     "bash"
-    "nushell"
+    # "nushell" # Disabled until its development packages build reliably.
     "powershell"
     "zsh"
   ];

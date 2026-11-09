@@ -14,6 +14,7 @@
   inherit (lix.applications.resolution) bars browsers editors launchers terminals;
   inherit (lix.applications.runtime) resolvePackage;
   inherit (lix.lists.construction) optionals;
+  inherit (lix.lists.predicates) elem;
   inherit (lix.lists.selection) filter;
   inherit (lix.lists.transformation) flatten unique;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
@@ -140,8 +141,7 @@
         shfmt
       ];
 
-      Nushell =
-        (with pkgs; [
+      Nushell = optionals (elem "nushell" (groups.shell or [])) ((with pkgs; [
           nushell
           nu-lint
           nufmt
@@ -156,7 +156,7 @@
           formats
           # highlight #? Broken
           desktop_notifications
-        ]);
+        ]));
 
       PowerShell = with pkgs; [
         powershell
