@@ -309,6 +309,13 @@ in
     outputs = mkIf cfg.enable {
       nixpkgs.overlays = [
         inputs."rust-overlay".overlays.default
+        # nu-lint's Nushell dependencies link SQLite, absent from its inputs.
+        (final: previous: {
+          nu-lint = previous.nu-lint.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or []) ++ [final.sqlite];
+            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [final.pkg-config];
+          });
+        })
       ];
       environment.systemPackages = flatten (cfg.default ++ cfg.extra);
     };
