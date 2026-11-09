@@ -19,48 +19,7 @@ main() {
 
 #~@ Update Inputs Without Activation
 update_inputs() {
-
-  dry_run=0
-  case "${1:-}" in
-    --help|-h)
-      printf '%s\n' 'Usage: nfu [--dry-run] [INPUT ...]' \
-        'Update all flake inputs, or only the named inputs.' \
-        'A targeted Hermes update also refreshes its release metadata.' \
-        'Run nhs separately to rebuild and activate.'
-      return 0
-      ;;
-    --dry-run) dry_run=1; shift ;;
-  esac
-
-  flake_dir=${DOTS:?DOTS must point to the dotfiles checkout}
-  if [ ! -f "$flake_dir/flake.nix" ]; then
-    printf 'No flake.nix in %s\n' "$flake_dir" >&2
-    return 1
-  fi
-
-  hermes=0
-  release=0
-  for input do
-    case "$input" in
-      hermes) hermes=1 ;;
-      hermesRelease) release=1 ;;
-      -*) printf 'Unknown option: %s\n' "$input" >&2; return 2 ;;
-    esac
-  done
-  if [ "$hermes" -eq 1 ] && [ "$release" -eq 0 ]; then
-    set -- "$@" hermesRelease
-  fi
-
-  if [ "$dry_run" -eq 1 ]; then
-    printf 'nix flake update --flake <%s>' "$flake_dir"
-    for input do printf ' <%s>' "$input"; done
-    printf '\n'
-    return 0
-  fi
-
-  nix flake update --flake "$flake_dir" "$@" || return "$?"
-  git -C "$flake_dir" diff --stat -- flake.lock
-  printf '\nReview the lockfile changes, then run nhs to apply them.\n'
+  rust-script "${DOTS:?}/Libraries/rust/src/xin.rs" --update "$@"
 }
 
 #~@ Defaults & Configuration

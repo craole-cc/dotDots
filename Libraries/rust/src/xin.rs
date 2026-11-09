@@ -38,7 +38,7 @@ Options:
   -h, --help            Show this help
 
 Examples:
-  xin --update hermes       # Includes hermesRelease automatically
+  xin --update hermes       # Refreshes the saved release label too
   xin --check --no-trace
   xin --repl-home
   xin --build -- --option keep-going true
@@ -140,13 +140,60 @@ fn parse(args: Vec<String>) -> Result<Options, String> {
         }
     }
     options.action = action.ok_or("Choose an action; use xin --help for usage.")?;
-    if options.action == Action::Update
-        && options.inputs.iter().any(|v| v == "hermes")
-        && !options.inputs.iter().any(|v| v == "hermesRelease")
-    {
-        options.inputs.push("hermesRelease".into());
-    }
     Ok(options)
+}
+
+const RELEASE_FILE: &str = "Modules/nix/home/ai/agents/hermes/release.json";
+
+fn release_snapshot(tags: &str) -> Result<String, String> {
+    let latest = tags
+        .lines()
+        .filter_map(|line| {
+            let (object, reference) = line.split_once('\t')?;
+            let version = reference.strip_prefix("refs/tags/v")?;
+            let numbers: Vec<_> = version.split('.').collect();
+            if numbers.len() != 3
+                || !numbers
+                    .iter()
+                    .all(|v| !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit()))
+                || object.len() != 40
+                || !object.bytes().all(|b| b.is_ascii_hexdigit())
+            {
+                return None;
+            }
+            let order = (
+                numbers[0].parse::<u64>().ok()?,
+                numbers[1].parse::<u64>().ok()?,
+                numbers[2].parse::<u64>().ok()?,
+            );
+            Some((order, version, object))
+        })
+        .max_by_key(|(order, _, _)| *order)
+        .ok_or("No stable Hermes release tag was found")?;
+    Ok(format!(
+        "{{\n  \"tag_name\": \"v{}\",\n  \"tag_object\": \"{}\"\n}}\n",
+        latest.1, latest.2
+    ))
+}
+
+fn discover_release() -> Result<String, String> {
+    let output = Command::new("git")
+        .args([
+            "ls-remote",
+            "--tags",
+            "--refs",
+            "https://github.com/NousResearch/hermes-agent.git",
+            "refs/tags/v*",
+        ])
+        .output()
+        .map_err(|error| format!("Discovering Hermes releases: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "Discovering Hermes releases failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    release_snapshot(&String::from_utf8_lossy(&output.stdout))
 }
 
 fn available(program: &str) -> bool {
@@ -324,10 +371,27 @@ fn run() -> Result<i32, String> {
     if options.action == Action::Clean && !nh {
         eprintln!("nh is unavailable; collecting unreferenced store paths with nix store gc.");
     }
+    let release_file = PathBuf::from(&options.flake).join(RELEASE_FILE);
+    let release = if options.action == Action::Update
+        && release_file.is_file()
+        && (options.inputs.is_empty() || options.inputs.iter().any(|input| input == "hermes"))
+    {
+        Some(discover_release()?)
+    } else {
+        None
+    };
     let status = Command::new(program)
         .args(args)
         .status()
         .map_err(|error| error.to_string())?;
+    if status.success() {
+        if let Some(release) = release {
+            let temporary = release_file.with_extension(format!("json.{}.tmp", std::process::id()));
+            std::fs::write(&temporary, release).map_err(|error| error.to_string())?;
+            std::fs::rename(&temporary, &release_file).map_err(|error| error.to_string())?;
+            eprintln!("Updated saved Hermes release metadata.");
+        }
+    }
     Ok(status
         .code()
         .unwrap_or_else(|| 128 + status.signal().unwrap_or(1)))
@@ -350,18 +414,25 @@ mod tests {
         parse(args.iter().map(|v| (*v).into()).collect()).unwrap()
     }
     #[test]
-    fn updates_pair_hermes_without_duplicates() {
+    fn updates_preserve_the_requested_inputs() {
         assert_eq!(
             options(&["--update", "hermes", "buufIcons"]).inputs,
-            ["hermes", "buufIcons", "hermesRelease"]
+            ["hermes", "buufIcons"]
         );
         assert_eq!(
-            options(&["--update", "hermes", "hermesRelease"])
-                .inputs
-                .len(),
+            options(&["--update", "hermes", "buufIcons"]).inputs.len(),
             2
         );
         assert!(options(&["--update"]).inputs.is_empty());
+    }
+    #[test]
+    fn release_discovery_uses_stable_numeric_tags() {
+        let object = "a".repeat(40);
+        let tags = format!(
+            "{object}\trefs/tags/v0.9.0\n{object}\trefs/tags/v0.23.0\n{object}\trefs/tags/v0.24.0+canary\n"
+        );
+        assert!(release_snapshot(&tags).unwrap().contains("v0.23.0"));
+        assert!(release_snapshot("bad\trefs/tags/v0.25.0").is_err());
     }
     #[test]
     fn rejects_conflicting_actions_and_missing_values() {

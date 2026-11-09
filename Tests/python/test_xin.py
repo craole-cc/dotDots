@@ -83,7 +83,7 @@ class XinTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [["nix", "store", "gc"]])
 
-    def test_targeted_update_pairs_hermes_and_preserves_argument_boundaries(self):
+    def test_targeted_update_preserves_argument_boundaries(self):
         self.backend("nix")
         result = self.run_xin("--update", "hermes", "buufIcons")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -98,11 +98,26 @@ class XinTests(unittest.TestCase):
                     str(self.checkout),
                     "hermes",
                     "buufIcons",
-                    "hermesRelease",
                     "--show-trace",
                 ]
             ],
         )
+
+    def test_release_snapshot_updates_only_after_a_successful_update(self):
+        metadata = self.checkout / "Modules/nix/home/ai/agents/hermes/release.json"
+        metadata.parent.mkdir(parents=True)
+        metadata.write_text("original\n")
+        git = self.bin / "git"
+        git.write_text(f"#!{sys.executable}\nprint('{'a' * 40}\\trefs/tags/v0.23.0')\n")
+        git.chmod(0o755)
+        self.backend("nix", code=7)
+        result = self.run_xin("--update", "hermes")
+        self.assertEqual(result.returncode, 7, result.stderr)
+        self.assertEqual(metadata.read_text(), "original\n")
+        self.backend("nix")
+        result = self.run_xin("--update", "hermes")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(metadata.read_text())["tag_name"], "v0.23.0")
 
     def test_default_home_context_uses_hostname_and_user(self):
         self.backend("nix")

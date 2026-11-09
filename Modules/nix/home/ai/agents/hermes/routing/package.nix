@@ -2,7 +2,6 @@
   package,
   builders,
   libraries,
-  inputs,
   ...
 }: let
   lix = libraries;
@@ -10,11 +9,11 @@
   inherit (lix.filesystem.access) readFile;
   inherit (lix.strings.construction) fromJSON;
   inherit (lix.strings.transformation) removePrefix;
-  release = fromJSON (readFile inputs.raw.hermesRelease);
+  release = fromJSON (readFile ../release.json);
 in
   package.override (arguments: {
-    # Source follows upstream HEAD; a second flake input supplies the release
-    # label missing from upstream's Nix package. Both refresh on flake update.
+    # Source follows upstream HEAD. xin snapshots the latest release tag during
+    # updates; evaluation reads local metadata without mutable network requests.
     version = "${removePrefix "v" release.tag_name}+unstable.${arguments.rev}";
     extraDependencyGroups = ["messaging"];
     callPackage = path: overrides:

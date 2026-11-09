@@ -596,18 +596,6 @@
         "type": "github"
       }
     },
-    "hermesRelease": {
-      "flake": false,
-      "locked": {
-        "narHash": "sha256-+aWSJyPc5nqENBx0TrhcyV8/rlM3B8IXvEu1kTk009s=",
-        "type": "file",
-        "url": "https://api.github.com/repos/NousResearch/hermes-agent/releases/latest"
-      },
-      "original": {
-        "type": "file",
-        "url": "https://api.github.com/repos/NousResearch/hermes-agent/releases/latest"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -1025,7 +1013,6 @@
         "editorVSCodeExtensions": "editorVSCodeExtensions",
         "greeterDankMaterial": "greeterDankMaterial",
         "hermes": "hermes",
-        "hermesRelease": "hermesRelease",
         "llmhop": "llmhop",
         "nixChaotic": "nixChaotic",
         "nixDarwin": "nixDarwin",

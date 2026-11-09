@@ -9,7 +9,7 @@ self-contained `bin/xin` wrapper in the system profile. Run `xin --help` for usa
 xin --check                  # nix flake check, with --show-trace
 xin --clean                  # nh clean all
 xin --update                 # Update all flake inputs
-xin --update hermes          # Update Hermes and hermesRelease together
+xin --update hermes          # Update Hermes and its saved release metadata
 xin --repl                   # Flake outputs
 xin --repl-core              # nixosConfigurations."$(hostname)"
 xin --repl-home              # Current host's Home Manager config for $USER
@@ -43,3 +43,9 @@ rustc --edition 2024 --test Libraries/rust/src/xin.rs -o /tmp/xin-tests
 /tmp/xin-tests
 python3 -m unittest discover -s Tests/python -p test_xin.py
 ```
+
+Hermes release metadata is saved in `Modules/nix/home/ai/agents/hermes/release.json`.
+Full updates and targeted Hermes updates discover the latest stable Git tag and
+refresh this file after Nix succeeds. Commit it with `flake.lock`. Evaluation
+never fetches mutable release API responses. Direct `nix flake update` updates
+source inputs only; use `xin --update hermes` to refresh the release label too.

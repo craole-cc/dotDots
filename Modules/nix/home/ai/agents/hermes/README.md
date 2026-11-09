@@ -5,13 +5,14 @@ under `lix.toolkit.hermes`, loaded from the same resolved toolkit source. The
 toolkit owns input resolution; the Hermes modules extend that contract without
 accessing flake inputs directly. `flake.lock` pins the upstream revision.
 
-The Hermes source follows upstream's default branch. The `hermesRelease` input
-supplies the latest stable release label because upstream's Nix package defaults
-to `0.0.0`. The package combines that label with `+unstable.<source commit>`;
-this identifies the development checkout without claiming it is the release tag.
-A full `nix flake update` refreshes both inputs. For a targeted update, use
-`nfu hermes` (or `nix flake update hermes hermesRelease`), then rebuild and restart
-Hermes. `nfu` updates all inputs without rebuilding; `nhs` applies the update.
+The Hermes source follows upstream's default branch. `release.json` saves the
+latest stable Git tag because upstream's Nix package defaults to `0.0.0`.
+The package combines that label with `+unstable.<source commit>`. Evaluation
+reads this tracked file rather than a mutable release API response.
+`xin --update` (or `nfu`) refreshes all inputs and the saved release metadata;
+`xin --update hermes` targets Hermes. Commit `release.json` with `flake.lock`,
+then use `nhs` to rebuild and restart Hermes. Direct `nix flake update` changes
+source inputs without refreshing the saved release label.
 
 Our options group state and files under `home.path` and `home.file`, authentication
 under `auth.file` and `auth.overwrite`, and extensions under `extra`. Environment
