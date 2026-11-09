@@ -41,9 +41,10 @@ let
 
   shell = [
     "bash"
-    # "nushell" # Disabled until its development packages build reliably.
     "powershell"
-    "zsh"
+    # "nushell" # TODO: Disabled until its development packages build reliably.
+    # "fish"
+    # "zsh"
   ];
 
   coding = [
@@ -81,7 +82,7 @@ let
     "kitty"
     "ghostty"
     "foot"
-    "warp-terminal"
+    # "warp-terminal"
   ];
 
   wallpaper = [
