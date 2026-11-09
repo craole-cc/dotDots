@@ -583,17 +583,29 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1794230587,
-        "narHash": "sha256-+d6q11nOfhk3SKuja51YGNzE5W4iHtajyNvCeEGMsz4=",
+        "lastModified": 1794232048,
+        "narHash": "sha256-TyGSPiKyeLcP5zckDtMkjiW8R2pwNrZAXseS3V+670g=",
         "owner": "NousResearch",
         "repo": "hermes-agent",
-        "rev": "d478c8ffc66cd7e1ab6e38e16d04491d293dffa7",
+        "rev": "8a5a7ace84ca34e655a73f328701e1e9e1eb555c",
         "type": "github"
       },
       "original": {
         "owner": "NousResearch",
         "repo": "hermes-agent",
         "type": "github"
+      }
+    },
+    "hermesRelease": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-+aWSJyPc5nqENBx0TrhcyV8/rlM3B8IXvEu1kTk009s=",
+        "type": "file",
+        "url": "https://api.github.com/repos/NousResearch/hermes-agent/releases/latest"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.github.com/repos/NousResearch/hermes-agent/releases/latest"
       }
     },
     "home-manager": {
@@ -1013,6 +1025,7 @@
         "editorVSCodeExtensions": "editorVSCodeExtensions",
         "greeterDankMaterial": "greeterDankMaterial",
         "hermes": "hermes",
+        "hermesRelease": "hermesRelease",
         "llmhop": "llmhop",
         "nixChaotic": "nixChaotic",
         "nixDarwin": "nixDarwin",

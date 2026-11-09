@@ -268,6 +268,11 @@
       owner = "NousResearch";
       type = "github";
     };
+    hermesRelease = {
+      url = "https://api.github.com/repos/NousResearch/hermes-agent/releases/latest";
+      type = "file";
+      flake = false;
+    };
     codex = {
       repo = "codex-cli-nix";
       owner = "sadjow";

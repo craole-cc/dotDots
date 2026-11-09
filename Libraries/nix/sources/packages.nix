@@ -443,6 +443,7 @@
           else
             transform {
               package = check.value;
+              inputs = init.inputs;
               source = src.outPath or null;
               builders = {inherit (init.source.legacy) applyPatches;};
               libraries = _;
