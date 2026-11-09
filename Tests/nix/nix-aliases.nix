@@ -16,6 +16,7 @@
         nhr = "nh os repl";
         nhc = "nh clean all";
       };
+      toolkit.write.rust = _arguments: "/xin-test";
       modules =
         lix.modules
         // {
@@ -55,6 +56,7 @@
     modules = [
       {
         options.environment.shellAliases = lib.mkOption {type = lib.types.attrsOf lib.types.str;};
+        options.environment.systemPackages = lib.mkOption {type = lib.types.listOf lib.types.anything;};
         options.nixpkgs.config = lib.mkOption {type = lib.types.attrs;};
       }
       {config = module;}
@@ -82,7 +84,8 @@ in {
   checkoutShortcutPreserved = aliases.edit-dots == "$EDITOR /checkout";
   replShortcutPreserved = aliases.repl-home == "nix repl --show-trace /checkout#nixosConfigurations.$(hostname).config.home-manager.users.$USER";
   nixHelperPreserved = aliases.nhs == "nh os switch";
-  flakeUpdateHelper = lib.hasInfix ''DOTS="''${DOTS:-/checkout}" sh '' aliases.nfu;
+  rustNixHelper = aliases.xin == ''DOTS="''${DOTS:-/checkout}" /xin-test/bin/xin'';
+  flakeUpdateHelper = aliases.nfu == "${aliases.xin} --update";
   generalDefaultsHaveNoCheckoutAliases = !(generic ? dotsStatus || generic ? edit-dots || generic ? nxs || generic ? repl-home);
   generalDefaultsPreserved = generic.ll == "lsd --long --git --almost-all";
 }

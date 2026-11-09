@@ -30,6 +30,12 @@
   inherit (lix.strings.construction) concat;
   inherit (lix.strings.transformation) replaceStrings;
   inherit (lix.toolkit) binaries;
+  xin = toolkit.write.rust {
+    name = "xin";
+    src = ../../../../Libraries/rust/src/xin.rs;
+    inputs = [pkgs.nix pkgs.git];
+  };
+  xinCommand = ''DOTS="''${DOTS:-${repo.home}}" ${xin}/bin/xin'';
   join = concat ".";
   current = {
     host = "$(hostname)";
@@ -294,6 +300,7 @@ in
 
     outputs = mkMerge [
       {
+        environment.systemPackages = [xin];
         environment.shellAliases =
           {
             #~@ Dotfiles management
@@ -312,7 +319,8 @@ in
 
             #~@ Nix helper shortcuts
             inherit (binaries) nhs nhr nhc;
-            nfu = ''DOTS="''${DOTS:-${repo.home}}" sh ${../../../../Libraries/posix/packages/manager/nix/nixos-switch.sh} --update-only'';
+            xin = xinCommand;
+            nfu = "${xinCommand} --update";
 
             #~@ Rebuild shortcuts
             "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}; date";
