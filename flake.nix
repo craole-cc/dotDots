@@ -251,17 +251,11 @@
     };
 
     buufIcons = {
-      url = "https://git.disroot.org/eudaimon/buuf-nestort.git";
-      ref = "master";
-      type = "git";
+      owner = "alfathmuqoddas";
+      repo = "buuf-nestort";
+      type = "github";
       flake = false;
     };
-    # buuf-icons = {
-    #   url = "https://git.disroot.org/eudaimon/buuf-nestort.git";
-    #   ref = "master";
-    #   type = "git";
-    #   flake = false;
-    # };
 
     #~@ AI
     ai = {
