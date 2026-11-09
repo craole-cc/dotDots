@@ -20,6 +20,12 @@
       runHook preInstall
       mkdir -p "$out/share/icons/Buuf"
       cp -R "$src"/. "$out/share/icons/Buuf/"
+      chmod -R u+w "$out/share/icons/Buuf"
+      # Upstream links point outside this standalone theme or use an old layout.
+      ln -sfn package-x-generic.png "$out/share/icons/Buuf/mimetypes/application-x-servicepack.png"
+      ln -sfn x-package-repository.png "$out/share/icons/Buuf/mimetypes/application-x-catalog.png"
+      ln -sfn ../apps/monodevelop.png "$out/share/icons/Buuf/categories/applications-monodevelopment.png"
+      rm -f "$out/share/icons/Buuf/icon-theme.cache"
       runHook postInstall
     '';
   };
