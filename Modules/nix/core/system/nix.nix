@@ -312,6 +312,7 @@ in
 
             #~@ Nix helper shortcuts
             inherit (binaries) nhs nhr nhc;
+            nfu = ''DOTS="''${DOTS:-${repo.home}}" sh ${../../../../Libraries/posix/packages/manager/nix/nixos-switch.sh} --update-only'';
 
             #~@ Rebuild shortcuts
             "switch-${repo.name}" = "sudo nixos-rebuild switch --flake ${repo.home}; date";

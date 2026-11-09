@@ -42,6 +42,7 @@
     };
   module = import ../../Modules/nix/core/system/nix.nix {
     lix = moduleLix;
+    toolkit = moduleLix.toolkit;
     config = {};
     host.class = "nixos";
     inputs = {};
@@ -81,6 +82,7 @@ in {
   checkoutShortcutPreserved = aliases.edit-dots == "$EDITOR /checkout";
   replShortcutPreserved = aliases.repl-home == "nix repl --show-trace /checkout#nixosConfigurations.$(hostname).config.home-manager.users.$USER";
   nixHelperPreserved = aliases.nhs == "nh os switch";
+  flakeUpdateHelper = lib.hasInfix ''DOTS="''${DOTS:-/checkout}" sh '' aliases.nfu;
   generalDefaultsHaveNoCheckoutAliases = !(generic ? dotsStatus || generic ? edit-dots || generic ? nxs || generic ? repl-home);
   generalDefaultsPreserved = generic.ll == "lsd --long --git --almost-all";
 }
