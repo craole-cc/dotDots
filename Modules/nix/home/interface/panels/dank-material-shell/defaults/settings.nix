@@ -173,7 +173,7 @@
         widgetOutlineColor = "surfaceText";
         widgetOutlineOpacity = 0.28;
         widgetOutlineThickness = 1;
-        fontScale = 1;
+        fontScale = 0.75;
         iconScale = 1;
         autoHide = false;
         autoHideDelay = 250;
