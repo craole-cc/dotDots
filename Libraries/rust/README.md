@@ -1,8 +1,9 @@
 # Rust scripts
 
-Run `src/xin.rs` through `rust-script` to manage the dotfiles flake. The NixOS
-configuration exposes it as `xin`; until activation, run
-`rust-script "$DOTS/Libraries/rust/src/xin.rs" --help`.
+Run `xin` to manage the dotfiles flake. `bin/xin` is an executable entry point
+on the repository's existing PATH; it runs `src/xin.rs` through `rust-script`.
+It works before system activation. The NixOS configuration also installs a
+self-contained `bin/xin` wrapper in the system profile. Run `xin --help` for usage.
 
 ```sh
 xin --check                  # nix flake check, with --show-trace
