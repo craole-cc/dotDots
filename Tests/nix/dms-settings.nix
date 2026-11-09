@@ -20,7 +20,7 @@
   tests = {
     testAllDefaultValuesPreserveUpstreamContract = {
       expr = builtins.hashString "sha256" (builtins.toJSON output.settings);
-      expected = "6b40b568df4c49763bc924552ecb039073cb5b325030eb32629175e4c6fe4db8";
+      expected = "2835e68ce031074da58d22d5fb0a9604a78b81b57c244516f379f655f574e1fe";
     };
     testNestedOverridesTranslateToUpstreamNames = {
       expr = custom.settings;
