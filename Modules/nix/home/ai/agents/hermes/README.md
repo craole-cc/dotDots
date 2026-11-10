@@ -439,7 +439,20 @@ owners may commission Scribe and Intern. Architect, Auditor and contributors
 return results through the native final-response transport without initiating
 further commissions. Only enabled configured profiles appear in these routes.
 Peer gateways, remote Desktop connections and generic fan-out are excluded by
-this team policy. Generic delegation and automatic Kanban dispatch stay disabled.
+this team policy. Hermes and specialists keep delegation disabled. Coordinator
+alone receives the pinned Advanced Delegation plugin and the profile_routes
+backend, whose allowlist and descriptions come from the enabled bot catalog.
+Intern is the fallback for tasks without a profile. Coordinator uses subagents
+for bounded supporting work; responsible-owner commissions and review packages
+continue through message_agent. These are separate execution paths and must not
+duplicate the same commission. Automatic Kanban dispatch stays disabled.
+
+CCKI remains the shared curated knowledge system. Memory Wiki is not declared
+by this configuration. Its optional session-history interface does not replace
+CCKI or provide agent knowledge tools. The plugin declaration installs Advanced
+Delegation only in Coordinator's profile; the default profile explicitly disables
+it. Activation writes the plugin link and configuration; restart sessions after
+the owner runs nhs before relying on the new delegation schema.
 The policy enforces named routing, not the semantic scope of a work assignment;
 role instructions and repository approvals still govern what a worker may do.
 

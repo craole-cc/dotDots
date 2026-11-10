@@ -430,6 +430,32 @@ in
       == ["anthropologist" "architect" "assistant" "auditor" "coordinator" "developer" "intern" "librarian" "scribe"]
       && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
       && production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
+    coordinatorDelegation = let
+      cfg = production._.resolved.ai.agents.hermes-agent.defined;
+      coordinator = cfg.profiles.coordinator;
+      routes = coordinator.settings.delegation.backends.profile_routes;
+    in
+      coordinator.settings.delegation.backend
+      == "profile_routes"
+      && coordinator.settings.plugins.enabled == ["advanced-delegation"]
+      && coordinator.settings.agent.disabled_toolsets == []
+      && map (profile: profile.name) routes.profiles
+      == ["developer" "librarian" "anthropologist" "assistant" "architect" "scribe" "intern" "auditor"]
+      && all (profile: profile.description == cfg.profiles.${profile.name}.description) routes.profiles
+      && routes.default == "intern"
+      && (lix.lists.access.head coordinator.extra.plugins).revision == "13b2c1c9c8204bf333df240b2aacf98c3e6250b7"
+      && hasInfix "nix-managed-advanced-delegation" production.home.activation.hermesProfiles.data
+      && production.services.hermes-agent.settings.plugins.disabled == ["advanced-delegation"]
+      && lix.lists.predicates.elem "delegation" production.services.hermes-agent.settings.agent.disabled_toolsets
+      && production.services.hermes-agent.extraPlugins == [];
+    sharedCcki = let
+      cfg = production._.resolved.ai.agents.hermes-agent.defined;
+    in
+      cfg.knowledge.enable
+      && cfg.knowledge.root == "${production.home.homeDirectory}/Projects/craole-cc/ccki"
+      && production.services.hermes-agent.environment.CCKI == cfg.knowledge.root
+      && production.services.hermes-agent.environment.CCKI_COMMAND == "ccki"
+      && production.home.sessionVariables.CCKI == cfg.knowledge.root;
     scheduledProfiles = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
       scheduled = lix.attrsets.transformation.filterAttrs (_name: profile: profile.settings.scheduled_routes.enabled or false) profiles;

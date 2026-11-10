@@ -19,6 +19,7 @@ in {
       provider = "openai-codex";
       default = "gpt-6-luna";
     };
+    plugins.disabled = ["advanced-delegation"];
     memory = {
       memory_enabled = true;
       user_profile_enabled = true;

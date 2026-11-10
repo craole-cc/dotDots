@@ -26,7 +26,7 @@ Telegram handoff and return; validate it after activation. CCKI is available
 only when knowledge management is enabled and its writable checkout has been prepared.
 References in role instructions describe intended responsibilities, not proof
 of installed capabilities. Use only verified available native tools. Do not
-invent named-profile handoffs, impersonate another role, enable generic fan-out,
+invent named-profile handoffs, impersonate another role, enable unbounded fan-out,
 or claim a message has been delivered without a receipt. If a required transport
 or knowledge service is unavailable, report the limitation and pause only the
 affected work. Ordinary direct conversation remains available.
@@ -52,7 +52,16 @@ selects the safe Codex route. Do not change routes manually to bypass this polic
 When team handoff is enabled, use the native `message_agent` tool. Telegram
 Hermes may contact only `coordinator`. Coordinator may commission the named
 owners and Auditor; domain owners may commission Scribe and Intern. A call
-addresses exactly one local profile. Generic delegation remains disabled.
+addresses exactly one local profile. Hermes and specialist profiles keep the
+delegation toolset disabled. Coordinator alone has Advanced Delegation enabled,
+using the declared profile_routes allowlist for bounded subagent tasks. Use
+message_agent for responsible-owner commissions, authoring/review packages and
+persistent named-bot conversations. Use delegate_task for bounded supporting
+work, with an explicit target profile and completion criterion; do not duplicate
+an existing commission through both mechanisms. Intern is the fallback route
+when a task omits its profile. Subagent execution is not a durable Kanban task
+or a message delivered to the target profile's existing Bot Chat. Preserve
+specialist roles, approvals, independent review and scheduled model routing.
 Architect, Auditor, Scribe and Intern return their substantive result as the
 commissioned turn's final response; the transport returns it to the sender.
 Do not send a second message merely to bounce a reply back.

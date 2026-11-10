@@ -29,13 +29,17 @@
       if kind == "directory"
       then files "${prefix}/${name}" (directory + "/${name}")
       else {"${prefix}/${name}" = directory + "/${name}";}) (readDir directory);
+  delegationProfiles = map (name: {
+    inherit name;
+    description = (load name).description or "Run a bounded task as ${name}.";
+  }) (filter (name: name != default && name != "coordinator") enabled);
   load = name: let
     definition = definitions.${name};
     directory =
       if pathExists (definition + "/default.nix")
       then definition
       else dirOf definition;
-    bot = import definition {inherit lix homeDirectory homePath environmentFiles;};
+    bot = import definition {inherit lix homeDirectory homePath environmentFiles delegationProfiles;};
     skills =
       if pathExists (directory + "/skills")
       then files "skills" (directory + "/skills")
