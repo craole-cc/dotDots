@@ -473,7 +473,7 @@ in
       scheduled = lix.attrsets.transformation.filterAttrs (_name: profile: profile.settings.scheduled_routes.enabled or false) profiles;
     in
       lix.attrsets.access.attrNames scheduled
-      == ["architect" "developer" "intern" "scribe"]
+      == ["architect" "developer"]
       && production.services.hermes-agent.settings.agent.reasoning_effort == "medium"
       && profiles.developer.settings.model.default == "gpt-6.1-sol"
       && profiles.developer.settings.agent.reasoning_effort == "medium"
@@ -482,6 +482,28 @@ in
         == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
         && profiles.${name}.environment.files == ["${production.services.hermes-agent.hermesHome}/credentials.env"]
         && hasInfix "deepseek" profiles.${name}.home.file."routing-policy.json") (lix.attrsets.access.attrNames scheduled);
+    routineQuotaRoutes = let
+      cfg = production._.resolved.ai.agents.hermes-agent.defined;
+      routes =
+        [production.services.hermes-agent.settings]
+        ++ map (name: cfg.profiles.${name}.settings) ["coordinator" "intern" "scribe"];
+    in
+      all (settings:
+        settings.model.provider
+        == "deepseek"
+        && settings.model.default == "deepseek-flash"
+        && !settings.scheduled_routes.enabled
+        && settings.fallback_providers == []
+        && settings.fallback_model == null
+        && all (task:
+          task.provider
+          == "deepseek"
+          && task.model == "deepseek-flash"
+          && task.fallback_chain == []) (lix.attrsets.access.attrValues settings.auxiliary))
+      routes
+      && all (name: cfg.profiles.${name}.terse.level == "lite") ["coordinator" "intern" "scribe"]
+      && hasInfix "Be concise. No filler" cfg.home.file."SOUL.md"
+      && cfg.profiles.auditor.settings.model.provider == "openai-codex";
     portedProfileContracts = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
     in
@@ -493,7 +515,7 @@ in
         && !(profiles.${name}.settings.model ? base_url)
         && profiles.${name}.home.file ? "AGENTS.md") (lix.attrsets.access.attrNames profiles)
       && profiles.architect.settings.model.default == "gpt-6.1-sol"
-      && profiles.intern.settings.model.default == "gpt-6-luna"
+      && profiles.intern.settings.model.default == "deepseek-flash"
       && lix.lists.predicates.elem "terminal" profiles.architect.settings.agent.disabled_toolsets
       && hasInfix "This port installs profile definitions" profiles.coordinator.home.file."AGENTS.md"
       && hasInfix "/profiles/coordinator/config.yaml" production.home.activation.hermesProfiles.data;
@@ -661,7 +683,7 @@ in
     in
       !configured.services.hermes-agent.settings.memory.memory_enabled
       && configured.services.hermes-agent.settings.memory.user_profile_enabled;
-    defaultModel = !(baseline.services.hermes-agent.settings ? model) && production.services.hermes-agent.settings.model.default == "gpt-6-luna";
+    defaultModel = !(baseline.services.hermes-agent.settings ? model) && production.services.hermes-agent.settings.model.default == "deepseek-flash";
     team = failures team == [];
     routes =
       settings.multiplex_profiles

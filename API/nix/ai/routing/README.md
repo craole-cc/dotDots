@@ -2,7 +2,7 @@
 
 `default.nix` builds each opted-in bot's policy from its normal model and
 explicit offPeakModel. It installs routing-policy.json under that profile's
-effective home. Only Intern, Scribe, Developer and Architect opt in. Top-level
+effective home. Only Developer and Architect opt in. Top-level
 `ai.routing` exposes this constructor; model choices stay with their bot.
 
 Peak periods are 01:00–04:00 and 06:00–10:00 UTC on Chinese working weekdays.
@@ -40,3 +40,29 @@ Hermes venv interpreter to verify installed hooks and native provider binding.
 Network-free tests verify timing and binding decisions; paid API
 responses still require live acceptance after activation. No deployment is run
 by the checks.
+
+## Routine Roles And Codex Quota
+
+Receptionist, Coordinator, Intern and Scribe import `routine.nix`: DeepSeek Flash
+at all hours, scheduled switching disabled, and no primary fallback. Auxiliary
+slots are explicitly pinned to DeepSeek Flash with no configured fallback chain,
+so automatic provider discovery cannot choose Codex when DeepSeek fails. A task
+requiring an unsupported capability must report the limitation rather than change
+providers. These roles receive the same runtime credentials file as the other bots.
+Developer, Architect and Auditor retain their existing routes and reasoning.
+
+Coordinator commissions whole packages and uses bounded evidence retrieval under
+`bots/POLICY.md`. Receptionist's fixed concise directive lives at the top of its
+SOUL.md; Coordinator, Intern and Scribe select `terse.level = "lite"`. These
+instructions preserve required code, validation and independent review findings.
+
+Token cache hits reduce repeated input processing; they do not eliminate input
+cost or establish how ChatGPT Plus allowance is charged. Local session counters
+can omit auxiliary calls/retries and can combine route changes under one session
+label. Use provider billing for money and the ChatGPT usage display for allowance;
+do not infer a quota-saving percentage from cached-token ratios.
+
+After the owner activates with `nhs`, verify the effective gateway home and model
+settings in a fresh chat before paid acceptance. Existing conversations retain
+their history and may retain session-specific model choices. No activation or
+provider request is performed by the offline checks.

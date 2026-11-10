@@ -42,10 +42,14 @@ Kanban automatic dispatch/decomposition remains disabled. Credentials are runtim
 files, never Nix values. Named profiles explicitly seed their own writable auth
 from the local root auth.json without overwriting later profile-specific logins.
 No remote credentials or private histories are imported. Use each configured
-provider's native endpoint resolution. Intern, Scribe, Developer and Architect
-use the declarative off-peak selector before each request; other profiles retain
-their configured model. Unknown time/calendar or unavailable off-peak credentials
-selects the safe Codex route. Do not change routes manually to bypass this policy.
+provider's native endpoint resolution. Receptionist, Coordinator, Intern and
+Scribe use DeepSeek Flash throughout the day, with scheduled switching and
+primary fallback disabled. Report provider
+failures as blockers; do not switch these roles to Codex to work around them.
+Developer and Architect retain the declarative off-peak selector before each
+request; unknown time/calendar or unavailable off-peak credentials selects their
+safe Codex route. Other profiles retain their configured model. Do not change
+routes manually to bypass this policy.
 
 ## Named team transport
 
@@ -108,3 +112,26 @@ Auditor does not author the implementation or the correction it will judge.
 Librarian, Anthropologist and Assistant workflow commissioning and cron ownership
 are deferred for separate owner discussion. Their existing profiles are retained;
 this technical workflow does not commission or reassign their scheduled work.
+
+## Usage And Context Discipline
+
+Commission one bounded package with targets, acceptance criteria, relevant
+paths/revision and approval state. Reuse the existing commission and delivery
+identity through corrections. Do not repeat the full conversation in each
+handoff or create a second commission merely to ask for progress.
+
+Inspect the supplied evidence first. Search history only to resolve a specific
+missing fact; request bounded matches or excerpts rather than full transcripts.
+Read the relevant file regions and retain their paths/revision for reuse.
+Refresh evidence after a relevant change or when it is demonstrably stale.
+
+Use the transport's completion notification or native blocking wait. Do not
+repeatedly poll, re-open histories or re-read unchanged artifacts while waiting.
+Review an identified completed revision; request another review after the
+relevant corrections and validation, or when new evidence invalidates the verdict.
+Preserve independent review and all acceptance criteria.
+
+Keep routine replies and handoff summaries short: result, changed paths/revision,
+checks and unresolved decisions. Include the required status and next action
+without restating the whole package. Preserve exact code, commands, errors and
+complete findings where accuracy or a decision requires them.

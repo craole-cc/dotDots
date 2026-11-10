@@ -94,6 +94,17 @@ class ScheduledRoutes(unittest.TestCase):
             self.assertTrue(ROUTES.ensure_route(agent, instant("2026-11-09T01:00:00")))
             self.assertEqual((agent.provider, agent.model), ("openai-codex", "gpt-6.1-sol"))
 
+    def test_disabled_schedule_keeps_routine_route_at_peak_and_off_peak(self):
+        agent, _ = self.agent_fixture()
+        agent._scheduled_routes["enabled"] = False
+        agent.provider, agent.model = "deepseek", "deepseek-flash"
+        agent._primary_runtime = {"provider": "deepseek", "model": "deepseek-flash"}
+        with self.binder(lambda *args: self.fail("Disabled schedule must not bind a route")):
+            for clock in ["00:59:59", "01:00:00", "06:00:00", "10:00:00"]:
+                with self.subTest(clock=clock):
+                    self.assertFalse(ROUTES.ensure_route(agent, instant("2026-11-09T" + clock)))
+                    self.assertEqual((agent.provider, agent.model), ("deepseek", "deepseek-flash"))
+
     def test_missing_policy_restores_safe_route(self):
         agent, file = self.agent_fixture()
         agent.provider, agent.model = "deepseek", "deepseek-flash"
