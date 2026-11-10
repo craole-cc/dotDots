@@ -161,10 +161,10 @@ instruction guidance. Profiles and gateway identity remain agent-specific.
 ## Scheduled Primary Routing
 
 The Nix package adapter installs an opt-in selector into the built Python runtime.
-Developer selects DeepSeek Flash off-peak; Architect selects
+Developer, Intern and Scribe select DeepSeek Flash off-peak; Architect selects
 DeepSeek V4 Pro. Their normal routes remain Codex; Developer normally uses Sol
-with medium effort. Receptionist, Coordinator, Intern and Scribe use DeepSeek
-Flash all day without automatic Codex fallback. Other profiles are not opted in.
+with medium effort. Receptionist and Coordinator use DeepSeek Flash all day for bounded control work.
+Specialist Flash fallback is off-peak only. Other profiles are not opted in.
 API/nix/ai/routing owns the schedule and calendar constructor.
 
 The selector checks before each request and uses the native binder rather than

@@ -1,6 +1,6 @@
 # Hermes rebuild plan
 
-Prepared November 10, 2026. Status: proposal for owner approval; no configuration, board or routing changes made by this audit.
+Prepared November 10, 2026. Status: owner approved preparation phases A–E. Preparation is implemented; see verification.md and runbook.md. Activation, runtime board creation, paid acceptance and normal dispatch remain pending. The original proposal below records the approved scope.
 
 ## Outcome
 

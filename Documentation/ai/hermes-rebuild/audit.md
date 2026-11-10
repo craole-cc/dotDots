@@ -6,7 +6,7 @@ Read-only inspection on November 10, 2026. The repository was clean and synchron
 
 The active gateway uses Projects/hermes, while the older desktop home is .hermes. Both default task stores are empty, without additional boards. Dispatch is disabled. Current direct chats and all histories remain in place.
 
-The catalog has 56 skills; shared external directories expose their indexes to named profiles. This is not proof that all skill bodies load. Root plugin settings contain Advanced Delegation in both enabled and disabled lists. Coordinator enables it explicitly. Installed directories are not proof that hooks executed.
+The catalog has 56 skills; shared external directories expose their indexes to named profiles. This is not proof that all skill bodies load. Root plugin settings contain Advanced Delegation in both enabled and disabled lists. Coordinator enables it explicitly. The pinned plugin configuration code gives the disabled list precedence; the conflicting lists do not prove that root Advanced Delegation was active. Installed directories are not proof that hooks executed.
 
 Persistent Bot Chat session counters are Coordinator 340, Developer 416, Scribe 259 and Auditor 92 calls. These span multiple requests and routes and cannot be treated as the cost of one planning job.
 

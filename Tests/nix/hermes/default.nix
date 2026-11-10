@@ -264,6 +264,7 @@ in
   then {
     source = toolkit.records.hermes.paths.outPath;
     python = (toolkit.hermes.forConfig team.services.hermes-agent).package.hermesVenv.outPath;
+    pythonDrv = (toolkit.hermes.forConfig team.services.hermes-agent).package.hermesVenv.drvPath;
     settings = team.services.hermes-agent.settings;
     defaultSettings =
       (home {
@@ -445,21 +446,14 @@ in
     coordinatorDelegation = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
       coordinator = cfg.profiles.coordinator;
-      routes = coordinator.settings.delegation.backends.profile_routes;
     in
-      coordinator.settings.delegation.backend
-      == "profile_routes"
-      && coordinator.settings.plugins.enabled == ["advanced-delegation"]
-      && coordinator.settings.agent.disabled_toolsets == []
-      && map (profile: profile.name) routes.profiles
-      == ["developer" "librarian" "anthropologist" "assistant" "architect" "scribe" "intern" "auditor"]
-      && all (profile: profile.description == cfg.profiles.${profile.name}.description) routes.profiles
-      && routes.default == "intern"
-      && (lix.lists.access.head coordinator.extra.plugins).revision == "13b2c1c9c8204bf333df240b2aacf98c3e6250b7"
-      && hasInfix "nix-managed-advanced-delegation" production.home.activation.hermesProfiles.data
-      && production.services.hermes-agent.settings.plugins.disabled == ["advanced-delegation"]
-      && lix.lists.predicates.elem "delegation" production.services.hermes-agent.settings.agent.disabled_toolsets
-      && production.services.hermes-agent.extraPlugins == [];
+      coordinator.extra.plugins
+      == []
+      && coordinator.settings.plugins.enabled == []
+      && lix.lists.predicates.elem "advanced-delegation" coordinator.settings.plugins.disabled
+      && coordinator.settings.agent.disabled_toolsets == ["delegation"]
+      && coordinator.settings.platform_toolsets.cli == ["repository_read" "skills" "kanban"]
+      && coordinator.settings.agent.max_turns == 12;
     sharedCcki = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
     in
@@ -473,7 +467,7 @@ in
       scheduled = lix.attrsets.transformation.filterAttrs (_name: profile: profile.settings.scheduled_routes.enabled or false) profiles;
     in
       lix.attrsets.access.attrNames scheduled
-      == ["architect" "developer"]
+      == ["architect" "developer" "intern" "scribe"]
       && production.services.hermes-agent.settings.agent.reasoning_effort == "medium"
       && profiles.developer.settings.model.default == "gpt-6.1-sol"
       && profiles.developer.settings.agent.reasoning_effort == "medium"
@@ -486,7 +480,7 @@ in
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
       routes =
         [production.services.hermes-agent.settings]
-        ++ map (name: cfg.profiles.${name}.settings) ["coordinator" "intern" "scribe"];
+        ++ map (name: cfg.profiles.${name}.settings) ["coordinator"];
     in
       all (settings:
         settings.model.provider
@@ -504,6 +498,24 @@ in
       && all (name: cfg.profiles.${name}.terse.level == "lite") ["coordinator" "intern" "scribe"]
       && hasInfix "Be concise. No filler" cfg.home.file."SOUL.md"
       && cfg.profiles.auditor.settings.model.provider == "openai-codex";
+    boundedPreparation = let
+      cfg = production._.resolved.ai.agents.hermes-agent.defined;
+      settings = production.services.hermes-agent.settings;
+    in
+      !cfg.kanban.enable
+      && !settings.kanban.dispatch_in_gateway
+      && settings.kanban.dispatch_profiles == []
+      && !settings.kanban.auto_decompose
+      && settings.kanban.execution_limits.max_runs == 8
+      && settings.kanban.max_in_progress == 1
+      && all (name:
+        cfg.profiles.${name}.settings.fallback_providers
+        != []
+        && hasInfix "fallback-policy.json" (lix.lists.access.head cfg.profiles.${name}.settings.fallback_providers).off_peak_policy_file)
+      ["developer" "architect" "auditor" "intern" "scribe"]
+      && cfg.profiles.architect.settings.platform_toolsets.cli == ["repository_read" "skills" "kanban"]
+      && cfg.profiles.auditor.settings.agent.max_turns == 30
+      && lix.lists.predicates.elem "sdlc-review" cfg.profiles.auditor.settings.skills.allowed;
     portedProfileContracts = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;
     in
@@ -515,9 +527,9 @@ in
         && !(profiles.${name}.settings.model ? base_url)
         && profiles.${name}.home.file ? "AGENTS.md") (lix.attrsets.access.attrNames profiles)
       && profiles.architect.settings.model.default == "gpt-6.1-sol"
-      && profiles.intern.settings.model.default == "deepseek-flash"
+      && profiles.intern.settings.model.default == "gpt-6-luna"
       && lix.lists.predicates.elem "terminal" profiles.architect.settings.agent.disabled_toolsets
-      && hasInfix "This port installs profile definitions" profiles.coordinator.home.file."AGENTS.md"
+      && hasInfix "Durable Work And Native Kanban" profiles.coordinator.home.file."AGENTS.md"
       && hasInfix "/profiles/coordinator/config.yaml" production.home.activation.hermesProfiles.data;
     partialRosterOverride = let
       configured = evaluate toolkit false {profiles.planner.settings.memory.memory_enabled = false;};
