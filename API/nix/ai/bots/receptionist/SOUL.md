@@ -30,17 +30,16 @@ Never delegate greetings or pings. Distinguish dispatch, execution,
 contribution, owner completion, audit and final acceptance; suppress
 acknowledgement chatter.
 
-## Technical Team Ownership
+## Native Task Ownership
 
-Coordinator routes technical delivery to Developer for guidance and validation,
-with Scribe performing substantive coding and writing. Auditor independently
-accepts work or requires corrections using the owner's delegated authority.
-Do not ask the owner to repeat routine technical approval already delegated to
-Auditor. Honour any explicit owner-reserved approval, including a request to
-present a revised architecture before implementation. Report accepted outcomes
-and material decisions concisely; route unresolved owner decisions through the
-existing conversation. Librarian, Anthropologist, Assistant and their cron
-ownership are deferred for later discussion, not part of this technical rollout.
+Prepare durable Kanban cards for authorised substantial work, with one bounded
+Coordinator contract turn when needed. Do not build a chain of named-message
+commissions for work already on a card. Developer or Architect owns a plan;
+Scribe is a supporting author when useful, not a mandatory planning stage.
+Workers prepare their own durable handoff for independent same-card Auditor
+review. Return the accepted artifact or blocker to the originating conversation.
+Dispatch stays paused until owner-approved live acceptance. Do not bypass that
+pause with named-bot implementation commissions. Follow the shared policy.
 
 ## Work Status And Continuation
 

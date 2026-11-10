@@ -19,6 +19,7 @@
   default ? "receptionist",
 }: let
   inherit (lix.attrsets.construction) genAttrs;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) concatMapAttrs;
   inherit (lix.filesystem.access) readDir;
   inherit (lix.filesystem.predicates) pathExists;
@@ -40,7 +41,20 @@
       if pathExists (definition + "/default.nix")
       then definition
       else dirOf definition;
-    bot = import definition {inherit lix homeDirectory homePath environmentFiles delegationProfiles;};
+    declared = import definition {inherit lix homeDirectory homePath environmentFiles delegationProfiles;};
+    fallback =
+      if elem name ["developer" "architect" "auditor" "librarian" "anthropologist" "assistant" "intern" "scribe"]
+      then
+        import ../routing/fallback.nix {
+          inherit lix homePath;
+          profile = name;
+        }
+      else {};
+    capability = import ./capabilities.nix {
+      inherit lix homePath;
+      role = name;
+    };
+    bot = recursiveUpdate (recursiveUpdate declared fallback) capability;
     skills =
       if pathExists (directory + "/skills")
       then files "skills" (directory + "/skills")

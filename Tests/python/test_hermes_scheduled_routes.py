@@ -105,6 +105,38 @@ class ScheduledRoutes(unittest.TestCase):
                     self.assertFalse(ROUTES.ensure_route(agent, instant("2026-11-09T" + clock)))
                     self.assertEqual((agent.provider, agent.model), ("deepseek", "deepseek-flash"))
 
+    def test_off_peak_fallback_refuses_peak_and_unknown_calendar(self):
+        _, file = self.agent_fixture()
+        entry = {"off_peak_policy_file": str(file)}
+        self.assertTrue(ROUTES.fallback_allowed(entry, instant("2026-11-09T00:59:59")))
+        self.assertFalse(ROUTES.fallback_allowed(entry, instant("2026-11-09T01:00:00")))
+        self.assertFalse(ROUTES.fallback_allowed(entry, instant("2027-01-02T12:00:00")))
+        file.unlink()
+        self.assertFalse(ROUTES.fallback_allowed(entry, instant("2026-11-09T12:00:00")))
+
+    def test_fallback_reverts_at_peak_even_without_primary_schedule(self):
+        agent, file = self.agent_fixture()
+        agent._scheduled_routes["enabled"] = False
+        agent.provider, agent.model = "deepseek", "deepseek-flash"
+        agent._off_peak_fallback_entry = {"off_peak_policy_file": str(file)}
+        with self.binder(self.bind):
+            ROUTES.ensure_route(agent, instant("2026-11-09T01:00:00"))
+        self.assertEqual((agent.provider, agent.model), ("openai-codex", "gpt-6.1-sol"))
+        self.assertIsNone(agent._off_peak_fallback_entry)
+
+    def test_startup_fallback_is_also_reverted_at_peak(self):
+        agent, file = self.agent_fixture()
+        with patch.dict(sys.modules, {"hermes_constants": SimpleNamespace(get_hermes_home=lambda: file.parent)}):
+            ROUTES.initialise(agent, {
+                "model": {"provider": "openai-codex", "default": "gpt-6.1-sol"},
+                "fallback_providers": [{"provider": "deepseek", "model": "deepseek-flash", "off_peak_policy_file": str(file)}],
+            })
+        agent.provider, agent.model = "deepseek", "deepseek-flash"
+        agent._primary_runtime = {"provider": "deepseek", "model": "deepseek-flash"}
+        with self.binder(self.bind):
+            ROUTES.ensure_route(agent, instant("2026-11-09T01:00:00"))
+        self.assertEqual((agent.provider, agent.model), ("openai-codex", "gpt-6.1-sol"))
+
     def test_missing_policy_restores_safe_route(self):
         agent, file = self.agent_fixture()
         agent.provider, agent.model = "deepseek", "deepseek-flash"

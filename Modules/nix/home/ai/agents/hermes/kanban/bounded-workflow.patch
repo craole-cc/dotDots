@@ -1,0 +1,52 @@
+--- a/agent/chat_completion_helpers.py
++++ b/agent/chat_completion_helpers.py
+@@ -2048,0 +2049,3 @@
++        from agent.scheduled_routes import fallback_allowed
++        if not fallback_allowed(fb):
++            continue
+@@ -2065,0 +2069 @@
++            agent._off_peak_fallback_entry = fb if fb.get("off_peak_policy_file") else None
+--- a/agent/skill_utils.py
++++ b/agent/skill_utils.py
+@@ -470 +470,5 @@
+-    return not disabled.isdisjoint({str(entry["name"]), entry.get("load_name")} - {None})
++    names = {str(entry["name"]), entry.get("load_name")} - {None}
++    allowed = (_skills_cfg() or {}).get("allowed")
++    if allowed is not None and names.isdisjoint(ESSENTIAL_SKILLS | _normalize_string_set(allowed)):
++        return True
++    return not disabled.isdisjoint(names)
+--- a/hermes_cli/kanban_db.py
++++ b/hermes_cli/kanban_db.py
+@@ -2129,0 +2130,11 @@
++    from hermes_cli.execution_limits import admission_reason, configured_limits
++    reason = admission_reason(conn, task_id, configured_limits(conn))
++    if reason:
++        changed = conn.execute(
++            "UPDATE tasks SET status = 'blocked', last_failure_error = ? "
++            "WHERE id = ? AND status = ? AND claim_lock IS NULL",
++            (reason, task_id, source_status),
++        )
++        if changed.rowcount:
++            _append_event(conn, task_id, "blocked", {"reason": reason, "kind": "needs_input"})
++        return None
+@@ -2680,0 +2692,4 @@
++            return False
++        from hermes_cli.execution_limits import completion_allowed, configured_limits
++        if not completion_allowed(conn, task_id, configured_limits(conn)):
++            _append_event(conn, task_id, "completion_rejected", {"reason": "Independent same-card review required"})
+--- a/toolsets.py
++++ b/toolsets.py
+@@ -117,0 +118 @@
++    "repository_read": _ts("Read-only repository evidence", ["read_file", "search_files"]),
+--- a/hermes_cli/fallback_config.py
++++ b/hermes_cli/fallback_config.py
+@@ -109,0 +110,4 @@
++        if entry.get("off_peak_policy_file"):
++            from agent.scheduled_routes import fallback_allowed
++            if not fallback_allowed(entry):
++                continue
+--- a/tools/kanban_tools.py
++++ b/tools/kanban_tools.py
+@@ -1225 +1225 @@
+-        delivery_mode="notify+wake" if platform != "tui" else None,
++        delivery_mode=cfg_get(load_config(), "kanban", "completion_delivery_mode", default="notify+wake") if platform != "tui" else None,

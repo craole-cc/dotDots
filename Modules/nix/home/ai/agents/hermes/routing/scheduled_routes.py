@@ -52,12 +52,16 @@ def initialise(agent, config: dict) -> None:
     from hermes_constants import get_hermes_home
 
     agent._scheduled_routes = dict(config.get("scheduled_routes") or {})
+    agent._gated_fallback_entries = list(config.get("fallback_providers") or [])
+    model = config.get("model") or {}
+    agent._fallback_safe_runtime = {"provider": model.get("provider"), "model": model.get("default")}
     db = getattr(agent, "_session_db", None)
     agent._scheduled_home = Path(db.db_path).parent if db is not None else get_hermes_home()
 
 
 def ensure_route(agent, now: datetime | None = None) -> bool:
     """Run before attempt decoration. Native provider failover remains sticky this turn."""
+    enforce_fallback_window(agent, now)
     config = getattr(agent, "_scheduled_routes", {})
     if not config.get("enabled"):
         return False
@@ -68,10 +72,15 @@ def ensure_route(agent, now: datetime | None = None) -> bool:
         policy = json.loads(Path(config["policy_file"]).read_text(encoding="utf-8-sig"))
         desired = choose_route(policy, agent._scheduled_home.name, now or datetime.now(timezone.utc))
         if getattr(agent, "_provider_fallback_active", False):
-            desired = policy["profiles"][agent._scheduled_home.name]["otherwise"]
+            if agent.provider == "deepseek" and off_peak(policy, now or datetime.now(timezone.utc)):
+                desired = {"provider": agent.provider, "model": agent.model}
+            else:
+                desired = policy["profiles"][agent._scheduled_home.name]["otherwise"]
     except (OSError, KeyError, TypeError, ValueError):
         logger.warning("Scheduled route unavailable; retaining/restoring safe primary")
     primary = getattr(agent, "_primary_runtime", {})
+    if primary.get("provider") != "openai-codex":
+        primary = getattr(agent, "_fallback_safe_runtime", primary)
     safe = {"provider": primary.get("provider"), "model": primary.get("model")}
     if safe["provider"] != "openai-codex":
         raise RuntimeError("Scheduled routes require a safe openai-codex primary")
@@ -91,3 +100,33 @@ def ensure_route(agent, now: datetime | None = None) -> bool:
         raise RuntimeError("Safe scheduled fallback unavailable; request stopped")
     agent._provider_fallback_active = True
     return True
+
+
+def fallback_allowed(entry: dict, now: datetime | None = None) -> bool:
+    """Opt-in fallback windows share the primary calendar; unknown policy denies."""
+    path = entry.get("off_peak_policy_file")
+    if path is None:
+        return True
+    try:
+        return off_peak(json.loads(Path(path).read_text()), now or datetime.now(timezone.utc))
+    except (OSError, KeyError, TypeError, ValueError):
+        return False
+
+
+def enforce_fallback_window(agent, now: datetime | None = None) -> None:
+    entry = getattr(agent, "_off_peak_fallback_entry", None)
+    if entry is None:
+        entry = next((value for value in getattr(agent, "_gated_fallback_entries", [])
+                      if value.get("off_peak_policy_file") and
+                      (value.get("provider"), value.get("model")) == (agent.provider, agent.model)), None)
+    if not entry or fallback_allowed(entry, now):
+        return
+    from agent.route_binding import bind_route_entry
+    safe = agent._primary_runtime
+    if safe.get("provider") != "openai-codex":
+        safe = getattr(agent, "_fallback_safe_runtime", safe)
+    if safe.get("provider") != "openai-codex" or not safe.get("model"):
+        raise RuntimeError("Off-peak fallback ended; configured primary is unknown")
+    if bind_route_entry(agent, safe, safe["provider"], safe["model"]) is None:
+        raise RuntimeError("Off-peak fallback window ended; primary unavailable")
+    agent._off_peak_fallback_entry = None

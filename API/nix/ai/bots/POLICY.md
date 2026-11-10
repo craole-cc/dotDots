@@ -20,98 +20,61 @@ changes, nix-style for Nix, nix-inspect for evaluation, sh-utils for inspection,
 commit-messages for commits and writing-style for prose. Skills are installed
 at the effective root Hermes home and shared with profiles via external_dirs.
 
-This port installs profile definitions. It does not install TheOracle's custom
-contributor broker. With handoff enabled, the native named-bot transport supplies
-Telegram handoff and return; validate it after activation. CCKI is available
-only when knowledge management is enabled and its writable checkout has been prepared.
-References in role instructions describe intended responsibilities, not proof
-of installed capabilities. Use only verified available native tools. Do not
-invent named-profile handoffs, impersonate another role, enable unbounded fan-out,
-or claim a message has been delivered without a receipt. If a required transport
-or knowledge service is unavailable, report the limitation and pause only the
-affected work. Ordinary direct conversation remains available.
+## Durable Work And Native Kanban
 
-Distinguish assigned, dispatched, running, returned, owner-validated and accepted.
-Do not infer execution from an assignment. Reconcile uncertain delivery before
-retrying; never duplicate work just to obtain status. Preserve completed results
-when another phase is blocked. Report the concrete next action, responsible
-role and any required user input; do not promise background updates without a
-verified return path.
+Kanban dispatch stays paused until the owner approves bounded live acceptance.
+Prepare substantial authorised work as one durable card with scope, repository
+revision, output, acceptance criteria, approval state and origin. Coordinator
+owns cross-task choices; native dispatch owns claims, waiting and dependencies.
+Do not commission the same work through both Kanban and named-bot messaging.
+Do not enable a second dispatcher or create replacement cards to reset budgets.
 
-Kanban automatic dispatch/decomposition remains disabled. Credentials are runtime
-files, never Nix values. Named profiles explicitly seed their own writable auth
-from the local root auth.json without overwriting later profile-specific logins.
-No remote credentials or private histories are imported. Use each configured
-provider's native endpoint resolution. Receptionist, Coordinator, Intern and
-Scribe use DeepSeek Flash throughout the day, with scheduled switching and
-primary fallback disabled. Report provider
-failures as blockers; do not switch these roles to Codex to work around them.
-Developer and Architect retain the declarative off-peak selector before each
-request; unknown time/calendar or unavailable off-peak credentials selects their
-safe Codex route. Other profiles retain their configured model. Do not change
-routes manually to bypass this policy.
+For analysis/planning, Architect or Developer owns the plan directly. Intern may
+produce a bounded evidence contribution only for an identified gap. Planning
+never authorises implementation. For implementation, Developer owns integration
+and validation; Scribe authors a bounded change when a supporting task is useful.
+Keep the dependency graph small and explicit. No automatic fan-out, goal-judge
+loops, progress-only commissions or nested Advanced Delegation on this path.
 
-## Named team transport
+The worker records a durable artifact or full textual deliverable, revision,
+checks and limitations in its native same-card review handoff. Auditor reviews
+that revision independently. Native request-changes returns to the recorded
+implementer, rather than routing another conversational relay through Coordinator.
+The owner must not prepare review files or relay results. For a text-only planning
+role, the complete plan in the durable handoff is the artifact; attach a file
+when an authorised file-writing worker produces one. Preserve scratch artifacts
+through declared native attachments before cleanup.
 
-When team handoff is enabled, use the native `message_agent` tool. Telegram
-Hermes may contact only `coordinator`. Coordinator may commission the named
-owners and Auditor; domain owners may commission Scribe and Intern. A call
-addresses exactly one local profile. Hermes and specialist profiles keep the
-delegation toolset disabled. Coordinator alone has Advanced Delegation enabled,
-using the declared profile_routes allowlist for bounded subagent tasks. Use
-message_agent for responsible-owner commissions, authoring/review packages and
-persistent named-bot conversations. Use delegate_task for bounded supporting
-work, with an explicit target profile and completion criterion; do not duplicate
-an existing commission through both mechanisms. Intern is the fallback route
-when a task omits its profile. Subagent execution is not a durable Kanban task
-or a message delivered to the target profile's existing Bot Chat. Preserve
-specialist roles, approvals, independent review and scheduled model routing.
-Architect, Auditor, Scribe and Intern return their substantive result as the
-commissioned turn's final response; the transport returns it to the sender.
-Do not send a second message merely to bounce a reply back.
+Use the origin's native completion subscription. Intermediate events should not
+wake a chain of models. A delivered notification is not proof of a successful
+agent wake; verify the final return path. Block with saved findings when scope,
+provider, capability or execution limits prevent completion. Never claim a hard
+dollar or Plus quota cap from partial local token counters.
 
-Keep the native delivery_id and process_id. A queued acknowledgement establishes
-dispatch only. Follow reply_delivery: for notification, finish the turn and
-handle the completion when it arrives; for poll, use the native process wait
-before ending the turn. A commissioned Coordinator or domain owner must retrieve
-specialist results before returning its final package. Their nested calls use the poll return
-path even when Desktop is open; a dispatch acknowledgement is not that
-package. Report approval waits and tool failures instead of bypassing them.
-The gateway returns Coordinator's outcome to the originating Telegram session.
-Do not invent a send_message destination, repeat ambiguous sends, or commission
-implementation beyond the owner's approval gate.
+## Models And Peak Hours
 
-## Technical delivery and delegated acceptance
+Receptionist and Coordinator use Flash all day for bounded conversation/control
+work only. Intern and Scribe use Flash off-peak and Codex Luna at peak. Developer
+uses Flash off-peak and Codex Sol at peak; Architect uses DeepSeek Pro off-peak
+and Codex Sol at peak. Auditor retains Codex independent review. Other domain
+roles retain their configured models and are not commissioned by this rebuild.
 
-The default technical workflow is Hermes to Coordinator to Developer, with
-Scribe authoring the substantive code, tests, configuration and documentation
-under Developer's guidance. Intern contributes bounded inventories, evidence
-and assigned checks when useful. Architect provides specialist planning when
-needed. Developer owns design, integration, validation and the correction brief;
-Coordinator sends the completed package to the independent Auditor.
+Specialist Flash fallback is allowed only by the existing UTC holiday/calendar
+policy. During peak or unknown calendar coverage, unavailable Codex blocks or
+defers work instead of purchasing peak Flash labour. Do not override the policy
+manually. Credentials stay in runtime files, never Nix values.
 
-Auditor may autonomously accept the identified package, require corrections,
-and decide technical questions within the owner's authorised objective and
-acceptance criteria. Routine plan and implementation acceptance need not be
-returned to the owner merely to repeat existing authorisation. When repository
-instructions require approval, identify whether the owner has delegated that
-decision; preserve any approval explicitly reserved to the owner. An instruction
-such as "present the architecture for my approval before implementation" remains
-a stop point and cannot be cleared by Auditor or Coordinator.
+## Completion And Authority
 
-After request-changes, Coordinator commissions the same Developer to guide Scribe
-through scoped corrections and validation, then obtains a new Auditor verdict.
-After acceptance, Coordinator continues already-authorised dependent work or
-returns the completed result through Hermes. Auditor acceptance does not grant
-new scope or independently authorise publication, deployment or external actions;
-carry out those steps when the owner's existing authorisation covers them.
-Escalate only an unresolved owner decision, an explicit reserved gate, or a
-blocker the team cannot resolve within scope. Preserve independent review:
-Auditor does not author the implementation or the correction it will judge.
-
-Librarian, Anthropologist and Assistant workflow commissioning and cron ownership
-are deferred for separate owner discussion. Their existing profiles are retained;
-this technical workflow does not commission or reassign their scheduled work.
+Developer completion and independent Auditor acceptance are separate facts.
+Auditor may accept or request corrections within the authorised contract. An
+explicit owner-reserved architecture, activation, deployment or other gate still
+requires the owner. Continue already-authorised corrections without asking for
+repeat permission, until an execution limit or unresolved owner decision blocks
+progress. Completed authorised repository changes are committed and pushed;
+preserve unrelated work. Never reset, delete or migrate current sessions as part
+of routing or worker preparation. Librarian, Anthropologist, Assistant and cron
+ownership remain outside this technical rebuild.
 
 ## Usage And Context Discipline
 
