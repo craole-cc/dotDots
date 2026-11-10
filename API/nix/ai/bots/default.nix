@@ -23,6 +23,7 @@
   inherit (lix.filesystem.access) readDir;
   inherit (lix.filesystem.predicates) pathExists;
   inherit (lix.lists.selection) filter;
+  inherit (lix.lists.transformation) unique;
   inherit (lix.lists.predicates) elem;
   files = prefix: directory:
     concatMapAttrs (name: kind:
@@ -47,6 +48,9 @@
   in
     bot
     // {
+      environment =
+        (bot.environment or {})
+        // {files = unique (environmentFiles ++ (bot.environment.files or []));};
       home =
         (bot.home or {})
         // {

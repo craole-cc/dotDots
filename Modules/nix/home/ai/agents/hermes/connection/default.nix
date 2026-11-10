@@ -118,7 +118,9 @@ in {
       cfg.gateway.routes;
   });
 
-  resolutions.environment.files = mkIf (cfg.gateway.telegram.source != null) [cfg.gateway.telegram.destination];
+  resolutions.environment.files = mkIf (cfg.gateway.telegram.source != null) (
+    ((resolve {}).environment.files or []) ++ [cfg.gateway.telegram.destination]
+  );
 
   outputs = {
     home.activation.hermesTelegramEnvironment = mkIf (cfg.gateway.telegram.source != null) (

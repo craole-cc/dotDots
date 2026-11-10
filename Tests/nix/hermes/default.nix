@@ -422,7 +422,7 @@ in
       hasInfix "You are Hermes, the gateway" production.services.hermes-agent.hermesHomeFiles."SOUL.md"
       && !(production.services.hermes-agent.settings.model ? base_url)
       && production.services.hermes-agent.authFile == null
-      && production.services.hermes-agent.environmentFiles == [];
+      && lix.lists.predicates.elem "${production.services.hermes-agent.hermesHome}/credentials.env" production.services.hermes-agent.environmentFiles;
     productionRoster =
       failures production
       == []
@@ -430,6 +430,18 @@ in
       == ["anthropologist" "architect" "assistant" "auditor" "coordinator" "developer" "intern" "librarian" "scribe"]
       && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
       && production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
+    sharedCredentials = let
+      cfg = production._.resolved.ai.agents.hermes-agent.defined;
+      destination = "${cfg.home.path}/credentials.env";
+      private = "${production.home.homeDirectory}/Private";
+    in
+      cfg.credentials.sources
+      == ["${private}/hermes.env" "${private}/hermes/.env" "${private}/hermes/*.env"]
+      && cfg.gateway.telegram.source == "${private}/hermes/.env"
+      && all (profile: lix.lists.predicates.elem destination profile.environment.files) (lix.attrsets.access.attrValues cfg.profiles)
+      && lix.lists.predicates.elem destination production.services.hermes-agent.environmentFiles
+      && lix.lists.predicates.elem "hermesProfiles" production.home.activation.hermesCredentials.before
+      && lix.lists.predicates.elem "hermesAgentSetup" production.home.activation.hermesCredentials.before;
     coordinatorDelegation = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
       coordinator = cfg.profiles.coordinator;
@@ -468,7 +480,7 @@ in
       && all (name:
         profiles.${name}.settings.scheduled_routes.policy_file
         == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
-        && profiles.${name}.environment.files == ["${production.home.homeDirectory}/Private/hermes/deepseek.env"]
+        && profiles.${name}.environment.files == ["${production.services.hermes-agent.hermesHome}/credentials.env"]
         && hasInfix "deepseek" profiles.${name}.home.file."routing-policy.json") (lix.attrsets.access.attrNames scheduled);
     portedProfileContracts = let
       profiles = production._.resolved.ai.agents.hermes-agent.defined.profiles;

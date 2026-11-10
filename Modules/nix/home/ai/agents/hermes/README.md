@@ -24,6 +24,18 @@ arguments use `backend.extra.args`. Restart behaviour uses `restart.when` and
 the upstream Hermes interface. Profiles use the same `home.file`, `auth` and
 `extra.plugins` names within their own declarations.
 
+`credentials.sources` accepts ordered runtime dotenv paths and glob patterns.
+For Craole, activation loads `~/Private/hermes.env`, then
+`~/Private/hermes/.env`, then non-hidden `~/Private/hermes/*.env` in filename
+order. Later values override earlier ones, including empty values. Missing
+sources are skipped; existing sources must be regular files owned by the user
+with no group or other permissions. Values remain outside the Nix store.
+Activation prepares `credentials.env` before installing the main and all named
+profiles' `.env` files, so desktop launches and the gateway use the same keys.
+After adding or changing a private source, run `nhs` and reopen Hermes Desktop
+to load the updated credentials. The gateway Telegram source is the dedicated
+`~/Private/hermes/.env` file.
+
 The toolkit source prepares Hermes with its messaging dependency group.
 `hermesProfile NAME ...` selects a profile; `hermesProfiles ...` manages profiles.
 `lix.toolkit.hermes.forConfig` supplies the effective package and aliases for a
