@@ -1,0 +1,32 @@
+--- a/hermes_cli/plugin_catalog.py
++++ b/hermes_cli/plugin_catalog.py
+@@ -38,7 +38,7 @@
+ LIVE_CATALOG_MAX_STALE_SECONDS = 24 * 60 * 60
+ LIVE_CATALOG_FAILURE_TTL_SECONDS = 60.0
+ _REQUEST_TIMEOUT = 5.0
+-_MAX_LIVE_BYTES = 2 * 1024 * 1024
++_MAX_LIVE_BYTES = 8 * 1024 * 1024
+ 
+ _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+ _VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$")
+@@ -118,7 +118,9 @@
+ 
+ def get_catalog_dir() -> Path:
+     """The ``plugin-catalog/`` directory shipped with this checkout."""
+-    return Path(__file__).resolve().parent.parent / "plugin-catalog"
++    root = Path(__file__).resolve().parent
++    checkout = root.parent / "plugin-catalog"
++    return checkout if checkout.is_dir() else root / "data" / "plugin-catalog"
+ 
+ 
+ # ── Parsing ──────────────────────────────────────────────────────────────────
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -737,6 +737,7 @@
+ hermes_cli = [
+   "observability/schemas/*.json",
+   "data/*.json",
++  "data/plugin-catalog/*.yaml",
+   "local_runtime/*.json",
+   "process_supervisor.sh",
+ ]
