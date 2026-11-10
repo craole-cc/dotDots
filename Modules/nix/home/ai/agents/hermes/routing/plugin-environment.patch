@@ -1,0 +1,69 @@
+--- a/pm/paths.py
++++ b/pm/paths.py
+@@ -7,7 +7,10 @@
+ 
+ 
+ def repo_root() -> Path:
+-    return Path(__file__).resolve().parent.parent
++    root = Path(__file__).resolve().parent.parent
++    # Wheels retain the sealed core's dependency inputs as package data.
++    metadata = Path(__file__).resolve().parent / "core"
++    return metadata if not (root / "uv.lock").is_file() and metadata.is_dir() else root
+ 
+ 
+ def install_root() -> Path:
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -755,7 +755,7 @@
+ # pm/lock.json is the runtime pin table (uv/python/tool versions + sha256s).
+ # Without it a sealed wheel installs the pm package but has no pins to
+ # realize — the pm store would be empty.
+-pm = ["lock.json", "artifact-mirror.json", "pyproject.toml", "uv.lock"]
++pm = ["lock.json", "artifact-mirror.json", "pyproject.toml", "uv.lock", "core/*"]
+ # Bot Desktop starts Xvnc + Xfce through a shell launcher and seeds the wallpaper; both are read
+ # via Path(__file__).parent in tools/bot_desktop/runtime.py and vanish from sealed wheels otherwise.
+ tools = ["bot_desktop/launcher.sh", "bot_desktop/wallpaper.png"]
+--- a/pm/install.py
++++ b/pm/install.py
+@@ -895,6 +895,32 @@
+         record_declined_extras(add=names, project_root=paths.repo_root())
+ 
+ 
++def _publish_nix_selection(change) -> bool:
++    """Commit dependency-free plugin changes without rebuilding Nix's environment."""
++    import json
++    from hermes_cli.runtime_state import finish_publication, recover_publication
++    from pm import receipt
++
++    if change is None:
++        return False
++    stamp = paths.install_stamp_path(paths.repo_root())
++    if not stamp.is_file() or json.loads(stamp.read_text(encoding="utf-8")).get("distribution") != "nix":
++        return False
++    if change.members:
++        raise InstallError(
++            "venv", "plugin selection requires Python package installation in a Nix-managed environment",
++            "declare plugin Python dependencies and enable the plugin through Nix, then rebuild Hermes",
++        )
++    try:
++        change.publish(paths.repo_root())
++        finish_publication(paths.repo_root())
++    except BaseException:
++        recover_publication(paths.repo_root())
++        raise
++    receipt.record_venv_rebuild(False, "Nix environment retained; no plugin Python packages")
++    return True
++
++
+ def _sync_locked(extras, *, package, plugins, repair: bool, explicit: bool, shipped, frozen,
+                  evict_incompatible_plugins: bool) -> None:
+     """sync_venv's body under the held dependency lock."""
+@@ -904,6 +930,8 @@
+     change = _publication(plugins)
+     if isinstance(change, StagedPlugin) and not change.active:
+         _publish_inactive(change)
++    elif not repair and not extras and _publish_nix_selection(change):
++        return
+     elif evict_incompatible_plugins:
+         from pm.plugin_eviction import sync_evicting
+ 

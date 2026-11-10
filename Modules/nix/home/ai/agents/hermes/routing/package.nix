@@ -22,11 +22,14 @@ in
           pythonSrc = builders.applyPatches {
             name = "hermes-scheduled-routes-source";
             src = overrides.pythonSrc;
-            patches = [./scheduled-routes.patch ../handoff/named-team.patch ./plugin-catalog.patch];
+            patches = [./scheduled-routes.patch ../handoff/named-team.patch ./plugin-catalog.patch ./plugin-environment.patch];
             patchFlags = ["-p1" "--fuzz=0"];
             postPatch = ''
               # Keep the reviewed fallback catalog in the sealed Python wheel.
               cp -R plugin-catalog hermes_cli/data/plugin-catalog
+              # PM inspects core dependency metadata after wheel installation.
+              mkdir -p pm/core
+              cp uv.lock pyproject.toml setup.py pm/core/
               cp ${./scheduled_routes.py} agent/scheduled_routes.py
               cp ${../handoff/team_handoff.py} tools/team_handoff.py
             '';
