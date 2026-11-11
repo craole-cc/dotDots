@@ -26,9 +26,14 @@
   };
   managed = allowed ? ${role};
   readOnly = role == "architect";
+  # Coordinator routes work and must be able to retrieve a worker's return, so it
+  # needs `process_manage`, which ships only with the terminal toolset. Architect
+  # stays read-only without it.
   toolsets =
-    if readOnly || role == "coordinator"
+    if readOnly
     then ["repository_read" "skills" "kanban"]
+    else if role == "coordinator"
+    then ["repository_read" "skills" "kanban" "terminal"]
     else ["file" "terminal" "skills" "kanban"];
 in
   if !managed
