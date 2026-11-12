@@ -10,7 +10,6 @@ let
     "claude-code"
     "codex"
     "continue"
-    "deepseek-harness"
   ];
 in {
   imports = [./hardware-configuration.nix ./ai];

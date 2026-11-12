@@ -2,7 +2,6 @@ let
   ai = [
     "hermes-desktop"
     "chatgpt"
-    "deepseek-harness"
     "claude-desktop"
     "claude-code"
     "codex"

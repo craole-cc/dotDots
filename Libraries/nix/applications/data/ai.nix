@@ -99,26 +99,6 @@ _: {
     categories = ["ai"];
   };
 
-  deepseek-harness = {
-    aliases = [
-      "dsh"
-      "deepseek"
-    ];
-    package = {
-      source = "llm-agents";
-      attribute = "dsh";
-    };
-    names = {
-      package = "dsh";
-      command = "dsh";
-      title = "DeepSeek Harness";
-    };
-    exec = "dsh";
-    needsTerminal = true;
-    categories = ["ai"];
-    family = "deepseek";
-  };
-
   llmhop = {
     package = {
       source = "llmhop";
