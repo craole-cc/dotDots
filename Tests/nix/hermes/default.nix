@@ -616,7 +616,7 @@ in
     groupedExtra =
       grouped.services.hermes-agent.extraArgs
       == ["--verbose"]
-      && grouped.services.hermes-agent.extraPackages == [pkgs.hello]
+      && grouped.services.hermes-agent.extraPackages == [pkgs.hello pkgs.systemd]
       && grouped.services.hermes-agent.extraPlugins == [pkgs.hello]
       && grouped.services.hermes-agent.extraPythonPackages == []
       && grouped.services.hermes-agent.extraDependencyGroups == ["messaging"];
@@ -798,6 +798,10 @@ in
     gatewayReload =
       all (trigger: trigger.drvPath != "") team.systemd.user.services.hermes-agent.Unit.X-Restart-Triggers
       && team.systemd.user.services.hermes-agent.Unit.X-Restart-Triggers != [];
+    gatewayScopeExecutable = all (configured:
+      any (entry: hasInfix (lix.strings.transformation.unsafeDiscardStringContext "${pkgs.systemd}/bin") entry)
+      configured.systemd.user.services.hermes-agent.Service.Environment)
+    [production grouped];
     activationDerivation = team.home.activationPackage.drvPath != "";
     customHome =
       hasInfix "/tmp/custom-hermes/profiles/intake/config.yaml"

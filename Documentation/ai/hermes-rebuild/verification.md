@@ -1,5 +1,13 @@
 # Preparation verification
 
+## Live worker launch follow-up — November 14, 2026
+
+After rebuild, live configuration enabled dispatch and the declared roster; installed documentation contained actual Markdown. The first Lignum commission, `t_853513ad`, reached a native claim but failed before a worker started because the restart-safe scope probe could not find a usable systemd-run.
+
+Inspection of the installed user service found no systemd-run on its explicitly constructed PATH, while the interactive shell resolved it through the system profile. The pinned upstream probe calls shutil.which before testing the bus, so a shell-only success does not establish service availability. No bus or linger change is justified by this evidence.
+
+The home module now appends pkgs.systemd to the effective service extraPackages on Linux, including when user-selected extras replace the desktop defaults. Upstream derives the gateway PATH from that package list. A regression check inspects the rendered production and custom-extra service environments for the systemd bin directory. This is a declarative dependency repair; no live service, environment file, card or dispatcher was modified. Full evaluation and owner activation with nhs remain required for this follow-up. The existing card must retain its identity; do not commission a duplicate.
+
 ## Local repair — November 14, 2026
 
 The owner authorised implementation and local verification, with publication and system activation reserved for a separate step.

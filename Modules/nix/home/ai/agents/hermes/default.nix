@@ -17,12 +17,13 @@
   inherit (lix.attrsets.aggregation) intersectAttrs mergeSafe;
   inherit (lix.attrsets.transformation) mapAttrs;
   inherit (lix.lists.predicates) isIn;
+  inherit (lix.lists.construction) optionals;
   inherit (lix.filesystem.construction) concatPath;
   inherit (lix.schema.construction) mkSchema;
   inherit (lix.modules.construction) mkConfig mkContext mkMerge mkDefault mkLayer;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.toolkit) packages;
+  inherit (lix.toolkit) packages platform;
   inherit (lix.schema.hermes) mkHermes isValidProfileName;
   inherit (lix.types.primitives) str;
 
@@ -168,6 +169,9 @@
           (interface.config upstreamOptions cfg)
           // {
             hermesHome = cfg.home.path;
+            # Gateway workers require systemd-run even when custom extra packages
+            # replace the desktop defaults. Upstream builds the unit PATH from this.
+            extraPackages = cfg.extra.packages ++ optionals platform.isLinux [pkgs.systemd];
           };
         programs.${mod} = {
           inherit (cfg) enable desktop;
