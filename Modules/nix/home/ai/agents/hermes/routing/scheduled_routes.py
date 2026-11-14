@@ -56,7 +56,10 @@ def initialise(agent, config: dict) -> None:
     model = config.get("model") or {}
     agent._fallback_safe_runtime = {"provider": model.get("provider"), "model": model.get("default")}
     db = getattr(agent, "_session_db", None)
-    agent._scheduled_home = Path(db.db_path).parent if db is not None else get_hermes_home()
+    # Direct sessions own a SQLite path; managed workers use an RPC-backed store.
+    # Their owner already sets HERMES_HOME to the assigned profile before launch.
+    db_path = getattr(db, "db_path", None)
+    agent._scheduled_home = Path(db_path).parent if db_path is not None else get_hermes_home()
 
 
 def ensure_route(agent, now: datetime | None = None) -> bool:

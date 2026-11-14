@@ -169,6 +169,26 @@ class ScheduledRoutes(unittest.TestCase):
         self.assertEqual(agent._scheduled_home, Path("/profiles/developer"))
         self.assertTrue(agent._scheduled_routes["enabled"])
 
+    def test_initialization_uses_managed_worker_profile_home(self):
+        from agent.runtime_session_store import RuntimeSessionStore
+        from hermes_constants import get_hermes_home
+
+        with tempfile.TemporaryDirectory() as directory:
+            profile = Path(directory) / "profiles" / "developer"
+            scope = {"profile_id": str(profile), "session_id": "routing-fixture"}
+            store = RuntimeSessionStore(
+                lambda *args, **kwargs: self.fail("Initialization must not call owner RPC"),
+                scope, profile / "worker-outboxes" / "fixture",
+            )
+            self.addCleanup(store._outbox_owner.close)
+            agent = SimpleNamespace(_session_db=store)
+            self.assertFalse(hasattr(store, "db_path"))
+            with patch.dict("os.environ", {"HERMES_HOME": str(profile)}):
+                self.assertEqual(get_hermes_home(), profile)
+                ROUTES.initialise(agent, {"scheduled_routes": {"enabled": True}})
+            self.assertEqual(agent._scheduled_home, profile)
+            self.assertTrue(agent._scheduled_routes["enabled"])
+
     def test_unknown_policy_version_uses_codex(self):
         self.policy["version"] = 2
         self.assertEqual(ROUTES.choose_route(self.policy, "developer", instant("2026-11-07T02:00:00"))["provider"], "openai-codex")

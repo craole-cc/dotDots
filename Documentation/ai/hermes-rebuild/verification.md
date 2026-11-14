@@ -1,5 +1,13 @@
 # Preparation verification
 
+## Managed-worker initialization follow-up — November 14, 2026
+
+After the systemd PATH repair, card `t_853513ad` spawned managed workers, but both exited during agent construction. The Developer managed-worker log identifies the cause: the local scheduled-routing adapter read session_db.db_path unconditionally, while the pinned RuntimeSessionStore exposes an RPC-backed interface without db_path. The later unknown admission receipt is a consequence of that initialization crash, not evidence by itself of incorrect profile RPC routing.
+
+The adapter now uses the database directory for direct SQLite sessions and the owner-provided effective Hermes profile home for RPC-backed managed workers. The pinned gateway explicitly sets the child HERMES_HOME for its owning profile; no home directory or environment is hardcoded by this repair. A regression test constructs the real RuntimeSessionStore in a temporary outbox, forbids owner RPC and provider networking, and verifies Developer profile selection. It reproduces the exact AttributeError on the original adapter. All 17 routing tests pass with the correction. Existing direct-session home coverage remains intact.
+
+This change is packaged by the existing declarative Nix source-copy mechanism. It is not active until owner rebuild. No live card, admission, session or service was changed. Activation and a successful Developer/reviewer run remain required before claiming end-to-end Kanban readiness.
+
 ## Live worker launch follow-up — November 14, 2026
 
 After rebuild, live configuration enabled dispatch and the declared roster; installed documentation contained actual Markdown. The first Lignum commission, `t_853513ad`, reached a native claim but failed before a worker started because the restart-safe scope probe could not find a usable systemd-run.
