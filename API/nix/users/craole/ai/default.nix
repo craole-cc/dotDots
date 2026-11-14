@@ -26,24 +26,20 @@ in
     };
     handoff.enable = true;
     kanban = {
-      enable = false;
+      enable = true;
       profiles = ["coordinator" "developer" "architect" "scribe" "intern" "auditor"];
       orchestrator = "coordinator";
       defaultAssignee = "developer";
+      decomposition.enable = false;
       concurrency = {
         total = 1;
         perProfile = 1;
       };
     };
     settings.kanban = {
-      dispatch_in_gateway = false;
-      dispatch_profiles = [];
-      auto_decompose = false;
       auto_subscribe_on_create = true;
       completion_delivery_mode = "notify";
       notify_in_gateway = true;
-      max_in_progress = 1;
-      max_in_progress_per_profile = 1;
       failure_limit = 2;
       execution_limits = {
         enabled = true;

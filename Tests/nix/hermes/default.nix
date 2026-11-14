@@ -405,11 +405,25 @@ in
       == "User skill"
       && configured.services.hermes-agent.hermesHomeFiles."AGENTS.md" == "User policy"
       && configured.services.hermes-agent.settings.command_allowlist == ["custom command"];
-    offlineDocumentation =
-      production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/SKILL.md"
-      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/upstream/user-guide/features/kanban.md"
-      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/UPSTREAM-LICENSE"
-      && production.services.hermes-agent.hermesHomeFiles ? "skills/hermes-agent-docs/references/SOURCE.json";
+    offlineDocumentation = let
+      files = production.services.hermes-agent.hermesHomeFiles;
+    in
+      hasInfix "# Hermes Agent Documentation" (lix.filesystem.access.readFile files."skills/hermes-agent-docs/SKILL.md")
+      && hasInfix "# Kanban"
+      (lix.filesystem.access.readFile files."skills/hermes-agent-docs/references/upstream/user-guide/features/kanban.md")
+      && hasInfix "MIT License" (lix.filesystem.access.readFile files."skills/hermes-agent-docs/references/UPSTREAM-LICENSE")
+      && hasInfix "https://github.com/NousResearch/hermes-agent"
+      (lix.filesystem.access.readFile files."skills/hermes-agent-docs/references/SOURCE.json");
+    curatedSkillContents = let
+      files = production.services.hermes-agent.hermesHomeFiles;
+    in
+      hasInfix "name: gh-address-comments" (lix.filesystem.access.readFile files."skills/gh-address-comments/SKILL.md")
+      && hasInfix ''name: "gh-fix-ci"'' (lix.filesystem.access.readFile files."skills/gh-fix-ci/SKILL.md");
+    binarySkillAssets = let
+      asset = production.services.hermes-agent.hermesHomeFiles."skills/gh-address-comments/assets/github.png";
+    in
+      lix.types.predicates.isPath asset
+      && lix.filesystem.predicates.pathExists asset;
     sharedRules =
       lix.lists.predicates.elem "git push *" production.services.hermes-agent.settings.command_allowlist
       && !(lix.lists.predicates.elem "git reset --hard *" production.services.hermes-agent.settings.command_allowlist)
@@ -429,7 +443,7 @@ in
       == []
       && lix.attrsets.access.attrNames production._.resolved.ai.agents.hermes-agent.defined.profiles
       == ["anthropologist" "architect" "assistant" "auditor" "coordinator" "developer" "intern" "librarian" "scribe"]
-      && !production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
+      && production._.resolved.ai.agents.hermes-agent.defined.kanban.enable
       && production._.resolved.ai.agents.hermes-agent.defined.gateway.multiplex;
     sharedCredentials = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
@@ -452,7 +466,9 @@ in
       && coordinator.settings.plugins.enabled == []
       && lix.lists.predicates.elem "advanced-delegation" coordinator.settings.plugins.disabled
       && coordinator.settings.agent.disabled_toolsets == ["delegation"]
-      && coordinator.settings.platform_toolsets.cli == ["repository_read" "skills" "kanban"]
+      && all (platform:
+        coordinator.settings.platform_toolsets.${platform} == ["repository_read" "skills" "kanban" "terminal"])
+      ["cli" "telegram" "api_server"]
       && coordinator.settings.agent.max_turns == 12;
     sharedCcki = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
@@ -498,22 +514,55 @@ in
       && all (name: cfg.profiles.${name}.terse.level == "lite") ["coordinator" "intern" "scribe"]
       && hasInfix "Be concise. No filler" cfg.home.file."SOUL.md"
       && cfg.profiles.auditor.settings.model.provider == "openai-codex";
-    boundedPreparation = let
+    boundedDispatch = let
       cfg = production._.resolved.ai.agents.hermes-agent.defined;
       settings = production.services.hermes-agent.settings;
     in
-      !cfg.kanban.enable
-      && !settings.kanban.dispatch_in_gateway
-      && settings.kanban.dispatch_profiles == []
+      cfg.kanban.enable
+      && settings.kanban.dispatch_in_gateway
+      && settings.kanban.dispatch_profiles
+      == [
+        "coordinator"
+        "developer"
+        "architect"
+        "scribe"
+        "intern"
+        "auditor"
+      ]
+      && settings.kanban.orchestrator_profile == "coordinator"
+      && settings.kanban.default_assignee == "developer"
       && !settings.kanban.auto_decompose
+      && settings.kanban.execution_limits.enabled
+      && settings.kanban.execution_limits.require_independent_review
       && settings.kanban.execution_limits.max_runs == 8
+      && settings.kanban.execution_limits.max_correction_rounds == 2
+      && settings.kanban.failure_limit == 2
       && settings.kanban.max_in_progress == 1
-      && all (name:
-        cfg.profiles.${name}.settings.fallback_providers
-        != []
-        && hasInfix "fallback-policy.json" (lix.lists.access.head cfg.profiles.${name}.settings.fallback_providers).off_peak_policy_file)
-      ["developer" "architect" "auditor" "intern" "scribe"]
-      && cfg.profiles.architect.settings.platform_toolsets.cli == ["repository_read" "skills" "kanban"]
+      && settings.kanban.max_in_progress_per_profile == 1
+      && settings.kanban.auto_subscribe_on_create
+      && settings.kanban.completion_delivery_mode == "notify"
+      && settings.kanban.notify_in_gateway
+      && all
+      (
+        name:
+          cfg.profiles.${name}.settings.fallback_providers
+          != []
+          && hasInfix "fallback-policy.json"
+          (lix.lists.access.head cfg.profiles.${name}.settings.fallback_providers).off_peak_policy_file
+      )
+      [
+        "developer"
+        "architect"
+        "auditor"
+        "intern"
+        "scribe"
+      ]
+      && cfg.profiles.architect.settings.platform_toolsets.cli
+      == [
+        "repository_read"
+        "skills"
+        "kanban"
+      ]
       && cfg.profiles.auditor.settings.agent.max_turns == 30
       && lix.lists.predicates.elem "sdlc-review" cfg.profiles.auditor.settings.skills.allowed;
     portedProfileContracts = let

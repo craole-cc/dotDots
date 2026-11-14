@@ -32,11 +32,13 @@ in {
   };
   resolutions = {
     handoff = mkLayer 1000 (resolved.handoff or {});
-    settings.gateway.bot_loop_guard = lix.modules.construction.mkIf cfg.handoff.enable (mkLayer 90 {
-      enabled = true;
-      max_hops = cfg.handoff.limits.hops;
-      bot_replies_expect_reply = false;
-    });
+    settings = lix.modules.construction.mkIf cfg.handoff.enable {
+      gateway.bot_loop_guard = mkLayer 90 {
+        enabled = true;
+        max_hops = cfg.handoff.limits.hops;
+        bot_replies_expect_reply = false;
+      };
+    };
     home.file."team-handoff.json" = toJSON {
       version = 1;
       enabled = cfg.handoff.enable;

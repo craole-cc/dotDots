@@ -11,6 +11,7 @@
   inherit (lix.filesystem.access) readDir;
   inherit (lix.filesystem.predicates) pathExists;
   inherit (lix.strings.predicates) hasPrefix;
+  inherit (lix.strings.transformation) unsafeDiscardStringContext;
   inherit (lix.types.predicates) isPath isString;
   inherit (lix.lists.aggregation) concatMap;
   inherit (lix.lists.transformation) filter;
@@ -31,7 +32,10 @@
     concatMapAttrs (name: kind:
       if kind == "directory"
       then files "${prefix}/${name}" (directory + "/${name}")
-      else {"${prefix}/${name}" = directory + "/${name}";})
+      # Convert generated store strings to paths so Hermes copies binary assets too.
+      # Path conversion rejects string context; the resulting source path is tracked
+      # again when the upstream document derivation interpolates it for copying.
+      else {"${prefix}/${name}" = /. + unsafeDiscardStringContext (toString directory + "/${name}");})
     (readDir directory);
   custom = concatMapAttrs (name: value:
     if (isPath value || (isString value && hasPrefix "/" value)) && pathExists (toString value + "/SKILL.md")

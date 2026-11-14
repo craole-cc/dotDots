@@ -1,5 +1,24 @@
 # Preparation verification
 
+## Local repair — November 14, 2026
+
+The owner authorised implementation and local verification, with publication and system activation reserved for a separate step.
+
+- Fixed shared directory skill installation: nested source-path strings were written literally into installed files. The initial text-reading correction failed full evaluation on a curated PNG asset. The corrected module preserves Nix path values so the upstream installer copies both text and binary files. Inline skills and explicit overrides retain their existing interfaces.
+- Enabled the declared six-profile Kanban team in the user API and removed raw paused-dispatch overrides. The typed module derives Coordinator orchestration, Developer fallback, concurrency one and disabled decomposition. Existing independent review, eight-run/two-correction budgets and passive completion subscriptions remain enabled.
+- Removed the obsolete permanent-pause instruction. Receptionist can commission a native Coordinator card from CLI, Desktop or Telegram without depending on named-bot messaging; live transport availability remains a separate check.
+- Strengthened the Nix suite to inspect documentation and curated skill contents and the enabled bounded-dispatch configuration.
+- Five isolated shared-module checks passed. Running the content checks against the original module reproduced four failures (documentation, nested reference, provenance and curated content), while inline text remained intact. Six isolated API/dispatcher checks passed, including assertions. These checks use minimal dependencies, not the complete Home Manager module graph.
+- After the owner reported the PNG evaluation failure, seven revised isolated shared-module checks passed with the real curated skill directory, including its binary asset and copyable path type. Regression checks now read only known text files and separately verify the PNG remains a path. The previous five-check text-only fixture did not cover binary assets.
+- The next full evaluation exposed dependency context on generated store-directory strings. Conversion now discards that string context before constructing a Nix path; the upstream copy derivation tracks the resulting source path. Seven isolated module checks passed again using context-bearing source strings (with filesystem reads isolated from daemon realization). A direct conversion check also confirmed that a context-bearing PNG source becomes an existing Nix path. Full Home Manager evaluation still requires the owner's daemon-enabled session.
+- The owner's subsequent full evaluation completed: documentation, curated contents, binary assets and bounded dispatch passed. Three checks returned false: baseline, schemaEmptySelections and coordinatorDelegation. The Coordinator expectation was stale relative to the existing process-tooling change; it now checks the declared four toolsets on CLI, Telegram and API. Disabled handoff configuration was leaving an empty gateway settings entry; the condition now wraps the entire settings contribution. Two real Nix module-system checks confirm that disabled handoff contributes no settings and enabled handoff retains its guard. All 15 offline handoff tests passed again. Full-suite confirmation of these last changes remains pending.
+- The owner reran the full suite after those corrections: every reported check is true. Read-only Lignum inspection found the current checkout at `8f64fc4` on main, one commit behind its existing origin/main reference, with unrelated uncommitted work. The queued attendance cards reference the removed views crate and older revisions. The three existing commissions should be blocked pending reconciliation before dispatch activation; they have not been modified or declared complete by this repair.
+- Existing offline tests passed: 12 bounded-workflow, 15 named-team handoff and 16 scheduled-routing tests. No provider requests were made.
+- Alejandra checks and diff whitespace checks passed. Full Nix evaluation could not run: the session cannot connect to the Nix daemon socket; direct local-store access is also denied. Full suite and host evaluation remain required before activation.
+- Read-only live inspection found dispatch disabled, an empty dispatch roster and three ready default-board cards (`t_6dc183d6`, `t_8eb4ec53`, `t_7d30a068`). No additional board databases were found under the root's board directory. No live configuration, card, session or service was changed. Reconcile those cards and inspect all boards again before activation.
+
+The November 10 results below describe the earlier prepared generation and are retained as historical evidence.
+
 November 10, 2026. Approved preparation phases implemented; activation, real board creation, paid acceptance and normal dispatch remain pending.
 
 ## Results

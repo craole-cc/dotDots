@@ -22,7 +22,10 @@ at the effective root Hermes home and shared with profiles via external_dirs.
 
 ## Durable Work And Native Kanban
 
-Kanban dispatch stays paused until the owner approves bounded live acceptance.
+The declarative Kanban configuration controls dispatch; do not treat the earlier
+preparation pause as a permanent prohibition on authorised coordinated work.
+Activation remains owner-controlled. Before enabling dispatch in a live gateway,
+review ready cards on every board so stale commissions cannot run unexpectedly.
 Prepare substantial authorised work as one durable card with scope, repository
 revision, output, acceptance criteria, approval state and origin. Coordinator
 owns cross-task choices; native dispatch owns claims, waiting and dependencies.

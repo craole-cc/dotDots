@@ -1,6 +1,16 @@
 # Bounded Hermes acceptance runbook
 
-Status: prepared, dispatch off. The owner approves activation and the exact paid acceptance commission separately. No existing chat is reset, deleted or migrated.
+Status (November 14, 2026): local repair enables bounded dispatch declaratively; publication and system activation are still pending. The inspected live gateway still has dispatch off. No existing chat or card has been reset, deleted or migrated. The sections below describing the earlier preparation pause are historical where superseded by this status.
+
+## Repair activation checklist
+
+1. Evaluate the full Hermes Nix suite and Victus configuration in a session with Nix daemon access. Local isolated checks passed, but do not replace full Home Manager evaluation.
+2. Inspect every board again before activation. The default board currently has three ready cards: `t_6dc183d6` (guardian notices), `t_8eb4ec53` (roster row actions), and `t_7d30a068` (learner-photo authority). Reconcile each against current repository work and owner intent. Explicitly block obsolete or unapproved work with a reason using native Kanban operations; preserve its history. Do not activate while stale ready cards remain eligible.
+3. Save fresh SQLite-consistent backups, board/run state and session IDs. Review and publish the repair separately, then have the owner activate it with `nhs`.
+4. Verify installed skill files contain Markdown/JSON rather than literal source paths. Confirm the gateway alone owns dispatch, the six declared profiles are eligible, concurrency is one, decomposition is off and the existing review/run limits remain effective.
+5. Run one separately agreed bounded live acceptance card. Verify a claimed worker, independent Auditor review and delivery to the originating conversation. Local tests do not prove these provider and delivery paths.
+
+The repair changes no live board state and starts no provider request. A new acceptance board is optional; board selection alone does not isolate dispatch from the existing ready cards.
 
 ## Prepared capability matrix
 
@@ -45,9 +55,9 @@ Verify automatic initial review and one bounded correction without claiming done
 
 ## Enabling acceptance dispatch
 
-Only after approval, change the user API's kanban.enable to true, remove the staged false/empty settings overrides for dispatch_in_gateway and dispatch_profiles, and let the existing typed Kanban module derive the intended roster. Do not start a second CLI dispatcher. Keep auto_decompose=false and concurrency one. Preview/evaluate that exact change, publish, activate and verify the actual dispatcher owner before promoting the acceptance card. Board selection is not an authorization boundary; other boards must be empty or paused before enabling the gateway's all-board sweep.
+The November 14 local repair sets the user API's kanban.enable to true and removes the staged false/empty settings overrides for dispatch_in_gateway and dispatch_profiles. The typed Kanban module now derives the intended roster. Do not start a second CLI dispatcher. Keep auto_decompose=false and concurrency one. Complete the repair activation checklist above before promoting an acceptance card. Board selection is not an authorization boundary; reconcile eligible work on every board before enabling the gateway's all-board sweep.
 
-This enablement diff is deliberately absent from preparation. It must be reviewed with the actual card and origin before any model runs.
+The enablement diff is now present locally, awaiting separate publication and activation. Review the actual card and origin before any model runs.
 
 ## Usage report
 
@@ -57,4 +67,4 @@ Invoke kanban/report.py with --home /home/craole/Projects/hermes --board hermes-
 
 Pause dispatch before another task claim. Preserve the board, run rows, session databases, attachments and partial outputs. Restore the last reviewed declarative configuration or previous Nix generation, then verify service state and session IDs. Do not restore an older database over newer conversation/work merely to undo configuration. The earlier backup is recovery material, not a routine rollback command.
 
-Owner: Codex prepares the bounded acceptance diff after the user reviews this evidence; the user authorises activation and paid execution. No action is required on current sessions.
+Owner: Codex prepares and verifies the local repair; the user authorises publication, activation and the concrete live acceptance commission separately. Preserve current sessions throughout.
