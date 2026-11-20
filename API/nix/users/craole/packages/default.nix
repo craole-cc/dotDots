@@ -1,8 +1,9 @@
 let
   ai = [
-    "hermes-desktop"
+    "pi"
     "chatgpt"
     "claude-desktop"
+    "hermes-desktop"
     "claude-code"
     "codex"
     "ollama"

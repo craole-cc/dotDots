@@ -1,4 +1,19 @@
 _: {
+  pi = {
+    package = {
+      source = "llm-agents";
+      attribute = "pi";
+    };
+    names = {
+      package = "pi";
+      command = "pi";
+      title = "Pi";
+    };
+    exec = "pi";
+    needsTerminal = true;
+    categories = ["ai"];
+  };
+
   chatgpt = {
     aliases = [
       "openai"

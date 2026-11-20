@@ -4,6 +4,7 @@ let
   os = "linux"; #> uname -s | tr A-Z a-z
   admin = "craole"; #? Primary admin user
   cloudAi = [
+    "pi"
     "hermes-desktop"
     "chatgpt"
     "claude-desktop"
