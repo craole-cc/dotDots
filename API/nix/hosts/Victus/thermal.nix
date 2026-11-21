@@ -19,7 +19,7 @@
   #? Start balanced; later selections, including performance, stay user-controlled.
   systemd.services.default-power-profile = {
     description = "Select the default Victus power profile";
-    wantedBy = ["multi-user.target"];
+    wantedBy = ["graphical.target"];
     requires = ["disable-cpu-boost.service" "power-profiles-daemon.service"];
     after = ["disable-cpu-boost.service" "power-profiles-daemon.service"];
     serviceConfig.Type = "oneshot";
@@ -33,7 +33,8 @@
   systemd.services.disable-cpu-boost = {
     description = "Disable CPU boost on Victus";
     wantedBy = ["multi-user.target"];
-    after = ["systemd-modules-load.service" "power-profiles-daemon.service"];
+    after = ["systemd-modules-load.service"];
+    before = ["power-profiles-daemon.service"];
     serviceConfig.Type = "oneshot";
     script = ''
       boost=/sys/devices/system/cpu/cpufreq/boost
