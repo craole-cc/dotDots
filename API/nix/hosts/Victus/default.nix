@@ -47,13 +47,23 @@ in {
     allowDefaults = false;
     autocomplete = [];
     chat = ["qwen3:4b-instruct"];
+    sessionVariables = {
+      OLLAMA_CONTEXT_LENGTH = "65536";
+      OLLAMA_FLASH_ATTENTION = "true";
+      OLLAMA_KV_CACHE_TYPE = "q8_0";
+    };
   };
   ai.llmhop = {
     allowDefaults = false;
     chat = ["unsloth/Qwen3-4B-Instruct-2507-GGUF:Q4_K_M"];
     autocomplete = [];
     settings = {
-      ctx-size = 8192;
+      ctx-size = 65536;
+      flash-attn = "on";
+      cache-type-k = "q8_0";
+      cache-type-v = "q8_0";
+      batch-size = 512;
+      ubatch-size = 128;
       parallel = 1;
       jinja = true;
     };

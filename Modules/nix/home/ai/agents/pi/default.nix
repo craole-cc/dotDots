@@ -8,6 +8,7 @@
   ...
 }: let
   inherit (lix.attrsets.construction) nameValuePair optionalAttrs;
+  inherit (lix.attrsets.aggregation) recursiveUpdate;
   inherit (lix.attrsets.transformation) mapAttrs';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
@@ -30,10 +31,11 @@
   localModels = localProvider.models.chat.names;
   ollamaProvider = config._.resolved.ai.providers.ollama.defined;
   ollamaModels = ollamaProvider.models.chat.includes;
-  settings =
+  settings = recursiveUpdate cfg.settings (
     optionalAttrs (cfg.defaults.provider != null) {defaultProvider = cfg.defaults.provider;}
     // optionalAttrs (cfg.defaults.model != null) {defaultModel = cfg.defaults.model;}
-    // optionalAttrs (cfg.defaults.thinkingLevel != null) {defaultThinkingLevel = cfg.defaults.thinkingLevel;};
+    // optionalAttrs (cfg.defaults.thinkingLevel != null) {defaultThinkingLevel = cfg.defaults.thinkingLevel;}
+  );
   launcher = pkgs.writeShellScriptBin "pi" ''
     exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ./environment.rs)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${escapeShellArg "${cfg.package}/bin/pi"} "$@"
@@ -72,6 +74,12 @@ in
         description = "Pi extensions, keyed by file name, installed into extensions/ of the agent directory where Pi discovers them at startup and on /reload. Set to {} to install none.";
       };
 
+      settings = mkOption {
+        type = attrsOf (pkgs.formats.json {}).type;
+        default = {};
+        description = "Additional declarative Pi settings. Explicit startup defaults take precedence over matching settings keys.";
+      };
+
       defaults = {
         provider = mkOption {
           type = nullOr str;
@@ -108,6 +116,7 @@ in
                     baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
                     api = "openai-completions";
                     apiKey = "local";
+                    compat.maxTokensField = "max_tokens";
                     models =
                       map (id: {
                         inherit id;
@@ -122,6 +131,7 @@ in
                     baseUrl = "http://${ollamaProvider.host}:${toString ollamaProvider.port}/v1";
                     api = "openai-completions";
                     apiKey = "local";
+                    compat.maxTokensField = "max_tokens";
                     models =
                       map (id: {
                         inherit id;
