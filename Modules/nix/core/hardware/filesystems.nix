@@ -71,6 +71,9 @@ in
       );
 
       services = {
+        # Phone storage uses GVfs (MTP/AFC), rather than block-device mounts.
+        gvfs.enable = cfg.enable && cfg.udisks;
+        usbmuxd.enable = cfg.enable && cfg.udisks;
         udisks2 = mkIf (cfg.enable && cfg.udisks) {
           enable = true;
           mountOnMedia = true;
