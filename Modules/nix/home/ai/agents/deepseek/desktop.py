@@ -18,7 +18,10 @@ def startup_url(text, port):
 def main():
     systemctl, browser, port = sys.argv[1:4]
     runtime = Path(os.environ["XDG_RUNTIME_DIR"]) / "deepseek-web"
-    subprocess.run([systemctl, "--user", "start", "deepseek-web.service"], check=True)
+    try:
+        subprocess.run([systemctl, "--user", "start", "deepseek-web.service"], check=True)
+    except subprocess.CalledProcessError:
+        raise SystemExit("Could not start DeepSeek. Check systemctl --user status deepseek-web.") from None
     deadline = time.monotonic() + 90
     # Do not send the one-time authentication URL to the readiness probe.
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))

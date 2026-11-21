@@ -13,6 +13,13 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DesktopTest(unittest.TestCase):
+    def test_failed_service_has_concise_error(self):
+        with patch.dict(MODULE.os.environ, {"XDG_RUNTIME_DIR": "/fake"}), \
+                patch.object(MODULE.sys, "argv", ["desktop.py", "/systemctl", "/chromium", "3081"]), \
+                patch.object(MODULE.subprocess, "run", side_effect=MODULE.subprocess.CalledProcessError(1, "systemctl")):
+            with self.assertRaisesRegex(SystemExit, "Could not start DeepSeek"):
+                MODULE.main()
+
     def test_owned_url_only(self):
         self.assertIsNone(MODULE.startup_url("dsh web: http://example.org:3081/", "3081"))
         self.assertIsNone(MODULE.startup_url("dsh web: http://127.0.0.1:3080/", "3081"))

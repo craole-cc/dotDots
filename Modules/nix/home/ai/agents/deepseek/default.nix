@@ -31,6 +31,17 @@
       ${pkgs.systemd}/bin/systemctl ${cfg.desktop.browser}/bin/chromium \
       ${toString cfg.desktop.port} "$@"
   '';
+  backend = pkgs.writeShellApplication {
+    name = "deepseek-web-backend";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      umask 077
+      runtime="''${XDG_RUNTIME_DIR:?}/deepseek-web"
+      mkdir -p "$runtime"
+      chmod 0700 "$runtime"
+      exec ${launcher}/bin/dsh web --host 127.0.0.1 --port ${toString cfg.desktop.port} --no-open >"$runtime/startup.log" 2>&1
+    '';
+  };
 in
   mkConfig {
     inherit context;
@@ -88,13 +99,12 @@ in
       systemd.user.services.deepseek-web = {
         Unit.Description = "DeepSeek Harness desktop Web backend";
         Service = {
-          ExecStartPre = "${pkgs.coreutils}/bin/truncate -s 0 %t/deepseek-web/startup.log";
-          ExecStart = "${launcher}/bin/dsh web --host 127.0.0.1 --port ${toString cfg.desktop.port} --no-open";
+          ExecStart = "${backend}/bin/deepseek-web-backend";
           RuntimeDirectory = "deepseek-web";
           RuntimeDirectoryMode = "0700";
           UMask = "0077";
-          StandardOutput = "append:%t/deepseek-web/startup.log";
-          StandardError = "append:%t/deepseek-web/startup.log";
+          StandardOutput = "null";
+          StandardError = "journal";
           KillMode = "control-group";
         };
       };
