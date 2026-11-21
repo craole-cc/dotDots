@@ -3,6 +3,7 @@ let
     "pi"
     "chatgpt"
     "claude-desktop"
+    "deepseek"
     "hermes-desktop"
     "claude-code"
     "codex"
