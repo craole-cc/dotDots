@@ -558,6 +558,37 @@
       expr = schema.hosts.demo.users.data.primary.packages.browser;
       expected = ["zen-twilight" "chromium" "brave"];
     };
+    testUserListOverridesPrincipalList = {
+      expr = let
+        resolved =
+          (lix.schema.construction.mkSchema {
+            api = lib.recursiveUpdate api {
+              users.demo.packages.ai = ["pi" "chatgpt" "claude-desktop"];
+              users.demo.enable = false;
+              users.demo.autoLogin = true;
+              users.demo.role = "guest";
+              hosts.demo.principals = [
+                {
+                  name = "demo";
+                  enable = true;
+                  autoLogin = false;
+                  role = "administrator";
+                  packages.ai = ["pi" "hermes-desktop" "chatgpt"];
+                }
+              ];
+            };
+          }).hosts.demo.users.data.primary;
+      in {
+        inherit (resolved) enable autoLogin role;
+        ai = resolved.packages.ai-agent;
+      };
+      expected = {
+        enable = true;
+        autoLogin = false;
+        role = "administrator";
+        ai = ["pi" "chatgpt" "claude-desktop"];
+      };
+    };
     testGlobalRoleSurvivesPrincipalList = {
       expr =
         (lix.schema.construction.mkSchema {

@@ -122,7 +122,7 @@
     );
 
   /**
-  Merge global user config with host principal config for all principals.
+  Merge defaults, host principal preferences, then global user preferences.
   `enable`, `autoLogin`, and `role` are always sourced from the principal -
   never from global user data - so host intent cannot be overridden.
 
@@ -151,8 +151,8 @@
             packages = removeAttrs (host.packages or {}) policyFields;
             applications = host.applications or {};
           }
-          userDataFiltered)
-        hostUser
+          hostUser)
+        userDataFiltered
     ) (getPrincipals host);
 
   /**
