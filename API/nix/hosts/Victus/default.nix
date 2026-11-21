@@ -13,7 +13,7 @@ let
     "continue"
   ];
 in {
-  imports = [./hardware-configuration.nix ./ai];
+  imports = [./hardware-configuration.nix ./ai ./thermal.nix];
 
   stateVersion = "25.05"; #? Release first installed; don't bump on upgrades
   class = "nixos";
@@ -318,7 +318,7 @@ in {
     explorer = ["yazi"];
     shell = ["bash"];
     coding = ["nix"];
-    extra = [];
+    extra = ["lm_sensors" "nvtopPackages.full"];
     media = ["mpv" "ffmpeg" "imv"];
     ide = [];
     kernel = "cachyos";
