@@ -14,7 +14,8 @@
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) package str port;
   inherit (lix.types.combinators) listOf;
-  inherit (lix.strings.transformation) escapeShellArgs;
+  inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
+  inherit (lix.toolkit.binaries) rust-script;
 
   dom = "ai";
   sub = "agents";
@@ -23,7 +24,7 @@
   inherit (context) cfg;
   python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "dsh" ''
-    exec ${python}/bin/python ${../pi/environment.py} \
+    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ../pi/environment.rs)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${cfg.package}/bin/dsh "$@"
   '';
   desktop = pkgs.writeShellScriptBin "deepseek-desktop" ''
