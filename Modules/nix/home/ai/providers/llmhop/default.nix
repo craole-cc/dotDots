@@ -153,7 +153,7 @@
     else ["--${key}" (toString value)]) (attrNames cfg.settings);
 
   routerConfig = write.json "llmhop.json" {
-    inherit (cfg) host port;
+    listen = ["${cfg.host}:${toString cfg.port}"];
     models = genAttrs names (name: {
       url = "http://127.0.0.1:${toString ports.${name}}";
     });
@@ -189,7 +189,7 @@
       Wants = map (name: "llama-cpp-${name}.service") names;
     };
     Service = {
-      ExecStart = "${cfg.routerPackage}/bin/llmhop --config ${routerConfig}";
+      ExecStart = "${cfg.routerPackage}/bin/llmhop serve ${routerConfig}";
       Restart = "on-failure";
       RestartSec = 5;
     };
