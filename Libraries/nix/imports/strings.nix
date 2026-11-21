@@ -43,6 +43,7 @@
         optionalString
         splitString
         splitStringBy
+        toInt
         toJSON
         ;
     };
