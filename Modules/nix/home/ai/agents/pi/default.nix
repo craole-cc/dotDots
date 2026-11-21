@@ -7,7 +7,8 @@
   pkgs,
   ...
 }: let
-  inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.attrsets.construction) nameValuePair optionalAttrs;
+  inherit (lix.attrsets.transformation) mapAttrs';
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
@@ -16,8 +17,8 @@
   inherit (lix.strings.construction) toInt toJSON;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
   inherit (lix.toolkit.binaries) rust-script;
-  inherit (lix.types.combinators) listOf;
-  inherit (lix.types.primitives) package str;
+  inherit (lix.types.combinators) attrsOf enum listOf nullOr;
+  inherit (lix.types.primitives) package path str;
 
   dom = "ai";
   sub = "agents";
@@ -29,6 +30,10 @@
   localModels = localProvider.models.chat.names;
   ollamaProvider = config._.resolved.ai.providers.ollama.defined;
   ollamaModels = ollamaProvider.models.chat.includes;
+  settings =
+    optionalAttrs (cfg.defaults.provider != null) {defaultProvider = cfg.defaults.provider;}
+    // optionalAttrs (cfg.defaults.model != null) {defaultModel = cfg.defaults.model;}
+    // optionalAttrs (cfg.defaults.thinkingLevel != null) {defaultThinkingLevel = cfg.defaults.thinkingLevel;};
   launcher = pkgs.writeShellScriptBin "pi" ''
     exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ./environment.rs)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${escapeShellArg "${cfg.package}/bin/pi"} "$@"
@@ -60,42 +65,83 @@ in
         ];
         description = "Ordered runtime dotenv paths or glob patterns for Pi. Later files override earlier values; glob matches are sorted and missing files are skipped.";
       };
+
+      extensions = mkOption {
+        type = attrsOf path;
+        default = {"codex-router.ts" = ./extensions/codex-router.ts;};
+        description = "Pi extensions, keyed by file name, installed into extensions/ of the agent directory where Pi discovers them at startup and on /reload. Set to {} to install none.";
+      };
+
+      defaults = {
+        provider = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Startup provider, rendered as defaultProvider. Null leaves the startup choice to Pi.";
+        };
+
+        model = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Startup model ID, rendered as defaultModel. Null leaves the startup choice to Pi.";
+        };
+
+        thinkingLevel = mkOption {
+          type = nullOr (enum ["off" "minimal" "low" "medium" "high" "xhigh" "max"]);
+          default = null;
+          description = "Startup thinking level, rendered as defaultThinkingLevel.";
+        };
+      };
     };
 
     outputs = {
       home.packages = [cfg.package (hiPrio launcher)];
-      home.file.".pi/agent/models.json" = mkIf ((localProvider.enable && localModels != []) || (ollamaProvider.enable && ollamaModels != [])) {
-        text = toJSON {
-          providers =
-            optionalAttrs (localProvider.enable && localModels != []) {
-              llmhop = {
-                baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
-                api = "openai-completions";
-                apiKey = "local";
-                models =
-                  map (id: {
-                    inherit id;
-                    contextWindow = localProvider.settings.ctx-size;
-                    maxTokens = 2048;
-                  })
-                  localModels;
-              };
-            }
-            // optionalAttrs (ollamaProvider.enable && ollamaModels != []) {
-              ollama = {
-                baseUrl = "http://${ollamaProvider.host}:${toString ollamaProvider.port}/v1";
-                api = "openai-completions";
-                apiKey = "local";
-                models =
-                  map (id: {
-                    inherit id;
-                    contextWindow = toInt ollamaProvider.environmentVariables.OLLAMA_CONTEXT_LENGTH;
-                    maxTokens = 2048;
-                  })
-                  ollamaModels;
-              };
+      #? settings.json is rendered only when a default is declared, and is then
+      #? read-only: Pi can no longer persist its own deviceId, changelog marker,
+      #? or Ctrl+S defaults. Keep them here instead of in the agent directory.
+      home.file =
+        {
+          ".pi/agent/models.json" = mkIf ((localProvider.enable && localModels != []) || (ollamaProvider.enable && ollamaModels != [])) {
+            text = toJSON {
+              providers =
+                optionalAttrs (localProvider.enable && localModels != []) {
+                  llmhop = {
+                    baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
+                    api = "openai-completions";
+                    apiKey = "local";
+                    models =
+                      map (id: {
+                        inherit id;
+                        contextWindow = localProvider.settings.ctx-size;
+                        maxTokens = 2048;
+                      })
+                      localModels;
+                  };
+                }
+                // optionalAttrs (ollamaProvider.enable && ollamaModels != []) {
+                  ollama = {
+                    baseUrl = "http://${ollamaProvider.host}:${toString ollamaProvider.port}/v1";
+                    api = "openai-completions";
+                    apiKey = "local";
+                    models =
+                      map (id: {
+                        inherit id;
+                        contextWindow = toInt ollamaProvider.environmentVariables.OLLAMA_CONTEXT_LENGTH;
+                        maxTokens = 2048;
+                      })
+                      ollamaModels;
+                  };
+                };
             };
+          };
+        }
+        // mapAttrs' (name: source:
+          nameValuePair ".pi/agent/extensions/${name}" {
+            inherit source;
+            force = true;
+          })
+        cfg.extensions
+        // optionalAttrs (settings != {}) {
+          ".pi/agent/settings.json".text = toJSON settings;
         };
-      };
     };
   }
