@@ -42,11 +42,11 @@ in {
     mode = "hybrid"; #? "offload" | "sync" | "reverse-sync" | "primary-nvidia" ...
   };
 
-  # Ollama stays idle; llmhop owns the explicitly selected local model.
+  #? Keep one model per stack for the CPU comparison; llmhop is the default.
   ai.ollama = {
     allowDefaults = false;
     autocomplete = [];
-    chat = [];
+    chat = ["qwen3:4b-instruct"];
   };
   ai.llmhop = {
     allowDefaults = false;

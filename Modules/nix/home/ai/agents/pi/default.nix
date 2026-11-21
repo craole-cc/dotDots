@@ -8,6 +8,7 @@
   lib,
   ...
 }: let
+  inherit (lix.attrsets.construction) optionalAttrs;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
@@ -25,6 +26,8 @@
   inherit (context) cfg;
   localProvider = config._.resolved.ai.providers.llmhop.defined;
   localModels = localProvider.models.chat.names;
+  ollamaProvider = config._.resolved.ai.providers.ollama.defined;
+  ollamaModels = ollamaProvider.models.chat.includes;
   python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "pi" ''
     exec ${python}/bin/python ${./environment.py} \
@@ -61,20 +64,37 @@ in
 
     outputs = {
       home.packages = [cfg.package (lib.hiPrio launcher)];
-      home.file.".pi/agent/models.json" = mkIf (localProvider.enable && localModels != []) {
+      home.file.".pi/agent/models.json" = mkIf ((localProvider.enable && localModels != []) || (ollamaProvider.enable && ollamaModels != [])) {
         text = toJSON {
-          providers.llmhop = {
-            baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
-            api = "openai-completions";
-            apiKey = "local";
-            models =
-              map (id: {
-                inherit id;
-                contextWindow = localProvider.settings.ctx-size;
-                maxTokens = 2048;
-              })
-              localModels;
-          };
+          providers =
+            optionalAttrs (localProvider.enable && localModels != []) {
+              llmhop = {
+                baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
+                api = "openai-completions";
+                apiKey = "local";
+                models =
+                  map (id: {
+                    inherit id;
+                    contextWindow = localProvider.settings.ctx-size;
+                    maxTokens = 2048;
+                  })
+                  localModels;
+              };
+            }
+            // optionalAttrs (ollamaProvider.enable && ollamaModels != []) {
+              ollama = {
+                baseUrl = "http://${ollamaProvider.host}:${toString ollamaProvider.port}/v1";
+                api = "openai-completions";
+                apiKey = "local";
+                models =
+                  map (id: {
+                    inherit id;
+                    contextWindow = lib.toInt ollamaProvider.environmentVariables.OLLAMA_CONTEXT_LENGTH;
+                    maxTokens = 2048;
+                  })
+                  ollamaModels;
+              };
+            };
         };
       };
     };
