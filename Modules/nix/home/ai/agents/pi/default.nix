@@ -5,18 +5,18 @@
   lix,
   user,
   pkgs,
-  lib,
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
+  inherit (lix.debug.construction) hiPrio;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.schema.packages) selectedPackages;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
-  inherit (lix.strings.construction) toJSON;
   inherit (lix.options.construction) mkEnable mkOption;
-  inherit (lix.types.primitives) package str;
-  inherit (lix.types.combinators) listOf;
+  inherit (lix.schema.packages) selectedPackages;
+  inherit (lix.strings.construction) toInt toJSON;
   inherit (lix.strings.transformation) escapeShellArgs;
+  inherit (lix.types.combinators) listOf;
+  inherit (lix.types.primitives) package str;
 
   dom = "ai";
   sub = "agents";
@@ -63,7 +63,7 @@ in
     };
 
     outputs = {
-      home.packages = [cfg.package (lib.hiPrio launcher)];
+      home.packages = [cfg.package (hiPrio launcher)];
       home.file.".pi/agent/models.json" = mkIf ((localProvider.enable && localModels != []) || (ollamaProvider.enable && ollamaModels != [])) {
         text = toJSON {
           providers =
@@ -89,7 +89,7 @@ in
                 models =
                   map (id: {
                     inherit id;
-                    contextWindow = lib.toInt ollamaProvider.environmentVariables.OLLAMA_CONTEXT_LENGTH;
+                    contextWindow = toInt ollamaProvider.environmentVariables.OLLAMA_CONTEXT_LENGTH;
                     maxTokens = 2048;
                   })
                   ollamaModels;
