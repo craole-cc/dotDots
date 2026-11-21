@@ -13,14 +13,18 @@
       };
       #? Leave room for Pi's output safety margin and a working answer.
       #? These overrides affect only local models, not the cloud defaults.
-      settings.compaction.modelOverrides = {
-        "llmhop/unsloth-Qwen3-4B-Instruct-2507-GGUF-Q4-K-M" = {
-          reserveTokens = 8192;
-          keepRecentTokens = 8192;
-        };
-        "ollama/qwen3:4b-instruct" = {
-          reserveTokens = 8192;
-          keepRecentTokens = 8192;
+      settings = {
+        #? Super+A runs plain `pi`; keep discovery and navigation in its defaults.
+        defaultTools = ["+codemode" "+tool_search" "+ls" "+grep" "+find"];
+        compaction.modelOverrides = {
+          "llmhop/unsloth-Qwen3-4B-Instruct-2507-GGUF-Q4-K-M" = {
+            reserveTokens = 8192;
+            keepRecentTokens = 8192;
+          };
+          "ollama/qwen3:4b-instruct" = {
+            reserveTokens = 8192;
+            keepRecentTokens = 8192;
+          };
         };
       };
     };
