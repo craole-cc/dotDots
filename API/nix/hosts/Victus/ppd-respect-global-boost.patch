@@ -1,0 +1,92 @@
+--- a/src/ppd-driver-amd-pstate.c
++++ b/src/ppd-driver-amd-pstate.c
+@@ -194,6 +194,9 @@
+   const char *gov_pref;
+   const char *cpb_pref;
+   const char *min_freq;
++  gboolean boost_enabled = TRUE;
++  g_autofree char *boost_path = NULL;
++  g_autofree char *boost_state = NULL;
+   g_autofree char *status = NULL;
+   g_autofree char *pstate_status_path = NULL;
+ 
+@@ -214,6 +217,15 @@
+   cpb_pref = profile_to_cpb_pref (profile);
+   min_freq = profile_to_min_freq (profile);
+ 
++  /* A global boost disable is an administrator limit, not a profile choice.
++   * The kernel can reject per-policy boost writes while this limit is set. */
++  boost_path = ppd_utils_get_sysfs_path (CPUFREQ_POLICY_DIR "boost");
++  if (g_file_test (boost_path, G_FILE_TEST_EXISTS)) {
++    if (!g_file_get_contents (boost_path, &boost_state, NULL, error))
++      return FALSE;
++    boost_enabled = g_strcmp0 (g_strchomp (boost_state), "0") != 0;
++  }
++
+   for (guint i = 0; i < devices->len; ++i) {
+     const char *base = g_ptr_array_index (devices, i);
+     g_autofree char *epp = NULL;
+@@ -236,7 +248,7 @@
+       return FALSE;
+ 
+     cpb = g_build_filename (base, "boost", NULL);
+-    if (g_file_test (cpb, G_FILE_TEST_EXISTS)) {
++    if (boost_enabled && g_file_test (cpb, G_FILE_TEST_EXISTS)) {
+       if (!ppd_utils_write (cpb, cpb_pref, error))
+         return FALSE;
+     }
+--- a/tests/integration_test.py
++++ b/tests/integration_test.py
+@@ -1330,7 +1330,7 @@
+         self.assert_file_eventually_contains(scaling_min_freq, "400000")
+ 
+     # pylint: disable=too-many-statements
+-    def test_amd_pstate_boost(self):
++    def test_amd_pstate_boost(self, global_boost=None):
+         """AMD P-State driver boost support"""
+ 
+         # Create 2 CPUs with preferences
+@@ -1360,6 +1360,12 @@
+         os.makedirs(pstate_dir)
+         self.write_file_contents(os.path.join(pstate_dir, "status"), "active\n")
+ 
++        if global_boost is not None:
++            global_path = os.path.join(os.path.dirname(dir1.rstrip("/")), "boost")
++            self.write_file_contents(global_path, global_boost + "\n")
++            self.write_file_contents(os.path.join(dir1, "boost"), global_boost)
++            self.write_file_contents(os.path.join(dir2, "boost"), global_boost)
++
+         self.start_daemon()
+ 
+         profiles = self.get_dbus_property("Profiles")
+@@ -1382,7 +1388,7 @@
+ 
+         self.assert_file_eventually_contains(energy_prefs, "performance")
+         self.assert_file_eventually_contains(scaling_governor, "performance")
+-        self.assert_file_eventually_contains(boost, "1")
++        self.assert_file_eventually_contains(boost, "0" if global_boost == "0" else "1")
+ 
+         # Set powersave mode
+         self.set_dbus_property("ActiveProfile", GLib.Variant.new_string("power-saver"))
+@@ -1391,6 +1397,21 @@
+         self.assert_file_eventually_contains(energy_prefs, "power")
+         self.assert_file_eventually_contains(scaling_governor, "powersave")
+         self.assert_file_eventually_contains(boost, "0")
++
++    def test_amd_pstate_boost_globally_disabled(self):
++        """All profiles respect a global boost disable."""
++        self.test_amd_pstate_boost(global_boost="0")
++        self.set_dbus_property("ActiveProfile", GLib.Variant.new_string("balanced"))
++        self.assertEqual(self.get_dbus_property("ActiveProfile"), "balanced")
++        for policy in ("policy0", "policy1"):
++            base = os.path.join(self.testbed.get_root_dir(), "sys/devices/system/cpu/cpufreq", policy)
++            self.assert_file_eventually_contains(os.path.join(base, "boost"), "0")
++            self.assert_file_eventually_contains(os.path.join(base, "energy_performance_preference"), "balance_performance")
++            self.assert_file_eventually_contains(os.path.join(base, "scaling_governor"), "powersave")
++
++    def test_amd_pstate_boost_globally_enabled(self):
++        """Normal per-profile boost control remains available when globally enabled."""
++        self.test_amd_pstate_boost(global_boost="1")
+ 
+     def test_amd_pstate_balance(self):
+         """AMD P-State driver (balance)"""
