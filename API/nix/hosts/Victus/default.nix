@@ -42,13 +42,22 @@ in {
     mode = "hybrid"; #? "offload" | "sync" | "reverse-sync" | "primary-nvidia" ...
   };
 
-  # Victus uses cloud inference; do not select or download local model weights.
+  # Ollama stays idle; llmhop owns the explicitly selected local model.
   ai.ollama = {
     allowDefaults = false;
     autocomplete = [];
     chat = [];
   };
-  ai.llmhop.allowDefaults = false;
+  ai.llmhop = {
+    allowDefaults = false;
+    chat = ["unsloth/Qwen3-4B-Instruct-2507-GGUF:Q4_K_M"];
+    autocomplete = [];
+    settings = {
+      ctx-size = 8192;
+      parallel = 1;
+      jinja = true;
+    };
+  };
 
   paths = {
     roots.repo = "/home/${admin}/.dots";

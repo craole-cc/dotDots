@@ -1,4 +1,6 @@
 {lix, ...}: {
+  # The selected user's Home Manager module owns the router and workers.
+  _.resolved.ai.providers.llmhop.defined.enable = false;
   # _.resolved.ai.agents.ollama.defined = {
   #   enable = true;
   #   package = lix.toolkit.packages.ollama-cpu;

@@ -10,7 +10,8 @@
 }: let
   inherit (lix.lists.predicates) isIn;
   inherit (lix.schema.packages) selectedPackages;
-  inherit (lix.modules.construction) mkConfig mkContext;
+  inherit (lix.modules.construction) mkConfig mkContext mkIf;
+  inherit (lix.strings.construction) toJSON;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) package str;
   inherit (lix.types.combinators) listOf;
@@ -22,6 +23,8 @@
 
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
+  localProvider = config._.resolved.ai.providers.llmhop.defined;
+  localModels = localProvider.models.chat.names;
   python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "pi" ''
     exec ${python}/bin/python ${./environment.py} \
@@ -56,5 +59,23 @@ in
       };
     };
 
-    outputs.home.packages = [cfg.package (lib.hiPrio launcher)];
+    outputs = {
+      home.packages = [cfg.package (lib.hiPrio launcher)];
+      home.file.".pi/agent/models.json" = mkIf (localProvider.enable && localModels != []) {
+        text = toJSON {
+          providers.llmhop = {
+            baseUrl = "http://${localProvider.host}:${toString localProvider.port}/v1";
+            api = "openai-completions";
+            apiKey = "local";
+            models =
+              map (id: {
+                inherit id;
+                contextWindow = localProvider.settings.ctx-size;
+                maxTokens = 2048;
+              })
+              localModels;
+          };
+        };
+      };
+    };
   }
