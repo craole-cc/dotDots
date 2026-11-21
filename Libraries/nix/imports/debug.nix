@@ -4,13 +4,11 @@
   ...
 }: let
   __exports = {
-    namespaced = {inherit construction assertions testing tracing;};
-    flattened = {} // construction // assertions // testing // tracing // {};
+    namespaced = {inherit assertions testing tracing;};
+    flattened = {} // assertions // testing // tracing // {};
   };
 
-  inherit (lib) debug asserts meta trivial;
-
-  construction = {inherit (meta) hiPrio;};
+  inherit (lib) debug asserts trivial;
   tracing = {
     inherit
       (debug)

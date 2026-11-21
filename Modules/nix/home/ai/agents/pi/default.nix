@@ -8,10 +8,10 @@
   ...
 }: let
   inherit (lix.attrsets.construction) optionalAttrs;
-  inherit (lix.debug.construction) hiPrio;
   inherit (lix.lists.predicates) isIn;
   inherit (lix.modules.construction) mkConfig mkContext mkIf;
   inherit (lix.options.construction) mkEnable mkOption;
+  inherit (lix.packages.construction) hiPrio;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.strings.construction) toInt toJSON;
   inherit (lix.strings.transformation) escapeShellArgs;
