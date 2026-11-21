@@ -5,11 +5,11 @@
   lix,
   user,
   pkgs,
-  lib,
   ...
 }: let
   inherit (lix.lists.predicates) isIn;
   inherit (lix.schema.packages) selectedPackages;
+  inherit (lix.packages.construction) hiPrio;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable mkOption;
   inherit (lix.types.primitives) package str port;
@@ -86,7 +86,7 @@ in
       };
     };
     outputs = {
-      home.packages = [cfg.package (lib.hiPrio launcher) desktop];
+      home.packages = [cfg.package (hiPrio launcher) desktop];
       xdg.desktopEntries.deepseek-harness = {
         name = "DeepSeek Harness";
         comment = "Open the DeepSeek Harness workspace";

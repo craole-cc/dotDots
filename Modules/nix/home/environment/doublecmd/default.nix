@@ -2,7 +2,6 @@
   apps,
   config,
   fonts,
-  lib,
   lix,
   pkgs,
   style,
@@ -13,6 +12,7 @@
   inherit (lix.lists.access) elemAt head;
   inherit (lix.modules.construction) mkConfig mkContext;
   inherit (lix.options.construction) mkEnable;
+  inherit (lix.packages.construction) hiPrio;
   inherit (lix.strings.construction) toJSON;
   inherit (lix.strings.transformation) escapeShellArg;
   inherit (lix.styles.palettes) mkTerminalPalette;
@@ -75,7 +75,7 @@ in
       condition = apps.needs "doublecmd";
     };
     outputs = {
-      home.packages = [(lib.hiPrio launcher) pkgs.libsForQt5.qt5ct];
+      home.packages = [(hiPrio launcher) pkgs.libsForQt5.qt5ct];
       systemd.user = {
         services.dotdots-doublecmd-appearance = {
           Unit = {
