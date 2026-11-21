@@ -2,6 +2,8 @@
 
 import importlib.util
 import os
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -14,6 +16,22 @@ SPEC.loader.exec_module(MODULE)
 
 
 class PiEnvironmentTest(unittest.TestCase):
+    def test_deepseek_process_receives_key_and_arguments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sources = [root / name for name in ["deepseek.env", "dsh.env", "config.env"]]
+            for index, source in enumerate(sources):
+                source.write_text(f"DEEPSEEK_API_KEY=synthetic-{index}\n")
+            probe = (
+                "import os, sys; "
+                "assert os.environ['DEEPSEEK_API_KEY'] == 'synthetic-2'; "
+                "assert sys.argv[1:] == ['headless', 'say hi']"
+            )
+            subprocess.run([
+                sys.executable, str(SCRIPT), *(str(source) for source in sources),
+                "--", sys.executable, "-c", probe, "headless", "say hi",
+            ], check=True, capture_output=True)
+
     def test_precedence_literals_and_discovery(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

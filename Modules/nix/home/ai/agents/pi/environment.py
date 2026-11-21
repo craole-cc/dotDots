@@ -1,4 +1,4 @@
-"""Load private dotenv files into Pi's process environment at launch."""
+"""Load private dotenv files into an agent's process environment at launch."""
 
 import glob
 import os
