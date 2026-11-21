@@ -89,8 +89,8 @@
       expected = lib.replicate 4 {
         source = "llm-agents";
         attribute = "dsh";
-        exec = "dsh";
-        needsTerminal = true;
+        exec = "deepseek-desktop";
+        needsTerminal = false;
       };
     };
     testString = {

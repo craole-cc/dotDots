@@ -7,11 +7,12 @@ _: {
     };
     names = {
       package = "dsh";
-      command = "dsh";
+      command = "deepseek-desktop";
+      class = "deepseek-harness";
       title = "DeepSeek Harness";
     };
-    exec = "dsh";
-    needsTerminal = true;
+    exec = "deepseek-desktop";
+    needsTerminal = false;
     categories = ["ai"];
   };
 
