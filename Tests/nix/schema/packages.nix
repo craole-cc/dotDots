@@ -76,6 +76,23 @@
       api = lib.recursiveUpdate api {hosts.demo.packages.browser.primary = "brave";};
     }).hosts.demo;
   tests = {
+    testDeepSeekHarnessAliases = {
+      expr = map (value: let
+        app = lix.applications.registry.resolve {
+          inherit value;
+          category = "ai";
+        };
+      in {
+        inherit (app.package) source attribute;
+        inherit (app) exec needsTerminal;
+      }) ["deepseek" "dsh" "dhs" "deepseek-harness"];
+      expected = lib.replicate 4 {
+        source = "llm-agents";
+        attribute = "dsh";
+        exec = "dsh";
+        needsTerminal = true;
+      };
+    };
     testString = {
       expr = browserOf {packages.browser = "brave";};
       expected = ["brave"];

@@ -1,4 +1,20 @@
 _: {
+  deepseek = {
+    aliases = ["dsh" "dhs" "deepseek-harness"];
+    package = {
+      source = "llm-agents";
+      attribute = "dsh";
+    };
+    names = {
+      package = "dsh";
+      command = "dsh";
+      title = "DeepSeek Harness";
+    };
+    exec = "dsh";
+    needsTerminal = true;
+    categories = ["ai"];
+  };
+
   pi = {
     package = {
       source = "llm-agents";
