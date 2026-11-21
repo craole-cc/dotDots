@@ -14,7 +14,8 @@
   inherit (lix.packages.construction) hiPrio;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.strings.construction) toInt toJSON;
-  inherit (lix.strings.transformation) escapeShellArgs;
+  inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
+  inherit (lix.toolkit.binaries) rust-script;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) package str;
 
@@ -28,10 +29,9 @@
   localModels = localProvider.models.chat.names;
   ollamaProvider = config._.resolved.ai.providers.ollama.defined;
   ollamaModels = ollamaProvider.models.chat.includes;
-  python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "pi" ''
-    exec ${python}/bin/python ${./environment.py} \
-      ${escapeShellArgs cfg.credentials.sources} -- ${cfg.package}/bin/pi "$@"
+    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ./environment.rs)} \
+      ${escapeShellArgs cfg.credentials.sources} -- ${escapeShellArg "${cfg.package}/bin/pi"} "$@"
   '';
 in
   mkConfig {
