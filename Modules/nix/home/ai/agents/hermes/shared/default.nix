@@ -13,11 +13,8 @@
   inherit (lix.strings.predicates) hasPrefix;
   inherit (lix.strings.transformation) unsafeDiscardStringContext;
   inherit (lix.types.predicates) isPath isString;
-  inherit (lix.lists.aggregation) concatMap;
-  inherit (lix.lists.transformation) filter;
   inherit (lix.modules.construction) mkIf mkLayer mkMerge mkOverride;
   inherit (lix.options.construction) mkFalse mkOption;
-  inherit (lix.strings.construction) concatStringsSep;
   inherit (lix.types.combinators) listOf;
   inherit (lix.types.primitives) lines str;
 
@@ -25,8 +22,8 @@
   catalog = (mkSchema {}).ai;
   shared = {
     skills = catalog.skills {inherit lix pkgs inputs;};
-    inherit (catalog) rules;
   };
+  policy = catalog.policy {inherit lix;};
   resolved = resolve {};
   files = prefix: directory:
     concatMapAttrs (name: kind:
@@ -45,30 +42,14 @@
   curated =
     concatMapAttrs (name: directory: files "skills/${name}" directory)
     (genAttrs cfg.shared.skills.curated shared.skills.curated.target);
-  allowed = filter (rule: rule.decision == "allow") shared.rules;
-  command = rule: concatStringsSep " " rule.pattern;
-  instructions = ''
-    # Shared command policy
-
-    These rules express command approval policy, not permission to start work
-    or publish changes without the user's task authorization. Follow applicable
-    repository instructions and relevant skills before acting.
-
-    ${concatStringsSep "\n" (map (rule:
-      if rule.decision == "prompt"
-      then "- Ask for approval before running `${command rule}` or that command with additional arguments."
-      else "- `${command rule}` and that command with additional arguments need no command approval prompt.")
-    shared.rules)}
-
-    Hermes's command allowlist enforces the allow entries. Prompt entries here
-    are instructions; Codex's prefix-rule prompt mechanism is not available in
-    Hermes. Keep Hermes's native approval checks enabled.
-
-    Use the relevant installed skills. For repository changes read plan-first;
-    for Nix edits read nix-style; for commits read commit-messages. Apply
-    writing-style to prose and sh-utils to shell inspection. Use nix-inspect
-    for configuration evaluation.
-  '';
+  instructions = policy.instructions {
+    runtime = "Hermes";
+    enforcement = ''
+      Hermes's command allowlist enforces the allow entries. Prompt entries here
+      are instructions; Codex's prefix-rule prompt mechanism is not available in
+      Hermes. Keep Hermes's native approval checks enabled.
+    '';
+  };
 in {
   options.shared = {
     skills = {
@@ -93,7 +74,7 @@ in {
     (mkIf cfg.shared.skills.enable {home.file = mkLayer 1500 (curated // custom);})
     (mkIf cfg.shared.rules.enable {
       home.file."AGENTS.md" = mkOverride 1500 (instructions + "\n" + cfg.shared.rules.instructions);
-      settings.command_allowlist = mkOverride 1500 (concatMap (rule: [(command rule) "${command rule} *"]) allowed);
+      settings.command_allowlist = mkOverride 1500 policy.allowlist;
     })
   ];
 }
