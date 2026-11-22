@@ -485,8 +485,14 @@ in
       lix.attrsets.access.attrNames scheduled
       == ["architect" "developer" "intern" "scribe"]
       && production.services.hermes-agent.settings.agent.reasoning_effort == "medium"
-      && profiles.developer.settings.model.default == "gpt-6.1-sol"
+      && profiles.developer.settings.model.default == "gpt-6.1-terra"
       && profiles.developer.settings.agent.reasoning_effort == "medium"
+      && profiles.scribe.settings.model.default == "gpt-6.1-terra"
+      && profiles.scribe.settings.agent.reasoning_effort == "medium"
+      && profiles.intern.settings.agent.reasoning_effort == "high"
+      && hasInfix "gpt-6.1-terra" profiles.scribe.home.file."routing-policy.json"
+      && profiles.scribe.settings.agent.reasoning_overrides."deepseek-flash" == "low"
+      && profiles.developer.settings.agent.reasoning_overrides."deepseek-flash" == "medium"
       && all (name:
         profiles.${name}.settings.scheduled_routes.policy_file
         == "${production.services.hermes-agent.hermesHome}/profiles/${name}/routing-policy.json"
@@ -575,7 +581,7 @@ in
         && profiles.${name}.settings.skills.external_dirs == ["${production.services.hermes-agent.hermesHome}/skills"]
         && !(profiles.${name}.settings.model ? base_url)
         && profiles.${name}.home.file ? "AGENTS.md") (lix.attrsets.access.attrNames profiles)
-      && profiles.architect.settings.model.default == "gpt-6.1-sol"
+      && profiles.architect.settings.model.default == "gpt-6.2-sol"
       && profiles.intern.settings.model.default == "gpt-6-luna"
       && lix.lists.predicates.elem "terminal" profiles.architect.settings.agent.disabled_toolsets
       && hasInfix "Durable Work And Native Kanban" profiles.coordinator.home.file."AGENTS.md"

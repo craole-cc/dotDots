@@ -7,19 +7,20 @@
   inherit (lix.options.construction) mkEnum mkFalse mkOption;
   inherit (lix.types.combinators) listOf nullOr;
   inherit (lix.types.primitives) str;
+  policy = import ../../../../../../../API/nix/ai/model-policy.nix;
 in {
   options = {
     model = {
       main = mkOption {
         type = nullOr str;
-        default = "gpt-6.1-sol";
+        default = policy.worker.model;
         description = ''
           Model for normal Codex work (`model`). Null leaves the choice to Codex.
         '';
       };
       review = mkOption {
         type = nullOr str;
-        default = "gpt-6.1-sol";
+        default = policy.planner.model;
         description = ''
           Model for the `/review` command (`review_model`).
           Does not affect auto-review approval decisions.
@@ -30,17 +31,17 @@ in {
     reasoning = {
       main = mkEnum {
         input = ["low" "medium" "high"];
-        default = "low";
+        default = policy.worker.effort;
         description = ''Reasoning effort for normal work (`model_reasoning_effort`).'';
       };
       review = mkEnum {
         input = ["low" "medium" "high"];
-        default = "medium";
+        default = policy.planner.effort;
         description = ''Reasoning effort for the review profile.'';
       };
       planning = mkEnum {
         input = ["low" "medium" "high"];
-        default = "high";
+        default = policy.planner.effort;
         description = ''Reasoning effort in Plan mode (`plan_mode_reasoning_effort`).'';
       };
     };

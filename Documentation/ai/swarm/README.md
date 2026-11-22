@@ -11,8 +11,8 @@ changing code.
 | --- | --- | --- |
 | Task owner/user | Desired outcome, scope, priorities, and final product decisions | Delegating those decisions implicitly to an agent |
 | Sol | Architecture contract gates when needed, material-change escalation, and final milestone review/approval | Implementation |
-| Terra (`gpt-5.6-terra`) | Implementation investigation, coding, and implementation checks within the approved contract | Durable project documentation, except implementation-local comments and necessary API docs |
-| Luna (`gpt-6-luna`) | Task briefs, durable documentation, and concise handoff synthesis | Inventing architecture or implementing code |
+| Terra | Implementation investigation, coding, and implementation checks within the approved contract | Durable project documentation, except implementation-local comments and necessary API docs |
+| Luna | Task briefs, durable documentation, and concise handoff synthesis | Inventing architecture or implementing code |
 
 The task owner may explicitly reassign a role. State the reassignment, scope,
 and duration in the task handoff. Until then, role boundaries stand. Avoid

@@ -4,6 +4,7 @@
   ...
 }: let
   inherit (lix.filesystem.access) readFile;
+  role = (import ../../model-policy.nix).executor;
 in {
   bot.title = "Librarian";
   description = "Own knowledge provenance, organization, reconciliation and authorized filing.";
@@ -15,10 +16,10 @@ in {
   settings = {
     model = {
       provider = "openai-codex";
-      default = "gpt-6-luna";
+      default = role.model;
     };
     agent = {
-      reasoning_effort = "high";
+      reasoning_effort = role.effort;
       disabled_toolsets = ["delegation"];
     };
     skills.external_dirs = ["${homePath}/skills"];

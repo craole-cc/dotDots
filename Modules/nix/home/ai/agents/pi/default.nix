@@ -16,7 +16,10 @@
   inherit (lix.packages.construction) hiPrio;
   inherit (lix.schema.packages) selectedPackages;
   inherit (lix.strings.construction) toInt toJSON;
-  inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
+  inherit (lix.strings.transformation) escapeShellArg escapeShellArgs replaceStrings;
+  inherit (lix.filesystem.access) readFile;
+  modelPolicy = import ../../../../../../API/nix/ai/model-policy.nix;
+  codexRouter = pkgs.writeText "codex-router.ts" (replaceStrings ["__ROLE_POLICY__"] [(toJSON modelPolicy)] (readFile ./extensions/codex-router.ts));
   inherit (lix.toolkit.binaries) rust-script;
   inherit (lix.types.combinators) attrsOf enum listOf nullOr;
   inherit (lix.types.primitives) package path str;
@@ -70,7 +73,7 @@ in
 
       extensions = mkOption {
         type = attrsOf path;
-        default = {"codex-router.ts" = ./extensions/codex-router.ts;};
+        default = {"codex-router.ts" = codexRouter;};
         description = "Pi extensions, keyed by file name, installed into extensions/ of the agent directory where Pi discovers them at startup and on /reload. Set to {} to install none.";
       };
 

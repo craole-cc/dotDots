@@ -4,6 +4,7 @@
   ...
 }: let
   inherit (lix.filesystem.access) readFile;
+  role = (import ../../model-policy.nix).planner;
 in {
   bot.title = "Anthropologist";
   description = "Own research methods, source quality, evidence and attributed conclusions.";
@@ -15,10 +16,10 @@ in {
   settings = {
     model = {
       provider = "openai-codex";
-      default = "gpt-6.1-sol";
+      default = role.model;
     };
     agent = {
-      reasoning_effort = "high";
+      reasoning_effort = role.effort;
       disabled_toolsets = ["delegation"];
     };
     skills.external_dirs = ["${homePath}/skills"];

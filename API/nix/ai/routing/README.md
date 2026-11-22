@@ -3,7 +3,8 @@
 `default.nix` builds each opted-in bot's policy from its normal model and
 explicit offPeakModel. It installs routing-policy.json under that profile's
 effective home. Developer, Architect, Intern and Scribe opt in. Top-level
-`ai.routing` exposes this constructor; model choices stay with their bot.
+`ai.routing` exposes this constructor; Codex role models come from
+`API/nix/ai/model-policy.nix`.
 
 Peak periods are 01:00–04:00 and 06:00–10:00 UTC on Chinese working weekdays.
 All other hours are off-peak, including ordinary weekends and the supplied
@@ -44,9 +45,9 @@ by the checks.
 ## Bounded Workflow Routes
 
 Receptionist and Coordinator use Flash all day for bounded control work, with no
-primary fallback. Intern/Scribe use Flash off-peak and Codex Luna at peak.
-Developer uses Flash off-peak and Codex Sol at peak; Architect uses DeepSeek Pro
-off-peak and Codex Sol at peak. Auditor retains independent Codex review.
+primary fallback. Intern uses Flash off-peak and the Codex executor at peak. Developer and Scribe
+use Flash off-peak and the Codex worker at peak; Architect uses DeepSeek Pro
+off-peak and the Codex planner at peak. Auditor retains independent Codex review.
 
 `fallback.nix` supplies specialist Flash fallback with the same calendar. The
 package adapter filters gated entries at startup and when activating failover;

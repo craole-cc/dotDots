@@ -5,10 +5,11 @@
   ...
 }: let
   inherit (lix.filesystem.access) readFile;
+  role = (import ../../model-policy.nix).worker;
   inherit (lix.attrsets.aggregation) recursiveUpdate;
   model = {
     provider = "openai-codex";
-    default = "gpt-6-luna";
+    default = role.model;
   };
   routing = import ../../routing {
     inherit lix homePath model environmentFiles;
@@ -28,10 +29,10 @@ in
     settings = {
       inherit model;
       agent = {
-        reasoning_effort = "high";
+        reasoning_effort = role.effort;
         reasoning_overrides = {
           "deepseek-flash" = "low";
-          "gpt-6-luna" = "high";
+          ${role.model} = role.effort;
         };
         disabled_toolsets = ["delegation"];
       };

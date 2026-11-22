@@ -16,12 +16,12 @@ reusable skills remain in the shared catalog.
 
 Source: read-only inspection of TheOracle's `/home/craole-cc/.hermes` root and
 named profile definitions. Role ownership and tool restrictions were retained;
-Receptionist references were renamed Hermes. Initial models came from the inspected configuration; local model policy is now: Architect, Anthropologist, Auditor and Developer normally use gpt-6.1-sol; the
-other roles normally use gpt-6-luna through openai-codex. Developer uses medium
-reasoning effort and default Hermes medium effort. Intern's stale local-Qwen description
-was corrected. Endpoint overrides were omitted. Scheduled routing is configured separately in
-`API/nix/ai/routing`: Intern, Scribe and Developer use DeepSeek Flash off-peak;
-Architect uses DeepSeek V4 Pro.
+Receptionist references were renamed Hermes. Codex-backed role defaults come
+from `API/nix/ai/model-policy.nix`: Architect, Anthropologist and Auditor use
+the planner; Developer, Scribe and Assistant use the worker; Intern and
+Librarian use the executor. Scheduled routing remains in `API/nix/ai/routing`:
+Intern, Scribe and Developer use DeepSeek Flash off-peak; Architect uses
+DeepSeek V4 Pro. Receptionist and Coordinator use Flash continuously.
 
 Host/user selection explicitly enables these central definitions. Multiplexing exposes named
 profiles; automatic Kanban dispatch remains disabled. Each profile references
@@ -53,10 +53,10 @@ return through the same Developer to Scribe and then through independent review.
 Explicit owner-reserved approvals still stop execution. Acceptance permits only
 continuation and publication already covered by the owner's authorisation.
 
-Normal model selection remains Developer on gpt-6.1-sol and Scribe on gpt-6-luna.
-The owner explicitly retains DeepSeek Flash for both during off-peak periods.
-Developer requests medium effort on Flash and gpt-6.1-sol; Scribe requests low
-on Flash and high on gpt-6-luna through native per-model overrides. There is no
+Developer and Scribe use the shared worker policy on Codex. The owner
+retains DeepSeek Flash for both during off-peak periods. Developer requests
+medium effort on Flash; Scribe requests low effort on Flash through native
+per-model overrides. There is no
 distinct per-token model tier between them on the Flash route; effort and the
 amount of assigned work control their usage. DeepSeek documents medium as a
 compatibility alias for high; the configuration retains the owner-requested

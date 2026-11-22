@@ -55,3 +55,14 @@ The catalog is API data, not a Home Manager module.
 Maintainers should run `Tests/nix/ai-shared` and `Tests/nix/hermes` through the
 flake before publishing changes. Activation and live agent behavior require
 separate verification; no action is taken on runtime homes by these checks.
+
+## Shared Codex role models
+
+Edit `model-policy.nix` to change the planner, worker or executor model and
+reasoning effort. Codex defaults and profiles, Pi's generated `codex/auto`
+router, and Codex-backed Hermes profiles consume this policy. DeepSeek routes
+and their effort overrides remain separate. Codex Plan mode changes effort but
+does not select a separate model here: use `codex --profile planner` to start
+with the planner. The Pi router changes from planner to worker after the first
+successful edit; direct requests use the executor. Activation and live provider
+availability still need to be verified by the owner.

@@ -7,10 +7,17 @@
   inherit (lix.options.construction) mkOption;
   inherit (lix.types.combinators) attrsOf;
   inherit (lix.types.primitives) anything;
+  policy = import ../../../../../../../API/nix/ai/model-policy.nix;
 in {
   options.profiles = mkOption {
     type = attrsOf anything;
     default = {
+      # Select explicitly when planning with the planning model.
+      planner = {
+        model = policy.planner.model;
+        model_reasoning_effort = policy.planner.effort;
+      };
+
       # Read-only second opinion on a change, using the review model.
       review = removeNulls {
         model = cfg.model.review;
@@ -31,8 +38,8 @@ in {
       };
 
       writing = {
-        model = "gpt-6-luna";
-        model_reasoning_effort = "low";
+        model = policy.executor.model;
+        model_reasoning_effort = policy.executor.effort;
         sandbox_mode = "read-only";
         developer_instructions = ''
           Perform only explicitly commissioned writing or editing tasks.

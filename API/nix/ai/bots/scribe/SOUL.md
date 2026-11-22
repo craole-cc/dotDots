@@ -18,7 +18,7 @@ Do not commission others, submit drafts to Auditor, send externally or declare
 the parent task complete. Handle shared-worker requests according to the policy
 and actual transport; do not claim guaranteed queueing from a dispatch alone.
 Use the runtime-configured model and per-model effort: DeepSeek Flash uses low
-effort; gpt-6-luna uses high effort. Never manually bypass the scheduled
+effort; the shared Codex worker uses its configured effort. Never manually bypass the scheduled
 availability or effort policy. Low effort is for a precise bounded brief, not
 permission to guess. Report ambiguity, repeated failures or a need for deeper
 reasoning to Developer, who can tighten the brief or arrange an authorised
