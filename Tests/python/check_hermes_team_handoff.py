@@ -63,6 +63,21 @@ class Handoff(unittest.TestCase):
             _session_title_hint=title, _bot_mode_protocol=True, tools=[], valid_tool_names=set(),
         )
 
+    def test_managed_worker_identity_restricts_routes_and_requires_poll(self):
+        from agent.runtime_session_store import RuntimeSessionStore
+
+        home = self.home("coordinator")
+        agent = self.agent(profile="coordinator", platform="cli", title="Bot Chat")
+        scope = {"profile_id": str(home), "session_id": agent.session_id}
+        store = RuntimeSessionStore(lambda *args, **kwargs: self.fail("unexpected RPC"), scope, home / "outbox")
+        self.addCleanup(store._outbox_owner.close)
+        agent._session_db = store
+        self.assertTrue(team.requires_poll(agent))
+        self.assertEqual(team.policy_for(agent)[1], "coordinator")
+        sender = SimpleNamespace(roster_homes={"auditor": self.home("auditor"), "scribe": self.home("scribe")})
+        self.assertIsNone(team.target_error(agent, ["auditor"], sender))
+        self.assertIsNotNone(team.target_error(agent, ["scribe"], sender))
+
     def test_telegram_tool_and_protocol_without_renaming_session(self):
         agent = self.agent()
         self.assertTrue(dm.ensure_message_agent_tool(agent))
@@ -208,11 +223,17 @@ class Handoff(unittest.TestCase):
         rows = []
         ready = threading.Event()
 
-        def append(session_id, role, **fields):
-            rows.append((session_id, role, fields))
+        def append(session_id, message):
+            rows.append((session_id, message.role, {
+                "display_kind": message.display_kind,
+                "content": message.content,
+            }))
             ready.set()
 
-        agent._session_db.append_message = append
+        agent.persistence = SimpleNamespace(
+            scope=SimpleNamespace(profile_dir=self.home("coordinator")),
+            messages=SimpleNamespace(append=append),
+        )
         payload = json.dumps({"status": "settled", "delivery_id": "audit-id", "reply": "Fixture audit result"})
         child = subprocess.Popen([sys.executable, "-c", f"print({payload!r})"],
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

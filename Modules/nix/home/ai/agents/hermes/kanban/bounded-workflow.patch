@@ -1,11 +1,23 @@
 --- a/agent/chat_completion_helpers.py
 +++ b/agent/chat_completion_helpers.py
-@@ -2048,0 +2049,3 @@
+@@ -1998,6 +1998,9 @@
+             return _fallback_chain_exhausted(agent, reason)
+         fb = agent._fallback_chain[agent._fallback_index]
+         agent._fallback_index += 1
 +        from agent.scheduled_routes import fallback_allowed
 +        if not fallback_allowed(fb):
 +            continue
-@@ -2065,0 +2069 @@
+         fb_key = _fallback_entry_key(fb)
+         if getattr(agent, "_unavailable_fallback_keys", None) is None:
+             agent._unavailable_fallback_keys = set()
+@@ -2028,6 +2031,7 @@
+             # ``_fallback_activated`` is also reused by `/model --once` restoration; separate
+             # provenance so the restore path only emits a recovery notice after a real fallback.
+             agent._provider_fallback_active = True
 +            agent._off_peak_fallback_entry = fb if fb.get("off_peak_policy_file") else None
+             agent._provider_fallback_route = (str(fb_model), str(fb_provider))
+             _log_fallback_activated(agent, reason, old_model, old_provider, fb_model, fb_provider)
+             from hermes_cli.observability.shared_metrics_events import record_fallback
 --- a/agent/skill_utils.py
 +++ b/agent/skill_utils.py
 @@ -470 +470,5 @@
@@ -40,11 +52,17 @@
 +    "repository_read": _ts("Read-only repository evidence", ["read_file", "search_files"]),
 --- a/hermes_cli/fallback_config.py
 +++ b/hermes_cli/fallback_config.py
-@@ -109,0 +110,4 @@
+@@ -116,6 +116,10 @@
+     for entry in candidates:
+         if not isinstance(entry, dict):
+             continue
 +        if entry.get("off_peak_policy_file"):
 +            from agent.scheduled_routes import fallback_allowed
 +            if not fallback_allowed(entry):
 +                continue
+         provider = str(entry.get("provider") or "").strip()
+         model = str(entry.get("model") or "").strip()
+         if not provider or not model:
 --- a/tools/kanban_tools.py
 +++ b/tools/kanban_tools.py
 @@ -1225 +1225 @@

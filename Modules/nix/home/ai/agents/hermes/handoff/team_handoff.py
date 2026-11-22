@@ -13,10 +13,16 @@ def policy_for(agent):
     from tools.bot_mode_probe import _hermes_root, _profile_name
 
     # Require a real session owner: ambient HERMES_HOME is insufficient here.
-    database = getattr(getattr(agent, "_session_db", None), "db_path", None)
-    if not isinstance(database, (str, Path)) or not getattr(agent, "session_id", None):
+    store = getattr(agent, "_session_db", None)
+    database = getattr(store, "db_path", None)
+    persistence = getattr(agent, "persistence", None)
+    profile_dir = getattr(getattr(persistence, "scope", None), "profile_dir", None)
+    from agent.runtime_session_store import RuntimeSessionStore
+    worker_scope = store.scope if isinstance(store, RuntimeSessionStore) else {}
+    worker_home = worker_scope.get("profile_id") if worker_scope.get("session_id") == getattr(agent, "session_id", None) else None
+    if not getattr(agent, "session_id", None) or not any(isinstance(value, (str, Path)) for value in (database, profile_dir, worker_home)):
         return None, None
-    home = Path(_agent_home(agent))
+    home = Path(worker_home or _agent_home(agent))
     file = _hermes_root(home) / "team-handoff.json"
     if not file.exists():
         return None, _profile_name(home)

@@ -1,7 +1,6 @@
 --- a/tools/bot_mode_dm.py
 +++ b/tools/bot_mode_dm.py
-@@ -135,7 +135,8 @@
-
+@@ -136,5 +136,6 @@
          # Managed-install check, NOT section non-emptiness: a SOUL.md carrying the
          # legacy protocol text gets an empty section but must still get the tool.
 -        return _session_title(agent) == BOT_CHAT_TITLE and is_bot_mode_managed(_agent_home(agent))
@@ -9,18 +8,14 @@
 +        return (_session_title(agent) == BOT_CHAT_TITLE or gateway_authorized(agent)) and is_bot_mode_managed(_agent_home(agent))
      except Exception:  # pragma: no cover — must never break a turn
          logger.debug("message_agent_authorized failed", exc_info=True)
-         return False
-@@ -248,7 +249,7 @@
-             _profile_name as _self_profile_name, _roster, is_bot_mode_managed,
+@@ -263,5 +264,5 @@
          )
 
 -        if _session_title(agent) != BOT_CHAT_TITLE:
 +        if not message_agent_authorized(agent):
              return _err("message_agent is only available in a Bot Mode 'Bot Chat' session. "
                          "This session is not one; do not retry.")
-         if not is_bot_mode_managed(home):
-@@ -283,6 +284,10 @@
-         return sender.roster_err("target is required.")
+@@ -298,4 +299,8 @@
      if len(targets) > FAN_OUT_MAX:
          return _err(f"Too many targets ({len(targets)} > {FAN_OUT_MAX}); message the ones the task needs.")
 +    from tools.team_handoff import target_error
@@ -29,19 +24,15 @@
 +        return _err(restriction)
      reply = _wants_reply(expects_reply)
      # Sender signature: the friendly name when the bot has one (#89720); the @handle stays the routing alias.
-     signature = f"Message from 🤖 {_display_name(me, roster_homes.get(me, Path(home)), list(roster_homes))} (@{_handle(me, list(roster_homes))}): "
-@@ -842,7 +847,8 @@
-     try:
-         from tools.terminal_tool import terminal_tool
+@@ -871,5 +876,6 @@
 
+         from hermes_cli._startup_fast import project_root_str
 -        raw = terminal_tool(command, background=True, notify_on_complete=wake != "none", task_id=task_id,
 +        from tools.team_handoff import requires_poll
 +        raw = terminal_tool(command, background=True, notify_on_complete=wake != "none" and not requires_poll(agent), task_id=task_id,
-                             workdir=str(Path(__file__).resolve().parent.parent), _host_local=True,
+                             workdir=project_root_str(), _host_local=True,
                              _completion_output_chars=completion_chars)
-         try:
-@@ -865,7 +871,8 @@
-         if wake == "none":
+@@ -894,5 +900,6 @@
              return json.dumps({"status": "queued", "delivery_id": delivery_id or (_dm_delivery_id(dm_file) if dm_file
                                 else ""), "to": label, "expects_reply": False, "detail": _NOTIFY_ONLY_DETAIL})
 -        if parsed.get("notify_on_complete") is False:
@@ -49,22 +40,27 @@
 +        if poll_reply:
              # terminal_tool refused the completion promise: this session (api_server, one-shot
              # runner) cannot receive an async completion, so the recipient's reply would never
-             # be injected here (#101142). Say so and name the return path the surface supports.
-@@ -888,7 +895,7 @@
-             "status": "queued",
+@@ -917,5 +924,5 @@
              "delivery_id": delivery_id or (_dm_delivery_id(dm_file) if dm_file else ""),
              "to": label,
 -            "reply_delivery": "poll" if parsed.get("notify_on_complete") is False else "notification",
 +            "reply_delivery": "poll" if poll_reply else "notification",
              "detail": detail,
              "process_id": proc_id,
-             "queued_at": int(time.time()),
+@@ -1041,4 +1048,7 @@
+         if persistence is not None:
+             return str(persistence.scope.profile_dir)
++    database = getattr(getattr(agent, "_session_db", None), "db_path", None)
++    if database:
++        return str(Path(database).parent)
+     return _default_home()
+
 --- a/agent/system_prompt.py
 +++ b/agent/system_prompt.py
-@@ -359,13 +359,17 @@
-             _sdb = getattr(agent, "_session_db", None)
-             _sid = getattr(agent, "session_id", None)
-             _title = str((_sdb.get_session_title(_sid) if (_sdb and _sid) else None) or "").strip()
+@@ -375,13 +375,17 @@
+                 _store = agent_interface(agent)
+                 _title = str((_store.sessions.get_title(_sid) if _store is not None
+                               else _sdb.get_session_title(_sid)) or "").strip()
 -        _bot_section = get_bot_mode_protocol_section(_agent_home(agent)) if _title == BOT_CHAT_TITLE else None
 +        from tools.team_handoff import gateway_authorized, gateway_prompt
 +        _gateway_handoff = gateway_authorized(agent)
