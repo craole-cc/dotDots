@@ -1,4 +1,4 @@
-"""Focus the DeepSeek workspace and start any missing app windows."""
+"""Toggle the DeepSeek workspace and start any missing app windows."""
 
 import fcntl
 import json
@@ -28,7 +28,12 @@ def focus_and_inspect():
 
         for monitor in query("hyprctl", "-j", "monitors"):
             special = (monitor.get("specialWorkspace") or {}).get("name", "")
-            if monitor["focused"] and special.startswith("special:"):
+            if not monitor["focused"]:
+                continue
+            if not special and monitor["activeWorkspace"]["name"] == WORKSPACE:
+                dispatch('hl.dsp.focus({ workspace = "previous" })')
+                return None
+            if special.startswith("special:"):
                 name = json.dumps(special.removeprefix("special:"))
                 dispatch(f"hl.dsp.workspace.toggle_special({name})")
         dispatch(f'hl.dsp.focus({{ workspace = "name:{WORKSPACE}" }})')
@@ -41,6 +46,15 @@ def focus_and_inspect():
             }
 
     elif os.environ.get("NIRI_SOCKET"):
+        if any(
+            workspace["name"] == WORKSPACE and workspace["is_focused"]
+            for workspace in query("niri", "msg", "--json", "workspaces")
+        ):
+            subprocess.run(
+                ["niri", "msg", "action", "focus-workspace-previous"],
+                check=True, stdout=subprocess.DEVNULL, timeout=5,
+            )
+            return None
         subprocess.run(
             ["niri", "msg", "action", "focus-workspace", WORKSPACE],
             check=True, stdout=subprocess.DEVNULL, timeout=5,
@@ -73,6 +87,8 @@ def main():
             return
 
         classes = focus_and_inspect()
+        if classes is None:
+            return
         current = classes()
         pending = [
             (app_classes, subprocess.Popen([launcher]))

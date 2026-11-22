@@ -29,7 +29,9 @@ DSH 0.2.2-rc.5 does not expose Codex OAuth in Models settings.
 ## Open Harness and Chat together
 
 On Hyprland or Niri, press **Super+Shift+Alt+A** or run `deepseek-workspace` to focus
-**AI-Deepseek** and open any missing Harness or DeepSeek Chat windows. Run
+**AI-Deepseek** and open any missing Harness or DeepSeek Chat windows.
+Press the shortcut again while that workspace is visible to return to the
+previous workspace. Run
 `deepseek-chat` to open Chat by itself. Chat keeps its browser session in
 its own Chromium profile.
 
