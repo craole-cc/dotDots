@@ -61,6 +61,14 @@
     hl.window_rule({ match = { class = "^kitty$" }, suppress_event = "maximize" })
   '';
 
+  deepseekWorkspaceRules = ''
+    hl.workspace_rule({ workspace = "name:AI-Deepseek", persistent = true })
+    hl.window_rule({
+      match = { class = "^(deepseek-harness|deepseek-chat|chrome-127[.]0[.]0[.]1__-Default|chrome-chat[.]deepseek[.]com__-Default)$" },
+      workspace = "name:AI-Deepseek",
+    })
+  '';
+
   # Editor window opacity lives in a mutable Lua module: the appearance sync
   # rewrites it with the active mode's value, so light and dark can differ
   # without a rebuild. Activation seeds the default mode as the baseline.
@@ -199,6 +207,7 @@
       -- remain authoritative even if DMS has persisted older bindings.
     ''
     + dmsKittyWindowRule
+    + deepseekWorkspaceRules
     + keyboardBinds
     + dmsWindowLastBind
     + dmsWindowCycleBinds

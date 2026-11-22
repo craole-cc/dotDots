@@ -159,8 +159,13 @@ in
             scratchpads.binds
           ]);
           #? niri >= 26 declares each startup workspace as its own node.
-          workspace = map (name: {_args = [name];}) (attrNames scratchpads.workspaces);
-          window-rule = editorWindowRules ++ scratchpads.window-rules;
+          workspace = map (name: {_args = [name];}) (attrNames scratchpads.workspaces ++ ["AI-Deepseek"]);
+          window-rule = editorWindowRules ++ scratchpads.window-rules ++ [
+            {
+              match._props.app-id = "^(deepseek-harness|deepseek-chat|chrome-127[.]0[.]0[.]1__-Default|chrome-chat[.]deepseek[.]com__-Default)$";
+              open-on-workspace = "AI-Deepseek";
+            }
+          ];
         };
       };
 
