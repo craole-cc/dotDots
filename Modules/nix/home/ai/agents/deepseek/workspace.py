@@ -20,10 +20,18 @@ def query(*command):
 
 def focus_and_inspect():
     if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
-        subprocess.run(
-            ["hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "name:{WORKSPACE}" }})'],
-            check=True, stdout=subprocess.DEVNULL, timeout=5,
-        )
+        def dispatch(action):
+            subprocess.run(
+                ["hyprctl", "dispatch", action],
+                check=True, stdout=subprocess.DEVNULL, timeout=5,
+            )
+
+        for monitor in query("hyprctl", "-j", "monitors"):
+            special = (monitor.get("specialWorkspace") or {}).get("name", "")
+            if monitor["focused"] and special.startswith("special:"):
+                name = json.dumps(special.removeprefix("special:"))
+                dispatch(f"hl.dsp.workspace.toggle_special({name})")
+        dispatch(f'hl.dsp.focus({{ workspace = "name:{WORKSPACE}" }})')
 
         def classes():
             return {
