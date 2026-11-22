@@ -16,6 +16,7 @@
   inherit (lix.types.combinators) listOf;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
   inherit (lix.strings.construction) toJSON;
+  inherit (lix.filesystem.access) readFile;
   inherit (lix.toolkit.binaries) rust-script;
 
   dom = "ai";
@@ -45,9 +46,10 @@
         ];
     }
   ]);
+  environmentScript = pkgs.writeText "pi-environment.rs" (readFile ../pi/environment.rs);
   python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "dsh" ''
-    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ../pi/environment.rs)} \
+    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString environmentScript)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${cfg.package}/bin/dsh "$@"
   '';
   desktop = pkgs.writeShellScriptBin "deepseek-desktop" ''

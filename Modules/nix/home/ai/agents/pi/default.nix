@@ -18,6 +18,7 @@
   inherit (lix.strings.construction) toInt toJSON;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs replaceStrings;
   inherit (lix.filesystem.access) readFile;
+  environmentScript = pkgs.writeText "pi-environment.rs" (readFile ./environment.rs);
   modelPolicy = import ../../../../../../API/nix/ai/model-policy.nix;
   codexRouter = pkgs.writeText "codex-router.ts" (replaceStrings ["__ROLE_POLICY__"] [(toJSON modelPolicy)] (readFile ./extensions/codex-router.ts));
   inherit (lix.toolkit.binaries) rust-script;
@@ -40,7 +41,7 @@
     // optionalAttrs (cfg.defaults.thinkingLevel != null) {defaultThinkingLevel = cfg.defaults.thinkingLevel;}
   );
   launcher = pkgs.writeShellScriptBin "pi" ''
-    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ./environment.rs)} \
+    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString environmentScript)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${escapeShellArg "${cfg.package}/bin/pi"} "$@"
   '';
 in
