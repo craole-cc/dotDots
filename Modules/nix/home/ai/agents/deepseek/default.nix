@@ -52,6 +52,12 @@
     exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString environmentScript)} \
       ${escapeShellArgs cfg.credentials.sources} -- ${cfg.package}/bin/dsh "$@"
   '';
+  codexLogin = pkgs.writeShellScriptBin "deepseek-codex-login" ''
+    umask 077
+    exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString environmentScript)} \
+      ${escapeShellArgs cfg.credentials.sources} -- ${pkgs.nodejs_24}/bin/node --expose-internals ${./codex-login.mjs} \
+      ${cfg.package}/lib/node_modules/@deepseek-ai/dsh/package.json
+  '';
   desktop = pkgs.writeShellScriptBin "deepseek-desktop" ''
     exec ${python}/bin/python ${./desktop.py} \
       ${pkgs.systemd}/bin/systemctl ${cfg.desktop.browser}/bin/chromium \
@@ -112,7 +118,7 @@ in
       };
     };
     outputs = {
-      home.packages = [cfg.package (hiPrio launcher) desktop];
+      home.packages = [cfg.package (hiPrio launcher) desktop codexLogin];
       xdg.desktopEntries.deepseek-harness = {
         name = "DeepSeek Harness";
         comment = "Open the DeepSeek Harness workspace";
