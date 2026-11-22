@@ -19,6 +19,7 @@
   ];
 in {
   legacy = {
+    deepseekWorkspace = command "deepseek-workspace";
     browserSend = native "move-window-to-workspace dotdots-browser-1";
     close = native "close-window";
     fullscreen = native "fullscreen-window";

@@ -63,6 +63,16 @@
       ${pkgs.systemd}/bin/systemctl ${cfg.desktop.browser}/bin/chromium \
       ${toString cfg.desktop.port} "$@"
   '';
+  chat = pkgs.writeShellScriptBin "deepseek-chat" ''
+    configHome="''${XDG_CONFIG_HOME:-$HOME/.config}"
+    exec ${cfg.desktop.browser}/bin/chromium \
+      --user-data-dir="$configHome/deepseek-chat-browser" \
+      --class=deepseek-chat --app=https://chat.deepseek.com/
+  '';
+  workspace = pkgs.writeShellScriptBin "deepseek-workspace" ''
+    ${desktop}/bin/deepseek-desktop &
+    exec ${chat}/bin/deepseek-chat
+  '';
   backend = pkgs.writeShellApplication {
     name = "deepseek-web-backend";
     runtimeInputs = [pkgs.coreutils];
@@ -118,7 +128,7 @@ in
       };
     };
     outputs = {
-      home.packages = [cfg.package (hiPrio launcher) desktop codexLogin];
+      home.packages = [cfg.package (hiPrio launcher) desktop codexLogin chat workspace];
       xdg.desktopEntries.deepseek-harness = {
         name = "DeepSeek Harness";
         comment = "Open the DeepSeek Harness workspace";

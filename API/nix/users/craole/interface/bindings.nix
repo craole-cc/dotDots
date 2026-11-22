@@ -135,6 +135,12 @@ in {
       editor = mkApplication "Code Editor" "C";
       ide = mkApplication "Integrated Development Environment" "V";
       agent = mkApplication "Agent" "A";
+      deepseekWorkspace = {
+        key = "A";
+        modifier = superShiftAlt;
+        category = "application";
+        description = "Open DeepSeek Harness and Chat";
+      };
       media = mkApplication "Media" "M";
 
       #~@ System Control
