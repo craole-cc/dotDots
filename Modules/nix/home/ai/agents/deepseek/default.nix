@@ -70,8 +70,8 @@
       --class=deepseek-chat --app=https://chat.deepseek.com/
   '';
   workspace = pkgs.writeShellScriptBin "deepseek-workspace" ''
-    ${desktop}/bin/deepseek-desktop &
-    exec ${chat}/bin/deepseek-chat
+    exec ${pkgs.python3}/bin/python ${./workspace.py} \
+      ${desktop}/bin/deepseek-desktop ${chat}/bin/deepseek-chat
   '';
   backend = pkgs.writeShellApplication {
     name = "deepseek-web-backend";
