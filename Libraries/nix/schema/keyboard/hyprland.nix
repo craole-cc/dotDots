@@ -31,7 +31,6 @@
 in {
   # Hyprland-native actions do not depend on DMS being installed.
   legacy = {
-    deepseekWorkspace = command "deepseek-workspace";
     browserSend = callback ''function() dotdots_scratchpads.send("browser-primary") end'';
     close = native "window.close()";
     inherit fullscreen;

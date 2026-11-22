@@ -140,6 +140,7 @@ in {
         modifier = superShiftAlt;
         category = "application";
         description = "Open DeepSeek Harness and Chat";
+        action = "deepseek-workspace";
       };
       media = mkApplication "Media" "M";
 
