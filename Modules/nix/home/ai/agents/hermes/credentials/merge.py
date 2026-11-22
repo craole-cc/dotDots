@@ -29,7 +29,8 @@ def merge(destination: Path, sources: list[str]) -> None:
             values.update({
                 key: value
                 for key, value in dotenv_values(path, interpolate=False).items()
-                if value is not None
+                # Telegram belongs to the gateway's separate telegram.env.
+                if value is not None and not key.startswith("TELEGRAM_")
             })
     body = "".join(
         f"{key}='" + value.replace("\\", "\\\\").replace("'", "\\'") + "'\n"

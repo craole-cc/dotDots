@@ -36,7 +36,7 @@ class CredentialsTest(unittest.TestCase):
             self.assertEqual(values["KEY"], "last")
             self.assertEqual(values["BASE_ONLY"], "yes")
             self.assertEqual(values["EMPTY"], "")
-            self.assertEqual(values["TELEGRAM_BOT_TOKEN"], "fake")
+            self.assertNotIn("TELEGRAM_BOT_TOKEN", values)
             self.assertEqual(values["HF_TOKEN"], "fake")
             self.assertEqual(values["LITERAL"], dotenv_values(sources / "z.env", interpolate=False)["LITERAL"])
             self.assertEqual(stat.S_IMODE(destination.stat().st_mode), 0o600)
@@ -46,6 +46,30 @@ class CredentialsTest(unittest.TestCase):
             (sources / "new.env").unlink()
             MODULE.merge(destination, patterns)
             self.assertNotIn("NEW_KEY", dotenv_values(destination))
+
+    def test_shared_credentials_remove_stale_telegram_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.env"
+            destination = root / "credentials.env"
+            original = (
+                "TELEGRAM_BOT_TOKEN=fake\n"
+                "TELEGRAM_ALLOWED_USERS=123\n"
+                "TELEGRAM_HOME_CHANNEL_THREAD_ID=\n"
+                "TELEGRAM_FUTURE_SETTING=excluded\n"
+                "OPENAI_API_KEY=provider-key\n"
+                "DEEPSEEK_API_KEY=deepseek-key\n"
+            )
+            self.write(source, original)
+            self.write(destination, "TELEGRAM_BOT_TOKEN=stale\nREMOVED_KEY=stale\n")
+            MODULE.merge(destination, [str(source)])
+            self.assertEqual(dotenv_values(destination, interpolate=False), {
+                "OPENAI_API_KEY": "provider-key",
+                "DEEPSEEK_API_KEY": "deepseek-key",
+            })
+            self.assertEqual(source.read_text(), original)
+            self.assertEqual(stat.S_IMODE(destination.stat().st_mode), 0o600)
+            self.assertEqual(list(root.glob(".credentials-*")), [])
 
     def test_missing_sources_and_refusal_preserve_output(self):
         with tempfile.TemporaryDirectory() as directory:
