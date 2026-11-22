@@ -15,6 +15,7 @@
   inherit (lix.types.primitives) package str port;
   inherit (lix.types.combinators) listOf;
   inherit (lix.strings.transformation) escapeShellArg escapeShellArgs;
+  inherit (lix.strings.construction) toJSON;
   inherit (lix.toolkit.binaries) rust-script;
 
   dom = "ai";
@@ -22,6 +23,28 @@
   mod = "deepseek";
   context = mkContext {inherit config dom sub mod;};
   inherit (context) cfg;
+  modelPolicy = import ../../../../../../API/nix/ai/model-policy.nix;
+  codexRoute = pkgs.writeText "dsh-codex-route.json" (toJSON [
+    {
+      id = "llm-pi-ai";
+      config.providers.openai-codex.models =
+        map (role: {
+          id = role.model;
+          input = ["text" "image"];
+          reasoningEfforts = {
+            low = "low";
+            medium = "medium";
+            high = "high";
+            xhigh = "xhigh";
+            max = "max";
+          };
+        }) [
+          modelPolicy.planner
+          modelPolicy.worker
+          modelPolicy.executor
+        ];
+    }
+  ]);
   python = pkgs.python3.withPackages (packages: [packages.python-dotenv]);
   launcher = pkgs.writeShellScriptBin "dsh" ''
     exec ${escapeShellArg (toString rust-script)} ${escapeShellArg (toString ../pi/environment.rs)} \
@@ -40,7 +63,7 @@
       runtime="''${XDG_RUNTIME_DIR:?}/deepseek-web"
       mkdir -p "$runtime"
       chmod 0700 "$runtime"
-      exec ${launcher}/bin/dsh web --host 127.0.0.1 --port ${toString cfg.desktop.port} --no-open >"$runtime/startup.log" 2>&1
+      exec ${launcher}/bin/dsh web --patch ${codexRoute} --host 127.0.0.1 --port ${toString cfg.desktop.port} --no-open >"$runtime/startup.log" 2>&1
     '';
   };
 in

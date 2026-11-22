@@ -21,3 +21,9 @@ desktop backend is running, stop the service and reopen the app.
 Configure `_.resolved.ai.agents.deepseek.defined.desktop.port` or
 `desktop.browser` to change the port or Chromium package. This is a launcher
 for the Web UI, not the upstream Electron application.
+
+The web profile adds an `openai-codex` provider with the planner, worker and
+executor models from `API/nix/ai/model-policy.nix`. DeepSeek remains the default.
+DSH keeps its own provider credentials: sign in through its provider settings
+after activation. The route does not import Pi's credentials. Other DSH
+profiles keep their own provider configuration.
