@@ -24,9 +24,9 @@ let
   ];
 
   editor = [
+    (builtins.head ide)
     "helix"
     # "neovim"
-    # (builtins.head ide)
   ];
 
   ide = [
@@ -70,6 +70,7 @@ let
     "mpv"
     "cmus"
     "playerctl"
+    "bookworm"
   ];
 
   launcher = [
