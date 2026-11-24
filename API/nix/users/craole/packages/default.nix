@@ -70,7 +70,6 @@ let
     "mpv"
     "cmus"
     "playerctl"
-    "bookworm"
     "foliate"
   ];
 
