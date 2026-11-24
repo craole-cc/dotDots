@@ -24,8 +24,8 @@ let
   ];
 
   editor = [
-    (builtins.head ide)
     "helix"
+    (builtins.head ide)
     # "neovim"
   ];
 
