@@ -71,6 +71,7 @@ let
     "cmus"
     "playerctl"
     "bookworm"
+    "foliate"
   ];
 
   launcher = [
