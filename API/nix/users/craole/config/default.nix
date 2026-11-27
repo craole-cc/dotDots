@@ -4,4 +4,6 @@
     # ./programs
     # ./services
   ];
+
+  home.sessionPath = ["$HOME/.cargo/bin"];
 }
